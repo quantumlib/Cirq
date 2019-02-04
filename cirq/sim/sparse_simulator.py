@@ -256,7 +256,7 @@ class SimulatorStep(simulator.StepResult):
         Attributes:
             qubit_map: A map from the Qubits in the Circuit to the the index
                 of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state (see the state() method).
+                is used to define the state (see the state_vector() method).
             measurements: A dictionary from measurement gate key to measurement
                 results, ordered by the qubits that the measurement operates on.
         """
@@ -264,7 +264,7 @@ class SimulatorStep(simulator.StepResult):
         self._dtype = dtype
         self._state = np.reshape(state, 2 ** len(qubit_map))
 
-    def state(self) -> np.ndarray:
+    def state_vector(self) -> np.ndarray:
         return self._state
 
     def set_state(self, state: Union[int, np.ndarray]):

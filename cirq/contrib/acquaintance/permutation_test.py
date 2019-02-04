@@ -27,7 +27,9 @@ def test_swap_permutation_gate():
                             op.gate == cirq.SWAP)
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate()(a, b))
+    gate = cca.SwapPermutationGate()
+    assert gate.num_qubits() == 2
+    circuit = cirq.Circuit.from_ops(gate(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 
@@ -94,7 +96,7 @@ def test_linear_permutation_gate(n_elements, n_permuted):
     cca.PermutationGate.validate_permutation(permutation, n_elements)
     gate = cca.LinearPermutationGate(permutation)
     ct.assert_equivalent_repr(gate)
-    assert gate.permutation(n_elements) == permutation
+    assert gate.permutation() == permutation
     mapping = dict(zip(qubits, elements))
     for swap in cirq.flatten_op_tree(cirq.decompose_once_with_qubits(
             gate, qubits)):
@@ -120,8 +122,20 @@ def random_equal_permutations(n_perms, n_items, prob):
     return permutations
 
 
+def random_permutation_equality_groups(
+        n_groups, n_perms_per_group, n_items, prob):
+    fingerprints = set()
+    for _ in range(n_groups):
+        perms = random_equal_permutations(n_perms_per_group, n_items, prob)
+        perm = perms[0]
+        fingerprint = tuple(perm.get(i, i) for i in range(n_items))
+        if fingerprint not in fingerprints:
+            yield perms
+            fingerprints.add(fingerprint)
+
+
 @pytest.mark.parametrize('permutation_sets',
-    [[random_equal_permutations(3, 10, 0.5) for _ in range(5)]])
+    [random_permutation_equality_groups(5, 3, 10, 0.5)])
 def test_linear_permutation_gate_equality(permutation_sets):
     swap_gates = [cirq.SWAP, cirq.CNOT]
     equals_tester = ct.EqualsTester()
