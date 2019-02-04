@@ -82,3 +82,4 @@ def test_invalid_mixture(val, message):
 def test_missing_mixture():
     with pytest.raises(TypeError, match='_mixture_'):
         cirq.validate_mixture(NoMethod)
+

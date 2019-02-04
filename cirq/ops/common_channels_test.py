@@ -22,6 +22,13 @@ Y = np.array( [[0, -1j], [1j, 0]])
 Z = np.array( [[1, 0], [0, -1]])
 
 
+def assert_mixtures_equal(actual, expected):
+    """Assert equal for tuple of mixed scalar and array types."""
+    for a, e in zip(actual, expected):
+        np.testing.assert_almost_equal(a[0], e[0])
+        np.testing.assert_almost_equal(a[1], e[1])
+
+
 def test_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
@@ -29,6 +36,15 @@ def test_asymmetric_depolarizing_channel():
                                     np.sqrt(0.1) * X,
                                     np.sqrt(0.2) * Y,
                                     np.sqrt(0.3) * Z))
+
+
+def test_asymmetric_depolarizing_mixture():
+    d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.4, np.eye(2)),
+                           (0.1, X),
+                           (0.2, Y),
+                           (0.3, Z)))
 
 
 def test_asymmetric_depolarizing_channel_repr():
@@ -88,6 +104,15 @@ def test_depolarizing_channel():
                                     np.sqrt(0.1) * X,
                                     np.sqrt(0.1) * Y,
                                     np.sqrt(0.1) * Z))
+
+
+def test_depolarizing_mixture():
+    d = cirq.depolarize(0.3)
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.7, np.eye(2)),
+                           (0.1, X),
+                           (0.1, Y),
+                           (0.1, Z)))
 
 
 def test_depolarizing_channel_repr():
@@ -259,6 +284,13 @@ def test_phase_flip_channel():
                                    np.sqrt(1.-0.3) * Z))
 
 
+def test_phase_flip_mixture():
+    d = cirq.phase_flip(0.3)
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.3, np.eye(2)),
+                           (0.7, Z)))
+
+
 def test_phase_flip_overload():
     d = cirq.phase_flip()
     d2 = cirq.phase_flip(0.3)
@@ -303,6 +335,13 @@ def test_bit_flip_channel():
     np.testing.assert_almost_equal(cirq.channel(d),
                                   (np.sqrt(0.3) * np.eye(2),
                                    np.sqrt(1.0 - 0.3) * X))
+
+
+def test_bit_flip_mixture():
+    d = cirq.bit_flip(0.3)
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.3, np.eye(2)),
+                           (0.7, X)))
 
 
 def test_bit_flip_overload():
