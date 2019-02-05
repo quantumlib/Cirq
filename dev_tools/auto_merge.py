@@ -16,6 +16,11 @@ AUTO_MERGE_LABELS = ['automerge', HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
 
+def is_recent_date(date: datetime.datetime) -> bool:
+    d = datetime.datetime.utcnow() - date
+    return d < RECENTLY_MODIFIED_THRESHOLD
+
+
 class CannotAutomergeError(RuntimeError):
     pass
 
@@ -78,8 +83,7 @@ class PullRequestDetails:
 
     @property
     def modified_recently(self) -> bool:
-        d = datetime.datetime.utcnow() - self.last_updated
-        return d < RECENTLY_MODIFIED_THRESHOLD
+        return is_recent_date(self.last_updated)
 
     @property
     def marked_automergeable(self) -> bool:
@@ -401,8 +405,12 @@ def wait_a_tick():
     time.sleep(5)
 
 
-def absent_status_checks(pr: PullRequestDetails) -> Set[str]:
-    branch_data = get_branch_details(pr.repo, pr.base_branch_name)
+def absent_status_checks(pr: PullRequestDetails,
+                         master_data: Optional[Any] = None) -> Set[str]:
+    if pr.base_branch_name == 'master' and master_data is not None:
+        branch_data = master_data
+    else:
+        branch_data = get_branch_details(pr.repo, pr.base_branch_name)
     status_data = get_pr_statuses(pr)
     check_data = get_pr_checks(pr)
 
@@ -593,6 +601,13 @@ def auto_delete_pr_branch(pr: PullRequestDetails) -> bool:
     return False
 
 
+def branch_data_modified_recently(payload: Any) -> bool:
+    modified_date = datetime.datetime.strptime(
+        payload['commit']['commit']['committer']['date'],
+        '%Y-%m-%dT%H:%M:%SZ')
+    return is_recent_date(modified_date)
+
+
 def add_labels_to_pr(repo: GithubRepository,
                      pull_id: int,
                      *labels: str,
@@ -679,7 +694,8 @@ def find_auto_mergeable_prs(repo: GithubRepository) -> List[int]:
 
 
 def find_problem_with_automergeability_of_pr(
-        pr: PullRequestDetails) -> Optional[CannotAutomergeError]:
+        pr: PullRequestDetails,
+        master_branch_data: Any) -> Optional[CannotAutomergeError]:
     # Sanity.
     if pr.payload['state'] != 'open':
         return CannotAutomergeError('Not an open pull request.')
@@ -707,7 +723,7 @@ def find_problem_with_automergeability_of_pr(
     # Some issues can only be detected after waiting a bit.
     if not pr.modified_recently:
         # Nothing is setting a required status check.
-        missing_statuses = absent_status_checks(pr)
+        missing_statuses = absent_status_checks(pr, master_branch_data)
         if missing_statuses:
             return CannotAutomergeError(
                 'A required status check is not present.\n\n'
@@ -744,13 +760,18 @@ def gather_auto_mergeable_prs(repo: GithubRepository
                               ) -> List[PullRequestDetails]:
     result = []
     raw_prs = list_open_pull_requests(repo)
+    master_branch_data = get_branch_details(repo, 'master')
+    if branch_data_modified_recently(master_branch_data):
+        return []
+
     for raw_pr in raw_prs:
         if not raw_pr.marked_automergeable:
             continue
 
         # Looking up a single PR gives more data, e.g. the 'mergeable' entry.
         pr = PullRequestDetails.from_github(repo, raw_pr.pull_id)
-        problem = find_problem_with_automergeability_of_pr(pr)
+        problem = find_problem_with_automergeability_of_pr(pr,
+                                                           master_branch_data)
         if problem is not None:
             cannot_merge_pr(pr, problem)
             continue

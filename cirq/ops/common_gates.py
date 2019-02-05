@@ -334,7 +334,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(raw_types.Gate):
+class MeasurementGate(gate_features.MultiQubitGate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
@@ -342,18 +342,27 @@ class MeasurementGate(raw_types.Gate):
     """
 
     def __init__(self,
+                 num_qubits: int,
                  key: str = '',
                  invert_mask: Tuple[bool, ...] = ()) -> None:
         """
         Args:
+            num_qubits: The number of qubits to act upon.
             key: The string key of the measurement.
             invert_mask: A list of values indicating whether the corresponding
                 qubits should be flipped. The list's length must not be longer
                 than the number of qubits, but it is permitted to be shorter.
                 Qubits with indices past the end of the mask are not flipped.
+
+        Raises:
+            ValueError if the length of invert_mask is greater than num_qubits.
         """
+        super().__init__(num_qubits)
         self.key = key
         self.invert_mask = invert_mask or ()
+        if (self.invert_mask is not None and
+            len(self.invert_mask) > self.num_qubits()):
+            raise ValueError('len(invert_mask) > num_qubits')
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -371,19 +380,12 @@ class MeasurementGate(raw_types.Gate):
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
-        return MeasurementGate(key=self.key, invert_mask=tuple(new_mask))
-
-    def validate_args(self, qubits):
-        if (self.invert_mask is not None and
-                len(self.invert_mask) > len(qubits)):
-            raise ValueError('len(invert_mask) > len(qubits)')
+        return MeasurementGate(self.num_qubits(), key=self.key,
+                               invert_mask=tuple(new_mask))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        n = (max(1, len(self.invert_mask))
-             if args.known_qubit_count is None
-             else args.known_qubit_count)
-        symbols = ['M'] * n
+        symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
         if self.invert_mask:
@@ -392,8 +394,8 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if (not args.known_qubits or
-                self.key != _default_measurement_key(args.known_qubits)):
+        if (not args.known_qubits or self.key != _default_measurement_key(
+            args.known_qubits)):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
@@ -416,11 +418,13 @@ class MeasurementGate(raw_types.Gate):
         return ''.join(lines)
 
     def __repr__(self):
-        return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
-                                                     repr(self.invert_mask))
+        return 'cirq.MeasurementGate({}, {}, {})'.format(
+            repr(self.num_qubits()),
+            repr(self.key),
+            repr(self.invert_mask))
 
     def _value_equality_values_(self):
-        return self.key, self.invert_mask
+        return self.num_qubits(), self.key, self.invert_mask
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
@@ -461,7 +465,7 @@ def measure(*qubits: raw_types.QubitId,
 
     if key is None:
         key = _default_measurement_key(qubits)
-    return MeasurementGate(key, invert_mask).on(*qubits)
+    return MeasurementGate(len(qubits), key, invert_mask).on(*qubits)
 
 
 def measure_each(*qubits: raw_types.QubitId,
@@ -479,12 +483,51 @@ def measure_each(*qubits: raw_types.QubitId,
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(key_func(q)).on(q) for q in qubits]
+    return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
+
+
+@value.value_equality
+class IdentityGate(gate_features.MultiQubitGate):
+    """A Gate that perform no operation on qubits.
+
+    The unitary matrix of this gate is a diagonal matrix with all 1s on the
+    diagonal and all 0s off the diagonal in any basis.
+
+    `cirq.I` is the single qubit identity gate.
+    """
+
+    def __init__(self, num_qubits):
+        super().__init__(num_qubits)
+
+    def _unitary_(self):
+        return np.identity(2 ** self.num_qubits())
+
+    def _apply_unitary_(
+        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+        return args.target_tensor
+
+    def __repr__(self):
+        if self.num_qubits() == 1:
+            return 'cirq.I'
+        return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
+
+    def __str__(self):
+        if (self.num_qubits() == 1):
+            return 'I'
+        else:
+            return 'I({})'.format(self.num_qubits())
+
+    def _circuit_diagram_info_(self,
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('I',) * self.num_qubits(), connected=True)
+
+    def _value_equality_values_(self):
+        return self.num_qubits(),
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
-
 
     The unitary matrix of ``HPowGate(exponent=t)`` is:
 
@@ -952,6 +995,15 @@ def Rz(rads: float) -> ZPowGate:
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
+# The one qubit identity gate.
+#
+# Matrix:
+#
+#     [[1, 0],
+#      [0, 1]]
+I = IdentityGate(num_qubits=1)
+
+
 # The Hadamard gate.
 #
 # Matrix:
@@ -960,7 +1012,6 @@ def Rz(rads: float) -> ZPowGate:
 #      [s, -s]]
 #     where s = sqrt(0.5).
 H = HPowGate()
-
 
 # The Clifford S gate.
 #
@@ -971,7 +1022,7 @@ H = HPowGate()
 S = ZPowGate(exponent=0.5)
 
 
-# The T gate.
+# The non-Clifford T gate.
 #
 # Matrix:
 #
