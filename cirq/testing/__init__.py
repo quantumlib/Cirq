@@ -57,7 +57,7 @@ from cirq.testing.order_tester import (
     OrderTester,
 )
 from cirq.testing.random_circuit import (
-    RandomCircuit,
+    random_circuit,
 )
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,

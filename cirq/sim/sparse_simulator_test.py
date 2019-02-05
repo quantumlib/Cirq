@@ -17,7 +17,6 @@ import pytest
 import numpy as np
 
 import cirq
-from cirq.testing.random_circuit import RandomCircuit
 
 
 def test_invalid_dtype():
@@ -171,9 +170,9 @@ def test_simulate_random_unitary(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
     for _ in range(10):
-        random_circuit = RandomCircuit(qubits=[q0, q1],
-                                       n_moments=8,
-                                       op_density=0.99).random_circuit()
+        random_circuit = cirq.testing.random_circuit(qubits=[q0, q1],
+                                                     n_moments=8,
+                                                     op_density=0.99)
         circuit_unitary = []
         for x in range(4):
             result = simulator.simulate(random_circuit, qubit_order=[q0, q1],

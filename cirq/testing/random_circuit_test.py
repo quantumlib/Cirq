@@ -17,24 +17,23 @@ from random import randint, random, sample, choice
 import pytest
 
 import cirq
-from cirq.testing.random_circuit import RandomCircuit, DEFAULT_GATE_DOMAIN
+from cirq.testing.random_circuit import random_circuit, DEFAULT_GATE_DOMAIN
 
 
 def test_random_circuit_errors():
     with pytest.raises(ValueError):
-        RandomCircuit(randint(1, 10), randint(1, 10), -1).random_circuit()
+        random_circuit(randint(1, 10), randint(1, 10), -1)
     with pytest.raises(ValueError):
-        RandomCircuit(randint(1, 10), randint(1, 10), 1.).random_circuit()
+        random_circuit(randint(1, 10), randint(1, 10), 1.)
 
     with pytest.raises(ValueError):
-        RandomCircuit(randint(1, 10), randint(1, 10),
-                      random(), gate_domain={}).random_circuit()
+        random_circuit(randint(1, 10), randint(1, 10), random(), gate_domain={})
 
     with pytest.raises(ValueError):
-        RandomCircuit(0, randint(1, 10), random()).random_circuit()
+        random_circuit(0, randint(1, 10), random())
 
     with pytest.raises(ValueError):
-        RandomCircuit((), randint(1, 10), random()).random_circuit()
+        random_circuit((), randint(1, 10), random())
 
 
 @pytest.mark.parametrize(
@@ -59,11 +58,7 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.QubitId]],
                         pass_qubits: bool):
     qubit_set = cirq.LineQubit.range(n_qubits)
     qubit_arg = qubit_set if pass_qubits else n_qubits
-    circuit_class = RandomCircuit(qubit_arg, n_moments, op_density, gate_domain)
-    circuit = circuit_class.random_circuit()
-    circuit_class = RandomCircuit(qubit_arg, n_moments, 0.5)
-    circuit_class.random_superposition()
-
+    circuit = random_circuit(qubit_arg, n_moments, op_density, gate_domain)
     if qubit_arg is qubit_set:
         assert circuit.all_qubits().issubset(qubit_set)
     assert len(circuit) == n_moments
