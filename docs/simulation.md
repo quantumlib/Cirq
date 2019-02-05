@@ -25,10 +25,10 @@ def basic_circuit(meas=True):
     yield sqrt_x(q0), sqrt_x(q1)
     if meas:
         yield cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')
-   
+
 circuit = cirq.Circuit()
 circuit.append(basic_circuit())
-  
+
 print(circuit)
 # prints
 # (0, 0): ───X^0.5───@───X^0.5───M('q0')───
@@ -47,11 +47,11 @@ print(result)
 # prints something like
 # q0=1 q1=1
 ```
-Run returns an ``TrialResult``.  As you can see the result 
+Run returns an ``TrialResult``.  As you can see the result
 contains the result of any measurements for the simulation run.
 
-The actual measurement results here depend on the seeding 
-``numpy``s random seed generator. (You can set this using 
+The actual measurement results here depend on the seeding
+``numpy``s random seed generator. (You can set this using
 ``numpy.random_seed``) Another run, can result in a different
 set of measurement results:
 ```python
@@ -63,11 +63,11 @@ print(result)
 ```
 
 The simulator is designed to mimic what running a program
-on a quantum computer is actually like.  In particular the 
+on a quantum computer is actually like.  In particular the
 ``run`` methods (``run`` and ``run_sweep``) on the simulator
 do not give access to the wave function of the quantum computer
 (since one doesn't have access to this on the actual quantum
-hardware).  Instead the ``simulate`` methods (``simulate``, 
+hardware).  Instead the ``simulate`` methods (``simulate``,
 ``simulate_sweep``, ``simulate_moment_steps``) should be used
 if one wants to debug the circuit and get access to the full
 wave function:
@@ -89,21 +89,21 @@ if higher precision is needed.
 
 ### Qubit and Amplitude Ordering
 
-The `qubit_order` argument to the simulator's `run` method 
-determines the ordering of some results, such as the 
+The `qubit_order` argument to the simulator's `run` method
+determines the ordering of some results, such as the
 amplitudes in the final wave function. The `qubit_order`
 argument is optional. When it is omitted, qubits are ordered
 ascending by their name (i.e. what their `__str__` method returns).
 
-The simplest `qubit_order` value you can provide is a list of 
-the qubits in the desired ordered. Any qubits from the circuit 
-that are not in the list will be ordered using the 
+The simplest `qubit_order` value you can provide is a list of
+the qubits in the desired ordered. Any qubits from the circuit
+that are not in the list will be ordered using the
 default `__str__` ordering, but come after qubits that are in
 the list. Be aware that all qubits in the list are included in
 the simulation, even if they are not operated on by the circuit.
 
-The mapping from the order of the qubits to the order of the 
-amplitudes in the wave function can be tricky to understand. 
+The mapping from the order of the qubits to the order of the
+amplitudes in the wave function can be tricky to understand.
 Basically, it is the same as the ordering used by `numpy.kron`:
 
 ```python
@@ -115,7 +115,7 @@ print(np.kron(outside, inside))
 ```
 
 More concretely, the `k`'th amplitude in the wave function
-will correspond to the `k`'th case that would be encountered 
+will correspond to the `k`'th case that would be encountered
 when nesting loops over the possible values of each qubit.
 The first qubit's computational basis values are looped over
 in the outermost loop, the last qubit's computational basis
@@ -134,7 +134,7 @@ for first in [0, 1]:
 # amps[3] is for first=1, second=1
 ```
 
-We can check that this is in fact the ordering with a 
+We can check that this is in fact the ordering with a
 circuit that flips one qubit out of two:
 
 ```python
@@ -158,7 +158,7 @@ print(abs(result.final_state).round(3))
 ### Stepping through a Circuit
 
 Often when debugging it is useful to not just see the end
-result of a circuit, but to inspect, or even modify, the 
+result of a circuit, but to inspect, or even modify, the
 state of the system at different steps in the circuit.  To
 support this Cirq provides a method to return an iterator
 over a ``Moment`` by ``Moment`` simulation.  This is the method
@@ -167,7 +167,7 @@ over a ``Moment`` by ``Moment`` simulation.  This is the method
 circuit = cirq.Circuit()
 circuit.append(basic_circuit())    
 for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
-    print('state at step %d: %s' % (i, np.around(step.state(), 3)))
+    print('state at step %d: %s' % (i, np.around(step.state_vector(), 3)))
 # prints something like
 # state at step 0: [ 0.5+0.j   0.0+0.5j  0.0+0.5j -0.5+0.j ]
 # state at step 1: [ 0.5+0.j   0.0+0.5j  0.0+0.5j  0.5+0.j ]
@@ -175,13 +175,13 @@ for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
 # state at step 3: [ 0.+0.j  0.+0.j -0.+1.j  0.+0.j]
 ```
 
-The object returned by the ``moment_steps`` iterator is a 
+The object returned by the ``moment_steps`` iterator is a
 ``StepResult``. This object has the state along with any
 measurements that occurred **during** that step (so does
 not include measurement results from previous ``Moments``).
 In addition, the ``StepResult`` contains ``set_state()``
-which  can be used to set the ``state``. One can pass a valid 
-full state to this method by passing a numpy array. Or 
+which  can be used to set the ``state``. One can pass a valid
+full state to this method by passing a numpy array. Or
 alternatively one can pass an integer and then the state
 will be set lie entirely in the computation basis state
 for the binary expansion of the passed integer.
@@ -214,7 +214,7 @@ for getting it to work with the simulator:
 
 ### Parameterized Values and Studies
 
-In addition to circuit gates with fixed values, Cirq also 
+In addition to circuit gates with fixed values, Cirq also
 supports gates which can have ``Symbol`` value (see
 [Gates](gates.md)). These are values that can be resolved
 at *run-time*. For simulators these values are resolved by
@@ -240,9 +240,9 @@ Here we see that the ``Symbol`` is used in two gates, and then the resolver
 provide this value at run time.
 
 Parameterized values are most useful in defining what we call a
-``Study``.  A ``Study`` is a collection of trials, where each 
+``Study``.  A ``Study`` is a collection of trials, where each
 trial is a run with a particular set of configurations and which
-may be run repeatedly.  Running a study returns one 
+may be run repeatedly.  Running a study returns one
 ``TrialContext`` and ``TrialResult`` per set of fixed parameter
 values and repetitions (which are reported as the ``repetition_id``
 in the ``TrialContext`` object).  Example:
@@ -272,25 +272,25 @@ as the first tuple from ``run``: it contains the ``param_dict``
 describing what values were actually used in resolving the ``Symbol``s.
 
 TODO(dabacon): Describe the iterable of parameterized resolvers
-supported by Google's API. 
-  
+supported by Google's API.
+
 ### XmonSimulator Configurations and Options
 
 The xmon simulator also contain some extra configuration
 on the simulate commands. One of these is ``initial_state``.  
-This can be passed the full wave function as a numpy array, or 
-the initial state as the binary expansion of a supplied integer 
-(following the order supplied by the qubits list). 
+This can be passed the full wave function as a numpy array, or
+the initial state as the binary expansion of a supplied integer
+(following the order supplied by the qubits list).
 
 A simulator itself can also be passed ``Options`` in it's constructor.
 These options define some configuration for how the simulator runs.
 For the xmon simulator, these include
 
 > **num_shards**: The simulator works by sharding the wave function
-over this many shards. If this is not a power of two, the 
+over this many shards. If this is not a power of two, the
 smallest power of two less than or equal to this number will
 be used. The sharding shards on the first log base
-2 of this number qubit's state. When this is not set the 
+2 of this number qubit's state. When this is not set the
 simulator will use the number of cpus, which tends to max
 out the benefit of multi-processing.
 

@@ -132,9 +132,31 @@ def test_approx_eq():
         atol=0.1
     )
 
+    assert cirq.approx_eq(
+        CExpZinGate(cirq.Symbol('a')),
+        CExpZinGate(cirq.Symbol('a')),
+        atol=0.1
+    )
+    assert not cirq.approx_eq(
+        CExpZinGate(cirq.Symbol('a')),
+        CExpZinGate(cirq.Symbol('b')),
+        atol=0.1
+    )
+
+
+def test_approx_eq_periodic():
+    assert cirq.approx_eq(CExpZinGate(1.5), CExpZinGate(5.5), atol=1e-9)
+    assert cirq.approx_eq(CExpZinGate(1.5), CExpZinGate(9.5), atol=1e-9)
+    assert cirq.approx_eq(CExpZinGate(-2.5), CExpZinGate(1.5), atol=1e-9)
+    assert not cirq.approx_eq(CExpZinGate(0), CExpZinGate(1.5), atol=1e-9)
+
+    # The tests below do not work with usual canonical exponent comparison.
+    assert cirq.approx_eq(CExpZinGate(0 - 1e-10), CExpZinGate(0), atol=1e-9)
+    assert cirq.approx_eq(CExpZinGate(0), CExpZinGate(4 - 1e-10), atol=1e-9)
+
 
 def test_period():
-    class Components(cirq.EigenGate):
+    class Components(cirq.EigenGate, cirq.TwoQubitGate):
         def __init__(self, a, b, c, d):
             super().__init__()
             self.a = a
@@ -297,7 +319,7 @@ def test_resolve_parameters():
 
 def test_diagram_period():
 
-    class ShiftyGate(cirq.EigenGate):
+    class ShiftyGate(cirq.EigenGate, cirq.SingleQubitGate):
         def _eigen_components(self):
             raise NotImplementedError()
 

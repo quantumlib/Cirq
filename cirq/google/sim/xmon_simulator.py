@@ -283,7 +283,7 @@ class XmonStepResult(simulator.StepResult):
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
             of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state() method).
+            used to define the state (see the state_vector() method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
@@ -297,7 +297,7 @@ class XmonStepResult(simulator.StepResult):
         self.measurements = measurements or collections.defaultdict(list)
         self._stepper = stepper
 
-    def state(self) -> np.ndarray:
+    def state_vector(self) -> np.ndarray:
         """Return the state (wave function) at this point in the computation.
 
         The state is returned in the computational basis with these basis
