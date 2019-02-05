@@ -82,8 +82,6 @@ class QubitId(metaclass=abc.ABCMeta):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
 
-TSelf_Gate = TypeVar('TSelf_Gate', bound='Gate')
-
 
 class Gate(metaclass=abc.ABCMeta):
     """An operation type that can be applied to a collection of qubits.
