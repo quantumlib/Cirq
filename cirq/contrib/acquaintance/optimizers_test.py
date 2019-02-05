@@ -24,11 +24,11 @@ def test_remove_redundant_acquaintance_opportunities():
     swap = cca.SwapPermutationGate()
 
     with pytest.raises(TypeError):
-        ops = [cca.ACQUAINT(a, b)]
+        ops = [cca.acquaint(a, b)]
         strategy = cirq.Circuit.from_ops(ops)
         cca.remove_redundant_acquaintance_opportunities(strategy)
 
-    ops = [cca.ACQUAINT(a, b), cca.ACQUAINT(a, b)]
+    ops = [cca.acquaint(a, b), cca.acquaint(a, b)]
     strategy = cirq.Circuit.from_ops(ops, device=device)
     diagram_before = """
 0: ───█───█───
@@ -47,8 +47,8 @@ def test_remove_redundant_acquaintance_opportunities():
 
 
     ops = [
-            cca.ACQUAINT(a, b), cca.ACQUAINT(c, d),
-            swap(d, e), swap(c, d), cca.ACQUAINT(d, e)]
+            cca.acquaint(a, b), cca.acquaint(c, d),
+            swap(d, e), swap(c, d), cca.acquaint(d, e)]
     strategy = cirq.Circuit.from_ops(ops, device=device)
     diagram_before = """
 0: ───█───────────────────

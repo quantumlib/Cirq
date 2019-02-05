@@ -112,7 +112,7 @@ class MysteryOperation(cirq.Operation):
         return MysteryOperation(*new_qubits)
 
 
-class MysteryGate(cirq.Gate):
+class MysteryGate(cirq.SingleQubitGate):
     pass
 
 
@@ -177,7 +177,7 @@ def test_unrecognized_single_qubit_gate_with_matrix():
 
 
 def test_unknown_gate():
-    class UnknownGate(cirq.Gate):
+    class UnknownGate(cirq.SingleQubitGate):
         pass
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit.from_ops(UnknownGate()(a))

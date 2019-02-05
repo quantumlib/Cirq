@@ -126,16 +126,21 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
                            qubits: Sequence[ops.QubitId]):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
-    if gate.invert_mask and len(gate.invert_mask) != len(qubits):
+
+    invert_mask = None
+    if gate.invert_mask:
+        invert_mask = gate.invert_mask + (False,) * (
+            gate.num_qubits() - len(gate.invert_mask))
+
+    if invert_mask and len(invert_mask) != len(qubits):
         raise ValueError('Measurement gate had invert mask of length '
                          'different than number of qubits it acts on.')
     measurement = {
         'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
         'key': gate.key,
     }
-    if gate.invert_mask:
-        measurement['invert_mask'] = [json.dumps(x) for x in
-                                      gate.invert_mask]
+    if invert_mask:
+        measurement['invert_mask'] = [json.dumps(x) for x in invert_mask]
     return {'measurement': measurement}
 
 
@@ -343,6 +348,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         if 'key' not in meas or 'targets' not in meas:
             raise_missing_fields('Measurement')
         return ops.MeasurementGate(
+            num_qubits=len(meas['targets']),
             key=meas['key'],
             invert_mask=invert_mask
         ).on(*[qubit(q) for q in meas['targets']])

@@ -19,11 +19,11 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import common_gates, pauli_gates, raw_types
+from cirq.ops import common_gates, pauli_gates, gate_features
 
 
 @value.value_equality
-class AsymmetricDepolarizingChannel(raw_types.Gate):
+class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes asymmetrically along different directions."""
 
     def __init__(self, p_x: float, p_y: float, p_z: float) -> None:
@@ -110,7 +110,7 @@ def asymmetric_depolarize(
 
 
 @value.value_equality
-class DepolarizingChannel(raw_types.Gate):
+class DepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes a qubit."""
 
     def __init__(self, p) -> None:
@@ -181,7 +181,7 @@ def depolarize(p: float) -> DepolarizingChannel:
 
 
 @value.value_equality
-class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
+class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through non ideal dissipation.
 
     This channel models the effect of energy dissipation into the environment
@@ -329,7 +329,7 @@ def generalized_amplitude_damp(
 
 
 @value.value_equality
-class AmplitudeDampingChannel(raw_types.Gate):
+class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
 
     This channel models the effect of energy dissipation to the
@@ -425,7 +425,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 
 @value.value_equality
-class PhaseDampingChannel(raw_types.Gate):
+class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
 
     This channel models phase damping which is the loss of quantum
@@ -517,7 +517,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
 
 @value.value_equality
-class PhaseFlipChannel(raw_types.Gate):
+class PhaseFlipChannel(gate_features.SingleQubitGate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
     def __init__(self, p) -> None:
@@ -647,7 +647,7 @@ def phase_flip(
 
 
 @value.value_equality
-class BitFlipChannel(raw_types.Gate):
+class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
     def __init__(self, p) -> None:
@@ -769,7 +769,7 @@ def bit_flip(
 
 
 @value.value_equality
-class RotationErrorChannel(raw_types.Gate):
+class RotationErrorChannel(gate_features.SingleQubitGate):
     """Channel to introduce rotation error in X, Y, Z."""
 
     def __init__(self, eps_x, eps_y, eps_z) -> None:

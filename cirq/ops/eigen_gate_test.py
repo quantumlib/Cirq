@@ -157,7 +157,7 @@ def test_approx_eq_periodic():
 
 
 def test_period():
-    class Components(cirq.EigenGate):
+    class Components(cirq.EigenGate, cirq.TwoQubitGate):
         def __init__(self, a, b, c, d):
             super().__init__()
             self.a = a
@@ -320,7 +320,7 @@ def test_resolve_parameters():
 
 def test_diagram_period():
 
-    class ShiftyGate(cirq.EigenGate):
+    class ShiftyGate(cirq.EigenGate, cirq.SingleQubitGate):
         def _eigen_components(self):
             raise NotImplementedError()
 

@@ -474,3 +474,64 @@ def test_measure_state_empty_state():
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)
+
+
+class BasicStateVector(cirq.StateVector):
+    def state_vector(self) -> np.ndarray:
+        return np.array([0, 1, 0, 0])
+
+
+def test_step_result_pretty_state():
+    step_result = BasicStateVector()
+    assert step_result.dirac_notation() == '|01⟩'
+
+
+def test_step_result_density_matrix():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    step_result = BasicStateVector({q0: 0, q1: 1})
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+        step_result.density_matrix_of([q0, q1]))
+
+    np.testing.assert_array_almost_equal(rho,
+        step_result.density_matrix_of())
+
+    rho_ind_rev = np.array([[0, 0, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho_ind_rev,
+        step_result.density_matrix_of([q1, q0]))
+
+    single_rho = np.array([[0, 0],
+                           [0, 1]])
+    np.testing.assert_array_almost_equal(single_rho,
+        step_result.density_matrix_of([q1]))
+
+
+def test_step_result_density_matrix_invalid():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    step_result = BasicStateVector({q0: 0})
+
+    with pytest.raises(KeyError):
+        step_result.density_matrix_of([q1])
+    with pytest.raises(KeyError):
+        step_result.density_matrix_of('junk')
+    with pytest.raises(TypeError):
+        step_result.density_matrix_of(0)
+
+
+def test_step_result_bloch_vector():
+    q0, q1 = cirq.LineQubit.range(2)
+    step_result = BasicStateVector({q0: 0, q1: 1})
+    bloch1 = np.array([0, 0, -1])
+    bloch0 = np.array([0, 0, 1])
+    np.testing.assert_array_almost_equal(bloch1,
+        step_result.bloch_vector_of(q1))
+    np.testing.assert_array_almost_equal(bloch0,
+        step_result.bloch_vector_of(q0))

@@ -1037,8 +1037,10 @@ def test_findall_operations_with_gate():
         (3, cirq.CZ(a, b), cirq.CZ),
     ]
     assert list(c.findall_operations_with_gate_type(cirq.MeasurementGate)) == [
-        (4, cirq.MeasurementGate(key='a').on(a), cirq.MeasurementGate(key='a')),
-        (4, cirq.MeasurementGate(key='b').on(b), cirq.MeasurementGate(key='b')),
+        (4, cirq.MeasurementGate(1, key='a').on(a),
+         cirq.MeasurementGate(1, key='a')),
+        (4, cirq.MeasurementGate(1, key='b').on(b),
+         cirq.MeasurementGate(1, key='b')),
     ]
 
 
@@ -1049,8 +1051,8 @@ def test_are_all_measurements_terminal():
     xa = cirq.X.on(a)
     xb = cirq.X.on(b)
 
-    ma = cirq.MeasurementGate().on(a)
-    mb = cirq.MeasurementGate().on(b)
+    ma = cirq.measure(a)
+    mb = cirq.measure(b)
 
     c = Circuit()
     assert c.are_all_measurements_terminal()
@@ -1302,14 +1304,14 @@ M      |      M      |
 
 
 def test_diagram_with_unknown_exponent():
-    class WeirdGate(cirq.Gate):
+    class WeirdGate(cirq.SingleQubitGate):
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs
                                    ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(wire_symbols=('B',),
                                            exponent='fancy')
 
-    class WeirderGate(cirq.Gate):
+    class WeirderGate(cirq.SingleQubitGate):
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs
                                    ) -> cirq.CircuitDiagramInfo:
@@ -1330,7 +1332,10 @@ def test_circuit_diagram_on_gate_without_info():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
 
-    class FGate(cirq.Gate):
+    class FGate(cirq.MultiQubitGate):
+        def __init__(self, num_qubits=1):
+            super().__init__(num_qubits)
+
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'
 
@@ -1342,9 +1347,10 @@ def test_circuit_diagram_on_gate_without_info():
 (0, 0): ---python-object-FGate:arbitrary-digits---
 """, use_unicode_characters=False)
 
+    f3 = FGate(3)
     # When used on multiple qubits, show the qubit order as a digit suffix.
     cirq.testing.assert_has_diagram(Circuit([
-        Moment([f.on(q, q3, q2)]),
+        Moment([f3.on(q, q3, q2)]),
     ]), """
 (0, 0): ---python-object-FGate:arbitrary-digits---
            |
@@ -1382,7 +1388,7 @@ M('msg')─M──────M
 
 
 def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
-    class BadGate(cirq.Gate):
+    class BadGate(cirq.ThreeQubitGate):
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                    ) -> Tuple[str, str]:
             return 'a', 'a'
@@ -1397,7 +1403,7 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 def test_to_text_diagram_parameterized_value():
     q = cirq.NamedQubit('cube')
 
-    class PGate(cirq.Gate):
+    class PGate(cirq.SingleQubitGate):
         def __init__(self, val):
             self.val = val
 
@@ -1478,10 +1484,10 @@ a: ---PhasedX(0.43214321)^0.12341234---
 
 def test_has_unitary():
 
-    class NonUnitary(cirq.Gate):
+    class NonUnitary(cirq.SingleQubitGate):
         pass
 
-    class EventualUnitary(cirq.Gate):
+    class EventualUnitary(cirq.SingleQubitGate):
         def _decompose_(self, qubits):
             return cirq.X.on_each(qubits)
 
@@ -1624,7 +1630,7 @@ def test_circuit_to_unitary_matrix():
         _ = c.to_unitary_matrix()
 
     # Gates without matrix or decomposition raise exception
-    class MysteryGate(cirq.Gate):
+    class MysteryGate(cirq.TwoQubitGate):
         pass
     c = Circuit.from_ops(MysteryGate()(a, b))
     with pytest.raises(TypeError):
@@ -1681,7 +1687,7 @@ def test_simple_circuits_to_unitary_matrix():
     for expected in [np.diag([1, 1j, -1, -1j]),
                      cirq.unitary(cirq.CNOT)]:
 
-        class Passthrough(cirq.Gate):
+        class Passthrough(cirq.TwoQubitGate):
             def _unitary_(self) -> np.ndarray:
                 return expected
 
@@ -1691,7 +1697,7 @@ def test_simple_circuits_to_unitary_matrix():
 
 
 def test_composite_gate_to_unitary_matrix():
-    class CnotComposite(cirq.Gate):
+    class CnotComposite(cirq.TwoQubitGate):
         def _decompose_(self, qubits):
             q0, q1 = qubits
             return cirq.Y(q1)**-0.5, cirq.CZ(q0, q1), cirq.Y(q1)**0.5
@@ -1715,7 +1721,11 @@ def test_composite_gate_to_unitary_matrix():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.Gate):
+    class MultiTargetCZ(cirq.MultiQubitGate):
+
+        def __init__(self, num_qubits):
+            super().__init__(num_qubits)
+
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs
                                    ) -> Tuple[str, ...]:
@@ -1725,9 +1735,9 @@ def test_expanding_gate_symbols():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    t0 = cirq.Circuit.from_ops(MultiTargetCZ().on(c))
-    t1 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a))
-    t2 = cirq.Circuit.from_ops(MultiTargetCZ().on(c, a, b))
+    t0 = cirq.Circuit.from_ops(MultiTargetCZ(1).on(c))
+    t1 = cirq.Circuit.from_ops(MultiTargetCZ(2).on(c, a))
+    t2 = cirq.Circuit.from_ops(MultiTargetCZ(3).on(c, a, b))
 
     cirq.testing.assert_has_diagram(t0, """
 c: ───@───
