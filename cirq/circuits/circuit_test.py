@@ -23,7 +23,7 @@ import cirq
 from cirq.circuits.optimization_pass import (PointOptimizer,
                                              PointOptimizationSummary)
 from cirq import Circuit, InsertStrategy, Moment
-from cirq.testing import random_circuit
+from cirq.testing.random_circuit import RandomCircuit
 import cirq.google as cg
 
 
@@ -2225,7 +2225,8 @@ def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
 def test_next_moments_operating_on():
     for _ in range(20):
         n_moments = randint(1, 10)
-        circuit = random_circuit(randint(1, 20), n_moments, random())
+        circuit = RandomCircuit(randint(1, 20), n_moments,
+                                random()).random_circuit()
         circuit_qubits = circuit.all_qubits()
         n_key_qubits = randint(int(bool(circuit_qubits)), len(circuit_qubits))
         key_qubits = sample(circuit_qubits, n_key_qubits)
@@ -2244,7 +2245,8 @@ def test_pick_inserted_ops_moment_indices():
         n_moments = randint(1, 10)
         n_qubits = randint(1, 20)
         op_density = random()
-        circuit = random_circuit(n_qubits, n_moments, op_density)
+        circuit = RandomCircuit(
+            n_qubits, n_moments, op_density).random_circuit()
         start = randrange(n_moments)
         first_half = Circuit(circuit[:start])
         second_half = Circuit(circuit[start:])
@@ -2278,7 +2280,8 @@ def test_push_frontier_new_moments():
 def test_push_frontier_random_circuit():
     for _ in range(20):
         n_moments = randint(1, 10)
-        circuit = random_circuit(randint(1, 20), n_moments, random())
+        circuit = RandomCircuit(
+            randint(1, 20), n_moments, random()).random_circuit()
         qubits = circuit.all_qubits()
         early_frontier = {q: randint(0, n_moments) for q in
                           sample(qubits, randint(0, len(qubits)))}
@@ -2312,7 +2315,7 @@ def test_push_frontier_random_circuit():
 
 
 @pytest.mark.parametrize('circuit',
-    [random_circuit(cirq.LineQubit.range(10), 10, 0.5)
+    [RandomCircuit(cirq.LineQubit.range(10), 10, 0.5).random_circuit()
      for _ in range(20)])
 def test_insert_operations_random_circuits(circuit):
     n_moments = len(circuit)

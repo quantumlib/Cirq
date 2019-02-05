@@ -20,6 +20,7 @@ import pytest
 
 import cirq
 from cirq.testing.mock import mock
+from cirq.testing.random_circuit import RandomCircuit
 
 
 @mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
@@ -101,7 +102,7 @@ def test_wave_simulator_no_steps():
     initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
 
     simulator._simulator_iterator.return_value = iter([])
-    circuit = cirq.testing.random_circuit(2, 20, 0.99)
+    circuit = RandomCircuit(2, 20, 0.99).random_circuit()
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = circuit.all_qubits()
     result = simulator.simulate(program=circuit,
