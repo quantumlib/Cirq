@@ -295,16 +295,17 @@ def test_text_diagrams():
         cirq.IdentityGate(2)(a,b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^Symbol("1.0*x")───@───@───X───H───iSwap───iSwap──────
-      │                                   │   │   │       │       │
-b: ───×───────────────────────────────────@───X───@───────iSwap───iSwap^-1───
+a: ───×───X───Y───Z───Z^Symbol("1.0*x")───@───@───X───H───iSwap───iSwap──────I───I───
+      │                                   │   │   │       │       │              │
+b: ───×───────────────────────────────────@───X───@───────iSwap───iSwap^-1───────I───
+
 
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^Symbol("1.0*x")---@---@---X---H---iSwap---iSwap------
-      |                                      |   |   |       |       |
-b: ---swap-----------------------------------@---X---@-------iSwap---iSwap^-1---
+a: ---swap---X---Y---Z---Z^Symbol("1.0*x")---@---@---X---H---iSwap---iSwap------I---I---
+      |                                      |   |   |       |       |              |
+b: ---swap-----------------------------------@---X---@-------iSwap---iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 
