@@ -27,3 +27,6 @@ docs/generated
 
 # Mac only
 .DS_Store
+
+# From pytest-benchmark
+*.benchmarks/
