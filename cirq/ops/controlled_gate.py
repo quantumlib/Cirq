@@ -17,7 +17,7 @@ from typing import Any, Union, Optional
 import numpy as np
 
 from cirq import linalg, protocols, value
-from cirq.ops import raw_types, gate_operation, controlled_operation as cop
+from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -31,31 +31,26 @@ class ControlledGate(raw_types.Gate):
 
         Args:
             sub_gate: The gate to add a control qubit to.
+            control_qubit: The qubit that will act as a control.
         """
         self.sub_gate = sub_gate
         self.control_qubit = control_qubit
 
     def num_qubits(self) -> int:
-        return self.sub_gate.num_qubits() + 1
+        if self.control_qubit is None:
+            return self.sub_gate.num_qubits() + 1
+        else:
+            return self.sub_gate.num_qubits()
 
     def _decompose_(self, qubits):
-        if self.control_qubit is None:
-            result = protocols.decompose_once_with_qubits(self.sub_gate,
+        result = protocols.decompose_once_with_qubits(self.sub_gate,
                                                           qubits[1:],
-                                                          NotImplemented)
-        else:
-            result = protocols.decompose_once_with_qubits(self.sub_gate,
-                                                          qubits,
                                                           NotImplemented)
 
         if result is NotImplemented:
             return NotImplemented
 
-        if self.control_qubit is None:
-            return [cop.ControlledOperation(qubits[0], op) for op in result]
-        else:
-            return [cop.ControlledOperation(
-                        self.control_qubit, op) for op in result]
+        return [cop.ControlledOperation(qubits[0], op) for op in result]
 
     def validate_args(self, qubits) -> None:
         if self.control_qubit is None:
@@ -64,15 +59,6 @@ class ControlledGate(raw_types.Gate):
             self.sub_gate.validate_args(qubits[1:])
         else:
             self.sub_gate.validate_args(qubits)
-
-    def on(self, *qubits: raw_types.QubitId) -> gate_operation.GateOperation:
-        if self.control_qubit is None:
-            if len(qubits) == 0:
-                raise ValueError(
-                    "Applied a gate to an empty set of qubits. Gate: {}".format(
-                     repr(self)))
-        self.validate_args(qubits)
-        return gate_operation.GateOperation(self, list(qubits))
 
     def _value_equality_values_(self):
         return self.sub_gate

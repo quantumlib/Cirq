@@ -134,6 +134,11 @@ class Gate(metaclass=abc.ABCMeta):
 
     def __control__(self,
                     control_qubit: Optional[QubitId] = None) -> 'Gate':
+        """Returns a controlled version of this gate.
+
+        Args:
+            control_qubit: Optional qubit to control the gate by.
+        """
         # Avoids circular import.
         from cirq.ops import ControlledGate
         return ControlledGate(self, control_qubit)
@@ -176,12 +181,18 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
-    def __control__(self, control_qubit:
-                              Optional[QubitId] = None) -> TSelf_Operation:
+    def __control__(self,
+                    control_qubit: Optional[QubitId] = None) -> 'Operation':
+        """Returns a controlled version of this operation.
+
+        Args:
+            control_qubit: Qubit to control the operation by. Required for Ops.
+        """
+        # Avoids circular import.
+        from cirq.ops import ControlledOperation
         if control_qubit is None:
             raise ValueError(
                 "Can't get controlled operation without control qubit. Op: {}"
                 .format(repr(self)))
         else:
-        # return ControlledOperation(self, control_qubit)
-            raise NotImplementedError()
+            return ControlledOperation(control_qubit, self)

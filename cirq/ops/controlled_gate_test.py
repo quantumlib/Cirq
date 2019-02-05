@@ -44,6 +44,7 @@ def test_init2():
     gate = cirq.ControlledGate(cirq.Z, q)
     assert gate.sub_gate is cirq.Z
     assert gate.control_qubit is q
+    assert gate.num_qubits() == 1
 
 
 def test_validate_args():
@@ -53,11 +54,15 @@ def test_validate_args():
 
     # Need a control qubit.
     with pytest.raises(ValueError):
+        CRestricted.validate_args([])
+    with pytest.raises(ValueError):
         CRestricted.validate_args([a])
     CRestricted.validate_args([a, b])
 
     # Does not need a control qubit. It's already specified.
-    SCRestricted.validate_args([])
+    SCRestricted.validate_args([a])
+    with pytest.raises(ValueError):
+        SCRestricted.validate_args([a, b])
 
     # CY is a two-qubit operation (control + single-qubit sub gate).
     with pytest.raises(ValueError):
@@ -77,6 +82,8 @@ def test_validate_args():
     SCY.validate_args([a])
 
     # Applies when creating operations.
+    with pytest.raises(ValueError):
+        _ = CY.on()
     with pytest.raises(ValueError):
         _ = CY.on(a)
     with pytest.raises(ValueError):
@@ -249,7 +256,7 @@ def test_controlled_gate_is_consistent(gate: cirq.Gate):
     GateUsingWorkspaceForApplyUnitary(),
     GateAllocatingNewSpaceForResult(),
 ])
-def test_specified_ontrolled_gate_is_consistent(gate: cirq.Gate):
+def test_specified_controlled_gate_is_consistent(gate: cirq.Gate):
     cgate = cirq.ControlledGate(gate, q)
     cirq.testing.assert_implements_consistent_protocols(cgate)
 
