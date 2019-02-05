@@ -50,7 +50,8 @@ def assert_has_qcircuit_diagram(
 
 
 def test_fallback_diagram():
-    class MagicGate(cirq.Gate):
+    class MagicGate(cirq.ThreeQubitGate):
+
         def __str__(self):
             return 'MagicGate'
 

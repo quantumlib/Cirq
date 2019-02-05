@@ -26,6 +26,7 @@ from cirq.sim.sparse_simulator import (
     SimulatorStep,
 )
 from cirq.sim.wave_function import (
+    StateVector,
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,

@@ -17,7 +17,7 @@ import pytest
 import cirq
 
 
-class _FlipGate(cirq.Gate):
+class _FlipGate(cirq.SingleQubitGate):
     def __init__(self, val):
         self.val = val
 
