@@ -22,7 +22,7 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
         return isinstance(other, type(self))
 
     def __repr__(self):
-        return ('cirq.ops.controlled_gate_test.'
+        return ('cirq.ops.controlled_test_util.'
                 'GateUsingWorkspaceForApplyUnitary()')
 
 
@@ -50,5 +50,5 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
         return isinstance(other, type(self))
 
     def __repr__(self):
-        return ('cirq.ops.controlled_gate_test.'
+        return ('cirq.ops.controlled_test_util.'
                 'GateAllocatingNewSpaceForResult()')
