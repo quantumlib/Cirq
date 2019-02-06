@@ -25,7 +25,7 @@ from cirq.sim import simulator, wave_function
 
 
 class Simulator(simulator.SimulatesSamples,
-                simulator.SimulatesIntermediateWaveFunction):
+                simulator.SimulatesIntermediateState):
     """A sparse matrix wave function simulator that uses numpy.
 
     This simulator can be applied on circuits that are made up of operations
@@ -76,7 +76,7 @@ class Simulator(simulator.SimulatesSamples,
     repetitions. The result of these simulations is a `SimulationTrialResult`
     which contains in addition to measurement results and information about
     the parameters that were used in the simulation access to the state
-    viat the `final_state` method.
+    via the `final_state` method.
 
     If one wishes to perform simulations that have access to the
     wave function as one steps through running the circuit there is a generator
@@ -175,11 +175,22 @@ class Simulator(simulator.SimulatesSamples,
             initial_state: Union[int, np.ndarray],
             perform_measurements: bool = True,
     ) -> Iterator[simulator.StepResult]:
-        """See definition in `sim.SimulatesIntermediateWaveFunction`."""
+        """See definition in `sim.SimulatesIntermediateState`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        return self._base_iterator(resolved_circuit, qubit_order, initial_state,
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit,
+                                   qubit_order,
+                                   actual_initial_state,
                                    perform_measurements)
+
+    def to_simulation_trial_result(self,
+        simulation_trial_result: 'SimulationTrialResult') -> 'SparseSimulatorTrialResult':
+        return SparseSimulatorTrialResult(
+            simulation_trial_result.measurements,
+            simulation_trial_result.final_state,
+            simulation_trial_result.params)
+
 
     def _base_iterator(
             self,
@@ -195,6 +206,8 @@ class Simulator(simulator.SimulatesSamples,
         state = wave_function.to_valid_state_vector(initial_state,
                                                     num_qubits,
                                                     self._dtype)
+        if len(circuit) == 0:
+            yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
         def on_stuck(bad_op: ops.Operation):
             return TypeError(
@@ -245,10 +258,26 @@ class Simulator(simulator.SimulatesSamples,
                     if result is buffer:
                         buffer = state
                     state = result
-            yield SimulatorStep(state, measurements, qubit_map, self._dtype)
+            yield SparseSimulatorStep(state, measurements, qubit_map,
+                                      self._dtype)
 
 
-class SimulatorStep(simulator.StepResult):
+class SparseSimulatorTrialResult(wave_function.StateVectorMixin,
+                                 simulator.SimulationTrialResult):
+
+    def __init__(self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_state: Union[int, np.ndarray],
+        qubit_map) -> None:
+        super().__init__(params=params, measurements=measurements,
+                         final_state=final_state, qubit_map=qubit_map)
+
+    def state_vector(self):
+        return self.final_state
+
+
+class SparseSimulatorStep(wave_function.StateVectorMixin, simulator.StepResult):
 
     def __init__(self, state, measurements, qubit_map, dtype):
         """Results of a step of the simulator.
@@ -260,12 +289,15 @@ class SimulatorStep(simulator.StepResult):
             measurements: A dictionary from measurement gate key to measurement
                 results, ordered by the qubits that the measurement operates on.
         """
-        super().__init__(qubit_map, measurements)
+        super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
         self._state = np.reshape(state, 2 ** len(qubit_map))
 
-    def state_vector(self) -> np.ndarray:
+    def state(self) -> np.ndarray:
         return self._state
+
+    def state_vector(self):
+        return self.state()
 
     def set_state(self, state: Union[int, np.ndarray]):
         update_state = wave_function.to_valid_state_vector(state,

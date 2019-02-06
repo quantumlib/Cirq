@@ -476,7 +476,7 @@ def test_measure_state_empty_state():
     np.testing.assert_almost_equal(state, initial_state)
 
 
-class BasicStateVector(cirq.StateVector):
+class BasicStateVector(cirq.StateVectorMixin):
     def state_vector(self) -> np.ndarray:
         return np.array([0, 1, 0, 0])
 

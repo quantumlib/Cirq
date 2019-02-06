@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from cirq.sim import simulator
 
 
-class StateVector:
+class StateVectorMixin:
     """Represent a quantum state (wave function), and provide various
     convenience methods.
 
@@ -38,7 +38,9 @@ class StateVector:
             used to define the state (see the state_vector() method).
     """
 
-    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None):
+    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None,
+        *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.qubit_map = qubit_map or {}
 
     @abc.abstractmethod

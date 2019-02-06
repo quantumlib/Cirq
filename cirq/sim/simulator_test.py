@@ -63,10 +63,10 @@ def test_run_simulator_sweeps():
     assert simulator._run.call_count == 2
 
 
-@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
+@mock.patch.multiple(cirq.SimulatesIntermediateState,
                      _simulator_iterator=mock.Mock())
-def test_wave_simulator():
-    simulator = cirq.SimulatesIntermediateWaveFunction()
+def test_intermediate_simulator():
+    simulator = cirq.SimulatesIntermediateState()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
@@ -75,7 +75,7 @@ def test_wave_simulator():
         yield result
         result = mock.Mock()
         result.measurements = {'b': [True, False]}
-        result.state_vector.return_value = final_state
+        result.state.return_value = final_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -93,36 +93,16 @@ def test_wave_simulator():
     np.testing.assert_equal(result.final_state, final_state)
 
 
-@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
+@mock.patch.multiple(cirq.SimulatesIntermediateState,
                      _simulator_iterator=mock.Mock())
-def test_wave_simulator_no_steps():
-    simulator = cirq.SimulatesIntermediateWaveFunction()
-
-    initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
-
-    simulator._simulator_iterator.return_value = iter([])
-    circuit = cirq.testing.random_circuit(2, 20, 0.99)
-    param_resolver = mock.Mock(cirq.ParamResolver)
-    qubit_order = circuit.all_qubits()
-    result = simulator.simulate(program=circuit,
-                                param_resolver=param_resolver,
-                                qubit_order=list(qubit_order),
-                                initial_state=initial_state)
-    assert len(result.measurements) == 0
-    assert result.params == param_resolver
-    np.testing.assert_equal(result.final_state, initial_state)
-
-
-@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
-                     _simulator_iterator=mock.Mock())
-def test_wave_simulator_sweeps():
-    simulator = cirq.SimulatesIntermediateWaveFunction()
+def test_intermediate_sweeps():
+    simulator = cirq.SimulatesIntermediateState()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
         result = mock.Mock()
         result.measurements = {'a': np.array([True, True])}
-        result.state_vector.return_value = final_state
+        result.state.return_value = final_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -183,115 +163,6 @@ def test_simulator_trial_result_equality():
             params=cirq.ParamResolver({'a': 3}),
             measurements={'m': np.array([0, 1])},
             final_state=np.array([0, 0, 1, 0])))
-
-
-def test_simulator_trial_pretty_state():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    assert result.dirac_notation() == '|01⟩'
-
-
-def test_simulator_trial_density_matrix():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    rho = np.array([[0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho,
-        result.density_matrix())
-
-
-def test_simulator_trial_bloch_vector():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    bloch = np.array([0,0,-1])
-    np.testing.assert_array_almost_equal(bloch,
-        result.bloch_vector(1))
-
-
-class BasicStepResult(cirq.StepResult):
-
-    def __init__(self, qubit_map: Dict,
-            measurements: Dict[str, List[bool]]) -> None:
-        super().__init__(qubit_map, measurements)
-
-    def state_vector(self) -> np.ndarray:
-        return np.array([0, 1, 0, 0])
-
-
-def test_step_result_pretty_state():
-    step_result = BasicStepResult({}, {})
-    assert step_result.dirac_notation() == '|01⟩'
-
-
-def test_step_result_density_matrix():
-    q0, q1 = cirq.LineQubit.range(2)
-
-    step_result = BasicStepResult({q0: 0, q1: 1}, {})
-    rho = np.array([[0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix_of([q0, q1]))
-
-    np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix_of())
-
-    rho_ind_rev = np.array([[0, 0, 0, 0],
-                            [0, 0, 0, 0],
-                            [0, 0, 1, 0],
-                            [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho_ind_rev,
-        step_result.density_matrix_of([q1, q0]))
-
-    single_rho = np.array([[0, 0],
-                           [0, 1]])
-    np.testing.assert_array_almost_equal(single_rho,
-        step_result.density_matrix_of([q1]))
-
-
-def test_step_result_density_matrix_invalid():
-    q0, q1 = cirq.LineQubit.range(2)
-
-    step_result = BasicStepResult({q0: 0}, {})
-
-    with pytest.raises(KeyError):
-        step_result.density_matrix_of([q1])
-    with pytest.raises(KeyError):
-        step_result.density_matrix_of('junk')
-    with pytest.raises(TypeError):
-        step_result.density_matrix_of(0)
-
-
-def test_step_result_bloch_vector():
-    q0, q1 = cirq.LineQubit.range(2)
-    step_result = BasicStepResult({q0: 0, q1: 1}, {})
-    bloch1 = np.array([0,0,-1])
-    bloch0 = np.array([0,0,1])
-    np.testing.assert_array_almost_equal(bloch1,
-        step_result.bloch_vector_of(q1))
-    np.testing.assert_array_almost_equal(bloch0,
-        step_result.bloch_vector_of(q0))
-
-
-def test_bloch_vector_invalid():
-    q0, q1 = cirq.LineQubit.range(2)
-
-    step_result = BasicStepResult({q0: 0}, {})
-    with pytest.raises(KeyError):
-        step_result.bloch_vector_of(q1)
-    with pytest.raises(KeyError):
-        step_result.bloch_vector_of('junk')
-    with pytest.raises(KeyError):
-        step_result.bloch_vector_of(0)
 
 
 class FakeStepResult(cirq.StepResult):

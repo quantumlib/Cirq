@@ -331,7 +331,7 @@ def test_simulate_moment_steps_empty_circuit(dtype):
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    assert step is None
+    assert step.state() == np.array([1])
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -497,3 +497,44 @@ def test_allocates_new_state():
     result = simulator.simulate(circuit, initial_state=initial_state)
     np.testing.assert_array_almost_equal(result.final_state, initial_state)
     assert not initial_state is result.final_state
+
+
+def test_simulator_step_state_mixin():
+    qubits = cirq.LineQubit.range(2)
+    qubit_map = {qubits[i]: i for i in range(2)}
+    result = cirq.SparseSimulatorStep(
+        measurements={'m': np.array([1, 2])},
+        state=np.array([0, 1, 0, 0]),
+        qubit_map=qubit_map,
+        dtype=np.complex64)
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+                                         result.density_matrix_of(qubits))
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+                                         result.bloch_vector_of(qubits[1]))
+
+    assert result.dirac_notation() == '|01⟩'
+
+
+def test_simulator_trial_result_state_mixin():
+    qubits = cirq.LineQubit.range(2)
+    qubit_map = {qubits[i]: i for i in range(2)}
+    result = cirq.SparseSimulatorTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_state=np.array([0, 1, 0, 0]),
+        qubit_map=qubit_map)
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+                                         result.density_matrix_of(qubits))
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+                                         result.bloch_vector_of(qubits[1]))
+    assert result.dirac_notation() == '|01⟩'

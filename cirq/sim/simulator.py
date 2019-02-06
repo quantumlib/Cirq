@@ -16,11 +16,11 @@
 
 Simulator types include
     SimulatesSamples: mimics the interface of quantum hardware.
-    SimulatesFinalWaveFunction: allows access to the wave function.
+    SimulatesFinalState: allows access to the wave function.
 """
 
 from typing import (
-    Any, Dict, Hashable, Iterable, Iterator, List, Tuple, Union, Optional)
+    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional)
 
 import abc
 import collections
@@ -182,13 +182,15 @@ class SimulatesSamples:
         return compute_displays_results
 
 
-class SimulatesFinalWaveFunction:
-    """Simulator that allows access to a quantum computer's wavefunction.
+class SimulatesFinalState:
+    """Simulator that allows access to a quantum computer's final state.
 
     Implementors of this interface should implement the simulate_sweep
-    method. This simulator only returns the wave function for the final
-    step of a simulation. For simulators that also allow stepping through
-    a circuit see `SimulatesIntermediateWaveFunction`.
+    method. This simulator only returns the state of the quantum system
+    for the final step of a simulation. This state may be a wave function,
+    the density matrix, or another representation, depending on the
+    implementation.  For simulators that also allow stepping through
+    a circuit see `SimulatesIntermediateState`.
     """
 
     def simulate(
@@ -196,7 +198,7 @@ class SimulatesFinalWaveFunction:
         program: Union[circuits.Circuit, schedules.Schedule],
         param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+        initial_state: Any = None,
     ) -> 'SimulationTrialResult':
         """Simulates the supplied Circuit or Schedule.
 
@@ -208,15 +210,12 @@ class SimulatesFinalWaveFunction:
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits used
                 to define the order of amplitudes in the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state. Otherwise  if this
-                is a np.ndarray it is the full initial state. In this case it
-                must be the correct size, be normalized (an L2 norm of 1), and
-                be safely castable to an appropriate dtype for the simulator.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation.  See
+                documentation of the implementing class for details.
 
         Returns:
-            SimulateTrialResults for the simulation. Includes the final wave
-            function.
+            SimulateTrialResults for the simulation. Includes the final state.
         """
         return self.simulate_sweep(program,
                                    [param_resolver or study.ParamResolver({})],
@@ -229,7 +228,7 @@ class SimulatesFinalWaveFunction:
         program: Union[circuits.Circuit, schedules.Schedule],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+        initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit or Schedule.
 
@@ -242,12 +241,9 @@ class SimulatesFinalWaveFunction:
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits used to
                 define the order of amplitudes in the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state.
-                Otherwise if this is a np.ndarray it is the full initial state.
-                In this case it must be the correct size, be normalized (an L2
-                norm of 1), and  be safely castable to an appropriate
-                dtype for the simulator.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation.  See
+                documentation of the implementing class for details.
 
         Returns:
             List of SimulatorTrialResults for this run, one for each
@@ -258,7 +254,7 @@ class SimulatesFinalWaveFunction:
 
 @value.value_equality(unhashable=True)
 class SimulationTrialResult:
-    """Results of a simulation by a SimulatesFinalWaveFunction.
+    """Results of a simulation by a SimulatesFinalState.
 
     Unlike TrialResult these results contain the final state (wave function)
     of the system.
@@ -298,7 +294,7 @@ class SimulationTrialResult:
     def __init__(self,
                  params: study.ParamResolver,
                  measurements: Dict[str, np.ndarray],
-                 final_state: np.ndarray) -> None:
+                 final_state: Any) -> None:
         self.params = params
         self.measurements = measurements
         self.final_state = final_state
@@ -319,84 +315,17 @@ class SimulationTrialResult:
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
 
-    def dirac_notation(self, decimals: int = 2) -> str:
-        """Returns the wavefunction as a string in Dirac notation.
-
-        Args:
-            decimals: How many decimals to include in the pretty print.
-
-        Returns:
-            A pretty string consisting of a sum of computational basis kets
-            and non-zero floats of the specified accuracy."""
-        return wave_function.dirac_notation(self.final_state, decimals)
-
-    def density_matrix(self, indices: Iterable[int] = None) -> np.ndarray:
-        """Returns the density matrix of the wavefunction.
-
-        Calculate the density matrix for the system on the given qubit
-        indices, with the qubits not in indices that are present in
-        self.final_state traced out. If indices is None the full density
-        matrix for self.final_state is returned, given self.final_state
-        follows the standard Kronecker convention of numpy.kron.
-
-        For example:
-            self.final_state = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-                dtype=np.complex64)
-            indices = None
-            gives us \rho = \begin{bmatrix}
-                                0.5 & 0.5
-                                0.5 & 0.5
-                            \end{bmatrix}
-
-        Args:
-            indices: list containing indices for qubits that you would like
-                to include in the density matrix (i.e.) qubits that WON'T
-                be traced out.
-
-        Returns:
-            A numpy array representing the density matrix.
-
-        Raises:
-            ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if the indices are out of range for the number of qubits
-                corresponding to the state.
-        """
-        return wave_function.density_matrix_from_state_vector(
-            self.final_state, indices)
-
-    def bloch_vector(self, index: int) -> np.ndarray:
-        """Returns the bloch vector of a qubit.
-
-        Calculates the bloch vector of the qubit at index
-        in the wavefunction given by self.state. Given that self.state
-        follows the standard Kronecker convention of numpy.kron.
-
-        Args:
-            index: index of qubit who's bloch vector we want to find.
-
-        Returns:
-            A length 3 numpy array representing the qubit's bloch vector.
-
-        Raises:
-            ValueError: if the size of the state represents more than 25 qubits.
-            IndexError: if index is out of range for the number of qubits
-                corresponding to the state.
-        """
-        return wave_function.bloch_vector_from_state_vector(
-            self.final_state, index)
-
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
-        return (SimulationTrialResult, self.params, measurements,
-                self.final_state.tolist())
+        return (self.params, measurements, self.final_state.tolist())
 
 
-class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
-    """A SimulatesFinalWaveFunction that simulates a circuit by moments.
+class SimulatesIntermediateState(SimulatesFinalState):
+    """A SimulatesFinalState that simulates a circuit by moments.
 
-    Whereas a general SimulatesFinalWaveFunction may return the entire wave
-    function at the end of a circuit, a SimulatesIntermediateWaveFunction can
+    Whereas a general SimulatesFinalState may return the entire wave
+    function at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
     Implementors of this interface should implement the _simulator_iterator
@@ -408,7 +337,7 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         program: Union[circuits.Circuit, schedules.Schedule],
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+        initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit or Schedule.
 
@@ -439,7 +368,6 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         trial_results = []  # type: List[SimulationTrialResult]
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
-            step_result = None
             all_step_results = self.simulate_moment_steps(circuit,
                                                           param_resolver,
                                                           qubit_order,
@@ -448,18 +376,11 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=bool)
-            if step_result:
-                final_state = step_result.state_vector()
-            else:
-                # Empty circuit, so final state should be initial state.
-                num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = wave_function.to_valid_state_vector(initial_state,
-                                                                  num_qubits)
-            trial_results.append(SimulationTrialResult(
-                params=param_resolver,
-                measurements=measurements,
-                final_state=final_state))
-
+            trial_results.append(
+                SimulationTrialResult(
+                    params=param_resolver,
+                    measurements=measurements,
+                    final_state=step_result.state()))
         return trial_results
 
     def simulate_moment_steps(
@@ -467,9 +388,12 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         circuit: circuits.Circuit,
         param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0
+        initial_state: Any = None
     ) -> Iterator['StepResult']:
         """Returns an iterator of StepResults for each moment simulated.
+
+        If the circuit being simulated is empty, a single step result should
+        be returned with the state being set to the initial state.
 
         Args:
             circuit: The Circuit to simulate.
@@ -489,6 +413,10 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         param_resolver = param_resolver or study.ParamResolver({})
         return self._simulator_iterator(circuit, param_resolver, qubit_order,
                                         initial_state)
+
+    def to_simulation_trial_result(self, simulation_trial_result: 'SimulationTrialResult') -> 'SimulationTrialResult':
+        return simulation_trial_result
+
 
     @abc.abstractmethod
     def _simulator_iterator(
@@ -638,33 +566,37 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     return display.value_derived_from_samples(samples)
 
 
-class StepResult(wave_function.StateVector):
-    """Results of a step of a SimulatesIntermediateWaveFunction.
+class StepResult:
+    """Results of a step of a SimulatesIntermediateState.
 
     Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state_vector() method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
 
     def __init__(self,
-                 qubit_map: Optional[Dict[ops.QubitId, int]] = None,
                  measurements: Optional[Dict[str, List[bool]]] = None) -> None:
-        super().__init__(qubit_map)
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
-    def set_state(self, state: Union[int, np.ndarray]) -> None:
+    def state(self) -> Any:
+        """Returns the state of the simulator after this step.
+
+        The form of the state depends on the implementation of the simulation,
+        see documentation for the implementing class for the form of details.
+
+        Returns:
+            The state of the simulator after this step.
+        """
+
+    @abc.abstractmethod
+    def set_state(self, state: Any) -> None:
         """Updates the state of the simulator to the given new state.
 
         Args:
-            state: If this is an int, then this is the state to reset
-            the stepper to, expressed as an integer of the computational basis.
-            Integer to bitwise indices is little endian. Otherwise if this is
-            a np.ndarray this must be the correct size and have dtype of
-            np.complex64.
+            state: The state to update to. The form of this state depends on
+                the simulation implementation, see documentation of the
+                implementation for details.
 
         Raises:
             ValueError if the state is incorrectly sized or not of the correct
@@ -676,7 +608,7 @@ class StepResult(wave_function.StateVector):
     def sample(self,
                qubits: List[ops.QubitId],
                repetitions: int = 1) -> np.ndarray:
-        """Samples from the wave function at this point in the computation.
+        """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
 
@@ -697,7 +629,7 @@ class StepResult(wave_function.StateVector):
             self,
             measurement_ops: List[ops.GateOperation],
             repetitions: int = 1) -> Dict[str, np.ndarray]:
-        """Samples from the wave function at this point in the computation.
+        """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
 
