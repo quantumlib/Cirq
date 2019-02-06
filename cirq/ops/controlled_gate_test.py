@@ -342,9 +342,9 @@ def test_bounded_effect():
 def test_repr():
     assert repr(
         cirq.ControlledGate(cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
-    assert (repr(cirq.ControlledGate(cirq.Z, q)) ==
-            ("cirq.ControlledGate(sub_gate=cirq.Z, "
-             "control_qubit=cirq.NamedQubit('q'))"))
+    assert (repr(cirq.ControlledGate(cirq.Z, cirq.LineQubit(0))) ==
+            "cirq.ControlledGate(sub_gate=cirq.Z, "
+            "control_qubit=cirq.LineQubit(0))")
 
 
 def test_str():
