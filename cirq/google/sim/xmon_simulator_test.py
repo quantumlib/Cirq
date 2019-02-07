@@ -135,16 +135,14 @@ def test_initial_state_empty_circuit_qubits_specified(scheduler):
                       cirq.Circuit(),
                       scheduler,
                       qubit_order=[Q1, Q2])
-    np.testing.assert_almost_equal(result.state_vector(),
-                                   np.array([1, 0, 0, 0]))
+    np.testing.assert_almost_equal(result.final_state, np.array([1, 0, 0, 0]))
 
     result = simulate(simulator,
                       cirq.Circuit(),
                       scheduler,
                       qubit_order=[Q1, Q2],
                       initial_state=1)
-    np.testing.assert_almost_equal(result.state_vector(),
-                                   np.array([0, 1, 0, 0]))
+    np.testing.assert_almost_equal(result.final_state, np.array([0, 1, 0, 0]))
 
     result = simulate(simulator,
                       cirq.Circuit(),
@@ -152,8 +150,7 @@ def test_initial_state_empty_circuit_qubits_specified(scheduler):
                       qubit_order=[Q1, Q2],
                       initial_state=np.array([0, 1, 0, 0],
                                              dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state_vector(),
-                                   np.array([0, 1, 0, 0]))
+    np.testing.assert_almost_equal(result.final_state, np.array([0, 1, 0, 0]))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -167,28 +164,28 @@ def test_qubit_order_to_wavefunction_order_matches_np_kron(scheduler):
                       scheduler,
                       qubit_order=[Q1, Q2])
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.kron(one, zero))
+        result.final_state, np.kron(one, zero))
 
     result = simulate(simulator,
                       cirq.Circuit.from_ops(cirq.X(Q1)),
                       scheduler,
                       qubit_order=[Q2, Q1])
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.kron(zero, one))
+        result.final_state, np.kron(zero, one))
 
     result = simulate(simulator,
                       cirq.Circuit.from_ops(cirq.X(Q1)),
                       scheduler,
                       qubit_order=cirq.QubitOrder.sorted_by(repr))
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.array(one))
+        result.final_state, np.array(one))
 
     result = simulate(simulator,
                       cirq.Circuit.from_ops(cirq.X(Q1), cirq.Z(Q2)),
                       scheduler,
                       qubit_order=cirq.QubitOrder.sorted_by(repr))
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.kron(one, zero))
+        result.final_state, np.kron(one, zero))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -200,28 +197,28 @@ def test_bit_flip_order_to_wavefunction_order_matches_np_kron(scheduler):
                       scheduler,
                       qubit_order=[Q1, Q2, Q3])
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.array([0, 0, 0, 0, 1, 0, 0, 0]))
+        result.final_state, np.array([0, 0, 0, 0, 1, 0, 0, 0]))
 
     result = simulate(simulator,
                       cirq.Circuit.from_ops(cirq.X(Q3)),
                       scheduler,
                       qubit_order=[Q1, Q2, Q3])
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.array([0, 1, 0, 0, 0, 0, 0, 0]))
+        result.final_state, np.array([0, 1, 0, 0, 0, 0, 0, 0]))
 
     result = simulate(simulator,
                       cirq.Circuit.from_ops(cirq.X(Q3)),
                       scheduler,
                       qubit_order=[Q3, Q2, Q1])
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.array([0, 0, 0, 0, 1, 0, 0, 0]))
+        result.final_state, np.array([0, 0, 0, 0, 1, 0, 0, 0]))
 
     result = simulate(simulator,
                       cirq.Circuit.from_ops(cirq.X(Q3)),
                       scheduler,
                       qubit_order=[Q2, Q3, Q1])
     assert cirq.allclose_up_to_global_phase(
-        result.state_vector(), np.array([0, 0, 1, 0, 0, 0, 0, 0]))
+        result.final_state, np.array([0, 0, 1, 0, 0, 0, 0, 0]))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -255,14 +252,14 @@ def test_initial_state_empty_circuit_qubits_not_specified(scheduler):
     simulator = cg.XmonSimulator()
 
     result = simulate(simulator, cirq.Circuit(), scheduler)
-    np.testing.assert_almost_equal(result.state_vector(), np.array([1.0]))
+    np.testing.assert_almost_equal(result.final_state, np.array([1.0]))
 
     result = simulate(simulator, cirq.Circuit(), scheduler, initial_state=0)
-    np.testing.assert_almost_equal(result.state_vector(), np.array([1.0]))
+    np.testing.assert_almost_equal(result.final_state, np.array([1.0]))
 
     result = simulate(simulator, cirq.Circuit(), scheduler,
                       initial_state=np.array([1], dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state_vector(), np.array([1.0]))
+    np.testing.assert_almost_equal(result.final_state, np.array([1.0]))
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -285,7 +282,7 @@ def test_invalid_initial_state_empty_circuit_qubits_not_specified(scheduler):
 def test_simulate_state(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler)
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5j, 0.5, -0.5, -0.5j]))
 
 
@@ -294,7 +291,7 @@ def test_simulate_initial_state_int(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler,
                       initial_state=2)
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
@@ -309,13 +306,13 @@ def test_initial_state_identity(scheduler):
                        initial_state=2, qubit_order=[Q1, Q2])
     result3 = simulate(simulator, cirq.Circuit(), scheduler,
                        initial_state=3, qubit_order=[Q1, Q2])
-    np.testing.assert_almost_equal(result0.state_vector(),
+    np.testing.assert_almost_equal(result0.final_state,
                                    np.array([1, 0, 0, 0]))
-    np.testing.assert_almost_equal(result1.state_vector(),
+    np.testing.assert_almost_equal(result1.final_state,
                                    np.array([0, 1, 0, 0]))
-    np.testing.assert_almost_equal(result2.state_vector(),
+    np.testing.assert_almost_equal(result2.final_state,
                                    np.array([0, 0, 1, 0]))
-    np.testing.assert_almost_equal(result3.state_vector(),
+    np.testing.assert_almost_equal(result3.final_state,
                                    np.array([0, 0, 0, 1]))
 
 
@@ -332,13 +329,13 @@ def test_initial_state_consistency(scheduler):
                               cirq.Circuit(),
                               scheduler,
                               initial_state=i,
-                              qubit_order=[Q1, Q2, Q3]).state_vector()
+                              qubit_order=[Q1, Q2, Q3]).final_state
 
         array_result = simulate(simulator,
                                 cirq.Circuit(),
                                 scheduler,
                                 initial_state=blip(i, 8),
-                                qubit_order=[Q1, Q2, Q3]).state_vector()
+                                qubit_order=[Q1, Q2, Q3]).final_state
 
         np.testing.assert_allclose(int_result, blip(i, 8), atol=1e-8)
         np.testing.assert_allclose(int_result, array_result, atol=1e-8)
@@ -349,7 +346,7 @@ def test_simulate_initial_state_ndarray(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler,
                       initial_state=np.array([0, 0, 1, 0], dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
@@ -358,7 +355,7 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
     simulator = cg.XmonSimulator()
     result = simulate(simulator, basic_circuit(), scheduler,
                       initial_state=np.array([0, 0, 1, 0], dtype=np.float32))
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
@@ -379,7 +376,7 @@ def test_simulate_state_different_order_of_qubits(scheduler):
                       basic_circuit(),
                       scheduler,
                       qubit_order=[Q2, Q1])
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5j, -0.5, 0.5, -0.5j]))
 
 
@@ -508,7 +505,7 @@ def compute_gate(circuit, resolver, num_qubits=1):
         result = simulator.simulate(circuit,
                                     initial_state=initial_state,
                                     param_resolver=resolver)
-        gate.append(result.state_vector())
+        gate.append(result.final_state)
     return np.array(gate).transpose()
 
 

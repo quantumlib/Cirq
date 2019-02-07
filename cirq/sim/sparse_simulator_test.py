@@ -178,7 +178,7 @@ def test_simulate_random_unitary(dtype):
         for x in range(4):
             result = simulator.simulate(random_circuit, qubit_order=[q0, q1],
                                         initial_state=x)
-            circuit_unitary.append(result.state_vector())
+            circuit_unitary.append(result.final_state)
         np.testing.assert_almost_equal(
             np.transpose(circuit_unitary),
             random_circuit.to_unitary_matrix(qubit_order=[q0, q1]))
@@ -190,7 +190,7 @@ def test_simulate_no_circuit(dtype,):
     simulator = cirq.Simulator(dtype=dtype)
     circuit = cirq.Circuit()
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([1, 0, 0, 0]))
     assert len(result.measurements) == 0
 
@@ -202,7 +202,7 @@ def test_simulate(dtype,):
     simulator = cirq.Simulator(dtype=dtype)
     circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1))
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
-    np.testing.assert_almost_equal(result.state_vector(),
+    np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5, 0.5, 0.5, 0.5]))
     assert len(result.measurements) == 0
 
@@ -221,7 +221,7 @@ def test_simulate_bit_flips(dtype):
             np.testing.assert_equal(result.measurements, {'0': [b0], '1': [b1]})
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
-            np.testing.assert_equal(result.state_vector(),
+            np.testing.assert_equal(result.final_state,
                                     np.reshape(expected_state, 4))
 
 
@@ -235,7 +235,7 @@ def test_simulate_initial_state(dtype):
             result = simulator.simulate(circuit, initial_state=1)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][1 - b1] = 1.0
-            np.testing.assert_equal(result.state_vector(),
+            np.testing.assert_equal(result.final_state,
                                     np.reshape(expected_state, 4))
 
 
@@ -249,7 +249,7 @@ def test_simulate_qubit_order(dtype):
             result = simulator.simulate(circuit, qubit_order=[q1, q0])
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b1][b0] = 1.0
-            np.testing.assert_equal(result.state_vector(),
+            np.testing.assert_equal(result.final_state,
                                     np.reshape(expected_state, 4))
 
 
@@ -265,7 +265,7 @@ def test_simulate_param_resolver(dtype):
             result = simulator.simulate(circuit, param_resolver=resolver)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
-            np.testing.assert_equal(result.state_vector(),
+            np.testing.assert_equal(result.final_state,
                                     np.reshape(expected_state, 4))
             assert result.params == resolver
             assert len(result.measurements) == 0
@@ -298,12 +298,12 @@ def test_simulate_sweeps_param_resolver(dtype):
             results = simulator.simulate_sweep(circuit, params=params)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
-            np.testing.assert_equal(results[0].state_vector(),
+            np.testing.assert_equal(results[0].final_state,
                                     np.reshape(expected_state, 4))
 
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b1][b0] = 1.0
-            np.testing.assert_equal(results[1].state_vector(),
+            np.testing.assert_equal(results[1].final_state,
                                     np.reshape(expected_state, 4))
 
             assert results[0].params == params[0]

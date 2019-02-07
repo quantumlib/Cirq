@@ -20,7 +20,7 @@ Simulator types include:
 
     SimulatesFinalState: allows access to the final state of the simulation.
 
-    SimulatesIntermediateSate: allows for access to the state of the simulation
+    SimulatesIntermediateState: allows for access to the state of the simulation
         as the simulation iterates through the moments of a cirq.
 """
 

@@ -23,10 +23,6 @@ import numpy as np
 
 from cirq import linalg, ops
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    pass
-
 
 class StateVectorMixin():
     """A mixin that provide methods for objects that have a state vector.

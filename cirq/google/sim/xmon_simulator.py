@@ -31,7 +31,7 @@ mimic what the quantum hardware provides, and, for example, do not give
 access to the wave function.  "Simulate" methods give access to the wave
 function, i.e. one can retrieve the final wave function from the simulation
 via.
-    final_state = sim.simulate(circuit).state_vector()
+    final_state = sim.simulate(circuit).final_state
 """
 import math
 import collections

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Abstract classes for simulations which keep track of wave functions."""
+
 import abc
 
 from typing import Any, Dict, Iterator, Hashable, List, Optional, Union
@@ -24,6 +26,11 @@ from cirq.sim import simulator, wave_function
 
 class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
                                         metaclass=abc.ABCMeta):
+    """A simulator that accesses its wave function as it does its simulation.
+
+    Implementors of this interface should implement the _simulator_iterator
+    method."""
+
 
     @abc.abstractmethod
     def _simulator_iterator(
@@ -33,7 +40,7 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
         qubit_order: ops.QubitOrderOrList,
         initial_state: np.ndarray,
     ) -> Iterator:
-        """Iterator over StepResult from Moments of a Circuit.
+        """Iterator over WaveFunctionStepResult from Moments of a Circuit.
 
         Args:
             circuit: The circuit to simulate.
@@ -47,7 +54,7 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
                 documentation of the implementing class for details.
 
         Yields:
-            StepResults from simulating a Moment of the Circuit.
+            WaveFunctionStepResult from simulating a Moment of the Circuit.
         """
         raise NotImplementedError()
 
@@ -220,6 +227,9 @@ class WaveFunctionSimulatorState:
 class WaveFunctionTrialResult(wave_function.StateVectorMixin,
                               simulator.SimulationTrialResult):
     """A `SimulationTrialResult` that includes the `StateVectorMixin` methods.
+
+    Attributes:
+        final_state: The final wave function of the system.
     """
 
     def __init__(self,
@@ -230,6 +240,7 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
                          measurements=measurements,
                          final_simulator_state=final_simulator_state,
                          qubit_map=final_simulator_state.qubit_map)
+        self.final_state = final_simulator_state.state_vector
 
     def state_vector(self):
         """Return the wave function at the end of the computation.
