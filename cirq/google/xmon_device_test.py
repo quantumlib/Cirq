@@ -140,6 +140,7 @@ def test_validate_operation_supported_gate():
             return 1
 
     d.validate_operation(cirq.GateOperation(cirq.Z, [cirq.GridQubit(0, 0)]))
+
     assert MyGate().num_qubits() == 1
     with pytest.raises(ValueError):
         d.validate_operation(cirq.GateOperation(
