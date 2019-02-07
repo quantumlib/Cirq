@@ -133,8 +133,6 @@ def test_validate_operation_supported_gate():
     d = square_device(3, 3)
 
     class MyGate(cirq.Gate):
-        def __init__(self):
-            super().__init__()
 
         def num_qubits(self):
             return 1
