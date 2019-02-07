@@ -197,22 +197,26 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    SimulatesSamples,
-    SimulationTrialResult,
-    Simulator,
-    SparseSimulatorStep,
-    SparseSimulatorTrialResult,
-    StepResult,
-    SimulatesFinalState,
-    SimulatesIntermediateState,
-    StateVectorMixin,
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
+    SimulatesSamples,
+    SimulatesFinalState,
+    SimulatesIntermediateState,
+    SimulatesIntermediateWaveFunction,
+    SimulationTrialResult,
+    Simulator,
+    SparseSimulatorStep,
+    StateVectorMixin,
+    StateVectorMixin,
+    StepResult,
     to_valid_state_vector,
     validate_normalized_state,
+    WaveFunctionTrialResult,
+    WaveFunctionStepResult,
+    WaveFunctionSimulatorState,
 )
 
 from cirq.study import (

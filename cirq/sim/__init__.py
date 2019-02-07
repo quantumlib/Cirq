@@ -16,23 +16,28 @@
 
 from cirq.sim.simulator import (
     SimulatesSamples,
-    SimulationTrialResult,
     StepResult,
     SimulatesIntermediateState,
     SimulatesFinalState,
+    SimulationTrialResult
 )
 from cirq.sim.sparse_simulator import (
     Simulator,
     SparseSimulatorStep,
-    SparseSimulatorTrialResult,
+)
+from cirq.sim.wave_function_simulator import (
+    SimulatesIntermediateWaveFunction,
+    WaveFunctionSimulatorState,
+    WaveFunctionStepResult,
+    WaveFunctionTrialResult
 )
 from cirq.sim.wave_function import (
-    StateVectorMixin,
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
+    StateVectorMixin,
     to_valid_state_vector,
     validate_normalized_state,
 )

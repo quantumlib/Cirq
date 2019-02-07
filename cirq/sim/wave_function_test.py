@@ -19,10 +19,24 @@ import pytest
 import numpy as np
 
 import cirq
+import cirq.sim.wave_function_simulator
 
 
 def assert_dirac_notation(vec, expected, decimals=2):
     assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
+
+
+def test_state_mixin():
+    class TestClass(cirq.StateVectorMixin):
+        def state_vector(self) -> np.ndarray:
+            return np.array([0, 0, 1, 0])
+    qubits = cirq.LineQubit.range(2)
+    test = TestClass(qubit_map={qubits[i]: i for i in range(2)})
+    assert test.dirac_notation() == '|10⟩'
+    np.testing.assert_almost_equal(test.bloch_vector_of(qubits[0]),
+                                   np.array([0, 0, -1]))
+    np.testing.assert_almost_equal(test.density_matrix_of(qubits[0:1]),
+                                   np.array([[0, 0], [0, 1]]))
 
 
 def test_bloch_vector_simple_H_zero():

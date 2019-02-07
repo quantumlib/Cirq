@@ -31,7 +31,7 @@ mimic what the quantum hardware provides, and, for example, do not give
 access to the wave function.  "Simulate" methods give access to the wave
 function, i.e. one can retrieve the final wave function from the simulation
 via.
-    final_state = sim.simulate(circuit).final_state
+    final_state = sim.simulate(circuit).state_vector()
 """
 import math
 import collections
@@ -40,8 +40,7 @@ from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
-from cirq import circuits, ops, study, protocols, optimizers
-from cirq.sim import simulator, wave_function
+from cirq import circuits, ops, sim, study, protocols, optimizers
 from cirq.google import convert_to_xmon_gates
 from cirq.google.sim import xmon_stepper
 
@@ -93,8 +92,8 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
-class XmonSimulator(simulator.SimulatesSamples,
-                    simulator.SimulatesIntermediateState):
+class XmonSimulator(sim.SimulatesSamples,
+                    sim.SimulatesIntermediateWaveFunction):
     """XmonSimulator for Xmon class quantum circuits.
 
     This simulator has different methods for different types of simulations.
@@ -107,10 +106,16 @@ class XmonSimulator(simulator.SimulatesSamples,
 
     To get access to the wave function during a simulation, including being
     able to set the wave function, the simulate methods are defined in the
-    SimulatesFinalState interface:
+    SimulatesFinalState and SimulatesIntermediateState interfaces:
         simulate
         simulate_sweep
         simulate_moment_steps (for stepping through a circuit moment by moment)
+
+    The simulator state of this simulator is the entire wave function of the
+    quantum computer.  When supplied as an initial state, this may be either
+    the entire wave function, or an integer representing a state in the
+    computational basis, with the ordering specified by the qubit ordering
+    supplied to the simulate methods.
     """
 
     def __init__(self, options: XmonOptions = None) -> None:
@@ -190,7 +195,14 @@ class XmonSimulator(simulator.SimulatesSamples,
         initial_state: Union[int, np.ndarray],
         perform_measurements: bool=True,
     ) -> Iterator['XmonStepResult']:
-        """See _simulator_iterator."""
+        """See definition in `cirq.SimulatesIntermediateState`.
+
+        If the initial state is an int, the state is set to the computational
+        basis state corresponding to this state. Otherwise  if the initial
+        state is a np.ndarray it is the full initial state. In this case it
+        must be the correct size, be normalized (an L2 norm of 1), and
+        be safely castable to an appropriate dtype for the simulator.
+        """
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qubit_map = {q: i for i, q in enumerate(reversed(qubits))}
@@ -256,13 +268,6 @@ class XmonSimulator(simulator.SimulatesSamples,
                 stepper.simulate_phases(phase_map)
                 yield XmonStepResult(stepper, qubit_map, measurements)
 
-    def to_simulation_trial_result(self,
-        simulation_trial_result: 'SimulationTrialResult') -> 'SparseSimulatorTrialResult':
-        return XmonSimulatorTrialResult(
-            simulation_trial_result.measurements,
-            simulation_trial_result.final_state,
-            simulation_trial_result.params)
-
     def _to_xmon_circuit(
         self,
         circuit: circuits.Circuit,
@@ -288,22 +293,7 @@ def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
     return keys
 
 
-class XmonSimulatorTrialResult(wave_function.StateVectorMixin,
-                               simulator.SimulationTrialResult):
-
-    def __init__(self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_state: Union[int, np.ndarray],
-        qubit_map) -> None:
-        super().__init__(params=params, measurements=measurements,
-                         final_state=final_state, qubit_map=qubit_map)
-
-    def state_vector(self):
-        return self.final_state
-
-
-class XmonStepResult(wave_function.StateVectorMixin, simulator.StepResult):
+class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
     """Results of a step of the simulator.
 
     Attributes:
@@ -323,11 +313,12 @@ class XmonStepResult(wave_function.StateVectorMixin, simulator.StepResult):
         self.measurements = measurements or collections.defaultdict(list)
         self._stepper = stepper
 
-    def state(self) -> np.ndarray:
-        return self._stepper.current_state
+    def simulator_state(self) -> sim.WaveFunctionSimulatorState:
+        return sim.WaveFunctionSimulatorState(
+            state_vector=self._stepper.current_state, qubit_map=self.qubit_map)
 
     def state_vector(self) -> np.ndarray:
-        """Return the state (wave function) at this point in the computation.
+        """Return the wave function at this point in the computation.
 
         The state is returned in the computational basis with these basis
         states defined by the qubit_map. In particular the value in the
@@ -351,11 +342,10 @@ class XmonStepResult(wave_function.StateVectorMixin, simulator.StepResult):
                  5  |   1    |   0    |   1
                  6  |   1    |   1    |   0
                  7  |   1    |   1    |   1
-
         """
-        return self.state()
+        return self._stepper.current_state
 
-    def set_state(self, state: Union[int, np.ndarray]):
+    def set_state_vector(self, state: Union[int, np.ndarray]):
         """Updates the state of the simulator to the given new state.
 
         Args:
