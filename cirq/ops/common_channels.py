@@ -131,7 +131,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         self._delegate = AsymmetricDepolarizingChannel(p / 3, p / 3, p / 3)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        return protocols.mixture(self._delegate)
+        return self._delegate._mixture_()
 
     def _value_equality_values_(self):
         return self._p
@@ -518,7 +518,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         self._delegate = AsymmetricDepolarizingChannel(0., 0., 1. - p)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        mixture = protocols.mixture(self._delegate)
+        mixture = self._delegate._mixture_()
         # just return identity and z term
         return (mixture[0], mixture[3])
 
@@ -640,7 +640,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         self._delegate = AsymmetricDepolarizingChannel(1. - p, 0., 0.)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        mixture = protocols.mixture(self._delegate)
+        mixture = self._delegate._mixture_()
         # just return identity and x term
         return (mixture[0], mixture[1])
 
