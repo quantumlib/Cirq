@@ -107,6 +107,12 @@ def channel(val: Any,
     if channel_result is not NotImplemented:
         return tuple(channel_result)
 
+    mixture_getter = getattr(val, '_mixture_', None)
+    mixture_result = (
+        NotImplemented if mixture_getter is None else mixture_getter())
+    if mixture_result is not NotImplemented:
+        return tuple(np.sqrt(p) * u for p, u in mixture_result)
+
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = (
         NotImplemented if unitary_getter is None else unitary_getter())
@@ -117,8 +123,10 @@ def channel(val: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if channel_getter is None and unitary_getter is None:
-        raise TypeError("object of type '{}' has no _channel_ or "
+    if (channel_getter is None and unitary_getter is None
+        and mixture_getter is None):
+        raise TypeError("object of type '{}' has no _channel_ or _mixture_ or "
                         "_unitary_ method.".format(type(val)))
-    raise TypeError("object of type '{}' does have a _channel_  or _unitary_ "
-                    "method, but it returned NotImplemented.".format(type(val)))
+    raise TypeError("object of type '{}' does have a _channel_, _mixture_ or "
+                    "_unitary_ method, but it returned NotImplemented."
+                    .format(type(val)))
