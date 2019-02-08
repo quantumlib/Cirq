@@ -13,11 +13,10 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import Tuple, Type, Union
+from typing import Type, Union
 
 import numpy as np
 
-from cirq import protocols
 from cirq.sim import wave_function
 
 
