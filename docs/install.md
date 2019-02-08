@@ -30,8 +30,8 @@ That way you have control over when a breaking change affects you.
 2. Use `pip` to install `cirq`:
 
     ```bash
-    pip install --upgrade pip
-    pip install cirq
+    python -m pip install --upgrade pip
+    python -m pip install cirq
     ```
 
 3. (Optional) install system dependencies that pip can't handle.
@@ -66,8 +66,8 @@ That way you have control over when a breaking change affects you.
 2. Use `pip` to install `cirq`:
 
     ```bash
-    pip install --upgrade pip
-    pip install cirq
+    python -m pip install --upgrade pip
+    python -m pip install cirq
     ```
 
 3. Check that it works!
