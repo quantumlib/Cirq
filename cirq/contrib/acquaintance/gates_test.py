@@ -135,7 +135,7 @@ def test_acquaint_part_pairs(part_lens):
     for part_len in part_lens:
         parts.append(tuple(range(n_qubits, n_qubits + part_len)))
         n_qubits += part_len
-    qubits = tuple(cirq.NamedQubit(s) for s in alphabet)[:n_qubits]
+    qubits = cirq.LineQubit.range(n_qubits)
     swap_network_op = cca.SwapNetworkGate(
         part_lens, acquaintance_size=None)(*qubits)
     swap_network = cirq.Circuit.from_ops(
