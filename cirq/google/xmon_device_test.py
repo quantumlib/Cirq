@@ -159,7 +159,7 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
             cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
-    
+
 
 def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
     d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
