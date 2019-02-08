@@ -14,7 +14,7 @@
 
 """Tests for channel.py."""
 
-from typing import Sequence
+from typing import Iterable, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -24,11 +24,13 @@ import cirq
 
 LOCAL_DEFAULT = [np.array([])]
 
+
 def test_channel_no_methods():
     class NoMethod:
         pass
 
-    with pytest.raises(TypeError, match='no _channel_ or _unitary_ method'):
+    with pytest.raises(TypeError,
+                       match='no _channel_ or _mixture_ or _unitary_ method'):
         _ = cirq.channel(NoMethod())
 
     assert cirq.channel(NoMethod(), None) is None
@@ -36,19 +38,29 @@ def test_channel_no_methods():
     assert cirq.channel(NoMethod(), (1,)) == (1,)
     assert cirq.channel(NoMethod(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
+
+def assert_not_implemented(val):
+    with pytest.raises(TypeError, match='returned NotImplemented'):
+        _ = cirq.channel(val)
+
+    assert cirq.channel(val, None) is None
+    assert (cirq.channel(val, NotImplemented) is NotImplemented)
+    assert cirq.channel(val, (1,)) == (1,)
+    assert cirq.channel(val, LOCAL_DEFAULT) is LOCAL_DEFAULT
+
+
 def test_channel_returns_not_implemented():
     class ReturnsNotImplemented:
         def _channel_(self):
             return NotImplemented
+    assert_not_implemented(ReturnsNotImplemented())
 
-    with pytest.raises(TypeError, match='returned NotImplemented'):
-        _ = cirq.channel(ReturnsNotImplemented())
 
-    assert cirq.channel(ReturnsNotImplemented(), None) is None
-    assert (cirq.channel(ReturnsNotImplemented(),
-                         NotImplemented) is NotImplemented)
-    assert cirq.channel(ReturnsNotImplemented(), (1,)) == (1,)
-    assert cirq.channel(ReturnsNotImplemented(), LOCAL_DEFAULT) is LOCAL_DEFAULT
+def test_mixture_returns_not_implemented():
+    class ReturnsNotImplemented:
+        def _mixture_(self):
+            return NotImplemented
+    assert_not_implemented(ReturnsNotImplemented())
 
 
 def test_unitary_returns_not_implemented():
@@ -79,6 +91,25 @@ def test_channel():
     assert cirq.channel(ReturnsChannel(), NotImplemented) is c
     assert cirq.channel(ReturnsChannel(), (1,)) is c
     assert cirq.channel(ReturnsChannel(), LOCAL_DEFAULT) is c
+
+
+def test_channel_fallback_to_mixture():
+    m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)),
+         (0.3, cirq.unitary(cirq.Z)))
+
+    class ReturnsMixture:
+        def _mixture_(self) -> Iterable[Tuple[float, np.ndarray]]:
+            return m
+
+    c = (np.sqrt(0.3) * cirq.unitary(cirq.X),
+         np.sqrt(0.4) * cirq.unitary(cirq.Y),
+         np.sqrt(0.3) * cirq.unitary(cirq.Z))
+
+    np.allclose(cirq.channel(ReturnsMixture()), c)
+    np.allclose(cirq.channel(ReturnsMixture(), None), c)
+    np.allclose(cirq.channel(ReturnsMixture(), NotImplemented), c)
+    np.allclose(cirq.channel(ReturnsMixture(), (1,)), c)
+    np.allclose(cirq.channel(ReturnsMixture(), LOCAL_DEFAULT), c)
 
 
 def test_channel_fallback_to_unitary():
