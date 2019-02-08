@@ -19,7 +19,7 @@ import numpy as np
 from cirq import protocols
 from cirq.sim import wave_function
 
-def to_valid_density_matrix(
+cd def to_valid_density_matrix(
     density_matrix_rep: Union[int, np.ndarray, Tuple[float, np.ndarray]],
     num_qubits: int,
     dtype: Type[np.number] = np.complex64) -> np.ndarray:
