@@ -302,6 +302,9 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
     Returns:
         A numpy ndarray corresponding to the state on the given number of
         qubits.
+
+    Raises:
+        ValueError if the state is not valid.
     """
     if isinstance(state_rep, np.ndarray):
         if len(state_rep) != 2 ** num_qubits:
