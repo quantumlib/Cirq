@@ -17,7 +17,6 @@ import pytest
 import numpy as np
 
 import cirq
-import cirq.sim.wave_function_simulator
 
 
 def test_invalid_dtype():

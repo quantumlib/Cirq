@@ -210,7 +210,6 @@ from cirq.sim import (
     Simulator,
     SparseSimulatorStep,
     StateVectorMixin,
-    StateVectorMixin,
     StepResult,
     to_valid_state_vector,
     validate_normalized_state,

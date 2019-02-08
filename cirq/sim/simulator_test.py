@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 
 import cirq
-import cirq.sim.simulator
 from cirq.testing.mock import mock
 
 
@@ -96,7 +95,6 @@ def test_intermediate_simulator():
     np.testing.assert_equal(result.measurements['b'], [True, False])
     assert set(result.measurements.keys()) == {'a', 'b'}
     assert result.params == param_resolver
-    print(result)
     np.testing.assert_equal(result.final_simulator_state, final_simulator_state)
 
 
@@ -123,11 +121,11 @@ def test_intermediate_sweeps():
                                        qubit_order=qubit_order,
                                        initial_state=2)
     expected_results = [
-        cirq.sim.simulator.SimulationTrialResult(
+        cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[0],
             final_simulator_state=final_state),
-        cirq.sim.simulator.SimulationTrialResult(
+        cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[1],
             final_simulator_state=final_state)
