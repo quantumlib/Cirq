@@ -16,6 +16,9 @@ import numpy as np
 
 import cirq
 
+
+# Python 2 gives a different repr due to unicode strings being prefixed with u.
+@cirq.testing.only_test_in_python3
 def test_wave_function_trial_result_repr():
     final_simulator_state = cirq.WaveFunctionSimulatorState(
         qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1]))
