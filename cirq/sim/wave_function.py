@@ -15,22 +15,16 @@
 
 import itertools
 
-from typing import (Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING,
-                    Optional, Dict)
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Type, Union
 
 import abc
 import numpy as np
 
 from cirq import linalg, ops
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from cirq.sim import simulator
 
-
-class StateVector:
-    """Represent a quantum state (wave function), and provide various
-    convenience methods.
+class StateVectorMixin():
+    """A mixin that provide methods for objects that have a state vector.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
@@ -38,14 +32,17 @@ class StateVector:
             used to define the state (see the state_vector() method).
     """
 
-    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None):
+    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
+    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None,
+        *args, **kwargs):
+        super().__init__(*args, **kwargs)  # type: ignore
         self.qubit_map = qubit_map or {}
 
     @abc.abstractmethod
     def state_vector(self) -> np.ndarray:
-        """Return the state (wave function).
+        """Return the state vector (wave function).
 
-        The state is returned in the computational basis with these basis
+        The vector is returned in the computational basis with these basis
         states defined by the `qubit_map`. In particular the value in the
         `qubit_map` is the index of the qubit, and these are translated into
         binary vectors where the last qubit is the 1s bit of the index, the
@@ -72,7 +69,7 @@ class StateVector:
         raise NotImplementedError()
 
     def dirac_notation(self, decimals: int = 2) -> str:
-        """Returns the state as a string in Dirac notation.
+        """Returns the state vector as a string in Dirac notation.
 
         Args:
             decimals: How many decimals to include in the pretty print.
