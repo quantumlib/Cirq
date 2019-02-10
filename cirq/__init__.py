@@ -209,6 +209,7 @@ from cirq.sim import (
     SparseSimulatorStep,
     StateVectorMixin,
     StepResult,
+    to_valid_density_matrix,
     to_valid_state_vector,
     validate_normalized_state,
     WaveFunctionTrialResult,
