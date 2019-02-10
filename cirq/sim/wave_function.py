@@ -278,7 +278,7 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
 def to_valid_state_vector(state_rep: Union[int, np.ndarray],
                           num_qubits: int,
                           dtype: Type[np.number] = np.complex64) -> np.ndarray:
-    """Verifies the initial_state is valid and converts it to ndarray form.
+    """Verifies the state_rep is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
     computational basis state or a full wave function as a representation of
@@ -299,6 +299,9 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
     Returns:
         A numpy ndarray corresponding to the state on the given number of
         qubits.
+
+    Raises:
+        ValueError if the state is not valid.
     """
     if isinstance(state_rep, np.ndarray):
         if len(state_rep) != 2 ** num_qubits:
