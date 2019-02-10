@@ -21,11 +21,11 @@ from typing import cast, Dict, Iterator, List, Union
 import numpy as np
 
 from cirq import circuits, study, ops, protocols
-from cirq.sim import simulator, wave_function
+from cirq.sim import simulator, wave_function, wave_function_simulator
 
 
 class Simulator(simulator.SimulatesSamples,
-                simulator.SimulatesIntermediateWaveFunction):
+                wave_function_simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
 
     This simulator can be applied on circuits that are made up of operations
@@ -61,8 +61,8 @@ class Simulator(simulator.SimulatesSamples,
     These methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
     ordering must be chosen for the kronecker product (see
-    `SimulationTrialResult` for details of this ordering). The initial state
-    can be either the full wave function, or an integer which represents
+    `SparseSimulationTrialResult` for details of this ordering). The initial
+    state can be either the full wave function, or an integer which represents
     the initial state of being in a computational basis state for the binary
     representation of that integer. Similar to run methods, there are two
     simulate methods that run for single runs or for sweeps across different
@@ -73,10 +73,11 @@ class Simulator(simulator.SimulatesSamples,
         simulate_sweep(circuit, params, qubit_order, initial_state)
 
     The simulate methods in contrast to the run methods do not perform
-    repetitions. The result of these simulations is a `SimulationTrialResult`
-    which contains in addition to measurement results and information about
-    the parameters that were used in the simulation access to the state
-    viat the `final_state` method.
+    repetitions. The result of these simulations is a
+    `SparseSimulationTrialResult` which contains, in addition to measurement
+    results and information about the parameters that were used in the
+    simulation,access to the state via the `state` method and `StateVectorMixin`
+    methods.
 
     If one wishes to perform simulations that have access to the
     wave function as one steps through running the circuit there is a generator
@@ -102,7 +103,6 @@ class Simulator(simulator.SimulatesSamples,
     The result of computing display values is stored in a
     `ComputeDisplaysResult`.
 
-
     See `Simulator` for the definitions of the supported methods.
     """
 
@@ -124,7 +124,7 @@ class Simulator(simulator.SimulatesSamples,
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         repetitions: int) -> Dict[str, List[np.ndarray]]:
-        """See definition in `sim.SimulatesSamples`."""
+        """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         if circuit.are_all_measurements_terminal():
@@ -174,11 +174,21 @@ class Simulator(simulator.SimulatesSamples,
             qubit_order: ops.QubitOrderOrList,
             initial_state: Union[int, np.ndarray],
             perform_measurements: bool = True,
-    ) -> Iterator[simulator.StepResult]:
-        """See definition in `sim.SimulatesIntermediateWaveFunction`."""
+    ) -> Iterator:
+        """See definition in `cirq.SimulatesIntermediateState`.
+
+        If the initial state is an int, the state is set to the computational
+        basis state corresponding to this state. Otherwise  if the initial
+        state is a np.ndarray it is the full initial state. In this case it
+        must be the correct size, be normalized (an L2 norm of 1), and
+        be safely castable to an appropriate dtype for the simulator.
+        """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        return self._base_iterator(resolved_circuit, qubit_order, initial_state,
+        actual_initial_state = 0 if initial_state is None else initial_state
+        return self._base_iterator(resolved_circuit,
+                                   qubit_order,
+                                   actual_initial_state,
                                    perform_measurements)
 
     def _base_iterator(
@@ -187,7 +197,7 @@ class Simulator(simulator.SimulatesSamples,
             qubit_order: ops.QubitOrderOrList,
             initial_state: Union[int, np.ndarray],
             perform_measurements: bool=True,
-    ) -> Iterator[simulator.StepResult]:
+    ) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
                 circuit.all_qubits())
         num_qubits = len(qubits)
@@ -195,6 +205,8 @@ class Simulator(simulator.SimulatesSamples,
         state = wave_function.to_valid_state_vector(initial_state,
                                                     num_qubits,
                                                     self._dtype)
+        if len(circuit) == 0:
+            yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
         def on_stuck(bad_op: ops.Operation):
             return TypeError(
@@ -245,36 +257,74 @@ class Simulator(simulator.SimulatesSamples,
                     if result is buffer:
                         buffer = state
                     state = result
-            yield SimulatorStep(state, measurements, qubit_map, self._dtype)
+            yield SparseSimulatorStep(
+                state_vector=state,
+                measurements=measurements,
+                qubit_map=qubit_map,
+                dtype=self._dtype)
 
 
-class SimulatorStep(simulator.StepResult):
+class SparseSimulatorStep(wave_function.StateVectorMixin,
+                          wave_function_simulator.WaveFunctionStepResult):
+    """A `StepResult` that includes `StateVectorMixin` methods."""
 
-    def __init__(self, state, measurements, qubit_map, dtype):
+    def __init__(self, state_vector, measurements, qubit_map, dtype):
         """Results of a step of the simulator.
 
         Attributes:
             qubit_map: A map from the Qubits in the Circuit to the the index
                 of this qubit for a canonical ordering. This canonical ordering
-                is used to define the state (see the state_vector() method).
+                is used to define the state vector (see the state_vector()
+                method).
             measurements: A dictionary from measurement gate key to measurement
                 results, ordered by the qubits that the measurement operates on.
         """
-        super().__init__(qubit_map, measurements)
+        super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
-        self._state = np.reshape(state, 2 ** len(qubit_map))
+        self._state_vector = np.reshape(state_vector, 2 ** len(qubit_map))
 
-    def state_vector(self) -> np.ndarray:
-        return self._state
+    def simulator_state(
+        self) -> wave_function_simulator.WaveFunctionSimulatorState:
+        return wave_function_simulator.WaveFunctionSimulatorState(
+            qubit_map=self.qubit_map,
+            state_vector=self._state_vector)
 
-    def set_state(self, state: Union[int, np.ndarray]):
+    def state_vector(self):
+        """Return the wave function at this point in the computation.
+
+        The state is returned in the computational basis with these basis
+        states defined by the qubit_map. In particular the value in the
+        qubit_map is the index of the qubit, and these are translated into
+        binary vectors where the last qubit is the 1s bit of the index, the
+        second-to-last is the 2s bit of the index, and so forth (i.e. big
+        endian ordering).
+
+        Example:
+             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
+             Then the returned vector will have indices mapped to qubit basis
+             states like the following table
+
+                    | QubitA | QubitB | QubitC
+                :-: | :----: | :----: | :----:
+                 0  |   0    |   0    |   0
+                 1  |   0    |   0    |   1
+                 2  |   0    |   1    |   0
+                 3  |   0    |   1    |   1
+                 4  |   1    |   0    |   0
+                 5  |   1    |   0    |   1
+                 6  |   1    |   1    |   0
+                 7  |   1    |   1    |   1
+        """
+        return self.simulator_state().state_vector
+
+    def set_state_vector(self, state: Union[int, np.ndarray]):
         update_state = wave_function.to_valid_state_vector(state,
                                                            len(self.qubit_map),
                                                            self._dtype)
-        np.copyto(self._state, update_state)
+        np.copyto(self._state_vector, update_state)
 
     def sample(self, qubits: List[ops.QubitId],
                repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
-        return wave_function.sample_state_vector(self._state, indices,
+        return wave_function.sample_state_vector(self._state_vector, indices,
                                                  repetitions)
