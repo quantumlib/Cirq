@@ -399,13 +399,13 @@ def test_measure_density_matrix_out_of_range():
 
 def test_measure_state_no_indices():
     matrix = cirq.to_valid_density_matrix(0, 3)
-    bits, state = cirq.measure_state_vector(matrix, [])
+    bits, out_matrix = cirq.measure_density_matrix(matrix, [])
     assert [] == bits
-    np.testing.assert_almost_equal(state, matrix)
+    np.testing.assert_almost_equal(out_matrix, matrix)
 
 
 def test_measure_state_empty_state():
     matrix = np.array([])
-    bits, out_matrix = cirq.measure_state_vector(matrix, [])
+    bits, out_matrix = cirq.measure_density_matrix(matrix, [])
     assert [] == bits
     np.testing.assert_almost_equal(matrix, out_matrix)
