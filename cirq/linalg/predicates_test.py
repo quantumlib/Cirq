@@ -404,3 +404,8 @@ def test_binary_sub_tensor_slice():
     for k in range(16):
         m[cirq.slice_for_qubits_equal_to([3, 2, 1, 0], k)] = k
     assert list(m.reshape(16)) == list(range(16))
+
+    assert cirq.slice_for_qubits_equal_to([0], 0b1, num_qubits=1) == (1,)
+    assert cirq.slice_for_qubits_equal_to([1], 0b0, num_qubits=2) == (a, 0)
+    assert cirq.slice_for_qubits_equal_to([1], 0b0, num_qubits=3) == (a, 0, a)
+    assert cirq.slice_for_qubits_equal_to([2], 0b0, num_qubits=3) == (a, a, 0)

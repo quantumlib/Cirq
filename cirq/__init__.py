@@ -195,6 +195,13 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
+    bloch_vector_from_state_vector,
+    density_matrix_from_state_vector,
+    dirac_notation,
+    measure_state_vector,
+    measure_density_matrix,
+    sample_density_matrix,
+    sample_state_vector,
     SimulatesSamples,
     SimulationTrialResult,
     Simulator,
@@ -203,11 +210,6 @@ from cirq.sim import (
     SimulatesFinalWaveFunction,
     SimulatesIntermediateWaveFunction,
     StateVector,
-    bloch_vector_from_state_vector,
-    density_matrix_from_state_vector,
-    dirac_notation,
-    measure_state_vector,
-    sample_state_vector,
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_normalized_state,
