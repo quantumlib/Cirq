@@ -62,7 +62,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                 (self._p_y, protocols.unitary(pauli_gates.Y)),
                 (self._p_z, protocols.unitary(pauli_gates.Z)))
 
-    def _has_mixture(self) -> bool:
+    def _has_mixture_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
@@ -365,7 +365,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         # the last two.
         return list(self._delegate._channel_())[:2]
 
-    def _has_channel(self) -> bool:
+    def _has_channel_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
