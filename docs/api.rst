@@ -157,10 +157,10 @@ Classes for parameterized circuits.
     SimulatesSamples
     SimulationTrialResult
     Simulator
-    SimulatorStep
+    SparseSimulatorStep
     StepResult
-    SimulatesFinalWaveFunction
-    SimulatesIntermediateWaveFunction
+    SimulatesFinalState
+    SimulatesIntermediateState
     Sweep
     Sweepable
     to_valid_state_vector

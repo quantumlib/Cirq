@@ -79,3 +79,4 @@ def test_objects_with_no_inverse(val):
 ))
 def test_objects_with_inverse(val, inv):
     assert cirq.inverse(val) == inv
+    assert cirq.inverse(val, 0) == inv

@@ -117,14 +117,14 @@ def test_with_measurements():
     c_orig = cirq.Circuit.from_ops(
         cirq.X(q0),
         cirq.CZ(q0, q1),
-        cirq.MeasurementGate('m')(q0, q1),
+        cirq.measure(q0, q1, key='m'),
     )
     c_expected = converted_gate_set(
         cirq.Circuit.from_ops(
             cirq.CZ(q0, q1),
             cirq.X(q0),
             cirq.Z(q1),
-            cirq.MeasurementGate('m')(q0, q1),
+            cirq.measure(q0, q1, key='m'),
         ))
 
     c_opt = clifford_optimized_circuit(c_orig)

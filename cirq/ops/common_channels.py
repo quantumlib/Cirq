@@ -14,16 +14,16 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import common_gates, pauli_gates, raw_types
+from cirq.ops import common_gates, pauli_gates, gate_features
 
 
 @value.value_equality
-class AsymmetricDepolarizingChannel(raw_types.Gate):
+class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes asymmetrically along different directions."""
 
     def __init__(self, p_x: float, p_y: float, p_z: float) -> None:
@@ -38,7 +38,7 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
         ValueError.
 
         This channel evolves a density matrix via
-            \rho -> (1 -p_x + p_y + p_z) \rho
+            \rho -> (1 - p_x - p_y - p_z) \rho
                     + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
 
         Args:
@@ -50,25 +50,17 @@ class AsymmetricDepolarizingChannel(raw_types.Gate):
             ValueError: if the args or the sum of args are not probabilities.
         """
 
-        def validate_probability(p, p_str):
-            if p < 0:
-                raise ValueError('{} was less than 0.'.format(p_str))
-            elif p > 1:
-                raise ValueError('{} was greater than 1.'.format(p_str))
-            return p
+        self._p_x = value.validate_probability(p_x, 'p_x')
+        self._p_y = value.validate_probability(p_y, 'p_y')
+        self._p_z = value.validate_probability(p_z, 'p_z')
+        self._p_i = 1 - value.validate_probability(p_x + p_y + p_z,
+                                                   'p_x + p_y + p_z')
 
-        self._p_x = validate_probability(p_x, 'p_x')
-        self._p_y = validate_probability(p_y, 'p_y')
-        self._p_z = validate_probability(p_z, 'p_z')
-        self._p_i = 1 - validate_probability(p_x + p_y + p_z, 'p_x + p_y + p_z')
-
-    def _channel_(self) -> Iterable[np.ndarray]:
-        return (
-            np.sqrt(self._p_i) * np.eye(2),
-            np.sqrt(self._p_x) * np.array([[0, 1], [1, 0]]),
-            np.sqrt(self._p_y) * np.array([[0, -1j], [1j, 0]]),
-            np.sqrt(self._p_z) * np.array([[1, 0], [0, -1]]),
-        )
+    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+        return ((self._p_i, protocols.unitary(common_gates.I)),
+                (self._p_x, protocols.unitary(pauli_gates.X)),
+                (self._p_y, protocols.unitary(pauli_gates.Y)),
+                (self._p_z, protocols.unitary(pauli_gates.Z)))
 
     def _value_equality_values_(self):
         return self._p_x, self._p_y, self._p_z
@@ -95,7 +87,7 @@ def asymmetric_depolarize(
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
     This channel evolves a density matrix via
-        \rho -> (1 -p_x + p_y + p_z) \rho
+        \rho -> (1 - p_x - p_y - p_z) \rho
                 + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
 
     Args:
@@ -110,7 +102,7 @@ def asymmetric_depolarize(
 
 
 @value.value_equality
-class DepolarizingChannel(raw_types.Gate):
+class DepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes a qubit."""
 
     def __init__(self, p) -> None:
@@ -138,8 +130,8 @@ class DepolarizingChannel(raw_types.Gate):
         self._p = p
         self._delegate = AsymmetricDepolarizingChannel(p / 3, p / 3, p / 3)
 
-    def _channel_(self) -> Iterable[np.ndarray]:
-        return self._delegate._channel_()
+    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+        return self._delegate._mixture_()
 
     def _value_equality_values_(self):
         return self._p
@@ -181,7 +173,7 @@ def depolarize(p: float) -> DepolarizingChannel:
 
 
 @value.value_equality
-class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
+class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through non ideal dissipation.
 
     This channel models the effect of energy dissipation into the environment
@@ -193,7 +185,7 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
 
         Construct a channel to model energy dissipation into the environment
         as well as the environment depositing energy into the system. The
-        probabilities with which the energy exchange occur are given by gamma,
+        probabilities with which the energy exchange occur are given by `gamma`,
         and the probability of the environment being not excited is given by
         `p`.
 
@@ -242,16 +234,8 @@ class GeneralizedAmplitudeDampingChannel(raw_types.Gate):
         Raises:
             ValueError: if gamma or p is not a valid probability.
         """
-
-        def validate_probability(p, p_str):
-            if p < 0:
-                raise ValueError('{} was less than 0.'.format(p_str))
-            elif p > 1:
-                raise ValueError('{} was greater than 1.'.format(p_str))
-            return p
-
-        self._gamma = validate_probability(gamma, 'gamma')
-        self._p = validate_probability(p, 'p')
+        self._gamma = value.validate_probability(gamma, 'gamma')
+        self._p = value.validate_probability(p, 'p')
 
     def _channel_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
@@ -329,7 +313,7 @@ def generalized_amplitude_damp(
 
 
 @value.value_equality
-class AmplitudeDampingChannel(raw_types.Gate):
+class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
 
     This channel models the effect of energy dissipation to the
@@ -364,15 +348,7 @@ class AmplitudeDampingChannel(raw_types.Gate):
         Raises:
             ValueError: is gamma is not a valid probability.
         """
-
-        def validate_probability(p, p_str):
-            if p < 0:
-                raise ValueError('{} was less than 0.'.format(p_str))
-            elif p > 1:
-                raise ValueError('{} was greater than 1.'.format(p_str))
-            return p
-
-        self._gamma = validate_probability(gamma, 'gamma')
+        self._gamma = value.validate_probability(gamma, 'gamma')
         self._delegate = GeneralizedAmplitudeDampingChannel(1.0, self._gamma)
 
     def _channel_(self) -> Iterable[np.ndarray]:
@@ -425,7 +401,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 
 @value.value_equality
-class PhaseDampingChannel(raw_types.Gate):
+class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
 
     This channel models phase damping which is the loss of quantum
@@ -457,15 +433,7 @@ class PhaseDampingChannel(raw_types.Gate):
         Raises:
             ValueError: if gamma is not a valid probability.
         """
-
-        def validate_probability(p, p_str):
-            if p < 0:
-                raise ValueError('{} was less than 0.'.format(p_str))
-            elif p > 1:
-                raise ValueError('{} was greater than 1.'.format(p_str))
-            return p
-
-        self._gamma = validate_probability(gamma, 'gamma')
+        self._gamma = value.validate_probability(gamma, 'gamma')
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
@@ -517,7 +485,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
 
 @value.value_equality
-class PhaseFlipChannel(raw_types.Gate):
+class PhaseFlipChannel(gate_features.SingleQubitGate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
     def __init__(self, p) -> None:
@@ -546,21 +514,13 @@ class PhaseFlipChannel(raw_types.Gate):
         Raises:
             ValueError: if p is not a valid probability.
         """
-
-        def validate_probability(p, p_str):
-            if p < 0:
-                raise ValueError('{} was less than 0.'.format(p_str))
-            elif p > 1:
-                raise ValueError('{} was greater than 1.'.format(p_str))
-            return p
-
-        self._p = validate_probability(p, 'p')
+        self._p = value.validate_probability(p, 'p')
         self._delegate = AsymmetricDepolarizingChannel(0., 0., 1. - p)
 
-    def _channel_(self) -> Iterable[np.ndarray]:
-        kraus_ops = list(self._delegate._channel_())
+    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+        mixture = self._delegate._mixture_()
         # just return identity and z term
-        return (kraus_ops[0], kraus_ops[3])
+        return (mixture[0], mixture[3])
 
     def _value_equality_values_(self):
         return self._p
@@ -647,7 +607,7 @@ def phase_flip(
 
 
 @value.value_equality
-class BitFlipChannel(raw_types.Gate):
+class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
     def __init__(self, p) -> None:
@@ -676,20 +636,13 @@ class BitFlipChannel(raw_types.Gate):
         Raises:
             ValueError: if p is not a valid probability.
         """
-
-        def validate_probability(p, p_str):
-            if p < 0:
-                raise ValueError('{} was less than 0.'.format(p_str))
-            elif p > 1:
-                raise ValueError('{} was greater than 1.'.format(p_str))
-            return p
-
-        self._p = validate_probability(p, 'p')
+        self._p = value.validate_probability(p, 'p')
         self._delegate = AsymmetricDepolarizingChannel(1. - p, 0., 0.)
 
-    def _channel_(self) -> Iterable[np.ndarray]:
-        # Return just the I and X pieces.
-        return list(self._delegate._channel_())[:2]
+    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+        mixture = self._delegate._mixture_()
+        # just return identity and x term
+        return (mixture[0], mixture[1])
 
     def _value_equality_values_(self):
         return self._p
@@ -766,96 +719,3 @@ def bit_flip(
         return pauli_gates.X
 
     return _bit_flip(p)
-
-
-@value.value_equality
-class RotationErrorChannel(raw_types.Gate):
-    """Channel to introduce rotation error in X, Y, Z."""
-
-    def __init__(self, eps_x, eps_y, eps_z) -> None:
-        r"""The rotation error channel.
-
-        This channel introduces rotation error by epsilon for
-        rotations in X, Y and Z that are constant in time.
-
-        This channel evolves a density matrix via
-            \rho ->
-           \exp{-i \epsilon_x \frac{X}{2}} \rho \exp{i \epsilon_x \frac{X}{2}}
-          + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
-          + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
-
-        Args:
-            eps_x: angle to over rotate in x.
-            eps_y: angle to over rotate in y.
-            eps_z: angle to over rotate in z.
-        """
-
-        # Angles could be anything, so no validation nescessary ?
-        self._eps_x = eps_x
-        self._eps_y = eps_y
-        self._eps_z = eps_z
-
-    def _channel_(self) -> Iterable[np.ndarray]:
-        return (
-            np.exp(
-                0.5
-                * (0. - 1.0j)
-                * self._eps_x
-                * np.array([[0., 1.], [1., 0.]])
-            ),
-            np.exp(
-                0.5
-                * (0. - 1.0j)
-                * self._eps_y
-                * np.array([[0., (0. - 1.0j)], [(0. + 1.0j), 0.]])
-            ),
-            np.exp(
-                0.5
-                * (0. - 1.0j)
-                * self._eps_z
-                * np.array([[1., 0.], [0., -1.]])
-            ),
-        )
-
-    def _value_equality_values_(self):
-        return self._eps_x, self._eps_y, self._eps_z
-
-    def __repr__(self) -> str:
-        return 'cirq.rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'.format(
-            self._eps_x, self._eps_y, self._eps_z
-        )
-
-    def __str__(self) -> str:
-        return 'rotation_error(eps_x={!r},eps_y={!r},eps_z={!r})'.format(
-            self._eps_x, self._eps_y, self._eps_z
-        )
-
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
-        return 'RE({!r},{!r},{!r})'.format(
-            self._eps_x, self._eps_y, self._eps_z
-        )
-
-
-def rotation_error(
-    eps_x: float, eps_y: float, eps_z: float
-) -> RotationErrorChannel:
-    r"""
-    Constructs a RotationErrorChannel that can over/under rotate
-    a qubit in X, Y, Z by given error angles.
-
-    This channel evolves a density matrix via:
-
-        \rho ->
-        \exp{-i \epsilon_x \frac{X}{2}} \rho \exp{i \epsilon_x \frac{X}{2}}
-        + \exp{-i \epsilon_y \frac{Y}{2}} \rho \exp{i \epsilon_y \frac{Y}{2}}
-        + \exp{-i \epsilon_z \frac{Z}{2}} \rho \exp{i \epsilon_z \frac{Z}{2}}
-
-    Args:
-        eps_x: angle to over rotate in x.
-        eps_y: angle to over rotate in y.
-        eps_z: angle to over rotate in z.
-    """
-
-    return RotationErrorChannel(eps_x, eps_y, eps_z)
