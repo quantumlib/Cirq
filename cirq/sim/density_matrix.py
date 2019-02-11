@@ -20,6 +20,7 @@ import numpy as np
 from cirq import linalg
 from cirq.sim import wave_function
 
+
 def to_valid_density_matrix(
     density_matrix_rep: Union[int, np.ndarray],
     num_qubits: int,
@@ -110,9 +111,9 @@ def sample_density_matrix(
     _validate_indices(num_qubits, indices)
 
     if repetitions == 0:
-        return [[]]
+        return np.array([[]])
     if len(indices) == 0:
-        return [[] for _ in range(repetitions)]
+        return np.array([[] for _ in range(repetitions)])
 
     # Calculate the measurement probabilities.
     probs = _probs(matrix, indices, num_qubits)

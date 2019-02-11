@@ -205,12 +205,13 @@ def test_sample_density_matrix():
 
 def test_sample_empty_density_matrix():
     matrix = np.array([])
-    assert cirq.sample_density_matrix(matrix, []) == [[]]
+    np.testing.assert_almost_equal(cirq.sample_density_matrix(matrix, []), [[]])
 
 
 def test_sample_density_matrix_no_repetitions():
     matrix = cirq.to_valid_density_matrix(0, 3)
-    assert cirq.sample_density_matrix(matrix, [1], repetitions=0) == [[]]
+    np.testing.assert_almost_equal(
+        cirq.sample_density_matrix(matrix, [1], repetitions=0), [[]])
 
 
 def test_sample_density_matrix_repetitions():
@@ -257,13 +258,13 @@ def test_sample_density_matrix_out_of_range():
 def test_sample_state_no_indices():
     matrix = cirq.to_valid_density_matrix(0, 3)
     bits = cirq.sample_density_matrix(matrix, [])
-    assert [[]] == bits
+    np.testing.assert_almost_equal(bits, [[]])
 
 
 def test_sample_state_empty_state():
     matrix = np.array([])
     bits = cirq.sample_density_matrix(matrix, [])
-    assert [[]] == bits
+    np.testing.assert_almost_equal(bits, [[]])
 
 
 def test_measure_density_matrix_computational_basis():
