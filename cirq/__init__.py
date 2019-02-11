@@ -256,6 +256,8 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    has_channel,
+    has_mixture,
     has_unitary,
     inverse,
     is_parameterized,
