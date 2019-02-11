@@ -28,17 +28,33 @@ RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
 
 class SupportsMixture(Protocol):
     """An object that may be describable as a probabilistic combination.
-
-    A mixture is described by an iterable of tuples of the form
-
-        (probability of object, object)
-
-    The probability components of the tuples must sum to 1.0 and be between
-    0 and 1 (inclusive).
     """
 
-def _mixture_(self) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
-    pass
+    def _mixture_(self) -> Union[
+        Sequence[Tuple[float, Any]], NotImplementedType]:
+        """Return the probabilistic mixture.
+
+        A mixture is described by an iterable of tuples of the form
+
+            (probability of object, object)
+
+        The probability components of the tuples must sum to 1.0 and be between
+        0 and 1 (inclusive).
+
+        Returns:
+            A tuple of (probability of object, object)
+        """
+
+    def _has_mixture_(self) -> bool:
+        """Whether this value has a mixture representation.
+
+        This method is used by the global `cirq.has_mixture` method.  If this
+        method is not present, or returns NotImplemented, it will fallback
+        to using _mixture_ with a default value, or False if neither exist.
+
+        Returns:
+          True if the value has a mixture representation, Falseotherwise.
+        """
 
 
 def mixture(
@@ -77,6 +93,24 @@ def mixture(
 
     raise TypeError("object of type '{}' does have a _mixture_ method, "
                     "but it returned NotImplemented.".format(type(val)))
+
+
+def has_mixture(val: Any) -> bool:
+    """Returns whether the value has a mixture representation.
+
+    Returns:
+        If `val` has a `_has_mixture_` method and its result is not
+        NotImplemented, that result is returned. Otherwise, if the value
+        has a `_mixture_` method return if that has a non-default value.
+        Returns False if neither function exists.
+    """
+    getter = getattr(val, '_has_mixture_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented:
+        return result
+
+    # No _has_mixture_ function, use _mixture_ instead
+    return mixture(val, None) is not None
 
 
 def validate_mixture(supports_mixture: SupportsMixture):

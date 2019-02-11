@@ -25,25 +25,36 @@ class ReturnsNotImplemented:
     def _mixture_(self):
         return NotImplemented
 
+    def _has_mixture_(self):
+        return NotImplemented
+
 
 class ReturnsValidTuple(cirq.SupportsMixture):
     def _mixture_(self):
         return ((0.4, 'a'), (0.6, 'b'))
 
+    def _has_mixture_(self):
+        return True
 
-class ReturnsNonnormalizedTuple(cirq.SupportsMixture):
+
+class ReturnsNonnormalizedTuple():
     def _mixture_(self):
         return ((0.4, 'a'), (0.4, 'b'))
 
 
-class ReturnsNegativeProbability(cirq.SupportsMixture):
+class ReturnsNegativeProbability():
     def _mixture_(self):
         return ((0.4, 'a'), (-0.4, 'b'))
 
 
-class ReturnsGreaterThanUnityProbability(cirq.SupportsMixture):
+class ReturnsGreaterThanUnityProbability():
     def _mixture_(self):
         return ((1.2, 'a'), (0.4, 'b'))
+
+
+class ReturnsMixtureButNoHasMixture():
+    def _mixture_(self):
+        return ((0.4, 'a'), (0.6, 'b'))
 
 
 @pytest.mark.parametrize('val', (NoMethod(), ReturnsNotImplemented(),))
@@ -83,3 +94,8 @@ def test_missing_mixture():
     with pytest.raises(TypeError, match='_mixture_'):
         cirq.validate_mixture(NoMethod)
 
+
+def test_has_mixture():
+    assert cirq.has_mixture(ReturnsValidTuple())
+    assert not cirq.has_mixture(ReturnsNotImplemented())
+    assert cirq.has_mixture(ReturnsMixtureButNoHasMixture())
