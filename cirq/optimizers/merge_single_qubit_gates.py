@@ -79,15 +79,23 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
                         ) -> Optional[circuits.PointOptimizationSummary]:
         if len(op.qubits) != 1:
             return None
+        single_qubit = op.qubits[0]
+        operations=[]
+        indices=[]
 
-        start = {op.qubits[0]: index}
-        end = circuit.reachable_frontier_from(
-            start,
-            is_blocker=lambda next_op: len(
-                next_op.qubits) != 1 or not protocols.has_unitary(next_op))
-        operations_indexed = circuit.findall_operations_between(start, end)
-        operations = [e for _, e in operations_indexed]
-        indices = [e for e, _ in operations_indexed]
+        # Find all the one-qubit operations forward in time from this point
+        # Stop when a multi-qubit operation is encountered
+        for current_index in range(index, len(circuit._moments)):
+            if circuit[current_index].operates_on_single_qubit(single_qubit):
+                next_op = circuit.operation_at(single_qubit, current_index)
+                if next_op is not None:
+                    if (len(next_op.qubits) != 1 or
+                        not protocols.has_unitary(next_op)):
+                        break
+                    operations.append(next_op)
+                    indices.append(current_index)
+
+
         rewritten = self._rewrite(operations)
 
         if rewritten is None:
