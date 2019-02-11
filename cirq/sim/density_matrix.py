@@ -99,10 +99,10 @@ def sample_density_matrix(
         are wrapped as an numpy ndarray.
 
     Raises:
-        ValueError: ``repetitions`` is less than one or size of ``state`` is not
+        ValueError: ``repetitions`` is less than one or size of ``matrix`` is not
             a power of 2.
         IndexError: An index from ``indices`` is out of range, given the number
-            of qubits corresponding to the state.
+            of qubits corresponding to the density matrix.
     """
     if repetitions < 0:
         raise ValueError('Number of repetitions cannot be negative. Was {}'
@@ -147,20 +147,20 @@ def measure_density_matrix(
             `out` is not None, then the result is put into `out`.  If `out` is
             None a new value will be allocated. In all of these case out will
             be the same as the returned ndarray of the method. The shape and
-            dtype of `out` will match that of state if `out` is None, otherwise
+            dtype of `out` will match that of matrix if `out` is None, otherwise
             it will match the shape and dtype of `out`.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement state. This state has the same
-        shape and dtype as the input state.
+        numpy array is the post measurement matrix. This matrix has the same
+        shape and dtype as the input matrix.
 
     Raises:
         ValueError if the dimension of the matrix is not compatible with a
             matrix of n qubits.
         IndexError if the indices are out of range for the number of qubits
-            corresponding to the state.
+            corresponding to the density matrix.
     """
     num_qubits = _validate_num_qubits(matrix)
     _validate_indices(num_qubits, indices)
@@ -187,7 +187,7 @@ def measure_density_matrix(
         out = np.copy(matrix)
     elif out is not matrix:
         np.copyto(out, matrix)
-    # Final else: if out is state then state will be modified in place.
+    # Final else: if out is matrix then matrix will be modified in place.
 
     # Potentially reshape to tensor, and then set masked values to 0.
     out.shape = [2] * num_qubits * 2
