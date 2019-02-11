@@ -99,8 +99,8 @@ def sample_density_matrix(
         are wrapped as an numpy ndarray.
 
     Raises:
-        ValueError: ``repetitions`` is less than one or size of ``matrix`` is not
-            a power of 2.
+        ValueError: ``repetitions`` is less than one or size of ``matrix`` is
+            not a power of 2.
         IndexError: An index from ``indices`` is out of range, given the number
             of qubits corresponding to the density matrix.
     """
