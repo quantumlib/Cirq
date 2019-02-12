@@ -209,8 +209,8 @@ A 3 by 3 grid of qubits using
     yellow
 """)
     assert len(overrides) == 2
-    assert overrides[0][0].fullmatch('hello world')
-    assert overrides[1][0].fullmatch('golden')
+    assert overrides[0][0].match('hello world')
+    assert overrides[1][0].match('golden')
     assert overrides[0][1] == 'goodbye cruel world'
     assert overrides[1][1] == 'yellow'
 
@@ -302,8 +302,8 @@ universe
 """)
 
     assert len(overrides) == 2
-    assert overrides[0][0].fullmatch('hello')
-    assert overrides[1][0].fullmatch('world')
+    assert overrides[0][0].match('hello')
+    assert overrides[1][0].match('world')
     assert overrides[0][1] == 'goodbye'
     assert overrides[1][1] == 'universe'
 
