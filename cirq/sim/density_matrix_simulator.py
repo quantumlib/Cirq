@@ -21,7 +21,7 @@ from typing import cast, Dict, Iterator, List, Type, Union
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
-from cirq.sim import density_matrix, simulator
+from cirq.sim import density_matrix_utils, simulator
 
 class DensityMatrixSimulator(simulator.SimulatesSamples,
                              simulator.SimulatesIntermediateState):
@@ -78,7 +78,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             circuit.all_qubits())
         num_qubits = len(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        matrix = density_matrix.to_valid_density_matrix(
+        matrix = density_matrix_utils.to_valid_density_matrix(
             initial_state, num_qubits, self._dtype)
         if len(circuit) == 0:
             yield DensityMatrixStepResult(matrix, {}, qubit_map, self._dtype)
@@ -117,7 +117,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     if perform_measurements:
                         invert_mask = gate.invert_mask or num_qubits * (False,)
                         # Measure updates inline.
-                        bits, _ = density_matrix.measure_density_matrix(
+                        bits, _ = density_matrix_utils.measure_density_matrix(
                             matrix, indices, matrix)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
@@ -163,14 +163,15 @@ class DensityMatrixStepResult(simulator.StepResult):
         return DensityMatrixSimulatorState(self._matrix, self._qubit_map)
 
     def set_density_matrix(self, density_matrix_repr: Union[int, np.ndarray]):
-        self._matrix = density_matrix.to_valid_density_matrix(
-            density_matrix, len(self._qubit_map), self._dtype)
+        self._matrix = density_matrix_utils.to_valid_density_matrix(
+            density_matrix_utils, len(self._qubit_map), self._dtype)
 
     def sample(self, qubits: List[ops.QubitId],
         repetitions: int = 1) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
-        density_matrix.sample_density_matrix(self.simulator_state().matrix,
-                                             indices, repetitions)
+        density_matrix_utils.sample_density_matrix(
+            self.simulator_state().matrix,
+            indices, repetitions)
 
 class DensityMatrixSimulatorState():
 
