@@ -31,9 +31,6 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
     def _unitary_(self):
         return np.eye(2)
 
-    def __pow__(self, exponent):
-        return self
-
     def __eq__(self, other):
         return isinstance(other, type(self))
 
@@ -58,9 +55,6 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
 
     def _unitary_(self):
         return np.array([[2, 3], [5, 7]])
-
-    def __pow__(self, factor):
-        return self
 
     def __eq__(self, other):
         return isinstance(other, type(self))
