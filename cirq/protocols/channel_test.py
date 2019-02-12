@@ -135,6 +135,7 @@ def test_channel_fallback_to_unitary():
 
     assert cirq.has_channel(ReturnsUnitary())
 
+
 def test_has_channel():
     class HasChannel:
         def _has_channel_(self) -> bool:
