@@ -19,6 +19,11 @@ from cirq.sim.density_matrix import (
     sample_density_matrix,
     to_valid_density_matrix,
 )
+from cirq.sim.density_matrix_simulator import (
+    DensityMatrixSimulatorState,
+    DensityMatrixStepResult,
+    DensityMatrixSimulator
+)
 from cirq.sim.simulator import (
     SimulatesSamples,
     StepResult,
