@@ -18,7 +18,7 @@ import pytest
 
 import cirq
 from cirq.type_workarounds import NotImplementedType
-from cirq import protocols
+
 
 class RestrictedGate(cirq.SingleQubitGate):
     pass
@@ -232,12 +232,12 @@ def test_circuit_diagram_info():
 class MultiH(cirq.MultiQubitGate):
 
     def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
         assert args.known_qubit_count is not None
         assert args.known_qubits is not None
 
-        return protocols.CircuitDiagramInfo(
+        return cirq.CircuitDiagramInfo(
             wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits),
             connected=True
         )
@@ -260,8 +260,8 @@ def test_circuit_diagram():
 class MockGate(cirq.TwoQubitGate):
 
     def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
         self.captured_diagram_args = args
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1,
                                        connected=True)
@@ -272,7 +272,7 @@ def test_uninformed_circuit_diagram_info():
     mock_gate = MockGate()
     cgate = cirq.ControlledGate(mock_gate)(*qbits)
 
-    args = protocols.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
 
     assert (cirq.circuit_diagram_info(cgate, args) ==
             cirq.CircuitDiagramInfo(wire_symbols=('@', 'MOCK'), exponent=1,
