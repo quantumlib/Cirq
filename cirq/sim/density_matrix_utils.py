@@ -75,21 +75,22 @@ def to_valid_density_matrix(
 
 
 def sample_density_matrix(
-    matrix: np.ndarray,
+    density_matrix: np.ndarray,
     indices: List[int],
     repetitions: int=1) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
-    Note that this does not modify the passed in density matrix.
+    Note that this does not modify the density_matrix.
 
     Args:
-        matrix: The density matrix to be measured. This matrix is assumed to
-            be positive semidefinite and trace one. The matrix is assumed to
-            be of shape (2 ** integer, 2 ** integer) or (2, 2, ..., 2).
-        indices: Which qubits are measured. The density matrix rows and colums
+        density_matrix: The density matrix to be measured. This matrix is
+            assumed to be positive semidefinite and trace one. The matrix is
+            assumed to be of shape (2 ** integer, 2 ** integer) or
+            (2, 2, ..., 2).
+        indices: Which qubits are measured. The density matrix rows and columns
             are assumed to be supplied in big endian order. That is the
-            xth index of v, when expressed as a bitstring, has the largest
-            values that the 0th index.
+            xth index of v, when expressed as a bitstring, has its largest
+            values in the 0th index.
         repetitions: The number of times to sample the density matrix.
 
     Returns:
@@ -107,16 +108,14 @@ def sample_density_matrix(
     if repetitions < 0:
         raise ValueError('Number of repetitions cannot be negative. Was {}'
                          .format(repetitions))
-    num_qubits = _validate_num_qubits(matrix)
+    num_qubits = _validate_num_qubits(density_matrix)
     _validate_indices(num_qubits, indices)
 
-    if repetitions == 0:
-        return np.array([[]])
-    if len(indices) == 0:
-        return np.array([[] for _ in range(repetitions)])
+    if repetitions == 0 or len(indices) == 0:
+        return np.zeros(shape=(repetitions, len(indices)))
 
     # Calculate the measurement probabilities.
-    probs = _probs(matrix, indices, num_qubits)
+    probs = _probs(density_matrix, indices, num_qubits)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
@@ -128,27 +127,30 @@ def sample_density_matrix(
 
 
 def measure_density_matrix(
-    matrix: np.ndarray,
+    density_matrix: np.ndarray,
     indices: List[int],
     out: np.ndarray = None) -> Tuple[List[bool], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
-    This does not modify `matrix` unless the optional `out` is `matrix`.
+    This does not modify `density_matrix` unless the optional `out` is
+    `density_matrix`.
 
     Args:
-        matrix: The density matrix to be measured. This matrix is assumed to
-            be positive semidefinite and trace one. The matrix is assumed to
-            be of shape (2 ** integer, 2 ** integer) or (2, 2, ..., 2).
+        density_matrix: The density matrix to be measured. This matrix is
+            assumed to be positive semidefinite and trace one. The matrix is
+            assumed to be of shape (2 ** integer, 2 ** integer) or
+            (2, 2, ..., 2).
         indices: Which qubits are measured. The matrix is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values in the 0th index.
         out: An optional place to store the result. If `out` is the same as
-            the `matrix` parameter, then matrix will be modified inline. If
-            `out` is not None, then the result is put into `out`.  If `out` is
-            None a new value will be allocated. In all of these case out will
-            be the same as the returned ndarray of the method. The shape and
-            dtype of `out` will match that of matrix if `out` is None, otherwise
-            it will match the shape and dtype of `out`.
+            the `density_matrix` parameter, then `density_matrix` will be
+            modified inline. If `out` is not None, then the result is put into
+            `out`.  If `out` is None a new value will be allocated. In all of
+            these cases `out` will be the same as the returned ndarray of the
+            method. The shape and dtype of `out` will match that of
+            `density_matrix` if `out` is None, otherwise it will match the
+            shape and dtype of `out`.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
@@ -162,31 +164,37 @@ def measure_density_matrix(
         IndexError if the indices are out of range for the number of qubits
             corresponding to the density matrix.
     """
-    num_qubits = _validate_num_qubits(matrix)
+    num_qubits = _validate_num_qubits(density_matrix)
     _validate_indices(num_qubits, indices)
 
     if len(indices) == 0:
-        return ([], np.copy(matrix))
+        if out is None:
+            out = np.copy(density_matrix)
+        elif out is not density_matrix:
+            np.copyto(dst=out, src=density_matrix)
+        return ([], out)
+        # Final else: if out is matrix then matrix will be modified in place.
 
     # Cache initial shape.
-    initial_shape = matrix.shape
+    initial_shape = density_matrix.shape
 
     # Calculate the measurement probabilities and then make the measurement.
-    probs = _probs(matrix, indices, num_qubits)
+    probs = _probs(density_matrix, indices, num_qubits)
     result = np.random.choice(len(probs), p=probs)
     measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
 
     # Calculate the slice for the measurement result.
-    result_slice = linalg.slice_for_qubits_equal_to(indices, result, num_qubits)
+    result_slice = linalg.slice_for_qubits_equal_to(indices, result,
+                                                    num_qubits=num_qubits)
     # Create a mask which is False for only the slice.
     mask = np.ones([2] * 2 * num_qubits, dtype=bool)
     # Remove ellipses from last element of
     mask[result_slice * 2] = False
 
     if out is None:
-        out = np.copy(matrix)
-    elif out is not matrix:
-        np.copyto(out, matrix)
+        out = np.copy(density_matrix)
+    elif out is not density_matrix:
+        np.copyto(dst=out, src=density_matrix)
     # Final else: if out is matrix then matrix will be modified in place.
 
     # Potentially reshape to tensor, and then set masked values to 0.
@@ -200,12 +208,12 @@ def measure_density_matrix(
     return measurement_bits, out
 
 
-def _probs(matrix: np.ndarray, indices: List[int],
+def _probs(density_matrix: np.ndarray, indices: List[int],
     num_qubits: int) -> List[float]:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(
-        np.reshape(matrix, (2 ** num_qubits, 2 ** num_qubits)))
+        np.reshape(density_matrix, (2 ** num_qubits, 2 ** num_qubits)))
     # Shape into a tensor
     tensor = np.reshape(all_probs, [2] * num_qubits)
 
@@ -215,21 +223,21 @@ def _probs(matrix: np.ndarray, indices: List[int],
         for b in range(2 ** len(indices))]
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= sum(probs) # type: ignore
+    probs /= np.sum(probs) # type: ignore
     return probs
 
 
-def _validate_num_qubits(matrix: np.ndarray) -> int:
+def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     """Validates that matrix's shape is a valid shape for qubits.
     """
-    shape = matrix.shape
+    shape = density_matrix.shape
     half_index = len(shape) // 2
-    row_size = np.prod(shape[:half_index]) if shape != (0,) else 0
-    col_size = np.prod(shape[half_index:]) if shape != (0,) else 0
+    row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
+    col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
     if row_size != col_size:
         raise ValueError(
             'Matrix was not square. Shape was {}'.format(shape))
-    if row_size !=0 and row_size & (row_size - 1):
+    if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
             'not a power of two. Shape was {}'.format(shape)
