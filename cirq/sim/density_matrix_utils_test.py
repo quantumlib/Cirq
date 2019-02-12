@@ -204,14 +204,18 @@ def test_sample_density_matrix():
 
 
 def test_sample_empty_density_matrix():
-    matrix = np.array([])
+    matrix = np.zeros(shape=())
     np.testing.assert_almost_equal(cirq.sample_density_matrix(matrix, []), [[]])
 
 
 def test_sample_density_matrix_no_repetitions():
     matrix = cirq.to_valid_density_matrix(0, 3)
     np.testing.assert_almost_equal(
-        cirq.sample_density_matrix(matrix, [1], repetitions=0), [[]])
+        cirq.sample_density_matrix(matrix, [1], repetitions=0),
+        np.zeros(shape=(0, 1)))
+    np.testing.assert_almost_equal(
+        cirq.sample_density_matrix(matrix, [0, 1], repetitions=0),
+        np.zeros(shape=(0, 2)))
 
 
 def test_sample_density_matrix_repetitions():
@@ -255,16 +259,10 @@ def test_sample_density_matrix_out_of_range():
         cirq.sample_density_matrix(matrix, [3])
 
 
-def test_sample_state_no_indices():
+def test_sample_density_matrix_no_indices():
     matrix = cirq.to_valid_density_matrix(0, 3)
     bits = cirq.sample_density_matrix(matrix, [])
-    np.testing.assert_almost_equal(bits, [[]])
-
-
-def test_sample_state_empty_state():
-    matrix = np.array([])
-    bits = cirq.sample_density_matrix(matrix, [])
-    np.testing.assert_almost_equal(bits, [[]])
+    np.testing.assert_almost_equal(bits, np.zeros(shape=(1, 0)))
 
 
 def test_measure_density_matrix_computational_basis():
@@ -321,7 +319,7 @@ def test_measure_density_matrix_partial_indices_all_orders():
             assert bits == [bool(1 & (x >> (2 - p))) for p in perm]
 
 
-def matrix000plus010():
+def matrix_000_plus_010():
     state = np.zeros(8, dtype=np.complex64)
     state[0] = 1 / np.sqrt(2)
     state[2] = 1j / np.sqrt(2)
@@ -329,7 +327,7 @@ def matrix000plus010():
 
 
 def test_measure_density_matrix_collapse():
-    matrix = matrix000plus010()
+    matrix = matrix_000_plus_010()
     for _ in range(10):
         bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0])
         assert bits in [[False, False, False], [False, True, False]]
@@ -353,8 +351,8 @@ def test_measure_density_matrix_collapse():
         assert bits == [False]
 
 
-def test_measure_density_matrix_out_is_state():
-    matrix = matrix000plus010()
+def test_measure_density_matrix_out_is_matrix():
+    matrix = matrix_000_plus_010()
     bits, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0],
                                                    out=matrix)
     expected_state = np.zeros(8, dtype=np.complex64)
@@ -364,8 +362,8 @@ def test_measure_density_matrix_out_is_state():
     assert out_matrix is matrix
 
 
-def test_measure_state_out_is_not_state():
-    matrix = matrix000plus010()
+def test_measure_state_out_is_not_matrix():
+    matrix = matrix_000_plus_010()
     out = np.zeros_like(matrix)
     _, out_matrix = cirq.measure_density_matrix(matrix, [2, 1, 0], out=out)
     assert out is not matrix
@@ -404,8 +402,27 @@ def test_measure_state_no_indices():
     np.testing.assert_almost_equal(out_matrix, matrix)
 
 
-def test_measure_state_empty_state():
-    matrix = np.array([])
+
+def test_measure_state_no_indices_out_is_matrix():
+    matrix = cirq.to_valid_density_matrix(0, 3)
+    bits, out_matrix = cirq.measure_density_matrix(matrix, [], out=matrix)
+    assert [] == bits
+    np.testing.assert_almost_equal(out_matrix, matrix)
+    assert out_matrix is matrix
+
+
+def test_measure_state_no_indices_out_is_not_matrix():
+    matrix = cirq.to_valid_density_matrix(0, 3)
+    out = np.zeros_like(matrix)
+    bits, out_matrix = cirq.measure_density_matrix(matrix, [], out=out)
+    assert [] == bits
+    np.testing.assert_almost_equal(out_matrix, matrix)
+    assert out is out_matrix
+    assert out is not matrix
+
+
+def test_measure_state_empty_density_matrix():
+    matrix = np.zeros(shape=())
     bits, out_matrix = cirq.measure_density_matrix(matrix, [])
     assert [] == bits
     np.testing.assert_almost_equal(matrix, out_matrix)
