@@ -146,13 +146,16 @@ def find_rst_code_snippets(content: str) -> List[Tuple[str, int]]:
     return [(deindent_snippet(content), line_number)
             for content, line_number in snippets]
 
+
 def find_rst_test_overrides(content: str) -> List[Tuple[Pattern, str]]:
     # Find ".. test-substitution::"
     test_sub_text = find_code_snippets(
         r'.. test-substitution::\n(([^\n]*\n){2})', content)
     substitutions = [line.split('\n')[:-1] for line, _ in test_sub_text]
-    return [(re.compile(match.lstrip()), sub.lstrip()) for match, sub in
-            substitutions]
+    return [
+        (re.compile(match.lstrip()), sub.lstrip())
+        for match, sub in substitutions
+    ]
 
 
 def test_find_rst_code_snippets():
@@ -205,10 +208,11 @@ A 3 by 3 grid of qubits using
     golden
     yellow
 """)
-    assert overrides == [
-        (re.compile('hello world'), 'goodbye cruel world'),
-        (re.compile('golden'), 'yellow')
-    ]
+    assert len(overrides) == 2
+    assert overrides[0][0].match('hello world')
+    assert overrides[1][0].match('golden')
+    assert overrides[0][1] == 'goodbye cruel world'
+    assert overrides[1][1] == 'yellow'
 
 
 def test_apply_rst_overrides():
@@ -297,9 +301,11 @@ universe
 --->
 """)
 
-    assert overrides == [
-        (re.compile('hello'), 'goodbye'), (re.compile('world'), 'universe')
-    ]
+    assert len(overrides) == 2
+    assert overrides[0][0].match('hello')
+    assert overrides[1][0].match('world')
+    assert overrides[0][1] == 'goodbye'
+    assert overrides[1][1] == 'universe'
 
 
 def test_apply_overrides_markdown():

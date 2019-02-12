@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 
 import cirq
+import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
 
@@ -61,7 +62,6 @@ def test_executor_explicit():
         executor.optimization_at(bad_strategy, 0, op)
 
     executor(circuit)
-    actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
 0: ───0───1───╲0╱─────────────────1───3───╲0╱─────────────────3───5───╲0╱─────────────────5───7───╲0╱─────────────────
       │   │   │                   │   │   │                   │   │   │                   │   │   │
@@ -79,7 +79,7 @@ def test_executor_explicit():
       │   │   │                   │   │   │                   │   │   │                   │   │   │
 7: ───7───6───╱1╲─────────────────6───4───╱1╲─────────────────4───2───╱1╲─────────────────2───0───╱1╲─────────────────
     """.strip()
-    assert actual_text_diagram == expected_text_diagram
+    ct.assert_has_diagram(circuit, expected_text_diagram)
 
 
 class DiagonalGate(cirq.MultiQubitGate):
