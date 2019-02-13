@@ -38,6 +38,8 @@ def test_channel_no_methods():
     assert cirq.channel(NoMethod(), (1,)) == (1,)
     assert cirq.channel(NoMethod(), LOCAL_DEFAULT) is LOCAL_DEFAULT
 
+    assert not cirq.has_channel(NoMethod())
+
 
 def assert_not_implemented(val):
     with pytest.raises(TypeError, match='returned NotImplemented'):
@@ -48,6 +50,7 @@ def assert_not_implemented(val):
     assert cirq.channel(val, (1,)) == (1,)
     assert cirq.channel(val, LOCAL_DEFAULT) is LOCAL_DEFAULT
 
+    assert not cirq.has_channel(val)
 
 def test_channel_returns_not_implemented():
     class ReturnsNotImplemented:
@@ -92,6 +95,8 @@ def test_channel():
     assert cirq.channel(ReturnsChannel(), (1,)) is c
     assert cirq.channel(ReturnsChannel(), LOCAL_DEFAULT) is c
 
+    assert cirq.has_channel(ReturnsChannel())
+
 
 def test_channel_fallback_to_mixture():
     m = ((0.3, cirq.unitary(cirq.X)), (0.4, cirq.unitary(cirq.Y)),
@@ -111,6 +116,8 @@ def test_channel_fallback_to_mixture():
     np.allclose(cirq.channel(ReturnsMixture(), (1,)), c)
     np.allclose(cirq.channel(ReturnsMixture(), LOCAL_DEFAULT), c)
 
+    assert cirq.has_channel(ReturnsMixture())
+
 
 def test_channel_fallback_to_unitary():
     u = np.array([[1, 0], [1, 0]])
@@ -125,3 +132,25 @@ def test_channel_fallback_to_unitary():
                             (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), (1,)), (u,))
     np.testing.assert_equal(cirq.channel(ReturnsUnitary(), LOCAL_DEFAULT), (u,))
+
+    assert cirq.has_channel(ReturnsUnitary())
+
+
+def test_has_channel():
+    class HasChannel:
+        def _has_channel_(self) -> bool:
+            return True
+
+    assert cirq.has_channel(HasChannel())
+
+    class HasMixture:
+        def _has_mixture_(self) -> bool:
+            return True
+
+    assert cirq.has_channel(HasMixture())
+
+    class HasUnitary:
+        def _has_unitary_(self) -> bool:
+            return True
+
+    assert cirq.has_channel(HasUnitary())
