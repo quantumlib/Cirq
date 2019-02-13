@@ -89,7 +89,7 @@ Execute Multiplier
 import cirq
 
 
-class Adder(cirq.Gate):
+class Adder(cirq.MultiqubitGate):
     """ A quantum circuit to calculate a + b
 
             -----------@---             ---@------------
@@ -121,6 +121,9 @@ class Adder(cirq.Gate):
     b2: --------------------|   |--------------------------------------M--
                              ---
     """
+    
+    def __init__(self, num_qubits):
+        super().__init__(num_qubits)
 
     def carry(self, *qubits):
         c0, a, b, c1 = qubits
@@ -155,7 +158,7 @@ class Adder(cirq.Gate):
         return 'Adder'
 
 
-class Multiplier(cirq.Gate):
+class Multiplier(cirq.MultiqubitGate):
     """ A quantum circuit to calculate y * x
 
                        -                         -                 -
@@ -190,6 +193,9 @@ class Multiplier(cirq.Gate):
     x2: ------------------------------------------------------@---------@-----
     """
 
+    def __init__(self, num_qubits):
+        super().__init__(num_qubits)
+    
     def _decompose_(self, qubits):
         n = int(len(qubits)/5)
         # c = qubits[0:n*3:3]
@@ -218,14 +224,14 @@ def init_qubits(x_bin, *qubits):
 def experiment_adder(p, q, n=3):
     a_bin = '{:08b}'.format(p)[-n:]
     b_bin = '{:08b}'.format(q)[-n:]
-    qubits = cirq.LineQubit.range(n*3)
+    qubits = cirq.LineQubit.range(3 * n)
     # c = qubits[0::3]
     a = qubits[1::3]
     b = qubits[2::3]
     circuit = cirq.Circuit.from_ops(
         init_qubits(a_bin, *a),
         init_qubits(b_bin, *b),
-        Adder().on(*qubits),
+        Adder(n * 3).on(*qubits),
         cirq.measure(*b, key='result')
     )
     simulator = cirq.google.XmonSimulator()
@@ -237,7 +243,7 @@ def experiment_adder(p, q, n=3):
 def experiment_multiplier(p, q, n=3):
     y_bin = '{:08b}'.format(p)[-n:]
     x_bin = '{:08b}'.format(q)[-n:]
-    qubits = cirq.LineQubit.range(n*5)
+    qubits = cirq.LineQubit.range(5 * n)
     # c = qubits[0:n*3:3]
     # a = qubits[1:n*3:3]
     b = qubits[2:n*3:3]
@@ -247,7 +253,7 @@ def experiment_multiplier(p, q, n=3):
     circuit = cirq.Circuit.from_ops(
         init_qubits(x_bin, *x),
         init_qubits(y_bin, *y),
-        Multiplier().on(*qubits),
+        Multiplier(5 * n).on(*qubits),
         cirq.measure(*b, key='result')
     )
     simulator = cirq.google.XmonSimulator()
@@ -259,15 +265,15 @@ def experiment_multiplier(p, q, n=3):
 
 def main(n=3):
     print ('Execute Adder')
-    print (cirq.Circuit.from_ops(cirq.decompose(Adder().on(
-        cirq.LineQubit.range(n*3)))))
+    print (cirq.Circuit.from_ops(cirq.decompose(Adder(3 * n).on(
+        cirq.LineQubit.range(3 * n)))))
     for p in range(2*2):
         for q in range(2*2):
             experiment_adder(p, q, n)
     print ('')
     print ('Execute Multiplier')
-    print (cirq.Circuit.from_ops(cirq.decompose(Multiplier().on(
-        cirq.LineQubit.range(n*5)))))
+    print (cirq.Circuit.from_ops(cirq.decompose(Multiplier(5 * n).on(
+        cirq.LineQubit.range(5 * n)))))
     for p in range(2*2):
         for q in range(2*2):
             experiment_multiplier(p, q, n)
