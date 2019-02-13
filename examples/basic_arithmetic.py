@@ -123,7 +123,7 @@ class Adder(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super().__init__(num_qubits)
+        super(Adder, self).__init__(num_qubits)
 
     def carry(self, *qubits):
         c0, a, b, c1 = qubits
@@ -153,9 +153,6 @@ class Adder(cirq.MultiQubitGate):
         for i in range(n-2, -1, -1):
             yield self.uncarry(c[i], a[i], b[i], c[i+1])
             yield self.carry_sum(c[i], a[i], b[i])
-
-    def __repr__(self):
-        return 'Adder'
 
 
 class Multiplier(cirq.MultiQubitGate):
@@ -194,7 +191,7 @@ class Multiplier(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super().__init__(num_qubits)
+        super(Multiplier, self).__init__(num_qubits)
 
     def _decompose_(self, qubits):
         n = int(len(qubits)/5)
