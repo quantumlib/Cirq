@@ -62,6 +62,9 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                 (self._p_y, protocols.unitary(pauli_gates.Y)),
                 (self._p_z, protocols.unitary(pauli_gates.Z)))
 
+    def _has_mixture_(self) -> bool:
+        return True
+
     def _value_equality_values_(self):
         return self._p_x, self._p_y, self._p_z
 
@@ -132,6 +135,9 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return self._delegate._mixture_()
+
+    def _has_mixture_(self) -> bool:
+        return True
 
     def _value_equality_values_(self):
         return self._p
@@ -249,6 +255,9 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             p1 * np.array([[0., 0.], [sqrt_g, 0.]]),
         )
 
+    def _has_channel_(self) -> bool:
+        return True
+
     def _value_equality_values_(self):
         return self._p, self._gamma
 
@@ -356,6 +365,9 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         # the last two.
         return list(self._delegate._channel_())[:2]
 
+    def _has_channel_(self) -> bool:
+        return True
+
     def _value_equality_values_(self):
         return self._gamma
 
@@ -441,6 +453,9 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
             np.array([[0., 0.], [0., np.sqrt(self._gamma)]]),
         )
 
+    def _has_channel_(self) -> bool:
+        return True
+
     def _value_equality_values_(self):
         return self._gamma
 
@@ -521,6 +536,9 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         mixture = self._delegate._mixture_()
         # just return identity and z term
         return (mixture[0], mixture[3])
+
+    def _has_mixture_(self) -> bool:
+        return True
 
     def _value_equality_values_(self):
         return self._p
@@ -643,6 +661,9 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         mixture = self._delegate._mixture_()
         # just return identity and x term
         return (mixture[0], mixture[1])
+
+    def _has_mixture_(self) -> bool:
+        return True
 
     def _value_equality_values_(self):
         return self._p
