@@ -12,18 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Optional, Tuple, ValuesView)
+from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
+                    Tuple, TypeVar, Union, ValuesView, overload)
 
+from cirq import value
 from cirq.ops import (
-    raw_types, gate_operation, common_gates, qubit_order, op_tree
+    raw_types, gate_operation, common_gates, op_tree, pauli_gates
 )
-from cirq.ops.pauli import Pauli
-from cirq.ops.clifford_gate import CliffordGate
+from cirq.ops.pauli_gates import Pauli
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
+TDefault = TypeVar('TDefault')
 
-class PauliString:
+
+@value.value_equality
+class PauliString(raw_types.Operation):
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
                  negated: bool = False) -> None:
@@ -35,21 +39,9 @@ class PauliString:
         """Creates a PauliString with a single qubit."""
         return PauliString({qubit: pauli})
 
-    def _eq_tuple(self) -> Tuple[Any, ...]:
-        return (PauliString,
-                self._qubit_pauli_map,
+    def _value_equality_values_(self):
+        return (frozenset(self._qubit_pauli_map.items()),
                 self.negated)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._eq_tuple() == other._eq_tuple()
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash((PauliString, self.negated, frozenset(self.items())))
 
     def equal_up_to_sign(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
@@ -57,9 +49,19 @@ class PauliString:
     def __getitem__(self, key: raw_types.QubitId) -> Pauli:
         return self._qubit_pauli_map[key]
 
-    def get(self, key: raw_types.QubitId, default: Optional[Pauli] = None
-            ) -> Optional[Pauli]:
+    # pylint: disable=function-redefined
+    @overload
+    def get(self, key: raw_types.QubitId) -> Pauli:
+        pass
+
+    @overload
+    def get(self, key: raw_types.QubitId, default: TDefault
+            ) -> Union[Pauli, TDefault]:
+        pass
+
+    def get(self, key: raw_types.QubitId, default=None):
         return self._qubit_pauli_map.get(key, default)
+    # pylint: enable=function-redefined
 
     def __contains__(self, key: raw_types.QubitId) -> bool:
         return key in self._qubit_pauli_map
@@ -67,8 +69,14 @@ class PauliString:
     def keys(self) -> KeysView[raw_types.QubitId]:
         return self._qubit_pauli_map.keys()
 
-    def qubits(self) -> KeysView[raw_types.QubitId]:
-        return self.keys()
+    @property
+    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+        return tuple(sorted(self.keys()))
+
+    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'PauliString':
+        return PauliString(dict(zip(new_qubits,
+                                    (self[q] for q in self.qubits))),
+                           self.negated)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()
@@ -84,12 +92,11 @@ class PauliString:
 
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
-                             for qubit in
-                                qubit_order.QubitOrder.DEFAULT.order_for(self)))
+                             for qubit in sorted(self.qubits)))
         return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
-        ordered_qubits = qubit_order.QubitOrder.DEFAULT.order_for(self.qubits())
+        ordered_qubits = sorted(self.qubits)
         return '{{{}, {}}}'.format('+-'[self.negated],
                                    ', '.join(('{!s}:{!s}'.format(q, self[q])
                                              for q in ordered_qubits)))
@@ -127,28 +134,37 @@ class PauliString:
         """Returns operations to convert the qubits to the computational basis.
         """
         for qubit, pauli in self.items():
-            yield CliffordGate.from_single_map({pauli: (Pauli.Z, False)})(qubit)
+            yield SingleQubitCliffordGate.from_single_map(
+                {pauli: (pauli_gates.Z, False)})(qubit)
 
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],
                              after_to_before: bool = False) -> 'PauliString':
-        """Return a new PauliString such that the circuits
-            --op_last--...--op_first--self-- and
-            --output--op_last--...--op_first--
-        are equivalent up to global phase.
+        """Determines how the Pauli string changes when conjugated by Cliffords.
+
+        The output and input pauli strings are related by a circuit equivalence.
+        In particular, this circuit:
+
+            ───ops───INPUT_PAULI_STRING───
+
+        will be equivalent to this circuit:
+
+            ───OUTPUT_PAULI_STRING───ops───
+
+        up to global phase (assuming `after_to_before` is not set).
 
         If ops together have matrix C, the Pauli string has matrix P, and the
-        output Pauli string has matrix P', then C^-1 P C == C P' C^-1 up to
+        output Pauli string has matrix P', then P' == C^-1 P C up to
         global phase.
 
+        Setting `after_to_before` inverts the relationship, so that the output
+        is the input and the input is the output. Equivalently, it inverts C.
+
         Args:
-            op: The operation to move
-            after_to_before: If true, passes op over the other direction such
-                that the circuits
-                    --self--op_first--...--op_last-- and
-                    --op_fist--...--op_last--output--
-                are equivalent up to global phase and C P C^-1 == C^-1 P' C up
-                to global phase.
+            ops: The operations to move over the string.
+            after_to_before: Determines whether the operations start after the
+                pauli string, instead of before (and so are moving in the
+                opposite direction).
         """
         pauli_map = dict(self._qubit_pauli_map)
         inv = self.negated
@@ -169,11 +185,11 @@ class PauliString:
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
             gate = op.gate
-            if isinstance(gate, CliffordGate):
+            if isinstance(gate, SingleQubitCliffordGate):
                 return PauliString._pass_single_clifford_gate_over(
                     pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
-            if isinstance(gate, common_gates.Rot11Gate):
+            if isinstance(gate, common_gates.CZPowGate):
                 gate = PauliInteractionGate.CZ
             if isinstance(gate, PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(
@@ -184,13 +200,13 @@ class PauliString:
     @staticmethod
     def _pass_single_clifford_gate_over(pauli_map: Dict[raw_types.QubitId,
                                                         Pauli],
-                                        gate: CliffordGate,
+                                        gate: SingleQubitCliffordGate,
                                         qubit: raw_types.QubitId,
                                         after_to_before: bool = False) -> bool:
         if qubit not in pauli_map:
             return False
         if not after_to_before:
-            gate = gate.inverse()
+            gate **= -1
         pauli, inv = gate.transform(pauli_map[qubit])
         pauli_map[qubit] = pauli
         return inv

@@ -50,11 +50,11 @@ def test_optimize():
 
     assert c_opt == c_expected
 
-    assert c_opt.to_text_diagram() == """
-0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───
+    cirq.testing.assert_has_diagram(c_opt, """
+0: ───[Y]^-0.5───@───[Z]^(-1/8)───[X]^0.5───[Z]^0.5───
                  │
 1: ──────────────@────────────────────────────────────
-""".strip()
+""")
 
 
 def test_handles_measurement_gate():
@@ -65,8 +65,8 @@ def test_handles_measurement_gate():
         cirq.CZ(q0, q1),
         cirq.H(q0),
         cirq.X(q0) ** 0.125,
-        cirq.MeasurementGate('m1')(q1),
-        cirq.MeasurementGate('m0')(q0),
+        cirq.measure(q1, key='m1'),
+        cirq.measure(q0, key='m0')
     )
     c_opt = pauli_string_optimized_circuit(c_orig)
 
@@ -76,11 +76,11 @@ def test_handles_measurement_gate():
         atol=1e-7,
     )
 
-    assert c_opt.to_text_diagram() == """
-0: ───[Y]^-0.5───@───[Z]^-0.125───[X]^0.5───[Z]^0.5───M('m0')───
+    cirq.testing.assert_has_diagram(c_opt, """
+0: ───[Y]^-0.5───@───[Z]^(-1/8)───[X]^0.5───[Z]^0.5───M('m0')───
                  │
 1: ──────────────@───M('m1')────────────────────────────────────
-""".strip()
+""")
 
 
 def test_optimize_large_circuit():

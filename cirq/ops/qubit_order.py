@@ -45,7 +45,12 @@ class QubitOrder:
         self._explicit_func = explicit_func
 
     DEFAULT = None  # type: QubitOrder
-    """A basis that orders qubits based on their names."""
+    """A basis that orders qubits in the same way that calling `sorted` does.
+
+    Specifically, qubits are ordered first by their type name and then by
+    whatever comparison value qubits of a given type provide (e.g. for LineQubit
+    it is the x coordinate of the qubit).
+    """
 
     @staticmethod
     def explicit(fixed_qubits: Iterable[raw_types.QubitId],
@@ -80,7 +85,7 @@ class QubitOrder:
         return QubitOrder(func)
 
     @staticmethod
-    def sorted_by(key: Callable[[Any], Any]) -> 'QubitOrder':
+    def sorted_by(key: Callable[[raw_types.QubitId], Any]) -> 'QubitOrder':
         """A basis that orders qubits ascending based on a key function.
 
         Args:
@@ -152,40 +157,4 @@ class QubitOrder:
         return QubitOrder(func)
 
 
-def default_sorting_key(value: Any) -> str:
-    """A str method with hacks to support better lexicographic ordering.
-
-    The output strings are not intended to be human readable.
-
-    The returned string will have digit-runs zero-padded up to at least 8
-    digits. That way, instead of 'a10' coming before 'a2', 'a000010' will come
-    after 'a000002'.
-
-    Also, the original length of each digit-run is appended after the
-    zero-padded run. This is so that 'a0' continues to come before 'a00'.
-    """
-
-    text = str(value)
-
-    was_on_digits = False
-    last_transition = 0
-    chunks = []
-
-    def handle_transition_at(k):
-        chunk = text[last_transition:k]
-        if was_on_digits:
-            chunk = chunk.rjust(8, '0') + ':' + str(len(chunk))
-        chunks.append(chunk)
-
-    for i in range(len(text)):
-        on_digits = text[i].isdigit()
-        if was_on_digits != on_digits:
-            handle_transition_at(i)
-            was_on_digits = on_digits
-            last_transition = i
-
-    handle_transition_at(len(text))
-    return ''.join(chunks)
-
-
-QubitOrder.DEFAULT = QubitOrder.sorted_by(default_sorting_key)
+QubitOrder.DEFAULT = QubitOrder.sorted_by(lambda v: v)

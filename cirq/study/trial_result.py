@@ -19,6 +19,7 @@ from typing import Iterable, Callable, Tuple, TypeVar, Dict, Any
 import collections
 import numpy as np
 
+from cirq import value
 from cirq.study import resolver
 
 T = TypeVar('T')
@@ -74,16 +75,17 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
     return '\n'.join(keyed_bitstrings)
 
 
+@value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a list of lists (a numpy ndarray),
-            the first list corresponding to the repetition, and the second is
-            the actual boolean measurement results (ordered by the qubits acted
-            the measurement gate.)
+            results. Measurement results are stored in a 2-dimensional
+            numpy array, the first dimension corresponding to the repetition
+            and the second to the actual boolean measurement results (ordered
+            by the qubits being measured.)
         repetitions: The number of times a circuit was sampled to get these
             results.
     """
@@ -159,7 +161,7 @@ class TrialResult:
         """
         fixed_keys = tuple(keys)
         samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])
+                        for sub_key in fixed_keys])  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
@@ -223,3 +225,6 @@ class TrialResult:
 
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
+
+    def _value_equality_values_(self):
+        return self.measurements, self.repetitions, self.params

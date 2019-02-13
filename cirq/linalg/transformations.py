@@ -14,7 +14,7 @@
 
 """Utility methods for transforming matrices."""
 
-from typing import Tuple, List, Optional
+from typing import Tuple, Optional, Sequence, List, Union
 
 import numpy as np
 
@@ -90,7 +90,7 @@ def match_global_phase(a: np.ndarray,
 
 def targeted_left_multiply(left_matrix: np.ndarray,
                            right_target: np.ndarray,
-                           target_axes: List[int],
+                           target_axes: Sequence[int],
                            out: Optional[np.ndarray] = None
                            ) -> np.ndarray:
     """Left-multiplies the given axes of the target tensor by the given matrix.
@@ -111,7 +111,7 @@ def targeted_left_multiply(left_matrix: np.ndarray,
     circuit's unitary matrix is computed as follows:
 
         new_effect = cirq.targeted_left_multiply(
-            left_matrix=cirq.CNOT.matrix().reshape((2, 2, 2, 2)),
+            left_matrix=cirq.unitary(cirq.CNOT).reshape((2, 2, 2, 2)),
             right_target=old_effect,
             target_axes=[1, 4])
 
@@ -147,3 +147,73 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      # And this is workaround for *another* bug!
                      # Supposed to be able to just say 'old=old'.
                      **({'out': out} if out is not None else {}))
+
+
+_TSliceAtom = Union[int, slice, 'ellipsis']
+_TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
+
+
+def apply_matrix_to_slices(
+        target: np.ndarray,
+        matrix: np.ndarray,
+        slices: List[_TSlice],
+        *,
+        out: Optional[np.ndarray] = None) -> np.ndarray:
+    """Left-multiplies an NxN matrix onto N slices of a numpy array.
+
+    Example:
+        The 4x4 matrix of a fractional SWAP gate can be expressed as
+
+           [ 1       ]
+           [   X**t  ]
+           [       1 ]
+
+        Where X is the 2x2 Pauli X gate and t is the power of the swap with t=1
+        being a full swap. X**t is a power of the Pauli X gate's matrix.
+        Applying the fractional swap is equivalent to applying a fractional X
+        within the inner 2x2 subspace; the rest of the matrix is identity. This
+        can be expressed using `apply_matrix_to_slices` as follows:
+
+            def fractional_swap(target):
+                assert target.shape == (4,)
+                return apply_matrix_to_slices(
+                    target=target,
+                    matrix=cirq.unitary(cirq.X**t),
+                    slices=[1, 2]
+                )
+
+    Args:
+        target: The input array with slices that need to be left-multiplied.
+        matrix: The linear operation to apply to the subspace defined by the
+            slices.
+        slices: The parts of the tensor that correspond to the "vector entries"
+            that the matrix should operate on. May be integers or complicated
+            multi-dimensional slices into a tensor. The slices must refer to
+            non-overlapping sections of the input all with the same shape.
+        out: Where to write the output. If not specified, a new numpy array is
+            created, with the same shape and dtype as the target, to store the
+            output.
+
+    Returns:
+        The transformed array.
+    """
+    # Validate arguments.
+    if out is target:
+        raise ValueError("Can't write output over the input.")
+    if matrix.shape != (len(slices), len(slices)):
+        raise ValueError("matrix.shape != (len(slices), len(slices))")
+
+    # Fill in default values and prepare space.
+    if out is None:
+        out = np.copy(target)
+    else:
+        out[...] = target[...]
+
+    # Apply operation.
+    for i, s_i in enumerate(slices):
+        out[s_i] *= matrix[i, i]
+        for j, s_j in enumerate(slices):
+            if i != j:
+                out[s_i] += target[s_j] * matrix[i, j]
+
+    return out

@@ -34,7 +34,7 @@ def test_toffoli_separate():
     assert all(isinstance(op, PauliStringPhasor)
                for op in c_left.all_operations())
     assert all(isinstance(op, cirq.GateOperation) and
-               isinstance(op.gate, (cirq.CliffordGate,
-                                    cirq.Rot11Gate))
+               isinstance(op.gate, (cirq.SingleQubitCliffordGate,
+                                    cirq.CZPowGate))
                for op in c_right.all_operations())
 

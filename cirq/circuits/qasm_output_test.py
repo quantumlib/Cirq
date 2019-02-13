@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import List
 
 import re
 import pytest
+
+import numpy as np
 
 import cirq
 from cirq.circuits.qasm_output import QasmUGate, QasmTwoQubitGate
@@ -29,24 +32,15 @@ def test_u_gate_repr():
 
 
 def test_qasm_two_qubit_gate_repr():
-    gate = QasmTwoQubitGate(QasmUGate(0.1, 0.2, 0.3),
-                            QasmUGate(0.4, 0.5, 0.6),
-                            0.7, 0.8, 0.9,
-                            QasmUGate(1.0, 1.1, 1.2),
-                            QasmUGate(1.3, 1.4, 1.5))
-    assert repr(gate) == ('cirq.QasmTwoQubitGate('
-                          'cirq.QasmUGate(0.1, 0.2, 0.3), '
-                          'cirq.QasmUGate(0.4, 0.5, 0.6), '
-                          '0.7, 0.8, 0.9, '
-                          'cirq.QasmUGate(1.0, 1.1, 1.2), '
-                          'cirq.QasmUGate(1.3, 1.4, 1.5))')
+    cirq.testing.assert_equivalent_repr(QasmTwoQubitGate.from_matrix(
+        cirq.testing.random_unitary(4)))
 
 
 def test_empty_circuit():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -57,11 +51,10 @@ qreg q[1];
 
 def test_header():
     q0, = _make_qubits(1)
-    output = cirq.QasmOutput((), (q0,), header=
-"""My test circuit
+    output = cirq.QasmOutput((), (q0,), header="""My test circuit
 Device: Bristlecone""")
     assert (str(output) ==
-"""// My test circuit
+            """// My test circuit
 // Device: Bristlecone
 
 OPENQASM 2.0;
@@ -72,13 +65,12 @@ include "qelib1.inc";
 qreg q[1];
 """)
 
-    output = cirq.QasmOutput((), (q0,), header=
-"""
+    output = cirq.QasmOutput((), (q0,), header="""
 My test circuit
 Device: Bristlecone
 """)
     assert (str(output) ==
-"""//
+            """//
 // My test circuit
 // Device: Bristlecone
 //
@@ -96,7 +88,7 @@ def test_single_gate_no_parameter():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0),), (q0,))
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -112,7 +104,7 @@ def test_single_gate_with_parameter():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.25,), (q0,))
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -124,11 +116,29 @@ rx(pi*0.25) q[0];
 """)
 
 
+def test_h_gate_with_parameter():
+    q0, = _make_qubits(1)
+    output = cirq.QasmOutput((cirq.H(q0) ** 0.25,), (q0,))
+    assert (str(output) ==
+            """OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: [q0]
+qreg q[1];
+
+
+ry(pi*0.25) q[0];
+rx(pi*0.25) q[0];
+ry(pi*-0.25) q[0];
+""")
+
+
 def test_precision():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
     assert (str(output) ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -155,7 +165,7 @@ def test_save_to_file():
         with open(file_path, 'r') as f:
             file_content = f.read()
     assert (file_content ==
-"""OPENQASM 2.0;
+            """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -177,24 +187,22 @@ def test_unsupported_operation():
 
 
 def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
-    class DummyOperation(cirq.Operation, cirq.QasmConvertibleOperation,
-                         cirq.CompositeOperation):
+    class DummyOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-        def known_qasm_output(self, args):
+        def _qasm_(self, args: cirq.QasmArgs) -> str:
             return '// Dummy operation\n'
 
-        def default_decompose(self):
+        def _decompose_(self):
             # Only used by test_output_unitary_same_as_qiskit
             return ()  # coverage: ignore
 
-    class DummyCompositeOperation(cirq.Operation, cirq.CompositeOperation):
+    class DummyCompositeOperation(cirq.Operation):
         qubits = (q0,)
         with_qubits = NotImplemented
 
-
-        def default_decompose(self):
+        def _decompose_(self):
             return cirq.X(self.qubits[0])
 
         def __repr__(self):
@@ -217,25 +225,24 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
         cirq.CCZ(q0, q1, q2),
         cirq.CCX(q0, q1, q2),
+        cirq.CCZ(q0, q1, q2)**0.5,
+        cirq.CCX(q0, q1, q2)**0.5,
         cirq.CSWAP(q0, q1, q2),
 
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
 
-        cirq.google.ExpZGate()(q3),
-        cirq.google.ExpZGate(half_turns=0.75)(q3),
-        cirq.google.ExpWGate(axis_half_turns=0.125, half_turns=0.25)(q1),
-        cirq.google.Exp11Gate()(q0, q1),
-        # Requires 2-qubit decomposition
-        cirq.google.Exp11Gate(half_turns=1.25)(q0, q1),
+        cirq.PhasedXPowGate(phase_exponent=0.111, exponent=0.25).on(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
+        cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
 
         (
-            cirq.MeasurementGate('xX')(q0),
-            cirq.MeasurementGate('x_a')(q2),
-            cirq.MeasurementGate('x?')(q1),
-            cirq.MeasurementGate('X')(q3),
-            cirq.MeasurementGate('_x')(q4),
-            cirq.MeasurementGate('x_a')(q2),
-            cirq.MeasurementGate('multi', (False, True))(q1, q2, q3),
+            cirq.measure(q0, key='xX'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, key='x?'),
+            cirq.measure(q3, key='X'),
+            cirq.measure(q4, key='_x'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True))
         ) if include_measurments else (),
 
         DummyOperation(),
@@ -243,7 +250,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
     )
 
 
-def test_output_parsable_by_qiskit():
+def test_output_parseable_by_qiskit():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
@@ -279,15 +286,27 @@ def test_output_unitary_same_as_qiskit():
         return
 
     circuit = cirq.Circuit.from_ops(operations)
-    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits[::-1])
+    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits)
 
-    p = qiskit.QuantumProgram()
-    p.load_qasm_text(text)
-    result = p.execute(backend='local_unitary_simulator')
-    qiskit_unitary = result.get_unitary()
+    result = qiskit.execute(
+        qiskit.load_qasm_string(text),
+        backend=qiskit.Aer.get_backend('unitary_simulator'))
+    qiskit_unitary = result.result().get_unitary()
+    qiskit_unitary = _reorder_indices_of_matrix(
+            qiskit_unitary,
+            list(reversed(range(len(qubits)))))
 
     cirq.testing.assert_allclose_up_to_global_phase(
-                    cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+        cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+
+
+def test_fails_on_big_unknowns():
+    class UnrecognizedGate(cirq.ThreeQubitGate):
+        pass
+    c = cirq.Circuit.from_ops(
+        UnrecognizedGate().on(*cirq.LineQubit.range(3)))
+    with pytest.raises(ValueError, match='Cannot output operation as QASM'):
+        _ = c.to_qasm()
 
 
 def test_output_format():
@@ -297,11 +316,11 @@ def test_output_format():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
     output = cirq.QasmOutput(operations, qubits,
-                             header='Generated from Cirq',
+                             header='Generated from Cirq!',
                              precision=5)
     assert (filter_unpredictable_numbers(str(output)) ==
             filter_unpredictable_numbers(
-"""// Generated from Cirq
+        """// Generated from Cirq!
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -382,6 +401,43 @@ h q[2];
 ccx q[0],q[1],q[2];
 h q[2];
 ccx q[0],q[1],q[2];
+
+// Gate: CCZ**0.5
+rz(pi*0.125) q[0];
+rz(pi*0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+
+// Gate: TOFFOLI**0.5
+h q[2];
+rz(pi*0.125) q[0];
+rz(pi*0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[1];
+rz(pi*0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+rz(pi*-0.125) q[2];
+cx q[0],q[1];
+cx q[1],q[2];
+h q[2];
+
 cswap q[0],q[1],q[2];
 
 // Gate: ISWAP
@@ -394,28 +450,9 @@ rz(pi*-0.5) q[2];
 h q[2];
 cx q[2],q[0];
 
-z q[3];
-rz(pi*0.75) q[3];
-
-// Gate: W(0.125)^0.25
-u3(pi*0.25,pi*1.625,pi*0.375) q[1];
-
-cz q[0],q[1];
-
-// Gate: Exp11Gate(half_turns=-0.75)
-u3(pi*0.5,0,pi*1.54081) q[0];
-u3(pi*0.5,pi*1.0,pi*0.04081) q[1];
-rx(pi*0.5) q[0];
-cx q[0],q[1];
-rx(pi*0.125) q[0];
-ry(pi*0.5) q[1];
-cx q[1],q[0];
-rx(pi*-0.5) q[1];
-rz(pi*0.5) q[1];
-cx q[0],q[1];
-u3(pi*0.5,pi*1.08419,pi*1.0) q[0];
-u3(pi*0.5,pi*0.58419,0) q[1];
-
+u3(pi*-0.25, pi*0.611, pi*-0.611) q[1];
+u2(pi*-0.167, pi*0.167) q[1];
+u2(pi*1.277, pi*-1.277) q[1];
 measure q[0] -> m_xX[0];
 measure q[2] -> m_x_a[0];
 measure q[1] -> m0[0];
@@ -431,3 +468,24 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
+
+
+def test_qasm_two_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(4)
+    g = QasmTwoQubitGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u)
+
+
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+    num_qubits = matrix.shape[0].bit_length() - 1
+    matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
+    all_indices = range(2*num_qubits)
+    new_input_indices = new_order
+    new_output_indices = [i + num_qubits for i in new_input_indices]
+    matrix = np.moveaxis(
+            matrix,
+            all_indices,
+            new_input_indices + new_output_indices
+    )
+    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
+    return matrix

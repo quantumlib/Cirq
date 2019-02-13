@@ -14,7 +14,7 @@
 
 from typing import Sequence
 
-from cirq import ops, circuits
+from cirq import ops, circuits, optimizers
 from cirq.contrib.paulistring.pauli_string_optimize import (
     pauli_string_optimized_circuit)
 from cirq.contrib.paulistring.clifford_optimize import (
@@ -31,9 +31,9 @@ def optimized_circuit(circuit: circuits.Circuit,
         start_len = len(circuit)
         start_cz_count = _cz_count(circuit)
         if merge_interactions:
-            circuits.MergeInteractions(allow_partial_czs=False,
-                                       post_clean_up=_optimized_ops,
-                                       ).optimize_circuit(circuit)
+            optimizers.MergeInteractions(allow_partial_czs=False,
+                                         post_clean_up=_optimized_ops,
+                                         ).optimize_circuit(circuit)
         circuit2 = pauli_string_optimized_circuit(
                         circuit,
                         move_cliffords=False,
@@ -58,5 +58,5 @@ def _optimized_ops(ops: Sequence[ops.Operation],
 
 def _cz_count(circuit):
     return sum(isinstance(op, ops.GateOperation)
-               and isinstance(op, ops.Rot11Gate)
+               and isinstance(op, ops.CZPowGate)
                for op in circuit)

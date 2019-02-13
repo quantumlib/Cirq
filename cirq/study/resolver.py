@@ -64,5 +64,10 @@ class ParamResolver(object):
     def __hash__(self):
         return self._param_hash
 
+    def __eq__(self, other):
+        if not isinstance(other, ParamResolver):
+            return NotImplemented
+        return self.param_dict == other.param_dict
+
     def __repr__(self):
         return 'cirq.ParamResolver({})'.format(repr(self.param_dict))

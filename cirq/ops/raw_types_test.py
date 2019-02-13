@@ -19,17 +19,20 @@ import cirq
 
 def test_gate_calls_validate():
     class ValiGate(cirq.Gate):
+        def num_qubits(self):
+            return 2
+
         def validate_args(self, qubits):
             if len(qubits) == 3:
                 raise ValueError()
 
     g = ValiGate()
-    q00 = cirq.QubitId()
-    q01 = cirq.QubitId()
-    q10 = cirq.QubitId()
+    assert g.num_qubits() == 2
 
-    _ = g.on(q00)
-    _ = g.on(q01)
+    q00 = cirq.NamedQubit('q00')
+    q01 = cirq.NamedQubit('q01')
+    q10 = cirq.NamedQubit('q10')
+
     _ = g.on(q00, q10)
     with pytest.raises(ValueError):
         _ = g.on(q00, q10, q01)
@@ -38,16 +41,3 @@ def test_gate_calls_validate():
     _ = g(q00, q10)
     with pytest.raises(ValueError):
         _ = g(q10, q01, q00)
-
-
-def test_named_qubit_str():
-    q = cirq.NamedQubit('a')
-    assert q.name == 'a'
-    assert str(q) == 'a'
-
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
-def test_named_qubit_repr():
-    q = cirq.NamedQubit('a')
-    assert repr(q) == "cirq.NamedQubit('a')"

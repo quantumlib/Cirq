@@ -15,15 +15,13 @@
 """Error simulator that adds randomly activated error gates after every moment.
 """
 
-import copy
 import numpy as np
 
 from cirq.circuits.circuit import Circuit
-from cirq.circuits.circuit import Moment
 from cirq.contrib.jobs import Job
-from cirq.google import xmon_gates
 from cirq.study.sweeps import Points, Zip
 from cirq.value import Symbol
+from cirq import ops
 
 
 class DepolarizerChannel(object):
@@ -56,7 +54,7 @@ class DepolarizerChannel(object):
     _parameter_name = 'error_parameter'
 
     def __init__(self, probability=0.001, realizations=1,
-                 depolarizing_gates=(xmon_gates.ExpZGate(),)):
+                 depolarizing_gates=(ops.Z,)):
         self.p = probability
         self.realizations = realizations
         self.depolarizing_gates = depolarizing_gates
@@ -108,14 +106,13 @@ class DepolarizerChannel(object):
                     errors = np.random.random(self.realizations) < self.p
                     if any(errors):
                         key = self._parameter_name + str(error_number)
-                        new_error_gate = copy.deepcopy(gate)
-                        new_error_gate.half_turns = Symbol(key)
+                        new_error_gate = gate**Symbol(key)
                         error_gates.append(new_error_gate.on(q))
                         error_sweep += Points(key, list(errors * 1.0))
                         error_number += 1
 
                 if error_gates:
-                    moments.append(Moment(error_gates))
+                    moments.append(ops.Moment(error_gates))
 
         sweep = job.sweep
         if error_sweep:

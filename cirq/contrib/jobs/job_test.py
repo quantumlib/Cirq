@@ -18,8 +18,8 @@ from cirq.contrib.jobs import Job
 
 def test_job_equality():
     eq = cirq.testing.EqualsTester()
-    q = cirq.QubitId()
-    q2 = cirq.QubitId()
+    q = cirq.NamedQubit('q')
+    q2 = cirq.NamedQubit('q2')
 
     # Equivalent empty jobs
     eq.add_equality_group(Job(),

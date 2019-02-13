@@ -53,8 +53,13 @@ InsertStrategy.INLINE = InsertStrategy(
     """
     Attempts to add the operation to insert into the moment just before the
     desired insert location. But, if there's already an existing operation
-    affecting any of the qubits touched by the operation to insert, a new moment
-    is created instead.
+    affecting any of the qubits touched by the operation to insert, or the
+    desired index is 0, a new moment is created and inserted at the desired
+    location instead.
+    In case the insert index is smaller than -len(<moments-in-circuit>) it is
+    treated like it would be 0.
+    For too big indices it attempts to insert the operation into the last
+    moment of the circuit.
     """)
 
 InsertStrategy.EARLIEST = InsertStrategy(
@@ -69,5 +74,6 @@ InsertStrategy.EARLIEST = InsertStrategy(
 
     The operation is never added into moments after the insert location.
     If the moment just before the insert location has conflicting operations,
-    or the insert index is 0, then the operation is inserted into a new moment.
+    or the insert index is 0, then the operation is inserted into a new moment
+    at the desired location.
     """)

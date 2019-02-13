@@ -1,4 +1,5 @@
-.. image:: https://github.com/quantumlib/cirq/blob/master/docs/Cirq_logo_color.svg
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/Cirq_logo_color.png
+  :target: https://github.com/quantumlib/cirq
   :alt: Cirq
   :width: 500px
 
@@ -11,6 +12,10 @@ circuits and running them against quantum computers and simulators.
 
 .. image:: https://badge.fury.io/py/cirq.svg
     :target: https://badge.fury.io/py/cirq
+
+.. image:: https://readthedocs.org/projects/cirq/badge/?version=master
+    :target: https://cirq.readthedocs.io/en/master/?badge=master
+    :alt: Documentation Status
 
 Installation
 ------------
@@ -39,7 +44,7 @@ A simple example to get you up and running:
   print(circuit)
 
   # Simulate the circuit several times.
-  simulator = cirq.google.XmonSimulator()
+  simulator = cirq.Simulator()
   result = simulator.run(circuit, repetitions=20)
   print("Results:")
   print(result)
@@ -68,6 +73,11 @@ Contributing
 We welcome contributions. Please follow these
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
 
+We use
+`Github issues <https://github.com/quantumlib/Cirq/issues>`__
+for tracking requests and bugs. Please post questions to the
+`Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with a 'cirq' tag.
+
 See Also
 --------
 
@@ -77,7 +87,13 @@ chemistry and materials science, we encourage exploring
 its sister library for compiling quantum simulation algorithms in Cirq,
 `OpenFermion-Cirq <https://github.com/quantumlib/openfermion-cirq>`__.
 
-Disclaimer
-----------
+Alpha Disclaimer
+----------------
 
-Copyright 2018 The Cirq Developers. This is not an official Google product.
+**Cirq is currently in alpha.**
+We are still making breaking changes.
+We *will* break your code when we make new releases.
+We recommend that you target a specific version of Cirq, and periodically bump to the latest release.
+That way you have control over when a breaking change affects you.
+
+Cirq is not an official Google product. Copyright 2018 The Cirq Developers

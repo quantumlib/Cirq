@@ -14,17 +14,35 @@
 
 import numpy as np
 
-from cirq.linalg import combinators
+import cirq
+
+
+def test_dot():
+    assert cirq.dot(2) == 2
+    assert cirq.dot(2.5, 2.5) == 6.25
+
+    a = np.array([[1, 2], [3, 4]])
+    b = np.array([[5, 6], [7, 8]])
+    assert cirq.dot(a) is not a
+    np.testing.assert_allclose(cirq.dot(a),
+                               a,
+                               atol=1e-8)
+    np.testing.assert_allclose(cirq.dot(a, b),
+                               np.dot(a, b),
+                               atol=1e-8)
+    np.testing.assert_allclose(cirq.dot(a, b, a),
+                               np.dot(np.dot(a, b), a),
+                               atol=1e-8)
 
 
 def test_kron_multiplies_sizes():
-    assert np.allclose(combinators.kron(), np.eye(1))
-    assert np.allclose(combinators.kron(np.eye(1)), np.eye(1))
-    assert np.allclose(combinators.kron(np.eye(2)), np.eye(2))
-    assert np.allclose(combinators.kron(np.eye(1), np.eye(1)), np.eye(1))
-    assert np.allclose(combinators.kron(np.eye(1), np.eye(2)), np.eye(2))
-    assert np.allclose(combinators.kron(np.eye(2), np.eye(3)), np.eye(6))
-    assert np.allclose(combinators.kron(np.eye(2), np.eye(3), np.eye(4)),
+    assert np.allclose(cirq.kron(), np.eye(1))
+    assert np.allclose(cirq.kron(np.eye(1)), np.eye(1))
+    assert np.allclose(cirq.kron(np.eye(2)), np.eye(2))
+    assert np.allclose(cirq.kron(np.eye(1), np.eye(1)), np.eye(1))
+    assert np.allclose(cirq.kron(np.eye(1), np.eye(2)), np.eye(2))
+    assert np.allclose(cirq.kron(np.eye(2), np.eye(3)), np.eye(6))
+    assert np.allclose(cirq.kron(np.eye(2), np.eye(3), np.eye(4)),
                        np.eye(24))
 
 
@@ -32,28 +50,28 @@ def test_kron_spreads_values():
     u = np.array([[2, 3], [5, 7]])
 
     assert np.allclose(
-        combinators.kron(np.eye(2), u),
+        cirq.kron(np.eye(2), u),
         np.array([[2, 3, 0, 0], [5, 7, 0, 0], [0, 0, 2, 3], [0, 0, 5, 7]]))
 
     assert np.allclose(
-        combinators.kron(u, np.eye(2)),
+        cirq.kron(u, np.eye(2)),
         np.array([[2, 0, 3, 0], [0, 2, 0, 3], [5, 0, 7, 0], [0, 5, 0, 7]]))
 
     assert np.allclose(
-        combinators.kron(u, u),
+        cirq.kron(u, u),
         np.array([[4, 6, 6, 9], [10, 14, 15, 21], [10, 15, 14, 21],
                 [25, 35, 35, 49]]))
 
 
 def test_acts_like_kron_multiplies_sizes():
-    assert np.allclose(combinators.kron_with_controls(), np.eye(1))
+    assert np.allclose(cirq.kron_with_controls(), np.eye(1))
     assert np.allclose(
-        combinators.kron_with_controls(np.eye(2), np.eye(3), np.eye(4)),
+        cirq.kron_with_controls(np.eye(2), np.eye(3), np.eye(4)),
         np.eye(24))
 
     u = np.array([[2, 3], [5, 7]])
     assert np.allclose(
-        combinators.kron_with_controls(u, u),
+        cirq.kron_with_controls(u, u),
         np.array([[4, 6, 6, 9], [10, 14, 15, 21], [10, 15, 14, 21],
                 [25, 35, 35, 49]]))
 
@@ -61,30 +79,30 @@ def test_acts_like_kron_multiplies_sizes():
 def test_supports_controls():
     u = np.array([[2, 3], [5, 7]])
     assert np.allclose(
-        combinators.kron_with_controls(combinators.CONTROL_TAG),
+        cirq.kron_with_controls(cirq.CONTROL_TAG),
         np.array([[1, 0], [0, 1]]))
     assert np.allclose(
-        combinators.kron_with_controls(combinators.CONTROL_TAG, u),
+        cirq.kron_with_controls(cirq.CONTROL_TAG, u),
         np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 2, 3], [0, 0, 5, 7]]))
     assert np.allclose(
-        combinators.kron_with_controls(u, combinators.CONTROL_TAG),
+        cirq.kron_with_controls(u, cirq.CONTROL_TAG),
         np.array([[1, 0, 0, 0], [0, 2, 0, 3], [0, 0, 1, 0], [0, 5, 0, 7]]))
 
 
 def test_block_diag():
     assert np.allclose(
-        combinators.block_diag(),
+        cirq.block_diag(),
         np.zeros((0, 0)))
 
     assert np.allclose(
-        combinators.block_diag(
+        cirq.block_diag(
             np.array([[1, 2],
                     [3, 4]])),
         np.array([[1, 2],
                 [3, 4]]))
 
     assert np.allclose(
-        combinators.block_diag(
+        cirq.block_diag(
             np.array([[1, 2],
                     [3, 4]]),
             np.array([[4, 5, 6],
@@ -98,27 +116,27 @@ def test_block_diag():
 
 
 def test_block_diag_dtype():
-    assert combinators.block_diag().dtype == np.complex128
+    assert cirq.block_diag().dtype == np.complex128
 
-    assert (combinators.block_diag(np.array([[1]], dtype=np.int8)).dtype ==
+    assert (cirq.block_diag(np.array([[1]], dtype=np.int8)).dtype ==
             np.int8)
 
-    assert combinators.block_diag(
+    assert cirq.block_diag(
             np.array([[1]], dtype=np.float32),
             np.array([[2]], dtype=np.float32)).dtype == np.float32
 
-    assert combinators.block_diag(
+    assert cirq.block_diag(
             np.array([[1]], dtype=np.float64),
             np.array([[2]], dtype=np.float64)).dtype == np.float64
 
-    assert combinators.block_diag(
+    assert cirq.block_diag(
             np.array([[1]], dtype=np.float32),
             np.array([[2]], dtype=np.float64)).dtype == np.float64
 
-    assert combinators.block_diag(
+    assert cirq.block_diag(
             np.array([[1]], dtype=np.float32),
             np.array([[2]], dtype=np.complex64)).dtype == np.complex64
 
-    assert combinators.block_diag(
+    assert cirq.block_diag(
             np.array([[1]], dtype=np.int),
             np.array([[2]], dtype=np.complex128)).dtype == np.complex128

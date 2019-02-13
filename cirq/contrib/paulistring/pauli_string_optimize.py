@@ -36,10 +36,10 @@ def pauli_string_optimized_circuit(circuit: circuits.Circuit,
 
     # Merge and remove Pauli string phasors
     while True:
-        before_len = len(string_dag.nodes)
+        before_len = len(string_dag.nodes())
         merge_equal_strings(string_dag)
         remove_negligible_strings(string_dag)
-        if len(string_dag.nodes) >= before_len:
+        if len(string_dag.nodes()) >= before_len:
             break
 
     c_all = move_pauli_strings_into_circuit(string_dag, cr)
@@ -57,11 +57,11 @@ def assert_no_multi_qubit_pauli_strings(circuit: circuits.Circuit) -> None:
 
 
 def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
-    for node in tuple(string_dag.nodes):
-        if node not in string_dag.nodes:
+    for node in tuple(string_dag.nodes()):
+        if node not in string_dag.nodes():
             # Node was removed
             continue
-        commuting_nodes = (set(string_dag.nodes)
+        commuting_nodes = (set(string_dag.nodes())
                            - set(networkx.dag.ancestors(string_dag, node))
                            - set(networkx.dag.descendants(string_dag, node))
                            - set([node]))
@@ -74,6 +74,6 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
 
 def remove_negligible_strings(string_dag: circuits.CircuitDag,
                               tolerance=linalg.Tolerance.DEFAULT) -> None:
-    for node in tuple(string_dag.nodes):
+    for node in tuple(string_dag.nodes()):
         if tolerance.all_near_zero_mod(node.val.half_turns, 2):
             string_dag.remove_node(node)

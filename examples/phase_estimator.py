@@ -49,11 +49,15 @@ import numpy as np
 import cirq
 
 
-class QftInverse(cirq.Gate, cirq.CompositeGate):
+class QftInverse(cirq.MultiQubitGate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
 
-    def default_decompose(self, qubits):
+    def __init__(self, num_qubits):
+        super(QftInverse, self).__init__(num_qubits)
+
+
+    def _decompose_(self, qubits):
         """A quantum circuit (QFT_inv) with the following structure.
 
         ---H--@-------@--------@----------------------------------------------
@@ -103,7 +107,7 @@ def run_estimate(unknown_gate, qnum, repeats):
         cirq.H.on_each(qubits),
         [cirq.ControlledGate(unknown_gate**(2**i)).on(qubits[qnum-i-1], ancilla)
          for i in range(qnum)],
-        QftInverse()(*qubits),
+        QftInverse(qnum)(*qubits),
         cirq.measure(*qubits, key='phase'))
     simulator = cirq.google.XmonSimulator()
     result = simulator.run(circuit, repetitions=repeats)

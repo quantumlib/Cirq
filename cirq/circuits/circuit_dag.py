@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
 
 import functools
 import networkx
@@ -111,13 +111,13 @@ class CircuitDag(networkx.DiGraph):
                  ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
-            dag.append(op)
+            dag.append(cast(ops.Operation, op))
         return dag
 
     def append(self, op: ops.Operation) -> None:
         new_node = self.make_node(op)
         self.add_edges_from([(node, new_node)
-                             for node in self.nodes
+                             for node in self.nodes()
                              if not self.can_reorder(node.val, new_node.val)])
         self.add_node(new_node)
 
@@ -126,9 +126,9 @@ class CircuitDag(networkx.DiGraph):
             return NotImplemented
         g1 = self.copy()
         g2 = other.copy()
-        for node, attr in g1.nodes.items():
+        for node, attr in g1.nodes(data=True):
             attr['val'] = node.val
-        for node, attr in g2.nodes.items():
+        for node, attr in g2.nodes(data=True):
             attr['val'] = node.val
         def node_match(attr1: Dict[Any, Any], attr2: Dict[Any, Any]) -> bool:
             return attr1['val'] == attr2['val']
@@ -140,7 +140,7 @@ class CircuitDag(networkx.DiGraph):
     __hash__ = None  # type: ignore
 
     def ordered_nodes(self) -> Iterator[Unique[ops.Operation]]:
-        if not self.nodes:
+        if not self.nodes():
             return
         g = self.copy()
 
@@ -152,7 +152,7 @@ class CircuitDag(networkx.DiGraph):
             return some_node
 
         def get_first_node() -> Unique[ops.Operation]:
-            return get_root_node(next(iter(g.nodes)))
+            return get_root_node(next(iter(g.nodes())))
 
         def get_next_node(succ: networkx.classes.coreviews.AtlasView
                           ) -> Unique[ops.Operation]:
@@ -167,7 +167,7 @@ class CircuitDag(networkx.DiGraph):
             succ = g.succ[node]
             g.remove_node(node)
 
-            if not g.nodes:
+            if not g.nodes():
                 return
 
             node = get_next_node(succ)

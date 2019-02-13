@@ -33,8 +33,7 @@ from collections import Iterable
 from typing import cast, Dict, List, Optional, TYPE_CHECKING, Union
 from apiclient import discovery
 
-from cirq.circuits import Circuit
-from cirq.circuits.drop_empty_moments import DropEmptyMoments
+from cirq import optimizers, circuits
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto_dict
 from cirq.google.programs import schedule_to_proto_dicts, unpack_results
@@ -184,7 +183,7 @@ class Engine:
 
     def run(self,
             *,  # Force keyword args.
-            program: Union[Circuit, Schedule],
+            program: Union[circuits.Circuit, Schedule],
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
@@ -295,12 +294,13 @@ class Engine:
         return implied_job_config
 
     def program_as_schedule(self,
-                            program: Union[Circuit, Schedule]) -> Schedule:
-        if isinstance(program, Circuit):
+                            program: Union[circuits.Circuit,
+                                           Schedule]) -> Schedule:
+        if isinstance(program, circuits.Circuit):
             device = program.device
             circuit_copy = program.copy()
             ConvertToXmonGates().optimize_circuit(circuit_copy)
-            DropEmptyMoments().optimize_circuit(circuit_copy)
+            optimizers.DropEmptyMoments().optimize_circuit(circuit_copy)
             device.validate_circuit(circuit_copy)
             return moment_by_moment_schedule(device, circuit_copy)
 
@@ -312,7 +312,7 @@ class Engine:
 
     def run_sweep(self,
                   *,  # Force keyword args.
-                  program: Union[Circuit, Schedule],
+                  program: Union[circuits.Circuit, Schedule],
                   job_config: Optional[JobConfig] = None,
                   params: Sweepable = None,
                   repetitions: int = 1,

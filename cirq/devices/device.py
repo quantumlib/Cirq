@@ -14,7 +14,8 @@
 
 from typing import TYPE_CHECKING
 
-from cirq import abc
+import abc
+
 from cirq.value import Duration
 
 
@@ -34,7 +35,7 @@ class Device(metaclass=abc.ABCMeta):
 
         This method is used when adding operations into circuits with a device
         specified, to avoid spurious failures due to e.g. using a Hadamard gate
-        instead of ExpWGate.
+        that must be decomposed into native gates.
         """
         return operation
 

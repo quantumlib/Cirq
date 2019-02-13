@@ -29,7 +29,8 @@ QFT2 = np.array([[1, 1, 1, 1],
 def test_single_qubit_init():
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     x2 = cirq.SingleQubitMatrixGate(m)
-    assert np.alltrue(x2.matrix() == m)
+    assert cirq.has_unitary(x2)
+    assert np.alltrue(cirq.unitary(x2) == m)
 
 
 def test_single_qubit_eq():
@@ -41,21 +42,12 @@ def test_single_qubit_eq():
     eq.make_equality_group(lambda: cirq.SingleQubitMatrixGate(x2))
 
 
-def test_single_qubit_phase_by():
-    x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
-    y = cirq.SingleQubitMatrixGate(np.array([[0, -1j], [1j, 0]]))
-    z = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, -1]]))
-    assert x.phase_by(0.25, 0).approx_eq(y)
-    assert y.phase_by(-0.25, 0).approx_eq(x)
-    assert z.phase_by(0.25, 0).approx_eq(z)
-
-
 def test_single_qubit_trace_distance_bound():
     x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = cirq.SingleQubitMatrixGate(
         np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5))
-    assert x.trace_distance_bound() >= 1
-    assert x2.trace_distance_bound() >= 0.5
+    assert cirq.trace_distance_bound(x) >= 1
+    assert cirq.trace_distance_bound(x2) >= 0.5
 
 
 def test_single_qubit_approx_eq():
@@ -63,10 +55,10 @@ def test_single_qubit_approx_eq():
     i = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, 1]]))
     i_ish = cirq.SingleQubitMatrixGate(
         np.array([[1, 0.000000000000001], [0, 1]]))
-    assert i.approx_eq(i_ish)
-    assert i.approx_eq(i)
-    assert not i.approx_eq(x)
-    assert i.approx_eq('') is NotImplemented
+    assert cirq.approx_eq(i, i_ish, atol=1e-9)
+    assert cirq.approx_eq(i, i, atol=1e-9)
+    assert not cirq.approx_eq(i, x, atol=1e-9)
+    assert not cirq.approx_eq(i, '', atol=1e-9)
 
 
 def test_single_qubit_extrapolate():
@@ -74,26 +66,28 @@ def test_single_qubit_extrapolate():
     x = cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]]))
     x2 = cirq.SingleQubitMatrixGate(
         np.array([[1, 1j], [1j, 1]]) * (1 - 1j) / 2)
-    x2i = cirq.SingleQubitMatrixGate(np.conj(x2.matrix().T))
+    assert cirq.has_unitary(x2)
+    x2i = cirq.SingleQubitMatrixGate(np.conj(cirq.unitary(x2).T))
 
-    assert x.extrapolate_effect(0).approx_eq(i)
-    assert x2.extrapolate_effect(0).approx_eq(i)
-    assert x2.extrapolate_effect(2).approx_eq(x)
-    assert x2.extrapolate_effect(-1).approx_eq(x2i)
-    assert x2.extrapolate_effect(3).approx_eq(x2i)
-    assert x.extrapolate_effect(-1).approx_eq(x)
+    assert cirq.approx_eq(x**0, i, atol=1e-9)
+    assert cirq.approx_eq(x2**0, i, atol=1e-9)
+    assert cirq.approx_eq(x2**2, x, atol=1e-9)
+    assert cirq.approx_eq(x2**-1, x2i, atol=1e-9)
+    assert cirq.approx_eq(x2**3, x2i, atol=1e-9)
+    assert cirq.approx_eq(x**-1, x, atol=1e-9)
 
     z2 = cirq.SingleQubitMatrixGate(np.array([[1, 0], [0, 1j]]))
     z4 = cirq.SingleQubitMatrixGate(
         np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
-    assert z2.extrapolate_effect(0.5).approx_eq(z4)
+    assert cirq.approx_eq(z2**0.5, z4, atol=1e-9)
     with pytest.raises(TypeError):
         _ = x**cirq.Symbol('a')
 
 
 def test_two_qubit_init():
     x2 = cirq.TwoQubitMatrixGate(QFT2)
-    assert np.alltrue(x2.matrix() == QFT2)
+    assert cirq.has_unitary(x2)
+    assert np.alltrue(cirq.unitary(x2) == QFT2)
 
 
 def test_two_qubit_eq():
@@ -103,32 +97,21 @@ def test_two_qubit_eq():
     eq.make_equality_group(lambda: cirq.TwoQubitMatrixGate(HH))
 
 
-def test_two_qubit_phase_by():
-    x = np.array([[0, 1], [1, 0]])
-    y = np.array([[0, -1j], [1j, 0]])
-    z = np.array([[1, 0], [0, -1]])
-
-    xx = cirq.TwoQubitMatrixGate(np.kron(x, x))
-    yx = cirq.TwoQubitMatrixGate(np.kron(x, y))
-    xy = cirq.TwoQubitMatrixGate(np.kron(y, x))
-    yy = cirq.TwoQubitMatrixGate(np.kron(y, y))
-    assert xx.phase_by(0.25, 0).approx_eq(yx)
-    assert xx.phase_by(0.25, 1).approx_eq(xy)
-    assert xy.phase_by(0.25, 0).approx_eq(yy)
-    assert xy.phase_by(-0.25, 1).approx_eq(xx)
-
-    zz = cirq.TwoQubitMatrixGate(np.kron(z, z))
-    assert zz.phase_by(0.25, 0).approx_eq(zz)
-    assert zz.phase_by(0.25, 1).approx_eq(zz)
-
-
 def test_two_qubit_approx_eq():
     f = cirq.TwoQubitMatrixGate(QFT2)
     perturb = np.zeros(shape=QFT2.shape, dtype=np.float64)
-    perturb[1, 2] = 0.00000001
-    assert f.approx_eq(cirq.TwoQubitMatrixGate(QFT2))
-    assert f.approx_eq(cirq.TwoQubitMatrixGate(QFT2 + perturb))
-    assert not f.approx_eq(cirq.TwoQubitMatrixGate(HH))
+    perturb[1, 2] = 1e-8
+
+    assert cirq.approx_eq(f, cirq.TwoQubitMatrixGate(QFT2), atol=1e-9)
+
+    assert not cirq.approx_eq(
+        f,
+        cirq.TwoQubitMatrixGate(QFT2 + perturb),
+        atol=1e-9
+    )
+    assert cirq.approx_eq(f, cirq.TwoQubitMatrixGate(QFT2 + perturb), atol=1e-7)
+
+    assert not cirq.approx_eq(f, cirq.TwoQubitMatrixGate(HH), atol=1e-9)
 
 
 def test_two_qubit_extrapolate():
@@ -136,9 +119,9 @@ def test_two_qubit_extrapolate():
     cz4 = cirq.TwoQubitMatrixGate(np.diag([1, 1, 1, (1 + 1j) * np.sqrt(0.5)]))
     i = cirq.TwoQubitMatrixGate(np.eye(4))
 
-    assert cz2.extrapolate_effect(0).approx_eq(i)
-    assert cz4.extrapolate_effect(0).approx_eq(i)
-    assert cz2.extrapolate_effect(0.5).approx_eq(cz4)
+    assert cirq.approx_eq(cz2**0, i, atol=1e-9)
+    assert cirq.approx_eq(cz4**0, i, atol=1e-9)
+    assert cirq.approx_eq(cz2**0.5, cz4, atol=1e-9)
     with pytest.raises(TypeError):
         _ = cz2**cirq.Symbol('a')
 
@@ -151,33 +134,26 @@ def test_single_qubit_diagram():
         cirq.SingleQubitMatrixGate(m).on(a),
         cirq.CZ(a, b))
 
-    assert re.match("""
-a: ───┌[            ]+┐───@───
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      └[            ]+┘   │
-       [            ]+    │
-b: ────[────────────]+────@───
-    """.strip(), c.to_text_diagram())
+    assert re.match(r"""
+      ┌[          ]+┐
+a: ───│[0-9\.+\-j ]+│───@───
+      │[0-9\.+\-j ]+│   │
+      └[          ]+┘   │
+       [          ]+    │
+b: ────[──────────]+────@───
+    """.strip(), c.to_text_diagram().strip())
 
     assert re.match(r"""
-a: ---[\[0-9\.+\-j \]]+---@---
-      [\[0-9\.+\-j \]]+   |
-      [              ]+   |
-b: ---[--------------]+---@---
-        """.strip(), c.to_text_diagram(use_unicode_characters=False))
-
-    assert re.match("""
-a[            ]+  b
-│[            ]+  │
-┌[            ]+┐ │
-│[0-9\\.+\\-j ]+│ │
-│[0-9\\.+\\-j ]+│ │
-└[            ]+┘ │
-│[            ]+  │
-@[────────────]+──@
-│[            ]+  │
-    """.strip(), c.to_text_diagram(transpose=True))
+a[          ]+  b
+│[          ]+  │
+┌[          ]+┐ │
+│[0-9\.+\-j ]+│ │
+│[0-9\.+\-j ]+│ │
+└[          ]+┘ │
+│[          ]+  │
+@[──────────]+──@
+│[          ]+  │
+    """.strip(), c.to_text_diagram(transpose=True).strip())
 
 
 def test_two_qubit_diagram():
@@ -185,48 +161,58 @@ def test_two_qubit_diagram():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
     c = cirq.Circuit.from_ops(
-        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(a, b),
-        cirq.TwoQubitMatrixGate(cirq.CZ.matrix()).on(c, a))
-    assert re.match("""
-a: ───┌[            ]+┐───#2─+
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      └[            ]+┘   │
-      │[            ]+    │
-b: ───#2[───────────]+────┼──+
-       [            ]+    │
-c: ────[────────────]+────┌[            ]+┐───
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    └[            ]+┘
-    """.strip(), c.to_text_diagram())
+        cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(a, b),
+        cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(c, a))
+    assert re.match(r"""
+      ┌[          ]+┐
+      │[0-9\.+\-j ]+│
+a: ───│[0-9\.+\-j ]+│───#2─+
+      │[0-9\.+\-j ]+│   │
+      │[0-9\.+\-j ]+│   │
+      └[          ]+┘   │
+      │[          ]+    │
+b: ───#2[─────────]+────┼──+
+       [          ]+    │
+       [          ]+    ┌[          ]+┐
+       [          ]+    │[0-9\.+\-j ]+│
+c: ────[──────────]+────│[0-9\.+\-j ]+│──+
+       [          ]+    │[0-9\.+\-j ]+│
+       [          ]+    │[0-9\.+\-j ]+│
+       [          ]+    └[          ]+┘
+    """.strip(), c.to_text_diagram().strip())
 
-    assert re.match("""
-a[            ]+  b  c
-│[            ]+  │  │
-┌[            ]+┐─#2 │
-│[0-9\\.+\\-j ]+│ │  │
-│[0-9\\.+\\-j ]+│ │  │
-│[0-9\\.+\\-j ]+│ │  │
-│[0-9\\.+\\-j ]+│ │  │
-└[            ]+┘ │  │
-│[            ]+  │  │
-#2[───────────]+──┼──┌[            ]+┐
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  └[            ]+┘
-│[            ]+  │  │
-    """.strip(), c.to_text_diagram(transpose=True))
+    assert re.match(r"""
+a[          ]+  b  c
+│[          ]+  │  │
+┌[          ]+┐ │  │
+│[0-9\.+\-j ]+│ │  │
+│[0-9\.+\-j ]+│─#2 │
+│[0-9\.+\-j ]+│ │  │
+│[0-9\.+\-j ]+│ │  │
+└[          ]+┘ │  │
+│[          ]+  │  │
+│[          ]+  │  ┌[          ]+┐
+│[          ]+  │  │[0-9\.+\-j ]+│
+#2[─────────]+──┼──│[0-9\.+\-j ]+│
+│[          ]+  │  │[0-9\.+\-j ]+│
+│[          ]+  │  │[0-9\.+\-j ]+│
+│[          ]+  │  └[          ]+┘
+│[          ]+  │  │
+    """.strip(), c.to_text_diagram(transpose=True).strip())
 
 
-def test_repr():
-    assert repr(cirq.SingleQubitMatrixGate(np.eye(2))) == \
-        'cirq.SingleQubitMatrixGate({})'.format(repr(np.eye(2)))
-    assert repr(cirq.TwoQubitMatrixGate(np.eye(4))) == \
-        'cirq.TwoQubitMatrixGate({})'.format(repr(np.eye(4)))
+def test_str_executes():
+    assert '1' in str(cirq.SingleQubitMatrixGate(np.eye(2)))
+    assert '0' in str(cirq.TwoQubitMatrixGate(np.eye(4)))
+
+
+def test_one_qubit_consistent():
+    u = cirq.testing.random_unitary(2)
+    g = cirq.SingleQubitMatrixGate(u)
+    cirq.testing.assert_implements_consistent_protocols(g)
+
+
+def test_two_qubit_consistent():
+    u = cirq.testing.random_unitary(4)
+    g = cirq.TwoQubitMatrixGate(u)
+    cirq.testing.assert_implements_consistent_protocols(g)

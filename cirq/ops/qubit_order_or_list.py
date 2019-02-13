@@ -22,6 +22,9 @@ from typing import Iterable, Union
 
 from cirq.ops import qubit_order, raw_types
 
-QubitOrderOrList = Union[
-    qubit_order.QubitOrder,
-    Iterable[raw_types.QubitId]]
+QubitOrderOrList = Union[qubit_order.QubitOrder, Iterable[raw_types.QubitId]]
+"""Specifies a qubit ordering.
+
+The ordering can either be specified by an iterable (such as a list) with the
+qubits in the desired order, or by a `cirq.QubitOrder` object.
+"""

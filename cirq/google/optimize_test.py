@@ -68,9 +68,9 @@ def test_adjacent_cz_get_split_apart():
 
     assert after == cirq.Circuit([
         cirq.Moment([
-            cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
+            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
         cirq.Moment([
-            cg.Exp11Gate().on(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))])],
+            cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))])],
         device=cg.Foxtail)
 
 
@@ -84,7 +84,7 @@ def test_remap_qubits():
 
     assert after == cirq.Circuit([
         cirq.Moment([
-            cg.Exp11Gate().on(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
+            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
         device=cg.Foxtail)
 
 
@@ -95,10 +95,10 @@ def test_dont_allow_partial_czs():
     after = cg.optimized_for_xmon(before, allow_partial_czs=False)
 
     cz_gates = [op.gate for op in after.all_operations()
-                        if cg.XmonGate.is_xmon_op(op) and
-                           isinstance(op.gate, cg.Exp11Gate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+                if isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.CZPowGate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
     assert num_full_cz == 2
     assert num_part_cz == 0
 
@@ -110,9 +110,9 @@ def test_allow_partial_czs():
     after = cg.optimized_for_xmon(before, allow_partial_czs=True)
 
     cz_gates = [op.gate for op in after.all_operations()
-                        if cg.XmonGate.is_xmon_op(op) and
-                           isinstance(op.gate, cg.Exp11Gate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.half_turns == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.half_turns != 1)
+                if isinstance(op, cirq.GateOperation) and
+                isinstance(op.gate, cirq.CZPowGate)]
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
     assert num_full_cz == 0
     assert num_part_cz == 1

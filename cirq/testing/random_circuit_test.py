@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional, Dict, Sequence, Union, cast
 
 from random import randint, random, sample, choice
 import pytest
@@ -50,18 +51,19 @@ def test_random_circuit_errors():
         choice((True, False))
     ) for _ in range(10)]
 )
-def test_random_circuit(n_qubits,
-                        n_moments,
-                        gate_domain,
-                        op_density,
-                        pass_qubits
-                        ):
-    qubits = ([cirq.QubitId() for _ in range(n_qubits)]
-              if pass_qubits else n_qubits)
-    circuit = random_circuit(qubits, n_moments, op_density, gate_domain)
-    if pass_qubits:
-        assert circuit.all_qubits().issubset(qubits)
+def test_random_circuit(n_qubits: Union[int, Sequence[cirq.QubitId]],
+                        n_moments: int,
+                        op_density: float,
+                        gate_domain: Optional[Dict[cirq.Gate, int]],
+                        pass_qubits: bool):
+    qubit_set = cirq.LineQubit.range(n_qubits)
+    qubit_arg = qubit_set if pass_qubits else n_qubits
+    circuit = random_circuit(qubit_arg, n_moments, op_density, gate_domain)
+    if qubit_arg is qubit_set:
+        assert circuit.all_qubits().issubset(qubit_set)
     assert len(circuit) == n_moments
     if gate_domain is None:
         gate_domain = DEFAULT_GATE_DOMAIN
-    assert set(op.gate for op in circuit.all_operations()).issubset(gate_domain)
+    assert set(cast(cirq.GateOperation, op).gate
+               for op in circuit.all_operations()
+               ).issubset(gate_domain)

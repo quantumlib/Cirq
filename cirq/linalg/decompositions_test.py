@@ -27,15 +27,36 @@ SQRT_X = np.array([[1, 1j], [1j, 1]])
 c = np.exp(1j * np.pi / 4)
 SQRT_SQRT_X = np.array([[1 + c, 1 - c], [1 - c, 1 + c]]) / 2
 SWAP = np.array([[1, 0, 0, 0],
-               [0, 0, 1, 0],
-               [0, 1, 0, 0],
-               [0, 0, 0, 1]])
+                 [0, 0, 1, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1]])
 CNOT = np.array([[1, 0, 0, 0],
-               [0, 1, 0, 0],
-               [0, 0, 0, 1],
-               [0, 0, 1, 0]])
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1],
+                 [0, 0, 1, 0]])
 CZ = np.diag([1, 1, 1, -1])
+TOL = cirq.Tolerance.DEFAULT
 
+
+def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2):
+    restored = g * cirq.linalg.combinators.kron(f1, f2)
+    assert not np.any(np.isnan(restored)), "NaN in kronecker product."
+    assert TOL.all_close(restored, matrix), "Can't factor kronecker product."
+
+
+def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
+    restored = g * cirq.linalg.combinators.kron(f1, f2)
+    assert (np.any(np.isnan(restored) or
+                   not TOL.all_close(restored, matrix)))
+
+def assert_magic_su2_within_tolerance(mat, a, b):
+    M = cirq.linalg.decompositions.MAGIC
+    MT = cirq.linalg.decompositions.MAGIC_CONJ_T
+    recon = cirq.linalg.combinators.dot(
+        MT,
+        cirq.linalg.combinators.kron(a, b),
+        M)
+    assert TOL.all_close(recon, mat), "Failed to decompose within tolerance."
 
 @pytest.mark.parametrize('matrix', [
     X,
@@ -83,6 +104,8 @@ def test_kron_factor(f1, f2):
     assert abs(np.linalg.det(g1) - 1) < 0.00001
     assert abs(np.linalg.det(g2) - 1) < 0.00001
     assert np.allclose(g * cirq.kron(g1, g2), p)
+    assert_kronecker_factorization_within_tolerance(
+        p, g, g1, g2)
 
 
 @pytest.mark.parametrize('f1,f2', [
@@ -97,15 +120,20 @@ def test_kron_factor_special_unitaries(f1, f2):
     assert abs(g - 1) < 0.000001
     assert cirq.is_special_unitary(g1)
     assert cirq.is_special_unitary(g2)
+    assert_kronecker_factorization_within_tolerance(
+        p, g, g1, g2)
 
 
 def test_kron_factor_fail():
+    mat = cirq.kron_with_controls(cirq.CONTROL_TAG, X)
+    g, f1, f2 = cirq.kron_factor_4x4_to_2x2s(mat)
     with pytest.raises(ValueError):
-        _ = cirq.kron_factor_4x4_to_2x2s(
-            cirq.kron_with_controls(cirq.CONTROL_TAG, X))
-
+        assert_kronecker_factorization_not_within_tolerance(
+            mat, g, f1, f2)
+    mat = cirq.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
     with pytest.raises(ValueError):
-        _ = cirq.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
+        assert_kronecker_factorization_not_within_tolerance(
+            mat, g, f1, f2)
 
 
 def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -115,9 +143,9 @@ def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     assert cirq.is_special_unitary(b)
 
     magic = np.array([[1, 0, 0, 1j],
-                    [0, 1j, 1, 0],
-                    [0, 1j, -1, 0],
-                    [1, 0, 0, -1j]]) * np.sqrt(0.5)
+                      [0, 1j, 1, 0],
+                      [0, 1j, -1, 0],
+                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
     result = np.real(cirq.dot(np.conj(magic.T),
                               cirq.kron(a, b),
                               magic))
@@ -130,8 +158,9 @@ def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     for _ in range(10)
 ])
 def test_so4_to_magic_su2s(m):
-    a, b = cirq.so4_to_magic_su2s(m)
+    a, b = cirq.so4_to_magic_su2s(m, cirq.Tolerance.DEFAULT)
     m2 = recompose_so4(a, b)
+    assert_magic_su2_within_tolerance(m2, a, b)
     assert np.allclose(m, m2)
 
 
@@ -164,23 +193,7 @@ def test_so4_to_magic_su2s_known_factors(a, b):
 ])
 def test_so4_to_magic_su2s_fail(mat):
     with pytest.raises(ValueError):
-        cirq.so4_to_magic_su2s(mat)
-
-
-def recompose_kak(g, a, v, b) -> np.ndarray:
-    a1, a0 = a
-    x, y, z = v
-    b1, b0 = b
-    xx = cirq.kron(X, X)
-    yy = cirq.kron(Y, Y)
-    zz = cirq.kron(Z, Z)
-
-    a = cirq.kron(a1, a0)
-    m = cirq.map_eigenvalues(xx * x + yy * y + zz * z,
-                               lambda e: np.exp(1j * e))
-    b = cirq.kron(b1, b0)
-
-    return cirq.dot(a, m, b) * g
+        _ = cirq.so4_to_magic_su2s(mat)
 
 
 @pytest.mark.parametrize('x,y,z', [
@@ -189,11 +202,17 @@ def recompose_kak(g, a, v, b) -> np.ndarray:
 ])
 def test_kak_canonicalize_vector(x, y, z):
     i = np.eye(2)
-    m = recompose_kak(1, (i, i), (x, y, z), (i, i))
+    m = cirq.unitary(cirq.KakDecomposition(
+        global_phase=1,
+        single_qubit_operations_after=(i, i),
+        interaction_coefficients=(x, y, z),
+        single_qubit_operations_before=(i, i)))
 
-    g, (a1, a0), (x2, y2, z2), (b1, b0) = cirq.kak_canonicalize_vector(
-        x, y, z)
-    m2 = recompose_kak(g, (a1, a0), (x2, y2, z2), (b1, b0))
+    kak = cirq.kak_canonicalize_vector(x, y, z)
+    a1, a0 = kak.single_qubit_operations_after
+    x2, y2, z2 = kak.interaction_coefficients
+    b1, b0 = kak.single_qubit_operations_before
+    m2 = cirq.unitary(kak)
 
     assert 0.0 <= x2 <= np.pi / 4
     assert 0.0 <= y2 <= np.pi / 4
@@ -206,7 +225,7 @@ def test_kak_canonicalize_vector(x, y, z):
     assert np.allclose(m, m2)
 
 
-@pytest.mark.parametrize('m', [
+@pytest.mark.parametrize('target', [
     np.eye(4),
     SWAP,
     SWAP * 1j,
@@ -217,7 +236,72 @@ def test_kak_canonicalize_vector(x, y, z):
     cirq.testing.random_unitary(4)
     for _ in range(10)
 ])
-def test_kak_decomposition(m):
-    g, (a1, a0), (x, y, z), (b1, b0) = cirq.kak_decomposition(m)
-    m2 = recompose_kak(g, (a1, a0), (x, y, z), (b1, b0))
-    assert np.allclose(m, m2)
+def test_kak_decomposition(target, benchmark):
+    kak = benchmark(cirq.kak_decomposition, target)
+    np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
+
+
+def test_kak_decomposition_eq():
+    eq = cirq.testing.EqualsTester()
+
+    eq.make_equality_group(lambda: cirq.KakDecomposition(
+        global_phase=1,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.3, 0.2, 0.1),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    ))
+
+    eq.add_equality_group(cirq.KakDecomposition(
+        global_phase=-1,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.3, 0.2, 0.1),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    ))
+
+    eq.make_equality_group(lambda: cirq.KakDecomposition(
+        global_phase=1,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.H)),
+        interaction_coefficients=(0.3, 0.2, 0.1),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    ))
+
+    eq.make_equality_group(lambda: cirq.KakDecomposition(
+        global_phase=1,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.5, 0.2, 0.1),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    ))
+
+
+def test_kak_repr():
+    cirq.testing.assert_equivalent_repr(cirq.KakDecomposition(
+        global_phase=1j,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.3, 0.2, 0.1),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    ))
+
+    assert repr(cirq.KakDecomposition(
+        global_phase=1,
+        single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                        cirq.unitary(cirq.Y)),
+        interaction_coefficients=(0.5, 0.25, 0),
+        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+    )) == """
+cirq.KakDecomposition(
+    interaction_coefficients=(0.5, 0.25, 0),
+    single_qubit_operations_before=(
+        np.array([[0j, (1+0j)], [(1+0j), 0j]]),
+        np.array([[0j, -1j], [1j, 0j]]),
+    ),
+    single_qubit_operations_after=(
+        np.array([[1.0, 0.0], [0.0, 1.0]]),
+        np.array([[(1+0j), 0j], [0j, (-1+0j)]]),
+    ),
+    global_phase=1)
+""".strip()

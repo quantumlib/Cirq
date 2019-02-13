@@ -12,124 +12,113 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, TypeVar, Type, cast, Union
+from typing import Any, Union
 
 import numpy as np
 
-from cirq import linalg, extension
-from cirq.ops import raw_types, gate_features
-
-T_DESIRED = TypeVar('T_DESIRED')
-
-POTENTIALLY_EXPOSED_SUB_TYPES = (
-    gate_features.BoundedEffect,
-    gate_features.ExtrapolatableEffect,
-    gate_features.KnownMatrix,
-    gate_features.ParameterizableEffect,
-    gate_features.ReversibleEffect,
-    gate_features.TextDiagrammable,
-)
+from cirq import linalg, protocols, value
+from cirq.ops import raw_types, controlled_operation as cop
+from cirq.type_workarounds import NotImplementedType
 
 
-class ControlledGate(raw_types.Gate,
-                     extension.PotentialImplementation[Union[
-                         gate_features.BoundedEffect,
-                         gate_features.ExtrapolatableEffect,
-                         gate_features.KnownMatrix,
-                         gate_features.ParameterizableEffect,
-                         gate_features.ReversibleEffect,
-                         gate_features.TextDiagrammable,
-                     ]]):
+@value.value_equality
+class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
-    def __init__(self,
-                 sub_gate: raw_types.Gate,
-                 default_extensions: Optional[extension.Extensions] = None
-                 ) -> None:
+    def __init__(self, sub_gate: raw_types.Gate) -> None:
         """Initializes the controlled gate.
 
         Args:
             sub_gate: The gate to add a control qubit to.
-            default_extensions: The extensions method that should be used when
-                determining if the controlled gate supports certain gate
-                features. For example, if this extensions instance is able to
-                cast sub_gate to a KnownMatrix then the controlled gate
-                can also be cast to a KnownMatrix. When this value is None,
-                an empty extensions instance is used instead.
         """
         self.sub_gate = sub_gate
-        self.default_extensions = default_extensions
+
+    def num_qubits(self) -> int:
+        return self.sub_gate.num_qubits() + 1
+
+    def _decompose_(self, qubits):
+        result = protocols.decompose_once_with_qubits(self.sub_gate,
+                                                      qubits[1:],
+                                                      NotImplemented)
+        if result is NotImplemented:
+            return NotImplemented
+
+        return [cop.ControlledOperation(qubits[0], op) for op in result]
 
     def validate_args(self, qubits) -> None:
         if len(qubits) < 1:
             raise ValueError('No control qubit specified.')
         self.sub_gate.validate_args(qubits[1:])
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
+    def _value_equality_values_(self):
+        return self.sub_gate
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        control = args.axes[0]
+        rest = args.axes[1:]
+        active = linalg.slice_for_qubits_equal_to([control], 1)
+        sub_axes = [r - int(r > control) for r in rest]
+        target_view = args.target_tensor[active]
+        buffer_view = args.available_buffer[active]
+        result = protocols.apply_unitary(
+            self.sub_gate,
+            protocols.ApplyUnitaryArgs(
+                target_view,
+                buffer_view,
+                sub_axes),
+            default=NotImplemented)
+
+        if result is NotImplemented:
             return NotImplemented
-        return self.sub_gate == other.sub_gate
 
-    def __ne__(self, other):
-        return not self == other
+        if result is target_view:
+            return args.target_tensor
 
-    def __hash__(self):
-        return hash((ControlledGate, self.sub_gate))
+        if result is buffer_view:
+            inactive = linalg.slice_for_qubits_equal_to([control], 0)
+            args.available_buffer[inactive] = args.target_tensor[inactive]
+            return args.available_buffer
 
-    def _cast_sub_gate(self, desired_type: Type[T_DESIRED]) -> T_DESIRED:
-        ext = self.default_extensions or extension.Extensions()
-        cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
-        if cast_sub_gate is None:
-            raise TypeError('sub_gate is not a {}', desired_type)
-        return cast_sub_gate
+        # HACK: assume they didn't somehow escape the slice view and edit the
+        # rest of target_tensor.
+        args.target_tensor[active] = result
+        return args.target_tensor
 
-    def try_cast_to(self, desired_type, ext):
-        if desired_type in POTENTIALLY_EXPOSED_SUB_TYPES:
-            cast_sub_gate = ext.try_cast(desired_type, self.sub_gate)
-            if cast_sub_gate is None:
-                return None
-            return ControlledGate(cast_sub_gate, ext)
-        return super().try_cast_to(desired_type, ext)
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self.sub_gate)
 
-    def matrix(self) -> np.ndarray:
-        cast_sub_gate = self._cast_sub_gate(gate_features.KnownMatrix)
-        sub_matrix = cast_sub_gate.matrix()
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        sub_matrix = protocols.unitary(self.sub_gate, None)
+        if sub_matrix is None:
+            return NotImplemented
         return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
 
-    def extrapolate_effect(self, factor) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ExtrapolatableEffect)
-        new_sub_gate = cast_sub_gate.extrapolate_effect(factor)
-        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
-                              self.default_extensions)
+    def __pow__(self, exponent: Any) -> 'ControlledGate':
+        new_sub_gate = protocols.pow(self.sub_gate,
+                                     exponent,
+                                     NotImplemented)
+        if new_sub_gate is NotImplemented:
+            return NotImplemented
+        return ControlledGate(new_sub_gate)
 
-    def __pow__(self, power: float) -> 'ControlledGate':
-        return self.extrapolate_effect(power)
+    def _is_parameterized_(self):
+        return protocols.is_parameterized(self.sub_gate)
 
-    def inverse(self) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ReversibleEffect)
-        return ControlledGate(cast(raw_types.Gate, cast_sub_gate.inverse()),
-                              self.default_extensions)
+    def _resolve_parameters_(self, param_resolver):
+        new_sub_gate = protocols.resolve_parameters(self.sub_gate,
+                                                    param_resolver)
+        return ControlledGate(new_sub_gate)
 
-    def is_parameterized(self) -> bool:
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
-        return cast_sub_gate.is_parameterized()
+    def _trace_distance_bound_(self):
+        return protocols.trace_distance_bound(self.sub_gate)
 
-    def with_parameters_resolved_by(self, param_resolver) -> 'ControlledGate':
-        cast_sub_gate = self._cast_sub_gate(gate_features.ParameterizableEffect)
-        new_sub_gate = cast_sub_gate.with_parameters_resolved_by(
-            param_resolver)
-        return ControlledGate(cast(raw_types.Gate, new_sub_gate),
-                              self.default_extensions)
-
-    def trace_distance_bound(self):
-        cast_sub_gate = self._cast_sub_gate(gate_features.BoundedEffect)
-        return cast_sub_gate.trace_distance_bound()
-
-    def text_diagram_info(self, args: gate_features.TextDiagramInfoArgs
-                          ) -> gate_features.TextDiagramInfo:
-        cast_sub_gate = self._cast_sub_gate(gate_features.TextDiagrammable)
-        sub_info = cast_sub_gate.text_diagram_info(args)
-        return gate_features.TextDiagramInfo(
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+        sub_info = protocols.circuit_diagram_info(self.sub_gate, args, None)
+        if sub_info is None:
+            return NotImplemented
+        return protocols.CircuitDiagramInfo(
             wire_symbols=('@',) + sub_info.wire_symbols,
             exponent=sub_info.exponent)
 
@@ -138,3 +127,4 @@ class ControlledGate(raw_types.Gate,
 
     def __repr__(self):
         return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
+

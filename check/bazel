@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs bazel build for proto files in Cirq/cirq/api/google/v1
+#
+# Usage:
+#     check/bazel
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
+
+bazel build //cirq/api/google/v1:operations_proto
+bazel build //cirq/api/google/v1:params_proto
+bazel build //cirq/api/google/v1:program_proto

@@ -16,33 +16,43 @@
 
 import itertools
 
-from cirq.study import resolver
-from cirq.value import Symbol
+import cirq
 
 
 def test_value_of():
-    r = resolver.ParamResolver({'a': 0.5, 'b': 0.1})
-    assert r.value_of(Symbol('a')) == 0.5
+    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
+    assert r.value_of(cirq.Symbol('a')) == 0.5
     assert r.value_of(0.5) == 0.5
-    assert r.value_of(Symbol('b')) == 0.1
+    assert r.value_of(cirq.Symbol('b')) == 0.1
     assert r.value_of(0.3) == 0.3
 
 
 def test_param_dict():
-    r = resolver.ParamResolver({'a': 0.5, 'b': 0.1})
+    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
     assert r.param_dict == {'a': 0.5, 'b': 0.1}
 
 
 def test_hash():
-    a = resolver.ParamResolver({})
-    b = resolver.ParamResolver({'a': 0.0})
-    c = resolver.ParamResolver({'a': 0.1})
-    d = resolver.ParamResolver({'a': 0.0, 'b': 0.1})
-    e = resolver.ParamResolver({'a': 0.3, 'b': 0.1})
-    f = resolver.ParamResolver({'b': 0.1})
-    g = resolver.ParamResolver({'c': 0.1})
+    a = cirq.ParamResolver({})
+    b = cirq.ParamResolver({'a': 0.0})
+    c = cirq.ParamResolver({'a': 0.1})
+    d = cirq.ParamResolver({'a': 0.0, 'b': 0.1})
+    e = cirq.ParamResolver({'a': 0.3, 'b': 0.1})
+    f = cirq.ParamResolver({'b': 0.1})
+    g = cirq.ParamResolver({'c': 0.1})
     resolvers = [a, b, c, d, e, f, g]
     for r in resolvers:
         assert isinstance(hash(r), int)
     for r1, r2 in itertools.combinations(resolvers, 2):
         assert hash(r1) != hash(r2)
+
+
+def test_equals():
+    et = cirq.testing.EqualsTester()
+    et.add_equality_group(cirq.ParamResolver({}))
+    et.add_equality_group(cirq.ParamResolver({'a': 0.0}))
+    et.add_equality_group(cirq.ParamResolver({'a': 0.1}))
+    et.add_equality_group(cirq.ParamResolver({'a': 0.0, 'b': 0.1}))
+    et.add_equality_group(cirq.ParamResolver({'a': 0.3, 'b': 0.1}))
+    et.add_equality_group(cirq.ParamResolver({'b': 0.1}))
+    et.add_equality_group(cirq.ParamResolver({'c': 0.1}))

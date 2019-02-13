@@ -29,6 +29,7 @@ from cirq.linalg.decompositions import (
     deconstruct_single_qubit_matrix_into_angles,
     kak_canonicalize_vector,
     kak_decomposition,
+    KakDecomposition,
     kron_factor_4x4_to_2x2s,
     map_eigenvalues,
     so4_to_magic_su2s,
@@ -41,6 +42,7 @@ from cirq.linalg.diagonalize import (
 )
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
+    slice_for_qubits_equal_to,
     commutes,
     is_diagonal,
     is_hermitian,
@@ -53,6 +55,7 @@ from cirq.linalg.tolerance import (
     Tolerance,
 )
 from cirq.linalg.transformations import (
+    apply_matrix_to_slices,
     match_global_phase,
     reflection_matrix_pow,
     targeted_left_multiply,
