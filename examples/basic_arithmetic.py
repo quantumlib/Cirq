@@ -121,7 +121,7 @@ class Adder(cirq.MultiQubitGate):
     b2: --------------------|   |--------------------------------------M--
                              ---
     """
-    
+
     def __init__(self, num_qubits):
         super().__init__(num_qubits)
 
@@ -195,7 +195,7 @@ class Multiplier(cirq.MultiQubitGate):
 
     def __init__(self, num_qubits):
         super().__init__(num_qubits)
-    
+
     def _decompose_(self, qubits):
         n = int(len(qubits)/5)
         # c = qubits[0:n*3:3]
@@ -209,7 +209,7 @@ class Multiplier(cirq.MultiQubitGate):
             for a_qubit, y_qubit in zip(a[i:], y[:n-i]):
                 yield cirq.TOFFOLI(x_i, y_qubit, a_qubit)
             # b += a
-            yield Adder().on(*qubits[:n*3])
+            yield Adder(3 * n).on(*qubits[:3 * n])
             # a = 0
             for a_qubit, y_qubit in zip(a[i:], y[:n-i]):
                 yield cirq.TOFFOLI(x_i, y_qubit, a_qubit)
