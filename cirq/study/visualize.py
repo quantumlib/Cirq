@@ -35,8 +35,8 @@ def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
     """
 
     # pyplot import is deferred because it requires a system dependency
-    # (python3-tk) that `pip install cirq` can't handle for the user. This
-    # allows cirq to be usable without python3-tk.
+    # (python3-tk) that `python -m pip install cirq` can't handle for the user.
+    # This allows cirq to be usable without python3-tk.
     import matplotlib.pyplot as plt
 
     num_qubits = len(result.measurements.keys())

@@ -11,28 +11,48 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Dict, List, NamedTuple, Tuple, TYPE_CHECKING
+from typing import Callable, List, NamedTuple, Tuple, TYPE_CHECKING, cast, Union
+
+import numpy as np
+
+from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
+from cirq.circuits._box_drawing_character_data import (
+    BoxDrawCharacterSet,
+    NORMAL_BOX_CHARS,
+    BOLD_BOX_CHARS,
+    ASCII_BOX_CHARS,
+)
+
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Tuple, Dict, Optional
 
+
 _HorizontalLine = NamedTuple('HorizontalLine', [
-    ('y', int),
-    ('x1', int),
-    ('x2', int),
+    ('y', Union[int, float]),
+    ('x1', Union[int, float]),
+    ('x2', Union[int, float]),
     ('emphasize', bool),
 ])
 _VerticalLine = NamedTuple('VerticalLine', [
-    ('x', int),
-    ('y1', int),
-    ('y2', int),
+    ('x', Union[int, float]),
+    ('y1', Union[int, float]),
+    ('y2', Union[int, float]),
     ('emphasize', bool),
 ])
 _DiagramText = NamedTuple('DiagramText', [
     ('text', str),
     ('transposed_text', str),
 ])
+
+
+def pick_charset(use_unicode: bool, emphasize: bool) -> BoxDrawCharacterSet:
+    if not use_unicode:
+        return ASCII_BOX_CHARS
+    if emphasize:
+        return BOLD_BOX_CHARS
+    return NORMAL_BOX_CHARS
 
 
 class TextDiagramDrawer:
@@ -43,24 +63,28 @@ class TextDiagramDrawer:
         self.entries = dict()  # type: Dict[Tuple[int, int], _DiagramText]
         self.vertical_lines = []  # type: List[_VerticalLine]
         self.horizontal_lines = []  # type: List[_HorizontalLine]
-        self.horizontal_padding = {}  # type: Dict[int, int]
-        self.vertical_padding = {}  # type: Dict[int, int]
+        self.horizontal_padding = {}  # type: Dict[int, Union[int, float]]
+        self.vertical_padding = {}  # type: Dict[int, Union[int, float]]
 
-    def write(self, x: int, y: int, text: str, transposed_text: str = None):
+    def write(self,
+              x: int,
+              y: int,
+              text: str,
+              transposed_text: 'Optional[str]' = None):
         """Adds text to the given location.
 
         Args:
             x: The column in which to write the text.
             y: The row in which to write the text.
             text: The text to write at location (x, y).
-            transposted_text: Optional text to write instead, if the text
+            transposed_text: Optional text to write instead, if the text
                 diagram is transposed.
         """
         entry = self.entries.get((x, y), _DiagramText('', ''))
         self.entries[(x, y)] = _DiagramText(
             entry.text + text,
             entry.transposed_text + (transposed_text if transposed_text
-                                                     else text))
+                                     else text))
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
@@ -97,13 +121,21 @@ class TextDiagramDrawer:
         else:
             raise ValueError("Line is neither horizontal nor vertical")
 
-    def vertical_line(self, x: int, y1: int, y2: int, emphasize: bool = False
+    def vertical_line(self,
+                      x: Union[int, float],
+                      y1: Union[int, float],
+                      y2: Union[int, float],
+                      emphasize: bool = False
                       ) -> None:
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
         self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize))
 
-    def horizontal_line(self, y: int, x1: int, x2: int, emphasize: bool = False
+    def horizontal_line(self,
+                        y: Union[int, float],
+                        x1: Union[int, float],
+                        x2: Union[int, float],
+                        emphasize: bool = False
                         ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
@@ -124,62 +156,83 @@ class TextDiagramDrawer:
 
     def width(self) -> int:
         """Determines how many entry columns are in the diagram."""
-        max_x = -1
+        max_x = -1.0
         for x, _ in self.entries.keys():
             max_x = max(max_x, x)
         for v in self.vertical_lines:
             max_x = max(max_x, v.x)
         for h in self.horizontal_lines:
             max_x = max(max_x, h.x1, h.x2)
-        return 1 + max_x
+        return 1 + int(max_x)
 
     def height(self) -> int:
         """Determines how many entry rows are in the diagram."""
-        max_y = -1
+        max_y = -1.0
         for _, y in self.entries.keys():
             max_y = max(max_y, y)
         for h in self.horizontal_lines:
             max_y = max(max_y, h.y)
         for v in self.vertical_lines:
             max_y = max(max_y, v.y1, v.y2)
-        return 1 + max_y
+        return 1 + int(max_y)
 
-    def force_horizontal_padding_after(self, index: int, padding: int) -> None:
+    def force_horizontal_padding_after(
+            self, index: int, padding: Union[int, float]) -> None:
         """Change the padding after the given column."""
         self.horizontal_padding[index] = padding
 
-    def force_vertical_padding_after(self, index: int, padding: int) -> None:
+    def force_vertical_padding_after(
+            self, index: int, padding: Union[int, float]) -> None:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
     def _transform_coordinates(
-        self, func: Callable[[int, int], Tuple[int, int]]) -> None:
+            self,
+            func: Callable[[Union[int, float], Union[int, float]],
+                           Tuple[Union[int, float], Union[int, float]]]
+    ) -> None:
         """Helper method to transformer either row or column coordinates."""
-        def func_x(x: int) -> int:
+
+        def func_x(x: Union[int, float]) -> Union[int, float]:
             return func(x, 0)[0]
-        def func_y(y: int) -> int:
+
+        def func_y(y: Union[int, float]) -> Union[int, float]:
             return func(0, y)[1]
-        self.entries = {func(x, y): v for (x, y), v in self.entries.items()}
+
+        self.entries = {
+            cast(Tuple[int, int], func(int(x), int(y))): v
+            for (x, y), v in self.entries.items()
+        }
         self.vertical_lines = [
             _VerticalLine(func_x(x), func_y(y1), func_y(y2), emph)
             for x, y1, y2, emph in self.vertical_lines]
         self.horizontal_lines = [
             _HorizontalLine(func_y(y), func_x(x1), func_x(x2), emph)
             for y, x1, x2, emph in self.horizontal_lines]
-        self.horizontal_padding = {func_x(x): padding
-            for x, padding in self.horizontal_padding.items()}
-        self.vertical_padding = {func_y(y): padding
-            for y, padding in self.vertical_padding.items()}
+        self.horizontal_padding = {
+            int(func_x(int(x))): padding
+            for x, padding in self.horizontal_padding.items()
+        }
+        self.vertical_padding = {
+            int(func_y(int(y))): padding
+            for y, padding in self.vertical_padding.items()
+        }
 
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
-        def transform_columns(column: int, row: int) -> Tuple[int, int]:
+        def transform_columns(
+                column: Union[int, float],
+                row: Union[int, float]
+        ) -> Tuple[Union[int, float], Union[int, float]]:
             return column + (amount if column >= x else 0), row
         self._transform_coordinates(transform_columns)
 
     def insert_empty_rows(self, y: int, amount: int = 1) -> None:
         """Insert a number of rows after the given row."""
-        def transform_rows(column: int, row: int) -> Tuple[int, int]:
+        def transform_rows(
+                column: Union[int, float],
+                row: Union[int, float]
+        ) -> Tuple[Union[int, float], Union[int, float]]:
             return column, row + (amount if row >= y else 0)
         self._transform_coordinates(transform_rows)
 
@@ -190,139 +243,65 @@ class TextDiagramDrawer:
                use_unicode_characters: bool = True) -> str:
         """Outputs text containing the diagram."""
 
-        char = _normal_char if use_unicode_characters else _ascii_char
+        block_diagram = BlockDiagramDrawer()
 
         w = self.width()
         h = self.height()
 
-        grid = [[''] * w for _ in range(h)]
-        horizontal_separator = [[' '] * w for _ in range(h)]
-        vertical_separator = [[' '] * w for _ in range(h)]
+        # Communicate padding into block diagram.
+        for x in range(0, w - 1):
+            block_diagram.set_col_min_width(
+                x*2 + 1,
+                # Horizontal separation looks narrow, so partials round up.
+                int(np.ceil(self.horizontal_padding.get(x, horizontal_spacing)))
+            )
+            block_diagram.set_col_min_width(x*2, 1)
+        for y in range(0, h - 1):
+            block_diagram.set_row_min_height(
+                y*2 + 1,
+                # Vertical separation looks wide, so partials round down.
+                int(np.floor(self.vertical_padding.get(y, vertical_spacing)))
+            )
+            block_diagram.set_row_min_height(y*2, 1)
 
-        # Place lines.
-        verticals = {
-            (v.x, y): v.emphasize
-            for v in self.vertical_lines
-            for y in range(v.y1, v.y2)
-        }
-        horizontals = {
-            (x, h.y): h.emphasize
-            for h in self.horizontal_lines
-            for x in range(h.x1, h.x2)
-        }
-        for (x, y), emph in verticals.items():
-            c = char('│', emph)
-            grid[y][x] = c
-            vertical_separator[y][x] = c
-        for (x, y), emph in horizontals.items():
-            c = char('─', emph)
-            grid[y][x] = c
-            horizontal_separator[y][x] = c
-        for x, y in set(horizontals.keys()) & set(verticals.keys()):
-            grid[y][x] = crossing_char or _cross_char(
-                not use_unicode_characters,
-                horizontals[(x, y)],
-                verticals[(x, y)])
+        # Draw vertical lines.
+        for x_b, y1_b, y2_b, emphasize in self.vertical_lines:
+            x = int(x_b * 2)
+            y1, y2 = int(min(y1_b, y2_b) * 2), int(max(y1_b, y2_b) * 2)
+            charset = pick_charset(use_unicode_characters, emphasize)
+
+            # Caps.
+            block_diagram.mutable_block(x, y1).draw_curve(
+                charset, bottom=True)
+            block_diagram.mutable_block(x, y2).draw_curve(
+                charset, top=True)
+
+            # Span.
+            for y in range(y1 + 1, y2):
+                block_diagram.mutable_block(x, y).draw_curve(
+                    charset, top=True, bottom=True)
+
+        # Draw horizontal lines.
+        for y_b, x1_b, x2_b, emphasize in self.horizontal_lines:
+            y = int(y_b * 2)
+            x1, x2 = int(min(x1_b, x2_b) * 2), int(max(x1_b, x2_b) * 2)
+            charset = pick_charset(use_unicode_characters, emphasize)
+
+            # Caps.
+            block_diagram.mutable_block(x1, y).draw_curve(
+                charset, right=True)
+            block_diagram.mutable_block(x2, y).draw_curve(
+                charset, left=True)
+
+            # Span.
+            for x in range(x1 + 1, x2):
+                block_diagram.mutable_block(x, y).draw_curve(
+                    charset, left=True, right=True, crossing_char=crossing_char)
 
         # Place entries.
         for (x, y), v in self.entries.items():
-            if v.text:
-                grid[y][x] = v.text
+            x *= 2
+            y *= 2
+            block_diagram.mutable_block(x, y).content = v.text
 
-        # Pad rows and columns to fit contents with desired spacing.
-        multiline_grid = _pad_into_multiline(w,
-                                             grid,
-                                             horizontal_separator,
-                                             vertical_separator,
-                                             horizontal_spacing,
-                                             vertical_spacing,
-                                             self.horizontal_padding,
-                                             self.vertical_padding)
-
-        # Concatenate it all together.
-        return '\n'.join(''.join(sub_row).rstrip()
-                         for row in multiline_grid
-                         for sub_row in row).rstrip()
-
-
-_BoxChars = [
-    ('─', '━', '-'),
-    ('│', '┃', '|'),
-    ('┌', '┏', '/'),
-    ('└', '┗', '\\'),
-    ('┐', '┓', '\\'),
-    ('┘', '┛', '/'),
-    ('├', '┣', '>'),
-    ('┼', '╋', '+'),
-    ('┤', '┫', '<'),
-    ('┬', '┳', 'v'),
-    ('┴', '┻', '^'),
-]  # type: List[Tuple[str, ...]]
-
-_EmphasisMap = {k: v for k, v, _ in _BoxChars}
-_AsciiMap = {k: v for k, _, v in _BoxChars}
-
-
-def _normal_char(k: str, emphasize: bool = False) -> str:
-    return _EmphasisMap.get(k, k) if emphasize else k
-
-
-def _ascii_char(k: str, emphasize: bool = False) -> str:
-    del emphasize
-    return _AsciiMap.get(k, k)
-
-
-def _cross_char(use_ascii: bool, horizontal_emph: bool, vertical_emph: bool
-                ) -> str:
-    if use_ascii:
-        return '+'
-    if horizontal_emph != vertical_emph:
-        return '┿' if horizontal_emph else '╂'
-    return _normal_char('┼', horizontal_emph)
-
-
-def _pad_into_multiline(width: int,
-                        grid: List[List[str]],
-                        horizontal_separator: List[List[str]],
-                        vertical_separator: List[List[str]],
-                        horizontal_spacing: int,
-                        vertical_spacing: int,
-                        horizontal_padding: Dict[int, int],
-                        vertical_padding: Dict[int, int]
-                        ) -> List[List[List[str]]]:
-    multiline_grid = []  # type: List[List[List[str]]]
-
-    # Vertical padding.
-    for row in range(len(grid)):
-        multiline_cells = [cell.split('\n') for cell in grid[row]]
-        row_height = max(1, max(len(cell) for cell in multiline_cells))
-        row_height += vertical_padding.get(row, vertical_spacing)
-
-        multiline_row = []
-        for sub_row in range(row_height):
-            sub_row_cells = []
-            for col in range(width):
-                cell_lines = multiline_cells[col]
-                sub_row_cells.append(cell_lines[sub_row]
-                                     if sub_row < len(cell_lines)
-                                     else vertical_separator[row][col])
-            multiline_row.append(sub_row_cells)
-
-        multiline_grid.append(multiline_row)
-
-    # Horizontal padding.
-    for col in range(width):
-        col_width = max(1, max(len(sub_row[col])
-                               for row in multiline_grid
-                               for sub_row in row))
-        col_width += horizontal_padding.get(col, horizontal_spacing)
-        for row in range(len(multiline_grid)):
-            for sub_row in range(len(multiline_grid[row])):
-                sub_row_contents = multiline_grid[row][sub_row]
-                pad_char = (horizontal_separator[row][col]
-                            if sub_row == 0
-                            else ' ')
-                sub_row_contents[col] = sub_row_contents[col].ljust(
-                    col_width, pad_char)
-
-    return multiline_grid
+        return block_diagram.render()
