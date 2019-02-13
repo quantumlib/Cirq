@@ -24,6 +24,7 @@ from cirq.protocols.approximate_equality import (
 )
 from cirq.protocols.channel import (
     channel,
+    has_channel,
     SupportsChannel,
 )
 from cirq.protocols.circuit_diagram_info import (
@@ -44,6 +45,9 @@ from cirq.protocols.inverse import (
 )
 from cirq.protocols.mixture import (
     mixture,
+    mixture_channel,
+    has_mixture,
+    has_mixture_channel,
     SupportsMixture,
     validate_mixture,
 )
