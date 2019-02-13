@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union, Optional
+from typing import Any, List, Union
 
 import numpy as np
 
@@ -26,42 +26,68 @@ class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
     def __init__(self, sub_gate: raw_types.Gate,
-                 control_qubit: Optional[raw_types.QubitId] = None) -> None:
+                 control_qubits: List[raw_types.QubitId] = None,
+                 num_unspecified_control_qubits: int = None) -> None:
         """Initializes the controlled gate.
 
         Args:
             sub_gate: The gate to add a control qubit to.
-            control_qubit: The qubit that will act as a control.
+            control_qubits: The qubits that would act as controls.
+            num_unspecified_control_qubits: Additional control qubits that
+                                            haven't been specified yet.
         """
-        self.sub_gate = sub_gate
-        self.control_qubit = control_qubit
+        if control_qubits is None:
+            control_qubits = []
+        self.control_qubits = control_qubits
+
+        if num_unspecified_control_qubits is None:
+            if len(control_qubits) is 0:
+                self.num_unspecified_control_qubits = 1
+            else:
+                self.num_unspecified_control_qubits = 0
+        else:
+            self.num_unspecified_control_qubits = \
+                 num_unspecified_control_qubits
+
+        # Flatten nested ControlledGates.
+        if isinstance(sub_gate, ControlledGate):
+            self.sub_gate = sub_gate.sub_gate # type: ignore
+            self.control_qubits += sub_gate.control_qubits
+            self.num_unspecified_control_qubits += \
+                 sub_gate.num_unspecified_control_qubits
+        else:
+            self.sub_gate = sub_gate
+
+        self.total_control_qubits = (len(self.control_qubits) +
+                                     self.num_unspecified_control_qubits)
 
     def num_qubits(self) -> int:
-        if self.control_qubit is None:
-            return self.sub_gate.num_qubits() + 1
-        else:
-            return self.sub_gate.num_qubits()
+        return self.sub_gate.num_qubits() + self.num_unspecified_control_qubits
 
     def _decompose_(self, qubits):
         result = protocols.decompose_once_with_qubits(self.sub_gate,
-                                                          qubits[1:],
-                                                          NotImplemented)
+                                            qubits[self.total_control_qubits:],
+                                            NotImplemented)
 
         if result is NotImplemented:
             return NotImplemented
 
-        return [cop.ControlledOperation(qubits[0], op) for op in result]
+        decomposed = []
+        for op in result:
+            controlled_op = op
+            for qubit in qubits[:self.total_control_qubits]:
+                controlled_op = cop.ControlledOperation(qubit, controlled_op)
+            decomposed.append(controlled_op)
+        return decomposed
 
     def validate_args(self, qubits) -> None:
-        if self.control_qubit is None:
-            if len(qubits) < 1:
-                raise ValueError('No control qubit specified.')
-            self.sub_gate.validate_args(qubits[1:])
-        else:
-            self.sub_gate.validate_args(qubits)
+        if len(qubits) < self.num_unspecified_control_qubits:
+            raise ValueError('No control qubit specified.')
+        self.sub_gate.validate_args(
+                          qubits[self.num_unspecified_control_qubits:])
 
     def _value_equality_values_(self):
-        return self.sub_gate
+        return (self.sub_gate, self.total_control_qubits)
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         control = args.axes[0]
@@ -70,13 +96,23 @@ class ControlledGate(raw_types.Gate):
         sub_axes = [r - int(r > control) for r in rest]
         target_view = args.target_tensor[active]
         buffer_view = args.available_buffer[active]
-        result = protocols.apply_unitary(
-            self.sub_gate,
-            protocols.ApplyUnitaryArgs(
-                target_view,
-                buffer_view,
-                sub_axes),
-            default=NotImplemented)
+        if self.total_control_qubits is 1:
+            result = protocols.apply_unitary(
+                self.sub_gate,
+                protocols.ApplyUnitaryArgs(
+                    target_view,
+                    buffer_view,
+                    sub_axes),
+                default=NotImplemented)
+        else:
+            result = protocols.apply_unitary(
+                ControlledGate(self.sub_gate, num_unspecified_control_qubits =
+                                                  self.total_control_qubits-1),
+                protocols.ApplyUnitaryArgs(
+                    target_view,
+                    buffer_view,
+                    sub_axes),
+                default=NotImplemented)
 
         if result is NotImplemented:
             return NotImplemented
@@ -101,7 +137,10 @@ class ControlledGate(raw_types.Gate):
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return NotImplemented
-        return linalg.block_diag(np.eye(sub_matrix.shape[0]), sub_matrix)
+        for _ in range(self.total_control_qubits):
+            sub_matrix = linalg.block_diag(np.eye(sub_matrix.shape[0]),
+                                                  sub_matrix)
+        return sub_matrix
 
     def __pow__(self, exponent: Any) -> 'ControlledGate':
         new_sub_gate = protocols.pow(self.sub_gate,
@@ -109,7 +148,8 @@ class ControlledGate(raw_types.Gate):
                                      NotImplemented)
         if new_sub_gate is NotImplemented:
             return NotImplemented
-        return ControlledGate(new_sub_gate, self.control_qubit)
+        return ControlledGate(new_sub_gate, self.control_qubits,
+                              self.num_unspecified_control_qubits)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self.sub_gate)
@@ -117,7 +157,8 @@ class ControlledGate(raw_types.Gate):
     def _resolve_parameters_(self, param_resolver):
         new_sub_gate = protocols.resolve_parameters(self.sub_gate,
                                                     param_resolver)
-        return ControlledGate(new_sub_gate, self.control_qubit)
+        return ControlledGate(new_sub_gate, self.control_qubits,
+                              self.num_unspecified_control_qubits)
 
     def _trace_distance_bound_(self):
         return protocols.trace_distance_bound(self.sub_gate)
@@ -129,15 +170,19 @@ class ControlledGate(raw_types.Gate):
         if sub_info is None:
             return NotImplemented
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('@',) + sub_info.wire_symbols,
+            wire_symbols=('@',)*self.total_control_qubits +
+                         sub_info.wire_symbols,
             exponent=sub_info.exponent)
 
     def __str__(self):
-        return 'C' + str(self.sub_gate)
+        return 'C'*self.total_control_qubits + str(self.sub_gate)
 
     def __repr__(self):
-        if self.control_qubit is None:
+        if (len(self.control_qubits) is 0 and
+            self.num_unspecified_control_qubits is 1):
             return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
         else:
-            return ('cirq.ControlledGate(sub_gate={!r}, control_qubit={!r})'.
-                    format(self.sub_gate, self.control_qubit))
+            return ('cirq.ControlledGate(sub_gate={!r}, control_qubits={!r}, '
+                    'num_unspecified_control_qubits={!r})'.
+                    format(self.sub_gate, self.control_qubits,
+                           self.num_unspecified_control_qubits))

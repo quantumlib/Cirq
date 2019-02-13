@@ -45,16 +45,19 @@ def test_control():
     g = ValiGate()
     controlled_g = g.__control__()
     assert controlled_g.sub_gate == g
-    assert controlled_g.control_qubit == None
-    specified_controlled_g = g.__control__(q00)
+    assert controlled_g.control_qubits == []
+    assert controlled_g.num_unspecified_control_qubits == 1
+    specified_controlled_g = g.__control__([q00, q01])
     assert specified_controlled_g.sub_gate == g
-    assert specified_controlled_g.control_qubit == q00
+    assert specified_controlled_g.control_qubits == [q00, q01]
+    assert specified_controlled_g.num_unspecified_control_qubits == 0
 
 def test_op():
     g = ValiGate()
     op = g(q00)
     with pytest.raises(ValueError):
         _ = op.__control__()
-    controlled_op = op.__control__(q01)
-    assert controlled_op.sub_operation == op
-    assert controlled_op.control == q01
+    controlled_op = op.__control__([q01, q10])
+    assert controlled_op.sub_operation.sub_operation == op
+    assert controlled_op.sub_operation.control == q01
+    assert controlled_op.control == q10

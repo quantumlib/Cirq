@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Sequence, Tuple, Optional, TYPE_CHECKING, Callable, TypeVar, Any
+    Sequence, Tuple, List, TYPE_CHECKING, Callable, TypeVar, Any
 )
 
 import abc
@@ -131,15 +131,15 @@ class Gate(metaclass=abc.ABCMeta):
         return self.on(*args, **kwargs)
 
     def __control__(self,
-                    control_qubit: Optional[QubitId] = None) -> 'Gate':
+                    control_qubits: List[QubitId] = None) -> 'Gate':
         """Returns a controlled version of this gate.
 
         Args:
-            control_qubit: Optional qubit to control the gate by.
+            control_qubits: Optional qubits to control the gate by.
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
-        return ControlledGate(self, control_qubit)
+        return ControlledGate(self, control_qubits)
 
     @abc.abstractmethod
     def num_qubits(self) -> int:
@@ -180,17 +180,21 @@ class Operation(metaclass=abc.ABCMeta):
         return self.with_qubits(*(func(q) for q in self.qubits))
 
     def __control__(self,
-                    control_qubit: Optional[QubitId] = None) -> 'Operation':
+                    control_qubits: List[QubitId] = None) -> 'Operation':
         """Returns a controlled version of this operation.
 
         Args:
-            control_qubit: Qubit to control the operation by. Required for Ops.
+            control_qubits: Qubits to control the operation by. Required.
         """
         # Avoids circular import.
         from cirq.ops import ControlledOperation
-        if control_qubit is None:
+        if control_qubits is None or len(control_qubits) is 0:
             raise ValueError(
                 "Can't get controlled operation without control qubit. Op: {}"
                 .format(repr(self)))
         else:
-            return ControlledOperation(control_qubit, self)
+            # Simplify this once ControlledOperation supports multiple controls
+            op = self
+            for control_qubit in control_qubits:
+                op = ControlledOperation(control_qubit, op)
+            return op

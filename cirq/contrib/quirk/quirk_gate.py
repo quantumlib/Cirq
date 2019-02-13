@@ -182,7 +182,8 @@ def controlled_unwrap(gate: ops.ControlledGate) -> Optional[QuirkOp]:
     sub = _gate_to_quirk_op(gate.sub_gate)
     if sub is None:
         return None
-    return QuirkOp('•', *sub.keys, can_merge=False)
+    return QuirkOp(*(('•',)*gate.total_control_qubits), *sub.keys,
+                   can_merge=False)
 
 
 _known_gate_conversions = cast(
