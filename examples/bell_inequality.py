@@ -38,7 +38,7 @@ def main():
     print()
     repetitions = 75
     print('Simulating {} repetitions...'.format(repetitions))
-    result = cirq.google.XmonSimulator().run(circuit=circuit,
+    result = cirq.google.XmonSimulator().run(program=circuit,
                                              repetitions=repetitions)
 
     # Collect results.

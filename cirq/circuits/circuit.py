@@ -21,6 +21,7 @@ Moment the Operations must all act on distinct Qubits.
 
 from collections import defaultdict
 from fractions import Fraction
+from itertools import groupby
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -112,7 +113,7 @@ class Circuit:
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
-                 strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE,
+                 strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UnconstrainedDevice
                  ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
@@ -790,7 +791,7 @@ class Circuit:
             self,
             index: int,
             moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE) -> int:
+            strategy: InsertStrategy = InsertStrategy.EARLIEST) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
             'InsertStrategy'.
@@ -815,7 +816,7 @@ class Circuit:
             preserve_moments=True))
 
         for moment_or_op in moments_and_operations:
-            if isinstance(moment_or_operation_tree, ops.Moment):
+            if isinstance(moment_or_op, ops.Moment):
                 self._device.validate_moment(cast(ops.Moment, moment_or_op))
             else:
                 self._device.validate_operation(
@@ -1120,7 +1121,7 @@ class Circuit:
     def append(
             self,
             moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.NEW_THEN_INLINE):
+            strategy: InsertStrategy = InsertStrategy.EARLIEST):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.
@@ -1363,10 +1364,12 @@ class Circuit:
         Args:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
-            qubit_name_suffix: Appended to qubit names in the diagram.
+            qubit_namer: Names qubits in diagram. Defaults to str.
             transpose: Arranges qubit wires vertically instead of horizontally.
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
+            get_circuit_diagram_info: Gets circuit diagram info. Defaults to
+                protocol with fallback.
 
         Returns:
             The TextDiagramDrawer instance.
@@ -1398,8 +1401,7 @@ class Circuit:
         if moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
                                            use_unicode_characters,
-                                           diagram,
-                                           transpose)
+                                           diagram)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1621,41 +1623,32 @@ def _draw_moment_in_diagram(
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
                                    use_unicode_characters: bool,
-                                   out_diagram: TextDiagramDrawer,
-                                   transpose: bool):
+                                   out_diagram: TextDiagramDrawer):
     out_diagram.insert_empty_rows(0)
     h = out_diagram.height()
-
-    top_left = '┌' if use_unicode_characters else '/'
-    top_right = '┐' if use_unicode_characters else '\\'
-    bottom_left = '└' if use_unicode_characters else '\\'
-    bottom_right = '┘' if use_unicode_characters else '/'
 
     # Insert columns starting from the back since the insertion
     # affects subsequent indices.
     for x1, x2 in reversed(moment_groups):
         out_diagram.insert_empty_columns(x2 + 1)
         out_diagram.force_horizontal_padding_after(x2, 0)
-
-        out_diagram.write(x2 + 1, 0, top_right, bottom_left)
-        out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
-        out_diagram.force_horizontal_padding_after(x2 + 1,
-                                                   2 if not transpose else 0)
-
-        for y in [0, h]:
-            out_diagram.horizontal_line(y, x1, x2 + 1)
-
         out_diagram.insert_empty_columns(x1)
         out_diagram.force_horizontal_padding_after(x1, 0)
-        out_diagram.write(x1, 0, top_left, top_left)
-        out_diagram.write(x1, h, bottom_left, top_right)
+        x2 += 2
+        for x in range(x1, x2):
+            out_diagram.force_horizontal_padding_after(x, 0)
 
-        out_diagram.force_horizontal_padding_after(x1 - 1,
-                                                   2 if not transpose else 0)
+        for y in [0, h]:
+            out_diagram.horizontal_line(y, x1, x2)
+        out_diagram.vertical_line(x1, 0, 0.5)
+        out_diagram.vertical_line(x2, 0, 0.5)
+        out_diagram.vertical_line(x1, h, h-0.5)
+        out_diagram.vertical_line(x2, h, h-0.5)
 
-    if not transpose:
-        out_diagram.force_vertical_padding_after(0, 0)
-        out_diagram.force_vertical_padding_after(h - 1, 0)
+    # Rounds up to 1 when horizontal, down to 0 when vertical.
+    # (Matters when transposing.)
+    out_diagram.force_vertical_padding_after(0, 0.5)
+    out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
 def _apply_unitary_circuit(circuit: Circuit,
@@ -1770,15 +1763,4 @@ def _group_until_different(items: Iterable[TIn],
     Yields:
         Tuples containing the group key and item values.
     """
-    prev_item_key = None
-    cur_items = []  # type: List[Any]
-    for item in items:
-        item_key = key(item)
-        if cur_items and item_key != prev_item_key:
-            yield prev_item_key, cur_items
-            cur_items = []
-        cur_items.append(value(item))
-        prev_item_key = item_key
-
-    if cur_items:
-        yield prev_item_key, cur_items
+    return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))

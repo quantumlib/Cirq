@@ -157,10 +157,10 @@ Classes for parameterized circuits.
     SimulatesSamples
     SimulationTrialResult
     Simulator
-    SimulatorStep
+    SparseSimulatorStep
     StepResult
-    SimulatesFinalWaveFunction
-    SimulatesIntermediateWaveFunction
+    SimulatesFinalState
+    SimulatesIntermediateState
     Sweep
     Sweepable
     to_valid_state_vector
@@ -238,7 +238,6 @@ Classes and methods for rewriting circuits.
     merge_single_qubit_gates_into_phased_x_z
     MergeInteractions
     MergeSingleQubitGates
-    OptimizationPass
     PointOptimizationSummary
     PointOptimizer
     single_qubit_matrix_to_gates
