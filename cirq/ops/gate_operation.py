@@ -118,6 +118,12 @@ class GateOperation(raw_types.Operation):
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
         return protocols.mixture(self._gate, NotImplemented)
 
+    def _has_mixture_channel_(self) -> bool:
+        return protocols.has_mixture_channel(self._gate)
+
+    def _mixture_channel_(self) -> Sequence[Tuple[float, np.ndarray]]:
+        return protocols.mixture_channel(self._gate)
+
     def _has_channel_(self) -> bool:
         return protocols.has_channel(self._gate)
 

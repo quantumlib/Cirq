@@ -70,24 +70,25 @@ def test_run_mixture(dtype):
     simulator = cirq.DensityMatrixSimulator(dtype)
     result = simulator.run(circuit, repetitions=100)
     np.testing.assert_equal(result.measurements['1'], [[0]] * 100)
-    # Test that we get at least
+    # Test that we get at least one of each result. Probability of this test
+    # failing is 2 ** (-99).
     q0_measurements = set(x[0] for x in result.measurements['0'].tolist())
     assert q0_measurements == {0, 1}
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_run_repetitions_measure_at_end(dtype):
+def test_run_channel(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    for b0 in [0, 1]:
-        for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
-            result = simulator.run(circuit, repetitions=3)
-            np.testing.assert_equal(result.measurements,
-                                    {'0': [[b0]] * 3, '1': [[b1]] * 3})
+    circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.amplitude_damp(0.5)(q0),
+                                    cirq.measure(q0), cirq.measure(q1))
+    simulator = cirq.DensityMatrixSimulator(dtype)
+    result = simulator.run(circuit, repetitions=100)
+    np.testing.assert_equal(result.measurements['1'], [[0]] * 100)
+    # Test that we get at least one of each result. Probability of this test
+    # failing is 2 ** (-99).
+    q0_measurements = set(x[0] for x in result.measurements['0'].tolist())
+    print(cirq.amplitude_damp(0.5)(q0))
+    assert q0_measurements == {0, 1}
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
