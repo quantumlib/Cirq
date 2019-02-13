@@ -1401,8 +1401,7 @@ class Circuit:
         if moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
                                            use_unicode_characters,
-                                           diagram,
-                                           transpose)
+                                           diagram)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1624,41 +1623,32 @@ def _draw_moment_in_diagram(
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
                                    use_unicode_characters: bool,
-                                   out_diagram: TextDiagramDrawer,
-                                   transpose: bool):
+                                   out_diagram: TextDiagramDrawer):
     out_diagram.insert_empty_rows(0)
     h = out_diagram.height()
-
-    top_left = '┌' if use_unicode_characters else '/'
-    top_right = '┐' if use_unicode_characters else '\\'
-    bottom_left = '└' if use_unicode_characters else '\\'
-    bottom_right = '┘' if use_unicode_characters else '/'
 
     # Insert columns starting from the back since the insertion
     # affects subsequent indices.
     for x1, x2 in reversed(moment_groups):
         out_diagram.insert_empty_columns(x2 + 1)
         out_diagram.force_horizontal_padding_after(x2, 0)
-
-        out_diagram.write(x2 + 1, 0, top_right, bottom_left)
-        out_diagram.write(x2 + 1, h, bottom_right, bottom_right)
-        out_diagram.force_horizontal_padding_after(x2 + 1,
-                                                   2 if not transpose else 0)
-
-        for y in [0, h]:
-            out_diagram.horizontal_line(y, x1, x2 + 1)
-
         out_diagram.insert_empty_columns(x1)
         out_diagram.force_horizontal_padding_after(x1, 0)
-        out_diagram.write(x1, 0, top_left, top_left)
-        out_diagram.write(x1, h, bottom_left, top_right)
+        x2 += 2
+        for x in range(x1, x2):
+            out_diagram.force_horizontal_padding_after(x, 0)
 
-        out_diagram.force_horizontal_padding_after(x1 - 1,
-                                                   2 if not transpose else 0)
+        for y in [0, h]:
+            out_diagram.horizontal_line(y, x1, x2)
+        out_diagram.vertical_line(x1, 0, 0.5)
+        out_diagram.vertical_line(x2, 0, 0.5)
+        out_diagram.vertical_line(x1, h, h-0.5)
+        out_diagram.vertical_line(x2, h, h-0.5)
 
-    if not transpose:
-        out_diagram.force_vertical_padding_after(0, 0)
-        out_diagram.force_vertical_padding_after(h - 1, 0)
+    # Rounds up to 1 when horizontal, down to 0 when vertical.
+    # (Matters when transposing.)
+    out_diagram.force_vertical_padding_after(0, 0.5)
+    out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
 def _apply_unitary_circuit(circuit: Circuit,
