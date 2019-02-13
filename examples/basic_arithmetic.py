@@ -89,7 +89,7 @@ Execute Multiplier
 import cirq
 
 
-class Adder(cirq.Gate, cirq.CompositeGate):
+class Adder(cirq.Gate):
     """ A quantum circuit to calculate a + b
 
             -----------@---             ---@------------
@@ -139,7 +139,7 @@ class Adder(cirq.Gate, cirq.CompositeGate):
         yield cirq.CNOT(a, b)
         yield cirq.CNOT(c0, b)
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         n = int(len(qubits)/3)
         c = qubits[0::3]
         a = qubits[1::3]
@@ -155,7 +155,7 @@ class Adder(cirq.Gate, cirq.CompositeGate):
         return 'Adder'
 
 
-class Multiplier(cirq.Gate, cirq.CompositeGate):
+class Multiplier(cirq.Gate):
     """ A quantum circuit to calculate y * x
 
                        -                         -                 -
@@ -190,7 +190,7 @@ class Multiplier(cirq.Gate, cirq.CompositeGate):
     x2: ------------------------------------------------------@---------@-----
     """
 
-    def default_decompose(self, qubits):
+    def _decompose_(self, qubits):
         n = int(len(qubits)/5)
         # c = qubits[0:n*3:3]
         a = qubits[1:n*3:3]
