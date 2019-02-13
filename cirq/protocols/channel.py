@@ -16,8 +16,12 @@
 
 from typing import Any, Iterable, Tuple, TypeVar, Union
 
+
 import numpy as np
 from typing_extensions import Protocol
+
+from cirq.protocols.mixture import has_mixture_channel
+
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -66,10 +70,23 @@ class SupportsChannel(Protocol):
             A list of matrices describing the channel (Krauss operators), or
             NotImplemented if there is no such matrix.
         """
+    def _has_channel_(self) -> bool:
+        """Whether this value has a channel representation.
+
+        This method is used by the global `cirq.has_channel` method.  If this
+        method is not present, or returns NotImplemented, it will fallback
+        to similarly checking `cirq.has_mixture` or `cirq.has_unitary`. If none
+        of these are present or return NotImplemented, then `cirq.has_channel`
+        will fall back to checking whether `cirq.channel` has a non-default
+        value. Otherwise `cirq.has_channel` returns False.
+
+        Returns:
+            True if the value has a channel representation, False otherwise.
+        """
 
 
 def channel(val: Any,
-            default: Iterable[TDefault] = RaiseTypeErrorIfNotProvided
+            default: Any = RaiseTypeErrorIfNotProvided
             ) -> Union[Tuple[np.ndarray], Iterable[TDefault]]:
     """Returns a list of matrices describing the channel for the given value.
 
@@ -89,8 +106,11 @@ def channel(val: Any,
             default is set to a value, that value is returned.
 
     Returns:
-        If `val` has a _channel_ method and its result is not NotImplemented,
-        that result is returned. Otherwise, if `val` has a _unitary_ method and
+        If `val` has a `_channel_` method and its result is not NotImplemented,
+        that result is returned. Otherwise, if `val` has a `_mixture_` method
+        and its results is not NotImplement a tuple made up of channel
+        corresponding to that mixture being a probabilistic mixture of unitaries
+        is returned.  Otherwise, if `val` has a `_unitary_` method and
         its result is not NotImplemented a tuple made up of that result is
         returned. Otherwise, if a default value was specified, the default
         value is returned.
@@ -103,7 +123,6 @@ def channel(val: Any,
     channel_getter = getattr(val, '_channel_', None)
     channel_result = (
         NotImplemented if channel_getter is None else channel_getter())
-
     if channel_result is not NotImplemented:
         return tuple(channel_result)
 
@@ -116,7 +135,6 @@ def channel(val: Any,
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = (
         NotImplemented if unitary_getter is None else unitary_getter())
-
     if unitary_result is not NotImplemented:
         return (unitary_result,)
 
@@ -124,9 +142,36 @@ def channel(val: Any,
         return default
 
     if (channel_getter is None and unitary_getter is None
-        and mixture_getter is None):
+            and mixture_getter is None):
         raise TypeError("object of type '{}' has no _channel_ or _mixture_ or "
                         "_unitary_ method.".format(type(val)))
     raise TypeError("object of type '{}' does have a _channel_, _mixture_ or "
-                    "_unitary_ method, but it returned NotImplemented."
-                    .format(type(val)))
+                "_unitary_ method, but it returned NotImplemented."
+                .format(type(val)))
+
+
+def has_channel(val: Any) -> bool:
+    """Returns whether the value has a channel representation.
+
+    Returns:
+        If `val` has a `_has_channel_` method and its result is not
+        NotImplemented, that result is returned. Otherwise, if `val` has a
+        `_has_mixture_` method and its result is not NotImplemented, that
+        result is returned. Otherwise if `val` has a `_has_unitary_` method
+        and its results is not NotImplemented, that result is returned.
+        Otherwise, if the value has a _channel_ method return if that
+        has a non-default value. Returns False if none of these functions
+        exists.
+    """
+    channel_getter = getattr(val, '_has_channel_', None)
+    result = NotImplemented if channel_getter is None else channel_getter()
+
+    if result is not NotImplemented:
+        return result
+
+    result = has_mixture_channel(val)
+    if result is not NotImplemented and result:
+        return result
+
+    # No has methods, use `_channel_` or delegates instead.
+    return channel(val, None) is not None
