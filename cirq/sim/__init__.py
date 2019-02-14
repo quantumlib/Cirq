@@ -22,7 +22,8 @@ from cirq.sim.density_matrix_utils import (
 from cirq.sim.density_matrix_simulator import (
     DensityMatrixSimulatorState,
     DensityMatrixStepResult,
-    DensityMatrixSimulator
+    DensityMatrixSimulator,
+    DensityMatrixTrialResult,
 )
 from cirq.sim.simulator import (
     SimulatesSamples,

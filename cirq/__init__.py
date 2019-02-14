@@ -200,6 +200,7 @@ from cirq.sim import (
     DensityMatrixStepResult,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
+    DensityMatrixTrialResult,
     dirac_notation,
     measure_state_vector,
     measure_density_matrix,
