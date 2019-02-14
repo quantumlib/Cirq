@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
+import sys
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
     Iterable
 
@@ -22,6 +23,12 @@ import numpy as np
 from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
+
+if sys.version_info < (3,):
+    gcd = fractions.gcd # pylint: disable=unused-import
+else:
+    import math
+    gcd = math.gcd
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -322,7 +329,7 @@ class EigenGate(raw_types.Gate):
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
     for r in vals:
-        t = t * r // fractions.gcd(t, r)
+        t = t * r // gcd(t, r)
     return t
 
 
@@ -364,7 +371,7 @@ def _approximate_common_period(periods: List[float],
         fractions.Fraction(int(np.round(p * approx_denom)), approx_denom)
         for p in periods
     ]
-    common = float(_common_rational_period(approx_rational_periods))
+    common = abs(float(_common_rational_period(approx_rational_periods)))
 
     for p in periods:
         if p != 0 and abs(p * np.round(common / p) - common) > reject_atol:

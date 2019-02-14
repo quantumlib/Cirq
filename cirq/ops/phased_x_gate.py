@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-import fractions
+import sys
 from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
@@ -24,6 +24,14 @@ from cirq.type_workarounds import NotImplementedType
 
 # Note: avoiding 'from/as' because it creates a circular dependency in python 2.
 import cirq.ops.common_gates
+
+if sys.version_info < (3,):
+    import fractions # pylint: disable=unused-import
+    gcd = fractions.gcd # pylint: disable=unused-import
+else:
+    import math
+    gcd = math.gcd
+
 
 
 @value.value_equality
@@ -199,7 +207,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return None
         if len(int_periods) == 1:
             return int_periods[0]
-        return int_periods[0] * int_periods[1] / fractions.gcd(*int_periods)
+        return int_periods[0] * int_periods[1] / gcd(*int_periods)
 
     @property
     def _canonical_exponent(self):
