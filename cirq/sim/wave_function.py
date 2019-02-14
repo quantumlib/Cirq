@@ -357,7 +357,7 @@ def sample_state_vector(state: np.ndarray,
             size ``2**integer`` or a tensor of shape ``(2, 2, ..., 2)``.
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
-            a bitstring, has the largest values that the 0th index.
+            a bitstring, has its largest values in the 0th index.
         repetitions: The number of times to sample the state.
 
     Returns:
@@ -378,10 +378,8 @@ def sample_state_vector(state: np.ndarray,
     num_qubits = _validate_num_qubits(state)
     _validate_indices(num_qubits, indices)
 
-    if repetitions == 0:
-        return [[]]
-    if len(indices) == 0:
-        return [[] for _ in range(repetitions)]
+    if repetitions == 0 or len(indices) == 0:
+        return np.zeros(shape=(repetitions, len(indices)))
 
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, num_qubits)
@@ -433,7 +431,12 @@ def measure_state_vector(
     _validate_indices(num_qubits, indices)
 
     if len(indices) == 0:
-        return ([], np.copy(state))
+        if out is None:
+            out = np.copy(state)
+        elif out is not state:
+            np.copyto(dst=out, src=state)
+        # Final else: if out is state then state will be modified in place.
+        return ([], out)
 
     # Cache initial shape.
     initial_shape = state.shape
@@ -453,7 +456,7 @@ def measure_state_vector(
     if out is None:
         out = np.copy(state)
     elif out is not state:
-        np.copyto(out, state)
+        np.copyto(dst=out, src=state)
     # Final else: if out is state then state will be modified in place.
 
     # Potentially reshape to tensor, and then set masked values to 0.
@@ -488,7 +491,7 @@ def _validate_num_qubits(state: np.ndarray) -> int:
     """Validates that state's size is a power of 2, returning number of qubits.
     """
     size = state.size
-    if size != 0 and size & (size - 1):
+    if size & (size - 1):
         raise ValueError('state.size ({}) is not a power of two.'.format(size))
     return size.bit_length() - 1
 

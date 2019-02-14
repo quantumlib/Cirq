@@ -14,7 +14,9 @@
 
 """Base simulation classes and generic simulators."""
 
-from cirq.sim.density_matrix import (
+from cirq.sim.density_matrix_utils import (
+    measure_density_matrix,
+    sample_density_matrix,
     to_valid_density_matrix,
 )
 from cirq.sim.simulator import (
