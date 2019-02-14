@@ -238,10 +238,8 @@ def test_bidiagonalize_real_matrix_pair_with_symmetric_products(a, b):
     [Y, np.eye(2), 'must be real'],
     [np.eye(2), Y, 'must be real'],
     [np.eye(5), np.eye(4), 'shapes'],
-    [*[e * cirq.testing.random_orthogonal(4)
-       for e in random_bi_diagonalizable_pair(4)], 'must be symmetric'],
-    [*[cirq.testing.random_orthogonal(4) * e
-       for e in random_bi_diagonalizable_pair(4)], 'must be symmetric'],
+    [e * cirq.testing.random_orthogonal(4)
+     for e in random_bi_diagonalizable_pair(4)] + ['must be symmetric'],
     [np.array([[1, 1], [1, 0]]),
      np.array([[1, 1], [0, 1]]),
      'mat1.T @ mat2 must be symmetric'],
