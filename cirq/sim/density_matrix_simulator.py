@@ -337,6 +337,7 @@ class DensityMatrixStepResult(simulator.StepResult):
             self.simulator_state().density_matrix,
             indices, repetitions)
 
+
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState():
     """The simulator state for DensityMatrixSimulator
