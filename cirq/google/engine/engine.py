@@ -143,7 +143,7 @@ class Engine:
     """
 
     def __init__(self,
-                 api_key: str,
+                 api_key: Optional[str] = None,
                  api: str = 'quantum',
                  version: str = 'v1alpha1',
                  default_project_id: Optional[str] = None,
@@ -172,13 +172,16 @@ class Engine:
         self.version = version
         self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
                                                '$discovery/rest'
-                                               '?version={apiVersion}&key=%s')
+                                               '?version={apiVersion}')
         self.default_gcs_prefix = default_gcs_prefix
+
+        discovery_service_url = discovery_url if self.api_key is None else (
+            "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
+                           self.api_key)))
         self.service = discovery.build(
             self.api,
             self.version,
-            discoveryServiceUrl=self.discovery_url % urllib.parse.quote_plus(
-                self.api_key),
+            discoveryServiceUrl=discovery_service_url,
             **kwargs)
 
     def run(self,

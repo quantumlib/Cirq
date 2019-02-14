@@ -70,7 +70,6 @@ from cirq.linalg import (
     reflection_matrix_pow,
     so4_to_magic_su2s,
     targeted_left_multiply,
-    Tolerance,
 )
 
 from cirq.line import (

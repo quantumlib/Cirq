@@ -24,7 +24,7 @@ import numpy as np
 
 from cirq import value
 from cirq.linalg import combinators, diagonalize, predicates
-from cirq.linalg.tolerance import Tolerance
+from cirq.linalg.tolerance import all_near_zero
 
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
@@ -32,6 +32,7 @@ MAGIC = np.array([[1, 0, 0, 1j],
                   [0, 1j, -1, 0],
                   [1, 0, 0, -1j]]) * np.sqrt(0.5)
 MAGIC_CONJ_T = np.conj(MAGIC.T)
+
 
 def _phase_matrix(angle: float) -> np.ndarray:
     return np.diag([1, np.exp(1j * angle)])
@@ -96,7 +97,9 @@ def _group_similar(items: List[T],
     return groups
 
 
-def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
+def _perp_eigendecompose(matrix: np.ndarray,
+                         rtol: float = 1e-5,
+                         atol: float = 1e-8
                          ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
 
@@ -107,8 +110,10 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
 
     Args:
         matrix: The matrix to decompose.
-        tolerance: Thresholds for determining whether eigenvalues are from the
-            same eigenspace and whether eigenvectors are perpendicular.
+        rtol: Relative threshold for determining whether eigenvalues are from
+              the same eigenspace and whether eigenvectors are perpendicular.
+        atol: Absolute threshold for determining whether eigenvalues are from
+              the same eigenspace and whether eigenvectors are perpendicular.
 
     Returns:
         The eigenvalues and column eigenvectors. The i'th eigenvalue is
@@ -128,7 +133,7 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
     n = len(vecs)
     groups = _group_similar(
         list(range(n)),
-        lambda k1, k2: tolerance.all_close(vals[k1], vals[k2]))
+        lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol))
 
     # Remove overlap between eigenvectors with the same eigenvalue.
     for g in groups:
@@ -139,7 +144,8 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
     # Ensure no eigenvectors overlap.
     for i in range(len(vecs)):
         for j in range(i + 1, len(vecs)):
-            if not tolerance.all_near_zero(np.dot(np.conj(vecs[i].T), vecs[j])):
+            if not all_near_zero(np.dot(np.conj(vecs[i].T), vecs[j]), atol=atol,
+                                 rtol=rtol):
                 raise ArithmeticError('Eigenvectors overlap.')
 
     return vals, vecs
@@ -148,8 +154,8 @@ def _perp_eigendecompose(matrix: np.ndarray, tolerance: Tolerance
 def map_eigenvalues(
         matrix: np.ndarray,
         func: Callable[[complex], complex],
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> np.ndarray:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -157,12 +163,13 @@ def map_eigenvalues(
     Args:
         matrix: The matrix to modify with the function.
         func: The function to apply to the eigenvalues of the matrix.
-        tolerance: Thresholds used when separating eigenspaces.
+        rtol: Relative threshold used when separating eigenspaces.
+        atol: Absolute threshold used when separating eigenspaces.
 
     Returns:
         The transformed matrix.
     """
-    vals, vecs = _perp_eigendecompose(matrix, tolerance)
+    vals, vecs = _perp_eigendecompose(matrix, rtol=rtol, atol=atol)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
@@ -172,10 +179,8 @@ def map_eigenvalues(
     return total
 
 
-def kron_factor_4x4_to_2x2s(
-        matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[complex, np.ndarray, np.ndarray]:
+def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[
+    complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
@@ -183,7 +188,6 @@ def kron_factor_4x4_to_2x2s(
 
     Args:
         matrix: The 4x4 unitary matrix to factor.
-        tolerance: Acceptable numeric error thresholds.
 
     Returns:
         A scalar factor and a pair of 2x2 unit-determinant matrices. The
@@ -222,8 +226,8 @@ def kron_factor_4x4_to_2x2s(
 
 def so4_to_magic_su2s(
         mat: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[np.ndarray, np.ndarray]:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
     Mag is the magic basis matrix:
@@ -235,7 +239,8 @@ def so4_to_magic_su2s(
 
     Args:
         mat: A real 4x4 orthogonal matrix.
-        tolerance: Per-matrix-entry tolerance on equality.
+        rtol: Per-matrix-entry relative tolerance on equality.
+        atol: Per-matrix-entry absolute tolerance on equality.
 
     Returns:
         A pair (A, B) of matrices in SU(2) such that Mag.H @ kron(A, B) @ Mag
@@ -245,11 +250,12 @@ def so4_to_magic_su2s(
         ValueError: Bad matrix.
         """
     if mat.shape != (4, 4) or not predicates.is_special_orthogonal(mat,
-                                                                   tolerance):
+                                                                   atol=atol,
+                                                                   rtol=rtol):
         raise ValueError('mat must be 4x4 special orthogonal.')
 
     ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
-    _, a, b = kron_factor_4x4_to_2x2s(ab, tolerance)
+    _, a, b = kron_factor_4x4_to_2x2s(ab)
 
     return a, b
 
@@ -299,6 +305,7 @@ class KakDecomposition:
     def _value_equality_values_(self):
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
+
         return (type(KakDecomposition),
                 self.global_phase,
                 tuple(self.interaction_coefficients),
@@ -404,9 +411,9 @@ def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
     # Shifting strength by ½π is equivalent to local ops (e.g. exp(i½π XX)∝XX).
     def shift(k, step):
         v[k] += step * np.pi / 2
-        phase[0] *= 1j**step
-        right[0] = combinators.dot(flippers[k]**(step % 4), right[0])
-        right[1] = combinators.dot(flippers[k]**(step % 4), right[1])
+        phase[0] *= 1j ** step
+        right[0] = combinators.dot(flippers[k] ** (step % 4), right[0])
+        right[1] = combinators.dot(flippers[k] ** (step % 4), right[1])
 
     # Two negations is equivalent to temporarily flipping along the other axis.
     def negate(k1, k2):
@@ -464,13 +471,14 @@ def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
 
 def kak_decomposition(
         mat: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> KakDecomposition:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
         mat: The 4x4 unitary matrix to decompose.
-        tolerance: Per-matrix-entry tolerance on equality.
+        rtol: Per-matrix-entry relative tolerance on equality.
+        atol: Per-matrix-entry absolute tolerance on equality.
 
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
@@ -500,11 +508,11 @@ def kak_decomposition(
     left, d, right = (
         diagonalize.bidiagonalize_unitary_with_special_orthogonals(
             combinators.dot(np.conj(magic.T), mat, magic),
-            tolerance))
+            atol=atol, rtol=rtol))
 
     # Recover pieces.
-    a1, a0 = so4_to_magic_su2s(left.T, tolerance)
-    b1, b0 = so4_to_magic_su2s(right.T, tolerance)
+    a1, a0 = so4_to_magic_su2s(left.T, atol=atol, rtol=rtol)
+    b1, b0 = so4_to_magic_su2s(right.T, atol=atol, rtol=rtol)
     w, x, y, z = gamma.dot(np.vstack(np.angle(d))).flatten()
     g = np.exp(1j * w)
 
