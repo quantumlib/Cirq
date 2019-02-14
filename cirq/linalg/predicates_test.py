@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import cmath
+
 import numpy as np
 
 import cirq
-from cirq import Tolerance
 
 
 def test_is_diagonal():
@@ -45,15 +45,15 @@ def test_is_diagonal():
 
 
 def test_is_diagonal_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     # Pays attention to specified tolerance.
-    assert cirq.is_diagonal(np.array([[1, 0], [-0.5, 1]]), tol)
-    assert not cirq.is_diagonal(np.array([[1, 0], [-0.6, 1]]), tol)
+    assert cirq.is_diagonal(np.array([[1, 0], [-0.5, 1]]), atol=atol)
+    assert not cirq.is_diagonal(np.array([[1, 0], [-0.6, 1]]), atol=atol)
 
     # Error isn't accumulated across entries.
-    assert cirq.is_diagonal(np.array([[1, 0.5], [-0.5, 1]]), tol)
-    assert not cirq.is_diagonal(np.array([[1, 0.5], [-0.6, 1]]), tol)
+    assert cirq.is_diagonal(np.array([[1, 0.5], [-0.5, 1]]), atol=atol)
+    assert not cirq.is_diagonal(np.array([[1, 0.5], [-0.6, 1]]), atol=atol)
 
 
 def test_is_hermitian():
@@ -85,21 +85,21 @@ def test_is_hermitian():
 
 
 def test_is_hermitian_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     # Pays attention to specified tolerance.
-    assert cirq.is_hermitian(np.array([[1, 0], [-0.5, 1]]), tol)
-    assert cirq.is_hermitian(np.array([[1, 0.25], [-0.25, 1]]), tol)
-    assert not cirq.is_hermitian(np.array([[1, 0], [-0.6, 1]]), tol)
-    assert not cirq.is_hermitian(np.array([[1, 0.25], [-0.35, 1]]), tol)
+    assert cirq.is_hermitian(np.array([[1, 0], [-0.5, 1]]), atol=atol)
+    assert cirq.is_hermitian(np.array([[1, 0.25], [-0.25, 1]]), atol=atol)
+    assert not cirq.is_hermitian(np.array([[1, 0], [-0.6, 1]]), atol=atol)
+    assert not cirq.is_hermitian(np.array([[1, 0.25], [-0.35, 1]]), atol=atol)
 
     # Error isn't accumulated across entries.
     assert cirq.is_hermitian(
-        np.array([[1, 0.5, 0.5], [0, 1, 0], [0, 0, 1]]), tol)
+        np.array([[1, 0.5, 0.5], [0, 1, 0], [0, 0, 1]]), atol=atol)
     assert not cirq.is_hermitian(
-        np.array([[1, 0.5, 0.6], [0, 1, 0], [0, 0, 1]]), tol)
+        np.array([[1, 0.5, 0.6], [0, 1, 0], [0, 0, 1]]), atol=atol)
     assert not cirq.is_hermitian(
-        np.array([[1, 0, 0.6], [0, 1, 0], [0, 0, 1]]), tol)
+        np.array([[1, 0, 0.6], [0, 1, 0], [0, 0, 1]]), atol=atol)
 
 
 def test_is_unitary():
@@ -133,17 +133,17 @@ def test_is_unitary():
 
 
 def test_is_unitary_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     # Pays attention to specified tolerance.
-    assert cirq.is_unitary(np.array([[1, 0], [-0.5, 1]]), tol)
-    assert not cirq.is_unitary(np.array([[1, 0], [-0.6, 1]]), tol)
+    assert cirq.is_unitary(np.array([[1, 0], [-0.5, 1]]), atol=atol)
+    assert not cirq.is_unitary(np.array([[1, 0], [-0.6, 1]]), atol=atol)
 
     # Error isn't accumulated across entries.
     assert cirq.is_unitary(
-        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), atol=atol)
     assert not cirq.is_unitary(
-        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1.2]]), atol=atol)
 
 
 def test_is_orthogonal():
@@ -177,17 +177,17 @@ def test_is_orthogonal():
 
 
 def test_is_orthogonal_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     # Pays attention to specified tolerance.
-    assert cirq.is_orthogonal(np.array([[1, 0], [-0.5, 1]]), tol)
-    assert not cirq.is_orthogonal(np.array([[1, 0], [-0.6, 1]]), tol)
+    assert cirq.is_orthogonal(np.array([[1, 0], [-0.5, 1]]), atol=atol)
+    assert not cirq.is_orthogonal(np.array([[1, 0], [-0.6, 1]]), atol=atol)
 
     # Error isn't accumulated across entries.
     assert cirq.is_orthogonal(
-        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), atol=atol)
     assert not cirq.is_orthogonal(
-        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1.2]]), atol=atol)
 
 
 def test_is_special_orthogonal():
@@ -226,21 +226,21 @@ def test_is_special_orthogonal():
 
 
 def test_is_special_orthogonal_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     # Pays attention to specified tolerance.
     assert cirq.is_special_orthogonal(
-        np.array([[1, 0], [-0.5, 1]]), tol)
+        np.array([[1, 0], [-0.5, 1]]), atol=atol)
     assert not cirq.is_special_orthogonal(
-        np.array([[1, 0], [-0.6, 1]]), tol)
+        np.array([[1, 0], [-0.6, 1]]), atol=atol)
 
     # Error isn't accumulated across entries, except for determinant factors.
     assert cirq.is_special_orthogonal(
-        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1 / 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1 / 1.2]]), atol=atol)
     assert not cirq.is_special_orthogonal(
-        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), atol=atol)
     assert not cirq.is_special_orthogonal(
-        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1 / 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1 / 1.2]]), atol=atol)
 
 
 def test_is_special_unitary():
@@ -274,23 +274,23 @@ def test_is_special_unitary():
 
 
 def test_is_special_unitary_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     # Pays attention to specified tolerance.
-    assert cirq.is_special_unitary(np.array([[1, 0], [-0.5, 1]]), tol)
-    assert not cirq.is_special_unitary(np.array([[1, 0], [-0.6, 1]]), tol)
+    assert cirq.is_special_unitary(np.array([[1, 0], [-0.5, 1]]), atol=atol)
+    assert not cirq.is_special_unitary(np.array([[1, 0], [-0.6, 1]]), atol=atol)
     assert cirq.is_special_unitary(
-        np.array([[1, 0], [0, 1]]) * cmath.exp(1j * 0.1), tol)
+        np.array([[1, 0], [0, 1]]) * cmath.exp(1j * 0.1), atol=atol)
     assert not cirq.is_special_unitary(
-        np.array([[1, 0], [0, 1]]) * cmath.exp(1j * 0.3), tol)
+        np.array([[1, 0], [0, 1]]) * cmath.exp(1j * 0.3), atol=atol)
 
     # Error isn't accumulated across entries, except for determinant factors.
     assert cirq.is_special_unitary(
-        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1 / 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1 / 1.2]]), atol=atol)
     assert not cirq.is_special_unitary(
-        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.2, 0], [0, 0, 1.2]]), atol=atol)
     assert not cirq.is_special_unitary(
-        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1 / 1.2]]), tol)
+        np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1 / 1.2]]), atol=atol)
 
 
 def test_commutes():
@@ -331,14 +331,14 @@ def test_commutes():
 
 
 def test_commutes_tolerance():
-    tol = Tolerance(atol=0.5)
+    atol = 0.5
 
     x = np.array([[0, 1], [1, 0]])
     z = np.array([[1, 0], [0, -1]])
 
     # Pays attention to specified tolerance.
-    assert cirq.commutes(x, x + z * 0.1, tol)
-    assert not cirq.commutes(x, x + z * 0.5, tol)
+    assert cirq.commutes(x, x + z * 0.1, atol=atol)
+    assert not cirq.commutes(x, x + z * 0.5, atol=atol)
 
 
 def test_allclose_up_to_global_phase():
