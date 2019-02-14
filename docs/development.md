@@ -13,12 +13,10 @@ git clone git@github.com:quantumlib/cirq.git
 cd cirq
 ```
 
-To do your development in a Docker virtual machine, you can use dev_tools/Dockerfile:
+To do your development in a Docker image, you can build one with Cirq/dev_tools/Dockerfile or pull an existing image:
 ```bash
-    git clone https://github.com/quantumlib/Cirq
-    cd Cirq/dev_tools
-    docker build -t cirq/dev . # This builds the actual image based on latest Ubuntu, cloning the Cirq tree into it with the needed dependencies.
-    docker run -it cirq/dev python3 -c "import cirq; print(cirq.google.Foxtail)"
+    docker pull quantumlib/cirq:dev
+    docker run -it quantumlib/cirq:dev python -c "import cirq; print(cirq.google.Foxtail)"
 ```
 
 
