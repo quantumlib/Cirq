@@ -463,7 +463,7 @@ def test_simulate_moment_steps_set_state():
     step = simulator.simulate_moment_steps(circuit)
 
     result = next(step)
-    result.set_state(0)
+    result.set_state_vector(0)
     np.testing.assert_almost_equal(result.state_vector(),
                                    np.array([1, 0, 0, 0]))
 
@@ -476,7 +476,7 @@ def test_simulate_moment_steps_set_state_2():
     step = simulator.simulate_moment_steps(circuit)
 
     result = next(step)
-    result.set_state(np.array([1j, 0, 0, 0], dtype=np.complex64))
+    result.set_state_vector(np.array([1j, 0, 0, 0], dtype=np.complex64))
     np.testing.assert_almost_equal(result.state_vector(),
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
 
