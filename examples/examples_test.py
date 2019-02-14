@@ -46,3 +46,7 @@ def test_example_runs_grover():
 
 def test_example_runs_phase_estimator():
     examples.phase_estimator.main()
+
+
+def test_example_runs_qaoa():
+    examples.qaoa.main()
