@@ -83,7 +83,9 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
 
 
 def _key_to_str(key: TMeasurementKey) -> str:
-    if isinstance(key, (str, ops.QubitId)):
+    if isinstance(key, str):
+        return key
+    if isinstance(key, ops.QubitId):
         return str(key)
     return ','.join(str(q) for q in key)
 
