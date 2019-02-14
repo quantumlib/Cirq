@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
 
 import numpy as np
 import pytest
 
 import cirq
+from cirq import QubitId
+from cirq.ops.raw_types import TSelf_Operation
 
 
 def test_invalid_dtype():
@@ -61,6 +64,27 @@ def test_run_bit_flips(dtype):
             result = simulator.run(circuit)
             np.testing.assert_equal(result.measurements,
                                     {'0': [[b0]], '1': [[b1]]})
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_not_channel_op(dtype):
+    class BadOp(cirq.Operation):
+        def __init__(self, qubits):
+            self._qubits = qubits
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits: QubitId):
+            return BadOp(self._qubits)
+
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    circuit = cirq.Circuit.from_ops([BadOp([q0])])
+    with pytest.raises(TypeError):
+        simulator.simulate(circuit)
+
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_mixture(dtype):
