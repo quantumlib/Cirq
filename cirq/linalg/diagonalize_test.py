@@ -72,13 +72,12 @@ def random_bi_diagonalizable_pair(
     return a, b
 
 
-def assertdiagonalized_by(m, p, rtol: float = 1e-5,
-                          atol: float = 1e-8):
+def assert_diagonalized_by(m, p, atol: float = 1e-8):
     d = p.T.dot(m).dot(p)
 
     try:
         assert predicates.is_orthogonal(p)
-        assert predicates.is_diagonal(d, rtol=rtol, atol=atol)
+        assert predicates.is_diagonal(d, atol=atol)
     except AssertionError:
         # coverage: ignore
 
@@ -101,7 +100,7 @@ def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
     try:
         assert predicates.is_orthogonal(p)
         assert predicates.is_orthogonal(q)
-        assert predicates.is_diagonal(d, rtol=rtol, atol=atol)
+        assert predicates.is_diagonal(d, atol=atol)
     except AssertionError:
         # coverage: ignore
 
@@ -143,7 +142,7 @@ def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
                          ])
 def test_diagonalize_real_symmetric_matrix(matrix):
     p = diagonalize.diagonalize_real_symmetric_matrix(matrix)
-    assertdiagonalized_by(matrix, p)
+    assert_diagonalized_by(matrix, p)
 
 
 @pytest.mark.parametrize('matrix', [
@@ -182,8 +181,8 @@ def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars(
     s = np.diag(s)
     p = diagonalize.diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         m, s)
-    assertdiagonalized_by(s, p)
-    assertdiagonalized_by(m, p)
+    assert_diagonalized_by(s, p)
+    assert_diagonalized_by(m, p)
     assert np.allclose(s, p.T.dot(s).dot(p))
 
 
