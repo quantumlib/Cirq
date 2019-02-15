@@ -283,8 +283,7 @@ class DensityMatrixStepResult(simulator.StepResult):
             dtype: The numpy dtype for the density matrix.
         """
         super().__init__(measurements)
-        self._density_matrix = np.reshape(density_matrix, (
-            2 ** len(qubit_map), 2 ** len(qubit_map)))
+        self._density_matrix = density_matrix
         self._qubit_map = qubit_map
         self._dtype = dtype
 
@@ -307,6 +306,8 @@ class DensityMatrixStepResult(simulator.StepResult):
         """
         density_matrix = density_matrix_utils.to_valid_density_matrix(
             density_matrix_repr, len(self._qubit_map), self._dtype)
+        density_matrix = np.reshape(density_matrix,
+                                    self.simulator_state().density_matrix.shape)
         np.copyto(dst=self.simulator_state().density_matrix, src=density_matrix)
 
     def density_matrix(self):
@@ -337,7 +338,8 @@ class DensityMatrixStepResult(simulator.StepResult):
                  6  |   1    |   1    |   0
                  7  |   1    |   1    |   1
         """
-        return self._density_matrix
+        size = 2 ** len(self._qubit_map)
+        return np.reshape(self._density_matrix, (size, size))
 
     def sample(self,
             qubits: List[ops.QubitId],
@@ -421,7 +423,9 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         super().__init__(params=params,
                          measurements=measurements,
                          final_simulator_state=final_simulator_state)
-        self.final_density_matrix = final_simulator_state.density_matrix
+        size = 2 ** len(final_simulator_state.qubit_map)
+        self.final_density_matrix = np.reshape(
+            final_simulator_state.density_matrix, (size, size))
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
