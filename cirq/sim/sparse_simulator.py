@@ -136,15 +136,12 @@ class Simulator(simulator.SimulatesSamples,
         self,
         circuit: circuits.Circuit,
         repetitions: int) -> Dict[str, List[np.ndarray]]:
-        step_result = None
         for step_result in self._base_iterator(
                 circuit=circuit,
                 qubit_order=ops.QubitOrder.DEFAULT,
                 initial_state=0,
                 perform_measurements=False):
             pass
-        if step_result is None:
-            return {}
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
                                    ops.MeasurementGate)]
@@ -160,6 +157,7 @@ class Simulator(simulator.SimulatesSamples,
                     circuit,
                     qubit_order=ops.QubitOrder.DEFAULT,
                     initial_state=0)
+
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     if not k in measurements:
@@ -173,7 +171,6 @@ class Simulator(simulator.SimulatesSamples,
             param_resolver: study.ParamResolver,
             qubit_order: ops.QubitOrderOrList,
             initial_state: Union[int, np.ndarray],
-            perform_measurements: bool = True,
     ) -> Iterator:
         """See definition in `cirq.SimulatesIntermediateState`.
 
@@ -189,7 +186,7 @@ class Simulator(simulator.SimulatesSamples,
         return self._base_iterator(resolved_circuit,
                                    qubit_order,
                                    actual_initial_state,
-                                   perform_measurements)
+                                   perform_measurements=True)
 
     def _base_iterator(
             self,

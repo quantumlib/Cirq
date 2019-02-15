@@ -145,11 +145,14 @@ def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
     if acquaintance_size is None:
         layers.intra.append(shift)
         layers.post.append(acquaint(*qubits))
+        shift.gate.update_mapping(mapping, qubits)
     elif max(left_size, right_size) != acquaintance_size - 1:
         layers.intra.append(shift)
+        shift.gate.update_mapping(mapping, qubits)
     elif acquaintance_size == 2:
         layers.prior_interstitial.append(acquaint(*qubits))
         layers.intra.append(shift)
+        shift.gate.update_mapping(mapping, qubits)
     else:
         # before
         if left_size == acquaintance_size - 1:
@@ -239,10 +242,10 @@ class SwapNetworkGate(PermutationGate):
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
         mapping = dict(qubit_to_position)
         parts = []
-        q = 0
+        n_qubits = 0
         for part_len in self.part_lens:
-            parts.append(list(qubits[q: q + part_len]))
-            q += part_len
+            parts.append(list(qubits[n_qubits: n_qubits + part_len]))
+            n_qubits += part_len
         n_parts = len(parts)
         op_sort_key = (None if self.acquaintance_size is None else
                 (lambda op:
@@ -269,17 +272,16 @@ class SwapNetworkGate(PermutationGate):
         layers.posterior_interstitial.sort(key=op_sort_key)
         yield layers.posterior_interstitial
 
+        assert list(itertools.chain(*(
+            sorted(mapping[q] for q in part) for part in reversed(parts)))
+            ) == list(range(n_qubits))
+
         # finish reversal
-        for part in reversed(parts):
-            part_len = len(part)
-            if part_len > 1:
-                positions = [mapping[q] for q in part]
-                offset = min(positions)
-                reverse_permutation = {
-                        i: (offset - mapping[q] - 1) % part_len
-                        for i, q in enumerate(part)}
-                yield LinearPermutationGate(reverse_permutation,
-                        self.swap_gate)(*part)
+        final_permutation = {i: n_qubits - 1 - mapping[q]
+                for i, q in enumerate(qubits)}
+        final_gate = LinearPermutationGate(final_permutation, self.swap_gate)
+        if final_gate:
+            yield final_gate(*qubits)
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs):

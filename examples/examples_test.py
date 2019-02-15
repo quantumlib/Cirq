@@ -7,6 +7,7 @@ import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
 import examples.phase_estimator
+import examples.basic_arithmetic
 
 
 def test_example_runs_bernstein_vazirani(benchmark):
@@ -42,6 +43,10 @@ def test_example_runs_bcs_mean_field(benchmark):
 
 def test_example_runs_grover(benchmark):
     benchmark(examples.grover.main)
+
+
+def test_example_runs_basic_arithmetic():
+    examples.basic_arithmetic.main(n=2)
 
 
 def test_example_runs_phase_estimator(benchmark):
