@@ -385,7 +385,7 @@ class MeasurementGate(gate_features.MultiQubitGate):
     def _channel_(self):
         return (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]]))
 
-    def _has_channel(self):
+    def _has_channel_(self):
         return True
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
