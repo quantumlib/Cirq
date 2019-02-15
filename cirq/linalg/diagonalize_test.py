@@ -18,10 +18,7 @@ from typing import Tuple, Optional
 import numpy as np
 import pytest
 
-from cirq.linalg import combinators
-from cirq.linalg import diagonalize
-from cirq.linalg import predicates
-from cirq import testing
+import cirq
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -57,28 +54,27 @@ def random_symmetric_matrix(n: int) -> np.ndarray:
 
 
 def random_block_diagonal_symmetric_matrix(*ns: int) -> np.ndarray:
-    return combinators.block_diag(*[random_symmetric_matrix(n) for n in ns])
+    return cirq.block_diag(*[random_symmetric_matrix(n) for n in ns])
 
 
 def random_bi_diagonalizable_pair(
         n: int, d1: Optional[int] = None, d2: Optional[int] = None
 ) -> Tuple[np.ndarray, np.ndarray]:
-    u = testing.random_orthogonal(n)
+    u = cirq.testing.random_orthogonal(n)
     s = random_real_diagonal_matrix(n, d1)
     z = random_real_diagonal_matrix(n, d2)
-    v = testing.random_orthogonal(n)
-    a = combinators.dot(u, s, v)
-    b = combinators.dot(u, z, v)
+    v = cirq.testing.random_orthogonal(n)
+    a = cirq.dot(u, s, v)
+    b = cirq.dot(u, z, v)
     return a, b
 
 
-def assertdiagonalized_by(m, p, rtol: float = 1e-5,
-                          atol: float = 1e-8):
+def assert_diagonalized_by(m, p, atol: float = 1e-8):
     d = p.T.dot(m).dot(p)
 
     try:
-        assert predicates.is_orthogonal(p)
-        assert predicates.is_diagonal(d, rtol=rtol, atol=atol)
+        assert cirq.is_orthogonal(p)
+        assert cirq.is_diagonal(d, atol=atol)
     except AssertionError:
         # coverage: ignore
 
@@ -99,9 +95,9 @@ def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
     d = p.dot(m).dot(q)
 
     try:
-        assert predicates.is_orthogonal(p)
-        assert predicates.is_orthogonal(q)
-        assert predicates.is_diagonal(d, rtol=rtol, atol=atol)
+        assert cirq.is_orthogonal(p)
+        assert cirq.is_orthogonal(q)
+        assert cirq.is_diagonal(d, atol=atol)
     except AssertionError:
         # coverage: ignore
 
@@ -132,18 +128,18 @@ def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
     np.array([[-1, 500], [500, -4]]),
     np.array([[1, 3], [3, 7]]),
 ] + [
-                             random_symmetric_matrix(2) for _ in
-                             range(10)
-                         ] + [
-                             random_symmetric_matrix(4) for _ in
-                             range(10)
-                         ] + [
-                             random_symmetric_matrix(k) for k in
-                             range(1, 10)
-                         ])
+    random_symmetric_matrix(2) for _ in
+    range(10)
+] + [
+    random_symmetric_matrix(4) for _ in
+    range(10)
+] + [
+    random_symmetric_matrix(k) for k in
+    range(1, 10)
+])
 def test_diagonalize_real_symmetric_matrix(matrix):
-    p = diagonalize.diagonalize_real_symmetric_matrix(matrix)
-    assertdiagonalized_by(matrix, p)
+    p = cirq.diagonalize_real_symmetric_matrix(matrix)
+    assert_diagonalized_by(matrix, p)
 
 
 @pytest.mark.parametrize('matrix', [
@@ -155,7 +151,7 @@ def test_diagonalize_real_symmetric_matrix(matrix):
 ])
 def test_diagonalize_real_symmetric_matrix_fails(matrix):
     with pytest.raises(ValueError):
-        _ = diagonalize.diagonalize_real_symmetric_matrix(matrix)
+        _ = cirq.diagonalize_real_symmetric_matrix(matrix)
 
 
 @pytest.mark.parametrize('s,m', [
@@ -180,26 +176,26 @@ def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars(
         s, m):
     m = np.array(m)
     s = np.diag(s)
-    p = diagonalize.diagonalize_real_symmetric_and_sorted_diagonal_matrices(
-        m, s)
-    assertdiagonalized_by(s, p)
-    assertdiagonalized_by(m, p)
+    p = cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices(m, s)
+    assert_diagonalized_by(s, p)
+    assert_diagonalized_by(m, p)
     assert np.allclose(s, p.T.dot(s).dot(p))
 
 
-@pytest.mark.parametrize('s,m', [
-    ([1, 2], np.eye(2)),
-    ([2, 1], [[0, 1], [1, 0]]),
-    ([1, 0], [[1, 3], [3, 6]]),
-    ([2, 1, 1], [[1, 3, 0], [3, 6, 0], [0, 0, 1]]),
-    ([2, 2, 1], [[-5, 0, 0], [0, 1, 3], [0, 3, 6]]),
+@pytest.mark.parametrize('s,m,match', [
+    ([1, 2], np.eye(2), 'must be real diagonal descending'),
+    ([2, 1], [[0, 1], [1, 0]], 'must commute'),
+    ([1, 0], [[1, 3], [3, 6]], 'must commute'),
+    ([2, 1, 1], [[1, 3, 0], [3, 6, 0], [0, 0, 1]], 'must commute'),
+    ([2, 2, 1], [[-5, 0, 0], [0, 1, 3], [0, 3, 6]], 'must commute'),
+    ([3, 2, 1], QFT, 'must be real symmetric'),
 ])
 def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars_fail(
-        s, m):
+        s, m, match: str):
     m = np.array(m)
     s = np.diag(s)
-    with pytest.raises(ValueError):
-        diagonalize.diagonalize_real_symmetric_and_sorted_diagonal_matrices(
+    with pytest.raises(ValueError, match=match):
+        cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices(
             m, s)
 
 
@@ -209,53 +205,53 @@ def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars_fail(
     (np.eye(4), np.eye(4)),
     (np.eye(4), np.zeros((4, 4))),
     (H, H),
-    (combinators.kron(np.eye(2), H),
-     combinators.kron(H, np.eye(2))),
-    (combinators.kron(np.eye(2), Z),
-     combinators.kron(X, np.eye(2))),
+    (cirq.kron(np.eye(2), H),
+     cirq.kron(H, np.eye(2))),
+    (cirq.kron(np.eye(2), Z),
+     cirq.kron(X, np.eye(2))),
 ] + [
-                             random_bi_diagonalizable_pair(2)
-                             for _ in range(10)
-                         ] + [
-                             random_bi_diagonalizable_pair(4)
-                             for _ in range(10)
-                         ] + [
-                             random_bi_diagonalizable_pair(4, d1, d2)
-                             for _ in range(10)
-                             for d1 in range(4)
-                             for d2 in range(4)
-                         ] + [
-                             random_bi_diagonalizable_pair(k)
-                             for k in range(1, 10)
-                         ])
+    random_bi_diagonalizable_pair(2)
+    for _ in range(10)
+] + [
+    random_bi_diagonalizable_pair(4)
+    for _ in range(10)
+] + [
+    random_bi_diagonalizable_pair(4, d1, d2)
+    for _ in range(10)
+    for d1 in range(4)
+    for d2 in range(4)
+] + [
+    random_bi_diagonalizable_pair(k)
+    for k in range(1, 10)
+])
 def test_bidiagonalize_real_matrix_pair_with_symmetric_products(a, b):
     a = np.array(a)
     b = np.array(b)
-    p, q = diagonalize.bidiagonalize_real_matrix_pair_with_symmetric_products(
+    p, q = cirq.bidiagonalize_real_matrix_pair_with_symmetric_products(
         a, b)
     assert_bidiagonalized_by(a, p, q)
     assert_bidiagonalized_by(b, p, q)
 
 
-@pytest.mark.parametrize('a,b', [
-    [X, Z],
-    [Y, np.eye(2)],
-    [np.eye(2), Y],
-    [np.eye(5), np.eye(4)],
-    [
-        e * testing.random_orthogonal(4)
-        for e in random_bi_diagonalizable_pair(4)
-    ],
-    [
-        testing.random_orthogonal(4) * e
-        for e in random_bi_diagonalizable_pair(4)
-    ],
+@pytest.mark.parametrize('a,b,match', [
+    [X, Z, 'must be symmetric'],
+    [Y, np.eye(2), 'must be real'],
+    [np.eye(2), Y, 'must be real'],
+    [np.eye(5), np.eye(4), 'shapes'],
+    [e * cirq.testing.random_orthogonal(4)
+     for e in random_bi_diagonalizable_pair(4)] + ['must be symmetric'],
+    [np.array([[1, 1], [1, 0]]),
+     np.array([[1, 1], [0, 1]]),
+     'mat1.T @ mat2 must be symmetric'],
+    [np.array([[1, 1], [1, 0]]),
+     np.array([[1, 0], [1, 1]]),
+     'mat1 @ mat2.T must be symmetric'],
 ])
-def test_bidiagonalize_real_fails(a, b):
+def test_bidiagonalize_real_fails(a, b, match: str):
     a = np.array(a)
     b = np.array(b)
-    with pytest.raises(ValueError):
-        diagonalize.bidiagonalize_real_matrix_pair_with_symmetric_products(
+    with pytest.raises(ValueError, match=match):
+        cirq.bidiagonalize_real_matrix_pair_with_symmetric_products(
             a, b)
 
 
@@ -267,23 +263,23 @@ def test_bidiagonalize_real_fails(a, b):
     CNOT,
     Y,
     H,
-    combinators.kron(H, H),
-    combinators.kron(Y, Y),
+    cirq.kron(H, H),
+    cirq.kron(Y, Y),
     QFT
 ] + [
-                             testing.random_unitary(2) for _ in
-                             range(10)
-                         ] + [
-                             testing.random_unitary(4) for _ in
-                             range(10)
-                         ] + [
-                             testing.random_unitary(k) for k in
-                             range(1, 10)
-                         ])
+    cirq.testing.random_unitary(2) for _ in
+    range(10)
+] + [
+    cirq.testing.random_unitary(4) for _ in
+    range(10)
+] + [
+    cirq.testing.random_unitary(k) for k in
+    range(1, 10)
+])
 def test_bidiagonalize_unitary_with_special_orthogonals(mat):
-    p, d, q = diagonalize.bidiagonalize_unitary_with_special_orthogonals(mat)
-    assert predicates.is_special_orthogonal(p)
-    assert predicates.is_special_orthogonal(q)
+    p, d, q = cirq.bidiagonalize_unitary_with_special_orthogonals(mat)
+    assert cirq.is_special_orthogonal(p)
+    assert cirq.is_special_orthogonal(q)
     assert np.allclose(p.dot(mat).dot(q), np.diag(d))
     assert_bidiagonalized_by(mat, p, q)
 
@@ -297,4 +293,4 @@ def test_bidiagonalize_unitary_with_special_orthogonals(mat):
 ])
 def test_bidiagonalize_unitary_fails(mat):
     with pytest.raises(ValueError):
-        diagonalize.bidiagonalize_unitary_with_special_orthogonals(mat)
+        cirq.bidiagonalize_unitary_with_special_orthogonals(mat)

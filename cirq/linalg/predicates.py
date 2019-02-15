@@ -17,25 +17,20 @@ from typing import Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.linalg.tolerance import all_near_zero
-from cirq.linalg.transformations import match_global_phase
+from cirq.linalg import tolerance, transformations
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import List
 
 
-def is_diagonal(
-        matrix: np.ndarray,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     """Determines if a matrix is a approximately diagonal.
 
     A matrix is diagonal if i!=j implies m[i,j]==0.
 
     Args:
         matrix: The matrix to check.
-        rtol: The per-matrix-entry relative tolerance on equality.
         atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
@@ -44,11 +39,12 @@ def is_diagonal(
     matrix = np.copy(matrix)
     for i in range(min(matrix.shape)):
         matrix[i, i] = 0
-    return all_near_zero(matrix, rtol=rtol, atol=atol)
+    return tolerance.all_near_zero(matrix, atol=atol)
 
 
 def is_hermitian(
         matrix: np.ndarray,
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately Hermitian.
@@ -69,6 +65,7 @@ def is_hermitian(
 
 def is_orthogonal(
         matrix: np.ndarray,
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately orthogonal.
@@ -93,6 +90,7 @@ def is_orthogonal(
 
 def is_special_orthogonal(
         matrix: np.ndarray,
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately special orthogonal.
@@ -115,6 +113,7 @@ def is_special_orthogonal(
 
 def is_unitary(
         matrix: np.ndarray,
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary.
@@ -137,6 +136,7 @@ def is_unitary(
 
 def is_special_unitary(
         matrix: np.ndarray,
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary with unit determinant.
@@ -160,6 +160,7 @@ def is_special_unitary(
 def commutes(
         m1: np.ndarray,
         m2: np.ndarray,
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> bool:
     """Determines if two matrices approximately commute.
@@ -185,6 +186,7 @@ def commutes(
 def allclose_up_to_global_phase(
         a: np.ndarray,
         b: np.ndarray,
+        *,
         rtol: float = 1.e-5,
         atol: float = 1.e-8,
         equal_nan: bool = False
@@ -200,7 +202,7 @@ def allclose_up_to_global_phase(
             other NaN entries.
     """
 
-    a, b = match_global_phase(a, b)
+    a, b = transformations.match_global_phase(a, b)
 
     # Should now be equivalent.
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
