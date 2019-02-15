@@ -386,7 +386,7 @@ class MeasurementGate(gate_features.MultiQubitGate):
         size = 2 ** self.num_qubits()
         zero = np.zeros((size, size))
         zero[0][0] = 1.0
-        one = np.ones((size, size))
+        one = np.zeros((size, size))
         one[-1][-1] = 1.0
         return (zero, one)
 
