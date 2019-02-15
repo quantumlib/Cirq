@@ -76,6 +76,7 @@ def test_run_not_channel_op(dtype):
             return self._qubits
 
         def with_qubits(self, *new_qubits: QubitId):
+            # ignore: coverage
             return BadOp(self._qubits)
 
     q0 = cirq.LineQubit(0)
@@ -175,6 +176,18 @@ def test_run_correlations(dtype):
         bits = result.measurements['0,1'][0]
         assert bits[0] == bits[1]
 
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_ignore_displays(dtype):
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    q0 = cirq.LineQubit(0)
+    display = cirq.ApproxPauliStringExpectation(
+            cirq.PauliString({q0: cirq.Z}),
+            num_samples=1
+    )
+    circuit = cirq.Circuit.from_ops(cirq.X(q0), display, cirq.measure(q0))
+    result = simulator.run(circuit)
+    assert result.measurements['0'] == [[True]]
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_measure_multiple_qubits(dtype):

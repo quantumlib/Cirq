@@ -184,8 +184,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 "SupportsChannel or is a measurement: {!r}".format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_channel(potential_op) or
-                    ops.MeasurementGate.is_measurement(potential_op))
+            return (protocols.has_channel(potential_op)
+                    or ops.MeasurementGate.is_measurement(potential_op)
+                    or isinstance(potential_op,
+                                  (ops.SamplesDisplay, ops.WaveFunctionDisplay))
+                    )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
         buffer = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
