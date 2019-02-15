@@ -18,36 +18,32 @@ from cirq.linalg.tolerance import all_near_zero, all_near_zero_mod, \
 
 def test_all_zero():
     atol = 5
-    rtol = 9999999
-    assert all_near_zero(0, atol=atol, rtol=rtol)
-    assert all_near_zero(4.5, atol=atol, rtol=rtol)
-    assert not all_near_zero(5.5, atol=atol, rtol=rtol)
+    assert all_near_zero(0, atol=atol)
+    assert all_near_zero(4.5, atol=atol)
+    assert not all_near_zero(5.5, atol=atol)
 
-    assert all_near_zero([-4.5, 0, 1, 4.5, 3], atol=atol, rtol=rtol)
-    assert not all_near_zero([-4.5, 0, 1, 4.5, 30], atol=atol, rtol=rtol)
+    assert all_near_zero([-4.5, 0, 1, 4.5, 3], atol=atol)
+    assert not all_near_zero([-4.5, 0, 1, 4.5, 30], atol=atol)
 
 
 def test_all_zero_mod():
     atol = 5
-    rtol = 9999999
-    assert all_near_zero_mod(0, 100, atol=atol, rtol=rtol)
-    assert all_near_zero_mod(4.5, 100, atol=atol, rtol=rtol)
-    assert not all_near_zero_mod(5.5, 100, atol=atol, rtol=rtol)
+    assert all_near_zero_mod(0, 100, atol=atol)
+    assert all_near_zero_mod(4.5, 100, atol=atol)
+    assert not all_near_zero_mod(5.5, 100, atol=atol)
 
-    assert all_near_zero_mod(100, 100, atol=atol, rtol=rtol)
-    assert all_near_zero_mod(95.5, 100, atol=atol, rtol=rtol)
-    assert not all_near_zero_mod(94.5, 100, atol=atol, rtol=rtol)
+    assert all_near_zero_mod(100, 100, atol=atol)
+    assert all_near_zero_mod(95.5, 100, atol=atol)
+    assert not all_near_zero_mod(94.5, 100, atol=atol)
 
-    assert all_near_zero_mod(-4.5, 100, atol=atol, rtol=rtol)
-    assert not all_near_zero_mod(-5.5, 100, atol=atol, rtol=rtol)
+    assert all_near_zero_mod(-4.5, 100, atol=atol)
+    assert not all_near_zero_mod(-5.5, 100, atol=atol)
 
-    assert all_near_zero_mod(104.5, 100, atol=atol, rtol=rtol)
-    assert not all_near_zero_mod(105.5, 100, atol=atol, rtol=rtol)
+    assert all_near_zero_mod(104.5, 100, atol=atol)
+    assert not all_near_zero_mod(105.5, 100, atol=atol)
 
-    assert all_near_zero_mod([-4.5, 0, 1, 4.5, 3, 95.5, 104.5], 100, atol=atol,
-                             rtol=rtol)
-    assert not all_near_zero_mod([-4.5, 0, 1, 4.5, 30], 100, atol=atol,
-                                 rtol=rtol)
+    assert all_near_zero_mod([-4.5, 0, 1, 4.5, 3, 95.5, 104.5], 100, atol=atol)
+    assert not all_near_zero_mod([-4.5, 0, 1, 4.5, 30], 100, atol=atol)
 
 
 def test_near_zero():

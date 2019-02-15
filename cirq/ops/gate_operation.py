@@ -112,6 +112,18 @@ class GateOperation(raw_types.Operation):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
 
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self._gate)
+
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return protocols.mixture(self._gate, NotImplemented)
+
+    def _has_channel_(self) -> bool:
+        return protocols.has_channel(self._gate)
+
+    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.channel(self._gate, NotImplemented)
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._gate)
 
