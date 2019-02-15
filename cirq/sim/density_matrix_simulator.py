@@ -192,6 +192,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
+        buffer = np.zeros_like(matrix)
         for moment in circuit:
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[bool]]
