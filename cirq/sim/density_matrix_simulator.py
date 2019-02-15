@@ -34,11 +34,13 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         * a `_unitary_` method
         * a `_has_unitary_` and `_apply_unitary_` method.
         * measurements
+        * a `_decompose_` that eventually yields one of the above
     That is, the circuit must have elements that follow on of the protocols:
         * `cirq.SupportsChannel`
         * `cirq.SupportsMixture`
         * `cirq.SupportsApplyUnitary`
         * `cirq.SupportsUnitary`
+        * `cirq.SupportsDecompose`
     or is a measurement.
 
     This simulator supports three types of simulation.
@@ -60,7 +62,13 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
     By contrast the simulate methods of the simulator give access to the density
     matrix of the simulation at the end of the simulation of the circuit.
-    These methods take in two parameters that the run methods do not: a
+    Note that if the circuit contains measurements then the density matrix
+    is that result for those particular measurement results. For example
+    if there is one measurement, then the simulation may result in the
+    measurement result for this measurement, and the density matrix will
+    be that conditional on that result. It will not be the density matrix formed
+    by summing over the different measurements and their probabilities.
+    The simulate methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
     ordering must be chosen for the kronecker product (see
     `DensityMatrixTrialResult` for details of this ordering). The initial
@@ -110,9 +118,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         self._dtype = dtype
 
     def _run(self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver,
-        repetitions: int) -> Dict[str, np.ndarray]:
+            circuit: circuits.Circuit,
+            param_resolver: study.ParamResolver,
+            repetitions: int) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
@@ -155,12 +163,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                    actual_initial_state)
 
     def _base_iterator(
-        self,
-        circuit: circuits.Circuit,
-        qubit_order: ops.QubitOrderOrList,
-        initial_state: Union[int, np.ndarray],
-        perform_measurements: bool=True,
-    ) -> Iterator:
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            initial_state: Union[int, np.ndarray],
+            perform_measurements: bool = True) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         num_qubits = len(qubits)
@@ -236,10 +243,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 dtype=self._dtype)
 
     def _create_simulator_trial_result(self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: 'DensityMatrixSimulatorState') \
-        -> 'DensityMatrixTrialResult':
+            params: study.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            final_simulator_state: 'DensityMatrixSimulatorState') \
+            -> 'DensityMatrixTrialResult':
         return DensityMatrixTrialResult(
             params=params,
             measurements=measurements,
@@ -247,7 +254,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
 
 class DensityMatrixStepResult(simulator.StepResult):
-    """A singe step in the simulation of the DensityMatrixSimulator.
+    """A single step in the simulation of the DensityMatrixSimulator.
 
     Attributes:
         qubit_map: A map from the Qubits in the Circuit to the the index
@@ -259,10 +266,10 @@ class DensityMatrixStepResult(simulator.StepResult):
     """
 
     def __init__(self,
-        density_matrix: np.ndarray,
-        measurements: Dict[str, np.ndarray],
-        qubit_map: Dict[ops.QubitId, int],
-        dtype: Type[np.number] = np.complex64):
+            density_matrix: np.ndarray,
+            measurements: Dict[str, np.ndarray],
+            qubit_map: Dict[ops.QubitId, int],
+            dtype: Type[np.number] = np.complex64):
         """DensityMatrixStepResult.
 
         Args:
@@ -330,8 +337,8 @@ class DensityMatrixStepResult(simulator.StepResult):
         return self._density_matrix
 
     def sample(self,
-        qubits: List[ops.QubitId],
-        repetitions: int = 1) -> np.ndarray:
+            qubits: List[ops.QubitId],
+            repetitions: int = 1) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self.simulator_state().density_matrix,
@@ -349,8 +356,8 @@ class DensityMatrixSimulatorState():
     """
 
     def __init__(self,
-        density_matrix: np.ndarray,
-        qubit_map: Dict[ops.QubitId, int]):
+            density_matrix: np.ndarray,
+            qubit_map: Dict[ops.QubitId, int]):
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
 
@@ -405,9 +412,9 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
     """
 
     def __init__(self,
-        params: study.ParamResolver,
-        measurements: Dict[str, np.ndarray],
-        final_simulator_state: DensityMatrixSimulatorState) -> None:
+            params: study.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            final_simulator_state: DensityMatrixSimulatorState) -> None:
         super().__init__(params=params,
                          measurements=measurements,
                          final_simulator_state=final_simulator_state)
