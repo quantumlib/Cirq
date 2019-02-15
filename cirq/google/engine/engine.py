@@ -175,9 +175,10 @@ class Engine:
                                                '?version={apiVersion}')
         self.default_gcs_prefix = default_gcs_prefix
 
-        discovery_service_url = discovery_url if self.api_key is None else (
-            "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
-                           self.api_key)))
+        discovery_service_url = (
+            self.discovery_url if self.api_key is None else (
+                "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
+                               self.api_key))))
         self.service = discovery.build(
             self.api,
             self.version,
