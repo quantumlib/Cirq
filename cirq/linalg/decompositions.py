@@ -24,7 +24,7 @@ import numpy as np
 
 from cirq import value
 from cirq.linalg import combinators, diagonalize, predicates
-from cirq.linalg.tolerance import all_near_zero
+
 
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
@@ -99,7 +99,7 @@ def _group_similar(items: List[T],
 
 def _perp_eigendecompose(matrix: np.ndarray,
                          rtol: float = 1e-5,
-                         atol: float = 1e-8
+                         atol: float = 1e-8,
                          ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
 
@@ -141,19 +141,13 @@ def _perp_eigendecompose(matrix: np.ndarray,
         for i in range(len(g)):
             vecs[g[i]] = q[:, i]
 
-    # Ensure no eigenvectors overlap.
-    for i in range(len(vecs)):
-        for j in range(i + 1, len(vecs)):
-            if not all_near_zero(np.dot(np.conj(vecs[i].T), vecs[j]), atol=atol,
-                                 rtol=rtol):
-                raise ArithmeticError('Eigenvectors overlap.')
-
     return vals, vecs
 
 
 def map_eigenvalues(
         matrix: np.ndarray,
         func: Callable[[complex], complex],
+        *,
         rtol: float = 1e-5,
         atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
@@ -169,7 +163,9 @@ def map_eigenvalues(
     Returns:
         The transformed matrix.
     """
-    vals, vecs = _perp_eigendecompose(matrix, rtol=rtol, atol=atol)
+    vals, vecs = _perp_eigendecompose(matrix,
+                                      rtol=rtol,
+                                      atol=atol)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
@@ -179,12 +175,14 @@ def map_eigenvalues(
     return total
 
 
-def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[
-    complex, np.ndarray, np.ndarray]:
+def kron_factor_4x4_to_2x2s(
+        matrix: np.ndarray,
+) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
     Requires the matrix to have a non-zero determinant.
+    Giving an incorrect matrix will cause garbage output.
 
     Args:
         matrix: The 4x4 unitary matrix to factor.
@@ -226,8 +224,11 @@ def kron_factor_4x4_to_2x2s(matrix: np.ndarray) -> Tuple[
 
 def so4_to_magic_su2s(
         mat: np.ndarray,
+        *,
         rtol: float = 1e-5,
-        atol: float = 1e-8) -> Tuple[np.ndarray, np.ndarray]:
+        atol: float = 1e-8,
+        check_preconditions: bool = True
+) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
     Mag is the magic basis matrix:
@@ -241,6 +242,8 @@ def so4_to_magic_su2s(
         mat: A real 4x4 orthogonal matrix.
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
+        check_preconditions: When set, the code verifies that the given
+            matrix is from SO(4). Defaults to set.
 
     Returns:
         A pair (A, B) of matrices in SU(2) such that Mag.H @ kron(A, B) @ Mag
@@ -249,10 +252,10 @@ def so4_to_magic_su2s(
     Raises:
         ValueError: Bad matrix.
         """
-    if mat.shape != (4, 4) or not predicates.is_special_orthogonal(mat,
-                                                                   atol=atol,
-                                                                   rtol=rtol):
-        raise ValueError('mat must be 4x4 special orthogonal.')
+    if check_preconditions:
+        if mat.shape != (4, 4) or not predicates.is_special_orthogonal(
+                mat, atol=atol, rtol=rtol):
+            raise ValueError('mat must be 4x4 special orthogonal.')
 
     ab = combinators.dot(MAGIC, mat, MAGIC_CONJ_T)
     _, a, b = kron_factor_4x4_to_2x2s(ab)
@@ -505,14 +508,21 @@ def kak_decomposition(
                       [1, -1, -1, 1]]) * 0.25
 
     # Diagonalize in magic basis.
-    left, d, right = (
-        diagonalize.bidiagonalize_unitary_with_special_orthogonals(
-            combinators.dot(np.conj(magic.T), mat, magic),
-            atol=atol, rtol=rtol))
+    left, d, right = diagonalize.bidiagonalize_unitary_with_special_orthogonals(
+        combinators.dot(np.conj(magic.T), mat, magic),
+        atol=atol,
+        rtol=rtol,
+        check_preconditions=False)
 
     # Recover pieces.
-    a1, a0 = so4_to_magic_su2s(left.T, atol=atol, rtol=rtol)
-    b1, b0 = so4_to_magic_su2s(right.T, atol=atol, rtol=rtol)
+    a1, a0 = so4_to_magic_su2s(left.T,
+                               atol=atol,
+                               rtol=rtol,
+                               check_preconditions=False)
+    b1, b0 = so4_to_magic_su2s(right.T,
+                               atol=atol,
+                               rtol=rtol,
+                               check_preconditions=False)
     w, x, y, z = gamma.dot(np.vstack(np.angle(d))).flatten()
     g = np.exp(1j * w)
 
