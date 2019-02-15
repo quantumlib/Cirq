@@ -193,7 +193,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
         for moment in circuit:
-            print('start matrix {}'.format(matrix))
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[bool]]
 
@@ -238,8 +237,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             [num_qubits + x for x in indices])
                         sum_buffer += buffer
                     np.copyto(dst=matrix, src=sum_buffer)
-            print('end matrix {}'.format(matrix))
-
             yield DensityMatrixStepResult(
                     density_matrix=matrix,
                     measurements=measurements,
