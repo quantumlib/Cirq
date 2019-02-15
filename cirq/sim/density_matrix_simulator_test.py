@@ -76,7 +76,7 @@ def test_run_not_channel_op(dtype):
             return self._qubits
 
         def with_qubits(self, *new_qubits: QubitId):
-            # ignore: coverage
+            # coverage: ignore
             return BadOp(self._qubits)
 
     q0 = cirq.LineQubit(0)
