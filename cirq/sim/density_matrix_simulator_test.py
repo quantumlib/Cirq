@@ -17,7 +17,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq import QubitId
 
 
 def test_invalid_dtype():
@@ -75,7 +74,7 @@ def test_run_not_channel_op(dtype):
         def qubits(self):
             return self._qubits
 
-        def with_qubits(self, *new_qubits: QubitId):
+        def with_qubits(self, *new_qubits):
             # coverage: ignore
             return BadOp(self._qubits)
 
