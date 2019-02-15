@@ -366,8 +366,8 @@ class MeasurementGate(gate_features.MultiQubitGate):
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        return (cirq.measurement_key(op, None) is not None
-                and cirq.has_channel(op))
+        return (cirq.protocols.measurement_key(op, None) is not None
+                and cirq.protocols.has_channel(op))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
