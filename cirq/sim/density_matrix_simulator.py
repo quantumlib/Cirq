@@ -238,13 +238,13 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             [num_qubits + x for x in indices])
                         sum_buffer += buffer
                     np.copyto(dst=matrix, src=sum_buffer)
-        print('end matrix {}'.format(matrix))
+            print('end matrix {}'.format(matrix))
 
-        yield DensityMatrixStepResult(
-                density_matrix=matrix,
-                measurements=measurements,
-                qubit_map=qubit_map,
-                dtype=self._dtype)
+            yield DensityMatrixStepResult(
+                    density_matrix=matrix,
+                    measurements=measurements,
+                    qubit_map=qubit_map,
+                    dtype=self._dtype)
 
     def _create_simulator_trial_result(self,
             params: study.ParamResolver,
