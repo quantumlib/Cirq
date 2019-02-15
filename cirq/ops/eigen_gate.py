@@ -25,7 +25,7 @@ from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 if sys.version_info < (3,):
-    gcd = fractions.gcd # pylint: disable=unused-import
+    gcd = fractions.gcd # coverage: ignore
 else:
     import math
     gcd = math.gcd

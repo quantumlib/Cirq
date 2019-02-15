@@ -27,7 +27,7 @@ import cirq.ops.common_gates
 
 if sys.version_info < (3,):
     import fractions # pylint: disable=unused-import
-    gcd = fractions.gcd # pylint: disable=unused-import
+    gcd = fractions.gcd # coverage: ignore
 else:
     import math
     gcd = math.gcd
