@@ -18,7 +18,6 @@ import pytest
 
 import cirq
 from cirq import QubitId
-from cirq.ops.raw_types import TSelf_Operation
 
 
 def test_invalid_dtype():
