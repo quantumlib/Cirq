@@ -316,12 +316,18 @@ def test_sample_state():
 
 def test_sample_empty_state():
     state = np.array([])
-    assert cirq.sample_state_vector(state, []) == [[]]
+    np.testing.assert_almost_equal(cirq.sample_state_vector(state, []),
+        np.zeros(shape=(1,0)))
 
 
 def test_sample_no_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
-    assert cirq.sample_state_vector(state, [1], repetitions=0) == [[]]
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [1], repetitions=0),
+        np.zeros(shape=(0, 1)))
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [1, 2], repetitions=0),
+        np.zeros(shape=(0, 2)))
 
 
 def test_sample_state_repetitions():
@@ -357,12 +363,15 @@ def test_sample_state_index_out_of_range():
 
 def test_sample_no_indices():
     state = cirq.to_valid_state_vector(0, 3)
-    assert [[]] == cirq.sample_state_vector(state, [])
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, []), np.zeros(shape=(1, 0)))
 
 
 def test_sample_no_indices_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
-    assert [[], []] == cirq.sample_state_vector(state, [], repetitions=2)
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [], repetitions=2),
+        np.zeros(shape=(2, 0)))
 
 
 def test_measure_state_computational_basis():
@@ -480,6 +489,25 @@ def test_measure_state_no_indices():
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)
+
+
+def test_measure_state_no_indices_out_is_state():
+    initial_state = cirq.to_valid_state_vector(0, 3)
+    bits, state = cirq.measure_state_vector(initial_state, [],
+                                            out=initial_state)
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+    assert state is initial_state
+
+
+def test_measure_state_no_indices_out_is_not_state():
+    initial_state = cirq.to_valid_state_vector(0, 3)
+    out = np.zeros_like(initial_state)
+    bits, state = cirq.measure_state_vector(initial_state, [], out=out)
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+    assert state is out
+    assert out is not initial_state
 
 
 def test_measure_state_empty_state():

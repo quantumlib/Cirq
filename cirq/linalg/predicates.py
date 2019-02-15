@@ -208,6 +208,8 @@ def allclose_up_to_global_phase(
 
 def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
                               little_endian_qureg_value: int,
+                              *,  # Forces keyword args.
+                              num_qubits: int = None
                               ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
@@ -240,14 +242,20 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
             determines the desired value of the first targeted qubit, and so
             forth with the k'th targeted qubit's value set to
             bool(qureg_value & (1 << k)).
+        num_qubits: If specified the slices will extend all the way up to
+            this number of qubits, otherwise if it is None, the final element
+            return will be Ellipsis. Optional and defaults to using Ellipsis.
 
     Returns:
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
     """
-    n = max(target_qubit_axes) if target_qubit_axes else -1
-    result = [slice(None)] * (n + 2)  # type: List[Union[slice, int, ellipsis]]
+    n = num_qubits if num_qubits is not None else (
+        max(target_qubit_axes) if target_qubit_axes else -1)
+    result = [slice(None)] * (n + 2 * (
+            num_qubits is None))  # type: List[Union[slice, int, ellipsis]]
     for k, axis in enumerate(target_qubit_axes):
         result[axis] = (little_endian_qureg_value >> k) & 1
-    result[-1] = Ellipsis
+    if num_qubits is None:
+        result[-1] = Ellipsis
     return tuple(result)
