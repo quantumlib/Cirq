@@ -226,6 +226,60 @@ def test_circuit_diagram_info():
                                      default=None) is None
 
 
+# A contrived multiqubit Hadamard gate that asserts the consistency of
+# the passed in Args and puts an H on all qubits
+# displays them as 'H(qubit)' on the wire
+class MultiH(cirq.MultiQubitGate):
+
+    def _circuit_diagram_info_(self,
+                               args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        assert args.known_qubit_count is not None
+        assert args.known_qubits is not None
+
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits),
+            connected=True
+        )
+
+
+def test_circuit_diagram():
+    qubits = cirq.LineQubit.range(3)
+    c = cirq.Circuit()
+    c.append(cirq.ControlledGate(MultiH(2))(*qubits))
+
+    cirq.testing.assert_has_diagram(c, """
+0: ───@──────
+      │
+1: ───H(1)───
+      │
+2: ───H(2)───
+""")
+
+
+class MockGate(cirq.TwoQubitGate):
+
+    def _circuit_diagram_info_(self,
+                               args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        self.captured_diagram_args = args
+        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1,
+                                       connected=True)
+
+
+def test_uninformed_circuit_diagram_info():
+    qbits = cirq.LineQubit.range(3)
+    mock_gate = MockGate()
+    cgate = cirq.ControlledGate(mock_gate)(*qbits)
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+
+    assert (cirq.circuit_diagram_info(cgate, args) ==
+            cirq.CircuitDiagramInfo(wire_symbols=('@', 'MOCK'), exponent=1,
+                                    connected=True))
+    assert mock_gate.captured_diagram_args == args
+
+
 def test_bounded_effect():
     assert cirq.trace_distance_bound(CY**0.001) < 0.01
 
