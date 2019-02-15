@@ -176,6 +176,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             initial_state, num_qubits, self._dtype)
         if len(circuit) == 0:
             yield DensityMatrixStepResult(matrix, {}, qubit_map, self._dtype)
+        matrix = np.reshape(matrix, (2,) * num_qubits * 2)
 
         def on_stuck(bad_op: ops.Operation):
             return TypeError(
