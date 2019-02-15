@@ -192,7 +192,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
-        buffer = np.zeros_like(matrix)
         for moment in circuit:
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[bool]]
@@ -229,15 +228,13 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                                    (2,) * gate.num_qubits() * 2)
                         buffer = linalg.targeted_left_multiply(krauss_tensor,
                                                                matrix,
-                                                               indices,
-                                                               buffer)
+                                                               indices)
                         # No need to transpose as we are acting on the tensor
                         # representation of matrix, so transpose is done for us.
                         buffer = linalg.targeted_left_multiply(
                             np.conjugate(krauss_tensor),
                             buffer,
-                            [num_qubits + x for x in indices],
-                            buffer)
+                            [num_qubits + x for x in indices])
                         sum_buffer += buffer
                     np.copyto(dst=matrix, src=sum_buffer)
             yield DensityMatrixStepResult(
