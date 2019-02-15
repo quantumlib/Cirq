@@ -43,13 +43,13 @@ def test_unitary():
         def _unitary_(self):
             return NotImplemented
         def num_qubits(self):
-            return None
+            return None # coverage: ignore
 
     class ReturnsMatrix:
         def _unitary_(self) -> np.ndarray:
             return m
         def num_qubits(self):
-            return 1
+            return 1 # coverage: ignore
 
     class FullyImplemented(cirq.Gate):
         def __init__(self, unitary_value):
@@ -59,7 +59,7 @@ def test_unitary():
         def _unitary_(self) -> np.ndarray:
             return m
         def num_qubits(self):
-            return 1
+            return 1 # coverage: ignore
 
     class Decomposable(cirq.Operation):
         qubits = ()
