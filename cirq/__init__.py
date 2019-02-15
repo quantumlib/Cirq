@@ -261,6 +261,7 @@ from cirq.protocols import (
     has_unitary,
     inverse,
     is_parameterized,
+    measurement_key,
     mixture,
     mixture_channel,
     mul,

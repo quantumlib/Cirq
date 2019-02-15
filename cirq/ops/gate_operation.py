@@ -112,6 +112,9 @@ class GateOperation(raw_types.Operation):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
 
+    def _measurement_key_(self) -> str:
+        return protocols.measurement_key(self._gate, NotImplemented)
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._gate)
 
