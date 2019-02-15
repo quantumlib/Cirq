@@ -14,15 +14,22 @@
 
 """Defines trial results."""
 
-from typing import Iterable, Callable, Tuple, TypeVar, Dict, Any
+from typing import (
+    Iterable, Callable, Tuple, TypeVar, Dict, Any, TYPE_CHECKING, Union
+)
 
 import collections
 import numpy as np
 
-from cirq import value
+from cirq import value, ops
 from cirq.study import resolver
 
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
+
 T = TypeVar('T')
+TMeasurementKey = Union[str, 'cirq.QubitId', Iterable['cirq.QubitId']]
 
 
 def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
@@ -75,6 +82,19 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
     return '\n'.join(keyed_bitstrings)
 
 
+def _key_to_str(key: TMeasurementKey) -> str:
+    # HACK: python 2.7 string literal compatibility.
+    if isinstance(key, bytes):
+        # coverage: ignore
+        return key.decode()
+
+    if isinstance(key, str):
+        return key
+    if isinstance(key, ops.QubitId):
+        return str(key)
+    return ','.join(str(q) for q in key)
+
+
 @value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
@@ -111,7 +131,7 @@ class TrialResult:
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
             self, *,  # Forces keyword args.
-            keys: Iterable[str],
+            keys: Iterable[TMeasurementKey],
             fold_func: Callable[[Tuple[np.ndarray, ...]],
                                 T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
@@ -159,7 +179,7 @@ class TrialResult:
             A counter indicating how often measurements sampled various
             results.
         """
-        fixed_keys = tuple(keys)
+        fixed_keys = tuple(_key_to_str(key) for key in keys)
         samples = zip(*[self.measurements[sub_key]
                         for sub_key in fixed_keys])  # type: Iterable[Any]
         if len(fixed_keys) == 0:
@@ -172,7 +192,7 @@ class TrialResult:
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def histogram(self,  # type: ignore
                   *,  # Forces keyword args.
-                  key: str,
+                  key: TMeasurementKey,
                   fold_func: Callable[[np.ndarray], T] = _big_endian_int
                   ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
@@ -200,7 +220,6 @@ class TrialResult:
         first measured qubit determining the highest-value bit.
 
         Args:
-            positional_args: Never specified. Forces keyword arguments.
             key: Keys of measurements to include in the histogram.
             fold_func: A function used to convert a sampled measurement result
                 into a countable value. The input is a list of bits sampled
