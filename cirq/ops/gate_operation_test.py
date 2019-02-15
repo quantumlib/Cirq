@@ -172,6 +172,11 @@ def test_channel():
     assert not cirq.has_channel(cirq.SingleQubitGate()(a))
 
 
+def test_measurement_key():
+    a = cirq.NamedQubit('a')
+    assert cirq.measurement_key(cirq.measure(a, key='lock')) == 'lock'
+
+
 def assert_mixtures_equal(actual, expected):
     """Assert equal for tuple of mixed scalar and array types."""
     for a, e in zip(actual, expected):

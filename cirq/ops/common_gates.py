@@ -383,7 +383,12 @@ class MeasurementGate(gate_features.MultiQubitGate):
         return self.key
 
     def _channel_(self):
-        return (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]]))
+        size = 2 ** self.num_qubits()
+        zero = np.zeros((size, size))
+        zero[0][0] = 1.0
+        one = np.ones((size, size))
+        one[-1][-1] = 1.0
+        return (zero, one)
 
     def _has_channel_(self):
         return True
