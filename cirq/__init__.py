@@ -196,6 +196,10 @@ from cirq.schedules import (
 from cirq.sim import (
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
+    DensityMatrixStepResult,
+    DensityMatrixSimulator,
+    DensityMatrixSimulatorState,
+    DensityMatrixTrialResult,
     dirac_notation,
     measure_state_vector,
     measure_density_matrix,
