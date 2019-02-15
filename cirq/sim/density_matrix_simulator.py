@@ -228,13 +228,15 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                                    (2,) * gate.num_qubits() * 2)
                         buffer = linalg.targeted_left_multiply(krauss_tensor,
                                                                matrix,
-                                                               indices)
+                                                               indices,
+                                                               buffer)
                         # No need to transpose as we are acting on the tensor
                         # representation of matrix, so transpose is done for us.
                         buffer = linalg.targeted_left_multiply(
                             np.conjugate(krauss_tensor),
                             buffer,
-                            [num_qubits + x for x in indices])
+                            [num_qubits + x for x in indices],
+                            buffer)
                         sum_buffer += buffer
                     np.copyto(dst=matrix, src=sum_buffer)
             yield DensityMatrixStepResult(
