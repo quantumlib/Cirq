@@ -20,18 +20,19 @@ import numpy as np
 
 from cirq.linalg import combinators
 from cirq.linalg import predicates
-from cirq.linalg.tolerance import Tolerance
+from cirq.linalg.tolerance import all_near_zero
 
 
 def diagonalize_real_symmetric_matrix(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> np.ndarray:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes the given matrix.
 
     Args:
         matrix: A real symmetric matrix to diagonalize.
-        tolerance: Numeric error thresholds.
+        rtol: float = 1e-5,
+        atol: float = 1e-8
 
     Returns:
         An orthogonal matrix P such that P.T @ matrix @ P is diagonal.
@@ -40,6 +41,7 @@ def diagonalize_real_symmetric_matrix(
         ValueError: Matrix isn't real symmetric.
     """
 
+    # TODO: Determine if thresholds should be passed into is_hermitian
     if np.any(np.imag(matrix) != 0) or not predicates.is_hermitian(matrix):
         raise ValueError('Input must be real and symmetric.')
 
@@ -76,8 +78,8 @@ def _contiguous_groups(
 def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         symmetric_matrix: np.ndarray,
         diagonal_matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> np.ndarray:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes both given matrices.
 
     The given matrices must commute.
@@ -88,7 +90,8 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         symmetric_matrix: A real symmetric matrix.
         diagonal_matrix: A real diagonal matrix with entries along the diagonal
             sorted into descending order.
-        tolerance: Numeric error thresholds.
+        rtol: Relative numeric error threshold.
+        atol: Absolute numeric error threshold.
 
     Returns:
         An orthogonal matrix P such that P.T @ symmetric_matrix @ P is diagonal
@@ -111,8 +114,8 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         raise ValueError('Given matrices must commute.')
 
     def similar_singular(i, j):
-        return tolerance.all_close(diagonal_matrix[i, i],
-                                   diagonal_matrix[j, j])
+        return np.allclose(diagonal_matrix[i, i],
+                            diagonal_matrix[j, j], rtol=rtol)
 
     # Because the symmetric matrix commutes with the diagonal singulars matrix,
     # the symmetric matrix should be block-diagonal with a block boundary
@@ -140,8 +143,8 @@ def _svd_handling_empty(mat):
 def bidiagonalize_real_matrix_pair_with_symmetric_products(
         mat1: np.ndarray,
         mat2: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[np.ndarray, np.ndarray]:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> Tuple[np.ndarray, np.ndarray]:
     """Finds orthogonal matrices that diagonalize both mat1 and mat2.
 
     Requires mat1 and mat2 to be real.
@@ -151,7 +154,8 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     Args:
         mat1: One of the real matrices.
         mat2: The other real matrix.
-        tolerance: Numeric error thresholds.
+        rtol: Relative numeric error threshold.
+        atol: Absolute numeric error threshold.
 
     Returns:
         A tuple (L, R) of two orthogonal matrices, such that both L @ mat1 @ R
@@ -165,9 +169,9 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
         raise ValueError('mat1 must be real.')
     if np.any(np.imag(mat2) != 0):
         raise ValueError('mat2 must be real.')
-    if not predicates.is_hermitian(mat1.dot(mat2.T), tolerance):
+    if not predicates.is_hermitian(mat1.dot(mat2.T), rtol=rtol, atol=atol):
         raise ValueError('mat1 @ mat2.T must be symmetric.')
-    if not predicates.is_hermitian(mat1.T.dot(mat2), tolerance):
+    if not predicates.is_hermitian(mat1.T.dot(mat2), rtol=rtol, atol=atol):
         raise ValueError('mat1.T @ mat2 must be symmetric.')
 
     # Use SVD to bi-diagonalize the first matrix.
@@ -177,7 +181,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # Determine where we switch between diagonalization-fixup strategies.
     dim = base_diag.shape[0]
     rank = dim
-    while rank > 0 and tolerance.all_near_zero(base_diag[rank - 1, rank - 1]):
+    while rank > 0 and all_near_zero(base_diag[rank - 1, rank - 1]):
         rank -= 1
     base_diag = base_diag[:rank, :rank]
 
@@ -189,7 +193,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # by performing simultaneous diagonalization.
     overlap = semi_corrected[:rank, :rank]
     overlap_adjust = diagonalize_real_symmetric_and_sorted_diagonal_matrices(
-        overlap, base_diag, tolerance)
+        overlap, base_diag, rtol=rtol, atol=atol)
 
     # Fix up the part of the second matrix's diagonalization that's matched
     # against zeros in the first matrix's diagonalization by performing an SVD.
@@ -199,7 +203,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     # Merge the fixup factors into the initial diagonalization.
     left_adjust = combinators.block_diag(overlap_adjust, extra_left_adjust)
     right_adjust = combinators.block_diag(overlap_adjust.T,
-                                           extra_right_adjust)
+                                          extra_right_adjust)
     left = left_adjust.T.dot(base_left.T)
     right = base_right.T.dot(right_adjust.T)
 
@@ -208,13 +212,14 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
 def bidiagonalize_unitary_with_special_orthogonals(
         mat: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> Tuple[np.ndarray, np.array, np.ndarray]:
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> Tuple[np.ndarray, np.array, np.ndarray]:
     """Finds orthogonal matrices L, R such that L @ matrix @ R is diagonal.
 
     Args:
         mat: A unitary matrix.
-        tolerance: Numeric error thresholds.
+        rtol: Relative numeric error threshold.
+        atol: Absolute numeric error threshold.
 
     Returns:
         A triplet (L, d, R) such that L @ mat @ R = diag(d). Both L and R will
@@ -224,7 +229,7 @@ def bidiagonalize_unitary_with_special_orthogonals(
         ValueError: Matrices don't meet preconditions (e.g. not real).
     """
 
-    if not predicates.is_unitary(mat, tolerance):
+    if not predicates.is_unitary(mat, rtol=rtol, atol=atol):
         raise ValueError('matrix must be unitary.')
 
     # Note: Because mat is unitary, setting A = real(mat) and B = imag(mat)
@@ -232,7 +237,8 @@ def bidiagonalize_unitary_with_special_orthogonals(
     left, right = bidiagonalize_real_matrix_pair_with_symmetric_products(
         np.real(mat),
         np.imag(mat),
-        tolerance)
+        rtol=rtol,
+        atol=atol)
 
     # Convert to special orthogonal w/o breaking diagonalization.
     if np.linalg.det(left) < 0:

@@ -70,7 +70,6 @@ from cirq.linalg import (
     reflection_matrix_pow,
     so4_to_magic_su2s,
     targeted_left_multiply,
-    Tolerance,
 )
 
 from cirq.line import (
@@ -127,7 +126,6 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,
-    RotationErrorChannel,
     Rx,
     Ry,
     Rz,
@@ -168,7 +166,6 @@ from cirq.ops import (
     pauli_string_expectation,
     phase_damp,
     phase_flip,
-    rotation_error,
     transform_op_tree,
 )
 
@@ -197,21 +194,28 @@ from cirq.schedules import (
 )
 
 from cirq.sim import (
-    SimulatesSamples,
-    SimulationTrialResult,
-    Simulator,
-    SimulatorStep,
-    StepResult,
-    SimulatesFinalWaveFunction,
-    SimulatesIntermediateWaveFunction,
-    StateVector,
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,
     measure_state_vector,
+    measure_density_matrix,
+    sample_density_matrix,
     sample_state_vector,
+    SimulatesFinalState,
+    SimulatesIntermediateState,
+    SimulatesIntermediateWaveFunction,
+    SimulatesSamples,
+    SimulationTrialResult,
+    Simulator,
+    SparseSimulatorStep,
+    StateVectorMixin,
+    StepResult,
+    to_valid_density_matrix,
     to_valid_state_vector,
     validate_normalized_state,
+    WaveFunctionTrialResult,
+    WaveFunctionStepResult,
+    WaveFunctionSimulatorState,
 )
 
 from cirq.study import (
@@ -235,6 +239,7 @@ from cirq.value import (
     PeriodicValue,
     Symbol,
     Timestamp,
+    validate_probability,
     value_equality,
 )
 
@@ -250,10 +255,14 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    has_channel,
+    has_mixture,
+    has_mixture_channel,
     has_unitary,
     inverse,
     is_parameterized,
     mixture,
+    mixture_channel,
     mul,
     pow,
     qasm,
