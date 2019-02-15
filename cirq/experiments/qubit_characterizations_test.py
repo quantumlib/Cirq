@@ -13,8 +13,9 @@ def test_rabi_oscillations():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     results = rabi_oscillations(simulator, qubit, 1.0, 1000, 10)
-    angles = numpy.asarray(results.data['rabi_angles'])
-    actual_pops = numpy.asarray(results.data['excited_state_probability'])
+    data = numpy.asarray(results.data)
+    angles = data[:, 0]
+    actual_pops = data[:, 1]
     target_pops = 0.5 - 0.5 * numpy.cos(angles * numpy.pi)
     rms_err = numpy.sqrt(numpy.mean((target_pops - actual_pops) ** 2))
     assert rms_err < 0.1
@@ -27,8 +28,8 @@ def test_single_qubit_randomized_benchmarking():
     qubit = GridQubit(0, 0)
     num_cfds = range(5, 20, 5)
     results = single_qubit_randomized_benchmarking(simulator, qubit, num_cfds,
-                                                  10, 100)
-    g_pops = results.data['ground_state_probability']
+                                                   10, 100)
+    g_pops = numpy.asarray(results.data)[:, 1]
     assert numpy.mean(g_pops) == 1.0
 
 
@@ -40,8 +41,8 @@ def test_two_qubit_randomized_benchmarking():
     q_1 = GridQubit(0, 1)
     num_cfds = range(5, 20, 5)
     results = two_qubit_randomized_benchmarking(simulator, q_0, q_1, num_cfds,
-                                               10, 1000)
-    g_pops = results.data['ground_state_probability']
+                                                10, 1000)
+    g_pops = numpy.asarray(results.data)[:, 1]
     assert numpy.mean(g_pops) == 1.0
 
 
