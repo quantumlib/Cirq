@@ -47,6 +47,37 @@ class ControlledOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return tuple([self.control, self.sub_operation])
 
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        control = args.axes[0]
+        rest = args.axes[1:]
+        active = linalg.slice_for_qubits_equal_to([control], 1)
+        sub_axes = [r - int(r > control) for r in rest]
+        target_view = args.target_tensor[active]
+        buffer_view = args.available_buffer[active]
+        result = protocols.apply_unitary(
+            self.sub_operation,
+            protocols.ApplyUnitaryArgs(
+                target_view,
+                buffer_view,
+                sub_axes),
+            default=NotImplemented)
+
+        if result is NotImplemented:
+            return NotImplemented
+
+        if result is target_view:
+            return args.target_tensor
+
+        if result is buffer_view:
+            inactive = linalg.slice_for_qubits_equal_to([control], 0)
+            args.available_buffer[inactive] = args.target_tensor[inactive]
+            return args.available_buffer
+
+        # HACK: assume they didn't somehow escape the slice view and edit the
+        # rest of target_tensor.
+        args.target_tensor[active] = result
+        return args.target_tensor
+
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
