@@ -162,6 +162,33 @@ def test_unitary():
                                atol=1e-8)
 
 
+def test_channel():
+    a = cirq.NamedQubit('a')
+    op = cirq.bit_flip(0.5).on(a)
+    np.testing.assert_allclose(cirq.channel(op), cirq.channel(op.gate))
+    assert cirq.has_channel(op)
+
+    assert cirq.channel(cirq.measure(a), None) is None
+    assert not cirq.has_channel(cirq.measure(a))
+
+
+def assert_mixtures_equal(actual, expected):
+    """Assert equal for tuple of mixed scalar and array types."""
+    for a, e in zip(actual, expected):
+        np.testing.assert_almost_equal(a[0], e[0])
+        np.testing.assert_almost_equal(a[1], e[1])
+
+
+def test_mixture():
+    a = cirq.NamedQubit('a')
+    op = cirq.bit_flip(0.5).on(a)
+    assert_mixtures_equal(cirq.mixture(op), cirq.mixture(op.gate))
+    assert cirq.has_mixture(op)
+
+    assert cirq.mixture(cirq.X(a), None) is None
+    assert not cirq.has_mixture(cirq.X(a))
+
+
 def test_repr():
     a, b = cirq.LineQubit.range(2)
     assert repr(cirq.GateOperation(cirq.CZ, (a, b))

@@ -11,11 +11,58 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytest
+from typing import Union, Tuple, cast
 
 import numpy as np
+import pytest
+
 import cirq
 from cirq import protocols
+from cirq.type_workarounds import NotImplementedType
+
+
+class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        args.available_buffer[...] = args.target_tensor
+        args.target_tensor[...] = 0
+        return args.available_buffer
+
+    def _unitary_(self):
+        return np.eye(2)
+
+
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_operation_test.'
+                'GateUsingWorkspaceForApplyUnitary()')
+
+
+class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        assert len(args.axes) == 1
+        a = args.axes[0]
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
+                    (slice(None),))
+        zero = seed*a + (0, Ellipsis)
+        one = seed*a + (1, Ellipsis)
+        result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
+        result[zero] = args.target_tensor[zero]*2 + args.target_tensor[one]*3
+        result[one] = args.target_tensor[zero]*5 + args.target_tensor[one]*7
+        return result
+
+    def _unitary_(self):
+        return np.array([[2, 3], [5, 7]])
+
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_operation_test.'
+                'GateAllocatingNewSpaceForResult()')
 
 
 def test_controlled_operation_init():
@@ -141,7 +188,10 @@ def test_non_diagrammable_subop():
     cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
              cirq.NamedQubit('q3')),
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(*cirq.LineQubit.range(5))
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(
+        *cirq.LineQubit.range(5)),
+    GateUsingWorkspaceForApplyUnitary()(cirq.NamedQubit('q1')),
+    GateAllocatingNewSpaceForResult()(cirq.NamedQubit('q1')),
 ])
 def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
     cb = cirq.NamedQubit('ctr')
