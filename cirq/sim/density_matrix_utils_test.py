@@ -143,6 +143,9 @@ def test_to_valid_density_matrix_from_computational_basis():
     np.testing.assert_almost_equal(
         cirq.to_valid_density_matrix(density_matrix_rep=2, num_qubits=2),
         np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]))
+    np.testing.assert_almost_equal(
+        cirq.to_valid_density_matrix(density_matrix_rep=0, num_qubits=0),
+        np.array([[1]]))
 
 
 def test_to_valid_density_matrix_from_state_invalid_computational_basis():
