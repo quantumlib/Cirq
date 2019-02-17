@@ -43,7 +43,7 @@ class DecomposeWithQubitsGiven:
         self.func = func
 
     def _decompose_(self, qubits):
-        return self.func(qubits)
+        return self.func(*qubits)
 
 
 class DecomposeGenerated:
@@ -105,16 +105,16 @@ def test_decompose_once_with_qubits():
                 cirq.X(cirq.LineQubit(1)),
                 cirq.X(cirq.LineQubit(2))]
     assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(lambda qubits: cirq.Y(qubits[0])),
+        DecomposeWithQubitsGiven(lambda *qubits: cirq.Y(qubits[0])),
         qs) == [cirq.Y(cirq.LineQubit(0))]
     assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(lambda qubits: (cirq.Y(q) for q in qubits)),
+        DecomposeWithQubitsGiven(lambda *qubits: (cirq.Y(q) for q in qubits)),
         qs) == [cirq.Y(cirq.LineQubit(0)),
                 cirq.Y(cirq.LineQubit(1)),
                 cirq.Y(cirq.LineQubit(2))]
 
     # Works when qubits are generated.
-    def use_qubits_twice(qubits):
+    def use_qubits_twice(*qubits):
         a = list(qubits)
         b = list(qubits)
         yield cirq.X.on_each(a)

@@ -105,10 +105,10 @@ def test_on_each():
     b = cirq.NamedQubit('b')
     c = CustomGate()
 
-    assert c.on_each([]) == []
-    assert c.on_each([a]) == [c(a)]
-    assert c.on_each([a, b]) == [c(a), c(b)]
-    assert c.on_each([b, a]) == [c(b), c(a)]
+    assert c.on_each() == []
+    assert c.on_each(a) == [c(a)]
+    assert c.on_each(a, b) == [c(a), c(b)]
+    assert c.on_each(b, a) == [c(b), c(a)]
 
 
 def test_qasm_output_args_validate():

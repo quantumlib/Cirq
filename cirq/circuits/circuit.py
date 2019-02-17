@@ -1692,6 +1692,7 @@ def _apply_unitary_circuit(circuit: Circuit,
         on_stuck_raise=on_stuck)
 
     for op in unitary_ops:
+        print(op)
         indices = [qubit_map[q] for q in op.qubits]
         result = protocols.apply_unitary(
             unitary_value=op,

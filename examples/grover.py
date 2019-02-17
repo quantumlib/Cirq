@@ -57,20 +57,20 @@ def make_grover_circuit(input_qubits, output_qubit, oracle):
     c.append([
         cirq.X(output_qubit),
         cirq.H(output_qubit),
-        cirq.H.on_each(input_qubits),
+        cirq.H.on_each(*input_qubits),
     ])
 
     # Query oracle.
     c.append(oracle)
 
     # Construct Grover operator.
-    c.append(cirq.H.on_each(input_qubits))
-    c.append(cirq.X.on_each(input_qubits))
+    c.append(cirq.H.on_each(*input_qubits))
+    c.append(cirq.X.on_each(*input_qubits))
     c.append(cirq.H.on(input_qubits[1]))
     c.append(cirq.CNOT(input_qubits[0], input_qubits[1]))
     c.append(cirq.H.on(input_qubits[1]))
-    c.append(cirq.X.on_each(input_qubits))
-    c.append(cirq.H.on_each(input_qubits))
+    c.append(cirq.X.on_each(*input_qubits))
+    c.append(cirq.H.on_each(*input_qubits))
 
     # Measure the result.
     c.append(cirq.measure(*input_qubits, key='result'))

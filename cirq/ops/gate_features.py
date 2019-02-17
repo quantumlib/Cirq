@@ -43,11 +43,11 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 'Single-qubit gate applied to {} qubits, instead of 1: {}({})'.
                 format(len(qubits), self, qubits))
 
-    def on_each(self, targets: Iterable[raw_types.QubitId]) -> op_tree.OP_TREE:
+    def on_each(self, *targets: raw_types.QubitId) -> op_tree.OP_TREE:
         """Returns a list of operations apply this gate to each of the targets.
 
         Args:
-            targets: The qubits to apply this gate to.
+            *targets: The qubits to apply this gate to.
 
         Returns:
             Operations applying this gate to the target qubits.

@@ -523,12 +523,13 @@ def test_simulator_step_state_mixin():
 
 class MultiHTestGate(cirq.TwoQubitGate):
     def _decompose_(self, qubits):
-        return cirq.H.on_each(qubits)
+        return cirq.H.on_each(*qubits)
 
 
 def test_simulates_composite():
     c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
     expected = np.array([0.5] * 4)
+    print(c.all_qubits())
     np.testing.assert_allclose(c.apply_unitary_effect_to_state(),
                                expected)
     np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(),
