@@ -298,7 +298,6 @@ def assert_has_consistent_apply_unitary(
 
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
-        print("ACTUAL", actual.reshape(2 << n, 2 << n))
         np.testing.assert_allclose(
             actual.reshape(2 << n, 2 << n),
             expected,
