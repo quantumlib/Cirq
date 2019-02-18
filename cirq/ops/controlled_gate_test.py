@@ -144,7 +144,6 @@ def test_unitary():
         atol=1e-8)
 
 
-
 @pytest.mark.parametrize('gate', [
     cirq.X,
     cirq.X**0.5,
@@ -277,11 +276,6 @@ def test_uninformed_circuit_diagram_info():
 
 def test_bounded_effect():
     assert cirq.trace_distance_bound(CY**0.001) < 0.01
-
-
-def test_repr():
-    assert repr(
-        cirq.ControlledGate(cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
 
 
 def test_str():

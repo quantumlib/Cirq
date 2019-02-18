@@ -166,3 +166,13 @@ class Operation(metaclass=abc.ABCMeta):
                 function.
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
+
+    def controlled_by(self, *controls: QubitId) -> 'Operation':
+        """Returns a controlled version of the operation.
+
+        Args:
+            controls: The operation will only apply in parts of the
+                superposition where every one of these qubits is in the 1 state.
+        """
+        from cirq import ControlledOperation  # HACK: avoid cyclic dependency.
+        return ControlledOperation(controls, self)

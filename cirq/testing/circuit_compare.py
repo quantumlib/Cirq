@@ -264,12 +264,22 @@ def assert_has_consistent_apply_unitary(
     """
 
     expected = protocols.unitary(val, default=None)
-    if qubit_count is not None:
-        n = qubit_count
-    elif expected is not None:
-        n = expected.shape[0].bit_length() - 1
-    else:
-        n = _infer_qubit_count(val)
+
+    qubit_counts = [
+        qubit_count,
+        expected.shape[0].bit_length() - 1 if expected is not None else None,
+        _infer_qubit_count(val)
+    ]
+    qubit_counts = [e for e in qubit_counts if e is not None]
+    if not qubit_counts:
+        raise NotImplementedError(
+            'Failed to infer qubit count of <{!r}>. Specify it.'.format(
+                val))
+    if len(set(qubit_counts)) > 1:
+        raise ValueError(
+            'Inconsistent qubit counts from different methods: {}'.format(
+                qubit_counts))
+    n = qubit_counts[0]
 
     eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
     actual = protocols.apply_unitary(
@@ -288,6 +298,7 @@ def assert_has_consistent_apply_unitary(
 
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
+        print("ACTUAL", actual.reshape(2 << n, 2 << n))
         np.testing.assert_allclose(
             actual.reshape(2 << n, 2 << n),
             expected,
@@ -355,18 +366,9 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
                 qubit_count=qubit_count)
 
 
-def _infer_qubit_count(val: Any) -> int:
+def _infer_qubit_count(val: Any) -> Optional[int]:
     if isinstance(val, ops.Operation):
         return len(val.qubits)
-    if isinstance(val, ops.SingleQubitGate):
-        return 1
-    if isinstance(val, ops.TwoQubitGate):
-        return 2
-    if isinstance(val, ops.ThreeQubitGate):
-        return 3
-    if isinstance(val, ops.ControlledGate):
-        return 1 + _infer_qubit_count(val.sub_gate)
-
-    raise NotImplementedError(
-        'Failed to infer qubit count of <{!r}>. Specify it.'.format(
-            val))
+    if isinstance(val, ops.Gate):
+        return val.num_qubits()
+    return None
