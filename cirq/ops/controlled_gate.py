@@ -91,7 +91,8 @@ class ControlledGate(raw_types.Gate):
         return (self.sub_gate, self.total_control_qubits)
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
-        qubits = cirq.LineQubit.range(self.total_control_qubits + self.sub_gate.num_qubits())
+        qubits = cirq.LineQubit.range(self.total_control_qubits +
+                                      self.sub_gate.num_qubits())
         c_op = self.sub_gate.on(*qubits[self.total_control_qubits:])
         for control in qubits[:self.total_control_qubits]:
             c_op = cop.ControlledOperation(control, c_op)
