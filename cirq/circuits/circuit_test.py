@@ -1446,7 +1446,7 @@ def test_has_unitary():
 
     class EventualUnitary(cirq.SingleQubitGate):
         def _decompose_(self, qubits):
-            return cirq.X.on_each(qubits)
+            return cirq.X.on_each(*qubits)
 
     q = cirq.NamedQubit('q')
 

@@ -117,11 +117,12 @@ def test_decompose_once_with_qubits():
     def use_qubits_twice(*qubits):
         a = list(qubits)
         b = list(qubits)
-        yield cirq.X.on_each(a)
-        yield cirq.Y.on_each(b)
-    assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(use_qubits_twice),
-        (q for q in qs)) == list(cirq.X.on_each(qs)) + list(cirq.Y.on_each(qs))
+        yield cirq.X.on_each(*a)
+        yield cirq.Y.on_each(*b)
+    assert (cirq.decompose_once_with_qubits(
+            DecomposeWithQubitsGiven(use_qubits_twice),
+            (q for q in qs))
+            == list(cirq.X.on_each(*qs)) + list(cirq.Y.on_each(*qs)))
 
 
 def test_decompose_general():

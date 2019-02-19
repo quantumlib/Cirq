@@ -110,6 +110,12 @@ def test_on_each():
     assert c.on_each(a, b) == [c(a), c(b)]
     assert c.on_each(b, a) == [c(b), c(a)]
 
+    with pytest.raises(ValueError):
+        c.on_each([])
+
+    with pytest.raises(ValueError):
+        c.on_each([a])
+
 
 def test_qasm_output_args_validate():
     args = cirq.QasmArgs(version='2.0')

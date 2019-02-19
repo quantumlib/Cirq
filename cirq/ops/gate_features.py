@@ -51,7 +51,14 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
         Returns:
             Operations applying this gate to the target qubits.
+
+        Raises:
+            ValueError if targets are not instances of QubitId.
         """
+        if any([not isinstance(target, raw_types.QubitId)
+                for target in targets]):
+            raise ValueError(
+                    'on_each() was called with type different than QubitId.')
         return [self.on(target) for target in targets]
 
 
