@@ -90,7 +90,10 @@ def test_composite_gates_without_matrix():
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
 
-    assert circuit == expected
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circuit.to_unitary_matrix(),
+        expected.to_unitary_matrix(),
+        atol=1e-7)
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),

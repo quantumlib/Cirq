@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Union, Tuple, cast
 
 import numpy as np
@@ -19,6 +20,48 @@ import pytest
 import cirq
 from cirq.type_workarounds import NotImplementedType
 
+
+class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        args.available_buffer[...] = args.target_tensor
+        args.target_tensor[...] = 0
+        return args.available_buffer
+
+    def _unitary_(self):
+        return np.eye(2)
+
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_gate_test.'
+                'GateUsingWorkspaceForApplyUnitary()')
+
+
+class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
+    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, NotImplementedType]:
+        assert len(args.axes) == 1
+        a = args.axes[0]
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
+                    (slice(None),))
+        zero = seed*a + (0, Ellipsis)
+        one = seed*a + (1, Ellipsis)
+        result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
+        result[zero] = args.target_tensor[zero]*2 + args.target_tensor[one]*3
+        result[one] = args.target_tensor[zero]*5 + args.target_tensor[one]*7
+        return result
+
+    def _unitary_(self):
+        return np.array([[2, 3], [5, 7]])
+
+    def __eq__(self, other):
+        return isinstance(other, type(self))
+
+    def __repr__(self):
+        return ('cirq.ops.controlled_gate_test.'
+                'GateAllocatingNewSpaceForResult()')
 
 class RestrictedGate(cirq.SingleQubitGate):
     pass
@@ -182,54 +225,6 @@ def test_unitary():
         atol=1e-8)
 
 
-class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, NotImplementedType]:
-        args.available_buffer[...] = args.target_tensor
-        args.target_tensor[...] = 0
-        return args.available_buffer
-
-    def _unitary_(self):
-        return np.eye(2)
-
-    def __pow__(self, exponent):
-        return self
-
-    def __eq__(self, other):
-        return isinstance(other, type(self))
-
-    def __repr__(self):
-        return ('cirq.ops.controlled_gate_test.'
-                'GateUsingWorkspaceForApplyUnitary()')
-
-
-class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
-    def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, NotImplementedType]:
-        assert len(args.axes) == 1
-        a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
-                    (slice(None),))
-        zero = seed*a + (0, Ellipsis)
-        one = seed*a + (1, Ellipsis)
-        result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
-        result[zero] = args.target_tensor[zero]*2 + args.target_tensor[one]*3
-        result[one] = args.target_tensor[zero]*5 + args.target_tensor[one]*7
-        return result
-
-    def _unitary_(self):
-        return np.array([[2, 3], [5, 7]])
-
-    def __pow__(self, factor):
-        return self
-
-    def __eq__(self, other):
-        return isinstance(other, type(self))
-
-    def __repr__(self):
-        return ('cirq.ops.controlled_gate_test.'
-                'GateAllocatingNewSpaceForResult()')
-
 
 @pytest.mark.parametrize('gate', [
     cirq.X,
@@ -340,6 +335,60 @@ def test_circuit_diagram_info():
 
     assert cirq.circuit_diagram_info(cirq.ControlledGate(UndiagrammableGate()),
                                      default=None) is None
+
+
+# A contrived multiqubit Hadamard gate that asserts the consistency of
+# the passed in Args and puts an H on all qubits
+# displays them as 'H(qubit)' on the wire
+class MultiH(cirq.MultiQubitGate):
+
+    def _circuit_diagram_info_(self,
+                               args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        assert args.known_qubit_count is not None
+        assert args.known_qubits is not None
+
+        return cirq.CircuitDiagramInfo(
+            wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits),
+            connected=True
+        )
+
+
+def test_circuit_diagram():
+    qubits = cirq.LineQubit.range(3)
+    c = cirq.Circuit()
+    c.append(cirq.ControlledGate(MultiH(2))(*qubits))
+
+    cirq.testing.assert_has_diagram(c, """
+0: ───@──────
+      │
+1: ───H(1)───
+      │
+2: ───H(2)───
+""")
+
+
+class MockGate(cirq.TwoQubitGate):
+
+    def _circuit_diagram_info_(self,
+                               args: cirq.CircuitDiagramInfoArgs
+                               ) -> cirq.CircuitDiagramInfo:
+        self.captured_diagram_args = args
+        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1,
+                                       connected=True)
+
+
+def test_uninformed_circuit_diagram_info():
+    qbits = cirq.LineQubit.range(3)
+    mock_gate = MockGate()
+    cgate = cirq.ControlledGate(mock_gate)(*qbits)
+
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+
+    assert (cirq.circuit_diagram_info(cgate, args) ==
+            cirq.CircuitDiagramInfo(wire_symbols=('@', 'MOCK'), exponent=1,
+                                    connected=True))
+    assert mock_gate.captured_diagram_args == args
 
 
 def test_bounded_effect():

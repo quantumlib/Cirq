@@ -16,6 +16,7 @@ from typing import Any, List, Union
 
 import numpy as np
 
+import cirq
 from cirq import linalg, protocols, value
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
@@ -90,45 +91,12 @@ class ControlledGate(raw_types.Gate):
         return (self.sub_gate, self.total_control_qubits)
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
-        control = args.axes[0]
-        rest = args.axes[1:]
-        active = linalg.slice_for_qubits_equal_to([control], 1)
-        sub_axes = [r - int(r > control) for r in rest]
-        target_view = args.target_tensor[active]
-        buffer_view = args.available_buffer[active]
-        if self.total_control_qubits is 1:
-            result = protocols.apply_unitary(
-                self.sub_gate,
-                protocols.ApplyUnitaryArgs(
-                    target_view,
-                    buffer_view,
-                    sub_axes),
-                default=NotImplemented)
-        else:
-            result = protocols.apply_unitary(
-                ControlledGate(self.sub_gate, num_unspecified_control_qubits =
-                                                  self.total_control_qubits-1),
-                protocols.ApplyUnitaryArgs(
-                    target_view,
-                    buffer_view,
-                    sub_axes),
-                default=NotImplemented)
+        qubits = cirq.LineQubit.range(self.total_control_qubits + self.sub_gate.num_qubits())
+        c_op = self.sub_gate.on(*qubits[self.total_control_qubits:])
+        for control in qubits[:self.total_control_qubits]:
+            c_op = cop.ControlledOperation(control, c_op)
 
-        if result is NotImplemented:
-            return NotImplemented
-
-        if result is target_view:
-            return args.target_tensor
-
-        if result is buffer_view:
-            inactive = linalg.slice_for_qubits_equal_to([control], 0)
-            args.available_buffer[inactive] = args.target_tensor[inactive]
-            return args.available_buffer
-
-        # HACK: assume they didn't somehow escape the slice view and edit the
-        # rest of target_tensor.
-        args.target_tensor[active] = result
-        return args.target_tensor
+        return protocols.apply_unitary(c_op, args, default=NotImplemented)
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_gate)
@@ -166,7 +134,18 @@ class ControlledGate(raw_types.Gate):
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        sub_info = protocols.circuit_diagram_info(self.sub_gate, args, None)
+        sub_args = protocols.CircuitDiagramInfoArgs(
+            known_qubit_count=(args.known_qubit_count - 1
+                               if args.known_qubit_count is not None else None),
+            known_qubits=(args.known_qubits[1:]
+                          if args.known_qubits is not None else None),
+            use_unicode_characters=args.use_unicode_characters,
+            precision=args.precision,
+            qubit_map=args.qubit_map
+        )
+        sub_info = protocols.circuit_diagram_info(self.sub_gate,
+                                                  sub_args,
+                                                  None)
         if sub_info is None:
             return NotImplemented
         return protocols.CircuitDiagramInfo(
