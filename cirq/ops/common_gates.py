@@ -90,9 +90,9 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
-    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+    def _pauli_expansion_(self) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
-            return None
+            return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
         return phase * np.array([np.cos(angle), -1j * np.sin(angle), 0, 0])
@@ -178,9 +178,9 @@ class YPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
 
-    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+    def _pauli_expansion_(self) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
-            return None
+            return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
         return phase * np.array([np.cos(angle), 0, -1j * np.sin(angle), 0])
@@ -277,9 +277,9 @@ class ZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+    def _pauli_expansion_(self) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
-            return None
+            return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
         return phase * np.array([np.cos(angle), 0, 0, -1j * np.sin(angle)])
@@ -581,9 +581,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+    def _pauli_expansion_(self) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
-            return None
+            return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
         return phase * np.array([np.cos(angle),

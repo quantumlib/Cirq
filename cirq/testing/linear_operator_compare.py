@@ -16,6 +16,7 @@ import numpy as np
 
 from cirq.linalg import operator_spaces
 from cirq.ops import linear_operator
+from cirq.protocols.pauli_expansion import pauli_expansion
 
 
 def assert_linear_operator_is_consistent(
@@ -26,22 +27,22 @@ def assert_linear_operator_is_consistent(
     matrix = op.matrix()
     if matrix is None:
         return
-    pauli_expansion = op.pauli_expansion()
-    if pauli_expansion is None:
+    expansion = pauli_expansion(op)
+    if expansion is None or expansion is NotImplemented:
         return
 
     matrix2 = operator_spaces.reconstruct_from_expansion(
-            pauli_expansion, operator_spaces.PAULI_BASIS)
-    pauli_expansion2 = operator_spaces.expand_in_basis(
+        expansion, operator_spaces.PAULI_BASIS)
+    expansion2 = operator_spaces.expand_in_basis(
         matrix, operator_spaces.PAULI_BASIS)
 
     print('matrix\n', matrix)
     print('matrix2\n', matrix2)
-    print('pauli_expansion', pauli_expansion)
-    print('pauli_expansion2', pauli_expansion2)
+    print('expansion', expansion)
+    print('expansion2', expansion2)
 
     assert np.allclose(matrix, matrix2, atol=atol)
-    assert np.allclose(pauli_expansion, pauli_expansion2, atol=atol)
+    assert np.allclose(expansion, expansion2, atol=atol)
 
 
 def assert_linear_operators_are_equal(
@@ -76,16 +77,17 @@ def assert_linear_operators_are_equal(
         assert actual_matrix.shape == reference_matrix.shape
         assert np.allclose(actual_matrix, reference_matrix, rtol=0, atol=atol)
 
-    actual_pauli_expansion = actual.pauli_expansion()
-    reference_pauli_expansion = reference.pauli_expansion()
-    print('actual_pauli_expansion', actual_pauli_expansion)
-    print('reference_pauli_expansion', reference_pauli_expansion)
-    if (actual_pauli_expansion is not None and
-        reference_pauli_expansion is not None):
-        assert np.allclose(actual_pauli_expansion,
-                           reference_pauli_expansion,
+    actual_expansion = pauli_expansion(actual)
+    reference_expansion = pauli_expansion(reference)
+    print('actual_expansion', actual_expansion)
+    print('reference_expansion', reference_expansion)
+    if (actual_expansion is not NotImplemented and
+        reference_expansion is not NotImplemented):
+        assert np.allclose(actual_expansion,
+                           reference_expansion,
                            rtol=0,
                            atol=atol)
 
-    assert actual_matrix is not None or actual_pauli_expansion is not None
-    assert reference_matrix is not None or reference_pauli_expansion is not None
+    assert actual_matrix is not None or actual_expansion is not NotImplemented
+    assert (reference_matrix is not None or
+            reference_expansion is not NotImplemented)

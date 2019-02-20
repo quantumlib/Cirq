@@ -60,22 +60,6 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
 
         return None
 
-    def pauli_expansion(self) -> Optional[np.ndarray]:
-        """Returns or computes expansion of self in the Pauli basis."""
-        if self.num_qubits() != 1:
-            return None
-
-        pauli_expansion = self._pauli_expansion_()
-        if pauli_expansion is not None:
-            return pauli_expansion
-
-        matrix = self._matrix_()
-        if matrix is not None:
-            return operator_spaces.expand_in_basis(
-                matrix, operator_spaces.PAULI_BASIS)
-
-        return None
-
     def __add__(
             self,
             other: 'AbstractLinearOperator'
@@ -136,8 +120,8 @@ class AbstractLinearOperator(metaclass=abc.ABCMeta):
 
     def __pow__(self, exponent: int) -> 'AbstractLinearOperator':
         """Computes integer power of a linear operator."""
-        pauli_expansion = self.pauli_expansion()
-        if pauli_expansion is None:
+        pauli_expansion = protocols.pauli_expansion(self)
+        if pauli_expansion is NotImplemented:
             return NotImplemented
         pauli_expansion = operator_spaces.operator_power(
             pauli_expansion, exponent)

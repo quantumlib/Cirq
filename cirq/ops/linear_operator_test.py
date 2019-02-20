@@ -47,17 +47,22 @@ class FakeMatrixOperator(cirq.LinearOperator):
         else:
             self._num_qubits = 0
 
+    def _unitary_(self):
+        return self._matrix
+
 
 @pytest.mark.parametrize('matrix, expected_pauli_expansion', (
-    (None, None),
+    (None, NotImplemented),
     (np.eye(2), np.array([1, 0, 0, 0])),
     (np.sqrt(2) * np.array([[1, 1], [1, -1]]),
      np.array([0, np.sqrt(2), 0, np.sqrt(2)])),
 ))
 def test_pauli_expansion(matrix, expected_pauli_expansion):
-    pauli_expansion = FakeMatrixOperator(matrix).pauli_expansion()
-    assert ((pauli_expansion is None and expected_pauli_expansion is None) or
-            np.all(pauli_expansion == expected_pauli_expansion))
+    pauli_expansion = cirq.pauli_expansion(FakeMatrixOperator(matrix))
+    if expected_pauli_expansion is NotImplemented:
+        assert pauli_expansion is NotImplemented
+    else:
+        assert np.all(pauli_expansion == expected_pauli_expansion)
 
 
 class FakePauliExpansionOperator(cirq.LinearOperator):
@@ -99,7 +104,7 @@ def test_matrix(pauli_expansion, expected_matrix):
 ))
 def test_internal_consistency(op):
     assert op.matrix() is not None
-    assert op.pauli_expansion() is not None
+    assert cirq.pauli_expansion(op) is not NotImplemented
     cirq.testing.assert_linear_operator_is_consistent(op)
 
 
@@ -241,7 +246,7 @@ def test_polar_decomposition(expression, expected_unitary, expected_positive):
 ))
 def test_can_compute_both_matrix_and_pauli_expansion(expression):
     assert expression.matrix() is not None
-    assert expression.pauli_expansion() is not None
+    assert cirq.pauli_expansion(expression) is not NotImplemented
     cirq.testing.assert_linear_operator_is_consistent(expression)
 
 

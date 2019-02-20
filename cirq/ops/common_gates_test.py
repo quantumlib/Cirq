@@ -772,7 +772,7 @@ q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(
     cirq.H**cirq.Symbol('t'),
 ))
 def test_pauli_expansion_of_parametrized_gates(gate):
-    assert gate.pauli_expansion() is None
+    assert cirq.pauli_expansion(gate) is NotImplemented
 
 
 @pytest.mark.parametrize('gate', (
@@ -785,7 +785,7 @@ def test_pauli_expansion_of_parametrized_gates(gate):
 def test_pauli_expansion_of_fixed_gates(gate):
     original_unitary = cirq.protocols.unitary(gate)
 
-    pauli_expansion = gate.pauli_expansion()
+    pauli_expansion = cirq.pauli_expansion(gate)
     expected_pauli_expansion = cirq.linalg.expand_in_basis(
         original_unitary, cirq.linalg.operator_spaces.PAULI_BASIS)
     assert np.allclose(pauli_expansion, expected_pauli_expansion)
