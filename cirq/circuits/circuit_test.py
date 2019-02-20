@@ -307,7 +307,7 @@ def test_symbol_addition_in_gate_exponent():
             exponent=sympy.Symbol('a') + sympy.Symbol('b')).on(qubit)
     )
     cirq.testing.assert_has_diagram(circuit,
-                                    "a: ───X^0.5───Y^Symbol(\"a + b\")───",
+                                    'a: ───X^0.5───Y^Symbol("a + b")───',
                                     use_unicode_characters=True)
 
 
@@ -317,14 +317,14 @@ a
 │
 X^0.5
 │
-Y^Symbol(\"a + b\")
+Y^Symbol("a + b")
 │
 """,
                                     use_unicode_characters=True,
      transpose=True)
 
     cirq.testing.assert_has_diagram(circuit,
-                                    "a: ---X^0.5---Y^Symbol(\"a + b\")---",
+                                    'a: ---X^0.5---Y^Symbol("a + b")---',
                                     use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit,

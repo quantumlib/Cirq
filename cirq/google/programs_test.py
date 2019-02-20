@@ -260,9 +260,9 @@ def test_z_proto_dict_convert():
             }
         }
     }
-    with pytest.raises(NotImplementedError):
-        assert_proto_dict_convert(gate, proto_dict,
-                                  cirq.GridQubit(2, 3))
+
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
     gate = cirq.Z**0.5
     proto_dict = {
         'exp_z': {
@@ -296,9 +296,8 @@ def test_cz_proto_dict_convert():
             }
         }
     }
-    with pytest.raises(NotImplementedError):
-        assert_proto_dict_convert(gate, proto_dict,
-                                  cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3), cirq.GridQubit(3, 4))
 
     gate = cirq.CZ**0.5
     proto_dict = {
@@ -381,9 +380,8 @@ def test_w_to_proto_dict():
             }
         }
     }
-    with pytest.raises(NotImplementedError):
-        assert_proto_dict_convert(gate, proto_dict,
-                                  cirq.GridQubit(2, 3))
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
 
     gate = cirq.PhasedXPowGate(exponent=0.5,
                                phase_exponent=sympy.Symbol('j'))
@@ -401,9 +399,8 @@ def test_w_to_proto_dict():
             }
         }
     }
-    with pytest.raises(NotImplementedError):
-        assert_proto_dict_convert(gate, proto_dict,
-                                  cirq.GridQubit(2, 3))
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
 
     gate = cirq.X**0.25
     proto_dict = {
@@ -455,9 +452,8 @@ def test_w_to_proto_dict():
             }
         }
     }
-    with pytest.raises(NotImplementedError):
-        assert_proto_dict_convert(gate, proto_dict,
-                                  cirq.GridQubit(2, 3))
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
 
 
 def test_w_invalid_dict():

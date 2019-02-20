@@ -373,9 +373,6 @@ def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())
-    if isinstance(param, sympy.Basic):
-        raise NotImplementedError(
-            'Cirq does not support serialization of {!r}.'.format(param))
     else:
         out['raw'] = float(param)
     return out

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Any
+import sympy
 
 # This is a special indicator value used to determine whether or not the caller
 # provided a 'default' argument.
@@ -50,6 +51,9 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     if result is NotImplemented:
         right_mul = getattr(rhs, '__rmul__', None)
         result = NotImplemented if right_mul is None else right_mul(lhs)
+
+    if lhs == 1.0 and isinstance(rhs, sympy.Symbol):
+        result = rhs
 
     # Output.
     if result is not NotImplemented:
