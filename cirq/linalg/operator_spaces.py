@@ -49,7 +49,8 @@ def expand_in_basis(m: np.ndarray, basis: Tuple[np.ndarray, ...]) -> np.ndarray:
 
 def reconstruct_from_expansion(expansion: np.ndarray,
                                basis: Tuple[np.ndarray, ...]) -> np.ndarray:
-    return np.sum(c * b for c, b in zip(expansion, basis))
+    """Computes linear combination of basis vectors with given coefficients."""
+    return np.tensordot(expansion, np.array(basis), axes=(0, 0))
 
 
 def operator_power(pauli_coefficients: np.ndarray,
