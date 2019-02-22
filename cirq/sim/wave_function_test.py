@@ -25,6 +25,19 @@ def assert_dirac_notation(vec, expected, decimals=2):
     assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
 
 
+def test_state_mixin():
+    class TestClass(cirq.StateVectorMixin):
+        def state_vector(self) -> np.ndarray:
+            return np.array([0, 0, 1, 0])
+    qubits = cirq.LineQubit.range(2)
+    test = TestClass(qubit_map={qubits[i]: i for i in range(2)})
+    assert test.dirac_notation() == '|10⟩'
+    np.testing.assert_almost_equal(test.bloch_vector_of(qubits[0]),
+                                   np.array([0, 0, -1]))
+    np.testing.assert_almost_equal(test.density_matrix_of(qubits[0:1]),
+                                   np.array([[0, 0], [0, 1]]))
+
+
 def test_bloch_vector_simple_H_zero():
     sqrt = np.sqrt(0.5)
     H_state = np.array([sqrt, sqrt])
@@ -303,12 +316,18 @@ def test_sample_state():
 
 def test_sample_empty_state():
     state = np.array([])
-    assert cirq.sample_state_vector(state, []) == [[]]
+    np.testing.assert_almost_equal(cirq.sample_state_vector(state, []),
+        np.zeros(shape=(1,0)))
 
 
 def test_sample_no_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
-    assert cirq.sample_state_vector(state, [1], repetitions=0) == [[]]
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [1], repetitions=0),
+        np.zeros(shape=(0, 1)))
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [1, 2], repetitions=0),
+        np.zeros(shape=(0, 2)))
 
 
 def test_sample_state_repetitions():
@@ -344,12 +363,15 @@ def test_sample_state_index_out_of_range():
 
 def test_sample_no_indices():
     state = cirq.to_valid_state_vector(0, 3)
-    assert [[]] == cirq.sample_state_vector(state, [])
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, []), np.zeros(shape=(1, 0)))
 
 
 def test_sample_no_indices_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
-    assert [[], []] == cirq.sample_state_vector(state, [], repetitions=2)
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [], repetitions=2),
+        np.zeros(shape=(2, 0)))
 
 
 def test_measure_state_computational_basis():
@@ -469,6 +491,25 @@ def test_measure_state_no_indices():
     np.testing.assert_almost_equal(state, initial_state)
 
 
+def test_measure_state_no_indices_out_is_state():
+    initial_state = cirq.to_valid_state_vector(0, 3)
+    bits, state = cirq.measure_state_vector(initial_state, [],
+                                            out=initial_state)
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+    assert state is initial_state
+
+
+def test_measure_state_no_indices_out_is_not_state():
+    initial_state = cirq.to_valid_state_vector(0, 3)
+    out = np.zeros_like(initial_state)
+    bits, state = cirq.measure_state_vector(initial_state, [], out=out)
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+    assert state is out
+    assert out is not initial_state
+
+
 def test_measure_state_empty_state():
     initial_state = np.array([])
     bits, state = cirq.measure_state_vector(initial_state, [])
@@ -476,7 +517,7 @@ def test_measure_state_empty_state():
     np.testing.assert_almost_equal(state, initial_state)
 
 
-class BasicStateVector(cirq.StateVector):
+class BasicStateVector(cirq.StateVectorMixin):
     def state_vector(self) -> np.ndarray:
         return np.array([0, 1, 0, 0])
 

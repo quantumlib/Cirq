@@ -111,21 +111,19 @@ That way you have control over when a breaking change affects you.
 
 ### Installing on Docker
 
-This will create a Docker image containing Cirq's source code. It will isolate a Cirq installation from the rest of the system.
+This will use a Docker image that will isolate Cirq's installation from the rest of the system.
 
 0. [Install Docker](https://docs.docker.com/install/#supported-platforms) on your host sytem.
 
-1. Build the docker image for your system:
+1. Pull the docker image:
     ```bash
-    git clone https://github.com/quantumlib/Cirq
-    cd Cirq
-    docker build -t cirq/cirq . # This builds the actual image based on latest Ubuntu, and installs Cirq with the needed dependencies.
+    docker pull quantumlib/cirq
      ```
 
 2. Check that it works!
 
     ```bash
-    docker run -it cirq/cirq python3 -c "import cirq; print(cirq.google.Foxtail)"
+    docker run -it quantumlib/cirq python -c "import cirq; print(cirq.google.Foxtail)"
     # should print:
     # (0, 0)───(0, 1)───(0, 2)───(0, 3)───(0, 4)───(0, 5)───(0, 6)───(0, 7)───(0, 8)───(0, 9)───(0, 10)
     # │        │        │        │        │        │        │        │        │        │        │
@@ -133,8 +131,8 @@ This will create a Docker image containing Cirq's source code. It will isolate a
     # (1, 0)───(1, 1)───(1, 2)───(1, 3)───(1, 4)───(1, 5)───(1, 6)───(1, 7)───(1, 8)───(1, 9)───(1, 10)
     ```
 
-3. You can use the created image as:
+3. To run the image:
     ```bash
-    docker run -it cirq/cirq
+    docker run -it quantumlib/cirq
      ```
 

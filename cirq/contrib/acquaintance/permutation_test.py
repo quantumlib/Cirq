@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import random
-from string import ascii_lowercase as alphabet
 
 import pytest
 
@@ -87,7 +86,7 @@ def test_update_mapping():
     ((n_elements, random.randint(0, n_elements)) for
      n_elements in (random.randint(5, 20) for _ in range(20))))
 def test_linear_permutation_gate(n_elements, n_permuted):
-    qubits = [cirq.NamedQubit(s) for s in alphabet[:n_elements]]
+    qubits = cirq.LineQubit.range(n_elements)
     elements = tuple(range(n_elements))
     elements_to_permute = random.sample(elements, n_permuted)
     permuted_elements = random.sample(elements_to_permute, n_permuted)
