@@ -115,6 +115,7 @@ from cirq.ops import (
     ControlledOperation,
     OP_TREE,
     Operation,
+    ParallelGateOperation,
     Pauli,
     PauliInteractionGate,
     PauliString,
