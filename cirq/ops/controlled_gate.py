@@ -83,12 +83,12 @@ class ControlledGate(raw_types.Gate):
 
     def validate_args(self, qubits) -> None:
         if len(qubits) < self.num_unspecified_control_qubits:
-            raise ValueError('No control qubit specified.')
+            raise ValueError('Not all control qubits specified.')
         self.sub_gate.validate_args(
                           qubits[self.num_unspecified_control_qubits:])
 
     def _value_equality_values_(self):
-        return (self.sub_gate, self.total_control_qubits)
+        return self.sub_gate, self.total_control_qubits
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         qubits = cirq.LineQubit.range(self.total_control_qubits +
@@ -108,7 +108,7 @@ class ControlledGate(raw_types.Gate):
             return NotImplemented
         for _ in range(self.total_control_qubits):
             sub_matrix = linalg.block_diag(np.eye(sub_matrix.shape[0]),
-                                                  sub_matrix)
+                                           sub_matrix)
         return sub_matrix
 
     def __pow__(self, exponent: Any) -> 'ControlledGate':
@@ -161,8 +161,8 @@ class ControlledGate(raw_types.Gate):
         if (len(self.control_qubits) is 0 and
             self.num_unspecified_control_qubits is 1):
             return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
-        else:
-            return ('cirq.ControlledGate(sub_gate={!r}, control_qubits={!r}, '
+
+        return ('cirq.ControlledGate(sub_gate={!r}, control_qubits={!r}, '
                     'num_unspecified_control_qubits={!r})'.
                     format(self.sub_gate, self.control_qubits,
                            self.num_unspecified_control_qubits))
