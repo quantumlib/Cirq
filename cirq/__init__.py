@@ -268,6 +268,7 @@ from cirq.protocols import (
     mixture,
     mixture_channel,
     mul,
+    pauli_expansion,
     pow,
     qasm,
     QasmArgs,
