@@ -71,6 +71,6 @@ def test_raises_no_pauli_expansion(val):
 ))
 def test_pauli_expansion(val, expected_expansion):
     actual_expansion = cirq.pauli_expansion(val)
-    assert actual_expansion.keys() == expected_expansion.keys()
+    assert set(actual_expansion.keys()) == set(expected_expansion.keys())
     for name in actual_expansion.keys():
         assert np.abs(actual_expansion[name] - expected_expansion[name]) < 1e-12

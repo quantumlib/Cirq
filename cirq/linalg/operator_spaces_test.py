@@ -97,7 +97,7 @@ def _one_hot_matrix(size: int, i: int, j: int) -> np.ndarray:
 def test_kron_bases(basis1, basis2, expected_kron_basis):
     kron_basis = cirq.linalg.kron_bases(basis1, basis2)
     assert len(kron_basis) == 16
-    assert kron_basis.keys() == expected_kron_basis.keys()
+    assert set(kron_basis.keys()) == set(expected_kron_basis.keys())
     for name in kron_basis.keys():
         assert np.all(kron_basis[name] == expected_kron_basis[name])
 
