@@ -34,8 +34,6 @@ from cirq.ops.common_channels import (
     PhaseDampingChannel,
     phase_flip,
     PhaseFlipChannel,
-    rotation_error,
-    RotationErrorChannel
 )
 from cirq.ops.common_gates import (
     CNOT,
