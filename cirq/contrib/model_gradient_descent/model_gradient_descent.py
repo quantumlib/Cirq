@@ -31,31 +31,38 @@ def get_least_squares_model_gradient(xs, ys, xopt, linear_model):
     return linear_coeffs
 
 
+def random_point_in_ball(n, radius):
+    point_on_sphere = np.random.randn(n)
+    point_on_sphere /= np.linalg.norm(point_on_sphere)
+    length = np.random.uniform()
+    length = radius * length**(1/n)
+    return length * point_on_sphere
+
+
 def model_gradient_descent(
         f,
         x0,
-        sample_radius,
-        rate,
-        distance_function,
-        sampling_function,
-        tol=1e-7,
-        adapt_sampling_radius=False,
+        sample_radius=1e-1,
+        n_sample_points=100,
+        rate=1e-1,
+        tol=1e-8,
         known_values=None,
         max_evaluations=None,
-        true_f=None,
         verbose=False):
+
     if known_values is not None:
         known_xs, known_ys = known_values
     else:
         known_xs, known_ys = [], []
+
     current_x = x0
     total_evals = 0
-
-    sample_radius_coefficient = None
+    n = len(current_x)
 
     while max_evaluations is None or total_evals < max_evaluations:
         # Determine points to evaluate
-        new_xs = sampling_function(current_x, sample_radius, known_xs, known_ys)
+        new_xs = [current_x + random_point_in_ball(n, sample_radius)
+                  for _ in range(n_sample_points)]
         if max_evaluations and total_evals + len(new_xs) > max_evaluations:
             break
         # Evaluate points
@@ -67,7 +74,7 @@ def model_gradient_descent(
         model_xs = []
         model_ys = []
         for x, y in zip(known_xs, known_ys):
-            if distance_function(x, current_x) < sample_radius:
+            if np.linalg.norm(x - current_x) < sample_radius:
                 model_xs.append(x)
                 model_ys.append(y)
         # Build and solve model
@@ -79,24 +86,16 @@ def model_gradient_descent(
             linear_model
         )
         gradient_norm = np.linalg.norm(model_gradient)
-        if sample_radius_coefficient is None:
-            sample_radius_coefficient = sample_radius / gradient_norm
-
         # Print some info
         if verbose:
             print('Total evals: {}'.format(total_evals))
-            if true_f is not None:
-                print('True objective value: {}'.format(true_f(current_x)))
             print('# Points used for trust region model: {}'.format(len(model_xs)))
             print('2-norm of model gradient: {}'.format(gradient_norm))
             print()
-
         # Convergence criteria
-        if rate*np.linalg.norm(model_gradient) < tol:
+        if rate*gradient_norm < tol:
             break
+        # Update
         current_x -= rate*model_gradient
-
-        if adapt_sampling_radius:
-            sample_radius = sample_radius_coefficient * gradient_norm
 
     return current_x, f(current_x), total_evals
