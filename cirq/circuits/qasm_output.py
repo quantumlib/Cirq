@@ -124,7 +124,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
 
 
 class QasmOutput:
-    valid_id_re = re.compile('[a-z][a-zA-Z0-9_]*\Z')
+    valid_id_re = re.compile('[a-z][a-zA-Z0-9_]*\Z') # pylint: disable=anomalous-backslash-in-string
 
     def __init__(self,
                  operations: ops.OP_TREE,

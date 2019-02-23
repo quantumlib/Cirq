@@ -47,7 +47,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
         diagram2.write(2*w - 1, y, '&\\qw\\\\')
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
-    output = '\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
+    output = '\\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
 
     return output
 

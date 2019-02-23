@@ -90,8 +90,8 @@ def multigate_qcircuit_diagram_info(
             str(op))
     if (info is not None) and (info.exponent != 1):
         name += '^{' + str(info.exponent) + '}'
-    box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
-    ghost = '\ghost{' + name + '}'
+    box = '\\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
+    ghost = '\\ghost{' + name + '}'
     assert args.qubit_map is not None
     assert args.known_qubits is not None
     symbols = tuple(box if (args.qubit_map[q] == min_index) else
