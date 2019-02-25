@@ -20,7 +20,7 @@ import cirq
 
 def test_flatten_op_tree():
     operations = [
-        cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit(str(i))])
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))])
         for i in range(10)
     ]
 
@@ -38,6 +38,18 @@ def test_flatten_op_tree():
                                       operations[1:5],
                                       operations[5:]))) == operations
 
+    # Flatten moment.
+    assert list(cirq.flatten_op_tree((operations[0],
+                                      cirq.Moment(operations[1:5]),
+                                      operations[5:]))) == operations
+
+    # Don't flatten moment.
+    assert list(cirq.flatten_op_tree((operations[0],
+                                      cirq.Moment(operations[1:5]),
+                                      operations[5:]), preserve_moments=True)
+                ) == ([operations[0], cirq.Moment(operations[1:5])]
+                      + operations[5:])
+
     # Bad trees.
     with pytest.raises(TypeError):
         _ = list(cirq.flatten_op_tree(None))
@@ -49,7 +61,7 @@ def test_flatten_op_tree():
 
 def test_freeze_op_tree():
     operations = [
-        cirq.GateOperation(cirq.Gate(), [cirq.NamedQubit(str(i))])
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))])
         for i in range(10)
     ]
 
@@ -90,7 +102,7 @@ def test_transform_bad_tree():
 
 
 def test_transform_leaves():
-    gs = [cirq.Gate() for _ in range(10)]
+    gs = [cirq.SingleQubitGate() for _ in range(10)]
     operations = [
         cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i))])
         for i in range(10)
@@ -128,7 +140,7 @@ def test_transform_leaves():
 
 def test_transform_internal_nodes():
     operations = [
-        cirq.GateOperation(cirq.Gate(), [cirq.LineQubit(2 * i)])
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.LineQubit(2 * i)])
         for i in range(10)
     ]
 

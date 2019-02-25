@@ -20,6 +20,7 @@ import abc
 import numpy as np
 
 from cirq import value, protocols
+from cirq._compat import gcd
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -45,7 +46,7 @@ EigenComponent = NamedTuple(
 )
 
 
-@value.value_equality(distinct_child_types=True)
+@value.value_equality(distinct_child_types=True, approximate=True)
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
@@ -281,6 +282,14 @@ class EigenGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self._canonical_exponent, self._global_shift
 
+    def _value_equality_approximate_values_(self):
+        period = self._period()
+        if not period or isinstance(self._exponent, value.Symbol):
+            exponent = self._exponent
+        else:
+            exponent = value.PeriodicValue(self._exponent, period)
+        return exponent, self._global_shift
+
     def _trace_distance_bound_(self):
         if isinstance(self._exponent, value.Symbol):
             return 1
@@ -314,7 +323,7 @@ class EigenGate(raw_types.Gate):
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
     for r in vals:
-        t = t * r // fractions.gcd(t, r)
+        t = t * r // gcd(t, r)
     return t
 
 
@@ -353,7 +362,7 @@ def _approximate_common_period(periods: List[float],
     if len(periods) == 1:
         return abs(periods[0])
     approx_rational_periods = [
-        fractions.Fraction(int(np.round(p * approx_denom)), approx_denom)
+        fractions.Fraction(int(np.round(abs(p) * approx_denom)), approx_denom)
         for p in periods
     ]
     common = float(_common_rational_period(approx_rational_periods))

@@ -13,12 +13,12 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-import fractions
 from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
 
 from cirq import value, protocols
+from cirq._compat import gcd
 from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
 
@@ -106,8 +106,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                           ) -> op_tree.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
-        z = cirq.ops.common_gates.Z(q)**self._phase_exponent
-        x = cirq.ops.common_gates.X(q)**self._exponent
+        z = cirq.Z(q)**self._phase_exponent
+        x = cirq.X(q)**self._exponent
         if protocols.is_parameterized(z):
             return NotImplemented
         return z**-1, x, z
@@ -132,15 +132,14 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _trace_distance_bound_(self):
         """See `cirq.SupportsTraceDistanceBound`."""
-        return protocols.trace_distance_bound(
-            cirq.ops.common_gates.X**self._exponent)
+        return protocols.trace_distance_bound(cirq.X**self._exponent)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
             return NotImplemented
-        z = protocols.unitary(cirq.ops.common_gates.Z**self._phase_exponent)
-        x = protocols.unitary(cirq.ops.common_gates.X**self._exponent)
+        z = protocols.unitary(cirq.Z**self._phase_exponent)
+        x = protocols.unitary(cirq.X**self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
 
@@ -200,7 +199,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return None
         if len(int_periods) == 1:
             return int_periods[0]
-        return int_periods[0] * int_periods[1] / fractions.gcd(*int_periods)
+        return int_periods[0] * int_periods[1] / gcd(*int_periods)
 
     @property
     def _canonical_exponent(self):

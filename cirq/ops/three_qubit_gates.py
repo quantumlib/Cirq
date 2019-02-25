@@ -24,6 +24,7 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
+    pauli_gates,
     op_tree,
     raw_types,
 )
@@ -34,7 +35,7 @@ class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.InterchangeableQubitsGate):
     """A doubly-controlled-Z that can be raised to a power.
 
-    The matrix of CCZ**t is diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t)).
+    The matrix of `CCZ**t` is `diag(1, 1, 1, 1, 1, 1, 1, exp(i pi t))`.
     """
 
     def _eigen_components(self):
@@ -54,6 +55,9 @@ class CCZPowGate(eigen_gate.EigenGate,
 
         where p = T**self._exponent
         """
+        if protocols.is_parameterized(self):
+            return NotImplemented
+
         a, b, c = qubits
 
         # Hacky magic: avoid the non-adjacent edge.
@@ -67,14 +71,16 @@ class CCZPowGate(eigen_gate.EigenGate,
         sweep_abc = [common_gates.CNOT(a, b),
                      common_gates.CNOT(b, c)]
 
-        yield p(a), p(b), p(c)
-        yield sweep_abc
-        yield p(b)**-1, p(c)
-        yield sweep_abc
-        yield p(c)**-1
-        yield sweep_abc
-        yield p(c)**-1
-        yield sweep_abc
+        return [
+            p(a), p(b), p(c),
+            sweep_abc,
+            p(b)**-1, p(c),
+            sweep_abc,
+            p(c)**-1,
+            sweep_abc,
+            p(c)**-1,
+            sweep_abc,
+        ]
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
@@ -126,7 +132,8 @@ class CCXPowGate(eigen_gate.EigenGate,
                  gate_features.InterchangeableQubitsGate):
     """A Toffoli (doubly-controlled-NOT) that can be raised to a power.
 
-    The matrix of CCX**t is an 8x8 identity except the bottom right 2x2 is X**t.
+    The matrix of `CCX**t` is an 8x8 identity except the bottom right 2x2 area
+    is the matrix of `X**t`.
     """
 
     def _eigen_components(self):
@@ -149,7 +156,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(
                 controlled_gate.ControlledGate(
-                    common_gates.X**self.exponent)),
+                    pauli_gates.X**self.exponent)),
             protocols.ApplyUnitaryArgs(
                 args.target_tensor,
                 args.available_buffer,
@@ -244,7 +251,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.T(c)**-1
         yield common_gates.CNOT(a, b)
         yield common_gates.CNOT(b, c)
-        yield common_gates.X(b)**0.5
+        yield pauli_gates.X(b)**0.5
         yield common_gates.T(c)**-1
         yield common_gates.CNOT(b, a)
         yield common_gates.CNOT(b, c)
@@ -252,7 +259,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.CNOT(b, c)
         yield common_gates.H(c)
         yield common_gates.S(c)**-1
-        yield common_gates.X(a)**-0.5
+        yield pauli_gates.X(a)**-0.5
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         return protocols.apply_unitary(
@@ -283,7 +290,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
                      common_gates.CNOT(b, c)]
 
         yield common_gates.CNOT(c, b)
-        yield common_gates.Y(c)**-0.5
+        yield pauli_gates.Y(c)**-0.5
         yield t(a), t(b), t(c)
         yield sweep_abc
         yield t(b) ** -1, t(c)
@@ -291,11 +298,11 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield t(c) ** -1
         yield sweep_abc
         yield t(c) ** -1
-        yield common_gates.X(b)**0.5
+        yield pauli_gates.X(b)**0.5
         yield sweep_abc
         yield common_gates.S(c)
-        yield common_gates.X(b)**0.5
-        yield common_gates.X(c)**-0.5
+        yield pauli_gates.X(b)**0.5
+        yield pauli_gates.X(c)**-0.5
 
     def _has_unitary_(self) -> bool:
         return True

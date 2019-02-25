@@ -19,7 +19,7 @@ import numpy as np
 import cirq
 
 
-class GoodGateDecompose(cirq.Gate):
+class GoodGateDecompose(cirq.SingleQubitGate):
     def _decompose_(self, qubits):
         return cirq.X(qubits[0])
 
@@ -30,7 +30,7 @@ class GoodGateDecompose(cirq.Gate):
         ])
 
 
-class BadGateDecompose(cirq.Gate):
+class BadGateDecompose(cirq.SingleQubitGate):
     def _decompose_(self, qubits):
         return cirq.Y(qubits[0])
 

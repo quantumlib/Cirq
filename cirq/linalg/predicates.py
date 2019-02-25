@@ -17,25 +17,21 @@ from typing import Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.linalg.tolerance import Tolerance
-from cirq.linalg.transformations import match_global_phase
+from cirq.linalg import tolerance, transformations
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import List
 
 
-def is_diagonal(
-        matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     """Determines if a matrix is a approximately diagonal.
 
     A matrix is diagonal if i!=j implies m[i,j]==0.
 
     Args:
         matrix: The matrix to check.
-        tolerance: The per-matrix-entry tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
         Whether the matrix is diagonal within the given tolerance.
@@ -43,32 +39,35 @@ def is_diagonal(
     matrix = np.copy(matrix)
     for i in range(min(matrix.shape)):
         matrix[i, i] = 0
-    return tolerance.all_near_zero(matrix)
+    return tolerance.all_near_zero(matrix, atol=atol)
 
 
 def is_hermitian(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately Hermitian.
 
     A matrix is Hermitian if it's square and equal to its adjoint.
 
     Args:
         matrix: The matrix to check.
-        tolerance: The per-matrix-entry tolerance on equality.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
         Whether the matrix is Hermitian within the given tolerance.
     """
     return (matrix.shape[0] == matrix.shape[1] and
-            tolerance.all_close(matrix, np.conj(matrix.T)))
+            np.allclose(matrix, np.conj(matrix.T), rtol=rtol, atol=atol))
 
 
 def is_orthogonal(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately orthogonal.
 
     A matrix is orthogonal if it's square and real and its transpose is its
@@ -76,20 +75,24 @@ def is_orthogonal(
 
     Args:
         matrix: The matrix to check.
-        tolerance: The per-matrix-entry tolerance on equality.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
         Whether the matrix is orthogonal within the given tolerance.
     """
     return (matrix.shape[0] == matrix.shape[1] and
             np.all(np.imag(matrix) == 0) and
-            tolerance.all_close(matrix.dot(matrix.T), np.eye(matrix.shape[0])))
+            np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]),
+                        rtol=rtol,
+                        atol=atol))
 
 
 def is_special_orthogonal(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately special orthogonal.
 
     A matrix is special orthogonal if it is square and real and its transpose
@@ -97,39 +100,45 @@ def is_special_orthogonal(
 
     Args:
         matrix: The matrix to check.
-        tolerance: The per-matrix-entry tolerance on equality.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
         Whether the matrix is special orthogonal within the given tolerance.
     """
-    return (is_orthogonal(matrix, tolerance) and
+    return (is_orthogonal(matrix, rtol=rtol, atol=atol) and
             (matrix.shape[0] == 0 or
-             tolerance.all_close(np.linalg.det(matrix), 1)))
+             np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
 def is_unitary(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary.
 
     A matrix is unitary if it's square and its adjoint is its inverse.
 
     Args:
         matrix: The matrix to check.
-        tolerance: The per-matrix-entry tolerance on equality.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
         Whether the matrix is unitary within the given tolerance.
     """
-    return (matrix.shape[0] == matrix.shape[1] and tolerance.all_close(
-        matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0])))
+    return (matrix.shape[0] == matrix.shape[1] and
+            np.allclose(matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]),
+                        rtol=rtol,
+                        atol=atol))
 
 
 def is_special_unitary(
         matrix: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary with unit determinant.
 
     A matrix is special-unitary if it is square and its adjoint is its inverse
@@ -137,22 +146,23 @@ def is_special_unitary(
 
     Args:
         matrix: The matrix to check.
-        tolerance: The per-matrix-entry tolerance on equality.
-
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
     Returns:
         Whether the matrix is unitary with unit determinant within the given
         tolerance.
     """
-    return (is_unitary(matrix, tolerance) and
+    return (is_unitary(matrix, rtol=rtol, atol=atol) and
             (matrix.shape[0] == 0 or
-             tolerance.all_close(np.linalg.det(matrix), 1)))
+             np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
 def commutes(
         m1: np.ndarray,
         m2: np.ndarray,
-        tolerance: Tolerance = Tolerance.DEFAULT
-) -> bool:
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
     """Determines if two matrices approximately commute.
 
     Two matrices A and B commute if they are square and have the same size and
@@ -161,7 +171,8 @@ def commutes(
     Args:
         m1: One of the matrices.
         m2: The other matrix.
-        tolerance: The per-matrix-entry tolerance on equality.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
 
     Returns:
         Whether the two matrices have compatible sizes and a commutator equal
@@ -169,12 +180,13 @@ def commutes(
   """
     return (m1.shape[0] == m1.shape[1] and
             m1.shape == m2.shape and
-            tolerance.all_close(m1.dot(m2), m2.dot(m1)))
+            np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol))
 
 
 def allclose_up_to_global_phase(
         a: np.ndarray,
         b: np.ndarray,
+        *,
         rtol: float = 1.e-5,
         atol: float = 1.e-8,
         equal_nan: bool = False
@@ -190,7 +202,7 @@ def allclose_up_to_global_phase(
             other NaN entries.
     """
 
-    a, b = match_global_phase(a, b)
+    a, b = transformations.match_global_phase(a, b)
 
     # Should now be equivalent.
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
@@ -198,6 +210,8 @@ def allclose_up_to_global_phase(
 
 def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
                               little_endian_qureg_value: int,
+                              *,  # Forces keyword args.
+                              num_qubits: int = None
                               ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
@@ -230,14 +244,20 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
             determines the desired value of the first targeted qubit, and so
             forth with the k'th targeted qubit's value set to
             bool(qureg_value & (1 << k)).
+        num_qubits: If specified the slices will extend all the way up to
+            this number of qubits, otherwise if it is None, the final element
+            return will be Ellipsis. Optional and defaults to using Ellipsis.
 
     Returns:
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
     """
-    n = max(target_qubit_axes) if target_qubit_axes else -1
-    result = [slice(None)] * (n + 2)  # type: List[Union[slice, int, ellipsis]]
+    n = num_qubits if num_qubits is not None else (
+        max(target_qubit_axes) if target_qubit_axes else -1)
+    result = [slice(None)] * (n + 2 * (
+            num_qubits is None))  # type: List[Union[slice, int, ellipsis]]
     for k, axis in enumerate(target_qubit_axes):
         result[axis] = (little_endian_qureg_value >> k) & 1
-    result[-1] = Ellipsis
+    if num_qubits is None:
+        result[-1] = Ellipsis
     return tuple(result)

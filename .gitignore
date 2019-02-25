@@ -1,6 +1,7 @@
 # ignore compiled python files
 __pycache__
 *.pyc
+python2.7-output/*
 
 # ignore idea SDK
 .idea/*
@@ -24,3 +25,9 @@ docs/generated
 
 # swap files
 *.swp
+
+# Mac only
+.DS_Store
+
+# From pytest-benchmark
+*.benchmarks/

@@ -30,11 +30,7 @@ from cirq.circuits.circuit_dag import (
 from cirq.circuits.insert_strategy import (
     InsertStrategy,
 )
-from cirq.circuits.moment import (
-    Moment,
-)
 from cirq.circuits.optimization_pass import (
-    OptimizationPass,
     PointOptimizer,
     PointOptimizationSummary,
 )

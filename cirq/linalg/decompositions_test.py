@@ -37,6 +37,26 @@ CNOT = np.array([[1, 0, 0, 0],
 CZ = np.diag([1, 1, 1, -1])
 
 
+def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2):
+    restored = g * cirq.linalg.combinators.kron(f1, f2)
+    assert not np.any(np.isnan(restored)), "NaN in kronecker product."
+    assert np.allclose(restored, matrix), "Can't factor kronecker product."
+
+
+def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
+    restored = g * cirq.linalg.combinators.kron(f1, f2)
+    assert (np.any(np.isnan(restored) or
+                   not np.allclose(restored, matrix)))
+
+def assert_magic_su2_within_tolerance(mat, a, b):
+    M = cirq.linalg.decompositions.MAGIC
+    MT = cirq.linalg.decompositions.MAGIC_CONJ_T
+    recon = cirq.linalg.combinators.dot(
+        MT,
+        cirq.linalg.combinators.kron(a, b),
+        M)
+    assert np.allclose(recon, mat), "Failed to decompose within tolerance."
+
 @pytest.mark.parametrize('matrix', [
     X,
     cirq.kron(X, X),
@@ -83,6 +103,8 @@ def test_kron_factor(f1, f2):
     assert abs(np.linalg.det(g1) - 1) < 0.00001
     assert abs(np.linalg.det(g2) - 1) < 0.00001
     assert np.allclose(g * cirq.kron(g1, g2), p)
+    assert_kronecker_factorization_within_tolerance(
+        p, g, g1, g2)
 
 
 @pytest.mark.parametrize('f1,f2', [
@@ -97,15 +119,20 @@ def test_kron_factor_special_unitaries(f1, f2):
     assert abs(g - 1) < 0.000001
     assert cirq.is_special_unitary(g1)
     assert cirq.is_special_unitary(g2)
+    assert_kronecker_factorization_within_tolerance(
+        p, g, g1, g2)
 
 
 def test_kron_factor_fail():
+    mat = cirq.kron_with_controls(cirq.CONTROL_TAG, X)
+    g, f1, f2 = cirq.kron_factor_4x4_to_2x2s(mat)
     with pytest.raises(ValueError):
-        _ = cirq.kron_factor_4x4_to_2x2s(
-            cirq.kron_with_controls(cirq.CONTROL_TAG, X))
-
+        assert_kronecker_factorization_not_within_tolerance(
+            mat, g, f1, f2)
+    mat = cirq.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
     with pytest.raises(ValueError):
-        _ = cirq.kron_factor_4x4_to_2x2s(np.diag([1, 1, 1, 1j]))
+        assert_kronecker_factorization_not_within_tolerance(
+            mat, g, f1, f2)
 
 
 def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -132,6 +159,7 @@ def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 def test_so4_to_magic_su2s(m):
     a, b = cirq.so4_to_magic_su2s(m)
     m2 = recompose_so4(a, b)
+    assert_magic_su2_within_tolerance(m2, a, b)
     assert np.allclose(m, m2)
 
 
@@ -164,7 +192,7 @@ def test_so4_to_magic_su2s_known_factors(a, b):
 ])
 def test_so4_to_magic_su2s_fail(mat):
     with pytest.raises(ValueError):
-        cirq.so4_to_magic_su2s(mat)
+        _ = cirq.so4_to_magic_su2s(mat)
 
 
 @pytest.mark.parametrize('x,y,z', [
@@ -207,8 +235,8 @@ def test_kak_canonicalize_vector(x, y, z):
     cirq.testing.random_unitary(4)
     for _ in range(10)
 ])
-def test_kak_decomposition(target):
-    kak = cirq.kak_decomposition(target)
+def test_kak_decomposition(target, benchmark):
+    kak = benchmark(cirq.kak_decomposition, target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 

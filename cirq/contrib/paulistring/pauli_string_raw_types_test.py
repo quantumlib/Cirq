@@ -40,8 +40,7 @@ def test_op_calls_validate():
             ps = self.pauli_string.map_qubits(qubit_map)
             return ValiGate(ps)
 
-    g = ValiGate(cirq.PauliString({q0: cirq.Pauli.X, q1: cirq.Pauli.Y,
-                              q2: cirq.Pauli.Z}))
+    g = ValiGate(cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z}))
 
     _ = g.with_qubits(q1, q0, q2)
     with pytest.raises(ValidError):
@@ -56,7 +55,7 @@ def test_on_wrong_number_qubits():
             ps = self.pauli_string.map_qubits(qubit_map)
             return DummyGate(ps)
 
-    g = DummyGate(cirq.PauliString({q0: cirq.Pauli.X, q1: cirq.Pauli.Y}))
+    g = DummyGate(cirq.PauliString({q0: cirq.X, q1: cirq.Y}))
 
     _ = g.with_qubits(q1, q2)
     with pytest.raises(ValueError):
@@ -77,8 +76,7 @@ def test_default_text_diagram():
             return self._pauli_string_diagram_info(args)
 
     q0, q1, q2 = _make_qubits(3)
-    ps = cirq.PauliString({q0: cirq.Pauli.X, q1: cirq.Pauli.Y,
-                           q2: cirq.Pauli.Z})
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z})
 
     circuit = cirq.Circuit.from_ops(
         DiagramGate(ps),

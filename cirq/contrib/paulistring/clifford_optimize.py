@@ -22,12 +22,12 @@ from cirq.contrib.paulistring.convert_gate_set import (
 
 
 def clifford_optimized_circuit(circuit: circuits.Circuit,
-                               tolerance: float = 1e-8
+                               atol: float = 1e-8
                                ) -> circuits.Circuit:
     # Convert to a circuit with SingleQubitCliffordGates,
     # CZs and other ignored gates
     c_cliff = converted_gate_set(circuit, no_clifford_gates=False,
-                                 tolerance=tolerance)
+                                 atol=atol)
 
     all_ops = list(c_cliff.all_operations())
 
@@ -120,7 +120,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                   and other_op.gate.exponent == 1
                   and quarter_turns == 2):
                 # Pass whole Pauli gate over CZ, possibly adding a Z gate
-                if pauli != ops.Pauli.Z:
+                if pauli != ops.pauli_gates.Z:
                     other_qubit = other_op.qubits[
                                     other_op.qubits.index(qubit)-1]
                     all_ops.insert(merge_i+1,

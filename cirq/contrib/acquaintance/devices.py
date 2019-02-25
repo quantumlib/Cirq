@@ -19,6 +19,8 @@ import abc
 from cirq import circuits, devices, ops, schedules
 from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)
+from cirq.contrib.acquaintance.bipartite import (
+    BipartiteSwapNetworkGate)
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
@@ -69,7 +71,11 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
         return 0
     if isinstance(obj.gate, AcquaintanceOpportunityGate):
         return len(obj.qubits)
+    if isinstance(obj.gate, BipartiteSwapNetworkGate):
+        return 2
     if isinstance(obj.gate, SwapNetworkGate):
+        if obj.gate.acquaintance_size is None:
+            return sum(sorted(obj.gate.part_lens)[-2:])
         if (obj.gate.acquaintance_size - 1) in obj.gate.part_lens:
             return obj.gate.acquaintance_size
     return 0

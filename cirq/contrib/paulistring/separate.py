@@ -22,7 +22,7 @@ from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 def convert_and_separate_circuit(circuit: circuits.Circuit,
                                  leave_cliffords: bool = True,
-                                 tolerance: float = 1e-8,
+                                 atol: float = 1e-8,
                                  ) -> Tuple[circuits.Circuit, circuits.Circuit]:
     """Converts any circuit into two circuits where (circuit_left+circuit_right)
     is equivalent to the given circuit.
@@ -44,7 +44,7 @@ def convert_and_separate_circuit(circuit: circuits.Circuit,
     """
     circuit = converted_gate_set(circuit,
                                  no_clifford_gates=not leave_cliffords,
-                                 tolerance=tolerance)
+                                 atol=atol)
     return pauli_string_half(circuit), regular_half(circuit)
 
 
@@ -62,9 +62,9 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
         circuit contains measurements.
     """
     return circuits.Circuit(
-                circuits.Moment(op for op in moment.operations
-                                if not isinstance(op, PauliStringPhasor))
-                                for moment in circuit)
+                ops.Moment(op for op in moment.operations
+                           if not isinstance(op, PauliStringPhasor))
+                           for moment in circuit)
 
 
 def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:

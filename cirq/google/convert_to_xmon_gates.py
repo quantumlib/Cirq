@@ -57,7 +57,8 @@ class ConvertToXmonGates(PointOptimizer):
                 op.qubits[0],
                 op.qubits[1],
                 mat,
-                allow_partial_czs=True)
+                allow_partial_czs=True,
+                clean_operations=False)
 
         return NotImplemented
 
