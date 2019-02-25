@@ -18,7 +18,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import Pipeline
 
 
-def get_least_squares_model_gradient(xs, ys, xopt, linear_model):
+def _get_least_squares_model_gradient(xs, ys, xopt, linear_model):
     model = Pipeline([('poly', PolynomialFeatures(degree=2)),
                       ('linear_model', linear_model),
                       ]
@@ -31,7 +31,7 @@ def get_least_squares_model_gradient(xs, ys, xopt, linear_model):
     return linear_coeffs
 
 
-def random_point_in_ball(n, radius):
+def _random_point_in_ball(n, radius):
     point_on_sphere = np.random.randn(n)
     point_on_sphere /= np.linalg.norm(point_on_sphere)
     length = np.random.uniform()
@@ -61,7 +61,7 @@ def model_gradient_descent(
 
     while max_evaluations is None or total_evals < max_evaluations:
         # Determine points to evaluate
-        new_xs = [current_x + random_point_in_ball(n, sample_radius)
+        new_xs = [current_x + _random_point_in_ball(n, sample_radius)
                   for _ in range(n_sample_points)]
         if max_evaluations and total_evals + len(new_xs) > max_evaluations:
             break
@@ -79,7 +79,7 @@ def model_gradient_descent(
                 model_ys.append(y)
         # Build and solve model
         linear_model = LinearRegression(fit_intercept=False)
-        model_gradient = get_least_squares_model_gradient(
+        model_gradient = _get_least_squares_model_gradient(
             model_xs,
             model_ys,
             current_x,
@@ -89,7 +89,8 @@ def model_gradient_descent(
         # Print some info
         if verbose:
             print('Total evals: {}'.format(total_evals))
-            print('# Points used for trust region model: {}'.format(len(model_xs)))
+            print('# Points used for trust region model: {}'.format(
+                len(model_xs)))
             print('2-norm of model gradient: {}'.format(gradient_norm))
             print()
         # Convergence criteria
