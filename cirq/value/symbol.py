@@ -67,3 +67,9 @@ class Symbol:
 
     def __radd__(self, other):
         return self if other == 0 else NotImplemented
+
+    def __pow__(self, other):
+        return 1 if other == 0 else NotImplemented
+
+    def __rpow__(self, other):
+        return 1 if other == 1 else NotImplemented
