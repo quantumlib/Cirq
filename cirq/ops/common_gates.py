@@ -46,6 +46,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.phased_x_gate
 
 
+@value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the X axis of the Bloch sphere.
@@ -111,6 +112,10 @@ class XPowGate(eigen_gate.EigenGate,
             return args.format('rx({0:half_turns}) {1};\n',
                                self._exponent, qubits[0])
 
+    @property
+    def phase_exponent(self):
+        return 0.0
+
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
@@ -135,6 +140,7 @@ class XPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
@@ -187,6 +193,10 @@ class YPowGate(eigen_gate.EigenGate,
             return args.format('ry({0:half_turns}) {1};\n',
                                self._exponent, qubits[0])
 
+    @property
+    def phase_exponent(self):
+        return 0.5
+
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
@@ -211,6 +221,7 @@ class YPowGate(eigen_gate.EigenGate,
         ).format(self._exponent, self._global_shift)
 
 
+@value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
@@ -323,25 +334,35 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(raw_types.Gate):
+class MeasurementGate(gate_features.MultiQubitGate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
     of measurements.
-
-    Attributes:
-        key: The string key of the measurement.
-        invert_mask: A list of values indicating whether the corresponding
-            qubits should be flipped. The list's length must not be longer than
-            the number of qubits, but it is permitted to be shorted.
-            Qubits with indices past the end of the mask are not flipped.
     """
 
     def __init__(self,
+                 num_qubits: int,
                  key: str = '',
                  invert_mask: Tuple[bool, ...] = ()) -> None:
+        """
+        Args:
+            num_qubits: The number of qubits to act upon.
+            key: The string key of the measurement.
+            invert_mask: A list of values indicating whether the corresponding
+                qubits should be flipped. The list's length must not be longer
+                than the number of qubits, but it is permitted to be shorter.
+                Qubits with indices past the end of the mask are not flipped.
+
+        Raises:
+            ValueError if the length of invert_mask is greater than num_qubits.
+        """
+        super().__init__(num_qubits)
         self.key = key
         self.invert_mask = invert_mask or ()
+        if (self.invert_mask is not None and
+            len(self.invert_mask) > self.num_qubits()):
+            raise ValueError('len(invert_mask) > num_qubits')
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
@@ -359,19 +380,12 @@ class MeasurementGate(raw_types.Gate):
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
-        return MeasurementGate(key=self.key, invert_mask=tuple(new_mask))
-
-    def validate_args(self, qubits):
-        if (self.invert_mask is not None and
-                len(self.invert_mask) > len(qubits)):
-            raise ValueError('len(invert_mask) > len(qubits)')
+        return MeasurementGate(self.num_qubits(), key=self.key,
+                               invert_mask=tuple(new_mask))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        n = (max(1, len(self.invert_mask))
-             if args.known_qubit_count is None
-             else args.known_qubit_count)
-        symbols = ['M'] * n
+        symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
         if self.invert_mask:
@@ -380,8 +394,8 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if (not args.known_qubits or
-                self.key != _default_measurement_key(args.known_qubits)):
+        if (not args.known_qubits or self.key != _default_measurement_key(
+            args.known_qubits)):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
@@ -404,11 +418,13 @@ class MeasurementGate(raw_types.Gate):
         return ''.join(lines)
 
     def __repr__(self):
-        return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
-                                                     repr(self.invert_mask))
+        return 'cirq.MeasurementGate({}, {}, {})'.format(
+            repr(self.num_qubits()),
+            repr(self.key),
+            repr(self.invert_mask))
 
     def _value_equality_values_(self):
-        return self.key, self.invert_mask
+        return self.num_qubits(), self.key, self.invert_mask
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
@@ -449,7 +465,7 @@ def measure(*qubits: raw_types.QubitId,
 
     if key is None:
         key = _default_measurement_key(qubits)
-    return MeasurementGate(key, invert_mask).on(*qubits)
+    return MeasurementGate(len(qubits), key, invert_mask).on(*qubits)
 
 
 def measure_each(*qubits: raw_types.QubitId,
@@ -467,23 +483,66 @@ def measure_each(*qubits: raw_types.QubitId,
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(key_func(q)).on(q) for q in qubits]
+    return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
+
+
+@value.value_equality
+class IdentityGate(gate_features.MultiQubitGate):
+    """A Gate that perform no operation on qubits.
+
+    The unitary matrix of this gate is a diagonal matrix with all 1s on the
+    diagonal and all 0s off the diagonal in any basis.
+
+    `cirq.I` is the single qubit identity gate.
+    """
+
+    def __init__(self, num_qubits):
+        super().__init__(num_qubits)
+
+    def _unitary_(self):
+        return np.identity(2 ** self.num_qubits())
+
+    def _apply_unitary_(
+        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+        return args.target_tensor
+
+    def __repr__(self):
+        if self.num_qubits() == 1:
+            return 'cirq.I'
+        return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
+
+    def __str__(self):
+        if (self.num_qubits() == 1):
+            return 'I'
+        else:
+            return 'I({})'.format(self.num_qubits())
+
+    def _circuit_diagram_info_(self,
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('I',) * self.num_qubits(), connected=True)
+
+    def _value_equality_values_(self):
+        return self.num_qubits(),
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
+    The unitary matrix of ``HPowGate(exponent=t)`` is:
 
-    HPowGate()**t = HPowGate(exponent=t) is given by the matrix
         [[g·(c-i·s/sqrt(2)), -i·g·s/sqrt(2)],
         [-i·g·s/sqrt(2)], g·(c+i·s/sqrt(2))]]
+
     where
+
         c = cos(π·t/2)
         s = sin(π·t/2)
         g = exp(i·π·t/2).
-    Note in particular that for t=1, this gives the Hadamard matrix.
 
-    `cirq.H`, the Hadamard gate, is an instance of this gate at exponent=1.
+    Note in particular that for `t=1`, this gives the Hadamard matrix.
+
+    `cirq.H`, the Hadamard gate, is an instance of this gate at `exponent=1`.
     """
 
     def _eigen_components(self):
@@ -523,9 +582,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             yield cirq.XPowGate(global_shift=-0.25).on(q)
             return
 
-        yield Y(q)**0.25
-        yield X(q)**self._exponent
-        yield Y(q)**-0.25
+        yield YPowGate(exponent=0.25).on(q)
+        yield XPowGate(exponent=self._exponent).on(q)
+        yield YPowGate(exponent=-0.25).on(q)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -575,7 +634,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
         g = exp(i·π·t/2).
 
-    `cirq.Z``, the controlled Z gate, is an instance of this gate at
+    `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
     """
 
@@ -669,9 +728,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _decompose_(self, qubits):
         c, t = qubits
-        yield Y(t)**-0.5
+        yield YPowGate(exponent=-0.5).on(t)
         yield CZ(c, t)**self._exponent
-        yield Y(t)**0.5
+        yield YPowGate(exponent=0.5).on(t)
 
     def _eigen_components(self):
         return [
@@ -936,32 +995,13 @@ def Rz(rads: float) -> ZPowGate:
     return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
 
 
-X = XPowGate()
-"""The Pauli X gate.
-
-Matrix:
-
-    [[0, 1],
-     [1, 0]]
-"""
-
-
-#: The Pauli Y gate.
-#:
-#: Matrix:
-#:
-#:     [[0, -i],
-#:      [i, 0]]
-Y = YPowGate()
-
-
-# The Pauli Z gate.
+# The one qubit identity gate.
 #
 # Matrix:
 #
 #     [[1, 0],
-#      [0, -1]]
-Z = ZPowGate()
+#      [0, 1]]
+I = IdentityGate(num_qubits=1)
 
 
 # The Hadamard gate.
@@ -973,23 +1013,22 @@ Z = ZPowGate()
 #     where s = sqrt(0.5).
 H = HPowGate()
 
-
 # The Clifford S gate.
 #
 # Matrix:
 #
 #     [[1, 0],
 #      [0, i]]
-S = Z**0.5
+S = ZPowGate(exponent=0.5)
 
 
-# The T gate.
+# The non-Clifford T gate.
 #
 # Matrix:
 #
 #     [[1, 0]
 #      [0, exp(i pi / 4)]]
-T = Z**0.25
+T = ZPowGate(exponent=0.25)
 
 
 # The controlled Z gate.

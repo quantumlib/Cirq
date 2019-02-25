@@ -72,7 +72,8 @@ class MergeInteractions(circuits.PointOptimizer):
                 op.qubits[1],
                 matrix,
                 self.allow_partial_czs,
-                self.tolerance))
+                self.tolerance,
+                False))
         new_interaction_count = len([new_op for new_op in new_operations
                                      if len(new_op.qubits) == 2])
 

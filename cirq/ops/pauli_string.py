@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
+from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload)
 
 from cirq import value
 from cirq.ops import (
-    raw_types, gate_operation, common_gates, op_tree
+    raw_types, gate_operation, common_gates, op_tree, pauli_gates
 )
-from cirq.ops.pauli import Pauli
+from cirq.ops.pauli_gates import Pauli
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
@@ -27,7 +27,7 @@ TDefault = TypeVar('TDefault')
 
 
 @value.value_equality
-class PauliString:
+class PauliString(raw_types.Operation):
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
                  negated: bool = False) -> None:
@@ -69,8 +69,14 @@ class PauliString:
     def keys(self) -> KeysView[raw_types.QubitId]:
         return self._qubit_pauli_map.keys()
 
-    def qubits(self) -> KeysView[raw_types.QubitId]:
-        return self.keys()
+    @property
+    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+        return tuple(sorted(self.keys()))
+
+    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'PauliString':
+        return PauliString(dict(zip(new_qubits,
+                                    (self[q] for q in self.qubits))),
+                           self.negated)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()
@@ -86,11 +92,11 @@ class PauliString:
 
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
-                             for qubit in sorted(self.qubits())))
+                             for qubit in sorted(self.qubits)))
         return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
 
     def __str__(self):
-        ordered_qubits = sorted(self.qubits())
+        ordered_qubits = sorted(self.qubits)
         return '{{{}, {}}}'.format('+-'[self.negated],
                                    ', '.join(('{!s}:{!s}'.format(q, self[q])
                                              for q in ordered_qubits)))
@@ -129,7 +135,7 @@ class PauliString:
         """
         for qubit, pauli in self.items():
             yield SingleQubitCliffordGate.from_single_map(
-                {pauli: (Pauli.Z, False)})(qubit)
+                {pauli: (pauli_gates.Z, False)})(qubit)
 
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],

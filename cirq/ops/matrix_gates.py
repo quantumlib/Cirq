@@ -19,18 +19,19 @@ from typing import cast, Any
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq.ops import raw_types
+from cirq.ops import gate_features
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(raw_types.Gate):
+class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     """A 1-qubit gate defined by its matrix.
 
-    More general than specialized classes like ZGate, but more expensive and
-    more float-error sensitive to work with (due to using eigendecompositions).
+    More general than specialized classes like `ZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
@@ -82,12 +83,10 @@ class SingleQubitMatrixGate(raw_types.Gate):
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))
         return hash((SingleQubitMatrixGate, vals))
 
-    def approx_eq(self, other, ignore_global_phase=True):
+    def _approx_eq_(self, other: Any, atol) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        cmp = (linalg.allclose_up_to_global_phase if ignore_global_phase
-               else np.allclose)
-        return cmp(self._matrix, other._matrix)
+        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -105,11 +104,12 @@ class SingleQubitMatrixGate(raw_types.Gate):
         return str(self._matrix.round(3))
 
 
-class TwoQubitMatrixGate(raw_types.Gate):
+class TwoQubitMatrixGate(gate_features.TwoQubitGate):
     """A 2-qubit gate defined only by its matrix.
 
-    More general than specialized classes like CZGate, but more expensive and
-    more float-error sensitive to work with (due to using eigendecompositions).
+    More general than specialized classes like `CZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
@@ -144,12 +144,10 @@ class TwoQubitMatrixGate(raw_types.Gate):
         phased_matrix = z2.dot(self._matrix).dot(np.conj(z2.T))
         return TwoQubitMatrixGate(phased_matrix)
 
-    def approx_eq(self, other, ignore_global_phase=True):
+    def _approx_eq_(self, other: Any, atol) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        cmp = (linalg.allclose_up_to_global_phase if ignore_global_phase
-               else np.allclose)
-        return cmp(self._matrix, other._matrix)
+        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
 
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)

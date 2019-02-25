@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
 
 import functools
 import networkx
@@ -111,7 +111,7 @@ class CircuitDag(networkx.DiGraph):
                  ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
-            dag.append(op)
+            dag.append(cast(ops.Operation, op))
         return dag
 
     def append(self, op: ops.Operation) -> None:
