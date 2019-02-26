@@ -76,22 +76,12 @@ def _one_hot_matrix(size: int, i: int, j: int) -> np.ndarray:
         'ZZ': np.diag([1, -1, -1, 1]),
     }),
     (STANDARD_BASIS, STANDARD_BASIS, {
-        'aa': _one_hot_matrix(4, 0, 0),
-        'ab': _one_hot_matrix(4, 0, 1),
-        'ac': _one_hot_matrix(4, 1, 0),
-        'ad': _one_hot_matrix(4, 1, 1),
-        'ba': _one_hot_matrix(4, 0, 2),
-        'bb': _one_hot_matrix(4, 0, 3),
-        'bc': _one_hot_matrix(4, 1, 2),
-        'bd': _one_hot_matrix(4, 1, 3),
-        'ca': _one_hot_matrix(4, 2, 0),
-        'cb': _one_hot_matrix(4, 2, 1),
-        'cc': _one_hot_matrix(4, 3, 0),
-        'cd': _one_hot_matrix(4, 3, 1),
-        'da': _one_hot_matrix(4, 2, 2),
-        'db': _one_hot_matrix(4, 2, 3),
-        'dc': _one_hot_matrix(4, 3, 2),
-        'dd': _one_hot_matrix(4, 3, 3),
+        'abcd'[2 * row_outer + col_outer] + 'abcd'[2 * row_inner + col_inner]:
+        _one_hot_matrix(4, 2 * row_outer + row_inner, 2 * col_outer + col_inner)
+        for row_outer in range(2)
+        for row_inner in range(2)
+        for col_outer in range(2)
+        for col_inner in range(2)
     }),
 ))
 def test_kron_bases(basis1, basis2, expected_kron_basis):
