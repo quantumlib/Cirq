@@ -102,7 +102,7 @@ def make_bernstein_vazirani_circuit(input_qubits, output_qubit, oracle):
     c.append([
         cirq.X(output_qubit),
         cirq.H(output_qubit),
-        cirq.H.on_each(input_qubits),
+        cirq.H.on_each(*input_qubits),
     ])
 
     # Query oracle.
@@ -110,7 +110,7 @@ def make_bernstein_vazirani_circuit(input_qubits, output_qubit, oracle):
 
     # Measure in X basis.
     c.append([
-        cirq.H.on_each(input_qubits),
+        cirq.H.on_each(*input_qubits),
         cirq.measure(*input_qubits, key='result')
     ])
 

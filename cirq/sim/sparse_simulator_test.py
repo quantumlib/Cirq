@@ -523,7 +523,7 @@ def test_simulator_step_state_mixin():
 
 class MultiHTestGate(cirq.TwoQubitGate):
     def _decompose_(self, qubits):
-        return cirq.H.on_each(qubits)
+        return cirq.H.on_each(*qubits)
 
 
 def test_simulates_composite():
