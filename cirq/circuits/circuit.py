@@ -1545,7 +1545,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
         name = str(info.exponent)
         return (name
                 if _is_exposed_formula(name)
-                else 'Symbol({})'.format(_encode(name)))
+                else '({})'.format(_encode(name)))
 
     if info.exponent == 0:
         return '0'
