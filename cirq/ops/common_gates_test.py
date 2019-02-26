@@ -507,6 +507,23 @@ def test_measure():
     with pytest.raises(ValueError, match='QubitId'):
         _ = cirq.measure("bork")
 
+
+def test_measurement_channel():
+    np.testing.assert_allclose(
+            cirq.channel(cirq.MeasurementGate(1)),
+            (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])))
+    np.testing.assert_allclose(
+            cirq.channel(cirq.MeasurementGate(2)),
+            (np.array([[1, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0]]),
+             np.array([[0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 1]])))
+
+
 def test_measurement_qubit_count_vs_mask_length():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
