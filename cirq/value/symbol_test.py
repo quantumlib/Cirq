@@ -48,6 +48,8 @@ def test_identity_operations():
     s = cirq.Symbol('s')
     assert s == s * 1 == 1 * s == 1.0 * s * 1.0
     assert s == s + 0 == 0 + s == 0.0 + s + 0.0
+    assert 1 == 1 ** s == 1.0 ** s
+    assert 1 == s ** 0 == s ** 0.0
 
     with pytest.raises(TypeError):
         _ = s + s
@@ -61,3 +63,7 @@ def test_identity_operations():
         _ = s * 2
     with pytest.raises(TypeError):
         _ = 2 * s
+    with pytest.raises(TypeError):
+        _ = 2 ** s
+    with pytest.raises(TypeError):
+        _ = s ** 2

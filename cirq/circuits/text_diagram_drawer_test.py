@@ -16,6 +16,7 @@ import pytest
 
 from cirq.circuits import TextDiagramDrawer
 from cirq.testing.mock import mock
+from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
 
 
 def test_draw_entries_and_lines_with_options():
@@ -24,56 +25,56 @@ def test_draw_entries_and_lines_with_options():
     d.write(6, 2, 'span')
     d.horizontal_line(y=3, x1=2, x2=8)
     d.vertical_line(x=7, y1=1, y2=4)
-    assert d.render().strip() == """
+    _assert_same_diagram(d.render().strip(), """
 !
 
-                 │
+                 ╷
                  │
             span │
                  │
-    ─────────────┼─
+    ╶────────────┼─
                  │
-    """.strip()
+    """.strip())
 
-    assert d.render(use_unicode_characters=False).strip() == """
+    _assert_same_diagram(d.render(use_unicode_characters=False).strip(), """
 !
 
-                 |
+
                  |
             span |
                  |
-    -------------+-
+     ------------+-
                  |
-    """.strip()
+    """.strip())
 
-    assert d.render(crossing_char='@').strip() == """
+    _assert_same_diagram(d.render(crossing_char='@').strip() , """
 !
 
-                 │
+                 ╷
                  │
             span │
                  │
-    ─────────────@─
+    ╶────────────@─
                  │
-    """.strip()
+    """.strip())
 
-    assert d.render(horizontal_spacing=0).strip() == """
+    _assert_same_diagram(d.render(horizontal_spacing=0).strip() , """
 !
 
-          │
+          ╷
           │
       span│
           │
-  ────────┼
+  ╶───────┼
           │
-    """.strip()
+    """.strip())
 
-    assert d.render(vertical_spacing=0).strip() == """
+    _assert_same_diagram(d.render(vertical_spacing=0).strip() , """
 !
-                 │
+                 ╷
             span │
-    ─────────────┼─
-    """.strip()
+    ╶────────────┼─
+    """.strip())
 
 
 def test_draw_entries_and_lines_with_emphasize():
@@ -84,22 +85,22 @@ def test_draw_entries_and_lines_with_emphasize():
     d.horizontal_line(y=5, x1=2, x2=9, emphasize=False)
     d.vertical_line(x=7, y1=1, y2=6, emphasize=True)
     d.vertical_line(x=5, y1=1, y2=7, emphasize=False)
-    assert d.render().strip() == """
+    _assert_same_diagram(d.render().strip() , """
 !
 
-          │      ┃
+          ╷      ╻
           │      ┃
           │ span ┃
           │      ┃
-    ━━━━━━┿━━━━━━╋━
+    ╺━━━━━┿━━━━━━╋━╸
           │      ┃
           │      ┃
           │      ┃
-    ──────┼──────╂───
+    ╶─────┼──────╂───
           │      ┃
+          │      ╹
           │
-          │
-    """.strip()
+    """.strip())
 
 
 def test_line_detects_horizontal():
@@ -130,16 +131,16 @@ def test_multiline_entries():
     d.write(5, 2, '4n')
     d.vertical_line(x=5, y1=1, y2=2)
     d.horizontal_line(y=1, x1=0, x2=8)
-    assert d.render().strip() == """
+    _assert_same_diagram(d.render().strip() , """
 hello
 there
 
-next──────────1──────
-              2
+              1
+next──────────2──────
               3
               │
               4n
-    """.strip()
+    """.strip())
 
     d = TextDiagramDrawer()
     d.vertical_line(x=0, y1=0, y2=3)
@@ -148,8 +149,8 @@ next──────────1──────
     d.vertical_line(x=3, y1=0, y2=3)
     d.write(0, 0, 'long line\nshort')
     d.write(2, 2, 'short\nlong line')
-    assert d.render().strip() == """
-long line │ │         │
+    _assert_same_diagram(d.render().strip() , """
+long line ╷ ╷         ╷
 short     │ │         │
 │         │ │         │
 │         │ │         │
@@ -157,4 +158,4 @@ short     │ │         │
 │         │ short     │
 │         │ long line │
 │         │ │         │
-    """.strip()
+    """.strip())

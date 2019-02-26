@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-
+import sympy
 import cirq
 
 
@@ -65,7 +65,7 @@ def test_product():
 
 
 def _values(sweep, key):
-    p = cirq.Symbol(key)
+    p = sympy.Symbol(key)
     return [resolver.value_of(p) for resolver in sweep]
 
 

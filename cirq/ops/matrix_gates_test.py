@@ -15,6 +15,7 @@ import re
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -81,7 +82,7 @@ def test_single_qubit_extrapolate():
         np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
     assert cirq.approx_eq(z2**0.5, z4, atol=1e-9)
     with pytest.raises(TypeError):
-        _ = x**cirq.Symbol('a')
+        _ = x**sympy.Symbol('a')
 
 
 def test_two_qubit_init():
@@ -123,7 +124,7 @@ def test_two_qubit_extrapolate():
     assert cirq.approx_eq(cz4**0, i, atol=1e-9)
     assert cirq.approx_eq(cz2**0.5, cz4, atol=1e-9)
     with pytest.raises(TypeError):
-        _ = cz2**cirq.Symbol('a')
+        _ = cz2**sympy.Symbol('a')
 
 
 def test_single_qubit_diagram():
@@ -134,33 +135,26 @@ def test_single_qubit_diagram():
         cirq.SingleQubitMatrixGate(m).on(a),
         cirq.CZ(a, b))
 
-    assert re.match("""
-a: ───┌[            ]+┐───@───
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      └[            ]+┘   │
-       [            ]+    │
-b: ────[────────────]+────@───
-    """.strip(), c.to_text_diagram())
+    assert re.match(r"""
+      ┌[          ]+┐
+a: ───│[0-9\.+\-j ]+│───@───
+      │[0-9\.+\-j ]+│   │
+      └[          ]+┘   │
+       [          ]+    │
+b: ────[──────────]+────@───
+    """.strip(), c.to_text_diagram().strip())
 
     assert re.match(r"""
-a: ---[\[0-9\.+\-j \]]+---@---
-      [\[0-9\.+\-j \]]+   |
-      [              ]+   |
-b: ---[--------------]+---@---
-        """.strip(), c.to_text_diagram(use_unicode_characters=False))
-
-    assert re.match("""
-a[            ]+  b
-│[            ]+  │
-┌[            ]+┐ │
-│[0-9\\.+\\-j ]+│ │
-│[0-9\\.+\\-j ]+│ │
-└[            ]+┘ │
-│[            ]+  │
-@[────────────]+──@
-│[            ]+  │
-    """.strip(), c.to_text_diagram(transpose=True))
+a[          ]+  b
+│[          ]+  │
+┌[          ]+┐ │
+│[0-9\.+\-j ]+│ │
+│[0-9\.+\-j ]+│ │
+└[          ]+┘ │
+│[          ]+  │
+@[──────────]+──@
+│[          ]+  │
+    """.strip(), c.to_text_diagram(transpose=True).strip())
 
 
 def test_two_qubit_diagram():
@@ -170,42 +164,42 @@ def test_two_qubit_diagram():
     c = cirq.Circuit.from_ops(
         cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(a, b),
         cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(c, a))
-    assert re.match("""
-a: ───┌[            ]+┐───#2─+
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      │[0-9\\.+\\-j ]+│   │
-      └[            ]+┘   │
-      │[            ]+    │
-b: ───#2[───────────]+────┼──+
-       [            ]+    │
-c: ────[────────────]+────┌[            ]+┐───
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    │[0-9\\.+\\-j ]+│
-       [            ]+    └[            ]+┘
-    """.strip(), c.to_text_diagram())
+    assert re.match(r"""
+      ┌[          ]+┐
+      │[0-9\.+\-j ]+│
+a: ───│[0-9\.+\-j ]+│───#2─+
+      │[0-9\.+\-j ]+│   │
+      │[0-9\.+\-j ]+│   │
+      └[          ]+┘   │
+      │[          ]+    │
+b: ───#2[─────────]+────┼──+
+       [          ]+    │
+       [          ]+    ┌[          ]+┐
+       [          ]+    │[0-9\.+\-j ]+│
+c: ────[──────────]+────│[0-9\.+\-j ]+│──+
+       [          ]+    │[0-9\.+\-j ]+│
+       [          ]+    │[0-9\.+\-j ]+│
+       [          ]+    └[          ]+┘
+    """.strip(), c.to_text_diagram().strip())
 
-    assert re.match("""
-a[            ]+  b  c
-│[            ]+  │  │
-┌[            ]+┐─#2 │
-│[0-9\\.+\\-j ]+│ │  │
-│[0-9\\.+\\-j ]+│ │  │
-│[0-9\\.+\\-j ]+│ │  │
-│[0-9\\.+\\-j ]+│ │  │
-└[            ]+┘ │  │
-│[            ]+  │  │
-#2[───────────]+──┼──┌[            ]+┐
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  │[0-9\\.+\\-j ]+│
-│[            ]+  │  └[            ]+┘
-│[            ]+  │  │
-    """.strip(), c.to_text_diagram(transpose=True))
+    assert re.match(r"""
+a[          ]+  b  c
+│[          ]+  │  │
+┌[          ]+┐ │  │
+│[0-9\.+\-j ]+│ │  │
+│[0-9\.+\-j ]+│─#2 │
+│[0-9\.+\-j ]+│ │  │
+│[0-9\.+\-j ]+│ │  │
+└[          ]+┘ │  │
+│[          ]+  │  │
+│[          ]+  │  ┌[          ]+┐
+│[          ]+  │  │[0-9\.+\-j ]+│
+#2[─────────]+──┼──│[0-9\.+\-j ]+│
+│[          ]+  │  │[0-9\.+\-j ]+│
+│[          ]+  │  │[0-9\.+\-j ]+│
+│[          ]+  │  └[          ]+┘
+│[          ]+  │  │
+    """.strip(), c.to_text_diagram(transpose=True).strip())
 
 
 def test_str_executes():

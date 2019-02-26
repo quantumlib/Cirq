@@ -88,7 +88,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         Returns:
             A QasmTwoQubitGate implementing the matrix.
         """
-        kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=atol))
+        kak = linalg.kak_decomposition(mat ,atol=atol)
         return QasmTwoQubitGate(kak)
 
     def _unitary_(self):

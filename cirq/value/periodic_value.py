@@ -14,6 +14,8 @@
 
 from typing import Any, Union
 
+import sympy
+
 import cirq.protocols
 
 
@@ -56,6 +58,9 @@ class PeriodicValue:
         if not isinstance(other, type(self)):
             return NotImplemented
 
+        #self.value = value % period in __init__() creates a Mod
+        if isinstance(other.value, sympy.Mod):
+            return self.value == other.value
         # Periods must be exactly equal to avoid drift of normalized value when
         # original value increases.
         if self.period != other.period:
