@@ -97,10 +97,10 @@ class PauliString(raw_types.Operation):
 
     def __str__(self):
         ordered_qubits = sorted(self.qubits)
-        sign = '+-'[self.negated]
+        sign = '-' if self.negated else ''
         if not ordered_qubits:
-            return '({}{})'.format(sign, 'I')
-        return '({}{})'.format(
+            return '{}{}'.format(sign, 'I')
+        return '{}{}'.format(
             sign,
             '*'.join('{}({})'.format(self[q], q, self[q])
                      for q in ordered_qubits))

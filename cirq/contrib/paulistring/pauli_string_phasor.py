@@ -136,7 +136,7 @@ class PauliStringPhasor(PauliStringGateOperation):
                     self.pauli_string, self.half_turns)
 
     def __str__(self):
-        return '{}**{}'.format(self.pauli_string, self.half_turns)
+        return '({})**{}'.format(self.pauli_string, self.half_turns)
 
 
 def xor_nonlocal_decompose(qubits: Iterable[ops.QubitId],

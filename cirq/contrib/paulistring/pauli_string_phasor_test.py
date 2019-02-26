@@ -339,6 +339,7 @@ q2: ────────────────────[Z]───[X]^
 """)
 
 
+@cirq.testing.only_test_in_python3
 def test_repr():
     q0, q1, q2 = _make_qubits(3)
     ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,
@@ -367,7 +368,7 @@ def test_str():
                                              q1: cirq.Y,
                                              q0: cirq.X}, False)
                                 ) ** 0.5
-    assert str(ps) == '(+X(q0)*Y(q1)*Z(q2))**0.5'
+    assert str(ps) == '(X(q0)*Y(q1)*Z(q2))**0.5'
 
     ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,
                                              q1: cirq.Y,

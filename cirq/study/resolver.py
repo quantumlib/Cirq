@@ -15,6 +15,8 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Dict, Union
+import sys
+
 import sympy
 
 
@@ -54,7 +56,12 @@ class ParamResolver(object):
         if isinstance(value, str):
             return self.param_dict.get(value, sympy.Symbol(value))
         if isinstance(value, sympy.Basic):
-            v = value.subs(self.param_dict)
+            if sys.version_info.major < 3:
+                # HACK: workaround https://github.com/sympy/sympy/issues/16087
+                d = {k.encode(): v for k, v in self.param_dict.items()}
+                v = value.subs(d)
+            else:
+                v = value.subs(self.param_dict)
             return v if v.free_symbols else float(v)
         return value
 

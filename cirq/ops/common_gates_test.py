@@ -37,6 +37,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
             eigen_gate_type)
 
+
 @pytest.mark.parametrize('eigen_gate_type', [
     cirq.CNotPowGate,
     cirq.HPowGate,
@@ -46,6 +47,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
             eigen_gate_type, ignoring_global_phase=True)
+
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
@@ -285,25 +287,25 @@ def test_text_diagrams():
         cirq.Y(a),
         cirq.Z(a),
         cirq.Z(a)**sympy.Symbol('x'),
+        cirq.Rx(sympy.Symbol('x')).on(a),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
         cirq.H(a),
-        cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1,
         cirq.I(a),
-        cirq.IdentityGate(2)(a,b))
+        cirq.IdentityGate(2)(a, b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────I───I───
-      │                     │   │   │       │       │              │
-b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───────I───
+a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H───iSwap──────I───I───
+      │                             │   │   │       │              │
+b: ───×─────────────────────────────@───X───@───────iSwap^-1───────I───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------I---I---
-      |                        |   |   |       |       |              |
-b: ---swap---------------------@---X---@-------iSwap---iSwap^-1-------I---
+a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H---iSwap------I---I---
+      |                                |   |   |       |              |
+b: ---swap-----------------------------@---X---@-------iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 

@@ -707,8 +707,8 @@ class CZPowGate(eigen_gate.EigenGate,
 
 
 def _rads_func_symbol(func_name: str,
-        args: protocols.CircuitDiagramInfoArgs,
-        half_turns: Any) -> str:
+                      args: protocols.CircuitDiagramInfoArgs,
+                      half_turns: Any) -> str:
     if isinstance(half_turns, sympy.Basic):
         return '{}({})'.format(func_name, sympy.pi * half_turns)
     unit = 'π' if args.use_unicode_characters else 'pi'
