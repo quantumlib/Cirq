@@ -15,6 +15,7 @@
 import itertools
 import pytest
 import numpy as np
+import sympy
 
 import cirq
 from cirq.contrib.paulistring import PauliStringPhasor
@@ -51,7 +52,7 @@ def test_eq_ne_hash():
     eq.add_equality_group(
         PauliStringPhasor(ps2.negate(), half_turns=-0.5))
     eq.add_equality_group(
-        PauliStringPhasor(ps1, half_turns=cirq.Symbol('a')))
+        PauliStringPhasor(ps1, half_turns=sympy.Symbol('a')))
 
 
 def test_map_qubits():
@@ -187,7 +188,7 @@ def test_is_parametrized():
     op = PauliStringPhasor(cirq.PauliString({}))
     assert not cirq.is_parameterized(op)
     assert not cirq.is_parameterized(op ** 0.1)
-    assert cirq.is_parameterized(op ** cirq.Symbol('a'))
+    assert cirq.is_parameterized(op ** sympy.Symbol('a'))
 
 
 def test_with_parameters_resolved_by():

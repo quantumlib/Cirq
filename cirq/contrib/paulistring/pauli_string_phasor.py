@@ -15,6 +15,7 @@
 from typing import (
     Dict, Iterable, Optional, Union, cast
 )
+import sympy
 
 from cirq import ops, value, study, protocols
 from cirq.contrib.paulistring.pauli_string_raw_types import (
@@ -28,7 +29,7 @@ class PauliStringPhasor(PauliStringGateOperation):
     def __init__(self,
                  pauli_string: PauliString,
                  *,  # Forces keyword args.
-                 half_turns: Optional[Union[value.Symbol, float]] = None,
+                 half_turns: Optional[Union[sympy.Basic, float]] = None,
                  rads: Optional[float] = None,
                  degs: Optional[float] = None) -> None:
         """Initializes the operation.
@@ -49,7 +50,7 @@ class PauliStringPhasor(PauliStringGateOperation):
                             half_turns=half_turns,
                             rads=rads,
                             degs=degs)
-        if not isinstance(half_turns, value.Symbol):
+        if not isinstance(half_turns, sympy.Symbol):
             half_turns = 1 - (1 - half_turns) % 2
         super().__init__(pauli_string)
         self.half_turns = half_turns
@@ -61,12 +62,12 @@ class PauliStringPhasor(PauliStringGateOperation):
         ps = self.pauli_string.map_qubits(qubit_map)
         return PauliStringPhasor(ps, half_turns=self.half_turns)
 
-    def _with_half_turns(self, half_turns: Union[float, value.Symbol]
+    def _with_half_turns(self, half_turns: Union[float, sympy.Symbol]
                          ) -> 'PauliStringPhasor':
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
     def __pow__(self,
-                exponent: Union[float, value.Symbol]) -> 'PauliStringPhasor':
+                exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
         new_exponent = protocols.mul(self.half_turns, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -92,7 +93,7 @@ class PauliStringPhasor(PauliStringGateOperation):
         xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
-        if isinstance(self.half_turns, value.Symbol):
+        if isinstance(self.half_turns, sympy.Symbol):
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
             yield ops.Z(any_qubit)**self.half_turns
@@ -115,7 +116,7 @@ class PauliStringPhasor(PauliStringGateOperation):
         return protocols.trace_distance_bound(ops.Z**self.half_turns)
 
     def _is_parameterized_(self) -> bool:
-        return isinstance(self.half_turns, value.Symbol)
+        return isinstance(self.half_turns, sympy.Basic)
 
     def _resolve_parameters_(self, param_resolver: study.ParamResolver
                                     ) -> 'PauliStringPhasor':
