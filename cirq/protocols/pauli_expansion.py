@@ -16,8 +16,6 @@
 
 from typing import Any, Dict, Optional
 
-import numpy as np
-
 from cirq.linalg import operator_spaces
 from cirq.protocols.unitary import unitary
 
