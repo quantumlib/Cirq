@@ -16,6 +16,7 @@ from typing import Union
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -27,7 +28,7 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         [0  0  i  0]
         [0  0  0 -i]
     """
-    def __init__(self, quarter_turns: Union[cirq.Symbol, float]) -> None:
+    def __init__(self, quarter_turns: Union[sympy.Basic, float]) -> None:
         super().__init__(exponent=quarter_turns)
 
     @property
@@ -82,7 +83,7 @@ def test_init():
     assert CExpZinGate(4.5).exponent == 4.5
     assert CExpZinGate(1.5).exponent == 1.5
     assert CExpZinGate(3.5).exponent == 3.5
-    assert CExpZinGate(cirq.Symbol('a')).exponent == cirq.Symbol('a')
+    assert CExpZinGate(sympy.Symbol('a')).exponent == sympy.Symbol('a')
 
     assert ZGateDef(exponent=0.5).exponent == 0.5
 
@@ -98,8 +99,8 @@ def test_eq():
 
     eq.add_equality_group(CExpZinGate(2.5))
     eq.add_equality_group(CExpZinGate(2.25))
-    eq.make_equality_group(lambda: cirq.Symbol('a'))
-    eq.add_equality_group(cirq.Symbol('b'))
+    eq.make_equality_group(lambda: sympy.Symbol('a'))
+    eq.add_equality_group(sympy.Symbol('b'))
 
     eq.add_equality_group(ZGateDef(exponent=0.5,
                                    global_shift=0.0))
@@ -128,18 +129,18 @@ def test_approx_eq():
     )
     assert not cirq.approx_eq(
         ZGateDef(exponent=1.5),
-        ZGateDef(exponent=cirq.Symbol('a')),
+        ZGateDef(exponent=sympy.Symbol('a')),
         atol=0.1
     )
 
     assert cirq.approx_eq(
-        CExpZinGate(cirq.Symbol('a')),
-        CExpZinGate(cirq.Symbol('a')),
+        CExpZinGate(sympy.Symbol('a')),
+        CExpZinGate(sympy.Symbol('a')),
         atol=0.1
     )
     assert not cirq.approx_eq(
-        CExpZinGate(cirq.Symbol('a')),
-        CExpZinGate(cirq.Symbol('b')),
+        CExpZinGate(sympy.Symbol('a')),
+        CExpZinGate(sympy.Symbol('b')),
         atol=0.1
     )
 
@@ -210,7 +211,7 @@ def test_inverse():
 
 def test_trace_distance_bound():
     assert cirq.trace_distance_bound(CExpZinGate(0.001)) < 0.01
-    assert cirq.trace_distance_bound(CExpZinGate(cirq.Symbol('a'))) >= 1
+    assert cirq.trace_distance_bound(CExpZinGate(sympy.Symbol('a'))) >= 1
 
 
 def test_extrapolate():
@@ -262,8 +263,8 @@ def test_matrix():
         cirq.unitary(CExpZinGate(1.99999)),
         atol=1e-4)
 
-    assert not cirq.has_unitary(CExpZinGate(cirq.Symbol('a')))
-    assert cirq.unitary(CExpZinGate(cirq.Symbol('a')), None) is None
+    assert not cirq.has_unitary(CExpZinGate(sympy.Symbol('a')))
+    assert cirq.unitary(CExpZinGate(sympy.Symbol('a')), None) is None
 
     np.testing.assert_allclose(
         cirq.unitary(ZGateDef(exponent=0)),
@@ -306,11 +307,11 @@ def test_is_parameterized():
     assert not cirq.is_parameterized(CExpZinGate(0))
     assert not cirq.is_parameterized(CExpZinGate(1))
     assert not cirq.is_parameterized(CExpZinGate(3))
-    assert cirq.is_parameterized(CExpZinGate(cirq.Symbol('a')))
+    assert cirq.is_parameterized(CExpZinGate(sympy.Symbol('a')))
 
 
 def test_resolve_parameters():
-    assert cirq.resolve_parameters(CExpZinGate(cirq.Symbol('a')),
+    assert cirq.resolve_parameters(CExpZinGate(sympy.Symbol('a')),
         cirq.ParamResolver({'a': 0.5})) == CExpZinGate(0.5)
 
     assert cirq.resolve_parameters(CExpZinGate(0.25),
