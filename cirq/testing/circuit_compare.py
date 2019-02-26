@@ -17,8 +17,9 @@ from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type
 from collections import defaultdict
 import itertools
 import numpy as np
+import sympy
 
-from cirq import circuits, ops, linalg, protocols, value, EigenGate
+from cirq import circuits, ops, linalg, protocols, EigenGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -297,7 +298,7 @@ def assert_has_consistent_apply_unitary(
 def assert_eigen_gate_has_consistent_apply_unitary(
         eigen_gate_type: Type[EigenGate],
         *,
-        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         global_shifts=(0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None) -> None:
     """Tests whether an EigenGate type's _apply_unitary_ is correct.
@@ -328,7 +329,7 @@ def assert_eigen_gate_has_consistent_apply_unitary(
 def assert_has_consistent_apply_unitary_for_various_exponents(
         val: Any,
         *,
-        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         qubit_count: Optional[int] = None) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 

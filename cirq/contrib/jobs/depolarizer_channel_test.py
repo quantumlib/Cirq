@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sympy
+
 import cirq
 from cirq.contrib.jobs import DepolarizerChannel, Job
 
@@ -34,8 +36,8 @@ def test_depolarizer_all_errors():
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
     all_errors = DepolarizerChannel(probability=1.0)
-    p0 = cirq.Symbol(DepolarizerChannel._parameter_name + '0')
-    p1 = cirq.Symbol(DepolarizerChannel._parameter_name + '1')
+    p0 = sympy.Symbol(DepolarizerChannel._parameter_name + '0')
+    p1 = sympy.Symbol(DepolarizerChannel._parameter_name + '1')
 
     error_sweep = cirq.Points(p0.name, [1.0]) + cirq.Points(p1.name, [1.0])
 
@@ -57,10 +59,10 @@ def test_depolarizer_different_gate():
         ]))
     allerrors = DepolarizerChannel(probability=1.0, depolarizing_gates=
                                    [cirq.Z, cirq.X])
-    p0 = cirq.Symbol(DepolarizerChannel._parameter_name + '0')
-    p1 = cirq.Symbol(DepolarizerChannel._parameter_name + '1')
-    p2 = cirq.Symbol(DepolarizerChannel._parameter_name + '2')
-    p3 = cirq.Symbol(DepolarizerChannel._parameter_name + '3')
+    p0 = sympy.Symbol(DepolarizerChannel._parameter_name + '0')
+    p1 = sympy.Symbol(DepolarizerChannel._parameter_name + '1')
+    p2 = sympy.Symbol(DepolarizerChannel._parameter_name + '2')
+    p3 = sympy.Symbol(DepolarizerChannel._parameter_name + '3')
 
     error_sweep = (cirq.Points(p0.name, [1.0]) + cirq.Points(p1.name, [1.0])
                    + cirq.Points(p2.name, [1.0]) + cirq.Points(p3.name, [1.0]))
@@ -83,8 +85,8 @@ def test_depolarizer_multiple_realizations():
         cirq.Moment([cirq.CNOT(q1, q2)]),
         ]))
     all_errors3 = DepolarizerChannel(probability=1.0, realizations=3)
-    p0 = cirq.Symbol(DepolarizerChannel._parameter_name + '0')
-    p1 = cirq.Symbol(DepolarizerChannel._parameter_name + '1')
+    p0 = sympy.Symbol(DepolarizerChannel._parameter_name + '0')
+    p1 = sympy.Symbol(DepolarizerChannel._parameter_name + '1')
 
     error_sweep = (cirq.Points(p0.name, [1.0, 1.0, 1.0]) +
                    cirq.Points(p1.name, [1.0, 1.0, 1.0]))
@@ -101,15 +103,15 @@ def test_depolarizer_multiple_realizations():
 def test_depolarizer_parameterized_gates():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
-    cnot_param = cirq.Symbol('cnot_turns')
+    cnot_param = sympy.Symbol('cnot_turns')
     cnot_gate = cirq.CZ(q1, q2)**cnot_param
 
     job_sweep = cirq.Points('cnot_turns', [0.5])
 
     cnot = Job(cirq.Circuit([cirq.Moment([cnot_gate])]), job_sweep)
     all_errors = DepolarizerChannel(probability=1.0)
-    p0 = cirq.Symbol(DepolarizerChannel._parameter_name + '0')
-    p1 = cirq.Symbol(DepolarizerChannel._parameter_name + '1')
+    p0 = sympy.Symbol(DepolarizerChannel._parameter_name + '0')
+    p1 = sympy.Symbol(DepolarizerChannel._parameter_name + '1')
 
     error_sweep = cirq.Points(p0.name, [1.0]) + cirq.Points(p1.name, [1.0])
     cnot_then_z = Job(

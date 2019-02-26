@@ -13,7 +13,7 @@
 # limitations under the License.
 import numpy as np
 import pytest
-
+import sympy
 import cirq
 
 
@@ -141,7 +141,7 @@ def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    op1 = cirq.GateOperation(cirq.Z**cirq.Symbol('a'), [q])
+    op1 = cirq.GateOperation(cirq.Z**sympy.Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
     op2 = cirq.resolve_parameters(op1, r)
     assert not cirq.is_parameterized(op2)

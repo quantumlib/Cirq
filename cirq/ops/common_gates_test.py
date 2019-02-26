@@ -16,6 +16,7 @@ import itertools
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -291,7 +292,7 @@ def test_text_diagrams():
         cirq.X(a),
         cirq.Y(a),
         cirq.Z(a),
-        cirq.Z(a)**cirq.Symbol('x'),
+        cirq.Z(a)**sympy.Symbol('x'),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
@@ -372,7 +373,7 @@ def test_cnot_unknown_keyword_argument():
 def test_cnot_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x')) is not None
+    assert cirq.decompose_once(cirq.CNOT(a, b)**sympy.Symbol('x')) is not None
 
 
 def test_swap_unitary():
