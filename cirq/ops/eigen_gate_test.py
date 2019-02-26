@@ -134,13 +134,13 @@ def test_approx_eq():
     )
 
     assert cirq.approx_eq(
-        CExpZinGate(cirq.Symbol('a')),
-        CExpZinGate(cirq.Symbol('a')),
+        CExpZinGate(sympy.Symbol('a')),
+        CExpZinGate(sympy.Symbol('a')),
         atol=0.1
     )
     assert not cirq.approx_eq(
-        CExpZinGate(cirq.Symbol('a')),
-        CExpZinGate(cirq.Symbol('b')),
+        CExpZinGate(sympy.Symbol('a')),
+        CExpZinGate(sympy.Symbol('b')),
         atol=0.1
     )
 
