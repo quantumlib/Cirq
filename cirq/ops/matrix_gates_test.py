@@ -15,6 +15,7 @@ import re
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -81,7 +82,7 @@ def test_single_qubit_extrapolate():
         np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
     assert cirq.approx_eq(z2**0.5, z4, atol=1e-9)
     with pytest.raises(TypeError):
-        _ = x**cirq.Symbol('a')
+        _ = x**sympy.Symbol('a')
 
 
 def test_two_qubit_init():
@@ -123,7 +124,7 @@ def test_two_qubit_extrapolate():
     assert cirq.approx_eq(cz4**0, i, atol=1e-9)
     assert cirq.approx_eq(cz2**0.5, cz4, atol=1e-9)
     with pytest.raises(TypeError):
-        _ = cz2**cirq.Symbol('a')
+        _ = cz2**sympy.Symbol('a')
 
 
 def test_single_qubit_diagram():

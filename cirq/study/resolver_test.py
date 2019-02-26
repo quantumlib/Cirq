@@ -15,15 +15,15 @@
 """Tests for parameter resolvers."""
 
 import itertools
-
+import sympy
 import cirq
 
 
 def test_value_of():
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
-    assert r.value_of(cirq.Symbol('a')) == 0.5
+    assert r.value_of(sympy.Symbol('a')) == 0.5
     assert r.value_of(0.5) == 0.5
-    assert r.value_of(cirq.Symbol('b')) == 0.1
+    assert r.value_of(sympy.Symbol('b')) == 0.1
     assert r.value_of(0.3) == 0.3
 
 

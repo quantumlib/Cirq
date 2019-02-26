@@ -14,6 +14,7 @@
 
 import json
 import re
+import sympy
 
 from cirq.value.value_equality import value_equality
 
@@ -29,7 +30,7 @@ def _encode(text):
 
 
 @value_equality
-class Symbol:
+class Symbol(sympy.Symbol):
     """A constant plus the runtime value of a parameter with a given key.
 
     Attributes:
