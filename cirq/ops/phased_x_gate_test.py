@@ -16,6 +16,7 @@ import itertools
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -25,10 +26,17 @@ import cirq
     ]
 )
 def test_phased_x_consistent_protocols(phase_exponent):
+    # If there is no global_shift, the gate is global phase insensitive.
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.PhasedXPowGate(phase_exponent=phase_exponent,
+                                exponent=1.0),
+            ignoring_global_phase=False
+    )
     cirq.testing.assert_implements_consistent_protocols(
             cirq.PhasedXPowGate(phase_exponent=phase_exponent,
                                 exponent=1.0,
-                                global_shift=0.1)
+                                global_shift=0.1),
+            ignoring_global_phase=True
     )
 
 
@@ -62,7 +70,7 @@ def test_new_init():
 
 def test_no_symbolic_qasm_but_fails_gracefully():
     q = cirq.NamedQubit('q')
-    v = cirq.PhasedXPowGate(phase_exponent=cirq.Symbol('p')).on(q)
+    v = cirq.PhasedXPowGate(phase_exponent=sympy.Symbol('p')).on(q)
     assert cirq.qasm(v, args=cirq.QasmArgs(), default=None) is None
 
 
@@ -113,18 +121,18 @@ def test_eq():
                                               global_shift=0.2))
 
     eq.make_equality_group(
-        lambda: cirq.PhasedXPowGate(exponent=cirq.Symbol('a'),
+        lambda: cirq.PhasedXPowGate(exponent=sympy.Symbol('a'),
                                     phase_exponent=0))
     eq.add_equality_group(
-        cirq.PhasedXPowGate(exponent=cirq.Symbol('a'),
+        cirq.PhasedXPowGate(exponent=sympy.Symbol('a'),
                             phase_exponent=0.25))
     eq.add_equality_group(cirq.PhasedXPowGate(exponent=0, phase_exponent=0))
     eq.add_equality_group(
-        cirq.PhasedXPowGate(exponent=0, phase_exponent=cirq.Symbol('a')))
+        cirq.PhasedXPowGate(exponent=0, phase_exponent=sympy.Symbol('a')))
     eq.add_equality_group(cirq.PhasedXPowGate(exponent=0, phase_exponent=0.5))
     eq.add_equality_group(cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('ab'),
-        phase_exponent=cirq.Symbol('xy')))
+        exponent=sympy.Symbol('ab'),
+        phase_exponent=sympy.Symbol('xy')))
 
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.25,
                                               exponent=0.125,
@@ -153,7 +161,7 @@ def test_str_repr():
 def test_parameterize():
     parameterized_gate = cirq.PhasedXPowGate(
         exponent=cirq.Symbol('a'),
-        phase_exponent=cirq.Symbol('b'))
+        phase_exponent=sympy.Symbol('b'))
     assert cirq.pow(parameterized_gate, 5, default=None) is None
     assert cirq.decompose_once_with_qubits(
         parameterized_gate, [cirq.LineQubit(0)], NotImplemented
@@ -176,8 +184,8 @@ def test_trace_bound():
 def test_diagram():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit.from_ops(
-        cirq.PhasedXPowGate(phase_exponent=cirq.Symbol('a'),
-                            exponent=cirq.Symbol('b')).on(q),
+        cirq.PhasedXPowGate(phase_exponent=sympy.Symbol('a'),
+                            exponent=sympy.Symbol('b')).on(q),
         cirq.PhasedXPowGate(phase_exponent=0.25,
                             exponent=1).on(q)
     )

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import Union, Optional, overload
-
 import numpy as np
+import sympy
 
 from cirq.value import symbol
 
@@ -96,10 +96,10 @@ def canonicalize_half_turns(half_turns: symbol.Symbol) -> symbol.Symbol:
 
 
 def canonicalize_half_turns(
-        half_turns: Union[symbol.Symbol, float]
-) -> Union[symbol.Symbol, float]:
+        half_turns: Union[sympy.Basic, float]
+) -> Union[sympy.Basic, float]:
     """Wraps the input into the range (-1, +1]."""
-    if isinstance(half_turns, symbol.Symbol):
+    if isinstance(half_turns, sympy.Basic):
         return half_turns
     half_turns %= 2
     if half_turns > 1:

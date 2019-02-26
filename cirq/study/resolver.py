@@ -15,12 +15,11 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Dict, Union
-
-from cirq.value import Symbol
+import sympy
 
 
 class ParamResolver(object):
-    """Resolves Symbols to actual values.
+    """Resolves sympy.Symbols to actual values.
 
     A Symbol is a wrapped parameter name (str). A ParamResolver is an object
     that can be used to assign values for these keys.
@@ -38,24 +37,26 @@ class ParamResolver(object):
 
     def value_of(
             self,
-            value: Union[Symbol, float, str]
-    ) -> Union[Symbol, float]:
+            value: Union[sympy.Basic, float, str]
+    ) -> Union[sympy.Basic, float]:
         """Attempt to resolve a Symbol or name or float to its assigned value.
 
-        If unable to resolve a Symbol, returns it unchanged.
-        If unable to resolve a name, returns a Symbol with that name.
+        If unable to resolve a sympy.Symbol, returns it unchanged.
+        If unable to resolve a name, returns a sympy.Symbol with that name.
 
         Args:
-            value: The Symbol or name or float to try to resolve into just
+            value: The sympy.Symbol or name or float to try to resolve into just
                 a float.
 
         Returns:
             The value of the parameter as resolved by this resolver.
         """
         if isinstance(value, str):
-            return self.param_dict.get(value, Symbol(value))
-        if isinstance(value, Symbol):
-            return self.param_dict.get(value.name, value)
+            return self.param_dict.get(value, sympy.Symbol(value))
+        if isinstance(value, sympy.Basic):
+            sympy_symbol = value.free_symbols.pop()
+            return self.param_dict.get(str(sympy_symbol),
+                                       sympy_symbol)
         return value
 
     def __getitem__(self, key):

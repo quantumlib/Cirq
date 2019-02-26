@@ -15,15 +15,127 @@
 
 import itertools
 
-from typing import Iterable, List, Sequence, Tuple, Type, Union, TYPE_CHECKING
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Type, Union
 
+import abc
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, ops
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from cirq.sim import simulator
+
+class StateVectorMixin():
+    """A mixin that provide methods for objects that have a state vector.
+
+    Attributes:
+        qubit_map: A map from the Qubits in the Circuit to the the index
+            of this qubit for a canonical ordering. This canonical ordering is
+            used to define the state (see the state_vector() method).
+    """
+
+    # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
+    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None,
+        *args, **kwargs):
+        super().__init__(*args, **kwargs)  # type: ignore
+        self.qubit_map = qubit_map or {}
+
+    @abc.abstractmethod
+    def state_vector(self) -> np.ndarray:
+        """Return the state vector (wave function).
+
+        The vector is returned in the computational basis with these basis
+        states defined by the `qubit_map`. In particular the value in the
+        `qubit_map` is the index of the qubit, and these are translated into
+        binary vectors where the last qubit is the 1s bit of the index, the
+        second-to-last is the 2s bit of the index, and so forth (i.e. big
+        endian ordering).
+
+        Example:
+             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
+             Then the returned vector will have indices mapped to qubit basis
+             states like the following table
+
+                    | QubitA | QubitB | QubitC
+                :-: | :----: | :----: | :----:
+                 0  |   0    |   0    |   0
+                 1  |   0    |   0    |   1
+                 2  |   0    |   1    |   0
+                 3  |   0    |   1    |   1
+                 4  |   1    |   0    |   0
+                 5  |   1    |   0    |   1
+                 6  |   1    |   1    |   0
+                 7  |   1    |   1    |   1
+
+        """
+        raise NotImplementedError()
+
+    def dirac_notation(self, decimals: int = 2) -> str:
+        """Returns the state vector as a string in Dirac notation.
+
+        Args:
+            decimals: How many decimals to include in the pretty print.
+
+        Returns:
+            A pretty string consisting of a sum of computational basis kets
+            and non-zero floats of the specified accuracy."""
+        return dirac_notation(self.state_vector(), decimals)
+
+    def density_matrix_of(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
+        """Returns the density matrix of the state.
+
+        Calculate the density matrix for the system on the list, qubits.
+        Any qubits not in the list that are present in self.state_vector() will
+        be traced out. If qubits is None the full density matrix for
+        self.state_vector() is returned, given self.state_vector() follows
+        standard Kronecker convention of numpy.kron.
+
+        For example:
+            self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                dtype=np.complex64)
+            qubits = None
+            gives us \rho = \begin{bmatrix}
+                                0.5 & 0.5
+                                0.5 & 0.5
+                            \end{bmatrix}
+
+        Args:
+            qubits: list containing qubit IDs that you would like
+                to include in the density matrix (i.e.) qubits that WON'T
+                be traced out.
+
+        Returns:
+            A numpy array representing the density matrix.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if the indices are out of range for the number of qubits
+                corresponding to the state.
+        """
+        return density_matrix_from_state_vector(
+            self.state_vector(),
+            [self.qubit_map[q] for q in qubits] if qubits is not None else None
+        )
+
+    def bloch_vector_of(self, qubit: ops.QubitId) -> np.ndarray:
+        """Returns the bloch vector of a qubit in the state.
+
+        Calculates the bloch vector of the given qubit
+        in the state given by self.state_vector(), given that
+        self.state_vector() follows the standard Kronecker convention of
+        numpy.kron.
+
+        Args:
+            qubit: qubit who's bloch vector we want to find.
+
+        Returns:
+            A length 3 numpy array representing the qubit's bloch vector.
+
+        Raises:
+            ValueError: if the size of the state represents more than 25 qubits.
+            IndexError: if index is out of range for the number of qubits
+                corresponding to the state.
+        """
+        return bloch_vector_from_state_vector(self.state_vector(),
+                                              self.qubit_map[qubit])
 
 
 def bloch_vector_from_state_vector(state: Sequence, index: int) -> np.ndarray:
@@ -166,7 +278,7 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
 def to_valid_state_vector(state_rep: Union[int, np.ndarray],
                           num_qubits: int,
                           dtype: Type[np.number] = np.complex64) -> np.ndarray:
-    """Verifies the initial_state is valid and converts it to ndarray form.
+    """Verifies the state_rep is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
     computational basis state or a full wave function as a representation of
@@ -187,6 +299,9 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
     Returns:
         A numpy ndarray corresponding to the state on the given number of
         qubits.
+
+    Raises:
+        ValueError if the state is not valid.
     """
     if isinstance(state_rep, np.ndarray):
         if len(state_rep) != 2 ** num_qubits:
@@ -242,7 +357,7 @@ def sample_state_vector(state: np.ndarray,
             size ``2**integer`` or a tensor of shape ``(2, 2, ..., 2)``.
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
-            a bitstring, has the largest values that the 0th index.
+            a bitstring, has its largest values in the 0th index.
         repetitions: The number of times to sample the state.
 
     Returns:
@@ -263,10 +378,8 @@ def sample_state_vector(state: np.ndarray,
     num_qubits = _validate_num_qubits(state)
     _validate_indices(num_qubits, indices)
 
-    if repetitions == 0:
-        return [[]]
-    if len(indices) == 0:
-        return [[] for _ in range(repetitions)]
+    if repetitions == 0 or len(indices) == 0:
+        return np.zeros(shape=(repetitions, len(indices)))
 
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, num_qubits)
@@ -318,7 +431,12 @@ def measure_state_vector(
     _validate_indices(num_qubits, indices)
 
     if len(indices) == 0:
-        return ([], np.copy(state))
+        if out is None:
+            out = np.copy(state)
+        elif out is not state:
+            np.copyto(dst=out, src=state)
+        # Final else: if out is state then state will be modified in place.
+        return ([], out)
 
     # Cache initial shape.
     initial_shape = state.shape
@@ -338,7 +456,7 @@ def measure_state_vector(
     if out is None:
         out = np.copy(state)
     elif out is not state:
-        np.copyto(out, state)
+        np.copyto(dst=out, src=state)
     # Final else: if out is state then state will be modified in place.
 
     # Potentially reshape to tensor, and then set masked values to 0.
@@ -373,7 +491,7 @@ def _validate_num_qubits(state: np.ndarray) -> int:
     """Validates that state's size is a power of 2, returning number of qubits.
     """
     size = state.size
-    if size != 0 and size & (size - 1):
+    if size & (size - 1):
         raise ValueError('state.size ({}) is not a power of two.'.format(size))
     return size.bit_length() - 1
 

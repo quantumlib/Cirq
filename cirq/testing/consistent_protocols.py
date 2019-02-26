@@ -14,7 +14,9 @@
 
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
-from cirq import ops, protocols, value
+import sympy
+
+from cirq import ops, protocols
 from cirq.testing.circuit_compare import (
         assert_has_consistent_apply_unitary)
 from cirq.testing.consistent_decomposition import (
@@ -30,8 +32,9 @@ def assert_implements_consistent_protocols(
         val: Any,
         *,
         exponents: Sequence[Any] = (
-            0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+            0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         qubit_count: Optional[int] = None,
+        ignoring_global_phase: bool=False,
         setup_code: str = 'import cirq\nimport numpy as np',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None
@@ -42,15 +45,21 @@ def assert_implements_consistent_protocols(
 
     _assert_meets_standards_helper(val,
                                    qubit_count,
+                                   ignoring_global_phase,
                                    setup_code,
                                    global_vals,
                                    local_vals)
 
     for exponent in exponents:
+
+        if isinstance(exponent, sympy.symbol.Symbol):
+            exponent = 1
+
         p = protocols.pow(val, exponent, None)
         if p is not None:
             _assert_meets_standards_helper(val**exponent,
                                            qubit_count,
+                                           ignoring_global_phase,
                                            setup_code,
                                            global_vals,
                                            local_vals)
@@ -59,25 +68,27 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
-        exponents: Sequence[Union[value.Symbol, float]] = (
-            0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+        exponents: Sequence[Union[sympy.Basic, float]] = (
+            0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         global_shifts: Sequence[float] = (0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None,
+        ignoring_global_phase: bool=False,
         setup_code: str = 'import cirq\nimport numpy as np',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
     for exponent in exponents:
+        if isinstance(exponent, sympy.symbol.Symbol):
+            exponent = 1
         for shift in global_shifts:
             _assert_meets_standards_helper(
                     eigen_gate_type(exponent=exponent, global_shift=shift),
                     qubit_count,
+                    ignoring_global_phase,
                     setup_code,
                     global_vals,
                     local_vals)
-
-
 def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
     assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
@@ -86,12 +97,14 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
 def _assert_meets_standards_helper(
         val: Any,
         qubit_count: Optional[int],
+        ignoring_global_phase,
         setup_code: str,
         global_vals: Optional[Dict[str, Any]],
         local_vals: Optional[Dict[str, Any]]) -> None:
     assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
     assert_qasm_is_consistent_with_unitary(val)
-    assert_decompose_is_consistent_with_unitary(val)
+    assert_decompose_is_consistent_with_unitary(val,
+        ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
     assert_equivalent_repr(val,
                            setup_code=setup_code,
