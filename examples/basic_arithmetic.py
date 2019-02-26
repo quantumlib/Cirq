@@ -231,7 +231,7 @@ def experiment_adder(p, q, n=3):
         Adder(n * 3).on(*qubits),
         cirq.measure(*b, key='result')
     )
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=1).measurements['result']
     sum_bin = ''.join(result[0][::-1].astype(int).astype(str))
     print ('{} + {} = {}'.format(a_bin, b_bin, sum_bin))
@@ -253,7 +253,7 @@ def experiment_multiplier(p, q, n=3):
         Multiplier(5 * n).on(*qubits),
         cirq.measure(*b, key='result')
     )
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=1)
     sum_bin = ''.join(
         result.measurements['result'][0][::-1].astype(int).astype(str))
