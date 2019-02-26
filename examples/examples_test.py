@@ -12,7 +12,7 @@ import examples.qaoa
 
 
 def test_example_runs_bernstein_vazirani(benchmark):
-    benchmark(examples.bernstein_vazirani.main)
+    benchmark(examples.bernstein_vazirani.main, qubit_count=3)
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
@@ -51,7 +51,7 @@ def test_example_runs_basic_arithmetic():
 
 
 def test_example_runs_phase_estimator(benchmark):
-    benchmark(examples.phase_estimator.main)
+    benchmark(examples.phase_estimator.main, qnums=(2,), repetitions=2)
 
 
 def test_example_runs_qaoa(benchmark):

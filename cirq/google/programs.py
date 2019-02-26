@@ -18,7 +18,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import ops, devices
+from cirq import devices, ops, protocols
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
@@ -137,7 +137,7 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
                          'different than number of qubits it acts on.')
     measurement = {
         'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
-        'key': gate.key,
+        'key': protocols.measurement_key(gate),
     }
     if invert_mask:
         measurement['invert_mask'] = [json.dumps(x) for x in invert_mask]
