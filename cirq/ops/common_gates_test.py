@@ -235,15 +235,15 @@ def test_runtime_types_of_rot_gates():
                       lambda p: cirq.XPowGate(exponent=p),
                       lambda p: cirq.YPowGate(exponent=p),
                       lambda p: cirq.ZPowGate(exponent=p)]:
-        p = gate_type(cirq.Symbol('a'))
+        p = gate_type(sympy.Symbol('a'))
         assert cirq.unitary(p, None) is None
-        assert cirq.pow(p, 2, None) is None
-        assert cirq.inverse(p, None) is None
+        assert cirq.pow(p, 2, None) == gate_type(2 * sympy.Symbol('a'))
+        assert cirq.inverse(p, None) == gate_type(-sympy.Symbol('a'))
 
         c = gate_type(0.5)
         assert cirq.unitary(c, None) is not None
-        assert cirq.pow(c, 2) is not None
-        assert cirq.inverse(c) is not None
+        assert cirq.pow(c, 2) == gate_type(1)
+        assert cirq.inverse(c) == gate_type(-0.5)
 
 
 def test_measurement_eq():

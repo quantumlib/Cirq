@@ -18,7 +18,7 @@ from typing import Any, Dict, Optional
 def assert_equivalent_repr(
         value: Any,
         *,
-        setup_code: str = 'import cirq\nimport numpy as np',
+        setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that eval(repr(v)) == v.

@@ -241,7 +241,6 @@ from cirq.value import (
     chosen_angle_to_half_turns,
     Duration,
     PeriodicValue,
-    Symbol,
     Timestamp,
     validate_probability,
     value_equality,

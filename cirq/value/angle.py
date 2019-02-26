@@ -16,15 +16,13 @@ from typing import Union, Optional, overload
 import numpy as np
 import sympy
 
-from cirq.value import symbol
-
 
 def chosen_angle_to_half_turns(
-        half_turns: Optional[Union[symbol.Symbol, float]] = None,
+        half_turns: Optional[Union[sympy.Basic, float]] = None,
         rads: Optional[float] = None,
         degs: Optional[float] = None,
         default: float = 1.0,
-) -> Union[symbol.Symbol, float]:
+) -> Union[sympy.Basic, float]:
     """Returns a half_turns value based on the given arguments.
 
     At most one of half_turns, rads, degs must be specified. If none are
@@ -57,11 +55,11 @@ def chosen_angle_to_half_turns(
 
 
 def chosen_angle_to_canonical_half_turns(
-        half_turns: Optional[Union[symbol.Symbol, float]] = None,
+        half_turns: Optional[Union[sympy.Basic, float]] = None,
         rads: Optional[float] = None,
         degs: Optional[float] = None,
         default: float = 1.0,
-) -> Union[symbol.Symbol, float]:
+) -> Union[sympy.Basic, float]:
     """Returns a canonicalized half_turns based on the given arguments.
 
     At most one of half_turns, rads, degs must be specified. If none are
@@ -91,7 +89,7 @@ def canonicalize_half_turns(half_turns: float) -> float:
 
 
 @overload
-def canonicalize_half_turns(half_turns: symbol.Symbol) -> symbol.Symbol:
+def canonicalize_half_turns(half_turns: sympy.Basic) -> sympy.Basic:
     pass
 
 

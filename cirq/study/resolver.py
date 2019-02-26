@@ -54,9 +54,8 @@ class ParamResolver(object):
         if isinstance(value, str):
             return self.param_dict.get(value, sympy.Symbol(value))
         if isinstance(value, sympy.Basic):
-            sympy_symbol = value.free_symbols.pop()
-            return self.param_dict.get(str(sympy_symbol),
-                                       sympy_symbol)
+            v = value.subs(self.param_dict)
+            return v if v.free_symbols else float(v)
         return value
 
     def __getitem__(self, key):

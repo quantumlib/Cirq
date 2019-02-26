@@ -22,6 +22,12 @@ import sys
 # sign of the second argument.
 
 # coverage: ignore
+from typing import Any
+
+import sympy
+import numpy as np
+
+
 if sys.version_info < (3,):
     import fractions   # pylint: disable=unused-import
 
@@ -29,3 +35,19 @@ if sys.version_info < (3,):
         return abs(fractions.gcd(a, b))
 else:
     from math import gcd  # pylint: disable=unused-import
+
+
+def proper_repr(value: Any) -> str:
+    """Overrides a few cases that return strings that don't parse."""
+
+    if isinstance(value, sympy.Basic):
+        fixed_tokens = ['Symbol', 'pi', 'Mul', 'Add']
+        result = sympy.srepr(value)
+        for token in fixed_tokens:
+            result = result.replace(token, 'sympy.' + token)
+        return result
+
+    if isinstance(value, np.ndarray):
+        return 'np.array({!r})'.format(value.tolist())
+
+    return repr(value)
