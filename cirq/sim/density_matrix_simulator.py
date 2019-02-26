@@ -216,7 +216,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             matrix, indices, matrix)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        measurements[cast(str, meas.key)].extend(corrected)
+                        key = protocols.measurement_key(meas)
+                        measurements[key].extend(corrected)
                 else:
                     # TODO: Use apply_channel similar to apply_unitary.
                     gate = cast(ops.GateOperation, op).gate

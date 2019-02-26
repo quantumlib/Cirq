@@ -102,7 +102,7 @@ def main():
     print(circuit)
 
     # Sample from the circuit a couple times.
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=circuit_sample_count)
 
     frequencies = result.histogram(key='result', fold_func=bitstring)

@@ -168,8 +168,13 @@ def test_channel():
     np.testing.assert_allclose(cirq.channel(op), cirq.channel(op.gate))
     assert cirq.has_channel(op)
 
-    assert cirq.channel(cirq.measure(a), None) is None
-    assert not cirq.has_channel(cirq.measure(a))
+    assert cirq.channel(cirq.SingleQubitGate()(a), None) is None
+    assert not cirq.has_channel(cirq.SingleQubitGate()(a))
+
+
+def test_measurement_key():
+    a = cirq.NamedQubit('a')
+    assert cirq.measurement_key(cirq.measure(a, key='lock')) == 'lock'
 
 
 def assert_mixtures_equal(actual, expected):

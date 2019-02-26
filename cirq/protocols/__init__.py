@@ -43,6 +43,9 @@ from cirq.protocols.decompose import (
 from cirq.protocols.inverse import (
     inverse,
 )
+from cirq.protocols.measurement_key import (
+    measurement_key,
+)
 from cirq.protocols.mixture import (
     mixture,
     mixture_channel,
