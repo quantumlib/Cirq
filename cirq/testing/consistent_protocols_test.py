@@ -81,9 +81,9 @@ class GoodGate(cirq.SingleQubitGate):
                         exponent=new_exponent)
 
     def __repr__(self):
-        args = ['phase_exponent={!r}'.format(self.phase_exponent)]
+        args = ['phase_exponent={}'.format(proper_repr(self.phase_exponent))]
         if self.exponent != 1:
-            args.append('exponent={!r}'.format(self.exponent))
+            args.append('exponent={}'.format(proper_repr(self.exponent)))
         return 'GoodGate({})'.format(', '.join(args))
 
     def _is_parameterized_(self) -> bool:

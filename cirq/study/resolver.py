@@ -57,6 +57,7 @@ class ParamResolver(object):
             return self.param_dict.get(value, sympy.Symbol(value))
         if isinstance(value, sympy.Basic):
             if sys.version_info.major < 3:
+                # coverage: ignore
                 # HACK: workaround https://github.com/sympy/sympy/issues/16087
                 d = {k.encode(): v for k, v in self.param_dict.items()}
                 v = value.subs(d)

@@ -71,7 +71,13 @@ else:
 
             # HACK: work around https://github.com/sympy/sympy/issues/16074
             # (only handles a few cases)
-            fixed_tokens = ['Symbol', 'pi', 'Mul', 'Add']
+            fixed_tokens = ['Symbol',
+                            'pi',
+                            'Mul',
+                            'Add',
+                            'Integer',
+                            'Float',
+                            'Rational']
             for token in fixed_tokens:
                 result = result.replace(token, 'sympy.' + token)
 

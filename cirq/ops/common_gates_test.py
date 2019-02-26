@@ -409,6 +409,8 @@ def test_repr():
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
     assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
 
+    cirq.testing.assert_equivalent_repr(
+        cirq.X**(sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5))
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other

@@ -18,6 +18,7 @@ import numpy as np
 import sympy
 
 from cirq import value, protocols
+from cirq._compat import proper_repr
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
         op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -121,7 +122,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return base
 
-        return '({}**{!r})'.format(base, self._exponent)
+        return '({}**{})'.format(base, proper_repr(self._exponent))
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(
