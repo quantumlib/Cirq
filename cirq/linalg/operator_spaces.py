@@ -26,14 +26,17 @@ PAULI_BASIS = {
 }
 
 
-def kron_bases(basis1: Dict[str, np.ndarray],
-               basis2: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
-    """Creates (n+k)-qubit basis from n-qubit basis1 and k-qubit basis2."""
-    return {
-        name1 + name2: np.kron(matrix1, matrix2)
-        for name1, matrix1 in basis1.items()
-        for name2, matrix2 in basis2.items()
-    }
+def kron_bases(*bases: Dict[str, np.ndarray],
+               repeat: int = 1) -> Dict[str, np.ndarray]:
+    """Creates tensor product of bases."""
+    product_basis = {'': 1}
+    for basis in bases * repeat:
+        product_basis = {
+            name1 + name2: np.kron(matrix1, matrix2)
+            for name1, matrix1 in product_basis.items()
+            for name2, matrix2 in basis.items()
+        }
+    return product_basis
 
 
 def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:

@@ -52,7 +52,6 @@ class HasUnitary:
     np.eye(2),
     object(),
     cirq,
-    HasUnitary(np.eye(16)),
 ))
 def test_raises_no_pauli_expansion(val):
     assert cirq.pauli_expansion(val, default=None) is None
@@ -65,6 +64,7 @@ def test_raises_no_pauli_expansion(val):
     (HasUnitary(np.eye(2)), {'I': 1}),
     (HasUnitary(np.array([[1, -1j], [1j, -1]])), {'Y': 1, 'Z': 1}),
     (HasUnitary(np.array([[0., 1.], [0., 0.]])), {'X': 0.5, 'Y': 0.5j}),
+    (HasUnitary(np.eye(16)), {'IIII': 1.0}),
     (cirq.H, {'X': np.sqrt(0.5), 'Z': np.sqrt(0.5)}),
     (cirq.Ry(np.pi / 2),
         {'I': np.cos(np.pi / 4), 'Y': -1j * np.sin(np.pi / 4)}),

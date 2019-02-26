@@ -86,11 +86,9 @@ def pauli_expansion(
                     .format(val, type(val)))
         return default
 
-    basis = _make_basis_for_unitary(matrix)
-    if basis is None:
-        if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError('Unitary too large for Pauli expansion.')
-        return default
+    num_qubits = matrix.shape[0].bit_length() - 1
+    basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS,
+                                       repeat=num_qubits)
 
     expansion = operator_spaces.expand_matrix_in_orthogonal_basis(matrix, basis)
     return _filter_coefficients(expansion, tolerance)

@@ -92,6 +92,43 @@ def test_kron_bases(basis1, basis2, expected_kron_basis):
         assert np.all(kron_basis[name] == expected_kron_basis[name])
 
 
+@pytest.mark.parametrize('basis1,basis2', (
+    (PAULI_BASIS, cirq.linalg.kron_bases(PAULI_BASIS)),
+    (STANDARD_BASIS, cirq.linalg.kron_bases(STANDARD_BASIS, repeat=1)),
+    (cirq.linalg.kron_bases(PAULI_BASIS, PAULI_BASIS),
+     cirq.linalg.kron_bases(PAULI_BASIS, repeat=2)),
+    (cirq.linalg.kron_bases(
+        cirq.linalg.kron_bases(PAULI_BASIS, repeat=2),
+        cirq.linalg.kron_bases(PAULI_BASIS, repeat=3),
+        PAULI_BASIS),
+     cirq.linalg.kron_bases(PAULI_BASIS, repeat=6)),
+    (cirq.linalg.kron_bases(
+        cirq.linalg.kron_bases(PAULI_BASIS, STANDARD_BASIS),
+        cirq.linalg.kron_bases(PAULI_BASIS, STANDARD_BASIS)),
+     cirq.linalg.kron_bases(PAULI_BASIS, STANDARD_BASIS, repeat=2)),
+))
+def test_kron_bases_consistency(basis1, basis2):
+    assert set(basis1.keys()) == set(basis2.keys())
+    for name in basis1.keys():
+        assert np.all(basis1[name] == basis2[name])
+
+
+@pytest.mark.parametrize('basis,repeat', itertools.product(
+    (PAULI_BASIS, STANDARD_BASIS),
+    range(1, 5)
+))
+def test_kron_bases_repeat_sanity_checks(basis, repeat):
+    product_basis = cirq.linalg.kron_bases(basis, repeat=repeat)
+    assert len(product_basis) == 4**repeat
+    for name1, matrix1 in product_basis.items():
+        for name2, matrix2 in product_basis.items():
+            p = cirq.linalg.hilbert_schmidt_inner_product(matrix1, matrix2)
+            if name1 != name2:
+                assert p == 0
+            else:
+                assert abs(p) >= 1
+
+
 @pytest.mark.parametrize('m1,m2,expect_real', (
     (X, X, True),
     (X, Y, True),

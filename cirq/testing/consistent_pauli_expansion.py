@@ -30,11 +30,9 @@ def assert_pauli_expansion_is_consistent_with_unitary(val: Any) -> None:
     if unitary is None:
         return
 
-    basis = {'': 1.0}
-    k = unitary.shape[0] >> 1
-    while k:
-        basis = operator_spaces.kron_bases(basis, operator_spaces.PAULI_BASIS)
-        k >>= 1
+    num_qubits = unitary.shape[0].bit_length() - 1
+    basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS,
+                                       repeat=num_qubits)
 
     recovered_unitary = operator_spaces.matrix_from_basis_coefficients(
         pauli_expansion, basis)
