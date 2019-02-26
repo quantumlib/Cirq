@@ -50,4 +50,4 @@ def test_example_runs_basic_arithmetic():
 
 
 def test_example_runs_phase_estimator(benchmark):
-    benchmark(examples.phase_estimator.main(qnums=(2,), repetitions=2))
+    benchmark(examples.phase_estimator.main, qnums=(2,), repetitions=2)
