@@ -16,6 +16,7 @@ from typing import Iterator, List, Sequence, Tuple
 import abc
 import collections
 
+from sympy import Symbol
 from cirq.study import resolver
 
 
@@ -304,6 +305,8 @@ class Linspace(SingleSweep):
         For the given args, assigns to the list of values
             start, start + (stop - start) / (length - 1), ..., stop
         """
+        if isinstance(key, Symbol):
+            key = str(key)
         super(Linspace, self).__init__(key)
         self.start = start
         self.stop = stop
