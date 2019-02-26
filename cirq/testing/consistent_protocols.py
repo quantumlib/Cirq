@@ -51,10 +51,6 @@ def assert_implements_consistent_protocols(
                                    local_vals)
 
     for exponent in exponents:
-
-        if isinstance(exponent, sympy.symbol.Symbol):
-            exponent = 1
-
         p = protocols.pow(val, exponent, None)
         if p is not None:
             _assert_meets_standards_helper(val**exponent,
