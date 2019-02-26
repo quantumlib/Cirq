@@ -222,7 +222,8 @@ providing a ``ParamResolver``.  A ``ParamResolver`` provides
 a map from the ``Symbol``'s name to its assigned value.
 
 ```python
-rot_w_gate = cirq.X**cirq.Symbol('x')
+import sympy
+rot_w_gate = cirq.X**sympy.Symbol('x')
 circuit = cirq.Circuit()
 circuit.append([rot_w_gate(q0), rot_w_gate(q1)])
 for y in range(5):

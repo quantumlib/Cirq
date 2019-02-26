@@ -22,7 +22,7 @@ import cirq
 
 
 @pytest.mark.parametrize('phase_exponent', [
-    -0.5, 0, 0.1, 0.25, 0.5, 1, cirq.Symbol('p')
+    -0.5, 0, 0.1, 0.25, 0.5, 1, sympy.Symbol('p')
     ]
 )
 def test_phased_x_consistent_protocols(phase_exponent):
@@ -160,9 +160,11 @@ def test_str_repr():
 
 def test_parameterize():
     parameterized_gate = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
+        exponent=sympy.Symbol('a'),
         phase_exponent=sympy.Symbol('b'))
-    assert cirq.pow(parameterized_gate, 5, default=None) is None
+    assert cirq.pow(parameterized_gate, 5) == cirq.PhasedXPowGate(
+        exponent=sympy.Symbol('a') * 5,
+        phase_exponent=sympy.Symbol('b'))
     assert cirq.decompose_once_with_qubits(
         parameterized_gate, [cirq.LineQubit(0)], NotImplemented
     ) is NotImplemented
@@ -178,7 +180,7 @@ def test_trace_bound():
     assert cirq.trace_distance_bound(cirq.PhasedXPowGate(
         phase_exponent=0.25, exponent=.001)) < 0.01
     assert cirq.trace_distance_bound(cirq.PhasedXPowGate(
-        phase_exponent=0.25, exponent=cirq.Symbol('a'))) >= 1
+        phase_exponent=0.25, exponent=sympy.Symbol('a'))) >= 1
 
 
 def test_diagram():

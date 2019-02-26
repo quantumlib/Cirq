@@ -18,7 +18,7 @@ import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import gcd
+from cirq._compat import gcd, proper_repr
 from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
 
@@ -184,9 +184,9 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return '{}^{}'.format(info.wire_symbols[0], info.exponent)
 
     def __repr__(self):
-        args = ['phase_exponent={!r}'.format(self.phase_exponent)]
+        args = ['phase_exponent={}'.format(proper_repr(self.phase_exponent))]
         if self.exponent != 1:
-            args.append('exponent={!r}'.format(self.exponent))
+            args.append('exponent={}'.format(proper_repr(self.exponent)))
         if self._global_shift != 0:
             args.append('global_shift={!r}'.format(self._global_shift))
         return 'cirq.PhasedXPowGate({})'.format(', '.join(args))

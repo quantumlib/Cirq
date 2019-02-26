@@ -15,7 +15,6 @@
 from typing import Union
 
 import numpy as np
-import pytest
 import sympy
 
 import cirq
@@ -194,8 +193,8 @@ def test_pow():
     assert CExpZinGate(0.25)**2 == CExpZinGate(0.5)
     assert CExpZinGate(0.25)**-1 == CExpZinGate(-0.25)
     assert CExpZinGate(0.25)**0 == CExpZinGate(0)
-    with pytest.raises(TypeError):
-        _ = CExpZinGate(cirq.Symbol('a'))**1.5
+    assert CExpZinGate(sympy.Symbol('a'))**1.5 == CExpZinGate(
+        sympy.Symbol('a')*1.5)
     assert ZGateDef(exponent=0.25)**2 == ZGateDef(exponent=0.5)
     assert ZGateDef(exponent=0.25,
                     global_shift=0.5)**2 == ZGateDef(
@@ -205,8 +204,8 @@ def test_pow():
 
 def test_inverse():
     assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
-    with pytest.raises(TypeError):
-        _ = cirq.inverse(CExpZinGate(cirq.Symbol('a')))
+    assert cirq.inverse(CExpZinGate(sympy.Symbol('a'))) == CExpZinGate(
+        -sympy.Symbol('a'))
 
 
 def test_trace_distance_bound():
@@ -223,9 +222,9 @@ def test_extrapolate():
     assert cirq.pow(p, 1.5) is not None
     assert cirq.inverse(p) is not None
 
-    s = CExpZinGate(cirq.Symbol('a'))
-    assert cirq.pow(s, 1.5, None) is None
-    assert cirq.inverse(s, None) is None
+    s = CExpZinGate(sympy.Symbol('a'))
+    assert cirq.pow(s, 1.5) == CExpZinGate(sympy.Symbol('a') * 1.5)
+    assert cirq.inverse(s) == CExpZinGate(-sympy.Symbol('a'))
 
 
 def test_matrix():
