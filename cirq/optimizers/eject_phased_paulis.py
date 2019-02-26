@@ -16,6 +16,7 @@
 """
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
+import sympy
 
 from cirq import circuits, ops, value, protocols
 from cirq.optimizers import decompositions
@@ -312,7 +313,7 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
             not isinstance(op.gate, ops.CZPowGate)):
         return None
     h = op.gate.exponent
-    if isinstance(h, value.Symbol):
+    if isinstance(h, sympy.Symbol):
         return None
     return h
 
@@ -344,6 +345,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
             not isinstance(op.gate, ops.ZPowGate)):
         return None
     h = op.gate.exponent
-    if isinstance(h, value.Symbol):
+    if isinstance(h, sympy.Symbol):
         return None
     return h

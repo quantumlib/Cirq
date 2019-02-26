@@ -79,7 +79,7 @@ class QftInverse(cirq.MultiQubitGate):
                 yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
 
 
-def run_estimate(unknown_gate, qnum, repeats):
+def run_estimate(unknown_gate, qnum, repetitions):
     """Construct the following phase estimator circuit and execute simulations.
 
                                      ---------
@@ -109,12 +109,12 @@ def run_estimate(unknown_gate, qnum, repeats):
          for i in range(qnum)],
         QftInverse(qnum)(*qubits),
         cirq.measure(*qubits, key='phase'))
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.run(circuit, repetitions=repeats)
+    simulator = cirq.Simulator()
+    result = simulator.run(circuit, repetitions=repetitions)
     return result
 
 
-def experiment(qnum, repeats=100):
+def experiment(qnum, repetitions=100):
     """Execute the phase estimator cirquit with multiple settings and
     show results.
     """
@@ -133,7 +133,7 @@ def experiment(qnum, repeats=100):
     errors = []
     fold_func = lambda ms: ''.join(np.flip(ms, 0).astype(int).astype(str))
     for phi in np.arange(0, 1, 0.1):
-        result = run_estimate(example_gate(phi), qnum, repeats)
+        result = run_estimate(example_gate(phi), qnum, repetitions)
         hist = result.histogram(key='phase', fold_func=fold_func)
         estimate_bin = hist.most_common(1)[0][0]
         estimate = (sum([float(s)*0.5**(order+1)
@@ -143,9 +143,9 @@ def experiment(qnum, repeats=100):
     print('RMS Error: {:0.4f}\n'.format(np.sqrt(sum(errors)/len(errors))))
 
 
-def main():
-    for qnum in [2, 4, 8]:
-        experiment(qnum)
+def main(qnums = (2, 4, 8), repetitions=100):
+    for qnum in qnums:
+        experiment(qnum, repetitions=repetitions)
 
 
 if __name__ == '__main__':

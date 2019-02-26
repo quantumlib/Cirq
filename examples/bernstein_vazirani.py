@@ -43,8 +43,7 @@ import random
 import cirq
 
 
-def main():
-    qubit_count = 8
+def main(qubit_count = 8):
     circuit_sample_count = 3
 
     # Choose qubits to use.
@@ -69,7 +68,7 @@ def main():
     print(circuit)
 
     # Sample from the circuit a couple times.
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=circuit_sample_count)
     frequencies = result.histogram(key='result', fold_func=bitstring)
     print('Sampled results:\n{}'.format(frequencies))
