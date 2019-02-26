@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, List, Sequence, Tuple
+from typing import Iterator, List, Sequence, Tuple, TypeVar
 
 import abc
 import collections
@@ -21,7 +21,6 @@ from cirq.study import resolver
 
 
 Params = Tuple[Tuple[str, float], ...]
-
 
 def _check_duplicate_keys(sweeps):
     keys = set()
@@ -241,11 +240,14 @@ class Zip(Sweep):
         return ' + '.join(str(s) for s in self.sweeps)
 
 
+K = TypeVar('K', str, Symbol)  # Key can be of type str or sympy.Symbol
+
+
 class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
-    def __init__(self, key: str) -> None:
-        self.key = key
+    def __init__(self, key: K) -> None:
+        self.key = str(key)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -275,7 +277,7 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: str, points: Sequence[float]) -> None:
+    def __init__(self, key: K, points: Sequence[float]) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
@@ -296,7 +298,7 @@ class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
     def __init__(
-        self, key: str,
+        self, key: K,
         start: float,
         stop: float,
         length: int) -> None:
@@ -305,8 +307,6 @@ class Linspace(SingleSweep):
         For the given args, assigns to the list of values
             start, start + (stop - start) / (length - 1), ..., stop
         """
-        if isinstance(key, Symbol):
-            key = str(key)
         super(Linspace, self).__init__(key)
         self.start = start
         self.stop = stop
