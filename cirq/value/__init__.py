@@ -26,9 +26,6 @@ from cirq.value.probability import (
 from cirq.value.periodic_value import (
     PeriodicValue,
 )
-from cirq.value.symbol import (
-    Symbol,
-)
 from cirq.value.timestamp import (
     Timestamp,
 )

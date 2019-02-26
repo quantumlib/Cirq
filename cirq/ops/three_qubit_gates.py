@@ -19,6 +19,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 from cirq import linalg, protocols
+from cirq._compat import proper_repr
 from cirq.ops import (
     common_gates,
     controlled_gate,
@@ -115,11 +116,11 @@ class CCZPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CCZ'
-            return '(cirq.CCZ**{!r})'.format(self._exponent)
+            return '(cirq.CCZ**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.CCZPowGate(exponent={!r}, '
+            'cirq.CCZPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -189,11 +190,11 @@ class CCXPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
-            return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+            return '(cirq.TOFFOLI**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.CCXPowGate(exponent={!r}, '
+            'cirq.CCXPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:

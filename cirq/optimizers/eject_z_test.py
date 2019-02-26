@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import sympy
 
 import cirq
 from cirq.optimizers.eject_z import _try_get_known_z_half_turns
@@ -188,12 +189,12 @@ def test_symbols_block():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.Z(q)]),
-            cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
+            cirq.Moment([cirq.Z(q)**sympy.Symbol('a')]),
             cirq.Moment([cirq.Z(q)**0.25]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment(),
-            cirq.Moment([cirq.Z(q)**cirq.Symbol('a')]),
+            cirq.Moment([cirq.Z(q)**sympy.Symbol('a')]),
             cirq.Moment([cirq.Z(q)**1.25]),
         ]))
 

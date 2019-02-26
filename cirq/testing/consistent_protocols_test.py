@@ -20,6 +20,7 @@ import numpy as np
 import sympy
 
 import cirq
+from cirq._compat import proper_repr
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -80,9 +81,9 @@ class GoodGate(cirq.SingleQubitGate):
                         exponent=new_exponent)
 
     def __repr__(self):
-        args = ['phase_exponent={!r}'.format(self.phase_exponent)]
+        args = ['phase_exponent={}'.format(proper_repr(self.phase_exponent))]
         if self.exponent != 1:
-            args.append('exponent={!r}'.format(self.exponent))
+            args.append('exponent={}'.format(proper_repr(self.exponent)))
         return 'GoodGate({})'.format(', '.join(args))
 
     def _is_parameterized_(self) -> bool:
@@ -149,7 +150,7 @@ class BadGateRepr(GoodGate):
         args = ['phase_exponent={!r}'.format(2*self.phase_exponent)]
         if self.exponent != 1:
             # coverage: ignore
-            args.append('exponent={!r}'.format(self.exponent))
+            args.append('exponent={}'.format(proper_repr(self.exponent)))
         return 'BadGateRepr({})'.format(', '.join(args))
 
 
@@ -163,8 +164,8 @@ class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
 
     def __repr__(self):
         return ('GoodEigenGate'
-                '(exponent={!r}, global_shift={!r})'.format(
-                    self._exponent, self._global_shift))
+                '(exponent={}, global_shift={!r})'.format(
+            proper_repr(self._exponent), self._global_shift))
 
 
 class BadEigenGate(GoodEigenGate):
@@ -174,8 +175,8 @@ class BadEigenGate(GoodEigenGate):
 
     def __repr__(self):
         return ('BadEigenGate'
-                '(exponent={!r}, global_shift={!r})'.format(
-                    self._exponent, self._global_shift))
+                '(exponent={}, global_shift={!r})'.format(
+                    proper_repr(self._exponent), self._global_shift))
 
 
 def test_assert_implements_consistent_protocols():

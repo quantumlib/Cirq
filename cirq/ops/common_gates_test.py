@@ -37,6 +37,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
             eigen_gate_type)
 
+
 @pytest.mark.parametrize('eigen_gate_type', [
     cirq.CNotPowGate,
     cirq.HPowGate,
@@ -46,6 +47,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
             eigen_gate_type, ignoring_global_phase=True)
+
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
@@ -235,15 +237,15 @@ def test_runtime_types_of_rot_gates():
                       lambda p: cirq.XPowGate(exponent=p),
                       lambda p: cirq.YPowGate(exponent=p),
                       lambda p: cirq.ZPowGate(exponent=p)]:
-        p = gate_type(cirq.Symbol('a'))
+        p = gate_type(sympy.Symbol('a'))
         assert cirq.unitary(p, None) is None
-        assert cirq.pow(p, 2, None) is None
-        assert cirq.inverse(p, None) is None
+        assert cirq.pow(p, 2, None) == gate_type(2 * sympy.Symbol('a'))
+        assert cirq.inverse(p, None) == gate_type(-sympy.Symbol('a'))
 
         c = gate_type(0.5)
         assert cirq.unitary(c, None) is not None
-        assert cirq.pow(c, 2) is not None
-        assert cirq.inverse(c) is not None
+        assert cirq.pow(c, 2) == gate_type(1)
+        assert cirq.inverse(c) == gate_type(-0.5)
 
 
 def test_measurement_eq():
@@ -285,25 +287,25 @@ def test_text_diagrams():
         cirq.Y(a),
         cirq.Z(a),
         cirq.Z(a)**sympy.Symbol('x'),
+        cirq.Rx(sympy.Symbol('x')).on(a),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
         cirq.H(a),
-        cirq.ISWAP(a, b),
         cirq.ISWAP(a, b)**-1,
         cirq.I(a),
-        cirq.IdentityGate(2)(a,b))
+        cirq.IdentityGate(2)(a, b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────I───I───
-      │                     │   │   │       │       │              │
-b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───────I───
+a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H───iSwap──────I───I───
+      │                             │   │   │       │              │
+b: ───×─────────────────────────────@───X───@───────iSwap^-1───────I───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------I---I---
-      |                        |   |   |       |       |              |
-b: ---swap---------------------@---X---@-------iSwap---iSwap^-1-------I---
+a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H---iSwap------I---I---
+      |                                |   |   |       |              |
+b: ---swap-----------------------------@---X---@-------iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 
@@ -407,6 +409,8 @@ def test_repr():
     assert repr(cirq.ISWAP) == 'cirq.ISWAP'
     assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
 
+    cirq.testing.assert_equivalent_repr(
+        cirq.X**(sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5))
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other
