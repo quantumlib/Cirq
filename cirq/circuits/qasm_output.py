@@ -156,7 +156,7 @@ class QasmOutput:
         meas_comments = {}  # type: Dict[str, Optional[str]]
         meas_i = 0
         for meas in self.measurements:
-            key = cast(ops.MeasurementGate, meas.gate).key
+            key = protocols.measurement_key(meas)
             if key in meas_key_id_map:
                 continue
             meas_id = 'm_{}'.format(key)
@@ -224,7 +224,7 @@ class QasmOutput:
         # Pick an id for the creg that will store each measurement
         already_output_keys = set()  # type: Set[str]
         for meas in self.measurements:
-            key = cast(ops.MeasurementGate, meas.gate).key
+            key = protocols.measurement_key(meas)
             if key in already_output_keys:
                 continue
             already_output_keys.add(key)

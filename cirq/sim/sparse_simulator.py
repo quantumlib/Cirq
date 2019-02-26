@@ -243,7 +243,8 @@ class Simulator(simulator.SimulatesSamples,
                                                                      state)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        measurements[cast(str, gate.key)].extend(corrected)
+                        key = protocols.measurement_key(gate)
+                        measurements[key].extend(corrected)
                 else:
                     result = protocols.apply_unitary(
                         op,
