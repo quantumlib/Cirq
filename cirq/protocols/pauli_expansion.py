@@ -25,21 +25,6 @@ from cirq.protocols.unitary import unitary
 RaiseTypeErrorIfNotProvided = {}  # type: Dict[str, complex]
 
 
-def _make_basis_for_unitary(
-        unitary: np.ndarray) -> Optional[Dict[str, np.ndarray]]:
-    """Returns Pauli basis for unitary or None if unitary is too large."""
-    basis = operator_spaces.PAULI_BASIS
-    if unitary.shape == (2, 2):
-        return basis
-    basis = operator_spaces.kron_bases(basis, operator_spaces.PAULI_BASIS)
-    if unitary.shape == (4, 4):
-        return basis
-    basis = operator_spaces.kron_bases(basis, operator_spaces.PAULI_BASIS)
-    if unitary.shape == (8, 8):
-        return basis
-    return None
-
-
 def _filter_coefficients(expansion: Dict[str, complex],
                          tolerance: float) -> Dict[str, complex]:
     """Drops insignificant coefficients."""
