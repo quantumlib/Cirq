@@ -55,6 +55,9 @@ class CCZPowGate(eigen_gate.EigenGate,
 
         where p = T**self._exponent
         """
+        if protocols.is_parameterized(self):
+            return NotImplemented
+
         a, b, c = qubits
 
         # Hacky magic: avoid the non-adjacent edge.
@@ -68,14 +71,16 @@ class CCZPowGate(eigen_gate.EigenGate,
         sweep_abc = [common_gates.CNOT(a, b),
                      common_gates.CNOT(b, c)]
 
-        yield p(a), p(b), p(c)
-        yield sweep_abc
-        yield p(b)**-1, p(c)
-        yield sweep_abc
-        yield p(c)**-1
-        yield sweep_abc
-        yield p(c)**-1
-        yield sweep_abc
+        return [
+            p(a), p(b), p(c),
+            sweep_abc,
+            p(b)**-1, p(c),
+            sweep_abc,
+            p(c)**-1,
+            sweep_abc,
+            p(c)**-1,
+            sweep_abc,
+        ]
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):

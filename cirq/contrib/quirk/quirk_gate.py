@@ -15,8 +15,9 @@
 from typing import Any, Callable, cast, Dict, Optional, Union
 
 import numpy as np
+import sympy
 
-from cirq import ops, value
+from cirq import ops
 
 
 class QuirkOp:
@@ -53,8 +54,8 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
     return abs(d) < atol
 
 
-def angle_to_exponent_key(t: Union[float, value.Symbol]) -> Optional[str]:
-    if isinstance(t, value.Symbol):
+def angle_to_exponent_key(t: Union[float, sympy.Symbol]) -> Optional[str]:
+    if isinstance(t, sympy.Basic):
         return '^t'
 
     if same_half_turns(t, 1):

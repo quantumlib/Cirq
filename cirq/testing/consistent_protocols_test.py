@@ -17,6 +17,7 @@ from typing import Sequence, Union
 import pytest
 
 import numpy as np
+import sympy
 
 import cirq
 from cirq.type_workarounds import NotImplementedType
@@ -26,8 +27,8 @@ class GoodGate(cirq.SingleQubitGate):
 
     def __init__(self,
                  *,
-                 phase_exponent: Union[float, cirq.Symbol],
-                 exponent: Union[float, cirq.Symbol] = 1.0) -> None:
+                 phase_exponent: Union[float, sympy.Symbol],
+                 exponent: Union[float, sympy.Symbol] = 1.0) -> None:
         self.phase_exponent = cirq.canonicalize_half_turns(phase_exponent)
         self.exponent = exponent
 
@@ -70,7 +71,7 @@ class GoodGate(cirq.SingleQubitGate):
             exponent=self.exponent,
             phase_exponent=self.phase_exponent + phase_turns * 2)
 
-    def __pow__(self, exponent: Union[float, cirq.Symbol]) -> 'GoodGate':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             # coverage: ignore
@@ -85,8 +86,8 @@ class GoodGate(cirq.SingleQubitGate):
         return 'GoodGate({})'.format(', '.join(args))
 
     def _is_parameterized_(self) -> bool:
-        return (isinstance(self.exponent, cirq.Symbol) or
-                isinstance(self.phase_exponent, cirq.Symbol))
+        return (isinstance(self.exponent, sympy.Basic) or
+                isinstance(self.phase_exponent, sympy.Basic))
 
     def _identity_tuple(self):
         return (GoodGate,
