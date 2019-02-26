@@ -45,6 +45,7 @@ from cirq.linalg.operator_spaces import (
     hilbert_schmidt_inner_product,
     kron_bases,
     matrix_from_basis_coefficients,
+    PAULI_BASIS,
 )
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
