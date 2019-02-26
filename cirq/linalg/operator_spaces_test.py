@@ -109,9 +109,10 @@ def test_kron_bases(basis1, basis2, expected_kron_basis):
     (X, SQRT_X, False),
     (I, SQRT_Z, False),
 ))
-def test_hilbert_schmidt_is_conjugate_symmetric(m1, m2, expect_real):
-    v1 = cirq.linalg.hilbert_schmidt(m1, m2)
-    v2 = cirq.linalg.hilbert_schmidt(m2, m1)
+def test_hilbert_schmidt_inner_product_is_conjugate_symmetric(
+        m1, m2, expect_real):
+    v1 = cirq.linalg.hilbert_schmidt_inner_product(m1, m2)
+    v2 = cirq.linalg.hilbert_schmidt_inner_product(m2, m1)
     assert v1 == v2.conjugate()
 
     assert np.isreal(v1) == expect_real
@@ -125,16 +126,16 @@ def test_hilbert_schmidt_is_conjugate_symmetric(m1, m2, expect_real):
     (2j, X, 3, I),
     (2, X, 3, X),
 ))
-def test_hilbert_schmidt_is_linear(a, m1, b, m2):
-    v1 = cirq.linalg.hilbert_schmidt(H, (a * m1 + b * m2))
-    v2 = (a * cirq.linalg.hilbert_schmidt(H, m1) +
-          b * cirq.linalg.hilbert_schmidt(H, m2))
+def test_hilbert_schmidt_inner_product_is_linear(a, m1, b, m2):
+    v1 = cirq.linalg.hilbert_schmidt_inner_product(H, (a * m1 + b * m2))
+    v2 = (a * cirq.linalg.hilbert_schmidt_inner_product(H, m1) +
+          b * cirq.linalg.hilbert_schmidt_inner_product(H, m2))
     assert v1 == v2
 
 
 @pytest.mark.parametrize('m', (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z))
-def test_hilbert_schmidt_is_positive_definite(m):
-    v = cirq.linalg.hilbert_schmidt(m, m)
+def test_hilbert_schmidt_inner_product_is_positive_definite(m):
+    v = cirq.linalg.hilbert_schmidt_inner_product(m, m)
     assert np.isreal(v)
     assert v.real > 0
 
@@ -156,8 +157,8 @@ def test_hilbert_schmidt_is_positive_definite(m):
     (SQRT_X, E10, np.sqrt(.5j)),
     (SQRT_X, E11, np.sqrt(-.5j)),
 ))
-def test_hilbert_schmidt_values(m1, m2, expected_value):
-    v = cirq.linalg.hilbert_schmidt(m1, m2)
+def test_hilbert_schmidt_inner_product_values(m1, m2, expected_value):
+    v = cirq.linalg.hilbert_schmidt_inner_product(m1, m2)
     assert np.isclose(v, expected_value)
 
 
@@ -165,8 +166,8 @@ def test_hilbert_schmidt_values(m1, m2, expected_value):
     (I, X, Y, Z, H, SQRT_X, SQRT_Y, SQRT_Z),
     (PAULI_BASIS, STANDARD_BASIS),
 ))
-def test_expand_in_basis(m, basis):
-    expansion = cirq.linalg.expand_in_basis(m, basis)
+def test_expand_matrix_in_orthogonal_basis(m, basis):
+    expansion = cirq.linalg.expand_matrix_in_orthogonal_basis(m, basis)
 
     reconstructed = np.zeros(m.shape, dtype=complex)
     for name, coefficient in expansion.items():
@@ -179,13 +180,15 @@ def test_expand_in_basis(m, basis):
     {'I': 0.5, 'X': 0.4, 'Y': 0.3, 'Z': 0.2},
     {'I': 1, 'X': 2, 'Y': 3, 'Z': 4},
 ))
-def test_reconstruct_from_expansion(expansion):
-    m = cirq.linalg.reconstruct_from_expansion(expansion, PAULI_BASIS)
+def test_matrix_from_basis_coefficients(expansion):
+    m = cirq.linalg.matrix_from_basis_coefficients(expansion, PAULI_BASIS)
 
     for name, coefficient in expansion.items():
         element = PAULI_BASIS[name]
-        expected_coefficient = (cirq.linalg.hilbert_schmidt(m, element) /
-                                cirq.linalg.hilbert_schmidt(element, element))
+        expected_coefficient = (
+                cirq.linalg.hilbert_schmidt_inner_product(m, element) /
+                cirq.linalg.hilbert_schmidt_inner_product(element, element)
+        )
         assert np.isclose(coefficient, expected_coefficient)
 
 
@@ -196,9 +199,9 @@ def test_reconstruct_from_expansion(expansion):
         (PAULI_BASIS, STANDARD_BASIS),
     )
 ))
-def test_expand_in_basis_is_inverse_of_reconstruct_from_expansion(m1, basis):
-    c1 = cirq.linalg.expand_in_basis(m1, basis)
-    m2 = cirq.linalg.reconstruct_from_expansion(c1, basis)
-    c2 = cirq.linalg.expand_in_basis(m2, basis)
+def test_expand_is_inverse_of_reconstruct(m1, basis):
+    c1 = cirq.linalg.expand_matrix_in_orthogonal_basis(m1, basis)
+    m2 = cirq.linalg.matrix_from_basis_coefficients(c1, basis)
+    c2 = cirq.linalg.expand_matrix_in_orthogonal_basis(m2, basis)
     assert np.allclose(m1, m2)
     assert c1 == c2

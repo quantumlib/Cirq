@@ -36,6 +36,6 @@ def assert_pauli_expansion_is_consistent_with_unitary(val: Any) -> None:
         basis = operator_spaces.kron_bases(basis, operator_spaces.PAULI_BASIS)
         k >>= 1
 
-    recovered_unitary = operator_spaces.reconstruct_from_expansion(
+    recovered_unitary = operator_spaces.matrix_from_basis_coefficients(
         pauli_expansion, basis)
     assert np.allclose(unitary, recovered_unitary, rtol=0, atol=1e-12)

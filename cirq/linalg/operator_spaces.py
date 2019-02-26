@@ -14,7 +14,7 @@
 
 """Utilities for manipulating linear operators as elements of vector space."""
 
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
 
@@ -36,7 +36,7 @@ def kron_bases(basis1: Dict[str, np.ndarray],
     }
 
 
-def hilbert_schmidt(m1: np.ndarray, m2: np.ndarray) -> complex:
+def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
     """Computes Hilbert-Schmidt inner product of two matrices.
 
     Linear in second argument.
@@ -44,8 +44,10 @@ def hilbert_schmidt(m1: np.ndarray, m2: np.ndarray) -> complex:
     return np.einsum('ij,ij', m1.conj(), m2)
 
 
-def expand_in_basis(m: np.ndarray,
-                    basis: Dict[str, np.ndarray]) -> Dict[str, complex]:
+def expand_matrix_in_orthogonal_basis(
+        m: np.ndarray,
+        basis: Dict[str, np.ndarray],
+) -> Dict[str, complex]:
     """Computes coefficients of expansion of m in basis.
 
     We require that basis be orthogonal w.r.t. the Hilbert-Schmidt inner
@@ -53,13 +55,14 @@ def expand_in_basis(m: np.ndarray,
     basis (I, X, Y, Z) is orthogonal, but not orthonormal.
     """
     return {
-        name: hilbert_schmidt(b, m) / hilbert_schmidt(b, b)
+        name: (hilbert_schmidt_inner_product(b, m) /
+               hilbert_schmidt_inner_product(b, b))
         for name, b in basis.items()
     }
 
 
-def reconstruct_from_expansion(expansion: Dict[str, complex],
-                               basis: Dict[str, np.ndarray]) -> np.ndarray:
+def matrix_from_basis_coefficients(expansion: Dict[str, complex],
+                                   basis: Dict[str, np.ndarray]) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
     some_element = next(iter(basis.values()))
     result = np.zeros_like(some_element, dtype=np.complex128)

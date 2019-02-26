@@ -92,5 +92,5 @@ def pauli_expansion(
             raise TypeError('Unitary too large for Pauli expansion.')
         return default
 
-    expansion = operator_spaces.expand_in_basis(matrix, basis)
+    expansion = operator_spaces.expand_matrix_in_orthogonal_basis(matrix, basis)
     return _filter_coefficients(expansion, tolerance)

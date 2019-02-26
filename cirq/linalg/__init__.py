@@ -41,10 +41,10 @@ from cirq.linalg.diagonalize import (
     diagonalize_real_symmetric_matrix,
 )
 from cirq.linalg.operator_spaces import (
-    expand_in_basis,
-    hilbert_schmidt,
+    expand_matrix_in_orthogonal_basis,
+    hilbert_schmidt_inner_product,
     kron_bases,
-    reconstruct_from_expansion,
+    matrix_from_basis_coefficients,
 )
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
