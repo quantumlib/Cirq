@@ -51,10 +51,6 @@ def assert_implements_consistent_protocols(
                                    local_vals)
 
     for exponent in exponents:
-
-        if isinstance(exponent, sympy.symbol.Symbol):
-            exponent = 1
-
         p = protocols.pow(val, exponent, None)
         if p is not None:
             _assert_meets_standards_helper(val**exponent,
@@ -79,8 +75,6 @@ def assert_eigengate_implements_consistent_protocols(
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
     for exponent in exponents:
-        if isinstance(exponent, sympy.symbol.Symbol):
-            exponent = 1
         for shift in global_shifts:
             _assert_meets_standards_helper(
                     eigen_gate_type(exponent=exponent, global_shift=shift),
@@ -89,6 +83,8 @@ def assert_eigengate_implements_consistent_protocols(
                     setup_code,
                     global_vals,
                     local_vals)
+
+
 def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
     assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
@@ -106,9 +102,10 @@ def _assert_meets_standards_helper(
     assert_decompose_is_consistent_with_unitary(val,
         ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
-    assert_equivalent_repr(val,
-                           setup_code=setup_code,
-                           global_vals=global_vals,
-                           local_vals=local_vals)
+    if not protocols.is_parameterized(val):
+        assert_equivalent_repr(val,
+                               setup_code=setup_code,
+                               global_vals=global_vals,
+                               local_vals=local_vals)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
