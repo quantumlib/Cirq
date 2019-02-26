@@ -18,7 +18,7 @@ from typing import (
 import numpy as np
 import sympy
 
-from cirq import devices, ops, protocols, value
+from cirq import devices, ops, protocols
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
