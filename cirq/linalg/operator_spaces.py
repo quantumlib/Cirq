@@ -41,8 +41,7 @@ def hilbert_schmidt(m1: np.ndarray, m2: np.ndarray) -> complex:
 
     Linear in second argument.
     """
-    m1_dagger = np.conjugate(np.transpose(m1))
-    return np.trace(np.dot(m1_dagger, m2))
+    return np.einsum('ij,ij', m1.conj(), m2)
 
 
 def expand_in_basis(m: np.ndarray,
