@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -283,7 +284,7 @@ def test_text_diagrams():
         cirq.X(a),
         cirq.Y(a),
         cirq.Z(a),
-        cirq.Z(a)**cirq.Symbol('x'),
+        cirq.Z(a)**sympy.Symbol('x'),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
@@ -364,7 +365,7 @@ def test_cnot_unknown_keyword_argument():
 def test_cnot_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x')) is not None
+    assert cirq.decompose_once(cirq.CNOT(a, b)**sympy.Symbol('x')) is not None
 
 
 def test_swap_unitary():
@@ -505,6 +506,23 @@ def test_measure():
 
     with pytest.raises(ValueError, match='QubitId'):
         _ = cirq.measure("bork")
+
+
+def test_measurement_channel():
+    np.testing.assert_allclose(
+            cirq.channel(cirq.MeasurementGate(1)),
+            (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])))
+    np.testing.assert_allclose(
+            cirq.channel(cirq.MeasurementGate(2)),
+            (np.array([[1, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0]]),
+             np.array([[0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 1]])))
+
 
 def test_measurement_qubit_count_vs_mask_length():
     a = cirq.NamedQubit('a')

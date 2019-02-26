@@ -15,6 +15,7 @@ from typing import Union, Tuple, cast
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq import protocols
@@ -200,7 +201,7 @@ def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
 
 
 def test_parameterizable():
-    a = cirq.Symbol('a')
+    a = sympy.Symbol('a')
     qubits = cirq.LineQubit.range(3)
 
     cz = cirq.ControlledOperation(qubits[0], cirq.Z(qubits[1]))

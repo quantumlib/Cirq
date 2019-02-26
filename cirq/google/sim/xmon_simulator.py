@@ -260,7 +260,8 @@ class XmonSimulator(sim.SimulatesSamples,
                                 result = stepper.simulate_measurement(index)
                                 if invert:
                                     result = not result
-                                measurements[cast(str, gate.key)].append(result)
+                                key = protocols.measurement_key(gate)
+                                measurements[key].append(result)
                     else:
                         # coverage: ignore
                         raise TypeError('{!r} is not supported by the '
@@ -286,7 +287,7 @@ def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
     keys = set()  # type: Set[str]
     for _, _, gate in circuit.findall_operations_with_gate_type(
             ops.MeasurementGate):
-        key = gate.key
+        key = protocols.measurement_key(gate)
         if key in keys:
             raise ValueError('Repeated Measurement key {}'.format(key))
         keys.add(key)

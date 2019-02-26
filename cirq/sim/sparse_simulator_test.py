@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import pytest
-
 import numpy as np
+import sympy
 
 import cirq
 
@@ -105,8 +105,8 @@ def test_run_param_resolver(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**cirq.Symbol('b0'))(q0),
-                                            (cirq.X**cirq.Symbol('b1'))(q1),
+            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
+                                            (cirq.X**sympy.Symbol('b1'))(q1),
                                             cirq.measure(q0),
                                             cirq.measure(q1))
             param_resolver = cirq.ParamResolver({'b0': b0, 'b1': b1})
@@ -148,8 +148,8 @@ def test_run_sweeps_param_resolvers(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**cirq.Symbol('b0'))(q0),
-                                            (cirq.X**cirq.Symbol('b1'))(q1),
+            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
+                                            (cirq.X**sympy.Symbol('b1'))(q1),
                                             cirq.measure(q0),
                                             cirq.measure(q1))
             params = [cirq.ParamResolver({'b0': b0, 'b1': b1}),
@@ -258,8 +258,8 @@ def test_simulate_param_resolver(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**cirq.Symbol('b0'))(q0),
-                                            (cirq.X**cirq.Symbol('b1'))(q1))
+            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
+                                            (cirq.X**sympy.Symbol('b1'))(q1))
             resolver = cirq.ParamResolver({'b0': b0, 'b1': b1})
             result = simulator.simulate(circuit, param_resolver=resolver)
             expected_state = np.zeros(shape=(2, 2))
@@ -290,8 +290,8 @@ def test_simulate_sweeps_param_resolver(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**cirq.Symbol('b0'))(q0),
-                                            (cirq.X**cirq.Symbol('b1'))(q1))
+            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
+                                            (cirq.X**sympy.Symbol('b1'))(q1))
             params = [cirq.ParamResolver({'b0': b0, 'b1': b1}),
                       cirq.ParamResolver({'b0': b1, 'b1': b0})]
             results = simulator.simulate_sweep(circuit, params=params)

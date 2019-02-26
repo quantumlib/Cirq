@@ -124,6 +124,9 @@ class GateOperation(raw_types.Operation):
     def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.channel(self._gate, NotImplemented)
 
+    def _measurement_key_(self) -> str:
+        return protocols.measurement_key(self._gate, NotImplemented)
+
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._gate)
 

@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar
+from typing import Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
-from cirq.study import ParamResolver
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 TDefault = TypeVar('TDefault')
 
@@ -28,7 +31,7 @@ class SupportsParameterization(Protocol):
         resolution.  Returns True if the gate has any unresolved Symbols
         and False otherwise."""
 
-    def _resolve_parameters_(self: Any, param_resolver: ParamResolver):
+    def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver'):
         """Resolve the parameters in the effect."""
 
 
@@ -53,7 +56,7 @@ def is_parameterized(val: Any) -> bool:
         return False
 
 
-def resolve_parameters(val: Any, param_resolver: ParamResolver) -> Any:
+def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolver') -> Any:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method
