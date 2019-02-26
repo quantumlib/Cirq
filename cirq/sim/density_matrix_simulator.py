@@ -20,7 +20,7 @@ from typing import cast, Dict, Iterator, List, Type, Union
 
 import numpy as np
 
-from cirq import circuits, linalg, ops, protocols, study, value
+from cirq import circuits, linalg, ops, protocols, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 
 class DensityMatrixSimulator(simulator.SimulatesSamples,
@@ -104,7 +104,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
            # step_result.density_matrix()
     """
 
-    def __init__(self, dtype: Type[np.number] = np.complex64):
+    def __init__(self,
+                 *,
+                 dtype: Type[np.number] = np.complex64,
+                 noise: devices.NoiseModel = devices.NO_NOISE):
         """Density matrix simulator.
 
          Args:
@@ -116,11 +119,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 'dtype must be complex64 or complex128, was {}'.format(dtype))
 
         self._dtype = dtype
+        self.noise = noise
 
     def _run(self,
-            circuit: circuits.Circuit,
-            param_resolver: study.ParamResolver,
-            repetitions: int) -> Dict[str, np.ndarray]:
+             circuit: circuits.Circuit,
+             param_resolver: study.ParamResolver,
+             repetitions: int) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
@@ -139,12 +143,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     measurements[k].append(np.array(v, dtype=bool))
         return {k: np.array(v) for k, v in measurements.items()}
 
-
     def _simulator_iterator(self,
-            circuit: circuits.Circuit,
-            param_resolver: study.ParamResolver,
-            qubit_order: ops.QubitOrderOrList,
-            initial_state: Union[int, np.ndarray]) -> Iterator:
+                            circuit: circuits.Circuit,
+                            param_resolver: study.ParamResolver,
+                            qubit_order: ops.QubitOrderOrList,
+                            initial_state: Union[int, np.ndarray]) -> Iterator:
         """See definition in `cirq.SimulatesIntermediateState`.
 
         If the initial state is an int, the state is set to the computational
@@ -192,12 +195,16 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
-        for moment in circuit:
+        noisy_moments = self.noise.noisy_moments(
+                circuit,
+                sorted(circuit.all_qubits()))
+
+        for moment in noisy_moments:
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[bool]]
 
             channel_ops_and_measurements = protocols.decompose(
-                moment.operations,
+                moment,
                 keep=keep,
                 on_stuck_raise=on_stuck)
 

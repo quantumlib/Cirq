@@ -21,3 +21,8 @@ from cirq.devices.grid_qubit import (
 from cirq.devices.unconstrained_device import (
     UnconstrainedDevice,
 )
+from cirq.devices.noise_model import (
+    NO_NOISE,
+    NoiseModel,
+    ConstantQubitNoiseModel,
+)
