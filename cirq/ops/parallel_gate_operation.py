@@ -17,11 +17,10 @@ from typing import (
     Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
     Any)
 
-from fractions import Fraction
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features, op_tree
+from cirq.ops import raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -41,9 +40,9 @@ class ParallelGateOperation(raw_types.Operation):
             gate: the gate to apply
             qubits: lists of lists of qubits to apply the gate to.
         """
-        if not isinstance(gate, gate_features.SingleQubitGate):
+        if gate.num_qubits() != 1:
             raise ValueError("gate must be a single qubit gate")
-        if len(frozenset(qubits)) != len(qubits):
+        if len(set(qubits)) != len(qubits):
             raise ValueError("repeated qubits are not allowed")
         for qubit in qubits:
             gate.validate_args([qubit])
@@ -78,14 +77,8 @@ class ParallelGateOperation(raw_types.Operation):
         return '{}({})'.format(self.gate,
                                ', '.join(str(e) for e in self.qubits))
 
-    def _group_interchangeable_qubits(self) -> Tuple[
-            Union[raw_types.QubitId,
-                  Tuple[int, FrozenSet[raw_types.QubitId]]],
-            ...]:
-        return tuple(((0, frozenset(self.qubits)),))
-
     def _value_equality_values_(self):
-        return self.gate, self._group_interchangeable_qubits()
+        return self.gate, frozenset(self.qubits)
 
     def _decompose_(self) -> op_tree.OP_TREE:
         """List of gate operations that correspond to applying the single qubit
@@ -99,16 +92,17 @@ class ParallelGateOperation(raw_types.Operation):
            sequence of GateOperations
         """
         state = args.target_tensor
+        buffer = args.available_buffer
         for axis in args.axes:
             result = protocols.apply_unitary(self.gate,
                                              protocols.ApplyUnitaryArgs(
                                                  state,
-                                                 args.available_buffer,
+                                                 buffer,
                                                  (axis,)),
                                              default=NotImplemented)
 
-            if result is args.available_buffer:
-                args.available_buffer = state
+            if result is buffer:
+                buffer = state
 
             state = result
 
@@ -140,33 +134,6 @@ class ParallelGateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return self.with_gate(resolved_gate)
 
-    def _formatted_exponent(self, info: protocols.CircuitDiagramInfo,
-                            args: protocols.CircuitDiagramInfoArgs
-                            ) -> Optional[str]:
-        if info.exponent == 0:
-            return '0'
-
-        # 1 is not shown.
-        if info.exponent == 1:
-            return None
-
-        # Round -1.0 into -1.
-        if info.exponent == -1:
-            return '-1'
-
-        # If it's a float, show the desired precision.
-        if isinstance(info.exponent, float):
-            if args.precision is not None:
-                # funky behavior of fraction, cast to str in constructor helps.
-                approx_frac = Fraction(info.exponent).limit_denominator(16)
-                if approx_frac.denominator not in [2, 4, 5, 10]:
-                    if abs(float(approx_frac)
-                           - info.exponent) < 10 ** -args.precision:
-                        return '({})'.format(approx_frac)
-
-                return '{{:.{}}}'.format(args.precision).format(info.exponent)
-        return repr(info.exponent)
-
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -176,18 +143,12 @@ class ParallelGateOperation(raw_types.Operation):
         if diagram_info == NotImplemented:
             return diagram_info
 
-        # Extract the formatted exponent and place it in wire symbols so that
-        # every gate on the diagram has an exponent instead of the last one
+        # Include symbols for every qubit instead of just one
         symbol = diagram_info.wire_symbols[0]
-        exponent = self._formatted_exponent(diagram_info, args)
-        if exponent is not None:
-            symbol = "{0}^{1}".format(symbol, exponent)
-
-        # Include every gate on the diagram instead of one
         wire_symbols = (symbol,) * len(self.qubits)
-        # Set exponent=1 so that another extra exponent doesn't get tacked on
+
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                            exponent=1,
+                                            exponent=diagram_info.exponent,
                                             connected=False)
 
     def _phase_by_(self, phase_turns: float,
@@ -197,9 +158,6 @@ class ParallelGateOperation(raw_types.Operation):
         if phased_gate is None:
             return NotImplemented
         return self.with_gate(phased_gate)
-
-    def _trace_distance_bound_(self) -> float:
-        return 1.
 
     def __pow__(self, exponent: Any) -> 'ParallelGateOperation':
         """Raise gate to a power, then reapply to the same qubits.
@@ -221,13 +179,3 @@ class ParallelGateOperation(raw_types.Operation):
         if new_gate is NotImplemented:
             return NotImplemented
         return self.with_gate(new_gate)
-
-    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
-        """
-        Strings together the qasm for the gate acting on each qubit individually
-        """
-        qasm_list = [protocols.qasm(self.gate,
-                                    args=args,
-                                    qubits=[qubit],
-                                    default=None) for qubit in self.qubits]
-        return ''.join([qasm for qasm in qasm_list if qasm is not None])

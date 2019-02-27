@@ -82,14 +82,6 @@ def test_extrapolate():
                                                                     [q])
 
 
-def test_bounded_effect():
-    q = cirq.NamedQubit('q')
-
-    # If the gate isn't bounded, you get a type error.
-    op0 = cirq.ParallelGateOperation(cirq.SingleQubitGate(), [q])
-    assert cirq.trace_distance_bound(op0) >= 1
-
-
 def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
@@ -151,21 +143,12 @@ def test_phase():
         cirq.phase_by(op1, 1, 0)
 
 
-def test_diagram_precision_is_none():
-    qreg = cirq.LineQubit.range(2)
-    c = cirq.Circuit()
-    g = cirq.X**0.123456789
-    p = cirq.ParallelGateOperation(g,qreg)
-    c.append(p)
-    assert 'X^0.123456789' in c.to_text_diagram(precision=None)
-
-
 def test_equivalent_circuit():
     depth = 6
     qreg = cirq.LineQubit.range(4)
     oldc = cirq.Circuit()
     newc = cirq.Circuit()
-    exponents = [0,-1,1,1/2,1/3,1/3+0.01]
+    exponents = [0, -1, 1, 1/2, 1/3, 1/3+0.01]
 
     for moment in range(depth):
         if moment == 0:
@@ -187,7 +170,6 @@ def test_equivalent_circuit():
         newc.append(cirq.ops.ParallelGateOperation(gate, qreg))
 
     assert str(oldc) == str(newc)
-    assert cirq.qasm(oldc) == cirq.qasm(newc)
     sim = cirq.Simulator()
     old_result = sim.simulate(oldc)
     new_result = sim.simulate(newc)
