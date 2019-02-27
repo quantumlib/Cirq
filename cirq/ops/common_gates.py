@@ -373,6 +373,8 @@ class MeasurementGate(gate_features.MultiQubitGate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
+        assert isinstance(num_qubits, int)
+
         super().__init__(num_qubits)
         self.key = key
         self.invert_mask = invert_mask or ()
