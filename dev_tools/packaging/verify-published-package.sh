@@ -90,9 +90,9 @@ for PYTHON_VERSION in python2 python3; do
     # Run tests.
     echo Installing pytest requirements
     if [ "${PYTHON_VERSION}" = "python2" ]; then
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest mock
+        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest mock pytest-benchmark
     else
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest
+        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest pytest-benchmark
     fi
     PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
     echo Running cirq tests

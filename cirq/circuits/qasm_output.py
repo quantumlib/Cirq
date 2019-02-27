@@ -52,13 +52,22 @@ class QasmUGate(ops.SingleQubitGate):
                args: protocols.QasmArgs) -> str:
         args.validate_version('2.0')
         return args.format(
-                'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
-                self.theta, self.phi, self.lmda, qubits[0])
+            'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
+            self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
         return 'cirq.QasmUGate({}, {}, {})'.format(self.lmda,
                                                    self.theta,
                                                    self.phi)
+
+    def _unitary_(self) -> np.ndarray:
+        # Source: https://arxiv.org/abs/1707.03429 (equation 2)
+        operations = [
+            ops.Rz(self.phi * np.pi),
+            ops.Ry(self.theta * np.pi),
+            ops.Rz(self.lmda * np.pi),
+        ]
+        return linalg.dot(*map(protocols.unitary, operations))
 
 
 @value.value_equality
@@ -150,7 +159,8 @@ class QasmOutput:
             meas_key_id_map=meas_key_id_map)
 
     def _generate_measurement_ids(self
-            ) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
+                                  ) -> Tuple[Dict[str, str],
+                                             Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map = {}  # type: Dict[str, str]
         meas_comments = {}  # type: Dict[str, Optional[str]]
@@ -194,8 +204,10 @@ class QasmOutput:
 
         # Generate nice line spacing
         line_gap = [0]
+
         def output_line_gap(n):
             line_gap[0] = max(line_gap[0], n)
+
         def output(text):
             if line_gap[0] > 0:
                 output_func('\n' * line_gap[0])
@@ -234,7 +246,7 @@ class QasmOutput:
                 output('creg {}[{}];\n'.format(meas_id, len(meas.qubits)))
             else:
                 output('creg {}[{}];  // Measurement: {}\n'.format(
-                            meas_id, len(meas.qubits), comment))
+                    meas_id, len(meas.qubits), comment))
         output_line_gap(2)
 
         # Operations
