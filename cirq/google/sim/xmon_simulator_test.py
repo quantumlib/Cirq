@@ -663,6 +663,9 @@ def test_unsupported_gate_defense_in_depth(scheduler):
     with pytest.raises(ValueError, match="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
 
+    with pytest.raises(ValueError, match="using an XmonDevice"):
+        _ = run(simulator, cirq.Circuit(), scheduler)
+
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_qubit_order(scheduler):
