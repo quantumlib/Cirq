@@ -165,3 +165,32 @@ def test_qubit_keys_for_histogram():
     assert results.histogram(key=[a, b]) == collections.Counter({0: 100})
     assert results.histogram(key=c) == collections.Counter({True: 100})
     assert results.histogram(key=[c]) == collections.Counter({1: 100})
+
+
+def test_text_diagram_jupyter():
+    result = cirq.TrialResult(
+        params=cirq.ParamResolver({}),
+        repetitions=5,
+        measurements={
+            'ab': np.array([[0, 1],
+                            [0, 1],
+                            [0, 1],
+                            [1, 0],
+                            [0, 1]], dtype=np.bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
+        })
+
+    # Test Jupyter console output from
+    class FakePrinter:
+        def __init__(self):
+            self.text_pretty = ''
+        def text(self, to_print):
+            self.text_pretty += to_print
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == 'ab=00010, 11101\nc=00101'
+
+    # Test cycle handling
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'TrialResult(...)'

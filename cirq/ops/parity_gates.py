@@ -19,6 +19,7 @@ from typing import Union, Optional
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate
 from cirq.ops.common_gates import _rads_func_symbol
 
@@ -86,10 +87,10 @@ class XXPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'
-            return '(cirq.XX**{!r})'.format(self._exponent)
-        return ('cirq.XXPowGate(exponent={!r}, '
+            return '(cirq.XX**{})'.format(proper_repr(self._exponent))
+        return ('cirq.XXPowGate(exponent={}, '
                 'global_shift={!r})'
-                ).format(self._exponent, self._global_shift)
+                ).format(proper_repr(self._exponent), self._global_shift)
 
 
 class YYPowGate(eigen_gate.EigenGate,
@@ -127,10 +128,10 @@ class YYPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.YY'
-            return '(cirq.YY**{!r})'.format(self._exponent)
-        return ('cirq.YYPowGate(exponent={!r}, '
+            return '(cirq.YY**{})'.format(proper_repr(self._exponent))
+        return ('cirq.YYPowGate(exponent={}, '
                 'global_shift={!r})'
-                ).format(self._exponent, self._global_shift)
+                ).format(proper_repr(self._exponent), self._global_shift)
 
 
 class ZZPowGate(eigen_gate.EigenGate,
@@ -183,16 +184,16 @@ class ZZPowGate(eigen_gate.EigenGate,
     def __str__(self):
         if self._exponent == 1:
             return 'ZZ'
-        return 'ZZ**{!r}'.format(self._exponent)
+        return 'ZZ**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ZZ'
-            return '(cirq.ZZ**{!r})'.format(self._exponent)
-        return ('cirq.ZZPowGate(exponent={!r}, '
+            return '(cirq.ZZ**{})'.format(proper_repr(self._exponent))
+        return ('cirq.ZZPowGate(exponent={}, '
                 'global_shift={!r})'
-                ).format(self._exponent, self._global_shift)
+                ).format(proper_repr(self._exponent), self._global_shift)
 
 
 XX = XXPowGate()

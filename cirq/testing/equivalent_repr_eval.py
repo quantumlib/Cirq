@@ -18,7 +18,7 @@ from typing import Any, Dict, Optional
 def assert_equivalent_repr(
         value: Any,
         *,
-        setup_code: str = 'import cirq\nimport numpy as np',
+        setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that eval(repr(v)) == v.
@@ -70,7 +70,7 @@ def assert_equivalent_repr(
 
     try:
         a = eval('{!r}.__class__'.format(value), global_vals, local_vals)
-    except (AttributeError, SyntaxError):
+    except Exception:
         raise AssertionError(
             "The repr of a value of type {} wasn't 'dottable'.\n"
             "{!r}.XXX must be equivalent to ({!r}).XXX, "

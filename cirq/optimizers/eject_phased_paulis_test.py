@@ -13,6 +13,8 @@
 # limitations under the License.
 from typing import Iterable, cast
 
+import sympy
+
 import cirq
 
 
@@ -311,12 +313,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cirq.X(a)],
-            [cirq.Z(a)**cirq.Symbol('z')],
+            [cirq.Z(a)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         expected=quick_circuit(
             [cirq.X(a)],
-            [cirq.Z(a)**cirq.Symbol('z')],
+            [cirq.Z(a)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         compare_unitaries=False)
@@ -324,12 +326,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cirq.X(a)],
-            [cirq.CZ(a, b)**cirq.Symbol('z')],
+            [cirq.CZ(a, b)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         expected=quick_circuit(
             [cirq.X(a)],
-            [cirq.CZ(a, b)**cirq.Symbol('z')],
+            [cirq.CZ(a, b)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         compare_unitaries=False)

@@ -40,6 +40,13 @@ from cirq.linalg.diagonalize import (
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
 )
+from cirq.linalg.operator_spaces import (
+    expand_matrix_in_orthogonal_basis,
+    hilbert_schmidt_inner_product,
+    kron_bases,
+    matrix_from_basis_coefficients,
+    PAULI_BASIS,
+)
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
     slice_for_qubits_equal_to,

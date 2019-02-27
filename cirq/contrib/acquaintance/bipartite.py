@@ -23,6 +23,7 @@ from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
 
+
 @enum.unique
 class BipartiteGraphType(enum.Enum):
     MATCHING = 1
