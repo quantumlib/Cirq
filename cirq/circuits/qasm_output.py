@@ -62,10 +62,10 @@ class QasmUGate(ops.SingleQubitGate):
                                                    self.phi)
 
     def _unitary_(self) -> np.ndarray:
-        rz_phi_matrix = cirq.unitary(cirq.Rz(self.phi * np.pi))
-        ry_theta_matrix = cirq.unitary(cirq.Ry(self.theta * np.pi))
-        rz_lmda_matrix = cirq.unitary(cirq.Rz(self.lmda * np.pi))
-        return rz_phi_matrix.dot(ry_theta_matrix.dot(rz_lmda_matrix))
+        rz_phi_matrix = protocols.unitary(cirq.Rz(self.phi * np.pi))
+        ry_theta_matrix = protocols.unitary(cirq.Ry(self.theta * np.pi))
+        rz_lambda_matrix = protocols.unitary(cirq.Rz(self.lmda * np.pi))
+        return rz_phi_matrix.dot(ry_theta_matrix.dot(rz_lambda_matrix))
 
 
 @value.value_equality
@@ -95,7 +95,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         Returns:
             A QasmTwoQubitGate implementing the matrix.
         """
-        kak = linalg.kak_decomposition(mat, linalg.Tolerance(atol=atol))
+        kak = linalg.kak_decomposition(mat ,atol=atol)
         return QasmTwoQubitGate(kak)
 
     def _unitary_(self):
@@ -142,9 +142,10 @@ class QasmOutput:
         self.operations = tuple(ops.flatten_op_tree(operations))
         self.qubits = qubits
         self.header = header
-        self.measurements = tuple(cast(ops.GateOperation, op)
-                                  for op in self.operations
-                                  if ops.MeasurementGate.is_measurement(op))
+        self.measurements = tuple(
+            cast(ops.GateOperation, op)
+            for op in self.operations
+            if ops.MeasurementGate.is_measurement(cast(ops.GateOperation, op)))
 
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
@@ -163,7 +164,7 @@ class QasmOutput:
         meas_comments = {}  # type: Dict[str, Optional[str]]
         meas_i = 0
         for meas in self.measurements:
-            key = cast(ops.MeasurementGate, meas.gate).key
+            key = protocols.measurement_key(meas)
             if key in meas_key_id_map:
                 continue
             meas_id = 'm_{}'.format(key)
@@ -233,7 +234,7 @@ class QasmOutput:
         # Pick an id for the creg that will store each measurement
         already_output_keys = set()  # type: Set[str]
         for meas in self.measurements:
-            key = cast(ops.MeasurementGate, meas.gate).key
+            key = protocols.measurement_key(meas)
             if key in already_output_keys:
                 continue
             already_output_keys.add(key)

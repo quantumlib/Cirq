@@ -26,7 +26,7 @@ class GridQubit(ops.QubitId):
         GridQubit(0, 0) < GridQubit(0, 1) < GridQubit(1, 0) < GridQubit(1, 1)
     """
 
-    def __init__(self, row, col):
+    def __init__(self, row: int, col: int):
         self.row = row
         self.col = col
 

@@ -21,7 +21,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features
+from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -31,25 +31,27 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class GateOperation(raw_types.Operation):
-    """An application of a gate to a collection of qubits.
-
-    Attributes:
-        gate: The applied gate.
-        qubits: A sequence of the qubits on which the gate is applied.
-    """
+    """An application of a gate to a sequence of qubits."""
 
     def __init__(self,
                  gate: raw_types.Gate,
                  qubits: Sequence[raw_types.QubitId]) -> None:
+        """
+        Args:
+            gate: The gate to apply.
+            qubits: The qubits to operate on.
+        """
         self._gate = gate
         self._qubits = tuple(qubits)
 
     @property
     def gate(self) -> raw_types.Gate:
+        """The gate applied by the operation."""
         return self._gate
 
     @property
     def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+        """The qubits targeted by the operation."""
         return self._qubits
 
     def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'GateOperation':
@@ -92,21 +94,16 @@ class GateOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return self.gate, self._group_interchangeable_qubits()
 
-    def _decompose_(self):
+    def _decompose_(self) -> op_tree.OP_TREE:
         return protocols.decompose_once_with_qubits(self.gate,
                                                     self.qubits,
                                                     NotImplemented)
 
-    def _apply_unitary_to_tensor_(self,
-                                  target_tensor: np.ndarray,
-                                  available_buffer: np.ndarray,
-                                  axes: Sequence[int],
-                                  ) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.apply_unitary_to_tensor(
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                        ) -> Union[np.ndarray, None, NotImplementedType]:
+        return protocols.apply_unitary(
             self.gate,
-            target_tensor,
-            available_buffer,
-            axes,
+            args,
             default=NotImplemented)
 
     def _has_unitary_(self) -> bool:
@@ -114,6 +111,21 @@ class GateOperation(raw_types.Operation):
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self._gate)
+
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return protocols.mixture(self._gate, NotImplemented)
+
+    def _has_channel_(self) -> bool:
+        return protocols.has_channel(self._gate)
+
+    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.channel(self._gate, NotImplemented)
+
+    def _measurement_key_(self) -> str:
+        return protocols.measurement_key(self._gate, NotImplemented)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._gate)

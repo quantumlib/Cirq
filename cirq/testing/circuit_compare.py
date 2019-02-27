@@ -17,12 +17,13 @@ from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type
 from collections import defaultdict
 import itertools
 import numpy as np
+import sympy
 
-from cirq import circuits, ops, linalg, protocols, value, EigenGate
+from cirq import circuits, ops, linalg, protocols, EigenGate
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from typing import Dict, List, Set
+    from typing import Dict, List
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -42,7 +43,7 @@ def _measurement_subspaces(
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
 
-    The function computes a partioning of the computational basis such
+    The function computes a partitioning of the computational basis such
     that the subspace spanned by each partition corresponds to a distinct
     measurement outcome. In particular, if all qubits are measured then
     2**n singleton partitions are returned. If no qubits are measured then
@@ -51,11 +52,11 @@ def _measurement_subspaces(
     Args:
         measured_qubits: Qubits subject to measurement
         n_qubits: Total number of qubits in circuit
-        qubit_order: Qubit order to determine computational basis
     Returns:
         Sequence of subspaces where each subspace is a sequence of
             computational basis states in order corresponding to qubit_order
     """
+
     # Consider projective measurement in the computational basis on a subset
     # of qubits. Each projection operator associated with the measurement is
     # uniquely determined by its range, here called a measurement subspace.
@@ -248,10 +249,11 @@ def assert_has_diagram(
 def assert_has_consistent_apply_unitary(
         val: Any,
         *,
-        qubit_count: Optional[int] = None) -> None:
-    """Tests whether a value's _apply_unitary_to_tensor_ is correct.
+        qubit_count: Optional[int] = None,
+        atol: float=1e-8) -> None:
+    """Tests whether a value's _apply_unitary_ is correct.
 
-    Contrasts the effects of the value's `_apply_unitary_to_tensor_` with the
+    Contrasts the effects of the value's `_apply_unitary_` with the
     matrix returned by the value's `_unitary_` method.
 
     Args:
@@ -271,11 +273,12 @@ def assert_has_consistent_apply_unitary(
         n = _infer_qubit_count(val)
 
     eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
-    actual = protocols.apply_unitary_to_tensor(
-        val=val,
-        target_tensor=eye,
-        available_buffer=np.ones_like(eye) * float('nan'),
-        axes=list(range(1, n + 1)),
+    actual = protocols.apply_unitary(
+        unitary_value=val,
+        args=protocols.ApplyUnitaryArgs(
+            target_tensor=eye,
+            available_buffer=np.ones_like(eye) * float('nan'),
+            axes=list(range(1, n + 1))),
         default=None)
 
     # If you don't have a unitary, you shouldn't be able to apply a unitary.
@@ -288,18 +291,19 @@ def assert_has_consistent_apply_unitary(
     if actual is not None:
         np.testing.assert_allclose(
             actual.reshape(2 << n, 2 << n),
-            expected)
+            expected,
+            atol=atol)
 
 
 def assert_eigen_gate_has_consistent_apply_unitary(
         eigen_gate_type: Type[EigenGate],
         *,
-        exponents=(1, -0.5, 0.5, 0.25, -0.25, 0.1, -1, value.Symbol('s')),
-        global_shifts=(0, 0.5, -0.5),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+        global_shifts=(0, 0.5, -0.5, 0.1),
         qubit_count: Optional[int] = None) -> None:
-    """Tests whether an EigenGate type's _apply_unitary_to_tensor_ is correct.
+    """Tests whether an EigenGate type's _apply_unitary_ is correct.
 
-    Contrasts the effects of the gate's `_apply_unitary_to_tensor_` with the
+    Contrasts the effects of the gate's `_apply_unitary_` with the
     matrix returned by the gate's `_unitary_` method, trying various values for
     the gate exponent and global shift.
 
@@ -325,11 +329,11 @@ def assert_eigen_gate_has_consistent_apply_unitary(
 def assert_has_consistent_apply_unitary_for_various_exponents(
         val: Any,
         *,
-        exponents=(1, -0.5, 0.5, 0.25, -0.25, 0.1, value.Symbol('s')),
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         qubit_count: Optional[int] = None) -> None:
-    """Tests whether a value's _apply_unitary_to_tensor_ is correct.
+    """Tests whether a value's _apply_unitary_ is correct.
 
-    Contrasts the effects of the value's `_apply_unitary_to_tensor_` with the
+    Contrasts the effects of the value's `_apply_unitary_` with the
     matrix returned by the value's `_unitary_` method. Attempts this after
     attempting to raise the value to several exponents.
 
@@ -363,6 +367,7 @@ def _infer_qubit_count(val: Any) -> int:
         return 3
     if isinstance(val, ops.ControlledGate):
         return 1 + _infer_qubit_count(val.sub_gate)
+
     raise NotImplementedError(
         'Failed to infer qubit count of <{!r}>. Specify it.'.format(
             val))

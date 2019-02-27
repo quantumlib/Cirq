@@ -43,7 +43,7 @@ class DecomposeWithQubitsGiven:
         self.func = func
 
     def _decompose_(self, qubits):
-        return self.func(qubits)
+        return self.func(*qubits)
 
 
 class DecomposeGenerated:
@@ -105,23 +105,24 @@ def test_decompose_once_with_qubits():
                 cirq.X(cirq.LineQubit(1)),
                 cirq.X(cirq.LineQubit(2))]
     assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(lambda qubits: cirq.Y(qubits[0])),
+        DecomposeWithQubitsGiven(lambda *qubits: cirq.Y(qubits[0])),
         qs) == [cirq.Y(cirq.LineQubit(0))]
     assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(lambda qubits: (cirq.Y(q) for q in qubits)),
+        DecomposeWithQubitsGiven(lambda *qubits: (cirq.Y(q) for q in qubits)),
         qs) == [cirq.Y(cirq.LineQubit(0)),
                 cirq.Y(cirq.LineQubit(1)),
                 cirq.Y(cirq.LineQubit(2))]
 
     # Works when qubits are generated.
-    def use_qubits_twice(qubits):
+    def use_qubits_twice(*qubits):
         a = list(qubits)
         b = list(qubits)
-        yield cirq.X.on_each(a)
-        yield cirq.Y.on_each(b)
-    assert cirq.decompose_once_with_qubits(
-        DecomposeWithQubitsGiven(use_qubits_twice),
-        (q for q in qs)) == list(cirq.X.on_each(qs)) + list(cirq.Y.on_each(qs))
+        yield cirq.X.on_each(*a)
+        yield cirq.Y.on_each(*b)
+    assert (cirq.decompose_once_with_qubits(
+            DecomposeWithQubitsGiven(use_qubits_twice),
+            (q for q in qs))
+            == list(cirq.X.on_each(*qs)) + list(cirq.Y.on_each(*qs)))
 
 
 def test_decompose_general():
@@ -184,6 +185,9 @@ def test_decompose_on_stuck_raise():
     # Or you say you're fine.
     assert cirq.decompose(
         no_method, keep=lambda _: False, on_stuck_raise=None) == [no_method]
+    assert cirq.decompose(
+        no_method, keep=lambda _: False,
+        on_stuck_raise=lambda _: None) == [no_method]
     # You can customize the error.
     with pytest.raises(TypeError, match='test'):
         _ = cirq.decompose(
@@ -194,6 +198,7 @@ def test_decompose_on_stuck_raise():
             keep=lambda _: False,
             on_stuck_raise=lambda op: NotImplementedError('op {!r}'.format(
                 op)))
+
 
     # There's a nice warning if you specify `on_stuck_raise` but not `keep`.
     with pytest.raises(ValueError, match='on_stuck_raise'):

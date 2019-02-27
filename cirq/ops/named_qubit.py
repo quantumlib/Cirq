@@ -18,10 +18,10 @@ from cirq.ops import raw_types
 class NamedQubit(raw_types.QubitId):
     """A qubit identified by name.
 
-    By default, NamedQubit has a lexicographic order except that numbers within
+    By default, NamedQubit has a lexicographic order. However, numbers within
     the name are handled correctly. So, for example, if you print a circuit
-    containing cirq.NamedQubit('qubit22') and cirq.NamedQubit('qubit3'), the
-    wire for 'qubit3' will come before 'qubit22'.
+    containing `cirq.NamedQubit('qubit22')` and `cirq.NamedQubit('qubit3')`, the
+    wire for 'qubit3' will correctly come before 'qubit22'.
     """
 
     def __init__(self, name: str) -> None:
@@ -35,6 +35,25 @@ class NamedQubit(raw_types.QubitId):
 
     def __repr__(self):
         return 'cirq.NamedQubit({})'.format(repr(self.name))
+
+    @staticmethod
+    def range(*args, prefix: str):
+        """Returns a range of NamedQubits.
+
+        The range returned starts with the prefix, and followed by a qubit for
+        each number in the range, e.g.:
+
+        NamedQubit.range(3, prefix="a") -> ["a1", "a2", "a3]
+        NamedQubit.range(2, 4, prefix="a") -> ["a2", "a3]
+
+        Args:
+            *args: Args to be passed to Python's standard range function.
+            prefix: A prefix for constructed NamedQubits.
+
+        Returns:
+            A list of NamedQubits.
+        """
+        return [NamedQubit(prefix + str(i)) for i in range(*args)]
 
 
 def _pad_digits(text: str) -> str:

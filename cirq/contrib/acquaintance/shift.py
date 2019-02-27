@@ -15,11 +15,13 @@
 from itertools import chain
 from typing import Sequence, Dict, Tuple
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import Gate, SWAP, OP_TREE, QubitId
-from cirq.contrib.acquaintance.permutation import PermutationGate
+from cirq.contrib.acquaintance.permutation import (
+        SwapPermutationGate, PermutationGate)
 
 
+@value.value_equality
 class CircularShiftGate(PermutationGate):
     """Performs a cyclical permutation of the qubits to the left by a specified
     amount.
@@ -30,19 +32,20 @@ class CircularShiftGate(PermutationGate):
     """
 
     def __init__(self,
+                 num_qubits: int,
                  shift: int,
                  swap_gate: Gate=SWAP) -> None:
-        super().__init__(swap_gate)
+        super(CircularShiftGate, self).__init__(num_qubits, swap_gate)
         self.shift = shift
 
-    def __repr__(self):
-        return 'CircularShiftGate'
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return ((self.shift == other.shift) and
-                (self.swap_gate == other.swap_gate))
+    def __repr__(self):
+        return ('cirq.contrib.acquaintance.CircularShiftGate('
+                'num_qubits={!r}, shift={!r}, swap_gate={!r})'
+                .format(self.num_qubits(), self.shift, self.swap_gate))
+
+    def _value_equality_values_(self):
+        return self.shift, self.swap_gate, self.num_qubits()
 
     def _decompose_(self, qubits: Sequence[QubitId]) -> OP_TREE:
         n = len(qubits)
@@ -52,9 +55,10 @@ class CircularShiftGate(PermutationGate):
                      range(right_shift))
         maxs = chain(range(left_shift, n),
                      range(n - 1, right_shift, -1))
+        swap_gate = SwapPermutationGate(self.swap_gate)
         for i, j in zip(mins, maxs):
             for k in range(i, j, 2):
-                yield self.swap_gate(*qubits[k:k+2])
+                yield swap_gate(*qubits[k:k+2])
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Tuple[str, ...]:
@@ -67,11 +71,11 @@ class CircularShiftGate(PermutationGate):
                 direction_symbols[int(i >= self.shift)] +
                 str(i) +
                 direction_symbols[int(i < self.shift)]
-                for i in range(args.known_qubit_count))
+                for i in range(self.num_qubits()))
         return wire_symbols
 
-    def permutation(self, qubit_count: int) -> Dict[int, int]:
-        shift = self.shift % qubit_count
-        permuted_indices = chain(range(shift, qubit_count),
+    def permutation(self) -> Dict[int, int]:
+        shift = self.shift % self.num_qubits()
+        permuted_indices = chain(range(shift, self.num_qubits()),
                                  range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}

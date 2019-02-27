@@ -50,6 +50,6 @@ PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py "${r
 result=$?
 
 # Clean up generated coverage files.
-find | grep "\.py,cover$" | xargs rm -f
+find . | grep "\.py,cover$" | xargs rm -f
 
 exit ${result}

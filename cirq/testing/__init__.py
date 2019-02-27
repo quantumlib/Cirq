@@ -29,6 +29,10 @@ from cirq.testing.consistent_phase_by import (
 from cirq.testing.consistent_decomposition import (
     assert_decompose_is_consistent_with_unitary,
 )
+from cirq.testing.consistent_protocols import (
+    assert_implements_consistent_protocols,
+    assert_eigengate_implements_consistent_protocols,
+)
 from cirq.testing.consistent_qasm import (
     assert_qasm_is_consistent_with_unitary,
 )

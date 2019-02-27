@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import List
 
 import re
 import pytest
@@ -38,7 +39,9 @@ def test_qasm_two_qubit_gate_repr():
 def test_qasm_u_qubit_gate_unitary():
     u = cirq.testing.random_unitary(2)
     g = QasmUGate.from_matrix(u)
-    np.testing.assert_allclose(cirq.unitary(g), u)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g),
+                                                    u,
+                                                    atol=1e-7)
 
 
 def test_qasm_two_qubit_gate_unitary():
@@ -247,13 +250,13 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
         cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
 
         (
-            cirq.MeasurementGate('xX')(q0),
-            cirq.MeasurementGate('x_a')(q2),
-            cirq.MeasurementGate('x?')(q1),
-            cirq.MeasurementGate('X')(q3),
-            cirq.MeasurementGate('_x')(q4),
-            cirq.MeasurementGate('x_a')(q2),
-            cirq.MeasurementGate('multi', (False, True))(q1, q2, q3),
+            cirq.measure(q0, key='xX'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, key='x?'),
+            cirq.measure(q3, key='X'),
+            cirq.measure(q4, key='_x'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True))
         ) if include_measurments else (),
 
         DummyOperation(),
@@ -297,19 +300,22 @@ def test_output_unitary_same_as_qiskit():
         return
 
     circuit = cirq.Circuit.from_ops(operations)
-    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits[::-1])
+    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits)
 
     result = qiskit.execute(
         qiskit.load_qasm_string(text),
         backend=qiskit.Aer.get_backend('unitary_simulator'))
     qiskit_unitary = result.result().get_unitary()
+    qiskit_unitary = _reorder_indices_of_matrix(
+            qiskit_unitary,
+            list(reversed(range(len(qubits)))))
 
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
 
 
 def test_fails_on_big_unknowns():
-    class UnrecognizedGate(cirq.Gate):
+    class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
     c = cirq.Circuit.from_ops(
         UnrecognizedGate().on(*cirq.LineQubit.range(3)))
@@ -476,3 +482,18 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
+
+
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+    num_qubits = matrix.shape[0].bit_length() - 1
+    matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
+    all_indices = range(2*num_qubits)
+    new_input_indices = new_order
+    new_output_indices = [i + num_qubits for i in new_input_indices]
+    matrix = np.moveaxis(
+            matrix,
+            all_indices,
+            new_input_indices + new_output_indices
+    )
+    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
+    return matrix

@@ -49,9 +49,13 @@ import numpy as np
 import cirq
 
 
-class QftInverse(cirq.Gate):
+class QftInverse(cirq.MultiQubitGate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
+
+    def __init__(self, num_qubits):
+        super(QftInverse, self).__init__(num_qubits)
+
 
     def _decompose_(self, qubits):
         """A quantum circuit (QFT_inv) with the following structure.
@@ -75,7 +79,7 @@ class QftInverse(cirq.Gate):
                 yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
 
 
-def run_estimate(unknown_gate, qnum, repeats):
+def run_estimate(unknown_gate, qnum, repetitions):
     """Construct the following phase estimator circuit and execute simulations.
 
                                      ---------
@@ -100,17 +104,17 @@ def run_estimate(unknown_gate, qnum, repeats):
     ancilla = cirq.GridQubit(0, len(qubits))
 
     circuit = cirq.Circuit.from_ops(
-        cirq.H.on_each(qubits),
+        cirq.H.on_each(*qubits),
         [cirq.ControlledGate(unknown_gate**(2**i)).on(qubits[qnum-i-1], ancilla)
          for i in range(qnum)],
-        QftInverse()(*qubits),
+        QftInverse(qnum)(*qubits),
         cirq.measure(*qubits, key='phase'))
-    simulator = cirq.google.XmonSimulator()
-    result = simulator.run(circuit, repetitions=repeats)
+    simulator = cirq.Simulator()
+    result = simulator.run(circuit, repetitions=repetitions)
     return result
 
 
-def experiment(qnum, repeats=100):
+def experiment(qnum, repetitions=100):
     """Execute the phase estimator cirquit with multiple settings and
     show results.
     """
@@ -129,7 +133,7 @@ def experiment(qnum, repeats=100):
     errors = []
     fold_func = lambda ms: ''.join(np.flip(ms, 0).astype(int).astype(str))
     for phi in np.arange(0, 1, 0.1):
-        result = run_estimate(example_gate(phi), qnum, repeats)
+        result = run_estimate(example_gate(phi), qnum, repetitions)
         hist = result.histogram(key='phase', fold_func=fold_func)
         estimate_bin = hist.most_common(1)[0][0]
         estimate = (sum([float(s)*0.5**(order+1)
@@ -139,9 +143,9 @@ def experiment(qnum, repeats=100):
     print('RMS Error: {:0.4f}\n'.format(np.sqrt(sum(errors)/len(errors))))
 
 
-def main():
-    for qnum in [2, 4, 8]:
-        experiment(qnum)
+def main(qnums = (2, 4, 8), repetitions=100):
+    for qnum in qnums:
+        experiment(qnum, repetitions=repetitions)
 
 
 if __name__ == '__main__':

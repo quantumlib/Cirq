@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
-from typing import Any
+from typing import Any, List
 
-from cirq import protocols, ops, line, circuits, linalg
+import numpy as np
+
+from cirq import protocols, ops, line, linalg
 from cirq.testing import lin_alg_utils
 
 
@@ -45,7 +47,18 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))
 
-    qasm = str(circuits.QasmOutput(op, qubits[::-1], precision=10))
+    args = protocols.QasmArgs(
+        qubit_id_map={q: 'q[{}]'.format(i) for i, q in enumerate(qubits)})
+    qasm = protocols.qasm(op, args=args, default=None)
+    if qasm is None:
+        return
+    else:
+        header = """
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[{}];
+""".format(len(qubits))
+        qasm = header + qasm
 
     qasm_unitary = None
     try:
@@ -53,6 +66,9 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
             qiskit.load_qasm_string(qasm),
             backend=qiskit.Aer.get_backend('unitary_simulator'))
         qasm_unitary = result.result().get_unitary()
+        qasm_unitary = _reorder_indices_of_matrix(
+                qasm_unitary,
+                list(reversed(range(len(qubits)))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
             qasm_unitary,
@@ -86,3 +102,18 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
 
 def _indent(*content: str) -> str:
     return '    ' + '\n'.join(content).replace('\n', '\n    ')
+
+
+def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
+    num_qubits = matrix.shape[0].bit_length() - 1
+    matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
+    all_indices = range(2*num_qubits)
+    new_input_indices = new_order
+    new_output_indices = [i + num_qubits for i in new_input_indices]
+    matrix = np.moveaxis(
+            matrix,
+            all_indices,
+            new_input_indices + new_output_indices
+    )
+    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
+    return matrix

@@ -34,8 +34,6 @@ from cirq.ops.common_channels import (
     PhaseDampingChannel,
     phase_flip,
     PhaseFlipChannel,
-    rotation_error,
-    RotationErrorChannel
 )
 from cirq.ops.common_gates import (
     CNOT,
@@ -44,6 +42,8 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
+    I,
+    IdentityGate,
     ISWAP,
     ISwapPowGate,
     measure,
@@ -59,24 +59,32 @@ from cirq.ops.common_gates import (
     SWAP,
     SwapPowGate,
     T,
-    X,
-    Y,
-    Z,
 )
 from cirq.ops.controlled_gate import (
     ControlledGate,
+)
+from cirq.ops.display import (
+    ApproxPauliStringExpectation,
+    PauliStringExpectation,
+    SamplesDisplay,
+    WaveFunctionDisplay,
+    pauli_string_expectation,
 )
 from cirq.ops.eigen_gate import (
     EigenGate,
 )
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
+    MultiQubitGate,
     SingleQubitGate,
     ThreeQubitGate,
     TwoQubitGate,
 )
 from cirq.ops.gate_operation import (
     GateOperation,
+)
+from cirq.ops.controlled_operation import (
+    ControlledOperation,
 )
 from cirq.ops.qubit_order import (
     QubitOrder,
@@ -87,6 +95,9 @@ from cirq.ops.qubit_order_or_list import (
 from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
+)
+from cirq.ops.moment import (
+    Moment,
 )
 from cirq.ops.named_qubit import (
     NamedQubit,
@@ -105,8 +116,11 @@ from cirq.ops.parity_gates import (
     ZZ,
     ZZPowGate,
 )
-from cirq.ops.pauli import (
+from cirq.ops.pauli_gates import (
     Pauli,
+    X,
+    Y,
+    Z,
 )
 from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,

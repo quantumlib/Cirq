@@ -13,12 +13,18 @@
 # limitations under the License.
 
 
-from cirq.protocols.apply_unitary_to_tensor import (
-    SupportsApplyUnitaryToTensor,
-    apply_unitary_to_tensor,
+from cirq.protocols.apply_unitary import (
+    apply_unitary,
+    ApplyUnitaryArgs,
+    SupportsApplyUnitary,
+)
+from cirq.protocols.approximate_equality import (
+    approx_eq,
+    SupportsApproximateEquality,
 )
 from cirq.protocols.channel import (
     channel,
+    has_channel,
     SupportsChannel,
 )
 from cirq.protocols.circuit_diagram_info import (
@@ -36,6 +42,17 @@ from cirq.protocols.decompose import (
 )
 from cirq.protocols.inverse import (
     inverse,
+)
+from cirq.protocols.measurement_key import (
+    measurement_key,
+)
+from cirq.protocols.mixture import (
+    mixture,
+    mixture_channel,
+    has_mixture,
+    has_mixture_channel,
+    SupportsMixture,
+    validate_mixture,
 )
 from cirq.protocols.mul import (
     mul,

@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import TYPE_CHECKING
+
 import pytest
+import sympy
 
 import cirq
-import cirq.google as cg
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Callable, List
 
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
@@ -25,15 +31,15 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
 
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
-        cg.MergeRotations(),
-        cirq.EjectPhasedPaulis(),
-        cirq.EjectZ(),
-        cirq.DropNegligible(),
-        cirq.DropEmptyMoments()
-    ]
+        cirq.merge_single_qubit_gates_into_phased_x_z,
+        cirq.EjectPhasedPaulis().optimize_circuit,
+        cirq.EjectZ().optimize_circuit,
+        cirq.DropNegligible().optimize_circuit,
+        cirq.DropEmptyMoments().optimize_circuit
+    ]  # type: List[Callable[[cirq.Circuit], None]]
     for post in followup_optimizations:
-        post.optimize_circuit(actual)
-        post.optimize_circuit(expected)
+        post(actual)
+        post(expected)
 
     if actual != expected:
         # coverage: ignore
@@ -71,12 +77,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
 
@@ -164,8 +170,8 @@ def test_decompose_partial_czs(circuit):
     cz_gates = [op.gate for op in circuit.all_operations()
                 if isinstance(op, cirq.GateOperation) and
                 isinstance(op.gate, cirq.CZPowGate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.exponent == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.exponent != 1)
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
     assert num_full_cz == 2
     assert num_part_cz == 0
 
@@ -181,14 +187,14 @@ def test_not_decompose_partial_czs():
     cz_gates = [op.gate for op in circuit.all_operations()
                 if isinstance(op, cirq.GateOperation) and
                 isinstance(op.gate, cirq.CZPowGate)]
-    num_full_cz = sum(1 for cz in cz_gates if cz.exponent == 1)
-    num_part_cz = sum(1 for cz in cz_gates if cz.exponent != 1)
+    num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2  == 1)
+    num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
     assert num_full_cz == 0
     assert num_part_cz == 1
 
 
 def test_post_clean_up():
-    class Marker(cirq.Gate):
+    class Marker(cirq.TwoQubitGate):
         pass
 
     a, b = cirq.LineQubit.range(2)
@@ -208,6 +214,7 @@ def test_post_clean_up():
     optimizer = cirq.MergeInteractions(allow_partial_czs=False,
                                        post_clean_up=clean_up)
     optimizer.optimize_circuit(circuit)
+    cirq.DropEmptyMoments().optimize_circuit(circuit)
 
     assert isinstance(circuit[0].operations[0].gate, Marker)
     assert isinstance(circuit[-1].operations[0].gate, Marker)

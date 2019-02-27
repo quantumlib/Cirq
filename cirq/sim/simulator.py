@@ -14,23 +14,28 @@
 
 """Abstract base classes for different types of simulators.
 
-Simulator types include
+Simulator types include:
+
     SimulatesSamples: mimics the interface of quantum hardware.
-    SimulatesFinalWaveFunction: allows access to the wave function.
+
+    SimulatesFinalState: allows access to the final state of the simulation.
+
+    SimulatesIntermediateState: allows for access to the state of the simulation
+        as the simulation iterates through the moments of a cirq.
 """
+
+from typing import (
+    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional)
 
 import abc
 import collections
 
-from typing import Dict, Iterator, List, Tuple, Union
-
 import numpy as np
 
 from cirq import circuits, ops, schedules, study, value
-from cirq.sim import wave_function
 
 
-class SimulatesSamples:
+class SimulatesSamples(metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
@@ -38,29 +43,31 @@ class SimulatesSamples:
 
     def run(
         self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        program: Union[circuits.Circuit, schedules.Schedule],
+        param_resolver: Optional[study.ParamResolver] = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
+        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(circuit, [param_resolver], repetitions)[0]
+        return self.run_sweep(program,
+                              [param_resolver or study.ParamResolver({})],
+                              repetitions)[0]
 
     def run_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
-        """Runs the entire supplied Circuit, mimicking the quantum hardware.
+        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
         In contrast to run, this allows for sweeping over different parameter
         values.
@@ -76,17 +83,16 @@ class SimulatesSamples:
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
-            as_array = dict((k, np.array(v)) for k, v in measurements.items())
             trial_results.append(study.TrialResult(params=param_resolver,
                                                    repetitions=repetitions,
-                                                   measurements=as_array))
+                                                   measurements=measurements))
         return trial_results
 
     @abc.abstractmethod
@@ -95,7 +101,7 @@ class SimulatesSamples:
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         repetitions: int
-    ) -> Dict[str, List[np.ndarray]]:
+    ) -> Dict[str, np.ndarray]:
         """Run a simulation, mimicking quantum hardware.
 
         Args:
@@ -104,63 +110,132 @@ class SimulatesSamples:
             repetitions: Number of times to repeat the run.
 
         Returns:
-            A dictionary from measurement key to a list of lists representing
-            the results. Measurement results are a list of lists (a numpy
-            ndarray), the first list corresponding to the repetition, and the
-            second is the actual boolean measurement results (ordered by
-            the qubits acted upon by the measurement gate.)
+            A dictionary from measurement gate key to measurement
+            results. Measurement results are stored in a 2-dimensional
+            numpy array, the first dimension corresponding to the repetition
+            and the second to the actual boolean measurement results (ordered
+            by the qubits being measured.)
         """
         raise NotImplementedError()
 
+    def compute_samples_displays(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            param_resolver: Optional[study.ParamResolver] = None,
+    ) -> study.ComputeDisplaysResult:
+        """Computes SamplesDisplays in the supplied Circuit or Schedule.
 
-class SimulatesFinalWaveFunction:
-    """Simulator that allows access to a quantum computer's wavefunction.
+        Args:
+            program: The circuit or schedule to simulate.
+            param_resolver: Parameters to run with the program.
+
+        Returns:
+            ComputeDisplaysResult for the simulation.
+        """
+        return self.compute_samples_displays_sweep(
+            program, [param_resolver or study.ParamResolver({})])[0]
+
+    def compute_samples_displays_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            params: Optional[study.Sweepable] = None
+    ) -> List[study.ComputeDisplaysResult]:
+        """Computes SamplesDisplays in the supplied Circuit or Schedule.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
+        circuit = (program if isinstance(program, circuits.Circuit)
+                   else program.to_circuit())
+        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+
+        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        for param_resolver in param_resolvers:
+            display_values = {}  # type: Dict[Hashable, Any]
+            preceding_circuit = circuits.Circuit()
+            for i, moment in enumerate(circuit):
+                displays = (op for op in moment
+                            if isinstance(op, ops.SamplesDisplay))
+                for display in displays:
+                    measurement_key = str(display.key)
+                    measurement_circuit = circuits.Circuit.from_ops(
+                        display.measurement_basis_change(),
+                        ops.measure(*display.qubits,
+                                    key=measurement_key)
+                    )
+                    measurements = self._run(
+                        preceding_circuit + measurement_circuit,
+                        param_resolver,
+                        display.num_samples)
+                    display_values[display.key] = (
+                        display.value_derived_from_samples(
+                            measurements[measurement_key]))
+                preceding_circuit.append(circuit[i])
+            compute_displays_results.append(study.ComputeDisplaysResult(
+                params=param_resolver,
+                display_values=display_values))
+
+        return compute_displays_results
+
+
+class SimulatesFinalState(metaclass=abc.ABCMeta):
+    """Simulator that allows access to a quantum computer's final state.
 
     Implementors of this interface should implement the simulate_sweep
-    method. This simulator only returns the wave function for the final
-    step of a simulation. For simulators that also allow stepping through
-    a circuit see `SimulatesIntermediateWaveFunction`.
+    method. This simulator only returns the state of the quantum system
+    for the final step of a simulation. This simulator state may be a wave
+    function, the density matrix, or another representation, depending on the
+    implementation.  For simulators that also allow stepping through
+    a circuit see `SimulatesIntermediateState`.
     """
 
     def simulate(
         self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        program: Union[circuits.Circuit, schedules.Schedule],
+        param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+        initial_state: Any = None,
     ) -> 'SimulationTrialResult':
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function.
 
         Args:
-            circuit: The circuit to simulate.
+            program: The circuit or schedule to simulate.
             param_resolver: Parameters to run with the program.
-            qubit_order: Determines the canonical ordering of the qubits used
-                to define the order of amplitudes in the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state. Otherwise  if this
-                is a np.ndarray it is the full initial state. In this case it
-                must be the correct size, be normalized (an L2 norm of 1), and
-                be safely castable to an appropriate dtype for the simulator.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The  form of
+                this state depends on the simulation implementation.  See
+                documentation of the implementing class for details.
 
         Returns:
-            SimulateTrialResults for the simulation. Includes the final wave
-            function.
+            SimulationTrialResults for the simulation. Includes the final state.
         """
-        return self.simulate_sweep(circuit, [param_resolver], qubit_order,
+        return self.simulate_sweep(program,
+                                   [param_resolver or study.ParamResolver({})],
+                                   qubit_order,
                                    initial_state)[0]
 
     @abc.abstractmethod
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+        initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
@@ -169,99 +244,25 @@ class SimulatesFinalWaveFunction:
         Args:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
-            qubit_order: Determines the canonical ordering of the qubits used to
-                define the order of amplitudes in the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state.
-                Otherwise if this is a np.ndarray it is the full initial state.
-                In this case it must be the correct size, be normalized (an L2
-                norm of 1), and  be safely castable to an appropriate
-                dtype for the simulator.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation.  See
+                documentation of the implementing class for details.
 
         Returns:
-            List of SimulatorTrialResults for this run, one for each
+            List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
         raise NotImplementedError()
 
 
-@value.value_equality(unhashable=True)
-class SimulationTrialResult:
-    """Results of a simulation by a SimulatesFinalWaveFunction.
+class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
+    """A SimulatesFinalState that simulates a circuit by moments.
 
-    Unlike TrialResult these results contain the final state (wave function)
-    of the system.
-
-    Attributes:
-        params: A ParamResolver of settings used for this result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
-            measurement results (ordered by the qubits acted on by the
-            measurement gate.)
-        final_state: The final state (wave function) of the system after the
-            trial finishes. The state is returned in the computational basis
-            with these basis states defined by the qubit ordering of the
-            simulation. In particular the qubit ordering can be used to produce
-            a list of qubits, and these qubits can the be associated with their
-            index in the list.  This mapping of qubit to index is then
-            translated into binary vectors where the last qubit is the
-            1s bit of the index, the second-to-last is the 2s bit of the index,
-            and so forth (i.e. big endian ordering). Example:
-                 qubit ordering: [QubitA, QubitB, QubitC]
-            Then the returned vector will have indices mapped to qubit basis
-            states like the following table
-                   |   | QubitA | QubitB | QubitC |
-                   +---+--------+--------+--------+
-                   | 0 |   0    |   0    |   0    |
-                   | 1 |   0    |   0    |   1    |
-                   | 2 |   0    |   1    |   0    |
-                   | 3 |   0    |   1    |   1    |
-                   | 4 |   1    |   0    |   0    |
-                   | 5 |   1    |   0    |   1    |
-                   | 6 |   1    |   1    |   0    |
-                   | 7 |   1    |   1    |   1    |
-                   +---+--------+--------+--------+
-    """
-
-    def __init__(self,
-                 params: study.ParamResolver,
-                 measurements: Dict[str, np.ndarray],
-                 final_state: np.ndarray) -> None:
-        self.params = params
-        self.measurements = measurements
-        self.final_state = final_state
-
-    def __repr__(self):
-        return ('SimulationTrialResult(params={!r}, '
-                'measurements={!r}, '
-                'final_state={!r})').format(self.params,
-                                            self.measurements,
-                                            self.final_state)
-
-    def __str__(self):
-        def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
-
-        results = sorted(
-            [(key, bitstring(val)) for key, val in self.measurements.items()])
-        return ' '.join(
-            ['{}={}'.format(key, val) for key, val in results])
-
-    def dirac_notation(self, decimals=2):
-        return wave_function.dirac_notation(self.final_state, decimals)
-
-    def _value_equality_values_(self):
-        measurements = {k: v.tolist() for k, v in
-                        sorted(self.measurements.items())}
-        return (SimulationTrialResult, self.params, measurements,
-                self.final_state.tolist())
-
-
-class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
-    """A SimulatesFinalWaveFunction that simulates a circuit by moments.
-
-    Whereas a general SimulatesFinalWaveFunction may return the entire wave
-    function at the end of a circuit, a SimulatesIntermediateWaveFunction can
+    Whereas a general SimulatesFinalState may return the entire wave
+    function at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
     Implementors of this interface should implement the _simulator_iterator
@@ -271,11 +272,11 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
     def simulate_sweep(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable = study.ParamResolver({}),
+        params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+        initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
-        """Simulates the entire supplied Circuit.
+        """Simulates the supplied Circuit or Schedule.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
@@ -284,27 +285,24 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         Args:
             program: The circuit or schedule to simulate.
             params: Parameters to run with the program.
-            qubit_order: Determines the canonical ordering of the qubits used to
-                define the order of amplitudes in the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state.
-                Otherwise if this is a np.ndarray it is the full initial state.
-                In this case it must be the correct size, be normalized (an L2
-                norm of 1), and  be safely castable to an appropriate
-                dtype for the simulator.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
 
         Returns:
-            List of SimulatorTrialResults for this run, one for each
+            List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        param_resolvers = study.to_resolvers(params)
 
-        trial_results = []  # type: List[SimulationTrialResult]
+        trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in param_resolvers:
-            step_result = None
             all_step_results = self.simulate_moment_steps(circuit,
                                                           param_resolver,
                                                           qubit_order,
@@ -313,39 +311,34 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     measurements[k] = np.array(v, dtype=bool)
-            if step_result:
-                final_state = step_result.state()
-            else:
-                # Empty circuit, so final state should be initial state.
-                num_qubits = len(qubit_order.order_for(circuit.all_qubits()))
-                final_state = wave_function.to_valid_state_vector(initial_state,
-                                                                  num_qubits)
-            trial_results.append(SimulationTrialResult(
-                params=param_resolver,
-                measurements=measurements,
-                final_state=final_state))
-
+            trial_results.append(
+                self._create_simulator_trial_result(
+                    params=param_resolver,
+                    measurements=measurements,
+                    final_simulator_state=step_result.simulator_state()))
         return trial_results
 
     def simulate_moment_steps(
         self,
         circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver = None,
+        param_resolver: Optional[study.ParamResolver] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0
-    ) -> Iterator['StepResult']:
+        initial_state: Any = None
+    ) -> Iterator:
         """Returns an iterator of StepResults for each moment simulated.
+
+        If the circuit being simulated is empty, a single step result should
+        be returned with the state being set to the initial state.
 
         Args:
             circuit: The Circuit to simulate.
             param_resolver: A ParamResolver for determining values of Symbols.
-            qubit_order: Determines the canonical ordering of the qubits used to
-                define the order of amplitudes in the wave function.
-            initial_state: If an int, the state is set to the computational
-                basis state corresponding to this state. Otherwise if this is
-                a np.ndarray it is the full initial state. In this case it must
-                be the correct size, be normalized (an L2 norm of 1), and
-                be safely castable to an appropriate dtype for the simulator.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
 
         Returns:
             Iterator that steps through the simulation, simulating each
@@ -361,94 +354,75 @@ class SimulatesIntermediateWaveFunction(SimulatesFinalWaveFunction):
         circuit: circuits.Circuit,
         param_resolver: study.ParamResolver,
         qubit_order: ops.QubitOrderOrList,
-        initial_state: Union[int, np.ndarray],
-    ) -> Iterator['StepResult']:
+        initial_state: Any,
+    ) -> Iterator:
         """Iterator over StepResult from Moments of a Circuit.
 
         Args:
             circuit: The circuit to simulate.
             param_resolver: A ParamResolver for determining values of
                 Symbols.
-            qubit_order: Determines the canonical ordering of the qubits used to
-                define the order of amplitudes in the wave function.
-            initial_state: The full initial state. This must be the correct
-                size, be normalized (an L2 norm of 1), and be safely
-                castable to a complex type handled by the simulator.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+            initial_state: The initial state for the simulation. The form of
+                this state depends on the simulation implementation. See
+                documentation of the implementing class for details.
 
         Yields:
             StepResults from simulating a Moment of the Circuit.
         """
         raise NotImplementedError()
 
+    def _create_simulator_trial_result(self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: Any) \
+        -> 'SimulationTrialResult':
+        """This method can be overridden to creation of a trial result.
 
-class StepResult:
-    """Results of a step of a SimulatesFinalWaveFunction.
+        Args:
+            params: The ParamResolver for this trial.
+            measurements: The measurement results for this trial.
+            final_simulator_state: The final state of the simulator for the
+                StepResult.
+
+        Returns:
+            The SimulationTrialResult.
+        """
+        return SimulationTrialResult(
+            params=params,
+            measurements=measurements,
+            final_simulator_state=final_simulator_state)
+
+
+
+class StepResult(metaclass=abc.ABCMeta):
+    """Results of a step of a SimulatesIntermediateState.
 
     Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state() method).
         measurements: A dictionary from measurement gate key to measurement
             results, ordered by the qubits that the measurement operates on.
     """
 
-    def __init__(
-        self,
-        qubit_map: Dict,
-        measurements: Dict[str, List[bool]]) -> None:
-        self.qubit_map = qubit_map or {}
+    def __init__(self,
+                 measurements: Optional[Dict[str, List[bool]]] = None) -> None:
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
-    def state(self) -> np.ndarray:
-        """Return the state (wave function) at this point in the computation.
+    def simulator_state(self) -> Any:
+        """Returns the simulator_state of the simulator after this step.
 
-        The state is returned in the computational basis with these basis
-        states defined by the qubit_map. In particular the value in the
-        qubit_map is the index of the qubit, and these are translated into
-        binary vectors where the last qubit is the 1s bit of the index, the
-        second-to-last is the 2s bit of the index, and so forth (i.e. big
-        endian ordering).
-
-        Example:
-             qubit_map: {QubitA: 0, QubitB: 1, QubitC: 2}
-             Then the returned vector will have indices mapped to qubit basis
-             states like the following table
-               |   | QubitA | QubitB | QubitC |
-               +---+--------+--------+--------+
-               | 0 |   0    |   0    |   0    |
-               | 1 |   0    |   0    |   1    |
-               | 2 |   0    |   1    |   0    |
-               | 3 |   0    |   1    |   1    |
-               | 4 |   1    |   0    |   0    |
-               | 5 |   1    |   0    |   1    |
-               | 6 |   1    |   1    |   0    |
-               | 7 |   1    |   1    |   1    |
-               +---+--------+--------+--------+
+        The form of the simulator_state depends on the implementation of the
+        simulation,see documentation for the implementing class for the form of
+        details.
         """
-        raise NotImplementedError()
 
     @abc.abstractmethod
-    def set_state(self, state: Union[int, np.ndarray]) -> None:
-        """Updates the state of the simulator to the given new state.
-
-        Args:
-            state: If this is an int, then this is the state to reset
-            the stepper to, expressed as an integer of the computational basis.
-            Integer to bitwise indices is little endian. Otherwise if this is
-            a np.ndarray this must be the correct size and have dtype of
-            np.complex64.
-
-        Raises:
-            ValueError if the state is incorrectly sized or not of the correct
-            dtype.
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def sample(self, qubits: List[ops.QubitId],
-            repetitions: int = 1) -> List[List[bool]]:
-        """Samples from the wave function at this point in the computation.
+    def sample(self,
+               qubits: List[ops.QubitId],
+               repetitions: int = 1) -> np.ndarray:
+        """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
 
@@ -458,40 +432,42 @@ class StepResult:
             repetitions: The number of samples to take.
 
         Returns:
-            Measurement results with True corresponding to the |1> state.
+            Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
             are wrapped as an numpy ndarray.
         """
         raise NotImplementedError()
 
-    def sample_measurement_ops(self, measurement_ops: List[ops.GateOperation],
-            repetitions: int = 1) -> Dict[str, List[List[bool]]]:
-        """Samples from the wave function at this point in the computation.
+    def sample_measurement_ops(
+            self,
+            measurement_ops: List[ops.GateOperation],
+            repetitions: int = 1) -> Dict[str, np.ndarray]:
+        """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
 
-        In contrast to `sample` which samples qubits, this takes a set of
-        `cirq.GateOperation`s whose gates are `cirq.MeasurementGate`s and
-        returns a mapping from the key in the measurement gate to the
-        resulting bit strings. Different measurement operations must not act on
-        the same qubits.
+        In contrast to `sample` which samples qubits, this takes a list of
+        `cirq.GateOperation` instances whose gates are `cirq.MeasurementGate`
+        instances and then returns a mapping from the key in the measurement
+        gate to the resulting bit strings. Different measurement operations must
+        not act on the same qubits.
 
         Args:
-            measurement_ops: `GateOperation`s whose gates are
-                `MeasurementGate`s are to be sampled form.
+            measurement_ops: `GateOperation` instances whose gates are
+                `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
 
-        Returns: A dictionary from the measurement gate keys to the measurement
-            results. These results are lists of lists, with the outer list
-            corresponding to repetitions and the inner list corresponding
-            to the qubits acted upon by the measurement operation with the
-            given key.
+        Returns: A dictionary from measurement gate key to measurement
+            results. Measurement results are stored in a 2-dimensional
+            numpy array, the first dimension corresponding to the repetition
+            and the second to the actual boolean measurement results (ordered
+            by the qubits being measured.)
 
         Raises:
-            ValueError: If the operation's gates are not `MeasurementGate`s or
-                a qubit is acted upon multiple times by different
-                measurement_ops.
+            ValueError: If the operation's gates are not `MeasurementGate`
+                instances or a qubit is acted upon multiple times by different
+                operations from `measurement_ops`.
         """
         bounds = {}  # type: Dict[str, Tuple]
         all_qubits = []  # type: List[ops.QubitId]
@@ -507,20 +483,54 @@ class StepResult:
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
-        return {k: [x[s:e] for x in indexed_sample] for k, (s, e) in
+        return {k: np.array([x[s:e] for x in indexed_sample]) for k, (s, e) in
                 bounds.items()}
 
 
-    def dirac_notation(self, decimals=2):
-        """Returns the wavefunction as a string in Dirac notation.
+@value.value_equality(unhashable=True)
+class SimulationTrialResult:
+    """Results of a simulation by a SimulatesFinalState.
 
-        Args:
-            state: A sequence representing a wave function in which the ordering
-                mapping to qubits follows the standard Kronecker convention of
-                numpy.kron.
-            decimals: How many decimals to include in the pretty print.
+    Unlike TrialResult these results contain the final simulator_state of the
+    system. This simulator_state is dependent on the simulation implementation
+    and may be, for example, the wave function of the system or the density
+    matrix of the system.
 
-        Returns:
-            A pretty string consisting of a sum of computational basis kets
-            and non-zero floats of the specified accuracy."""
-        return wave_function.dirac_notation(self.state, decimals)
+    Attributes:
+        params: A ParamResolver of settings used for this result.
+        measurements: A dictionary from measurement gate key to measurement
+            results. Measurement results are a numpy ndarray of actual boolean
+            measurement results (ordered by the qubits acted on by the
+            measurement gate.)
+        final_simulator_state: The final simulator state of the system after the
+            trial finishes.
+    """
+
+    def __init__(self,
+        params: study.ParamResolver,
+        measurements: Dict[str, np.ndarray],
+        final_simulator_state: Any) -> None:
+        self.params = params
+        self.measurements = measurements
+        self.final_simulator_state = final_simulator_state
+
+    def __repr__(self):
+        return (
+            'cirq.SimulationTrialResult(params={!r}, '
+            'measurements={!r}, '
+            'final_simulator_state={!r})').format(
+                self.params, self.measurements, self.final_simulator_state)
+
+    def __str__(self):
+        def bitstring(vals):
+            return ''.join('1' if v else '0' for v in vals)
+
+        results = sorted(
+            [(key, bitstring(val)) for key, val in self.measurements.items()])
+        return ' '.join(
+            ['{}={}'.format(key, val) for key, val in results])
+
+    def _value_equality_values_(self):
+        measurements = {k: v.tolist() for k, v in
+                        sorted(self.measurements.items())}
+        return (self.params, measurements, self.final_simulator_state)

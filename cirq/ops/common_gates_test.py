@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -24,6 +25,33 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, 1j, -1, -1j],
                  [1, -1, 1, -1],
                  [1, -1j, -1, 1j]]) * 0.5
+
+
+@pytest.mark.parametrize('eigen_gate_type', [
+    cirq.CZPowGate,
+    cirq.XPowGate,
+    cirq.YPowGate,
+    cirq.ZPowGate,
+])
+def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
+    cirq.testing.assert_eigengate_implements_consistent_protocols(
+            eigen_gate_type)
+
+
+@pytest.mark.parametrize('eigen_gate_type', [
+    cirq.CNotPowGate,
+    cirq.HPowGate,
+    cirq.ISwapPowGate,
+    cirq.SwapPowGate,
+])
+def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
+    cirq.testing.assert_eigengate_implements_consistent_protocols(
+            eigen_gate_type, ignoring_global_phase=True)
+
+
+def test_consistent_protocols():
+    cirq.testing.assert_implements_consistent_protocols(
+            cirq.MeasurementGate(num_qubits=1, key=''), qubit_count=1)
 
 
 def test_cz_init():
@@ -44,12 +72,7 @@ def test_cz_repr():
     assert repr(cirq.CZ**-0.25) == '(cirq.CZ**-0.25)'
 
 
-def test_cz_extrapolate():
-    assert cirq.CZPowGate(exponent=1)**0.5 == cirq.CZPowGate(exponent=0.5)
-    assert cirq.CZ**-0.25 == cirq.CZPowGate(exponent=1.75)
-
-
-def test_cz_matrix():
+def test_cz_unitary():
     assert np.allclose(cirq.unitary(cirq.CZ),
                        np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0],
@@ -73,8 +96,6 @@ def test_cz_matrix():
                                  [0, 1, 0, 0],
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1j]]))
-
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.CZPowGate)
 
 
 def test_z_init():
@@ -122,14 +143,7 @@ def test_rot_gates_eq():
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
 
-def test_z_extrapolate():
-    assert cirq.ZPowGate(exponent=1)**0.5 == cirq.ZPowGate(exponent=0.5)
-    assert cirq.Z**-0.25 == cirq.ZPowGate(exponent=1.75)
-    assert cirq.phase_by(cirq.ZPowGate(exponent=0.5),
-                         0.25, 0) == cirq.ZPowGate(exponent=0.5)
-
-
-def test_z_matrix():
+def test_z_unitary():
     assert np.allclose(cirq.unitary(cirq.Z),
                        np.array([[1, 0], [0, -1]]))
     assert np.allclose(cirq.unitary(cirq.Z**0.5),
@@ -139,10 +153,8 @@ def test_z_matrix():
     assert np.allclose(cirq.unitary(cirq.Z**-0.5),
                        np.array([[1, 0], [0, -1j]]))
 
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.ZPowGate)
 
-
-def test_y_matrix():
+def test_y_unitary():
     assert np.allclose(cirq.unitary(cirq.Y),
                        np.array([[0, -1j], [1j, 0]]))
 
@@ -155,10 +167,8 @@ def test_y_matrix():
     assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.YPowGate)
 
-
-def test_x_matrix():
+def test_x_unitary():
     assert np.allclose(cirq.unitary(cirq.X),
                        np.array([[0, 1], [1, 0]]))
 
@@ -171,32 +181,50 @@ def test_x_matrix():
     assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.XPowGate)
+
+@pytest.mark.parametrize('num_qubits', [1, 2, 4])
+def test_identity_init(num_qubits):
+    assert cirq.IdentityGate(num_qubits).num_qubits() == num_qubits
 
 
-def test_h_matrix():
+@pytest.mark.parametrize('num_qubits', [1, 2, 4])
+def test_identity_unitary(num_qubits):
+    i = cirq.IdentityGate(num_qubits)
+    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
+
+
+def test_identity_str():
+    assert str(cirq.IdentityGate(1)) == 'I'
+    assert str(cirq.IdentityGate(2)) == 'I(2)'
+
+
+def test_identity_repr():
+    assert repr(cirq.IdentityGate(2)) == 'cirq.IdentityGate(2)'
+
+
+def test_identity_apply_unitary():
+    v = np.array([1, 0])
+    result = cirq.apply_unitary(
+        cirq.I, cirq.ApplyUnitaryArgs(v, np.array([0, 1]), (0,)))
+    assert result is v
+
+
+def test_identity_eq():
+    equals_tester = cirq.testing.EqualsTester()
+    equals_tester.add_equality_group(cirq.I, cirq.IdentityGate(1))
+    equals_tester.add_equality_group(cirq.IdentityGate(2))
+    equals_tester.add_equality_group(cirq.IdentityGate(4))
+
+
+def test_h_unitary():
     sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
-
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(cirq.HPowGate)
 
 
 def test_h_init():
     h = cirq.HPowGate(exponent=0.5)
     assert h.exponent == 0.5
-
-
-def test_h_decompose():
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.H**0.1)
-
-
-def test_h_repr():
-    cirq.testing.assert_equivalent_repr(cirq.H)
-    cirq.testing.assert_equivalent_repr(cirq.H**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.H**0.1)
 
 
 def test_h_str():
@@ -209,25 +237,28 @@ def test_runtime_types_of_rot_gates():
                       lambda p: cirq.XPowGate(exponent=p),
                       lambda p: cirq.YPowGate(exponent=p),
                       lambda p: cirq.ZPowGate(exponent=p)]:
-        p = gate_type(cirq.Symbol('a'))
+        p = gate_type(sympy.Symbol('a'))
         assert cirq.unitary(p, None) is None
-        assert cirq.pow(p, 2, None) is None
-        assert cirq.inverse(p, None) is None
+        assert cirq.pow(p, 2, None) == gate_type(2 * sympy.Symbol('a'))
+        assert cirq.inverse(p, None) == gate_type(-sympy.Symbol('a'))
 
         c = gate_type(0.5)
         assert cirq.unitary(c, None) is not None
-        assert cirq.pow(c, 2) is not None
-        assert cirq.inverse(c) is not None
+        assert cirq.pow(c, 2) == gate_type(1)
+        assert cirq.inverse(c) == gate_type(-0.5)
 
 
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.MeasurementGate(''),
-                          cirq.MeasurementGate('', invert_mask=()))
-    eq.add_equality_group(cirq.MeasurementGate('a'))
-    eq.add_equality_group(cirq.MeasurementGate('a', invert_mask=(True,)))
-    eq.add_equality_group(cirq.MeasurementGate('a', invert_mask=(False,)))
-    eq.add_equality_group(cirq.MeasurementGate('b'))
+    eq.add_equality_group(cirq.MeasurementGate(1, ''),
+                          cirq.MeasurementGate(1, '', invert_mask=()))
+    eq.add_equality_group(cirq.MeasurementGate(1, 'a'))
+    eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(True,)))
+    eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(False,)))
+    eq.add_equality_group(cirq.MeasurementGate(1, 'b'))
+    eq.add_equality_group(cirq.MeasurementGate(2, 'a'))
+    eq.add_equality_group(cirq.MeasurementGate(2, ''))
+    eq.add_equality_group(cirq.MeasurementGate(3, 'a'))
 
 
 def test_interchangeable_qubit_eq():
@@ -255,28 +286,30 @@ def test_text_diagrams():
         cirq.X(a),
         cirq.Y(a),
         cirq.Z(a),
-        cirq.Z(a)**cirq.Symbol('x'),
+        cirq.Z(a)**sympy.Symbol('x'),
+        cirq.Rx(sympy.Symbol('x')).on(a),
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
         cirq.H(a),
-        cirq.ISWAP(a, b),
-        cirq.ISWAP(a, b)**-1)
+        cirq.ISWAP(a, b)**-1,
+        cirq.I(a),
+        cirq.IdentityGate(2)(a, b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───@───@───X───H───iSwap───iSwap──────
-      │                     │   │   │       │       │
-b: ───×─────────────────────@───X───@───────iSwap───iSwap^-1───
+a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H───iSwap──────I───I───
+      │                             │   │   │       │              │
+b: ───×─────────────────────────────@───X───@───────iSwap^-1───────I───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---@---@---X---H---iSwap---iSwap------
-      |                        |   |   |       |       |
-b: ---swap---------------------@---X---@-------iSwap---iSwap^-1---
+a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H---iSwap------I---I---
+      |                                |   |   |       |              |
+b: ---swap-----------------------------@---X---@-------iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 
-def test_cnot_power():
+def test_cnot_unitary():
     np.testing.assert_almost_equal(
         cirq.unitary(cirq.CNOT**0.5),
         np.array([
@@ -285,13 +318,6 @@ def test_cnot_power():
             [0, 0, 0.5+0.5j, 0.5-0.5j],
             [0, 0, 0.5-0.5j, 0.5+0.5j],
         ]))
-
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
-
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(
-        cirq.CNotPowGate)
 
 
 def test_cnot_keyword_arguments():
@@ -341,19 +367,10 @@ def test_cnot_unknown_keyword_argument():
 def test_cnot_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.decompose_once(cirq.CNOT(a, b)**cirq.Symbol('x')) is not None
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.CNOT**0.1)
+    assert cirq.decompose_once(cirq.CNOT(a, b)**sympy.Symbol('x')) is not None
 
 
-def test_cnot_repr():
-    cirq.testing.assert_equivalent_repr(cirq.CNOT)
-    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.5)
-    cirq.testing.assert_equivalent_repr(cirq.CNOT**0.1)
-
-
-def test_swap_power():
+def test_swap_unitary():
     np.testing.assert_almost_equal(
         cirq.unitary(cirq.SWAP**0.5),
         np.array([
@@ -363,15 +380,8 @@ def test_swap_power():
             [0, 0, 0, 1]
         ]))
 
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.SWAP**0.1)
 
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(
-        cirq.SwapPowGate)
-
-
-def test_xyz_repr():
+def test_repr():
     assert repr(cirq.X) == 'cirq.X'
     assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
 
@@ -388,15 +398,19 @@ def test_xyz_repr():
     assert repr(cirq.Y) == 'cirq.Y'
     assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
 
+    assert repr(cirq.I) == 'cirq.I'
+
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
-    for e in [1, 0.5, 0.25, 0.1, -0.3]:
-        for g in [cirq.X, cirq.Y, cirq.Z]:
-            cirq.testing.assert_equivalent_repr(g**e)
+    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
+    assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
+
+    cirq.testing.assert_equivalent_repr(
+        cirq.X**(sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5))
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other
@@ -405,16 +419,7 @@ def test_xyz_repr():
     assert repr(cirq.CZ**0.2) == '(cirq.CZ**0.2)'
 
 
-def test_arbitrary_xyz_repr():
-    cirq.testing.assert_equivalent_repr(cirq.XPowGate(
-        exponent=0.1, global_shift=0.2))
-    cirq.testing.assert_equivalent_repr(cirq.YPowGate(
-        exponent=0.1, global_shift=0.2))
-    cirq.testing.assert_equivalent_repr(cirq.ZPowGate(
-        exponent=0.1, global_shift=0.2))
-
-
-def test_xyz_str():
+def test_str():
     assert str(cirq.X) == 'X'
     assert str(cirq.X**0.5) == 'X**0.5'
 
@@ -428,18 +433,24 @@ def test_xyz_str():
     assert str(cirq.CNOT) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
 
+    assert str(cirq.SWAP) == 'SWAP'
+    assert str(cirq.SWAP**0.5) == 'SWAP**0.5'
+
+    assert str(cirq.ISWAP) == 'ISWAP'
+    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
+
 
 def test_measurement_gate_diagram():
     # Shows key.
-    assert cirq.circuit_diagram_info(cirq.MeasurementGate()
+    assert cirq.circuit_diagram_info(cirq.MeasurementGate(1)
                                      ) == cirq.CircuitDiagramInfo(("M('')",))
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(key='test')
+        cirq.MeasurementGate(1, key='test')
     ) == cirq.CircuitDiagramInfo(("M('test')",))
 
     # Uses known qubit count.
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(),
+        cirq.MeasurementGate(3),
         cirq.CircuitDiagramInfoArgs(
             known_qubits=None,
             known_qubit_count=3,
@@ -450,7 +461,7 @@ def test_measurement_gate_diagram():
 
     # Shows invert mask.
     assert cirq.circuit_diagram_info(
-        cirq.MeasurementGate(invert_mask=(False, True))
+        cirq.MeasurementGate(2, invert_mask=(False, True))
     ) == cirq.CircuitDiagramInfo(("M('')", "!M"))
 
     # Omits key when it is the default.
@@ -484,12 +495,15 @@ def test_measure():
     with pytest.raises(ValueError, match='empty set of qubits'):
         _ = cirq.measure()
 
-    assert cirq.measure(a) == cirq.MeasurementGate(key='a').on(a)
-    assert cirq.measure(a, b) == cirq.MeasurementGate(key='a,b').on(a, b)
-    assert cirq.measure(b, a) == cirq.MeasurementGate(key='b,a').on(b, a)
-    assert cirq.measure(a, key='b') == cirq.MeasurementGate(key='b').on(a)
+    assert cirq.measure(a) == cirq.MeasurementGate(num_qubits=1, key='a').on(a)
+    assert cirq.measure(a, b) == cirq.MeasurementGate(num_qubits=2,
+                                                      key='a,b').on(a, b)
+    assert cirq.measure(b, a) == cirq.MeasurementGate(num_qubits=2,
+                                                      key='b,a').on(b, a)
+    assert cirq.measure(a, key='b') == cirq.MeasurementGate(num_qubits=1,
+                                                            key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
-        key='a', invert_mask=(True,)).on(a)
+        num_qubits=1, key='a', invert_mask=(True,)).on(a)
 
     with pytest.raises(ValueError, match='ndarray'):
         _ = cirq.measure(np.ndarray([1, 0]))
@@ -497,18 +511,37 @@ def test_measure():
     with pytest.raises(ValueError, match='QubitId'):
         _ = cirq.measure("bork")
 
+
+def test_measurement_channel():
+    np.testing.assert_allclose(
+            cirq.channel(cirq.MeasurementGate(1)),
+            (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])))
+    np.testing.assert_allclose(
+            cirq.channel(cirq.MeasurementGate(2)),
+            (np.array([[1, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0]]),
+             np.array([[0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 0],
+                       [0, 0, 0, 1]])))
+
+
 def test_measurement_qubit_count_vs_mask_length():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
 
-    _ = cirq.MeasurementGate(invert_mask=(True,)).on(a)
-    _ = cirq.MeasurementGate(invert_mask=(True, False)).on(a, b)
-    _ = cirq.MeasurementGate(invert_mask=(True, False, True)).on(a, b, c)
+    _ = cirq.MeasurementGate(num_qubits=1, invert_mask=(True,)).on(a)
+    _ = cirq.MeasurementGate(num_qubits=2, invert_mask=(True, False)).on(a, b)
+    _ = cirq.MeasurementGate(num_qubits=3, invert_mask=(True, False, True)).on(
+        a, b, c)
     with pytest.raises(ValueError):
-        _ = cirq.MeasurementGate(invert_mask=(True, False)).on(a)
+        _ = cirq.MeasurementGate(num_qubits=1, invert_mask=(True, False)).on(a)
     with pytest.raises(ValueError):
-        _ = cirq.MeasurementGate(invert_mask=(True, False, True)).on(a, b)
+        _ = cirq.MeasurementGate(num_qubits=3,
+                                 invert_mask=(True, False, True)).on(a, b)
 
 
 def test_measure_each():
@@ -530,12 +563,7 @@ def test_iswap_str():
     assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 
-def test_iswap_repr():
-    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
-    assert repr(cirq.ISWAP**0.5) == '(cirq.ISWAP**0.5)'
-
-
-def test_iswap_matrix():
+def test_iswap_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
         np.array([[1, 0, 0, 0],
@@ -544,17 +572,10 @@ def test_iswap_matrix():
                   [0, 0, 0, 1]]),
         atol=1e-8)
 
-    cirq.testing.assert_eigen_gate_has_consistent_apply_unitary(
-        cirq.ISwapPowGate)
 
-
-def test_iswap_decompose():
+def test_iswap_decompose_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP**0.5)
-    cirq.testing.assert_decompose_is_consistent_with_unitary(cirq.ISWAP**0.1)
 
     decomposed = cirq.Circuit.from_ops(
         cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
@@ -576,26 +597,15 @@ def test_is_measurement():
 
     q = cirq.NamedQubit('q')
     assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
-    assert cirq.MeasurementGate.is_measurement(cirq.MeasurementGate(key='b'))
+    assert cirq.MeasurementGate.is_measurement(
+        cirq.MeasurementGate(num_qubits=1, key='b'))
 
     assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
     assert not cirq.MeasurementGate.is_measurement(cirq.X)
     assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())
 
 
-def test_h_pow():
-    assert cirq.inverse(cirq.H**0.5) == cirq.H**-0.5 != cirq.H
-    assert cirq.inverse(cirq.H) == cirq.H
-
-
-def test_rx_ry_rz_repr():
-    assert repr(cirq.Rx(np.pi / 2)) == 'cirq.Rx(np.pi*0.5)'
-    cirq.testing.assert_equivalent_repr(cirq.Rx(np.pi / 8))
-    cirq.testing.assert_equivalent_repr(cirq.Ry(np.pi / 8))
-    cirq.testing.assert_equivalent_repr(cirq.Rz(np.pi / 8))
-
-
-def test_rx_matrix():
+def test_rx_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rx(np.pi / 2)),
@@ -622,7 +632,7 @@ def test_rx_matrix():
         np.array([[0, 1j], [1j, 0]]))
 
 
-def test_ry_matrix():
+def test_ry_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         cirq.unitary(cirq.Ry(np.pi / 2)),
@@ -649,7 +659,7 @@ def test_ry_matrix():
         np.array([[0, 1], [-1, 0]]))
 
 
-def test_rz_matrix():
+def test_rz_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(
         cirq.unitary(cirq.Rz(np.pi / 2)),
@@ -684,15 +694,6 @@ def test_phase_by_xy():
     assert cirq.phase_by(cirq.Y**0.5, 0.25, 0) == cirq.X**-0.5
     assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
     assert cirq.phase_by(cirq.Y**-0.5, 0.25, 0) == cirq.X**0.5
-
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.X**0.5)
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Y**0.5)
-
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rx(1))
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Ry(1))
-    cirq.testing.assert_phase_by_is_consistent_with_unitary(cirq.Rz(1))
 
 
 def test_ixyz_circuit_diagram():
