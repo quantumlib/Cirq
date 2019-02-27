@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type
+from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type, cast
 
 from collections import defaultdict
 import itertools
@@ -262,15 +262,25 @@ def assert_has_consistent_apply_unitary(
             This argument isn't needed if the gate has a unitary matrix or
             implements `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/
             `cirq.ThreeQubitGate`.
+        atol: Absolute error tolerance.
     """
 
     expected = protocols.unitary(val, default=None)
-    if qubit_count is not None:
-        n = qubit_count
-    elif expected is not None:
-        n = expected.shape[0].bit_length() - 1
-    else:
-        n = _infer_qubit_count(val)
+
+    qubit_counts = [
+        qubit_count,
+        expected.shape[0].bit_length() - 1 if expected is not None else None,
+        _infer_qubit_count(val)
+    ]
+    qubit_counts = [e for e in qubit_counts if e is not None]
+    if not qubit_counts:
+        raise NotImplementedError(
+            'Failed to infer qubit count of <{!r}>. Specify it.'.format(
+                val))
+    assert len(set(qubit_counts)) == 1, (
+        'Inconsistent qubit counts from different methods: {}'.format(
+            qubit_counts))
+    n = cast(int, qubit_counts[0])
 
     eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
     actual = protocols.apply_unitary(
@@ -356,18 +366,9 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
                 qubit_count=qubit_count)
 
 
-def _infer_qubit_count(val: Any) -> int:
+def _infer_qubit_count(val: Any) -> Optional[int]:
     if isinstance(val, ops.Operation):
         return len(val.qubits)
-    if isinstance(val, ops.SingleQubitGate):
-        return 1
-    if isinstance(val, ops.TwoQubitGate):
-        return 2
-    if isinstance(val, ops.ThreeQubitGate):
-        return 3
-    if isinstance(val, ops.ControlledGate):
-        return 1 + _infer_qubit_count(val.sub_gate)
-
-    raise NotImplementedError(
-        'Failed to infer qubit count of <{!r}>. Specify it.'.format(
-            val))
+    if isinstance(val, ops.Gate):
+        return val.num_qubits()
+    return None

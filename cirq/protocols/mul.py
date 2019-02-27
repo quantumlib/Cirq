@@ -52,8 +52,11 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         right_mul = getattr(rhs, '__rmul__', None)
         result = NotImplemented if right_mul is None else right_mul(lhs)
 
-    if lhs == 1.0 and isinstance(rhs, sympy.Symbol):
+    # Don't build up factors of 1.0 vs sympy Symbols.
+    if lhs == 1.0 and isinstance(rhs, sympy.Basic):
         result = rhs
+    if rhs == 1.0 and isinstance(lhs, sympy.Basic):
+        result = lhs
 
     # Output.
     if result is not NotImplemented:
