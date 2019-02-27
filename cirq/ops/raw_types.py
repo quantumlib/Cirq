@@ -18,6 +18,8 @@ from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, Any
 
 import abc
 
+from cirq import protocols, value
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from cirq.ops import gate_operation
@@ -95,7 +97,6 @@ class Gate(metaclass=abc.ABCMeta):
     can be used to avoid writing this boilerplate.
     """
 
-    # noinspection PyMethodMayBeStatic
     def validate_args(self, qubits: Sequence[QubitId]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
@@ -107,7 +108,10 @@ class Gate(metaclass=abc.ABCMeta):
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
-        pass
+        if len(qubits) != self.num_qubits():
+            raise ValueError(
+                'Wrong number of qubits. Got <{!r}> but expected {}.'.format(
+                    qubits, self.num_qubits()))
 
     def on(self, *qubits: QubitId) -> 'gate_operation.GateOperation':
         """Returns an application of this gate to the given qubits.
@@ -124,6 +128,29 @@ class Gate(metaclass=abc.ABCMeta):
                     repr(self)))
         self.validate_args(qubits)
         return gate_operation.GateOperation(self, list(qubits))
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+
+        if power == -1:
+            # HACK: break cycle
+            from cirq.line import line_qubit
+
+            decomposed = protocols.decompose_once_with_qubits(
+                self,
+                qubits=line_qubit.LineQubit.range(self.num_qubits()),
+                default=None)
+            if decomposed is None:
+                return NotImplemented
+
+            inverse_decomposed = protocols.inverse(decomposed, None)
+            if inverse_decomposed is None:
+                return NotImplemented
+
+            return _InverseCompositeGate(self)
+
+        return NotImplemented
 
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
@@ -166,3 +193,31 @@ class Operation(metaclass=abc.ABCMeta):
                 function.
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
+
+
+@value.value_equality
+class _InverseCompositeGate(Gate):
+    """The inverse of a composite gate."""
+
+    def __init__(self, original: Gate) -> None:
+        self._original = original
+
+    def num_qubits(self):
+        return self._original.num_qubits()
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+        if power == -1:
+            return self._original
+        return NotImplemented
+
+    def _decompose_(self, qubits):
+        return protocols.inverse(protocols.decompose_once_with_qubits(
+            self._original, qubits))
+
+    def _value_equality_values_(self):
+        return self._original
+
+    def __repr__(self):
+        return '({!r}**-1)'.format(self._original)
