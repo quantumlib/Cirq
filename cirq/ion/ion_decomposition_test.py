@@ -55,8 +55,6 @@ def _random_double_MS_effect():
 def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
                                  atol=0.01):
     actual_effect = _operations_to_matrix(operations, (q0, q1))
-    # print('intended', intended_effect)
-    # print('\n', 'actual', actual_effect)
     assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect,
                                             atol=atol)
 
@@ -134,8 +132,5 @@ def test_two_to_ops(
 
     operations = cirq.two_qubit_matrix_to_ion_operations(
         q0, q1, effect)
-    # print("optimized")
-    # print(operations)
-    # print(len(operations))
     assert_ops_implement_unitary(q0, q1, operations, effect)
     assert_ms_depth_below(operations, max_ms_depth)

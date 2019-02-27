@@ -46,13 +46,9 @@ def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
     Returns:
         A list of operations implementing the matrix.
     """
-    kak = linalg.kak_decomposition(mat,
-                                   linalg.Tolerance(atol=tolerance))
+    kak = linalg.kak_decomposition(mat, atol=tolerance)
     operations = _kak_decomposition_to_operations(q0,
         q1, kak, tolerance)
-    # print('\n', "not optimized")
-    # print(operations)
-    # print(len(operations))
     return _cleanup_operations(operations)
 
 
@@ -76,10 +72,8 @@ def _kak_decomposition_to_operations(q0: ops.QubitId,
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
-    # print(list(ops.flatten_op_tree([pre])))
     a0, a1 = kak.single_qubit_operations_after
     post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
-    # print(list(ops.flatten_op_tree([post])))
 
     return list(ops.flatten_op_tree([
         pre,
@@ -124,7 +118,6 @@ def _non_local_part(q0: ops.QubitId,
     """Yields non-local operation of KAK decomposition."""
 
     x, y, z = interaction_coefficients
-    # print(interaction_coefficients)
 
     return[
         _parity_interaction(q0, q1, x, tolerance),
