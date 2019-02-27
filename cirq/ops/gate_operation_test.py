@@ -13,7 +13,7 @@
 # limitations under the License.
 import numpy as np
 import pytest
-
+import sympy
 import cirq
 
 
@@ -149,7 +149,7 @@ def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    op1 = cirq.GateOperation(cirq.Z**cirq.Symbol('a'), [q])
+    op1 = cirq.GateOperation(cirq.Z**sympy.Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
     op2 = cirq.resolve_parameters(op1, r)
     assert not cirq.is_parameterized(op2)
@@ -176,8 +176,13 @@ def test_channel():
     np.testing.assert_allclose(cirq.channel(op), cirq.channel(op.gate))
     assert cirq.has_channel(op)
 
-    assert cirq.channel(cirq.measure(a), None) is None
-    assert not cirq.has_channel(cirq.measure(a))
+    assert cirq.channel(cirq.SingleQubitGate()(a), None) is None
+    assert not cirq.has_channel(cirq.SingleQubitGate()(a))
+
+
+def test_measurement_key():
+    a = cirq.NamedQubit('a')
+    assert cirq.measurement_key(cirq.measure(a, key='lock')) == 'lock'
 
 
 def assert_mixtures_equal(actual, expected):

@@ -21,7 +21,7 @@ matrix:
     env: NAME=pylint
     python: "3.5.2"
     install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep pylint | xargs pip install
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
     script: check/pylint
 
   - os: linux
