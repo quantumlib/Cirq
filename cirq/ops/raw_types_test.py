@@ -43,25 +43,24 @@ def test_gate_calls_validate():
         _ = g(q10, q01, q00)
 
 
-@cirq.value_equality
-class TestGate(cirq.Gate):
-    def num_qubits(self):
-        return 2
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Z(a)
-        yield cirq.S(b)
-        yield cirq.X(a)
-
-    def _value_equality_values_(self):
-        return None
-
-    def __repr__(self):
-        return 'TestGate()'
-
-
 def test_default_validation_and_inverse():
+    @cirq.value_equality
+    class TestGate(cirq.Gate):
+        def num_qubits(self):
+            return 2
+
+        def _decompose_(self, qubits):
+            a, b = qubits
+            yield cirq.Z(a)
+            yield cirq.S(b)
+            yield cirq.X(a)
+
+        def _value_equality_values_(self):
+            return None
+
+        def __repr__(self):
+            return 'TestGate()'
+
     a, b = cirq.LineQubit.range(2)
 
     with pytest.raises(ValueError, match='number of qubits'):
@@ -80,3 +79,14 @@ def test_default_validation_and_inverse():
     cirq.testing.assert_implements_consistent_protocols(
         i,
         local_vals={'TestGate': TestGate})
+
+
+def test_no_inverse_if_not_unitary():
+    class TestGate(cirq.Gate):
+        def num_qubits(self):
+            return 1
+
+        def _decompose_(self, qubits):
+            return cirq.amplitude_damp(0.5).on(qubits[0])
+
+    assert cirq.inverse(TestGate(), None) is None
