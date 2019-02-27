@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Quantum circuit to prepare the BCS ground states for
+r"""Quantum circuit to prepare the BCS ground states for
 superconductors/superfluids. Such states can be prepared by
 applying pairwise Bogoliubov transformations on basis states
 with opposite spins and momenta, followed by the fermionic Fourier
@@ -202,7 +202,7 @@ def fswap(p, q):
 
 
 def bogoliubov_trans(p, q, theta):
-    """The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
+    r"""The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
      We use the identity X S^\dag X S X = Y X S^\dag Y S X = X to transform
      the Hamiltonian XY+YX to XX+YY type. The time evolution of the XX + YY
      Hamiltonian can be expressed as a power of the iSWAP gate.
