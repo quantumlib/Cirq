@@ -14,7 +14,9 @@
 
 import pytest
 import numpy as np
+from sympy.core import Symbol
 import cirq
+from cirq import testing
 
 
 def test_parallel_gate_operation_init():
@@ -29,11 +31,13 @@ def test_parallel_gate_operation_init():
 def test_invalid_parallel_gate_operation():
     three_qubit_gate = cirq.ThreeQubitGate()
     single_qubit_gate = cirq.SingleQubitGate()
-    repeated_qubits = [cirq.GridQubit(0, 0),cirq.GridQubit(0, 0)]
-    with pytest.raises(ValueError):
+    repeated_qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 0)]
+    with pytest.raises(ValueError) as wrong_gate:
         cirq.ParallelGateOperation(three_qubit_gate, cirq.NamedQubit("a"))
-    with pytest.raises(ValueError):
+    assert str(wrong_gate.value) == "gate must be a single qubit gate"
+    with pytest.raises(ValueError) as bad_qubits:
         cirq.ParallelGateOperation(single_qubit_gate, repeated_qubits)
+    assert str(bad_qubits.value) == "repeated qubits are not allowed"
 
 
 def test_gate_operation_eq():
@@ -54,19 +58,17 @@ def test_gate_operation_eq():
 def test_with_qubits_and_transform_qubits():
     g = cirq.SingleQubitGate()
     op = cirq.ParallelGateOperation(g, cirq.LineQubit.range(3))
-    assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) \
-        == cirq.ParallelGateOperation(g, cirq.LineQubit.range(3, 0, -1))
+    line = cirq.LineQubit.range(3, 0, -1)
+    negline = cirq.LineQubit.range(0, -3, -1)
+    assert op.with_qubits(*line) == cirq.ParallelGateOperation(g, line)
     assert op.transform_qubits(lambda e: cirq.LineQubit(-e.x)
-                               ) == cirq.ParallelGateOperation(g,
-                                                           [cirq.LineQubit(0),
-                                                           cirq.LineQubit(-1),
-                                                           cirq.LineQubit(-2)])
+                               ) == cirq.ParallelGateOperation(g, negline)
 
 
 def test_decompose():
     qreg = cirq.LineQubit.range(3)
     op = cirq.ParallelGateOperation(cirq.X, qreg)
-    assert cirq.decompose(op) == cirq.X.on_each(qreg)
+    assert cirq.decompose(op) == cirq.X.on_each(*qreg)
 
 
 def test_extrapolate():
@@ -86,7 +88,7 @@ def test_parameterizable_effect():
     q = cirq.NamedQubit('q')
     r = cirq.ParamResolver({'a': 0.5})
 
-    op1 = cirq.ParallelGateOperation(cirq.Z**cirq.Symbol('a'), [q])
+    op1 = cirq.ParallelGateOperation(cirq.Z**Symbol('a'), [q])
     assert cirq.is_parameterized(op1)
     op2 = cirq.resolve_parameters(op1, r)
     assert not cirq.is_parameterized(op2)
@@ -144,33 +146,18 @@ def test_phase():
 
 
 def test_equivalent_circuit():
-    depth = 6
     qreg = cirq.LineQubit.range(4)
     oldc = cirq.Circuit()
     newc = cirq.Circuit()
-    exponents = [0, -1, 1, 1/2, 1/3, 1/3+0.01]
+    gates = [cirq.XPowGate()**(1/2), cirq.YPowGate()**(1/3),
+             cirq.ZPowGate()**-1]
 
-    for moment in range(depth):
-        if moment == 0:
-            gate = cirq.XPowGate(exponent=exponents[moment])
-        if moment == 1:
-            gate = cirq.T**-1
-        if moment == 2:
-            gate = cirq.ZPowGate(exponent=exponents[moment])
-        if moment == 3:
-            gate = cirq.XPowGate(exponent=exponents[moment])
-        if moment == 4:
-            gate = cirq.YPowGate(exponent=exponents[moment])
-        if moment == 5:
-            gate = cirq.ZPowGate(exponent=exponents[moment])
-
+    for gate in gates:
         for qubit in qreg:
             oldc.append(gate.on(qubit))
-
         newc.append(cirq.ops.ParallelGateOperation(gate, qreg))
 
-    assert str(oldc) == str(newc)
-    sim = cirq.Simulator()
-    old_result = sim.simulate(oldc)
-    new_result = sim.simulate(newc)
-    assert old_result.dirac_notation() == new_result.dirac_notation()
+    testing.assert_has_diagram(newc, oldc.to_text_diagram())
+    testing.assert_circuits_with_terminal_measurements_are_equivalent(oldc,
+                                                                      newc,
+                                                                      atol=1e-6)
