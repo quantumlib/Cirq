@@ -277,7 +277,9 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: Union[str, sympy.Symbol], points: Sequence[float]) -> None:
+    def __init__(
+        self, key: Union[str, sympy.Symbol],
+        points: Sequence[float]) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
