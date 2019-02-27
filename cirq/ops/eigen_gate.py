@@ -285,7 +285,7 @@ class EigenGate(raw_types.Gate):
 
     def _value_equality_approximate_values_(self):
         period = self._period()
-        if not period or isinstance(self._exponent, value.Symbol):
+        if not period or isinstance(self._exponent, sympy.Basic):
             exponent = self._exponent
         else:
             exponent = value.PeriodicValue(self._exponent, period)

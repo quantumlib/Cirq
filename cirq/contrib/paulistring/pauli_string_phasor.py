@@ -50,7 +50,7 @@ class PauliStringPhasor(PauliStringGateOperation):
                             half_turns=half_turns,
                             rads=rads,
                             degs=degs)
-        if not isinstance(half_turns, sympy.Symbol):
+        if not isinstance(half_turns, sympy.Basic):
             half_turns = 1 - (1 - half_turns) % 2
         super().__init__(pauli_string)
         self.half_turns = half_turns
@@ -132,11 +132,11 @@ class PauliStringPhasor(PauliStringGateOperation):
         return PauliStringPhasor(new_pauli_string, half_turns=self.half_turns)
 
     def __repr__(self):
-        return 'PauliStringPhasor({}, half_turns={})'.format(
+        return 'PauliStringPhasor({!r}, half_turns={!r})'.format(
                     self.pauli_string, self.half_turns)
 
     def __str__(self):
-        return '{}**{}'.format(self.pauli_string, self.half_turns)
+        return '({})**{}'.format(self.pauli_string, self.half_turns)
 
 
 def xor_nonlocal_decompose(qubits: Iterable[ops.QubitId],

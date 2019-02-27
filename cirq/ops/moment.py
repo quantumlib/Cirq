@@ -20,7 +20,8 @@ from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
-class Moment(object):
+
+class Moment:
     """A simplified time-slice of operations within a sequenced circuit.
 
     Note that grouping sequenced circuits into moments is an abstraction that
