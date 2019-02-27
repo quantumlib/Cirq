@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type
+from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type, cast
 
 from collections import defaultdict
 import itertools
@@ -277,11 +277,10 @@ def assert_has_consistent_apply_unitary(
         raise NotImplementedError(
             'Failed to infer qubit count of <{!r}>. Specify it.'.format(
                 val))
-    if len(set(qubit_counts)) > 1:
-        raise ValueError(
-            'Inconsistent qubit counts from different methods: {}'.format(
-                qubit_counts))
-    n = qubit_counts[0]
+    assert len(set(qubit_counts)) == 1, (
+        'Inconsistent qubit counts from different methods: {}'.format(
+            qubit_counts))
+    n = cast(int, qubit_counts[0])
 
     eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
     actual = protocols.apply_unitary(
