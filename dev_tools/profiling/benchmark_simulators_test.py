@@ -35,6 +35,13 @@ def test_unitary_simulator():
             benchmark_simulators.simulate('unitary', num_qubits, num_gates)
 
 
+def test_density_matrix_simulator():
+    for num_qubits in (3, 8):
+        for num_gates in (10, 20):
+            benchmark_simulators.simulate('density_matrix', num_qubits,
+                                          num_gates)
+
+
 def test_args_have_defaults():
     kwargs = benchmark_simulators.parse_arguments([])
     for _, v in kwargs.items():

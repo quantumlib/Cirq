@@ -276,7 +276,7 @@ def test_ccz():
 
     # Symbolic exponent.
     circuit = cirq.Circuit.from_ops(
-        cirq.CCZ(a, b, c)**cirq.Symbol('t'))
+        cirq.CCZ(a, b, c)**sympy.Symbol('t'))
     assert_links_to(circuit, """
         http://algassert.com/quirk#circuit={"cols":[["•","•","Z^t"]]}
     """, escape_url=False)

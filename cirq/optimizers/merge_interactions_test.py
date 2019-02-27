@@ -15,6 +15,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
+import sympy
 
 import cirq
 
@@ -76,12 +77,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
 

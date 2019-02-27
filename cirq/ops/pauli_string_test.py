@@ -175,8 +175,10 @@ def test_repr():
 def test_str():
     q0, q1, q2 = _make_qubits(3)
     pauli_string = cirq.PauliString({q2: cirq.X, q1: cirq.Y, q0: cirq.Z})
-    assert str(pauli_string) == '{+, q0:Z, q1:Y, q2:X}'
-    assert str(pauli_string.negate()) == '{-, q0:Z, q1:Y, q2:X}'
+    assert str(cirq.PauliString({})) == 'I'
+    assert str(-cirq.PauliString({})) == '-I'
+    assert str(pauli_string) == 'Z(q0)*Y(q1)*X(q2)'
+    assert str(pauli_string.negate()) == '-Z(q0)*Y(q1)*X(q2)'
 
 
 @pytest.mark.parametrize('map1,map2,out', (lambda q0, q1, q2: (
