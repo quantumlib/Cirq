@@ -22,7 +22,6 @@ from typing import (
 import re
 import numpy as np
 
-import cirq
 from cirq import ops, linalg, protocols, value
 
 
@@ -62,9 +61,9 @@ class QasmUGate(ops.SingleQubitGate):
                                                    self.phi)
 
     def _unitary_(self) -> np.ndarray:
-        rz_phi_matrix = protocols.unitary(cirq.Rz(self.phi * np.pi))
-        ry_theta_matrix = protocols.unitary(cirq.Ry(self.theta * np.pi))
-        rz_lambda_matrix = protocols.unitary(cirq.Rz(self.lmda * np.pi))
+        rz_phi_matrix = protocols.unitary(ops.Rz(self.phi * np.pi))
+        ry_theta_matrix = protocols.unitary(ops.Ry(self.theta * np.pi))
+        rz_lambda_matrix = protocols.unitary(ops.Rz(self.lmda * np.pi))
         return rz_phi_matrix.dot(ry_theta_matrix.dot(rz_lambda_matrix))
 
 
