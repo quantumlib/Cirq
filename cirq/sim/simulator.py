@@ -44,9 +44,7 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
     def run(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: Union[None,
-                              Dict[str, float],
-                              study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
         """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
@@ -123,9 +121,7 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
     def compute_samples_displays(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: Union[None,
-                                  Dict[str, float],
-                                  study.ParamResolver] = None,
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
     ) -> study.ComputeDisplaysResult:
         """Computes SamplesDisplays in the supplied Circuit or Schedule.
 
@@ -205,9 +201,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     def simulate(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: Union[None,
-                              Dict[str, float],
-                              study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> 'SimulationTrialResult':
@@ -329,9 +323,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     def simulate_moment_steps(
         self,
         circuit: circuits.Circuit,
-        param_resolver: Union[None,
-                              Dict[str, float],
-                              study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None
     ) -> Iterator:

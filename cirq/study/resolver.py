@@ -14,12 +14,18 @@
 
 """Resolves ParameterValues to assigned values."""
 
-from typing import Dict, Union, Optional
+from typing import Dict, Union, TYPE_CHECKING, cast
 import sys
 
 import sympy
 
-from cirq import value
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
+
+
+# Things that ParamResolver understands how to wrap.
+ParamResolverOrSimilarType = Union['cirq.ParamResolver', Dict[str, float], None]
 
 
 class ParamResolver(object):
@@ -35,20 +41,17 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: Union[None,
-                                       Dict[str, float],
-                                       'ParamResolver'] = None):
+    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: Union[None,
-                                         Dict[str, float],
-                                         'ParamResolver'] = None) -> None:
+    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
         if hasattr(self, '_param_hash'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
-        self.param_dict = {} if param_dict is None else param_dict
+        self.param_dict = cast(Dict[str, float],
+                               {} if param_dict is None else param_dict)
         self._param_hash = hash(frozenset(self.param_dict.items()))
 
     def value_of(

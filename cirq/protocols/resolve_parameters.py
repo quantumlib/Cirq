@@ -56,9 +56,9 @@ def is_parameterized(val: Any) -> bool:
         return False
 
 
-def resolve_parameters(val: Any,
-                       param_resolver: Union[Dict[str, float],
-                                             'cirq.ParamResolver']) -> Any:
+def resolve_parameters(
+        val: Any,
+        param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method
