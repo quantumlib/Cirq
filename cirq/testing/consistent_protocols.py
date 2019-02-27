@@ -25,6 +25,8 @@ from cirq.testing.consistent_phase_by import (
         assert_phase_by_is_consistent_with_unitary)
 from cirq.testing.consistent_qasm import (
         assert_qasm_is_consistent_with_unitary)
+from cirq.testing.consistent_pauli_expansion import (
+        assert_pauli_expansion_is_consistent_with_unitary)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
@@ -102,6 +104,7 @@ def _assert_meets_standards_helper(
     assert_decompose_is_consistent_with_unitary(val,
         ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
+    assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(val,
                            setup_code=setup_code,
                            global_vals=global_vals,

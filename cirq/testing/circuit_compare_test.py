@@ -423,3 +423,9 @@ def test_assert_has_consistent_apply_unitary():
 
     cirq.testing.assert_has_consistent_apply_unitary(
         cirq.X.on(cirq.NamedQubit('q')))
+
+
+def test_inconsistent_qubit_count():
+    with pytest.raises(AssertionError, match='Inconsistent'):
+        cirq.testing.assert_has_consistent_apply_unitary(
+            cirq.X, qubit_count=2)
