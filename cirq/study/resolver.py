@@ -14,10 +14,12 @@
 
 """Resolves ParameterValues to assigned values."""
 
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 import sys
 
 import sympy
+
+from cirq import value
 
 
 class ParamResolver(object):
@@ -33,9 +35,21 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __init__(self, param_dict: Dict[str, float]) -> None:
-        self.param_dict = param_dict
-        self._param_hash = hash(frozenset(param_dict.items()))
+    def __new__(cls, param_dict: Union[None,
+                                       Dict[str, float],
+                                       'ParamResolver'] = None):
+        if isinstance(param_dict, ParamResolver):
+            return param_dict
+        return super().__new__(cls)
+
+    def __init__(self, param_dict: Union[None,
+                                         Dict[str, float],
+                                         'ParamResolver'] = None) -> None:
+        if hasattr(self, '_param_hash'):
+            return  # Already initialized. Got wrapped as part of the __new__.
+
+        self.param_dict = {} if param_dict is None else param_dict
+        self._param_hash = hash(frozenset(self.param_dict.items()))
 
     def value_of(
             self,
@@ -66,6 +80,9 @@ class ParamResolver(object):
             return v if v.free_symbols else float(v)
         return value
 
+    def __bool__(self):
+        return bool(self.param_dict)
+
     def __getitem__(self, key):
         return self.value_of(key)
 
@@ -76,6 +93,9 @@ class ParamResolver(object):
         if not isinstance(other, ParamResolver):
             return NotImplemented
         return self.param_dict == other.param_dict
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         return 'cirq.ParamResolver({})'.format(repr(self.param_dict))
