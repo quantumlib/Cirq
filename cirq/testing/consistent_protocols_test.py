@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from typing import Dict, Sequence, Union
 
 import pytest
 
@@ -65,6 +65,18 @@ class GoodGate(cirq.SingleQubitGate):
             # coverage: ignore
             return NotImplemented
         return z**-1, x, z
+
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if self._is_parameterized_():
+            return NotImplemented
+        phase_angle = np.pi * self.phase_exponent / 2
+        angle = np.pi * self.exponent / 2
+        global_phase = np.exp(1j * angle)
+        return {
+            'I': global_phase * np.cos(angle),
+            'X': -1j * global_phase * np.sin(angle) * np.cos(2 * phase_angle),
+            'Y': -1j * global_phase * np.sin(angle) * np.sin(2 * phase_angle),
+        }
 
     def _phase_by_(self, phase_turns, qubit_index):
         assert qubit_index == 0
@@ -135,6 +147,12 @@ class BadGateDecompose(GoodGate):
         return z**-1, x, z
 
 
+class BadGatePauliExpansion(GoodGate):
+
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        return {'I': 10}
+
+
 class BadGatePhaseBy(GoodGate):
 
     def _phase_by_(self, phase_turns, qubit_index):
@@ -190,6 +208,11 @@ def test_assert_implements_consistent_protocols():
             global_vals={'GoodGate': GoodGate}
     )
 
+    cirq.testing.assert_implements_consistent_protocols(
+            GoodGate(phase_exponent=sympy.Symbol('t')),
+            global_vals={'GoodGate': GoodGate}
+    )
+
     with pytest.raises(AssertionError):
         cirq.testing.assert_implements_consistent_protocols(
                 BadGateApplyUnitaryToTensor(phase_exponent=0.25)
@@ -198,6 +221,11 @@ def test_assert_implements_consistent_protocols():
     with pytest.raises(AssertionError):
         cirq.testing.assert_implements_consistent_protocols(
                 BadGateDecompose(phase_exponent=0.25)
+        )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(
+                BadGatePauliExpansion(phase_exponent=0.25)
         )
 
     with pytest.raises(AssertionError):
