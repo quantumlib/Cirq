@@ -23,6 +23,7 @@ import cmath
 import numpy as np
 
 from cirq import value
+from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates
 
 
@@ -330,10 +331,10 @@ class KakDecomposition:
             '    global_phase={!r})'
         ).format(
             self.interaction_coefficients,
-            _numpy_array_repr(self.single_qubit_operations_before[0]),
-            _numpy_array_repr(self.single_qubit_operations_before[1]),
-            _numpy_array_repr(self.single_qubit_operations_after[0]),
-            _numpy_array_repr(self.single_qubit_operations_after[1]),
+            proper_repr(self.single_qubit_operations_before[0]),
+            proper_repr(self.single_qubit_operations_before[1]),
+            proper_repr(self.single_qubit_operations_after[0]),
+            proper_repr(self.single_qubit_operations_after[1]),
             self.global_phase,
         )
 
@@ -360,10 +361,6 @@ class KakDecomposition:
             interaction_matrix(y_mat, y),
             interaction_matrix(x_mat, x),
             before)
-
-
-def _numpy_array_repr(arr: np.ndarray) -> str:
-    return 'np.array({!r})'.format(arr.tolist())
 
 
 def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:

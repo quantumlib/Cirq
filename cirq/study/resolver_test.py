@@ -25,6 +25,8 @@ def test_value_of():
     assert r.value_of(0.5) == 0.5
     assert r.value_of(sympy.Symbol('b')) == 0.1
     assert r.value_of(0.3) == 0.3
+    assert r.value_of(sympy.Symbol('a') * 3) == 1.5
+    assert r.value_of(sympy.Symbol('b') / 0.1 - sympy.Symbol('a')) == 0.5
 
 
 def test_param_dict():

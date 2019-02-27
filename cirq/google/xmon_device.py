@@ -14,7 +14,7 @@
 
 from typing import Iterable, cast, Optional, List, TYPE_CHECKING
 
-from cirq import ops, circuits, value, devices
+from cirq import circuits, devices, ops, protocols, value
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 
@@ -228,8 +228,7 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     seen = set()  # type: Set[str]
     for op in operations:
         if ops.MeasurementGate.is_measurement(op):
-            key = cast(ops.MeasurementGate,
-                       cast(ops.GateOperation, op).gate).key
+            key = protocols.measurement_key(op)
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))
             seen.add(key)
