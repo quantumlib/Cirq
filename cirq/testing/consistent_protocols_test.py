@@ -209,7 +209,7 @@ def test_assert_implements_consistent_protocols():
     )
 
     cirq.testing.assert_implements_consistent_protocols(
-            GoodGate(phase_exponent=cirq.Symbol('t')),
+            GoodGate(phase_exponent=sympy.Symbol('t')),
             global_vals={'GoodGate': GoodGate}
     )
 
