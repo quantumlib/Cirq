@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, List, Sequence, Tuple
+from typing import Iterator, List, Sequence, Tuple, Union
 
 import abc
 import collections
+import sympy
 
 from cirq.study import resolver
 
@@ -42,7 +43,7 @@ class Sweep(metaclass=abc.ABCMeta):
     For example, a sweep can explicitly assign a set of equally spaced points
     between two endpoints using a Linspace,
         sweep = Linspace("angle", start=0.0, end=2.0, length=10)
-    This can then be used with a circuit that has an 'angle' Symbol to
+    This can then be used with a circuit that has an 'angle' sympy.Symbol to
     run simulations multiple simulations, one for each of the values in the
     sweep
         result = simulator.run_sweep(program=circuit, params=sweep)
@@ -88,7 +89,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @abc.abstractproperty
     def keys(self) -> List[str]:
-        """The keys for the all of the Symbols that are resolved."""
+        """The keys for the all of the sympy.Symbols that are resolved."""
         pass
 
     @abc.abstractmethod
@@ -243,7 +244,9 @@ class Zip(Sweep):
 class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
-    def __init__(self, key: str) -> None:
+    def __init__(self, key: Union[str, sympy.Symbol]) -> None:
+        if isinstance(key, sympy.Symbol):
+            key = str(key)
         self.key = key
 
     def __eq__(self, other):
@@ -274,7 +277,9 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(self, key: str, points: Sequence[float]) -> None:
+    def __init__(
+        self, key: Union[str, sympy.Symbol],
+        points: Sequence[float]) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
@@ -295,7 +300,7 @@ class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
     def __init__(
-        self, key: str,
+        self, key: Union[str, sympy.Symbol],
         start: float,
         stop: float,
         length: int) -> None:

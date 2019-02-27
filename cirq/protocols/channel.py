@@ -41,7 +41,7 @@ class SupportsChannel(Protocol):
     """An object that may be describable as a quantum channel."""
 
     def _channel_(self) -> Union[Iterable[np.ndarray], NotImplementedType]:
-        """A list of matrices describing the quantum channel.
+        r"""A list of matrices describing the quantum channel.
 
         These matrices are the terms in the operator sum representation of
         a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},
@@ -88,7 +88,7 @@ class SupportsChannel(Protocol):
 def channel(val: Any,
             default: Any = RaiseTypeErrorIfNotProvided
             ) -> Union[Tuple[np.ndarray], Iterable[TDefault]]:
-    """Returns a list of matrices describing the channel for the given value.
+    r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
     a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},

@@ -80,7 +80,7 @@ class StateVectorMixin():
         return dirac_notation(self.state_vector(), decimals)
 
     def density_matrix_of(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
-        """Returns the density matrix of the state.
+        r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
         Any qubits not in the list that are present in self.state_vector() will

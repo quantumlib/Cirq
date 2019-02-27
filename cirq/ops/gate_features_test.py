@@ -105,10 +105,16 @@ def test_on_each():
     b = cirq.NamedQubit('b')
     c = CustomGate()
 
-    assert c.on_each([]) == []
-    assert c.on_each([a]) == [c(a)]
-    assert c.on_each([a, b]) == [c(a), c(b)]
-    assert c.on_each([b, a]) == [c(b), c(a)]
+    assert c.on_each() == []
+    assert c.on_each(a) == [c(a)]
+    assert c.on_each(a, b) == [c(a), c(b)]
+    assert c.on_each(b, a) == [c(b), c(a)]
+
+    with pytest.raises(ValueError):
+        c.on_each([])
+
+    with pytest.raises(ValueError):
+        c.on_each([a])
 
 
 def test_qasm_output_args_validate():
@@ -133,8 +139,8 @@ def test_qasm_output_args_format():
     assert args.format('_{0}_', a) == '_aaa[0]_'
     assert args.format('_{0}_', b) == '_bbb[0]_'
 
-    assert args.format('_{0:meas}_', m_a.gate.key) == '_m_a_'
-    assert args.format('_{0:meas}_', m_b.gate.key) == '_m_b_'
+    assert args.format('_{0:meas}_', cirq.measurement_key(m_a)) == '_m_a_'
+    assert args.format('_{0:meas}_', cirq.measurement_key(m_b)) == '_m_b_'
 
     assert args.format('_{0}_', 89.1234567) == '_89.1235_'
     assert args.format('_{0}_', 1.23) == '_1.23_'

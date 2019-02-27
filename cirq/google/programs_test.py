@@ -15,6 +15,7 @@ from typing import Dict
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 import cirq.google as cg
@@ -82,22 +83,22 @@ def test_pack_results():
     measurements = [
         ('a',
          np.array([
-            [0, 0, 0],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 1],
-            [1, 0, 0],
-            [1, 0, 1],
-            [1, 1, 0],])),
+             [0, 0, 0],
+             [0, 0, 1],
+             [0, 1, 0],
+             [0, 1, 1],
+             [1, 0, 0],
+             [1, 0, 1],
+             [1, 1, 0], ])),
         ('b',
          np.array([
-            [0, 0],
-            [0, 1],
-            [1, 0],
-            [1, 1],
-            [0, 0],
-            [0, 1],
-            [1, 0],])),
+             [0, 0],
+             [0, 1],
+             [1, 0],
+             [1, 1],
+             [0, 0],
+             [0, 1],
+             [1, 0], ])),
     ]
     data = cg.pack_results(measurements)
     expected = make_bytes("""
@@ -152,7 +153,7 @@ def test_unpack_results():
          [0, 1, 1],
          [1, 0, 0],
          [1, 0, 1],
-         [1, 1, 0],])
+         [1, 1, 0], ])
 
     assert 'b' in results
     assert results['b'].shape == (7, 2)
@@ -165,7 +166,7 @@ def test_unpack_results():
          [1, 1],
          [0, 0],
          [0, 1],
-         [1, 0],])
+         [1, 0], ])
 
 
 def test_single_qubit_measurement_proto_dict_convert():
@@ -247,7 +248,7 @@ def test_multi_qubit_measurement_to_proto_dict():
 
 
 def test_z_proto_dict_convert():
-    gate = cirq.Z**cirq.Symbol('k')
+    gate = cirq.Z**sympy.Symbol('k')
     proto_dict = {
         'exp_z': {
             'target': {
@@ -259,9 +260,9 @@ def test_z_proto_dict_convert():
             }
         }
     }
+
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
-
     gate = cirq.Z**0.5
     proto_dict = {
         'exp_z': {
@@ -279,7 +280,7 @@ def test_z_proto_dict_convert():
 
 
 def test_cz_proto_dict_convert():
-    gate = cirq.CZ**cirq.Symbol('k')
+    gate = cirq.CZ**sympy.Symbol('k')
     proto_dict = {
         'exp_11': {
             'target1': {
@@ -364,7 +365,7 @@ def test_cz_invalid_dict():
 
 
 def test_w_to_proto_dict():
-    gate = cirq.PhasedXPowGate(exponent=cirq.Symbol('k'), phase_exponent=1)
+    gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('k'), phase_exponent=1)
     proto_dict = {
         'exp_w': {
             'target': {
@@ -382,7 +383,8 @@ def test_w_to_proto_dict():
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
-    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5,
+                               phase_exponent=sympy.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -434,7 +436,8 @@ def test_w_to_proto_dict():
     }
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
-    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=cirq.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5,
+                               phase_exponent=sympy.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -535,7 +538,7 @@ def test_parameterized_value_from_proto():
         from_proto({})
 
     m3 = {'parameter_key': 'rr'}
-    assert from_proto(m3) == cirq.Symbol('rr')
+    assert from_proto(m3) == sympy.Symbol('rr')
 
 
 def test_single_qubit_measurement_invalid_dict():

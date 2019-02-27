@@ -36,6 +36,20 @@ def test_qasm_two_qubit_gate_repr():
         cirq.testing.random_unitary(4)))
 
 
+def test_qasm_u_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(2)
+    g = QasmUGate.from_matrix(u)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g),
+                                                    u,
+                                                    atol=1e-7)
+
+
+def test_qasm_two_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(4)
+    g = QasmTwoQubitGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u)
+
+
 def test_empty_circuit():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
@@ -468,12 +482,6 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
-
-
-def test_qasm_two_qubit_gate_unitary():
-    u = cirq.testing.random_unitary(4)
-    g = QasmTwoQubitGate.from_matrix(u)
-    np.testing.assert_allclose(cirq.unitary(g), u)
 
 
 def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
