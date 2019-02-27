@@ -58,7 +58,7 @@ class PauliStringPhasor(PauliStringGateOperation):
     def _value_equality_values_(self):
         return self.pauli_string, self.half_turns
 
-    def map_qubits(self, qubit_map: Dict[ops.QubitId, ops.QubitId]):
+    def map_qubits(self, qubit_map: Dict[ops.Qid, ops.Qid]):
         ps = self.pauli_string.map_qubits(qubit_map)
         return PauliStringPhasor(ps, half_turns=self.half_turns)
 
@@ -139,8 +139,8 @@ class PauliStringPhasor(PauliStringGateOperation):
         return '({})**{}'.format(self.pauli_string, self.half_turns)
 
 
-def xor_nonlocal_decompose(qubits: Iterable[ops.QubitId],
-                           onto_qubit: ops.QubitId) -> Iterable[ops.Operation]:
+def xor_nonlocal_decompose(qubits: Iterable[ops.Qid],
+                           onto_qubit: ops.Qid) -> Iterable[ops.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

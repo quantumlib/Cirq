@@ -140,8 +140,8 @@ print(qubits)
 # [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2), cirq.GridQubit(1, 0), cirq.GridQubit(1, 1), cirq.GridQubit(1, 2), cirq.GridQubit(2, 0), cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
 ```
 Here we see that we've created a bunch of `GridQubit`s. 
-`GridQubit`s implement the `QubitId` class, which just means
-that they are equatable and hashable. `QubitId` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
+`GridQubit`s implement the `Qid` class, which just means
+that they are equatable and hashable. `Qid` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
 have a row and column, indicating their position on a grid.
 
 Now that we have some qubits, let us construct a `Circuit` on these qubits.

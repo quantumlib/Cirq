@@ -134,7 +134,7 @@ from cirq.ops.phased_x_gate import (
 from cirq.ops.raw_types import (
     Gate,
     Operation,
-    QubitId,
+    Qid,
 )
 from cirq.ops.reversible_composite_gate import (
     ReversibleCompositeGate,

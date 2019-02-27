@@ -39,8 +39,8 @@ TExternalQubit = TypeVar('TExternalQubit')
 class QubitOrder:
     """Defines the kronecker product order of qubits."""
 
-    def __init__(self, explicit_func: Callable[[Iterable[raw_types.QubitId]],
-                                               Tuple[raw_types.QubitId, ...]]
+    def __init__(self, explicit_func: Callable[[Iterable[raw_types.Qid]],
+                                               Tuple[raw_types.Qid, ...]]
                  ) -> None:
         self._explicit_func = explicit_func
 
@@ -53,7 +53,7 @@ class QubitOrder:
     """
 
     @staticmethod
-    def explicit(fixed_qubits: Iterable[raw_types.QubitId],
+    def explicit(fixed_qubits: Iterable[raw_types.Qid],
                  fallback: Optional['QubitOrder']=None) -> 'QubitOrder':
         """A basis that contains exactly the given qubits in the given order.
 
@@ -85,7 +85,7 @@ class QubitOrder:
         return QubitOrder(func)
 
     @staticmethod
-    def sorted_by(key: Callable[[raw_types.QubitId], Any]) -> 'QubitOrder':
+    def sorted_by(key: Callable[[raw_types.Qid], Any]) -> 'QubitOrder':
         """A basis that orders qubits ascending based on a key function.
 
         Args:
@@ -98,8 +98,8 @@ class QubitOrder:
         """
         return QubitOrder(lambda qubits: tuple(sorted(qubits, key=key)))
 
-    def order_for(self, qubits: Iterable[raw_types.QubitId]
-                  ) -> Tuple[raw_types.QubitId, ...]:
+    def order_for(self, qubits: Iterable[raw_types.Qid]
+                  ) -> Tuple[raw_types.Qid, ...]:
         """Returns a qubit tuple ordered corresponding to the basis.
 
         Args:

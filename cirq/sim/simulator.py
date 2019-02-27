@@ -420,7 +420,7 @@ class StepResult(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def sample(self,
-               qubits: List[ops.QubitId],
+               qubits: List[ops.Qid],
                repetitions: int = 1) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
@@ -470,7 +470,7 @@ class StepResult(metaclass=abc.ABCMeta):
                 operations from `measurement_ops`.
         """
         bounds = {}  # type: Dict[str, Tuple]
-        all_qubits = []  # type: List[ops.QubitId]
+        all_qubits = []  # type: List[ops.Qid]
         current_index = 0
         for op in measurement_ops:
             gate = op.gate

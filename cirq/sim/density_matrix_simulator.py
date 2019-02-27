@@ -270,7 +270,7 @@ class DensityMatrixStepResult(simulator.StepResult):
     def __init__(self,
             density_matrix: np.ndarray,
             measurements: Dict[str, np.ndarray],
-            qubit_map: Dict[ops.QubitId, int],
+            qubit_map: Dict[ops.Qid, int],
             dtype: Type[np.number] = np.complex64):
         """DensityMatrixStepResult.
 
@@ -341,7 +341,7 @@ class DensityMatrixStepResult(simulator.StepResult):
         return np.reshape(self._density_matrix, (size, size))
 
     def sample(self,
-            qubits: List[ops.QubitId],
+            qubits: List[ops.Qid],
             repetitions: int = 1) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
@@ -361,7 +361,7 @@ class DensityMatrixSimulatorState():
 
     def __init__(self,
             density_matrix: np.ndarray,
-            qubit_map: Dict[ops.QubitId, int]):
+            qubit_map: Dict[ops.Qid, int]):
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
 
