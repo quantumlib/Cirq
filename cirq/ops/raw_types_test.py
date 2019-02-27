@@ -44,7 +44,6 @@ def test_gate_calls_validate():
 
 
 def test_default_validation_and_inverse():
-    @cirq.value_equality
     class TestGate(cirq.Gate):
         def num_qubits(self):
             return 2
@@ -55,8 +54,8 @@ def test_default_validation_and_inverse():
             yield cirq.S(b)
             yield cirq.X(a)
 
-        def _value_equality_values_(self):
-            return None
+        def __eq__(self, other):
+            return isinstance(other, TestGate)
 
         def __repr__(self):
             return 'TestGate()'
