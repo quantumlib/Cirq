@@ -70,7 +70,7 @@ def assert_equivalent_repr(
 
     try:
         a = eval('{!r}.__class__'.format(value), global_vals, local_vals)
-    except (AttributeError, SyntaxError):
+    except Exception:
         raise AssertionError(
             "The repr of a value of type {} wasn't 'dottable'.\n"
             "{!r}.XXX must be equivalent to ({!r}).XXX, "
