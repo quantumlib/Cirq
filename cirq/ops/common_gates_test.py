@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 import numpy as np
 import pytest
 import sympy
@@ -48,10 +50,15 @@ def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
             eigen_gate_type, ignoring_global_phase=True)
 
-
-def test_consistent_protocols():
+@pytest.mark.parametrize('gate_type, num_qubits',
+    itertools.product(
+        (cirq.MeasurementGate, cirq.IdentityGate),
+        range(1, 5))
+)
+def test_consistent_protocols(gate_type, num_qubits):
+    gate = gate_type(num_qubits=num_qubits)
     cirq.testing.assert_implements_consistent_protocols(
-            cirq.MeasurementGate(num_qubits=1, key=''), qubit_count=1)
+        gate, qubit_count=num_qubits)
 
 
 def test_cz_init():
