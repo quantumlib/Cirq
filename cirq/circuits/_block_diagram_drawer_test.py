@@ -158,7 +158,7 @@ def test_block_curve():
 
     d = _curve_pieces_diagram(ASCII_BOX_CHARS)
     actual = d.render(min_block_width=3, min_block_height=3)
-    expected = """
+    expected = r"""
         -   -     ---
 
 
