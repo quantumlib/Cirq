@@ -242,6 +242,14 @@ class TrialResult:
                                              self.repetitions,
                                              self.measurements)
 
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Output to show in ipython and Jupyter notebooks."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('TrialResult(...)')
+        else:
+            p.text(str(self))
+
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
 
