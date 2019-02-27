@@ -21,7 +21,7 @@ Gate compilation methods implemented here are following the paper below:
     arXiv:1603.07678
 """
 
-from typing import List, Optional, cast, Tuple
+from typing import Iterable, List, Optional, cast, Tuple
 
 import numpy as np
 
@@ -75,14 +75,14 @@ def _kak_decomposition_to_operations(q0: ops.QubitId,
     a0, a1 = kak.single_qubit_operations_after
     post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
 
-    return list(ops.flatten_op_tree([
+    return list(cast(Iterable[ops.Operation], ops.flatten_op_tree([
         pre,
         _non_local_part(q0,
                         q1,
                         kak.interaction_coefficients,
                         tolerance),
         post,
-    ]))
+    ])))
 
 
 def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float = 1e-8):
