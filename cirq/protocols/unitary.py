@@ -45,7 +45,7 @@ class SupportsUnitary(Protocol):
         or default result when calling `cirq.unitary` on it). (The ability to
         return NotImplemented is useful when a class cannot know if it has a
         matrix until runtime, e.g. cirq.X**c normally has a matrix but
-        cirq.X**cirq.Symbol('a') doesn't.)
+        cirq.X**sympy.Symbol('a') doesn't.)
 
         The order of cells in the matrix is always implicit with respect to the
         object being called. For example, for gates the matrix must be ordered
@@ -68,8 +68,8 @@ class SupportsUnitary(Protocol):
         to using _unitary_ with a default value, or False if neither exist.
 
         Returns:
-          True if the value has a unitary matrix representation, False
-          otherwise.
+            True if the value has a unitary matrix representation, False
+            otherwise.
         """
 
 

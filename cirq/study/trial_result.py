@@ -243,7 +243,7 @@ class TrialResult:
                                              self.measurements)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Print ASCII diagram in Jupyter."""
+        """Output to show in ipython and Jupyter notebooks."""
         if cycle:
             # There should never be a cycle.  This is just in case.
             p.text('TrialResult(...)')
