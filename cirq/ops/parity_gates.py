@@ -137,7 +137,7 @@ class YYPowGate(eigen_gate.EigenGate,
 class ZZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The Z-parity gate, possibly raised to a power.
+    r"""The Z-parity gate, possibly raised to a power.
 
     The ZZ**t gate implements the following unitary:
 
