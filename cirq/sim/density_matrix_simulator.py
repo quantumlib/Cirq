@@ -277,7 +277,7 @@ class DensityMatrixStepResult(simulator.StepResult):
         Args:
             density_matrix: The density matrix at this step. Can be mutated.
             measurements: The measurements for this step of the simulation.
-            qubit_map: A map from qubit id to index used to define the
+            qubit_map: A map from qid to index used to define the
                 ordering of the basis in density_matrix.
             dtype: The numpy dtype for the density matrix.
         """
@@ -355,7 +355,7 @@ class DensityMatrixSimulatorState():
 
     Args:
         density_matrix: The density matrix of the simulation.
-        qubit_map: A map from qubit id to index used to define the
+        qubit_map: A map from qid to index used to define the
             ordering of the basis in density_matrix.
     """
 
