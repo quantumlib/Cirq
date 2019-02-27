@@ -429,7 +429,7 @@ To run a simulation of the full circuit we simply create a
 simulator, and pass the circuit to the simulator.
 
 ```python
-simulator = cirq.google.XmonSimulator()
+simulator = cirq.Simulator()
 circuit = cirq.Circuit()    
 circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
 circuit.append(cirq.measure(*qubits, key='x'))
