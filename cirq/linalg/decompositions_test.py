@@ -239,7 +239,7 @@ def test_kak_decomposition(target, benchmark=None):
     if benchmark:
         kak = benchmark(cirq.kak_decomposition, target)
     else:
-         kak = cirq.kak_decomposition(target)
+        kak = cirq.kak_decomposition(target)
 
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
