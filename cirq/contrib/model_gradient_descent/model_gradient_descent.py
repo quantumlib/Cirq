@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -52,8 +52,8 @@ def model_gradient_descent(
         n_sample_points: int=100,
         rate: float=1e-1,
         tol: float=1e-8,
-        known_values: Tuple[List[np.ndarray], List[np.ndarray]]=None,
-        max_evaluations: int=None,
+        known_values: Optional[Tuple[List[np.ndarray], List[np.ndarray]]]=None,
+        max_evaluations: Optional[int]=None,
         verbose: bool=False):
     """Model gradient descent algorithm for black-box optimization.
 
@@ -85,6 +85,8 @@ def model_gradient_descent(
 
     if known_values is not None:
         known_xs, known_ys = known_values
+        known_xs = [np.copy(x) for x in known_xs]
+        known_ys = [np.copy(y) for y in known_ys]
     else:
         known_xs, known_ys = [], []
 
