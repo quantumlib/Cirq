@@ -10,8 +10,11 @@ import examples.phase_estimator
 import examples.basic_arithmetic
 
 
-def test_example_runs_bernstein_vazirani(benchmark):
-    benchmark(examples.bernstein_vazirani.main, qubit_count=3)
+def test_example_runs_bernstein_vazirani(benchmark=None):
+    if benchmark:
+        benchmark(examples.bernstein_vazirani.main, qubit_count=3)
+    else:
+        examples.bernstein_vazirani.main(qubit_count=3)
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
@@ -20,34 +23,47 @@ def test_example_runs_bernstein_vazirani(benchmark):
     assert list(examples.bernstein_vazirani.make_oracle(
         [], a, [], True)) == [cirq.X(a)]
 
-
-def test_example_runs_hello_line(benchmark):
-    benchmark(examples.place_on_bristlecone.main)
-
-
-def test_example_runs_hello_qubit(benchmark):
-    benchmark(examples.hello_qubit.main)
+def test_example_runs_hello_qubit(benchmark=None):
+    if benchmark:
+        benchmark(examples.hello_qubit.main)
+    else:
+        examples.hello_qubit.main()
 
 
-def test_example_runs_bell_inequality(benchmark):
-    benchmark(examples.bell_inequality.main)
+def test_example_runs_bell_inequality(benchmark=None):
+    if benchmark:
+        benchmark(examples.bell_inequality.main)
+    else:
+        examples.bell_inequality.main()
 
 
-def test_example_runs_quantum_fourier_transform(benchmark):
-    benchmark(examples.quantum_fourier_transform.main)
+def test_example_runs_quantum_fourier_transform(benchmark=None):
+    if benchmark:
+        benchmark(examples.quantum_fourier_transform.main)
+    else:
+        examples.quantum_fourier_transform.main()
 
 
-def test_example_runs_bcs_mean_field(benchmark):
-    benchmark(examples.bcs_mean_field.main)
+def test_example_runs_bcs_mean_field(benchmark=None):
+    if benchmark:
+        benchmark(examples.bcs_mean_field.main)
+    else:
+        examples.bcs_mean_field.main()
 
 
-def test_example_runs_grover(benchmark):
-    benchmark(examples.grover.main)
+def test_example_runs_grover(benchmark=None):
+    if benchmark:
+        benchmark(examples.grover.main)
+    else:
+        examples.grover.main()
 
 
 def test_example_runs_basic_arithmetic():
     examples.basic_arithmetic.main(n=2)
 
 
-def test_example_runs_phase_estimator(benchmark):
-    benchmark(examples.phase_estimator.main, qnums=(2,), repetitions=2)
+def test_example_runs_phase_estimator(benchmark=None):
+    if benchmark:
+        benchmark(examples.phase_estimator.main)
+    else:
+        examples.phase_estimator.main()
