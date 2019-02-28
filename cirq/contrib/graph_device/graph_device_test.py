@@ -96,6 +96,7 @@ def test_graph_device():
     assert sorted(graph_device.edges) == sorted(device_graph.edges)
     assert graph_device.qubits == tuple(qubits)
     assert graph_device.device_graph == device_graph
+    assert graph_device.labelled_edges == device_graph.labelled_edges
 
     assert graph_device.duration_of(cirq.X(qubits[2])) == one_qubit_duration
     assert (graph_device.duration_of(cirq.CNOT(*qubits[:2])) ==
