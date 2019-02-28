@@ -97,8 +97,8 @@ def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     g = cirq.SingleQubitGate()
-    p = cirq.ParallelGateOperation(g, [a,b])
-    q = cirq.ParallelGateOperation(cirq.X, [a,b])
+    p = cirq.ParallelGateOperation(g, [a, b])
+    q = cirq.ParallelGateOperation(cirq.X, [a, b])
 
     assert not cirq.has_unitary(p)
     assert cirq.unitary(p, None) is None
@@ -129,7 +129,7 @@ def test_repr():
 
 def test_str():
     a, b = cirq.LineQubit.range(2)
-    assert str(cirq.ParallelGateOperation(cirq.X, (a,b))) == 'X(0, 1)'
+    assert str(cirq.ParallelGateOperation(cirq.X, (a, b))) == 'X(0, 1)'
 
 
 def test_phase():
