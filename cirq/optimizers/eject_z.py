@@ -15,10 +15,10 @@
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
-
 from collections import defaultdict
+import sympy
 
-from cirq import circuits, ops, value, protocols
+from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
@@ -105,6 +105,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op.gate, ops.ZPowGate):
         return None
     h = op.gate.exponent
-    if isinstance(h, value.Symbol):
+    if isinstance(h, sympy.Symbol):
         return None
     return h
