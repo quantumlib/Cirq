@@ -15,6 +15,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
+import sympy
 
 import cirq
 
@@ -76,12 +77,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
 
@@ -193,7 +194,7 @@ def test_not_decompose_partial_czs():
 
 
 def test_post_clean_up():
-    class Marker(cirq.Gate):
+    class Marker(cirq.TwoQubitGate):
         pass
 
     a, b = cirq.LineQubit.range(2)

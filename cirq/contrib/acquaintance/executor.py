@@ -20,7 +20,7 @@ from collections import defaultdict
 from cirq import circuits, devices, ops
 
 from cirq.contrib.acquaintance.gates import (
-        AcquaintanceOpportunityGate, ACQUAINT)
+        AcquaintanceOpportunityGate)
 from cirq.contrib.acquaintance.devices import (
         is_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
@@ -121,7 +121,8 @@ class AcquaintanceOperation(ops.GateOperation):
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')
-        super().__init__(ACQUAINT, qubits)
+        super().__init__(AcquaintanceOpportunityGate(num_qubits=len(qubits)),
+                         qubits)
         self.logical_indices = logical_indices # type: LogicalIndexSequence
 
 

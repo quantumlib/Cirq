@@ -24,6 +24,7 @@ from cirq.protocols.approximate_equality import (
 )
 from cirq.protocols.channel import (
     channel,
+    has_channel,
     SupportsChannel,
 )
 from cirq.protocols.circuit_diagram_info import (
@@ -42,8 +43,22 @@ from cirq.protocols.decompose import (
 from cirq.protocols.inverse import (
     inverse,
 )
+from cirq.protocols.measurement_key import (
+    measurement_key,
+)
+from cirq.protocols.mixture import (
+    mixture,
+    mixture_channel,
+    has_mixture,
+    has_mixture_channel,
+    SupportsMixture,
+    validate_mixture,
+)
 from cirq.protocols.mul import (
     mul,
+)
+from cirq.protocols.pauli_expansion import (
+    pauli_expansion,
 )
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow import (

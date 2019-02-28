@@ -15,20 +15,22 @@
 from typing import List, Sequence, Tuple, Union
 
 import numpy as np
+import sympy
 
 from cirq import value, protocols
-from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, op_tree
-from cirq.ops.pauli import Pauli
+from cirq._compat import proper_repr
+from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
+        op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 
 pauli_eigen_map = {
-    Pauli.X: (np.array([[0.5,  0.5], [0.5,   0.5]]),
-              np.array([[0.5, -0.5], [-0.5,  0.5]])),
-    Pauli.Y: (np.array([[0.5, -0.5j], [0.5j,  0.5]]),
-              np.array([[0.5,  0.5j], [-0.5j, 0.5]])),
-    Pauli.Z: (np.diag([1, 0]),
-              np.diag([0, 1])),
+    pauli_gates.X: (np.array([[0.5,  0.5], [0.5,   0.5]]),
+                    np.array([[0.5, -0.5], [-0.5,  0.5]])),
+    pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j,  0.5]]),
+                    np.array([[0.5,  0.5j], [-0.5j, 0.5]])),
+    pauli_gates.Z: (np.diag([1, 0]),
+                    np.diag([0, 1])),
 }
 
 
@@ -40,10 +42,10 @@ class PauliInteractionGate(eigen_gate.EigenGate,
     CNOT = None  # type: PauliInteractionGate
 
     def __init__(self,
-                 pauli0: Pauli, invert0: bool,
-                 pauli1: Pauli, invert1: bool,
+                 pauli0: pauli_gates.Pauli, invert0: bool,
+                 pauli1: pauli_gates.Pauli, invert1: bool,
                  *,
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
+                 exponent: Union[sympy.Basic, float] = 1.0) -> None:
         """
         Args:
             pauli0: The interaction axis for the first qubit.
@@ -71,7 +73,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             return 0
         return index
 
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
+    def _with_exponent(self, exponent: Union[sympy.Basic, float]
                        ) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
@@ -104,7 +106,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        labels = {Pauli.X: 'X', Pauli.Y: 'Y', Pauli.Z: '@'}
+        labels = {pauli_gates.X: 'X', pauli_gates.Y: 'Y', pauli_gates.Z: '@'}
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
@@ -120,9 +122,10 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return base
 
-        return '({}**{!r})'.format(base, self._exponent)
+        return '({}**{})'.format(base, proper_repr(self._exponent))
 
 
-PauliInteractionGate.CZ = PauliInteractionGate(Pauli.Z, False, Pauli.Z, False)
+PauliInteractionGate.CZ = PauliInteractionGate(
+    pauli_gates.Z, False, pauli_gates.Z, False)
 PauliInteractionGate.CNOT = PauliInteractionGate(
-    Pauli.Z, False, Pauli.X, False)
+    pauli_gates.Z, False, pauli_gates.X, False)

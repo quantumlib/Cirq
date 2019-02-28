@@ -19,11 +19,13 @@ from typing import Optional, Tuple
 import numpy as np
 
 from cirq import linalg, protocols
+from cirq._compat import proper_repr
 from cirq.ops import (
     common_gates,
     controlled_gate,
     eigen_gate,
     gate_features,
+    pauli_gates,
     op_tree,
     raw_types,
 )
@@ -54,6 +56,9 @@ class CCZPowGate(eigen_gate.EigenGate,
 
         where p = T**self._exponent
         """
+        if protocols.is_parameterized(self):
+            return NotImplemented
+
         a, b, c = qubits
 
         # Hacky magic: avoid the non-adjacent edge.
@@ -67,14 +72,16 @@ class CCZPowGate(eigen_gate.EigenGate,
         sweep_abc = [common_gates.CNOT(a, b),
                      common_gates.CNOT(b, c)]
 
-        yield p(a), p(b), p(c)
-        yield sweep_abc
-        yield p(b)**-1, p(c)
-        yield sweep_abc
-        yield p(c)**-1
-        yield sweep_abc
-        yield p(c)**-1
-        yield sweep_abc
+        return [
+            p(a), p(b), p(c),
+            sweep_abc,
+            p(b)**-1, p(c),
+            sweep_abc,
+            p(c)**-1,
+            sweep_abc,
+            p(c)**-1,
+            sweep_abc,
+        ]
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if protocols.is_parameterized(self):
@@ -109,11 +116,11 @@ class CCZPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CCZ'
-            return '(cirq.CCZ**{!r})'.format(self._exponent)
+            return '(cirq.CCZ**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.CCZPowGate(exponent={!r}, '
+            'cirq.CCZPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -150,7 +157,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(
                 controlled_gate.ControlledGate(
-                    common_gates.X**self.exponent)),
+                    pauli_gates.X**self.exponent)),
             protocols.ApplyUnitaryArgs(
                 args.target_tensor,
                 args.available_buffer,
@@ -183,11 +190,11 @@ class CCXPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.TOFFOLI'
-            return '(cirq.TOFFOLI**{!r})'.format(self._exponent)
+            return '(cirq.TOFFOLI**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.CCXPowGate(exponent={!r}, '
+            'cirq.CCXPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -245,7 +252,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.T(c)**-1
         yield common_gates.CNOT(a, b)
         yield common_gates.CNOT(b, c)
-        yield common_gates.X(b)**0.5
+        yield pauli_gates.X(b)**0.5
         yield common_gates.T(c)**-1
         yield common_gates.CNOT(b, a)
         yield common_gates.CNOT(b, c)
@@ -253,7 +260,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.CNOT(b, c)
         yield common_gates.H(c)
         yield common_gates.S(c)**-1
-        yield common_gates.X(a)**-0.5
+        yield pauli_gates.X(a)**-0.5
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         return protocols.apply_unitary(
@@ -284,7 +291,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
                      common_gates.CNOT(b, c)]
 
         yield common_gates.CNOT(c, b)
-        yield common_gates.Y(c)**-0.5
+        yield pauli_gates.Y(c)**-0.5
         yield t(a), t(b), t(c)
         yield sweep_abc
         yield t(b) ** -1, t(c)
@@ -292,11 +299,11 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield t(c) ** -1
         yield sweep_abc
         yield t(c) ** -1
-        yield common_gates.X(b)**0.5
+        yield pauli_gates.X(b)**0.5
         yield sweep_abc
         yield common_gates.S(c)
-        yield common_gates.X(b)**0.5
-        yield common_gates.X(c)**-0.5
+        yield pauli_gates.X(b)**0.5
+        yield pauli_gates.X(c)**-0.5
 
     def _has_unitary_(self) -> bool:
         return True

@@ -27,25 +27,6 @@ if TYPE_CHECKING:
     from cirq.ops import QubitId
     from typing import Dict
 
-
-class OptimizationPass:
-    """Rewrites a circuit's operations in place to make them better."""
-
-    @abc.abstractmethod
-    def optimize_circuit(self, circuit: Circuit):
-        """Rewrites the given circuit to make it better.
-
-        Note that this performs an in place optimization.
-
-        Args:
-            circuit: The circuit to improve.
-        """
-        pass
-
-    def __call__(self, circuit: Circuit):
-        return self.optimize_circuit(circuit)
-
-
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
@@ -90,7 +71,7 @@ class PointOptimizationSummary:
             self.new_operations)
 
 
-class PointOptimizer(OptimizationPass):
+class PointOptimizer():
     """Makes circuit improvements focused on a specific location."""
 
     def __init__(self,
@@ -104,6 +85,9 @@ class PointOptimizer(OptimizationPass):
                 old operations.
         """
         self.post_clean_up = post_clean_up
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
     def optimization_at(self,
