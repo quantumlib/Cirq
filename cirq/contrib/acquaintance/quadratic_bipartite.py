@@ -11,17 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Acquaintance strategies."""
-
-from cirq.contrib.acquaintance.strategies.complete import (
-    complete_acquaintance_strategy)
-
-from cirq.contrib.acquaintance.strategies.cubic import (
-    cubic_acquaintance_strategy)
-
-from cirq.contrib.acquaintance.strategies.quartic_bipartite import (
-    quartic_bipartite_acquaintance_strategy)
-
-from cirq.contrib.acquaintance.strategies.quartic_paired import (
-    quartic_paired_acquaintance_strategy)

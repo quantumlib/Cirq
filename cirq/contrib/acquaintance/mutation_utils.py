@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Sequence, TYPE_CHECKING, Union
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, optimizers
 
@@ -70,7 +70,7 @@ def rectify_acquaintance_strategy(
 def replace_acquaintance_with_swap_network(
         circuit: circuits.Circuit,
         qubit_order: Sequence[ops.QubitId],
-        acquaintance_size: int=0
+        acquaintance_size: Optional[int] = 0
         ) -> bool:
     """
     Replace every moment containing acquaintance gates (after

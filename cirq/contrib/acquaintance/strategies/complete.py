@@ -35,7 +35,7 @@ def complete_acquaintance_strategy(qubit_order: Sequence[ops.QubitId],
         an operation.
 
     Returns:
-        An circuit capable of implementing any set of k-local
+        A circuit capable of implementing any set of k-local
         operation.
     """
     if acquaintance_size < 0:
