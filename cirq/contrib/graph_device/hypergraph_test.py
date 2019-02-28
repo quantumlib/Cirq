@@ -15,23 +15,23 @@
 import random
 import pytest
 
-from cirq.devices.hypergraph import UndirectedHypergraph
+import cirq.contrib.graph_device as ccgd
 
 
 def test_update_edge_label():
     edge = frozenset(range(3))
-    graph = UndirectedHypergraph(labelled_edges={edge: 'a'})
+    graph = ccgd.UndirectedHypergraph(labelled_edges={edge: 'a'})
     assert graph.labelled_edges[edge] == 'a'
     graph.add_edge(edge, 'b')
     assert graph.labelled_edges[edge] == 'b'
 
 def test_hypergraph():
     vertices = range(4)
-    graph = UndirectedHypergraph(vertices)
+    graph = ccgd.UndirectedHypergraph(vertices)
     assert graph.vertices == tuple(vertices)
 
     edges = [(0, 1), (2, 3)]
-    graph = UndirectedHypergraph(
+    graph = ccgd.UndirectedHypergraph(
             labelled_edges={edge: str(edge) for edge in edges})
     assert graph.vertices == tuple(vertices)
     graph.remove_vertex(0)
@@ -48,14 +48,52 @@ def test_hypergraph():
      for _ in range(10)])
 def test_eq(vertices, edges):
     vertices = set(vertices).union(*edges)
-    graph_initialized = UndirectedHypergraph(vertices, edges)
-    graph_added_parallel = UndirectedHypergraph()
+    graph_initialized = ccgd.UndirectedHypergraph(vertices, edges)
+    graph_added_parallel = ccgd.UndirectedHypergraph()
     graph_added_parallel.add_vertices(vertices)
     graph_added_parallel.add_edges(edges)
-    graph_added_sequential = UndirectedHypergraph()
+    graph_added_sequential = ccgd.UndirectedHypergraph()
     for vertex in vertices:
         graph_added_sequential.add_vertex(vertex)
     for edge, label in edges.items():
         graph_added_sequential.add_edge(edge, label)
     assert (graph_initialized == graph_added_parallel ==
             graph_added_sequential)
+
+
+def test_random_hypergraph():
+    n_vertices = 4
+    graph = ccgd.UndirectedHypergraph.random(n_vertices, {1: 1.})
+    assert sorted(graph.vertices) == sorted(range(n_vertices))
+    assert set(graph.labelled_edges.values()) == set((None,))
+    assert tuple(len(edge) for edge in graph.edges) == (1,) * n_vertices
+
+
+def test_copy():
+    graph_original = ccgd.UndirectedHypergraph(labelled_edges={(0, 1): None})
+    graph_copy = graph_original.__copy__()
+    assert graph_copy == graph_original
+    graph_original.add_edge((1, 2))
+    assert graph_copy != graph_original
+
+
+def test_iadd():
+    graph = ccgd.UndirectedHypergraph(labelled_edges={(0, 1): None})
+    addend = ccgd.UndirectedHypergraph(labelled_edges={(1, 2): None})
+    graph += addend
+    assert set(graph.edges) == set(frozenset(e) for e in ((0, 1), (1, 2)))
+    assert sorted(graph.vertices) == [0, 1, 2]
+
+
+def test_add():
+    first_addend = ccgd.UndirectedHypergraph(
+            labelled_edges={('a', 'b'): None})
+    second_addend = ccgd.UndirectedHypergraph(
+            labelled_edges={('c', 'b'): None})
+    graph_sum = first_addend + second_addend
+    assert sorted(first_addend.vertices) == list('ab')
+    assert sorted(second_addend.vertices) == list('bc')
+    assert sorted(graph_sum.vertices) == list('abc')
+    assert sorted(first_addend.edges) == [frozenset('ab')]
+    assert sorted(second_addend.edges) == [frozenset('bc')]
+    assert set(graph_sum.edges) == set(frozenset(e) for e in ('ab', 'bc'))
