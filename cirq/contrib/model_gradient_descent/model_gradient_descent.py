@@ -111,11 +111,14 @@ def model_gradient_descent(
     else:
         known_xs, known_ys = [], []
 
+    if max_evaluations is None:
+        max_evaluations = np.inf
+
     current_x = x0
     total_evals = 0
     n = len(current_x)
 
-    while max_evaluations is None or total_evals < max_evaluations:
+    while total_evals < max_evaluations:
         # Determine points to evaluate
         new_xs = [current_x + _random_point_in_ball(n, sample_radius)
                   for _ in range(n_sample_points)]
