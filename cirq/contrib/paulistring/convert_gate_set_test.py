@@ -32,18 +32,18 @@ from cirq.contrib.paulistring import converted_gate_set
     (cirq.Z(q0) ** -0.5, cirq.SingleQubitCliffordGate.Z_nsqrt(q0)),
 
     (cirq.X(q0) ** 0.25,
-     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Pauli.X)) ** 0.25),
+     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X)) ** 0.25),
     (cirq.Y(q0) ** 0.25,
-     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Pauli.Y)) ** 0.25),
+     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Y)) ** 0.25),
     (cirq.Z(q0) ** 0.25,
-     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Pauli.Z)) ** 0.25),
+     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Z)) ** 0.25),
 
     (cirq.X(q0) ** 0, ()),
 
     (cirq.CZ(q0, q1), cirq.CZ(q0, q1)),
 
-    (cirq.MeasurementGate('key')(q0, q1),
-     cirq.MeasurementGate('key')(q0, q1)),
+    (cirq.measure(q0, q1, key='key'),
+     cirq.measure(q0, q1, key='key')),
 ))(cirq.LineQubit(0), cirq.LineQubit(1)))
 def test_converts_various_ops(op, expected_ops):
     before = cirq.Circuit.from_ops(op)

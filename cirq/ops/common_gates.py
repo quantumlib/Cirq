@@ -32,12 +32,14 @@ measurements are provided
     measure_each
 """
 from typing import (
-    Any, Callable, cast, Iterable, List, Optional, Tuple, Union,
+    Any, Callable, cast, Dict, Iterable, List, Optional, Tuple, Union,
 )
 
 import numpy as np
+import sympy
 
 from cirq import linalg, protocols, value
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 from cirq.type_workarounds import NotImplementedType
@@ -46,6 +48,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq.ops.phased_x_gate
 
 
+@value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the X axis of the Bloch sphere.
@@ -89,6 +92,16 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return {
+            'I': phase * np.cos(angle),
+            'X': -1j * phase * np.sin(angle),
+        }
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
         if self._global_shift == -0.5:
@@ -127,18 +140,24 @@ class XPowGate(eigen_gate.EigenGate,
         return 'X**{!r}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
-            return 'cirq.Rx(np.pi*{!r})'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if isinstance(self._exponent, sympy.Basic):
+                return 'cirq.Rx({})'.format(
+                    proper_repr(sympy.pi * self._exponent))
+            else:
+                return 'cirq.Rx(np.pi*{})'.format(
+                    proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
-            return '(cirq.X**{!r})'.format(self._exponent)
+            return '(cirq.X**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.XPowGate(exponent={!r}, '
+            'cirq.XPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@value.value_equality
 class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
@@ -168,6 +187,16 @@ class YPowGate(eigen_gate.EigenGate,
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
+
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return {
+            'I': phase * np.cos(angle),
+            'Y': -1j * phase * np.sin(angle),
+        }
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
@@ -204,21 +233,27 @@ class YPowGate(eigen_gate.EigenGate,
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'Y'
-        return 'Y**{!r}'.format(self._exponent)
+        return 'Y**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
-            return 'cirq.Ry(np.pi*{!r})'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if isinstance(self._exponent, sympy.Basic):
+                return 'cirq.Ry({})'.format(
+                    proper_repr(sympy.pi * self._exponent))
+            else:
+                return 'cirq.Ry(np.pi*{})'.format(
+                    proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
-            return '(cirq.Y**{!r})'.format(self._exponent)
+            return '(cirq.Y**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.YPowGate(exponent={!r}, '
+            'cirq.YPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
@@ -259,6 +294,16 @@ class ZPowGate(eigen_gate.EigenGate,
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),
         ]
+
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return {
+            'I': phase * np.cos(angle),
+            'Z': -1j * phase * np.sin(angle),
+        }
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
@@ -310,8 +355,12 @@ class ZPowGate(eigen_gate.EigenGate,
         return 'Z**{}'.format(self._exponent)
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
-            return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if isinstance(self._exponent, sympy.Basic):
+                return 'cirq.Rz({})'.format(proper_repr(
+                    sympy.pi * self._exponent))
+            else:
+                return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'cirq.T'
@@ -323,15 +372,15 @@ class ZPowGate(eigen_gate.EigenGate,
                 return '(cirq.S**-1)'
             if self._exponent == 1:
                 return 'cirq.Z'
-            return '(cirq.Z**{!r})'.format(self._exponent)
+            return '(cirq.Z**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.ZPowGate(exponent={!r}, '
+            'cirq.ZPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 @value.value_equality
-class MeasurementGate(raw_types.Gate):
+class MeasurementGate(gate_features.MultiQubitGate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
@@ -339,27 +388,34 @@ class MeasurementGate(raw_types.Gate):
     """
 
     def __init__(self,
+                 num_qubits: int,
                  key: str = '',
                  invert_mask: Tuple[bool, ...] = ()) -> None:
         """
         Args:
+            num_qubits: The number of qubits to act upon.
             key: The string key of the measurement.
             invert_mask: A list of values indicating whether the corresponding
                 qubits should be flipped. The list's length must not be longer
                 than the number of qubits, but it is permitted to be shorter.
                 Qubits with indices past the end of the mask are not flipped.
+
+        Raises:
+            ValueError if the length of invert_mask is greater than num_qubits.
         """
+        assert isinstance(num_qubits, int)
+
+        super().__init__(num_qubits)
         self.key = key
         self.invert_mask = invert_mask or ()
+        if (self.invert_mask is not None and
+            len(self.invert_mask) > self.num_qubits()):
+            raise ValueError('len(invert_mask) > num_qubits')
 
     @staticmethod
     def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        if isinstance(op, MeasurementGate):
-            return True
-        if (isinstance(op, gate_operation.GateOperation) and
-                isinstance(op.gate, MeasurementGate)):
-            return True
-        return False
+        return (cirq.protocols.measurement_key(op, None) is not None
+                and cirq.protocols.has_channel(op))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
@@ -368,19 +424,26 @@ class MeasurementGate(raw_types.Gate):
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
-        return MeasurementGate(key=self.key, invert_mask=tuple(new_mask))
+        return MeasurementGate(self.num_qubits(), key=self.key,
+                               invert_mask=tuple(new_mask))
 
-    def validate_args(self, qubits):
-        if (self.invert_mask is not None and
-                len(self.invert_mask) > len(qubits)):
-            raise ValueError('len(invert_mask) > len(qubits)')
+    def _measurement_key_(self):
+        return self.key
+
+    def _channel_(self):
+        size = 2 ** self.num_qubits()
+        zero = np.zeros((size, size))
+        zero[0][0] = 1.0
+        one = np.zeros((size, size))
+        one[-1][-1] = 1.0
+        return (zero, one)
+
+    def _has_channel_(self):
+        return True
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        n = (max(1, len(self.invert_mask))
-             if args.known_qubit_count is None
-             else args.known_qubit_count)
-        symbols = ['M'] * n
+        symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
         if self.invert_mask:
@@ -389,8 +452,8 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if (not args.known_qubits or
-                self.key != _default_measurement_key(args.known_qubits)):
+        if (not args.known_qubits or self.key != _default_measurement_key(
+            args.known_qubits)):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
@@ -413,11 +476,13 @@ class MeasurementGate(raw_types.Gate):
         return ''.join(lines)
 
     def __repr__(self):
-        return 'cirq.MeasurementGate({}, {})'.format(repr(self.key),
-                                                     repr(self.invert_mask))
+        return 'cirq.MeasurementGate({}, {}, {})'.format(
+            repr(self.num_qubits()),
+            repr(self.key),
+            repr(self.invert_mask))
 
     def _value_equality_values_(self):
-        return self.key, self.invert_mask
+        return self.num_qubits(), self.key, self.invert_mask
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
@@ -458,7 +523,7 @@ def measure(*qubits: raw_types.QubitId,
 
     if key is None:
         key = _default_measurement_key(qubits)
-    return MeasurementGate(key, invert_mask).on(*qubits)
+    return MeasurementGate(len(qubits), key, invert_mask).on(*qubits)
 
 
 def measure_each(*qubits: raw_types.QubitId,
@@ -476,12 +541,54 @@ def measure_each(*qubits: raw_types.QubitId,
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(key_func(q)).on(q) for q in qubits]
+    return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
+
+
+@value.value_equality
+class IdentityGate(gate_features.MultiQubitGate):
+    """A Gate that perform no operation on qubits.
+
+    The unitary matrix of this gate is a diagonal matrix with all 1s on the
+    diagonal and all 0s off the diagonal in any basis.
+
+    `cirq.I` is the single qubit identity gate.
+    """
+
+    def __init__(self, num_qubits):
+        super().__init__(num_qubits)
+
+    def _unitary_(self):
+        return np.identity(2 ** self.num_qubits())
+
+    def _apply_unitary_(
+        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+        return args.target_tensor
+
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        return {'I' * self.num_qubits(): 1.0}
+
+    def __repr__(self):
+        if self.num_qubits() == 1:
+            return 'cirq.I'
+        return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
+
+    def __str__(self):
+        if (self.num_qubits() == 1):
+            return 'I'
+        else:
+            return 'I({})'.format(self.num_qubits())
+
+    def _circuit_diagram_info_(self,
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('I',) * self.num_qubits(), connected=True)
+
+    def _value_equality_values_(self):
+        return self.num_qubits(),
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
-
 
     The unitary matrix of ``HPowGate(exponent=t)`` is:
 
@@ -514,6 +621,17 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
+        angle = np.pi * self._exponent / 2
+        return {
+            'I': phase * np.cos(angle),
+            'X': -1j * phase * np.sin(angle) / np.sqrt(2),
+            'Z': -1j * phase * np.sin(angle) / np.sqrt(2),
+        }
+
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -536,9 +654,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             yield cirq.XPowGate(global_shift=-0.25).on(q)
             return
 
-        yield Y(q)**0.25
-        yield X(q)**self._exponent
-        yield Y(q)**-0.25
+        yield YPowGate(exponent=0.25).on(q)
+        yield XPowGate(exponent=self._exponent).on(q)
+        yield YPowGate(exponent=-0.25).on(q)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -565,11 +683,11 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.H'
-            return '(cirq.H**{!r})'.format(self._exponent)
+            return '(cirq.H**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.HPowGate(exponent={!r}, '
+            'cirq.HPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 class CZPowGate(eigen_gate.EigenGate,
@@ -611,6 +729,19 @@ class CZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        global_phase = 1j**(2 * self._exponent * self._global_shift)
+        z_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
+        return {
+            'II': global_phase * (1 - c),
+            'IZ': global_phase * c,
+            'ZI': global_phase * c,
+            'ZZ': global_phase * -c,
+        }
+
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
@@ -637,16 +768,18 @@ class CZPowGate(eigen_gate.EigenGate,
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CZ'
-            return '(cirq.CZ**{!r})'.format(self._exponent)
+            return '(cirq.CZ**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.CZPowGate(exponent={!r}, '
+            'cirq.CZPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 def _rads_func_symbol(func_name: str,
-        args: protocols.CircuitDiagramInfoArgs,
-        half_turns: Any) -> str:
+                      args: protocols.CircuitDiagramInfoArgs,
+                      half_turns: Any) -> str:
+    if isinstance(half_turns, sympy.Basic):
+        return '{}({})'.format(func_name, sympy.pi * half_turns)
     unit = 'π' if args.use_unicode_characters else 'pi'
     if half_turns == 1:
         return '{}({})'.format(func_name, unit)
@@ -682,9 +815,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _decompose_(self, qubits):
         c, t = qubits
-        yield Y(t)**-0.5
+        yield YPowGate(exponent=-0.5).on(t)
         yield CZ(c, t)**self._exponent
-        yield Y(t)**0.5
+        yield YPowGate(exponent=0.5).on(t)
 
     def _eigen_components(self):
         return [
@@ -719,6 +852,19 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        global_phase = 1j**(2 * self._exponent * self._global_shift)
+        cnot_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
+        return {
+            'II': global_phase * (1 - c),
+            'IX': global_phase * c,
+            'ZI': global_phase * c,
+            'ZX': global_phase * -c,
+        }
+
     def _qasm_(self,
                args: protocols.QasmArgs,
                qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
@@ -736,11 +882,11 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CNOT'
-            return '(cirq.CNOT**{!r})'.format(self._exponent)
+            return '(cirq.CNOT**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.CNotPowGate(exponent={!r}, '
+            'cirq.CNotPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
     def on(self, *args: raw_types.QubitId,
            **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
@@ -810,6 +956,19 @@ class SwapPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        global_phase = 1j**(2 * self._exponent * self._global_shift)
+        swap_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
+        return {
+            'II': global_phase * (1 - c),
+            'XX': global_phase * c,
+            'YY': global_phase * c,
+            'ZZ': global_phase * c,
+        }
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         if not args.use_unicode_characters:
@@ -831,17 +990,17 @@ class SwapPowGate(eigen_gate.EigenGate,
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'SWAP'
-        return 'SWAP**{!r}'.format(self._exponent)
+        return 'SWAP**{}'.format(self._exponent)
 
     def __repr__(self):
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.SWAP'
-            return '(cirq.SWAP**{!r})'.format(self._exponent)
+            return '(cirq.SWAP**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.SwapPowGate(exponent={!r}, '
+            'cirq.SwapPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
@@ -912,6 +1071,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        global_phase = 1j**(2 * self._exponent * self._global_shift)
+        angle = np.pi * self._exponent / 4
+        c, s = np.cos(angle), np.sin(angle)
+        return {
+            'II': global_phase * c * c,
+            'XX': global_phase * c * s * 1j,
+            'YY': global_phase * s * c * 1j,
+            'ZZ': global_phase * s * s,
+        }
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
@@ -921,60 +1093,44 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ISWAP'
-        return 'ISWAP**{!r}'.format(self._exponent)
+        return 'ISWAP**{}'.format(self._exponent)
 
     def __repr__(self):
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ISWAP'
-            return '(cirq.ISWAP**{!r})'.format(self._exponent)
+            return '(cirq.ISWAP**{})'.format(proper_repr(self._exponent))
         return (
-            'cirq.ISwapPowGate(exponent={!r}, '
+            'cirq.ISwapPowGate(exponent={}, '
             'global_shift={!r})'
-        ).format(self._exponent, self._global_shift)
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
-def Rx(rads: float) -> XPowGate:
+def Rx(rads: Union[float, sympy.Basic]) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
-    return XPowGate(exponent=rads / np.pi, global_shift=-0.5)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Ry(rads: float) -> YPowGate:
+def Ry(rads: Union[float, sympy.Basic]) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    return YPowGate(exponent=rads / np.pi, global_shift=-0.5)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Rz(rads: float) -> ZPowGate:
+def Rz(rads: Union[float, sympy.Basic]) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    return ZPowGate(exponent=rads / np.pi, global_shift=-0.5)
+    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-X = XPowGate()
-"""The Pauli X gate.
-
-Matrix:
-
-    [[0, 1],
-     [1, 0]]
-"""
-
-
-#: The Pauli Y gate.
-#:
-#: Matrix:
-#:
-#:     [[0, -i],
-#:      [i, 0]]
-Y = YPowGate()
-
-
-# The Pauli Z gate.
+# The one qubit identity gate.
 #
 # Matrix:
 #
 #     [[1, 0],
-#      [0, -1]]
-Z = ZPowGate()
+#      [0, 1]]
+I = IdentityGate(num_qubits=1)
 
 
 # The Hadamard gate.
@@ -986,23 +1142,22 @@ Z = ZPowGate()
 #     where s = sqrt(0.5).
 H = HPowGate()
 
-
 # The Clifford S gate.
 #
 # Matrix:
 #
 #     [[1, 0],
 #      [0, i]]
-S = Z**0.5
+S = ZPowGate(exponent=0.5)
 
 
-# The T gate.
+# The non-Clifford T gate.
 #
 # Matrix:
 #
 #     [[1, 0]
 #      [0, exp(i pi / 4)]]
-T = Z**0.25
+T = ZPowGate(exponent=0.25)
 
 
 # The controlled Z gate.

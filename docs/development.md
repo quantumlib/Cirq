@@ -13,6 +13,13 @@ git clone git@github.com:quantumlib/cirq.git
 cd cirq
 ```
 
+To do your development in a Docker image, you can build one with Cirq/dev_tools/Dockerfile or pull an existing image:
+```bash
+    docker pull quantumlib/cirq:dev
+    docker run -it quantumlib/cirq:dev python -c "import cirq; print(cirq.google.Foxtail)"
+```
+
+
 If you want to contribute changes to Cirq, you will instead want to fork the repository and submit pull requests from your fork.
 
 
@@ -81,9 +88,10 @@ See the previous section for instructions.
 
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
-    pip install --upgrade pip
-    pip install -r requirements.txt
-    pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
+    python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    python -m pip install -r cirq/contrib/contrib-requirements.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
@@ -306,7 +314,7 @@ The HTML output will go into the `docs/_build` directory.
     And try it out for yourself:
 
     ```bash
-    pip install cirq
+    python -m pip install cirq
     python -c "import cirq; print(cirq.google.Foxtail)"
     python -c "import cirq; print(cirq.__version__)"
     ```

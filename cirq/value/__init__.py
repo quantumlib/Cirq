@@ -20,8 +20,11 @@ from cirq.value.angle import (
 from cirq.value.duration import (
     Duration,
 )
-from cirq.value.symbol import (
-    Symbol,
+from cirq.value.probability import (
+    validate_probability,
+)
+from cirq.value.periodic_value import (
+    PeriodicValue,
 )
 from cirq.value.timestamp import (
     Timestamp,

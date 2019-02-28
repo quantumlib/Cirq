@@ -22,7 +22,7 @@ from cirq.contrib.paulistring.clifford_optimize import (
 
 
 def optimized_circuit(circuit: circuits.Circuit,
-                      tolerance: float = 1e-8,
+                      atol: float = 1e-8,
                       repeat: int = 10,
                       merge_interactions: bool = True
                       ) -> circuits.Circuit:
@@ -37,10 +37,10 @@ def optimized_circuit(circuit: circuits.Circuit,
         circuit2 = pauli_string_optimized_circuit(
                         circuit,
                         move_cliffords=False,
-                        tolerance=tolerance)
+                        atol=atol)
         circuit3 = clifford_optimized_circuit(
                         circuit2,
-                        tolerance=tolerance)
+                        atol=atol)
         if (len(circuit3) == start_len
             and _cz_count(circuit3) == start_cz_count):
             return circuit3
@@ -49,10 +49,10 @@ def optimized_circuit(circuit: circuits.Circuit,
 
 
 def _optimized_ops(ops: Sequence[ops.Operation],
-                   tolerance: float = 1e-8,
+                   atol: float = 1e-8,
                    repeat: int = 10) -> ops.OP_TREE:
     c = circuits.Circuit.from_ops(ops)
-    c_opt = optimized_circuit(c, tolerance, repeat, merge_interactions=False)
+    c_opt = optimized_circuit(c, atol, repeat, merge_interactions=False)
     return c_opt.all_operations()
 
 
