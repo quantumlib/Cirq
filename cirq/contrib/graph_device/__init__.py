@@ -18,5 +18,5 @@ from cirq.contrib.graph_device.hypergraph import (
 from cirq.contrib.graph_device.graph_device import (
     is_undirected_device_graph, is_crosstalk_graph,
     UndirectedGraphDevice,
-    UnconstrainedUndirectedGraphDeviceEdge, 
+    UnconstrainedUndirectedGraphDeviceEdge,
     FixedDurationUndirectedGraphDeviceEdge)
