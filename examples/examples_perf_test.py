@@ -21,28 +21,28 @@ def test_example_runs_bernstein_vazirani(benchmark):
         [], a, [], True)) == [cirq.X(a)]
 
 
-def test_example_runs_hello_line():
-    examples.place_on_bristlecone.main()
+def test_example_runs_hello_line(benchmark):
+    benchmark(examples.place_on_bristlecone.main)
 
 
 def test_example_runs_hello_qubit(benchmark):
-    examples.hello_qubit.main()
+    benchmark(examples.hello_qubit.main)
 
 
 def test_example_runs_bell_inequality(benchmark):
-    examples.bell_inequality.main()
+    benchmark(examples.bell_inequality.main)
 
 
 def test_example_runs_quantum_fourier_transform(benchmark):
-    examples.quantum_fourier_transform.main()
+    benchmark(examples.quantum_fourier_transform.main)
 
 
 def test_example_runs_bcs_mean_field(benchmark):
-    examples.bcs_mean_field.main()
+    benchmark(examples.bcs_mean_field.main)
 
 
 def test_example_runs_grover(benchmark):
-    examples.grover.main()
+    benchmark(examples.grover.main)
 
 
 def test_example_runs_basic_arithmetic():
@@ -50,4 +50,4 @@ def test_example_runs_basic_arithmetic():
 
 
 def test_example_runs_phase_estimator(benchmark):
-    examples.phase_estimator.main(qnums=(2,), repetitions=2)
+    benchmark(examples.phase_estimator.main, qnums=(2,), repetitions=2)
