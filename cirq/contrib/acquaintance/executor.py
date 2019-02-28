@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, TYPE_CHECKING, Sequence
+from typing import Dict, Sequence, TYPE_CHECKING
 
 import abc
 from collections import defaultdict
 
-from cirq import circuits, devices, ops
+from cirq import circuits, devices, ops, protocols
 
 from cirq.contrib.acquaintance.gates import (
         AcquaintanceOpportunityGate)
@@ -124,6 +124,12 @@ class AcquaintanceOperation(ops.GateOperation):
         super().__init__(AcquaintanceOpportunityGate(num_qubits=len(qubits)),
                          qubits)
         self.logical_indices = logical_indices # type: LogicalIndexSequence
+
+    def _circuit_diagram_info_(self,
+            args: protocols.CircuitDiagramInfoArgs
+            ) -> protocols.CircuitDiagramInfo:
+        wire_symbols = tuple('({})'.format(i) for i in self.logical_indices)
+        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
 
 class GreedyExecutionStrategy(ExecutionStrategy):
