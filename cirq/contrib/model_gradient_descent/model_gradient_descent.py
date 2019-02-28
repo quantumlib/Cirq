@@ -20,11 +20,32 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import Pipeline
 
 
+class OptimizationResult:
+    """Result from optimizing an objective function.
+
+    Attributes:
+        x: The solution of the optimization.
+        fun: Value of the objective function at the solution.
+        nfev: Number of function evaluations performed by the optimizer.
+        nit: Number of iterations performed by the optimizer.
+    """
+
+    def __init__(self,
+                 x: np.ndarray,
+                 fun: Optional[float]=None,
+                 nfev: Optional[int]=None,
+                 nit: Optional[int]=None) -> None:
+        self.x = x
+        self.fun = fun
+        self.nfev = nfev
+        self.nit = nit
+
+
 def _get_least_squares_model_gradient(
         xs: List[np.ndarray],
         ys: List[np.ndarray],
         xopt: np.ndarray,
-        linear_model: LinearRegression):
+        linear_model: LinearRegression) -> np.ndarray:
     model = Pipeline([('poly', PolynomialFeatures(degree=2)),
                       ('linear_model', linear_model),
                       ]
@@ -37,7 +58,7 @@ def _get_least_squares_model_gradient(
     return linear_coeffs
 
 
-def _random_point_in_ball(n: int, radius: float):
+def _random_point_in_ball(n: int, radius: float) -> np.ndarray:
     point_on_sphere = np.random.randn(n)
     point_on_sphere /= np.linalg.norm(point_on_sphere)
     length = np.random.uniform()
@@ -54,7 +75,7 @@ def model_gradient_descent(
         tol: float=1e-8,
         known_values: Optional[Tuple[List[np.ndarray], List[np.ndarray]]]=None,
         max_evaluations: Optional[int]=None,
-        verbose: bool=False):
+        verbose: bool=False) -> OptimizationResult:
     """Model gradient descent algorithm for black-box optimization.
 
     The idea of this algorithm is to perform gradient descent, but estimate
@@ -134,4 +155,6 @@ def model_gradient_descent(
         # Update
         current_x -= rate*model_gradient
 
-    return current_x, f(current_x), total_evals
+    return OptimizationResult(x=current_x,
+                              fun=f(current_x),
+                              nfev=total_evals)
