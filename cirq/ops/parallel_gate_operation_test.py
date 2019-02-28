@@ -16,7 +16,6 @@ import pytest
 import numpy as np
 import sympy
 import cirq
-from cirq import testing
 
 
 def test_parallel_gate_operation_init():
@@ -157,7 +156,8 @@ def test_equivalent_circuit():
             oldc.append(gate.on(qubit))
         newc.append(cirq.ops.ParallelGateOperation(gate, qreg))
 
-    testing.assert_has_diagram(newc, oldc.to_text_diagram())
-    testing.assert_circuits_with_terminal_measurements_are_equivalent(oldc,
-                                                                      newc,
-                                                                      atol=1e-6)
+    cirq.testing.assert_has_diagram(newc, oldc.to_text_diagram())
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(oldc,
+                                                                           newc,
+                                                                           atol=
+                                                                           1e-6)
