@@ -15,10 +15,10 @@ import json
 from typing import (
     Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, Union
 )
-
 import numpy as np
+import sympy
 
-from cirq import ops, devices, value
+from cirq import devices, ops, protocols
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
@@ -137,7 +137,7 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
                          'different than number of qubits it acts on.')
     measurement = {
         'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
-        'key': gate.key,
+        'key': protocols.measurement_key(gate),
     }
     if invert_mask:
         measurement['invert_mask'] = [json.dumps(x) for x in invert_mask]
@@ -357,10 +357,10 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
 
 
 def _parameterized_value_from_proto_dict(message: Dict
-                                         ) -> Union[value.Symbol, float]:
+                                         ) -> Union[sympy.Basic, float]:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
-        return value.Symbol(parameter_key)
+        return sympy.Symbol(parameter_key)
     if 'raw' in message:
         return message['raw']
     raise ValueError('No value specified for parameterized float. '
@@ -368,11 +368,11 @@ def _parameterized_value_from_proto_dict(message: Dict
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: Union[value.Symbol, float]
+def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
                                        ) -> Dict:
     out = {}  # type: Dict
-    if isinstance(param, value.Symbol):
-        out['parameter_key'] = param.name
+    if isinstance(param, sympy.Symbol):
+        out['parameter_key'] = str(param.free_symbols.pop())
     else:
         out['raw'] = float(param)
     return out

@@ -16,6 +16,7 @@ from typing import Union, Tuple, cast
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq.type_workarounds import NotImplementedType
@@ -170,7 +171,7 @@ def test_eq():
 
 
 def test_unitary():
-    cxa = cirq.ControlledGate(cirq.X**cirq.Symbol('a'))
+    cxa = cirq.ControlledGate(cirq.X**sympy.Symbol('a'))
     assert not cirq.has_unitary(cxa)
     assert cirq.unitary(cxa, None) is None
 
@@ -304,7 +305,7 @@ class UnphaseableGate(cirq.SingleQubitGate):
 
 
 def test_parameterizable():
-    a = cirq.Symbol('a')
+    a = sympy.Symbol('a')
     cz = cirq.ControlledGate(cirq.Y)
     cza = cirq.ControlledGate(cirq.YPowGate(exponent=a))
     scza = cirq.ControlledGate(cirq.YPowGate(exponent=a), [q])
