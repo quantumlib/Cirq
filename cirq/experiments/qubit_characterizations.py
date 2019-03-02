@@ -1,5 +1,8 @@
 import itertools
-from typing import Sequence, Tuple, Iterator, Dict, Any
+from typing import Sequence, Tuple, Iterator, Any
+
+import sympy
+
 from cirq import circuits, devices, ops, protocols, sim, study, value
 import numpy as np
 from matplotlib import pyplot as plt
@@ -132,7 +135,7 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
     Returns:
         A RabiResult object that stores and plots the result.
     """
-    theta = value.Symbol('theta')
+    theta = sympy.Symbol('theta')
     circuit = circuits.Circuit.from_ops(ops.X(qubit) ** theta)
     circuit.append(ops.measure(qubit, key='z'))
     sweep = study.Linspace(key='theta', start=0.0, stop=max_angle / np.pi,

@@ -12,7 +12,7 @@ def main():
     q_1 = cirq.GridQubit(0, 1)
 
     # Measure Rabi oscillation of q_0.
-    rabi_results = cirq.experiments.rabi_oscillations(simulator, q_0, 4*np.pi)
+    rabi_results = cirq.experiments.rabi_oscillations(simulator, q_0, 4 * np.pi)
     rabi_results.plot()
 
     # Clifford-based randomized benchmarking of single-qubit gates on q_0.
