@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+import sympy
 
 import cirq
 from cirq.contrib.quirk.export_to_quirk import circuit_to_quirk_url
@@ -70,7 +71,7 @@ def test_various_known_gate_types():
         cirq.Z(a)**0.5,
         cirq.Y(a),
         cirq.Y(a)**-0.25,
-        cirq.Y(a)**cirq.Symbol('t'),
+        cirq.Y(a)**sympy.Symbol('t'),
         cirq.H(a),
         cirq.measure(a),
         cirq.measure(a, b, key='not-relevant'),
@@ -111,7 +112,7 @@ class MysteryOperation(cirq.Operation):
         return MysteryOperation(*new_qubits)
 
 
-class MysteryGate(cirq.Gate):
+class MysteryGate(cirq.SingleQubitGate):
     pass
 
 
@@ -129,7 +130,7 @@ def test_various_unknown_gate_types():
         cirq.Z(a)**(1/5),
         cirq.CZ(a, b)**(1/5),
         cirq.PhasedXPowGate(phase_exponent=0.25)(a),
-        cirq.PhasedXPowGate(exponent=1, phase_exponent=cirq.Symbol('r'))(a),
+        cirq.PhasedXPowGate(exponent=1, phase_exponent=sympy.Symbol('r'))(a),
         cirq.PhasedXPowGate(exponent=0.001, phase_exponent=0.1)(a)
     )
     assert_links_to(circuit, """
@@ -176,7 +177,7 @@ def test_unrecognized_single_qubit_gate_with_matrix():
 
 
 def test_unknown_gate():
-    class UnknownGate(cirq.Gate):
+    class UnknownGate(cirq.SingleQubitGate):
         pass
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit.from_ops(UnknownGate()(a))
@@ -275,7 +276,7 @@ def test_ccz():
 
     # Symbolic exponent.
     circuit = cirq.Circuit.from_ops(
-        cirq.CCZ(a, b, c)**cirq.Symbol('t'))
+        cirq.CCZ(a, b, c)**sympy.Symbol('t'))
     assert_links_to(circuit, """
         http://algassert.com/quirk#circuit={"cols":[["•","•","Z^t"]]}
     """, escape_url=False)

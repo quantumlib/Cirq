@@ -145,8 +145,8 @@ def test_rectification():
 
     perm_gate = cca.SwapPermutationGate()
     operations = [
-        perm_gate(*qubits[:2]), cca.ACQUAINT(*qubits[2:]),
-        cca.ACQUAINT(*qubits[:2]), perm_gate(*qubits[2:])
+        perm_gate(*qubits[:2]), cca.acquaint(*qubits[2:]),
+        cca.acquaint(*qubits[:2]), perm_gate(*qubits[2:])
         ]
 
     strategy = cirq.Circuit.from_ops(

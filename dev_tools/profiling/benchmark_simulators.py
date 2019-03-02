@@ -21,11 +21,12 @@ import timeit
 import numpy as np
 
 import cirq
-from cirq.google import XmonOptions, XmonSimulator
+import cirq.google as cg
 
 
 _XMON = 'xmon'
 _UNITARY = 'unitary'
+_DENSITY = 'density_matrix'
 
 
 def simulate(
@@ -55,10 +56,13 @@ def simulate(
                            strategy=cirq.InsertStrategy.EARLIEST)
 
     if sim_type == _XMON:
-        XmonSimulator(XmonOptions(num_shards=2 ** num_prefix_qubits,
-                                  use_processes=use_processes)).run(circuit)
+        options = cg.XmonOptions(num_shards=2 ** num_prefix_qubits,
+                                 use_processes=use_processes)
+        cg.XmonSimulator(options).run(circuit)
     elif sim_type == _UNITARY:
         circuit.apply_unitary_effect_to_state(initial_state=0)
+    elif sim_type == _DENSITY:
+        cirq.DensityMatrixSimulator().run(circuit)
 
 
 def main(
@@ -84,7 +88,8 @@ def main(
 
 def parse_arguments(args):
     parser = argparse.ArgumentParser('Benchmark a simulator.')
-    parser.add_argument('--sim_type', choices=[_XMON, _UNITARY], default=_XMON,
+    parser.add_argument('--sim_type', choices=[_XMON, _UNITARY, _DENSITY],
+                        default=_XMON,
                         help='Which simulator to benchmark.', type=str)
     parser.add_argument('--min_num_qubits', default=4, type=int,
                         help='Minimum number of qubits to benchmark.')

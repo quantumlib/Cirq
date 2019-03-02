@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for handling a full quantum job.
+import pytest
 
-Types and methods related to transforming circuits in preparation of sending
-them to Quantum Engine.  Contains classes to help with adding parameter
-sweeps and error simulation.
-"""
+import cirq
 
-from cirq.contrib.jobs.job import (
-    Job,
-)
-from cirq.contrib.jobs.depolarizer_channel import (
-    DepolarizerChannel,
-)
+
+@pytest.mark.parametrize('p', [0.0, 0.1, 0.6, 1.0])
+def test_validate_probability_valid(p):
+    assert p == cirq.validate_probability(p, 'p')
+
+
+@pytest.mark.parametrize('p', [-0.1, 1.1])
+def test_validate_probability_invalid(p):
+    with pytest.raises(ValueError, match='p'):
+        cirq.validate_probability(p, 'p')

@@ -19,6 +19,7 @@ from typing import List, Tuple, cast
 import numpy as np
 
 from cirq import ops, linalg, protocols
+from cirq.linalg.tolerance import near_zero_mod
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
@@ -30,13 +31,13 @@ def _signed_mod_1(x: float) -> float:
 
 
 def single_qubit_matrix_to_pauli_rotations(
-        mat: np.ndarray, tolerance: float = 0
+        mat: np.ndarray, atol: float = 0
 ) -> List[Tuple[ops.Pauli, float]]:
     """Implements a single-qubit operation with few rotations.
 
     Args:
         mat: The 2x2 unitary matrix of the operation to implement.
-        tolerance: A limit on the amount of error introduced by the
+        atol: A limit on the amount of absolute error introduced by the
             construction.
 
     Returns:
@@ -44,10 +45,8 @@ def single_qubit_matrix_to_pauli_rotations(
         perform the desired operation.
     """
 
-    tol = linalg.Tolerance(atol=tolerance)
-
     def is_clifford_rotation(half_turns):
-        return tol.near_zero_mod(half_turns, 0.5)
+        return near_zero_mod(half_turns, 0.5, atol=atol)
 
     def to_quarter_turns(half_turns):
         return round(2 * half_turns) % 4

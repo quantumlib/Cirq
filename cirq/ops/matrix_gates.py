@@ -19,14 +19,15 @@ from typing import cast, Any
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq.ops import raw_types
+from cirq._compat import proper_repr
+from cirq.ops import gate_features
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
-class SingleQubitMatrixGate(raw_types.Gate):
+class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     """A 1-qubit gate defined by its matrix.
 
     More general than specialized classes like `ZPowGate`, but more expensive
@@ -98,13 +99,13 @@ class SingleQubitMatrixGate(raw_types.Gate):
 
     def __repr__(self):
         return 'cirq.SingleQubitMatrixGate({})'.format(
-                _numpy_array_repr(self._matrix))
+            proper_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
 
 
-class TwoQubitMatrixGate(raw_types.Gate):
+class TwoQubitMatrixGate(gate_features.TwoQubitGate):
     """A 2-qubit gate defined only by its matrix.
 
     More general than specialized classes like `CZPowGate`, but more expensive
@@ -171,7 +172,7 @@ class TwoQubitMatrixGate(raw_types.Gate):
 
     def __repr__(self):
         return 'cirq.TwoQubitMatrixGate({})'.format(
-                _numpy_array_repr(self._matrix))
+                proper_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -195,7 +196,3 @@ def _matrix_to_diagram_symbol(matrix: np.ndarray,
         lines.append('└' + ' ' * w + '┘')
         result = '\n'.join(lines)
     return result
-
-
-def _numpy_array_repr(arr: np.ndarray) -> str:
-    return 'np.array({!r})'.format(arr.tolist())

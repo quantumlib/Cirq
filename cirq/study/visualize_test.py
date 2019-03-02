@@ -31,8 +31,7 @@ def test_plot_state_histogram():
     q1 = GridQubit(1, 0)
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.X(q1)])
-    circuit.append([cirq.MeasurementGate(key='q0')(q0),
-                    cirq.MeasurementGate(key='q1')(q1)])
+    circuit.append([cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')])
     result = simulator.run(program=circuit,
                            repetitions=5)
 

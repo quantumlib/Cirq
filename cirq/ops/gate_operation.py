@@ -21,7 +21,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features
+from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -41,6 +41,7 @@ class GateOperation(raw_types.Operation):
             gate: The gate to apply.
             qubits: The qubits to operate on.
         """
+        gate.validate_args(qubits)
         self._gate = gate
         self._qubits = tuple(qubits)
 
@@ -94,7 +95,7 @@ class GateOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return self.gate, self._group_interchangeable_qubits()
 
-    def _decompose_(self):
+    def _decompose_(self) -> op_tree.OP_TREE:
         return protocols.decompose_once_with_qubits(self.gate,
                                                     self.qubits,
                                                     NotImplemented)
@@ -111,6 +112,21 @@ class GateOperation(raw_types.Operation):
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self._gate, NotImplemented)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self._gate)
+
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return protocols.mixture(self._gate, NotImplemented)
+
+    def _has_channel_(self) -> bool:
+        return protocols.has_channel(self._gate)
+
+    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.channel(self._gate, NotImplemented)
+
+    def _measurement_key_(self) -> str:
+        return protocols.measurement_key(self._gate, NotImplemented)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._gate)
