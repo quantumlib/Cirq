@@ -67,22 +67,22 @@ reversing qubit order for phase kickbacks.
 """
 
 import math
-import cirq
 import numpy as np
+import cirq
 
 
 class PhaseEstimation(cirq.MultiQubitGate):
     """
     A gate for Quantum Phase Estimation.
 
-    U is the unitary matrix whose phases will be estimated.
+    unitary is the unitary gate whose phases will be estimated.
     The last qubit stores the eigenvector; all other qubits store the
     estimated phase, in big-endian.
     """
 
-    def __init__(self, num_qubits, U, invert=False):
+    def __init__(self, num_qubits, unitary, invert=False):
         super().__init__(num_qubits)
-        self.U = U
+        self.U = unitary
         self.invert = invert
 
     def _decompose_(self, qubits):
@@ -90,10 +90,10 @@ class PhaseEstimation(cirq.MultiQubitGate):
             qubits = list(qubits)
             yield Qft(self._num_qubits-1)(*qubits[:-1])
             yield (PhaseKickback(self.num_qubits(), self.U)**-1)(*qubits)
-            yield cirq.H.on_each(qubits[:-1])
+            yield cirq.H.on_each(*qubits[:-1])
         else:
             qubits = list(qubits)
-            yield cirq.H.on_each(qubits[:-1])
+            yield cirq.H.on_each(*qubits[:-1])
             yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
             yield (Qft(self._num_qubits-1)**-1)(*qubits[:-1])
 
@@ -137,11 +137,12 @@ class PhaseKickback(cirq.MultiQubitGate):
     It consists of a series of controlled e^iAt gates with the memory qubit as
     the target and each register qubit as the control, raised
     to the power of 2 based on the qubit index.
+    unitary is the unitary gate whose phases will be estimated.
     """
 
-    def __init__(self, num_qubits, U, invert=False):
+    def __init__(self, num_qubits, unitary, invert=False):
         super(PhaseKickback, self).__init__(num_qubits)
-        self.U = U
+        self.U = unitary
         self.invert = invert
 
     def _decompose_(self, qubits):
@@ -218,7 +219,7 @@ class EigenRotation(cirq.MultiQubitGate):
 
     def _decompose_(self, qubits):
         for k in range(self.N):
-            kGate = self.__ancilla_rotation(k)
+            kGate = self._ancilla_rotation(k)
 
             # xor's 1 bits correspond to X gate positions.
             xor = k ^ (k-1)
@@ -234,7 +235,7 @@ class EigenRotation(cirq.MultiQubitGate):
 
             yield kGate(*qubits)
 
-    def __ancilla_rotation(self, k):
+    def _ancilla_rotation(self, k):
         if k == 0:
             k = self.N
         theta = 2*math.asin(self.C * self.N * self.t / (2*math.pi * k))
@@ -263,9 +264,9 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     pe = PhaseEstimation(register_size+1, hs)
     c.append([gate(memory) for gate in input_prep_gates])
     c.append([
-        pe(*register, memory),
+        pe(*(register + [memory])),
         EigenRotation(register_size+1, C, t)(*register, ancilla),
-        (pe**-1)(*register, memory),
+        (pe**-1)(*(register + [memory])),
         cirq.measure(ancilla)
     ])
 
