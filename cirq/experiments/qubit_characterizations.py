@@ -3,7 +3,7 @@ from typing import Sequence, Tuple, Iterator, Any
 
 import sympy
 
-from cirq import circuits, devices, ops, protocols, sim, study, value
+from cirq import circuits, devices, ops, protocols, sim, study
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
