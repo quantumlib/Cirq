@@ -1,8 +1,8 @@
 import itertools
-from typing import Sequence, Tuple, Iterator
+from typing import Sequence, Tuple, Iterator, Dict, Any
 from cirq import circuits, devices, ops, protocols, sim, study, value
 import numpy as np
-from matplotlib import pyplot
+from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -30,30 +30,34 @@ class RabiResult:
         return [(angle, prob) for angle, prob in zip(self._rabi_angles,
                                                      self._excited_state_probs)]
 
-    def plot(self) -> None:
+    def plot(self, **plot_kwargs: Any) -> None:
         """Plots excited state probability vs the Rabi angle (angle of rotation
         around the x-axis).
+
+        Args:
+            **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
-        fig = pyplot.figure()
-        pyplot.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
-                    figure=fig)
-        pyplot.xlabel(r"Rabi Angle ($\pi$)")
-        pyplot.ylabel('Excited State Probability')
+        fig = plt.figure()
+        plt.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
+                 figure=fig, **plot_kwargs)
+        plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
+        plt.ylabel('Excited State Probability', figure=fig)
+        fig.show()
 
 
-class RBResult:
+class RandomizedBenchMarkResult:
     """Results from a randomized benchmarking experiment."""
 
-    def __init__(self, numbers_cliffords: Sequence[int],
+    def __init__(self, num_cliffords: Sequence[int],
                  ground_state_probabilities: Sequence[float]):
         """
         Args:
-            numbers_cliffords: The different numbers of Cliffords in the RB
+            num_cliffords: The different numbers of Cliffords in the RB
                 study.
             ground_state_probabilities: The corresponding average ground state
                 probabilities.
         """
-        self._num_cfds_seq = numbers_cliffords
+        self._num_cfds_seq = num_cliffords
         self._gnd_state_probs = ground_state_probabilities
 
     @property
@@ -65,15 +69,19 @@ class RBResult:
         return [(num, prob) for num, prob in zip(self._num_cfds_seq,
                                                  self._gnd_state_probs)]
 
-    def plot(self) -> None:
+    def plot(self, **plot_kwargs: Any) -> None:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
+
+        Args:
+            **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
-        fig = pyplot.figure()
-        pyplot.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
-                    figure=fig)
-        pyplot.xlabel(r"Number of Cliffords")
-        pyplot.ylabel('Ground State Probability')
+        fig = plt.figure()
+        plt.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
+                 figure=fig, **plot_kwargs)
+        plt.xlabel(r"Number of Cliffords", figure=fig)
+        plt.ylabel('Ground State Probability', figure=fig)
+        fig.show()
 
 
 class TomographyResult:
@@ -97,26 +105,29 @@ class TomographyResult:
         """Plots the real and imaginary parts of the density matrix as two
         3D bar plots.
         """
-        _plot_density_matrix(self._density_matrix)
+        fig_re, fig_imag = _plot_density_matrix(self._density_matrix)
+        fig_re.show()
+        fig_imag.show()
 
 
 def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
-                      final_angle: float, number_shots: int,
-                      number_points: int) -> RabiResult:
+                      max_angle: float = 2 * np.pi, *,
+                      repetitions: int = 1000,
+                      num_points: int = 200) -> RabiResult:
     """Runs a Rabi oscillation experiment.
 
     Rotates a qubit around the x-axis of the Bloch sphere by a sequence of Rabi
-    angles evenly spaced between 0 and final_angle. For each rotation,
-    repeat the circuit number_shots times and measure the average probability
-    of the qubit being in the |1> state.
+    angles evenly spaced between 0 and max_angle. For each rotation, repeat
+    the circuit a number of times and measure the average probability of the
+    qubit being in the |1> state.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubit: The qubit under test.
-        final_angle: The final Rabi angle in units of pi.
-        number_shots: The number of repetitions of the circuit for each
-            Rabi angle.
-        number_points: The number of Rabi angles.
+        max_angle: The final Rabi angle in radians.
+        repetitions: The number of repetitions of the circuit for each Rabi
+            angle.
+        num_points: The number of Rabi angles.
 
     Returns:
         A RabiResult object that stores and plots the result.
@@ -124,49 +135,50 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
     theta = value.Symbol('theta')
     circuit = circuits.Circuit.from_ops(ops.X(qubit) ** theta)
     circuit.append(ops.measure(qubit, key='z'))
-    sweep = study.Linspace(key='theta', start=0.0, stop=final_angle,
-                           length=number_points)
-    results = sampler.run_sweep(circuit, params=sweep, repetitions=number_shots)
-    half_turns = np.linspace(0.0, final_angle, number_points)
-    excited_state_probs = np.zeros(number_points)
-    for i in range(number_points):
+    sweep = study.Linspace(key='theta', start=0.0, stop=max_angle / np.pi,
+                           length=num_points)
+    results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
+    angles = np.linspace(0.0, max_angle, num_points)
+    excited_state_probs = np.zeros(num_points)
+    for i in range(num_points):
         excited_state_probs[i] = np.mean(results[i].measurements['z'])
 
-    return RabiResult(half_turns, excited_state_probs)
+    return RabiResult(angles, excited_state_probs)
 
 
 def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
                                          qubit: devices.GridQubit,
-                                         numbers_cliffords: Sequence[int],
-                                         number_circuits: int,
-                                         number_shots: int,
-                                         use_xy_basis: bool = True) -> RBResult:
+                                         num_cliffords: Sequence[int],
+                                         use_xy_basis: bool = True,
+                                         *, num_circuits: int = 20,
+                                         repetitions: int = 1000
+                                         ) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of a single qubit.
 
-    A total of number_circuits random circuits are generated, each of which
+    A total of num_circuits random circuits are generated, each of which
     contains a fixed number of single-qubit Clifford gates plus one
     additional Clifford that inverts the whole sequence and a measurement in
-    the z-basis. Each circuit is repeated number_shots times and the average
+    the z-basis. Each circuit is repeated a number of times and the average
     |0> state population is determined from the measurement outcomes of all
     of the circuits.
 
     The above process is done for different numbers of Cliffords specified in
-    numbers_cliffords.
+    num_cliffords.
 
     See Barends et al., Nature 508, 500 for details.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubit: The qubit under test.
-        numbers_cliffords: The different numbers of Cliffords in the RB study.
-        number_circuits: The number of random circuits generated for each
-            number of Cliffords.
-        number_shots: The number of repetitions of each circuit.
+        num_cliffords: The different numbers of Cliffords in the RB study.
         use_xy_basis: Determines if the Clifford gates are built with x and y
             rotations (True) or x and z rotations (False).
+        num_circuits: The number of random circuits generated for each
+            number of Cliffords.
+        repetitions: The number of repetitions of each circuit.
 
     Returns:
-        A RBResult object that stores and plots the result.
+        A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
     c1_in_xy, c1_in_xz, _, _, _ = _single_qubit_cliffords()
@@ -174,35 +186,36 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     cfd_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
 
     gnd_probs = []
-    for num_cfds in numbers_cliffords:
+    for num_cfds in num_cliffords:
         excited_probs_l = []
-        for _ in range(number_circuits):
+        for _ in range(num_circuits):
             circuit = _random_single_q_clifford(qubit, num_cfds, c1, cfd_mats)
             circuit.append(ops.measure(qubit, key='z'))
-            results = sampler.run(circuit, repetitions=number_shots)
+            results = sampler.run(circuit, repetitions=repetitions)
             excited_probs_l.append(np.mean(results.measurements['z']))
         gnd_probs.append(1.0 - np.mean(excited_probs_l))
 
-    return RBResult(numbers_cliffords, gnd_probs)
+    return RandomizedBenchMarkResult(num_cliffords, gnd_probs)
 
 
 def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
                                       first_qubit: devices.GridQubit,
                                       second_qubit: devices.GridQubit,
-                                      numbers_cliffords: Sequence[int],
-                                      number_circuits: int,
-                                      number_shots: int) -> RBResult:
+                                      num_cliffords: Sequence[int], *,
+                                      num_circuits: int = 20,
+                                      repetitions: int = 1000
+                                      ) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of two qubits.
 
-    A total of number_circuits random circuits are generated, each of which
+    A total of num_circuits random circuits are generated, each of which
     contains a fixed number of two-qubit Clifford gates plus one additional
     Clifford that inverts the whole sequence and a measurement in the
-    z-basis. Each circuit is repeated number_shots times and the average
+    z-basis. Each circuit is repeated a number of times and the average
     |00> state population is determined from the measurement outcomes of all
     of the circuits.
 
     The above process is done for different numbers of Cliffords specified in
-    numbers_cliffords.
+    num_cliffords.
 
     The two-qubit Cliffords here are decomposed into CZ gates plus single-qubit
     x and y rotations. See Barends et al., Nature 508, 500 for details.
@@ -211,37 +224,37 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
         sampler: The quantum engine or simulator to run the circuits.
         first_qubit: The first qubit under test.
         second_qubit: The second qubit under test.
-        numbers_cliffords: The different numbers of Cliffords in the RB study.
-        number_circuits: The number of random circuits generated for each
+        num_cliffords: The different numbers of Cliffords in the RB study.
+        num_circuits: The number of random circuits generated for each
             number of Cliffords.
-        number_shots: The number of repetitions of each circuit.
+        repetitions: The number of repetitions of each circuit.
 
     Returns:
-        A RBResult object that stores and plots the result.
+        A RandomizedBenchMarkResult object that stores and plots the result.
     """
     c1, _, s1, s1_x, s1_y = _single_qubit_cliffords()
     cfd_matrices = _two_qubit_clifford_matrices(first_qubit, second_qubit,
                                                 c1, s1, s1_x, s1_y)
     gnd_probs = []
-    for num_cfds in numbers_cliffords:
+    for num_cfds in num_cliffords:
         gnd_probs_l = []
-        for _ in range(number_circuits):
+        for _ in range(num_circuits):
             circuit = _random_two_q_clifford(first_qubit, second_qubit,
                                              num_cfds, cfd_matrices,
                                              c1, s1, s1_x, s1_y)
             circuit.append(ops.measure(first_qubit, second_qubit, key='z'))
-            results = sampler.run(circuit, repetitions=number_shots)
+            results = sampler.run(circuit, repetitions=repetitions)
             gnds = [(not r[0] and not r[1]) for r in results.measurements['z']]
             gnd_probs_l.append(np.mean(gnds))
         gnd_probs.append(float(np.mean(gnd_probs_l)))
 
-    return RBResult(numbers_cliffords, gnd_probs)
+    return RandomizedBenchMarkResult(num_cliffords, gnd_probs)
 
 
 def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
-                                  number_shots: int) -> TomographyResult:
+                                  repetitions: int = 1000) -> TomographyResult:
     """Single-qubit state tomography.
 
     The density matrix of the output state of a circuit is measured by first
@@ -256,24 +269,24 @@ def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
         sampler: The quantum engine or simulator to run the circuits.
         qubit: The qubit under test.
         circuit: The circuit to execute on the qubit before tomography.
-        number_shots: The number of measurements for each basis rotation.
+        repetitions: The number of measurements for each basis rotation.
 
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
     circuit_z = circuit + circuits.Circuit.from_ops(ops.measure(qubit, key='z'))
-    results = sampler.run(circuit_z, repetitions=number_shots)
+    results = sampler.run(circuit_z, repetitions=repetitions)
     rho_11 = np.mean(results.measurements['z'])
     rho_00 = 1.0 - rho_11
 
     circuit_x = circuits.Circuit.from_ops(circuit, ops.X(qubit) ** 0.5,
                                           ops.measure(qubit, key='z'))
-    results = sampler.run(circuit_x, repetitions=number_shots)
+    results = sampler.run(circuit_x, repetitions=repetitions)
     rho_01_im = np.mean(results.measurements['z']) - 0.5
 
     circuit_y = circuits.Circuit.from_ops(circuit, ops.Y(qubit) ** -0.5,
                                           ops.measure(qubit, key='z'))
-    results = sampler.run(circuit_y, repetitions=number_shots)
+    results = sampler.run(circuit_y, repetitions=repetitions)
     rho_01_re = 0.5 - np.mean(results.measurements['z'])
 
     rho_01 = rho_01_re + 1j * rho_01_im
@@ -288,7 +301,7 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,
-                               number_shots: int) -> TomographyResult:
+                               repetitions: int = 1000) -> TomographyResult:
     """Two-qubit state tomography.
 
     To measure the density matrix of the output state of a two-qubit circuit,
@@ -345,7 +358,7 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
         first_qubit: The first qubit under test.
         second_qubit: The second qubit under test.
         circuit: The circuit to execute on the qubits before tomography.
-        number_shots: The number of measurements for each basis rotation.
+        repetitions: The number of measurements for each basis rotation.
 
     Returns:
         A TomographyResult object that stores and plots the density matrix.
@@ -357,10 +370,10 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
     def _measurement(two_qubit_circuit: circuits.Circuit) -> np.ndarray:
         two_qubit_circuit.append(ops.measure(first_qubit, second_qubit,
                                              key='z'))
-        results = sampler.run(two_qubit_circuit, repetitions=number_shots)
+        results = sampler.run(two_qubit_circuit, repetitions=repetitions)
         results_hist = results.histogram(key='z')
         prob_list = [results_hist[0], results_hist[1], results_hist[2]]
-        return np.asarray(prob_list) / number_shots
+        return np.asarray(prob_list) / repetitions
 
     sigma_0 = np.eye(2) / 2.0
     sigma_1 = np.array([[0.0, 1.0], [1.0, 0.0]]) / 2.0
@@ -473,7 +486,8 @@ def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
 
 
 def _matrix_bar_plot(mat: np.ndarray, z_label: str,
-                     kets: Sequence[str] = None, title: str = None) -> None:
+                     kets: Sequence[str] = None,
+                     title: str = None) -> plt.Figure:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
@@ -483,7 +497,7 @@ def _matrix_bar_plot(mat: np.ndarray, z_label: str,
     dx = np.ones(mat.size) * 0.3
     dy = np.ones(mat.size) * 0.3
 
-    fig = pyplot.figure()
+    fig = plt.figure()
     ax1 = fig.add_subplot(111, projection='3d')  # type: Axes3D
 
     dz = mat.flatten()
@@ -494,14 +508,16 @@ def _matrix_bar_plot(mat: np.ndarray, z_label: str,
     ax1.set_zlim3d(min(0, np.amin(mat)), max(0, np.amax(mat)))
 
     if kets is not None:
-        pyplot.xticks(np.arange(num_cols) + 0.15, kets)
-        pyplot.yticks(np.arange(num_rows) + 0.15, kets)
+        plt.xticks(np.arange(num_cols) + 0.15, kets)
+        plt.yticks(np.arange(num_rows) + 0.15, kets)
 
     if title is not None:
         ax1.set_title(title)
 
+    return fig
 
-def _plot_density_matrix(mat: np.ndarray) -> None:
+
+def _plot_density_matrix(mat: np.ndarray) -> Tuple[plt.Figure, plt.Figure]:
     a, _ = mat.shape
     num_qubits = int(np.sqrt(a))
     state_labels = [[0, 1]] * num_qubits
@@ -510,8 +526,9 @@ def _plot_density_matrix(mat: np.ndarray) -> None:
         kets.append('|' + str(list(label))[1:-1] + '>')
     mat_re = np.real(mat)
     mat_im = np.imag(mat)
-    _matrix_bar_plot(mat_re, r'Real($\rho$)', kets)
-    _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', kets)
+    fig_r = _matrix_bar_plot(mat_re, r'Real($\rho$)', kets)
+    fig_im = _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', kets)
+    return fig_r, fig_im
 
 
 def _gate_seq_to_mats(gate_seq: Sequence[ops.Gate]) -> np.ndarray:
