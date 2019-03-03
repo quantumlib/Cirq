@@ -5,11 +5,14 @@ pre-sharing an entangled state between the sender and the receiver. This
 entangled state allows the receiver of the one qubit of information to 
 decode the two classical bits that were originally encoded by the sender.
 
-In the following example, a sender sets qubit 0 (i.e., q0) to 0 and 
+In the following example output, a sender sets qubit 0 (i.e., q0) to 0 and 
 qubit 1 (i.e., q1) to 1. By sharing one qubit of information (i.e., q2), 
 the receiver is able to decode the original 0 and 1 in qubits 3 and 4, 
 respectively, when qubits 3 and 4 are measured. This is only possible given 
 that an entangled state is pre-shared between the sender and receiver.
+
+In the actual program below, qubit 0 and qubit 1 are randomly set to 
+either 1 or 0.
 
 === REFERENCE ===
 https://en.m.wikipedia.org/wiki/Superdense_coding
@@ -34,6 +37,7 @@ Results:
 
 """
 
+import random
 import cirq
 
 
@@ -41,8 +45,12 @@ def make_superdense_circuit():
     circuit = cirq.Circuit()
     (q0, q1, q2, q3, q4) = cirq.LineQubit.range(5)
 
-    # Sets q1 to 1 (and leaves q0 at 0)
-    circuit.append([cirq.X(q1)])
+    # Randomly sets q0 and q1 to either 0 or 1
+    if (random.randint(0, 1)):
+        circuit.append([cirq.X(q0)])
+    if (random.randint(0, 1)):
+        circuit.append([cirq.X(q1)])
+
     # Creates Bell State to be shared on q2 and q4
     circuit.append([cirq.H(q2), cirq.CNOT(q2, q4)])
     # Measures q0 and q1, both of which will be sent to the receiver
