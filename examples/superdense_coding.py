@@ -1,10 +1,15 @@
 """Superdense Coding.
-Superdense Coding is a method to transmit two classical bits of information
-from a sender to a receiver by sending only one qubit. This is accomplished
-by pre-sharing an entangled qubit.
+Superdense Coding is a method to transmit two classical bits of information 
+by sending only one qubit of information. This is accomplished by 
+pre-sharing an entangled state between the sender and the receiver. This 
+entangled state allows the receiver of the one qubit of information to 
+decode the two classical bits that were originally encoded by the sender.
 
-The following example sets qubit 0 to 0 and qubit 1 to 1 and are output in
-qubits 3 and 4.
+In the following example, a sender sets qubit 0 (i.e., q0) to 0 and 
+qubit 1 (i.e., q1) to 1. By sharing one qubit of information (i.e., q2), 
+the receiver is able to decode the original 0 and 1 in qubits 3 and 4, 
+respectively, when qubits 3 and 4 are measured. This is only possible given 
+that an entangled state is pre-shared between the sender and receiver.
 
 === REFERENCE ===
 https://en.m.wikipedia.org/wiki/Superdense_coding
@@ -59,7 +64,6 @@ def make_superdense_circuit():
 
 
 def main():
-
     circuit = make_superdense_circuit()
     print("Circuit:")
     print(circuit)
