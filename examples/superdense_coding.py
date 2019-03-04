@@ -1,17 +1,17 @@
 """Superdense Coding.
-Superdense Coding is a method to transmit two classical bits of information 
-by sending only one qubit of information. This is accomplished by 
-pre-sharing an entangled state between the sender and the receiver. This 
-entangled state allows the receiver of the one qubit of information to 
+Superdense Coding is a method to transmit two classical bits of information
+by sending only one qubit of information. This is accomplished by
+pre-sharing an entangled state between the sender and the receiver. This
+entangled state allows the receiver of the one qubit of information to
 decode the two classical bits that were originally encoded by the sender.
 
-In the following example output, a sender sets qubit 0 (i.e., q0) to 0 and 
-qubit 1 (i.e., q1) to 1. By sharing one qubit of information (i.e., q2), 
-the receiver is able to decode the original 0 and 1 in qubits 3 and 4, 
-respectively, when qubits 3 and 4 are measured. This is only possible given 
+In the following example output, a sender sets qubit 0 (i.e., q0) to 0 and
+qubit 1 (i.e., q1) to 1. By sharing one qubit of information (i.e., q2),
+the receiver is able to decode the original 0 and 1 in qubits 3 and 4,
+respectively, when qubits 3 and 4 are measured. This is only possible given
 that an entangled state is pre-shared between the sender and receiver.
 
-In the actual program below, qubit 0 and qubit 1 are randomly set to 
+In the actual program below, qubit 0 and qubit 1 are randomly set to
 either 1 or 0.
 
 === REFERENCE ===
@@ -46,9 +46,9 @@ def make_superdense_circuit():
     (q0, q1, q2, q3, q4) = cirq.LineQubit.range(5)
 
     # Randomly sets q0 and q1 to either 0 or 1
-    if (random.randint(0, 1)):
+    if random.randint(0, 1):
         circuit.append([cirq.X(q0)])
-    if (random.randint(0, 1)):
+    if random.randint(0, 1):
         circuit.append([cirq.X(q1)])
 
     # Creates Bell State to be shared on q2 and q4
