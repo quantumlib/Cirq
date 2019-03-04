@@ -15,8 +15,10 @@
 from typing import List, Sequence, Tuple, Union
 
 import numpy as np
+import sympy
 
 from cirq import value, protocols
+from cirq._compat import proper_repr
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
         op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -43,7 +45,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                  pauli0: pauli_gates.Pauli, invert0: bool,
                  pauli1: pauli_gates.Pauli, invert1: bool,
                  *,
-                 exponent: Union[value.Symbol, float] = 1.0) -> None:
+                 exponent: Union[sympy.Basic, float] = 1.0) -> None:
         """
         Args:
             pauli0: The interaction axis for the first qubit.
@@ -71,7 +73,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             return 0
         return index
 
-    def _with_exponent(self, exponent: Union[value.Symbol, float]
+    def _with_exponent(self, exponent: Union[sympy.Basic, float]
                        ) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
@@ -120,7 +122,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return base
 
-        return '({}**{!r})'.format(base, self._exponent)
+        return '({}**{})'.format(base, proper_repr(self._exponent))
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(

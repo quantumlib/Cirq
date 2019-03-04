@@ -97,9 +97,13 @@ class PauliString(raw_types.Operation):
 
     def __str__(self):
         ordered_qubits = sorted(self.qubits)
-        return '{{{}, {}}}'.format('+-'[self.negated],
-                                   ', '.join(('{!s}:{!s}'.format(q, self[q])
-                                             for q in ordered_qubits)))
+        sign = '-' if self.negated else ''
+        if not ordered_qubits:
+            return '{}{}'.format(sign, 'I')
+        return '{}{}'.format(
+            sign,
+            '*'.join('{}({})'.format(self[q], q, self[q])
+                     for q in ordered_qubits))
 
     def zip_items(self, other: 'PauliString'
                   ) -> Iterator[Tuple[raw_types.QubitId, Tuple[Pauli, Pauli]]]:

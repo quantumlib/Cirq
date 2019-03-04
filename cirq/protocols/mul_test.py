@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pytest
+import sympy
 
 import cirq
 
@@ -75,3 +76,9 @@ def test_equivalent_to_builtin_mul():
                     _ = cirq.mul(a, b)
             else:
                 assert c == a * b
+
+
+def test_symbol_special_case():
+    x = sympy.Symbol('x')
+    assert cirq.mul(x, 1.0) is x
+    assert cirq.mul(1.0, x) is x
