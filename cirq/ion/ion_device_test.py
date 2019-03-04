@@ -84,16 +84,6 @@ def test_repr():
                        "cirq.GridQubit(0, 2)])")
 
 
-def test_can_add_operation_into_moment():
-    d = test_ion_device(3)
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(0, 1)
-    q2 = cirq.GridQubit(0, 2)
-    m = cirq.Moment([cirq.XX(q0, q1)])
-    assert not d.can_add_operation_into_moment(
-        cirq.XX(q1, q2), m)
-
-
 def test_validate_measurement_non_adjacent_qubits_ok():
     d = test_ion_device(3)
 
