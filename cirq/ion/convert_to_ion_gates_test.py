@@ -104,3 +104,7 @@ def test_convert_to_ion_circuit():
 (0, 1): ───Ry(0.5π)───MS(0.25π)───Rx(-0.5π)───Ry(-0.5π)───MS(0.25π)───
         """, use_unicode_characters=True)
 
+    assert_ops_implement_unitary(q0, q1, ion_circuit_1,
+                                 cirq.unitary(clifford_circuit_1))
+    assert_ops_implement_unitary(q0, q1, ion_circuit_2,
+                                 cirq.unitary(clifford_circuit_2))

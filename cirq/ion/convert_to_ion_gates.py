@@ -56,7 +56,8 @@ class ConvertToIonGates:
                         ops.Ry(-1*np.pi/2).on(op.qubits[0])]
             else:
                 # Known matrix
-                mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
+                mat = protocols.unitary(op, None) if len(
+                    op.qubits) <= 2 else None
                 if mat is not None and len(op.qubits) == 1:
                     gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
                     return [g.on(op.qubits[0]) for g in gates]

@@ -125,24 +125,9 @@ class IonDevice(devices.Device):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def validate_moment(self, moment: ops.Moment):
-        super().validate_moment(moment)
-        for op in moment.operations:
-            if (isinstance(op, ops.GateOperation) and
-                    isinstance(op.gate, ops.XXPowGate)):
-                for other in moment.operations:
-                    if (other is not op and
-                            self._check_if_XXPow_operation_interacts(
-                                cast(ops.GateOperation, op),
-                                cast(ops.GateOperation, other))):
-                        raise ValueError(
-                            'Simultaneous two-qubit '
-                            'operations on same qubit: {}.'.format(moment))
-
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
                                       moment: ops.Moment) -> bool:
-        self.validate_moment(moment)
 
         if not super().can_add_operation_into_moment(operation, moment):
             return False

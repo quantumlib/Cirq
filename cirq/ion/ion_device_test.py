@@ -176,6 +176,7 @@ def test_can_add_operation_into_moment():
         assert not d.can_add_operation_into_moment(cirq.XX(q2, q0), moment)
         assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
         assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
+        assert d.can_add_operation_into_moment(cirq.Z(q3), moment)
 
 
 def test_ion_device_eq():
