@@ -11,16 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
 
-from cirq import ops, protocols, optimizers, ion, circuits
-from cirq.circuits.optimization_pass import (
-    PointOptimizer,
-)
 import numpy as np
 
+from cirq import ops, protocols, optimizers, ion, circuits
 
-class ConvertToIonGates(PointOptimizer):
+
+class ConvertToIonGates:
     """Attempts to convert strange gates into IonGates.
     """
 
@@ -35,7 +32,8 @@ class ConvertToIonGates(PointOptimizer):
 
     def convert_one(self, op: ops.Operation):
         """
-        Convert a single (one- or two-qubit) operation into ion trap native gates
+        Convert a single (one- or two-qubit) operation
+        into ion trap native gates
         :param op: gate operation to be converted
         :return: the desired operation implemented with ion trap gates
         """
@@ -46,11 +44,14 @@ class ConvertToIonGates(PointOptimizer):
                 return [op]
             # one choice of know Hadamard gate decomposition
             if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
-                return [ops.Rx(np.pi).on(op.qubits[0]), ops.Ry(-1 * np.pi/2).on(op.qubits[0])]
+                return [ops.Rx(np.pi).on(op.qubits[0]),
+                        ops.Ry(-1 * np.pi/2).on(op.qubits[0])]
             # one choice of know CNOT gate decomposition
             if isinstance(op.gate, ops.CNotPowGate) and op.gate.exponent == 1:
-                return [ops.Ry(np.pi/2).on(op.qubits[0]), ion.MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
-                        ops.Rx(-1*np.pi/2).on(op.qubits[0]), ops.Rx(-1*np.pi/2).on(op.qubits[1]),
+                return [ops.Ry(np.pi/2).on(op.qubits[0]),
+                        ion.MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
+                        ops.Rx(-1*np.pi/2).on(op.qubits[0]),
+                        ops.Rx(-1*np.pi/2).on(op.qubits[1]),
                         ops.Ry(-1*np.pi/2).on(op.qubits[0])]
         # Known matrix
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None

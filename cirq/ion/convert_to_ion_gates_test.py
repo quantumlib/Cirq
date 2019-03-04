@@ -30,9 +30,11 @@ def test_convert_to_ion_gates():
     rx = cirq.ion.ConvertToIonGates().convert_one(OtherX().on(q0))
     rop = cirq.ion.ConvertToIonGates().convert_one(op)
     assert rx == [(cirq.X**1.0).on(cirq.GridQubit(0, 0))]
-    assert rop == [cirq.Ry(np.pi/2).on(op.qubits[0]), cirq.ion.MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
-                        cirq.ops.Rx(-1*np.pi/2).on(op.qubits[0]), cirq.ops.Rx(-1*np.pi/2).on(op.qubits[1]),
-                        cirq.ops.Ry(-1*np.pi/2).on(op.qubits[0])]
+    assert rop == [cirq.Ry(np.pi/2).on(op.qubits[0]),
+                   cirq.ion.MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
+                   cirq.ops.Rx(-1*np.pi/2).on(op.qubits[0]),
+                   cirq.ops.Rx(-1*np.pi/2).on(op.qubits[1]),
+                   cirq.ops.Ry(-1*np.pi/2).on(op.qubits[0])]
 
 
 def _operations_to_matrix(operations, qubits):
@@ -53,11 +55,15 @@ def test_convert_to_ion_circuit():
     q1 = cirq.GridQubit(0, 1)
 
     clifford_circuit_1 = cirq.Circuit()
-    clifford_circuit_1.append([cirq.X(q0), cirq.H(q1), cirq.MS(np.pi/4).on(q0, q1)])
-    ion_circuit_1 = cirq.ion.ConvertToIonGates().convert_circuit(clifford_circuit_1)
+    clifford_circuit_1.append([cirq.X(q0), cirq.H(q1),
+                               cirq.MS(np.pi/4).on(q0, q1)])
+    ion_circuit_1 = cirq.ion.ConvertToIonGates().\
+        convert_circuit(clifford_circuit_1)
     clifford_circuit_2 = cirq.Circuit()
-    clifford_circuit_2.append([cirq.X(q0), cirq.CNOT(q1,q0), cirq.MS(np.pi / 4).on(q0, q1)])
-    ion_circuit_2 = cirq.ion.ConvertToIonGates().convert_circuit(clifford_circuit_2)
+    clifford_circuit_2.append([cirq.X(q0), cirq.CNOT(q1, q0), cirq.MS(
+        np.pi/4).on(q0, q1)])
+    ion_circuit_2 = cirq.ion.ConvertToIonGates().\
+        convert_circuit(clifford_circuit_2)
 
     cirq.testing.assert_has_diagram(ion_circuit_1, """
 (0, 0): ───X───────────────────MS(0.25π)───

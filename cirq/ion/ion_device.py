@@ -25,7 +25,8 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class IonDevice(devices.Device):
-    """A device with qubits placed on a line. Qubits have all-to-all connectivity.
+    """A device with qubits placed on a line.
+    Qubits have all-to-all connectivity.
     """
 
     def __init__(self,

@@ -44,7 +44,7 @@ def test_init():
     q1 = cirq.GridQubit(0, 1)
     q2 = cirq.GridQubit(0, 2)
 
-    assert d.qubits == {q0, q1, q2}
+    assert d.qubits == [q0, q1, q2]
     assert d.duration_of(cirq.Z(q0)) == 10 * ms
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
@@ -104,12 +104,16 @@ def test_validate_operation_supported_gate():
     d = test_ion_device(3)
 
     class MyGate(cirq.Gate):
-        pass
+
+        def num_qubits(self):
+            return 1
 
     d.validate_operation(cirq.GateOperation(cirq.Z, [cirq.GridQubit(0, 0)]))
+
+    assert MyGate().num_qubits() == 1
     with pytest.raises(ValueError):
         d.validate_operation(cirq.GateOperation(
-            MyGate, [cirq.GridQubit(0, 0)]))
+            MyGate(), [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(NotImplementedOperation())
 
@@ -157,18 +161,6 @@ def test_validate_schedule_repeat_measurement_keys():
         d.validate_schedule(s)
 
 
-def test_ion_device_eq():
-    eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: test_ion_device(3))
-    eq.make_equality_group(
-        lambda: test_ion_device(4))
-    eq.make_equality_group(
-        lambda: ci.IonDevice(cirq.Duration(nanos=1), cirq.Duration(nanos=2),
-                              cirq.Duration(nanos=3), []))
-    eq.make_equality_group(
-        lambda: ci.IonDevice(cirq.Duration(nanos=1), cirq.Duration(nanos=1),
-                              cirq.Duration(nanos=1), []))
-
 def test_xmon_device_str():
     assert str(test_ion_device(3)).strip() == """
 (0, 0)───(0, 1)───(0, 2)
@@ -196,6 +188,7 @@ def test_row_and_col():
     assert d.col(5000) == []
 
     assert d.row(-1) == []
-    assert d.row(0) == [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)]
+    assert d.row(0) == [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1),
+                        cirq.GridQubit(0, 2)]
     assert d.row(1) == []
     assert d.row(3) == []
