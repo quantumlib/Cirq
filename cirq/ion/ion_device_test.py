@@ -14,6 +14,8 @@
 
 import pytest
 
+import numpy as np
+
 import cirq
 import cirq.ion as ci
 
@@ -44,13 +46,30 @@ def test_init():
     q1 = cirq.GridQubit(0, 1)
     q2 = cirq.GridQubit(0, 2)
 
-    assert d.qubits == [q0, q1, q2]
+    assert d.qubits == {q0, q1, q2}
     assert d.duration_of(cirq.Z(q0)) == 10 * ms
     assert d.duration_of(cirq.measure(q0)) == 100 * ms
     assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
     assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+
+
+def test_decomposition():
+    d = test_ion_device(3)
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+    assert d.decompose_operation(cirq.H(q0)) == [
+        cirq.Rx(np.pi*1.0).on(cirq.GridQubit(0, 0)),
+        cirq.Ry(np.pi*-0.5).on(cirq.GridQubit(0, 0))]
+    circuit = cirq.Circuit()
+    circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
+    ion_circuit = d.decompose_circuit(circuit)
+    cirq.testing.assert_has_diagram(ion_circuit, """
+(0, 0): ───X───Ry(0.5π)───MS(0.25π)───Rx(-0.5π)───Ry(-0.5π)───
+                          │
+(0, 1): ──────────────────MS(0.25π)───Rx(-0.5π)───────────────
+            """, use_unicode_characters=True)
 
 
 @cirq.testing.only_test_in_python3
@@ -98,6 +117,10 @@ def test_validate_operation_existing_qubits():
     with pytest.raises(ValueError):
         d.validate_operation(
             cirq.CZ(cirq.GridQubit(0, 1), cirq.GridQubit(1, 1)))
+    with pytest.raises(ValueError):
+        d.validate_operation(
+            cirq.X(cirq.NamedQubit("q1"))
+        )
 
 
 def test_validate_operation_supported_gate():
@@ -118,7 +141,7 @@ def test_validate_operation_supported_gate():
         d.validate_operation(NotImplementedOperation())
 
 
-def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
+def test_validate_scheduled_operation_adjacent_XXPow_Z():
     d = test_ion_device(3)
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
@@ -134,6 +157,42 @@ def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
             cirq.measure(q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
+
+
+def test_validate_scheduled_operation_XXPow_on_same_qubit():
+    d = test_ion_device(3)
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+    q2 = cirq.GridQubit(0, 2)
+    s = cirq.Schedule(d, [
+        cirq.ScheduledOperation.op_at_on(
+            cirq.XX(q0, q1), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cirq.XX(q1, q2), cirq.Timestamp(), d),
+    ])
+    with pytest.raises(ValueError):
+        d.validate_schedule(s)
+
+
+def test_can_add_operation_into_moment():
+    d = test_ion_device(3)
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(0, 1)
+    q2 = cirq.GridQubit(0, 2)
+    q3 = cirq.GridQubit(0, 3)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.XX(q0, q1))
+    for moment in circuit:
+        assert not d.can_add_operation_into_moment(cirq.XX(q2, q0), moment)
+        assert not d.can_add_operation_into_moment(cirq.XX(q1, q2), moment)
+        assert d.can_add_operation_into_moment(cirq.XX(q2, q3), moment)
+
+
+def test_ion_device_eq():
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_group(lambda: test_ion_device(3))
+    eq.make_equality_group(
+        lambda: test_ion_device(4))
 
 
 def test_validate_circuit_repeat_measurement_keys():
@@ -161,7 +220,7 @@ def test_validate_schedule_repeat_measurement_keys():
         d.validate_schedule(s)
 
 
-def test_xmon_device_str():
+def test_ion_device_str():
     assert str(test_ion_device(3)).strip() == """
 (0, 0)───(0, 1)───(0, 2)
     """.strip()

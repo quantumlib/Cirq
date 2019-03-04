@@ -14,7 +14,7 @@
 
 from typing import Iterable, cast, Optional, List, TYPE_CHECKING
 
-from cirq import ops, circuits, value, devices
+from cirq import circuits, value, devices, ops
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ion import convert_to_ion_gates
 
@@ -34,10 +34,18 @@ class IonDevice(devices.Device):
                  twoq_gates_duration: value.Duration,
                  oneq_gates_duration: value.Duration,
                  qubits: Iterable[GridQubit]) -> None:
+        """Initializes the description of an ion trap device.
+
+        Args:
+        measurement_duration: The maximum duration of a measurement.
+        twoq_gates_duration: The maximum duration of a two qubit operation.
+        oneq_gates_duration: The maximum duration of a single qubit operation.
+        qubits: Qubits on the device, identified by their x, y location.
+        """
         self._measurement_duration = measurement_duration
         self._twoq_gates_duration = twoq_gates_duration
         self._oneq_gates_duration = oneq_gates_duration
-        self.qubits = qubits
+        self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)
@@ -90,6 +98,7 @@ class IonDevice(devices.Device):
             other_op: ops.GateOperation) -> bool:
         if isinstance(other_op.gate, (ops.XPowGate,
                                       ops.YPowGate,
+                                      ops.PhasedXPowGate,
                                       ops.MeasurementGate,
                                       ops.ZPowGate)):
             return False
