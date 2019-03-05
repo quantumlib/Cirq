@@ -19,9 +19,10 @@ import itertools
 import math
 import time
 from typing import Optional, Callable
-
 import numpy as np
 import pytest
+import sympy
+
 
 import cirq
 import cirq.google as cg
@@ -511,7 +512,7 @@ def compute_gate(circuit, resolver, num_qubits=1):
 
 def test_param_resolver_exp_w_half_turns():
     exp_w = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
+        exponent=sympy.Symbol('a'),
         phase_exponent=0.0)
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
@@ -525,7 +526,7 @@ def test_param_resolver_exp_w_half_turns():
 
 def test_param_resolver_exp_w_axis_half_turns():
     exp_w = cirq.PhasedXPowGate(
-        exponent=1.0, phase_exponent=cirq.Symbol('a'))
+        exponent=1.0, phase_exponent=sympy.Symbol('a'))
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': 0.5})
@@ -537,8 +538,8 @@ def test_param_resolver_exp_w_axis_half_turns():
 
 def test_param_resolver_exp_w_multiple_params():
     exp_w = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
-        phase_exponent=cirq.Symbol('b'))
+        exponent=sympy.Symbol('a'),
+        phase_exponent=sympy.Symbol('b'))
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': -0.5, 'b': 0.5})
@@ -550,7 +551,7 @@ def test_param_resolver_exp_w_multiple_params():
 
 
 def test_param_resolver_exp_z_half_turns():
-    exp_z = cirq.Z**cirq.Symbol('a')
+    exp_z = cirq.Z**sympy.Symbol('a')
     circuit = cirq.Circuit()
     circuit.append(exp_z(Q1))
     resolver = cirq.ParamResolver({'a': -0.5})
@@ -563,7 +564,7 @@ def test_param_resolver_exp_z_half_turns():
 
 def test_param_resolver_exp_11_half_turns():
     circuit = cirq.Circuit()
-    circuit.append(cirq.CZ(Q1, Q2)**cirq.Symbol('a'))
+    circuit.append(cirq.CZ(Q1, Q2)**sympy.Symbol('a'))
     resolver = cirq.ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver, num_qubits=2)
     # Slight hack: doesn't depend on order of qubits.
@@ -574,7 +575,7 @@ def test_param_resolver_exp_11_half_turns():
 
 def test_param_resolver_param_dict():
     exp_w = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
+        exponent=sympy.Symbol('a'),
         phase_exponent=0.0)
     circuit = cirq.Circuit()
     circuit.append(exp_w(Q1))
@@ -587,7 +588,7 @@ def test_param_resolver_param_dict():
 
 def test_run_circuit_sweep():
     circuit = cirq.Circuit.from_ops(
-        cirq.X(Q1)**cirq.Symbol('a'),
+        cirq.X(Q1)**sympy.Symbol('a'),
         cirq.measure(Q1, key='m'),
     )
 
@@ -602,7 +603,7 @@ def test_run_circuit_sweep():
 
 def test_run_circuit_sweeps():
     circuit = cirq.Circuit.from_ops(
-        cirq.X(Q1)**cirq.Symbol('a'),
+        cirq.X(Q1)**sympy.Symbol('a'),
         cirq.measure(Q1, key='m'),
     )
 
@@ -873,7 +874,7 @@ def test_circuit_repetitions_optimized_regression():
 
 def test_circuit_parameters():
     sim = cg.XmonSimulator()
-    circuit = bit_flip_circuit(cirq.Symbol('a'), cirq.Symbol('b'))
+    circuit = bit_flip_circuit(sympy.Symbol('a'), sympy.Symbol('b'))
 
     resolvers = [cirq.ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
@@ -893,14 +894,14 @@ def test_circuit_parameters():
 
 def test_circuit_bad_parameters():
     sim = cg.XmonSimulator()
-    circuit = bit_flip_circuit(cirq.Symbol('a'), cirq.Symbol('b'))
+    circuit = bit_flip_circuit(sympy.Symbol('a'), sympy.Symbol('b'))
     with pytest.raises(TypeError):
         sim.run_sweep(circuit, params=3, repetitions=1)
 
 
 def test_circuit_param_and_reps():
     sim = cg.XmonSimulator()
-    circuit = bit_flip_circuit(cirq.Symbol('a'), cirq.Symbol('b'))
+    circuit = bit_flip_circuit(sympy.Symbol('a'), sympy.Symbol('b'))
 
     resolvers = [cirq.ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]

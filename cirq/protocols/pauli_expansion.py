@@ -14,36 +14,68 @@
 
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
-from typing import Any, Union
-
-import numpy as np
+from typing import Any, Dict, Optional
 
 from cirq.linalg import operator_spaces
 from cirq.protocols.unitary import unitary
-from cirq.type_workarounds import NotImplementedType
 
 
-def pauli_expansion(val: Any) -> Union[np.ndarray, NotImplementedType]:
+RaiseTypeErrorIfNotProvided = {}  # type: Dict[str, complex]
+
+
+def _filter_coefficients(expansion: Dict[str, complex],
+                         tolerance: float) -> Dict[str, complex]:
+    """Drops insignificant coefficients."""
+    return {n: c for n, c in expansion.items() if abs(c) > tolerance}
+
+
+def pauli_expansion(
+    val: Any,
+    *,
+    default: Optional[Dict[str, complex]] = RaiseTypeErrorIfNotProvided,
+    tolerance: float = 1e-9
+) -> Optional[Dict[str, complex]]:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:
         val: The value whose Pauli expansion is to returned.
+        default: Determines what happens when `val` does not have methods that
+            allow Pauli expansion to be obtained (see below). If set, the value
+            is returned in that case. Otherwise, TypeError is raised.
+        tolerance: Ignore coefficients whose absolute value is smaller than
+            this.
 
     Returns:
-        If `val` has a _pauli_expansion_ method, then its result is
-        returned. Otherwise, if `val` has a single-qubit unitary then
-        that unitary is expanded in the Pauli basis and coefficients
-        are returned. Otherwise, NotImplemented is returned.
+        If `val` has a _pauli_expansion_ method, then its result is returned.
+        Otherwise, if `val` has a small unitary then that unitary is expanded
+        in the Pauli basis and coefficients are returned. Otherwise, if default
+        is set to None or other value then default is returned. Otherwise,
+        TypeError is raised.
+
+    Raises:
+        TypeError if `val` has none of the methods necessary to obtain its Pauli
+        expansion and no default value has been provided.
     """
     method = getattr(val, '_pauli_expansion_', None)
-    result = NotImplemented if method is None else method()
+    expansion = NotImplemented if method is None else method()
 
-    if result is not NotImplemented and result is not None:
-        return result
+    if expansion is not NotImplemented:
+        return _filter_coefficients(expansion, tolerance)
 
-    matrix = unitary(val, default=None)
-    if matrix is not None and matrix.shape == (2, 2):
-        return operator_spaces.expand_in_basis(
-            matrix, operator_spaces.PAULI_BASIS)
+    matrix = None
+    if hasattr(val, '_matrix_'):
+        matrix = val._matrix_()
+    if matrix is None:
+        matrix = unitary(val, default=None)
+    if matrix is None:
+        if default is RaiseTypeErrorIfNotProvided:
+            raise TypeError('No Pauli expansion for object {} of type {}'
+                    .format(val, type(val)))
+        return default
 
-    return NotImplemented
+    num_qubits = matrix.shape[0].bit_length() - 1
+    basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS,
+                                       repeat=num_qubits)
+
+    expansion = operator_spaces.expand_matrix_in_orthogonal_basis(matrix, basis)
+    return _filter_coefficients(expansion, tolerance)

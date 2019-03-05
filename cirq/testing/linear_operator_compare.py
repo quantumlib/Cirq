@@ -25,16 +25,17 @@ def assert_linear_operator_is_consistent(
         atol: float = 1e-9) -> None:
     """Verifies that LinearOperator instance is internally consistent."""
     matrix = op.matrix()
-    if matrix is None:
-        return
-    expansion = pauli_expansion(op)
-    if expansion is None or expansion is NotImplemented:
+    expansion = pauli_expansion(op, default=None)
+    if expansion is None or matrix is None:
         return
 
-    matrix2 = operator_spaces.reconstruct_from_expansion(
-        expansion, operator_spaces.PAULI_BASIS)
-    expansion2 = operator_spaces.expand_in_basis(
-        matrix, operator_spaces.PAULI_BASIS)
+    num_qubits = op.num_qubits()
+    basis = operator_spaces.kron_bases(
+        operator_spaces.PAULI_BASIS, repeat=num_qubits)
+
+    matrix2 = operator_spaces.matrix_from_basis_coefficients(expansion, basis)
+    expansion2 = operator_spaces.expand_matrix_in_orthogonal_basis(
+        matrix, basis)
 
     print('matrix\n', matrix)
     print('matrix2\n', matrix2)
@@ -42,7 +43,10 @@ def assert_linear_operator_is_consistent(
     print('expansion2', expansion2)
 
     assert np.allclose(matrix, matrix2, atol=atol)
-    assert np.allclose(expansion, expansion2, atol=atol)
+    for name in set(expansion.keys()) | set(expansion2.keys()):
+        c = expansion.get(name, 0)
+        c2 = expansion2.get(name, 0)
+        assert abs(c - c2) < atol
 
 
 def assert_linear_operators_are_equal(
@@ -81,13 +85,12 @@ def assert_linear_operators_are_equal(
     reference_expansion = pauli_expansion(reference)
     print('actual_expansion', actual_expansion)
     print('reference_expansion', reference_expansion)
-    if (actual_expansion is not NotImplemented and
-        reference_expansion is not NotImplemented):
-        assert np.allclose(actual_expansion,
-                           reference_expansion,
-                           rtol=0,
-                           atol=atol)
+    if actual_expansion is not None and reference_expansion is not None:
+        for name in (set(actual_expansion.keys()) |
+                     set(reference_expansion.keys())):
+            actual_coefficient = actual_expansion.get(name, 0)
+            reference_coefficient = reference_expansion.get(name, 0)
+            assert abs(actual_coefficient - reference_coefficient) < atol
 
-    assert actual_matrix is not None or actual_expansion is not NotImplemented
-    assert (reference_matrix is not None or
-            reference_expansion is not NotImplemented)
+    assert actual_matrix is not None or actual_expansion is not None
+    assert reference_matrix is not None or reference_expansion is not None

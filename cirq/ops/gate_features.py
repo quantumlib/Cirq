@@ -17,8 +17,6 @@
 For example: some gates are reversible, some have known matrices, etc.
 """
 
-from typing import Iterable
-
 import abc
 
 from cirq.ops import op_tree, raw_types
@@ -43,15 +41,22 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 'Single-qubit gate applied to {} qubits, instead of 1: {}({})'.
                 format(len(qubits), self, qubits))
 
-    def on_each(self, targets: Iterable[raw_types.QubitId]) -> op_tree.OP_TREE:
+    def on_each(self, *targets: raw_types.QubitId) -> op_tree.OP_TREE:
         """Returns a list of operations apply this gate to each of the targets.
 
         Args:
-            targets: The qubits to apply this gate to.
+            *targets: The qubits to apply this gate to.
 
         Returns:
             Operations applying this gate to the target qubits.
+
+        Raises:
+            ValueError if targets are not instances of QubitId.
         """
+        if any([not isinstance(target, raw_types.QubitId)
+                for target in targets]):
+            raise ValueError(
+                    'on_each() was called with type different than QubitId.')
         return [self.on(target) for target in targets]
 
 

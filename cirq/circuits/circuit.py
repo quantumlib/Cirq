@@ -27,7 +27,10 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
+import json
+import re
 import numpy as np
+import sympy
 
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
@@ -1527,10 +1530,23 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
+def _is_exposed_formula(text):
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
+
+
+def _encode(text):
+    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
+
+    if isinstance(info.exponent, sympy.Basic):
+        name = str(info.exponent)
+        return (name
+                if _is_exposed_formula(name)
+                else '({})'.format(_encode(name)))
+
     if info.exponent == 0:
         return '0'
 
@@ -1611,10 +1627,15 @@ def _draw_moment_in_diagram(
         for s, q in zip(info.wire_symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
-        # Add an exponent to the last label.
         exponent = _formatted_exponent(info, args)
         if exponent is not None:
-            out_diagram.write(x, y2, '^' + exponent)
+            if info.connected:
+                # Add an exponent to the last label only.
+                out_diagram.write(x, y2, '^' + exponent)
+            else:
+                # Add an exponent to every label
+                for index in indices:
+                    out_diagram.write(x, index, '^' + exponent)
 
     # Group together columns belonging to the same Moment.
     if moment.operations and x > x0:

@@ -19,6 +19,7 @@ from typing import cast, Any
 import numpy as np
 
 from cirq import linalg, protocols
+from cirq._compat import proper_repr
 from cirq.ops import linear_operator, gate_features, raw_types
 
 
@@ -99,7 +100,7 @@ class SingleQubitMatrixGate(linear_operator.UnitaryMixin,
 
     def __repr__(self):
         return 'cirq.SingleQubitMatrixGate({})'.format(
-                _numpy_array_repr(self._matrix))
+            proper_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -172,7 +173,7 @@ class TwoQubitMatrixGate(linear_operator.UnitaryMixin,
 
     def __repr__(self):
         return 'cirq.TwoQubitMatrixGate({})'.format(
-                _numpy_array_repr(self._matrix))
+                proper_repr(self._matrix))
 
     def __str__(self):
         return str(self._matrix.round(3))
@@ -196,10 +197,6 @@ def _matrix_to_diagram_symbol(matrix: np.ndarray,
         lines.append('└' + ' ' * w + '┘')
         result = '\n'.join(lines)
     return result
-
-
-def _numpy_array_repr(arr: np.ndarray) -> str:
-    return 'np.array({!r})'.format(arr.tolist())
 
 
 def make_gate(op: linear_operator.AbstractLinearOperator) -> raw_types.Gate:

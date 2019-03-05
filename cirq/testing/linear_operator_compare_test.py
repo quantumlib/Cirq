@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 import pytest
@@ -24,34 +24,39 @@ class FakeLinearOperator(cirq.AbstractLinearOperator):
     def __init__(
             self,
             matrix: Optional[np.ndarray] = None,
-            pauli_expansion: Optional[np.ndarray] = None,
+            pauli_expansion: Optional[Dict[str, complex]] = None,
     ) -> None:
         self._matrix = matrix
         self._pauli_expansion = pauli_expansion
 
+    def num_qubits(self) -> int:
+        return 1
+
     def _matrix_(self) -> Optional[np.ndarray]:
         return self._matrix
 
-    def _pauli_expansion_(self) -> Optional[np.ndarray]:
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if self._pauli_expansion is None:
+            return NotImplemented
         return self._pauli_expansion
 
 
 @pytest.mark.parametrize('op', (
-    cirq.LinearOperator(pauli_expansion=np.array([1, 0, 0, 0])),
+    cirq.LinearOperator(pauli_expansion={'I': 1}),
     cirq.LinearOperator(matrix=np.eye(4)),
     cirq.LinearOperator(matrix=np.array([[1, 1], [1, -1]]),
-                        pauli_expansion=(0, 1, 0, 1)),
+                        pauli_expansion={'X': 1, 'Z': 1}),
     FakeLinearOperator(),
     FakeLinearOperator(np.eye(2)),
-    FakeLinearOperator(pauli_expansion=np.array([1, 1, 1, 1])),
+    FakeLinearOperator(pauli_expansion={'I': 1, 'X': 1, 'Y': 1, 'Z': 1}),
 ))
 def test_linear_operator_is_consistent(op):
     cirq.testing.assert_linear_operator_is_consistent(op)
 
 
 @pytest.mark.parametrize('op', (
-    FakeLinearOperator(np.eye(2), np.array([0, 0, 1, 0])),
-    FakeLinearOperator(np.diag([1, -1]), np.array([1, 0, 0, 0])),
+    FakeLinearOperator(np.eye(2), {'Y': 1}),
+    FakeLinearOperator(np.diag([1, -1]), {'I': 1})
 ))
 def test_linear_operator_is_inconsistent(op):
     with pytest.raises(AssertionError):
@@ -61,10 +66,10 @@ def test_linear_operator_is_inconsistent(op):
 @pytest.mark.parametrize('op', (
     cirq.X, cirq.H, cirq.T, cirq.CNOT, cirq.TOFFOLI,
     cirq.LinearOperator(np.array([[1, 2], [3, 4]])),
-    cirq.LinearOperator(pauli_expansion=(-1, 0, 1, 2)),
+    cirq.LinearOperator(pauli_expansion={'I': -1, 'Y': 1, 'Z': 2}),
     cirq.LinearOperator(matrix=np.array([[1, 1], [1, -1]]),
-                        pauli_expansion=(0, 1, 0, 1)),
-    FakeLinearOperator(np.eye(2), np.array([1, 0, 0, 0])),
+                        pauli_expansion={'X': 1, 'Z': 1}),
+    FakeLinearOperator(np.eye(2), {'I': 1}),
 ))
 def test_linear_operator_is_equal_to_itself(op):
     cirq.testing.assert_linear_operators_are_equal(op, op)
@@ -77,14 +82,14 @@ def test_linear_operator_is_equal_to_itself(op):
     (cirq.CZ, cirq.TwoQubitMatrixGate(np.diag([1, 1, 1, -1]))),
     (cirq.TOFFOLI, cirq.CCXPowGate(exponent=0.5)**2),
     (cirq.LinearOperator(matrix=np.array([[1, 1], [1, -1]]),
-                         pauli_expansion=(0, 1, 0, 1)),
+                         pauli_expansion={'X': 1, 'Z': 1}),
      cirq.LinearOperator(matrix=np.array([[1, 1], [1, -1]]),
-                         pauli_expansion=(0, 1, 0, 1))),
+                         pauli_expansion={'X': 1, 'Z': 1})),
     (cirq.LinearOperator(matrix=np.array([[1, 1], [1, -1]]),
-                         pauli_expansion=(0, 1, 0, 1)),
-     cirq.LinearOperator(pauli_expansion=(0, 1, 0, 1))),
+                         pauli_expansion={'X': 1, 'Z': 1}),
+     cirq.LinearOperator(pauli_expansion={'X': 1, 'Z': 1})),
     (cirq.LinearOperator(matrix=np.array([[1, 1], [1, -1]]),
-                         pauli_expansion=(0, 1, 0, 1)),
+                         pauli_expansion={'X': 1, 'Z': 1}),
      cirq.LinearOperator(np.array([[1, 1], [1, -1]]))),
 ))
 def test_equal_linear_operators_are_equal(op1, op2):
@@ -106,14 +111,14 @@ def test_equal_linear_operators_are_equal(op1, op2):
     (cirq.FREDKIN, cirq.TOFFOLI),
     (cirq.LinearOperator(np.array([[1, 2], [3, 4]])),
      cirq.LinearOperator(np.array([[1, 2], [3, 4.000000001]]))),
-    (cirq.LinearOperator(pauli_expansion=(0, 1, 1, 0)),
-     cirq.LinearOperator(pauli_expansion=(0, 1, 1.000000001, 0))),
+    (cirq.LinearOperator(pauli_expansion={'X': 1, 'Y': 1}),
+     cirq.LinearOperator(pauli_expansion={'X': 1, 'Y': 1.000000001})),
     (cirq.LinearOperator(matrix=np.array([[1, 1],
                                           [1, -1]]),
-                         pauli_expansion=(0, 1, 0, 1)),
+                         pauli_expansion={'X': 1, 'Z': 1}),
      cirq.LinearOperator(matrix=np.array([[1.000000001, 1],
                                           [1, -1.000000001]]),
-                         pauli_expansion=(0, 1, 1.000000001, 0))),
+                         pauli_expansion={'X': 1, 'Z': 1.000000001})),
 ))
 def test_different_linear_operators_are_not_equal(op1, op2):
     with pytest.raises(AssertionError):

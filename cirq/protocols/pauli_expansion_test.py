@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Dict
+
 import numpy as np
 import pytest
 
@@ -27,12 +29,12 @@ class ReturnsNotImplemented:
         return NotImplemented
 
 
-class ReturnsCoefficients:
-    def __init__(self, coefficients: np.ndarray):
-        self._coefficients = coefficients
+class ReturnsExpansion:
+    def __init__(self, expansion: Dict[str, complex]) -> None:
+        self._expansion = expansion
 
-    def _pauli_expansion_(self) -> np.ndarray:
-        return self._coefficients
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        return self._expansion
 
 
 class HasUnitary:
@@ -51,18 +53,24 @@ class HasUnitary:
     object(),
     cirq,
 ))
-def test_no_pauli_expansion(val):
-    assert cirq.pauli_expansion(val) is NotImplemented
+def test_raises_no_pauli_expansion(val):
+    assert cirq.pauli_expansion(val, default=None) is None
+    with pytest.raises(TypeError):
+        cirq.pauli_expansion(val)
 
 
-@pytest.mark.parametrize('val, expected_coefficients', (
-    (ReturnsCoefficients(np.array([1, 2, 3, 4])), np.array([1, 2, 3, 4])),
-    (HasUnitary(np.eye(2)), np.array([1, 0, 0, 0])),
-    (HasUnitary(np.array([[1, -1j], [1j, -1]])), np.array([0, 0, 1, 1])),
-    (HasUnitary(np.array([[0., 1.], [0., 0.]])), np.array([0, 0.5, 0.5j, 0])),
-    (cirq.H, np.array([0, 1, 0, 1]) / np.sqrt(2)),
-    (cirq.Ry(np.pi / 2), np.array([1, 0, -1j, 0]) / np.sqrt(2)),
+@pytest.mark.parametrize('val, expected_expansion', (
+    (ReturnsExpansion({'X': 1, 'Y': 2, 'Z': 3}), {'X': 1, 'Y': 2, 'Z': 3}),
+    (HasUnitary(np.eye(2)), {'I': 1}),
+    (HasUnitary(np.array([[1, -1j], [1j, -1]])), {'Y': 1, 'Z': 1}),
+    (HasUnitary(np.array([[0., 1.], [0., 0.]])), {'X': 0.5, 'Y': 0.5j}),
+    (HasUnitary(np.eye(16)), {'IIII': 1.0}),
+    (cirq.H, {'X': np.sqrt(0.5), 'Z': np.sqrt(0.5)}),
+    (cirq.Ry(np.pi / 2),
+        {'I': np.cos(np.pi / 4), 'Y': -1j * np.sin(np.pi / 4)}),
 ))
-def test_pauli_expansion(val, expected_coefficients):
-    assert np.allclose(cirq.pauli_expansion(val), expected_coefficients,
-                       rtol=0, atol=1e-12)
+def test_pauli_expansion(val, expected_expansion):
+    actual_expansion = cirq.pauli_expansion(val)
+    assert set(actual_expansion.keys()) == set(expected_expansion.keys())
+    for name in actual_expansion.keys():
+        assert np.abs(actual_expansion[name] - expected_expansion[name]) < 1e-12

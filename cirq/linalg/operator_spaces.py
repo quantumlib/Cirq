@@ -14,47 +14,68 @@
 
 """Utilities for manipulating linear operators as elements of vector space."""
 
-from typing import Tuple
+from typing import Dict
 
 import numpy as np
 
-PAULI_BASIS = (
-    np.eye(2),
-    np.array([[0., 1.], [1., 0.]]),
-    np.array([[0., -1j], [1j, 0.]]),
-    np.diag([1., -1]),
-)
+PAULI_BASIS = {
+    'I': np.eye(2),
+    'X': np.array([[0., 1.], [1., 0.]]),
+    'Y': np.array([[0., -1j], [1j, 0.]]),
+    'Z': np.diag([1., -1]),
+}
 
 
-def hilbert_schmidt(m1: np.ndarray, m2: np.ndarray) -> complex:
+def kron_bases(*bases: Dict[str, np.ndarray],
+               repeat: int = 1) -> Dict[str, np.ndarray]:
+    """Creates tensor product of bases."""
+    product_basis = {'': 1}
+    for basis in bases * repeat:
+        product_basis = {
+            name1 + name2: np.kron(matrix1, matrix2)
+            for name1, matrix1 in product_basis.items()
+            for name2, matrix2 in basis.items()
+        }
+    return product_basis
+
+
+def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
     """Computes Hilbert-Schmidt inner product of two matrices.
 
     Linear in second argument.
     """
-    return np.trace(np.dot(np.conjugate(np.transpose(m1)), m2))
+    return np.einsum('ij,ij', m1.conj(), m2)
 
 
-def expand_in_basis(m: np.ndarray, basis: Tuple[np.ndarray, ...]) -> np.ndarray:
-    """Computes coefficients of an expansion of m in basis.
-
-    Basis elements are rows in basis.
+def expand_matrix_in_orthogonal_basis(
+        m: np.ndarray,
+        basis: Dict[str, np.ndarray],
+) -> Dict[str, complex]:
+    """Computes coefficients of expansion of m in basis.
 
     We require that basis be orthogonal w.r.t. the Hilbert-Schmidt inner
     product. We do not require that basis be orthonormal. Note that Pauli
     basis (I, X, Y, Z) is orthogonal, but not orthonormal.
     """
-    return np.array(
-        [hilbert_schmidt(b, m) / hilbert_schmidt(b, b) for b in basis])
+    return {
+        name: (hilbert_schmidt_inner_product(b, m) /
+               hilbert_schmidt_inner_product(b, b))
+        for name, b in basis.items()
+    }
 
 
-def reconstruct_from_expansion(expansion: np.ndarray,
-                               basis: Tuple[np.ndarray, ...]) -> np.ndarray:
+def matrix_from_basis_coefficients(expansion: Dict[str, complex],
+                                   basis: Dict[str, np.ndarray]) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
-    return np.tensordot(expansion, np.array(basis), axes=(0, 0))
+    some_element = next(iter(basis.values()))
+    result = np.zeros_like(some_element, dtype=np.complex128)
+    for name, coefficient in expansion.items():
+        result += coefficient * basis[name]
+    return result
 
 
-def operator_power(pauli_coefficients: np.ndarray,
-                   exponent: int) -> np.ndarray:
+def operator_power(pauli_coefficients: Dict[str, complex],
+                   exponent: int) -> Dict[str, complex]:
     """Computes non-negative integer power of single-qubit linear operator.
 
     Both input and output operators are represented using their expansion in
@@ -68,9 +89,12 @@ def operator_power(pauli_coefficients: np.ndarray,
 
     """
     if exponent == 0:
-        return np.array([1., 0., 0., 0.])
+        return {'I': 1}
 
-    a, b, c, d = pauli_coefficients
+    a = pauli_coefficients.get('I', 0.0)
+    b = pauli_coefficients.get('X', 0.0)
+    c = pauli_coefficients.get('Y', 0.0)
+    d = pauli_coefficients.get('Z', 0.0)
 
     v = np.sqrt(b*b + c*c + d*d)
     s = np.power(a + v, exponent)
@@ -83,4 +107,9 @@ def operator_power(pauli_coefficients: np.ndarray,
         cxyz = (s - t) / 2
         cxyz = cxyz / v
 
-    return np.array([ci, cxyz * b, cxyz * c, cxyz * d])
+    return {
+        'I': ci,
+        'X': cxyz * b,
+        'Y': cxyz * c,
+        'Z': cxyz * d,
+    }
