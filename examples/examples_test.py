@@ -41,7 +41,7 @@ def test_example_runs_bcs_mean_field():
     examples.bcs_mean_field.main()
 
 
-def test_example_runs_grover(benchmark):
+def test_example_runs_grover():
     examples.grover.main()
 
 
