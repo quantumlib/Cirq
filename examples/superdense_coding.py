@@ -49,7 +49,7 @@ def make_superdense_circuit():
     if random.randint(0, 1):
         circuit.append([cirq.X(q0)]) # coverage: ignore
     if random.randint(0, 1):
-        circuit.append([cirq.X(q1)])
+        circuit.append([cirq.X(q1)]) # coverage: ignore
 
     # Creates Bell State to be shared on q2 and q4
     circuit.append([cirq.H(q2), cirq.CNOT(q2, q4)])
