@@ -47,7 +47,7 @@ def make_superdense_circuit():
 
     # Randomly sets q0 and q1 to either 0 or 1
     if random.randint(0, 1):
-        circuit.append([cirq.X(q0)])
+        circuit.append([cirq.X(q0)]) # coverage: ignore
     if random.randint(0, 1):
         circuit.append([cirq.X(q1)])
 
