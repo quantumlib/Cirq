@@ -45,12 +45,12 @@ def test_control():
     g = ValiGate()
     controlled_g = g.__control__()
     assert controlled_g.sub_gate == g
-    assert controlled_g.control_qubits == []
-    assert controlled_g.num_unspecified_control_qubits == 1
+    assert controlled_g.control_qubits == [None]
+    assert controlled_g.num_controls == 1
     specified_controlled_g = g.__control__([q00, q01])
     assert specified_controlled_g.sub_gate == g
     assert specified_controlled_g.control_qubits == [q00, q01]
-    assert specified_controlled_g.num_unspecified_control_qubits == 0
+    assert specified_controlled_g.num_controls == 2
 
 def test_op():
     g = ValiGate()

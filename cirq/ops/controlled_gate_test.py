@@ -73,7 +73,7 @@ p = cirq.NamedQubit('p')
 CY = cirq.ControlledGate(cirq.Y)
 SCY = cirq.ControlledGate(cirq.Y, [q])
 CCH = cirq.ControlledGate(cirq.ControlledGate(cirq.H))
-SCSCH = cirq.ControlledGate(cirq.H, [q, p])
+SCSCH = cirq.ControlledGate(cirq.H, [q, p], 2)
 CRestricted = cirq.ControlledGate(RestrictedGate())
 SCRestricted = cirq.ControlledGate(RestrictedGate(), [q])
 
@@ -88,7 +88,13 @@ def test_init2():
     gate = cirq.ControlledGate(cirq.Z, [q])
     assert gate.sub_gate is cirq.Z
     assert gate.control_qubits == [q]
-    assert gate.num_qubits() == 1
+    assert gate.num_qubits() == 2
+    with pytest.raises(ValueError):
+        gate = cirq.ControlledGate(cirq.Z, [p,q])
+    gate = cirq.ControlledGate(cirq.Z, [p,q], 2)
+    assert gate.sub_gate is cirq.Z
+    assert gate.control_qubits == [p, q]
+    assert gate.num_qubits() == 3
 
 
 def test_validate_args():
@@ -403,7 +409,7 @@ def test_repr():
     assert (repr(cirq.ControlledGate(cirq.Z, [cirq.LineQubit(0)])) ==
             "cirq.ControlledGate(sub_gate=cirq.Z, "
             "control_qubits=[cirq.LineQubit(0)], "
-            "num_unspecified_control_qubits=0)")
+            "num_controls=1)")
 
 
 def test_str():
@@ -415,4 +421,4 @@ def test_str():
     assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCS'
     assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S,
                                                        [q]), [q])) == 'CCS'
-    assert str(cirq.ControlledGate(cirq.S, [q, q])) == 'CCS'
+    assert str(cirq.ControlledGate(cirq.S, [q, q], 2)) == 'CCS'
