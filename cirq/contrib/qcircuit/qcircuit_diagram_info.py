@@ -19,17 +19,17 @@ from cirq import ops, protocols
 
 def escape_text_for_latex(text):
     escaped = (text
-               .replace('\\', '\\textbackslash{}')
-               .replace('^', '\\textasciicircum{}')
-               .replace('~', '\\textasciitilde{}')
-               .replace('_', '\\_')
-               .replace('{', '\\{')
-               .replace('}', '\\}')
-               .replace('$', '\\$')
-               .replace('%', '\\%')
-               .replace('&', '\\&')
-               .replace('#', '\\#'))
-    return '\\text{' + escaped + '}'
+               .replace('\\', r'\textbackslash{}')
+               .replace('^', r'\textasciicircum{}')
+               .replace('~', r'\textasciitilde{}')
+               .replace('_', r'\_')
+               .replace('{', r'\{')
+               .replace('}', r'\}')
+               .replace('$', r'\$')
+               .replace('%', r'\%')
+               .replace('&', r'\&')
+               .replace('#', r'\#'))
+    return r'\text{' + escaped + '}'
 
 
 def get_multigate_parameters(
@@ -65,7 +65,7 @@ def convert_text_diagram_info_to_qcircuit_diagram_info(
     labels = [escape_text_for_latex(e) for e in info.wire_symbols]
     if info.exponent != 1:
         labels[0] += '^{' + str(info.exponent) + '}'
-    symbols = tuple('\\gate{' + l + '}' for l in labels)
+    symbols = tuple(r'\gate{' + l + '}' for l in labels)
     return protocols.CircuitDiagramInfo(symbols)
 
 
@@ -90,8 +90,8 @@ def multigate_qcircuit_diagram_info(
             str(op))
     if (info is not None) and (info.exponent != 1):
         name += '^{' + str(info.exponent) + '}'
-    box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
-    ghost = '\ghost{' + name + '}'
+    box = r'\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
+    ghost = r'\ghost{' + name + '}'
     assert args.qubit_map is not None
     assert args.known_qubits is not None
     symbols = tuple(box if (args.qubit_map[q] == min_index) else

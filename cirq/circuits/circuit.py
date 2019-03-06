@@ -1627,10 +1627,15 @@ def _draw_moment_in_diagram(
         for s, q in zip(info.wire_symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
-        # Add an exponent to the last label.
         exponent = _formatted_exponent(info, args)
         if exponent is not None:
-            out_diagram.write(x, y2, '^' + exponent)
+            if info.connected:
+                # Add an exponent to the last label only.
+                out_diagram.write(x, y2, '^' + exponent)
+            else:
+                # Add an exponent to every label
+                for index in indices:
+                    out_diagram.write(x, index, '^' + exponent)
 
     # Group together columns belonging to the same Moment.
     if moment.operations and x > x0:
