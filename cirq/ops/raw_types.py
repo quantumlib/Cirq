@@ -122,7 +122,6 @@ class Gate(metaclass=abc.ABCMeta):
             raise ValueError(
                 "Applied a gate to an empty set of qubits. Gate: {}".format(
                     repr(self)))
-        self.validate_args(qubits)
         return gate_operation.GateOperation(self, list(qubits))
 
     def __call__(self, *args, **kwargs):
