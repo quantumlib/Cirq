@@ -125,10 +125,9 @@ class ControlledGate(raw_types.Gate):
         sub_matrix = protocols.unitary(self.sub_gate, None)
         if sub_matrix is None:
             return NotImplemented
-        for _ in range(self.num_controls):
-            sub_matrix = linalg.block_diag(np.eye(sub_matrix.shape[0]),
-                                           sub_matrix)
-        return sub_matrix
+        return linalg.block_diag(
+                    np.eye(sub_matrix.shape[0] << (self.num_controls - 1)),
+                    sub_matrix)
 
     def __pow__(self, exponent: Any) -> 'ControlledGate':
         new_sub_gate = protocols.pow(self.sub_gate,
