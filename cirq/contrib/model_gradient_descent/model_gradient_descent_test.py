@@ -38,3 +38,4 @@ def test_model_gradient_descent():
 
     assert np.allclose(x, np.zeros(len(x)), atol=1e-7)
     assert np.allclose(y, 0)
+    assert isinstance(n_evals, int)
