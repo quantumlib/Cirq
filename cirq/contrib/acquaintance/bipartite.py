@@ -151,7 +151,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         args = (repr(self.subgraph), repr(self.part_size))
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
-        return ('cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate' +
+        return ('cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate'
                 '({})'.format(', '.join(args)))
 
     def __eq__(self, other):
