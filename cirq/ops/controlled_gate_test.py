@@ -95,6 +95,18 @@ def test_init2():
     assert gate.sub_gate is cirq.Z
     assert gate.control_qubits == [p, q]
     assert gate.num_qubits() == 3
+    gate = cirq.ControlledGate(cirq.ControlledGate(
+                                    cirq.ControlledGate(cirq.Z, [p], 3),
+                                    num_controls=2),
+                               [q], 2)
+    assert gate.sub_gate is cirq.Z
+    assert gate.control_qubits == [None, q, None, None, None, None, p]
+    assert gate.num_qubits() == 8
+    assert gate.num_unspecified_controls == 5
+    op = gate(*cirq.LineQubit.range(6))
+    assert op.qubits == (cirq.LineQubit(0), q, cirq.LineQubit(1),
+                         cirq.LineQubit(2), cirq.LineQubit(3),
+                         cirq.LineQubit(4), p, cirq.LineQubit(5))
 
 
 def test_validate_args():
