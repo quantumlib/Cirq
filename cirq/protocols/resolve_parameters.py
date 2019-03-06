@@ -79,6 +79,9 @@ def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolver') -> Any:
         If `val` has no `_resolve_parameters_` method or if it returns
         NotImplemented, `val` itself is returned.
     """
+    if isinstance(val, sympy.Basic):
+        return param_resolver.value_of(val)
+
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)
 
