@@ -42,7 +42,8 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('More specified control qubits than num_controls')
 
         # Leave unspecified controls as Nones.
-        self.control_qubits = ([None]*(num_controls-len(control_qubits)) +
+        self.control_qubits = ([None]*(num_controls - # type: ignore
+                                       len(control_qubits)) +
                                control_qubits)
 
         self.num_controls = num_controls
@@ -135,7 +136,7 @@ class ControlledGate(raw_types.Gate):
                                      NotImplemented)
         if new_sub_gate is NotImplemented:
             return NotImplemented
-        return ControlledGate(new_sub_gate, self.control_qubits,
+        return ControlledGate(new_sub_gate, self.control_qubits, # type: ignore
                               self.num_controls)
 
     def _is_parameterized_(self):
