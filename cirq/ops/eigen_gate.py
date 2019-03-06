@@ -274,7 +274,7 @@ class EigenGate(raw_types.Gate):
     def _canonical_exponent(self):
         if self._canonical_exponent_cached is None:
             period = self._period()
-            if not period or isinstance(self._exponent, sympy.Symbol):
+            if not period or protocols.is_parameterized(self._exponent):
                 self._canonical_exponent_cached = self._exponent
             else:
                 self._canonical_exponent_cached = self._exponent % period
@@ -285,14 +285,14 @@ class EigenGate(raw_types.Gate):
 
     def _value_equality_approximate_values_(self):
         period = self._period()
-        if not period or isinstance(self._exponent, sympy.Basic):
+        if not period or protocols.is_parameterized(self._exponent):
             exponent = self._exponent
         else:
             exponent = value.PeriodicValue(self._exponent, period)
         return exponent, self._global_shift
 
     def _trace_distance_bound_(self):
-        if isinstance(self._exponent, sympy.Symbol):
+        if protocols.is_parameterized(self._exponent):
             return 1
 
         angles = [half_turns for half_turns, _ in self._eigen_components()]
@@ -314,7 +314,7 @@ class EigenGate(raw_types.Gate):
         ], axis=0)
 
     def _is_parameterized_(self) -> bool:
-        return isinstance(self._exponent, sympy.Basic)
+        return protocols.is_parameterized(self._exponent)
 
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
