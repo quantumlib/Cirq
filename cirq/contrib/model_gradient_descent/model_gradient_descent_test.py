@@ -25,7 +25,7 @@ def test_model_gradient_descent():
     x0 = np.random.randn(10)
     sample_radius = 1e-1
     rate = 1e-1
-    x, y, n_evals = model_gradient_descent(
+    result = model_gradient_descent(
         sum_of_squares,
         x0,
         sample_radius=sample_radius,
@@ -36,6 +36,6 @@ def test_model_gradient_descent():
         max_evaluations=None,
         verbose=False)
 
-    assert np.allclose(x, np.zeros(len(x)), atol=1e-7)
-    assert np.allclose(y, 0)
-    assert isinstance(n_evals, int)
+    assert np.allclose(result.x, np.zeros(len(result.x)), atol=1e-7)
+    assert np.allclose(result.fun, 0)
+    assert isinstance(result.nfev, int)
