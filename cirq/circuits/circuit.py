@@ -30,7 +30,6 @@ from typing import (
 import json
 import re
 import numpy as np
-import sympy
 
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
@@ -1541,7 +1540,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
 
-    if isinstance(info.exponent, sympy.Basic):
+    if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
         return (name
                 if _is_exposed_formula(name)

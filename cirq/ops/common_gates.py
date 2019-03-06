@@ -143,7 +143,7 @@ class XPowGate(eigen_gate.EigenGate,
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            if isinstance(self._exponent, sympy.Basic):
+            if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rx({})'.format(
                     proper_repr(sympy.pi * self._exponent))
             else:
@@ -239,7 +239,7 @@ class YPowGate(eigen_gate.EigenGate,
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            if isinstance(self._exponent, sympy.Basic):
+            if protocols.is_parameterized(self._exponent):
                 return 'cirq.Ry({})'.format(
                     proper_repr(sympy.pi * self._exponent))
             else:
@@ -358,7 +358,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            if isinstance(self._exponent, sympy.Basic):
+            if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rz({})'.format(proper_repr(
                     sympy.pi * self._exponent))
             else:
@@ -783,7 +783,7 @@ class CZPowGate(eigen_gate.EigenGate,
 def _rads_func_symbol(func_name: str,
                       args: protocols.CircuitDiagramInfoArgs,
                       half_turns: Any) -> str:
-    if isinstance(half_turns, sympy.Basic):
+    if protocols.is_parameterized(half_turns):
         return '{}({})'.format(func_name, sympy.pi * half_turns)
     unit = 'π' if args.use_unicode_characters else 'pi'
     if half_turns == 1:
@@ -1113,19 +1113,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
 
 def Rx(rads: Union[float, sympy.Basic]) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
-    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
 def Ry(rads: Union[float, sympy.Basic]) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
 def Rz(rads: Union[float, sympy.Basic]) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
