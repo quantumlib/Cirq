@@ -40,7 +40,8 @@ class IonDevice(devices.Device):
         Args:
             measurement_duration: The maximum duration of a measurement.
             twoq_gates_duration: The maximum duration of a two qubit operation.
-            oneq_gates_duration: The maximum duration of a single qubit operation.
+            oneq_gates_duration: The maximum duration of a single qubit
+            operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
         self._measurement_duration = measurement_duration
