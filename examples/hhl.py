@@ -85,7 +85,7 @@ class PhaseEstimation(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits, unitary, invert=False):
-        super().__init__(num_qubits)
+        super(PhaseEstimation, self).__init__(num_qubits)
         self.U = unitary
         self.invert = invert
 
@@ -176,7 +176,7 @@ class Qft(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits, invert=False):
-        super().__init__(num_qubits)
+        super(Qft, self).__init__(num_qubits)
         self.invert = invert
 
     def _decompose_(self, qubits):
@@ -216,7 +216,7 @@ class EigenRotation(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits, C, t):
-        super().__init__(num_qubits)
+        super(EigenRotation, self).__init__(num_qubits)
         self.C = C
         self.t = t
         self.N = 2**(num_qubits-1)
@@ -269,7 +269,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     c.append([gate(memory) for gate in input_prep_gates])
     c.append([
         pe(*(register + [memory])),
-        EigenRotation(register_size+1, C, t)(*register, ancilla),
+        EigenRotation(register_size+1, C, t)(*(register+[ancilla])),
         (pe**-1)(*(register + [memory])),
         cirq.measure(ancilla)
     ])
