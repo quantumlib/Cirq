@@ -16,9 +16,9 @@ following are performed in order:
 2) Controlled rotations of ancilla qubit
 3) Uncomputation with inverse quantum phase estimation
 
-For details about the algorithm, please refer to the paper in the
+For details about the algorithm, please refer to papers in the
 REFERENCE section below. The following description uses variables defined
-in the paper.
+in the HHL paper.
 
 This example is an implementation of the HHL algorithm for arbitrary 2x2
 Hermitian matrices. The output of the algorithm is a display of Pauli
@@ -48,6 +48,10 @@ unknown, parameters C and t are fine-tuned based on their condition number.
 
 
 === REFERENCE ===
+Harrow, Aram W. et al. Quantum algorithm for solving linear systems of
+equations (the HHL paper)
+https://arxiv.org/abs/0811.3171
+
 Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
 https://arxiv.org/abs/1804.03719
 
@@ -310,152 +314,36 @@ def simulate(circuit):
 
 def main():
     """
-    Simulates HHL with input given in each test case, and outputs Pauli
-    observables of the resulting qubit state |x>.
+    Simulates HHL with matrix input, and outputs Pauli observables of the
+    resulting qubit state |x>.
     Expected observables are calculated from the expected solution |x>.
     """
 
-    testcases = [
-        {
-            # Eigendecomposition: [(2, |+>), (1, |->)]
-            # |b> = |0>
-            # |x> = (0.948683, -0.316228)
-            'A': np.array([[1.5, 0.5], [0.5, 1.5]]),
-            't': math.pi,
-            'register_size': 1,
-            'input_prep_gates': [],
-            'expected': (-0.6, 0.0, 0.8),
-        },
-        {
-            # Eigendecomposition: [(4, |+>), (1, |->)]
-            # |b> = |0>
-            # |x> = (0.857493, -0.514496)
-            'A': np.array([[2.5, 1.5], [1.5, 2.5]]),
-            't': math.pi / 2,
-            'register_size': 2,
-            'input_prep_gates': [],
-            'expected': (-0.882353, 0.0, 0.470588),
-        },
-        {
-            # Eigendecomposition: [(8, |+>), (1, |->)]
-            # |b> = |+>
-            # |x> = (0.707107, 0.707107)
-            'A': np.array([[4.5, 3.5], [3.5, 4.5]]),
-            't': math.pi / 4,
-            'register_size': 3,
-            'input_prep_gates': [cirq.H],
-            'expected': (1.0, 0.0, 0.0),
-        },
-        {
-            # Eigendecomposition: [(3, |+>), (1, |->)]
-            # |b> = |0>
-            # |x> = (2/sqrt(5), -1/sqrt(5))
-            'A': np.array([[2, 1], [1, 2]]),
-            't': math.pi / 2,
-            'register_size': 2,
-            'input_prep_gates': [],
-            'expected': (-0.8, 0.0, 0.6),
-        },
-        {
-            # Eigendecomposition: [(4, |+>), (2, |->)]
-            # |b> = |0>
-            # |x> = (3/sqrt(10), -1/sqrt(10))
-            'A': np.array([[3, 1], [1, 3]]),
-            't': math.pi / 2,
-            'register_size': 2,
-            'input_prep_gates': [],
-            'expected': (-0.6, 0.0, 0.8),
-        },
-        {
-            # Eigendecomposition: [(0.5, |+>), (0.25, |->)]
-            # |b> = |0>
-            # |x> = (0.948683, -0.316228)
-            'A': np.array([[0.375, 0.125], [0.125, 0.375]]),
-            't': 4*math.pi,
-            'register_size': 1,
-            'input_prep_gates': [],
-            'expected': (-0.6, 0.0, 0.8),
-        },
-        {
-            # Eigendecomposition: [(2, |0>), (1, |1>)]
-            # |b> = |+>
-            # |x> = [0.4472136, 0.89442719]
-            'A': np.array([[2, 0], [0, 1]]),
-            't': math.pi,
-            'register_size': 1,
-            'input_prep_gates': [cirq.H],
-            'expected': (0.8, 0.0, -0.6),
-        },
-        {
-            # Eigendecomposition: [(2, |+>), (1, |->)]
-            # |b> = [0.5-0.5j, 0.5+0.5j]
-            # |x> = [0.31622777-0.63245553j 0.31622777+0.63245553j]
-            'A': np.array([[1.5, 0.5], [0.5, 1.5]]),
-            't': math.pi,
-            'register_size': 1,
-            'input_prep_gates': [cirq.X**-0.5],
-            'expected': (-0.6, 0.8, 0.0),
-        },
-        {
-            # Eigendecomposition:
-            #   (2, [1/sqrt(2), 1j/sqrt(2)])
-            #   (1, [1/sqrt(2), -1j/sqrt(2)])
-            # |b> = |0>
-            # |x> = [0.9486833, -0.31622777j]
-            'A': np.array([[1.5, 0.5j], [-0.5j, 1.5]]),
-            't': math.pi,
-            'register_size': 1,
-            'input_prep_gates': [],
-            'expected': (0.0, -0.6, 0.8),
-        },
-        {
-            # Eigendecomposition:
-            #   (2, [-0.971555, -0.0578339+0.229643j])
-            #   (1, [-0.236813, 0.237270-0.942137j])
-            # |b> = |0>
-            # |x> = (0.97708125+1.32901563e-08j, -0.05198566+2.06421005e-01j)
-            'A': np.array([[1.94391945-1.43646965e-08j,
-                            0.05618864+2.23110352e-01j],
-                           [0.05618883-2.23110884e-01j,
-                            1.05608055+1.43646965e-08j]]),
-            't': math.pi,
-            'register_size': 1,
-            'input_prep_gates': [],
-            'expected': (-0.101588, 0.403380, 0.909376)
-        },
-        {
-            # Eigendecomposition:
-            #   (4.537, [-0.971555, -0.0578339+0.229643j])
-            #   (0.349, [-0.236813, 0.237270-0.942137j])
-            # |b> = (0.64510-0.47848j, 0.35490-0.47848j)
-            # |x> = (-0.0662724-0.214548j, 0.784392-0.578192j)
-            'A': np.array([[4.30213466-6.01593490e-08j,
-                            0.23531802+9.34386156e-01j],
-                           [0.23531882-9.34388383e-01j,
-                            0.58386534+6.01593489e-08j]]),
-            't': 0.358166*math.pi,
-            'register_size': 4,
-            'input_prep_gates': [cirq.Rx(1.276359), cirq.Rz(1.276359)],
-            'expected': (0.144130, 0.413217, -0.899154),
-        },
-    ]
+    # Eigendecomposition:
+    #   (4.537, [-0.971555, -0.0578339+0.229643j])
+    #   (0.349, [-0.236813, 0.237270-0.942137j])
+    # |b> = (0.64510-0.47848j, 0.35490-0.47848j)
+    # |x> = (-0.0662724-0.214548j, 0.784392-0.578192j)
+    A = np.array([[4.30213466-6.01593490e-08j,
+                   0.23531802+9.34386156e-01j],
+                  [0.23531882-9.34388383e-01j,
+                   0.58386534+6.01593489e-08j]])
+    t = 0.358166*math.pi
+    register_size = 4
+    input_prep_gates = [cirq.Rx(1.276359), cirq.Rz(1.276359)]
+    expected = (0.144130, 0.413217, -0.899154)
 
-    for t in testcases:
-        # Set C to be the smallest eigenvalue that can be represented by the
-        # circuit.
-        t['C'] = 2*math.pi / (2**t['register_size'] * t['t'])
+    # Set C to be the smallest eigenvalue that can be represented by the
+    # circuit.
+    C = 2*math.pi / (2**register_size * t)
 
     # Simulate circuit
-    for t in testcases:
-        print("Expected observable outputs:")
-        print("X =", t['expected'][0])
-        print("Y =", t['expected'][1])
-        print("Z =", t['expected'][2])
-        print("Actual: ")
-        simulate(hhl_circuit(t['A'], t['C'], t['t'], t['register_size'],
-                             *t['input_prep_gates']))
-
-        print()
+    print("Expected observable outputs:")
+    print("X =", expected[0])
+    print("Y =", expected[1])
+    print("Z =", expected[2])
+    print("Actual: ")
+    simulate(hhl_circuit(A, C, t, register_size, *input_prep_gates))
 
 
 if __name__ == '__main__':
