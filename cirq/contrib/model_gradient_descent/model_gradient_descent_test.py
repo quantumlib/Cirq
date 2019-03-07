@@ -47,7 +47,7 @@ def test_model_gradient_descent_with_known_values():
     rate = 1e-1
     known_xs = [np.ones(10)]
     known_ys = [10.0]
-    result = model_gradient_descent(
+    _ = model_gradient_descent(
         sum_of_squares,
         x0,
         sample_radius=sample_radius,
@@ -74,9 +74,9 @@ def test_model_gradient_descent_limited_evaluations():
         rate=rate,
         tol=1e-8,
         known_values=None,
-        max_evaluations=20,
+        max_evaluations=15,
         verbose=True)
 
     assert isinstance(result.x, np.ndarray)
     assert isinstance(result.fun, float)
-    assert result.nfev == 20
+    assert result.nfev == 10
