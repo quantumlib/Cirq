@@ -15,7 +15,7 @@
 from typing import Iterable, cast, Optional, List, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops
-from cirq.devices.grid_qubit import GridQubit
+from cirq.line import LineQubit
 from cirq.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 @value.value_equality
 class IonDevice(devices.Device):
     """A device with qubits placed on a line.
+
     Qubits have all-to-all connectivity.
     """
 
@@ -33,14 +34,14 @@ class IonDevice(devices.Device):
                  measurement_duration: value.Duration,
                  twoq_gates_duration: value.Duration,
                  oneq_gates_duration: value.Duration,
-                 qubits: Iterable[GridQubit]) -> None:
+                 qubits: Iterable[LineQubit]) -> None:
         """Initializes the description of an ion trap device.
 
         Args:
-        measurement_duration: The maximum duration of a measurement.
-        twoq_gates_duration: The maximum duration of a two qubit operation.
-        oneq_gates_duration: The maximum duration of a single qubit operation.
-        qubits: Qubits on the device, identified by their x, y location.
+            measurement_duration: The maximum duration of a measurement.
+            twoq_gates_duration: The maximum duration of a two qubit operation.
+            oneq_gates_duration: The maximum duration of a single qubit operation.
+            qubits: Qubits on the device, identified by their x, y location.
         """
         self._measurement_duration = measurement_duration
         self._twoq_gates_duration = twoq_gates_duration
@@ -80,7 +81,7 @@ class IonDevice(devices.Device):
         self.validate_gate(operation.gate)
 
         for q in operation.qubits:
-            if not isinstance(q, GridQubit):
+            if not isinstance(q, LineQubit):
                 raise ValueError('Unsupported qubit type: {!r}'.format(q))
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {!r}'.format(q))
@@ -144,25 +145,17 @@ class IonDevice(devices.Device):
         for scheduled_operation in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, scheduled_operation)
 
-    def at(self, row: int, col: int) -> Optional[GridQubit]:
+    def at(self, position: int) -> Optional[LineQubit]:
         """Returns the qubit at the given position, if there is one, else None.
         """
-        q = GridQubit(row, col)
+        q = LineQubit(position)
         return q if q in self.qubits else None
 
-    def row(self, row: int) -> List[GridQubit]:
-        """Returns the qubits in the given row, in ascending order."""
-        return sorted(q for q in self.qubits if q.row == row)
-
-    def col(self, col: int) -> List[GridQubit]:
-        """Returns the qubits in the given column, in ascending order."""
-        return sorted(q for q in self.qubits if q.col == col)
-
-    def neighbors_of(self, qubit: GridQubit):
+    def neighbors_of(self, qubit: LineQubit):
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
-            GridQubit(qubit.row, qubit.col + 1),
-            GridQubit(qubit.row, qubit.col - 1),
+            LineQubit(qubit.x + 1),
+            LineQubit(qubit.x - 1),
         ]
         return [e for e in possibles if e in self.qubits]
 
@@ -179,9 +172,9 @@ class IonDevice(devices.Device):
         diagram = circuits.TextDiagramDrawer()
 
         for q in self.qubits:
-            diagram.write(q.col, q.row, str(q))
+            diagram.write(q.x, 0, str(q))
             for q2 in self.neighbors_of(q):
-                diagram.grid_line(q.col, q.row, q2.col, q2.row)
+                diagram.grid_line(q.x, 0, q2.x, 0)
 
         return diagram.render(
             horizontal_spacing=3,

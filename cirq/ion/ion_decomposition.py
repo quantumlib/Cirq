@@ -32,7 +32,7 @@ from cirq.ion import MS
 def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
                                        q1: ops.QubitId,
                                        mat: np.ndarray,
-                                       tolerance: float = 1e-8
+                                       atol: float = 1e-8
                                        ) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
@@ -46,9 +46,9 @@ def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
     Returns:
         A list of operations implementing the matrix.
     """
-    kak = linalg.kak_decomposition(mat, atol=tolerance)
+    kak = linalg.kak_decomposition(mat, atol=atol)
     operations = _kak_decomposition_to_operations(q0,
-        q1, kak, tolerance)
+        q1, kak, atol)
     return _cleanup_operations(operations)
 
 
@@ -67,37 +67,37 @@ def _cleanup_operations(operations: List[ops.Operation]):
 def _kak_decomposition_to_operations(q0: ops.QubitId,
                                      q1: ops.QubitId,
                                      kak: linalg.KakDecomposition,
-                                     tolerance: float = 1e-8
+                                     atol: float = 1e-8
                                      ) -> List[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
-    pre = [_do_single_on(b0, q0, tolerance), _do_single_on(b1, q1, tolerance)]
+    pre = [_do_single_on(b0, q0, atol), _do_single_on(b1, q1, atol)]
     a0, a1 = kak.single_qubit_operations_after
-    post = [_do_single_on(a0, q0, tolerance), _do_single_on(a1, q1, tolerance)]
+    post = [_do_single_on(a0, q0, atol), _do_single_on(a1, q1, atol)]
 
     return list(cast(Iterable[ops.Operation], ops.flatten_op_tree([
         pre,
         _non_local_part(q0,
                         q1,
                         kak.interaction_coefficients,
-                        tolerance),
+                        atol),
         post,
     ])))
 
 
-def _do_single_on(u: np.ndarray, q: ops.QubitId, tolerance: float = 1e-8):
-    for gate in optimizers.single_qubit_matrix_to_gates(u, tolerance):
+def _do_single_on(u: np.ndarray, q: ops.QubitId, atol: float = 1e-8):
+    for gate in optimizers.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
 def _parity_interaction(q0: ops.QubitId,
                         q1: ops.QubitId,
                         rads: float,
-                        tolerance: float,
+                        atol: float,
                         gate: Optional[ops.Gate] = None):
     """Yields an XX interaction framed by the given operation."""
 
-    if abs(rads) < tolerance:
+    if abs(rads) < atol:
         return
 
     if gate is not None:
@@ -114,12 +114,12 @@ def _parity_interaction(q0: ops.QubitId,
 def _non_local_part(q0: ops.QubitId,
                     q1: ops.QubitId,
                     interaction_coefficients: Tuple[float, float, float],
-                    tolerance: float = 1e-8):
+                    atol: float = 1e-8):
     """Yields non-local operation of KAK decomposition."""
 
     x, y, z = interaction_coefficients
 
-    return[
-        _parity_interaction(q0, q1, x, tolerance),
-        _parity_interaction(q0, q1, y, tolerance, ops.Z ** -0.5),
-        _parity_interaction(q0, q1, z, tolerance, ops.Y ** 0.5)]
+    return [
+        _parity_interaction(q0, q1, x, atol),
+        _parity_interaction(q0, q1, y, atol, ops.Z ** -0.5),
+        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5)]

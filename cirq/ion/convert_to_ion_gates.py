@@ -19,10 +19,10 @@ from cirq.ion import MS, two_qubit_matrix_to_ion_operations
 
 
 class ConvertToIonGates:
-    """Attempts to convert strange gates into IonGates.
+    """Attempts to convert non-native gates into IonGates.
     """
 
-    def __init__(self, ignore_failures=False) -> None:
+    def __init__(self, ignore_failures: bool = False) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -31,49 +31,54 @@ class ConvertToIonGates:
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    def convert_one(self, op: ops.Operation):
-        """
-        Convert a single (one- or two-qubit) operation
+    def convert_one(self, op: ops.Operation) -> ops.OP_TREE:
+        """Convert a single (one- or two-qubit) operation
+
         into ion trap native gates
-        :param op: gate operation to be converted
-        :return: the desired operation implemented with ion trap gates
+        Args:
+            op: gate operation to be converted
+
+        Returns:
+            the desired operation implemented with ion trap gates
         """
 
         # Known gate name
-        if isinstance(op, ops.GateOperation):
-            if is_native_ion_gate(op.gate):
-                return [op]
-            # one choice of known Hadamard gate decomposition
-            elif isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
-                return [ops.Rx(np.pi).on(op.qubits[0]),
-                        ops.Ry(-1 * np.pi/2).on(op.qubits[0])]
-            # one choice of known CNOT gate decomposition
-            elif isinstance(op.gate, ops.CNotPowGate) and op.gate.exponent == 1:
-                return [ops.Ry(np.pi/2).on(op.qubits[0]),
-                        MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
-                        ops.Rx(-1*np.pi/2).on(op.qubits[0]),
-                        ops.Rx(-1*np.pi/2).on(op.qubits[1]),
-                        ops.Ry(-1*np.pi/2).on(op.qubits[0])]
-            else:
-                # Known matrix
-                mat = protocols.unitary(op, None) if len(
-                    op.qubits) <= 2 else None
-                if mat is not None and len(op.qubits) == 1:
-                    gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
-                    return [g.on(op.qubits[0]) for g in gates]
-                elif mat is not None and len(op.qubits) == 2:
-                    return two_qubit_matrix_to_ion_operations(
-                        op.qubits[0],
-                        op.qubits[1],
-                        mat)
-                else:
-                    raise TypeError(
-                        "Don't know how to work with {!r}. "
-                        "It isn't a native Ion Trap operation, "
-                        "a 1 or 2 qubit gate with a known unitary, "
-                        "or composite.".format(op.gate))
+        if not isinstance(op, ops.GateOperation):
+            raise TypeError("{!r} is not a gate operation.".format(op))
 
-    def convert_circuit(self, circuit: circuits.Circuit):
+        if is_native_ion_gate(op.gate):
+            return [op]
+        # one choice of known Hadamard gate decomposition
+        if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
+            return [ops.Rx(np.pi).on(op.qubits[0]),
+                    ops.Ry(-1 * np.pi/2).on(op.qubits[0])]
+        # one choice of known CNOT gate decomposition
+        if isinstance(op.gate, ops.CNotPowGate) and op.gate.exponent == 1:
+            return [ops.Ry(np.pi/2).on(op.qubits[0]),
+                    MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
+                    ops.Rx(-1*np.pi/2).on(op.qubits[0]),
+                    ops.Rx(-1*np.pi/2).on(op.qubits[1]),
+                    ops.Ry(-1*np.pi/2).on(op.qubits[0])]
+        # Known matrix
+        mat = protocols.unitary(op, None) if len(
+            op.qubits) <= 2 else None
+        if mat is not None and len(op.qubits) == 1:
+            gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
+            return [g.on(op.qubits[0]) for g in gates]
+        elif mat is not None and len(op.qubits) == 2:
+            return two_qubit_matrix_to_ion_operations(
+                op.qubits[0], op.qubits[1], mat)
+        else:
+            if self.ignore_failures:
+                return [op]
+            else:
+                raise TypeError(
+                    "Don't know how to work with {!r}. "
+                    "It isn't a native Ion Trap operation, "
+                    "a 1 or 2 qubit gate with a known unitary, "
+                    "or composite.".format(op.gate))
+
+    def convert_circuit(self, circuit: circuits.Circuit) -> circuits.Circuit:
         new_circuit = circuits.Circuit()
         for moment in circuit:
             for op in moment.operations:

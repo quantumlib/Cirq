@@ -40,9 +40,17 @@ def test_convert_to_ion_gates():
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
     op = cirq.CNOT(q0, q1)
+    circuit = cirq.Circuit()
+
+    with pytest.raises(TypeError):
+        cirq.ion.ConvertToIonGates().convert_one(circuit)
 
     with pytest.raises(TypeError):
         cirq.ion.ConvertToIonGates().convert_one(NoUnitary().on(q0))
+
+    no_unitary_op = NoUnitary().on(q0)
+    assert cirq.ion.ConvertToIonGates(ignore_failures=True).convert_one(
+        no_unitary_op) == [no_unitary_op]
 
     rx = cirq.ion.ConvertToIonGates().convert_one(OtherX().on(q0))
     rop = cirq.ion.ConvertToIonGates().convert_one(op)
