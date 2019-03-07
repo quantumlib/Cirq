@@ -31,8 +31,8 @@ Circuit:
 4: ------------------------X---------------X-------M-------------
 
 Results:
-input=0, 1
-output=0, 1
+input =10001000000000011110, 10000001100000001000
+output=10001000000000011110, 10000001100000001000
 
 """
 
@@ -45,7 +45,7 @@ def make_superdense_circuit():
 
     # Randomly sets q0 and q1 to either 0 or 1
     circuit.append([cirq.H(q0), cirq.H(q1)])
-    circuit.append(cirq.measure(q0, q1, key="input"))
+    circuit.append(cirq.measure(q0, q1, key="input "))
 
     # Creates Bell State to be shared on q2 and q4
     circuit.append([cirq.H(q2), cirq.CNOT(q2, q4)])
@@ -71,7 +71,7 @@ def main():
     print(circuit)
 
     sim = cirq.Simulator()
-    results = sim.run(circuit)
+    results = sim.run(circuit, repetitions=20)
     print("\nResults:")
     print(results)
 
