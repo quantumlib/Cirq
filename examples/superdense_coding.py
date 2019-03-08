@@ -20,7 +20,7 @@ https://en.m.wikipedia.org/wiki/Superdense_coding
 
 === EXAMPLE OUTPUT ===
 Circuit:
-0: ---H---M('input')---------------@-----------------------------
+0: ---H---M('input ')--------------@-----------------------------
           |                        |
 1: ---H---M--------------------@---|-----------------------------
                                |   |
@@ -50,15 +50,15 @@ def make_superdense_circuit():
     # Creates Bell State to be shared on q2 and q4
     circuit.append([cirq.H(q2), cirq.CNOT(q2, q4)])
     # Step 1 of encoding (controlled NOT gate on q1 / q2)
-    circuit.append([cirq.CNOT(q1, q2)])
+    circuit.append(cirq.CNOT(q1, q2))
     # Step 2 of encoding (controlled Z gate on q0 / q2)
-    circuit.append([cirq.CZ(q0, q2)])
+    circuit.append(cirq.CZ(q0, q2))
     # Sends encoded information to receiver
-    circuit.append([cirq.SWAP(q2, q3)])
+    circuit.append(cirq.SWAP(q2, q3))
     # Step 1 of decoding (controlled NOT gate on q3 and q4)
-    circuit.append([cirq.CNOT(q3, q4)])
+    circuit.append(cirq.CNOT(q3, q4))
     # Step 2 of decoding (Hadamard gate on q3)
-    circuit.append([cirq.H(q3)])
+    circuit.append(cirq.H(q3))
     # Measurement by receiver to decode bits
     circuit.append(cirq.measure(q3, q4, key="output"))
 
