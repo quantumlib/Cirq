@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from typing import Dict, Sequence, Union
 
 import pytest
 
 import numpy as np
+import sympy
 
 import cirq
+from cirq._compat import proper_repr
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -26,8 +28,8 @@ class GoodGate(cirq.SingleQubitGate):
 
     def __init__(self,
                  *,
-                 phase_exponent: Union[float, cirq.Symbol],
-                 exponent: Union[float, cirq.Symbol] = 1.0) -> None:
+                 phase_exponent: Union[float, sympy.Symbol],
+                 exponent: Union[float, sympy.Symbol] = 1.0) -> None:
         self.phase_exponent = cirq.canonicalize_half_turns(phase_exponent)
         self.exponent = exponent
 
@@ -64,13 +66,25 @@ class GoodGate(cirq.SingleQubitGate):
             return NotImplemented
         return z**-1, x, z
 
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        if self._is_parameterized_():
+            return NotImplemented
+        phase_angle = np.pi * self.phase_exponent / 2
+        angle = np.pi * self.exponent / 2
+        global_phase = np.exp(1j * angle)
+        return {
+            'I': global_phase * np.cos(angle),
+            'X': -1j * global_phase * np.sin(angle) * np.cos(2 * phase_angle),
+            'Y': -1j * global_phase * np.sin(angle) * np.sin(2 * phase_angle),
+        }
+
     def _phase_by_(self, phase_turns, qubit_index):
         assert qubit_index == 0
         return GoodGate(
             exponent=self.exponent,
             phase_exponent=self.phase_exponent + phase_turns * 2)
 
-    def __pow__(self, exponent: Union[float, cirq.Symbol]) -> 'GoodGate':
+    def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'GoodGate':
         new_exponent = cirq.mul(self.exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             # coverage: ignore
@@ -79,14 +93,14 @@ class GoodGate(cirq.SingleQubitGate):
                         exponent=new_exponent)
 
     def __repr__(self):
-        args = ['phase_exponent={!r}'.format(self.phase_exponent)]
+        args = ['phase_exponent={}'.format(proper_repr(self.phase_exponent))]
         if self.exponent != 1:
-            args.append('exponent={!r}'.format(self.exponent))
+            args.append('exponent={}'.format(proper_repr(self.exponent)))
         return 'GoodGate({})'.format(', '.join(args))
 
     def _is_parameterized_(self) -> bool:
-        return (isinstance(self.exponent, cirq.Symbol) or
-                isinstance(self.phase_exponent, cirq.Symbol))
+        return (isinstance(self.exponent, sympy.Basic) or
+                isinstance(self.phase_exponent, sympy.Basic))
 
     def _identity_tuple(self):
         return (GoodGate,
@@ -133,6 +147,12 @@ class BadGateDecompose(GoodGate):
         return z**-1, x, z
 
 
+class BadGatePauliExpansion(GoodGate):
+
+    def _pauli_expansion_(self) -> Dict[str, complex]:
+        return {'I': 10}
+
+
 class BadGatePhaseBy(GoodGate):
 
     def _phase_by_(self, phase_turns, qubit_index):
@@ -148,7 +168,7 @@ class BadGateRepr(GoodGate):
         args = ['phase_exponent={!r}'.format(2*self.phase_exponent)]
         if self.exponent != 1:
             # coverage: ignore
-            args.append('exponent={!r}'.format(self.exponent))
+            args.append('exponent={}'.format(proper_repr(self.exponent)))
         return 'BadGateRepr({})'.format(', '.join(args))
 
 
@@ -162,8 +182,8 @@ class GoodEigenGate(cirq.EigenGate, cirq.SingleQubitGate):
 
     def __repr__(self):
         return ('GoodEigenGate'
-                '(exponent={!r}, global_shift={!r})'.format(
-                    self._exponent, self._global_shift))
+                '(exponent={}, global_shift={!r})'.format(
+            proper_repr(self._exponent), self._global_shift))
 
 
 class BadEigenGate(GoodEigenGate):
@@ -173,8 +193,8 @@ class BadEigenGate(GoodEigenGate):
 
     def __repr__(self):
         return ('BadEigenGate'
-                '(exponent={!r}, global_shift={!r})'.format(
-                    self._exponent, self._global_shift))
+                '(exponent={}, global_shift={!r})'.format(
+                    proper_repr(self._exponent), self._global_shift))
 
 
 def test_assert_implements_consistent_protocols():
@@ -188,6 +208,11 @@ def test_assert_implements_consistent_protocols():
             global_vals={'GoodGate': GoodGate}
     )
 
+    cirq.testing.assert_implements_consistent_protocols(
+            GoodGate(phase_exponent=sympy.Symbol('t')),
+            global_vals={'GoodGate': GoodGate}
+    )
+
     with pytest.raises(AssertionError):
         cirq.testing.assert_implements_consistent_protocols(
                 BadGateApplyUnitaryToTensor(phase_exponent=0.25)
@@ -196,6 +221,11 @@ def test_assert_implements_consistent_protocols():
     with pytest.raises(AssertionError):
         cirq.testing.assert_implements_consistent_protocols(
                 BadGateDecompose(phase_exponent=0.25)
+        )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(
+                BadGatePauliExpansion(phase_exponent=0.25)
         )
 
     with pytest.raises(AssertionError):

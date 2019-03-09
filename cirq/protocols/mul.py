@@ -14,6 +14,8 @@
 
 from typing import Any
 
+from cirq.protocols.resolve_parameters import is_parameterized
+
 # This is a special indicator value used to determine whether or not the caller
 # provided a 'default' argument.
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
@@ -50,6 +52,12 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     if result is NotImplemented:
         right_mul = getattr(rhs, '__rmul__', None)
         result = NotImplemented if right_mul is None else right_mul(lhs)
+
+    # Don't build up factors of 1.0 vs sympy Symbols.
+    if lhs == 1.0 and is_parameterized(rhs):
+        result = rhs
+    if rhs == 1.0 and is_parameterized(lhs):
+        result = lhs
 
     # Output.
     if result is not NotImplemented:

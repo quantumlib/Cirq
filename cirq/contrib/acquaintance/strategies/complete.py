@@ -16,10 +16,8 @@ from typing import Sequence
 
 from cirq import circuits, ops
 
-from cirq.contrib.acquaintance.devices import (
-    UnconstrainedAcquaintanceDevice)
-from cirq.contrib.acquaintance.gates import (
-    ACQUAINT)
+from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
+from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
 
@@ -49,10 +47,10 @@ def complete_acquaintance_strategy(qubit_order: Sequence[ops.QubitId],
         return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
     if acquaintance_size == len(qubit_order):
         return circuits.Circuit.from_ops(
-                ACQUAINT(*qubit_order), device=UnconstrainedAcquaintanceDevice)
+                acquaint(*qubit_order), device=UnconstrainedAcquaintanceDevice)
 
     strategy = circuits.Circuit.from_ops(
-            (ACQUAINT(q) for q in qubit_order),
+            (acquaint(q) for q in qubit_order),
             device=UnconstrainedAcquaintanceDevice)
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)

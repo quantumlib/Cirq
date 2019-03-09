@@ -8,10 +8,11 @@ import examples.hello_qubit
 import examples.quantum_fourier_transform
 import examples.bcs_mean_field
 import examples.phase_estimator
+import examples.basic_arithmetic
 
 
 def test_example_runs_bernstein_vazirani():
-    examples.bernstein_vazirani.main()
+    examples.bernstein_vazirani.main(qubit_count=3)
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
@@ -49,5 +50,9 @@ def test_example_runs_grover():
     examples.grover.main()
 
 
+def test_example_runs_basic_arithmetic():
+    examples.basic_arithmetic.main(n=2)
+
+
 def test_example_runs_phase_estimator():
-    examples.phase_estimator.main()
+    examples.phase_estimator.main(qnums=(2,), repetitions=2)

@@ -35,19 +35,18 @@ CNOT = np.array([[1, 0, 0, 0],
                  [0, 0, 0, 1],
                  [0, 0, 1, 0]])
 CZ = np.diag([1, 1, 1, -1])
-TOL = cirq.Tolerance.DEFAULT
 
 
 def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2):
     restored = g * cirq.linalg.combinators.kron(f1, f2)
     assert not np.any(np.isnan(restored)), "NaN in kronecker product."
-    assert TOL.all_close(restored, matrix), "Can't factor kronecker product."
+    assert np.allclose(restored, matrix), "Can't factor kronecker product."
 
 
 def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
     restored = g * cirq.linalg.combinators.kron(f1, f2)
     assert (np.any(np.isnan(restored) or
-                   not TOL.all_close(restored, matrix)))
+                   not np.allclose(restored, matrix)))
 
 def assert_magic_su2_within_tolerance(mat, a, b):
     M = cirq.linalg.decompositions.MAGIC
@@ -56,7 +55,7 @@ def assert_magic_su2_within_tolerance(mat, a, b):
         MT,
         cirq.linalg.combinators.kron(a, b),
         M)
-    assert TOL.all_close(recon, mat), "Failed to decompose within tolerance."
+    assert np.allclose(recon, mat), "Failed to decompose within tolerance."
 
 @pytest.mark.parametrize('matrix', [
     X,
@@ -158,7 +157,7 @@ def recompose_so4(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     for _ in range(10)
 ])
 def test_so4_to_magic_su2s(m):
-    a, b = cirq.so4_to_magic_su2s(m, cirq.Tolerance.DEFAULT)
+    a, b = cirq.so4_to_magic_su2s(m)
     m2 = recompose_so4(a, b)
     assert_magic_su2_within_tolerance(m2, a, b)
     assert np.allclose(m, m2)

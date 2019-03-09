@@ -503,10 +503,11 @@ Luckily for us, we have written our code so that using parameterized
 values is as simple as passing `Symbol` objects where we previously
 passed float values.
 ```python
+import sympy
 circuit = cirq.Circuit()
-alpha = cirq.Symbol('alpha')
-beta = cirq.Symbol('beta')
-gamma = cirq.Symbol('gamma')
+alpha = sympy.Symbol('alpha')
+beta = sympy.Symbol('beta')
+gamma = sympy.Symbol('gamma')
 circuit.append(one_step(h, jr, jc, alpha, beta, gamma))
 circuit.append(cirq.measure(*qubits, key='x'))
 print(circuit)
@@ -594,3 +595,16 @@ We've created a simple variational quantum algorithm using Cirq.
 Where to go next?  Perhaps you can play around with the above code
 and work on analyzing the algorithms performance.  Add new parameterized
 circuits and build an end to end program for analyzing these circuits.
+
+<!---test_substitution
+repetitions=100
+repetitions=1
+--->
+<!---test_substitution
+length=10
+length=2
+--->
+<!---test_substitution
+length=5
+length=2
+--->

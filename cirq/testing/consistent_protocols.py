@@ -14,7 +14,9 @@
 
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
-from cirq import ops, protocols, value
+import sympy
+
+from cirq import ops, protocols
 from cirq.testing.circuit_compare import (
         assert_has_consistent_apply_unitary)
 from cirq.testing.consistent_decomposition import (
@@ -23,6 +25,8 @@ from cirq.testing.consistent_phase_by import (
         assert_phase_by_is_consistent_with_unitary)
 from cirq.testing.consistent_qasm import (
         assert_qasm_is_consistent_with_unitary)
+from cirq.testing.consistent_pauli_expansion import (
+        assert_pauli_expansion_is_consistent_with_unitary)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
@@ -30,9 +34,10 @@ def assert_implements_consistent_protocols(
         val: Any,
         *,
         exponents: Sequence[Any] = (
-            0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
+            0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         qubit_count: Optional[int] = None,
-        setup_code: str = 'import cirq\nimport numpy as np',
+        ignoring_global_phase: bool=False,
+        setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None
         ) -> None:
@@ -42,6 +47,7 @@ def assert_implements_consistent_protocols(
 
     _assert_meets_standards_helper(val,
                                    qubit_count,
+                                   ignoring_global_phase,
                                    setup_code,
                                    global_vals,
                                    local_vals)
@@ -51,6 +57,7 @@ def assert_implements_consistent_protocols(
         if p is not None:
             _assert_meets_standards_helper(val**exponent,
                                            qubit_count,
+                                           ignoring_global_phase,
                                            setup_code,
                                            global_vals,
                                            local_vals)
@@ -59,11 +66,12 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
-        exponents: Sequence[Union[value.Symbol, float]] = (
-            0, 1, -1, 0.5, 0.25, -0.5, 0.1, value.Symbol('s')),
-        global_shifts: Sequence[float] = (0, 0.5, -0.5, 0.1),
+        exponents: Sequence[Union[sympy.Basic, float]] = (
+            0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+        global_shifts: Sequence[float] = (0, -0.5, 0.1),
         qubit_count: Optional[int] = None,
-        setup_code: str = 'import cirq\nimport numpy as np',
+        ignoring_global_phase: bool=False,
+        setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
@@ -73,6 +81,7 @@ def assert_eigengate_implements_consistent_protocols(
             _assert_meets_standards_helper(
                     eigen_gate_type(exponent=exponent, global_shift=shift),
                     qubit_count,
+                    ignoring_global_phase,
                     setup_code,
                     global_vals,
                     local_vals)
@@ -86,13 +95,16 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
 def _assert_meets_standards_helper(
         val: Any,
         qubit_count: Optional[int],
+        ignoring_global_phase,
         setup_code: str,
         global_vals: Optional[Dict[str, Any]],
         local_vals: Optional[Dict[str, Any]]) -> None:
     assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
     assert_qasm_is_consistent_with_unitary(val)
-    assert_decompose_is_consistent_with_unitary(val)
+    assert_decompose_is_consistent_with_unitary(val,
+        ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
+    assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(val,
                            setup_code=setup_code,
                            global_vals=global_vals,
