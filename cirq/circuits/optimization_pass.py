@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from cirq.ops import QubitId
     from typing import Dict
 
+
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
@@ -76,7 +77,7 @@ class PointOptimizer():
 
     def __init__(self,
                  post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
-                                ] = lambda op_list: op_list
+                 ] = lambda op_list: op_list
                  ) -> None:
         """
         Args:
@@ -115,7 +116,8 @@ class PointOptimizer():
         """
         pass
 
-    def optimize_circuit(self, circuit: Circuit):
+    def optimize_circuit(self, circuit: Circuit,
+                         drop_empty_moments: bool = True):
         frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
@@ -144,3 +146,7 @@ class PointOptimizer():
                 circuit.insert_at_frontier(new_operations, i, frontier)
 
             i += 1
+        if drop_empty_moments:
+            print("DROPPING {} ".format(circuit))
+            circuit[:] = (m for m in circuit if m.operations)
+            print("AFTER: {} ".format(circuit))

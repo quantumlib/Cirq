@@ -35,19 +35,12 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         cirq.EjectPhasedPaulis().optimize_circuit,
         cirq.EjectZ().optimize_circuit,
         cirq.DropNegligible().optimize_circuit,
-        cirq.DropEmptyMoments().optimize_circuit
     ]  # type: List[Callable[[cirq.Circuit], None]]
     for post in followup_optimizations:
         post(actual)
         post(expected)
 
-    if actual != expected:
-        # coverage: ignore
-        print('ACTUAL')
-        print(actual)
-        print('EXPECTED')
-        print(expected)
-    assert actual == expected
+    cirq.testing.assert_same_circuits(actual, expected)
 
 
 def assert_optimization_not_broken(circuit):
@@ -214,7 +207,6 @@ def test_post_clean_up():
     optimizer = cirq.MergeInteractions(allow_partial_czs=False,
                                        post_clean_up=clean_up)
     optimizer.optimize_circuit(circuit)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
 
     assert isinstance(circuit[0].operations[0].gate, Marker)
     assert isinstance(circuit[-1].operations[0].gate, Marker)

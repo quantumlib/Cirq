@@ -19,7 +19,7 @@ from collections import defaultdict
 import sympy
 
 from cirq import circuits, ops, protocols
-from cirq.optimizers import decompositions
+from cirq.optimizers import decompositions, DropEmptyMoments
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -42,7 +42,8 @@ class EjectZ():
         """
         self.tolerance = tolerance
 
-    def optimize_circuit(self, circuit: circuits.Circuit):
+    def optimize_circuit(self, circuit: circuits.Circuit,
+                         drop_empty_moments=True):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
         qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
 
@@ -97,6 +98,8 @@ class EjectZ():
         circuit.batch_remove(deletions)
         circuit.batch_insert_into(inline_intos)
         circuit.batch_insert(insertions)
+        if drop_empty_moments:
+            DropEmptyMoments().optimize_circuit(circuit)
 
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:

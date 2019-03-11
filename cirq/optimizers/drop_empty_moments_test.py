@@ -18,7 +18,7 @@ import cirq
 def assert_optimizes(before, after):
     opt = cirq.DropEmptyMoments()
     opt.optimize_circuit(before)
-    assert before == after
+    cirq.testing.assert_same_circuits(after, before)
 
 
 def test_drop():

@@ -30,21 +30,12 @@ def assert_optimizes(
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
         cirq.DropNegligible(),
-        cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
         post(before)  # type: ignore #  error: "object" not callable
         post(expected)  # type: ignore #  error: "object" not callable
 
-    try:
-        assert before == expected
-    except AssertionError:  # coverage: ignore
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("EXPECTED")
-        print(expected)
-        raise
+    cirq.testing.assert_same_circuits(before, expected)
 
 
 def test_leaves_singleton():

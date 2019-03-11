@@ -16,30 +16,18 @@
 import cirq
 
 
-def assert_equal_mod_empty(expected, actual):
-    drop_empty = cirq.DropEmptyMoments()
-    drop_empty.optimize_circuit(actual)
-    if expected != actual:
-        # coverage: ignore
-        print('EXPECTED')
-        print(expected)
-        print('ACTUAL')
-        print(actual)
-    assert expected == actual
-
-
 def test_empty_circuit():
     circuit = cirq.Circuit()
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
-    assert_equal_mod_empty(cirq.Circuit(), circuit)
+    cirq.testing.assert_same_circuits(cirq.Circuit(), circuit)
 
 
 def test_empty_moment():
     circuit = cirq.Circuit([])
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
-    assert_equal_mod_empty(cirq.Circuit([]), circuit)
+    cirq.testing.assert_same_circuits(cirq.Circuit([]), circuit)
 
 
 def test_ignore_non_composite():
@@ -49,7 +37,7 @@ def test_ignore_non_composite():
     expected = circuit.copy()
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
-    assert_equal_mod_empty(expected, circuit)
+    cirq.testing.assert_same_circuits(expected, circuit)
 
 
 def test_composite_default():
@@ -61,7 +49,7 @@ def test_composite_default():
     opt.optimize_circuit(circuit)
     expected = cirq.Circuit()
     expected.append([cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5])
-    assert_equal_mod_empty(expected, circuit)
+    cirq.testing.assert_same_circuits(expected, circuit)
 
 
 def test_multiple_composite_default():
@@ -74,7 +62,7 @@ def test_multiple_composite_default():
     expected = cirq.Circuit()
     decomp = [cirq.Y(q1) ** -0.5, cirq.CZ(q0, q1), cirq.Y(q1) ** 0.5]
     expected.append([decomp, decomp])
-    assert_equal_mod_empty(expected, circuit)
+    cirq.testing.assert_same_circuits(expected, circuit)
 
 
 def test_mix_composite_non_composite():
@@ -90,7 +78,7 @@ def test_mix_composite_non_composite():
                                      cirq.Y(q1) ** 0.5,
                                      cirq.X(q1),
                                      strategy=cirq.InsertStrategy.NEW)
-    assert_equal_mod_empty(expected, actual)
+    cirq.testing.assert_same_circuits(expected, actual)
 
 
 def test_recursive_composite():
@@ -110,7 +98,7 @@ def test_recursive_composite():
                                        cirq.Y(q1) ** -0.5,
                                        cirq.CZ(q0, q1),
                                        cirq.Y(q1) ** 0.5)
-    assert_equal_mod_empty(expected, circuit)
+    cirq.testing.assert_same_circuits(expected, circuit)
 
 
 def test_decompose_returns_not_flat_op_tree():
@@ -126,7 +114,7 @@ def test_decompose_returns_not_flat_op_tree():
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
     expected = cirq.Circuit().from_ops(cirq.X(q0))
-    assert_equal_mod_empty(expected, circuit)
+    cirq.testing.assert_same_circuits(expected, circuit)
 
 
 def test_decompose_returns_deep_op_tree():
@@ -158,7 +146,7 @@ def test_decompose_returns_deep_op_tree():
         cirq.X(q0), cirq.X(q0),
         cirq.CZ(q0, q1), cirq.Y(q0),
         cirq.Z(q0), cirq.Z(q0))
-    assert_equal_mod_empty(expected, circuit)
+    cirq.testing.assert_same_circuits(expected, circuit)
 
 
 def test_nonrecursive_expansion():

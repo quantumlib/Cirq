@@ -39,9 +39,9 @@ def test_remove_redundant_acquaintance_opportunities():
     cca.remove_redundant_acquaintance_opportunities(strategy)
     cca.remove_redundant_acquaintance_opportunities(strategy)
     diagram_after = """
-0: ───█───────
+0: ───█───
       │
-1: ───█───────
+1: ───█───
     """
     ct.assert_has_diagram(strategy, diagram_after)
 

@@ -13,16 +13,19 @@
 # limitations under the License.
 
 """An optimization pass that removes empty moments from a circuit."""
+from typing import Optional
 
-from cirq.circuits.circuit import Circuit
-from cirq.circuits import circuit as _circuit
+from cirq import Circuit, ops, PointOptimizationSummary
+from cirq.circuits import circuit as _circuit, PointOptimizer
 
 
-class DropEmptyMoments():
+class DropEmptyMoments(PointOptimizer):
     """Removes empty moments from a circuit."""
+
+    def optimization_at(self, circuit: Circuit, index: int,
+                        op: ops.Operation) -> Optional[
+        PointOptimizationSummary]:
+        pass
 
     def __call__(self, circuit: _circuit.Circuit):
         self.optimize_circuit(circuit)
-
-    def optimize_circuit(self, circuit: Circuit):
-        circuit[:] = (m for m in circuit if m.operations)
