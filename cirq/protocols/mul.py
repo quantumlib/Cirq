@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from typing import Any
-import sympy
+
+from cirq.protocols.resolve_parameters import is_parameterized
 
 # This is a special indicator value used to determine whether or not the caller
 # provided a 'default' argument.
@@ -53,9 +54,9 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         result = NotImplemented if right_mul is None else right_mul(lhs)
 
     # Don't build up factors of 1.0 vs sympy Symbols.
-    if lhs == 1.0 and isinstance(rhs, sympy.Basic):
+    if lhs == 1.0 and is_parameterized(rhs):
         result = rhs
-    if rhs == 1.0 and isinstance(lhs, sympy.Basic):
+    if rhs == 1.0 and is_parameterized(lhs):
         result = lhs
 
     # Output.
