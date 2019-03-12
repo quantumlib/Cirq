@@ -139,7 +139,7 @@ def qaoa_max_cut_unitary(
 ) -> cirq.OP_TREE:
     for beta, gamma in zip(betas, gammas):
         yield (rzz(-0.5*gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
-        yield cirq.Rx(beta).on_each(qubits)
+        yield cirq.Rx(beta).on_each(*qubits)
 
 
 def qaoa_max_cut_circuit(
@@ -150,7 +150,7 @@ def qaoa_max_cut_circuit(
 ) -> cirq.Circuit:
     return cirq.Circuit.from_ops(
         # Prepare uniform superposition
-        cirq.H.on_each(qubits),
+        cirq.H.on_each(*qubits),
         # Apply QAOA unitary
         qaoa_max_cut_unitary(qubits, betas, gammas, graph),
         # Measure
