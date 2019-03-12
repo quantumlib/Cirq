@@ -34,7 +34,8 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
 
     def __init__(self,
                  ignore_failures: bool = False,
-                 allow_partial_czs: bool = False) -> None:
+                 allow_partial_czs: bool = False,
+                 drop_empty_moments: bool = True) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -42,7 +43,7 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
             allow_partial_czs: If set, the decomposition is permitted to use
                 gates of the form `cirq.CZ**t`, instead of only `cirq.CZ`.
         """
-        super().__init__()
+        super().__init__(drop_empty_moments=drop_empty_moments)
         self.ignore_failures = ignore_failures
         self.allow_partial_czs = allow_partial_czs
 

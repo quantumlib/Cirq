@@ -32,7 +32,8 @@ class ExpandComposite(PointOptimizer):
     """
 
     def __init__(self,
-                 no_decomp: Callable[[ops.Operation], bool]=(lambda _: False)
+                 no_decomp: Callable[[ops.Operation], bool]=(lambda _: False),
+                 drop_empty_moments: bool = True
                  ) -> None:
         """Construct the optimization pass.
 
@@ -40,7 +41,7 @@ class ExpandComposite(PointOptimizer):
             no_decomp: A predicate that determines whether an operation should
                 be decomposed or not. Defaults to decomposing everything.
         """
-        super().__init__()
+        super().__init__(drop_empty_moments=drop_empty_moments)
         self.no_decomp = no_decomp
 
     def optimization_at(self, circuit, index, op):

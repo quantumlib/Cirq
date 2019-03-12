@@ -19,7 +19,8 @@ from cirq.optimizers.eject_z import _try_get_known_z_half_turns
 
 def assert_optimizes(before: cirq.Circuit,
                      expected: cirq.Circuit):
-    opt = cirq.EjectZ()
+    # TODO(test drop empty)
+    opt = cirq.EjectZ(drop_empty_moments=False)
 
     if cirq.has_unitary(before):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -92,6 +93,8 @@ def test_early_z():
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment(),
+            cirq.Moment(),
         ]))
 
 
@@ -146,6 +149,8 @@ def test_measurement_consumes_zs():
             cirq.Moment([cirq.measure(q)]),
         ]),
         expected=cirq.Circuit([
+            cirq.Moment(),
+            cirq.Moment(),
             cirq.Moment([cirq.measure(q)]),
         ]))
 
@@ -171,7 +176,9 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         expected=cirq.Circuit([
             cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u(q)]),
+            cirq.Moment(),
             cirq.Moment([cirq.Y(q)**-1.0]),
+            cirq.Moment(),
             cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.75).on(q)]),
             cirq.Moment([cirq.Z(q)**0.75]),
             cirq.Moment([u(q)]),

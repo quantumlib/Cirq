@@ -157,7 +157,6 @@ def test_rewrite():
     cirq.MergeSingleQubitGates(
         rewriter=lambda ops: cirq.H(ops[0].qubits[0])
     ).optimize_circuit(circuit)
-    cirq.DropEmptyMoments().optimize_circuit(circuit)
 
     cirq.testing.assert_same_circuits(circuit, cirq.Circuit.from_ops(
         cirq.H(q0),

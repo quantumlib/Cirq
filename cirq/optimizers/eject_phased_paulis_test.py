@@ -21,7 +21,7 @@ import cirq
 def assert_optimizes(before: cirq.Circuit,
                      expected: cirq.Circuit,
                      compare_unitaries: bool = True):
-    opt = cirq.EjectPhasedPaulis()
+    opt = cirq.EjectPhasedPaulis(drop_empty_moments=False)
 
     circuit = before.copy()
     opt.optimize_circuit(circuit)
@@ -30,28 +30,11 @@ def assert_optimizes(before: cirq.Circuit,
     if compare_unitaries:
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, expected, 1e-8)
-
-    # And match the expected circuit.
-    assert circuit == expected, (
-        "Circuit wasn't optimized as expected.\n"
-        "INPUT:\n"
-        "{}\n"
-        "\n"
-        "EXPECTED OUTPUT:\n"
-        "{}\n"
-        "\n"
-        "ACTUAL OUTPUT:\n"
-        "{}\n"
-        "\n"
-        "EXPECTED OUTPUT (detailed):\n"
-        "{!r}\n"
-        "\n"
-        "ACTUAL OUTPUT (detailed):\n"
-        "{!r}").format(before, expected, circuit, expected, circuit)
-
+    #TODO(test drop empty)
+    cirq.testing.assert_same_circuits(circuit, expected)
     # And it should be idempotent.
     opt.optimize_circuit(circuit)
-    assert circuit == expected
+    cirq.testing.assert_same_circuits(circuit, expected)
 
 
 def quick_circuit(*moments: Iterable[cirq.OP_TREE]) -> cirq.Circuit:

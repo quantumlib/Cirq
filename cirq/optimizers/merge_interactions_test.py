@@ -26,15 +26,15 @@ if TYPE_CHECKING:
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     actual = cirq.Circuit(before)
-    opt = cirq.MergeInteractions()
+    opt = cirq.MergeInteractions(drop_empty_moments=False)
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
     followup_optimizations = [
         cirq.merge_single_qubit_gates_into_phased_x_z,
-        cirq.EjectPhasedPaulis().optimize_circuit,
-        cirq.EjectZ().optimize_circuit,
-        cirq.DropNegligible().optimize_circuit,
+        cirq.EjectPhasedPaulis(drop_empty_moments=False).optimize_circuit,
+        cirq.EjectZ(drop_empty_moments=False).optimize_circuit,
+        cirq.DropNegligible(drop_empty_moments=False).optimize_circuit,
     ]  # type: List[Callable[[cirq.Circuit], None]]
     for post in followup_optimizations:
         post(actual)

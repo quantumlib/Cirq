@@ -72,20 +72,57 @@ class PointOptimizationSummary:
             self.new_operations)
 
 
-class PointOptimizer():
+class Optimizer:
+    """Optimizer subclasses optimize circuits. Empty moments resulting from
+    the optimizations are dropped by default"""
+
+    def __init__(self, drop_empty_moments: bool = True) -> None:
+        """
+            Args:
+               drop_empty_moments: If True, the empty Moments created by
+               _optimize_circuit will be removed.
+        """
+        self._drop_empty_moments = drop_empty_moments
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)
+
+    @property
+    def drop_empty_moments(self, drop_empty_moments: bool):
+        self._drop_empty_moments = drop_empty_moments
+
+    @abc.abstractmethod
+    def _optimize_circuit(self, circuit: Circuit):
+        """Optimizes a circuit via mutating the operations and Moments of the
+        circuit.
+
+            Args:
+                circuit: The circuit to improve.
+        """
+        pass
+
+    def optimize_circuit(self, circuit: Circuit):
+        self._optimize_circuit(circuit)
+        if self._drop_empty_moments:
+            circuit[:] = (m for m in circuit if m.operations)
+
+
+class PointOptimizer(Optimizer):
     """Makes circuit improvements focused on a specific location."""
 
     def __init__(self,
                  post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
-                 ] = lambda op_list: op_list
-                 ) -> None:
+                 ] = lambda op_list: op_list,
+                 drop_empty_moments: bool = True) -> None:
         """
         Args:
             post_clean_up: This function is called on each set of optimized
                 operations before they are put into the circuit to replace the
                 old operations.
         """
+        super().__init__(drop_empty_moments)
         self.post_clean_up = post_clean_up
+        self._drop_empty_moments = drop_empty_moments
 
     def __call__(self, circuit: Circuit):
         return self.optimize_circuit(circuit)
@@ -116,8 +153,7 @@ class PointOptimizer():
         """
         pass
 
-    def optimize_circuit(self, circuit: Circuit,
-                         drop_empty_moments: bool = True):
+    def _optimize_circuit(self, circuit: Circuit):
         frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
@@ -146,7 +182,3 @@ class PointOptimizer():
                 circuit.insert_at_frontier(new_operations, i, frontier)
 
             i += 1
-        if drop_empty_moments:
-            print("DROPPING {} ".format(circuit))
-            circuit[:] = (m for m in circuit if m.operations)
-            print("AFTER: {} ".format(circuit))

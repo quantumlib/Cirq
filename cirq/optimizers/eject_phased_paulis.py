@@ -18,7 +18,7 @@
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
 import sympy
 
-from cirq import circuits, ops, value, protocols
+from cirq import circuits, ops, value, protocols, Optimizer
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class _OptimizerState:
         self.insertions = []  # type: List[Tuple[int, ops.Operation]]
 
 
-class EjectPhasedPaulis():
+class EjectPhasedPaulis(Optimizer):
     """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other
@@ -46,16 +46,18 @@ class EjectPhasedPaulis():
     then be removed by the EjectZ optimization).
     """
 
-    def __init__(self, tolerance: float = 1e-8) -> None:
+    def __init__(self, tolerance: float = 1e-8,
+                 drop_empty_moments: bool = True) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
         """
+        super().__init__(drop_empty_moments)
         self.tolerance = tolerance
 
-    def optimize_circuit(self, circuit: circuits.Circuit):
+    def _optimize_circuit(self, circuit: circuits.Circuit):
         state = _OptimizerState()
 
         for moment_index, moment in enumerate(circuit):
@@ -189,9 +191,9 @@ def _potential_cross_whole_w(moment_index: int,
     else:
         # Cancel the gate.
         state.held_w_phases[q] = None
-        t = 2*(b - a)
+        t = 2 * (b - a)
         if not decompositions.is_negligible_turn(t / 2, tolerance):
-            leftover_phase = ops.Z(q)**t
+            leftover_phase = ops.Z(q) ** t
             state.inline_intos.append((moment_index, leftover_phase))
 
 
@@ -259,8 +261,8 @@ def _single_cross_over_cz(moment_index: int,
     """
     t = cast(float, _try_get_known_cz_half_turns(op))
     other_qubit = op.qubits[0] if qubit_with_w == op.qubits[1] else op.qubits[1]
-    negated_cz = ops.CZ(*op.qubits)**-t
-    kickback = ops.Z(other_qubit)**t
+    negated_cz = ops.CZ(*op.qubits) ** -t
+    kickback = ops.Z(other_qubit) ** t
 
     state.deletions.append((moment_index, op))
     state.inline_intos.append((moment_index, negated_cz))

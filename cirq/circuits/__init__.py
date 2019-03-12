@@ -31,6 +31,7 @@ from cirq.circuits.insert_strategy import (
     InsertStrategy,
 )
 from cirq.circuits.optimization_pass import (
+    Optimizer,
     PointOptimizer,
     PointOptimizationSummary,
 )

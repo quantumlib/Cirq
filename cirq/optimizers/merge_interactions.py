@@ -31,8 +31,9 @@ class MergeInteractions(circuits.PointOptimizer):
                  allow_partial_czs: bool = True,
                  post_clean_up: Callable[
                      [Sequence[ops.Operation]], ops.OP_TREE
-                 ] = lambda op_list: op_list) -> None:
-        super().__init__(post_clean_up=post_clean_up)
+                 ] = lambda op_list: op_list,
+                 drop_empty_moments: bool = True) -> None:
+        super().__init__(post_clean_up,  drop_empty_moments)
         self.tolerance = tolerance
         self.allow_partial_czs = allow_partial_czs
 

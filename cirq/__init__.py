@@ -24,6 +24,7 @@ from cirq.circuits import (
     InsertStrategy,
     PointOptimizationSummary,
     PointOptimizer,
+    Optimizer,
     QasmOutput,
     TextDiagramDrawer,
     Unique,

@@ -18,32 +18,34 @@ from typing import Optional, cast, TYPE_CHECKING, Iterable
 from collections import defaultdict
 import sympy
 
-from cirq import circuits, ops, protocols
-from cirq.optimizers import decompositions, DropEmptyMoments
+from cirq import circuits, ops, protocols, Optimizer
+from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Dict, List, Tuple
 
 
-class EjectZ():
+class EjectZ(Optimizer):
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
     measurements, cross CZ gates, cross W gates (by phasing them), etc.
     """
 
-    def __init__(self, tolerance: float = 0.0) -> None:
+    def __init__(self, tolerance: float = 0.0,
+                 drop_empty_moments: bool = True) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
         """
+
+        super().__init__(drop_empty_moments)
         self.tolerance = tolerance
 
-    def optimize_circuit(self, circuit: circuits.Circuit,
-                         drop_empty_moments=True):
+    def _optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
         qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
 
@@ -53,7 +55,7 @@ class EjectZ():
             for q in qubits:
                 p = qubit_phase[q]
                 if not decompositions.is_negligible_turn(p, self.tolerance):
-                    dump_op = ops.Z(q)**(p * 2)
+                    dump_op = ops.Z(q) ** (p * 2)
                     insertions.append((index, dump_op))
                 qubit_phase[q] = 0
 
@@ -90,7 +92,7 @@ class EjectZ():
                 if phased_op is not None:
                     deletions.append((moment_index, op))
                     inline_intos.append((moment_index,
-                                     cast(ops.Operation, phased_op)))
+                                         cast(ops.Operation, phased_op)))
                 else:
                     dump_tracked_phase(op.qubits, moment_index)
 
@@ -98,8 +100,6 @@ class EjectZ():
         circuit.batch_remove(deletions)
         circuit.batch_insert_into(inline_intos)
         circuit.batch_insert(insertions)
-        if drop_empty_moments:
-            DropEmptyMoments().optimize_circuit(circuit)
 
 
 def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:

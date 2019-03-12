@@ -16,9 +16,8 @@
 
 from typing import TYPE_CHECKING
 
-from cirq import protocols
+from cirq import protocols, Optimizer
 from cirq.circuits import circuit as _circuit
-from cirq.optimizers import DropEmptyMoments
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -26,18 +25,18 @@ if TYPE_CHECKING:
     from cirq import ops
 
 
-class DropNegligible():
+class DropNegligible(Optimizer):
     """An optimization pass that removes operations with tiny effects."""
 
-    def __init__(self, tolerance: float = 1e-8) -> None:
+    def __init__(self, tolerance: float = 1e-8,
+                 drop_empty_moments: bool = True) -> None:
+        super().__init__(drop_empty_moments)
         self.tolerance = tolerance
 
-    def __call__(self, circuit: _circuit.Circuit,
-                 drop_empty_moments: bool = True):
-        self.optimize_circuit(circuit, drop_empty_moments)
+    def __call__(self, circuit: _circuit.Circuit):
+        self.optimize_circuit(circuit)
 
-    def optimize_circuit(self, circuit: _circuit.Circuit,
-                         drop_empty_moments: bool = True) -> None:
+    def _optimize_circuit(self, circuit: _circuit.Circuit) -> None:
         deletions = []  # type: List[Tuple[int, ops.Operation]]
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
@@ -45,5 +44,3 @@ class DropNegligible():
                         protocols.trace_distance_bound(op) <= self.tolerance):
                     deletions.append((moment_index, op))
         circuit.batch_remove(deletions)
-        if drop_empty_moments:
-            DropEmptyMoments()(circuit)

@@ -13,18 +13,22 @@
 # limitations under the License.
 
 """An optimization pass that removes empty moments from a circuit."""
-from typing import Optional
 
-from cirq import Circuit, ops, PointOptimizationSummary
-from cirq.circuits import circuit as _circuit, PointOptimizer
+from cirq import Circuit
+from cirq.circuits import circuit as _circuit, Optimizer
 
 
-class DropEmptyMoments(PointOptimizer):
+class DropEmptyMoments(Optimizer):
     """Removes empty moments from a circuit."""
 
-    def optimization_at(self, circuit: Circuit, index: int,
-                        op: ops.Operation) -> Optional[
-        PointOptimizationSummary]:
+    def _optimize_circuit(self, circuit: Circuit):
+        pass
+
+    def drop_empty_moments(self, drop_empty_moments: bool):
+        """
+        This is a noop implementation - for this optimization does not make
+        sense anything else than drop_empty_moments = True
+        """
         pass
 
     def __call__(self, circuit: _circuit.Circuit):
