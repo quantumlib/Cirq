@@ -126,7 +126,7 @@ class ControlledGate(raw_types.Gate):
         if sub_matrix is None:
             return NotImplemented
         return linalg.block_diag(
-                    np.eye(sub_matrix.shape[0] << (self.num_controls - 1)),
+                    np.eye(pow(2, self.num_qubits())-sub_matrix.shape[0]),
                     sub_matrix)
 
     def __pow__(self, exponent: Any) -> 'ControlledGate':
