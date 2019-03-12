@@ -126,7 +126,7 @@ def main():
         largest_cut_value_found / max_cut_value))
 
 
-def rzz(rads):
+def Rzz(rads):
     """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
     return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
 
@@ -138,7 +138,7 @@ def qaoa_max_cut_unitary(
         graph,  # Nodes should be integers
 ) -> cirq.OP_TREE:
     for beta, gamma in zip(betas, gammas):
-        yield (rzz(-0.5*gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
+        yield (Rzz(-0.5*gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
         yield cirq.Rx(beta).on_each(*qubits)
 
 
