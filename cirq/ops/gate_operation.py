@@ -41,6 +41,7 @@ class GateOperation(raw_types.Operation):
             gate: The gate to apply.
             qubits: The qubits to operate on.
         """
+        gate.validate_args(qubits)
         self._gate = gate
         self._qubits = tuple(qubits)
 
