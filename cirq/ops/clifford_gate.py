@@ -16,7 +16,6 @@ from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 
-import cirq
 from cirq import protocols, value
 from cirq.ops import common_gates, gate_features, named_qubit, op_tree, \
     pauli_gates, raw_types
