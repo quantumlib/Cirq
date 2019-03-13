@@ -98,11 +98,51 @@ class WaveFunctionDisplay(raw_types.Operation):
         """The value of the display, derived from the full wavefunction.
 
         Args:
-            state: The wavefunction
+            state: The wavefunction.
             qubit_map: A dictionary from qubit to qubit index in the
-                ordering used to define the wavefunction
+                ordering used to define the wavefunction.
         """
         pass
+
+
+class DensityMatrixDisplay(raw_types.Operation):
+    """A display whose value is computed from the density matrix."""
+
+    @property
+    @abc.abstractmethod
+    def key(self) -> Hashable:
+        pass
+
+    @abc.abstractmethod
+    def value_derived_from_density_matrix(self,
+                                          state: np.ndarray,
+                                          qubit_map: Dict[raw_types.QubitId, int]
+                                          ) -> Any:
+        """The value of the display, derived from the density matrix.
+
+        Args:
+            state: The density matrix.
+            qubit_map: A dictionary from qubit to qubit index in the
+                ordering used to define the wavefunction.
+        """
+        pass
+
+
+class StateDisplay(WaveFunctionDisplay, DensityMatrixDisplay):
+    """A display whose value is computed from the full quantum state."""
+
+    def value_derived_from_state(self,
+                                 state: np.ndarray,
+                                 qubit_map: Dict[raw_types.QubitId, int]
+                                 ) -> Any:
+        if state.ndim == 1:
+            return self.value_derived_from_wavefunction(state, qubit_map)
+        elif state.ndim == 2:
+            return self.value_derived_from_density_matrix(state, qubit_map)
+        else:
+            raise ValueError(
+                    'The state should have ndim == 1 or ndim == 2 '
+                    'but instead had ndim == {}'.format(state.ndim))
 
 
 @value.value_equality
