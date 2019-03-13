@@ -144,7 +144,8 @@ def test_init_from_single_map_vs_kwargs(trans, frm):
 
 @pytest.mark.parametrize('trans,frm',
                          ((trans, frm)
-                          for trans, frm in itertools.product(_all_rotations(), _paulis)
+                          for trans, frm in itertools.product(_all_rotations(),
+                                                              _paulis)
                           if trans.to != frm))
 def test_init_90rot_from_single(trans, frm):
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
@@ -164,7 +165,8 @@ def test_init_90rot_from_single(trans, frm):
 
 @pytest.mark.parametrize('trans,frm',
                          ((trans, frm)
-                          for trans, frm in itertools.product(_all_rotations(), _paulis)
+                          for trans, frm in itertools.product(_all_rotations(),
+                                                              _paulis)
                           if trans.to == frm and trans.flip))
 def test_init_180rot_from_single(trans, frm):
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
@@ -179,7 +181,8 @@ def test_init_180rot_from_single(trans, frm):
 
 @pytest.mark.parametrize('trans,frm',
                          ((trans, frm)
-                          for trans, frm in itertools.product(_all_rotations(), _paulis)
+                          for trans, frm in itertools.product(_all_rotations(),
+                                                              _paulis)
                           if trans.to == frm and not trans.flip))
 def test_init_ident_from_single(trans, frm):
     gate = cirq.SingleQubitCliffordGate.from_single_map({frm: trans})
