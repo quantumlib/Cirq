@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 def remove_redundant_acquaintance_opportunities(
-        strategy: circuits.Circuit) -> None:
+        strategy: circuits.Circuit, drop_empty_moments: bool = True) -> None:
     """Removes redundant acquaintance opportunities."""
     if not is_acquaintance_strategy(strategy):
         raise TypeError('not is_acquaintance_strategy(circuit)')
@@ -37,14 +37,15 @@ def remove_redundant_acquaintance_opportunities(
     qubits = tuple(strategy.all_qubits())
     mapping = {q: i for i, q in enumerate(qubits)}
 
-    expose_acquaintance_gates(strategy)
+    expose_acquaintance_gates(strategy, drop_empty_moments)
     annotated_strategy = strategy.copy()
-    LogicalAnnotator(mapping)(annotated_strategy)
+    LogicalAnnotator(mapping,
+                     drop_empty_moments=drop_empty_moments)(annotated_strategy)
 
-    new_moments = [] # type: List[ops.Moment]
-    acquaintance_opps = set() # type: Set[FrozenSet[int]]
+    new_moments = []  # type: List[ops.Moment]
+    acquaintance_opps = set()  # type: Set[FrozenSet[int]]
     for moment in annotated_strategy:
-        new_moment = [] # type: List[ops.Operation]
+        new_moment = []  # type: List[ops.Operation]
         for op in moment:
             if isinstance(op, AcquaintanceOperation):
                 opp = frozenset(cast(Sequence[int], op.logical_indices))

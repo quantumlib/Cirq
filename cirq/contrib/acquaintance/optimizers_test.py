@@ -26,7 +26,7 @@ def test_remove_redundant_acquaintance_opportunities():
     with pytest.raises(TypeError):
         ops = [cca.acquaint(a, b)]
         strategy = cirq.Circuit.from_ops(ops)
-        cca.remove_redundant_acquaintance_opportunities(strategy)
+        cca.remove_redundant_acquaintance_opportunities(strategy, False)
 
     ops = [cca.acquaint(a, b), cca.acquaint(a, b)]
     strategy = cirq.Circuit.from_ops(ops, device=device)
@@ -36,15 +36,21 @@ def test_remove_redundant_acquaintance_opportunities():
 1: ───█───█───
     """
     ct.assert_has_diagram(strategy, diagram_before)
-    cca.remove_redundant_acquaintance_opportunities(strategy)
-    cca.remove_redundant_acquaintance_opportunities(strategy)
+    cca.remove_redundant_acquaintance_opportunities(strategy, False)
+    cca.remove_redundant_acquaintance_opportunities(strategy, False)
     diagram_after = """
 0: ───█───────
       │
 1: ───█───────
     """
     ct.assert_has_diagram(strategy, diagram_after)
-
+    cca.remove_redundant_acquaintance_opportunities(strategy)
+    diagram_after = """
+0: ───█───
+      │
+1: ───█───
+        """
+    ct.assert_has_diagram(strategy, diagram_after)
 
     ops = [
             cca.acquaint(a, b), cca.acquaint(c, d),

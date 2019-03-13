@@ -29,9 +29,9 @@ def test_convert():
         cirq.Z(q1) ** 0,
         cirq.H(q0),
     )
+    circuit.insert(1, cirq.Moment())
     c_orig = cirq.Circuit(circuit)
-    ConvertToSingleQubitCliffordGates().optimize_circuit(circuit)
-
+    ConvertToSingleQubitCliffordGates(drop_empty_moments=True).optimize_circuit(circuit)
     assert all(isinstance(op.gate, cirq.SingleQubitCliffordGate)
                for op in circuit.all_operations())
 
@@ -39,12 +39,12 @@ def test_convert():
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
         atol=1e-7)
-
     cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────Z^-0.5───H───
 
 1: ───Y^0.5───I────────────
 """)
+
 
 
 def test_non_clifford_known_matrix():

@@ -38,7 +38,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def __init__(self,
                  ignore_failures: bool = False,
-                 atol: float = 0) -> None:
+                 atol: float = 0,
+                 drop_empty_moments: bool = True) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -47,7 +48,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
                 permitted to round angles with a threshold determined by this
                 tolerance.
         """
-        super().__init__()
+        super().__init__(drop_empty_moments=drop_empty_moments)
         self.ignore_failures = ignore_failures
         self.atol = atol
 
@@ -59,7 +60,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         elif quarter_turns == 2:
             return ops.SingleQubitCliffordGate.from_pauli(pauli)
         elif quarter_turns == 3:
-            return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
+            return ops.SingleQubitCliffordGate.from_pauli(pauli, True) ** -1
         else:
             return ops.SingleQubitCliffordGate.I
 
@@ -95,7 +96,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
     def _on_stuck_raise(self, op: ops.Operation):
         if len(op.qubits) == 1 and protocols.has_unitary(op):
             raise ValueError('Single qubit operation is not in the '
-                              'Clifford group: {!r}'.format(op))
+                             'Clifford group: {!r}'.format(op))
 
         raise TypeError("Don't know how to work with {!r}. "
                         "It isn't composite or a 1-qubit operation "

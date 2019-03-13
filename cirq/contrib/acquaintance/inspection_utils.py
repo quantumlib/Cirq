@@ -28,12 +28,14 @@ class LogicalAnnotator(ExecutionStrategy):
     """
 
     def __init__(self,
-                 initial_mapping: LogicalMapping
+                 initial_mapping: LogicalMapping,
+                 drop_empty_moments: bool = True
                  ) -> None:
         """
         Args:
             initial_mapping: The initial mapping of qubits to logical indices.
         """
+        super().__init__(drop_empty_moments=drop_empty_moments)
         self._initial_mapping = initial_mapping.copy()
 
     @property

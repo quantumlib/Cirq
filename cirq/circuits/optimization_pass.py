@@ -91,6 +91,7 @@ class Optimizer:
     def drop_empty_moments(self, drop_empty_moments: bool):
         self._drop_empty_moments = drop_empty_moments
 
+
     @abc.abstractmethod
     def _optimize_circuit(self, circuit: Circuit):
         """Optimizes a circuit via mutating the operations and Moments of the
@@ -101,9 +102,17 @@ class Optimizer:
         """
         pass
 
-    def optimize_circuit(self, circuit: Circuit):
+    def __call__(self, circuit: Circuit,
+                 drop_empty_moments: bool = None):
+        return self.optimize_circuit(circuit, drop_empty_moments)
+
+    def optimize_circuit(self, circuit: Circuit,
+                         drop_empty_moments: bool = None):
         self._optimize_circuit(circuit)
-        if self._drop_empty_moments:
+        drop_empty = drop_empty_moments \
+            if drop_empty_moments is not None else \
+            self._drop_empty_moments
+        if drop_empty:
             circuit[:] = (m for m in circuit if m.operations)
 
 
@@ -122,10 +131,6 @@ class PointOptimizer(Optimizer):
         """
         super().__init__(drop_empty_moments)
         self.post_clean_up = post_clean_up
-        self._drop_empty_moments = drop_empty_moments
-
-    def __call__(self, circuit: Circuit):
-        return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
     def optimization_at(self,
