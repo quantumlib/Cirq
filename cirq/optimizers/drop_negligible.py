@@ -33,9 +33,6 @@ class DropNegligible(Optimizer):
         super().__init__(drop_empty_moments)
         self.tolerance = tolerance
 
-    def __call__(self, circuit: _circuit.Circuit):
-        self.optimize_circuit(circuit)
-
     def _optimize_circuit(self, circuit: _circuit.Circuit) -> None:
         deletions = []  # type: List[Tuple[int, ops.Operation]]
         for moment_index, moment in enumerate(circuit):

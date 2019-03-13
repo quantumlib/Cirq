@@ -15,7 +15,7 @@
 """An optimization pass that removes empty moments from a circuit."""
 
 from cirq import Circuit
-from cirq.circuits import circuit as _circuit, Optimizer
+from cirq.circuits import Optimizer
 
 
 class DropEmptyMoments(Optimizer):
@@ -23,13 +23,3 @@ class DropEmptyMoments(Optimizer):
 
     def _optimize_circuit(self, circuit: Circuit):
         pass
-
-    def drop_empty_moments(self, drop_empty_moments: bool):
-        """
-        This is a noop implementation - for this optimization does not make
-        sense anything else than drop_empty_moments = True
-        """
-        pass
-
-    def __call__(self, circuit: _circuit.Circuit):
-        self.optimize_circuit(circuit)

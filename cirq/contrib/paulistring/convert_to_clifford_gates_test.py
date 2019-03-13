@@ -31,7 +31,8 @@ def test_convert():
     )
     circuit.insert(1, cirq.Moment())
     c_orig = cirq.Circuit(circuit)
-    ConvertToSingleQubitCliffordGates(drop_empty_moments=True).optimize_circuit(circuit)
+    ConvertToSingleQubitCliffordGates(drop_empty_moments=True)\
+        .optimize_circuit(circuit)
     assert all(isinstance(op.gate, cirq.SingleQubitCliffordGate)
                for op in circuit.all_operations())
 
@@ -44,7 +45,6 @@ def test_convert():
 
 1: ───Y^0.5───I────────────
 """)
-
 
 
 def test_non_clifford_known_matrix():
@@ -61,7 +61,6 @@ def test_non_clifford_known_matrix():
     circuit2 = cirq.Circuit(c_orig)
     with pytest.raises(ValueError):
         ConvertToSingleQubitCliffordGates().optimize_circuit(circuit2)
-
 
 
 def test_already_converted():

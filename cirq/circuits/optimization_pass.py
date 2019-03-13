@@ -84,14 +84,6 @@ class Optimizer:
         """
         self._drop_empty_moments = drop_empty_moments
 
-    def __call__(self, circuit: Circuit):
-        return self.optimize_circuit(circuit)
-
-    @property
-    def drop_empty_moments(self, drop_empty_moments: bool):
-        self._drop_empty_moments = drop_empty_moments
-
-
     @abc.abstractmethod
     def _optimize_circuit(self, circuit: Circuit):
         """Optimizes a circuit via mutating the operations and Moments of the

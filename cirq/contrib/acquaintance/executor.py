@@ -77,12 +77,16 @@ class StrategyExecutor(circuits.PointOptimizer):
         self.execution_strategy = execution_strategy
         self.mapping = execution_strategy.initial_mapping.copy()
 
-    def __call__(self, strategy: circuits.Circuit):
+    def __call__(self, strategy: circuits.Circuit,
+                 drop_empty_moments: bool = None):
         if not is_acquaintance_strategy(strategy):
             raise TypeError('not is_acquaintance_strategy(strategy)')
-        expose_acquaintance_gates(strategy, self._drop_empty_moments)
+        drop_empty = drop_empty_moments \
+            if drop_empty_moments is not None else \
+            self._drop_empty_moments
+        expose_acquaintance_gates(strategy, drop_empty)
         strategy.device = self.execution_strategy.device
-        super().optimize_circuit(strategy)
+        super().optimize_circuit(strategy, drop_empty)
         return self.mapping.copy()
 
     def optimization_at(self,
