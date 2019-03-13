@@ -25,9 +25,18 @@ def test_gate_operation_init():
     assert v.qubits == (q,)
 
 
+def test_invalid_gate_operation():
+    three_qubit_gate = cirq.ThreeQubitGate()
+    single_qubit = [cirq.GridQubit(0, 0)]
+    with pytest.raises(ValueError) as bad:
+        cirq.GateOperation(three_qubit_gate, single_qubit)
+    assert 'Three-qubit gate not applied to three qubits:' in str(bad.value)
+
+
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
     g2 = cirq.SingleQubitGate()
+    g3 = cirq.TwoQubitGate()
     r1 = [cirq.NamedQubit('r1')]
     r2 = [cirq.NamedQubit('r2')]
     r12 = r1 + r2
@@ -37,8 +46,8 @@ def test_gate_operation_eq():
     eq.make_equality_group(lambda: cirq.GateOperation(g1, r1))
     eq.make_equality_group(lambda: cirq.GateOperation(g2, r1))
     eq.make_equality_group(lambda: cirq.GateOperation(g1, r2))
-    eq.make_equality_group(lambda: cirq.GateOperation(g1, r12))
-    eq.make_equality_group(lambda: cirq.GateOperation(g1, r21))
+    eq.make_equality_group(lambda: cirq.GateOperation(g3, r12))
+    eq.make_equality_group(lambda: cirq.GateOperation(g3, r21))
     eq.add_equality_group(cirq.GateOperation(cirq.CZ, r21),
                           cirq.GateOperation(cirq.CZ, r12))
 
@@ -168,8 +177,13 @@ def test_channel():
     np.testing.assert_allclose(cirq.channel(op), cirq.channel(op.gate))
     assert cirq.has_channel(op)
 
-    assert cirq.channel(cirq.measure(a), None) is None
-    assert not cirq.has_channel(cirq.measure(a))
+    assert cirq.channel(cirq.SingleQubitGate()(a), None) is None
+    assert not cirq.has_channel(cirq.SingleQubitGate()(a))
+
+
+def test_measurement_key():
+    a = cirq.NamedQubit('a')
+    assert cirq.measurement_key(cirq.measure(a, key='lock')) == 'lock'
 
 
 def assert_mixtures_equal(actual, expected):

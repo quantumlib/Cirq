@@ -87,7 +87,8 @@ class EqualsTester:
             example = next(examples)
             raise AssertionError(
                 'Items in the same group produced different hashes. '
-                'Example: hash({}) is {} but hash({}) is {}.'.format(*example))
+                'Example: hash({!r}) is {!r} but hash({!r}) is {!r}.'.format(
+                    *example))
 
     def add_equality_group(self, *group_items: Any):
         """Tries to add a disjoint equivalence group to the equality tester.

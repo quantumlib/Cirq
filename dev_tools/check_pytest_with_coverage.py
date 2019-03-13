@@ -59,7 +59,7 @@ class TestAndPrepareCoverageCheck(check.Check):
             return True, 'Tests passed!'
 
         last_line = [e for e in output.split('\n') if e.strip()][-1]
-        fail_match = re.match('.+=== (\d+) failed', last_line)
+        fail_match = re.match(r'.+=== (\d+) failed', last_line)
         if fail_match is None:
             return False, 'Tests failed.'
         return False, '{} tests failed.'.format(fail_match.group(1))

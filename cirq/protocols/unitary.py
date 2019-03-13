@@ -68,8 +68,8 @@ class SupportsUnitary(Protocol):
         to using _unitary_ with a default value, or False if neither exist.
 
         Returns:
-          True if the value has a unitary matrix representation, False
-          otherwise.
+            True if the value has a unitary matrix representation, False
+            otherwise.
         """
 
 

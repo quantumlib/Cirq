@@ -6,6 +6,7 @@ output-format=colorized
 score=no
 reports=no
 enable=
+    anomalous-backslash-in-string,
     assert-on-tuple,
     bad-indentation,
     bad-option-value,
