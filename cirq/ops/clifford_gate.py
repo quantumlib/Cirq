@@ -207,14 +207,14 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 self.transform(pauli_gates.Z))
 
 
-def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
-    if exponent == 0.5 or exponent == -0.5:
-        return SQRT_EXP_MAP[exponent][self]
-    elif exponent != -1:
-        return NotImplemented
+    def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
+        if exponent == 0.5 or exponent == -0.5:
+            return SQRT_EXP_MAP[exponent][self]
+        elif exponent != -1:
+            return NotImplemented
 
-    return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
-                                   _inverse_map=self._rotation_map)
+        return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
+                                       _inverse_map=self._rotation_map)
 
     def commutes_with(self,
                       gate_or_pauli: Union['SingleQubitCliffordGate', Pauli]
