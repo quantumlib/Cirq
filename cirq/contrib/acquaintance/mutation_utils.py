@@ -35,8 +35,8 @@ STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 def rectify_acquaintance_strategy(
         circuit: circuits.Circuit,
-        acquaint_first: bool = True
-) -> None:
+        acquaint_first: bool=True
+        ) -> None:
     """Splits moments so that they contain either only acquaintance gates
     or only permutation gates. Orders resulting moments so that the first one
     is of the same type as the previous one.
@@ -53,25 +53,25 @@ def rectify_acquaintance_strategy(
     rectified_moments = []
     for moment in circuit:
         gate_type_to_ops = collections.defaultdict(list
-                                                   )  # type: Dict[bool, List[ops.GateOperation]]
+                ) # type: Dict[bool, List[ops.GateOperation]]
         for op in moment.operations:
             gate_type_to_ops[isinstance(op.gate, AcquaintanceOpportunityGate)
-            ].append(op)
+                    ].append(op)
         if len(gate_type_to_ops) == 1:
             rectified_moments.append(moment)
             continue
         for acquaint_first in sorted(gate_type_to_ops.keys(),
                                      reverse=acquaint_first):
             rectified_moments.append(
-                ops.Moment(gate_type_to_ops[acquaint_first]))
+                    ops.Moment(gate_type_to_ops[acquaint_first]))
     circuit._moments = rectified_moments
 
 
 def replace_acquaintance_with_swap_network(
         circuit: circuits.Circuit,
         qubit_order: Sequence[ops.QubitId],
-        acquaintance_size: int = 0
-) -> bool:
+        acquaintance_size: int=0
+        ) -> bool:
     """
     Replace every moment containing acquaintance gates (after
     rectification) with a generalized swap network, with the partition
@@ -102,9 +102,9 @@ def replace_acquaintance_with_swap_network(
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)
         if all(isinstance(op.gate, AcquaintanceOpportunityGate)
-               for op in moment.operations):
+                for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
-                qubit_order, moment.operations, acquaintance_size)
+                    qubit_order, moment.operations, acquaintance_size)
             swap_network_op = swap_network_gate(*qubit_order)
             moment = ops.Moment([swap_network_op])
             reflected = not reflected
