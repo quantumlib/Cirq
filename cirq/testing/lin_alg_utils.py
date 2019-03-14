@@ -24,7 +24,7 @@ from cirq import linalg
 def random_superposition(dim: int) -> np.ndarray:
     """Returns a random unit-length vector from the uniform distribution.
     Args:
-        dim: The length of the vector.
+        dim: The dimension of the vector.
     Returns:
         The sampled unit-length vector.
     """
