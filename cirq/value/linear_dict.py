@@ -150,7 +150,7 @@ class LinearDict(Dict[Any, Scalar]):
         return 'cirq.LinearDict({!r})'.format(coefficients)
 
     @staticmethod
-    def _term_to_str(vector: Any, coefficient: complex) -> str:
+    def _term_to_str(vector: Any, coefficient: Scalar) -> str:
         if abs(coefficient.real) < 1e-4 and abs(coefficient.imag) < 1e-4:
             return ''
         if abs(coefficient.real) < 1e-4:
