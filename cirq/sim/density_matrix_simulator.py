@@ -158,6 +158,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     measurements[k].append(np.array(v, dtype=bool))
         return {k: np.array(v) for k, v in measurements.items()}
 
+
     def _simulator_iterator(self,
             circuit: circuits.Circuit,
             param_resolver: study.ParamResolver,
