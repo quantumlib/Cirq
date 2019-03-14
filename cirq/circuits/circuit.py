@@ -58,6 +58,7 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_until_blocked
         findall_operations_with_gate_type
         are_all_measurements_terminal
         to_unitary_matrix
@@ -658,6 +659,50 @@ class Circuit:
                 result.enqueue(i, op)
 
         return list(result)
+
+    def findall_operations_until_blocked(self,
+                                   start_frontier: Dict[ops.QubitId, int],
+                                   is_blocker: Callable[[ops.Operation], bool]
+                                         = lambda op: False,
+                                   omit_crossing_operations: bool = False
+                                   ) -> List[Tuple[int, ops.Operation]]:
+        """
+        Finds all operations until a blocking operation is hit.  For each
+        qubit, this returns a list of all operations that involve that qubit
+        from the starting moment until a blocking operation that involves that
+        qubit.  Operations not involving that qubit are not considered blocking
+        for that qubit, even if they affect other qubits listed in the
+        start_frontier dictionary.  See reachable_frontier_from for a more
+        in depth example of reachable states.
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
+        """
+        op_list = []
+        max_index = len(self._moments)
+        for qubit in start_frontier:
+            current_index = start_frontier[qubit]
+            if current_index < 0:
+                current_index = 0
+            while current_index < max_index:
+                if self[current_index].operates_on_single_qubit(qubit):
+                    next_op = self.operation_at(qubit, current_index)
+                    if next_op is not None:
+                        if is_blocker(next_op):
+                            break
+                        op_list.append((current_index,next_op))
+                current_index+=1
+        return op_list
 
     def operation_at(self,
                      qubit: ops.QubitId,
@@ -1635,6 +1680,7 @@ def _draw_moment_in_diagram(
                 # Add an exponent to every label
                 for index in indices:
                     out_diagram.write(x, index, '^' + exponent)
+
 
     # Group together columns belonging to the same Moment.
     if moment.operations and x > x0:
