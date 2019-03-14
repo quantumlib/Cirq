@@ -123,12 +123,31 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             repetitions: int) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        resolved_circuit = protocols.resolve_parameters(circuit,
+                                                        param_resolver)
+
+        if circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(resolved_circuit, repetitions)
+        else:
+            return self._run_sweep_repeat(resolved_circuit, repetitions)
+
+    def _run_sweep_sample(self, circuit, repetitions):
+        for step_result in self._base_iterator(
+                circuit=circuit,
+                qubit_order=ops.QubitOrder.DEFAULT,
+                initial_state=0,
+                perform_measurements=False):
+            pass
+        measurement_ops = [op for _, op, _ in
+                           circuit.findall_operations_with_gate_type(
+                               ops.MeasurementGate)]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions)
+
+    def _run_sweep_repeat(self, circuit, repetitions):
         measurements = {}  # type: Dict[str, List[np.ndarray]]
-        # TODO: optimize for all terminal measurements.
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                resolved_circuit,
+                circuit,
                 qubit_order=ops.QubitOrder.DEFAULT,
                 initial_state=0,
                 perform_measurements=True)
@@ -138,7 +157,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         measurements[k] = []
                     measurements[k].append(np.array(v, dtype=bool))
         return {k: np.array(v) for k, v in measurements.items()}
-
 
     def _simulator_iterator(self,
             circuit: circuits.Circuit,

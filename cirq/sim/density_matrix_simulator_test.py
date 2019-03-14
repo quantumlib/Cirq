@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import pytest
@@ -115,25 +115,50 @@ def test_run_channel(dtype):
     assert q0_measurements == {0, 1}
 
 
+
+class CountingSimulator(cirq.DensityMatrixSimulator):
+    """
+    CountingSimulator is a test class that decorates the _base_iterator method
+    so that we can count the number of circuit runs during a test case
+    """
+    def __init__(self, dtype=np.complex64):
+        super().__init__(dtype)
+        self.count = 0
+
+    def _base_iterator(
+            self,
+            circuit: cirq.Circuit,
+            qubit_order: cirq.ops.QubitOrderOrList,
+            initial_state: Union[int, np.ndarray],
+            perform_measurements: bool = True,
+    ):
+        self.count += 1
+        return super()._base_iterator(circuit, qubit_order, initial_state,
+                                      perform_measurements)
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    simulator = CountingSimulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
+            circuit = cirq.Circuit.from_ops(
+                (cirq.X ** b0)(q0),
+                (cirq.X ** b1)(q1),
+                cirq.measure(q0),
+                cirq.measure(q1))
+
             result = simulator.run(circuit, repetitions=3)
             np.testing.assert_equal(result.measurements,
                                     {'0': [[b0]] * 3, '1': [[b1]] * 3})
+            assert result.repetitions == 3
+    assert simulator.count == 4
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    simulator = CountingSimulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
@@ -146,7 +171,7 @@ def test_run_repetitions_measurement_not_terminal(dtype):
             np.testing.assert_equal(result.measurements,
                                     {'0': [[b0]] * 3, '1': [[b1]] * 3})
             assert result.repetitions == 3
-
+    assert simulator.count == 12
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_param_resolver(dtype):
