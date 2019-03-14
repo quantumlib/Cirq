@@ -90,6 +90,32 @@ def test_pauli_string_expectation_value_pure_state():
         x3.value_derived_from_state(density_matrix, qubit_index_map), -1)
 
 
+def test_pauli_string_expectation_value_mixed_state_linearity():
+    n_qubits = 10
+
+    wavefunction1 = cirq.testing.random_superposition(2**n_qubits)
+    wavefunction2 = cirq.testing.random_superposition(2**n_qubits)
+
+    rho1 = np.outer(wavefunction1, np.conj(wavefunction1))
+    rho2 = np.outer(wavefunction2, np.conj(wavefunction2))
+    density_matrix = rho1 + rho2
+
+    qubits = cirq.LineQubit.range(n_qubits)
+    qubit_index_map = {q: i for i, q in enumerate(qubits)}
+    paulis = [cirq.X, cirq.Y, cirq.Z]
+    pauli_string_expectation = cirq.pauli_string_expectation(
+            cirq.PauliString({q: np.random.choice(paulis) for q in qubits}))
+
+    a = pauli_string_expectation.value_derived_from_state(
+            wavefunction1, qubit_index_map)
+    b = pauli_string_expectation.value_derived_from_state(
+            wavefunction2, qubit_index_map)
+    c = pauli_string_expectation.value_derived_from_state(
+            density_matrix, qubit_index_map)
+
+    np.testing.assert_allclose(a + b, c)
+
+
 @pytest.mark.parametrize('paulis', [
     (cirq.Z, cirq.Z),
     (cirq.Z, cirq.X),
