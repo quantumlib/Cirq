@@ -141,12 +141,10 @@ def test_run_repetitions_measure_at_end(dtype):
     simulator = CountingSimulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops(
-                (cirq.X ** b0)(q0),
-                (cirq.X ** b1)(q1),
-                cirq.measure(q0),
-                cirq.measure(q1))
-
+            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
+                                            (cirq.X**b1)(q1),
+                                            cirq.measure(q0),
+                                            cirq.measure(q1))
             result = simulator.run(circuit, repetitions=3)
             np.testing.assert_equal(result.measurements,
                                     {'0': [[b0]] * 3, '1': [[b1]] * 3})
