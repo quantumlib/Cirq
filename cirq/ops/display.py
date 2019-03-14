@@ -190,7 +190,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
 
 @value.value_equality
-class PauliStringExpectation(WaveFunctionDisplay):
+class PauliStringExpectation(StateDisplay):
     """Expectation value of a Pauli string."""
 
     def __init__(self,
@@ -231,6 +231,23 @@ class PauliStringExpectation(WaveFunctionDisplay):
             ket = protocols.apply_unitary(pauli, args)
         ket = np.reshape(ket, state.shape)
         return np.dot(state.conj(), ket)
+
+    def value_derived_from_density_matrix(self,
+                                          state: np.ndarray,
+                                          qubit_map: Dict[raw_types.QubitId, int]
+                                          ) -> float:
+        num_qubits = state.shape[0].bit_length() - 1
+        result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
+        for qubit, pauli in self._pauli_string.items():
+            buffer = np.empty(result.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(
+                    target_tensor=result,
+                    available_buffer=buffer,
+                    axes=(qubit_map[qubit],)
+                    )
+            result = protocols.apply_unitary(pauli, args)
+        result = np.reshape(result, state.shape)
+        return np.trace(result)
 
     def _value_equality_values_(self):
         return self._pauli_string, self._key
