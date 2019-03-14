@@ -235,6 +235,7 @@ class CCXPowGate(eigen_gate.EigenGate,
             return 'TOFFOLI'
         return 'TOFFOLI**{}'.format(self._exponent)
 
+
 class CSwapGate(gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
