@@ -115,7 +115,6 @@ def test_run_channel(dtype):
     assert q0_measurements == {0, 1}
 
 
-
 class CountingSimulator(cirq.DensityMatrixSimulator):
     """
     CountingSimulator is a test class that decorates the _base_iterator method
