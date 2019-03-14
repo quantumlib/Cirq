@@ -151,6 +151,7 @@ class LinearDict(Dict[Any, Scalar]):
 
     @staticmethod
     def _term_to_str(vector: Any, coefficient: Scalar) -> str:
+        coefficient = complex(coefficient)
         if abs(coefficient.real) < 1e-4 and abs(coefficient.imag) < 1e-4:
             return ''
         if abs(coefficient.real) < 1e-4:
