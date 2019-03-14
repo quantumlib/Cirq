@@ -104,8 +104,8 @@ class LinearDict(Dict[Any, Scalar]):
     def __rmul__(self, a: Scalar) -> 'LinearDict':
         return self.__mul__(a)
 
-    def __truediv__(self, other: Scalar) -> 'LinearDict':
-        return self.__mul__(1 / other)
+    def __truediv__(self, a: Scalar) -> 'LinearDict':
+        return self.__mul__(1 / a)
 
     def __bool__(self) -> bool:
         return not all(c == 0 for c in self.values())
@@ -169,3 +169,4 @@ class LinearDict(Dict[Any, Scalar]):
             p.text('LinearDict(...)')
         else:
             p.text(str(self))
+
