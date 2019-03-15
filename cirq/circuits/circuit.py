@@ -334,11 +334,9 @@ class Circuit:
     def _first_moment_operating_on(self,
                                    qubits: Iterable[ops.QubitId],
                                    indices: Iterable[int]) -> Optional[int]:
-        qubits = frozenset(qubits)
-        for m in indices:
-            if self._has_op_at(m, qubits):
-                return m
-        return None
+        return next((m for m in indices
+                     if self._has_op_at(m, frozenset(qubits))),
+                    None)
 
     def next_moment_operating_on(self,
                                  qubits: Iterable[ops.QubitId],
