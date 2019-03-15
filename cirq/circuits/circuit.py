@@ -390,8 +390,9 @@ class Circuit:
         for q in qubits:
             next_moment = self.next_moment_operating_on(
                 [q], start_moment_index)
-            next_moments[q] = (len(self._moments) if next_moment is None else
-                               next_moment)
+            if next_moment is None:
+                next_moment = len(self._moments)
+            next_moments[q] = next_moment
         return next_moments
 
     def prev_moment_operating_on(
