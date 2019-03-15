@@ -139,9 +139,6 @@ from cirq.ops.raw_types import (
     Operation,
     Qid,
 )
-from cirq.ops.reversible_composite_gate import (
-    ReversibleCompositeGate,
-)
 from cirq.ops.three_qubit_gates import (
     CCX,
     CCXPowGate,

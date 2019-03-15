@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import numpy as np
+import pytest
 import sympy
 
 import cirq
+from cirq.testing.mock import mock
 
 
 def test_invalid_dtype():
@@ -70,33 +71,40 @@ def test_run_bit_flips(dtype):
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    for b0 in [0, 1]:
-        for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
-            result = simulator.run(circuit, repetitions=3)
-            np.testing.assert_equal(result.measurements,
-                                    {'0': [[b0]] * 3, '1': [[b1]] * 3})
+    with mock.patch.object(simulator, '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
+                                                (cirq.X**b1)(q1),
+                                                cirq.measure(q0),
+                                                cirq.measure(q1))
+                result = simulator.run(circuit, repetitions=3)
+                np.testing.assert_equal(result.measurements,
+                                        {'0': [[b0]] * 3, '1': [[b1]] * 3})
+                assert result.repetitions == 3
+        assert mock_sim.call_count == 4
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measurement_not_terminal(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    for b0 in [0, 1]:
-        for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1),
-                                            cirq.H(q0),
-                                            cirq.H(q1))
-            result = simulator.run(circuit, repetitions=3)
-            np.testing.assert_equal(result.measurements,
-                                    {'0': [[b0]] * 3, '1': [[b1]] * 3})
-            assert result.repetitions == 3
+    with mock.patch.object(simulator, '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
+                                                (cirq.X**b1)(q1),
+                                                cirq.measure(q0),
+                                                cirq.measure(q1),
+                                                cirq.H(q0),
+                                                cirq.H(q1))
+                result = simulator.run(circuit, repetitions=3)
+                np.testing.assert_equal(result.measurements,
+                                        {'0': [[b0]] * 3, '1': [[b1]] * 3})
+                assert result.repetitions == 3
+        assert  mock_sim.call_count == 12
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
