@@ -24,7 +24,7 @@ from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq.ops import QubitId
+    from cirq.ops import Qid
     from typing import Dict
 
 class PointOptimizationSummary:
@@ -32,7 +32,7 @@ class PointOptimizationSummary:
 
     def __init__(self,
                  clear_span: int,
-                 clear_qubits: Iterable[ops.QubitId],
+                 clear_qubits: Iterable[ops.Qid],
                  new_operations: ops.OP_TREE) -> None:
         """
         Args:
@@ -116,7 +116,7 @@ class PointOptimizer():
         pass
 
     def optimize_circuit(self, circuit: Circuit):
-        frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
+        frontier = defaultdict(lambda: 0)  # type: Dict[Qid, int]
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:

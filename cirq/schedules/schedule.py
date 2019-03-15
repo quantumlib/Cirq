@@ -19,7 +19,7 @@ from sortedcontainers import SortedListWithKey
 from cirq.circuits import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.devices import Device
-from cirq.ops import QubitId
+from cirq.ops import Qid
 from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.value import Duration, Timestamp
 
@@ -74,7 +74,7 @@ class Schedule:
     def query(self, *,  # Forces keyword args.
               time: Timestamp,
               duration: Duration = Duration(),
-              qubits: Iterable[QubitId] = None,
+              qubits: Iterable[Qid] = None,
               include_query_end_time=False,
               include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
