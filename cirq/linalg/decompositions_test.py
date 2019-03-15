@@ -235,8 +235,8 @@ def test_kak_canonicalize_vector(x, y, z):
     cirq.testing.random_unitary(4)
     for _ in range(10)
 ])
-def test_kak_decomposition(target, benchmark):
-    kak = benchmark(cirq.kak_decomposition, target)
+def test_kak_decomposition(target):
+    kak = cirq.kak_decomposition(target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 

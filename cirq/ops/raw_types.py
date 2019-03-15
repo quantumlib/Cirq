@@ -100,7 +100,7 @@ class Gate(metaclass=abc.ABCMeta):
     def validate_args(self, qubits: Sequence[QubitId]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
-        Does no checks by default. Child classes can override.
+        By default only checks qubit count. Child classes can override.
 
         Args:
             qubits: The collection of qubits to potentially apply the gate to.
@@ -110,8 +110,11 @@ class Gate(metaclass=abc.ABCMeta):
         """
         if len(qubits) != self.num_qubits():
             raise ValueError(
-                'Wrong number of qubits. Got <{!r}> but expected {}.'.format(
-                    qubits, self.num_qubits()))
+                'Wrong number of qubits for <{!r}>. '
+                'Expected {} qubits but got <{!r}>.'.format(
+                    self,
+                    self.num_qubits(),
+                    qubits))
 
     def on(self, *qubits: QubitId) -> 'gate_operation.GateOperation':
         """Returns an application of this gate to the given qubits.
@@ -126,7 +129,6 @@ class Gate(metaclass=abc.ABCMeta):
             raise ValueError(
                 "Applied a gate to an empty set of qubits. Gate: {}".format(
                     repr(self)))
-        self.validate_args(qubits)
         return gate_operation.GateOperation(self, list(qubits))
 
     def __pow__(self, power):
