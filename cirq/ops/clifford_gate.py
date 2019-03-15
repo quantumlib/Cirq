@@ -308,7 +308,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             if flip:
                 # 180 degree rotation
                 output.append((next_pauli, 2))
-                # 90 degree rotation about some axis
+            # 90 degree rotation about some axis
             if self.transform(next_pauli).flip:
                 # Negative 90 degree rotation
                 output.append((pauli, -1))
@@ -324,7 +324,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             else:
                 return [(pauli_gates.Z, 1 if y_rot.flip else -1),
                         (pauli_gates.X, 1 if z_rot.flip else -1)]
-            # coverage: ignore
+        # coverage: ignore
         assert False, ('Impossible condition where this gate only rotates one'
                        ' Pauli to a different Pauli.')
 
