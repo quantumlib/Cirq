@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sympy
+
 import cirq
 from cirq.study import ParamResolver
 
@@ -54,6 +56,7 @@ def test_resolve_parameters():
     assert cirq.resolve_parameters(SimpleParameterSwitch(0), r).parameter == 0
     assert cirq.resolve_parameters(SimpleParameterSwitch('a'), r).parameter == 0
     assert cirq.resolve_parameters(SimpleParameterSwitch('a'), d).parameter == 0
+    assert cirq.resolve_parameters(sympy.Symbol('a'), r) == 0
 
 
 def test_skips_empty_resolution():

@@ -198,7 +198,7 @@ insertion strategy:
 ```python
 circuit = cirq.Circuit()
 circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
-               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+               strategy=cirq.InsertStrategy.EARLIEST)
 circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
                strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 print(circuit)
@@ -291,15 +291,15 @@ instances
 ```python
 import random
 def rand2d(rows, cols):
-    return [[random.choice([+1, -1]) for _ in range(rows)] for _ in range(cols)]
+    return [[random.choice([+1, -1]) for _ in range(cols)] for _ in range(rows)]
 
 def random_instance(length):
     # transverse field terms
     h = rand2d(length, length)
     # links within a row
-    jr = rand2d(length, length - 1)
+    jr = rand2d(length - 1, length)
     # links within a column
-    jc = rand2d(length - 1, length)
+    jc = rand2d(length, length - 1)
     return (h, jr, jc)
     
 h, jr, jc = random_instance(3)
