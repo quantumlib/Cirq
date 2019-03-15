@@ -871,8 +871,7 @@ class Circuit:
             op = operations[op_index]
             i = next(
                 (index for index, m in enumerate(self._moments[i:])
-                 if self._device.can_add_operation_into_moment(op, m))
-                ), end)
+                 if self._device.can_add_operation_into_moment(op, m)), end)
             if i >= end:
                 break
             self._moments[i] = self._moments[i].with_operation(op)
