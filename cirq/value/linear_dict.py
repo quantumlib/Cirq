@@ -113,7 +113,7 @@ class LinearDict(Dict[Any, Scalar]):
         instead.
         """
         if not isinstance(other, LinearDict):
-            other = LinearDict({other: 1})
+            return NotImplemented
 
         all_vs = set(self.keys()) | set(other.keys())
         return all(self[v] == other[v] for v in all_vs)
@@ -124,7 +124,7 @@ class LinearDict(Dict[Any, Scalar]):
         See __eq__().
         """
         if not isinstance(other, LinearDict):
-            other = LinearDict({other: 1})
+            return NotImplemented
 
         all_vs = set(self.keys()) | set(other.keys())
         return any(self[v] != other[v] for v in all_vs)
@@ -132,7 +132,7 @@ class LinearDict(Dict[Any, Scalar]):
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         """Checks whether two linear combinations are approximately equal."""
         if not isinstance(other, LinearDict):
-            other = LinearDict({other: 1})
+            return NotImplemented
 
         all_vs = set(self.keys()) | set(other.keys())
         return all(abs(self[v] - other[v]) < atol for v in all_vs)
