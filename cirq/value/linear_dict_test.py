@@ -176,8 +176,10 @@ def test_scalar_division(scalar, terms, terms_expected):
 @pytest.mark.parametrize('expression, expected', (
     ((cirq.LinearDict({'X': 10}) + cirq.LinearDict({'X': 10, 'Y': -40})) / 20,
      cirq.LinearDict({'X': 1, 'Y': -2})),
-    (cirq.LinearDict({'a': -2}) + 'a', cirq.LinearDict({'a': -1})),
-    (cirq.LinearDict({'b': 2}) - 'b', 'b'),
+    (cirq.LinearDict({'a': -2}) + 2 * cirq.LinearDict({'a': 1}),
+     cirq.LinearDict({})),
+    (cirq.LinearDict({'b': 2}) - 2 * cirq.LinearDict({'b': 1}),
+     cirq.LinearDict({})),
 ))
 def test_expressions(expression, expected):
     assert expression == expected

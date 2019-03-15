@@ -30,10 +30,6 @@ class LinearDict(Dict[Any, Scalar]):
     A consequence of treating keys as opaque is that all relationships between
     the keys other than equality are ignored. In particular, keys are allowed
     to be linearly dependent.
-
-    For convenience, methods which take a second linear combination accept
-    a standalone key instance as well. The second argument is then treated as
-    a single-term linear combination with the sole coefficient equal to 1.0.
     """
     def __init__(self, terms: Mapping[Any, Scalar]) -> None:
         """Initializes linear combination from a collection of terms.
@@ -57,10 +53,7 @@ class LinearDict(Dict[Any, Scalar]):
     def __getitem__(self, vector: Any) -> Scalar:
         return super().get(vector, 0)
 
-    def __iadd__(self, other: Any) -> 'LinearDict':
-        if not isinstance(other, LinearDict):
-            other = LinearDict({other: 1})
-
+    def __iadd__(self, other: 'LinearDict') -> 'LinearDict':
         for vector, other_coefficient in other.items():
             old_coefficient = super().get(vector, 0)
             new_coefficient = old_coefficient + other_coefficient
@@ -68,15 +61,12 @@ class LinearDict(Dict[Any, Scalar]):
         self.clean(atol=0)
         return self
 
-    def __add__(self, other: Any) -> 'LinearDict':
+    def __add__(self, other: 'LinearDict') -> 'LinearDict':
         result = self.copy()
         result += other
         return result
 
-    def __isub__(self, other: Any) -> 'LinearDict':
-        if not isinstance(other, LinearDict):
-            other = LinearDict({other: 1})
-
+    def __isub__(self, other: 'LinearDict') -> 'LinearDict':
         for vector, other_coefficient in other.items():
             old_coefficient = super().get(vector, 0)
             new_coefficient = old_coefficient - other_coefficient
@@ -84,7 +74,7 @@ class LinearDict(Dict[Any, Scalar]):
         self.clean(atol=0)
         return self
 
-    def __sub__(self, other: Any) -> 'LinearDict':
+    def __sub__(self, other: 'LinearDict') -> 'LinearDict':
         result = self.copy()
         result -= other
         return result
