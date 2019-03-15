@@ -869,9 +869,10 @@ class Circuit:
         op_index = 0
         while op_index < len(operations):
             op = operations[op_index]
-            i = next((ii for ii in self._moments[i:] if
-                      self._device.can_add_operation_into_moment(
-                          op, self._moments[ii])), end)
+            i = next(
+                (index for index, m in enumerate(self._moments[i:])
+                 if self._device.can_add_operation_into_moment(op, m])
+                ), end)
             if i >= end:
                 break
             self._moments[i] = self._moments[i].with_operation(op)
@@ -1482,8 +1483,8 @@ class Circuit:
 def _resolve_operations(
         operations: Iterable[ops.Operation],
         param_resolver: study.ParamResolver) -> List[ops.Operation]:
-    resolved_operations = [protocols.resolve_parameters(
-            op, param_resolver) for op in operations]  # type: List[ops.Operation]
+    resolved_operations = [protocols.resolve_parameters(op, param_resolver)
+                           for op in operations]  # type: List[ops.Operation]
     return resolved_operations
 
 
