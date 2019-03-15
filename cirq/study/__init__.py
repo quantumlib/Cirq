@@ -20,6 +20,7 @@ from cirq.study.compute_displays_result import (
 
 from cirq.study.resolver import (
     ParamResolver,
+    ParamResolverOrSimilarType,
 )
 from cirq.study.sweepable import (
     Sweepable,
