@@ -131,7 +131,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         else:
             return self._run_sweep_repeat(resolved_circuit, repetitions)
 
-    def _run_sweep_sample(self, circuit, repetitions):
+    def _run_sweep_sample(self,
+                          circuit: circuits.Circuit,
+                          repetitions: int) -> Dict[str, np.ndarray]:
         for step_result in self._base_iterator(
                 circuit=circuit,
                 qubit_order=ops.QubitOrder.DEFAULT,
@@ -143,7 +145,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                ops.MeasurementGate)]
         return step_result.sample_measurement_ops(measurement_ops, repetitions)
 
-    def _run_sweep_repeat(self, circuit, repetitions):
+    def _run_sweep_repeat(self,
+                          circuit: circuits.Circuit,
+                          repetitions: int) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
