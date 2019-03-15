@@ -444,8 +444,7 @@ class Circuit:
             end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
-        while k > 0:
-            k -= 1
+        for k in range(end_moment_index - 1, 0, -1):
             if not self._can_commute_past(k, op):
                 return last_available
             if self._can_add_op_at(k, op):
