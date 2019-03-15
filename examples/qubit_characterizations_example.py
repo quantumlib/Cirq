@@ -16,15 +16,13 @@ def main():
     rabi_results.plot()
 
     # Clifford-based randomized benchmarking of single-qubit gates on q_0.
-    n_cfs_1q = range(10, 100, 10)
     rb_result_1q = cirq.experiments.single_qubit_randomized_benchmarking(
-        simulator, q_0, n_cfs_1q)
+        simulator, q_0)
     rb_result_1q.plot()
 
     # Clifford-based randomized benchmarking of two-qubit gates on q_0 and q_1.
-    n_cfs_2q = range(5, 50, 5)
     rb_result_2q = cirq.experiments.two_qubit_randomized_benchmarking(
-        simulator, q_0, q_1, n_cfs_2q)
+        simulator, q_0, q_1)
     rb_result_2q.plot()
 
     # State-tomography of q_0 after application of an X/2 rotation.

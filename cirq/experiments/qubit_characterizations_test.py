@@ -2,9 +2,11 @@ import numpy as np
 
 from cirq import GridQubit
 from cirq import circuits, ops, sim
-from cirq.experiments import rabi_oscillations, \
-    single_qubit_randomized_benchmarking, two_qubit_randomized_benchmarking, \
-    single_qubit_state_tomography, two_qubit_state_tomography
+from cirq.experiments import (rabi_oscillations,
+                              single_qubit_randomized_benchmarking,
+                              two_qubit_randomized_benchmarking,
+                              single_qubit_state_tomography,
+                              two_qubit_state_tomography)
 
 
 def test_rabi_oscillations():
@@ -12,7 +14,7 @@ def test_rabi_oscillations():
     # small statistical error.
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
-    results = rabi_oscillations(simulator, qubit, np.pi)
+    results = rabi_oscillations(simulator, qubit, np.pi, repetitions=10000)
     data = np.asarray(results.data)
     angles = data[:, 0]
     actual_pops = data[:, 1]
@@ -27,9 +29,10 @@ def test_single_qubit_randomized_benchmarking():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     num_cfds = range(5, 20, 5)
-    results = single_qubit_randomized_benchmarking(simulator, qubit, num_cfds)
+    results = single_qubit_randomized_benchmarking(simulator, qubit,
+                                                   num_clifford_range=num_cfds)
     g_pops = np.asarray(results.data)[:, 1]
-    assert np.mean(g_pops) == 1.0
+    assert np.isclose(np.mean(g_pops), 1.0)
 
 
 def test_two_qubit_randomized_benchmarking():
@@ -39,9 +42,10 @@ def test_two_qubit_randomized_benchmarking():
     q_0 = GridQubit(0, 0)
     q_1 = GridQubit(0, 1)
     num_cfds = range(5, 20, 5)
-    results = two_qubit_randomized_benchmarking(simulator, q_0, q_1, num_cfds)
+    results = two_qubit_randomized_benchmarking(simulator, q_0, q_1,
+                                                num_clifford_range=num_cfds)
     g_pops = np.asarray(results.data)[:, 1]
-    assert np.mean(g_pops) == 1.0
+    assert np.isclose(np.mean(g_pops), 1.0)
 
 
 def test_single_qubit_state_tomography():
@@ -55,11 +59,11 @@ def test_single_qubit_state_tomography():
     circuit_3 = circuits.Circuit.from_ops(ops.H(qubit), ops.Y(qubit))
 
     act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1,
-                                              10000).data
+                                              100000).data
     act_rho_2 = single_qubit_state_tomography(simulator, qubit, circuit_2,
-                                              10000).data
+                                              100000).data
     act_rho_3 = single_qubit_state_tomography(simulator, qubit, circuit_3,
-                                              10000).data
+                                              100000).data
 
     tar_rho_1 = np.array([[0.5, 0.5j], [-0.5j, 0.5]])
     tar_rho_2 = np.array([[0.5, 0.5], [0.5, 0.5]])
@@ -86,13 +90,13 @@ def test_two_qubit_state_tomography():
                                            ops.CNOT(q_0, q_1))
 
     act_rho_00 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_00,
-                                            10000).data
+                                            100000).data
     act_rho_01 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_01,
-                                            10000).data
+                                            100000).data
     act_rho_10 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_10,
-                                            10000).data
+                                            100000).data
     act_rho_11 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_11,
-                                            10000).data
+                                            100000).data
 
     tar_rho_00 = np.outer([1.0, 0, 0, 1.0], [1.0, 0, 0, 1.0]) / 2.0
     tar_rho_01 = np.outer([0, 1.0, 1.0, 0], [0, 1.0, 1.0, 0]) / 2.0

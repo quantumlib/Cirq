@@ -1,12 +1,19 @@
 import itertools
-from typing import Sequence, Tuple, Iterator, Any
 
 import sympy
-
-from cirq import circuits, devices, ops, protocols, sim, study
 import numpy as np
+
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from typing import Sequence, Tuple, Iterator, Any, NamedTuple
+from cirq import circuits, devices, ops, protocols, sim, study
+
+Cliffords = NamedTuple('Cliffords',
+                       [('c1_in_xy', Sequence[Sequence[ops.Gate]]),
+                        ('c1_in_xz', Sequence[Sequence[ops.Gate]]),
+                        ('s1', Sequence[Sequence[ops.Gate]]),
+                        ('s1_x', Sequence[Sequence[ops.Gate]]),
+                        ('s1_y', Sequence[Sequence[ops.Gate]])])
 
 
 class RabiResult:
@@ -108,9 +115,8 @@ class TomographyResult:
         """Plots the real and imaginary parts of the density matrix as two
         3D bar plots.
         """
-        fig_re, fig_imag = _plot_density_matrix(self._density_matrix)
-        fig_re.show()
-        fig_imag.show()
+        fig = _plot_density_matrix(self._density_matrix)
+        fig.show()
 
 
 def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
@@ -151,9 +157,11 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
 
 def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
                                          qubit: devices.GridQubit,
-                                         num_cliffords: Sequence[int],
                                          use_xy_basis: bool = True,
-                                         *, num_circuits: int = 20,
+                                         *,
+                                         num_clifford_range: Sequence[int]
+                                         = range(10, 100, 10),
+                                         num_circuits: int = 20,
                                          repetitions: int = 1000
                                          ) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of a single qubit.
@@ -165,17 +173,23 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     |0> state population is determined from the measurement outcomes of all
     of the circuits.
 
-    The above process is done for different numbers of Cliffords specified in
-    num_cliffords.
+    The above process is done for different circuit lengths specified by the
+    integers in num_clifford_range. For example, an integer 10 means the
+    random circuits will contain 10 Clifford gates each plus one inverting
+    Clifford. The user may use the result to extract an average gate fidelity,
+    by analyzing the change in the average |0> state population at different
+    circuit lengths. For actual experiments, one should choose
+    num_clifford_range such that a clear exponential decay is observed in the
+    results.
 
     See Barends et al., Nature 508, 500 for details.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
         qubit: The qubit under test.
-        num_cliffords: The different numbers of Cliffords in the RB study.
         use_xy_basis: Determines if the Clifford gates are built with x and y
             rotations (True) or x and z rotations (False).
+        num_clifford_range: The different numbers of Cliffords in the RB study.
         num_circuits: The number of random circuits generated for each
             number of Cliffords.
         repetitions: The number of repetitions of each circuit.
@@ -184,12 +198,12 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
 
-    c1_in_xy, c1_in_xz, _, _, _ = _single_qubit_cliffords()
-    c1 = c1_in_xy if use_xy_basis else c1_in_xz
+    cliffords = _single_qubit_cliffords()
+    c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
     cfd_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
 
     gnd_probs = []
-    for num_cfds in num_cliffords:
+    for num_cfds in num_clifford_range:
         excited_probs_l = []
         for _ in range(num_circuits):
             circuit = _random_single_q_clifford(qubit, num_cfds, c1, cfd_mats)
@@ -198,13 +212,15 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
             excited_probs_l.append(np.mean(results.measurements['z']))
         gnd_probs.append(1.0 - np.mean(excited_probs_l))
 
-    return RandomizedBenchMarkResult(num_cliffords, gnd_probs)
+    return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
 def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
                                       first_qubit: devices.GridQubit,
                                       second_qubit: devices.GridQubit,
-                                      num_cliffords: Sequence[int], *,
+                                      *,
+                                      num_clifford_range: Sequence[int]
+                                      = range(5, 50, 5),
                                       num_circuits: int = 20,
                                       repetitions: int = 1000
                                       ) -> RandomizedBenchMarkResult:
@@ -217,8 +233,14 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     |00> state population is determined from the measurement outcomes of all
     of the circuits.
 
-    The above process is done for different numbers of Cliffords specified in
-    num_cliffords.
+    The above process is done for different circuit lengths specified by the
+    integers in num_clifford_range. For example, an integer 10 means the
+    random circuits will contain 10 Clifford gates each plus one inverting
+    Clifford. The user may use the result to extract an average gate fidelity,
+    by analyzing the change in the average |00> state population at different
+    circuit lengths. For actual experiments, one should choose
+    num_clifford_range such that a clear exponential decay is observed in the
+    results.
 
     The two-qubit Cliffords here are decomposed into CZ gates plus single-qubit
     x and y rotations. See Barends et al., Nature 508, 500 for details.
@@ -227,7 +249,7 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
         sampler: The quantum engine or simulator to run the circuits.
         first_qubit: The first qubit under test.
         second_qubit: The second qubit under test.
-        num_cliffords: The different numbers of Cliffords in the RB study.
+        num_clifford_range: The different numbers of Cliffords in the RB study.
         num_circuits: The number of random circuits generated for each
             number of Cliffords.
         repetitions: The number of repetitions of each circuit.
@@ -235,23 +257,22 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     Returns:
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
-    c1, _, s1, s1_x, s1_y = _single_qubit_cliffords()
+    cliffords = _single_qubit_cliffords()
     cfd_matrices = _two_qubit_clifford_matrices(first_qubit, second_qubit,
-                                                c1, s1, s1_x, s1_y)
+                                                cliffords)
     gnd_probs = []
-    for num_cfds in num_cliffords:
+    for num_cfds in num_clifford_range:
         gnd_probs_l = []
         for _ in range(num_circuits):
             circuit = _random_two_q_clifford(first_qubit, second_qubit,
-                                             num_cfds, cfd_matrices,
-                                             c1, s1, s1_x, s1_y)
+                                             num_cfds, cfd_matrices, cliffords)
             circuit.append(ops.measure(first_qubit, second_qubit, key='z'))
             results = sampler.run(circuit, repetitions=repetitions)
             gnds = [(not r[0] and not r[1]) for r in results.measurements['z']]
             gnd_probs_l.append(np.mean(gnds))
         gnd_probs.append(float(np.mean(gnd_probs_l)))
 
-    return RandomizedBenchMarkResult(num_cliffords, gnd_probs)
+    return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
 def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
@@ -431,10 +452,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int],
 
 def _two_qubit_clifford_matrices(q_0: devices.GridQubit,
                                  q_1: devices.GridQubit,
-                                 c1: Sequence[Sequence[ops.Gate]],
-                                 s1: Sequence[Sequence[ops.Gate]],
-                                 s1_x: Sequence[Sequence[ops.Gate]],
-                                 s1_y: Sequence[Sequence[ops.Gate]]
+                                 cliffords: Cliffords
                                  ) -> np.ndarray:
     mats = []
 
@@ -443,7 +461,7 @@ def _two_qubit_clifford_matrices(q_0: devices.GridQubit,
 
     for i in range(clifford_group_size):
         circuit = circuits.Circuit.from_ops(
-            _two_qubit_clifford(q_0, q_1, i, c1, s1, s1_x, s1_y))
+            _two_qubit_clifford(q_0, q_1, i, cliffords))
         mats.append(protocols.unitary(circuit))
     return np.array(mats)
 
@@ -464,20 +482,15 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
                            num_cfds: int, cfd_matrices: np.ndarray,
-                           c1: Sequence[Sequence[ops.Gate]],
-                           s1: Sequence[Sequence[ops.Gate]],
-                           s1_x: Sequence[Sequence[ops.Gate]],
-                           s1_y: Sequence[Sequence[ops.Gate]]
+                           cliffords: Cliffords
                            ) -> circuits.Circuit:
     clifford_group_size = 11520
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
     circuit = circuits.Circuit()
     for idx in idx_list:
-        circuit.append(
-            _two_qubit_clifford(q_0, q_1, idx, c1, s1, s1_x, s1_y))
+        circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
     inv_idx = _find_inv_matrix(protocols.unitary(circuit), cfd_matrices)
-    circuit.append(
-        _two_qubit_clifford(q_0, q_1, inv_idx, c1, s1, s1_x, s1_y))
+    circuit.append(_two_qubit_clifford(q_0, q_1, inv_idx, cliffords))
     return circuit
 
 
@@ -488,9 +501,9 @@ def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
     return idx
 
 
-def _matrix_bar_plot(mat: np.ndarray, z_label: str,
-                     kets: Sequence[str] = None,
-                     title: str = None) -> plt.Figure:
+def _matrix_bar_plot(mat: np.ndarray, z_label: str, fig: plt.Figure,
+                     plt_position: int, kets: Sequence[str] = None,
+                     title: str = None) -> None:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
@@ -500,8 +513,7 @@ def _matrix_bar_plot(mat: np.ndarray, z_label: str,
     dx = np.ones(mat.size) * 0.3
     dy = np.ones(mat.size) * 0.3
 
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111, projection='3d')  # type: Axes3D
+    ax1 = fig.add_subplot(plt_position, projection='3d')  # type: Axes3D
 
     dz = mat.flatten()
     ax1.bar3d(x_indices, y_indices, z_indices, dx, dy, dz, color=
@@ -517,10 +529,8 @@ def _matrix_bar_plot(mat: np.ndarray, z_label: str,
     if title is not None:
         ax1.set_title(title)
 
-    return fig
 
-
-def _plot_density_matrix(mat: np.ndarray) -> Tuple[plt.Figure, plt.Figure]:
+def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     a, _ = mat.shape
     num_qubits = int(np.sqrt(a))
     state_labels = [[0, 1]] * num_qubits
@@ -529,9 +539,10 @@ def _plot_density_matrix(mat: np.ndarray) -> Tuple[plt.Figure, plt.Figure]:
         kets.append('|' + str(list(label))[1:-1] + '>')
     mat_re = np.real(mat)
     mat_im = np.imag(mat)
-    fig_r = _matrix_bar_plot(mat_re, r'Real($\rho$)', kets)
-    fig_im = _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', kets)
-    return fig_r, fig_im
+    fig = plt.figure(figsize=(12.0, 5.0))
+    _matrix_bar_plot(mat_re, r'Real($\rho$)', fig, 121, kets)
+    _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', fig, 122, kets)
+    return fig
 
 
 def _gate_seq_to_mats(gate_seq: Sequence[ops.Gate]) -> np.ndarray:
@@ -542,11 +553,8 @@ def _gate_seq_to_mats(gate_seq: Sequence[ops.Gate]) -> np.ndarray:
 
 
 def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                        idx: int, c1: Sequence[Sequence[ops.Gate]],
-                        s1: Sequence[Sequence[ops.Gate]],
-                        s1_x: Sequence[Sequence[ops.Gate]],
-                        s1_y: Sequence[Sequence[ops.Gate]]
-                        ) -> Iterator[ops.OP_TREE]:
+                        idx: int,
+                        cliffords: Cliffords) -> Iterator[ops.OP_TREE]:
     """Generates a two-qubit Clifford gate.
 
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
@@ -584,11 +592,14 @@ def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
         q_0: The first qubit under test.
         q_1: The second qubit under test.
         idx: An integer from 0 to 11519.
-        c1: Contains all 24 single-qubit Cliffords.
-        s1: Contains 3 single-qubit Cliffords from the S_1 group.
-        s1_x: Contains 3 single-qubit Cliffords from the S_1^(X/2) group.
-        s1_y: Contains 3 single-qubit Cliffords from the S_1^(Y/2) group.
+        cliffords: A NamedTuple that contains single-qubit Cliffords from the
+            C1, S1, S_1^(X/2) and S_1^(Y/2) groups.
     """
+    c1 = cliffords.c1_in_xy
+    s1 = cliffords.s1
+    s1_x = cliffords.s1_x
+    s1_y = cliffords.s1_y
+
     idx_0 = int(idx / 480)
     idx_1 = int((idx % 480) / 20)
     idx_2 = idx - idx_0 * 480 - idx_1 * 20
@@ -626,7 +637,7 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
         yield gate(qubit)
 
 
-def _single_qubit_cliffords() -> Tuple[Sequence[Sequence[ops.Gate]], ...]:
+def _single_qubit_cliffords() -> Cliffords:
     c1_in_xy = []
     c1_in_xz = []
 
@@ -656,4 +667,4 @@ def _single_qubit_cliffords() -> Tuple[Sequence[Sequence[ops.Gate]], ...]:
     s1_y = [[ops.Y ** 0.5], [ops.X ** -0.5, ops.Y ** -0.5, ops.X ** 0.5],
             [ops.Y, ops.X ** 0.5]]
 
-    return c1_in_xy, c1_in_xz, s1, s1_x, s1_y
+    return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)
