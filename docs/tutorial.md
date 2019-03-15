@@ -198,7 +198,7 @@ insertion strategy:
 ```python
 circuit = cirq.Circuit()
 circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
-               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+               strategy=cirq.InsertStrategy.EARLIEST)
 circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
                strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 print(circuit)
