@@ -12,14 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from cirq import circuits, ops
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     get_qcircuit_diagram_info)
 
 
-def qcircuit_qubit_namer(qubit: ops.Qid):
-    # TODO: If qubit name ends with digits, turn them into subscripts.
-    return r'\lstick{\text{' + str(qubit) + '}}&'
+def qcircuit_qubit_namer(qubit: ops.Qid) -> str:
+    """Returns the latex code for a QCircuit label of given qubit.
+
+    If the qubit name ends with digits, those digits will be subsripted.
+    Note, if the name is only made up of digits, the subscript will not be
+    applied.
+
+        Args:
+            qubit: The qubit which name to represent.
+
+        Returns:
+            Latex code for the label.
+    """
+    name = re.sub(r'(?<=\D)(\d+)$', r'$_{\1}$', str(qubit))
+    return r'\lstick{\text{' + name + '}}&'
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
