@@ -35,12 +35,6 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self) -> int:
         return 1
 
-    def validate_args(self, qubits):
-        if len(qubits) != 1:
-            raise ValueError(
-                'Single-qubit gate applied to {} qubits, instead of 1: {}({})'.
-                format(len(qubits), self, qubits))
-
     def on_each(self, *targets: raw_types.Qid) -> op_tree.OP_TREE:
         """Returns a list of operations apply this gate to each of the targets.
 
@@ -65,23 +59,11 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self) -> int:
         return 2
 
-    def validate_args(self, qubits):
-        if len(qubits) != 2:
-            raise ValueError(
-                'Two-qubit gate not applied to two qubits: {}({})'.
-                format(self, qubits))
-
 
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
     def num_qubits(self) -> int:
         return 3
-
-    def validate_args(self, qubits):
-        if len(qubits) != 3:
-            raise ValueError(
-                'Three-qubit gate not applied to three qubits: {}({})'.
-                format(self, qubits))
 
 
 class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
