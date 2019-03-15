@@ -136,7 +136,7 @@ def test_diagonal_gate():
 
 def random_diagonal_gates(num_qubits: int,
                  acquaintance_size: int
-                 ) -> Dict[Tuple[cirq.QubitId, ...], cirq.Gate]:
+                 ) -> Dict[Tuple[cirq.Qid, ...], cirq.Gate]:
 
     return {Q: DiagonalGate.random(acquaintance_size)
              for Q in
@@ -155,7 +155,7 @@ def random_diagonal_gates(num_qubits: int,
       ])
 def test_executor_random(num_qubits: int,
                          acquaintance_size: int,
-                         gates: Dict[Tuple[cirq.QubitId, ...], cirq.Gate]):
+                         gates: Dict[Tuple[cirq.Qid, ...], cirq.Gate]):
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
 
