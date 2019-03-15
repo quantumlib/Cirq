@@ -34,7 +34,7 @@ class ParallelGateOperation(raw_types.Operation):
 
     def __init__(self,
                  gate: raw_types.Gate,
-                 qubits: Sequence[raw_types.QubitId]) -> None:
+                 qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
             gate: the gate to apply
@@ -55,12 +55,12 @@ class ParallelGateOperation(raw_types.Operation):
         return self._gate
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
     def with_qubits(self,
-                    *new_qubits: raw_types.QubitId) -> 'ParallelGateOperation':
+                    *new_qubits: raw_types.Qid) -> 'ParallelGateOperation':
         """ParallelGateOperation with same the gate but new qubits"""
         return ParallelGateOperation(self.gate, new_qubits)
 

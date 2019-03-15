@@ -81,7 +81,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -103,7 +103,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
             -e, p + 0.5, -p - 0.5, qubits[0])
 
-    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
+    def _decompose_(self, qubits: Sequence[raw_types.Qid]
                           ) -> op_tree.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]

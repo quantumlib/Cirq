@@ -22,8 +22,8 @@ from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates)
 
 def qubit_pairs_to_qubit_order(
-    qubit_pairs: Sequence[Sequence[ops.QubitId]]
-    ) -> List[ops.QubitId]:
+    qubit_pairs: Sequence[Sequence[ops.Qid]]
+    ) -> List[ops.Qid]:
     """Takes a sequence of qubit pairs and returns a sequence in which every
     pair is at distance two.
 
@@ -36,7 +36,7 @@ def qubit_pairs_to_qubit_order(
             'set(len(qubit_pair) for qubit_pair in qubit_pairs) != '
             'set((2,))')
     n_pairs = len(qubit_pairs)
-    qubits = [] # type: List[ops.QubitId]
+    qubits = [] # type: List[ops.Qid]
     for i in range(0, 2 * (n_pairs // 2), 2):
         qubits += [qubit_pairs[i][0], qubit_pairs[i + 1][0],
                    qubit_pairs[i][1], qubit_pairs[i + 1][1]]
@@ -46,15 +46,15 @@ def qubit_pairs_to_qubit_order(
 
 
 def quartic_paired_acquaintance_strategy(
-    qubit_pairs: Iterable[Tuple[ops.QubitId, ops.QubitId]]
-    ) -> Tuple[circuits.Circuit, Sequence[ops.QubitId]]:
+    qubit_pairs: Iterable[Tuple[ops.Qid, ops.Qid]]
+    ) -> Tuple[circuits.Circuit, Sequence[ops.Qid]]:
     """Acquaintance strategy for pairs of pairs.
 
     Implements UpCCGSD ansatz from arXiv:1810.02327.
     """
 
     qubit_pairs = tuple(
-            cast(Tuple[ops.QubitId, ops.QubitId], tuple(qubit_pair))
+            cast(Tuple[ops.Qid, ops.Qid], tuple(qubit_pair))
             for qubit_pair in qubit_pairs)
     qubits = qubit_pairs_to_qubit_order(qubit_pairs)
     n_qubits = len(qubits)
