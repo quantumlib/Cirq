@@ -335,10 +335,7 @@ class Circuit:
                                    qubits: Iterable[ops.QubitId],
                                    indices: Iterable[int]) -> Optional[int]:
         qubits = frozenset(qubits)
-        for m in indices:
-            if self._has_op_at(m, qubits):
-                return m
-        return None
+        return next((m for m in indices if self._has_op_at(m, qubits)), None)
 
     def next_moment_operating_on(self,
                                  qubits: Iterable[ops.QubitId],
@@ -388,12 +385,12 @@ class Circuit:
             plus the index of the last moment after start_moment_index
             (inclusive) that does *not* act on a given qubit.
         """
-        next_moments = {}
+        next_moments = {q:len(self._moments) for q in qubits}
         for q in qubits:
             next_moment = self.next_moment_operating_on(
                 [q], start_moment_index)
-            next_moments[q] = (len(self._moments) if next_moment is None else
-                               next_moment)
+            if next_moment is not None:
+                next_moments[q] = next_moment
         return next_moments
 
     def prev_moment_operating_on(
@@ -445,9 +442,7 @@ class Circuit:
             op: ops.Operation,
             end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
-        k = end_moment_index
-        while k > 0:
-            k -= 1
+        for k in [end_moment_index-1:0:-1]:
             if not self._can_commute_past(k, op):
                 return last_available
             if self._can_add_op_at(k, op):
@@ -587,11 +582,11 @@ class Circuit:
 
         while queue:
             cur_moment, cur_op = queue.dequeue()
-            for q in cur_op.qubits:
-                if (q in start_frontier and
-                        cur_moment >= start_frontier[q] and
-                        q not in end_frontier):
-                    active.add(q)
+            active.update([
+                q in cur_op.qubits
+                if q in start_frontier and
+                cur_moment >= start_frontier[q] and
+                q not in end_frontier])
 
             continue_past = (
                 cur_op is not None and
@@ -675,10 +670,8 @@ class Circuit:
         """
         if not 0 <= moment_index < len(self._moments):
             return None
-        for op in self._moments[moment_index].operations:
-            if qubit in op.qubits:
-                return op
-        return None
+        return next((op for op in self._moments[moment_index].operations
+                    if qubit in op.qubits), None)
 
     def findall_operations(self, predicate: Callable[[ops.Operation], bool]
                            ) -> Iterable[Tuple[int, ops.Operation]]:
@@ -876,9 +869,9 @@ class Circuit:
         op_index = 0
         while op_index < len(operations):
             op = operations[op_index]
-            while i < end and not self._device.can_add_operation_into_moment(
-                    op, self._moments[i]):
-                i += 1
+            i = next((ii for ii in self._moments[i:] if
+                      self._device.can_add_operation_into_moment(
+                          op, self._moments[ii]), end)
             if i >= end:
                 break
             self._moments[i] = self._moments[i].with_operation(op)
@@ -1416,13 +1409,9 @@ class Circuit:
 
     def _resolve_parameters_(self,
                              param_resolver: study.ParamResolver) -> 'Circuit':
-        resolved_moments = []
-        for moment in self:
-            resolved_operations = _resolve_operations(
+        resolved_moments = [ops.Moment(_resolve_operations(
                 moment.operations,
-                param_resolver)
-            new_moment = ops.Moment(resolved_operations)
-            resolved_moments.append(new_moment)
+                param_resolver)) for moment in self]
         resolved_circuit = Circuit(resolved_moments)
         return resolved_circuit
 
@@ -1493,10 +1482,8 @@ class Circuit:
 def _resolve_operations(
         operations: Iterable[ops.Operation],
         param_resolver: study.ParamResolver) -> List[ops.Operation]:
-    resolved_operations = []  # type: List[ops.Operation]
-    for op in operations:
-        resolved_operations.append(protocols.resolve_parameters(
-            op, param_resolver))
+    resolved_operations = [protocols.resolve_parameters(
+            op, param_resolver) for op in operations]  # type: List[ops.Operation]
     return resolved_operations
 
 
