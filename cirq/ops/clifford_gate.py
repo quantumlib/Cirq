@@ -111,9 +111,9 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     ) -> 'SingleQubitCliffordGate':
         """Returns a SingleQubitCliffordGate for the
         specified transform with a 90 or 180 degree rotation.
-        
+
         Either pauli_map_to or two of (x_to, y_to, z_to) may be specified.
-    
+
         Args:
             pauli_map_to: A dictionary with two key value pairs describing
                 two transforms.
@@ -267,7 +267,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         for op in protocols.decompose_once_with_qubits(self, (qubit,)):
             mat = protocols.unitary(op).dot(mat)
         return mat
-      
+
     def _decompose_(self, qubits: Sequence[raw_types.Qid]
     ) -> op_tree.OP_TREE:
         qubit, = qubits
