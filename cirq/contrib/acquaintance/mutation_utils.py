@@ -69,7 +69,7 @@ def rectify_acquaintance_strategy(
 
 def replace_acquaintance_with_swap_network(
         circuit: circuits.Circuit,
-        qubit_order: Sequence[ops.QubitId],
+        qubit_order: Sequence[ops.Qid],
         acquaintance_size: int=0
         ) -> bool:
     """

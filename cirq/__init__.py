@@ -128,7 +128,7 @@ from cirq.ops import (
     PhaseDampingChannel,
     PhaseFlipChannel,
     PhasedXPowGate,
-    QubitId,
+    Qid,
     QubitOrder,
     QubitOrderOrList,
     ReversibleCompositeGate,

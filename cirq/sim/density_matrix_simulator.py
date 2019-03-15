@@ -270,14 +270,14 @@ class DensityMatrixStepResult(simulator.StepResult):
     def __init__(self,
             density_matrix: np.ndarray,
             measurements: Dict[str, np.ndarray],
-            qubit_map: Dict[ops.QubitId, int],
+            qubit_map: Dict[ops.Qid, int],
             dtype: Type[np.number] = np.complex64):
         """DensityMatrixStepResult.
 
         Args:
             density_matrix: The density matrix at this step. Can be mutated.
             measurements: The measurements for this step of the simulation.
-            qubit_map: A map from qubit id to index used to define the
+            qubit_map: A map from qid to index used to define the
                 ordering of the basis in density_matrix.
             dtype: The numpy dtype for the density matrix.
         """
@@ -341,7 +341,7 @@ class DensityMatrixStepResult(simulator.StepResult):
         return np.reshape(self._density_matrix, (size, size))
 
     def sample(self,
-            qubits: List[ops.QubitId],
+            qubits: List[ops.Qid],
             repetitions: int = 1) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
@@ -355,13 +355,13 @@ class DensityMatrixSimulatorState():
 
     Args:
         density_matrix: The density matrix of the simulation.
-        qubit_map: A map from qubit id to index used to define the
+        qubit_map: A map from qid to index used to define the
             ordering of the basis in density_matrix.
     """
 
     def __init__(self,
             density_matrix: np.ndarray,
-            qubit_map: Dict[ops.QubitId, int]):
+            qubit_map: Dict[ops.Qid, int]):
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
 
