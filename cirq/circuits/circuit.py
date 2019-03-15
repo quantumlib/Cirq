@@ -583,7 +583,7 @@ class Circuit:
         while queue:
             cur_moment, cur_op = queue.dequeue()
             active.update([
-                q in cur_op.qubits
+                q for q in cur_op.qubits
                 if q in start_frontier and
                 cur_moment >= start_frontier[q] and
                 q not in end_frontier])
