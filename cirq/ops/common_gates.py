@@ -733,7 +733,7 @@ class CZPowGate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
-        z_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
         return {
             'II': global_phase * (1 - c),
@@ -856,7 +856,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
-        cnot_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
         return {
             'II': global_phase * (1 - c),
@@ -960,7 +960,7 @@ class SwapPowGate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
-        swap_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        swap_phase = 1j**self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
         return {
             'II': global_phase * (1 - c),
