@@ -58,10 +58,10 @@ def new_layers(**kwargs: List[ops.Operation]) -> Layers:
 
 def acquaint_insides(swap_gate: ops.Gate,
                      acquaintance_gate: ops.Operation,
-                     qubits: Sequence[ops.QubitId],
+                     qubits: Sequence[ops.Qid],
                      before: bool,
                      layers: Layers,
-                     mapping: Dict[ops.QubitId, int]
+                     mapping: Dict[ops.Qid, int]
                      ) -> None:
     """Acquaints each of the qubits with another set specified by an
     acquaintance gate.
@@ -108,11 +108,11 @@ def _get_max_reach(size: int, round_up: bool=True) -> int:
     return max((size // 2) - 1, 0)
 
 
-def acquaint_and_shift(parts: Tuple[List[ops.QubitId], List[ops.QubitId]],
+def acquaint_and_shift(parts: Tuple[List[ops.Qid], List[ops.Qid]],
                        layers: Layers,
                        acquaintance_size: Optional[int],
                        swap_gate: ops.Gate,
-                       mapping: Dict[ops.QubitId, int]):
+                       mapping: Dict[ops.Qid, int]):
     """Acquaints and shifts a pair of lists of qubits. The first part is
     acquainted with every qubit individually in the second part, and vice
     versa. Operations are grouped into several layers:
@@ -238,7 +238,7 @@ class SwapNetworkGate(PermutationGate):
         self.part_lens = tuple(part_lens)
         self.acquaintance_size = acquaintance_size
 
-    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         qubit_to_position = {q: i for i, q in enumerate(qubits)}
         mapping = dict(qubit_to_position)
         parts = []
@@ -294,7 +294,7 @@ class SwapNetworkGate(PermutationGate):
             wire_symbols=wire_symbols)
 
     @staticmethod
-    def from_operations(qubit_order: Sequence[ops.QubitId],
+    def from_operations(qubit_order: Sequence[ops.Qid],
                         operations: Sequence[ops.Operation],
                         acquaintance_size: int=0
                         ) -> 'SwapNetworkGate':
@@ -302,7 +302,7 @@ class SwapNetworkGate(PermutationGate):
         op_parts = [tuple(sorted(op.qubits,key=qubit_sort_key))
                     for op in operations]
         singletons = [(q,) for q in set(qubit_order).difference(*op_parts)
-                     ] # type: List[Tuple[ops.QubitId, ...]]
+                     ] # type: List[Tuple[ops.Qid, ...]]
         part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
         parts = tuple(tuple(part) for part in
                       sorted(singletons + op_parts, key=part_sort_key))

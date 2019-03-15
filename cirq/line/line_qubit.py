@@ -18,7 +18,7 @@ from typing import List
 from cirq import ops
 
 @functools.total_ordering
-class LineQubit(ops.QubitId):
+class LineQubit(ops.Qid):
     """A qubit on a 1d lattice with nearest-neighbor connectivity."""
 
     def __init__(self, x: int) -> None:
@@ -28,7 +28,7 @@ class LineQubit(ops.QubitId):
     def _comparison_key(self):
         return self.x
 
-    def is_adjacent(self, other: ops.QubitId) -> bool:
+    def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent line qubits."""
         return isinstance(other, LineQubit) and abs(self.x - other.x) == 1
 

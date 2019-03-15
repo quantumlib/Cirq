@@ -35,7 +35,7 @@ class GateOperation(raw_types.Operation):
 
     def __init__(self,
                  gate: raw_types.Gate,
-                 qubits: Sequence[raw_types.QubitId]) -> None:
+                 qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
             gate: The gate to apply.
@@ -51,11 +51,11 @@ class GateOperation(raw_types.Operation):
         return self._gate
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'GateOperation':
+    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'GateOperation':
         return self.gate.on(*new_qubits)
 
     def with_gate(self, new_gate: raw_types.Gate) -> 'GateOperation':
@@ -77,14 +77,14 @@ class GateOperation(raw_types.Operation):
                                ', '.join(str(e) for e in self.qubits))
 
     def _group_interchangeable_qubits(self) -> Tuple[
-            Union[raw_types.QubitId,
-                  Tuple[int, FrozenSet[raw_types.QubitId]]],
+            Union[raw_types.Qid,
+                  Tuple[int, FrozenSet[raw_types.Qid]]],
             ...]:
 
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
-        groups = {}  # type: Dict[int, List[raw_types.QubitId]]
+        groups = {}  # type: Dict[int, List[raw_types.Qid]]
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:

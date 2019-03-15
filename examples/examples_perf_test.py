@@ -8,6 +8,7 @@ import examples.quantum_fourier_transform
 import examples.bcs_mean_field
 import examples.phase_estimator
 import examples.basic_arithmetic
+import examples.superdense_coding
 
 
 def test_example_runs_bernstein_vazirani_perf(benchmark):
@@ -47,3 +48,7 @@ def test_example_runs_grover_perf(benchmark):
 
 def test_example_runs_phase_estimator_perf(benchmark):
     benchmark(examples.phase_estimator.main, qnums=(2,), repetitions=2)
+
+
+def test_example_runs_superdense_coding(benchmark):
+    benchmark(examples.superdense_coding.main)
