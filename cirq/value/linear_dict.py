@@ -28,8 +28,8 @@ class LinearDict(Dict[Any, Scalar]):
     The only requirement on the keys is that they be hashable.
 
     A consequence of treating keys as opaque is that all relationships between
-    the keys other than equality are ignored. In other words, we treat linear
-    combinations as if all distinct keys are independent.
+    the keys other than equality are ignored. In particular, keys are allowed
+    to be linearly dependent.
 
     For convenience, methods which take a second linear combination accept
     a standalone key instance as well. The second argument is then treated as
