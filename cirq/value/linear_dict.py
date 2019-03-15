@@ -42,30 +42,30 @@ class LinearDict(Dict[Any, Scalar]):
             terms: Mapping of abstract vectors to coefficients in the linear
                 combination being initialized.
         """
-        super(LinearDict, self).__init__()
+        super().__init__()
         self.update(terms)
 
-    def clean(self, *, tolerance: float=1e-9) -> None:
+    def clean(self, *, atol: float=1e-9) -> None:
         """Modifies self by deleting terms with small coefficients."""
-        negligible = [v for v, c in self.items() if abs(c) <= tolerance]
+        negligible = [v for v, c in self.items() if abs(c) <= atol]
         for v in negligible:
             del self[v]
 
     def copy(self) -> 'LinearDict':
-        return LinearDict(super(LinearDict, self).copy())
+        return LinearDict(super().copy())
 
     def __getitem__(self, vector: Any) -> Scalar:
-        if vector in self:
-            return super(LinearDict, self).__getitem__(vector)
-        return 0.0
+        return super().get(vector, 0)
 
     def __iadd__(self, other: Any) -> 'LinearDict':
         if not isinstance(other, LinearDict):
             other = LinearDict({other: 1})
 
-        for vector, coefficient in other.items():
-            self[vector] = self[vector] + coefficient
-        self.clean(tolerance=0)
+        for vector, other_coefficient in other.items():
+            old_coefficient = super().get(vector, 0)
+            new_coefficient = old_coefficient + other_coefficient
+            super().__setitem__(vector, new_coefficient)
+        self.clean(atol=0)
         return self
 
     def __add__(self, other: Any) -> 'LinearDict':
@@ -77,9 +77,11 @@ class LinearDict(Dict[Any, Scalar]):
         if not isinstance(other, LinearDict):
             other = LinearDict({other: 1})
 
-        for vector, coefficient in other.items():
-            self[vector] = self[vector] - coefficient
-        self.clean(tolerance=0)
+        for vector, other_coefficient in other.items():
+            old_coefficient = super().get(vector, 0)
+            new_coefficient = old_coefficient - other_coefficient
+            super().__setitem__(vector, new_coefficient)
+        self.clean(atol=0)
         return self
 
     def __sub__(self, other: Any) -> 'LinearDict':
@@ -93,7 +95,7 @@ class LinearDict(Dict[Any, Scalar]):
     def __imul__(self, a: Scalar) -> 'LinearDict':
         for vector in self:
             self[vector] *= a
-        self.clean(tolerance=0)
+        self.clean(atol=0)
         return self
 
     def __mul__(self, a: Scalar) -> 'LinearDict':

@@ -75,15 +75,15 @@ def test_approximately_equal(terms_1, terms_2):
     assert cirq.approx_eq(linear_dict_2, linear_dict_1)
 
 
-@pytest.mark.parametrize('terms, tolerance, terms_expected', (
+@pytest.mark.parametrize('terms, atol, terms_expected', (
     ({'X': 1, 'Y': 2, 'Z': 3}, 2, {'Z': 3}),
     ({'X': 0.1, 'Y': 1, 'Z': 10}, 1e-3, {'X': 0.1, 'Y': 1, 'Z': 10}),
     ({'X': 1e-10, 'H': 1e-11}, 1e-9, {}),
     ({}, 1, {}),
 ))
-def test_clean(terms, tolerance, terms_expected):
+def test_clean(terms, atol, terms_expected):
     linear_dict = cirq.LinearDict(terms)
-    linear_dict.clean(tolerance=tolerance)
+    linear_dict.clean(atol=atol)
     expected = cirq.LinearDict(terms_expected)
     assert linear_dict == expected
     assert expected == linear_dict
