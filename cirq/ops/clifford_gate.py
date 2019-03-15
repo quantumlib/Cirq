@@ -269,8 +269,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return mat
       
     def _decompose_(self, qubits: Sequence[raw_types.Qid]
-                          ) -> op_tree.OP_TREE:
-      qubit, = qubits
+    ) -> op_tree.OP_TREE:
+        qubit, = qubits
         if self == SingleQubitCliffordGate.H:
             return common_gates.H(qubit),
         rotations = self.decompose_rotation()
