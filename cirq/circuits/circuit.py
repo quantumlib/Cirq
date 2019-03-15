@@ -660,19 +660,21 @@ class Circuit:
 
         return list(result)
 
-    def findall_operations_until_blocked(self,
-                                   start_frontier: Dict[ops.QubitId, int],
-                                   is_blocker: Callable[[ops.Operation], bool]
-                                         = lambda op: False,
-                                   omit_crossing_operations: bool = False
-                                   ) -> List[Tuple[int, ops.Operation]]:
+    def findall_operations_until_blocked(
+            self,
+            start_frontier: Dict[ops.QubitId, int],
+            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+    ) -> List[Tuple[int, ops.Operation]]:
         """
-        Finds all operations until a blocking operation is hit.  For each
-        qubit, this returns a list of all operations that involve that qubit
-        from the starting moment until a blocking operation that involves that
-        qubit.  Operations not involving that qubit are not considered blocking
-        for that qubit, even if they affect other qubits listed in the
-        start_frontier dictionary.  See reachable_frontier_from for a more
+        Finds all operations until a blocking operation is hit.  This returns
+        a list of all operations from the starting frontier until a blocking
+        operation is encountered.  An operation is part of the list if
+        it is involves a qubit in the start_frontier dictionary, comes after
+        the moment listed in that dictionary, and before any blocking
+        operationi that involve that qubit.  Operations are only considered
+        to blocking the qubits that they operate on, so a blocking operation
+        that does not operate on any qubit in the starting frontier is not
+        actually considered blocking.  See `reachable_frontier_from` for a more
         in depth example of reachable states.
 
         Args:
@@ -1680,7 +1682,6 @@ def _draw_moment_in_diagram(
                 # Add an exponent to every label
                 for index in indices:
                     out_diagram.write(x, index, '^' + exponent)
-
 
     # Group together columns belonging to the same Moment.
     if moment.operations and x > x0:

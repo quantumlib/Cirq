@@ -1077,7 +1077,7 @@ def test_findall_operations_until_blocked():
 
     # Empty cases.
     assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={}, is_blocker=go_to_end) ==[]
+        start_frontier={}, is_blocker=go_to_end) == []
     assert circuit.findall_operations_until_blocked(
         start_frontier={}, is_blocker=go_to_end) == []
 
