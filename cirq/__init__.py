@@ -131,7 +131,6 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
-    ReversibleCompositeGate,
     Rx,
     Ry,
     Rz,
