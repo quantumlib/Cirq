@@ -385,12 +385,13 @@ class Circuit:
             plus the index of the last moment after start_moment_index
             (inclusive) that does *not* act on a given qubit.
         """
-        next_moments = {q:len(self._moments) for q in qubits}
+        next_moments = {}
         for q in qubits:
             next_moment = self.next_moment_operating_on(
                 [q], start_moment_index)
-            if next_moment is not None:
-                next_moments[q] = next_moment
+            if next_moment is None:
+                next_moment = len(self._moments)
+            next_moments[q] = next_moment
         return next_moments
 
     def prev_moment_operating_on(
