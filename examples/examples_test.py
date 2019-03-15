@@ -1,6 +1,7 @@
 import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.deutsch
 import examples.grover
 import examples.place_on_bristlecone
 import examples.hello_qubit
@@ -20,6 +21,10 @@ def test_example_runs_bernstein_vazirani():
         [], a, [], False)) == []
     assert list(examples.bernstein_vazirani.make_oracle(
         [], a, [], True)) == [cirq.X(a)]
+
+
+def test_example_runs_deutsch():
+    examples.deutsch.main()
 
 
 def test_example_runs_hello_line():
