@@ -23,7 +23,7 @@ from cirq.type_workarounds import NotImplementedType
 @value.value_equality
 class ControlledOperation(raw_types.Operation):
     def __init__(self,
-                 control: raw_types.QubitId,
+                 control: raw_types.Qid,
                  sub_operation: raw_types.Operation):
         self.control = control
         self.sub_operation = sub_operation

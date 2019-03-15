@@ -33,7 +33,7 @@ class StateVectorMixin():
     """
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
-    def __init__(self, qubit_map: Optional[Dict[ops.QubitId, int]] = None,
+    def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None,
         *args, **kwargs):
         super().__init__(*args, **kwargs)  # type: ignore
         self.qubit_map = qubit_map or {}
@@ -79,7 +79,7 @@ class StateVectorMixin():
             and non-zero floats of the specified accuracy."""
         return dirac_notation(self.state_vector(), decimals)
 
-    def density_matrix_of(self, qubits: List[ops.QubitId] = None) -> np.ndarray:
+    def density_matrix_of(self, qubits: List[ops.Qid] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
 
         Calculate the density matrix for the system on the list, qubits.
@@ -115,7 +115,7 @@ class StateVectorMixin():
             [self.qubit_map[q] for q in qubits] if qubits is not None else None
         )
 
-    def bloch_vector_of(self, qubit: ops.QubitId) -> np.ndarray:
+    def bloch_vector_of(self, qubit: ops.Qid) -> np.ndarray:
         """Returns the bloch vector of a qubit in the state.
 
         Calculates the bloch vector of the given qubit
