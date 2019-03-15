@@ -41,7 +41,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 'Single-qubit gate applied to {} qubits, instead of 1: {}({})'.
                 format(len(qubits), self, qubits))
 
-    def on_each(self, *targets: raw_types.QubitId) -> op_tree.OP_TREE:
+    def on_each(self, *targets: raw_types.Qid) -> op_tree.OP_TREE:
         """Returns a list of operations apply this gate to each of the targets.
 
         Args:
@@ -51,12 +51,12 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             Operations applying this gate to the target qubits.
 
         Raises:
-            ValueError if targets are not instances of QubitId.
+            ValueError if targets are not instances of Qid.
         """
-        if any([not isinstance(target, raw_types.QubitId)
+        if any([not isinstance(target, raw_types.Qid)
                 for target in targets]):
             raise ValueError(
-                    'on_each() was called with type different than QubitId.')
+                    'on_each() was called with type different than Qid.')
         return [self.on(target) for target in targets]
 
 

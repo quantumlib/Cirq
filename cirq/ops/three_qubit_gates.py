@@ -118,7 +118,7 @@ class CCZPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -212,7 +212,7 @@ class CCXPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -270,9 +270,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
         return self._decompose_outside_control(c, t1, t2)
 
     def _decompose_inside_control(self,
-                                  target1: raw_types.QubitId,
-                                  control: raw_types.QubitId,
-                                  target2: raw_types.QubitId
+                                  target1: raw_types.Qid,
+                                  control: raw_types.Qid,
+                                  target2: raw_types.Qid
                                   ) -> op_tree.OP_TREE:
         """A decomposition assuming the control separates the targets.
 
@@ -318,9 +318,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
             default=NotImplemented)
 
     def _decompose_outside_control(self,
-                                   control: raw_types.QubitId,
-                                   near_target: raw_types.QubitId,
-                                   far_target: raw_types.QubitId
+                                   control: raw_types.Qid,
+                                   near_target: raw_types.Qid,
+                                   far_target: raw_types.Qid
                                    ) -> op_tree.OP_TREE:
         """A decomposition assuming one of the targets is in the middle.
 
@@ -367,7 +367,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
