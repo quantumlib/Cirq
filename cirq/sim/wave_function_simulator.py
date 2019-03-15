@@ -166,7 +166,7 @@ def _enter_moment_display_values_into_dictionary(
     moment: ops.Moment,
     state: np.ndarray,
     qubit_order: ops.QubitOrder,
-    qubit_map: Dict[ops.QubitId, int]):
+    qubit_map: Dict[ops.Qid, int]):
     for op in moment:
         if isinstance(op, ops.WaveFunctionDisplay):
             display_values[op.key] = (
@@ -179,7 +179,7 @@ def _enter_moment_display_values_into_dictionary(
 def _compute_samples_display_value(display: ops.SamplesDisplay,
     state: np.ndarray,
     qubit_order: ops.QubitOrder,
-    qubit_map: Dict[ops.QubitId, int]):
+    qubit_map: Dict[ops.Qid, int]):
     basis_change_circuit = circuits.Circuit.from_ops(
         display.measurement_basis_change())
     modified_state = basis_change_circuit.apply_unitary_effect_to_state(
@@ -210,7 +210,7 @@ class WaveFunctionSimulatorState:
 
     def __init__(self,
         state_vector: np.ndarray,
-        qubit_map: Dict[ops.QubitId, int]):
+        qubit_map: Dict[ops.Qid, int]):
         self.state_vector = state_vector
         self.qubit_map = qubit_map
 

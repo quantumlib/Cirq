@@ -515,7 +515,7 @@ def test_measure():
     with pytest.raises(ValueError, match='ndarray'):
         _ = cirq.measure(np.ndarray([1, 0]))
 
-    with pytest.raises(ValueError, match='QubitId'):
+    with pytest.raises(ValueError, match='Qid'):
         _ = cirq.measure("bork")
 
 

@@ -234,14 +234,14 @@ def test_swap_network_repr(part_lens, acquaintance_size):
 
 
 class OtherOperation(cirq.Operation):
-    def __init__(self, qubits: Sequence[cirq.QubitId]) -> None:
+    def __init__(self, qubits: Sequence[cirq.Qid]) -> None:
         self._qubits = tuple(qubits)
 
     @property
-    def qubits(self) -> Tuple[cirq.QubitId, ...]:
+    def qubits(self) -> Tuple[cirq.Qid, ...]:
         return self._qubits
 
-    def with_qubits(self, *new_qubits: cirq.QubitId) -> 'OtherOperation':
+    def with_qubits(self, *new_qubits: cirq.Qid) -> 'OtherOperation':
         return type(self)(self._qubits)
 
     def __eq__(self, other):

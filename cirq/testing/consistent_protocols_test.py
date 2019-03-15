@@ -56,7 +56,7 @@ class GoodGate(cirq.SingleQubitGate):
 
         return args.available_buffer
 
-    def _decompose_(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q)**self.phase_exponent
@@ -136,7 +136,7 @@ class BadGateApplyUnitaryToTensor(GoodGate):
 
 class BadGateDecompose(GoodGate):
 
-    def _decompose_(self, qubits: Sequence[cirq.QubitId]) -> cirq.OP_TREE:
+    def _decompose_(self, qubits: Sequence[cirq.Qid]) -> cirq.OP_TREE:
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q)**self.phase_exponent

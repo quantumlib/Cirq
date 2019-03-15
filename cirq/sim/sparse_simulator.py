@@ -321,7 +321,7 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
                                                            self._dtype)
         np.copyto(self._state_vector, update_state)
 
-    def sample(self, qubits: List[ops.QubitId],
+    def sample(self, qubits: List[ops.Qid],
                repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state_vector, indices,

@@ -267,10 +267,10 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         for op in protocols.decompose_once_with_qubits(self, (qubit,)):
             mat = protocols.unitary(op).dot(mat)
         return mat
-
-    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
-    ) -> op_tree.OP_TREE:
-        qubit, = qubits
+      
+    def _decompose_(self, qubits: Sequence[raw_types.Qid]
+                          ) -> op_tree.OP_TREE:
+      qubit, = qubits
         if self == SingleQubitCliffordGate.H:
             return common_gates.H(qubit),
         rotations = self.decompose_rotation()
