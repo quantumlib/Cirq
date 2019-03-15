@@ -15,6 +15,8 @@
 from typing import Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
 
+import sympy
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
@@ -39,7 +41,8 @@ def is_parameterized(val: Any) -> bool:
     """Returns whether the object is parameterized with any Symbols.
 
     A value is parameterized when it has an `_is_parameterized_` method and
-    that method returns a truthy value.
+    that method returns a truthy value, or if the value is an instance of
+    sympy.Basic.
 
     Returns:
         True if the gate has any unresolved Symbols
@@ -47,6 +50,9 @@ def is_parameterized(val: Any) -> bool:
         method above exists or if that method returns NotImplemented,
         this will default to False.
     """
+    if isinstance(val, sympy.Basic):
+        return True
+
     getter = getattr(val, '_is_parameterized_', None)
     result = NotImplemented if getter is None else getter()
 
@@ -73,6 +79,9 @@ def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolver') -> Any:
         If `val` has no `_resolve_parameters_` method or if it returns
         NotImplemented, `val` itself is returned.
     """
+    if isinstance(val, sympy.Basic):
+        return param_resolver.value_of(val)
+
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)
 
