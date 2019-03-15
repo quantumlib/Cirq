@@ -231,6 +231,7 @@ from cirq.study import (
     ComputeDisplaysResult,
     Linspace,
     ParamResolver,
+    ParamResolverOrSimilarType,
     plot_state_histogram,
     Points,
     Sweep,

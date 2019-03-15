@@ -202,7 +202,6 @@ def test_simulate_no_circuit(dtype,):
     assert len(result.measurements) == 0
 
 
-
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate(dtype,):
     q0, q1 = cirq.LineQubit.range(2)
@@ -268,13 +267,13 @@ def test_simulate_param_resolver(dtype):
         for b1 in [0, 1]:
             circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
                                             (cirq.X**sympy.Symbol('b1'))(q1))
-            resolver = cirq.ParamResolver({'b0': b0, 'b1': b1})
+            resolver = {'b0': b0, 'b1': b1}
             result = simulator.simulate(circuit, param_resolver=resolver)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][b1] = 1.0
             np.testing.assert_equal(result.final_state,
                                     np.reshape(expected_state, 4))
-            assert result.params == resolver
+            assert result.params == cirq.ParamResolver(resolver)
             assert len(result.measurements) == 0
 
 
@@ -371,6 +370,7 @@ def test_simulate_moment_steps_sample(dtype):
             for sample in samples:
                 assert (np.array_equal(sample, [True, True])
                         or np.array_equal(sample, [False, False]))
+
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps_intermediate_measurement(dtype):
