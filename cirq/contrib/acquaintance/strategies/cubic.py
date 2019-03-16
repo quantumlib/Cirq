@@ -32,7 +32,7 @@ def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
 
 
 def cubic_acquaintance_strategy(
-        qubits: Iterable[ops.QubitId],
+        qubits: Iterable[ops.Qid],
         swap_gate: ops.Gate=ops.SWAP
         ) -> circuits.Circuit:
     """Acquaints every triple of qubits.

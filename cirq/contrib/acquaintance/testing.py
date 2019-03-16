@@ -26,7 +26,7 @@ def assert_permutation_decomposition_equivalence(
     operations = protocols.decompose_once_with_qubits(gate, qubits)
     operations = list(
             cast(Sequence[ops.Operation], ops.flatten_op_tree(operations)))
-    mapping = {cast(ops.QubitId, q): i for i, q in enumerate(qubits)}
+    mapping = {cast(ops.Qid, q): i for i, q in enumerate(qubits)}
     update_mapping(mapping, operations)
     expected_mapping = {qubits[j]: i
             for i, j in gate.permutation().items()}

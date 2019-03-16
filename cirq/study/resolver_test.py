@@ -14,13 +14,18 @@
 
 """Tests for parameter resolvers."""
 
-import itertools
 import sympy
 import cirq
 
 
 def test_value_of():
+    assert not bool(cirq.ParamResolver())
+
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
+    assert bool(r)
+
+    assert r.value_of('x') == sympy.Symbol('x')
+    assert r.value_of('a') == 0.5
     assert r.value_of(sympy.Symbol('a')) == 0.5
     assert r.value_of(0.5) == 0.5
     assert r.value_of(sympy.Symbol('b')) == 0.1
@@ -31,30 +36,25 @@ def test_value_of():
 
 def test_param_dict():
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
+    r2 = cirq.ParamResolver(r)
+    assert r2 is r
     assert r.param_dict == {'a': 0.5, 'b': 0.1}
-
-
-def test_hash():
-    a = cirq.ParamResolver({})
-    b = cirq.ParamResolver({'a': 0.0})
-    c = cirq.ParamResolver({'a': 0.1})
-    d = cirq.ParamResolver({'a': 0.0, 'b': 0.1})
-    e = cirq.ParamResolver({'a': 0.3, 'b': 0.1})
-    f = cirq.ParamResolver({'b': 0.1})
-    g = cirq.ParamResolver({'c': 0.1})
-    resolvers = [a, b, c, d, e, f, g]
-    for r in resolvers:
-        assert isinstance(hash(r), int)
-    for r1, r2 in itertools.combinations(resolvers, 2):
-        assert hash(r1) != hash(r2)
 
 
 def test_equals():
     et = cirq.testing.EqualsTester()
-    et.add_equality_group(cirq.ParamResolver({}))
-    et.add_equality_group(cirq.ParamResolver({'a': 0.0}))
+    et.add_equality_group(cirq.ParamResolver(),
+                          cirq.ParamResolver(None),
+                          cirq.ParamResolver({}),
+                          cirq.ParamResolver(cirq.ParamResolver({})))
+    et.make_equality_group(lambda: cirq.ParamResolver({'a': 0.0}))
     et.add_equality_group(cirq.ParamResolver({'a': 0.1}))
     et.add_equality_group(cirq.ParamResolver({'a': 0.0, 'b': 0.1}))
     et.add_equality_group(cirq.ParamResolver({'a': 0.3, 'b': 0.1}))
     et.add_equality_group(cirq.ParamResolver({'b': 0.1}))
     et.add_equality_group(cirq.ParamResolver({'c': 0.1}))
+
+
+def test_repr():
+    cirq.testing.assert_equivalent_repr(cirq.ParamResolver())
+    cirq.testing.assert_equivalent_repr(cirq.ParamResolver({'a': 2.0}))

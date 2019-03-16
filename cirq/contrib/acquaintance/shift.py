@@ -45,7 +45,7 @@ class CircularShiftGate(PermutationGate):
     def _value_equality_values_(self):
         return self.shift, self.swap_gate, self.num_qubits()
 
-    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift

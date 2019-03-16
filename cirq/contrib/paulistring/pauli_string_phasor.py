@@ -50,7 +50,7 @@ class PauliStringPhasor(PauliStringGateOperation):
                             half_turns=half_turns,
                             rads=rads,
                             degs=degs)
-        if not isinstance(half_turns, sympy.Basic):
+        if not protocols.is_parameterized(half_turns):
             half_turns = 1 - (1 - half_turns) % 2
         super().__init__(pauli_string)
         self.half_turns = half_turns
@@ -58,7 +58,7 @@ class PauliStringPhasor(PauliStringGateOperation):
     def _value_equality_values_(self):
         return self.pauli_string, self.half_turns
 
-    def map_qubits(self, qubit_map: Dict[ops.QubitId, ops.QubitId]):
+    def map_qubits(self, qubit_map: Dict[ops.Qid, ops.Qid]):
         ps = self.pauli_string.map_qubits(qubit_map)
         return PauliStringPhasor(ps, half_turns=self.half_turns)
 
@@ -93,7 +93,7 @@ class PauliStringPhasor(PauliStringGateOperation):
         xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
-        if isinstance(self.half_turns, sympy.Symbol):
+        if protocols.is_parameterized(self.half_turns):
             if self.pauli_string.negated:
                 yield ops.X(any_qubit)
             yield ops.Z(any_qubit)**self.half_turns
@@ -116,7 +116,7 @@ class PauliStringPhasor(PauliStringGateOperation):
         return protocols.trace_distance_bound(ops.Z**self.half_turns)
 
     def _is_parameterized_(self) -> bool:
-        return isinstance(self.half_turns, sympy.Basic)
+        return protocols.is_parameterized(self.half_turns)
 
     def _resolve_parameters_(self, param_resolver: study.ParamResolver
                                     ) -> 'PauliStringPhasor':
@@ -139,8 +139,8 @@ class PauliStringPhasor(PauliStringGateOperation):
         return '({})**{}'.format(self.pauli_string, self.half_turns)
 
 
-def xor_nonlocal_decompose(qubits: Iterable[ops.QubitId],
-                           onto_qubit: ops.QubitId) -> Iterable[ops.Operation]:
+def xor_nonlocal_decompose(qubits: Iterable[ops.Qid],
+                           onto_qubit: ops.Qid) -> Iterable[ops.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

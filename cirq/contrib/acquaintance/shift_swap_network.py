@@ -65,7 +65,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def acquaintance_size(self) -> int:
         return sum(max(self.part_lens[side]) for side in ('left', 'right'))
 
-    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         part_lens = list(itertools.chain(*(
             self.part_lens[side] for side in ('left', 'right'))))
 

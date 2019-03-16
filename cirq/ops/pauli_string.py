@@ -29,13 +29,13 @@ TDefault = TypeVar('TDefault')
 @value.value_equality
 class PauliString(raw_types.Operation):
     def __init__(self,
-                 qubit_pauli_map: Mapping[raw_types.QubitId, Pauli],
+                 qubit_pauli_map: Mapping[raw_types.Qid, Pauli],
                  negated: bool = False) -> None:
         self._qubit_pauli_map = dict(qubit_pauli_map)
         self.negated = negated
 
     @staticmethod
-    def from_single(qubit: raw_types.QubitId, pauli: Pauli) -> 'PauliString':
+    def from_single(qubit: raw_types.Qid, pauli: Pauli) -> 'PauliString':
         """Creates a PauliString with a single qubit."""
         return PauliString({qubit: pauli})
 
@@ -46,34 +46,34 @@ class PauliString(raw_types.Operation):
     def equal_up_to_sign(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
-    def __getitem__(self, key: raw_types.QubitId) -> Pauli:
+    def __getitem__(self, key: raw_types.Qid) -> Pauli:
         return self._qubit_pauli_map[key]
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: raw_types.QubitId) -> Pauli:
+    def get(self, key: raw_types.Qid) -> Pauli:
         pass
 
     @overload
-    def get(self, key: raw_types.QubitId, default: TDefault
+    def get(self, key: raw_types.Qid, default: TDefault
             ) -> Union[Pauli, TDefault]:
         pass
 
-    def get(self, key: raw_types.QubitId, default=None):
+    def get(self, key: raw_types.Qid, default=None):
         return self._qubit_pauli_map.get(key, default)
     # pylint: enable=function-redefined
 
-    def __contains__(self, key: raw_types.QubitId) -> bool:
+    def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
 
-    def keys(self) -> KeysView[raw_types.QubitId]:
+    def keys(self) -> KeysView[raw_types.Qid]:
         return self._qubit_pauli_map.keys()
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
-    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'PauliString':
+    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
         return PauliString(dict(zip(new_qubits,
                                     (self[q] for q in self.qubits))),
                            self.negated)
@@ -84,7 +84,7 @@ class PauliString(raw_types.Operation):
     def items(self) -> ItemsView:
         return self._qubit_pauli_map.items()
 
-    def __iter__(self) -> Iterator[raw_types.QubitId]:
+    def __iter__(self) -> Iterator[raw_types.Qid]:
         return iter(self._qubit_pauli_map.keys())
 
     def __len__(self) -> int:
@@ -106,7 +106,7 @@ class PauliString(raw_types.Operation):
                      for q in ordered_qubits))
 
     def zip_items(self, other: 'PauliString'
-                  ) -> Iterator[Tuple[raw_types.QubitId, Tuple[Pauli, Pauli]]]:
+                  ) -> Iterator[Tuple[raw_types.Qid, Tuple[Pauli, Pauli]]]:
         for qubit, pauli0 in self.items():
             if qubit in other:
                 yield qubit, (pauli0, other[qubit])
@@ -128,7 +128,7 @@ class PauliString(raw_types.Operation):
     def __pos__(self) -> 'PauliString':
         return self
 
-    def map_qubits(self, qubit_map: Dict[raw_types.QubitId, raw_types.QubitId]
+    def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
                    ) -> 'PauliString':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
                                for qubit, pauli in self.items()}
@@ -184,7 +184,7 @@ class PauliString(raw_types.Operation):
         return PauliString(pauli_map, inv)
 
     @staticmethod
-    def _pass_operation_over(pauli_map: Dict[raw_types.QubitId, Pauli],
+    def _pass_operation_over(pauli_map: Dict[raw_types.Qid, Pauli],
                              op: raw_types.Operation,
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
@@ -202,10 +202,10 @@ class PauliString(raw_types.Operation):
         raise TypeError('Unsupported operation: {!r}'.format(op))
 
     @staticmethod
-    def _pass_single_clifford_gate_over(pauli_map: Dict[raw_types.QubitId,
+    def _pass_single_clifford_gate_over(pauli_map: Dict[raw_types.Qid,
                                                         Pauli],
                                         gate: SingleQubitCliffordGate,
-                                        qubit: raw_types.QubitId,
+                                        qubit: raw_types.Qid,
                                         after_to_before: bool = False) -> bool:
         if qubit not in pauli_map:
             return False
@@ -216,11 +216,11 @@ class PauliString(raw_types.Operation):
         return inv
 
     @staticmethod
-    def _pass_pauli_interaction_gate_over(pauli_map: Dict[raw_types.QubitId,
+    def _pass_pauli_interaction_gate_over(pauli_map: Dict[raw_types.Qid,
                                                           Pauli],
                                           gate: PauliInteractionGate,
-                                          qubit0: raw_types.QubitId,
-                                          qubit1: raw_types.QubitId,
+                                          qubit0: raw_types.Qid,
+                                          qubit1: raw_types.Qid,
                                           after_to_before: bool = False
                                           ) -> bool:
         def merge_and_kickback(qubit, pauli_left, pauli_right, inv):

@@ -38,7 +38,7 @@ def highlight_text_differences(actual: str, expected: str) -> str:
 
 
 def _measurement_subspaces(
-        measured_qubits: Iterable[ops.QubitId],
+        measured_qubits: Iterable[ops.Qid],
         n_qubits: int
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
