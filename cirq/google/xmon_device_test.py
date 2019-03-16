@@ -133,12 +133,16 @@ def test_validate_operation_supported_gate():
     d = square_device(3, 3)
 
     class MyGate(cirq.Gate):
-        pass
+
+        def num_qubits(self):
+            return 1
 
     d.validate_operation(cirq.GateOperation(cirq.Z, [cirq.GridQubit(0, 0)]))
+
+    assert MyGate().num_qubits() == 1
     with pytest.raises(ValueError):
         d.validate_operation(cirq.GateOperation(
-            MyGate, [cirq.GridQubit(0, 0)]))
+            MyGate(), [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(NotImplementedOperation())
 
