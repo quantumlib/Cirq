@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Sequence, TYPE_CHECKING, Union
+from typing import Optional, Sequence, TYPE_CHECKING, Union
 
 from cirq import circuits, ops, optimizers
 
@@ -70,7 +70,8 @@ def rectify_acquaintance_strategy(
 def replace_acquaintance_with_swap_network(
         circuit: circuits.Circuit,
         qubit_order: Sequence[ops.Qid],
-        acquaintance_size: int=0
+        acquaintance_size: Optional[int] = 0,
+        swap_gate: ops.Gate = ops.SWAP
         ) -> bool:
     """
     Replace every moment containing acquaintance gates (after
@@ -83,6 +84,7 @@ def replace_acquaintance_with_swap_network(
         qubit_order: The qubits, in order, on which the replacing swap network
             gate acts on.
         acquaintance_size: The acquaintance size of the new swap network gate.
+        swap_gate: The gate used to swap logical indices.
 
     Returns: Whether or not the overall effect of the inserted swap network
         gates is to reverse the order of the qubits, i.e. the parity of the
@@ -104,7 +106,8 @@ def replace_acquaintance_with_swap_network(
         if all(isinstance(op.gate, AcquaintanceOpportunityGate)
                 for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
-                    qubit_order, moment.operations, acquaintance_size)
+                    qubit_order, moment.operations,
+                    acquaintance_size, swap_gate)
             swap_network_op = swap_network_gate(*qubit_order)
             moment = ops.Moment([swap_network_op])
             reflected = not reflected

@@ -93,7 +93,7 @@ def test_linear_permutation_gate(n_elements, n_permuted):
     permutation = {e: p for e, p in
                    zip(elements_to_permute, permuted_elements)}
     cca.PermutationGate.validate_permutation(permutation, n_elements)
-    gate = cca.LinearPermutationGate(permutation)
+    gate = cca.LinearPermutationGate(n_elements, permutation)
     ct.assert_equivalent_repr(gate)
     assert gate.permutation() == permutation
     mapping = dict(zip(qubits, elements))
@@ -141,5 +141,5 @@ def test_linear_permutation_gate_equality(permutation_sets):
     for swap_gate in swap_gates:
         for permutation_set in permutation_sets:
             equals_tester.add_equality_group(*(
-                cca.LinearPermutationGate(permutation, swap_gate)
+                cca.LinearPermutationGate(10, permutation, swap_gate)
                 for permutation in permutation_set))
