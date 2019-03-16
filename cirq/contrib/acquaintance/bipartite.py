@@ -147,12 +147,16 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 for i, j in permutation.items())
         return wire_symbols
 
-
     def __repr__(self):
+        args = (repr(self.subgraph), repr(self.part_size))
+        if self.swap_gate != ops.SWAP:
+            args += (repr(self.swap_gate),)
         return ('cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate'
-                '({}, {})'.format(repr(self.subgraph), self.part_size))
+                '({})'.format(', '.join(args)))
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.subgraph == other.subgraph and
-                self.part_size == other.part_size)
+                self.part_size == other.part_size and
+                self.swap_gate == other.swap_gate)
+

@@ -16,7 +16,8 @@ from typing import Dict, Sequence, Tuple, TypeVar, Union
 
 import abc
 
-from cirq import protocols, ops, value
+from cirq import circuits, ops, optimizers, protocols, value
+
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)
 LogicalIndexSequence = Union[Sequence[int], Sequence[ops.Qid]]
@@ -107,6 +108,7 @@ class LinearPermutationGate(PermutationGate):
         sorting network."""
 
     def __init__(self,
+                 num_qubits: int,
                  permutation: Dict[int, int],
                  swap_gate: ops.Gate=ops.SWAP
                  ) -> None:
@@ -116,8 +118,8 @@ class LinearPermutationGate(PermutationGate):
             permutation: The permutation effected by the gate.
             swap_gate: The swap gate used in decompositions.
         """
-        super().__init__(len(permutation), swap_gate)
-        PermutationGate.validate_permutation(permutation)
+        super().__init__(num_qubits, swap_gate)
+        PermutationGate.validate_permutation(permutation, num_qubits)
         self._permutation = permutation
 
     def permutation(self) -> Dict[int, int]:
@@ -135,10 +137,12 @@ class LinearPermutationGate(PermutationGate):
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.LinearPermutationGate('
-                '{!r}, {!r})'.format(self._permutation, self.swap_gate))
+                '{!r}, {!r}, {!r})'.format(
+                self.num_qubits(), self._permutation, self.swap_gate))
 
     def _value_equality_values_(self):
-        return (_canonicalize_permutation(self._permutation), self.swap_gate)
+        return (tuple(sorted((i, j) for i, j in self._permutation.items()
+                if i != j)), self.swap_gate)
 
     def __bool__(self):
         return bool(_canonicalize_permutation(self._permutation))
@@ -159,3 +163,16 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
         if (isinstance(op, ops.GateOperation) and
             isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(mapping, op.qubits)
+
+
+class ExpandPermutationGates(optimizers.ExpandComposite):
+    """Decomposes any permutation gates other SwapPermutationGate."""
+    def __init__(self):
+        circuits.PointOptimizer.__init__(self)
+
+        self.no_decomp = lambda op: (not all(
+                [isinstance(op, ops.GateOperation),
+                 isinstance(op.gate, PermutationGate),
+                 not isinstance(op.gate, SwapPermutationGate)]))
+
+expand_permutation_gates = ExpandPermutationGates()

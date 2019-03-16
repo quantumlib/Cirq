@@ -17,7 +17,6 @@ import itertools
 import pytest
 
 import cirq
-
 import cirq.contrib.acquaintance as cca
 
 
@@ -234,13 +233,13 @@ def test_circuit_diagrams(part_size, subgraph):
         (cca.AcquaintanceOpportunityGate, cca.SwapPermutationGate)))
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     expander(circuit)
-    print(circuit)
     diagram = circuit_diagrams['decomposed', subgraph, part_size]
     cirq.testing.assert_has_diagram(circuit, diagram)
 
 
 def test_bad_args():
-    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 2)
+    gate = cca.BipartiteSwapNetworkGate(
+            cca.BipartiteGraphType.COMPLETE, 2)
     qubits = cirq.LineQubit.range(4)
     gate.subgraph = 'not a subgraph'
     args = cirq.CircuitDiagramInfoArgs(
@@ -270,7 +269,8 @@ def test_bad_args():
 
 def test_bipartite_swap_network_acquaintance_size():
     qubits = cirq.LineQubit.range(4)
-    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 2)
+    gate = cca.BipartiteSwapNetworkGate(
+            cca.BipartiteGraphType.COMPLETE, 2)
     assert cca.get_acquaintance_size(gate(*qubits)) == 2
 
 
@@ -278,6 +278,9 @@ def test_bipartite_swap_network_acquaintance_size():
         itertools.product(cca.BipartiteGraphType, range(1, 3)))
 def test_repr(subgraph, part_size):
     gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)
+    cirq.testing.assert_equivalent_repr(gate)
+
+    gate = cca.BipartiteSwapNetworkGate(subgraph, part_size, cirq.ZZ)
     cirq.testing.assert_equivalent_repr(gate)
 
 
