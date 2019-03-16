@@ -44,9 +44,9 @@ class EjectZ():
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
-        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
+        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.Qid, float]
 
-        def dump_tracked_phase(qubits: Iterable[ops.QubitId],
+        def dump_tracked_phase(qubits: Iterable[ops.Qid],
                                index: int) -> None:
             """Zeroes qubit_phase entries by emitting Z gates."""
             for q in qubits:

@@ -27,7 +27,7 @@ from cirq.schedules import moment_by_moment_schedule
 
 def assert_proto_dict_convert(gate: cirq.Gate,
                               proto_dict: Dict,
-                              *qubits: cirq.QubitId):
+                              *qubits: cirq.Qid):
     assert cg.gate_to_proto_dict(gate, qubits) == proto_dict
     assert cg.xmon_op_from_proto_dict(proto_dict) == gate(*qubits)
 

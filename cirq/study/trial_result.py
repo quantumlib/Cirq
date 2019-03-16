@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     import cirq
 
 T = TypeVar('T')
-TMeasurementKey = Union[str, 'cirq.QubitId', Iterable['cirq.QubitId']]
+TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
 def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
@@ -90,7 +90,7 @@ def _key_to_str(key: TMeasurementKey) -> str:
 
     if isinstance(key, str):
         return key
-    if isinstance(key, ops.QubitId):
+    if isinstance(key, ops.Qid):
         return str(key)
     return ','.join(str(q) for q in key)
 

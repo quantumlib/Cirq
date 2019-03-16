@@ -60,7 +60,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         """Gets the logical operations to apply to qubits."""
 
@@ -117,7 +117,7 @@ class AcquaintanceOperation(ops.GateOperation):
     logical indices on a particular set of physical qubits.
     """
     def __init__(self,
-                 qubits: Sequence[ops.raw_types.QubitId],
+                 qubits: Sequence[ops.raw_types.Qid],
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')
@@ -165,7 +165,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
