@@ -24,7 +24,7 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
 class SupportsMeasurementKey(Protocol):
-    """An object that is a measurement and has a measurement key.
+    r"""An object that is a measurement and has a measurement key.
 
     Measurement keys are used in referencing the results of a measurement.
 

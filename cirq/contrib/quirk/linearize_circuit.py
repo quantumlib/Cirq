@@ -18,7 +18,7 @@ from cirq import ops, circuits, line
 
 
 class QubitMapper():
-    def __init__(self, qubit_map: Callable[[ops.QubitId], ops.QubitId]
+    def __init__(self, qubit_map: Callable[[ops.Qid], ops.Qid]
                  ) -> None:
         self.qubit_map = qubit_map
 
