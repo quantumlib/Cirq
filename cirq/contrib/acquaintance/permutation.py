@@ -162,7 +162,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 
 
 def get_logical_operations(operations: ops.OP_TREE,
-                           initial_mapping: Dict[ops.QubitId, ops.QubitId]
+                           initial_mapping: Dict[ops.Qid, ops.Qid]
                            ) -> Iterable[ops.Operation]:
     mapping = initial_mapping.copy()
     for op in cast(Iterable[ops.Operation], ops.flatten_op_tree(operations)):
