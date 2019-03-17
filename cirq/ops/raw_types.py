@@ -163,7 +163,7 @@ class Gate(metaclass=abc.ABCMeta):
         return self.on(*args, **kwargs)
 
     def __control__(self,
-                    control_qubits: List[QubitId] = None) -> 'Gate':
+                    control_qubits: List[Qid] = None) -> 'Gate':
         """Returns a controlled version of this gate.
 
         Args:
@@ -214,7 +214,7 @@ class Operation(metaclass=abc.ABCMeta):
         return self.with_qubits(*(func(q) for q in self.qubits))
 
     def __control__(self,
-                    control_qubits: List[QubitId] = None) -> 'Operation':
+                    control_qubits: List[Qid] = None) -> 'Operation':
         """Returns a controlled version of this operation.
 
         Args:

@@ -27,7 +27,7 @@ class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
     def __init__(self, sub_gate: raw_types.Gate,
-                 control_qubits: List[raw_types.QubitId] = None,
+                 control_qubits: List[raw_types.Qid] = None,
                  num_controls: int = 1) -> None:
         """Initializes the controlled gate.
 
@@ -82,7 +82,7 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('Not all control qubits specified.')
         self.sub_gate.validate_args(qubits[self.num_unspecified_controls:])
 
-    def on(self, *qubits: raw_types.QubitId) -> gate_operation.GateOperation:
+    def on(self, *qubits: raw_types.Qid) -> gate_operation.GateOperation:
         if len(qubits) == 0:
             raise ValueError(
                 "Applied a gate to an empty set of qubits. Gate: {}".format(
