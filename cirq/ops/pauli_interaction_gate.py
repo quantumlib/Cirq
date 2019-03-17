@@ -88,7 +88,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def _decompose_(self, qubits: Sequence[raw_types.QubitId]
+    def _decompose_(self, qubits: Sequence[raw_types.Qid]
                           ) -> op_tree.OP_TREE:
         q0, q1 = qubits
         right_gate0 = SingleQubitCliffordGate.from_single_map(

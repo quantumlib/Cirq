@@ -33,7 +33,7 @@ class QasmArgs(string.Formatter):
     def __init__(self,
                  precision: int = 10,
                  version: str = '2.0',
-                 qubit_id_map: Dict['cirq.QubitId', str] = None,
+                 qubit_id_map: Dict['cirq.Qid', str] = None,
                  meas_key_id_map: Dict[str, str] = None,
                  ) -> None:
         """
@@ -61,7 +61,7 @@ class QasmArgs(string.Formatter):
             if spec == 'half_turns':
                 value = 'pi*{}'.format(value) if value != 0 else '0'
                 spec = ''
-        elif isinstance(value, ops.QubitId):
+        elif isinstance(value, ops.Qid):
             value = self.qubit_id_map[value]
         elif isinstance(value, str) and spec == 'meas':
             value = self.meas_key_id_map[value]
@@ -108,7 +108,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
     """
 
     def _qasm_(self,
-               qubits: Tuple['cirq.QubitId'],
+               qubits: Tuple['cirq.Qid'],
                args: QasmArgs) -> Union[None, NotImplementedType, str]:
         pass
 
@@ -117,7 +117,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
 def qasm(val: Any,
          *,
          args: Optional[QasmArgs] = None,
-         qubits: Optional[Iterable['cirq.QubitId']] = None,
+         qubits: Optional[Iterable['cirq.Qid']] = None,
          default: TDefault = RaiseTypeErrorIfNotProvided
          ) -> Union[str, TDefault]:
     """Returns QASM code for the given value, if possible.

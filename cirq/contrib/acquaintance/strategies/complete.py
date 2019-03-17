@@ -22,7 +22,7 @@ from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
 
 
-def complete_acquaintance_strategy(qubit_order: Sequence[ops.QubitId],
+def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
                                    acquaintance_size: int=0,
                                    ) -> circuits.Circuit:
     """
