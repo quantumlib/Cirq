@@ -224,7 +224,9 @@ class Simulator(simulator.SimulatesSamples,
 
             non_display_ops = (op for op in moment
                                if not isinstance(op, (ops.SamplesDisplay,
-                                                      ops.WaveFunctionDisplay)))
+                                                      ops.WaveFunctionDisplay,
+                                                      ops.DensityMatrixDisplay
+                                                      )))
             unitary_ops_and_measurements = protocols.decompose(
                 non_display_ops,
                 keep=keep,
