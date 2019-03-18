@@ -123,12 +123,35 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             repetitions: int) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        resolved_circuit = protocols.resolve_parameters(circuit,
+                                                        param_resolver)
+
+        if circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(resolved_circuit, repetitions)
+        else:
+            return self._run_sweep_repeat(resolved_circuit, repetitions)
+
+    def _run_sweep_sample(self,
+                          circuit: circuits.Circuit,
+                          repetitions: int) -> Dict[str, np.ndarray]:
+        for step_result in self._base_iterator(
+                circuit=circuit,
+                qubit_order=ops.QubitOrder.DEFAULT,
+                initial_state=0,
+                perform_measurements=False):
+            pass
+        measurement_ops = [op for _, op, _ in
+                           circuit.findall_operations_with_gate_type(
+                               ops.MeasurementGate)]
+        return step_result.sample_measurement_ops(measurement_ops, repetitions)
+
+    def _run_sweep_repeat(self,
+                          circuit: circuits.Circuit,
+                          repetitions: int) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
-        # TODO: optimize for all terminal measurements.
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                resolved_circuit,
+                circuit,
                 qubit_order=ops.QubitOrder.DEFAULT,
                 initial_state=0,
                 perform_measurements=True)
@@ -412,14 +435,14 @@ class DensityMatrixStepResult(simulator.StepResult):
     def __init__(self,
             density_matrix: np.ndarray,
             measurements: Dict[str, np.ndarray],
-            qubit_map: Dict[ops.QubitId, int],
+            qubit_map: Dict[ops.Qid, int],
             dtype: Type[np.number] = np.complex64):
         """DensityMatrixStepResult.
 
         Args:
             density_matrix: The density matrix at this step. Can be mutated.
             measurements: The measurements for this step of the simulation.
-            qubit_map: A map from qubit id to index used to define the
+            qubit_map: A map from qid to index used to define the
                 ordering of the basis in density_matrix.
             dtype: The numpy dtype for the density matrix.
         """
@@ -483,7 +506,7 @@ class DensityMatrixStepResult(simulator.StepResult):
         return np.reshape(self._density_matrix, (size, size))
 
     def sample(self,
-            qubits: List[ops.QubitId],
+            qubits: List[ops.Qid],
             repetitions: int = 1) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
@@ -497,13 +520,13 @@ class DensityMatrixSimulatorState():
 
     Args:
         density_matrix: The density matrix of the simulation.
-        qubit_map: A map from qubit id to index used to define the
+        qubit_map: A map from qid to index used to define the
             ordering of the basis in density_matrix.
     """
 
     def __init__(self,
             density_matrix: np.ndarray,
-            qubit_map: Dict[ops.QubitId, int]):
+            qubit_map: Dict[ops.Qid, int]):
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
 

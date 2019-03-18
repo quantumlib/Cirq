@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cirq
-
 import cirq.contrib.acquaintance as cca
 
 
@@ -129,3 +128,5 @@ y: ---\1/---
 z: ---/2\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram
+
+

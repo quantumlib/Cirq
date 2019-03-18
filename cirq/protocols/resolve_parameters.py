@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import Any, TypeVar, TYPE_CHECKING, Union, Dict
 from typing_extensions import Protocol
 
 import sympy
@@ -62,7 +62,9 @@ def is_parameterized(val: Any) -> bool:
         return False
 
 
-def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolver') -> Any:
+def resolve_parameters(
+        val: Any,
+        param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method
@@ -79,6 +81,12 @@ def resolve_parameters(val: Any, param_resolver: 'cirq.ParamResolver') -> Any:
         If `val` has no `_resolve_parameters_` method or if it returns
         NotImplemented, `val` itself is returned.
     """
+    if not param_resolver:
+        return val
+
+    # Ensure its a dictionary wrapped in a ParamResolver.
+    from cirq import ParamResolver  # HACK: break cycle.
+    param_resolver = ParamResolver(param_resolver)
     if isinstance(val, sympy.Basic):
         return param_resolver.value_of(val)
 

@@ -46,7 +46,7 @@ class LogicalAnnotator(ExecutionStrategy):
 
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         yield AcquaintanceOperation(qubits, indices)
 

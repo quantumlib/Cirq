@@ -9,7 +9,7 @@ as well as a description of the ``Device`` on which the schedule is
 intended to be run.  Each ``ScheduledOperation`` is made up of a ``time``
 when the operation starts and a ``duration`` describing how long the
 operation takes, in addition to the ``Operation`` itself (like in a
-``Circuit`` an ``Operation`` is made up of a ``Gate`` and the ``QubitIds``
+``Circuit`` an ``Operation`` is made up of a ``Gate`` and the ``Qids``
 upon which the gate acts.)
 
 ### Devices

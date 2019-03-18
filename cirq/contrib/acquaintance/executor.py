@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, TYPE_CHECKING, Sequence
+from typing import Dict, Sequence, TYPE_CHECKING
 
 import abc
 from collections import defaultdict
 
-from cirq import circuits, devices, ops
+from cirq import circuits, devices, ops, protocols
 
 from cirq.contrib.acquaintance.gates import (
         AcquaintanceOpportunityGate)
@@ -60,7 +60,7 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         """Gets the logical operations to apply to qubits."""
 
@@ -117,13 +117,19 @@ class AcquaintanceOperation(ops.GateOperation):
     logical indices on a particular set of physical qubits.
     """
     def __init__(self,
-                 qubits: Sequence[ops.raw_types.QubitId],
+                 qubits: Sequence[ops.raw_types.Qid],
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')
         super().__init__(AcquaintanceOpportunityGate(num_qubits=len(qubits)),
                          qubits)
         self.logical_indices = logical_indices # type: LogicalIndexSequence
+
+    def _circuit_diagram_info_(self,
+            args: protocols.CircuitDiagramInfoArgs
+            ) -> protocols.CircuitDiagramInfo:
+        wire_symbols = tuple('({})'.format(i) for i in self.logical_indices)
+        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
 
 class GreedyExecutionStrategy(ExecutionStrategy):
@@ -165,7 +171,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
 
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
