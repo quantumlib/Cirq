@@ -356,11 +356,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
 
 def _enter_moment_display_values_into_dictionary(
-    display_values: Dict,
-    moment: ops.Moment,
-    state: np.ndarray,
-    qubit_order: ops.QubitOrder,
-    qubit_map: Dict[ops.QubitId, int]):
+        display_values: Dict,
+        moment: ops.Moment,
+        state: np.ndarray,
+        qubit_order: ops.QubitOrder,
+        qubit_map: Dict[ops.QubitId, int]):
     for op in moment:
         if isinstance(op, ops.DensityMatrixDisplay):
             display_values[op.key] = (
@@ -371,18 +371,29 @@ def _enter_moment_display_values_into_dictionary(
 
 
 def _compute_samples_display_value(display: ops.SamplesDisplay,
-    state: np.ndarray,
-    qubit_order: ops.QubitOrder,
-    qubit_map: Dict[ops.QubitId, int]):
-    basis_change_circuit = circuits.Circuit.from_ops(
-        display.measurement_basis_change())
-    modified_state = basis_change_circuit.apply_unitary_effect_to_state(
-        state,
-        qubit_order=qubit_order,
-        qubits_that_should_be_present=qubit_map.keys())
+        state: np.ndarray,
+        qubit_order: ops.QubitOrder,
+        qubit_map: Dict[ops.QubitId, int]):
+    n = len(qubit_map)
+    state = np.reshape(state, (2,) * n * 2)
+    buffer = np.zeros(state.shape, dtype=state.dtype)
+    for op in display.measurement_basis_change():
+        indices = [qubit_map[q] for q in op.qubits]
+        result = protocols.apply_unitary(
+            unitary_value=op,
+            args=protocols.ApplyUnitaryArgs(state, buffer, indices))
+        # TODO add a test that actually fails if below is not included
+        indices = [qubit_map[q] + n for q in op.qubits]
+        result = protocols.apply_unitary(
+            unitary_value=op,
+            args=protocols.ApplyUnitaryArgs(state, result, indices))
+        if result is buffer:
+            buffer = state
+        state = result
+    state.reshape((2**n, 2**n))
     indices = [qubit_map[qubit] for qubit in display.qubits]
-    samples = wave_function.sample_state_vector(
-        modified_state, indices, display.num_samples)
+    samples = density_matrix_utils.sample_density_matrix(
+        state, indices, display.num_samples)
     return display.value_derived_from_samples(samples)
 
 
