@@ -65,6 +65,7 @@ from cirq.ops.controlled_gate import (
 )
 from cirq.ops.display import (
     ApproxPauliStringExpectation,
+    DensityMatrixDisplay,
     PauliStringExpectation,
     SamplesDisplay,
     WaveFunctionDisplay,

@@ -16,11 +16,11 @@
 
 import collections
 
-from typing import cast, Dict, Iterator, List, Type, Union
+from typing import cast, Dict, Iterator, List, Optional, Type, Union
 
 import numpy as np
 
-from cirq import circuits, linalg, ops, protocols, study, value
+from cirq import circuits, linalg, ops, protocols, schedules, study, value
 from cirq.sim import density_matrix_utils, simulator
 
 class DensityMatrixSimulator(simulator.SimulatesSamples,
@@ -139,7 +139,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     measurements[k].append(np.array(v, dtype=bool))
         return {k: np.array(v) for k, v in measurements.items()}
 
-
     def _simulator_iterator(self,
             circuit: circuits.Circuit,
             param_resolver: study.ParamResolver,
@@ -188,7 +187,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             return (protocols.has_channel(potential_op)
                     or ops.MeasurementGate.is_measurement(potential_op)
                     or isinstance(potential_op,
-                                  (ops.SamplesDisplay, ops.WaveFunctionDisplay))
+                                  (ops.SamplesDisplay,
+                                      ops.WaveFunctionDisplay,
+                                      ops.DensityMatrixDisplay))
                     )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
@@ -204,7 +205,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 if isinstance(op,
-                              (ops.SamplesDisplay, ops.WaveFunctionDisplay)):
+                              (ops.SamplesDisplay,
+                                  ops.WaveFunctionDisplay,
+                                  ops.DensityMatrixDisplay)):
                     continue
                 elif ops.MeasurementGate.is_measurement(op):
                     meas = cast(ops.MeasurementGate,
@@ -253,6 +256,134 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             params=params,
             measurements=measurements,
             final_simulator_state=final_simulator_state)
+
+    def compute_displays(
+        self,
+        program: Union[circuits.Circuit, schedules.Schedule],
+        param_resolver: study.ParamResolver = study.ParamResolver({}),
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Union[int, np.ndarray] = 0,
+    ) -> study.ComputeDisplaysResult:
+        """Computes displays in the supplied Circuit or Schedule.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used
+                to define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state. Otherwise if it is a
+                np.ndarray it is the full initial state, either a pure state
+                or the full density matrix. If it is the pure state it must be
+                the correct size, be normalized (an L2 norm of 1), and be
+                safely castable to an appropriate dtype for the simulator.
+                If it is a mixed state it must be correctly sized and
+                positive semidefinite with trace one.
+
+        Returns:
+            ComputeDisplaysResult for the simulation.
+        """
+        return self.compute_displays_sweep(
+            program, [param_resolver], qubit_order, initial_state)[0]
+
+    def compute_displays_sweep(
+        self,
+        program: Union[circuits.Circuit, schedules.Schedule],
+        params: Optional[study.Sweepable] = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        initial_state: Union[int, np.ndarray] = 0,
+    ) -> List[study.ComputeDisplaysResult]:
+        """Computes displays in the supplied Circuit or Schedule.
+
+        In contrast to `compute_displays`, this allows for sweeping
+        over different parameter values.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits used to
+                define the order of amplitudes in the wave function.
+            initial_state: If an int, the state is set to the computational
+                basis state corresponding to this state. Otherwise if it is a
+                np.ndarray it is the full initial state, either a pure state
+                or the full density matrix. If it is the pure state it must be
+                the correct size, be normalized (an L2 norm of 1), and be
+                safely castable to an appropriate dtype for the simulator.
+                If it is a mixed state it must be correctly sized and
+                positive semidefinite with trace one.
+
+        Returns:
+            List of ComputeDisplaysResults for this run, one for each
+            possible parameter resolver.
+        """
+        circuit = (program if isinstance(program, circuits.Circuit)
+                   else program.to_circuit())
+        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
+        qubits = qubit_order.order_for(circuit.all_qubits())
+
+        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        for param_resolver in param_resolvers:
+            display_values = {}  # type: Dict[Hashable, Any]
+
+            # Compute the displays in the first Moment
+            moment = circuit[0]
+            matrix = density_matrix_utils.to_valid_density_matrix(
+                initial_state, num_qubits=len(qubits), dtype=self._dtype)
+            qubit_map = {q: i for i, q in enumerate(qubits)}
+            _enter_moment_display_values_into_dictionary(
+                display_values, moment, matrix, qubit_order, qubit_map)
+
+            # Compute the displays in the rest of the Moments
+            all_step_results = self.simulate_moment_steps(
+                circuit,
+                param_resolver,
+                qubit_order,
+                initial_state)
+            for step_result, moment in zip(all_step_results, circuit[1:]):
+                _enter_moment_display_values_into_dictionary(
+                    display_values,
+                    moment,
+                    step_result.density_matrix(),
+                    qubit_order,
+                    step_result._qubit_map)
+
+            compute_displays_results.append(study.ComputeDisplaysResult(
+                params=param_resolver,
+                display_values=display_values))
+
+        return compute_displays_results
+
+
+def _enter_moment_display_values_into_dictionary(
+    display_values: Dict,
+    moment: ops.Moment,
+    state: np.ndarray,
+    qubit_order: ops.QubitOrder,
+    qubit_map: Dict[ops.QubitId, int]):
+    for op in moment:
+        if isinstance(op, ops.DensityMatrixDisplay):
+            display_values[op.key] = (
+                op.value_derived_from_density_matrix(state, qubit_map))
+        elif isinstance(op, ops.SamplesDisplay):
+            display_values[op.key] = _compute_samples_display_value(
+                op, state, qubit_order, qubit_map)
+
+
+def _compute_samples_display_value(display: ops.SamplesDisplay,
+    state: np.ndarray,
+    qubit_order: ops.QubitOrder,
+    qubit_map: Dict[ops.QubitId, int]):
+    basis_change_circuit = circuits.Circuit.from_ops(
+        display.measurement_basis_change())
+    modified_state = basis_change_circuit.apply_unitary_effect_to_state(
+        state,
+        qubit_order=qubit_order,
+        qubits_that_should_be_present=qubit_map.keys())
+    indices = [qubit_map[qubit] for qubit in display.qubits]
+    samples = wave_function.sample_state_vector(
+        modified_state, indices, display.num_samples)
+    return display.value_derived_from_samples(samples)
 
 
 class DensityMatrixStepResult(simulator.StepResult):
