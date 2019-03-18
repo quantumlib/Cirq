@@ -128,23 +128,6 @@ class DensityMatrixDisplay(raw_types.Operation):
         pass
 
 
-class StateDisplay(WaveFunctionDisplay, DensityMatrixDisplay):
-    """A display whose value is computed from the full quantum state."""
-
-    def value_derived_from_state(self,
-                                 state: np.ndarray,
-                                 qubit_map: Dict[raw_types.QubitId, int]
-                                 ) -> Any:
-        if state.ndim == 1:
-            return self.value_derived_from_wavefunction(state, qubit_map)
-        elif state.ndim == 2:
-            return self.value_derived_from_density_matrix(state, qubit_map)
-        else:
-            raise ValueError(
-                    'The state should have ndim == 1 or ndim == 2 '
-                    'but instead had ndim == {}'.format(state.ndim))
-
-
 @value.value_equality
 class ApproxPauliStringExpectation(SamplesDisplay):
     """Approximate expectation value of a Pauli string."""
@@ -190,7 +173,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
 
 @value.value_equality
-class PauliStringExpectation(StateDisplay):
+class PauliStringExpectation(WaveFunctionDisplay, DensityMatrixDisplay):
     """Expectation value of a Pauli string."""
 
     def __init__(self,
