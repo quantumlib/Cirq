@@ -519,7 +519,21 @@ def test_density_matrix_trial_result_repr():
 def test_compute_displays(dtype):
     qubits = cirq.LineQubit.range(4)
     circuit = cirq.Circuit.from_ops(
+        cirq.pauli_string_expectation(
+            cirq.PauliString({qubits[3]: cirq.Z}),
+            key='z3'
+        ),
         cirq.X(qubits[1]),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[1]: cirq.Z}),
+            key='z0z1'
+        ),
+        cirq.pauli_string_expectation(
+            cirq.PauliString({qubits[0]: cirq.Z,
+                              qubits[1]: cirq.X}),
+            key='z0x1'
+        ),
         cirq.H(qubits[2]),
         cirq.X(qubits[3]),
         cirq.H(qubits[3]),
@@ -543,23 +557,19 @@ def test_compute_displays(dtype):
             num_samples=1,
             key='approx_z1x2'
         ),
-        cirq.CZ(qubits[2], qubits[3]),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[2]: cirq.X}),
-            key='x2'
-        ),
     )
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     initial_state = cirq.sim.density_matrix_utils.to_valid_density_matrix(
             0, num_qubits=len(qubits), dtype=dtype)
     result = simulator.compute_displays(circuit, initial_state=initial_state)
 
+    np.testing.assert_allclose(result.display_values['z3'], 1, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['z0z1'], -1, atol=1e-7)
+    np.testing.assert_allclose(result.display_values['z0x1'], 0, atol=1e-7)
     np.testing.assert_allclose(result.display_values['z1x2'], -1, atol=1e-7)
     np.testing.assert_allclose(result.display_values['x0z1'], 0, atol=1e-7)
     np.testing.assert_allclose(result.display_values['x3'], -1, atol=1e-7)
     np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
-                               atol=1e-7)
-    np.testing.assert_allclose(result.display_values['x2'], 0,
                                atol=1e-7)
 
 

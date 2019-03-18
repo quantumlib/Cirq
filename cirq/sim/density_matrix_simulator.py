@@ -376,21 +376,21 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         qubit_map: Dict[ops.QubitId, int]):
     n = len(qubit_map)
     state = np.reshape(state, (2,) * n * 2)
-    buffer = np.zeros(state.shape, dtype=state.dtype)
     for op in display.measurement_basis_change():
-        indices = [qubit_map[q] for q in op.qubits]
-        result = protocols.apply_unitary(
-            unitary_value=op,
-            args=protocols.ApplyUnitaryArgs(state, buffer, indices))
-        # TODO add a test that actually fails if below is not included
-        indices = [qubit_map[q] + n for q in op.qubits]
-        result = protocols.apply_unitary(
-            unitary_value=op,
-            args=protocols.ApplyUnitaryArgs(state, result, indices))
-        if result is buffer:
-            buffer = state
-        state = result
-    state.reshape((2**n, 2**n))
+        indices = [qubit_map[qubit] for qubit in op.qubits]
+        gate = cast(ops.GateOperation, op).gate
+        unitary = protocols.unitary(gate)
+        krauss_tensor = np.reshape(unitary,
+                                   (2,) * gate.num_qubits() * 2)
+        state = linalg.targeted_left_multiply(krauss_tensor,
+                                               state,
+                                               indices)
+        # TODO add a test that fails if the below is not performed
+        state = linalg.targeted_left_multiply(
+            np.conjugate(krauss_tensor),
+            state,
+            [x + n for x in indices])
+    state = state.reshape((2**n, 2**n))
     indices = [qubit_map[qubit] for qubit in display.qubits]
     samples = density_matrix_utils.sample_density_matrix(
         state, indices, display.num_samples)
