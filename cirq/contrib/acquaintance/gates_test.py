@@ -156,13 +156,9 @@ acquaintance_sizes += tuple(range(5))
     )
 def test_swap_network_gate_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
-    qubits = cirq.LineQubit.range(n_qubits)
     swap_network_gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
-    operations = cirq.decompose_once_with_qubits(swap_network_gate, qubits)
-    operations = list(cirq.flatten_op_tree(operations))
-    mapping = {q: i for i, q in enumerate(qubits)}
-    cca.update_mapping(mapping, operations)
-    assert mapping == {q: i for i, q in enumerate(reversed(qubits))}
+    cca.testing.assert_permutation_decomposition_equivalence(
+            swap_network_gate, n_qubits)
 
 def test_swap_network_gate_from_ops():
     n_qubits = 10
@@ -282,6 +278,22 @@ def test_get_acquaintance_size():
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
     op = gate(*qubits[:sum(part_lens)])
     assert cca.get_acquaintance_size(op) == 0
+
+
+def test_operations_to_part_lens():
+    qubits = cirq.LineQubit.range(6)
+    ops = [cirq.CZ(*qubits[1:3]), cirq.XX(*qubits[3:5])]
+    part_lens = cca.gates.operations_to_part_lens(qubits, ops)
+    assert part_lens == (1, 2, 2, 1)
+
+    ops = cirq.CZ(qubits[1], qubits[3])
+    with pytest.raises(ValueError):
+        cca.gates.operations_to_part_lens(qubits, ops)
+
+    ops = [cirq.CZ(*qubits[1:3]), cirq.CZ(*qubits[2:4])]
+    with pytest.raises(ValueError):
+        cca.gates.operations_to_part_lens(qubits, ops)
+
 
 @pytest.mark.parametrize('part_len_sets', [
     set(tuple(randint(1, 5) for _ in range(randint(2, 7))) for _ in range(5))
