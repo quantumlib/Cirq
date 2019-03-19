@@ -63,7 +63,7 @@ def test_copy(terms):
 ))
 def test_keys(terms, expected_keys):
     linear_dict = cirq.LinearDict(terms)
-    assert tuple(linear_dict.keys()) == expected_keys
+    assert tuple(sorted(linear_dict.keys())) == expected_keys
 
 
 @pytest.mark.parametrize('terms, expected_values', (
@@ -74,7 +74,7 @@ def test_keys(terms, expected_keys):
 ))
 def test_values(terms, expected_values):
     linear_dict = cirq.LinearDict(terms)
-    assert tuple(linear_dict.values()) == expected_values
+    assert tuple(sorted(linear_dict.values())) == expected_values
 
 
 @pytest.mark.parametrize('terms, expected_items', (
@@ -85,7 +85,7 @@ def test_values(terms, expected_values):
 ))
 def test_items(terms, expected_items):
     linear_dict = cirq.LinearDict(terms)
-    assert tuple(linear_dict.items()) == expected_items
+    assert tuple(sorted(linear_dict.items())) == expected_items
 
 
 @pytest.mark.parametrize('terms_1, terms_2, terms_expected', (
