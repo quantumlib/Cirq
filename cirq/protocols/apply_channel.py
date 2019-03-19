@@ -36,6 +36,11 @@ RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 TDefault = TypeVar('TDefault')
 
 
+class Axes:
+    LEFT = 1
+    RIGHT = 2
+
+
 class ApplyChannelArgs:
     """Arguments for efficiently performing a channel.
 
@@ -65,7 +70,11 @@ class ApplyChannelArgs:
             the last n indices corresponding to the columns of the density
             matrix.
         available_buffer: Pre-allocated workspace with the same shape and
-            dtype as the target tensor.
+            dtype as the target tensor. This can be used when inline
+            matrix multiplication cannot be done.
+        available_sum_buffer: Pre-allocated workspace with the same shape
+            and dtype as the target tensor. This can be used to keep
+            a cumulative sum of the channel terms.
         left_axes: Which axes to multiply the left action of the channel upon.
         right_axes: Which axes to multiply the right action of the channel upon.
     """
@@ -73,6 +82,8 @@ class ApplyChannelArgs:
     def __init__(self,
             target_tensor: np.ndarray,
             available_buffer: np.ndarray,
+            available_initial_buffer: np.ndarray,
+            available_sum_buffer: np.ndarray,
             left_axes: Iterable[int],
             right_axes: Iterable[int]):
         """
@@ -86,21 +97,57 @@ class ApplyChannelArgs:
                 the last n indices corresponding to the columns of the density
                 matrix.
             available_buffer: Pre-allocated workspace with the same shape and
-                dtype as the target tensor.
-            left_axes: Which axes to multiply the left action of the channel
+                dtype as the target tensor. This can be used when inline
+                matrix multiplication cannot be done.
+            available_initial_buffer: Pre-allocated workspace with the same
+                shape and dtype as the target tensor. This will be used to
+                store the intial target tensor.
+            available_sum_buffer: Pre-allocated workspace with the same shape
+                and dtype as the target tensor. This can be used to keep
+                a cumulative sum of the channel terms.
+           left_axes: Which axes to multiply the left action of the channel
                 upon.
             right_axes: Which axes to multiply the right action of the channel
                 upon.
         """
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
+        self.available_initial_buffer = available_initial_buffer
+        self.available_sum_buffer = available_sum_buffer
         self.left_axes = tuple(left_axes)
         self.right_axes = tuple(right_axes)
 
+    def subspace_index(self, little_endian_bits_int: int,
+            axes: int = Axes.LEFT) -> Tuple[
+        Union[slice, int, 'ellipsis'], ...]:
+        """An index for the subspace where the target axes equal a value.
 
-class Axes:
-    LEFT = 1
-    RIGHT = 2
+        Args:
+            little_endian_bits_int: The desired value of the qubits at the
+                targeted `axes`, packed into an integer. The least significant
+                bit of the integer is the desired bit for the first axis, and
+                so forth in increasing order.
+
+        Returns:
+            A value that can be used to index into `target_tensor` and
+            `available_buffer`, and manipulate only the part of Hilbert space
+            corresponding to a given bit assignment.
+
+        Example:
+            If `target_tensor` is a 4 qubit tensor and `axes` is `[1, 3]` and
+            then this method will return the following when given
+            `little_endian_bits=0b01`:
+
+                `(slice(None), 0, slice(None), 1, Ellipsis)`
+
+            Therefore the following two lines would be equivalent:
+
+                args.target_tensor[args.subspace_index(0b01)] += 1
+
+                args.target_tensor[:, 0, :, 1] += 1
+        """
+        axes = self.left_axes if axes == Axes.LEFT else self.right_axes
+        return linalg.slice_for_qubits_equal_to(axes, little_endian_bits_int)
 
 
 class SupportsApplyChannel(Protocol):
@@ -146,39 +193,6 @@ class SupportsApplyChannel(Protocol):
             numpy.ndarray and return that as its result.
         """
 
-    def subspace_index(self, little_endian_bits_int: int,
-            axes: int = Axes.LEFT) -> Tuple[
-        Union[slice, int, 'ellipsis'], ...]:
-        """An index for the subspace where the target axes equal a value.
-
-        Args:
-            little_endian_bits_int: The desired value of the qubits at the
-                targeted `axes`, packed into an integer. The least significant
-                bit of the integer is the desired bit for the first axis, and
-                so forth in increasing order.
-
-        Returns:
-            A value that can be used to index into `target_tensor` and
-            `available_buffer`, and manipulate only the part of Hilbert space
-            corresponding to a given bit assignment.
-
-        Example:
-            If `target_tensor` is a 4 qubit tensor and `axes` is `[1, 3]` and
-            then this method will return the following when given
-            `little_endian_bits=0b01`:
-
-                `(slice(None), 0, slice(None), 1, Ellipsis)`
-
-            Therefore the following two lines would be equivalent:
-
-                args.target_tensor[args.subspace_index(0b01)] += 1
-
-                args.target_tensor[:, 0, :, 1] += 1
-        """
-        axes = self.left_axes if axes == Axes.LEFT else self.right_axes
-        return linalg.slice_for_qubits_equal_to(axes, little_endian_bits_int)
-
-
 
 def apply_channel(val: Any,
         args: ApplyChannelArgs,
@@ -219,6 +233,11 @@ def apply_channel(val: Any,
         checking if the result is `available_buffer` (and e.g. swapping
         the buffer for the target tensor before the next call).
 
+        If the receiving object wrote its output over `available_sum_buffer`,
+        the result will be `available_sum_buffer`.  The caller is responsible
+        for checking if the result is `available_sum_buffer` (and e.g. swapping
+        this buffer for the target tensor before the next call).
+
         The receiving object may also write its output over a new buffer
         that it created, in which case that new array is returned.
 
@@ -233,20 +252,19 @@ def apply_channel(val: Any,
         if result is not NotImplemented and result is not None:
             return result
 
-    # Check if instead we have an `_apply_unitary_` method.
-    func = getattr(val, '_apply_unitary_', None)
-    if func is not None:
-        left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
-                                     available_buffer=args.available_buffer,
-                                     axes=args.left_axes)
-        left_result = func(left_args)
-        if left_result is not NotImplemented and left_result is not None:
-            right_args = ApplyUnitaryArgs(target_tensor=np.conjugate(left_result),
-                                          available_buffer=args.available_buffer,
-                                          axes=args.right_axes)
-            right_result = func(right_args)
-            if right_result is not NotImplemented and right_result is not None:
-                return np.conjugate(right_result)
+    # Possibly use apply_unitary.
+    left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
+                                 available_buffer=args.available_initial_buffer,
+                                 axes=args.left_axes)
+    left_result = apply_unitary(val, left_args, None)
+    if left_result is not None:
+        right_args = ApplyUnitaryArgs(
+                target_tensor=np.conjugate(left_result),
+                available_buffer=args.available_buffer,
+                axes=args.right_axes)
+        right_result = apply_unitary(val, right_args)
+        np.conjugate(right_result, out=right_result)
+        return right_result
 
     # Fallback to using the object's _channel_ matrices.
     krauss = channel(val, None)
@@ -255,32 +273,69 @@ def apply_channel(val: Any,
         if krauss[0].shape == (2, 2):
             zero_left = args.subspace_index(0, axes=Axes.LEFT)
             one_left = args.subspace_index(1, axes=Axes.LEFT)
-            for krauss_op in krauss:
-                linalg.apply_matrix_to_slices(args.target_tensor,
-                                              krauss_op,
-                                              [zero_left, one_left],
-                                              out=args.available_buffer)
+            zero_right = args.subspace_index(0, axes=Axes.RIGHT)
+            one_right = args.subspace_index(1, axes=Axes.RIGHT)
 
-        if matrix.shape == (2, 2):
-            zero = args.subspace_index(0)
-            one = args.subspace_index(1)
-            return linalg.apply_matrix_to_slices(args.target_tensor,
-                                                 matrix,
-                                                 [zero, one],
-                                                 out=args.available_buffer)
+            args.available_sum_buffer = np.zeros_like(krauss[0])
+            np.copyto(dst=args.available_initial_buffer, src=args.target_tensor)
+            for krauss_op in krauss:
+                np.copyto(dst=args.target_tensor,
+                          src=args.available_initial_buffer)
+                left_result = linalg.apply_matrix_to_slices(
+                    args.target_tensor,
+                    krauss_op,
+                    [zero_left, one_left],
+                    out=args.available_buffer)
+                if left_result is args.available_buffer:
+                    args.available_buffer = args.target_tensor
+                args.target_tensor = left_result
+
+                right_result = linalg.apply_matrix_to_slices(
+                    args.target_tensor,
+                    np.conjugate(krauss_op),
+                    [zero_right, one_right],
+                    out=args.available_buffer)
+                if right_result is args.available_buffer:
+                    args.available_buffer = args.target_tensor
+                args.target_tensor = right_result
+
+                args.available_sum_buffer += args.target_tensor
+            return args.available_sum_buffer
 
         # Fallback to np.einsum for the general case.
-        return linalg.targeted_left_multiply(
-                matrix.astype(args.target_tensor.dtype).reshape(
-                        (2,) * (2 * len(args.axes))),
-                args.target_tensor,
-                args.axes,
-                out=args.available_buffer)
+        args.available_sum_buffer = np.zeros_like(krauss[0])
+        np.copyto(dst=args.available_initial_buffer, src=args.target_tensor)
+        for krauss_op in krauss:
+            np.copyto(dst=args.target_tensor, src=args.available_initial_buffer)
+            krauss_tensor = np.reshape(
+                krauss_op.astype(args.target_tensor.dtype),
+                (2,) * len(args.left_axes) * 2)
+            left_result = linalg.targeted_left_multiply(
+                    krauss_tensor,
+                    args.target_tensor,
+                    args.left_axes,
+                    out=args.available_buffer)
+            if left_result is args.available_buffer:
+                args.available_buffer = args.target_tensor
+            args.target_tensor = left_result
+
+            # No need to transpose as we are acting on the tensor
+            # representation of matrix, so transpose is done for us.
+            right_result = linalg.targeted_left_multiply(
+                    np.conjugate(krauss_tensor),
+                    right_result,
+                    args.right_axes,
+                    out=args.available_buffer)
+            if right_result is args.available_buffer:
+                args.available_buffer = args.target_tensor
+            args.target_tensor = right_result
+            args.available_sum_buffer += args.target_tensor
+        return args.available_sum_buffer
 
     # Don't know how to apply. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-            "object of type '{}' has no _apply_unitary_ or _unitary_ methods "
-            "(or they returned None or NotImplemented).".format(
-                    type(unitary_value)))
+            "object of type '{}' has no _apply_channel_, _apply_unitary_ or "
+            "_channel_ methods (or they returned None or NotImplemented)."
+                .format(type(val)))

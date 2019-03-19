@@ -253,7 +253,9 @@ from cirq.value import (
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
+    apply_channel,
     apply_unitary,
+    ApplyChannelArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
@@ -277,6 +279,7 @@ from cirq.protocols import (
     pow,
     qasm,
     QasmArgs,
+    SupportsApplyChannel,
     SupportsApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
