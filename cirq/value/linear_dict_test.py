@@ -18,6 +18,19 @@ import pytest
 import cirq
 
 
+@pytest.mark.parametrize('keys, coefficient, terms_expected', (
+    ((), 10, {}),
+    (('X',), 2, {'X': 2}),
+    (('a', 'b', 'c', 'd'), 0.5, {'a': 0.5, 'b': 0.5, 'c': 0.5, 'd': 0.5}),
+    (('b', 'c', 'd', 'e'), -2j, {'b': -2j, 'c': -2j, 'd': -2j, 'e': -2j}),
+))
+def test_fromkeys(keys, coefficient, terms_expected):
+    actual = cirq.LinearDict.fromkeys(keys, coefficient)
+    expected = cirq.LinearDict(terms_expected)
+    assert actual == expected
+    assert expected == actual
+
+
 @pytest.mark.parametrize('terms, bool_value', (
     ({}, False),
     ({'X': 0}, False),
@@ -84,6 +97,118 @@ def test_approximately_equal(terms_1, terms_2):
 def test_clean(terms, atol, terms_expected):
     linear_dict = cirq.LinearDict(terms)
     linear_dict.clean(atol=atol)
+    expected = cirq.LinearDict(terms_expected)
+    assert linear_dict == expected
+    assert expected == linear_dict
+
+
+@pytest.mark.parametrize('terms', (
+    {'X': 1j/2}, {'X': 1, 'Y': 2, 'Z': 3}, {},
+))
+def test_copy(terms):
+    linear_dict = cirq.LinearDict(terms)
+    assert type(linear_dict.copy()) == cirq.LinearDict
+    assert linear_dict.copy() == linear_dict
+    assert linear_dict == linear_dict.copy()
+
+
+@pytest.mark.parametrize('terms, expected_keys', (
+    ({}, ()),
+    ({'X': 0}, ()),
+    ({'X': 0.1}, ('X',)),
+    ({'X': -1, 'Y': 0, 'Z': 1}, ('X', 'Z')),
+))
+def test_keys(terms, expected_keys):
+    linear_dict = cirq.LinearDict(terms)
+    assert tuple(linear_dict.keys()) == expected_keys
+
+
+@pytest.mark.parametrize('terms, expected_values', (
+    ({}, ()),
+    ({'X': 0}, ()),
+    ({'X': 0.1}, (0.1,)),
+    ({'X': -1, 'Y': 0, 'Z': 1}, (-1, 1)),
+))
+def test_values(terms, expected_values):
+    linear_dict = cirq.LinearDict(terms)
+    assert tuple(linear_dict.values()) == expected_values
+
+
+@pytest.mark.parametrize('terms, expected_items', (
+    ({}, ()),
+    ({'X': 0}, ()),
+    ({'X': 0.1}, (('X', 0.1),)),
+    ({'X': -1, 'Y': 0, 'Z': 1}, (('X', -1), ('Z', 1))),
+))
+def test_items(terms, expected_items):
+    linear_dict = cirq.LinearDict(terms)
+    assert tuple(linear_dict.items()) == expected_items
+
+
+@pytest.mark.parametrize('terms_1, terms_2, terms_expected', (
+    ({}, {}, {}),
+    ({}, {'X': 0.1}, {'X': 0.1}),
+    ({'X': 1}, {'Y': 2}, {'X': 1, 'Y': 2}),
+    ({'X': 1}, {'X': 4}, {'X': 4}),
+    ({'X': 1, 'Y': 2}, {'Y': -2}, {'X': 1, 'Y': -2}),
+))
+def test_update(terms_1, terms_2, terms_expected):
+    linear_dict_1 = cirq.LinearDict(terms_1)
+    linear_dict_2 = cirq.LinearDict(terms_2)
+    linear_dict_1.update(linear_dict_2)
+    expected = cirq.LinearDict(terms_expected)
+    assert linear_dict_1 == expected
+    assert expected == linear_dict_1
+
+
+@pytest.mark.parametrize('terms, vector, expected_coefficient', (
+    ({}, '', 0),
+    ({}, 'X', 0),
+    ({'X': 0}, 'X', 0),
+    ({'X': -1j}, 'X', -1j),
+    ({'X': 1j}, 'Y', 0),
+))
+def test_get(terms, vector, expected_coefficient):
+    linear_dict = cirq.LinearDict(terms)
+    actual_coefficient = linear_dict.get(vector)
+    assert actual_coefficient == expected_coefficient
+
+
+@pytest.mark.parametrize('terms, vector, expected', (
+    ({}, 'X', False),
+    ({'X': 0}, 'X', False),
+    ({'X': 0.1}, 'X', True),
+    ({'X': 1, 'Y': -1}, 'Y', True),
+))
+def test_contains(terms, vector, expected):
+    linear_dict = cirq.LinearDict(terms)
+    actual = vector in linear_dict
+    assert actual == expected
+
+
+@pytest.mark.parametrize('terms, vector, expected_coefficient', (
+    ({}, 'X', 0),
+    ({'X': 1}, 'X', 1),
+    ({'Y': 1}, 'X', 0),
+    ({'X': 2, 'Y': 3}, 'X', 2),
+    ({'X': 1, 'Y': 2}, 'Z', 0),
+))
+def test_getitem(terms, vector, expected_coefficient):
+    linear_dict = cirq.LinearDict(terms)
+    actual_coefficient = linear_dict[vector]
+    assert actual_coefficient == expected_coefficient
+
+
+@pytest.mark.parametrize('terms, vector, coefficient, terms_expected', (
+    ({}, 'X', 0, {}),
+    ({}, 'X', 1, {'X': 1}),
+    ({'X': 1}, 'X', 2, {'X': 2}),
+    ({'X': 1, 'Y': 3}, 'X', 2, {'X': 2, 'Y': 3}),
+    ({'X': 1, 'Y': 2}, 'X', 0, {'Y': 2}),
+))
+def test_setitem(terms, vector, coefficient, terms_expected):
+    linear_dict = cirq.LinearDict(terms)
+    linear_dict[vector] = coefficient
     expected = cirq.LinearDict(terms_expected)
     assert linear_dict == expected
     assert expected == linear_dict

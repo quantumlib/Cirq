@@ -14,9 +14,13 @@
 
 """Linear combination represented as mapping of things to coefficients."""
 
-from typing import Any, Dict, Mapping, Union
+from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
+                    KeysView, Mapping, overload, Tuple, TypeVar, Union,
+                    ValuesView)
 
 Scalar = Union[complex, float]
+
+_TDefault = TypeVar('_TDefault')
 
 
 class LinearDict(Dict[Any, Scalar]):
@@ -41,17 +45,81 @@ class LinearDict(Dict[Any, Scalar]):
         super().__init__()
         self.update(terms)
 
-    def clean(self, *, atol: float=1e-9) -> None:
-        """Modifies self by deleting terms with small coefficients."""
-        negligible = [v for v, c in self.items() if abs(c) <= atol]
+    @classmethod
+    def fromkeys(cls, vectors, coefficient=0):
+        return LinearDict(dict.fromkeys(vectors, complex(coefficient)))
+
+    def clean(self, *, atol: float=1e-9) -> 'LinearDict':
+        negligible = [v for v, c in super().items() if abs(c) <= atol]
         for v in negligible:
             del self[v]
+        return self
 
     def copy(self) -> 'LinearDict':
         return LinearDict(super().copy())
 
+    def keys(self) -> KeysView[Any]:
+        snapshot = self.copy().clean(atol=0)
+        return super(LinearDict, snapshot).keys()
+
+    def values(self) -> ValuesView[Scalar]:
+        snapshot = self.copy().clean(atol=0)
+        return super(LinearDict, snapshot).values()
+
+    def items(self) -> ItemsView[Any, Scalar]:
+        snapshot = self.copy().clean(atol=0)
+        return super(LinearDict, snapshot).items()
+
+    # pylint: disable=function-redefined
+    @overload
+    def update(self, other: Mapping[Any, Scalar], **kwargs: Scalar) -> None:
+        pass
+
+    @overload
+    def update(self,
+               other: Iterable[Tuple[Any, Scalar]],
+               **kwargs: Scalar) -> None:
+        pass
+
+    @overload
+    def update(self, *args: Any, **kwargs: Scalar) -> None:
+        pass
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.clean(atol=0)
+
+    @overload
+    def get(self, vector: Any) -> Scalar:
+        pass
+
+    @overload
+    def get(self, vector: Any, default: _TDefault
+            ) -> Union[Scalar, _TDefault]:
+        pass
+
+    def get(self, vector, default=0):
+        if super().get(vector, 0) == 0:
+            return default
+        return super().get(vector)
+    # pylint: enable=function-redefined
+
+    def __contains__(self, vector: Any) -> bool:
+        return super().__contains__(vector) and super().__getitem__(vector) != 0
+
     def __getitem__(self, vector: Any) -> Scalar:
         return super().get(vector, 0)
+
+    def __setitem__(self, vector: Any, coefficient: Scalar) -> None:
+        if coefficient != 0:
+            super().__setitem__(vector, coefficient)
+            return
+        if vector in self:
+            super().__delitem__(vector)
+
+    def __iter__(self) -> Iterator[Any]:
+        snapshot = self.copy().clean(atol=0)
+        return super(LinearDict, snapshot).__iter__()
 
     def __iadd__(self, other: 'LinearDict') -> 'LinearDict':
         for vector, other_coefficient in other.items():
