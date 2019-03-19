@@ -370,6 +370,9 @@ def test_incomparable(a, b):
     ({'X': -np.sqrt(-1j)}, '{:.3f}', '(-0.707+0.707i)*X'),
     ({'X': -np.sqrt(1j)}, '{:.3f}', '-(0.707+0.707i)*X'),
     ({'X': 1, 'Y': -1, 'Z': 1j}, '{:.5f}', '1.00000*X-1.00000*Y+1.00000i*Z'),
+    ({'X': 2, 'Y': -0.0001}, '{:.4f}', '2.0000*X-0.0001*Y'),
+    ({'X': 2, 'Y': -0.0001}, '{:.3f}', '2.000*X'),
+    ({'X': 2, 'Y': -0.0001}, '{:.1e}', '2.0e+00*X-1.0e-04*Y'),
 ))
 def test_format(terms, fmt, expected_string):
     linear_dict = cirq.LinearDict(terms)
