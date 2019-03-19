@@ -30,7 +30,9 @@ class LinearDict(Dict[TVector, Scalar]):
     LinearDict implements the basic linear algebraic operations of vector
     addition and scalar multiplication for linear combinations of abstract
     vectors. Keys represent the vectors, values represent their coefficients.
-    The only requirement on the keys is that they be hashable.
+    The only requirement on the keys is that they be hashable (i.e. are
+    immutable and implement __hash__ and __eq__ with equal objects hashing
+    to equal values).
 
     A consequence of treating keys as opaque is that all relationships between
     the keys other than equality are ignored. In particular, keys are allowed
