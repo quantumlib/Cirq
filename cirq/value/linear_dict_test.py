@@ -145,7 +145,7 @@ def test_vector_negation(terms, terms_expected):
 @pytest.mark.parametrize('scalar, terms, terms_expected', (
     (2, {}, {}),
     (2, {'X': 1, 'Y': -2}, {'X': 2, 'Y': -4}),
-    (0, {'abc': 10}, {}),
+    (0, {'abc': 10, 'def': 20}, {}),
     (1j, {'X': 4j}, {'X': -4}),
     (-1, {'a': 10, 'b': -20}, {'a': -10, 'b': 20}),
 ))
@@ -185,6 +185,24 @@ def test_expressions(expression, expected):
     assert expression == expected
     assert not expression != expected
     assert cirq.approx_eq(expression, expected)
+
+
+def test_addition_in_iteration():
+    linear_dict = cirq.LinearDict({'a': 2, 'b': 1, 'c': 0, 'd': -1, 'e': -2})
+    for v in linear_dict:
+        linear_dict[v] += 1
+    assert linear_dict == cirq.LinearDict(
+        {'a': 3, 'b': 2, 'c': 0, 'd': 0, 'e': -1})
+    assert linear_dict == cirq.LinearDict({'a': 3, 'b': 2, 'e': -1})
+
+
+def test_multiplication_in_iteration():
+    linear_dict = cirq.LinearDict({'u': 2, 'v': 1, 'w': -1})
+    for v, c in linear_dict.items():
+        if c > 0:
+            linear_dict[v] *= 0
+    assert linear_dict == cirq.LinearDict({'u': 0, 'v': 0, 'w': -1})
+    assert linear_dict == cirq.LinearDict({'w': -1})
 
 
 @pytest.mark.parametrize('terms, string', (
