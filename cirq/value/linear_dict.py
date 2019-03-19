@@ -19,11 +19,12 @@ from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
                     ValuesView)
 
 Scalar = Union[complex, float]
+TVector = TypeVar('TVector')
 
 _TDefault = TypeVar('_TDefault')
 
 
-class LinearDict(Dict[Any, Scalar]):
+class LinearDict(Dict[TVector, Scalar]):
     """Represents linear combination of things.
 
     LinearDict implements the basic linear algebraic operations of vector
@@ -35,7 +36,7 @@ class LinearDict(Dict[Any, Scalar]):
     the keys other than equality are ignored. In particular, keys are allowed
     to be linearly dependent.
     """
-    def __init__(self, terms: Mapping[Any, Scalar]) -> None:
+    def __init__(self, terms: Mapping[TVector, Scalar]) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -58,7 +59,7 @@ class LinearDict(Dict[Any, Scalar]):
     def copy(self) -> 'LinearDict':
         return LinearDict(super().copy())
 
-    def keys(self) -> KeysView[Any]:
+    def keys(self) -> KeysView[TVector]:
         snapshot = self.copy().clean(atol=0)
         return super(LinearDict, snapshot).keys()
 
@@ -66,18 +67,18 @@ class LinearDict(Dict[Any, Scalar]):
         snapshot = self.copy().clean(atol=0)
         return super(LinearDict, snapshot).values()
 
-    def items(self) -> ItemsView[Any, Scalar]:
+    def items(self) -> ItemsView[TVector, Scalar]:
         snapshot = self.copy().clean(atol=0)
         return super(LinearDict, snapshot).items()
 
     # pylint: disable=function-redefined
     @overload
-    def update(self, other: Mapping[Any, Scalar], **kwargs: Scalar) -> None:
+    def update(self, other: Mapping[TVector, Scalar], **kwargs: Scalar) -> None:
         pass
 
     @overload
     def update(self,
-               other: Iterable[Tuple[Any, Scalar]],
+               other: Iterable[Tuple[TVector, Scalar]],
                **kwargs: Scalar) -> None:
         pass
 
@@ -90,11 +91,11 @@ class LinearDict(Dict[Any, Scalar]):
         self.clean(atol=0)
 
     @overload
-    def get(self, vector: Any) -> Scalar:
+    def get(self, vector: TVector) -> Scalar:
         pass
 
     @overload
-    def get(self, vector: Any, default: _TDefault
+    def get(self, vector: TVector, default: _TDefault
             ) -> Union[Scalar, _TDefault]:
         pass
 
@@ -107,17 +108,17 @@ class LinearDict(Dict[Any, Scalar]):
     def __contains__(self, vector: Any) -> bool:
         return super().__contains__(vector) and super().__getitem__(vector) != 0
 
-    def __getitem__(self, vector: Any) -> Scalar:
+    def __getitem__(self, vector: TVector) -> Scalar:
         return super().get(vector, 0)
 
-    def __setitem__(self, vector: Any, coefficient: Scalar) -> None:
+    def __setitem__(self, vector: TVector, coefficient: Scalar) -> None:
         if coefficient != 0:
             super().__setitem__(vector, coefficient)
             return
         if vector in self:
             super().__delitem__(vector)
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> Iterator[TVector]:
         snapshot = self.copy().clean(atol=0)
         return super(LinearDict, snapshot).__iter__()
 
@@ -209,7 +210,7 @@ class LinearDict(Dict[Any, Scalar]):
         return 'cirq.LinearDict({!r})'.format(coefficients)
 
     @staticmethod
-    def _term_to_str(vector: Any, coefficient: Scalar) -> str:
+    def _term_to_str(vector: TVector, coefficient: Scalar) -> str:
         coefficient = complex(coefficient)
         if abs(coefficient.real) < 1e-4 and abs(coefficient.imag) < 1e-4:
             return ''
