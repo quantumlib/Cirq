@@ -205,29 +205,52 @@ class LinearDict(Dict[TVector, Scalar]):
         all_vs = set(self.keys()) | set(other.keys())
         return all(abs(self[v] - other[v]) < atol for v in all_vs)
 
+    @staticmethod
+    def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
+        coefficient = complex(coefficient)
+        real_str = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
+        imag_str = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
+        if float(real_str) == 0 and float(imag_str) == 0:
+            return ''
+        if float(imag_str) == 0:
+            return real_str
+        if float(real_str) == 0:
+            return imag_str + 'i'
+        if real_str[0] == '-' and imag_str[0] == '-':
+            return '-({}+{}i)'.format(real_str[1:], imag_str[1:])
+        if imag_str[0] in ['+', '-']:
+            return '({}{}i)'.format(real_str, imag_str)
+        return '({}+{}i)'.format(real_str, imag_str)
+
+    @staticmethod
+    def _format_term(format_spec: str,
+                     vector: TVector,
+                     coefficient: Scalar) -> str:
+        coefficient_str = LinearDict._format_coefficient(
+                format_spec, coefficient)
+        if not coefficient_str:
+            return coefficient_str
+        result = '{}*{!s}'.format(coefficient_str, vector)
+        if result[0] in ['+', '-']:
+            return result
+        return '+' + result
+
+    def __format__(self, format_spec: str) -> str:
+        formatted_terms = [self._format_term(format_spec, v, self[v])
+                           for v in sorted(self.keys())]
+        s = ''.join(formatted_terms)
+        if not s:
+            return '{:{fmt}}'.format(0, fmt=format_spec)
+        if s[0] == '+':
+            return s[1:]
+        return s
+
     def __repr__(self) -> str:
         coefficients = dict(self)
         return 'cirq.LinearDict({!r})'.format(coefficients)
 
-    @staticmethod
-    def _term_to_str(vector: TVector, coefficient: Scalar) -> str:
-        coefficient = complex(coefficient)
-        if abs(coefficient.real) < 1e-4 and abs(coefficient.imag) < 1e-4:
-            return ''
-        if abs(coefficient.real) < 1e-4:
-            return '{:+.3f}i*{!s}'.format(coefficient.imag, vector)
-        if abs(coefficient.imag) < 1e-4:
-            return '{:+.3f}*{!s}'.format(coefficient.real, vector)
-        return '+({:.3f}{:+.3f}i)*{!s}'.format(
-                coefficient.real, coefficient.imag, vector)
-
     def __str__(self):
-        if not self:
-            return '0'
-        s = ''.join(self._term_to_str(v, self[v]) for v in sorted(self.keys()))
-        if s[0] == '+':
-            return s[1:]
-        return s
+        return self.__format__('.3f')
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         if cycle:

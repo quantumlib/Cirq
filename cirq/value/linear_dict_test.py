@@ -345,6 +345,28 @@ def test_incomparable(a, b):
     assert a._approx_eq_(b, atol=1e-9) is NotImplemented
 
 
+@pytest.mark.parametrize('terms, fmt, expected_string', (
+    ({}, '{}', '0'),
+    ({}, '{:.2f}', '0.00'),
+    ({}, '{:.2e}', '0.00e+00'),
+    ({'X': 2**-10}, '{:.2f}', '0.00'),
+    ({'X': 1/100}, '{:.2e}', '1.00e-02*X'),
+    ({'X': 1j*2**-10}, '{:.2f}', '0.00'),
+    ({'X': 1j*2**-10}, '{:.3f}', '0.001i*X'),
+    ({'X': 2j, 'Y': -3}, '{:.2f}', '2.00i*X-3.00*Y'),
+    ({'X': -2j, 'Y': 3}, '{:.2f}', '-2.00i*X+3.00*Y'),
+    ({'X': np.sqrt(1j)}, '{:.3f}', '(0.707+0.707i)*X'),
+    ({'X': np.sqrt(-1j)}, '{:.3f}', '(0.707-0.707i)*X'),
+    ({'X': -np.sqrt(-1j)}, '{:.3f}', '(-0.707+0.707i)*X'),
+    ({'X': -np.sqrt(1j)}, '{:.3f}', '-(0.707+0.707i)*X'),
+    ({'X': 1, 'Y': -1, 'Z': 1j}, '{:.5f}', '1.00000*X-1.00000*Y+1.00000i*Z'),
+))
+def test_format(terms, fmt, expected_string):
+    linear_dict = cirq.LinearDict(terms)
+    actual_string = fmt.format(linear_dict)
+    assert actual_string.replace(' ', '') == expected_string.replace(' ', '')
+
+
 @pytest.mark.parametrize('terms', (
     ({}, {'X': 1}, {'X': 2, 'Y': 3}, {'X': 1.23456789e-12})
 ))
@@ -357,7 +379,7 @@ def test_repr(terms):
 
 
 @pytest.mark.parametrize('terms, string', (
-    ({}, '0'),
+    ({}, '0.000'),
     ({'X': 1.5, 'Y': 1e-5}, '1.500*X'),
     ({'Y': 2}, '2.000*Y'),
     ({'X': 1, 'Y': -1j}, '1.000*X-1.000i*Y'),
@@ -366,7 +388,7 @@ def test_repr(terms):
     ({'I': np.sqrt(1j)}, '(0.707+0.707i)*I'),
     ({'X': np.sqrt(-1j)}, '(0.707-0.707i)*X'),
     ({'X': -np.sqrt(-1j)}, '(-0.707+0.707i)*X'),
-    ({'X': -np.sqrt(1j)}, '(-0.707-0.707i)*X'),
+    ({'X': -np.sqrt(1j)}, '-(0.707+0.707i)*X'),
     ({'X': -2, 'Y': -3}, '-2.000*X-3.000*Y'),
     ({'X': -2j, 'Y': -3}, '-2.000i*X-3.000*Y'),
     ({'X': -2j, 'Y': -3j}, '-2.000i*X-3.000i*Y'),
