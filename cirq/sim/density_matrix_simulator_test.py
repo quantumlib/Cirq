@@ -606,8 +606,6 @@ def test_compute_samples_displays(dtype):
         ),
     )
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    initial_state = cirq.sim.density_matrix_utils.to_valid_density_matrix(
-            0, num_qubits=3, dtype=dtype)
     result = simulator.compute_samples_displays(circuit)
 
     assert 'x3' not in result.display_values
