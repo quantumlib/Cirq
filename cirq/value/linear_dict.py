@@ -222,8 +222,12 @@ class LinearDict(Dict[TVector, Scalar]):
                 coefficient.real, coefficient.imag, vector)
 
     def __str__(self):
+        if not self:
+            return '0'
         s = ''.join(self._term_to_str(v, self[v]) for v in sorted(self.keys()))
-        return s[1:] if s else '0'
+        if s[0] == '+':
+            return s[1:]
+        return s
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         if cycle:

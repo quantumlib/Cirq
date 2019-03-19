@@ -365,6 +365,11 @@ def test_repr(terms):
      '0.577*X+0.577*Y+0.577*Z'),
     ({'I': np.sqrt(1j)}, '(0.707+0.707i)*I'),
     ({'X': np.sqrt(-1j)}, '(0.707-0.707i)*X'),
+    ({'X': -np.sqrt(-1j)}, '(-0.707+0.707i)*X'),
+    ({'X': -np.sqrt(1j)}, '(-0.707-0.707i)*X'),
+    ({'X': -2, 'Y': -3}, '-2.000*X-3.000*Y'),
+    ({'X': -2j, 'Y': -3}, '-2.000i*X-3.000*Y'),
+    ({'X': -2j, 'Y': -3j}, '-2.000i*X-3.000i*Y'),
 ))
 def test_str(terms, string):
     linear_dict = cirq.LinearDict(terms)
