@@ -31,63 +31,6 @@ def test_fromkeys(keys, coefficient, terms_expected):
     assert expected == actual
 
 
-@pytest.mark.parametrize('terms, bool_value', (
-    ({}, False),
-    ({'X': 0}, False),
-    ({'Z': 1e-12}, True),
-    ({'Y': 1}, True),
-))
-def test_bool(terms, bool_value):
-    linear_dict = cirq.LinearDict(terms)
-    if linear_dict:
-        assert bool_value
-    else:
-        assert not bool_value
-
-
-@pytest.mark.parametrize('terms_1, terms_2', (
-    ({}, {}),
-    ({}, {'X': 0}),
-    ({'X': 0.0}, {'Y': 0.0}),
-    ({'a': 1}, {'a': 1, 'b': 0}),
-))
-def test_equal(terms_1, terms_2):
-    linear_dict_1 = cirq.LinearDict(terms_1)
-    linear_dict_2 = cirq.LinearDict(terms_2)
-    assert linear_dict_1 == linear_dict_2
-    assert linear_dict_2 == linear_dict_1
-    assert not linear_dict_1 != linear_dict_2
-    assert not linear_dict_2 != linear_dict_1
-
-
-@pytest.mark.parametrize('terms_1, terms_2', (
-    ({}, {'a': 1}),
-    ({'X': 1e-12}, {'X': 0}),
-    ({'X': 0.0}, {'Y': 0.1}),
-    ({'X': 1}, {'X': 1, 'Z': 1e-12}),
-))
-def test_unequal(terms_1, terms_2):
-    linear_dict_1 = cirq.LinearDict(terms_1)
-    linear_dict_2 = cirq.LinearDict(terms_2)
-    assert linear_dict_1 != linear_dict_2
-    assert linear_dict_2 != linear_dict_1
-    assert not linear_dict_1 == linear_dict_2
-    assert not linear_dict_2 == linear_dict_1
-
-
-@pytest.mark.parametrize('terms_1, terms_2', (
-    ({}, {'X': 1e-9}),
-    ({'X': 1e-12}, {'X': 0}),
-    ({'X': 5e-10}, {'Y': 2e-11}),
-    ({'X': 1.000000001}, {'X': 1, 'Z': 0}),
-))
-def test_approximately_equal(terms_1, terms_2):
-    linear_dict_1 = cirq.LinearDict(terms_1)
-    linear_dict_2 = cirq.LinearDict(terms_2)
-    assert cirq.approx_eq(linear_dict_1, linear_dict_2)
-    assert cirq.approx_eq(linear_dict_2, linear_dict_1)
-
-
 @pytest.mark.parametrize('terms, atol, terms_expected', (
     ({'X': 1, 'Y': 2, 'Z': 3}, 2, {'Z': 3}),
     ({'X': 0.1, 'Y': 1, 'Z': 10}, 1e-3, {'X': 0.1, 'Y': 1, 'Z': 10}),
@@ -328,6 +271,63 @@ def test_expressions(expression, expected):
     assert expression == expected
     assert not expression != expected
     assert cirq.approx_eq(expression, expected)
+
+
+@pytest.mark.parametrize('terms, bool_value', (
+    ({}, False),
+    ({'X': 0}, False),
+    ({'Z': 1e-12}, True),
+    ({'Y': 1}, True),
+))
+def test_bool(terms, bool_value):
+    linear_dict = cirq.LinearDict(terms)
+    if linear_dict:
+        assert bool_value
+    else:
+        assert not bool_value
+
+
+@pytest.mark.parametrize('terms_1, terms_2', (
+    ({}, {}),
+    ({}, {'X': 0}),
+    ({'X': 0.0}, {'Y': 0.0}),
+    ({'a': 1}, {'a': 1, 'b': 0}),
+))
+def test_equal(terms_1, terms_2):
+    linear_dict_1 = cirq.LinearDict(terms_1)
+    linear_dict_2 = cirq.LinearDict(terms_2)
+    assert linear_dict_1 == linear_dict_2
+    assert linear_dict_2 == linear_dict_1
+    assert not linear_dict_1 != linear_dict_2
+    assert not linear_dict_2 != linear_dict_1
+
+
+@pytest.mark.parametrize('terms_1, terms_2', (
+    ({}, {'a': 1}),
+    ({'X': 1e-12}, {'X': 0}),
+    ({'X': 0.0}, {'Y': 0.1}),
+    ({'X': 1}, {'X': 1, 'Z': 1e-12}),
+))
+def test_unequal(terms_1, terms_2):
+    linear_dict_1 = cirq.LinearDict(terms_1)
+    linear_dict_2 = cirq.LinearDict(terms_2)
+    assert linear_dict_1 != linear_dict_2
+    assert linear_dict_2 != linear_dict_1
+    assert not linear_dict_1 == linear_dict_2
+    assert not linear_dict_2 == linear_dict_1
+
+
+@pytest.mark.parametrize('terms_1, terms_2', (
+    ({}, {'X': 1e-9}),
+    ({'X': 1e-12}, {'X': 0}),
+    ({'X': 5e-10}, {'Y': 2e-11}),
+    ({'X': 1.000000001}, {'X': 1, 'Z': 0}),
+))
+def test_approximately_equal(terms_1, terms_2):
+    linear_dict_1 = cirq.LinearDict(terms_1)
+    linear_dict_2 = cirq.LinearDict(terms_2)
+    assert cirq.approx_eq(linear_dict_1, linear_dict_2)
+    assert cirq.approx_eq(linear_dict_2, linear_dict_1)
 
 
 @pytest.mark.parametrize('terms', (
