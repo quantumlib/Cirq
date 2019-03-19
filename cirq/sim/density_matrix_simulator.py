@@ -16,12 +16,18 @@
 
 import collections
 
-from typing import cast, Dict, Iterator, List, Optional, Type, Union
+from typing import (
+        cast, Dict, Iterator, List, Optional, TYPE_CHECKING, Type, Union)
 
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, schedules, study, value
 from cirq.sim import density_matrix_utils, simulator
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Any, Hashable
+
 
 class DensityMatrixSimulator(simulator.SimulatesSamples,
                              simulator.SimulatesIntermediateState):
@@ -399,7 +405,8 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         qubit_map: Dict[ops.Qid, int]):
     n = len(qubit_map)
     state = np.reshape(state, (2,) * n * 2)
-    for op in display.measurement_basis_change():
+    basis_change = ops.flatten_op_tree(display.measurement_basis_change())
+    for op in basis_change:
         indices = [qubit_map[qubit] for qubit in op.qubits]
         gate = cast(ops.GateOperation, op).gate
         unitary = protocols.unitary(gate)
