@@ -122,6 +122,9 @@ class LinearDict(Dict[TVector, Scalar]):
         snapshot = self.copy().clean(atol=0)
         return super(LinearDict, snapshot).__iter__()
 
+    def __len__(self) -> int:
+        return len([v for v, c in self.items() if c != 0])
+
     def __iadd__(self, other: 'LinearDict') -> 'LinearDict':
         for vector, other_coefficient in other.items():
             old_coefficient = super().get(vector, 0)

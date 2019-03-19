@@ -175,6 +175,18 @@ def test_multiplication_in_iteration():
     assert linear_dict == cirq.LinearDict({'w': -1})
 
 
+@pytest.mark.parametrize('terms, expected_length', (
+    ({}, 0),
+    ({'X': 0}, 0),
+    ({'X': 0.1}, 1),
+    ({'X': 1, 'Y': -2j}, 2),
+    ({'X': 0, 'Y': 1}, 1)
+))
+def test_len(terms, expected_length):
+    linear_dict = cirq.LinearDict(terms)
+    assert len(linear_dict) == expected_length
+
+
 @pytest.mark.parametrize('terms_1, terms_2, terms_expected', (
     ({}, {}, {}),
     ({}, {'X': 0.1}, {'X': 0.1}),
