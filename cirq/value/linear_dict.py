@@ -218,12 +218,12 @@ class LinearDict(Dict[TVector, Scalar]):
         if float(imag_str) == 0:
             return real_str
         if float(real_str) == 0:
-            return imag_str + 'i'
+            return imag_str + 'j'
         if real_str[0] == '-' and imag_str[0] == '-':
-            return '-({}+{}i)'.format(real_str[1:], imag_str[1:])
+            return '-({}+{}j)'.format(real_str[1:], imag_str[1:])
         if imag_str[0] in ['+', '-']:
-            return '({}{}i)'.format(real_str, imag_str)
-        return '({}+{}i)'.format(real_str, imag_str)
+            return '({}{}j)'.format(real_str, imag_str)
+        return '({}+{}j)'.format(real_str, imag_str)
 
     @staticmethod
     def _format_term(format_spec: str,
