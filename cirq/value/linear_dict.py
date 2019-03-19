@@ -191,6 +191,9 @@ class LinearDict(Dict[Any, Scalar]):
 
         See __eq__().
         """
+        if not isinstance(other, LinearDict):
+            return NotImplemented
+
         return not self == other
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
