@@ -65,7 +65,7 @@ def main():
     # Records in a list each state of q0 for the simulation
     step_results = sim.simulate_moment_steps(circuit)
     for step in step_results:
-        state.append(cirq.bloch_vector_from_state_vector(step.state(), 0))
+        state.append(cirq.bloch_vector_from_state_vector(step.state_vector(), 0))
 
     print("\nBloch Sphere of Qubit 0 After Random X and Y Gates:")
     # Prints the Bloch Sphere of q0 after the X and Y gates
