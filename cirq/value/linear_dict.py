@@ -115,7 +115,7 @@ class LinearDict(Dict[TVector, Scalar]):
         if coefficient != 0:
             super().__setitem__(vector, coefficient)
             return
-        if vector in self:
+        if super().__contains__(vector):
             super().__delitem__(vector)
 
     def __iter__(self) -> Iterator[TVector]:
