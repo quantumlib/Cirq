@@ -17,7 +17,7 @@ from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     get_qcircuit_diagram_info)
 
 
-def qcircuit_qubit_namer(qubit: ops.QubitId):
+def qcircuit_qubit_namer(qubit: ops.Qid):
     # TODO: If qubit name ends with digits, turn them into subscripts.
     return r'\lstick{\text{' + str(qubit) + '}}&'
 
