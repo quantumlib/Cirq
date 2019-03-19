@@ -330,6 +330,21 @@ def test_approximately_equal(terms_1, terms_2):
     assert cirq.approx_eq(linear_dict_2, linear_dict_1)
 
 
+@pytest.mark.parametrize('a, b', (
+    (cirq.LinearDict({}), None),
+    (cirq.LinearDict({'X': 0}), 0),
+    (cirq.LinearDict({'Y': 1}), 1),
+    (cirq.LinearDict({'Z': 1}), 1j),
+    (cirq.LinearDict({'I': 1}), 'I'),
+))
+def test_incomparable(a, b):
+    assert a.__eq__(b) is NotImplemented
+    assert b.__eq__(a) is NotImplemented
+    assert a.__ne__(b) is NotImplemented
+    assert b.__ne__(a) is NotImplemented
+    assert a._approx_eq_(b, atol=1e-9) is NotImplemented
+
+
 @pytest.mark.parametrize('terms', (
     ({}, {'X': 1}, {'X': 2, 'Y': 3}, {'X': 1.23456789e-12})
 ))
