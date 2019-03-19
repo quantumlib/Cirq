@@ -383,7 +383,7 @@ def _enter_moment_display_values_into_dictionary(
         moment: ops.Moment,
         state: np.ndarray,
         qubit_order: ops.QubitOrder,
-        qubit_map: Dict[ops.QubitId, int]):
+        qubit_map: Dict[ops.Qid, int]):
     for op in moment:
         if isinstance(op, ops.DensityMatrixDisplay):
             display_values[op.key] = (
@@ -396,7 +396,7 @@ def _enter_moment_display_values_into_dictionary(
 def _compute_samples_display_value(display: ops.SamplesDisplay,
         state: np.ndarray,
         qubit_order: ops.QubitOrder,
-        qubit_map: Dict[ops.QubitId, int]):
+        qubit_map: Dict[ops.Qid, int]):
     n = len(qubit_map)
     state = np.reshape(state, (2,) * n * 2)
     for op in display.measurement_basis_change():

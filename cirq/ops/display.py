@@ -116,7 +116,7 @@ class DensityMatrixDisplay(raw_types.Operation):
     @abc.abstractmethod
     def value_derived_from_density_matrix(self,
                                           state: np.ndarray,
-                                          qubit_map: Dict[raw_types.QubitId, int]
+                                          qubit_map: Dict[raw_types.Qid, int]
                                           ) -> Any:
         """The value of the display, derived from the density matrix.
 
@@ -217,7 +217,7 @@ class PauliStringExpectation(WaveFunctionDisplay, DensityMatrixDisplay):
 
     def value_derived_from_density_matrix(self,
                                           state: np.ndarray,
-                                          qubit_map: Dict[raw_types.QubitId, int]
+                                          qubit_map: Dict[raw_types.Qid, int]
                                           ) -> float:
         num_qubits = state.shape[0].bit_length() - 1
         result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
