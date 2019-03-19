@@ -330,6 +330,17 @@ def test_expressions(expression, expected):
     assert cirq.approx_eq(expression, expected)
 
 
+@pytest.mark.parametrize('terms', (
+    ({}, {'X': 1}, {'X': 2, 'Y': 3}, {'X': 1.23456789e-12})
+))
+def test_repr(terms):
+    original = cirq.LinearDict(terms)
+    print(repr(original))
+    recovered = eval(repr(original))
+    assert original == recovered
+    assert recovered == original
+
+
 @pytest.mark.parametrize('terms, string', (
     ({}, '0'),
     ({'X': 1.5, 'Y': 1e-5}, '1.500*X'),
@@ -343,17 +354,6 @@ def test_expressions(expression, expected):
 def test_str(terms, string):
     linear_dict = cirq.LinearDict(terms)
     assert str(linear_dict).replace(' ', '') == string.replace(' ', '')
-
-
-@pytest.mark.parametrize('terms', (
-    ({}, {'X': 1}, {'X': 2, 'Y': 3}, {'X': 1.23456789e-12})
-))
-def test_repr(terms):
-    original = cirq.LinearDict(terms)
-    print(repr(original))
-    recovered = eval(repr(original))
-    assert original == recovered
-    assert recovered == original
 
 
 class FakePrinter:
