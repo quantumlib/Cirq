@@ -351,9 +351,7 @@ def test_approximately_equal(terms_1, terms_2):
 ))
 def test_incomparable(a, b):
     assert a.__eq__(b) is NotImplemented
-    assert b.__eq__(a) is NotImplemented
     assert a.__ne__(b) is NotImplemented
-    assert b.__ne__(a) is NotImplemented
     assert a._approx_eq_(b, atol=1e-9) is NotImplemented
 
 
