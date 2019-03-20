@@ -293,10 +293,7 @@ def test_expressions(expression, expected):
 ))
 def test_bool(terms, bool_value):
     linear_dict = cirq.LinearDict(terms)
-    if linear_dict:
-        assert bool_value
-    else:
-        assert not bool_value
+    assert bool(linear_dict) == bool_value
 
 
 @pytest.mark.parametrize('terms_1, terms_2', (
