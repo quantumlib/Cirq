@@ -165,7 +165,7 @@ def test_executor_random(num_qubits: int,
     initial_mapping = {q: q for q in qubits}
     final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
-    circuit.append(cca.LinearPermutationGate(permutation)(*qubits))
+    circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
     actual_unitary = circuit.to_unitary_matrix()
 
     np.testing.assert_allclose(
@@ -184,3 +184,6 @@ def test_acquaintance_operation():
         op = cca.AcquaintanceOperation(physical_qubits, logical_indices)
         assert op.logical_indices == logical_indices
         assert op.qubits == physical_qubits
+        wire_symbols = tuple('({})'.format(i) for i in logical_indices)
+        assert (cirq.circuit_diagram_info(op) ==
+                cirq.CircuitDiagramInfo(wire_symbols=wire_symbols))

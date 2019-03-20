@@ -24,7 +24,28 @@ from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
 
-class AcquaintanceOpportunityGate(ops.MultiQubitGate):
+
+def operations_to_part_lens(
+        qubit_order: Sequence[ops.Qid],
+        op_tree: ops.OP_TREE,
+        ) -> Tuple[int, ...]:
+    qubit_sort_key = functools.partial(operator.indexOf, qubit_order)
+    op_parts = [tuple(sorted(op.qubits,key=qubit_sort_key))
+                for op in ops.flatten_op_tree(op_tree)]
+    singletons = [(q,) for q in set(qubit_order).difference(*op_parts)
+                 ] # type: List[Tuple[ops.Qid, ...]]
+    part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
+    parts = tuple(tuple(part) for part in
+                  sorted(singletons + op_parts, key=part_sort_key))
+
+    if sum(parts, ()) != tuple(qubit_order):
+        raise ValueError('sum(parts, ()) != tuple(qubit_order)')
+
+    return tuple(len(part) for part in parts)
+
+
+class AcquaintanceOpportunityGate(
+        ops.MultiQubitGate, ops.InterchangeableQubitsGate):
     """Represents an acquaintance opportunity. An acquaintance opportunity is
     essentially a placeholder in a swap network that may later be replaced with
     a logical gate."""
@@ -220,6 +241,7 @@ class SwapNetworkGate(PermutationGate):
             desired; used to keep track of this while nesting. If 0, no
             acquaintance gates are inserted. If None, after each pair of parts
             is shifted the union thereof is acquainted.
+        swap_gate: The gate used to swap logical indices.
 
     Attributes:
         part_lens: See above.
@@ -279,7 +301,8 @@ class SwapNetworkGate(PermutationGate):
         # finish reversal
         final_permutation = {i: n_qubits - 1 - mapping[q]
                 for i, q in enumerate(qubits)}
-        final_gate = LinearPermutationGate(final_permutation, self.swap_gate)
+        final_gate = LinearPermutationGate(
+                n_qubits, final_permutation, self.swap_gate)
         if final_gate:
             yield final_gate(*qubits)
 
@@ -296,20 +319,10 @@ class SwapNetworkGate(PermutationGate):
     @staticmethod
     def from_operations(qubit_order: Sequence[ops.Qid],
                         operations: Sequence[ops.Operation],
-                        acquaintance_size: int=0
+                        acquaintance_size: Optional[int] = 0,
+                        swap_gate: ops.Gate=ops.SWAP
                         ) -> 'SwapNetworkGate':
-        qubit_sort_key = functools.partial(operator.indexOf, qubit_order)
-        op_parts = [tuple(sorted(op.qubits,key=qubit_sort_key))
-                    for op in operations]
-        singletons = [(q,) for q in set(qubit_order).difference(*op_parts)
-                     ] # type: List[Tuple[ops.Qid, ...]]
-        part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
-        parts = tuple(tuple(part) for part in
-                      sorted(singletons + op_parts, key=part_sort_key))
-        part_sizes = tuple(len(part) for part in parts)
-
-        assert sum(parts, ()) == tuple(qubit_order)
-
+        part_sizes = operations_to_part_lens(qubit_order, operations)
         return SwapNetworkGate(part_sizes, acquaintance_size)
 
     def permutation(self) -> Dict[int, int]:
