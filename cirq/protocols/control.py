@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, Union, List
+from typing import Any, TYPE_CHECKING, TypeVar, Union, List
 
 import collections
 
-import cirq
+from cirq.ops import op_tree
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 # This is a special indicator value used by the control method to determine
 # whether or not the caller provided a 'default' argument.
@@ -25,7 +29,7 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 TDefault = TypeVar('TDefault')
 
-def control(controllee: Union['cirq.Gate', 'cirq.OP_TREE'],
+def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
             control_qubits: List['cirq.Qid'] = None,
             default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns a Controlled version of the given value, if defined.
@@ -58,7 +62,7 @@ def control(controllee: Union['cirq.Gate', 'cirq.OP_TREE'],
         return result
 
     if isinstance(controllee, collections.Iterable):
-        return cirq.transform_op_tree(controllee, op_transformation=
+        return op_tree.transform_op_tree(controllee, op_transformation=
                                       lambda op: control(op, control_qubits))
 
     if default is not RaiseTypeErrorIfNotProvided:
