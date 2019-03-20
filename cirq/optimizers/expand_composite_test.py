@@ -21,8 +21,8 @@ def assert_equal_mod_empty(expected, actual):
     drop_empty.optimize_circuit(actual)
 
     # coverage: ignore
-    assert expected == actual, 'EXPECTED %s : ACTUAL %s' %(str(expected),
-                                                           str(actual))
+    assert expected == actual, 'EXPECTED {} : ACTUAL {}'.format(expected,
+                                                                actual)
 
 def test_empty_circuit():
     circuit = cirq.Circuit()
