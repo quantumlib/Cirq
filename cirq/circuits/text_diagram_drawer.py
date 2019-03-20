@@ -83,14 +83,15 @@ class TextDiagramDrawer:
                 else dict(vertical_padding)
                 ) # type: Dict[int, Union[int, float]]
 
+    def _value_equality_values_(self):
+        attrs = ('entries', 'horizontal_lines', 'vertical_lines',
+                 'horizontal_padding', 'vertical_padding')
+        return tuple(getattr(self, attr) for attr in attrs)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        attrs = ('entries', 'horizontal_lines', 'vertical_lines',
-                 'horizontal_padding', 'vertical_padding',
-                 )
-        return all(getattr(self, attr) ==
-                   getattr(other, attr) for attr in attrs)
+        return self._value_equality_values_() == other._value_equality_values_()
 
     def write(self,
               x: int,
