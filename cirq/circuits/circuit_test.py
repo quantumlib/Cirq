@@ -2841,3 +2841,8 @@ def test_pow_valid_only_for_minus_1():
         cirq.pow(forward, 0)
     with pytest.raises(TypeError, match='__pow__'):
         cirq.pow(forward, -2.5)
+
+
+def test_device_propagates():
+    c = cirq.Circuit(device=moment_and_op_type_validating_device)
+    assert c[:].device is moment_and_op_type_validating_device
