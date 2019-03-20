@@ -444,7 +444,7 @@ def _same_element_or_throw_error(elements: Sequence[Any]):
     copies of it. Returns None on an empty sequence.
 
     Raises:
-        ValueError: The sequence constai
+        ValueError: The sequence contains more than one unique element.
 
     Returns:
         The element when given a sequence containing only multiple copies of a
