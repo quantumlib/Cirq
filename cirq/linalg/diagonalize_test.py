@@ -72,7 +72,8 @@ def _get_assert_diagonalized_by_str(m, p, d):
     return 'm.round(3) : %f, p.round(3) : %f,' + \
         'np.log10(np.abs(p.T @ m @ p)).round(2): %f' %(np.round(m, 3),
                                                        p.round(3),
-                                                       np.log10(np.abs(d)).round(2))
+                                                       np.log10(np.abs(d)) \
+                                                       .round(2))
 
 def assert_diagonalized_by(m, p, atol: float = 1e-8):
     d = p.T.dot(m).dot(p)
@@ -84,13 +85,15 @@ def _get_assert_bidiagonalized_by_str(m, p, q, d):
     return 'm.round(3) : %f, p.round(3) : %f, q.round(3): %f' + \
         'np.log10(np.abs(p.T @ m @ p)).round(2): %f' %(np.round(m, 3),
                                                        np.round(q, 3),
-                                                       np.log10(np.abs(d)).round(2))
+                                                       np.log10(np.abs(d))\
+                                                       .round(2))
 
 def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
                              atol: float = 1e-8):
     d = p.dot(m).dot(q)
 
-    assert cirq.is_orthogonal(p) and  cirq.is_orthogonal(q) and cirq.is_diagonal(d, atol=atol), \
+    assert cirq.is_orthogonal(p) and  cirq.is_orthogonal(q) and \
+        cirq.is_diagonal(d, atol=atol), \
         _get_assert_bidiagonalized_by_str(m, p, q, d)
 
 @pytest.mark.parametrize('matrix', [

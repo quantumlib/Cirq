@@ -36,7 +36,8 @@ def assert_optimizes(
         post(before)  # type: ignore #  error: "object" not callable
         post(expected)  # type: ignore #  error: "object" not callable
 
-    assert before == expected, 'BEFORE %s : EXPECTED %s' %(str(before), str(expected))
+    assert before == expected, 'BEFORE %s : EXPECTED %s' %(str(before),
+                                                           str(expected))
 
 def test_leaves_singleton():
     m = cirq.MergeSingleQubitGates()

@@ -20,7 +20,8 @@ def assert_equal_mod_empty(expected, actual):
     drop_empty = cirq.DropEmptyMoments()
     drop_empty.optimize_circuit(actual)
 
-    assert expected == actual, 'EXPECTED %s : ACTUAL %s' %(str(expected), str(actual))
+    assert expected == actual, 'EXPECTED %s : ACTUAL %s' %(str(expected),
+                                                           str(actual))
 
 def test_empty_circuit():
     circuit = cirq.Circuit()
