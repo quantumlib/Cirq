@@ -41,17 +41,29 @@ def test_resolve_parameters():
             self.parameter = resolver.value_of(self.parameter)
             return self
 
-
     assert not cirq.is_parameterized(NoMethod())
     assert not cirq.is_parameterized(ReturnsNotImplemented())
     assert not cirq.is_parameterized(SimpleParameterSwitch('a'))
     assert cirq.is_parameterized(SimpleParameterSwitch(0))
 
     ni = ReturnsNotImplemented()
-    r = cirq.ParamResolver({'a': 0})
+    d = {'a': 0}
+    r = cirq.ParamResolver(d)
     no = NoMethod()
     assert cirq.resolve_parameters(no, r) == no
+    assert cirq.resolve_parameters(no, d) == no
     assert cirq.resolve_parameters(ni, r) == ni
     assert cirq.resolve_parameters(SimpleParameterSwitch(0), r).parameter == 0
     assert cirq.resolve_parameters(SimpleParameterSwitch('a'), r).parameter == 0
+    assert cirq.resolve_parameters(SimpleParameterSwitch('a'), d).parameter == 0
     assert cirq.resolve_parameters(sympy.Symbol('a'), r) == 0
+
+
+def test_skips_empty_resolution():
+    class Tester:
+        def _resolve_parameters_(self, param_resolver):
+            return 5
+
+    t = Tester()
+    assert cirq.resolve_parameters(t, {}) is t
+    assert cirq.resolve_parameters(t, {'x': 2}) == 5

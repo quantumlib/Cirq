@@ -44,7 +44,7 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
     def run(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: Optional[study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         repetitions: int = 1,
     ) -> study.TrialResult:
         """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
@@ -58,7 +58,7 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
             TrialResult for a run.
         """
         return self.run_sweep(program,
-                              [param_resolver or study.ParamResolver({})],
+                              study.ParamResolver(param_resolver),
                               repetitions)[0]
 
     def run_sweep(
@@ -121,7 +121,7 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
     def compute_samples_displays(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: Optional[study.ParamResolver] = None,
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
     ) -> study.ComputeDisplaysResult:
         """Computes SamplesDisplays in the supplied Circuit or Schedule.
 
@@ -133,7 +133,8 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
             ComputeDisplaysResult for the simulation.
         """
         return self.compute_samples_displays_sweep(
-            program, [param_resolver or study.ParamResolver({})])[0]
+            program,
+            study.ParamResolver(param_resolver))[0]
 
     def compute_samples_displays_sweep(
             self,
@@ -200,7 +201,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     def simulate(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: Optional[study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> 'SimulationTrialResult':
@@ -222,10 +223,11 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         Returns:
             SimulationTrialResults for the simulation. Includes the final state.
         """
-        return self.simulate_sweep(program,
-                                   [param_resolver or study.ParamResolver({})],
-                                   qubit_order,
-                                   initial_state)[0]
+        return self.simulate_sweep(
+            program,
+            study.ParamResolver(param_resolver),
+            qubit_order,
+            initial_state)[0]
 
     @abc.abstractmethod
     def simulate_sweep(
@@ -321,7 +323,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     def simulate_moment_steps(
         self,
         circuit: circuits.Circuit,
-        param_resolver: Optional[study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None
     ) -> Iterator:
@@ -344,9 +346,11 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             Iterator that steps through the simulation, simulating each
             moment and returning a StepResult for each moment.
         """
-        param_resolver = param_resolver or study.ParamResolver({})
-        return self._simulator_iterator(circuit, param_resolver, qubit_order,
-                                        initial_state)
+        return self._simulator_iterator(
+            circuit,
+            study.ParamResolver(param_resolver),
+            qubit_order,
+            initial_state)
 
     @abc.abstractmethod
     def _simulator_iterator(
