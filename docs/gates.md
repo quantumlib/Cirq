@@ -1,7 +1,7 @@
 ## Gates
 
 A ``Gate`` is an operation that can be applied to a collection of 
-qubits (objects with a ``QubitId``).  ``Gates`` can be applied
+qubits (objects with a ``Qid``).  ``Gates`` can be applied
 to qubits by calling their ``on`` method, or, alternatively
 calling the gate on the qubits.  The object created by such calls
 is an ``Operation``.

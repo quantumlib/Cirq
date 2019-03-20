@@ -51,7 +51,7 @@ def test_random_circuit_errors():
         choice((True, False))
     ) for _ in range(10)]
 )
-def test_random_circuit(n_qubits: Union[int, Sequence[cirq.QubitId]],
+def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
                         n_moments: int,
                         op_density: float,
                         gate_domain: Optional[Dict[cirq.Gate, int]],

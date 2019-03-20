@@ -16,7 +16,7 @@ from cirq import ops, circuits, devices
 
 
 def nonoptimal_toffoli_circuit(
-        q0: ops.QubitId, q1: ops.QubitId, q2: ops.QubitId,
+        q0: ops.Qid, q1: ops.Qid, q2: ops.Qid,
         device: devices.Device = devices.UnconstrainedDevice
         ) -> circuits.Circuit:
     return circuits.Circuit.from_ops(
