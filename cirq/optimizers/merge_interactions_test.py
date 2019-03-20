@@ -41,14 +41,7 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(actual)
         post(expected)
 
-    if actual != expected:
-        # coverage: ignore
-        print('ACTUAL')
-        print(actual)
-        print('EXPECTED')
-        print(expected)
-    assert actual == expected
-
+    assert actual == expected, 'ACTUAL %s : EXPECTED %s' %(str(actual), str(expected))
 
 def assert_optimization_not_broken(circuit):
     """Check that the unitary matrix for the input circuit is the same (up to
