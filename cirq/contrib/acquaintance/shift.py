@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from itertools import chain
-from typing import Sequence, Dict, Tuple
+import itertools
+from typing import Dict, Sequence, Tuple
 
-from cirq import protocols, value
-from cirq.ops import Gate, SWAP, OP_TREE, Qid
+from cirq import ops, protocols, value
 from cirq.contrib.acquaintance.permutation import (
         SwapPermutationGate, PermutationGate)
 
@@ -34,10 +33,9 @@ class CircularShiftGate(PermutationGate):
     def __init__(self,
                  num_qubits: int,
                  shift: int,
-                 swap_gate: Gate=SWAP) -> None:
+                 swap_gate: ops.Gate=ops.SWAP) -> None:
         super(CircularShiftGate, self).__init__(num_qubits, swap_gate)
         self.shift = shift
-
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.CircularShiftGate('
@@ -47,13 +45,13 @@ class CircularShiftGate(PermutationGate):
     def _value_equality_values_(self):
         return self.shift, self.swap_gate, self.num_qubits()
 
-    def _decompose_(self, qubits: Sequence[Qid]) -> OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         n = len(qubits)
         left_shift = self.shift % n
         right_shift = n - left_shift
-        mins = chain(range(left_shift - 1, 0, -1),
+        mins = itertools.chain(range(left_shift - 1, 0, -1),
                      range(right_shift))
-        maxs = chain(range(left_shift, n),
+        maxs = itertools.chain(range(left_shift, n),
                      range(n - 1, right_shift, -1))
         swap_gate = SwapPermutationGate(self.swap_gate)
         for i, j in zip(mins, maxs):
@@ -76,6 +74,9 @@ class CircularShiftGate(PermutationGate):
 
     def permutation(self) -> Dict[int, int]:
         shift = self.shift % self.num_qubits()
-        permuted_indices = chain(range(shift, self.num_qubits()),
+        permuted_indices = itertools.chain(range(shift, self.num_qubits()),
                                  range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}
+
+
+
