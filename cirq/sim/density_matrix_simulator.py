@@ -407,6 +407,7 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     state = np.reshape(state, (2,) * n * 2)
     basis_change = ops.flatten_op_tree(display.measurement_basis_change())
     for op in basis_change:
+        # TODO: Use apply_channel similar to apply_unitary.
         indices = [qubit_map[qubit] for qubit in op.qubits]
         gate = cast(ops.GateOperation, op).gate
         unitary = protocols.unitary(gate)
