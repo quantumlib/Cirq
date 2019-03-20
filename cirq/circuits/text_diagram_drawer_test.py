@@ -353,3 +353,25 @@ AB D
 
 def test_drawer_eq():
     assert TextDiagramDrawer().__eq__(23) == NotImplemented
+
+    eq = ct.EqualsTester()
+
+    d = TextDiagramDrawer()
+    d.write(0, 0, 'A')
+    d.write(1, 0, 'B')
+    d.write(1, 1, 'C')
+
+    alt_d = TextDiagramDrawer()
+    alt_d.write(0, 0, 'A')
+    alt_d.write(1, 0, 'B')
+    alt_d.write(1, 1, 'C')
+
+    eq.add_equality_group(d, alt_d)
+
+    dd = TextDiagramDrawer()
+    dd.write(0, 0, 'D')
+    dd.write(0, 1, 'E')
+    dd.write(1, 1, 'F')
+
+    eq.add_equality_group(dd)
+
