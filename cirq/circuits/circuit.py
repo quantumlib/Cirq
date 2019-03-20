@@ -170,7 +170,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key])
+            return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
         else:
@@ -1423,7 +1423,7 @@ class Circuit:
                 param_resolver)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        resolved_circuit = Circuit(resolved_moments)
+        resolved_circuit = Circuit(resolved_moments, device=self.device)
         return resolved_circuit
 
     def _qasm_(self) -> str:
