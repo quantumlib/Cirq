@@ -95,7 +95,6 @@ def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
                              atol: float = 1e-8):
     d = p.dot(m).dot(q)
 
-    # coverage: ignore
     assert cirq.is_orthogonal(p) and  cirq.is_orthogonal(q) and \
         cirq.is_diagonal(d, atol=atol), \
         _get_assert_bidiagonalized_by_str(m, p, q, d)

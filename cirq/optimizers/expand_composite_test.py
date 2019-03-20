@@ -20,7 +20,6 @@ def assert_equal_mod_empty(expected, actual):
     drop_empty = cirq.DropEmptyMoments()
     drop_empty.optimize_circuit(actual)
 
-    # coverage: ignore
     assert expected == actual, 'EXPECTED {} : ACTUAL {}'.format(expected,
                                                                 actual)
 

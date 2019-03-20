@@ -41,7 +41,6 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(actual)
         post(expected)
 
-    # coverage: ignore
     assert actual == expected, 'ACTUAL {} : EXPECTED {}'.format(actual,
                                                                 expected)
 

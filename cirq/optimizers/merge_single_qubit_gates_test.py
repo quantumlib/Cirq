@@ -36,7 +36,6 @@ def assert_optimizes(
         post(before)  # type: ignore #  error: "object" not callable
         post(expected)  # type: ignore #  error: "object" not callable
 
-    # coverage: ignore
     assert before == expected, 'BEFORE {} : EXPECTED {}'.format(before,
                                                                 expected)
 
