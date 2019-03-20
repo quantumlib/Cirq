@@ -70,7 +70,7 @@ def random_bi_diagonalizable_pair(
 
 def _get_assert_diagonalized_by_str(m, p, d):
     # coverage: ignore
-    return 'm.round(3) : %f, p.round(3) : %f,' \
+    return 'm.round(3) : %f, p.round(3) : %f, ' \
         'np.log10(np.abs(p.T @ m @ p)).round(2): %f' %(np.round(m, 3),
                                                        np.round(p, 3),
                                                        np.log10(np.abs(d))\
@@ -85,7 +85,7 @@ def assert_diagonalized_by(m, p, atol: float = 1e-8):
 
 def _get_assert_bidiagonalized_by_str(m, p, q, d):
     # coverage: ignore
-    return 'm.round(3) : %f, p.round(3) : %f, q.round(3): %f' \
+    return 'm.round(3) : %f, p.round(3) : %f, q.round(3): %f, ' \
     'np.log10(np.abs(p.T @ m @ p)).round(2): %f' %(np.round(m, 3),
                                                        np.round(p, 3),
                                                        np.round(q, 3),
