@@ -57,7 +57,6 @@ def make_quantum_teleportation_circuit(ranX, ranY):
 
 
 def main():
-    state = []
     ranX = random.random()
     ranY = random.random()
     circuit = make_quantum_teleportation_circuit(ranX, ranY)
