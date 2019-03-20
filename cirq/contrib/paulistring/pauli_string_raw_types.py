@@ -29,12 +29,12 @@ class PauliStringGateOperation(ops.Operation,
     def __init__(self, pauli_string: PauliString) -> None:
         self.pauli_string = pauli_string
 
-    def validate_args(self, qubits: Sequence[ops.QubitId]) -> None:
+    def validate_args(self, qubits: Sequence[ops.Qid]) -> None:
         if len(qubits) != len(self.pauli_string):
             raise ValueError('Incorrect number of qubits for gate')
 
     def with_qubits(self: TSelf_PauliStringGateOperation,
-                    *new_qubits: ops.QubitId
+                    *new_qubits: ops.Qid
                     ) -> TSelf_PauliStringGateOperation:
         self.validate_args(new_qubits)
         return self.map_qubits(dict(zip(self.pauli_string.qubits,
@@ -42,7 +42,7 @@ class PauliStringGateOperation(ops.Operation,
 
     @abc.abstractmethod
     def map_qubits(self: TSelf_PauliStringGateOperation,
-                   qubit_map: Dict[ops.QubitId, ops.QubitId]
+                   qubit_map: Dict[ops.Qid, ops.Qid]
                    ) -> TSelf_PauliStringGateOperation:
         """Return an equivalent operation on new qubits with its Pauli string
         mapped to new qubits.
@@ -52,7 +52,7 @@ class PauliStringGateOperation(ops.Operation,
         pass
 
     @property
-    def qubits(self) -> Tuple[ops.QubitId, ...]:
+    def qubits(self) -> Tuple[ops.Qid, ...]:
         return tuple(self.pauli_string)
 
     def _pauli_string_diagram_info(self,

@@ -15,21 +15,22 @@
 """Tools for creating and using acquaintance strategies."""
 
 from cirq.contrib.acquaintance.bipartite import (
-        BipartiteGraphType, BipartiteSwapNetworkGate)
+    BipartiteGraphType, BipartiteSwapNetworkGate)
 
 from cirq.contrib.acquaintance.devices import (
-        get_acquaintance_size, UnconstrainedAcquaintanceDevice)
+    get_acquaintance_size, UnconstrainedAcquaintanceDevice)
 
 from cirq.contrib.acquaintance.executor import (
-        AcquaintanceOperation, GreedyExecutionStrategy, StrategyExecutor)
+    AcquaintanceOperation, GreedyExecutionStrategy, StrategyExecutor)
 
 from cirq.contrib.acquaintance.gates import (
-        acquaint, AcquaintanceOpportunityGate, SwapNetworkGate)
+    acquaint, AcquaintanceOpportunityGate, SwapNetworkGate)
 
 from cirq.contrib.acquaintance.inspection_utils import (
-        get_logical_acquaintance_opportunities)
+    get_logical_acquaintance_opportunities)
 
 from cirq.contrib.acquaintance.mutation_utils import (
+    expose_acquaintance_gates,
     rectify_acquaintance_strategy,
     replace_acquaintance_with_swap_network)
 
@@ -37,13 +38,19 @@ from cirq.contrib.acquaintance.optimizers import (
     remove_redundant_acquaintance_opportunities)
 
 from cirq.contrib.acquaintance.permutation import (
-        LinearPermutationGate, PermutationGate,
-        SwapPermutationGate, update_mapping)
+    LinearPermutationGate, PermutationGate,
+    SwapPermutationGate, update_mapping)
 
 from cirq.contrib.acquaintance.shift import (
-        CircularShiftGate)
+    CircularShiftGate)
+
+from cirq.contrib.acquaintance.shift_swap_network import (
+    ShiftSwapNetworkGate)
 
 from cirq.contrib.acquaintance.strategies import (
     complete_acquaintance_strategy,
     cubic_acquaintance_strategy,
     quartic_paired_acquaintance_strategy)
+
+from cirq.contrib.acquaintance import (
+    testing)
