@@ -202,6 +202,18 @@ def test_init_from_pauli(pauli, sqrt, expected):
 def test_pow():
     assert cirq.SingleQubitCliffordGate.X**-1 == cirq.SingleQubitCliffordGate.X
     assert cirq.SingleQubitCliffordGate.H**-1 == cirq.SingleQubitCliffordGate.H
+    assert (cirq.SingleQubitCliffordGate.X_sqrt ==
+            cirq.SingleQubitCliffordGate.X**0.5)
+    assert (cirq.SingleQubitCliffordGate.Y_sqrt ==
+            cirq.SingleQubitCliffordGate.Y**0.5)
+    assert (cirq.SingleQubitCliffordGate.Z_sqrt ==
+            cirq.SingleQubitCliffordGate.Z**0.5)
+    assert (cirq.SingleQubitCliffordGate.X_nsqrt ==
+            cirq.SingleQubitCliffordGate.X**-0.5)
+    assert (cirq.SingleQubitCliffordGate.Y_nsqrt ==
+            cirq.SingleQubitCliffordGate.Y**-0.5)
+    assert (cirq.SingleQubitCliffordGate.Z_nsqrt ==
+            cirq.SingleQubitCliffordGate.Z**-0.5)
     assert (cirq.SingleQubitCliffordGate.X_sqrt**-1 ==
             cirq.SingleQubitCliffordGate.X_nsqrt)
     assert cirq.inverse(cirq.SingleQubitCliffordGate.X_nsqrt) == (

@@ -207,8 +207,11 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 self.transform(pauli_gates.Z))
 
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
-        if exponent != -1:
+        if exponent == 0.5 or exponent == -0.5:
+            return SQRT_EXP_MAP[exponent][self]
+        elif exponent != -1:
             return NotImplemented
+
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)
 
@@ -398,3 +401,16 @@ SingleQubitCliffordGate.Z_sqrt  = SingleQubitCliffordGate.from_xz_map(
     (pauli_gates.Y, False), (pauli_gates.Z, False))
 SingleQubitCliffordGate.Z_nsqrt = SingleQubitCliffordGate.from_xz_map(
     (pauli_gates.Y, True), (pauli_gates.Z, False))
+
+SQRT_EXP_MAP = {
+    0.5: {
+        SingleQubitCliffordGate.X: SingleQubitCliffordGate.X_sqrt,
+        SingleQubitCliffordGate.Y: SingleQubitCliffordGate.Y_sqrt,
+        SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_sqrt
+    },
+    -0.5: {
+        SingleQubitCliffordGate.X: SingleQubitCliffordGate.X_nsqrt,
+        SingleQubitCliffordGate.Y: SingleQubitCliffordGate.Y_nsqrt,
+        SingleQubitCliffordGate.Z: SingleQubitCliffordGate.Z_nsqrt
+    }
+}
