@@ -134,6 +134,12 @@ def test_diagonalize_real_symmetric_matrix_fails(matrix):
     with pytest.raises(ValueError):
         _ = cirq.diagonalize_real_symmetric_matrix(matrix)
 
+def test_diagonalize_real_symmetric_matrix_assertion_error():
+    with pytest.raises(AssertionError):
+        matrix =  np.array([[0.5, 0], [0, 1]])
+        m = np.array([[0, 1], [0, 0]])
+        p = cirq.diagonalize_real_symmetric_matrix(matrix)
+        assert_diagonalized_by(m, p)
 
 @pytest.mark.parametrize('s,m', [
     ([1, 1], np.eye(2)),
@@ -149,10 +155,10 @@ def test_diagonalize_real_symmetric_matrix_fails(matrix):
     ([2, 1, 1],
      [[-5, 0, 0], [0, 1, 3], [0, 3, 6]]),
 ] + [
-                             ([6, 6, 5, 5, 5],
-                              random_block_diagonal_symmetric_matrix(2, 3))
+    ([6, 6, 5, 5, 5],
+     random_block_diagonal_symmetric_matrix(2, 3))
                              for _ in range(10)
-                         ])
+])
 def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars(
         s, m):
     m = np.array(m)
@@ -235,6 +241,10 @@ def test_bidiagonalize_real_fails(a, b, match: str):
         cirq.bidiagonalize_real_matrix_pair_with_symmetric_products(
             a, b)
 
+def test_bidiagonalize__assertion_error():
+    with pytest.raises(AssertionError):
+        a =  np.diag([0, 1])
+        assert_bidiagonalized_by(a, a, a)
 
 @pytest.mark.parametrize('mat', [
     np.diag([1]),
