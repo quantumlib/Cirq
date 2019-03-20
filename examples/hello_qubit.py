@@ -23,7 +23,7 @@ def main():
     print(circuit)
 
     # Simulate the circuit several times.
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=20)
     print("Results:")
     print(result)
