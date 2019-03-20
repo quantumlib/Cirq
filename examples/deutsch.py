@@ -47,10 +47,11 @@ def main():
     print(circuit)
 
     # Simulate the circuit.
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit)
     print('Result of f(0)⊕f(1):')
     print(result)
+
 
 def make_oracle(q0, q1, secret_function):
     """ Gates implementing the secret function f(x)."""
@@ -61,6 +62,7 @@ def make_oracle(q0, q1, secret_function):
 
     if secret_function[1]:
         yield CNOT(q0, q1)
+
 
 def make_deutsch_circuit(q0, q1, oracle):
     c = cirq.Circuit()
@@ -74,6 +76,7 @@ def make_deutsch_circuit(q0, q1, oracle):
     # Measure in X basis.
     c.append([H(q0), measure(q0, key='result')])
     return c
+
 
 if __name__ == '__main__':
     main()
