@@ -98,13 +98,18 @@ def _verify_xmon_circuit(circuit: circuits.Circuit):
                          "using an XmonDevice. Maybe you forgot to pass "
                          "a `device=` parameter into `cirq.Circuit`, or "
                          "intended to set `new_device=` in your call to "
-                         "`cirq.google.optimized_for_xmon`?")
+                         "`cirq.google.optimized_for_xmon`? Alternatively, "
+                         "maybe you intended to use `cirq.Simulator()` "
+                         "instead?")
     circuit.device.validate_circuit(circuit)
 
 
 class XmonSimulator(sim.SimulatesSamples,
                     sim.SimulatesIntermediateWaveFunction):
-    """XmonSimulator for Xmon class quantum circuits.
+    """XmonSimulator for quantum circuits with an Xmon device.
+
+    This simulator will raise an exception if given a circuit that doesn't
+    specify a device that is an instance of XmonDevice.
 
     This simulator has different methods for different types of simulations.
 
