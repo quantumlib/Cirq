@@ -63,7 +63,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         else:
             return ops.SingleQubitCliffordGate.I
 
-    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.QubitId
+    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.Qid
                                ) -> Optional[ops.Operation]:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)

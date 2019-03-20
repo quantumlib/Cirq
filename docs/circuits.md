@@ -19,12 +19,12 @@ the most common type of `Operation` is a `GateOperation`.
 Let's unpack this.
 
 At the base of this construction is the notion of a qubit.  In
-Cirq, qubits are represented by subclasses of the `QubitId`
-base class. Different subclasses of `QubitId` can be used
+Cirq, qubits and other quantum objects are identified by instances of subclasses
+of the `Qid` base class. Different subclasses of `Qid` can be used
 for different purposes.  For example the qubits that Google's
 Xmon devices use are often arranged on the vertices of a
 square grid.  For this the class `GridQubit`
-subclasses `QubitId`.   For example, we can create
+subclasses `Qid`.   For example, we can create
 a 3 by 3 grid of qubits using
 ```python
 qubits = [cirq.GridQubit(x, y) for x in range(3) for y in range(3)]
