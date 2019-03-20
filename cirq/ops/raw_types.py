@@ -20,7 +20,8 @@ from typing import (
 
 import abc
 
-from cirq import protocols, value
+from cirq import value
+from cirq.protocols import decompose, inverse
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -144,14 +145,14 @@ class Gate(metaclass=abc.ABCMeta):
             # HACK: break cycle
             from cirq.line import line_qubit
 
-            decomposed = protocols.decompose_once_with_qubits(
+            decomposed = decompose.decompose_once_with_qubits(
                 self,
                 qubits=line_qubit.LineQubit.range(self.num_qubits()),
                 default=None)
             if decomposed is None:
                 return NotImplemented
 
-            inverse_decomposed = protocols.inverse(decomposed, None)
+            inverse_decomposed = inverse.inverse(decomposed, None)
             if inverse_decomposed is None:
                 return NotImplemented
 
@@ -251,7 +252,7 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return protocols.inverse(protocols.decompose_once_with_qubits(
+        return inverse.inverse(decompose.decompose_once_with_qubits(
             self._original, qubits))
 
     def _value_equality_values_(self):
