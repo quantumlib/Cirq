@@ -53,6 +53,7 @@ class LinearDict(Dict[TVector, Scalar]):
         return LinearDict(dict.fromkeys(vectors, complex(coefficient)))
 
     def clean(self, *, atol: float=1e-9) -> 'LinearDict':
+        """Remove terms with coefficients of absolute value atol or less."""
         negligible = [v for v, c in super().items() if abs(c) <= atol]
         for v in negligible:
             del self[v]
