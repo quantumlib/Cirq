@@ -68,53 +68,34 @@ def random_bi_diagonalizable_pair(
     b = cirq.dot(u, z, v)
     return a, b
 
+def _get_assert_diagonalized_by_str(m, p, d):
+    return 'm.round(3) : {}, p.round(3) : {}, ' \
+        'np.log10(np.abs(p.T @ m @ p)).round(2): {}'.format(np.round(m, 3),
+                                                            np.round(p, 3),
+                                                            np.log10(np.abs(d))\
+                                                            .round(2))
 
 def assert_diagonalized_by(m, p, atol: float = 1e-8):
     d = p.T.dot(m).dot(p)
 
-    try:
-        assert cirq.is_orthogonal(p)
-        assert cirq.is_diagonal(d, atol=atol)
-    except AssertionError:
-        # coverage: ignore
+    assert cirq.is_orthogonal(p) and cirq.is_diagonal(d, atol=atol), \
+        _get_assert_diagonalized_by_str(m, p, d)
 
-        print("m.round(3)")
-        print(np.round(m, 3))
-
-        print("p.round(3)")
-        print(np.round(p, 3))
-
-        print("np.log10(np.abs(p.T @ m @ p)).round(2)")
-        print(np.log10(np.abs(d)).round(2))
-
-        raise
-
+def _get_assert_bidiagonalized_by_str(m, p, q, d):
+    return 'm.round(3) : {}, p.round(3) : {}, q.round(3): {}, ' \
+        'np.log10(np.abs(p.T @ m @ p)).round(2): {}'.format(np.round(m, 3),
+                                                            np.round(p, 3),
+                                                            np.round(q, 3),
+                                                            np.log10(np.abs(d) \
+                                                                     .round(2)))
 
 def assert_bidiagonalized_by(m, p, q, rtol: float = 1e-5,
                              atol: float = 1e-8):
     d = p.dot(m).dot(q)
 
-    try:
-        assert cirq.is_orthogonal(p)
-        assert cirq.is_orthogonal(q)
-        assert cirq.is_diagonal(d, atol=atol)
-    except AssertionError:
-        # coverage: ignore
-
-        print("m.round(3)")
-        print(np.round(m, 3))
-
-        print("p.round(3)")
-        print(np.round(p, 3))
-
-        print("q.round(3)")
-        print(np.round(q, 3))
-
-        print("np.log10(np.abs(p @ m @ q)).round(2)")
-        print(np.log10(np.abs(d)).round(2))
-
-        raise
-
+    assert cirq.is_orthogonal(p) and  cirq.is_orthogonal(q) and \
+        cirq.is_diagonal(d, atol=atol), \
+        _get_assert_bidiagonalized_by_str(m, p, q, d)
 
 @pytest.mark.parametrize('matrix', [
     np.array([[0, 0], [0, 0]]),
@@ -153,6 +134,12 @@ def test_diagonalize_real_symmetric_matrix_fails(matrix):
     with pytest.raises(ValueError):
         _ = cirq.diagonalize_real_symmetric_matrix(matrix)
 
+def test_diagonalize_real_symmetric_matrix_assertion_error():
+    with pytest.raises(AssertionError):
+        matrix =  np.array([[0.5, 0], [0, 1]])
+        m = np.array([[0, 1], [0, 0]])
+        p = cirq.diagonalize_real_symmetric_matrix(matrix)
+        assert_diagonalized_by(m, p)
 
 @pytest.mark.parametrize('s,m', [
     ([1, 1], np.eye(2)),
@@ -168,10 +155,10 @@ def test_diagonalize_real_symmetric_matrix_fails(matrix):
     ([2, 1, 1],
      [[-5, 0, 0], [0, 1, 3], [0, 3, 6]]),
 ] + [
-                             ([6, 6, 5, 5, 5],
-                              random_block_diagonal_symmetric_matrix(2, 3))
+    ([6, 6, 5, 5, 5],
+     random_block_diagonal_symmetric_matrix(2, 3))
                              for _ in range(10)
-                         ])
+])
 def test_simultaneous_diagonalize_real_symmetric_matrix_vs_singulars(
         s, m):
     m = np.array(m)
@@ -254,6 +241,10 @@ def test_bidiagonalize_real_fails(a, b, match: str):
         cirq.bidiagonalize_real_matrix_pair_with_symmetric_products(
             a, b)
 
+def test_bidiagonalize__assertion_error():
+    with pytest.raises(AssertionError):
+        a =  np.diag([0, 1])
+        assert_bidiagonalized_by(a, a, a)
 
 @pytest.mark.parametrize('mat', [
     np.diag([1]),
