@@ -29,7 +29,7 @@ class Zero(cirq.DensityMatrixDisplay):
         return self._qubits
 
     def with_qubits(self, *new_qubits):
-        return Constant(new_qubits, self._key)
+        return Zero(new_qubits, self._key) # coverage: ignore
 
     @property
     def key(self):
@@ -44,7 +44,6 @@ def test_density_matrix_display_on_wavefunction():
     circuit = cirq.Circuit.from_ops(zero_display)
     simulator = cirq.Simulator()
     result = simulator.compute_displays(circuit)
-    print(result)
     assert result.display_values['zero'] == 0
 
 
