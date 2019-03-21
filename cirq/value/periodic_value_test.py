@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sympy
+
 import cirq
 
 
@@ -126,3 +128,10 @@ def test_periodic_value_approx_eq_boundary():
 def test_periodic_value_types_mismatch():
     assert not cirq.approx_eq(cirq.PeriodicValue(0.0, 2.0), 0.0, atol=0.2)
     assert not cirq.approx_eq(0.0, cirq.PeriodicValue(0.0, 2.0), atol=0.2)
+
+def test_periodic_value_is_parameterized():
+    assert not cirq.is_parameterized(cirq.PeriodicValue(1.0, 3.0))
+    assert cirq.is_parameterized(cirq.PeriodicValue(0.0, sympy.Symbol('p')))
+    assert cirq.is_parameterized(cirq.PeriodicValue(sympy.Symbol('v'), 3.0))
+    assert cirq.is_parameterized(
+            cirq.PeriodicValue(sympy.Symbol('v'), sympy.Symbol('p')))

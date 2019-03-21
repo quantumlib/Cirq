@@ -93,7 +93,7 @@ class WaveFunctionDisplay(raw_types.Operation):
     @abc.abstractmethod
     def value_derived_from_wavefunction(self,
                                         state: np.ndarray,
-                                        qubit_map: Dict[raw_types.QubitId, int]
+                                        qubit_map: Dict[raw_types.Qid, int]
                                         ) -> Any:
         """The value of the display, derived from the full wavefunction.
 
@@ -118,11 +118,11 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         self._key = key
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return self._pauli_string.qubits
 
     def with_qubits(self,
-                    *new_qubits: raw_types.QubitId
+                    *new_qubits: raw_types.Qid
                     ) -> 'ApproxPauliStringExpectation':
         return ApproxPauliStringExpectation(
                 self._pauli_string.with_qubits(*new_qubits),
@@ -160,11 +160,11 @@ class PauliStringExpectation(WaveFunctionDisplay):
         self._key = key
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return self._pauli_string.qubits
 
     def with_qubits(self,
-                    *new_qubits: raw_types.QubitId
+                    *new_qubits: raw_types.Qid
                     ) -> 'PauliStringExpectation':
         return PauliStringExpectation(
                 self._pauli_string.with_qubits(*new_qubits),
@@ -177,7 +177,7 @@ class PauliStringExpectation(WaveFunctionDisplay):
 
     def value_derived_from_wavefunction(self,
                                         state: np.ndarray,
-                                        qubit_map: Dict[raw_types.QubitId, int]
+                                        qubit_map: Dict[raw_types.Qid, int]
                                         ) -> float:
         num_qubits = state.shape[0].bit_length() - 1
         ket = np.reshape(np.copy(state), (2,) * num_qubits)

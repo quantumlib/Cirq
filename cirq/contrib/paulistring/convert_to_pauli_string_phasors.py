@@ -59,7 +59,7 @@ class ConvertToPauliStringPhasors(PointOptimizer):
 
     def _matrix_to_pauli_string_phasors(self,
                                         mat: np.ndarray,
-                                        qubit: ops.QubitId) -> ops.OP_TREE:
+                                        qubit: ops.Qid) -> ops.OP_TREE:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)
         out_ops = []  # type: List[ops.Operation]

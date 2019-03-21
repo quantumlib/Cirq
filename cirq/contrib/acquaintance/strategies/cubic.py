@@ -32,7 +32,7 @@ def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
 
 
 def cubic_acquaintance_strategy(
-        qubits: Iterable[ops.QubitId],
+        qubits: Iterable[ops.Qid],
         swap_gate: ops.Gate=ops.SWAP
         ) -> circuits.Circuit:
     """Acquaints every triple of qubits.
@@ -61,7 +61,8 @@ def cubic_acquaintance_strategy(
         new_index_order = skip_and_wrap_around(stepped_indices_concatenated)
         permutation = {i: new_index_order.index(j)
             for i, j in enumerate(index_order)}
-        permutation_gate = LinearPermutationGate(permutation, swap_gate)
+        permutation_gate = LinearPermutationGate(
+                n_qubits, permutation, swap_gate)
         moments.append(ops.Moment([permutation_gate(*qubits)]))
         for i in range(n_qubits + 1):
             for offset in range(3):

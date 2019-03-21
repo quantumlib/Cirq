@@ -42,19 +42,46 @@ def random_unitary(dim: int) -> np.ndarray:
 
 
 def random_orthogonal(dim: int) -> np.ndarray:
-    # TODO(craiggidney): Distribute with Haar measure.
-    m = np.random.randn(dim, dim) * 2 - 1
+    """Returns a random orthogonal matrix distributed with Haar measure.
+
+    Args:
+      dim: The width and height of the matrix.
+
+    Returns:
+      The sampled orthogonal matrix.
+
+    References:
+        'How to generate random matrices from the classical compact groups'
+        http://arxiv.org/abs/math-ph/0609050
+    """
+    m = np.random.randn(dim, dim)
     q, _ = np.linalg.qr(m)
     return q
 
 
 def random_special_unitary(dim: int) -> np.ndarray:
+    """Returns a random special unitary distributed with Haar measure.
+
+    Args:
+      dim: The width and height of the matrix.
+
+    Returns:
+      The sampled special unitary.
+    """
     r = random_unitary(dim)
     r[0, :] /= np.linalg.det(r)
     return r
 
 
 def random_special_orthogonal(dim: int) -> np.ndarray:
+    """Returns a random special orthogonal matrix distributed with Haar measure.
+
+    Args:
+      dim: The width and height of the matrix.
+
+    Returns:
+      The sampled special orthogonal matrix.
+    """
     m = random_orthogonal(dim)
     if np.linalg.det(m) < 0:
         m[0, :] *= -1
