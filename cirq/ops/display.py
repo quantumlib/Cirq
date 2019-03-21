@@ -105,13 +105,8 @@ class WaveFunctionDisplay(raw_types.Operation):
         pass
 
 
-class DensityMatrixDisplay(raw_types.Operation):
+class DensityMatrixDisplay(WaveFunctionDisplay):
     """A display whose value is computed from the density matrix."""
-
-    @property
-    @abc.abstractmethod
-    def key(self) -> Hashable:
-        pass
 
     @abc.abstractmethod
     def value_derived_from_density_matrix(self,
@@ -126,6 +121,13 @@ class DensityMatrixDisplay(raw_types.Operation):
                 ordering used to define the wavefunction.
         """
         pass
+
+    def value_derived_from_wavefunction(self,
+                                        state: np.ndarray,
+                                        qubit_map: Dict[raw_types.Qid, int]
+                                        ) -> Any:
+        density_matrix = np.outer(state, np.conj(state))
+        return self.value_derived_from_density_matrix(density_matrix, qubit_map)
 
 
 @value.value_equality
@@ -173,7 +175,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
 
 @value.value_equality
-class PauliStringExpectation(WaveFunctionDisplay, DensityMatrixDisplay):
+class PauliStringExpectation(DensityMatrixDisplay):
     """Expectation value of a Pauli string."""
 
     def __init__(self,

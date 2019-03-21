@@ -97,6 +97,7 @@ from cirq.ops import (
     CZ,
     CZPowGate,
     ControlledGate,
+    DensityMatrixDisplay,
     DepolarizingChannel,
     EigenGate,
     FREDKIN,

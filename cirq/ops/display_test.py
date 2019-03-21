@@ -18,6 +18,36 @@ import pytest
 import cirq
 
 
+class Zero(cirq.DensityMatrixDisplay):
+
+    def __init__(self, qubits, key):
+        self._qubits = tuple(qubits)
+        self._key = key
+
+    @property
+    def qubits(self):
+        return self._qubits
+
+    def with_qubits(self, *new_qubits):
+        return Constant(new_qubits, self._key)
+
+    @property
+    def key(self):
+        return self._key
+
+    def value_derived_from_density_matrix(self, state, qubit_map):
+        return 0
+
+
+def test_density_matrix_display_on_wavefunction():
+    zero_display = Zero([cirq.LineQubit(0)], key='zero')
+    circuit = cirq.Circuit.from_ops(zero_display)
+    simulator = cirq.Simulator()
+    result = simulator.compute_displays(circuit)
+    print(result)
+    assert result.display_values['zero'] == 0
+
+
 def test_pauli_string_expectation_value_pure_state():
     qubits = cirq.LineQubit.range(4)
     qubit_index_map = {q: i for i, q in enumerate(qubits)}
