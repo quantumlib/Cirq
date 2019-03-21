@@ -19,14 +19,9 @@ import cirq
 def assert_equal_mod_empty(expected, actual):
     drop_empty = cirq.DropEmptyMoments()
     drop_empty.optimize_circuit(actual)
-    if expected != actual:
-        # coverage: ignore
-        print('EXPECTED')
-        print(expected)
-        print('ACTUAL')
-        print(actual)
-    assert expected == actual
 
+    assert expected == actual, 'EXPECTED {} : ACTUAL {}'.format(expected,
+                                                                actual)
 
 def test_empty_circuit():
     circuit = cirq.Circuit()
