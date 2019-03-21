@@ -3,7 +3,7 @@ import numpy as np
 def random_superposition(dim: int) -> np.ndarray:
     """
     Args:
-        dim: Specified size returns a 2^dim length array.
+        dim: Specified size returns a dim length array.
     Returns:
         Normalized random array.
     """
