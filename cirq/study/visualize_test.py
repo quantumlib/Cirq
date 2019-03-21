@@ -18,14 +18,13 @@ import numpy as np
 from matplotlib import pyplot as pl
 
 import cirq
-import cirq.google as cg
 from cirq.devices import GridQubit
 from cirq.study import visualize
 
 
 def test_plot_state_histogram():
     pl.switch_backend('PDF')
-    simulator = cg.XmonSimulator()
+    simulator = cirq.Simulator()
 
     q0 = GridQubit(0, 0)
     q1 = GridQubit(1, 0)

@@ -18,7 +18,7 @@ from typing import Dict
 from cirq import ops
 
 
-class GridQubit(ops.QubitId):
+class GridQubit(ops.Qid):
     """A qubit on a 2d square lattice.
 
     GridQubits use row-major ordering:
@@ -33,7 +33,7 @@ class GridQubit(ops.QubitId):
     def _comparison_key(self):
         return self.row, self.col
 
-    def is_adjacent(self, other: ops.QubitId) -> bool:
+    def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)

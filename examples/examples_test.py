@@ -1,6 +1,7 @@
 import cirq
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.deutsch
 import examples.grover
 import examples.place_on_bristlecone
 import examples.hello_qubit
@@ -8,6 +9,8 @@ import examples.quantum_fourier_transform
 import examples.bcs_mean_field
 import examples.phase_estimator
 import examples.basic_arithmetic
+import examples.quantum_teleportation
+import examples.superdense_coding
 
 
 def test_example_runs_bernstein_vazirani():
@@ -19,6 +22,10 @@ def test_example_runs_bernstein_vazirani():
         [], a, [], False)) == []
     assert list(examples.bernstein_vazirani.make_oracle(
         [], a, [], True)) == [cirq.X(a)]
+
+
+def test_example_runs_deutsch():
+    examples.deutsch.main()
 
 
 def test_example_runs_hello_line():
@@ -51,3 +58,9 @@ def test_example_runs_basic_arithmetic():
 
 def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
+
+def test_example_runs_quantum_teleportation():
+    examples.quantum_teleportation.main()
+
+def test_example_runs_superdense_coding():
+    examples.superdense_coding.main()

@@ -28,9 +28,8 @@ def test_gate_operation_init():
 def test_invalid_gate_operation():
     three_qubit_gate = cirq.ThreeQubitGate()
     single_qubit = [cirq.GridQubit(0, 0)]
-    with pytest.raises(ValueError) as bad:
+    with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
-    assert 'Three-qubit gate not applied to three qubits:' in str(bad.value)
 
 
 def test_gate_operation_eq():
