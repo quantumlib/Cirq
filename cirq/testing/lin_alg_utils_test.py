@@ -16,10 +16,19 @@ import numpy as np
 import pytest
 
 from cirq.testing import (
+    random_superposition,
     random_unitary,
     assert_allclose_up_to_global_phase,
 )
 from cirq.linalg import is_unitary
+
+
+@pytest.mark.parametrize('dim',  range(1, 10))
+def test_random_superposition(dim):
+    state = random_superposition(dim)
+
+    assert dim == len(state)
+    assert np.isclose(np.linalg.norm(state), 1.0)
 
 
 def test_random_unitary():
