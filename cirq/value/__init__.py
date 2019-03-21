@@ -20,6 +20,9 @@ from cirq.value.angle import (
 from cirq.value.duration import (
     Duration,
 )
+from cirq.value.linear_dict import (
+    LinearDict,
+)
 from cirq.value.probability import (
     validate_probability,
 )
