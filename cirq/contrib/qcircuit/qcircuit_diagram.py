@@ -14,12 +14,19 @@
 
 from cirq import circuits, ops
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
-    get_qcircuit_diagram_info)
+    escape_text_for_latex, get_qcircuit_diagram_info)
 
 
-def qcircuit_qubit_namer(qubit: ops.Qid):
-    # TODO: If qubit name ends with digits, turn them into subscripts.
-    return r'\lstick{\text{' + str(qubit) + '}}&'
+def qcircuit_qubit_namer(qubit: ops.Qid) -> str:
+    """Returns the latex code for a QCircuit label of given qubit.
+
+        Args:
+            qubit: The qubit which name to represent.
+
+        Returns:
+            Latex code for the label.
+    """
+    return r'\lstick{' + escape_text_for_latex(str(qubit)) + '}&'
 
 
 def _render(diagram: circuits.TextDiagramDrawer) -> str:
