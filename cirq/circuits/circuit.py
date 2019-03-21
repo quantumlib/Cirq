@@ -662,7 +662,7 @@ class Circuit:
 
     def findall_operations_until_blocked(
             self,
-            start_frontier: Dict[ops.QubitId, int],
+            start_frontier: Dict[ops.QId, int],
             is_blocker: Callable[[ops.Operation], bool] = lambda op: False
     ) -> List[Tuple[int, ops.Operation]]:
         """
