@@ -55,6 +55,15 @@ class Moment:
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
 
+    def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
+        """Determines if the moment has operations touching the given qubit.
+        Args:
+            qubit: The qubit that may or may not be touched by operations.
+        Returns:
+            Whether this moment has operations involving the qubit.
+        """
+        return qubit in self.qubits
+
     def operates_on(self, qubits: Iterable[raw_types.Qid]) -> bool:
         """Determines if the moment has operations touching the given qubits.
 
@@ -64,8 +73,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubits.
         """
-        qubits = frozenset(qubits)
-        return any(q in qubits for op in self.operations for q in op.qubits)
+        return any(q in qubits for q in self.qubits)
 
     def with_operation(self, operation: raw_types.Operation):
         """Returns an equal moment, but with the given op added.
