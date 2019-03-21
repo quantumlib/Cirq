@@ -259,6 +259,7 @@ from cirq.protocols import (
     ApplyChannelArgs,
     ApplyUnitaryArgs,
     approx_eq,
+    Axes,
     channel,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,

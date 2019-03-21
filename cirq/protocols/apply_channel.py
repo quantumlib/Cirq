@@ -37,8 +37,16 @@ TDefault = TypeVar('TDefault')
 
 
 class Axes:
-    LEFT = 1
-    RIGHT = 2
+    """An enum for the two types of axes, row and column indices.
+
+    For a tensor with shape (d_1_,...d_k), some subset of the first
+    of these indices correspond to row indices, and the rest of these
+    indices correspond to column indices.  These are row and column, in the
+    sense that they describe a matrix where the row indices could be
+    reshaped to form a row, and similar for the column indices.
+    """
+    ROW = 1
+    COLUMN = 2
 
 
 class ApplyChannelArgs:
@@ -50,14 +58,14 @@ class ApplyChannelArgs:
         $$
     for operators $A_i$ that satisfy the normalization condition
         $$
-        \sum_i A_i^\dagger A_i = I
+        \sum_i A_i^\dagger A_i = I.
         $$
 
     The receiving object is expected to mutate `target_tensor` so that it
     contains the density matrix after multiplication, and then return
     `target_tensor`. Alternatively, if workspace is required,
-    the receiving object can overwrite `available_buffer` with the results
-    and return `available_buffer`. Or, if the receiving object is attempting to
+    the receiving object can overwrite `out_buffer` with the results
+    and return `out_buffer`. Or, if the receiving object is attempting to
     be simple instead of fast, it can create an entirely new array and
     return that.
 
@@ -69,21 +77,23 @@ class ApplyChannelArgs:
             n indices corresponding to the rows of the density matrix and
             the last n indices corresponding to the columns of the density
             matrix.
-        available_buffer: Pre-allocated workspace with the same shape and
-            dtype as the target tensor. This can be used when inline
-            matrix multiplication cannot be done.
-        available_sum_buffer: Pre-allocated workspace with the same shape
-            and dtype as the target tensor. This can be used to keep
-            a cumulative sum of the channel terms.
+        out_buffer: Pre-allocated workspace with the same shape and
+            dtype as the target tensor. If buffers are used, the result should
+            end up in this buffer. It is the responsibility of calling code
+            to notice if the result is this buffer.
+        auxiliary_buffer0: Pre-allocated workspace with the same shape and dtype
+            as the target tensor.
+        auxiliary_buffer1: Pre-allocated workspace with the same shape
+            and dtype as the target tensor.
         left_axes: Which axes to multiply the left action of the channel upon.
         right_axes: Which axes to multiply the right action of the channel upon.
     """
 
     def __init__(self,
             target_tensor: np.ndarray,
-            available_buffer: np.ndarray,
-            available_initial_buffer: np.ndarray,
-            available_sum_buffer: np.ndarray,
+            out_buffer: np.ndarray,
+            auxiliary_buffer0: np.ndarray,
+            auxiliary_buffer1: np.ndarray,
             left_axes: Iterable[int],
             right_axes: Iterable[int]):
         """
@@ -96,29 +106,30 @@ class ApplyChannelArgs:
                 n indices corresponding to the rows of the density matrix and
                 the last n indices corresponding to the columns of the density
                 matrix.
-            available_buffer: Pre-allocated workspace with the same shape and
-                dtype as the target tensor. This can be used when inline
-                matrix multiplication cannot be done.
-            available_initial_buffer: Pre-allocated workspace with the same
-                shape and dtype as the target tensor. This will be used to
-                store the intial target tensor.
-            available_sum_buffer: Pre-allocated workspace with the same shape
-                and dtype as the target tensor. This can be used to keep
-                a cumulative sum of the channel terms.
-           left_axes: Which axes to multiply the left action of the channel
+            out_buffer: Pre-allocated workspace with the same shape and
+                dtype as the target tensor. If buffers are used, the result should
+                end up in this buffer. It is the responsibility of calling code
+                to notice if the result is this buffer.
+            auxiliary_buffer0: Pre-allocated workspace with the same shape and dtype
+                as the target tensor.
+            auxiliary_buffer1: Pre-allocated workspace with the same shape
+                and dtype as the target tensor.
+            left_axes: Which axes to multiply the left action of the channel
                 upon.
             right_axes: Which axes to multiply the right action of the channel
                 upon.
         """
         self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
-        self.available_initial_buffer = available_initial_buffer
-        self.available_sum_buffer = available_sum_buffer
+        self.out_buffer = out_buffer
+        self.auxiliary_buffer0 = auxiliary_buffer0
+        self.auxiliary_buffer1 = auxiliary_buffer1
         self.left_axes = tuple(left_axes)
         self.right_axes = tuple(right_axes)
 
-    def subspace_index(self, little_endian_bits_int: int,
-            axes: int = Axes.LEFT) -> Tuple[
+    def subspace_index(
+            self,
+            little_endian_bits_int: int,
+            axes: int = Axes.ROW) -> Tuple[
         Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
@@ -130,7 +141,7 @@ class ApplyChannelArgs:
 
         Returns:
             A value that can be used to index into `target_tensor` and
-            `available_buffer`, and manipulate only the part of Hilbert space
+            `out_buffer`, and manipulate only the part of Hilbert space
             corresponding to a given bit assignment.
 
         Example:
@@ -146,7 +157,7 @@ class ApplyChannelArgs:
 
                 args.target_tensor[:, 0, :, 1] += 1
         """
-        axes = self.left_axes if axes == Axes.LEFT else self.right_axes
+        axes = self.left_axes if axes == Axes.ROW else self.right_axes
         return linalg.slice_for_qubits_equal_to(axes, little_endian_bits_int)
 
 
@@ -166,12 +177,12 @@ class SupportsApplyChannel(Protocol):
 
         Args:
             args: A `cirq.ApplyChannelArgs` object with the `args.target_tensor`
-                to operate on, an `args.available_workspace` buffer to use as
-                temporary workspace, and the `args.left_axes` and
-                `args.right_axes` of the tensor to target with the unitary
-                operation. Note that this method is permitted (and in
-                fact expected) to mutate `args.target_tensor` and
-                `args.available_workspace`.
+                to operate on, an `args.out_buffer`, 'args.auxiliary_buffer0`
+                and `args.auxiliary_buffer1` buffers to use as temporary
+                workspace, and the `args.left_axes` and `args.right_axes` of
+                the tensor to target with the unitary operation. Note that
+                this method is permitted (and in fact expected) to mutate
+                `args.target_tensor` and the given buffers.
 
         Returns:
             If the receiving object is not able to apply a chanel, None
@@ -183,11 +194,10 @@ class SupportsApplyChannel(Protocol):
             `args.target_tensor`.
 
             If the receiving object is unable to work inline, it can write its
-            output over `args.available_buffer` and then return
-            `args.available_buffer`. The caller will understand this to mean
-            that the result is in `args.available_buffer` (and so what was
-            `args.available_buffer` will become `args.target_tensor` in the next
-            call, and vice versa).
+            output over `args.out_buffer` and then return `args.out_buffer`.
+            The caller will understand this to mean that the result is in
+            `args.out_buffer` (and so what was `args.out` will become
+            `args.target_tensor` in the next call, and vice versa).
 
             The receiving object is also permitted to allocate a new
             numpy.ndarray and return that as its result.
@@ -228,15 +238,10 @@ def apply_channel(val: Any,
         mutating `target_tensor` it will return `target_tensor`. The caller is
         responsible for checking if the result is `target_tensor`.
 
-        If the receiving object wrote its output over `available_buffer`, the
-        result will be `available_buffer`. The caller is responsible for
-        checking if the result is `available_buffer` (and e.g. swapping
+        If the receiving object wrote its output over `out_buffer`, the
+        result will be `out_buffer`. The caller is responsible for
+        checking if the result is `out_buffer` (and e.g. swapping
         the buffer for the target tensor before the next call).
-
-        If the receiving object wrote its output over `available_sum_buffer`,
-        the result will be `available_sum_buffer`.  The caller is responsible
-        for checking if the result is `available_sum_buffer` (and e.g. swapping
-        this buffer for the target tensor before the next call).
 
         The receiving object may also write its output over a new buffer
         that it created, in which case that new array is returned.
@@ -254,13 +259,13 @@ def apply_channel(val: Any,
 
     # Possibly use apply_unitary.
     left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
-                                 available_buffer=args.available_initial_buffer,
+                                 available_buffer=args.auxiliary_buffer0,
                                  axes=args.left_axes)
     left_result = apply_unitary(val, left_args, None)
     if left_result is not None:
         right_args = ApplyUnitaryArgs(
                 target_tensor=np.conjugate(left_result),
-                available_buffer=args.available_buffer,
+                available_buffer=args.out_buffer,
                 axes=args.right_axes)
         right_result = apply_unitary(val, right_args)
         np.conjugate(right_result, out=right_result)
@@ -271,42 +276,39 @@ def apply_channel(val: Any,
     if krauss is not None:
         # Special case for single-qubit operations.
         if krauss[0].shape == (2, 2):
-            zero_left = args.subspace_index(0, axes=Axes.LEFT)
-            one_left = args.subspace_index(1, axes=Axes.LEFT)
-            zero_right = args.subspace_index(0, axes=Axes.RIGHT)
-            one_right = args.subspace_index(1, axes=Axes.RIGHT)
-
-            args.available_sum_buffer = np.zeros_like(krauss[0])
-            np.copyto(dst=args.available_initial_buffer, src=args.target_tensor)
+            zero_left = args.subspace_index(0, axes=Axes.ROW)
+            one_left = args.subspace_index(1, axes=Axes.ROW)
+            zero_right = args.subspace_index(0, axes=Axes.COLUMN)
+            one_right = args.subspace_index(1, axes=Axes.COLUMN)
+            args.out_buffer[:] = 0
+            np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
             for krauss_op in krauss:
                 np.copyto(dst=args.target_tensor,
-                          src=args.available_initial_buffer)
+                          src=args.auxiliary_buffer0)
                 left_result = linalg.apply_matrix_to_slices(
                     args.target_tensor,
                     krauss_op,
                     [zero_left, one_left],
-                    out=args.available_buffer)
-                if left_result is args.available_buffer:
-                    args.available_buffer = args.target_tensor
+                    out=args.auxiliary_buffer1)
+                args.auxiliary_buffer1 = args.target_tensor
                 args.target_tensor = left_result
 
                 right_result = linalg.apply_matrix_to_slices(
                     args.target_tensor,
                     np.conjugate(krauss_op),
                     [zero_right, one_right],
-                    out=args.available_buffer)
-                if right_result is args.available_buffer:
-                    args.available_buffer = args.target_tensor
+                    out=args.auxiliary_buffer1)
+                args.auxiliary_buffer1 = args.target_tensor
                 args.target_tensor = right_result
 
-                args.available_sum_buffer += args.target_tensor
-            return args.available_sum_buffer
+                args.out_buffer += args.target_tensor
+            return args.out_buffer
 
         # Fallback to np.einsum for the general case.
-        args.available_sum_buffer = np.zeros_like(krauss[0])
-        np.copyto(dst=args.available_initial_buffer, src=args.target_tensor)
+        args.out_buffer[:] = 0
+        np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
         for krauss_op in krauss:
-            np.copyto(dst=args.target_tensor, src=args.available_initial_buffer)
+            np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
             krauss_tensor = np.reshape(
                 krauss_op.astype(args.target_tensor.dtype),
                 (2,) * len(args.left_axes) * 2)
@@ -314,9 +316,9 @@ def apply_channel(val: Any,
                     krauss_tensor,
                     args.target_tensor,
                     args.left_axes,
-                    out=args.available_buffer)
-            if left_result is args.available_buffer:
-                args.available_buffer = args.target_tensor
+                    out=args.auxiliary_buffer1)
+            if left_result is args.auxiliary_buffer1:
+                args.auxiliary_buffer1 = args.target_tensor
             args.target_tensor = left_result
 
             # No need to transpose as we are acting on the tensor
@@ -325,12 +327,12 @@ def apply_channel(val: Any,
                     np.conjugate(krauss_tensor),
                     right_result,
                     args.right_axes,
-                    out=args.available_buffer)
-            if right_result is args.available_buffer:
-                args.available_buffer = args.target_tensor
+                    out=args.auxiliary_buffer1)
+            if right_result is args.auxiliary_buffer1:
+                args.auxiliary_buffer1 = args.target_tensor
             args.target_tensor = right_result
-            args.available_sum_buffer += args.target_tensor
-        return args.available_sum_buffer
+            args.out_buffer += args.target_tensor
+        return args.out_buffer
 
     # Don't know how to apply. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:

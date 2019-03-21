@@ -18,55 +18,95 @@ import pytest
 import cirq
 
 
-def make_buffers(shape):
+def make_buffers(shape, dtype):
     return (
-    np.empty(shape, dtype=np.complex128),
-    np.empty(shape, dtype=np.complex128),
-    np.empty(shape, dtype=np.complex128))
+        np.empty(shape, dtype=dtype),
+        np.empty(shape, dtype=dtype),
+        np.empty(shape, dtype=dtype))
+
+
+def apply_channel(val, input, left_axes, right_axes,
+        assert_result_is_out_buf=False):
+    out_buf, buf0, buf1 = make_buffers(input.shape, input.dtype)
+    result = cirq.apply_channel(
+            val,
+            args=cirq.ApplyChannelArgs(target_tensor=input,
+                                       left_axes=left_axes,
+                                       right_axes=right_axes,
+                                       out_buffer=out_buf,
+                                       auxiliary_buffer0=buf0,
+                                       auxiliary_buffer1=buf1))
+    if assert_result_is_out_buf:
+        assert result is out_buf
+    return result
+
+
+def test_apply_channel_simple():
+    x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+
+    class HasChannel():
+
+        def _channel_(self):
+            return (
+            np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * x)
+
+    input = np.copy(x)
+    result = apply_channel(HasChannel(), input, [0], [1],
+                           assert_result_is_out_buf=True)
+    np.testing.assert_almost_equal(result, x)
+
+
+def test_apply_channel_one_qubit_random():
+    rho = cirq.testing.ran
+
+    class HasChannel():
+
+        def _channel_(self):
+            return (
+                np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * x)
+
+    input = np.copy(x)
+    result = apply_channel(HasChannel(), input, [0], [1],
+                           assert_result_is_out_buf=True)
+    np.testing.assert_almost_equal(result, x)
+
+
+def test_apply_channel_no_protocols_implemented():
+    class NoProtocols:
+        pass
+
+    input = np.ones((2, 2, 2, 2), dtype=np.complex128)
+
+    with pytest.raises(TypeError):
+        apply_channel(NoProtocols(), input, left_axes=[1], right_axes=[1])
 
 
 def test_apply_channel_unitary():
     m = np.diag([1, 1j])
+
+    shape = (2, 2, 2, 2)
+    input = np.ones(shape, dtype=np.complex128)
+
     class HasUnitary:
         def _unitary_(self) -> np.ndarray:
             return m
 
-    shape = (2, 2, 2, 2)
-    input = np.ones(shape, dtype=np.complex128)
-    buf, ini_buf, sum_buf = make_buffers(shape)
+    class HasUnitaryButReturnsNotImplemented(HasUnitary):
+        def _apply_unitary_(self, args: cirq.ApplyChannelArgs):
+            return NotImplemented
 
-    result = cirq.apply_channel(
-        HasUnitary(),
-        args=cirq.ApplyChannelArgs(target_tensor=input,
-                                   left_axes=[0],
-                                   right_axes=[2],
-                                   available_buffer=buf,
-                                   available_initial_buffer=ini_buf,
-                                   available_sum_buffer=sum_buf))
-    assert result is buf
-    assert result is not input
-    assert result is not ini_buf
-    assert result is not sum_buf
-    np.testing.assert_almost_equal(
-        result,
-        np.reshape(np.outer([1, 1, 1j, 1j], [1, 1, -1j, -1j]), shape))
-
-    result = cirq.apply_channel(
-            HasUnitary(),
-            args=cirq.ApplyChannelArgs(target_tensor=input,
-                                       left_axes=[1],
-                                       right_axes=[3],
-                                       available_buffer=buf,
-                                       available_initial_buffer=ini_buf,
-                                       available_sum_buffer=sum_buf))
-    assert result is buf
-    np.testing.assert_almost_equal(
-            result,
-            np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape))
+    for val in (HasUnitary(), HasUnitaryButReturnsNotImplemented()):
+        result = apply_channel(val, input, left_axes=[1], right_axes=[3])
+        np.testing.assert_almost_equal(
+                result,
+                np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape))
 
 
 def test_apply_channel_apply_unitary():
-    class HasApplyOutputInBuffer:
+    shape = (2, 2, 2, 2)
+    input = np.ones(shape, dtype=np.complex128)
+
+    class HasApplyUnitaryOutputInBuffer:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             zero = args.subspace_index(0)
             one = args.subspace_index(1)
@@ -74,88 +114,42 @@ def test_apply_channel_apply_unitary():
             args.available_buffer[one] = 1j * args.target_tensor[one]
             return args.available_buffer
 
+    class HasApplyUnitaryMutateInline:
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            one = args.subspace_index(1)
+            args.target_tensor[one] *= 1j
+            return args.target_tensor
+
+
+    for val in (HasApplyUnitaryOutputInBuffer(), HasApplyUnitaryMutateInline()):
+        assert_result_is_out_buf = isinstance(val, HasApplyUnitaryOutputInBuffer)
+        result = apply_channel(val, input, left_axes=[1], right_axes=[3],
+                               assert_result_is_out_buf=assert_result_is_out_buf)
+        np.testing.assert_almost_equal(
+                result,
+                np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape))
+
+
+def test_apply_channel_apply_unitary_not_implemented():
+    class ApplyUnitaryNotImplemeneted:
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
+            return NotImplemented
+
+    input = np.ones((2, 2, 2, 2), dtype=np.complex128)
+    out_buf, aux_buf0, aux_buf1 = make_buffers((2, 2, 2, 2), dtype=input.dtype)
+
+    with pytest.raises(TypeError):
+         cirq.apply_channel(
+            ApplyUnitaryNotImplemeneted(),
+            args=cirq.ApplyChannelArgs(target_tensor=input,
+                                       left_axes=[1],
+                                       right_axes=[3],
+                                       out_buffer=out_buf,
+                                       auxiliary_buffer0=aux_buf0,
+                                       auxiliary_buffer1=aux_buf1))
 
 
 
-# def test_apply_channel_presence_absence():
-#     pass
-#
-#     class NoUnitaryEffect:
-#         pass
-#
-#
-#     class HasApplyReturnsNotImplemented:
-#         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
-#             return NotImplemented
-#
-#     class HasApplyReturnsNotImplementedButHasUnitary:
-#         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
-#             return NotImplemented
-#
-#         def _unitary_(self) -> np.ndarray:
-#             return m
-#
-#     class HasApplyOutputInBuffer:
-#         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
-#             zero = args.subspace_index(0)
-#             one = args.subspace_index(1)
-#             args.available_buffer[zero] = args.target_tensor[zero]
-#             args.available_buffer[one] = -args.target_tensor[one]
-#             return args.available_buffer
-#
-#     class HasApplyMutateInline:
-#         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
-#             one = args.subspace_index(1)
-#             args.target_tensor[one] *= -1
-#             return args.target_tensor
-#
-#     fails = [
-#         NoUnitaryEffect(),
-#         HasApplyReturnsNotImplemented(),
-#     ]
-#     passes = [
-#         HasUnitary(),
-#         HasApplyReturnsNotImplementedButHasUnitary(),
-#         HasApplyOutputInBuffer(),
-#         HasApplyMutateInline(),
-#     ]
-#
-#     def make_input():
-#         return np.ones(, dtype=np.complex128).reshape((2, 2))
-#
-#     def assert_works(val):
-#         expected_outputs = [
-#             np.array([1, 1, -1, -1]).reshape((2, 2)),
-#             np.array([1, -1, 1, -1]).reshape((2, 2)),
-#         ]
-#         for axis in range(2):
-#             result = cirq.apply_unitary(
-#                     val, cirq.ApplyUnitaryArgs(make_input(), buf, [axis]))
-#             np.testing.assert_allclose(result, expected_outputs[axis])
-#
-#     buf = np.empty(shape=(2, 2), dtype=np.complex128)
-#
-#     for f in fails:
-#         with pytest.raises(TypeError, match='no _apply_unitary_'):
-#             _ = cirq.apply_unitary(
-#                     f,
-#                     cirq.ApplyUnitaryArgs(make_input(), buf, [0]))
-#         assert cirq.apply_unitary(
-#                 f,
-#                 cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-#                 default=None) is None
-#         assert cirq.apply_unitary(
-#                 f,
-#                 cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-#                 default=NotImplemented) is NotImplemented
-#         assert cirq.apply_unitary(
-#                 f,
-#                 cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-#                 default=1) == 1
-#
-#     for s in passes:
-#         assert_works(s)
-#         assert cirq.apply_unitary(
-#                 s,
-#                 cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-#                 default=None) is not None
+
+
+
