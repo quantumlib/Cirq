@@ -191,7 +191,7 @@ class Schedule:
         This discards most timing information from the schedule, but does place
         operations that are scheduled at the same time in the same Moment.
         """
-        circuit = Circuit()
+        circuit = Circuit(device=self.device)
         time = None  # type: Optional[Timestamp]
         for so in self.scheduled_operations:
             if so.time != time:
