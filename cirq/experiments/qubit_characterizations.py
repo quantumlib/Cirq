@@ -1,12 +1,12 @@
 import itertools
 
+from typing import Sequence, Tuple, Iterator, Any, NamedTuple, List
 import sympy
 import numpy as np
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
-from typing import Sequence, Tuple, Iterator, Any, NamedTuple, List
-from cirq import circuits, devices, ops, protocols, sim, study, Gate
+from cirq import circuits, devices, ops, protocols, sim, study
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
@@ -638,8 +638,8 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 
 
 def _single_qubit_cliffords() -> Cliffords:
-    c1_in_xy: List[List[Gate]] = []
-    c1_in_xz: List[List[Gate]] = []
+    c1_in_xy: List[List[ops.Gate]] = []
+    c1_in_xz: List[List[ops.Gate]] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([ops.X ** phi_0, ops.Y ** phi_1])
@@ -660,12 +660,12 @@ def _single_qubit_cliffords() -> Cliffords:
     for phi in phi_xz:
         c1_in_xz.append([ops.X ** phi[0], ops.Z ** phi[1], ops.X ** phi[2]])
 
-    s1: List[List[Gate]] = [[ops.X ** 0.0], [ops.Y ** 0.5, ops.X ** 0.5],
+    s1: List[List[ops.Gate]] = [[ops.X ** 0.0], [ops.Y ** 0.5, ops.X ** 0.5],
                             [ops.X ** -0.5, ops.Y ** -0.5]]
-    s1_x: List[List[Gate]] = [[ops.X ** 0.5],
+    s1_x: List[List[ops.Gate]] = [[ops.X ** 0.5],
                               [ops.X ** 0.5, ops.Y ** 0.5, ops.X ** 0.5],
                               [ops.Y ** -0.5]]
-    s1_y: List[List[Gate]] = [[ops.Y ** 0.5],
+    s1_y: List[List[ops.Gate]] = [[ops.Y ** 0.5],
                               [ops.X ** -0.5, ops.Y ** -0.5, ops.X ** 0.5],
                               [ops.Y, ops.X ** 0.5]]
 
