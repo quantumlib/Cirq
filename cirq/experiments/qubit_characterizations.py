@@ -540,8 +540,10 @@ def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     mat_re = np.real(mat)
     mat_im = np.imag(mat)
     fig = plt.figure(figsize=(12.0, 5.0))
-    _matrix_bar_plot(mat_re, r'Real($\rho$)', fig, 121, kets)
-    _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', fig, 122, kets)
+    _matrix_bar_plot(mat_re, r'Real($\rho$)', fig, 121, kets,
+                     'Density Matrix (Real Part)')
+    _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', fig, 122, kets,
+                     'Density Matrix (Imaginary Part)')
     return fig
 
 
