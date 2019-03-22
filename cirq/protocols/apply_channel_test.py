@@ -190,15 +190,29 @@ def test_apply_channel_channel_fallback_two_qubit_random():
         np.testing.assert_almost_equal(result, expected)
 
 
-
 def test_apply_channel_no_protocols_implemented():
     class NoProtocols:
         pass
 
     rho = np.ones((2, 2, 2, 2), dtype=np.complex128)
 
+
     with pytest.raises(TypeError):
         apply_channel(NoProtocols(), rho, left_axes=[1], right_axes=[1])
+
+
+def test_apply_channel_no_protocols_implemented_default():
+    class NoProtocols:
+        pass
+
+    args = cirq.ApplyChannelArgs(target_tensor=None,
+                                 left_axes=[0],
+                                 right_axes=[1],
+                                 out_buffer=None,
+                                 auxiliary_buffer0=None,
+                                 auxiliary_buffer1=None)
+    result = cirq.apply_channel(NoProtocols(), args, 'cirq')
+    assert result == 'cirq'
 
 
 def test_apply_channel_unitary():

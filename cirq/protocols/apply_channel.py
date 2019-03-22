@@ -257,7 +257,6 @@ def apply_channel(val: Any,
         result = func(args)
         if result is not NotImplemented and result is not None:
             return result
-
     # Possibly use apply_unitary.
     left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
                                  available_buffer=args.auxiliary_buffer0,
@@ -273,7 +272,7 @@ def apply_channel(val: Any,
         return right_result
 
     # Fallback to using the object's _channel_ matrices.
-    krauss = tuple(channel(val, None))
+    krauss = channel(val, None)
     if krauss is not None:
         # Special case for single-qubit operations.
         args.out_buffer[:] = 0
