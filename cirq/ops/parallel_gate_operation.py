@@ -162,10 +162,14 @@ class ParallelGateOperation(raw_types.Operation):
     def __pow__(self, exponent: Any) -> 'ParallelGateOperation':
         """Raise gate to a power, then reapply to the same qubits.
         Only works if the gate implements cirq.ExtrapolatableEffect.
+
         For extrapolatable gate G this means the following two are equivalent:
+
             (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
+
         Args:
             exponent: The amount to scale the gate's effect by.
+
         Returns:
             A new operation on the same qubits with the scaled gate.
         """
