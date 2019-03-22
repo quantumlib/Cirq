@@ -75,7 +75,7 @@ class PauliStringPhasor(PauliStringGateOperation):
         return self._with_half_turns(new_exponent)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
-        return self.pauli_string.equal_up_to_sign(op.pauli_string)
+        return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
 
     def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
         if not self.can_merge_with(op):

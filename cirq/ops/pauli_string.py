@@ -31,11 +31,8 @@ class PauliString(raw_types.Operation):
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.Qid, Pauli],
                  coefficient: Union[int, float, complex] = 1) -> None:
-        assert coefficient is not False
-        assert coefficient is not True
-        assert isinstance(coefficient, (int, float, complex))
         self._qubit_pauli_map = dict(qubit_pauli_map)
-        self._coef = complex(coefficient)
+        self._coefficient = complex(coefficient)
 
     @staticmethod
     def from_single(qubit: raw_types.Qid, pauli: Pauli) -> 'PauliString':
@@ -44,13 +41,13 @@ class PauliString(raw_types.Operation):
 
     @property
     def coefficient(self) -> complex:
-        return self._coef
+        return self._coefficient
 
     def _value_equality_values_(self):
         return (frozenset(self._qubit_pauli_map.items()),
-                self._coef)
+                self._coefficient)
 
-    def equal_up_to_sign(self, other: 'PauliString') -> bool:
+    def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
     def __getitem__(self, key: raw_types.Qid) -> Pauli:
@@ -72,12 +69,12 @@ class PauliString(raw_types.Operation):
 
     def __mul__(self, other):
         if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coef * other)
+            return PauliString(self._qubit_pauli_map, self._coefficient * other)
         return NotImplemented
 
     def __rmul__(self, other):
         if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coef * other)
+            return PauliString(self._qubit_pauli_map, self._coefficient * other)
         return NotImplemented
 
     def __contains__(self, key: raw_types.Qid) -> bool:
@@ -93,7 +90,7 @@ class PauliString(raw_types.Operation):
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
         return PauliString(dict(zip(new_qubits,
                                     (self[q] for q in self.qubits))),
-                           self._coef)
+                           self._coefficient)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()
@@ -110,14 +107,14 @@ class PauliString(raw_types.Operation):
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
                              for qubit in sorted(self.qubits)))
-        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self._coef)
+        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self._coefficient)
 
     def __str__(self):
         ordered_qubits = sorted(self.qubits)
         prefix = (
-            '-' if self._coef == -1
-            else '' if self._coef == 1
-            else '{}*'.format(self._coef)
+            '-' if self._coefficient == -1
+            else '' if self._coefficient == 1
+            else '{}*'.format(self._coefficient)
         )
         if not ordered_qubits:
             return '{}{}'.format(prefix, 'I')
@@ -141,7 +138,7 @@ class PauliString(raw_types.Operation):
                    ) % 2 == 0
 
     def __neg__(self) -> 'PauliString':
-        return PauliString(self._qubit_pauli_map, -self._coef)
+        return PauliString(self._qubit_pauli_map, -self._coefficient)
 
     def __pos__(self) -> 'PauliString':
         return self
@@ -150,7 +147,7 @@ class PauliString(raw_types.Operation):
                    ) -> 'PauliString':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
                                for qubit, pauli in self.items()}
-        return PauliString(new_qubit_pauli_map, self._coef)
+        return PauliString(new_qubit_pauli_map, self._coefficient)
 
     def to_z_basis_ops(self) -> op_tree.OP_TREE:
         """Returns operations to convert the qubits to the computational basis.
@@ -199,7 +196,7 @@ class PauliString(raw_types.Operation):
             should_negate ^= PauliString._pass_operation_over(pauli_map,
                                                               op,
                                                               after_to_before)
-        coef = self._coef * (-1 if should_negate else +1)
+        coef = -self._coefficient if should_negate else self.coefficient
         return PauliString(pauli_map, coef)
 
     @staticmethod
@@ -242,10 +239,11 @@ class PauliString(raw_types.Operation):
                                           qubit1: raw_types.Qid,
                                           after_to_before: bool = False
                                           ) -> bool:
-        def merge_and_kickback(qubit,
+        def merge_and_kickback(qubit: raw_types.Qid,
                                pauli_left: Optional[pauli_gates.Pauli],
                                pauli_right: Optional[pauli_gates.Pauli],
                                inv: bool) -> int:
+            assert pauli_left is not None or pauli_right is not None
             if pauli_left is None or pauli_right is None:
                 pauli_map[qubit] = cast(pauli_gates.Pauli,
                                         pauli_left or pauli_right)
@@ -261,14 +259,14 @@ class PauliString(raw_types.Operation):
                     return int(inv) * 2 - 1
 
         quarter_kickback = 0
-        if (qubit0 in pauli_map
-            and not pauli_map[qubit0].commutes_with(gate.pauli0)):
+        if (qubit0 in pauli_map and
+                not pauli_map[qubit0].commutes_with(gate.pauli0)):
             quarter_kickback += merge_and_kickback(qubit1,
                                                    gate.pauli1,
                                                    pauli_map.get(qubit1),
                                                    gate.invert1)
-        if (qubit1 in pauli_map
-            and not pauli_map[qubit1].commutes_with(gate.pauli1)):
+        if (qubit1 in pauli_map and
+                not pauli_map[qubit1].commutes_with(gate.pauli1)):
             quarter_kickback += merge_and_kickback(qubit0,
                                                    pauli_map.get(qubit0),
                                                    gate.pauli0,

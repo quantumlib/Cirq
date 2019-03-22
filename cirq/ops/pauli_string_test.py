@@ -51,34 +51,38 @@ def test_eq_ne_hash():
         eq.add_equality_group(cirq.PauliString({q: p0, q2: p1}, +1))
 
 
-def test_equal_up_to_sign():
+def test_equal_up_to_coefficient():
     q0, = _make_qubits(1)
-    assert cirq.PauliString({}, +1).equal_up_to_sign(
+    assert cirq.PauliString({}, +1).equal_up_to_coefficient(
            cirq.PauliString({}, +1))
-    assert cirq.PauliString({}, -1).equal_up_to_sign(
+    assert cirq.PauliString({}, -1).equal_up_to_coefficient(
            cirq.PauliString({}, -1))
-    assert cirq.PauliString({}, +1).equal_up_to_sign(
+    assert cirq.PauliString({}, +1).equal_up_to_coefficient(
            cirq.PauliString({}, -1))
+    assert cirq.PauliString({}, +1).equal_up_to_coefficient(
+           cirq.PauliString({}, 2j))
 
-    assert cirq.PauliString({q0: cirq.X}, +1).equal_up_to_sign(
+    assert cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
            cirq.PauliString({q0: cirq.X}, +1))
-    assert cirq.PauliString({q0: cirq.X}, -1).equal_up_to_sign(
+    assert cirq.PauliString({q0: cirq.X}, -1).equal_up_to_coefficient(
            cirq.PauliString({q0: cirq.X}, -1))
-    assert cirq.PauliString({q0: cirq.X}, +1).equal_up_to_sign(
+    assert cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
            cirq.PauliString({q0: cirq.X}, -1))
 
-    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_sign(
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
                cirq.PauliString({q0: cirq.Y}, +1))
-    assert not cirq.PauliString({q0: cirq.X}, -1).equal_up_to_sign(
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+               cirq.PauliString({q0: cirq.Y}, 1j))
+    assert not cirq.PauliString({q0: cirq.X}, -1).equal_up_to_coefficient(
                cirq.PauliString({q0: cirq.Y}, -1))
-    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_sign(
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
                cirq.PauliString({q0: cirq.Y}, -1))
 
-    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_sign(
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
                cirq.PauliString({}, +1))
-    assert not cirq.PauliString({q0: cirq.X}, -1).equal_up_to_sign(
+    assert not cirq.PauliString({q0: cirq.X}, -1).equal_up_to_coefficient(
                cirq.PauliString({}, -1))
-    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_sign(
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
                cirq.PauliString({}, -1))
 
 
