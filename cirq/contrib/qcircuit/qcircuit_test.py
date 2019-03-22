@@ -129,3 +129,15 @@ def test_other_diagram():
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+def test_qcircuit_qubit_namer():
+    from cirq.contrib.qcircuit import qcircuit_diagram
+
+    assert(qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q'))
+           == r'\lstick{\text{q}}&')
+    assert(qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q_1'))
+           == r'\lstick{\text{q\_1}}&')
+    assert(qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q^1'))
+           == r'\lstick{\text{q\textasciicircum{}1}}&')
+    assert(qcircuit_diagram.qcircuit_qubit_namer(cirq.NamedQubit('q_{1}'))
+           == r'\lstick{\text{q\_\{1\}}}&')

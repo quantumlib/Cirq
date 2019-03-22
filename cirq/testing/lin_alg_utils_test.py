@@ -17,9 +17,13 @@ import pytest
 
 from cirq.testing import (
     random_unitary,
+    random_orthogonal,
+    random_special_unitary,
+    random_special_orthogonal,
     assert_allclose_up_to_global_phase,
 )
-from cirq.linalg import is_unitary
+from cirq.linalg import (is_unitary, is_orthogonal,
+                         is_special_unitary, is_special_orthogonal)
 
 
 def test_random_unitary():
@@ -29,6 +33,26 @@ def test_random_unitary():
     assert is_unitary(u2)
     assert not np.allclose(u1, u2)
 
+def test_random_orthogonal():
+    o1 = random_orthogonal(2)
+    o2 = random_orthogonal(2)
+    assert is_orthogonal(o1)
+    assert is_orthogonal(o2)
+    assert not np.allclose(o1, o2)
+
+def test_random_special_unitary():
+    u1 = random_special_unitary(2)
+    u2 = random_special_unitary(2)
+    assert is_special_unitary(u1)
+    assert is_special_unitary(u2)
+    assert not np.allclose(u1, u2)
+
+def test_random_special_orthgonal():
+    o1 = random_special_orthogonal(2)
+    o2 = random_special_orthogonal(2)
+    assert is_special_orthogonal(o1)
+    assert is_special_orthogonal(o2)
+    assert not np.allclose(o1, o2)
 
 def test_assert_allclose_up_to_global_phase():
     assert_allclose_up_to_global_phase(
