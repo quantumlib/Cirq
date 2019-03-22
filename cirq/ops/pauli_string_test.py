@@ -267,6 +267,18 @@ def test_negate():
     assert -neg_ps1 == ps1
 
 
+def test_mul():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert -p == -1 * p == -1.0 * p == p * -1 == p * complex(-1)
+    assert -p != 1j * p
+    assert +p == 1 * p
+    with pytest.raises(TypeError):
+        _ = p * 'test'
+    with pytest.raises(TypeError):
+        _ = 'test' * p
+
+
 def test_pos():
     q0, q1 = _make_qubits(2)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
