@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView, overload)
+                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast)
 
 from cirq import value
 from cirq.ops import (
@@ -30,18 +30,25 @@ TDefault = TypeVar('TDefault')
 class PauliString(raw_types.Operation):
     def __init__(self,
                  qubit_pauli_map: Mapping[raw_types.Qid, Pauli],
-                 negated: bool = False) -> None:
+                 coefficient: Union[int, float, complex] = 1) -> None:
+        assert coefficient is not False
+        assert coefficient is not True
+        assert isinstance(coefficient, (int, float, complex))
         self._qubit_pauli_map = dict(qubit_pauli_map)
-        self.negated = negated
+        self._coef = complex(coefficient)
 
     @staticmethod
     def from_single(qubit: raw_types.Qid, pauli: Pauli) -> 'PauliString':
         """Creates a PauliString with a single qubit."""
         return PauliString({qubit: pauli})
 
+    @property
+    def coefficient(self) -> complex:
+        return self._coef
+
     def _value_equality_values_(self):
         return (frozenset(self._qubit_pauli_map.items()),
-                self.negated)
+                self._coef)
 
     def equal_up_to_sign(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
@@ -63,6 +70,16 @@ class PauliString(raw_types.Operation):
         return self._qubit_pauli_map.get(key, default)
     # pylint: enable=function-redefined
 
+    def __mul__(self, other):
+        if isinstance(other, (int, float, complex)):
+            return PauliString(self._qubit_pauli_map, self._coef * other)
+        return NotImplemented
+
+    def __rmul__(self, other):
+        if isinstance(other, (int, float, complex)):
+            return PauliString(self._qubit_pauli_map, self._coef * other)
+        return NotImplemented
+
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
 
@@ -76,7 +93,7 @@ class PauliString(raw_types.Operation):
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
         return PauliString(dict(zip(new_qubits,
                                     (self[q] for q in self.qubits))),
-                           self.negated)
+                           self._coef)
 
     def values(self) -> ValuesView[Pauli]:
         return self._qubit_pauli_map.values()
@@ -93,15 +110,19 @@ class PauliString(raw_types.Operation):
     def __repr__(self):
         map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
                              for qubit in sorted(self.qubits)))
-        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self.negated)
+        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self._coef)
 
     def __str__(self):
         ordered_qubits = sorted(self.qubits)
-        sign = '-' if self.negated else ''
+        prefix = (
+            '-' if self._coef == -1
+            else '' if self._coef == 1
+            else '{}*'.format(self._coef)
+        )
         if not ordered_qubits:
-            return '{}{}'.format(sign, 'I')
+            return '{}{}'.format(prefix, 'I')
         return '{}{}'.format(
-            sign,
+            prefix,
             '*'.join('{}({})'.format(self[q], q, self[q])
                      for q in ordered_qubits))
 
@@ -119,11 +140,8 @@ class PauliString(raw_types.Operation):
                    for p0, p1 in self.zip_paulis(other)
                    ) % 2 == 0
 
-    def negate(self) -> 'PauliString':
-        return PauliString(self._qubit_pauli_map, not self.negated)
-
     def __neg__(self) -> 'PauliString':
-        return self.negate()
+        return PauliString(self._qubit_pauli_map, -self._coef)
 
     def __pos__(self) -> 'PauliString':
         return self
@@ -132,7 +150,7 @@ class PauliString(raw_types.Operation):
                    ) -> 'PauliString':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
                                for qubit, pauli in self.items()}
-        return PauliString(new_qubit_pauli_map, self.negated)
+        return PauliString(new_qubit_pauli_map, self._coef)
 
     def to_z_basis_ops(self) -> op_tree.OP_TREE:
         """Returns operations to convert the qubits to the computational basis.
@@ -171,17 +189,18 @@ class PauliString(raw_types.Operation):
                 opposite direction).
         """
         pauli_map = dict(self._qubit_pauli_map)
-        inv = self.negated
+        should_negate = False
         for op in ops:
             if not set(op.qubits) & set(pauli_map.keys()):
                 # op operates on an independent set of qubits from the Pauli
                 # string.  The order can be switched with no change no matter
                 # what op is.
                 continue
-            inv ^= PauliString._pass_operation_over(pauli_map,
-                                                    op,
-                                                    after_to_before)
-        return PauliString(pauli_map, inv)
+            should_negate ^= PauliString._pass_operation_over(pauli_map,
+                                                              op,
+                                                              after_to_before)
+        coef = self._coef * (-1 if should_negate else +1)
+        return PauliString(pauli_map, coef)
 
     @staticmethod
     def _pass_operation_over(pauli_map: Dict[raw_types.Qid, Pauli],
@@ -223,9 +242,13 @@ class PauliString(raw_types.Operation):
                                           qubit1: raw_types.Qid,
                                           after_to_before: bool = False
                                           ) -> bool:
-        def merge_and_kickback(qubit, pauli_left, pauli_right, inv):
+        def merge_and_kickback(qubit,
+                               pauli_left: Optional[pauli_gates.Pauli],
+                               pauli_right: Optional[pauli_gates.Pauli],
+                               inv: bool) -> int:
             if pauli_left is None or pauli_right is None:
-                pauli_map[qubit] = pauli_left or pauli_right
+                pauli_map[qubit] = cast(pauli_gates.Pauli,
+                                        pauli_left or pauli_right)
                 return 0
             elif pauli_left == pauli_right:
                 del pauli_map[qubit]
@@ -233,9 +256,10 @@ class PauliString(raw_types.Operation):
             else:
                 pauli_map[qubit] = pauli_left.third(pauli_right)
                 if (pauli_left < pauli_right) ^ after_to_before:
-                    return inv * 2 + 1
+                    return int(inv) * 2 + 1
                 else:
-                    return inv * 2 - 1
+                    return int(inv) * 2 - 1
+
         quarter_kickback = 0
         if (qubit0 in pauli_map
             and not pauli_map[qubit0].commutes_with(gate.pauli0)):
@@ -251,4 +275,4 @@ class PauliString(raw_types.Operation):
                                                    gate.invert0)
         assert quarter_kickback % 2 == 0, ('Impossible condition.  '
             'quarter_kickback is either incremented twice or never.')
-        return (quarter_kickback % 4 == 2)
+        return quarter_kickback % 4 == 2
