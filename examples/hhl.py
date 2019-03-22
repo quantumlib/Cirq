@@ -84,35 +84,25 @@ class PhaseEstimation(cirq.MultiQubitGate):
     estimated phase, in big-endian.
     """
 
-    def __init__(self, num_qubits, unitary, invert=False):
+    def __init__(self, num_qubits, unitary):
         super(PhaseEstimation, self).__init__(num_qubits)
         self.U = unitary
-        self.invert = invert
 
     def _decompose_(self, qubits):
-        if self.invert:
-            qubits = list(qubits)
-            yield Qft(self._num_qubits-1)(*qubits[:-1])
-            yield (PhaseKickback(self.num_qubits(), self.U)**-1)(*qubits)
-            yield cirq.H.on_each(*qubits[:-1])
-        else:
-            qubits = list(qubits)
-            yield cirq.H.on_each(*qubits[:-1])
-            yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
-            yield (Qft(self._num_qubits-1)**-1)(*qubits[:-1])
-
-    def __pow__(self, exponent):
-        if exponent == -1:
-            return PhaseEstimation(self.num_qubits(), self.U, invert=True)
-        return NotImplemented
+        qubits = list(qubits)
+        yield cirq.H.on_each(*qubits[:-1])
+        yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
+        yield Qft(self._num_qubits-1)(*qubits[:-1])**-1
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
     """
     A gate that represents e^iAt.
 
-    This EigenGate + np.linalg.eigh() implementation is temporary.
-    Actual implementation will use linear operators.
+    This EigenGate + np.linalg.eigh() implementation is used here
+    purely for demonstrative purposes. If a large matrix is used,
+    the circuit should implement actual Hamiltonian simulation,
+    by using the linear operators framework in Cirq for example.
     """
 
     def __init__(self, A, t, exponent=1.0):
@@ -144,27 +134,15 @@ class PhaseKickback(cirq.MultiQubitGate):
     unitary is the unitary gate whose phases will be estimated.
     """
 
-    def __init__(self, num_qubits, unitary, invert=False):
+    def __init__(self, num_qubits, unitary):
         super(PhaseKickback, self).__init__(num_qubits)
         self.U = unitary
-        self.invert = invert
 
     def _decompose_(self, qubits):
-        if self.invert:
-            qubits = list(qubits)
-            memory = qubits.pop()
-            for i, qubit in reversed(list(enumerate(qubits))):
-                yield cirq.ControlledGate(self.U**(-2**i))(qubit, memory)
-        else:
-            qubits = list(qubits)
-            memory = qubits.pop()
-            for i, qubit in enumerate(qubits):
-                yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
-
-    def __pow__(self, exponent):
-        if exponent == -1:
-            return PhaseKickback(self.num_qubits(), self.U, invert=True)
-        return NotImplemented
+        qubits = list(qubits)
+        memory = qubits.pop()
+        for i, qubit in enumerate(qubits):
+            yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
 
 
 class Qft(cirq.MultiQubitGate):
@@ -175,31 +153,16 @@ class Qft(cirq.MultiQubitGate):
     gate by reversing the control qubit order.
     """
 
-    def __init__(self, num_qubits, invert=False):
+    def __init__(self, num_qubits):
         super(Qft, self).__init__(num_qubits)
-        self.invert = invert
 
     def _decompose_(self, qubits):
-        if self.invert:
-            qubits = list(qubits)
-            qubits.reverse()
-            while len(qubits) > 0:
-                q_head = qubits.pop(0)
-                yield cirq.H(q_head)
-                for i, qubit in enumerate(qubits):
-                    yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
-        else:
-            processed_qubits = []
-            for q_head in qubits:
-                for i, qubit in enumerate(processed_qubits):
-                    yield (cirq.CZ**(1/2.0**(i+1)))(qubit, q_head)
-                yield cirq.H(q_head)
-                processed_qubits.insert(0, q_head)
-
-    def __pow__(self, exponent):
-        if exponent == -1:
-            return Qft(self.num_qubits(), invert=True)
-        return NotImplemented
+        processed_qubits = []
+        for q_head in qubits:
+            for i, qubit in enumerate(processed_qubits):
+                yield cirq.CZ(qubit, q_head)**(1/2.0**(i+1))
+            yield cirq.H(q_head)
+            processed_qubits.insert(0, q_head)
 
 
 class EigenRotation(cirq.MultiQubitGate):
@@ -270,7 +233,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     c.append([
         pe(*(register + [memory])),
         EigenRotation(register_size+1, C, t)(*(register+[ancilla])),
-        (pe**-1)(*(register + [memory])),
+        pe(*(register + [memory]))**-1,
         cirq.measure(ancilla)
     ])
 
