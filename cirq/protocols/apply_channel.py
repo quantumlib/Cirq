@@ -50,7 +50,7 @@ class Axes:
 
 
 class ApplyChannelArgs:
-    """Arguments for efficiently performing a channel.
+    r"""Arguments for efficiently performing a channel.
 
     A channel performs the mapping
         $$
@@ -107,11 +107,11 @@ class ApplyChannelArgs:
                 the last n indices corresponding to the columns of the density
                 matrix.
             out_buffer: Pre-allocated workspace with the same shape and
-                dtype as the target tensor. If buffers are used, the result should
-                end up in this buffer. It is the responsibility of calling code
-                to notice if the result is this buffer.
-            auxiliary_buffer0: Pre-allocated workspace with the same shape and dtype
-                as the target tensor.
+                dtype as the target tensor. If buffers are used, the result
+                should end up in this buffer. It is the responsibility of
+                calling code to notice if the result is this buffer.
+            auxiliary_buffer0: Pre-allocated workspace with the same shape and
+                dtype as the target tensor.
             auxiliary_buffer1: Pre-allocated workspace with the same shape
                 and dtype as the target tensor.
             left_axes: Which axes to multiply the left action of the channel
@@ -157,12 +157,13 @@ class ApplyChannelArgs:
 
                 args.target_tensor[:, 0, :, 1] += 1
         """
-        axes = self.left_axes if axes == Axes.ROW else self.right_axes
-        return linalg.slice_for_qubits_equal_to(axes, little_endian_bits_int)
+        axes_indices = self.left_axes if axes == Axes.ROW else self.right_axes
+        return linalg.slice_for_qubits_equal_to(axes_indices,
+                                                little_endian_bits_int)
 
 
 class SupportsApplyChannel(Protocol):
-    """An object that can be efficiently implement a channel."""
+    """An object that can efficiently implement a channel."""
 
     def _apply_channel_(self, args: ApplyChannelArgs
     ) -> Union[np.ndarray, None, NotImplementedType]:
@@ -171,7 +172,7 @@ class SupportsApplyChannel(Protocol):
         This method is given both the target tensor and workspace of the same
         shape and dtype. The method then either performs inline modifications of
         the target tensor and returns it, or writes its output into the
-        workspace tensor and returns that. This signature makes it possible to
+        a workspace tensor and returns that. This signature makes it possible to
         write specialized simulation methods that run without performing large
         allocations, significantly increasing simulation performance.
 
@@ -272,65 +273,53 @@ def apply_channel(val: Any,
         return right_result
 
     # Fallback to using the object's _channel_ matrices.
-    krauss = channel(val, None)
+    krauss = tuple(channel(val, None))
     if krauss is not None:
         # Special case for single-qubit operations.
+        args.out_buffer[:] = 0
+        np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
+
         if krauss[0].shape == (2, 2):
             zero_left = args.subspace_index(0, axes=Axes.ROW)
             one_left = args.subspace_index(1, axes=Axes.ROW)
             zero_right = args.subspace_index(0, axes=Axes.COLUMN)
             one_right = args.subspace_index(1, axes=Axes.COLUMN)
-            args.out_buffer[:] = 0
-            np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
             for krauss_op in krauss:
                 np.copyto(dst=args.target_tensor,
                           src=args.auxiliary_buffer0)
-                left_result = linalg.apply_matrix_to_slices(
+                linalg.apply_matrix_to_slices(
                     args.target_tensor,
                     krauss_op,
                     [zero_left, one_left],
                     out=args.auxiliary_buffer1)
-                args.auxiliary_buffer1 = args.target_tensor
-                args.target_tensor = left_result
-
-                right_result = linalg.apply_matrix_to_slices(
-                    args.target_tensor,
+                # No need to transpose as we are acting on the tensor
+                # representation of matrix, so transpose is done for us.
+                linalg.apply_matrix_to_slices(
+                    args.auxiliary_buffer1,
                     np.conjugate(krauss_op),
                     [zero_right, one_right],
-                    out=args.auxiliary_buffer1)
-                args.auxiliary_buffer1 = args.target_tensor
-                args.target_tensor = right_result
-
+                    out=args.target_tensor)
                 args.out_buffer += args.target_tensor
             return args.out_buffer
 
         # Fallback to np.einsum for the general case.
-        args.out_buffer[:] = 0
-        np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
         for krauss_op in krauss:
             np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
             krauss_tensor = np.reshape(
                 krauss_op.astype(args.target_tensor.dtype),
                 (2,) * len(args.left_axes) * 2)
-            left_result = linalg.targeted_left_multiply(
+            linalg.targeted_left_multiply(
                     krauss_tensor,
                     args.target_tensor,
                     args.left_axes,
                     out=args.auxiliary_buffer1)
-            if left_result is args.auxiliary_buffer1:
-                args.auxiliary_buffer1 = args.target_tensor
-            args.target_tensor = left_result
-
             # No need to transpose as we are acting on the tensor
             # representation of matrix, so transpose is done for us.
-            right_result = linalg.targeted_left_multiply(
+            linalg.targeted_left_multiply(
                     np.conjugate(krauss_tensor),
-                    right_result,
+                    args.auxiliary_buffer1,
                     args.right_axes,
-                    out=args.auxiliary_buffer1)
-            if right_result is args.auxiliary_buffer1:
-                args.auxiliary_buffer1 = args.target_tensor
-            args.target_tensor = right_result
+                    out=args.target_tensor)
             args.out_buffer += args.target_tensor
         return args.out_buffer
 
@@ -338,6 +327,6 @@ def apply_channel(val: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-            "object of type '{}' has no _apply_channel_, _apply_unitary_ or "
-            "_channel_ methods (or they returned None or NotImplemented)."
-                .format(type(val)))
+            "object of type '{}' has no _apply_channel_, _apply_unitary_, "
+            "_unitary_, or _channel_ methods (or they returned None or "
+            "NotImplemented).".format(type(val)))
