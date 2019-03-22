@@ -4,16 +4,16 @@ import sympy
 import numpy as np
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from typing import Sequence, Tuple, Iterator, Any, NamedTuple
-from cirq import circuits, devices, ops, protocols, sim, study
+from mpl_toolkits.mplot3d import Axes3D  # type: ignore
+from typing import Sequence, Tuple, Iterator, Any, NamedTuple, List
+from cirq import circuits, devices, ops, protocols, sim, study, Gate
 
 Cliffords = NamedTuple('Cliffords',
-                       [('c1_in_xy', Sequence[Sequence[ops.Gate]]),
-                        ('c1_in_xz', Sequence[Sequence[ops.Gate]]),
-                        ('s1', Sequence[Sequence[ops.Gate]]),
-                        ('s1_x', Sequence[Sequence[ops.Gate]]),
-                        ('s1_y', Sequence[Sequence[ops.Gate]])])
+                       [('c1_in_xy', List[List[ops.Gate]]),
+                        ('c1_in_xz', List[List[ops.Gate]]),
+                        ('s1', List[List[ops.Gate]]),
+                        ('s1_x', List[List[ops.Gate]]),
+                        ('s1_y', List[List[ops.Gate]])])
 
 
 class RabiResult:
@@ -326,7 +326,7 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,
                                repetitions: int = 1000) -> TomographyResult:
-    """Two-qubit state tomography.
+    r"""Two-qubit state tomography.
 
     To measure the density matrix of the output state of a two-qubit circuit,
     different combinations of I, X/2 and Y/2 operations are applied to the
@@ -471,7 +471,7 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfd_matrices: np.ndarray) -> circuits.Circuit:
     clifford_group_size = 24
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = []
+    gate_sequence: List[ops.Gate] = []
     for gate_id in gate_ids:
         gate_sequence.extend(cfds[gate_id])
     idx = _find_inv_matrix(_gate_seq_to_mats(gate_sequence), cfd_matrices)
@@ -516,8 +516,8 @@ def _matrix_bar_plot(mat: np.ndarray, z_label: str, fig: plt.Figure,
     ax1 = fig.add_subplot(plt_position, projection='3d')  # type: Axes3D
 
     dz = mat.flatten()
-    ax1.bar3d(x_indices, y_indices, z_indices, dx, dy, dz, color=
-    '#ff0080', alpha=1.0)
+    ax1.bar3d(x_indices, y_indices, z_indices, dx, dy, dz, color='#ff0080',
+              alpha=1.0)
 
     ax1.set_zlabel(z_label)
     ax1.set_zlim3d(min(0, np.amin(mat)), max(0, np.amax(mat)))
@@ -638,8 +638,8 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 
 
 def _single_qubit_cliffords() -> Cliffords:
-    c1_in_xy = []
-    c1_in_xz = []
+    c1_in_xy: List[List[Gate]] = []
+    c1_in_xz: List[List[Gate]] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([ops.X ** phi_0, ops.Y ** phi_1])
@@ -660,11 +660,13 @@ def _single_qubit_cliffords() -> Cliffords:
     for phi in phi_xz:
         c1_in_xz.append([ops.X ** phi[0], ops.Z ** phi[1], ops.X ** phi[2]])
 
-    s1 = [[ops.X ** 0.0], [ops.Y ** 0.5, ops.X ** 0.5],
-          [ops.X ** -0.5, ops.Y ** -0.5]]
-    s1_x = [[ops.X ** 0.5], [ops.X ** 0.5, ops.Y ** 0.5, ops.X ** 0.5],
-            [ops.Y ** -0.5]]
-    s1_y = [[ops.Y ** 0.5], [ops.X ** -0.5, ops.Y ** -0.5, ops.X ** 0.5],
-            [ops.Y, ops.X ** 0.5]]
+    s1: List[List[Gate]] = [[ops.X ** 0.0], [ops.Y ** 0.5, ops.X ** 0.5],
+                            [ops.X ** -0.5, ops.Y ** -0.5]]
+    s1_x: List[List[Gate]] = [[ops.X ** 0.5],
+                              [ops.X ** 0.5, ops.Y ** 0.5, ops.X ** 0.5],
+                              [ops.Y ** -0.5]]
+    s1_y: List[List[Gate]] = [[ops.Y ** 0.5],
+                              [ops.X ** -0.5, ops.Y ** -0.5, ops.X ** 0.5],
+                              [ops.Y, ops.X ** 0.5]]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)

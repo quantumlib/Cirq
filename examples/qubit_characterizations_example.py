@@ -1,4 +1,3 @@
-from matplotlib import pyplot as plt
 import numpy as np
 import cirq
 
@@ -37,8 +36,6 @@ def main():
                                                                 q_0, q_1,
                                                                 cir_2q)
     tomography_2q.plot()
-
-    plt.show()
 
 
 if __name__ == '__main__':
