@@ -471,7 +471,7 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfd_matrices: np.ndarray) -> circuits.Circuit:
     clifford_group_size = 24
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence: List[ops.Gate] = []
+    gate_sequence = []  # type: List[ops.Gate]
     for gate_id in gate_ids:
         gate_sequence.extend(cfds[gate_id])
     idx = _find_inv_matrix(_gate_seq_to_mats(gate_sequence), cfd_matrices)
@@ -638,8 +638,8 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 
 
 def _single_qubit_cliffords() -> Cliffords:
-    c1_in_xy: List[List[ops.Gate]] = []
-    c1_in_xz: List[List[ops.Gate]] = []
+    c1_in_xy = []  # type: List[List[ops.Gate]]
+    c1_in_xz = []  # type: List[List[ops.Gate]]
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([ops.X ** phi_0, ops.Y ** phi_1])
@@ -660,13 +660,11 @@ def _single_qubit_cliffords() -> Cliffords:
     for phi in phi_xz:
         c1_in_xz.append([ops.X ** phi[0], ops.Z ** phi[1], ops.X ** phi[2]])
 
-    s1: List[List[ops.Gate]] = [[ops.X ** 0.0], [ops.Y ** 0.5, ops.X ** 0.5],
-                            [ops.X ** -0.5, ops.Y ** -0.5]]
-    s1_x: List[List[ops.Gate]] = [[ops.X ** 0.5],
-                              [ops.X ** 0.5, ops.Y ** 0.5, ops.X ** 0.5],
-                              [ops.Y ** -0.5]]
-    s1_y: List[List[ops.Gate]] = [[ops.Y ** 0.5],
-                              [ops.X ** -0.5, ops.Y ** -0.5, ops.X ** 0.5],
-                              [ops.Y, ops.X ** 0.5]]
+    s1 = [[ops.X ** 0.0], [ops.Y ** 0.5, ops.X ** 0.5],
+          [ops.X ** -0.5, ops.Y ** -0.5]]  # type: List[List[ops.Gate]]
+    s1_x = [[ops.X ** 0.5], [ops.X ** 0.5, ops.Y ** 0.5, ops.X ** 0.5],
+            [ops.Y ** -0.5]]  # type: List[List[ops.Gate]]
+    s1_y = [[ops.Y ** 0.5], [ops.X ** -0.5, ops.Y ** -0.5, ops.X ** 0.5],
+            [ops.Y, ops.X ** 0.5]]  # type: List[List[ops.Gate]]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)
