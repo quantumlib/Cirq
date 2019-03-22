@@ -428,7 +428,7 @@ def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
             test_circuit.append(rot_2(first_qubit))
             probs = np.concatenate((probs, _measurement(test_circuit)))
 
-    c, _, _, _ = np.linalg.lstsq(mat, 4.0 * probs - 1.0, rcond=None)
+    c, _, _, _ = np.linalg.lstsq(mat, 4.0 * probs - 1.0, rcond=-1)
     c = np.concatenate(([1.0], c))
     c = c.reshape(4, 4)
 
