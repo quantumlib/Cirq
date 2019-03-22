@@ -40,8 +40,8 @@ from typing import Tuple  # pylint: disable=unused-import
 
 import numpy as np
 
-from cirq import circuits, ops, sim, study, protocols, optimizers
-from cirq.google import convert_to_xmon_gates
+from cirq import circuits, ops, sim, study, protocols
+from cirq.google import xmon_device
 from cirq.google.sim import xmon_stepper
 
 
@@ -92,9 +92,24 @@ class XmonOptions:
         self.use_processes = use_processes
 
 
+def _verify_xmon_circuit(circuit: circuits.Circuit):
+    if not isinstance(circuit.device, xmon_device.XmonDevice):
+        raise ValueError("XmonSimulator only accepts circuits "
+                         "using an XmonDevice. Maybe you forgot to pass "
+                         "a `device=` parameter into `cirq.Circuit`, or "
+                         "intended to set `new_device=` in your call to "
+                         "`cirq.google.optimized_for_xmon`? Alternatively, "
+                         "maybe you intended to use `cirq.Simulator()` "
+                         "instead?")
+    circuit.device.validate_circuit(circuit)
+
+
 class XmonSimulator(sim.SimulatesSamples,
                     sim.SimulatesIntermediateWaveFunction):
-    """XmonSimulator for Xmon class quantum circuits.
+    """XmonSimulator for quantum circuits with an Xmon device.
+
+    This simulator will raise an exception if given a circuit that doesn't
+    specify a device that is an instance of XmonDevice.
 
     This simulator has different methods for different types of simulations.
 
@@ -133,15 +148,20 @@ class XmonSimulator(sim.SimulatesSamples,
         repetitions: int,
     ) -> Dict[str, List[np.ndarray]]:
         """See definition in `cirq.SimulatesSamples`."""
-        xmon_circuit, keys = self._to_xmon_circuit(
-            circuit,
-            param_resolver)
-        if xmon_circuit.are_all_measurements_terminal():
-            return self._run_sweep_sample(xmon_circuit, repetitions)
-        else:
-            return self._run_sweep_repeat(keys, xmon_circuit, repetitions)
 
-    def _run_sweep_repeat(self, keys, circuit, repetitions):
+        circuit = protocols.resolve_parameters(circuit, param_resolver)
+        _verify_xmon_circuit(circuit)
+
+        # Delegate to appropriate method based on contents.
+        if circuit.are_all_measurements_terminal():
+            return self._run_sweep_sample(circuit, repetitions)
+        else:
+            return self._run_sweep_repeat(circuit, repetitions)
+
+    def _run_sweep_repeat(self,
+                          circuit: circuits.Circuit,
+                          repetitions: int) -> Dict[str, np.ndarray]:
+        keys = find_measurement_keys(circuit)
         measurements = {k: [] for k in
                         keys}  # type: Dict[str, List[np.ndarray]]
         for _ in range(repetitions):
@@ -180,13 +200,13 @@ class XmonSimulator(sim.SimulatesSamples,
     ) -> Iterator['XmonStepResult']:
         """See definition in `cirq.SimulatesIntermediateState`."""
         param_resolver = param_resolver or study.ParamResolver({})
-        xmon_circuit, _ = self._to_xmon_circuit(circuit, param_resolver)
+        circuit = protocols.resolve_parameters(circuit, param_resolver)
+        _verify_xmon_circuit(circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(xmon_circuit,
+        return self._base_iterator(circuit,
                                    qubit_order,
                                    actual_initial_state,
                                    perform_measurements)
-
 
     def _base_iterator(
         self,
@@ -268,19 +288,6 @@ class XmonSimulator(sim.SimulatesSamples,
                                         'xmon simulator.'.format(gate))
                 stepper.simulate_phases(phase_map)
                 yield XmonStepResult(stepper, qubit_map, measurements)
-
-    def _to_xmon_circuit(
-        self,
-        circuit: circuits.Circuit,
-        param_resolver: study.ParamResolver
-    ) -> Tuple[circuits.Circuit, Set[str]]:
-        # TODO: Use one optimization pass.
-        xmon_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit(
-            xmon_circuit)
-        optimizers.DropEmptyMoments().optimize_circuit(xmon_circuit)
-        keys = find_measurement_keys(xmon_circuit)
-        return xmon_circuit, keys
 
 
 def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
