@@ -20,11 +20,11 @@ from cirq import ops, protocols
 def escape_text_for_latex(text):
     escaped = (text
                .replace('\\', r'\textbackslash{}')
+               .replace('{', r'\{')
+               .replace('}', r'\}')
                .replace('^', r'\textasciicircum{}')
                .replace('~', r'\textasciitilde{}')
                .replace('_', r'\_')
-               .replace('{', r'\{')
-               .replace('}', r'\}')
                .replace('$', r'\$')
                .replace('%', r'\%')
                .replace('&', r'\&')

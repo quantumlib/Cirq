@@ -75,3 +75,7 @@ class PeriodicValue:
             low += self.period
 
         return cirq.protocols.approx_eq(low, high, atol=atol)
+
+    def _is_parameterized_(self):
+        return any(isinstance(val, sympy.Basic)
+                   for val in (self.value, self.period))

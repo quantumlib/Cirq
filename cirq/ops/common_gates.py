@@ -116,7 +116,7 @@ class XPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('x {0};\n', qubits[0])
@@ -141,7 +141,7 @@ class XPowGate(eigen_gate.EigenGate,
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            if isinstance(self._exponent, sympy.Basic):
+            if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rx({})'.format(
                     proper_repr(sympy.pi * self._exponent))
             else:
@@ -212,7 +212,7 @@ class YPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('y {0};\n', qubits[0])
@@ -237,7 +237,7 @@ class YPowGate(eigen_gate.EigenGate,
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            if isinstance(self._exponent, sympy.Basic):
+            if protocols.is_parameterized(self._exponent):
                 return 'cirq.Ry({})'.format(
                     proper_repr(sympy.pi * self._exponent))
             else:
@@ -333,7 +333,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('z {0};\n', qubits[0])
@@ -356,7 +356,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
-            if isinstance(self._exponent, sympy.Basic):
+            if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rz({})'.format(proper_repr(
                     sympy.pi * self._exponent))
             else:
@@ -460,7 +460,7 @@ class MeasurementGate(gate_features.MultiQubitGate):
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
@@ -485,11 +485,11 @@ class MeasurementGate(gate_features.MultiQubitGate):
         return self.num_qubits(), self.key, self.invert_mask
 
 
-def _default_measurement_key(qubits: Iterable[raw_types.QubitId]) -> str:
+def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
 
 
-def measure(*qubits: raw_types.QubitId,
+def measure(*qubits: raw_types.Qid,
             key: Optional[str] = None,
             invert_mask: Tuple[bool, ...] = ()
             ) -> gate_operation.GateOperation:
@@ -509,7 +509,7 @@ def measure(*qubits: raw_types.QubitId,
         An operation targeting the given qubits with a measurement.
 
     Raises:
-        ValueError if the qubits are not instances of QubitId.
+        ValueError if the qubits are not instances of Qid.
     """
     for qubit in qubits:
         if isinstance(qubit, np.ndarray):
@@ -517,17 +517,17 @@ def measure(*qubits: raw_types.QubitId,
                     'measure() was called a numpy ndarray. Perhaps you meant '
                     'to call measure_state_vector on numpy array?'
             )
-        elif not isinstance(qubit, raw_types.QubitId):
+        elif not isinstance(qubit, raw_types.Qid):
             raise ValueError(
-                    'measure() was called with type different than QubitId.')
+                    'measure() was called with type different than Qid.')
 
     if key is None:
         key = _default_measurement_key(qubits)
     return MeasurementGate(len(qubits), key, invert_mask).on(*qubits)
 
 
-def measure_each(*qubits: raw_types.QubitId,
-                 key_func: Callable[[raw_types.QubitId], str] = str
+def measure_each(*qubits: raw_types.Qid,
+                 key_func: Callable[[raw_types.Qid], str] = str
                  ) -> List[gate_operation.GateOperation]:
     """Returns a list of operations individually measuring the given qubits.
 
@@ -664,7 +664,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('h {0};\n', qubits[0])
@@ -704,7 +704,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
     where:
 
-        g = exp(i·π·t/2).
+        g = exp(i·π·t).
 
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
@@ -733,7 +733,7 @@ class CZPowGate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
-        z_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
         return {
             'II': global_phase * (1 - c),
@@ -753,7 +753,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
             args: protocols.QasmArgs,
-            qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+            qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -778,7 +778,7 @@ class CZPowGate(eigen_gate.EigenGate,
 def _rads_func_symbol(func_name: str,
                       args: protocols.CircuitDiagramInfoArgs,
                       half_turns: Any) -> str:
-    if isinstance(half_turns, sympy.Basic):
+    if protocols.is_parameterized(half_turns):
         return '{}({})'.format(func_name, sympy.pi * half_turns)
     unit = 'π' if args.use_unicode_characters else 'pi'
     if half_turns == 1:
@@ -856,7 +856,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
-        cnot_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
         return {
             'II': global_phase * (1 - c),
@@ -867,7 +867,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -888,8 +888,8 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'global_shift={!r})'
         ).format(proper_repr(self._exponent), self._global_shift)
 
-    def on(self, *args: raw_types.QubitId,
-           **kwargs: raw_types.QubitId) -> gate_operation.GateOperation:
+    def on(self, *args: raw_types.Qid,
+           **kwargs: raw_types.Qid) -> gate_operation.GateOperation:
         if not kwargs:
             return super().on(*args)
         if not args and set(kwargs.keys()) == {'control', 'target'}:
@@ -960,7 +960,7 @@ class SwapPowGate(eigen_gate.EigenGate,
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
-        swap_phase = 1j**(self._exponent + 0)  # TODO: Cleanup after #1389.
+        swap_phase = 1j**self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
         return {
             'II': global_phase * (1 - c),
@@ -981,7 +981,7 @@ class SwapPowGate(eigen_gate.EigenGate,
 
     def _qasm_(self,
                args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.QubitId, ...]) -> Optional[str]:
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -1108,19 +1108,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
 
 def Rx(rads: Union[float, sympy.Basic]) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
-    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
 def Ry(rads: Union[float, sympy.Basic]) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
 def Rz(rads: Union[float, sympy.Basic]) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    pi = sympy.pi if isinstance(rads, sympy.Basic) else np.pi
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 

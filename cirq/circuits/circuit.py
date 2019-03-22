@@ -30,7 +30,6 @@ from typing import (
 import json
 import re
 import numpy as np
-import sympy
 
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
@@ -59,6 +58,7 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_until_blocked
         findall_operations_with_gate_type
         are_all_measurements_terminal
         to_unitary_matrix
@@ -171,7 +171,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key])
+            return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
         else:
@@ -299,7 +299,7 @@ class Circuit:
     def with_device(
             self,
             new_device: devices.Device,
-            qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
+            qubit_mapping: Callable[[ops.Qid], ops.Qid] = lambda e: e,
     ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
@@ -333,7 +333,7 @@ class Circuit:
                 + '</pre>')
 
     def _first_moment_operating_on(self,
-                                   qubits: Iterable[ops.QubitId],
+                                   qubits: Iterable[ops.Qid],
                                    indices: Iterable[int]) -> Optional[int]:
         qubits = frozenset(qubits)
         for m in indices:
@@ -342,7 +342,7 @@ class Circuit:
         return None
 
     def next_moment_operating_on(self,
-                                 qubits: Iterable[ops.QubitId],
+                                 qubits: Iterable[ops.Qid],
                                  start_moment_index: int = 0,
                                  max_distance: int = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
@@ -373,9 +373,9 @@ class Circuit:
             range(start_moment_index, start_moment_index + max_distance))
 
     def next_moments_operating_on(self,
-                                  qubits: Iterable[ops.QubitId],
+                                  qubits: Iterable[ops.Qid],
                                   start_moment_index: int = 0
-                                  ) -> Dict[ops.QubitId, int]:
+                                  ) -> Dict[ops.Qid, int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -399,7 +399,7 @@ class Circuit:
 
     def prev_moment_operating_on(
             self,
-            qubits: Sequence[ops.QubitId],
+            qubits: Sequence[ops.Qid],
             end_moment_index: Optional[int] = None,
             max_distance: Optional[int] = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
@@ -457,10 +457,10 @@ class Circuit:
 
     def reachable_frontier_from(
             self,
-            start_frontier: Dict[ops.QubitId, int],
+            start_frontier: Dict[ops.Qid, int],
             *,
             is_blocker: Callable[[ops.Operation], bool] = lambda op: False
-    ) -> Dict[ops.QubitId, int]:
+    ) -> Dict[ops.Qid, int]:
         """Determines how far can be reached into a circuit under certain rules.
 
         The location L = (qubit, moment_index) is *reachable* if and only if:
@@ -568,11 +568,11 @@ class Circuit:
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active = set()  # type: Set[ops.QubitId]
+        active = set()  # type: Set[ops.Qid]
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
-        def enqueue_next(qubit: ops.QubitId, moment: int) -> None:
+        def enqueue_next(qubit: ops.Qid, moment: int) -> None:
             next_moment = self.next_moment_operating_on([qubit], moment)
             if next_moment is None:
                 end_frontier[qubit] = max(len(self), start_frontier[qubit])
@@ -611,8 +611,8 @@ class Circuit:
         return end_frontier
 
     def findall_operations_between(self,
-                                   start_frontier: Dict[ops.QubitId, int],
-                                   end_frontier: Dict[ops.QubitId, int],
+                                   start_frontier: Dict[ops.Qid, int],
+                                   end_frontier: Dict[ops.Qid, int],
                                    omit_crossing_operations: bool = False
                                    ) -> List[Tuple[int, ops.Operation]]:
         """Finds operations between the two given frontiers.
@@ -660,8 +660,54 @@ class Circuit:
 
         return list(result)
 
+    def findall_operations_until_blocked(
+            self,
+            start_frontier: Dict[ops.Qid, int],
+            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+    ) -> List[Tuple[int, ops.Operation]]:
+        """
+        Finds all operations until a blocking operation is hit.  This returns
+        a list of all operations from the starting frontier until a blocking
+        operation is encountered.  An operation is part of the list if
+        it is involves a qubit in the start_frontier dictionary, comes after
+        the moment listed in that dictionary, and before any blocking
+        operationi that involve that qubit.  Operations are only considered
+        to blocking the qubits that they operate on, so a blocking operation
+        that does not operate on any qubit in the starting frontier is not
+        actually considered blocking.  See `reachable_frontier_from` for a more
+        in depth example of reachable states.
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
+        """
+        op_list = []
+        max_index = len(self._moments)
+        for qubit in start_frontier:
+            current_index = start_frontier[qubit]
+            if current_index < 0:
+                current_index = 0
+            while current_index < max_index:
+                if self[current_index].operates_on_single_qubit(qubit):
+                    next_op = self.operation_at(qubit, current_index)
+                    if next_op is not None:
+                        if is_blocker(next_op):
+                            break
+                        op_list.append((current_index,next_op))
+                current_index+=1
+        return op_list
+
     def operation_at(self,
-                     qubit: ops.QubitId,
+                     qubit: ops.Qid,
                      moment_index: int) -> Optional[ops.Operation]:
         """Finds the operation on a qubit within a moment, if any.
 
@@ -772,7 +818,7 @@ class Circuit:
 
     def _has_op_at(self,
                    moment_index: int,
-                   qubits: Iterable[ops.QubitId]) -> bool:
+                   qubits: Iterable[ops.Qid]) -> bool:
         return (0 <= moment_index < len(self._moments) and
                 self._moments[moment_index].operates_on(qubits))
 
@@ -893,10 +939,10 @@ class Circuit:
     @staticmethod
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
                                           start: int = 0,
-                                          frontier: Dict[ops.QubitId,
+                                          frontier: Dict[ops.Qid,
                                                          int] = None
                                           ) -> Tuple[Sequence[int],
-                                                     Dict[ops.QubitId, int]]:
+                                                     Dict[ops.Qid, int]]:
         """Greedily assigns operations to moments.
 
         Args:
@@ -922,9 +968,9 @@ class Circuit:
         return moment_indices, frontier
 
     def _push_frontier(self,
-                       early_frontier: Dict[ops.QubitId, int],
-                       late_frontier: Dict[ops.QubitId, int],
-                       update_qubits: Iterable[ops.QubitId] = None
+                       early_frontier: Dict[ops.Qid, int],
+                       late_frontier: Dict[ops.Qid, int],
+                       update_qubits: Iterable[ops.Qid] = None
                        ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -998,8 +1044,8 @@ class Circuit:
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
                            start: int,
-                           frontier: Dict[ops.QubitId, int] = None
-                           ) -> Dict[ops.QubitId, int]:
+                           frontier: Dict[ops.Qid, int] = None
+                           ) -> Dict[ops.Qid, int]:
         """Inserts operations inline at frontier.
 
         Args:
@@ -1136,7 +1182,7 @@ class Circuit:
         self.insert(len(self._moments), moment_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
-                                  qubits: Iterable[ops.QubitId],
+                                  qubits: Iterable[ops.Qid],
                                   moment_indices: Iterable[int]):
         """Clears operations that are touching given qubits at given moments.
 
@@ -1151,7 +1197,7 @@ class Circuit:
                 self._moments[k] = self._moments[k].without_operations_touching(
                     qubits)
 
-    def all_qubits(self) -> FrozenSet[ops.QubitId]:
+    def all_qubits(self) -> FrozenSet[ops.Qid]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self._moments for q in m.qubits)
 
@@ -1191,7 +1237,7 @@ class Circuit:
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.QubitId] = (),
+            qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
@@ -1244,7 +1290,7 @@ class Circuit:
             self,
             initial_state: Union[int, np.ndarray] = 0,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.QubitId] = (),
+            qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
@@ -1353,7 +1399,7 @@ class Circuit:
             self,
             *,
             use_unicode_characters: bool = True,
-            qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
+            qubit_namer: Optional[Callable[[ops.Qid], str]] = None,
             transpose: bool = False,
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -1424,7 +1470,7 @@ class Circuit:
                 param_resolver)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        resolved_circuit = Circuit(resolved_moments)
+        resolved_circuit = Circuit(resolved_moments, device=self.device)
         return resolved_circuit
 
     def _qasm_(self) -> str:
@@ -1541,7 +1587,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
                         ) -> Optional[str]:
 
-    if isinstance(info.exponent, sympy.Basic):
+    if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
         return (name
                 if _is_exposed_formula(name)
@@ -1582,7 +1628,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 def _draw_moment_in_diagram(
         moment: ops.Moment,
         use_unicode_characters: bool,
-        qubit_map: Dict[ops.QubitId, int],
+        qubit_map: Dict[ops.Qid, int],
         out_diagram: TextDiagramDrawer,
         precision: Optional[int],
         moment_groups: List[Tuple[int, int]],
@@ -1674,7 +1720,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
-                           qubits: Tuple[ops.QubitId, ...],
+                           qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
