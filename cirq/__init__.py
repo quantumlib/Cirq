@@ -303,6 +303,10 @@ from cirq.protocols import (
 from cirq.ion import (
     MS,
 )
+from cirq.neutral_atoms import (
+    AtomDevice,
+    ConvertToAtomGates,
+)
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
