@@ -11,6 +11,7 @@ import examples.phase_estimator
 import examples.basic_arithmetic
 import examples.quantum_teleportation
 import examples.superdense_coding
+import examples.hhl
 import examples.qubit_characterizations_example
 
 
@@ -67,6 +68,10 @@ def test_example_runs_quantum_teleportation():
 
 def test_example_runs_superdense_coding():
     examples.superdense_coding.main()
+
+
+def test_example_runs_hhl():
+    examples.hhl.main()
 
 
 def test_example_runs_qubit_characterizations():
