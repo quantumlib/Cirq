@@ -202,7 +202,7 @@ def test_approx_pauli_string_expectation_value(measurements, value):
 def test_properties():
     qubits = cirq.LineQubit.range(9)
     qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in qubits}
-    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+    pauli_string = cirq.PauliString(qubit_pauli_map, -1)
 
     pauli_string_expectation = cirq.pauli_string_expectation(
         pauli_string, key='a')
@@ -220,7 +220,7 @@ def test_with_qubits():
     old_qubits = cirq.LineQubit.range(9)
     new_qubits = cirq.LineQubit.range(9, 18)
     qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in old_qubits}
-    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+    pauli_string = cirq.PauliString(qubit_pauli_map, -1)
 
     assert (
         cirq.pauli_string_expectation(pauli_string).with_qubits(*new_qubits)
@@ -236,7 +236,7 @@ def test_with_qubits():
 def test_pauli_string_expectation_helper():
     qubits = cirq.LineQubit.range(9)
     qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in qubits}
-    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+    pauli_string = cirq.PauliString(qubit_pauli_map, -1)
 
     assert (cirq.pauli_string_expectation(pauli_string, key='a')
             == cirq.pauli_string_expectation(pauli_string, key='a'))

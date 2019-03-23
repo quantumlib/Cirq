@@ -15,6 +15,7 @@
 from typing import (
     Dict, Iterable, Optional, Union, cast
 )
+
 import sympy
 
 from cirq import ops, value, study, protocols
@@ -74,35 +75,31 @@ class PauliStringPhasor(PauliStringGateOperation):
         return self._with_half_turns(new_exponent)
 
     def can_merge_with(self, op: 'PauliStringPhasor') -> bool:
-        return self.pauli_string.equal_up_to_sign(op.pauli_string)
+        return self.pauli_string.equal_up_to_coefficient(op.pauli_string)
 
     def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
         if not self.can_merge_with(op):
             raise ValueError('Cannot merge operations: {}, {}'.format(self, op))
-        neg_sign = (1, -1)[op.pauli_string.negated ^ self.pauli_string.negated]
+        coef = op.pauli_string.coefficient * self.pauli_string.coefficient
+        if coef not in [-1, 1]:
+            raise NotImplementedError("TODO: merge phased pauli operations.")
         half_turns = (cast(float, self.half_turns)
-                      + cast(float, op.half_turns) * neg_sign)
+                      + cast(float, op.half_turns) * int(coef.real))
         return PauliStringPhasor(self.pauli_string, half_turns=half_turns)
 
     def _decompose_(self) -> ops.OP_TREE:
         if len(self.pauli_string) <= 0:
             return
+        if self.pauli_string.coefficient not in [-1, +1]:
+            raise NotImplementedError("TODO: arbitrary coefficients.")
         qubits = self.qubits
         any_qubit = qubits[0]
         to_z_ops = ops.freeze_op_tree(self.pauli_string.to_z_basis_ops())
         xor_decomp = tuple(xor_nonlocal_decompose(qubits, any_qubit))
         yield to_z_ops
         yield xor_decomp
-        if protocols.is_parameterized(self.half_turns):
-            if self.pauli_string.negated:
-                yield ops.X(any_qubit)
-            yield ops.Z(any_qubit)**self.half_turns
-            if self.pauli_string.negated:
-                yield ops.X(any_qubit)
-        else:
-            half_turns = self.half_turns * (-1 if self.pauli_string.negated
-                                               else 1)
-            yield ops.Z(any_qubit) ** half_turns
+        sign = self.pauli_string.coefficient.real
+        yield ops.Z(any_qubit)**protocols.mul(self.half_turns, sign)
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
