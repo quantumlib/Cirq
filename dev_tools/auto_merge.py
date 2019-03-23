@@ -1,4 +1,5 @@
 import datetime
+import re
 from typing import Optional, List, Any, Dict, Set, Union
 
 import json
@@ -485,6 +486,57 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
                 response.status_code, response.content))
 
 
+def attempt_update_branch_button(pr: PullRequestDetails
+                                 ) -> Union[bool, CannotAutomergeError]:
+    session_cookie = os.getenv('CIRQ_BOT_UPDATE_BRANCH_COOKIE')
+    if session_cookie is None:
+        return attempt_sync_with_master(pr)
+
+    # Get the pull request page.
+    pr_url = 'https://github.com/{}/{}/pull/{}'.format(
+        pr.repo.organization,
+        pr.repo.name,
+        pr.pull_id)
+    cookies = {'user_session': session_cookie}
+    response = requests.get(pr_url, cookies=cookies)
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Failed to read PR page. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    # Find the update branch button and relevant tokens.
+    html = response.content.decode()
+    form_guts = re.match(
+        '.*<form class="branch-action-btn'
+        '.*action=".+/pull/.+/update_branch"'
+        '.*<input name="utf8" type="hidden" value="([^"]+)"'
+        '.*<input type="hidden" name="authenticity_token" value="([^"]+)"'
+        '.*<input type="hidden" name="expected_head_oid" value="([^"]+)"'
+        '.*</form>.*', html, re.DOTALL)
+    if form_guts is None:
+        raise RuntimeError(
+            'Failed to find update branch button. Html: {}.'.format(
+                html))
+
+    # Press the update branch button.
+    data = {
+        'utf8': '✓',
+        'authenticity_token': form_guts.group(2),
+        'expected_head_oid': form_guts.group(3),
+    }
+    update_url = 'https://github.com/{}/{}/pull/{}/update_branch'.format(
+        pr.repo.organization,
+        pr.repo.name,
+        pr.pull_id)
+    update_response = requests.post(update_url,
+                                    cookies=dict(response.cookies),
+                                    data=data)
+    if update_response.status_code != 200:
+        raise RuntimeError(
+            'Failed to hit update branch button. Code: {}. Content: {}.'.format(
+                update_response.status_code, update_response.content))
+
+
 def attempt_sync_with_master(pr: PullRequestDetails
                              ) -> Union[bool, CannotAutomergeError]:
     """
@@ -878,7 +930,7 @@ def duty_cycle(repo: GithubRepository,
 
     state = classify_pr_synced_state(head_pr)
     if state is False:
-        result = attempt_sync_with_master(head_pr)
+        result = attempt_update_branch_button(head_pr)
     elif state is True:
         result = attempt_squash_merge(head_pr)
         if result is True:
