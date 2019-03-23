@@ -298,6 +298,7 @@ a b
         use_unicode_characters=False,
         transpose=True)
 
+
 def test_symbol_addition_in_gate_exponent():
     # 1-qubit test
     qubit = cirq.NamedQubit('a')
@@ -307,7 +308,7 @@ def test_symbol_addition_in_gate_exponent():
             exponent=sympy.Symbol('a') + sympy.Symbol('b')).on(qubit)
     )
     cirq.testing.assert_has_diagram(circuit,
-                                    'a: ───X^0.5───Y^("a + b")───',
+                                    'a: ───X^0.5───Y^(a + b)───',
                                     use_unicode_characters=True)
 
 
@@ -317,14 +318,14 @@ a
 │
 X^0.5
 │
-Y^("a + b")
+Y^(a + b)
 │
 """,
                                     use_unicode_characters=True,
      transpose=True)
 
     cirq.testing.assert_has_diagram(circuit,
-                                    'a: ---X^0.5---Y^("a + b")---',
+                                    'a: ---X^0.5---Y^(a + b)---',
                                     use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit,
@@ -333,7 +334,7 @@ a
 |
 X^0.5
 |
-Y^("a + b")
+Y^(a + b)
 |
 
 """,
@@ -1489,7 +1490,7 @@ def test_to_text_diagram_parameterized_value():
         PGate(sympy.Symbol('a')).on(q),
         PGate(sympy.Symbol('%$&#*(')).on(q),
     )
-    assert str(c).strip() == 'cube: ───P───P^2───P^a───P^("%$&#*(")───'
+    assert str(c).strip() == 'cube: ───P───P^2───P^a───P^(%$&#*()───'
 
 
 def test_to_text_diagram_custom_order():
