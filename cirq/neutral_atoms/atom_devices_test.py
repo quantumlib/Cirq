@@ -74,6 +74,12 @@ def test_init_errors():
     assert "max_parallel_c must be less" in str(bad_parallel_parameters)
 
 
+def test_decompose_error():
+    d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
+    for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
+        d.validate_operation(op)
+
+
 def test_validate_gate_errors():
     d = square_device(1,1)
 

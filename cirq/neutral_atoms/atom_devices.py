@@ -93,8 +93,10 @@ class AtomDevice(devices.Device):
             gate
         """
         self.validate_operation(operation)
-        if isinstance(operation.gate, MeasurementGate):
-            return self._measurement_duration
+        if isinstance(operation, (ops.GateOperation,
+                                  ops.ParallelGateOperation)):
+            if isinstance(operation.gate, MeasurementGate):
+                return self._measurement_duration
         return self._gate_duration
 
     def validate_gate(self, gate: ops.Gate):
@@ -159,10 +161,13 @@ class AtomDevice(devices.Device):
             if len(operation.qubits) > 1:
                 for p in operation.qubits:
                     for q in operation.qubits:
-                        distance = sqrt((p.row - q.row)**2 + (p.col - q.col)**2)
-                        if distance > self._control_radius:
-                            raise ValueError("Qubits {!r}, {!r} are too "
-                                             "far away".format(p, q))
+                        if (isinstance(p, GridQubit) and
+                                isinstance(q, GridQubit)):
+                            distance = sqrt((p.row - q.row)**2 +
+                                            (p.col - q.col)**2)
+                            if distance > self._control_radius:
+                                raise ValueError("Qubits {!r}, {!r} are too "
+                                                 "far away".format(p, q))
             return
 
         # Verify that a valid number of Z gates are applied in parallel
@@ -199,39 +204,40 @@ class AtomDevice(devices.Device):
         # Count the number of each type of gate occuring in this moment.
         # Also verify that gates of the same type are equal
         for op in operations:
+            if isinstance(op, (ops.GateOperation,
+                               ops.ParallelGateOperation)):
+                if isinstance(op.gate, ops.ZPowGate):
+                    if num_parallel_z == 0:
+                        refZgate = op.gate
+                    else:
+                        if refZgate != op.gate:
+                            raise ValueError("Non-identical Parallel Z gates")
+                    num_parallel_z += len(op.qubits)
 
-            if isinstance(op.gate, ops.ZPowGate):
-                if num_parallel_z == 0:
-                    refZgate = op.gate
-                else:
-                    if refZgate != op.gate:
-                        raise ValueError("Non-identical Parallel Z gates")
-                num_parallel_z += len(op.qubits)
+                if isinstance(op.gate, (ops.XPowGate,
+                                        ops.YPowGate,
+                                        ops.PhasedXPowGate)):
+                    if num_parallel_xy == 0:
+                        refXYgate = op.gate
+                    else:
+                        if refXYgate != op.gate:
+                            raise ValueError("Non-identical Parallel XY gates")
+                    num_parallel_xy += len(op.qubits)
 
-            if isinstance(op.gate, (ops.XPowGate,
-                                    ops.YPowGate,
-                                    ops.PhasedXPowGate)):
-                if num_parallel_xy == 0:
-                    refXYgate = op.gate
-                else:
-                    if refXYgate != op.gate:
-                        raise ValueError("Non-identical Parallel XY gates")
-                num_parallel_xy += len(op.qubits)
+                if isinstance(op.gate, (ops.CNotPowGate,
+                                        ops.CZPowGate,
+                                        ops.CCXPowGate,
+                                        ops.CCZPowGate)):
+                    if num_parallel_controlled_qubits == 0:
+                        refCgate = op.gate
+                    else:
+                        if refCgate != op.gate:
+                            raise ValueError("Non-identical Parallel Controlled"
+                                             " Gates")
+                    num_parallel_controlled_qubits += len(op.qubits)
 
-            if isinstance(op.gate, (ops.CNotPowGate,
-                                    ops.CZPowGate,
-                                    ops.CCXPowGate,
-                                    ops.CCZPowGate)):
-                if num_parallel_controlled_qubits == 0:
-                    refCgate = op.gate
-                else:
-                    if refCgate != op.gate:
-                        raise ValueError("Non-identical Parallel Controlled "
-                                         "Gates")
-                num_parallel_controlled_qubits += len(op.qubits)
-
-            if isinstance(op.gate, ops.MeasurementGate):
-                hasMeasurement = True
+                if isinstance(op.gate, ops.MeasurementGate):
+                    hasMeasurement = True
 
         if num_parallel_controlled_qubits > 0:
             if num_parallel_controlled_qubits > self._max_parallel_c:
