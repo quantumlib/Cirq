@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.nuetral_atoms.atom_devices import (
-    AQuA,
+from cirq.neutral_atoms.atom_devices import (
+    AtomDevice,
 )
-from cirq.nuetral_atoms.convert_to_atom_gates import (
+from cirq.neutral_atoms.convert_to_atom_gates import (
     ConvertToAtomGates,
     is_native_atom_gate,
     is_native_atom_op

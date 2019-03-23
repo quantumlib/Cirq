@@ -18,11 +18,11 @@ from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import MeasurementGate
 from cirq.value import Duration
-from cirq.nuetral_atoms import convert_to_atom_gates
+from cirq.neutral_atoms import convert_to_atom_gates
 
 
 @value.value_equality
-class AQuA(devices.Device):
+class AtomDevice(devices.Device):
     """
     A device with qubits placed on a grid.
     """
@@ -42,7 +42,8 @@ class AQuA(devices.Device):
             measurement_duration: the maximum duration of a measurement.
             gate_duration: the maximum duration of a gate
             control_radius: the maximum distance between qubits for a controlled
-            gate.
+            gate. Distance is measured in units of the indices passed into the
+            GridQubit constructor.
             max_parallel_z: The maximum number of qubits that can be acted on
             in parallel by a Z gate
             max_parallel_xy: The maximum number of qubits that can be acted on
@@ -364,7 +365,7 @@ class AQuA(devices.Device):
                 self.qubits)
 
     def __repr__(self):
-        return ('AQuA(measurement_duration={!r}, '
+        return ('AtomDevice(measurement_duration={!r}, '
                 'gate_duration={!r}, '
                 'max_parallel_z={!r}, '
                 'max_parallel_xy={!r}, '

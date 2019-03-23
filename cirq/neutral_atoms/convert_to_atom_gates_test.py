@@ -32,7 +32,7 @@ class OtherOtherX(cirq.SingleQubitGate):
 def test_avoids_infinite_cycle_when_matrix_available_single_qubit():
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit.from_ops(OtherX().on(q), OtherOtherX().on(q))
-    cirq.nuetral_atoms.ConvertToAtomGates().optimize_circuit(c)
+    cirq.neutral_atoms.ConvertToAtomGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(c, '(0, 0): ───X───X───')
 
 class OtherCZ(cirq.TwoQubitGate):
@@ -56,6 +56,6 @@ def test_avoids_infinite_cycle_when_matrix_available_two_qubit():
     q01 = cirq.GridQubit(0, 1)
     c = cirq.Circuit.from_ops(OtherCZ().on(q00, q01),
                               OtherOtherCZ().on(q00, q01))
-    cirq.nuetral_atoms.ConvertToAtomGates().optimize_circuit(c)
+    cirq.neutral_atoms.ConvertToAtomGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(c, "(0, 0): ───@───@───\n"
                                        "           │   │\n(0, 1): ───@───@───")

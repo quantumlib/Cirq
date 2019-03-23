@@ -15,14 +15,14 @@
 import pytest
 
 import cirq
-import cirq.nuetral_atoms as atoms
+import cirq.neutral_atoms as neutral_atoms
 
 
 def square_device(width: int, height: int, holes=(),
-                  max_controls=2) -> nuetral_atoms.AQuA:
+                  max_controls=2) -> neutral_atoms.AtomDevice:
     us = cirq.Duration(nanos=10**3)
     ms = cirq.Duration(nanos=10**6)
-    return nuetral_atoms.AQuA(measurement_duration=50 * ms,
+    return neutral_atoms.AtomDevice(measurement_duration=50 * ms,
                               gate_duration=100 * us,
                               control_radius=1.5,
                               max_parallel_z=3,
@@ -55,7 +55,7 @@ def test_init_errors():
     us = cirq.Duration(nanos=10 ** 3)
     ms = cirq.Duration(nanos=10 ** 6)
     with pytest.raises(ValueError) as bad_qubit_type:
-        _ = nuetral_atoms.AQuA(measurement_duration=50 * ms,
+        _ = neutral_atoms.AtomDevice(measurement_duration=50 * ms,
                                gate_duration=100 * us,
                                control_radius=1.5,
                                max_parallel_z=3,
@@ -64,7 +64,7 @@ def test_init_errors():
                                qubits= line)
     assert "Unsupported qubit type" in str(bad_qubit_type.value)
     with pytest.raises(ValueError) as bad_parallel_parameters:
-        _ = nuetral_atoms.AQuA(measurement_duration=50 * ms,
+        _ = neutral_atoms.AtomDevice(measurement_duration=50 * ms,
                                gate_duration=100 * us,
                                control_radius=1.5,
                                max_parallel_z=3,
@@ -248,16 +248,13 @@ def test_validate_schedule_errors():
         d.validate_schedule(s)
     assert "Non-measurement operation after measurement" == str(terminal.value)
 
+
 def test_repr():
     d = square_device(1, 1)
-    assert repr(d) == ("AQuA("
-                       "measurement_duration=cirq.Duration(picos=50000000000), "
-                       "gate_duration=cirq.Duration(picos=100000000), "
-                       "max_parallel_z=3, "
-                       "max_parallel_xy=3, "
-                       "max_parallel_c=2, "
-                       "control_radius=1.5, "
-                       "qubits=[cirq.GridQubit(0, 0)])")
+    cirq.testing.assert_equivalent_repr(d,
+                                        setup_code="import cirq;"
+                                                   "from cirq.neutral_atoms "
+                                                   "import AtomDevice")
 
 
 def test_str():
