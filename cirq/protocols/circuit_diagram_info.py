@@ -18,14 +18,14 @@ from typing import (
 
 from typing_extensions import Protocol
 
-from cirq import value
+from cirq.value.value_equality import value_equality
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
 
 
-@value.value_equality
+@value_equality
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
@@ -63,7 +63,7 @@ class CircuitDiagramInfo:
                 )
 
 
-@value.value_equality
+@value_equality
 class CircuitDiagramInfoArgs:
     """A request for information on drawing an operation in a circuit diagram.
 

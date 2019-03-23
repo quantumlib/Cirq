@@ -18,6 +18,7 @@ from typing import (
 
 import numpy as np
 
+from cirq.value.value_equality import value_equality
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
 from cirq.circuits._box_drawing_character_data import (
     BoxDrawCharacterSet,
@@ -58,6 +59,7 @@ def pick_charset(use_unicode: bool, emphasize: bool) -> BoxDrawCharacterSet:
     return NORMAL_BOX_CHARS
 
 
+@value_equality(unhashable=True)
 class TextDiagramDrawer:
     """A utility class for creating simple text diagrams.
     """
@@ -87,11 +89,6 @@ class TextDiagramDrawer:
         attrs = ('entries', 'horizontal_lines', 'vertical_lines',
                  'horizontal_padding', 'vertical_padding')
         return tuple(getattr(self, attr) for attr in attrs)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return self._value_equality_values_() == other._value_equality_values_()
 
     def write(self,
               x: int,

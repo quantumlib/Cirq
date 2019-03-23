@@ -22,7 +22,7 @@ import math
 import cmath
 import numpy as np
 
-from cirq import value
+from cirq.value.value_equality import value_equality
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates
 
@@ -264,7 +264,7 @@ def so4_to_magic_su2s(
     return a, b
 
 
-@value.value_equality
+@value_equality
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
 
