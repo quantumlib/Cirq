@@ -80,7 +80,6 @@ class ConvertToAtomGates(PointOptimizer):
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
-
         return PointOptimizationSummary(
             clear_span=1,
             new_operations=converted,
