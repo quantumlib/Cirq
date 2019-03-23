@@ -536,6 +536,8 @@ def attempt_update_branch_button(pr: PullRequestDetails
             'Failed to hit update branch button. Code: {}. Content: {}.'.format(
                 update_response.status_code, update_response.content))
 
+    return True
+
 
 def attempt_sync_with_master(pr: PullRequestDetails
                              ) -> Union[bool, CannotAutomergeError]:
