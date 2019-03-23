@@ -14,7 +14,7 @@
 
 """Linear combination represented as mapping of things to coefficients."""
 
-from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
+from typing import (Any, Dict, ItemsView, Iterable, Iterator,
                     KeysView, Mapping, overload, Tuple, TypeVar, Union,
                     ValuesView)
 
