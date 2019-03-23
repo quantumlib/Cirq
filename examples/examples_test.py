@@ -12,6 +12,7 @@ import examples.basic_arithmetic
 import examples.quantum_teleportation
 import examples.superdense_coding
 import examples.hhl
+import examples.qubit_characterizations_example
 
 
 def test_example_runs_bernstein_vazirani():
@@ -71,3 +72,7 @@ def test_example_runs_superdense_coding():
 
 def test_example_runs_hhl():
     examples.hhl.main()
+
+
+def test_example_runs_qubit_characterizations():
+    examples.qubit_characterizations_example.main()
