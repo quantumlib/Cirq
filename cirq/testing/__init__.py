@@ -53,6 +53,7 @@ from cirq.testing.lin_alg_utils import (
     random_orthogonal,
     random_special_orthogonal,
     random_special_unitary,
+    random_superposition,
     random_unitary,
     assert_allclose_up_to_global_phase,
 )
@@ -61,9 +62,6 @@ from cirq.testing.order_tester import (
 )
 from cirq.testing.random_circuit import (
     random_circuit,
-)
-from cirq.testing.random_superposition import (
-    random_superposition,
 )
 from cirq.testing.only_test_in_python3 import (
     only_test_in_python3,
