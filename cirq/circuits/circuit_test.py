@@ -298,6 +298,7 @@ a b
         use_unicode_characters=False,
         transpose=True)
 
+
 def test_symbol_addition_in_gate_exponent():
     # 1-qubit test
     qubit = cirq.NamedQubit('a')
@@ -307,7 +308,7 @@ def test_symbol_addition_in_gate_exponent():
             exponent=sympy.Symbol('a') + sympy.Symbol('b')).on(qubit)
     )
     cirq.testing.assert_has_diagram(circuit,
-                                    'a: ───X^0.5───Y^("a + b")───',
+                                    'a: ───X^0.5───Y^(a + b)───',
                                     use_unicode_characters=True)
 
 
@@ -317,14 +318,14 @@ a
 │
 X^0.5
 │
-Y^("a + b")
+Y^(a + b)
 │
 """,
                                     use_unicode_characters=True,
      transpose=True)
 
     cirq.testing.assert_has_diagram(circuit,
-                                    'a: ---X^0.5---Y^("a + b")---',
+                                    'a: ---X^0.5---Y^(a + b)---',
                                     use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit,
@@ -333,7 +334,7 @@ a
 |
 X^0.5
 |
-Y^("a + b")
+Y^(a + b)
 |
 
 """,
@@ -1043,6 +1044,78 @@ def test_findall_operations_with_gate():
          cirq.MeasurementGate(1, key='b')),
     ]
 
+def test_findall_operations_until_blocked():
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    #    0: ───H───@───────────────────────────────────────@───H───
+    #              │                                       │
+    #    1: ───────@───H───@───────────────────────@───H───@───────
+    #                      │                       │
+    #    2: ───────────────@───H───@───────@───H───@───────────────
+    #                              │       │
+    #    3: ───────────────────────@───H───@───────────────────────
+    #
+    # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
+    circuit = cirq.Circuit.from_ops(
+        cirq.H(a),
+        cirq.CZ(a, b),
+        cirq.H(b),
+        cirq.CZ(b, c),
+        cirq.H(c),
+        cirq.CZ(c, d),
+        cirq.H(d),
+        cirq.CZ(c, d),
+        cirq.H(c),
+        cirq.CZ(b, c),
+        cirq.H(b),
+        cirq.CZ(a, b),
+        cirq.H(a))
+
+    # Always return true to test basic features
+    go_to_end = lambda op : False
+    stop_if_op = lambda op : True
+    stop_if_h = lambda op : op.gate == cirq.H
+
+    # Empty cases.
+    assert cirq.Circuit().findall_operations_until_blocked(
+        start_frontier={}, is_blocker=go_to_end) == []
+    assert circuit.findall_operations_until_blocked(
+        start_frontier={}, is_blocker=go_to_end) == []
+
+    # Clamped input cases. (out of bounds)
+    assert cirq.Circuit().findall_operations_until_blocked(
+        start_frontier={a: 5}, is_blocker=stop_if_op) == []
+    assert cirq.Circuit().findall_operations_until_blocked(
+        start_frontier={a: -100}) == []
+    assert circuit.findall_operations_until_blocked(
+        start_frontier={a: 100}) == []
+
+    # Test if all operations are blocked
+    for idx in range(0, 15):
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={a: idx}, is_blocker=stop_if_op) == []
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={b: idx}, is_blocker=stop_if_op) == []
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={c: idx}, is_blocker=stop_if_op) == []
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={d: idx}, is_blocker=stop_if_op) == []
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={a:idx, b:idx, c:idx, d: idx},
+            is_blocker=stop_if_op) == []
+
+    # Cases where nothing is blocked, it goes to the end
+    a_ending_ops = [(11, cirq.CZ.on(a,b)), (12, cirq.H.on(a))]
+    for idx in range(2, 10):
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={a: idx}, is_blocker=go_to_end) == a_ending_ops
+
+    # Block on H, but pick up the CZ
+    for idx in range(2, 10):
+        assert circuit.findall_operations_until_blocked(
+            start_frontier={a: idx},
+            is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
+
 
 def test_are_all_measurements_terminal():
     a = cirq.NamedQubit('a')
@@ -1417,7 +1490,7 @@ def test_to_text_diagram_parameterized_value():
         PGate(sympy.Symbol('a')).on(q),
         PGate(sympy.Symbol('%$&#*(')).on(q),
     )
-    assert str(c).strip() == 'cube: ───P───P^2───P^a───P^("%$&#*(")───'
+    assert str(c).strip() == 'cube: ───P───P^2───P^a───P^(%$&#*()───'
 
 
 def test_to_text_diagram_custom_order():
