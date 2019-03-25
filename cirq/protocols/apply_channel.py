@@ -14,7 +14,7 @@
 
 """A protocol for implementing high performance channel evolutions."""
 
-from typing import Any, Union, TypeVar, Tuple, Iterable
+from typing import Any, Iterable, Optional, Sequence, TypeVar, Tuple, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -34,19 +34,6 @@ from cirq.type_workarounds import NotImplementedType
 RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 
 TDefault = TypeVar('TDefault')
-
-
-class Axes:
-    """An enum for the two types of axes, row and column indices.
-
-    For a tensor with shape (d_1_,...d_k), some subset of the first
-    of these indices correspond to row indices, and the rest of these
-    indices correspond to column indices.  These are row and column, in the
-    sense that they describe a matrix where the row indices could be
-    reshaped to form a row, and similar for the column indices.
-    """
-    ROW = 1
-    COLUMN = 2
 
 
 class ApplyChannelArgs:
@@ -90,13 +77,13 @@ class ApplyChannelArgs:
     """
 
     def __init__(self,
-            target_tensor: np.ndarray,
-            out_buffer: np.ndarray,
-            auxiliary_buffer0: np.ndarray,
-            auxiliary_buffer1: np.ndarray,
-            left_axes: Iterable[int],
-            right_axes: Iterable[int]):
-        """
+        target_tensor: np.ndarray,
+        out_buffer: np.ndarray,
+        auxiliary_buffer0: np.ndarray,
+        auxiliary_buffer1: np.ndarray,
+        left_axes: Iterable[int],
+        right_axes: Iterable[int]):
+        """Args for apply channel.
 
         Args:
             target_tensor: The input tensor that needs to be left and right
@@ -125,41 +112,6 @@ class ApplyChannelArgs:
         self.auxiliary_buffer1 = auxiliary_buffer1
         self.left_axes = tuple(left_axes)
         self.right_axes = tuple(right_axes)
-
-    def subspace_index(
-            self,
-            little_endian_bits_int: int,
-            axes: int = Axes.ROW) -> Tuple[
-        Union[slice, int, 'ellipsis'], ...]:
-        """An index for the subspace where the target axes equal a value.
-
-        Args:
-            little_endian_bits_int: The desired value of the qubits at the
-                targeted `axes`, packed into an integer. The least significant
-                bit of the integer is the desired bit for the first axis, and
-                so forth in increasing order.
-
-        Returns:
-            A value that can be used to index into `target_tensor` and
-            `out_buffer`, and manipulate only the part of Hilbert space
-            corresponding to a given bit assignment.
-
-        Example:
-            If `target_tensor` is a 4 qubit tensor and `axes` is `[1, 3]` and
-            then this method will return the following when given
-            `little_endian_bits=0b01`:
-
-                `(slice(None), 0, slice(None), 1, Ellipsis)`
-
-            Therefore the following two lines would be equivalent:
-
-                args.target_tensor[args.subspace_index(0b01)] += 1
-
-                args.target_tensor[:, 0, :, 1] += 1
-        """
-        axes_indices = self.left_axes if axes == Axes.ROW else self.right_axes
-        return linalg.slice_for_qubits_equal_to(axes_indices,
-                                                little_endian_bits_int)
 
 
 class SupportsApplyChannel(Protocol):
@@ -250,82 +202,112 @@ def apply_channel(val: Any,
     Raises:
         TypeError: `val` doesn't have a channel and `default` wasn't specified.
     """
-
     # Check if the specialized method is present.
     func = getattr(val, '_apply_channel_', None)
     if func is not None:
         result = func(args)
         if result is not NotImplemented and result is not None:
             return result
-    # Possibly use apply_unitary.
-    left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
-                                 available_buffer=args.auxiliary_buffer0,
-                                 axes=args.left_axes)
-    left_result = apply_unitary(val, left_args, None)
-    if left_result is not None:
-        right_args = ApplyUnitaryArgs(
-                target_tensor=np.conjugate(left_result),
-                available_buffer=args.out_buffer,
-                axes=args.right_axes)
-        right_result = apply_unitary(val, right_args)
-        np.conjugate(right_result, out=right_result)
-        return right_result
 
-    # Fallback to using the object's _channel_ matrices.
+    # Possibly use `apply_unitary`.
+    result = _apply_unitary(val, args)
+    if result is not None:
+        return result
+
+    # Fallback to using the object's `_channel_` matrices.
     krauss = channel(val, None)
     if krauss is not None:
-        # Special case for single-qubit operations.
-        args.out_buffer[:] = 0
-        np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
+        return _apply_krauss(krauss, args)
 
-        if krauss[0].shape == (2, 2):
-            zero_left = args.subspace_index(0, axes=Axes.ROW)
-            one_left = args.subspace_index(1, axes=Axes.ROW)
-            zero_right = args.subspace_index(0, axes=Axes.COLUMN)
-            one_right = args.subspace_index(1, axes=Axes.COLUMN)
-            for krauss_op in krauss:
-                np.copyto(dst=args.target_tensor,
-                          src=args.auxiliary_buffer0)
-                linalg.apply_matrix_to_slices(
-                    args.target_tensor,
-                    krauss_op,
-                    [zero_left, one_left],
-                    out=args.auxiliary_buffer1)
-                # No need to transpose as we are acting on the tensor
-                # representation of matrix, so transpose is done for us.
-                linalg.apply_matrix_to_slices(
-                    args.auxiliary_buffer1,
-                    np.conjugate(krauss_op),
-                    [zero_right, one_right],
-                    out=args.target_tensor)
-                args.out_buffer += args.target_tensor
-            return args.out_buffer
-
-        # Fallback to np.einsum for the general case.
-        for krauss_op in krauss:
-            np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-            krauss_tensor = np.reshape(
-                krauss_op.astype(args.target_tensor.dtype),
-                (2,) * len(args.left_axes) * 2)
-            linalg.targeted_left_multiply(
-                    krauss_tensor,
-                    args.target_tensor,
-                    args.left_axes,
-                    out=args.auxiliary_buffer1)
-            # No need to transpose as we are acting on the tensor
-            # representation of matrix, so transpose is done for us.
-            linalg.targeted_left_multiply(
-                    np.conjugate(krauss_tensor),
-                    args.auxiliary_buffer1,
-                    args.right_axes,
-                    out=args.target_tensor)
-            args.out_buffer += args.target_tensor
-        return args.out_buffer
-
-    # Don't know how to apply. Fallback to specified default behavior.
+    # Don't know how to apply channel. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
             "object of type '{}' has no _apply_channel_, _apply_unitary_, "
             "_unitary_, or _channel_ methods (or they returned None or "
             "NotImplemented).".format(type(val)))
+
+
+def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
+    """Attempt to use `apply_unitary` and return the result.
+
+    If `val` does not support `apply_unitary` returns None.
+    """
+    left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
+                                 available_buffer=args.auxiliary_buffer0,
+                                 axes=args.left_axes)
+    left_result = apply_unitary(val, left_args, None)
+    if left_result is None:
+        return None
+    right_args = ApplyUnitaryArgs(
+            target_tensor=np.conjugate(left_result),
+            available_buffer=args.out_buffer,
+            axes=args.right_axes)
+    right_result = apply_unitary(val, right_args)
+    np.conjugate(right_result, out=right_result)
+    return right_result
+
+
+def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
+        args: 'ApplyChannelArgs') -> np.ndarray:
+    """Directly apply the kraus operators to the target tensor."""
+    # Initialize output.
+    args.out_buffer[:] = 0
+    # Stash initial state into buffer0.
+    np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
+
+    # Special case for single-qubit operations.
+    if krauss[0].shape == (2, 2):
+        return _apply_krauss_single_qubit(krauss, args)
+    # Fallback to np.einsum for the general case.
+    return _apply_krauss_multi_qubit(krauss, args)
+
+
+def _apply_krauss_single_qubit(krauss: Tuple[np.ndarray],
+        args: 'ApplyChannelArgs') -> np.ndarray:
+    """Use slicing to apply single qubit channel."""
+    zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
+    one_left = linalg.slice_for_qubits_equal_to(args.left_axes, 1)
+    zero_right = linalg.slice_for_qubits_equal_to(args.right_axes, 0)
+    one_right = linalg.slice_for_qubits_equal_to(args.right_axes, 1)
+    for krauss_op in krauss:
+        np.copyto(dst=args.target_tensor,
+                  src=args.auxiliary_buffer0)
+        linalg.apply_matrix_to_slices(
+                args.target_tensor,
+                krauss_op,
+                [zero_left, one_left],
+                out=args.auxiliary_buffer1)
+        # No need to transpose as we are acting on the tensor
+        # representation of matrix, so transpose is done for us.
+        linalg.apply_matrix_to_slices(
+                args.auxiliary_buffer1,
+                np.conjugate(krauss_op),
+                [zero_right, one_right],
+                out=args.target_tensor)
+        args.out_buffer += args.target_tensor
+    return args.out_buffer
+
+
+def _apply_krauss_multi_qubit(krauss: Tuple[np.ndarray],
+        args: 'ApplyChannelArgs') -> np.ndarray:
+    """Use numpy's einsum to apply a multi-qubit channel."""
+    for krauss_op in krauss:
+        np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
+        krauss_tensor = np.reshape(
+                krauss_op.astype(args.target_tensor.dtype),
+                (2,) * len(args.left_axes) * 2)
+        linalg.targeted_left_multiply(
+                krauss_tensor,
+                args.target_tensor,
+                args.left_axes,
+                out=args.auxiliary_buffer1)
+        # No need to transpose as we are acting on the tensor
+        # representation of matrix, so transpose is done for us.
+        linalg.targeted_left_multiply(
+                np.conjugate(krauss_tensor),
+                args.auxiliary_buffer1,
+                args.right_axes,
+                out=args.target_tensor)
+        args.out_buffer += args.target_tensor
+    return args.out_buffer

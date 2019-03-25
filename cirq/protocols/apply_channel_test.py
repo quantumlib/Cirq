@@ -49,10 +49,10 @@ def test_apply_channel_simple():
     class HasChannel():
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
-            zero_left = args.subspace_index(0, axes=cirq.Axes.ROW)
-            one_left = args.subspace_index(1, axes=cirq.Axes.ROW)
-            zero_right = args.subspace_index(0, axes=cirq.Axes.COLUMN)
-            one_right = args.subspace_index(1, axes=cirq.Axes.COLUMN)
+            zero_left = cirq.slice_for_qubits_equal_to(args.left_axes, 0)
+            one_left = cirq.slice_for_qubits_equal_to(args.left_axes, 1)
+            zero_right = cirq.slice_for_qubits_equal_to(args.right_axes, 0)
+            one_right= cirq.slice_for_qubits_equal_to(args.right_axes, 1)
             args.out_buffer[:] = 0
             np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
             for krauss_op in [np.sqrt(0.5) * np.eye(2, dtype=np.complex128),

@@ -21,7 +21,6 @@ from cirq.protocols.apply_unitary import (
 from cirq.protocols.apply_channel import (
     apply_channel,
     ApplyChannelArgs,
-    Axes,
     SupportsApplyChannel,
 )
 from cirq.protocols.approximate_equality import (
