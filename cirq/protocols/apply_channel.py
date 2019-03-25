@@ -263,7 +263,7 @@ def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
     return _apply_krauss_multi_qubit(krauss, args)
 
 
-def _apply_krauss_single_qubit(krauss: Tuple[np.ndarray],
+def _apply_krauss_single_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
         args: 'ApplyChannelArgs') -> np.ndarray:
     """Use slicing to apply single qubit channel."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
@@ -289,7 +289,7 @@ def _apply_krauss_single_qubit(krauss: Tuple[np.ndarray],
     return args.out_buffer
 
 
-def _apply_krauss_multi_qubit(krauss: Tuple[np.ndarray],
+def _apply_krauss_multi_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
         args: 'ApplyChannelArgs') -> np.ndarray:
     """Use numpy's einsum to apply a multi-qubit channel."""
     for krauss_op in krauss:
