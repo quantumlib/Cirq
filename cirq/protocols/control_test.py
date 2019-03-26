@@ -70,8 +70,8 @@ def test_op_tree_control():
     controlled_op_tree = cirq.protocols.control(op_tree, controls)
     expected= [
         cirq.ControlledOperation(
-            controls[1], cirq.ControlledOperation(
-                             controls[0], cirq.GateOperation(gs[i],
+            controls[0], cirq.ControlledOperation(
+                             controls[1], cirq.GateOperation(gs[i],
                                               [cirq.NamedQubit(str(i))])))
         for i in range(10)
     ]

@@ -46,11 +46,9 @@ def test_control():
     controlled_g = g.__control__()
     assert controlled_g.sub_gate == g
     assert controlled_g.control_qubits == [None]
-    assert controlled_g.num_controls == 1
     specified_controlled_g = g.__control__([q00, q01])
     assert specified_controlled_g.sub_gate == g
     assert specified_controlled_g.control_qubits == [q00, q01]
-    assert specified_controlled_g.num_controls == 2
 
 def test_op():
     g = ValiGate()
@@ -59,8 +57,8 @@ def test_op():
         _ = op.__control__()
     controlled_op = op.__control__([q01, q10])
     assert controlled_op.sub_operation.sub_operation == op
-    assert controlled_op.sub_operation.control == q01
-    assert controlled_op.control == q10
+    assert controlled_op.sub_operation.control == q10
+    assert controlled_op.control == q01
 
 def test_default_validation_and_inverse():
     class TestGate(cirq.Gate):

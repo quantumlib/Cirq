@@ -230,7 +230,7 @@ class Operation(metaclass=abc.ABCMeta):
         else:
             # Simplify this once ControlledOperation supports multiple controls
             op = self
-            for control_qubit in control_qubits:
+            for control_qubit in reversed(control_qubits):
                 op = ControlledOperation(control_qubit, op)
             return op
 

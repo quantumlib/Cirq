@@ -102,7 +102,6 @@ def test_init2():
     assert gate.sub_gate is cirq.Z
     assert gate.control_qubits == [None, q, None, None, None, None, p]
     assert gate.num_qubits() == 8
-    assert gate.num_unspecified_controls == 5
     op = gate(*cirq.LineQubit.range(6))
     assert op.qubits == (cirq.LineQubit(0), q, cirq.LineQubit(1),
                          cirq.LineQubit(2), cirq.LineQubit(3),
