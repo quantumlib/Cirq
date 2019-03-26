@@ -150,9 +150,11 @@ class Circuit:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
-        return cirq.protocols.approx_eq(self._moments, other._moments,
-                                        atol=atol) and \
-               self._device == other._device
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
 
     def __ne__(self, other):
         return not self == other
