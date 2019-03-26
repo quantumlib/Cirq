@@ -704,7 +704,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
     where:
 
-        g = exp(i·π·t/2).
+        g = exp(i·π·t).
 
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
