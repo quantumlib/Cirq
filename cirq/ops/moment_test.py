@@ -87,6 +87,9 @@ def test_approx_eq():
                           Moment([cirq.XPowGate(exponent=1e-9)(a)]))
     assert not cirq.approx_eq(Moment([cirq.XPowGate(exponent=0)(a)]),
                               Moment([cirq.XPowGate(exponent=1e-7)(a)]))
+    assert cirq.approx_eq(Moment([cirq.XPowGate(exponent=0)(a)]),
+                          Moment([cirq.XPowGate(exponent=1e-7)(a)]),
+                          atol=1e-6)
 
 
 def test_operates_on():

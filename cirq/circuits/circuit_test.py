@@ -147,6 +147,9 @@ def test_approx_eq():
     assert not cirq.approx_eq(Circuit([Moment([cirq.XPowGate(exponent=0)(a)])]),
                               Circuit(
                                   [Moment([cirq.XPowGate(exponent=1e-7)(a)])]))
+    assert cirq.approx_eq(Circuit([Moment([cirq.XPowGate(exponent=0)(a)])]),
+                          Circuit([Moment([cirq.XPowGate(exponent=1e-7)(a)])]),
+                          atol=1e-6)
 
     assert not cirq.approx_eq(Circuit([Moment([cirq.X(a)])]),
                               Circuit([Moment([cirq.X(a)])],
