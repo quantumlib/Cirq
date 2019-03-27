@@ -23,7 +23,7 @@ Installation
 Follow these
 `instructions <https://cirq.readthedocs.io/en/latest/install.html>`__.
 
-Hello Qubit
+Hello Qubit!
 -----------
 
 A simple example to get you up and running:
