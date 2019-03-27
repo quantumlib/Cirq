@@ -1117,48 +1117,52 @@ def test_findall_operations_until_blocked():
             is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
 
 
-def test_are_all_measurements_terminal():
+@pytest.mark.parametrize('method, unitary_gate, non_unitary_gate',
+    [('are_all_measurements_terminal', cirq.X, cirq.MeasurementGate(1)),
+     ('are_all_non_unitaries_terminal', cirq.X, cirq.MeasurementGate(1)),
+     ('are_all_non_unitaries_terminal', cirq.X, cirq.bit_flip(0.5))])
+def test_terminal_methods(method, unitary_gate, non_unitary_gate):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    xa = cirq.X.on(a)
-    xb = cirq.X.on(b)
+    xa = unitary_gate.on(a)
+    xb = unitary_gate.on(b)
 
-    ma = cirq.measure(a)
-    mb = cirq.measure(b)
+    ma = non_unitary_gate.on(a)
+    mb = non_unitary_gate.on(b)
 
     c = Circuit()
-    assert c.are_all_measurements_terminal()
+    assert getattr(c, method)()
 
     c = Circuit.from_ops(xa, xb)
-    assert c.are_all_measurements_terminal()
+    assert getattr(c, method)()
 
     c = Circuit.from_ops(ma)
-    assert c.are_all_measurements_terminal()
+    assert getattr(c, method)()
 
     c = Circuit.from_ops(ma, mb)
-    assert c.are_all_measurements_terminal()
+    assert getattr(c, method)()
 
     c = Circuit.from_ops(xa, ma)
-    assert c.are_all_measurements_terminal()
+    assert getattr(c, method)()
 
     c = Circuit.from_ops(xa, ma, xb, mb)
-    assert c.are_all_measurements_terminal()
+    assert getattr(c, method)()
 
     c = Circuit.from_ops(ma, xa)
-    assert not c.are_all_measurements_terminal()
+    assert not getattr(c, method)()
 
     c = Circuit.from_ops(ma, xa, mb)
-    assert not c.are_all_measurements_terminal()
+    assert not getattr(c, method)()
 
     c = Circuit.from_ops(xa, ma, xb, xa)
-    assert not c.are_all_measurements_terminal()
+    assert not getattr(c, method)()
 
     c = Circuit.from_ops(ma, ma)
-    assert not c.are_all_measurements_terminal()
+    assert not getattr(c, method)()
 
     c = Circuit.from_ops(xa, ma, xa)
-    assert not c.are_all_measurements_terminal()
+    assert not getattr(c, method)()
 
 
 def test_clear_operations_touching():

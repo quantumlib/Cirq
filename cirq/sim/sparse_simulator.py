@@ -20,7 +20,7 @@ from typing import cast, Dict, Iterator, List, Union
 
 import numpy as np
 
-from cirq import circuits, study, ops, protocols
+from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
 
 
@@ -30,12 +30,14 @@ class Simulator(simulator.SimulatesSamples,
 
     This simulator can be applied on circuits that are made up of operations
     that have a `_unitary_` method, or `_has_unitary_` and
-    `_apply_unitary_` methods, or else a `_decompose_` method that
-    returns operations satisfying these same conditions. That is to say,
-    the operations should follow the `cirq.SupportsApplyUnitary`
-    protocol, the `cirq.SupportsUnitary` protocol, or the
-    `cirq.CompositeOperation` protocol. (It is also permitted for the circuit
-    to contain measurements.)
+    `_apply_unitary_`, `_mixture_` methods, are measurements, or support a
+    `_decompose_` method that returns operations satisfying these same
+    conditions. That is to say, the operations should follow the
+    `cirq.SupportsApplyUnitary` protocol, the `cirq.SupportsUnitary` protocol,
+    the `cirq.SupportsMixture` protocol, or the `cirq.CompositeOperation`
+    protocol. It is also permitted for the circuit to contain measurements
+    which are operations that support `cirq.SupportsChannel` and
+    `cirq.SupportsMeasurementKey`
 
     This simulator supports three types of simulation.
 
@@ -93,6 +95,11 @@ class Simulator(simulator.SimulatesSamples,
         for step_result in simulate_moments(circuit):
            # do something with the wave function via step_result.state
 
+    Note also that simulations can be stochastic, i.e. return differenet results
+    for different runs.  The first version of this occurs for measurements,
+    where the results of the measurement are recorded.  This can also
+    occur when the circuit has mixtures of unitaries.
+
     Finally, one can compute the values of displays (instances of
     `SamplesDisplay` or `WaveFunctionDisplay`) in the circuit:
 
@@ -127,7 +134,7 @@ class Simulator(simulator.SimulatesSamples,
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        if circuit.are_all_measurements_terminal():
+        if circuit.are_all_non_unitaries_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
         else:
             return self._run_sweep_repeat(resolved_circuit, repetitions)
@@ -145,6 +152,9 @@ class Simulator(simulator.SimulatesSamples,
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
                                    ops.MeasurementGate)]
+        # Note that there could be mixtures that are not measurements in the
+        # final non-unitary gates, but these will not impact the
+        # measurement results since they must operate on disjoint qubits.
         return step_result.sample_measurement_ops(measurement_ops, repetitions)
 
     def _run_sweep_repeat(
@@ -208,12 +218,15 @@ class Simulator(simulator.SimulatesSamples,
         def on_stuck(bad_op: ops.Operation):
             return TypeError(
                 "Can't simulate unknown operations that don't specify a "
-                "_unitary_ method, a _decompose_ method, or "
-                "(_has_unitary_ + _apply_unitary_) methods"
+                "_unitary_ method, a _decompose_ method, "
+                "(_has_unitary_ + _apply_unitary_) methods,"
+                "(_has_mixture_ + _mixture_) methods, or are measurements."
                 ": {!r}".format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
+            # The order of this is optimized to call has_xxx methods first.
             return (protocols.has_unitary(potential_op)
+                    or protocols.has_mixture(potential_op)
                     or protocols.is_measurement(potential_op))
 
         state = np.reshape(state, (2,) * num_qubits)
@@ -234,10 +247,21 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                # TODO: Support measurements outside of computational basis.
-                # TODO: Support mixtures.
                 gate_op = cast(ops.GateOperation, op)
-                if gate_op.has_gate_of_type(ops.MeasurementGate):
+                if protocols.has_unitary(gate_op):
+                    result = protocols.apply_unitary(
+                            op,
+                            args=protocols.ApplyUnitaryArgs(
+                                    state,
+                                    buffer,
+                                    indices))
+                    if result is buffer:
+                        buffer = state
+                    state = result
+                elif protocols.is_measurement(gate_op):
+                    # Do measurements second, since there may be mixtures that
+                    # operate as measurements.
+                    # TODO: support measurement outside the computational basis.
                     gate = cast(ops.MeasurementGate, gate_op.gate)
                     if perform_measurements:
                         invert_mask = gate.invert_mask or num_qubits * (False,)
@@ -249,16 +273,24 @@ class Simulator(simulator.SimulatesSamples,
                                      zip(bits, invert_mask)]
                         key = protocols.measurement_key(gate)
                         measurements[key].extend(corrected)
-                else:
-                    result = protocols.apply_unitary(
-                        op,
-                        args=protocols.ApplyUnitaryArgs(
-                            state,
-                            buffer,
-                            indices))
-                    if result is buffer:
-                        buffer = state
+                elif protocols.has_mixture(gate_op):
+                    probs, unitaries = zip(*protocols.mixture(gate_op))
+                    # We work around numpy barfing on choosing from a list of
+                    # numpy arrays (which is not `one-dimensional`) by selecting
+                    # the index of the unitary.
+                    index = np.random.choice(range(len(unitaries)), p=probs)
+                    shape = (2,) * (2 * len(indices))
+                    unitary = unitaries[index].astype(self._dtype).reshape(
+                        shape)
+                    result = linalg.targeted_left_multiply(unitary, state,
+                                                           indices, out=buffer)
+                    buffer = state
                     state = result
+                else:
+                    raise AssertionError(
+                        'Filter kept ops other than unitary, mixture, or '
+                        'measurements.')
+
             yield SparseSimulatorStep(
                 state_vector=state,
                 measurements=measurements,
