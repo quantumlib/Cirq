@@ -196,17 +196,28 @@ def apply_channel(val: Any,
         checking if the result is `out_buffer` (and e.g. swapping
         the buffer for the target tensor before the next call).
 
+        Note that it is an error for the return object to be either of the
+        auxiliary buffers, and the method will raise an AssertionError if
+        this contract is violated.
+
         The receiving object may also write its output over a new buffer
         that it created, in which case that new array is returned.
 
     Raises:
         TypeError: `val` doesn't have a channel and `default` wasn't specified.
+        AssertionError: if the
     """
     # Check if the specialized method is present.
     func = getattr(val, '_apply_channel_', None)
     if func is not None:
         result = func(args)
         if result is not NotImplemented and result is not None:
+            err_str = ("Object of type '" + str(type(val)) +"' returned a "
+                       "result object equal to auxiliary_buffer{}. This type "
+                       "violates the contract that appears in apply_unitary's "
+                       "documentation.")
+            assert result is not args.auxiliary_buffer0, err_str.format('0')
+            assert result is not args.auxiliary_buffer1, err_str.format('1')
             return result
 
     # Possibly use `apply_unitary`.

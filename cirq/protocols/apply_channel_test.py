@@ -46,7 +46,7 @@ def apply_channel(val, rho, left_axes, right_axes,
 def test_apply_channel_simple():
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
-    class HasChannel():
+    class HasApplyChannel():
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
             zero_left = cirq.slice_for_qubits_equal_to(args.left_axes, 0)
@@ -74,7 +74,7 @@ def test_apply_channel_simple():
             return args.out_buffer
 
     rho = np.copy(x)
-    result = apply_channel(HasChannel(), rho, [0], [1],
+    result = apply_channel(HasApplyChannel(), rho, [0], [1],
                            assert_result_is_out_buf=True)
     np.testing.assert_almost_equal(result, x)
 
@@ -82,7 +82,7 @@ def test_apply_channel_simple():
 def test_apply_channel_inline():
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
-    class HasChannel():
+    class HasApplyChannel():
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
             args.target_tensor = 0.5 * args.target_tensor + 0.5 * np.dot(
@@ -90,9 +90,26 @@ def test_apply_channel_inline():
             return args.target_tensor
 
     rho = np.copy(x)
-    result = apply_channel(HasChannel(), rho, [0], [1])
+    result = apply_channel(HasApplyChannel(), rho, [0], [1])
     np.testing.assert_almost_equal(result, x)
 
+
+def test_apply_channel_returns_aux_buffer():
+    rho = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+
+    class ReturnsAuxBuffer0():
+
+        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+            return args.auxiliary_buffer0
+    with pytest.raises(AssertionError, match='ReturnsAuxBuffer0'):
+        _ = apply_channel(ReturnsAuxBuffer0(), rho, [0], [1])
+
+    class ReturnsAuxBuffer1():
+
+        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+            return args.auxiliary_buffer1
+    with pytest.raises(AssertionError, match='ReturnsAuxBuffer1'):
+        _ = apply_channel(ReturnsAuxBuffer1(), rho, [0], [1])
 
 
 def test_apply_channel_channel_fallback_simple():
