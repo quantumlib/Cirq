@@ -340,7 +340,6 @@ q2: ────────────────────[Z]───[X]^
 """)
 
 
-@cirq.testing.only_test_in_python3
 def test_repr():
     q0, q1, q2 = _make_qubits(3)
     ps = PauliStringPhasor(cirq.PauliString({q2: cirq.Z,

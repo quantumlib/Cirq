@@ -97,8 +97,6 @@ def test_gt():
     assert cirq.Z > cirq.Y
     assert not cirq.Z > cirq.Z
 
-
-@cirq.testing.only_test_in_python3
 def test_gt_other_type():
     with pytest.raises(TypeError):
         _ = cirq.X > object()
@@ -115,8 +113,6 @@ def test_lt():
     assert not cirq.Z < cirq.Y
     assert not cirq.Z < cirq.Z
 
-
-@cirq.testing.only_test_in_python3
 def test_lt_other_type():
     with pytest.raises(TypeError):
         _ = cirq.X < object()

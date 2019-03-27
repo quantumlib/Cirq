@@ -163,22 +163,6 @@ Note that creating the virtual environments takes time, and prevents some cachin
 When using this script, you can run a subset of the checks using the ```--only``` flag.
 This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
 
-
-### Producing the Python 2.7 code
-
-Run [dev_tools/python2.7-generate.sh](/dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
-
-```bash
-./dev_tools/python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
-```
-
-If you don't specify any arguments then the input directory will be the current
-working directory, the output directory will be `python2.7-output` within the
-current directory, and `3to2` will be invoked in the current environment.
-
-The script fails with no effects if the output directory already exists.
-
-
 ### Writing docstrings and generating documentation
 
 Cirq uses [Google style doc strings](http://google.github.io/styleguide/pyguide.html#381-docstrings) with a markdown flavor and support for latex.

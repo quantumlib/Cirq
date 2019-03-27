@@ -54,8 +54,6 @@ def test_init():
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.SingleQubitGate().on(q00))
 
-
-@cirq.testing.only_test_in_python3
 def test_repr():
     d = square_device(2, 2, holes=[])
 
