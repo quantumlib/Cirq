@@ -215,7 +215,7 @@ def test_simulation_trial_result_equality():
         cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
                                    measurements={'m': np.array([[1]])},
                                    final_simulator_state=(0, 1)))
-    
+
 def test_simulation_trial_result_repr():
     assert repr(cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
                                            measurements={'m': np.array([[1]])},

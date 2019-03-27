@@ -66,7 +66,7 @@ def test_cmp():
 
     assert not (Duration() == 0)
     assert (Duration() != 0)
-    
+
 def test_cmp_vs_other_type():
     with pytest.raises(TypeError):
         _ = Duration() < 0

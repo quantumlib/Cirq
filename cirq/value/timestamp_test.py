@@ -64,7 +64,7 @@ def test_cmp():
     assert Timestamp() != 0
     assert not (Timestamp() == Duration())
     assert Timestamp() != Duration()
-    
+
 def test_cmp_vs_other_type():
     with pytest.raises(TypeError):
         _ = Timestamp() < Duration()

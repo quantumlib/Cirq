@@ -41,7 +41,7 @@ def test_wrapper_cmp():
     assert u0 <= u1
     assert u0 >= u0
     assert u1 >= u0
-    
+
 def test_wrapper_cmp_failure():
     with pytest.raises(TypeError):
         _ = object() < cirq.Unique(1)
