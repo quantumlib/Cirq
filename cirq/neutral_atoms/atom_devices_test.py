@@ -136,6 +136,8 @@ def test_validate_moment_errors():
     d = square_device(3, 3)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
     q12 = cirq.GridQubit(1, 2)
     q02 = cirq.GridQubit(0, 2)
 
@@ -175,6 +177,21 @@ def test_validate_moment_errors():
     assert ("Measurements can't be simultaneous with other operations" ==
             str(measurement.value))
     d.validate_moment(cirq.Moment([cirq.X.on(q00), cirq.Z.on(q01)]))
+    us = cirq.Duration(nanos=10 ** 3)
+    ms = cirq.Duration(nanos=10 ** 6)
+    d2 = neutral_atoms.AtomDevice(measurement_duration=50 * ms,
+                              gate_duration=100 * us,
+                              control_radius=1.5,
+                              max_parallel_z=4,
+                              max_parallel_xy=4,
+                              max_parallel_c=4,
+                              qubits=[cirq.GridQubit(row, col)
+                              for col in range(2)
+                              for row in range(2)])
+    m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CNOT.on(q10, q11)])
+    with pytest.raises(ValueError) as interacting:
+        d2.validate_moment(m)
+    assert "Interacting controlled operations" == str(interacting.value)
 
 
 def test_can_add_operation_into_moment_coverage():

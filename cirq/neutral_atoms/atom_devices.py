@@ -200,6 +200,7 @@ class AtomDevice(devices.Device):
         num_parallel_xy = 0
         num_parallel_controlled_qubits = 0
         hasMeasurement = False
+        controlled_qubits_lists = []
 
         # Count the number of each type of gate occuring in this moment.
         # Also verify that gates of the same type are equal
@@ -235,7 +236,7 @@ class AtomDevice(devices.Device):
                             raise ValueError("Non-identical Parallel Controlled"
                                              " Gates")
                     num_parallel_controlled_qubits += len(op.qubits)
-
+                    controlled_qubits_lists.append(op.qubits)
                 if isinstance(op.gate, ops.MeasurementGate):
                     hasMeasurement = True
 
@@ -245,6 +246,19 @@ class AtomDevice(devices.Device):
             if num_parallel_xy > 0 or num_parallel_z > 0:
                 raise ValueError("Can't perform non-controlled operations at"
                                  " same time as controlled operations")
+            for op1num, op1qubits in enumerate(controlled_qubits_lists):
+                for op2num, op2qubits in enumerate(controlled_qubits_lists):
+                    if op2num > op1num:
+                        for p in op1qubits:
+                            for q in op2qubits:
+                                if (isinstance(p, GridQubit) and
+                                        isinstance(q, GridQubit)):
+                                    distance = sqrt((p.row - q.row) ** 2 +
+                                                    (p.col - q.col) ** 2)
+                                    if distance <= self._control_radius:
+                                        raise ValueError("Interacting "
+                                                         "controlled operations"
+                                                         )
 
         if num_parallel_z > self._max_parallel_z:
             raise ValueError("Too many simultaneous Z gates")
