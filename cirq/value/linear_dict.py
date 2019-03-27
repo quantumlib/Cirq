@@ -243,7 +243,7 @@ class LinearDict(Dict[TVector, Scalar]):
 
     def __format__(self, format_spec: str) -> str:
         formatted_terms = [self._format_term(format_spec, v, self[v])
-                           for v in sorted(self.keys())]
+                           for v in sorted(self.keys(), key=str)]
         s = ''.join(formatted_terms)
         if not s:
             return '{:{fmt}}'.format(0, fmt=format_spec)
