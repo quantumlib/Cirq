@@ -213,8 +213,8 @@ class Simulator(simulator.SimulatesSamples,
                 ": {!r}".format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_unitary(potential_op) or
-                    ops.MeasurementGate.is_measurement(potential_op))
+            return (protocols.has_unitary(potential_op)
+                    or protocols.is_measurement(potential_op))
 
         state = np.reshape(state, (2,) * num_qubits)
         buffer = np.empty((2,) * num_qubits, dtype=self._dtype)
@@ -234,9 +234,11 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if ops.MeasurementGate.is_measurement(op):
-                    gate = cast(ops.MeasurementGate,
-                                cast(ops.GateOperation, op).gate)
+                # TODO: Support measurements outside of computational basis.
+                # TODO: Support mixtures.
+                gate_op = cast(ops.GateOperation, op)
+                if gate_op.has_gate_of_type(ops.MeasurementGate):
+                    gate = cast(ops.MeasurementGate, gate_op.gate)
                     if perform_measurements:
                         invert_mask = gate.invert_mask or num_qubits * (False,)
                         # Measure updates inline.

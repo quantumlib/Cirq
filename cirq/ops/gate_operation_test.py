@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Tuple
+
 import numpy as np
 import pytest
 import sympy
@@ -216,3 +218,26 @@ def test_repr():
 
     assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
+
+
+def test_op_has_gate_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_has_gate_type(op, cirq.XPowGate)
+    assert not cirq.op_has_gate_type(op, cirq.YPowGate)
+
+    class NonGateOperation(cirq.Operation):
+        def qubits(self) :
+            pass
+
+        def with_qubits(self, *new_qubits):
+            pass
+
+    assert not cirq.op_has_gate_type(NonGateOperation(), cirq.XPowGate)
+
+
+def test_has_gate_of_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert op.has_gate_of_type(cirq.XPowGate)
+    assert not op.has_gate_of_type(cirq.YPowGate)

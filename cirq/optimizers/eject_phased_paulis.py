@@ -87,7 +87,7 @@ class EjectPhasedPaulis():
                     continue
 
                 # Dump coherent flips into measurement bit flips.
-                if ops.MeasurementGate.is_measurement(op):
+                if ops.op_has_gate_type(op, ops.MeasurementGate):
                     _dump_into_measurement(moment_index, op, state)
 
                 # Cross CZs using kickback.
