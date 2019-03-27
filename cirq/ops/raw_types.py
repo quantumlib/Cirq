@@ -228,11 +228,7 @@ class Operation(metaclass=abc.ABCMeta):
                 "Can't get controlled operation without control qubit. Op: {}"
                 .format(repr(self)))
         else:
-            # Simplify this once ControlledOperation supports multiple controls
-            op = self
-            for control_qubit in reversed(control_qubits):
-                op = ControlledOperation(control_qubit, op)
-            return op
+            return ControlledOperation(control_qubits, self)
 
 @value.value_equality
 class _InverseCompositeGate(Gate):

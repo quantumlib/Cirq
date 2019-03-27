@@ -52,7 +52,7 @@ def test_control_error():
 
 @pytest.mark.parametrize('controllee,control_qubits,out', (
     (dummy_gate, [p], cirq.ControlledGate(dummy_gate, [p])),
-    (dummy_op, [q], cirq.ControlledOperation(q, dummy_op)),
+    (dummy_op, [q], cirq.ControlledOperation([q], dummy_op)),
 ))
 def test_pow_with_result(controllee, control_qubits, out):
     assert (cirq.protocols.control(controllee, control_qubits) ==
@@ -70,9 +70,7 @@ def test_op_tree_control():
     controlled_op_tree = cirq.protocols.control(op_tree, controls)
     expected= [
         cirq.ControlledOperation(
-            controls[0], cirq.ControlledOperation(
-                             controls[1], cirq.GateOperation(gs[i],
-                                              [cirq.NamedQubit(str(i))])))
+            controls, cirq.GateOperation(gs[i], [cirq.NamedQubit(str(i))]))
         for i in range(10)
     ]
     assert cirq.freeze_op_tree(controlled_op_tree) == tuple(expected)

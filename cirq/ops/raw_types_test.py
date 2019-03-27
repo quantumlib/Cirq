@@ -56,9 +56,8 @@ def test_op():
     with pytest.raises(ValueError):
         _ = op.__control__()
     controlled_op = op.__control__([q01, q10])
-    assert controlled_op.sub_operation.sub_operation == op
-    assert controlled_op.sub_operation.control == q10
-    assert controlled_op.control == q01
+    assert controlled_op.sub_operation == op
+    assert controlled_op.controls == [q01, q10]
 
 def test_default_validation_and_inverse():
     class TestGate(cirq.Gate):

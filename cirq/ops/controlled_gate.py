@@ -69,10 +69,8 @@ class ControlledGate(raw_types.Gate):
 
         decomposed = []
         for op in result:
-            controlled_op = op
-            for qubit in reversed(qubits[:self.num_controls()]):
-                controlled_op = cop.ControlledOperation(qubit, controlled_op)
-            decomposed.append(controlled_op)
+            decomposed.append(cop.ControlledOperation(
+                qubits[:self.num_controls()], op))
         return decomposed
 
     def validate_args(self, qubits) -> None:
@@ -108,9 +106,8 @@ class ControlledGate(raw_types.Gate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         qubits = cirq.LineQubit.range(self.num_controls() +
                                       self.sub_gate.num_qubits())
-        c_op = self.sub_gate.on(*qubits[self.num_controls():])
-        for control in reversed(qubits[:self.num_controls()]):
-            c_op = cop.ControlledOperation(control, c_op)
+        op = self.sub_gate.on(*qubits[self.num_controls():])
+        c_op = cop.ControlledOperation(qubits[:self.num_controls()], op)
 
         return protocols.apply_unitary(c_op, args, default=NotImplemented)
 
