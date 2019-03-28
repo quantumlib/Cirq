@@ -25,6 +25,7 @@ from cirq.circuits.optimization_pass import (PointOptimizer,
                                              PointOptimizationSummary)
 from cirq import Circuit, InsertStrategy, Moment
 from cirq.testing import random_circuit
+from cirq.value import Duration
 import cirq.google as cg
 
 
@@ -107,6 +108,52 @@ def test_equality():
             Moment([cirq.H(a)]),
             Moment([cirq.CNOT(a, b)]),
         ]))
+
+
+def test_approx_eq():
+
+    class TestDevice(cirq.Device):
+
+        def duration_of(self, operation: cirq.Operation) -> Duration:
+            pass
+
+        def validate_operation(self, operation: cirq.Operation) -> None:
+            pass
+
+        def validate_scheduled_operation(
+                self,
+                schedule: cirq.Schedule,
+                scheduled_operation: cirq.ScheduledOperation
+        ) -> None:
+            pass
+
+        def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
+            pass
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert not cirq.approx_eq(Circuit([Moment([cirq.X(a)])]),
+                              Moment([cirq.X(a)]))
+
+    assert cirq.approx_eq(Circuit([Moment([cirq.X(a)])]),
+                          Circuit([Moment([cirq.X(a)])]))
+    assert not cirq.approx_eq(Circuit([Moment([cirq.X(a)])]),
+                              Circuit([Moment([cirq.X(b)])]))
+
+    assert cirq.approx_eq(Circuit([Moment([cirq.XPowGate(exponent=0)(a)])]),
+                          Circuit([Moment([cirq.XPowGate(exponent=1e-9)(a)])]))
+
+    assert not cirq.approx_eq(Circuit([Moment([cirq.XPowGate(exponent=0)(a)])]),
+                              Circuit(
+                                  [Moment([cirq.XPowGate(exponent=1e-7)(a)])]))
+    assert cirq.approx_eq(Circuit([Moment([cirq.XPowGate(exponent=0)(a)])]),
+                          Circuit([Moment([cirq.XPowGate(exponent=1e-7)(a)])]),
+                          atol=1e-6)
+
+    assert not cirq.approx_eq(Circuit([Moment([cirq.X(a)])]),
+                              Circuit([Moment([cirq.X(a)])],
+                                      device=TestDevice()))
 
 
 def test_append_single():
