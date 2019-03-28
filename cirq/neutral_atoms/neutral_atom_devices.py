@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable
+from typing import Iterable, cast
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
-from cirq.ops import MeasurementGate
+from cirq.ops import MeasurementGate, raw_types
 from cirq.value import Duration
 from cirq.neutral_atoms import convert_to_neutral_atom_gates
 
@@ -162,13 +162,9 @@ class NeutralAtomDevice(devices.Device):
             if len(operation.qubits) > 1:
                 for p in operation.qubits:
                     for q in operation.qubits:
-                        if (isinstance(p, GridQubit) and
-                                isinstance(q, GridQubit)):
-                            distance = sqrt((p.row - q.row)**2 +
-                                            (p.col - q.col)**2)
-                            if distance > self._control_radius:
-                                raise ValueError("Qubits {!r}, {!r} are too "
-                                                 "far away".format(p, q))
+                        if self.distance(p, q) > self._control_radius:
+                            raise ValueError("Qubits {!r}, {!r} are too "
+                                             "far away".format(p, q))
             return
 
         # Verify that a valid number of Z gates are applied in parallel
@@ -247,19 +243,8 @@ class NeutralAtomDevice(devices.Device):
             if num_parallel_xy > 0 or num_parallel_z > 0:
                 raise ValueError("Can't perform non-controlled operations at"
                                  " same time as controlled operations")
-            for op1num, op1qubits in enumerate(controlled_qubits_lists):
-                for op2num, op2qubits in enumerate(controlled_qubits_lists):
-                    if op2num > op1num:
-                        for p in op1qubits:
-                            for q in op2qubits:
-                                if (isinstance(p, GridQubit) and
-                                        isinstance(q, GridQubit)):
-                                    distance = sqrt((p.row - q.row) ** 2 +
-                                                    (p.col - q.col) ** 2)
-                                    if distance <= self._control_radius:
-                                        raise ValueError("Interacting "
-                                                         "controlled operations"
-                                                         )
+            if self.are_qubit_lists_too_close(*controlled_qubits_lists):
+                raise ValueError("Interacting controlled operations")
 
         if num_parallel_z > self._max_parallel_z:
             raise ValueError("Too many simultaneous Z gates")
@@ -273,6 +258,21 @@ class NeutralAtomDevice(devices.Device):
                     num_parallel_xy > 0):
                 raise ValueError("Measurements can't be simultaneous with other"
                                  " operations")
+
+    def are_qubit_lists_too_close(self, *qubit_lists) -> bool:
+        if len(qubit_lists) < 2:
+            return False
+        if len(qubit_lists) == 2:
+            for p in qubit_lists[0]:
+                for q in qubit_lists[1]:
+                        return self.distance(p, q) <= self._control_radius
+        else:
+            for list_a in qubit_lists:
+                for list_b in qubit_lists:
+                    if list_a != list_b:
+                        if self.are_qubit_lists_too_close(list_a, list_b):
+                            return True
+        return False
 
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
@@ -409,6 +409,11 @@ class NeutralAtomDevice(devices.Device):
             GridQubit(qubit.row, qubit.col - 1),
         ]
         return [e for e in possibles if e in self.qubits]
+
+    def distance(self, p: raw_types.Qid, q: raw_types.Qid) -> float:
+        p = cast(GridQubit, p)
+        q = cast(GridQubit, q)
+        return sqrt((p.row - q.row) ** 2 + (p.col - q.col) ** 2)
 
     def __str__(self):
         diagram = circuits.TextDiagramDrawer()
