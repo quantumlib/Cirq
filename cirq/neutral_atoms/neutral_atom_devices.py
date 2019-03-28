@@ -195,7 +195,6 @@ class NeutralAtomDevice(devices.Device):
         operations = moment.operations
         num_parallel_z = 0
         num_parallel_xy = 0
-        num_parallel_controlled_qubits = 0
         hasMeasurement = False
         controlled_qubits_lists = []
 
@@ -226,19 +225,19 @@ class NeutralAtomDevice(devices.Device):
                                         ops.CZPowGate,
                                         ops.CCXPowGate,
                                         ops.CCZPowGate)):
-                    if num_parallel_controlled_qubits == 0:
+                    if len(controlled_qubits_lists) == 0:
                         refCgate = op.gate
                     else:
                         if refCgate != op.gate:
                             raise ValueError("Non-identical Parallel Controlled"
                                              " Gates")
-                    num_parallel_controlled_qubits += len(op.qubits)
                     controlled_qubits_lists.append(op.qubits)
                 if isinstance(op.gate, ops.MeasurementGate):
                     hasMeasurement = True
 
-        if num_parallel_controlled_qubits > 0:
-            if num_parallel_controlled_qubits > self._max_parallel_c:
+        if len(controlled_qubits_lists) > 0:
+            if (sum([len(l) for l in controlled_qubits_lists]) >
+                    self._max_parallel_c):
                 raise ValueError("Too many qubits acted on by controlled gates")
             if num_parallel_xy > 0 or num_parallel_z > 0:
                 raise ValueError("Can't perform non-controlled operations at"
@@ -254,7 +253,7 @@ class NeutralAtomDevice(devices.Device):
             raise ValueError("Bad number of simultaneous XY gates")
 
         if hasMeasurement:
-            if (num_parallel_controlled_qubits > 0 or num_parallel_z > 0 or
+            if (len(controlled_qubits_lists) > 0 or num_parallel_z > 0 or
                     num_parallel_xy > 0):
                 raise ValueError("Measurements can't be simultaneous with other"
                                  " operations")
