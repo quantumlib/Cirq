@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.neutral_atoms.atom_devices import (
+from cirq.neutral_atoms.neutral_atom_devices import (
     NeutralAtomDevice,
 )
 from cirq.neutral_atoms.convert_to_neutral_atom_gates import (
