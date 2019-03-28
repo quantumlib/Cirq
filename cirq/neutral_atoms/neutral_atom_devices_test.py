@@ -208,6 +208,11 @@ def test_validate_moment_errors():
     m = cirq.Moment([cirq.CZ.on(q00, q01),
                      cirq.CZ.on(q03, q04), cirq.CZ.on(q20, q21)])
     d2.validate_moment(m)
+    m = cirq.Moment([cirq.CZ.on(q00, q01),
+                     cirq.CZ.on(q02, q03), cirq.CZ.on(q10, q11)])
+    with pytest.raises(ValueError) as interacting:
+        d2.validate_moment(m)
+    assert "Interacting controlled operations" == str(interacting.value)
 
 
 def test_can_add_operation_into_moment_coverage():

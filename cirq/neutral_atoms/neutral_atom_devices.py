@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast
+from typing import Iterable, cast, List, Tuple
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
@@ -196,7 +196,7 @@ class NeutralAtomDevice(devices.Device):
         num_parallel_z = 0
         num_parallel_xy = 0
         hasMeasurement = False
-        controlled_qubits_lists = []
+        controlled_qubits_lists = []  # type: List[Tuple[raw_types.Qid, ...]]
 
         # Count the number of each type of gate occuring in this moment.
         # Also verify that gates of the same type are equal
@@ -258,7 +258,8 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError("Measurements can't be simultaneous with other"
                                  " operations")
 
-    def are_qubit_lists_too_close(self, *qubit_lists) -> bool:
+    def are_qubit_lists_too_close(self,
+                                  *qubit_lists: Iterable[raw_types.Qid])-> bool:
         if len(qubit_lists) < 2:
             return False
         if len(qubit_lists) == 2:
