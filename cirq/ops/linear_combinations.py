@@ -33,6 +33,15 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         A = b1 G1 + b2 G2 + ... + bn * Gn
 
     Note that A may not be unitary or even normal.
+
+    Rather than creating LinearCombinationOfGates instance explicitly, one may
+    use overloaded arithmetic operators. For example,
+
+        cirq.LinearCombinationOfGates({cirq.X: 2, cirq.Z: -2})
+
+    is equivalent to
+
+        2 * cirq.X - 2 * cirq.Z
     """
     def __init__(self, terms: Mapping[raw_types.Gate, value.Scalar]) -> None:
         """Initializes linear combination from a collection of terms.
