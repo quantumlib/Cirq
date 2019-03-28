@@ -14,11 +14,12 @@
 
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, TypeVar, Union
 
 from cirq.linalg import operator_spaces
 from cirq.protocols.unitary import unitary
 
+TDefault = TypeVar('TDefault')
 
 RaiseTypeErrorIfNotProvided = {}  # type: Dict[str, complex]
 
@@ -32,9 +33,9 @@ def _filter_coefficients(expansion: Dict[str, complex],
 def pauli_expansion(
     val: Any,
     *,
-    default: Optional[Dict[str, complex]] = RaiseTypeErrorIfNotProvided,
+    default: Union[Dict[str, complex], TDefault] = RaiseTypeErrorIfNotProvided,
     tolerance: float = 1e-9
-) -> Optional[Dict[str, complex]]:
+) -> Union[Dict[str, complex], TDefault]:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:
