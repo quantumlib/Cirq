@@ -777,10 +777,11 @@ class Circuit:
 
     def are_all_non_unitaries_terminal(self):
         """Whether all non-unitary gates at end of the circuit."""
+        def not_unitary(x):
+            return protocols.is_measurement(x) or protocols.has_mixture(x)
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for
-            (i, op) in self.findall_operations(
-                    lambda x: not protocols.has_unitary(x))
+            (i, op) in self.findall_operations(not_unitary)
         )
 
     def _pick_or_create_inserted_op_moment_index(
