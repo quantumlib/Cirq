@@ -18,7 +18,7 @@ from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import MeasurementGate
 from cirq.value import Duration
-from cirq.neutral_atoms import convert_to_atom_gates
+from cirq.neutral_atoms import convert_to_neutral_atom_gates
 
 
 @value.value_equality
@@ -76,7 +76,7 @@ class NeutralAtomDevice(devices.Device):
         return [qubit for qubit in self.qubits]
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return convert_to_atom_gates.ConvertToNeutralAtomGates().convert(
+        return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(
             operation)
 
     def duration_of(self, operation: ops.Operation):
