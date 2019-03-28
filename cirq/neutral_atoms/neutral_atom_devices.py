@@ -264,7 +264,7 @@ class NeutralAtomDevice(devices.Device):
         if len(qubit_lists) == 2:
             for p in qubit_lists[0]:
                 for q in qubit_lists[1]:
-                        return self.distance(p, q) <= self._control_radius
+                    return self.distance(p, q) <= self._control_radius
         else:
             for list_a in qubit_lists:
                 for list_b in qubit_lists:

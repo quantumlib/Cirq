@@ -140,6 +140,10 @@ def test_validate_moment_errors():
     q11 = cirq.GridQubit(1, 1)
     q12 = cirq.GridQubit(1, 2)
     q02 = cirq.GridQubit(0, 2)
+    q04 = cirq.GridQubit(0, 4)
+    q03 = cirq.GridQubit(0, 3)
+    q20 = cirq.GridQubit(2, 0)
+    q21 = cirq.GridQubit(2, 1)
 
     m = cirq.Moment([cirq.Z.on(q00), (cirq.Z**2).on(q01)])
     with pytest.raises(ValueError) as non_id_z:
@@ -192,6 +196,18 @@ def test_validate_moment_errors():
     with pytest.raises(ValueError) as interacting:
         d2.validate_moment(m)
     assert "Interacting controlled operations" == str(interacting.value)
+    d2 = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
+                              gate_duration=100 * us,
+                              control_radius=1.1,
+                              max_parallel_z=6,
+                              max_parallel_xy=6,
+                              max_parallel_c=6,
+                              qubits=[cirq.GridQubit(row, col)
+                              for col in range(5)
+                              for row in range(5)])
+    m = cirq.Moment([cirq.CZ.on(q00, q01),
+                     cirq.CZ.on(q03, q04), cirq.CZ.on(q20, q21)])
+    d2.validate_moment(m)
 
 
 def test_can_add_operation_into_moment_coverage():
