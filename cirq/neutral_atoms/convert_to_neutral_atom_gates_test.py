@@ -40,8 +40,8 @@ def test_coverage():
     c = cirq.Circuit.from_ops(cirq.X.on(q[0]))
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
     assert c == cirq.Circuit.from_ops(cirq.X.on(q[0]))
-    assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(cirq.X.on(q[0])) ==
-            [cirq.X.on(q[0])])
+    assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
+        cirq.X.on(q[0])) == [cirq.X.on(q[0])])
     with pytest.raises(TypeError) as idk:
         cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
 

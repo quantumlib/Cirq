@@ -76,8 +76,8 @@ class NeutralAtomDevice(devices.Device):
         return [qubit for qubit in self.qubits]
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().convert(
-            operation)
+        return (convert_to_neutral_atom_gates.ConvertToNeutralAtomGates().
+                convert(operation))
 
     def duration_of(self, operation: ops.Operation):
         """
