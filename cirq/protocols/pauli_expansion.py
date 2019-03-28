@@ -16,26 +16,23 @@
 
 from typing import Any, Dict, TypeVar, Union
 
+from cirq import value
 from cirq.linalg import operator_spaces
 from cirq.protocols.unitary import unitary
 
 TDefault = TypeVar('TDefault')
 
-RaiseTypeErrorIfNotProvided = {}  # type: Dict[str, complex]
-
-
-def _filter_coefficients(expansion: Dict[str, complex],
-                         tolerance: float) -> Dict[str, complex]:
-    """Drops insignificant coefficients."""
-    return {n: c for n, c in expansion.items() if abs(c) > tolerance}
+RaiseTypeErrorIfNotProvided = (
+        value.LinearDict({}))  # type: value.LinearDict[str]
 
 
 def pauli_expansion(
     val: Any,
     *,
-    default: Union[Dict[str, complex], TDefault] = RaiseTypeErrorIfNotProvided,
-    tolerance: float = 1e-9
-) -> Union[Dict[str, complex], TDefault]:
+    default: Union[value.LinearDict[str], TDefault]
+        = RaiseTypeErrorIfNotProvided,
+    atol: float = 1e-9
+) -> Union[value.LinearDict[str], TDefault]:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:
@@ -43,8 +40,7 @@ def pauli_expansion(
         default: Determines what happens when `val` does not have methods that
             allow Pauli expansion to be obtained (see below). If set, the value
             is returned in that case. Otherwise, TypeError is raised.
-        tolerance: Ignore coefficients whose absolute value is smaller than
-            this.
+        atol: Ignore coefficients whose absolute value is smaller than this.
 
     Returns:
         If `val` has a _pauli_expansion_ method, then its result is returned.
@@ -61,7 +57,7 @@ def pauli_expansion(
     expansion = NotImplemented if method is None else method()
 
     if expansion is not NotImplemented:
-        return _filter_coefficients(expansion, tolerance)
+        return expansion.clean(atol=atol)
 
     matrix = unitary(val, default=None)
     if matrix is None:
@@ -75,4 +71,4 @@ def pauli_expansion(
                                        repeat=num_qubits)
 
     expansion = operator_spaces.expand_matrix_in_orthogonal_basis(matrix, basis)
-    return _filter_coefficients(expansion, tolerance)
+    return expansion.clean(atol=atol)
