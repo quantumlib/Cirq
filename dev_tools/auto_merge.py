@@ -758,6 +758,8 @@ def find_problem_with_automergeability_of_pr(
         return CannotAutomergeError('Not an open pull request.')
     if pr.base_branch_name != 'master':
         return CannotAutomergeError('Can only automerge into master.')
+    if pr.payload['mergeable_state'] == 'dirty':
+        return CannotAutomergeError('There are merge conflicts.')
 
     # Only collaborators with write access can use the automerge labels.
     label_problem = check_auto_merge_labeler(pr.repo, pr.pull_id)
@@ -787,15 +789,15 @@ def find_problem_with_automergeability_of_pr(
                 'Missing statuses: {!r}'.format(sorted(missing_statuses)))
 
         # Can't figure out how to make it merge.
-        if pr.payload['mergeable'] is False:
-            return CannotAutomergeError(
-                "PR isn't classified as mergeable (I don't understand why).",
-                may_be_temporary=True)
         if pr.payload['mergeable_state'] == 'blocked':
             if status_check_state is True:
                 return CannotAutomergeError(
                     "Merging is blocked (I don't understand why).",
                     may_be_temporary=True)
+        if pr.payload['mergeable'] is False:
+            return CannotAutomergeError(
+                "PR isn't classified as mergeable (I don't understand why).",
+                may_be_temporary=True)
 
     return None
 
