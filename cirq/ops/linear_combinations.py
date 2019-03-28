@@ -23,12 +23,16 @@ from cirq.ops import raw_types
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     """Represents linear operator defined by a linear combination of gates.
 
-    Note that the operator may not be unitary or even normal. Examples of
-    operators that may be represented as LinearCombinationOfGates:
-     * Hamiltonians,
-     * measurement operators,
-     * Kraus operators,
-     * creation and annihilation operators.
+    Suppose G1, G2, ..., Gn are gates and b1, b2, ..., bn are complex
+    numbers. Then
+
+        LinearCombinationOfGates({G1: b1, G2: b2, ..., Gn: bn})
+
+    represents the linear operator
+
+        A = b1 G1 + b2 G2 + ... + bn * Gn
+
+    Note that A may not be unitary or even normal.
     """
     def __init__(self, terms: Mapping[raw_types.Gate, value.Scalar]) -> None:
         """Initializes linear combination from a collection of terms.
