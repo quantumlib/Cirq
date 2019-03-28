@@ -660,7 +660,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('H',))
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('H',),
+            exponent=self._diagram_exponent(args))
 
     def _qasm_(self,
                args: protocols.QasmArgs,
