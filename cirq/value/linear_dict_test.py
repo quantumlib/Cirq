@@ -157,6 +157,20 @@ def test_setitem(terms, vector, coefficient, terms_expected):
     assert expected == linear_dict
 
 
+@pytest.mark.parametrize('terms, vector, terms_expected', (
+    ({}, 'X', {}),
+    ({'X': 1}, 'X', {}),
+    ({'X': 1}, 'Y', {'X': 1}),
+    ({'X': 1, 'Y': 3}, 'X', {'Y': 3}),
+))
+def test_delitem(terms, vector, terms_expected):
+    linear_dict = cirq.LinearDict(terms)
+    del linear_dict[vector]
+    expected = cirq.LinearDict(terms_expected)
+    assert linear_dict == expected
+    assert expected == linear_dict
+
+
 def test_addition_in_iteration():
     linear_dict = cirq.LinearDict({'a': 2, 'b': 1, 'c': 0, 'd': -1, 'e': -2})
     for v in linear_dict:
