@@ -304,8 +304,8 @@ from cirq.ion import (
     MS,
 )
 from cirq.neutral_atoms import (
-    AtomDevice,
-    ConvertToAtomGates,
+    NeutralAtomDevice,
+    ConvertToNeutralAtomGates,
 )
 # pylint: enable=redefined-builtin
 

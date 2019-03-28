@@ -19,10 +19,10 @@ import cirq.neutral_atoms as neutral_atoms
 
 
 def square_device(width: int, height: int, holes=(),
-                  max_controls=2) -> neutral_atoms.AtomDevice:
+                  max_controls=2) -> neutral_atoms.NeutralAtomDevice:
     us = cirq.Duration(nanos=10**3)
     ms = cirq.Duration(nanos=10**6)
-    return neutral_atoms.AtomDevice(measurement_duration=50 * ms,
+    return neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                               gate_duration=100 * us,
                               control_radius=1.5,
                               max_parallel_z=3,
@@ -55,7 +55,7 @@ def test_init_errors():
     us = cirq.Duration(nanos=10 ** 3)
     ms = cirq.Duration(nanos=10 ** 6)
     with pytest.raises(ValueError) as bad_qubit_type:
-        _ = neutral_atoms.AtomDevice(measurement_duration=50 * ms,
+        _ = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                                gate_duration=100 * us,
                                control_radius=1.5,
                                max_parallel_z=3,
@@ -64,7 +64,7 @@ def test_init_errors():
                                qubits= line)
     assert "Unsupported qubit type" in str(bad_qubit_type.value)
     with pytest.raises(ValueError) as bad_parallel_parameters:
-        _ = neutral_atoms.AtomDevice(measurement_duration=50 * ms,
+        _ = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                                gate_duration=100 * us,
                                control_radius=1.5,
                                max_parallel_z=3,
@@ -179,7 +179,7 @@ def test_validate_moment_errors():
     d.validate_moment(cirq.Moment([cirq.X.on(q00), cirq.Z.on(q01)]))
     us = cirq.Duration(nanos=10 ** 3)
     ms = cirq.Duration(nanos=10 ** 6)
-    d2 = neutral_atoms.AtomDevice(measurement_duration=50 * ms,
+    d2 = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                               gate_duration=100 * us,
                               control_radius=1.5,
                               max_parallel_z=4,
@@ -277,7 +277,7 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(d,
                                         setup_code="import cirq;"
                                                    "from cirq.neutral_atoms "
-                                                   "import AtomDevice")
+                                                   "import NeutralAtomDevice")
 
 
 def test_str():

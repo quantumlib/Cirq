@@ -13,10 +13,10 @@
 # limitations under the License.
 
 from cirq.neutral_atoms.atom_devices import (
-    AtomDevice,
+    NeutralAtomDevice,
 )
 from cirq.neutral_atoms.convert_to_atom_gates import (
-    ConvertToAtomGates,
-    is_native_atom_gate,
-    is_native_atom_op
+    ConvertToNeutralAtomGates,
+    is_native_neutral_atom_gate,
+    is_native_neutral_atom_op
 )

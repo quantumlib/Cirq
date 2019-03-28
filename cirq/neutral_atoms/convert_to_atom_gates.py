@@ -21,15 +21,16 @@ from cirq.circuits.optimization_pass import (
 from cirq import optimizers
 
 
-class ConvertToAtomGates(PointOptimizer):
+class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.
 
-    First, checks if the given operation is already a native atom operation.
+    First, checks if the given operation is already a native neutral atom
+    operation.
 
     Second, checks if the operation has a known unitary. If so, and the gate
         is a 1-qubit or 2-qubit gate, then performs circuit synthesis of the
         operation. The 2-qubit gates are decomposed using CZ gates because
-        CZ gates are the highest fidelity 2-qubit gates for atoms.
+        CZ gates are the highest fidelity 2-qubit gates for neutral atoms.
 
     Third, attempts to `cirq.decompose` to the operation.
 
@@ -72,7 +73,7 @@ class ConvertToAtomGates(PointOptimizer):
 
         return protocols.decompose(
             op,
-            keep=is_native_atom_op,
+            keep=is_native_neutral_atom_op,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 
@@ -86,14 +87,14 @@ class ConvertToAtomGates(PointOptimizer):
             clear_qubits=op.qubits)
 
 
-def is_native_atom_op(operation: ops.Operation) -> bool:
+def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
     if isinstance(operation, (ops.GateOperation,
                               ops.ParallelGateOperation)):
-        return is_native_atom_gate(operation.gate)
+        return is_native_neutral_atom_gate(operation.gate)
     return False
 
 
-def is_native_atom_gate(gate: ops.Gate) -> bool:
+def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
     if not isinstance(gate, (ops.CCXPowGate,
                              ops.CCZPowGate,
                              ops.CZPowGate,

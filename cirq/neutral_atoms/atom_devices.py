@@ -22,7 +22,7 @@ from cirq.neutral_atoms import convert_to_atom_gates
 
 
 @value.value_equality
-class AtomDevice(devices.Device):
+class NeutralAtomDevice(devices.Device):
     """
     A device with qubits placed on a grid.
     """
@@ -42,21 +42,21 @@ class AtomDevice(devices.Device):
             measurement_duration: the maximum duration of a measurement.
             gate_duration: the maximum duration of a gate
             control_radius: the maximum distance between qubits for a controlled
-            gate. Distance is measured in units of the indices passed into the
-            GridQubit constructor.
+                gate. Distance is measured in units of the indices passed into
+                the GridQubit constructor.
             max_parallel_z: The maximum number of qubits that can be acted on
-            in parallel by a Z gate
+                in parallel by a Z gate
             max_parallel_xy: The maximum number of qubits that can be acted on
-            in parallel by a local XY gate
+                in parallel by a local XY gate
             max_parallel_c: the maximum number of qubits that can be acted on in
-            parallel by a controlled gate. Must be less than or equal to the
-            lesser of max_parallel_z and max_parallel_xy
+                parallel by a controlled gate. Must be less than or equal to the
+                lesser of max_parallel_z and max_parallel_xy
             qubits: Qubits on the device, identified by their x, y location.
-            Must be of type GridQubit
+                Must be of type GridQubit
 
         Raises:
             ValueError: if the wrong qubit type is provided or if invalid
-            parallel parameters are provided
+                parallel parameters are provided
         """
         self._measurement_duration = measurement_duration
         self._gate_duration = gate_duration
@@ -76,7 +76,8 @@ class AtomDevice(devices.Device):
         return [qubit for qubit in self.qubits]
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
-        return convert_to_atom_gates.ConvertToAtomGates().convert(operation)
+        return convert_to_atom_gates.ConvertToNeutralAtomGates().convert(
+            operation)
 
     def duration_of(self, operation: ops.Operation):
         """
@@ -90,7 +91,7 @@ class AtomDevice(devices.Device):
 
         Raises:
             ValueError: If the operation provided doesn't correspond to a native
-            gate
+                gate
         """
         self.validate_operation(operation)
         if isinstance(operation, (ops.GateOperation,
@@ -385,7 +386,7 @@ class AtomDevice(devices.Device):
                 self.qubits)
 
     def __repr__(self):
-        return ('AtomDevice(measurement_duration={!r}, '
+        return ('NeutralAtomDevice(measurement_duration={!r}, '
                 'gate_duration={!r}, '
                 'max_parallel_z={!r}, '
                 'max_parallel_xy={!r}, '
