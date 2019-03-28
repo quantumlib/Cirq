@@ -31,6 +31,48 @@ def test_fromkeys(keys, coefficient, terms_expected):
     assert expected == actual
 
 
+@pytest.mark.parametrize('terms, valid_vectors, invalid_vectors', (
+    ({'X': 2}, ('X'), ('A', 'B')),
+    ({'X': 2, 'Y': -2}, ('X', 'Y', 'Z'), ('A', 'B')),
+))
+def test_invalid_vectors_are_rejected(terms, valid_vectors, invalid_vectors):
+    linear_dict = cirq.LinearDict(terms, validator=lambda v: v in valid_vectors)
+
+    with pytest.raises(ValueError):
+        linear_dict += cirq.LinearDict.fromkeys(invalid_vectors, 1)
+    assert linear_dict == cirq.LinearDict(terms)
+
+    for vector in invalid_vectors:
+        with pytest.raises(ValueError):
+            linear_dict[vector] += 1
+    assert linear_dict == cirq.LinearDict(terms)
+
+    with pytest.raises(ValueError):
+        linear_dict.update(cirq.LinearDict.fromkeys(invalid_vectors, 1))
+    assert linear_dict == cirq.LinearDict(terms)
+
+
+@pytest.mark.parametrize('terms, valid_vectors', (
+    ({'X': 2}, ('X')),
+    ({'X': 2, 'Y': -2}, ('X', 'Y', 'Z')),
+))
+def test_valid_vectors_are_accepted(terms, valid_vectors):
+    linear_dict = cirq.LinearDict(terms, validator=lambda v: v in valid_vectors)
+
+    original_dict = linear_dict.copy()
+    delta_dict = cirq.LinearDict.fromkeys(valid_vectors, 1)
+
+    linear_dict += cirq.LinearDict.fromkeys(valid_vectors, 1)
+    assert linear_dict == original_dict + delta_dict
+
+    for vector in valid_vectors:
+        linear_dict[vector] += 1
+    assert linear_dict == original_dict + 2 * delta_dict
+
+    linear_dict.update(cirq.LinearDict.fromkeys(valid_vectors, 1))
+    assert linear_dict == delta_dict
+
+
 @pytest.mark.parametrize('terms, atol, terms_expected', (
     ({'X': 1, 'Y': 2, 'Z': 3}, 2, {'Z': 3}),
     ({'X': 0.1, 'Y': 1, 'Z': 10}, 1e-3, {'X': 0.1, 'Y': 1, 'Z': 10}),
@@ -49,10 +91,16 @@ def test_clean(terms, atol, terms_expected):
     {'X': 1j/2}, {'X': 1, 'Y': 2, 'Z': 3}, {},
 ))
 def test_copy(terms):
-    linear_dict = cirq.LinearDict(terms)
-    assert type(linear_dict.copy()) == cirq.LinearDict
-    assert linear_dict.copy() == linear_dict
-    assert linear_dict == linear_dict.copy()
+    original = cirq.LinearDict(terms)
+    copy = original.copy()
+    assert type(copy) == cirq.LinearDict
+    assert copy == original
+    assert original == copy
+    original['a'] = 1
+    assert copy != original
+    assert original != copy
+    assert 'a' in original
+    assert 'a' not in copy
 
 
 @pytest.mark.parametrize('terms, expected_keys', (
