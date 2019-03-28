@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 from typing import Iterable, cast, List, Tuple
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
@@ -195,7 +196,7 @@ class NeutralAtomDevice(devices.Device):
         operations = moment.operations
         num_parallel_z = 0
         num_parallel_xy = 0
-        hasMeasurement = False
+        has_measurement = False
         controlled_qubits_lists = []  # type: List[Tuple[raw_types.Qid, ...]]
 
         # Count the number of each type of gate occuring in this moment.
@@ -233,7 +234,7 @@ class NeutralAtomDevice(devices.Device):
                                              " Gates")
                     controlled_qubits_lists.append(op.qubits)
                 if isinstance(op.gate, ops.MeasurementGate):
-                    hasMeasurement = True
+                    has_measurement = True
 
         if len(controlled_qubits_lists) > 0:
             if (sum([len(l) for l in controlled_qubits_lists]) >
@@ -252,7 +253,7 @@ class NeutralAtomDevice(devices.Device):
                 num_parallel_xy != len(self.qubits)):
             raise ValueError("Bad number of simultaneous XY gates")
 
-        if hasMeasurement:
+        if has_measurement:
             if (len(controlled_qubits_lists) > 0 or num_parallel_z > 0 or
                     num_parallel_xy > 0):
                 raise ValueError("Measurements can't be simultaneous with other"
@@ -263,16 +264,12 @@ class NeutralAtomDevice(devices.Device):
         if len(qubit_lists) < 2:
             return False
         if len(qubit_lists) == 2:
-            for p in qubit_lists[0]:
-                for q in qubit_lists[1]:
-                    return self.distance(p, q) <= self._control_radius
-        else:
-            for list_a in qubit_lists:
-                for list_b in qubit_lists:
-                    if list_a != list_b:
-                        if self.are_qubit_lists_too_close(list_a, list_b):
-                            return True
-        return False
+            a, b = qubit_lists
+            return any(self.distance(p, q) <= self._control_radius
+                       for p in a
+                       for q in b)
+        return any(self.are_qubit_lists_too_close(a, b)
+                   for a, b in itertools.combinations(qubit_lists, 2))
 
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
