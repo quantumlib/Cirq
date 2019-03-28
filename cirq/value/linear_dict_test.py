@@ -423,6 +423,7 @@ class FakePrinter:
     {}, {'Y': 2}, {'X': 1, 'Y': -1j},
     {'X': np.sqrt(3)/3, 'Y': np.sqrt(3)/3, 'Z': np.sqrt(3)/3},
     {'I': np.sqrt(1j)}, {'X': np.sqrt(-1j)},
+    {cirq.X: 1, cirq.H: -1},
 ))
 def test_repr_pretty(terms):
     printer = FakePrinter()
