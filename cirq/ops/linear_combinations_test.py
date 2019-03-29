@@ -122,6 +122,7 @@ def get_matrix(operator: Union[cirq.LinearCombinationOfGates, cirq.Gate]
 
 @pytest.mark.parametrize('expression, expected_result', (
     ((cirq.X + cirq.Z) / np.sqrt(2), cirq.H),
+    (cirq.X - cirq.Y, -cirq.Y + 1*cirq.X),
     (1 * cirq.Rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
     (1j * cirq.H * 1j, -cirq.H),
     (-1j * cirq.Y, cirq.Ry(np.pi)),

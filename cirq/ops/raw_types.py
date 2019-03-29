@@ -154,6 +154,15 @@ class Gate(metaclass=abc.ABCMeta):
                     other._wrap_in_linear_combination())
         return self._wrap_in_linear_combination() + other
 
+    def __sub__(self,
+                other: Union['Gate',
+                             'linear_combinations.LinearCombinationOfGates']
+                ) -> 'linear_combinations.LinearCombinationOfGates':
+        if isinstance(other, Gate):
+            return (self._wrap_in_linear_combination() -
+                    other._wrap_in_linear_combination())
+        return self._wrap_in_linear_combination() - other
+
     def __neg__(self) -> 'linear_combinations.LinearCombinationOfGates':
         return self._wrap_in_linear_combination(coefficient=-1)
 
