@@ -148,15 +148,15 @@ def test_validate_moment_errors():
     m = cirq.Moment([cirq.Z.on(q00), (cirq.Z**2).on(q01)])
     with pytest.raises(ValueError) as non_id_z:
         d.validate_moment(m)
-    assert "Non-identical Parallel Z gates" == str(non_id_z.value)
+    assert "Non-identical simultaneous " in str(non_id_z.value)
     m = cirq.Moment([cirq.X.on(q00), cirq.Y.on(q01)])
     with pytest.raises(ValueError) as non_id_xy:
         d.validate_moment(m)
-    assert "Non-identical Parallel XY gates" == str(non_id_xy.value)
+    assert "Non-identical simultaneous " in str(non_id_xy.value)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CZ.on(q12, q02)])
     with pytest.raises(ValueError) as non_id_c:
         d.validate_moment(m)
-    assert "Non-identical Parallel Controlled Gates" == str(non_id_c.value)
+    assert "Non-identical simultaneous " in str(non_id_c.value)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CNOT.on(q12, q02)])
     with pytest.raises(ValueError) as too_many_c:
         d.validate_moment(m)

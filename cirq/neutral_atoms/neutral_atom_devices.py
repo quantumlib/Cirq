@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, cast, List, Tuple
+import collections
+from typing import Iterable, cast, DefaultDict
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
@@ -193,49 +194,43 @@ class NeutralAtomDevice(devices.Device):
         """
         super().validate_moment(moment)
 
+        GATE_CATEGORIES = {
+            ops.ZPowGate: 'Z',
+            ops.pauli_gates._PauliZ: 'Z',
+
+            ops.pauli_gates._PauliX: 'XY',
+            ops.pauli_gates._PauliY: 'XY',
+            ops.XPowGate: 'XY',
+            ops.YPowGate: 'XY',
+            ops.PhasedXPowGate: 'XY',
+
+            ops.CNotPowGate: 'controlled',
+            ops.CZPowGate: 'controlled',
+            ops.CCXPowGate: 'controlled',
+            ops.CCZPowGate: 'controlled',
+
+            ops.MeasurementGate: 'measure',
+        }
+
         operations = moment.operations
-        num_parallel_z = 0
-        num_parallel_xy = 0
-        has_measurement = False
-        controlled_qubits_lists = []  # type: List[Tuple[raw_types.Qid, ...]]
 
-        # Count the number of each type of gate occuring in this moment.
-        # Also verify that gates of the same type are equal
+        categorized_ops = collections.defaultdict(list) #type: DefaultDict
         for op in operations:
-            if isinstance(op, (ops.GateOperation,
-                               ops.ParallelGateOperation)):
-                if isinstance(op.gate, ops.ZPowGate):
-                    if num_parallel_z == 0:
-                        refZgate = op.gate
-                    else:
-                        if refZgate != op.gate:
-                            raise ValueError("Non-identical Parallel Z gates")
-                    num_parallel_z += len(op.qubits)
+            assert isinstance(op,
+                              (ops.GateOperation, ops.ParallelGateOperation))
+            categorized_ops[GATE_CATEGORIES[type(op.gate)]].append(op)
 
-                if isinstance(op.gate, (ops.XPowGate,
-                                        ops.YPowGate,
-                                        ops.PhasedXPowGate)):
-                    if num_parallel_xy == 0:
-                        refXYgate = op.gate
-                    else:
-                        if refXYgate != op.gate:
-                            raise ValueError("Non-identical Parallel XY gates")
-                    num_parallel_xy += len(op.qubits)
+        for k in ['Z', 'XY', 'controlled']:
+            if len(set(op.gate for op in categorized_ops[k])) > 1:
+                raise ValueError(
+                    "Non-identical simultaneous {} gates".format(k))
 
-                if isinstance(op.gate, (ops.CNotPowGate,
-                                        ops.CZPowGate,
-                                        ops.CCXPowGate,
-                                        ops.CCZPowGate)):
-                    if len(controlled_qubits_lists) == 0:
-                        refCgate = op.gate
-                    else:
-                        if refCgate != op.gate:
-                            raise ValueError("Non-identical Parallel Controlled"
-                                             " Gates")
-                    controlled_qubits_lists.append(op.qubits)
-                if isinstance(op.gate, ops.MeasurementGate):
-                    has_measurement = True
-
+        num_parallel_xy = sum([len(op.qubits) for op in categorized_ops['XY']])
+        num_parallel_z = sum([len(op.qubits) for op in categorized_ops['Z']])
+        has_measurement = len(categorized_ops['measure']) > 0
+        controlled_qubits_lists = [op.qubits
+                                   for op in categorized_ops['controlled']]
+        # htype: List[Tuple[raw_types.Qid, ...]]
         if len(controlled_qubits_lists) > 0:
             if (sum([len(l) for l in controlled_qubits_lists]) >
                     self._max_parallel_c):
@@ -243,7 +238,7 @@ class NeutralAtomDevice(devices.Device):
             if num_parallel_xy > 0 or num_parallel_z > 0:
                 raise ValueError("Can't perform non-controlled operations at"
                                  " same time as controlled operations")
-            if self.are_qubit_lists_too_close(*controlled_qubits_lists):
+            if self._are_qubit_lists_too_close(*controlled_qubits_lists):
                 raise ValueError("Interacting controlled operations")
 
         if num_parallel_z > self._max_parallel_z:
@@ -259,7 +254,7 @@ class NeutralAtomDevice(devices.Device):
                 raise ValueError("Measurements can't be simultaneous with other"
                                  " operations")
 
-    def are_qubit_lists_too_close(self,
+    def _are_qubit_lists_too_close(self,
                                   *qubit_lists: Iterable[raw_types.Qid])-> bool:
         if len(qubit_lists) < 2:
             return False
@@ -268,7 +263,7 @@ class NeutralAtomDevice(devices.Device):
             return any(self.distance(p, q) <= self._control_radius
                        for p in a
                        for q in b)
-        return any(self.are_qubit_lists_too_close(a, b)
+        return any(self._are_qubit_lists_too_close(a, b)
                    for a, b in itertools.combinations(qubit_lists, 2))
 
     def can_add_operation_into_moment(self,
