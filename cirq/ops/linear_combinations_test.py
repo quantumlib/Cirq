@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 from typing import Union
 
 import numpy as np
@@ -120,6 +121,20 @@ def get_matrix(operator: Union[cirq.LinearCombinationOfGates, cirq.Gate]
     return cirq.unitary(operator)
 
 
+def assert_linear_combinations_of_gates_are_equal(
+        actual: cirq.LinearCombinationOfGates,
+        expected: cirq.LinearCombinationOfGates) -> None:
+    actual_matrix = get_matrix(actual)
+    expected_matrix = get_matrix(expected)
+    assert np.allclose(actual_matrix, expected_matrix)
+
+    actual_expansion = cirq.pauli_expansion(actual)
+    expected_expansion = cirq.pauli_expansion(expected)
+    assert set(actual_expansion.keys()) == set(expected_expansion.keys())
+    for name in actual_expansion.keys():
+        assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
+
+
 @pytest.mark.parametrize('expression, expected_result', (
     ((cirq.X + cirq.Z) / np.sqrt(2), cirq.H),
     (cirq.X - cirq.Y, -cirq.Y + cirq.X),
@@ -136,12 +151,25 @@ def get_matrix(operator: Union[cirq.LinearCombinationOfGates, cirq.Gate]
     (cirq.FREDKIN * 0.5, cirq.FREDKIN / 2),
 ))
 def test_expressions(expression, expected_result):
-    actual_matrix = get_matrix(expression)
-    expected_matrix = get_matrix(expected_result)
-    assert np.allclose(actual_matrix, expected_matrix)
+    assert_linear_combinations_of_gates_are_equal(expression, expected_result)
 
-    actual_expansion = cirq.pauli_expansion(expression)
-    expected_expansion = cirq.pauli_expansion(expected_result)
-    assert set(actual_expansion.keys()) == set(expected_expansion.keys())
-    for name in actual_expansion.keys():
-        assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
+
+@pytest.mark.parametrize('gates', (
+    (cirq.X, cirq.T, cirq.T, cirq.X, cirq.Z),
+    (cirq.CZ, cirq.XX, cirq.YY, cirq.ZZ),
+    (cirq.TOFFOLI, cirq.TOFFOLI, cirq.FREDKIN),
+))
+def test_in_place_manipulations(gates):
+    a = cirq.LinearCombinationOfGates({})
+    b = cirq.LinearCombinationOfGates({})
+
+    for i, gate in enumerate(gates):
+        a += gate
+        b -= gate
+
+        prefix = gates[:i + 1]
+        expected_a = cirq.LinearCombinationOfGates(collections.Counter(prefix))
+        expected_b = -expected_a
+
+        assert_linear_combinations_of_gates_are_equal(a, expected_a)
+        assert_linear_combinations_of_gates_are_equal(b, expected_b)
