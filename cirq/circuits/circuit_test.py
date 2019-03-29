@@ -1117,52 +1117,95 @@ def test_findall_operations_until_blocked():
             is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
 
 
-@pytest.mark.parametrize('method, unitary_gate, non_unitary_gate',
-    [('are_all_measurements_terminal', cirq.X, cirq.MeasurementGate(1)),
-     ('are_all_non_unitaries_terminal', cirq.X, cirq.MeasurementGate(1)),
-     ('are_all_non_unitaries_terminal', cirq.X, cirq.bit_flip(0.5))])
-def test_terminal_methods(method, unitary_gate, non_unitary_gate):
+def test_all_measurements_terminal():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    xa = unitary_gate.on(a)
-    xb = unitary_gate.on(b)
+    xa = cirq.X.on(a)
+    xb = cirq.X.on(b)
 
-    ma = non_unitary_gate.on(a)
-    mb = non_unitary_gate.on(b)
+    ma = cirq.measure(a)
+    mb = cirq.measure(b)
 
     c = Circuit()
-    assert getattr(c, method)()
+    assert c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(xa, xb)
-    assert getattr(c, method)()
+    assert c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(ma)
-    assert getattr(c, method)()
+    assert c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(ma, mb)
-    assert getattr(c, method)()
+    assert c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(xa, ma)
-    assert getattr(c, method)()
+    assert c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(xa, ma, xb, mb)
-    assert getattr(c, method)()
+    assert c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(ma, xa)
-    assert not getattr(c, method)()
+    assert not c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(ma, xa, mb)
-    assert not getattr(c, method)()
+    assert not c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(xa, ma, xb, xa)
-    assert not getattr(c, method)()
+    assert not c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(ma, ma)
-    assert not getattr(c, method)()
+    assert not c.are_all_measurements_terminal()
 
     c = Circuit.from_ops(xa, ma, xa)
-    assert not getattr(c, method)()
+    assert not c.are_all_measurements_terminal()
+
+
+def test_all_terminal():
+    def is_x_pow_gate(op):
+        return cirq.op_has_gate_type(op, cirq.XPowGate)
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    xa = cirq.X.on(a)
+    xb = cirq.X.on(b)
+
+    ya = cirq.Y.on(a)
+    yb = cirq.Y.on(b)
+
+    c = Circuit()
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa)
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb)
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya)
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb)
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa)
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa, xb)
+    assert c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, xa)
+    assert not c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya)
+    assert not c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb, ya, yb)
+    assert not c.are_all_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya, xa)
+    assert not c.are_all_terminal(is_x_pow_gate)
 
 
 def test_clear_operations_touching():

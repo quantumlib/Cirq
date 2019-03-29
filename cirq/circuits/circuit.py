@@ -771,17 +771,21 @@ class Circuit:
 
     def are_all_measurements_terminal(self):
         """Whether all measurement gates are at the end of the circuit."""
-        return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(protocols.is_measurement))
+        return self.are_all_terminal(protocols.is_measurement)
 
-    def are_all_non_unitaries_terminal(self):
-        """Whether all non-unitary gates at end of the circuit."""
-        def not_unitary(x):
-            return protocols.is_measurement(x) or protocols.has_mixture(x)
+    def are_all_terminal(self, predicate: Callable[[ops.Operation], bool]):
+        """Check whether all of the ops that satisfy a predicate are terminal.
+
+        Args:
+            predicate: A predicate on ops.Operations which is being checked.
+
+        Returns:
+            Whether or not all `Operation`s in a circuit that satisfy the
+            given predicate are terminal.
+        """
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for
-            (i, op) in self.findall_operations(not_unitary)
+            (i, op) in self.findall_operations(predicate)
         )
 
     def _pick_or_create_inserted_op_moment_index(

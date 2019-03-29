@@ -134,7 +134,9 @@ class Simulator(simulator.SimulatesSamples,
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
-        if circuit.are_all_non_unitaries_terminal():
+        def measure_or_mixture(op):
+            return protocols.is_measurement(op) or protocols.has_mixture(op)
+        if circuit.are_all_terminal(measure_or_mixture):
             return self._run_sweep_sample(resolved_circuit, repetitions)
         else:
             return self._run_sweep_repeat(resolved_circuit, repetitions)
@@ -149,12 +151,11 @@ class Simulator(simulator.SimulatesSamples,
                 initial_state=0,
                 perform_measurements=False):
             pass
+        # We can ignore the mixtures since this is a run method which
+        # does not return the state.  
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
                                    ops.MeasurementGate)]
-        # Note that there could be mixtures that are not measurements in the
-        # final non-unitary gates, but these will not impact the
-        # measurement results since they must operate on disjoint qubits.
         return step_result.sample_measurement_ops(measurement_ops, repetitions)
 
     def _run_sweep_repeat(
@@ -296,6 +297,7 @@ class Simulator(simulator.SimulatesSamples,
                 measurements=measurements,
                 qubit_map=qubit_map,
                 dtype=self._dtype)
+
 
 
 class SparseSimulatorStep(wave_function.StateVectorMixin,
