@@ -99,6 +99,9 @@ class Gate(metaclass=abc.ABCMeta):
     must implement the `num_qubits` method declaring how many qubits they
     act on. The gate feature classes `SingleQubitGate` and `TwoQubitGate`
     can be used to avoid writing this boilerplate.
+
+    Linear combinations of gates can be created by adding gates together and
+    multiplying them by scalars.
     """
 
     def validate_args(self, qubits: Sequence[Qid]) -> None:
