@@ -252,7 +252,7 @@ class NeutralAtomDevice(devices.Device):
             raise ValueError("Bad number of simultaneous XY gates")
 
         if has_measurement:
-            if (controlled_qubits_lists or num_parallel_z or num_parallel_xy):
+            if controlled_qubits_lists or num_parallel_z or num_parallel_xy:
                 raise ValueError("Measurements can't be simultaneous with other"
                                  " operations")
 
