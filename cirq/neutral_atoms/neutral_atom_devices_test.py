@@ -109,7 +109,7 @@ def test_validate_operation_errors():
                                                   [cirq.GridQubit(row, col)
                                                    for col in range(4)
                                                    for row in range(4)])
-    with pytest.raises(ValueError, match="Qubit not on device") as bad_qubits:
+    with pytest.raises(ValueError, match="Qubit not on device"):
         d.validate_operation(not_on_device_op)
     with pytest.raises(ValueError, match="Too many qubits acted on in parallel "
                        "by"):
