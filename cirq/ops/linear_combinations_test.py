@@ -122,13 +122,13 @@ def get_matrix(operator: Union[cirq.LinearCombinationOfGates, cirq.Gate]
 
 @pytest.mark.parametrize('expression, expected_result', (
     ((cirq.X + cirq.Z) / np.sqrt(2), cirq.H),
-    (cirq.X - cirq.Y, -cirq.Y + 1*cirq.X),
-    (1 * cirq.Rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
+    (cirq.X - cirq.Y, -cirq.Y + cirq.X),
+    (cirq.Rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
     (1j * cirq.H * 1j, -cirq.H),
     (-1j * cirq.Y, cirq.Ry(np.pi)),
     (np.sqrt(-1j) * cirq.S, cirq.Rz(np.pi / 2)),
-    (0.5 * (cirq.IdentityGate(2) + cirq.XX + 1*cirq.YY + 1*cirq.ZZ),cirq.SWAP),
-    ((cirq.IdentityGate(2) + 1j * (cirq.XX + 1*cirq.YY) + 1*cirq.ZZ) / 2,
+    (0.5 * (cirq.IdentityGate(2) + cirq.XX + cirq.YY + cirq.ZZ),cirq.SWAP),
+    ((cirq.IdentityGate(2) + 1j * (cirq.XX + cirq.YY) + cirq.ZZ) / 2,
         cirq.ISWAP),
     (cirq.CNOT + 0 * cirq.SWAP, cirq.CNOT),
     (0.5 * cirq.FREDKIN, cirq.FREDKIN / 2),

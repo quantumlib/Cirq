@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, Mapping, Optional, Tuple, Union
 
 import numpy as np
 
@@ -62,6 +62,34 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     def _is_compatible(self, gate: raw_types.Gate) -> bool:
         return (self.num_qubits() is None or
                 self.num_qubits() == gate.num_qubits())
+
+    def __add__(self,
+                other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                ) -> 'LinearCombinationOfGates':
+        if not isinstance(other, LinearCombinationOfGates):
+            other = other.wrap_in_linear_combination()
+        return super().__add__(other)
+
+    def __iadd__(self,
+                 other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                 ) -> 'LinearCombinationOfGates':
+        if not isinstance(other, LinearCombinationOfGates):
+            other = other.wrap_in_linear_combination()
+        return super().__iadd__(other)
+
+    def __sub__(self,
+                other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                ) -> 'LinearCombinationOfGates':
+        if not isinstance(other, LinearCombinationOfGates):
+            other = other.wrap_in_linear_combination()
+        return super().__sub__(other)
+
+    def __isub__(self,
+                 other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                 ) -> 'LinearCombinationOfGates':
+        if not isinstance(other, LinearCombinationOfGates):
+            other = other.wrap_in_linear_combination()
+        return super().__isub__(other)
 
     def matrix(self) -> np.ndarray:
         num_qubits = self.num_qubits()
