@@ -92,6 +92,11 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return super().__isub__(other)
 
     def matrix(self) -> np.ndarray:
+        """Reconstructs matrix of self using unitaries of underlying gates.
+
+        Raises:
+            TypeError: if any of the gates in self does not provide a unitary.
+        """
         num_qubits = self.num_qubits()
         if num_qubits is None:
             raise ValueError('Unknown number of qubits')
