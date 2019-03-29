@@ -212,12 +212,14 @@ def apply_channel(val: Any,
     if func is not None:
         result = func(args)
         if result is not NotImplemented and result is not None:
-            err_str = ("Object of type '" + str(type(val)) +"' returned a "
-                       "result object equal to auxiliary_buffer{}. This type "
-                       "violates the contract that appears in apply_unitary's "
-                       "documentation.")
-            assert result is not args.auxiliary_buffer0, err_str.format('0')
-            assert result is not args.auxiliary_buffer1, err_str.format('1')
+            def err_str(buf_num_str):
+                return (
+                    "Object of type '{}' returned a result object equal to "
+                    "auxiliary_buffer{}. This type violates the contract "
+                    "that appears in apply_unitary's documentation.".format(
+                        type(val), buf_num_str))
+            assert result is not args.auxiliary_buffer0, err_str('0')
+            assert result is not args.auxiliary_buffer1, err_str('1')
             return result
 
     # Possibly use `apply_unitary`.
