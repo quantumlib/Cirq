@@ -278,13 +278,15 @@ class LinearDict(MutableMapping[TVector, Scalar]):
 
     def __repr__(self) -> str:
         coefficients = dict(self)
-        return 'cirq.LinearDict({!r})'.format(coefficients)
+        class_name = self.__class__.__name__
+        return 'cirq.{}({!r})'.format(class_name, coefficients)
 
     def __str__(self):
         return self.__format__('.3f')
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         if cycle:
-            p.text('LinearDict(...)')
+            class_name = self.__class__.__name__
+            p.text('{}(...)'.format(class_name))
         else:
             p.text(str(self))
