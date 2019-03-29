@@ -194,22 +194,23 @@ class NeutralAtomDevice(devices.Device):
         """
         super().validate_moment(moment)
 
-        GATE_CATEGORIES = {
-            ops.ZPowGate: 'Z',
-            ops.pauli_gates._PauliZ: 'Z',
+        CATEGORIES = {
+            'Z': (ops.ZPowGate,
+                  ),
 
-            ops.pauli_gates._PauliX: 'XY',
-            ops.pauli_gates._PauliY: 'XY',
-            ops.XPowGate: 'XY',
-            ops.YPowGate: 'XY',
-            ops.PhasedXPowGate: 'XY',
+            'XY': (ops.XPowGate,
+                   ops.YPowGate,
+                   ops.PhasedXPowGate,
+                   ),
 
-            ops.CNotPowGate: 'controlled',
-            ops.CZPowGate: 'controlled',
-            ops.CCXPowGate: 'controlled',
-            ops.CCZPowGate: 'controlled',
+            'controlled': (ops.CNotPowGate,
+                           ops.CZPowGate,
+                           ops.CCXPowGate,
+                           ops.CCZPowGate,
+                           ),
 
-            ops.MeasurementGate: 'measure',
+            'measure': (ops.MeasurementGate,
+                        )
         }
 
         operations = moment.operations
@@ -218,7 +219,10 @@ class NeutralAtomDevice(devices.Device):
         for op in operations:
             assert isinstance(op,
                               (ops.GateOperation, ops.ParallelGateOperation))
-            categorized_ops[GATE_CATEGORIES[type(op.gate)]].append(op)
+            for k, v in CATEGORIES.items():
+                assert isinstance(v, tuple)
+                if isinstance(op.gate, v):
+                    categorized_ops[k].append(op)
 
         for k in ['Z', 'XY', 'controlled']:
             if len(set(op.gate for op in categorized_ops[k])) > 1:
@@ -230,16 +234,15 @@ class NeutralAtomDevice(devices.Device):
         has_measurement = len(categorized_ops['measure']) > 0
         controlled_qubits_lists = [op.qubits
                                    for op in categorized_ops['controlled']]
-        # htype: List[Tuple[raw_types.Qid, ...]]
-        if len(controlled_qubits_lists) > 0:
-            if (sum([len(l) for l in controlled_qubits_lists]) >
-                    self._max_parallel_c):
-                raise ValueError("Too many qubits acted on by controlled gates")
-            if num_parallel_xy > 0 or num_parallel_z > 0:
-                raise ValueError("Can't perform non-controlled operations at"
-                                 " same time as controlled operations")
-            if self._are_qubit_lists_too_close(*controlled_qubits_lists):
-                raise ValueError("Interacting controlled operations")
+
+        if (sum([len(l) for l in controlled_qubits_lists]) >
+                self._max_parallel_c):
+            raise ValueError("Too many qubits acted on by controlled gates")
+        if controlled_qubits_lists and (num_parallel_xy or num_parallel_z):
+            raise ValueError("Can't perform non-controlled operations at"
+                             " same time as controlled operations")
+        if self._are_qubit_lists_too_close(*controlled_qubits_lists):
+            raise ValueError("Interacting controlled operations")
 
         if num_parallel_z > self._max_parallel_z:
             raise ValueError("Too many simultaneous Z gates")
@@ -249,8 +252,7 @@ class NeutralAtomDevice(devices.Device):
             raise ValueError("Bad number of simultaneous XY gates")
 
         if has_measurement:
-            if (len(controlled_qubits_lists) > 0 or num_parallel_z > 0 or
-                    num_parallel_xy > 0):
+            if (controlled_qubits_lists or num_parallel_z or num_parallel_xy):
                 raise ValueError("Measurements can't be simultaneous with other"
                                  " operations")
 
