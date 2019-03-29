@@ -111,7 +111,6 @@ class NeutralAtomDevice(devices.Device):
 
         Raises:
             ValueError: If the given gate is not part of the native gate set.
-
         """
         if not isinstance(gate, (ops.CCXPowGate,
                                  ops.CCZPowGate,
@@ -213,10 +212,8 @@ class NeutralAtomDevice(devices.Device):
                         )
         }
 
-        operations = moment.operations
-
         categorized_ops = collections.defaultdict(list) #type: DefaultDict
-        for op in operations:
+        for op in moment.operations:
             assert isinstance(op,
                               (ops.GateOperation, ops.ParallelGateOperation))
             for k, v in CATEGORIES.items():

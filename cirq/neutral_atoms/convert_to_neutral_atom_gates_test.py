@@ -42,10 +42,8 @@ def test_coverage():
     assert c == cirq.Circuit.from_ops(cirq.X.on(q[0]))
     assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
         cirq.X.on(q[0])) == [cirq.X.on(q[0])])
-    with pytest.raises(TypeError) as idk:
+    with pytest.raises(TypeError, match="Don't know how to work with"):
         cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(op)
-
-    assert "Don't know how to work with" in str(idk.value)
     assert not cirq.neutral_atoms.is_native_neutral_atom_op(op)
 
 

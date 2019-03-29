@@ -54,7 +54,7 @@ def test_init_errors():
     line = cirq.LineQubit.range(3)
     us = cirq.Duration(nanos=10 ** 3)
     ms = cirq.Duration(nanos=10 ** 6)
-    with pytest.raises(ValueError) as bad_qubit_type:
+    with pytest.raises(ValueError, match="Unsupported qubit type"):
         _ = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                                gate_duration=100 * us,
                                control_radius=1.5,
@@ -62,8 +62,7 @@ def test_init_errors():
                                max_parallel_xy=3,
                                max_parallel_c=3,
                                qubits= line)
-    assert "Unsupported qubit type" in str(bad_qubit_type.value)
-    with pytest.raises(ValueError) as bad_parallel_parameters:
+    with pytest.raises(ValueError, match="max_parallel_c must be less"):
         _ = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                                gate_duration=100 * us,
                                control_radius=1.5,
@@ -71,7 +70,6 @@ def test_init_errors():
                                max_parallel_xy=3,
                                max_parallel_c=4,
                                qubits= [cirq.GridQubit(0,0)])
-    assert "max_parallel_c must be less" in str(bad_parallel_parameters)
 
 
 def test_decompose_error():
@@ -84,12 +82,11 @@ def test_validate_gate_errors():
     d = square_device(1,1)
 
     d.validate_gate(cirq.IdentityGate(4))
-    with pytest.raises(ValueError) as bad_exp:
+    with pytest.raises(ValueError, match="controlled gates must have integer "
+                       "exponents"):
         d.validate_gate(cirq.CNotPowGate(exponent=0.5))
-    assert 'controlled gates must have integer exponents' == str(bad_exp.value)
-    with pytest.raises(ValueError) as bad_gate:
+    with pytest.raises(ValueError, match="Unsupported gate"):
         d.validate_gate(cirq.SingleQubitGate())
-    assert 'Unsupported gate' in str(bad_gate.value)
 
 
 def test_validate_operation_errors():
@@ -106,30 +103,25 @@ def test_validate_operation_errors():
         def with_qubits(self, new_qubits):
             pass
 
-    with pytest.raises(ValueError) as bad_operation:
+    with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(bad_op())
-    assert "Unsupported operation" in str(bad_operation.value)
     not_on_device_op = cirq.ParallelGateOperation(cirq.X,
                                                   [cirq.GridQubit(row, col)
                                                    for col in range(4)
                                                    for row in range(4)])
-    with pytest.raises(ValueError) as bad_qubits:
+    with pytest.raises(ValueError, match="Qubit not on device") as bad_qubits:
         d.validate_operation(not_on_device_op)
-    assert "Qubit not on device" in str(bad_qubits.value)
-    with pytest.raises(ValueError) as control_limit:
+    with pytest.raises(ValueError, match="Too many qubits acted on in parallel "
+                       "by"):
         d.validate_operation(cirq.CCX.on(*d.qubit_list()[0:3]))
-    assert "Too many qubits acted on in parallel by" in str(control_limit.value)
-    with pytest.raises(ValueError) as too_far:
+    with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(cirq.GridQubit(0, 0),
                                         cirq.GridQubit(2, 2)))
-    assert "are too far away" in str(too_far.value)
-    with pytest.raises(ValueError) as too_many_z:
+    with pytest.raises(ValueError, match="Too many Z gates in parallel"):
         d.validate_operation(cirq.ParallelGateOperation(cirq.Z, d.qubits))
-    assert "Too many Z gates in parallel" == str(too_many_z.value)
-    with pytest.raises(ValueError) as bad_xy_num:
+    with pytest.raises(ValueError, match="Bad number of XY gates in parallel"):
         d.validate_operation(cirq.ParallelGateOperation(cirq.X,
                                                         d.qubit_list()[1:]))
-    assert "Bad number of XY gates in parallel" == str(bad_xy_num.value)
 
 
 def test_validate_moment_errors():
@@ -146,40 +138,32 @@ def test_validate_moment_errors():
     q21 = cirq.GridQubit(2, 1)
 
     m = cirq.Moment([cirq.Z.on(q00), (cirq.Z**2).on(q01)])
-    with pytest.raises(ValueError) as non_id_z:
+    with pytest.raises(ValueError, match="Non-identical simultaneous "):
         d.validate_moment(m)
-    assert "Non-identical simultaneous " in str(non_id_z.value)
     m = cirq.Moment([cirq.X.on(q00), cirq.Y.on(q01)])
-    with pytest.raises(ValueError) as non_id_xy:
+    with pytest.raises(ValueError, match="Non-identical simultaneous "):
         d.validate_moment(m)
-    assert "Non-identical simultaneous " in str(non_id_xy.value)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CZ.on(q12, q02)])
-    with pytest.raises(ValueError) as non_id_c:
+    with pytest.raises(ValueError, match="Non-identical simultaneous "):
         d.validate_moment(m)
-    assert "Non-identical simultaneous " in str(non_id_c.value)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CNOT.on(q12, q02)])
-    with pytest.raises(ValueError) as too_many_c:
+    with pytest.raises(ValueError, match="Too many qubits acted on by "
+                       "controlled gates"):
         d.validate_moment(m)
-    assert "Too many qubits acted on by controlled gates" == str(
-        too_many_c.value)
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.Z.on(q02)])
-    with pytest.raises(ValueError) as c_blocks:
+    with pytest.raises(ValueError, match="Can't perform non-controlled "
+                       "operations at same time as controlled operations"):
         d.validate_moment(m)
-    assert ("Can't perform non-controlled operations"
-            " at same time as controlled operations" == str(c_blocks.value))
     m = cirq.Moment(cirq.Z.on_each(*d.qubits))
-    with pytest.raises(ValueError) as too_many_z:
+    with pytest.raises(ValueError, match="Too many simultaneous Z gates"):
         d.validate_moment(m)
-    assert "Too many simultaneous Z gates" == str(too_many_z.value)
     m = cirq.Moment(cirq.X.on_each(*(d.qubit_list()[1:])))
-    with pytest.raises(ValueError) as bad_xy:
+    with pytest.raises(ValueError, match="Bad number of simultaneous XY gates"):
         d.validate_moment(m)
-    assert "Bad number of simultaneous XY gates" == str(bad_xy.value)
     m = cirq.Moment([cirq.MeasurementGate(1).on(q00), cirq.Z.on(q01)])
-    with pytest.raises(ValueError) as measurement:
+    with pytest.raises(ValueError, match="Measurements can't be simultaneous "
+                       "with other operations"):
         d.validate_moment(m)
-    assert ("Measurements can't be simultaneous with other operations" ==
-            str(measurement.value))
     d.validate_moment(cirq.Moment([cirq.X.on(q00), cirq.Z.on(q01)]))
     us = cirq.Duration(nanos=10 ** 3)
     ms = cirq.Duration(nanos=10 ** 6)
@@ -193,9 +177,8 @@ def test_validate_moment_errors():
                               for col in range(2)
                               for row in range(2)])
     m = cirq.Moment([cirq.CNOT.on(q00, q01), cirq.CNOT.on(q10, q11)])
-    with pytest.raises(ValueError) as interacting:
+    with pytest.raises(ValueError, match="Interacting controlled operations"):
         d2.validate_moment(m)
-    assert "Interacting controlled operations" == str(interacting.value)
     d2 = neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
                               gate_duration=100 * us,
                               control_radius=1.1,
@@ -210,9 +193,8 @@ def test_validate_moment_errors():
     d2.validate_moment(m)
     m = cirq.Moment([cirq.CZ.on(q00, q01),
                      cirq.CZ.on(q02, q03), cirq.CZ.on(q10, q11)])
-    with pytest.raises(ValueError) as interacting:
+    with pytest.raises(ValueError, match="Interacting controlled operations"):
         d2.validate_moment(m)
-    assert "Interacting controlled operations" == str(interacting.value)
 
 
 def test_can_add_operation_into_moment_coverage():
@@ -241,10 +223,8 @@ def test_validate_circuit_errors():
     c.append(cirq.measure_each(*d.qubits))
     d.validate_circuit(c)
     c.append(cirq.Moment([cirq.X.on(q00)]))
-    with pytest.raises(ValueError) as non_terminal_measurement:
+    with pytest.raises(ValueError, match="Non-empty moment after measurement"):
         d.validate_circuit(c)
-    assert ("Non-empty moment after measurement" ==
-            str(non_terminal_measurement.value))
 
 
 def test_validate_scheduled_operation_errors():
@@ -253,9 +233,8 @@ def test_validate_scheduled_operation_errors():
     q00 = cirq.GridQubit(0, 0)
     so = cirq.ScheduledOperation(cirq.Timestamp(), cirq.Duration(nanos=1),
                                  cirq.X.on(q00))
-    with pytest.raises(ValueError) as too_short:
+    with pytest.raises(ValueError, match="Incompatible operation duration"):
         d.validate_scheduled_operation(s, so)
-    assert "Incompatible operation duration" == str(too_short.value)
 
 
 def test_validate_schedule_errors():
@@ -288,9 +267,9 @@ def test_validate_schedule_errors():
     d.validate_schedule(s)
     s.include(cirq.ScheduledOperation(cirq.Timestamp(nanos=10**9), 100*us,
                                       cirq.X.on(q00)))
-    with pytest.raises(ValueError) as terminal:
+    with pytest.raises(ValueError, match="Non-measurement operation after "
+                       "measurement"):
         d.validate_schedule(s)
-    assert "Non-measurement operation after measurement" == str(terminal.value)
 
 
 def test_repr():
