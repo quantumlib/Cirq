@@ -144,17 +144,17 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():
             return NotImplemented
         phase_angle = np.pi * self._phase_exponent / 2
         angle = np.pi * self._exponent / 2
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
-        return {
+        return value.LinearDict({
             'I': phase * np.cos(angle),
             'X': -1j * phase * np.sin(angle) * np.cos(2 * phase_angle),
             'Y': -1j * phase * np.sin(angle) * np.sin(2 * phase_angle),
-        }
+        })
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""

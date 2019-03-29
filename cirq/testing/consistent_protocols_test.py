@@ -66,17 +66,17 @@ class GoodGate(cirq.SingleQubitGate):
             return NotImplemented
         return z**-1, x, z
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
         if self._is_parameterized_():
             return NotImplemented
         phase_angle = np.pi * self.phase_exponent / 2
         angle = np.pi * self.exponent / 2
         global_phase = np.exp(1j * angle)
-        return {
+        return cirq.LinearDict({
             'I': global_phase * np.cos(angle),
             'X': -1j * global_phase * np.sin(angle) * np.cos(2 * phase_angle),
             'Y': -1j * global_phase * np.sin(angle) * np.sin(2 * phase_angle),
-        }
+        })
 
     def _phase_by_(self, phase_turns, qubit_index):
         assert qubit_index == 0
@@ -149,8 +149,8 @@ class BadGateDecompose(GoodGate):
 
 class BadGatePauliExpansion(GoodGate):
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
-        return {'I': 10}
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
+        return cirq.LinearDict({'I': 10})
 
 
 class BadGatePhaseBy(GoodGate):
