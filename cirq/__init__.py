@@ -116,7 +116,6 @@ from cirq.ops import (
     measure,
     measure_each,
     Moment,
-    MultiQubitGate,
     NamedQubit,
     ControlledOperation,
     OP_TREE,
