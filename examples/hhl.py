@@ -89,7 +89,7 @@ class PhaseEstimation(cirq.Gate):
         self._num_qubits = num_qubits
         self.U = unitary
 
-    def num_qubits(self) -> int:
+    def num_qubits(self):
         return self._num_qubits
 
     def _decompose_(self, qubits):
@@ -143,7 +143,7 @@ class PhaseKickback(cirq.Gate):
         self._num_qubits = num_qubits
         self.U = unitary
 
-    def num_qubits(self) -> int:
+    def num_qubits(self):
         return self._num_qubits
 
     def _decompose_(self, qubits):
@@ -165,7 +165,7 @@ class Qft(cirq.Gate):
         super(Qft, self)
         self._num_qubits = num_qubits
 
-    def num_qubits(self) -> int:
+    def num_qubits(self):
         return self._num_qubits
 
     def _decompose_(self, qubits):
@@ -197,7 +197,7 @@ class EigenRotation(cirq.Gate):
         self.t = t
         self.N = 2**(num_qubits-1)
 
-    def num_qubits(self) -> int:
+    def num_qubits(self):
         return self._num_qubits
 
     def _decompose_(self, qubits):
