@@ -83,7 +83,7 @@ class ScalableGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
     This class allows you to instead use
 
-        class MyGate(MultiQubitGate):
+        class MyGate(ScalableGate):
 
             def __init__(self, num_qubits, **args):
                 super().__init__(num_qubits)
