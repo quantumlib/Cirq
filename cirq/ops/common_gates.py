@@ -380,7 +380,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(gate_features.MultiQubitGate):
+class MeasurementGate(gate_features.ScalableGate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
@@ -545,7 +545,7 @@ def measure_each(*qubits: raw_types.Qid,
 
 
 @value.value_equality
-class IdentityGate(gate_features.MultiQubitGate):
+class IdentityGate(gate_features.ScalableGate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the

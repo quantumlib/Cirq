@@ -113,7 +113,7 @@ def test_repr():
 # A contrived multiqubit Hadamard gate that asserts the consistency of
 # the passed in Args and puts an H on all qubits
 # displays them as 'H(qubit)' on the wire
-class MultiH(cirq.MultiQubitGate):
+class MultiH(cirq.ScalableGate):
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs

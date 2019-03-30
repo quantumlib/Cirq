@@ -45,7 +45,7 @@ def operations_to_part_lens(
 
 
 class AcquaintanceOpportunityGate(
-        ops.MultiQubitGate, ops.InterchangeableQubitsGate):
+        ops.ScalableGate, ops.InterchangeableQubitsGate):
     """Represents an acquaintance opportunity. An acquaintance opportunity is
     essentially a placeholder in a swap network that may later be replaced with
     a logical gate."""

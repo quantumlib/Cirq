@@ -1452,7 +1452,7 @@ def test_circuit_diagram_on_gate_without_info():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
 
-    class FGate(cirq.MultiQubitGate):
+    class FGate(cirq.ScalableGate):
         def __init__(self, num_qubits=1):
             super().__init__(num_qubits)
 
@@ -1841,7 +1841,7 @@ def test_composite_gate_to_unitary_matrix():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.MultiQubitGate):
+    class MultiTargetCZ(cirq.ScalableGate):
 
         def __init__(self, num_qubits):
             super().__init__(num_qubits)

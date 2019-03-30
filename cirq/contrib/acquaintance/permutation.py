@@ -26,7 +26,7 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.Qid)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
-class PermutationGate(ops.MultiQubitGate, metaclass=abc.ABCMeta):
+class PermutationGate(ops.ScalableGate, metaclass=abc.ABCMeta):
     """A permutation gate indicates a change in the mapping from qubits to
     logical indices.
 

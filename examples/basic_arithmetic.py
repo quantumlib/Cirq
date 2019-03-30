@@ -89,7 +89,7 @@ Execute Multiplier
 import cirq
 
 
-class Adder(cirq.MultiQubitGate):
+class Adder(cirq.ScalableGate):
     """ A quantum circuit to calculate a + b
 
             -----------@---             ---@------------
@@ -155,7 +155,7 @@ class Adder(cirq.MultiQubitGate):
             yield self.carry_sum(c[i], a[i], b[i])
 
 
-class Multiplier(cirq.MultiQubitGate):
+class Multiplier(cirq.ScalableGate):
     """ A quantum circuit to calculate y * x
 
                        -                         -                 -

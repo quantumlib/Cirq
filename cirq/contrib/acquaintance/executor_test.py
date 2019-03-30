@@ -24,7 +24,7 @@ import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
 
-class ExampleGate(cirq.MultiQubitGate):
+class ExampleGate(cirq.ScalableGate):
     def __init__(self, wire_symbols: Sequence[str]) -> None:
         super().__init__(len(wire_symbols))
         self._wire_symbols = tuple(wire_symbols)
@@ -82,7 +82,7 @@ def test_executor_explicit():
     ct.assert_has_diagram(circuit, expected_text_diagram)
 
 
-class DiagonalGate(cirq.MultiQubitGate):
+class DiagonalGate(cirq.ScalableGate):
     def __init__(self, num_qubits: int, diagonal: np.ndarray) -> None:
         super().__init__(num_qubits)
 

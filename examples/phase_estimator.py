@@ -49,7 +49,7 @@ import numpy as np
 import cirq
 
 
-class QftInverse(cirq.MultiQubitGate):
+class QftInverse(cirq.ScalableGate):
     """Quantum gate for the inverse Quantum Fourier Transformation
     """
 

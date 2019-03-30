@@ -75,7 +75,7 @@ import numpy as np
 import cirq
 
 
-class PhaseEstimation(cirq.MultiQubitGate):
+class PhaseEstimation(cirq.ScalableGate):
     """
     A gate for Quantum Phase Estimation.
 
@@ -124,7 +124,7 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
         return self.eigen_components
 
 
-class PhaseKickback(cirq.MultiQubitGate):
+class PhaseKickback(cirq.ScalableGate):
     """
     A gate for the phase kickback stage of Quantum Phase Estimation.
 
@@ -145,7 +145,7 @@ class PhaseKickback(cirq.MultiQubitGate):
             yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
 
 
-class Qft(cirq.MultiQubitGate):
+class Qft(cirq.ScalableGate):
     """
     Quantum gate for the Quantum Fourier Transformation.
 
@@ -165,7 +165,7 @@ class Qft(cirq.MultiQubitGate):
             processed_qubits.insert(0, q_head)
 
 
-class EigenRotation(cirq.MultiQubitGate):
+class EigenRotation(cirq.ScalableGate):
     """
     EigenRotation performs the set of rotation on the ancilla qubit equivalent
     to division on the memory register by each eigenvalue of the matrix. The

@@ -54,36 +54,32 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return [self.on(target) for target in targets]
 
 
-class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that must be applied to exactly two qubits."""
-    def num_qubits(self) -> int:
-        return 2
+def FixedQubitCountGate(num_qubits: int):
+    return type("GateOn{}Qubits".format(num_qubits),
+                tuple([raw_types.Gate]),
+                {"_num_qubits": num_qubits,
+                 "num_qubits": lambda self: self._num_qubits})
 
 
-class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that must be applied to exactly three qubits."""
-    def num_qubits(self) -> int:
-        return 3
+TwoQubitGate = FixedQubitCountGate(2)
+
+ThreeQubitGate = FixedQubitCountGate(3)
 
 
-class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
-    """A gate that must be applied to multiple qubits.
+class ScalableGate(raw_types.Gate, metaclass=abc.ABCMeta):
+    """A gate that can be scaled to a varied number of qubits.
 
     This class can be used to get rid of a bit of boiler plate. Typically one
-    would implement a multiqubit gate like
+    would implement a multi-qubit gate like
 
         class MyGate:
 
             def __init__(self, num_qubits, **args):
-                self._num_qubits
+                self._num_qubits = num_qubits
                 # other arg work
 
             def num_qubits(self):
                 return self._num_qubits
-
-            def validate_args(self, qubits):
-                if self.num_qubits != len(qubits):
-                    raise ValueError('Acting on wrong number of qubits')
 
     This class allows you to instead use
 
@@ -93,12 +89,8 @@ class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
                 super().__init__(num_qubits)
                 # other arg work
 
-    Validation of number of qubits is handled in this class. If more validation
-    is necessary, remember to call the super method:
+    Validation of number of qubits is handled in raw_types.Gate.
 
-            def validate_args(self, qubits):
-                super().validate_args(qubits)
-                # your validation here
     """
 
     def __init__(self, num_qubits: int):
@@ -112,3 +104,4 @@ class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(
                 '{}-qubit gate was applied to {} qubits'.
                     format(self.num_qubits(), len(qubits)))
+

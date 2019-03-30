@@ -152,7 +152,7 @@ def test_qasm_output_args_format():
 
 
 def test_multi_qubit_gate_validate():
-    class Dummy(cirq.MultiQubitGate):
+    class Dummy(cirq.ScalableGate):
 
         def __init__(self, num_qubits):
             super().__init__(num_qubits)
