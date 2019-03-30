@@ -1847,7 +1847,7 @@ def test_expanding_gate_symbols():
     class MultiTargetCZ(cirq.Gate):
 
         def __init__(self, num_qubits):
-           self._num_qubits = num_qubits
+            self._num_qubits = num_qubits
 
         def num_qubits(self) -> int:
             return self._num_qubits

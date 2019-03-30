@@ -545,6 +545,7 @@ def measure_each(*qubits: raw_types.Qid,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+
 @value.value_equality
 class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
