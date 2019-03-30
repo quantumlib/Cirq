@@ -39,7 +39,7 @@ class GoodGateImplicitPauliExpansion(cirq.SingleQubitGate):
         return np.eye(2)
 
 
-class GoodGateNoPauliExpansion(cirq.FixedQubitCountGate(4)):
+class GoodGateNoPauliExpansion(cirq.FixedQubitCountGate(4)):  # type:ignore
 
     def _unitary_(self) -> np.ndarray:
         return np.eye(16)
