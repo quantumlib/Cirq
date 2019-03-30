@@ -545,6 +545,10 @@ def measure_each(*qubits: raw_types.Qid,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+def FourQubit():
+    return class
+
+
 @value.value_equality
 class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
@@ -555,11 +559,11 @@ class IdentityGate(raw_types.Gate):
     `cirq.I` is the single qubit identity gate.
     """
 
-    def num_qubits(self) -> int:
-        self._num_qubits
-
     def __init__(self, num_qubits):
         self._num_qubits = num_qubits
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
