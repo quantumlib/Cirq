@@ -14,17 +14,17 @@
 
 """Linear combination represented as mapping of things to coefficients."""
 
-from typing import (Any, Dict, ItemsView, Iterable, Iterator,
-                    KeysView, Mapping, overload, Tuple, TypeVar, Union,
-                    ValuesView)
+from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
+                    KeysView, Mapping, MutableMapping, overload, Tuple, TypeVar,
+                    Union, ValuesView)
 
 Scalar = Union[complex, float]
 TVector = TypeVar('TVector')
 
-_TDefault = TypeVar('_TDefault')
+TDefault = TypeVar('TDefault')
 
 
-class LinearDict(Dict[TVector, Scalar]):
+class LinearDict(MutableMapping[TVector, Scalar]):
     """Represents linear combination of things.
 
     LinearDict implements the basic linear algebraic operations of vector
@@ -38,41 +38,58 @@ class LinearDict(Dict[TVector, Scalar]):
     the keys other than equality are ignored. In particular, keys are allowed
     to be linearly dependent.
     """
-    def __init__(self, terms: Mapping[TVector, Scalar]) -> None:
+    def __init__(self,
+                 terms: Mapping[TVector, Scalar],
+                 validator: Callable[[TVector], bool]=lambda _: True) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
             terms: Mapping of abstract vectors to coefficients in the linear
                 combination being initialized.
+            validator: Optional predicate that determines whether a vector is
+                valid or not. Dictionary and linear algebra operations that
+                would lead to the inclusion of an invalid vector into the
+                combination raise ValueError exception. By default all vectors
+                are valid.
         """
-        super().__init__()
+        self._is_valid = validator
+        self._terms = dict()  # type: Dict[TVector, Scalar]
         self.update(terms)
+
+    TSelf = TypeVar('TSelf', bound='LinearDict[TVector]')
 
     @classmethod
     def fromkeys(cls, vectors, coefficient=0):
         return LinearDict(dict.fromkeys(vectors, complex(coefficient)))
 
-    def clean(self, *, atol: float=1e-9) -> 'LinearDict':
+    def _check_vector_valid(self, vector: TVector) -> None:
+        if not self._is_valid(vector):
+            raise ValueError(
+                    '{} is not compatible with linear combination {}'
+                    .format(vector, self))
+
+    def clean(self: 'TSelf', *, atol: float=1e-9) -> 'TSelf':
         """Remove terms with coefficients of absolute value atol or less."""
-        negligible = [v for v, c in super().items() if abs(c) <= atol]
+        negligible = [v for v, c in self._terms.items() if abs(c) <= atol]
         for v in negligible:
-            del self[v]
+            del self._terms[v]
         return self
 
-    def copy(self) -> 'LinearDict':
-        return LinearDict(super().copy())
+    def copy(self: 'TSelf') -> 'TSelf':
+        factory = type(self)
+        return factory(self._terms.copy())
 
     def keys(self) -> KeysView[TVector]:
         snapshot = self.copy().clean(atol=0)
-        return super(LinearDict, snapshot).keys()
+        return snapshot._terms.keys()
 
     def values(self) -> ValuesView[Scalar]:
         snapshot = self.copy().clean(atol=0)
-        return super(LinearDict, snapshot).values()
+        return snapshot._terms.values()
 
     def items(self) -> ItemsView[TVector, Scalar]:
         snapshot = self.copy().clean(atol=0)
-        return super(LinearDict, snapshot).items()
+        return snapshot._terms.items()
 
     # pylint: disable=function-redefined
     @overload
@@ -90,7 +107,10 @@ class LinearDict(Dict[TVector, Scalar]):
         pass
 
     def update(self, *args, **kwargs):
-        super().update(*args, **kwargs)
+        terms = dict()
+        terms.update(*args, **kwargs)
+        for vector, coefficient in terms.items():
+            self[vector] = coefficient
         self.clean(atol=0)
 
     @overload
@@ -98,84 +118,89 @@ class LinearDict(Dict[TVector, Scalar]):
         pass
 
     @overload
-    def get(self, vector: TVector, default: _TDefault
-            ) -> Union[Scalar, _TDefault]:
+    def get(self, vector: TVector, default: TDefault
+            ) -> Union[Scalar, TDefault]:
         pass
 
     def get(self, vector, default=0):
-        if super().get(vector, 0) == 0:
+        if self._terms.get(vector, 0) == 0:
             return default
-        return super().get(vector)
+        return self._terms.get(vector)
     # pylint: enable=function-redefined
 
     def __contains__(self, vector: Any) -> bool:
-        return super().__contains__(vector) and super().__getitem__(vector) != 0
+        return vector in self._terms and self._terms[vector] != 0
 
     def __getitem__(self, vector: TVector) -> Scalar:
-        return super().get(vector, 0)
+        return self._terms.get(vector, 0)
 
     def __setitem__(self, vector: TVector, coefficient: Scalar) -> None:
+        self._check_vector_valid(vector)
         if coefficient != 0:
-            super().__setitem__(vector, coefficient)
+            self._terms[vector] = coefficient
             return
-        if super().__contains__(vector):
-            super().__delitem__(vector)
+        if vector in self._terms:
+            del self._terms[vector]
+
+    def __delitem__(self, vector: TVector) -> None:
+        if vector in self._terms:
+            del self._terms[vector]
 
     def __iter__(self) -> Iterator[TVector]:
         snapshot = self.copy().clean(atol=0)
-        return super(LinearDict, snapshot).__iter__()
+        return snapshot._terms.__iter__()
 
     def __len__(self) -> int:
-        return len([v for v, c in self.items() if c != 0])
+        return len([v for v, c in self._terms.items() if c != 0])
 
-    def __iadd__(self, other: 'LinearDict') -> 'LinearDict':
+    def __iadd__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
         for vector, other_coefficient in other.items():
-            old_coefficient = super().get(vector, 0)
+            old_coefficient = self._terms.get(vector, 0)
             new_coefficient = old_coefficient + other_coefficient
-            super().__setitem__(vector, new_coefficient)
-        self.clean(atol=0)
-        return self
+            self[vector] = new_coefficient
+        return self.clean(atol=0)
 
-    def __add__(self, other: 'LinearDict') -> 'LinearDict':
+    def __add__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
         result = self.copy()
         result += other
         return result
 
-    def __isub__(self, other: 'LinearDict') -> 'LinearDict':
+    def __isub__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
         for vector, other_coefficient in other.items():
-            old_coefficient = super().get(vector, 0)
+            old_coefficient = self._terms.get(vector, 0)
             new_coefficient = old_coefficient - other_coefficient
-            super().__setitem__(vector, new_coefficient)
+            self[vector] = new_coefficient
         self.clean(atol=0)
         return self
 
-    def __sub__(self, other: 'LinearDict') -> 'LinearDict':
+    def __sub__(self: 'TSelf', other: 'TSelf') -> 'TSelf':
         result = self.copy()
         result -= other
         return result
 
-    def __neg__(self) -> 'LinearDict':
-        return LinearDict({v: -c for v, c in self.items()})
+    def __neg__(self: 'TSelf') -> 'TSelf':
+        factory = type(self)
+        return factory({v: -c for v, c in self.items()})
 
-    def __imul__(self, a: Scalar) -> 'LinearDict':
+    def __imul__(self: 'TSelf', a: Scalar) -> 'TSelf':
         for vector in self:
-            self[vector] *= a
+            self._terms[vector] *= a
         self.clean(atol=0)
         return self
 
-    def __mul__(self, a: Scalar) -> 'LinearDict':
+    def __mul__(self: 'TSelf', a: Scalar) -> 'TSelf':
         result = self.copy()
         result *= a
         return result
 
-    def __rmul__(self, a: Scalar) -> 'LinearDict':
+    def __rmul__(self: 'TSelf', a: Scalar) -> 'TSelf':
         return self.__mul__(a)
 
-    def __truediv__(self, a: Scalar) -> 'LinearDict':
+    def __truediv__(self: 'TSelf', a: Scalar) -> 'TSelf':
         return self.__mul__(1 / a)
 
     def __bool__(self) -> bool:
-        return not all(c == 0 for c in self.values())
+        return not all(c == 0 for c in self._terms.values())
 
     def __eq__(self, other: Any) -> bool:
         """Checks whether two linear combinations are exactly equal.
@@ -253,14 +278,15 @@ class LinearDict(Dict[TVector, Scalar]):
 
     def __repr__(self) -> str:
         coefficients = dict(self)
-        return 'cirq.LinearDict({!r})'.format(coefficients)
+        class_name = self.__class__.__name__
+        return 'cirq.{}({!r})'.format(class_name, coefficients)
 
     def __str__(self):
         return self.__format__('.3f')
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         if cycle:
-            p.text('LinearDict(...)')
+            class_name = self.__class__.__name__
+            p.text('{}(...)'.format(class_name))
         else:
             p.text(str(self))
-

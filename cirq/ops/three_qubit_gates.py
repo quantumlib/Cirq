@@ -18,7 +18,7 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import (
     common_gates,
@@ -45,13 +45,13 @@ class CCZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 4
-        return {
+        return value.LinearDict({
             'III': global_phase * (1 - c),
             'IIZ': global_phase * c,
             'IZI': global_phase * c,
@@ -60,7 +60,7 @@ class CCZPowGate(eigen_gate.EigenGate,
             'ZIZ': global_phase * -c,
             'IZZ': global_phase * -c,
             'ZZZ': global_phase * c,
-        }
+        })
 
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
@@ -162,13 +162,13 @@ class CCXPowGate(eigen_gate.EigenGate,
                                   np.array([[0.5, -0.5], [-0.5, 0.5]]))),
         ]
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 4
-        return {
+        return value.LinearDict({
             'III': global_phase * (1 - c),
             'IIX': global_phase * c,
             'IZI': global_phase * c,
@@ -177,7 +177,7 @@ class CCXPowGate(eigen_gate.EigenGate,
             'ZIX': global_phase * -c,
             'IZX': global_phase * -c,
             'ZZX': global_phase * c,
-        }
+        })
 
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
@@ -243,8 +243,8 @@ class CSwapGate(gate_features.ThreeQubitGate,
     def qubit_index_to_equivalence_group_key(self, index):
         return 0 if index == 0 else 1
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
-        return {
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return value.LinearDict({
             'III': 3/4,
             'IXX': 1/4,
             'IYY': 1/4,
@@ -253,7 +253,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
             'ZXX': -1/4,
             'ZYY': -1/4,
             'ZZZ': -1/4,
-        }
+        })
 
     def _decompose_(self, qubits):
         c, t1, t2 = qubits
