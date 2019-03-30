@@ -41,14 +41,7 @@ def test_single_qubit_gate_validates_on_each():
     g = Dummy()
     assert g.num_qubits() == 1
 
-    class TestQubit(cirq.Qid):
-        def __init__(self, x: int) -> None:
-            self.x = x
-
-        def _comparison_key(self):
-            return self.x
-
-    test_qubits = [TestQubit(i) for i in range(3)]
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
 
     _ = g.on_each(*test_qubits)
     with pytest.raises(ValueError):
@@ -62,14 +55,7 @@ def test_single_qubit_validates_on():
     g = Dummy()
     assert g.num_qubits() == 1
 
-    class TestQubit(cirq.Qid):
-        def __init__(self, x: int) -> None:
-            self.x = x
-
-        def _comparison_key(self):
-            return self.x
-
-    test_qubits = [TestQubit(i) for i in range(3)]
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
 
     with pytest.raises(ValueError):
         _ = g.on(*test_qubits)
