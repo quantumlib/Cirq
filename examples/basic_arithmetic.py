@@ -198,7 +198,7 @@ class Multiplier(cirq.Gate):
         super(Multiplier, self)
         self._num_qubits = num_qubits
 
-    def num_qubits(self) -> int:
+    def num_qubits(self):
         return self._num_qubits
 
     def _decompose_(self, qubits):
