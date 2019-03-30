@@ -47,10 +47,6 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             ValueError if targets are not instances of Qid.
         """
-        if any([not isinstance(target, raw_types.Qid)
-                for target in targets]):
-            raise ValueError(
-                    'on_each() was called with type different than Qid.')
         return [self.on(target) for target in targets]
 
 
@@ -108,7 +104,4 @@ class MultiQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return self._num_qubits
 
     def validate_args(self, qubits):
-        if len(qubits) != self.num_qubits():
-            raise ValueError(
-                '{}-qubit gate was applied to {} qubits'.
-                    format(self.num_qubits(), len(qubits)))
+        super().validate_args(qubits)
