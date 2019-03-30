@@ -18,6 +18,7 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
+from typing import Any, Type
 
 from cirq.ops import op_tree, raw_types
 
@@ -54,16 +55,16 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return [self.on(target) for target in targets]
 
 
-def FixedQubitCountGate(num_qubits: int):
+def FixedQubitCountGate(num_qubits: int) -> Type:
     return type("GateOn{}Qubits".format(num_qubits),
                 tuple([raw_types.Gate]),
                 {"_num_qubits": num_qubits,
                  "num_qubits": lambda self: self._num_qubits})
 
 
-TwoQubitGate = FixedQubitCountGate(2)
+TwoQubitGate = FixedQubitCountGate(2)  # type: Any
 
-ThreeQubitGate = FixedQubitCountGate(3)
+ThreeQubitGate = FixedQubitCountGate(3)  # type: Any
 
 
 class ScalableGate(raw_types.Gate, metaclass=abc.ABCMeta):
