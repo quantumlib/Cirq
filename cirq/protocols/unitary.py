@@ -141,6 +141,11 @@ def has_unitary(val: Any) -> bool:
     if result is not NotImplemented:
         return result
 
+    # Fallback to explicit _unitary_
+    unitary_getter = getattr(val, '_unitary_', None)
+    if unitary_getter is not None and unitary_getter() is not NotImplemented:
+        return True
+
     # Fallback to decomposition for gates and operations
     if isinstance(val, Gate):
         # Since gates don't know about qubits, we need to create some
@@ -154,7 +159,7 @@ def has_unitary(val: Any) -> bool:
         if decomposed_val is not None:
             return all(has_unitary(v) for v in decomposed_val)
 
-    # Finally, fallback to _unitary_
+    # Finally, fallback to full unitary method, including decomposition
     return unitary(val, None) is not None
 
 
