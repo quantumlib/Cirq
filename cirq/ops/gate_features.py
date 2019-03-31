@@ -57,11 +57,11 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 def FixedQubitCountGate(num_qubits: int) -> Type:
-    return type(str("GateOn{}Qubits".format(num_qubits)),
+    return type(str('GateOn{}Qubits'.format(num_qubits)),
                 tuple([raw_types.Gate]),
                 {
-                    str("_num_qubits"): num_qubits,
-                    str("num_qubits"): lambda self: self._num_qubits
+                    str('_num_qubits'): num_qubits,
+                    str('num_qubits'): lambda self: self._num_qubits
                 })
 
 
