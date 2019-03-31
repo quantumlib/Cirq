@@ -33,6 +33,7 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
+
     def num_qubits(self) -> int:
         return 1
 
@@ -51,15 +52,17 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         if any([not isinstance(target, raw_types.Qid)
                 for target in targets]):
             raise ValueError(
-                    'on_each() was called with type different than Qid.')
+                'on_each() was called with type different than Qid.')
         return [self.on(target) for target in targets]
 
 
 def FixedQubitCountGate(num_qubits: int) -> Type:
     return type("GateOn{}Qubits".format(num_qubits),
                 tuple([raw_types.Gate]),
-                {"_num_qubits": num_qubits,
-                 "num_qubits": lambda self: self._num_qubits})
+                {
+                    str("_num_qubits"): num_qubits,
+                    str("num_qubits"): lambda self: self._num_qubits
+                })
 
 
 TwoQubitGate = FixedQubitCountGate(2)  # type: Any
@@ -105,4 +108,3 @@ class ScalableGate(raw_types.Gate, metaclass=abc.ABCMeta):
             raise ValueError(
                 '{}-qubit gate was applied to {} qubits'.
                     format(self.num_qubits(), len(qubits)))
-
