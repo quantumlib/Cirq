@@ -2966,3 +2966,35 @@ def test_pow_valid_only_for_minus_1():
 def test_device_propagates():
     c = cirq.Circuit(device=moment_and_op_type_validating_device)
     assert c[:].device is moment_and_op_type_validating_device
+
+def test_moment_groups():
+    qubits = [cirq.GridQubit(x, y) for x in range(8) for y in range(8)]
+    c0 = cirq.H(qubits[0])
+    c7 = cirq.H(qubits[7])
+    cz14 = cirq.CZ(qubits[1], qubits[4])
+    cz25 = cirq.CZ(qubits[2], qubits[5])
+    cz36 = cirq.CZ(qubits[3], qubits[6])
+    moment1 = cirq.Moment([c0, cz14, cz25, c7])
+    moment2 = cirq.Moment([c0, cz14, cz25, cz36, c7])
+    moment3 = cirq.Moment([cz14, cz25, cz36])
+    moment4 = cirq.Moment([cz25, cz36])
+    circuit = cirq.Circuit((moment1, moment2, moment3, moment4))
+    cirq.testing.assert_has_diagram(circuit, r"""
+           ┌──┐   ┌───┐   ┌───┐   ┌──┐
+(0, 0): ────H──────H─────────────────────
+
+(0, 1): ────@──────@───────@─────────────
+            │      │       │
+(0, 2): ────┼@─────┼@──────┼@──────@─────
+            ││     ││      ││      │
+(0, 3): ────┼┼─────┼┼@─────┼┼@─────┼@────
+            ││     │││     │││     ││
+(0, 4): ────@┼─────@┼┼─────@┼┼─────┼┼────
+             │      ││      ││     ││
+(0, 5): ─────@──────@┼──────@┼─────@┼────
+                     │       │      │
+(0, 6): ─────────────@───────@──────@────
+
+(0, 7): ────H──────H─────────────────────
+           └──┘   └───┘   └───┘   └──┘
+""", use_unicode_characters=True)
