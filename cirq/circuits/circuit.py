@@ -27,7 +27,6 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
-import json
 import re
 import numpy as np
 
@@ -146,6 +145,16 @@ class Circuit:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._moments == other._moments and self._device == other._device
+
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
 
     def __ne__(self, other):
         return not self == other
@@ -1576,12 +1585,10 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
-def _is_exposed_formula(text):
-    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
 
+def _is_exposed_formula(text: str) -> bool:
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
-def _encode(text):
-    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
@@ -1589,9 +1596,9 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
-        return (name
+        return ('({})'.format(name)
                 if _is_exposed_formula(name)
-                else '({})'.format(_encode(name)))
+                else name)
 
     if info.exponent == 0:
         return '0'

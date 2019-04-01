@@ -100,7 +100,9 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
 
             qubit, pauli = next(iter(merge_op.pauli_string.items()))
             quarter_turns = round(merge_op.half_turns * 2)
-            quarter_turns *= (1, -1)[merge_op.pauli_string.negated]
+            if merge_op.pauli_string.coefficient not in [1, -1]:
+                raise NotImplementedError("TODO: handle all coefficients.")
+            quarter_turns *= int(merge_op.pauli_string.coefficient.real)
             quarter_turns %= 4
             part_cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
                                         pauli, quarter_turns)

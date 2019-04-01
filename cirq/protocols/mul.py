@@ -54,10 +54,14 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         result = NotImplemented if right_mul is None else right_mul(lhs)
 
     # Don't build up factors of 1.0 vs sympy Symbols.
-    if lhs == 1.0 and is_parameterized(rhs):
+    if lhs == 1 and is_parameterized(rhs):
         result = rhs
-    if rhs == 1.0 and is_parameterized(lhs):
+    if rhs == 1 and is_parameterized(lhs):
         result = lhs
+    if lhs == -1 and is_parameterized(rhs):
+        result = -rhs
+    if rhs == -1 and is_parameterized(lhs):
+        result = -lhs
 
     # Output.
     if result is not NotImplemented:

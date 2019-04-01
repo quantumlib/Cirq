@@ -21,6 +21,21 @@ import numpy as np
 from cirq import linalg
 
 
+def random_superposition(dim: int) -> np.ndarray:
+    """Returns a random unit-length vector from the uniform distribution.
+
+    Args:
+        dim: The dimension of the vector.
+
+    Returns:
+        The sampled unit-length vector.
+    """
+    state_vector = np.random.randn(dim).astype(complex)
+    state_vector += 1j * np.random.randn(dim)
+    state_vector /= np.linalg.norm(state_vector)
+    return state_vector
+
+
 def random_unitary(dim: int) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
@@ -55,8 +70,9 @@ def random_orthogonal(dim: int) -> np.ndarray:
         http://arxiv.org/abs/math-ph/0609050
     """
     m = np.random.randn(dim, dim)
-    q, _ = np.linalg.qr(m)
-    return q
+    q, r = np.linalg.qr(m)
+    d = np.diag(r)
+    return q * (d / abs(d))
 
 
 def random_special_unitary(dim: int) -> np.ndarray:
