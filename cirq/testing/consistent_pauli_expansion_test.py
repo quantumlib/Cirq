@@ -45,7 +45,7 @@ class GoodGateNoPauliExpansion(cirq.Gate):
         return 4
 
     def _unitary_(self) -> np.ndarray:
-        return np.eye(16)
+        return np.eye(2**self.num_qubits())
 
 
 class GoodGateNoUnitary(cirq.SingleQubitGate):
