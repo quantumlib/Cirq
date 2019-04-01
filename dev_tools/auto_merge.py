@@ -12,6 +12,10 @@ import requests
 from dev_tools.github_repository import GithubRepository
 
 
+GITHUB_REPO_NAME = 'cirq'
+GITHUB_REPO_ORGANIZATION = 'quantumlib'
+ACCESS_TOKEN_ENV_VARIABLE = 'CIRQ_BOT_GITHUB_ACCESS_TOKEN'
+
 POLLING_PERIOD = datetime.timedelta(seconds=10)
 HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = ['automerge', HEAD_AUTO_MERGE_LABEL]
@@ -175,20 +179,6 @@ def check_auto_merge_labeler(repo: GithubRepository, pull_id: int
     return check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
 
 
-def find_existing_status_comment(repo: GithubRepository, pull_id: int
-                                 ) -> Optional[Dict[str, Any]]:
-    expected_user = 'CirqBot'
-    expected_text = 'Automerge pending: '
-
-    comments = list_pr_comments(repo, pull_id)
-    for comment in comments:
-        if comment['user']['login'] == expected_user:
-            if expected_text in comment['body']:
-                return comment
-
-    return None
-
-
 def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     """
     References:
@@ -227,23 +217,6 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
     if response.status_code != 200:
         raise RuntimeError('Edit comment failed. Code: {}. Content: {}.'.format(
             response.status_code, response.content))
-
-
-def leave_status_comment(repo: GithubRepository,
-                         pull_id: int,
-                         success: Optional[bool],
-                         state_description: str) -> None:
-    cur = find_existing_status_comment(repo, pull_id)
-    if success:
-        body = 'Automerge done.'
-    elif success is None:
-        body = 'Automerge: {}'.format(state_description)
-    else:
-        body = 'Automerge cancelled: {}'.format(state_description)
-    if cur is None:
-        add_comment(repo, pull_id, body)
-    else:
-        edit_comment(repo, body, cur['id'])
 
 
 def get_branch_details(repo: GithubRepository, branch: str) -> Any:
@@ -947,7 +920,6 @@ def duty_cycle(repo: GithubRepository,
 
     if isinstance(result, CannotAutomergeError):
         cannot_merge_pr(head_pr, result)
-        return
 
 
 def indent(text: str) -> str:
@@ -955,14 +927,14 @@ def indent(text: str) -> str:
 
 
 def main():
-    access_token = os.getenv('CIRQ_BOT_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
-        print('CIRQ_BOT_GITHUB_ACCESS_TOKEN not set.', file=sys.stderr)
+        print('{} not set.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr)
         sys.exit(1)
 
     repo = GithubRepository(
-        organization='quantumlib',
-        name='cirq',
+        organization=GITHUB_REPO_ORGANIZATION,
+        name=GITHUB_REPO_NAME,
         access_token=access_token)
 
     log('Watching for automergeable PRs.')
