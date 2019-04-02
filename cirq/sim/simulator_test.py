@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tests for simulator.py"""
 
-from typing import List, Dic
+from typing import List, Dict
 
 from unittest import mock
 import numpy as np

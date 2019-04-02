@@ -15,6 +15,7 @@
 from typing import Iterable, List
 
 import numpy as np
+from unittest import mock
 import pytest
 
 from cirq.devices import GridQubit
