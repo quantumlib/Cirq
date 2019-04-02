@@ -73,6 +73,25 @@ def test_gate_operation_eq():
     eq.add_equality_group(p(b0, a1, a0, b1, c0))
 
 
+def test_gate_operation_approx_eq():
+    a = [cirq.NamedQubit('r1')]
+    b = [cirq.NamedQubit('r2')]
+
+    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(), a),
+                          cirq.GateOperation(cirq.XPowGate(), a))
+    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(), a),
+                              cirq.GateOperation(cirq.XPowGate(), b))
+
+    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                          cirq.GateOperation(cirq.XPowGate(exponent=1e-9), a))
+    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                              cirq.GateOperation(cirq.XPowGate(exponent=1e-7),
+                                                 a))
+    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                          cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a),
+                          atol=1e-6)
+
+
 def test_gate_operation_pow():
     Y = cirq.Y
     q = cirq.NamedQubit('q')
