@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import math
+from unittest import mock
 import pytest
 
 from cirq.google.line.placement import optimization
-from unittest import mock
-
 
 def test_accept_accepts():
     # Cost constant, should be accepted.
