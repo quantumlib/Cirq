@@ -14,8 +14,9 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Any, Iterable, TypeVar, Callable, Sequence
+from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
 
+from cirq import protocols
 from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
@@ -112,6 +113,12 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.operations == other.operations
+
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return protocols.approx_eq(self.operations, other.operations, atol=atol)
 
     def __ne__(self, other):
         return not self == other

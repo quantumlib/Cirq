@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
 
