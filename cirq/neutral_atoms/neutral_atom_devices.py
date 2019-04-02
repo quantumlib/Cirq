@@ -377,7 +377,7 @@ class NeutralAtomDevice(devices.Device):
                 self.qubits)
 
     def __repr__(self):
-        return ('NeutralAtomDevice(measurement_duration={!r}, '
+        return ('cirq.NeutralAtomDevice(measurement_duration={!r}, '
                 'gate_duration={!r}, '
                 'max_parallel_z={!r}, '
                 'max_parallel_xy={!r}, '

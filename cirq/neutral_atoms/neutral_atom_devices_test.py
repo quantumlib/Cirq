@@ -274,10 +274,7 @@ def test_validate_schedule_errors():
 
 def test_repr():
     d = square_device(1, 1)
-    cirq.testing.assert_equivalent_repr(d,
-                                        setup_code="import cirq;"
-                                                   "from cirq.neutral_atoms "
-                                                   "import NeutralAtomDevice")
+    cirq.testing.assert_equivalent_repr(d)
 
 
 def test_str():
