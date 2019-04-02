@@ -22,6 +22,7 @@ from cirq.value.duration import (
 )
 from cirq.value.linear_dict import (
     LinearDict,
+    Scalar,
 )
 from cirq.value.probability import (
     validate_probability,
