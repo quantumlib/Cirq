@@ -16,6 +16,7 @@
 import base64
 import re
 
+from unittest import mock
 import numpy as np
 import pytest
 
@@ -23,7 +24,6 @@ from apiclient import discovery
 
 import cirq
 import cirq.google as cg
-from cirq.testing.mock import mock
 
 
 _A_RESULT = {

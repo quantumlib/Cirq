@@ -13,13 +13,13 @@
 # limitations under the License.
 """Tests for simulator.py"""
 
-from typing import List, Dict
+from typing import List, Dic
 
+from unittest import mock
 import numpy as np
 import pytest
 
 import cirq
-from cirq.testing.mock import mock
 
 
 @mock.patch.multiple(cirq.SimulatesSamples,

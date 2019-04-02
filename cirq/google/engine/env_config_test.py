@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import os
+from unittest import mock
 import pytest
 from apiclient import discovery
 
 import cirq
-from cirq.testing.mock import mock
-
 
 @mock.patch.object(discovery, 'build')
 def test_engine_from_environment(build):

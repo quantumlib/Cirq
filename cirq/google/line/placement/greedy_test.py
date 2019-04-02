@@ -22,7 +22,7 @@ from cirq.google.line.placement.sequence import (
     GridQubitLineTuple,
     NotFoundError,
 )
-from cirq.testing.mock import mock
+from unittest import mock
 
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):

@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.testing.mock import mock
-
 
 def test_invalid_dtype():
     with pytest.raises(ValueError, match='complex'):

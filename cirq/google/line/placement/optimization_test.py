@@ -16,7 +16,7 @@ import math
 import pytest
 
 from cirq.google.line.placement import optimization
-from cirq.testing.mock import mock
+from unittest import mock
 
 
 def test_accept_accepts():
