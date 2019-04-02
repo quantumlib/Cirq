@@ -311,6 +311,10 @@ from cirq.ion import (
     IonDevice,
     ConvertToIonGates,
 )
+from cirq.neutral_atoms import (
+    NeutralAtomDevice,
+    ConvertToNeutralAtomGates,
+)
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
