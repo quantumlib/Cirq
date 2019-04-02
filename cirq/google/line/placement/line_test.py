@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
 import cirq
 import cirq.google as cg
-
-from unittest import mock
 
 
 def test_anneal_method_calls_anneal_search():

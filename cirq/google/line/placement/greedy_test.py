@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Iterable
+from unittest import mock
 import pytest
 
 import cirq
@@ -22,8 +23,6 @@ from cirq.google.line.placement.sequence import (
     GridQubitLineTuple,
     NotFoundError,
 )
-from unittest import mock
-
 
 def _create_device(qubits: Iterable[cirq.GridQubit]):
     return cg.XmonDevice(cirq.Duration(nanos=0),
