@@ -306,6 +306,9 @@ from cirq.protocols import (
 
 from cirq.ion import (
     MS,
+    two_qubit_matrix_to_ion_operations,
+    IonDevice,
+    ConvertToIonGates,
 )
 # pylint: enable=redefined-builtin
 
