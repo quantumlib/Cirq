@@ -29,8 +29,8 @@ from cirq import ops, linalg, protocols, optimizers, circuits
 from cirq.ion import MS
 
 
-def two_qubit_matrix_to_ion_operations(q0: ops.QubitId,
-                                       q1: ops.QubitId,
+def two_qubit_matrix_to_ion_operations(q0: ops.Qid,
+                                       q1: ops.Qid,
                                        mat: np.ndarray,
                                        atol: float = 1e-8
                                        ) -> List[ops.Operation]:
@@ -64,8 +64,8 @@ def _cleanup_operations(operations: List[ops.Operation]):
     return list(circuit.all_operations())
 
 
-def _kak_decomposition_to_operations(q0: ops.QubitId,
-                                     q1: ops.QubitId,
+def _kak_decomposition_to_operations(q0: ops.Qid,
+                                     q1: ops.Qid,
                                      kak: linalg.KakDecomposition,
                                      atol: float = 1e-8
                                      ) -> List[ops.Operation]:
@@ -85,13 +85,13 @@ def _kak_decomposition_to_operations(q0: ops.QubitId,
     ])))
 
 
-def _do_single_on(u: np.ndarray, q: ops.QubitId, atol: float = 1e-8):
+def _do_single_on(u: np.ndarray, q: ops.Qid, atol: float = 1e-8):
     for gate in optimizers.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
-def _parity_interaction(q0: ops.QubitId,
-                        q1: ops.QubitId,
+def _parity_interaction(q0: ops.Qid,
+                        q1: ops.Qid,
                         rads: float,
                         atol: float,
                         gate: Optional[ops.Gate] = None):
@@ -111,8 +111,8 @@ def _parity_interaction(q0: ops.QubitId,
         yield g.on(q0), g.on(q1)
 
 
-def _non_local_part(q0: ops.QubitId,
-                    q1: ops.QubitId,
+def _non_local_part(q0: ops.Qid,
+                    q1: ops.Qid,
                     interaction_coefficients: Tuple[float, float, float],
                     atol: float = 1e-8):
     """Yields non-local operation of KAK decomposition."""
