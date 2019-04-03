@@ -19,7 +19,7 @@ import cirq
 from cirq import ops
 
 
-def test_covxerage():
+def test_coverage():
     q = cirq.LineQubit.range(3)
     g = cirq.ThreeQubitGate()
 
