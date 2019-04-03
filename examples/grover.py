@@ -10,7 +10,7 @@ is enough) are considered.
 
 === REFERENCE ===
 Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
-https://arxiv.org/pdf/1804.03719.pdf
+https://arxiv.org/abs/1804.03719
 
 === EXAMPLE OUTPUT ===
 Secret bit sequence: [1, 0]

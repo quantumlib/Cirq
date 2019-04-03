@@ -66,7 +66,7 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
                            - set(networkx.dag.descendants(string_dag, node))
                            - set([node]))
         for other_node in commuting_nodes:
-            if node.val.pauli_string.equal_up_to_sign(
+            if node.val.pauli_string.equal_up_to_coefficient(
                                         other_node.val.pauli_string):
                 string_dag.remove_node(other_node)
                 node.val = node.val.merged_with(other_node.val)
