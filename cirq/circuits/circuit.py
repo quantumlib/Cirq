@@ -27,7 +27,6 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
-import json
 import re
 import numpy as np
 
@@ -58,6 +57,7 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_until_blocked
         findall_operations_with_gate_type
         are_all_measurements_terminal
         to_unitary_matrix
@@ -146,6 +146,16 @@ class Circuit:
             return NotImplemented
         return self._moments == other._moments and self._device == other._device
 
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
+
     def __ne__(self, other):
         return not self == other
 
@@ -170,7 +180,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key])
+            return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
         else:
@@ -658,6 +668,52 @@ class Circuit:
                 result.enqueue(i, op)
 
         return list(result)
+
+    def findall_operations_until_blocked(
+            self,
+            start_frontier: Dict[ops.Qid, int],
+            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+    ) -> List[Tuple[int, ops.Operation]]:
+        """
+        Finds all operations until a blocking operation is hit.  This returns
+        a list of all operations from the starting frontier until a blocking
+        operation is encountered.  An operation is part of the list if
+        it is involves a qubit in the start_frontier dictionary, comes after
+        the moment listed in that dictionary, and before any blocking
+        operationi that involve that qubit.  Operations are only considered
+        to blocking the qubits that they operate on, so a blocking operation
+        that does not operate on any qubit in the starting frontier is not
+        actually considered blocking.  See `reachable_frontier_from` for a more
+        in depth example of reachable states.
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
+        """
+        op_list = []
+        max_index = len(self._moments)
+        for qubit in start_frontier:
+            current_index = start_frontier[qubit]
+            if current_index < 0:
+                current_index = 0
+            while current_index < max_index:
+                if self[current_index].operates_on_single_qubit(qubit):
+                    next_op = self.operation_at(qubit, current_index)
+                    if next_op is not None:
+                        if is_blocker(next_op):
+                            break
+                        op_list.append((current_index,next_op))
+                current_index+=1
+        return op_list
 
     def operation_at(self,
                      qubit: ops.Qid,
@@ -1423,7 +1479,7 @@ class Circuit:
                 param_resolver)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        resolved_circuit = Circuit(resolved_moments)
+        resolved_circuit = Circuit(resolved_moments, device=self.device)
         return resolved_circuit
 
     def _qasm_(self) -> str:
@@ -1529,12 +1585,10 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
-def _is_exposed_formula(text):
-    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
 
+def _is_exposed_formula(text: str) -> bool:
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
-def _encode(text):
-    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
@@ -1542,9 +1596,9 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
-        return (name
+        return ('({})'.format(name)
                 if _is_exposed_formula(name)
-                else '({})'.format(_encode(name)))
+                else name)
 
     if info.exponent == 0:
         return '0'

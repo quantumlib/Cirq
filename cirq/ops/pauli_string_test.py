@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import itertools
+from typing import List
+
 import numpy as np
 import pytest
 from cirq.testing import (
@@ -39,45 +41,49 @@ def test_eq_ne_hash():
     eq = EqualsTester()
     eq.make_equality_group(
         lambda: cirq.PauliString({}),
-        lambda: cirq.PauliString({}, False))
-    eq.add_equality_group(cirq.PauliString({}, True))
+        lambda: cirq.PauliString({}, +1))
+    eq.add_equality_group(cirq.PauliString({}, -1))
     for q, pauli in itertools.product((q0, q1), (cirq.X, cirq.Y, cirq.Z)):
-        eq.add_equality_group(cirq.PauliString({q: pauli}, False))
-        eq.add_equality_group(cirq.PauliString({q: pauli}, True))
+        eq.add_equality_group(cirq.PauliString({q: pauli}, +1))
+        eq.add_equality_group(cirq.PauliString({q: pauli}, -1))
     for q, p0, p1 in itertools.product((q0, q1), (cirq.X, cirq.Y, cirq.Z),
                                        (cirq.X, cirq.Y, cirq.Z)):
-        eq.add_equality_group(cirq.PauliString({q: p0, q2: p1}, False))
+        eq.add_equality_group(cirq.PauliString({q: p0, q2: p1}, +1))
 
 
-def test_equal_up_to_sign():
+def test_equal_up_to_coefficient():
     q0, = _make_qubits(1)
-    assert cirq.PauliString({}, False).equal_up_to_sign(
-           cirq.PauliString({}, False))
-    assert cirq.PauliString({}, True).equal_up_to_sign(
-           cirq.PauliString({}, True))
-    assert cirq.PauliString({}, False).equal_up_to_sign(
-           cirq.PauliString({}, True))
+    assert cirq.PauliString({}, +1).equal_up_to_coefficient(
+           cirq.PauliString({}, +1))
+    assert cirq.PauliString({}, -1).equal_up_to_coefficient(
+           cirq.PauliString({}, -1))
+    assert cirq.PauliString({}, +1).equal_up_to_coefficient(
+           cirq.PauliString({}, -1))
+    assert cirq.PauliString({}, +1).equal_up_to_coefficient(
+           cirq.PauliString({}, 2j))
 
-    assert cirq.PauliString({q0: cirq.X}, False).equal_up_to_sign(
-           cirq.PauliString({q0: cirq.X}, False))
-    assert cirq.PauliString({q0: cirq.X}, True).equal_up_to_sign(
-           cirq.PauliString({q0: cirq.X}, True))
-    assert cirq.PauliString({q0: cirq.X}, False).equal_up_to_sign(
-           cirq.PauliString({q0: cirq.X}, True))
+    assert cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+           cirq.PauliString({q0: cirq.X}, +1))
+    assert cirq.PauliString({q0: cirq.X}, -1).equal_up_to_coefficient(
+           cirq.PauliString({q0: cirq.X}, -1))
+    assert cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+           cirq.PauliString({q0: cirq.X}, -1))
 
-    assert not cirq.PauliString({q0: cirq.X}, False).equal_up_to_sign(
-               cirq.PauliString({q0: cirq.Y}, False))
-    assert not cirq.PauliString({q0: cirq.X}, True).equal_up_to_sign(
-               cirq.PauliString({q0: cirq.Y}, True))
-    assert not cirq.PauliString({q0: cirq.X}, False).equal_up_to_sign(
-               cirq.PauliString({q0: cirq.Y}, True))
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+               cirq.PauliString({q0: cirq.Y}, +1))
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+               cirq.PauliString({q0: cirq.Y}, 1j))
+    assert not cirq.PauliString({q0: cirq.X}, -1).equal_up_to_coefficient(
+               cirq.PauliString({q0: cirq.Y}, -1))
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+               cirq.PauliString({q0: cirq.Y}, -1))
 
-    assert not cirq.PauliString({q0: cirq.X}, False).equal_up_to_sign(
-               cirq.PauliString({}, False))
-    assert not cirq.PauliString({q0: cirq.X}, True).equal_up_to_sign(
-               cirq.PauliString({}, True))
-    assert not cirq.PauliString({q0: cirq.X}, False).equal_up_to_sign(
-               cirq.PauliString({}, True))
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+               cirq.PauliString({}, +1))
+    assert not cirq.PauliString({q0: cirq.X}, -1).equal_up_to_coefficient(
+               cirq.PauliString({}, -1))
+    assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
+               cirq.PauliString({}, -1))
 
 
 
@@ -157,19 +163,11 @@ def test_iter(qubit_pauli_map):
     assert set(tuple(qubit_pauli_map)) == set(tuple(pauli_string))
 
 
-# NamedQubit name repr in Python2 is different: u'q0' vs 'q0'
-@cirq.testing.only_test_in_python3
 def test_repr():
     q0, q1, q2 = _make_qubits(3)
     pauli_string = cirq.PauliString({q2: cirq.X, q1: cirq.Y, q0: cirq.Z})
-    assert (repr(pauli_string) ==
-            "cirq.PauliString({cirq.NamedQubit('q0'): cirq.Z, "
-            "cirq.NamedQubit('q1'): cirq.Y, cirq.NamedQubit('q2'): "
-            "cirq.X}, False)")
-    assert (repr(pauli_string.negate()) ==
-            "cirq.PauliString({cirq.NamedQubit('q0'): cirq.Z, "
-            "cirq.NamedQubit('q1'): cirq.Y, cirq.NamedQubit('q2'): "
-            "cirq.X}, True)")
+    cirq.testing.assert_equivalent_repr(pauli_string)
+    cirq.testing.assert_equivalent_repr(-pauli_string)
 
 
 def test_str():
@@ -178,7 +176,9 @@ def test_str():
     assert str(cirq.PauliString({})) == 'I'
     assert str(-cirq.PauliString({})) == '-I'
     assert str(pauli_string) == 'Z(q0)*Y(q1)*X(q2)'
-    assert str(pauli_string.negate()) == '-Z(q0)*Y(q1)*X(q2)'
+    assert str(-pauli_string) == '-Z(q0)*Y(q1)*X(q2)'
+    assert str(1j*pauli_string) == '1j*Z(q0)*Y(q1)*X(q2)'
+    assert str(pauli_string*-1j) == '-1j*Z(q0)*Y(q1)*X(q2)'
 
 
 @pytest.mark.parametrize('map1,map2,out', (lambda q0, q1, q2: (
@@ -264,10 +264,23 @@ def test_negate():
     q0, q1 = _make_qubits(2)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps1 = cirq.PauliString(qubit_pauli_map)
-    ps2 = cirq.PauliString(qubit_pauli_map, True)
-    assert ps1.negate() == -ps1 == ps2
-    assert ps1 == ps2.negate() == -ps2
-    assert ps1.negate().negate() == ps1
+    ps2 = cirq.PauliString(qubit_pauli_map, -1)
+    assert -ps1 == ps2
+    assert ps1 == -ps2
+    neg_ps1 = -ps1
+    assert -neg_ps1 == ps1
+
+
+def test_mul():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert -p == -1 * p == -1.0 * p == p * -1 == p * complex(-1)
+    assert -p != 1j * p
+    assert +p == 1 * p
+    with pytest.raises(TypeError):
+        _ = p * 'test'
+    with pytest.raises(TypeError):
+        _ = 'test' * p
 
 
 def test_pos():
@@ -313,81 +326,85 @@ def test_to_z_basis_ops():
                     z_basis_state, expected_state, rtol=1e-7, atol=1e-7)
 
 
-def _assert_pass_over(ops, before, after):
+def _assert_pass_over(ops: List[cirq.Operation],
+                      before: cirq.PauliString,
+                      after: cirq.PauliString):
     assert before.pass_operations_over(ops[::-1]) == after
-    assert (after.pass_operations_over(ops, after_to_before=True)
-            == before)
+    assert after.pass_operations_over(ops, after_to_before=True) == before
 
 
-@pytest.mark.parametrize('shift,t_or_f',
-        itertools.product(range(3), (True, False)))
-def test_pass_operations_over_single(shift, t_or_f):
+@pytest.mark.parametrize('shift,sign',
+                         itertools.product(range(3), (-1, +1)))
+def test_pass_operations_over_single(shift: int, sign: int):
     q0, q1 = _make_qubits(2)
     X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
                for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
-    ps_before = cirq.PauliString({q0: X}, t_or_f)
+    ps_before = cirq.PauliString({q0: X}, sign)
     ps_after = ps_before
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(X)(q0)
     op1 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, t_or_f)
+    ps_before = cirq.PauliString({q0: X, q1: Y}, sign)
     ps_after = ps_before
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
-    op0 = cirq.SingleQubitCliffordGate.from_double_map({Z: (X,False),
-                                                        X: (Z,False)})(q0)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, t_or_f)
-    ps_after = cirq.PauliString({q0: Z, q1: Y}, t_or_f)
+    op0 = cirq.SingleQubitCliffordGate.from_double_map({Z: (X, False),
+                                                        X: (Z, False)})(q0)
+    ps_before = cirq.PauliString({q0: X, q1: Y}, sign)
+    ps_after = cirq.PauliString({q0: Z, q1: Y}, sign)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op1 = cirq.SingleQubitCliffordGate.from_pauli(X)(q1)
-    ps_before = cirq.PauliString({q0: X, q1: Y}, t_or_f)
-    ps_after = ps_before.negate()
+    ps_before = cirq.PauliString({q0: X, q1: Y}, sign)
+    ps_after = -ps_before
     _assert_pass_over([op1], ps_before, ps_after)
 
-    ps_after = cirq.PauliString({q0: Z, q1: Y}, not t_or_f)
+    ps_after = cirq.PauliString({q0: Z, q1: Y}, -sign)
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(Z, True)(q0)
     op1 = cirq.SingleQubitCliffordGate.from_pauli(X, True)(q0)
-    ps_before = cirq.PauliString({q0: X}, t_or_f)
-    ps_after = cirq.PauliString({q0: Y}, not t_or_f)
+    ps_before = cirq.PauliString({q0: X}, sign)
+    ps_after = cirq.PauliString({q0: Y}, -sign)
     _assert_pass_over([op0, op1], ps_before, ps_after)
 
 
 @pytest.mark.parametrize('shift,t_or_f1, t_or_f2,neg',
         itertools.product(range(3), *((True, False),)*3))
 def test_pass_operations_over_double(shift, t_or_f1, t_or_f2, neg):
+    sign = -1 if neg else +1
     q0, q1, q2 = _make_qubits(3)
     X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
                for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q2: Y}, neg)
-    ps_after = cirq.PauliString({q0: Z, q2: Y}, neg)
+    ps_before = cirq.PauliString({q0: Z, q2: Y}, sign)
+    ps_after = cirq.PauliString({q0: Z, q2: Y}, sign)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = cirq.PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q2: Y}, neg)
-    ps_after = cirq.PauliString({q0: Z, q2: Y, q1: X}, neg)
+    ps_before = cirq.PauliString({q0: Z, q2: Y}, sign)
+    ps_after = cirq.PauliString({q0: Z, q2: Y, q1: X}, sign)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q1: Y}, neg)
-    ps_after = cirq.PauliString({q1: Y}, neg)
+    ps_before = cirq.PauliString({q0: Z, q1: Y}, sign)
+    ps_after = cirq.PauliString({q1: Y}, sign)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = cirq.PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q1: Y}, neg)
-    ps_after = cirq.PauliString({q0: X, q1: Z}, neg ^ t_or_f1 ^ t_or_f2)
+    ps_before = cirq.PauliString({q0: Z, q1: Y}, sign)
+    ps_after = cirq.PauliString({q0: X, q1: Z},
+                                -1 if neg ^ t_or_f1 ^ t_or_f2 else +1)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = cirq.PauliInteractionGate(X, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q1: Y}, neg)
-    ps_after = cirq.PauliString({q0: Y, q1: Z}, not neg ^ t_or_f1 ^ t_or_f2)
+    ps_before = cirq.PauliString({q0: Z, q1: Y}, sign)
+    ps_after = cirq.PauliString({q0: Y, q1: Z},
+                                +1 if neg ^ t_or_f1 ^ t_or_f2 else -1)
     _assert_pass_over([op0], ps_before, ps_after)
 
 
@@ -421,10 +438,10 @@ def test_with_qubits():
     old_qubits = cirq.LineQubit.range(9)
     new_qubits = cirq.LineQubit.range(9, 18)
     qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in old_qubits}
-    pauli_string = cirq.PauliString(qubit_pauli_map, negated=True)
+    pauli_string = cirq.PauliString(qubit_pauli_map, -1)
     new_pauli_string = pauli_string.with_qubits(*new_qubits)
 
     assert new_pauli_string.qubits == tuple(new_qubits)
     for q in new_qubits:
         assert new_pauli_string[q] == cirq.Pauli.by_index(q.x)
-    assert new_pauli_string.negated is True
+    assert new_pauli_string.coefficient == -1
