@@ -307,6 +307,13 @@ from cirq.protocols import (
 
 from cirq.ion import (
     MS,
+    two_qubit_matrix_to_ion_operations,
+    IonDevice,
+    ConvertToIonGates,
+)
+from cirq.neutral_atoms import (
+    NeutralAtomDevice,
+    ConvertToNeutralAtomGates,
 )
 # pylint: enable=redefined-builtin
 
