@@ -19,9 +19,9 @@ import cirq
 from cirq import ops
 
 
-def test_coverage():
-    q = cirq.LineQubit.range(5)
-    g = cirq.MultiQubitGate(5)
+def test_covxerage():
+    q = cirq.LineQubit.range(3)
+    g = cirq.ThreeQubitGate()
 
     class FakeOperation(ops.Operation):
 
