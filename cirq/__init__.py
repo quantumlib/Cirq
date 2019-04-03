@@ -111,6 +111,7 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    LinearCombinationOfGates,
     MeasurementGate,
     measure,
     measure_each,
@@ -256,7 +257,9 @@ from cirq.value import (
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
+    apply_channel,
     apply_unitary,
+    ApplyChannelArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
@@ -280,6 +283,7 @@ from cirq.protocols import (
     pow,
     qasm,
     QasmArgs,
+    SupportsApplyChannel,
     SupportsApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
@@ -303,6 +307,13 @@ from cirq.protocols import (
 
 from cirq.ion import (
     MS,
+    two_qubit_matrix_to_ion_operations,
+    IonDevice,
+    ConvertToIonGates,
+)
+from cirq.neutral_atoms import (
+    NeutralAtomDevice,
+    ConvertToNeutralAtomGates,
 )
 # pylint: enable=redefined-builtin
 

@@ -18,6 +18,8 @@ from typing import Dict
 
 import numpy as np
 
+from cirq import value
+
 PAULI_BASIS = {
     'I': np.eye(2),
     'X': np.array([[0., 1.], [1., 0.]]),
@@ -50,21 +52,21 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
 def expand_matrix_in_orthogonal_basis(
         m: np.ndarray,
         basis: Dict[str, np.ndarray],
-) -> Dict[str, complex]:
+) -> value.LinearDict[str]:
     """Computes coefficients of expansion of m in basis.
 
     We require that basis be orthogonal w.r.t. the Hilbert-Schmidt inner
     product. We do not require that basis be orthonormal. Note that Pauli
     basis (I, X, Y, Z) is orthogonal, but not orthonormal.
     """
-    return {
+    return value.LinearDict({
         name: (hilbert_schmidt_inner_product(b, m) /
                hilbert_schmidt_inner_product(b, b))
         for name, b in basis.items()
-    }
+    })
 
 
-def matrix_from_basis_coefficients(expansion: Dict[str, complex],
+def matrix_from_basis_coefficients(expansion: value.LinearDict[str],
                                    basis: Dict[str, np.ndarray]) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
     some_element = next(iter(basis.values()))
