@@ -73,7 +73,7 @@ def test_controlled_operation_init():
     v = cirq.GateOperation(g, (q,))
     c = cirq.ControlledOperation([cb], v)
     assert c.sub_operation == v
-    assert c.controls == [cb]
+    assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
 
@@ -114,7 +114,7 @@ def test_repr():
 
     ccz = cirq.ControlledOperation([c0], cirq.CZ(c1, t))
     assert (repr(ccz) ==
-            "cirq.ControlledOperation(controls=[cirq.LineQubit(0)], "
+            "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
             "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
     cirq.testing.assert_equivalent_repr(ccz)
 

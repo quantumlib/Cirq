@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING, TypeVar, Union, List
+from typing import Any, TYPE_CHECKING, TypeVar, Union, Sequence
 
 import collections
 
@@ -30,7 +30,7 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 TDefault = TypeVar('TDefault')
 
 def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
-            control_qubits: List['cirq.Qid'] = None,
+            control_qubits: Sequence['cirq.Qid'] = None,
             default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns a Controlled version of the given value, if defined.
 
@@ -55,9 +55,11 @@ def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
         TypeError: `controllee` doesn't have a __control__ method (or that
             method returned NotImplemented) and no `default` was specified.
     """
-    controller = getattr(controllee, '__control__', None)
+    if control_qubits is None:
+        control_qubits = []
+    controller = getattr(controllee, 'controlled_by', None)
     result = NotImplemented if controller is None else controller(
-                                                           control_qubits)
+                                                           *control_qubits)
     if result is not NotImplemented:
         return result
 
@@ -69,7 +71,7 @@ def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
         return default
 
     if controller is None:
-        raise TypeError("object of type '{}' "
-                        "has no __control__ method.".format(type(controllee)))
-    raise TypeError("object of type '{}' does have a __control__ method, "
+        raise TypeError("object of type '{}' has no controlled_by "
+                        "method.".format(type(controllee)))
+    raise TypeError("object of type '{}' does have a controlled_by method, "
                     "but it returned NotImplemented.".format(type(controllee)))

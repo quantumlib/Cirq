@@ -43,21 +43,21 @@ def test_gate():
 
 def test_control():
     g = ValiGate()
-    controlled_g = g.__control__()
+    controlled_g = g.controlled_by()
     assert controlled_g.sub_gate == g
-    assert controlled_g.control_qubits == [None]
-    specified_controlled_g = g.__control__([q00, q01])
+    assert controlled_g.control_qubits == ()
+    specified_controlled_g = g.controlled_by(q00, q01)
     assert specified_controlled_g.sub_gate == g
-    assert specified_controlled_g.control_qubits == [q00, q01]
+    assert specified_controlled_g.control_qubits == (q00, q01)
 
 def test_op():
     g = ValiGate()
     op = g(q00)
     with pytest.raises(ValueError):
-        _ = op.__control__()
-    controlled_op = op.__control__([q01, q10])
+        _ = op.controlled_by()
+    controlled_op = op.controlled_by(q01, q10)
     assert controlled_op.sub_operation == op
-    assert controlled_op.controls == [q01, q10]
+    assert controlled_op.controls == (q01, q10)
 
 def test_default_validation_and_inverse():
     class TestGate(cirq.Gate):

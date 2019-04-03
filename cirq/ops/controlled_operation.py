@@ -28,19 +28,19 @@ class ControlledOperation(raw_types.Operation):
         """Auto-flatten nested controlled operations."""
         if isinstance(sub_operation, ControlledOperation):
             return ControlledOperation(
-                list(controls) + sub_operation.controls,
+                tuple(controls) + sub_operation.controls,
                 sub_operation.sub_operation)
         return super().__new__(cls)
 
     def __init__(self,
                  controls: Sequence[raw_types.Qid],
                  sub_operation: raw_types.Operation):
-        self.controls = list(controls)
+        self.controls = tuple(controls)
         self.sub_operation = sub_operation
 
     @property
     def qubits(self):
-        return tuple(self.controls) + self.sub_operation.qubits
+        return self.controls + self.sub_operation.qubits
 
     def with_qubits(self, *new_qubits):
         n = len(self.controls)
@@ -56,7 +56,7 @@ class ControlledOperation(raw_types.Operation):
         return [ControlledOperation(self.controls, op) for op in result]
 
     def _value_equality_values_(self):
-        return tuple(self.controls), self.sub_operation
+        return self.controls, self.sub_operation
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         n = len(self.controls)
@@ -106,6 +106,7 @@ class ControlledOperation(raw_types.Operation):
                 ', '.join(map(str, self.qubits)))
         return 'C({}, {})'.format(', '.join(str(q) for q in self.controls),
                                   str(self.sub_operation))
+
     def __repr__(self):
         return ('cirq.ControlledOperation(controls={!r}, '
                 'sub_operation={!r})'.format(self.controls,

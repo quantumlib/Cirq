@@ -14,9 +14,7 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (
-    Sequence, Tuple, List, TYPE_CHECKING, Callable, TypeVar, Any
-)
+from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, Any
 
 import abc
 
@@ -163,8 +161,7 @@ class Gate(metaclass=abc.ABCMeta):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def __control__(self,
-                    control_qubits: List[Qid] = None) -> 'Gate':
+    def controlled_by(self, *control_qubits: Qid) -> 'Gate':
         """Returns a controlled version of this gate.
 
         Args:
@@ -214,8 +211,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
-    def __control__(self,
-                    control_qubits: List[Qid] = None) -> 'Operation':
+    def controlled_by(self, *control_qubits: Qid) -> 'Operation':
         """Returns a controlled version of this operation.
 
         Args:

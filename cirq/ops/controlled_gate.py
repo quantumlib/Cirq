@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List, Union
+from typing import Any, List, Union, Sequence
 
 import numpy as np
 
@@ -27,8 +27,8 @@ class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
     def __init__(self, sub_gate: raw_types.Gate,
-                 control_qubits: List[raw_types.Qid] = None,
-                 num_controls: int = 1) -> None:
+                 control_qubits: Sequence[raw_types.Qid] = None,
+                 num_controls: int = None) -> None:
         """Initializes the controlled gate.
 
         Args:
@@ -36,15 +36,16 @@ class ControlledGate(raw_types.Gate):
             control_qubits: The qubits that would act as controls.
             num_control: Total number of control qubits.
         """
+        if num_controls is None:
+            num_controls = 1 if control_qubits is None else len(control_qubits)
         if control_qubits is None:
-            control_qubits = []
+            control_qubits = ()
         if num_controls < len(control_qubits):
             raise ValueError('More specified control qubits than num_controls')
 
         # Leave unspecified controls as Nones.
-        self.control_qubits = ([None]*(num_controls - # type: ignore
-                                       len(control_qubits)) +
-                               control_qubits)
+        self.control_qubits = ((None,)*(num_controls - len(control_qubits)) +
+                               tuple(control_qubits)) #type: ignore
 
         # Flatten nested ControlledGates.
         if isinstance(sub_gate, ControlledGate):
@@ -94,11 +95,10 @@ class ControlledGate(raw_types.Gate):
             else:
                 merged_controls.append(control)
 
-        # Convert to ControlledGate without control qubits that can be reused.
-        self.control_qubits = [None]*self.num_controls()
-
-        return gate_operation.GateOperation(self,
-                                            merged_controls+remaining_qubits)
+        return gate_operation.GateOperation(
+                   ControlledGate(self.sub_gate,
+                                  num_controls=self.num_controls()),
+                   merged_controls + remaining_qubits)
 
     def _value_equality_values_(self):
         return self.sub_gate, self.num_controls()
@@ -168,7 +168,7 @@ class ControlledGate(raw_types.Gate):
         return 'C'*self.num_controls() + str(self.sub_gate)
 
     def __repr__(self):
-        if (self.num_controls() is 1 and self.control_qubits[0] is None):
+        if (self.num_controls()==1 and self.control_qubits[0] is None):
             return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
 
         return ('cirq.ControlledGate(sub_gate={!r}, control_qubits={!r}, '

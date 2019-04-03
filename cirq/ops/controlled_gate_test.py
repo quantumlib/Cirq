@@ -85,22 +85,23 @@ def test_init():
 
 
 def test_init2():
+    with pytest.raises(ValueError):
+        cirq.ControlledGate(cirq.Z, [p,q], 1)
     gate = cirq.ControlledGate(cirq.Z, [q])
     assert gate.sub_gate is cirq.Z
-    assert gate.control_qubits == [q]
+    assert gate.control_qubits == (q,)
     assert gate.num_qubits() == 2
-    with pytest.raises(ValueError):
-        gate = cirq.ControlledGate(cirq.Z, [p,q])
     gate = cirq.ControlledGate(cirq.Z, [p,q], 2)
     assert gate.sub_gate is cirq.Z
-    assert gate.control_qubits == [p, q]
+    assert gate.control_qubits == (p, q)
     assert gate.num_qubits() == 3
+    assert gate == cirq.ControlledGate(cirq.Z, [p,q])
     gate = cirq.ControlledGate(cirq.ControlledGate(
                                     cirq.ControlledGate(cirq.Z, [p], 3),
                                     num_controls=2),
                                [q], 2)
     assert gate.sub_gate is cirq.Z
-    assert gate.control_qubits == [None, q, None, None, None, None, p]
+    assert gate.control_qubits == (None, q, None, None, None, None, p)
     assert gate.num_qubits() == 8
     op = gate(*cirq.LineQubit.range(6))
     assert op.qubits == (cirq.LineQubit(0), q, cirq.LineQubit(1),
@@ -419,7 +420,7 @@ def test_repr():
         cirq.ControlledGate(cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
     assert (repr(cirq.ControlledGate(cirq.Z, [cirq.LineQubit(0)])) ==
             "cirq.ControlledGate(sub_gate=cirq.Z, "
-            "control_qubits=[cirq.LineQubit(0)], "
+            "control_qubits=(cirq.LineQubit(0),), "
             "num_controls=1)")
 
 
