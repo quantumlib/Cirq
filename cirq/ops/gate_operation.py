@@ -184,7 +184,9 @@ class GateOperation(raw_types.Operation):
                               qubits=self.qubits,
                               default=None)
 
+
 TV = TypeVar('TV', bound=raw_types.Gate)
+
 
 def op_gate_of_type(
         op: raw_types.Operation,
