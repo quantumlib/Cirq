@@ -227,7 +227,7 @@ class XmonDevice(devices.Device):
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     seen = set()  # type: Set[str]
     for op in operations:
-        if ops.MeasurementGate.is_measurement(op):
+        if protocols.is_measurement(op):
             key = protocols.measurement_key(op)
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))

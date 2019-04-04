@@ -15,8 +15,9 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
-    Any)
+    Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar, TYPE_CHECKING,
+    Union
+)
 
 import numpy as np
 
@@ -179,3 +180,16 @@ class GateOperation(raw_types.Operation):
                               args=args,
                               qubits=self.qubits,
                               default=None)
+
+
+TV = TypeVar('TV', bound=raw_types.Gate)
+
+
+def op_gate_of_type(
+        op: raw_types.Operation,
+        gate_type: Type[TV]) -> Optional[TV]:
+    """Returns the gate of given type, if the op has that gate otherwise None.
+    """
+    if isinstance(op, GateOperation) and isinstance(op.gate, gate_type):
+        return op.gate
+    return None

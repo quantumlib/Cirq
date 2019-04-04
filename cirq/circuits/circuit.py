@@ -782,7 +782,7 @@ class Circuit:
     def are_all_measurements_terminal(self):
         return all(
             self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(ops.MeasurementGate.is_measurement))
+            in self.findall_operations(protocols.is_measurement))
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -1278,7 +1278,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
+                protocols.is_measurement(op)
                 for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
@@ -1351,8 +1351,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
-                for op in self.all_operations()):
+                protocols.is_measurement(op) for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
         if not self.are_all_measurements_terminal():
@@ -1780,12 +1779,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    if ops.MeasurementGate.is_measurement(op):
-        gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-        return [ops.X(q)
-                for q, b in zip(op.qubits, gate.invert_mask)
-                if b]
-
+    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
+    if gate:
+        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
     return NotImplemented
 
 
