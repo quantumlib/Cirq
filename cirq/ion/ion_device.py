@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast, Optional, List, TYPE_CHECKING
+from typing import cast, Iterable, Optional, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops
 from cirq.line import LineQubit
