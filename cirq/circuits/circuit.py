@@ -146,6 +146,16 @@ class Circuit:
             return NotImplemented
         return self._moments == other._moments and self._device == other._device
 
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
+
     def __ne__(self, other):
         return not self == other
 
@@ -1780,10 +1790,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    if ops.op_has_gate_type(op, ops.MeasurementGate):
-        gate_op = cast(ops.GateOperation, op)
-        invert_mask = cast(ops.MeasurementGate, gate_op.gate).invert_mask
-        return [ops.X(q) for q, b in zip(op.qubits, invert_mask) if b]
+    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
+    if gate:
+        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
     return NotImplemented
 
 

@@ -83,7 +83,10 @@ from cirq.ops.gate_features import (
 )
 from cirq.ops.gate_operation import (
     GateOperation,
-    op_has_gate_type,
+    op_gate_of_type
+)
+from cirq.ops.linear_combinations import (
+    LinearCombinationOfGates,
 )
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,

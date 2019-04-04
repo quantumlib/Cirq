@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import cast, Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Union
 
 import numpy as np
 
@@ -248,8 +248,7 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                gate_op = cast(ops.GateOperation, op)
-                if protocols.has_unitary(gate_op):
+                if protocols.has_unitary(op):
                     result = protocols.apply_unitary(
                             op,
                             args=protocols.ApplyUnitaryArgs(
@@ -263,19 +262,19 @@ class Simulator(simulator.SimulatesSamples,
                     # Do measurements second, since there may be mixtures that
                     # operate as measurements.
                     # TODO: support measurement outside the computational basis.
-                    gate = cast(ops.MeasurementGate, gate_op.gate)
-                    if perform_measurements:
-                        invert_mask = gate.invert_mask or num_qubits * (False,)
+                    meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+                    if meas and perform_measurements:
+                        invert_mask = meas.invert_mask or num_qubits * (False,)
                         # Measure updates inline.
                         bits, _ = wave_function.measure_state_vector(state,
                                                                      indices,
                                                                      state)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        key = protocols.measurement_key(gate)
+                        key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
-                elif protocols.has_mixture(gate_op):
-                    probs, unitaries = zip(*protocols.mixture(gate_op))
+                elif protocols.has_mixture(op):
+                    probs, unitaries = zip(*protocols.mixture(op))
                     # We work around numpy barfing on choosing from a list of
                     # numpy arrays (which is not `one-dimensional`) by selecting
                     # the index of the unitary.

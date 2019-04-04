@@ -298,21 +298,21 @@ def test_text_diagrams():
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
-        cirq.H(a),
+        cirq.H(a)**0.5,
         cirq.ISWAP(a, b)**-1,
         cirq.I(a),
         cirq.IdentityGate(2)(a, b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H───iSwap──────I───I───
-      │                             │   │   │       │              │
-b: ───×─────────────────────────────@───X───@───────iSwap^-1───────I───
+a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H^0.5───iSwap──────I───I───
+      │                             │   │   │           │              │
+b: ───×─────────────────────────────@───X───@───────────iSwap^-1───────I───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H---iSwap------I---I---
-      |                                |   |   |       |              |
-b: ---swap-----------------------------@---X---@-------iSwap^-1-------I---
+a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H^0.5---iSwap------I---I---
+      |                                |   |   |           |              |
+b: ---swap-----------------------------@---X---@-----------iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 

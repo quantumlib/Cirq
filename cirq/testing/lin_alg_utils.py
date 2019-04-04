@@ -70,8 +70,9 @@ def random_orthogonal(dim: int) -> np.ndarray:
         http://arxiv.org/abs/math-ph/0609050
     """
     m = np.random.randn(dim, dim)
-    q, _ = np.linalg.qr(m)
-    return q
+    q, r = np.linalg.qr(m)
+    d = np.diag(r)
+    return q * (d / abs(d))
 
 
 def random_special_unitary(dim: int) -> np.ndarray:
