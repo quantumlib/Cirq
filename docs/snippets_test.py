@@ -128,8 +128,8 @@ def deindent_snippet(snippet: str) -> str:
 
     for line in snippet.split('\n'):
         # The first non-empty line determines the indentation level.
-        if indentation_amount is None and re.match('\s*\S', line):
-            leading_whitespace = re.match('\s*', line)
+        if indentation_amount is None and re.match(r'\s*\S', line):
+            leading_whitespace = re.match(r'\s*', line)
             if leading_whitespace:
                 indentation_amount = len(leading_whitespace.group(0))
 
@@ -471,7 +471,7 @@ def assert_code_snippet_executes_correctly(snippet: str,
                                            line_number: int = None):
     """Executes a snippet and compares output / errors to annotations."""
 
-    raises_annotation = re.search("# raises\s*(\S*)", snippet)
+    raises_annotation = re.search(r"# raises\s*(\S*)", snippet)
     if raises_annotation is None:
         before = snippet
         after = None
@@ -616,7 +616,7 @@ def find_expected_outputs(snippet: str) -> List[str]:
             else:
                 printing = False
         # Matches '# print', '# prints', '# print:', and '# prints:'
-        elif re.match('^#\s*prints?:?\s*$', line):
+        elif re.match(r'^#\s*prints?:?\s*$', line):
             printing = True
 
     return expected
