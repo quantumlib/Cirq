@@ -239,13 +239,6 @@ def test_repr():
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
 
 
-def test_has_gate_of_type():
-    a = cirq.NamedQubit('a')
-    op = cirq.X(a)
-    assert op.has_gate_of_type(cirq.XPowGate)
-    assert not op.has_gate_of_type(cirq.YPowGate)
-
-
 def test_op_gate_of_type():
     a = cirq.NamedQubit('a')
     op = cirq.X(a)
