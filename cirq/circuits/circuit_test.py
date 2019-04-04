@@ -1164,7 +1164,7 @@ def test_findall_operations_until_blocked():
             is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
 
 
-def test_all_measurements_terminal():
+def test_are_all_measurements_terminal():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 

@@ -258,7 +258,7 @@ class Simulator(simulator.SimulatesSamples,
                     if result is buffer:
                         buffer = state
                     state = result
-                elif protocols.is_measurement(gate_op):
+                elif protocols.is_measurement(op):
                     # Do measurements second, since there may be mixtures that
                     # operate as measurements.
                     # TODO: support measurement outside the computational basis.
