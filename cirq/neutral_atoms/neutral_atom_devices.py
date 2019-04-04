@@ -311,7 +311,11 @@ class NeutralAtomDevice(devices.Device):
                 if len(moment.operations) > 0:
                     raise ValueError("Non-empty moment after measurement")
             for operation in moment.operations:
+<<<<<<< HEAD
                 if MeasurementGate.is_measurement(operation):
+=======
+                if ops.op_gate_of_type(operation, ops.MeasurementGate):
+>>>>>>> upstream/master
                     has_measurement_occurred = True
 
     def validate_scheduled_operation(self, schedule, scheduled_operation):
@@ -357,12 +361,20 @@ class NeutralAtomDevice(devices.Device):
         measurement_check_performed = False
         for so in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, so)
+<<<<<<< HEAD
             if (MeasurementGate.is_measurement(so.operation) and not
+=======
+            if (ops.op_gate_of_type(so.operation, ops.MeasurementGate) and not
+>>>>>>> upstream/master
                     measurement_check_performed):
                 later_ops = [op for op in schedule.scheduled_operations if
                              op.time + op.duration > so.time + so.duration]
                 for op in later_ops:
+<<<<<<< HEAD
                     if not MeasurementGate.is_measurement(op):
+=======
+                    if not ops.op_gate_of_type(op, ops.MeasurementGate):
+>>>>>>> upstream/master
                         raise ValueError("Non-measurement operation after"
                                          " measurement")
                 measurement_check_performed = True

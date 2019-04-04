@@ -28,8 +28,10 @@ class GoodGateExplicitPauliExpansion(cirq.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.sqrt(1/2) * X + np.sqrt(1/3) * Y + np.sqrt(1/6) * Z
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
-        return {'X': np.sqrt(1/2), 'Y': np.sqrt(1/3), 'Z': np.sqrt(1/6)}
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
+        return cirq.LinearDict({'X': np.sqrt(1/2),
+                                'Y': np.sqrt(1/3),
+                                'Z': np.sqrt(1/6)})
 
 
 class GoodGateImplicitPauliExpansion(cirq.SingleQubitGate):
@@ -46,8 +48,8 @@ class GoodGateNoPauliExpansion(cirq.MultiQubitGate):
 
 
 class GoodGateNoUnitary(cirq.SingleQubitGate):
-    def _pauli_expansion_(self) -> Dict[str, complex]:
-        return {'X': np.sqrt(1/2), 'Y': np.sqrt(1/2)}
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
+        return cirq.LinearDict({'X': np.sqrt(1/2), 'Y': np.sqrt(1/2)})
 
 
 class GoodGateNoPauliExpansionNoUnitary(cirq.SingleQubitGate):
@@ -58,8 +60,10 @@ class BadGateInconsistentPauliExpansion(cirq.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.sqrt(1/2) * X + np.sqrt(1/3) * Y + np.sqrt(1/6) * Z
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
-        return {'X': np.sqrt(1/6), 'Y': np.sqrt(1/3), 'Z': np.sqrt(1/2)}
+    def _pauli_expansion_(self) -> cirq.LinearDict[str]:
+        return cirq.LinearDict({'X': np.sqrt(1/6),
+                                'Y': np.sqrt(1/3),
+                                'Z': np.sqrt(1/2)})
 
 
 def test_assert_pauli_expansion_is_consistent_with_unitary():
