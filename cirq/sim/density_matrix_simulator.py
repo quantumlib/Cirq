@@ -214,11 +214,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         def keep(potential_op: ops.Operation) -> bool:
             return (protocols.has_channel(potential_op)
-                    or ops.MeasurementGate.is_measurement(potential_op)
+                    or (ops.op_gate_of_type(potential_op,
+                                            ops.MeasurementGate) is not None)
                     or isinstance(potential_op,
                                   (ops.SamplesDisplay,
-                                      ops.WaveFunctionDisplay,
-                                      ops.DensityMatrixDisplay))
+                                   ops.WaveFunctionDisplay,
+                                   ops.DensityMatrixDisplay))
                     )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
@@ -238,9 +239,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                   ops.WaveFunctionDisplay,
                                   ops.DensityMatrixDisplay)):
                     continue
-                elif ops.MeasurementGate.is_measurement(op):
-                    meas = cast(ops.MeasurementGate,
-                                cast(ops.GateOperation, op).gate)
+                # TODO: support more general measurements.
+                meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+                if meas:
                     if perform_measurements:
                         invert_mask = meas.invert_mask or num_qubits * (False,)
                         # Measure updates inline.

@@ -49,6 +49,7 @@ from cirq.protocols.inverse import (
     inverse,
 )
 from cirq.protocols.measurement_key import (
+    is_measurement,
     measurement_key,
 )
 from cirq.protocols.mixture import (
