@@ -1222,37 +1222,37 @@ def test_all_terminal():
     yb = cirq.Y.on(b)
 
     c = Circuit()
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(xa)
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(xb)
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(ya)
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(ya, yb)
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(ya, yb, xa)
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(ya, yb, xa, xb)
-    assert c.are_all_terminal(is_x_pow_gate)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(xa, xa)
-    assert not c.are_all_terminal(is_x_pow_gate)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(xa, ya)
-    assert not c.are_all_terminal(is_x_pow_gate)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(xb, ya, yb)
-    assert not c.are_all_terminal(is_x_pow_gate)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
 
     c = Circuit.from_ops(xa, ya, xa)
-    assert not c.are_all_terminal(is_x_pow_gate)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
 
 
 def test_clear_operations_touching():

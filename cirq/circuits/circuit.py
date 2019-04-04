@@ -59,6 +59,7 @@ class Circuit:
         findall_operations
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        are_all_matches_terminal
         are_all_measurements_terminal
         to_unitary_matrix
         apply_unitary_effect_to_state
@@ -781,9 +782,10 @@ class Circuit:
 
     def are_all_measurements_terminal(self):
         """Whether all measurement gates are at the end of the circuit."""
-        return self.are_all_terminal(protocols.is_measurement)
+        return self.are_all_matches_terminal(protocols.is_measurement)
 
-    def are_all_terminal(self, predicate: Callable[[ops.Operation], bool]):
+    def are_all_matches_terminal(self,
+            predicate: Callable[[ops.Operation], bool]):
         """Check whether all of the ops that satisfy a predicate are terminal.
 
         Args:

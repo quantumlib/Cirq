@@ -24,6 +24,13 @@ from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
 
 
+# Mutable named tuple to hold state and a buffer.
+class _StateAndBuffer():
+    def __init__(self, state, buffer):
+        self.state = state
+        self.buffer = buffer
+
+
 class Simulator(simulator.SimulatesSamples,
                 wave_function_simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
@@ -136,7 +143,7 @@ class Simulator(simulator.SimulatesSamples,
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         def measure_or_mixture(op):
             return protocols.is_measurement(op) or protocols.has_mixture(op)
-        if circuit.are_all_terminal(measure_or_mixture):
+        if circuit.are_all_matches_terminal(measure_or_mixture):
             return self._run_sweep_sample(resolved_circuit, repetitions)
         else:
             return self._run_sweep_repeat(resolved_circuit, repetitions)
@@ -152,7 +159,7 @@ class Simulator(simulator.SimulatesSamples,
                 perform_measurements=False):
             pass
         # We can ignore the mixtures since this is a run method which
-        # does not return the state.  
+        # does not return the state.
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
                                    ops.MeasurementGate)]
@@ -230,8 +237,9 @@ class Simulator(simulator.SimulatesSamples,
                     or protocols.has_mixture(potential_op)
                     or protocols.is_measurement(potential_op))
 
-        state = np.reshape(state, (2,) * num_qubits)
-        buffer = np.empty((2,) * num_qubits, dtype=self._dtype)
+        data = _StateAndBuffer(
+                state=np.reshape(state, (2,) * num_qubits),
+                buffer=np.empty((2,) * num_qubits, dtype=self._dtype))
         for moment in circuit:
             measurements = collections.defaultdict(
                     list)  # type: Dict[str, List[bool]]
@@ -249,50 +257,67 @@ class Simulator(simulator.SimulatesSamples,
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 if protocols.has_unitary(op):
-                    result = protocols.apply_unitary(
-                            op,
-                            args=protocols.ApplyUnitaryArgs(
-                                    state,
-                                    buffer,
-                                    indices))
-                    if result is buffer:
-                        buffer = state
-                    state = result
+                    self._simulate_unitary(op, data, indices)
                 elif protocols.is_measurement(op):
                     # Do measurements second, since there may be mixtures that
                     # operate as measurements.
                     # TODO: support measurement outside the computational basis.
-                    meas = ops.op_gate_of_type(op, ops.MeasurementGate)
-                    if meas and perform_measurements:
-                        invert_mask = meas.invert_mask or num_qubits * (False,)
-                        # Measure updates inline.
-                        bits, _ = wave_function.measure_state_vector(state,
-                                                                     indices,
-                                                                     state)
-                        corrected = [bit ^ mask for bit, mask in
-                                     zip(bits, invert_mask)]
-                        key = protocols.measurement_key(meas)
-                        measurements[key].extend(corrected)
+                    if perform_measurements:
+                        self._simulate_measurement(op, data, indices,
+                                                   measurements, num_qubits)
                 elif protocols.has_mixture(op):
-                    probs, unitaries = zip(*protocols.mixture(op))
-                    # We work around numpy barfing on choosing from a list of
-                    # numpy arrays (which is not `one-dimensional`) by selecting
-                    # the index of the unitary.
-                    index = np.random.choice(range(len(unitaries)), p=probs)
-                    shape = (2,) * (2 * len(indices))
-                    unitary = unitaries[index].astype(self._dtype).reshape(
-                        shape)
-                    result = linalg.targeted_left_multiply(unitary, state,
-                                                           indices, out=buffer)
-                    buffer = state
-                    state = result
+                    self._simulate_mixture(op, data, indices)
 
             yield SparseSimulatorStep(
-                state_vector=state,
+                state_vector=data.state,
                 measurements=measurements,
                 qubit_map=qubit_map,
                 dtype=self._dtype)
 
+    def _simulate_unitary(self, op: ops.Operation, data: _StateAndBuffer,
+            indices: List[int]) -> None:
+        """Simulate an op that has a unitary."""
+        result = protocols.apply_unitary(
+                op,
+                args=protocols.ApplyUnitaryArgs(
+                        data.state,
+                        data.buffer,
+                        indices))
+        if result is data.buffer:
+            data.buffer = data.state
+        data.state = result
+
+    def _simulate_measurement(self, op: ops.Operation, data: _StateAndBuffer,
+            indices: List[int], measurements: Dict[str, List[bool]],
+            num_qubits: int) -> None:
+        """Simulate an op that is a measurement in the computataional basis."""
+        meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+        # TODO: support measurement outside computational basis.
+        if meas:
+            invert_mask = meas.invert_mask or num_qubits * (False,)
+            # Measure updates inline.
+            bits, _ = wave_function.measure_state_vector(data.state,
+                                                         indices,
+                                                         data.state)
+            corrected = [bit ^ mask for bit, mask in
+                         zip(bits, invert_mask)]
+            key = protocols.measurement_key(meas)
+            measurements[key].extend(corrected)
+
+    def _simulate_mixture(self, op: ops.Operation, data: _StateAndBuffer,
+            indices: List[int]) -> None:
+        """Simulate an op that is a mixtures of unitaries."""
+        probs, unitaries = zip(*protocols.mixture(op))
+        # We work around numpy barfing on choosing from a list of
+        # numpy arrays (which is not `one-dimensional`) by selecting
+        # the index of the unitary.
+        index = np.random.choice(range(len(unitaries)), p=probs)
+        shape = (2,) * (2 * len(indices))
+        unitary = unitaries[index].astype(self._dtype).reshape(shape)
+        result = linalg.targeted_left_multiply(unitary, data.state, indices,
+                                               out=data.buffer)
+        data.buffer = data.state
+        data.state = result
 
 
 class SparseSimulatorStep(wave_function.StateVectorMixin,

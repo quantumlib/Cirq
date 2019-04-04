@@ -62,9 +62,6 @@ class GateOperation(raw_types.Operation):
     def with_gate(self, new_gate: raw_types.Gate) -> 'GateOperation':
         return new_gate.on(*self.qubits)
 
-    def has_gate_of_type(self, gate_type: Type[raw_types.Gate]) -> bool:
-        return isinstance(self.gate, gate_type)
-
     def __repr__(self):
         # Abbreviate when possible.
         if self == self.gate.on(*self.qubits):
