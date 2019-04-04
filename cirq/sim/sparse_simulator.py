@@ -286,10 +286,6 @@ class Simulator(simulator.SimulatesSamples,
                                                            indices, out=buffer)
                     buffer = state
                     state = result
-                else:
-                    raise AssertionError(
-                        'Filter kept ops other than unitary, mixture, or '
-                        'measurements.')
 
             yield SparseSimulatorStep(
                 state_vector=state,
