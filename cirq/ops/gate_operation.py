@@ -15,7 +15,9 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Any, cast, FrozenSet, Optional, Sequence, Tuple, Type, TYPE_CHECKING, Union)
+    Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar, TYPE_CHECKING,
+    Union
+)
 
 import numpy as np
 
@@ -60,7 +62,7 @@ class GateOperation(raw_types.Operation):
     def with_gate(self, new_gate: raw_types.Gate) -> 'GateOperation':
         return new_gate.on(*self.qubits)
 
-    def has_gate_of_type(self, gate_type: Type) -> bool:
+    def has_gate_of_type(self, gate_type: Type[raw_types.Gate]) -> bool:
         return isinstance(self.gate, gate_type)
 
     def __repr__(self):
@@ -182,10 +184,13 @@ class GateOperation(raw_types.Operation):
                               qubits=self.qubits,
                               default=None)
 
+TV = TypeVar('TV', bound=raw_types.Gate)
 
-def op_has_gate_type(op: raw_types.Operation, gate_type: Type) -> bool:
-    """Returns True iff the given op is a GateOperation with gate of given type.
+def op_gate_of_type(
+        op: raw_types.Operation,
+        gate_type: Type[TV]) -> Optional[TV]:
+    """Returns the gate of given type, if the op has that gate otherwise None.
     """
-    if isinstance(op, GateOperation):
-        return cast(GateOperation, op).has_gate_of_type(gate_type)
-    return False
+    if isinstance(op, GateOperation) and isinstance(op.gate, gate_type):
+        return op.gate
+    return None

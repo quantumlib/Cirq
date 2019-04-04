@@ -1776,10 +1776,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    if ops.op_has_gate_type(op, ops.MeasurementGate):
-        gate_op = cast(ops.GateOperation, op)
-        invert_mask = cast(ops.MeasurementGate, gate_op.gate).invert_mask
-        return [ops.X(q) for q, b in zip(op.qubits, invert_mask) if b]
+    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
+    if gate:
+        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
     return NotImplemented
 
 

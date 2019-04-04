@@ -16,7 +16,7 @@
 
 from typing import Set  # pylint: disable=unused-import
 from typing import (
-    Callable, cast, Dict, Optional, Sequence, Tuple, Union
+    Callable, Dict, Optional, Sequence, Tuple, Union
 )
 
 import re
@@ -146,8 +146,7 @@ class QasmOutput:
         self.header = header
         self.measurements = tuple(
                 op for op in self.operations if
-                ops.op_has_gate_type(cast(ops.Operation, op),
-                                     ops.MeasurementGate))
+                ops.op_gate_of_type(op, ops.MeasurementGate)) # type: ignore
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()

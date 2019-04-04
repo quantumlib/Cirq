@@ -239,11 +239,18 @@ def test_repr():
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
 
 
-def test_op_has_gate_type():
+def test_has_gate_of_type():
     a = cirq.NamedQubit('a')
     op = cirq.X(a)
-    assert cirq.op_has_gate_type(op, cirq.XPowGate)
-    assert not cirq.op_has_gate_type(op, cirq.YPowGate)
+    assert op.has_gate_of_type(cirq.XPowGate)
+    assert not op.has_gate_of_type(cirq.YPowGate)
+
+
+def test_op_gate_of_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
+    assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
 
     class NonGateOperation(cirq.Operation):
         def qubits(self) :
@@ -252,11 +259,4 @@ def test_op_has_gate_type():
         def with_qubits(self, *new_qubits):
             pass
 
-    assert not cirq.op_has_gate_type(NonGateOperation(), cirq.XPowGate)
-
-
-def test_has_gate_of_type():
-    a = cirq.NamedQubit('a')
-    op = cirq.X(a)
-    assert op.has_gate_of_type(cirq.XPowGate)
-    assert not op.has_gate_of_type(cirq.YPowGate)
+    assert cirq.op_gate_of_type(NonGateOperation(), cirq.X) is None

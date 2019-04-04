@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional
+from typing import Optional
 
 from cirq import circuits, ops, protocols, value
 from cirq.optimizers import two_qubit_decompositions
@@ -47,18 +47,16 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
         self.allow_partial_czs = allow_partial_czs
 
     def _keep(self, op: ops.Operation) -> bool:
-        if not isinstance(op, ops.GateOperation):
-            return False
-
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
-        if (op.has_gate_of_type(ops.CZPowGate)
-                and (self.allow_partial_czs or value.canonicalize_half_turns(
-                    cast(ops.CZPowGate, op.gate).exponent) == 1)):
+        cz_gate = ops.op_gate_of_type(op, ops.CZPowGate)
+        if (cz_gate and (
+                self.allow_partial_czs or value.canonicalize_half_turns(
+                cz_gate.exponent) == 1)):
             return True
 
-        # Measurement?
-        if op.has_gate_of_type(ops.MeasurementGate):
+        # Measurement in Z basis?
+        if ops.op_gate_of_type(op, ops.MeasurementGate):
             return True
 
         # SingleQubit known matrix
