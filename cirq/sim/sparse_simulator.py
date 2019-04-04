@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import cast, Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Union
 
 import numpy as np
 
@@ -213,8 +213,8 @@ class Simulator(simulator.SimulatesSamples,
                 ": {!r}".format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_unitary(potential_op) or
-                    ops.MeasurementGate.is_measurement(potential_op))
+            return (protocols.has_unitary(potential_op)
+                    or protocols.is_measurement(potential_op))
 
         state = np.reshape(state, (2,) * num_qubits)
         buffer = np.empty((2,) * num_qubits, dtype=self._dtype)
@@ -234,18 +234,19 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if ops.MeasurementGate.is_measurement(op):
-                    gate = cast(ops.MeasurementGate,
-                                cast(ops.GateOperation, op).gate)
+                # TODO: Support measurements outside of computational basis.
+                # TODO: Support mixtures.
+                meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+                if meas:
                     if perform_measurements:
-                        invert_mask = gate.invert_mask or num_qubits * (False,)
+                        invert_mask = meas.invert_mask or num_qubits * (False,)
                         # Measure updates inline.
                         bits, _ = wave_function.measure_state_vector(state,
                                                                      indices,
                                                                      state)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
-                        key = protocols.measurement_key(gate)
+                        key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
                 else:
                     result = protocols.apply_unitary(
