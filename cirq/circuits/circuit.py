@@ -1652,6 +1652,7 @@ def _draw_moment_in_diagram(
     if not moment.operations:
         out_diagram.write(x0, 0, '')
 
+    max_x = x0
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
@@ -1689,10 +1690,12 @@ def _draw_moment_in_diagram(
                 # Add an exponent to every label
                 for index in indices:
                     out_diagram.write(x, index, '^' + exponent)
+        if x > max_x:
+            max_x = x
 
     # Group together columns belonging to the same Moment.
-    if moment.operations and x > x0:
-        moment_groups.append((x0, x))
+    if moment.operations and max_x > x0:
+        moment_groups.append((x0, max_x))
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
