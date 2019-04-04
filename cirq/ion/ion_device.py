@@ -14,7 +14,7 @@
 
 from typing import cast, Iterable, Optional, TYPE_CHECKING
 
-from cirq import circuits, value, devices, ops
+from cirq import circuits, value, devices, ops, protocols
 from cirq.line import LineQubit
 from cirq.ion import convert_to_ion_gates
 
@@ -192,9 +192,9 @@ class IonDevice(devices.Device):
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     seen = set()  # type: Set[str]
     for op in operations:
-        if ops.MeasurementGate.is_measurement(op):
-            key = cast(ops.MeasurementGate,
-                    cast(ops.GateOperation, op).gate).key
+        meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+        if meas:
+            key = protocols.measurement_key(meas)
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))
             seen.add(key)
