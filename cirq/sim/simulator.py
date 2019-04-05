@@ -32,7 +32,7 @@ import collections
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study, value
+from cirq import circuits, ops, protocols, schedules, study, value
 
 
 class SimulatesSamples(metaclass=abc.ABCMeta):
@@ -480,10 +480,11 @@ class StepResult(metaclass=abc.ABCMeta):
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError('{} was not a MeasurementGate'.format(gate))
-            if gate.key in bounds:
+            key = protocols.measurement_key(gate)
+            if key in bounds:
                 raise ValueError(
-                    'Duplicate MeasurementGate with key {}'.format(gate.key))
-            bounds[gate.key] = (current_index, current_index + len(op.qubits))
+                    'Duplicate MeasurementGate with key {}'.format(key))
+            bounds[key] = (current_index, current_index + len(op.qubits))
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
