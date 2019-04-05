@@ -503,11 +503,10 @@ Luckily for us, we have written our code so that using parameterized
 values is as simple as passing `Symbol` objects where we previously
 passed float values.
 ```python
-import sympy
 circuit = cirq.Circuit()
-alpha = sympy.Symbol('alpha')
-beta = sympy.Symbol('beta')
-gamma = sympy.Symbol('gamma')
+alpha = cirq.Symbol('alpha')
+beta = cirq.Symbol('beta')
+gamma = cirq.Symbol('gamma')
 circuit.append(one_step(h, jr, jc, alpha, beta, gamma))
 circuit.append(cirq.measure(*qubits, key='x'))
 print(circuit)
