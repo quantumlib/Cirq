@@ -54,7 +54,7 @@ def hardcoded_qcircuit_diagram_info(
         (r'\targ',) if op.gate == ops.X else
         (r'\control', r'\control') if op.gate == ops.CZ else
         (r'\control', r'\targ') if op.gate == ops.CNOT else
-        (r'\meter',) if ops.MeasurementGate.is_measurement(op.gate) else
+        (r'\meter',) if isinstance(op.gate, ops.MeasurementGate) else
         ())
     return (protocols.CircuitDiagramInfo(cast(Tuple[str, ...], symbols))
             if symbols else None)
