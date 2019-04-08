@@ -18,7 +18,8 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import abc
 
-from cirq import protocols, value
+from cirq import value
+from cirq.protocols import decompose, inverse
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -186,14 +187,14 @@ class Gate(metaclass=abc.ABCMeta):
             # HACK: break cycle
             from cirq.line import line_qubit
 
-            decomposed = protocols.decompose_once_with_qubits(
+            decomposed = decompose.decompose_once_with_qubits(
                 self,
                 qubits=line_qubit.LineQubit.range(self.num_qubits()),
                 default=None)
             if decomposed is None:
                 return NotImplemented
 
-            inverse_decomposed = protocols.inverse(decomposed, None)
+            inverse_decomposed = inverse.inverse(decomposed, None)
             if inverse_decomposed is None:
                 return NotImplemented
 
@@ -204,11 +205,22 @@ class Gate(metaclass=abc.ABCMeta):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
+    def controlled_by(self, *control_qubits: Qid) -> 'Gate':
+        """Returns a controlled version of this gate.
+
+        Args:
+            control_qubits: Optional qubits to control the gate by.
+        """
+        # Avoids circular import.
+        from cirq.ops import ControlledGate
+        return ControlledGate(self, control_qubits,
+                              len(control_qubits) if control_qubits is not None
+                                                  else 1)
+
     @abc.abstractmethod
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
         raise NotImplementedError()
-
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
@@ -243,6 +255,20 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
+    def controlled_by(self, *control_qubits: Qid) -> 'Operation':
+        """Returns a controlled version of this operation.
+
+        Args:
+            control_qubits: Qubits to control the operation by. Required.
+        """
+        # Avoids circular import.
+        from cirq.ops import ControlledOperation
+        if control_qubits is None or len(control_qubits) is 0:
+            raise ValueError(
+                "Can't get controlled operation without control qubit. Op: {}"
+                .format(repr(self)))
+        else:
+            return ControlledOperation(control_qubits, self)
 
 @value.value_equality
 class _InverseCompositeGate(Gate):
@@ -262,7 +288,7 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return protocols.inverse(protocols.decompose_once_with_qubits(
+        return inverse.inverse(decompose.decompose_once_with_qubits(
             self._original, qubits))
 
     def _value_equality_values_(self):
