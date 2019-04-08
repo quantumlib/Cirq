@@ -26,7 +26,7 @@ def test_avoids_infinite_cycle_when_matrix_available():
             return np.array([[0, 1], [1, 0]])
 
         def _decompose_(self, qubits):
-            return OtherOtherX(*qubits)
+            return OtherOtherX().on(*qubits)
 
     class OtherOtherX(cirq.SingleQubitGate):
         # coverage: ignore
@@ -34,7 +34,7 @@ def test_avoids_infinite_cycle_when_matrix_available():
             return np.array([[0, 1], [1, 0]])
 
         def _decompose_(self, qubits):
-            return OtherX(*qubits)
+            return OtherX().on(*qubits)
 
     q0 = cirq.LineQubit(0)
     c = cirq.Circuit.from_ops(OtherX()(q0), OtherOtherX()(q0))
