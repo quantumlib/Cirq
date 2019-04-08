@@ -18,6 +18,11 @@ from cirq.protocols.apply_unitary import (
     ApplyUnitaryArgs,
     SupportsApplyUnitary,
 )
+from cirq.protocols.apply_channel import (
+    apply_channel,
+    ApplyChannelArgs,
+    SupportsApplyChannel,
+)
 from cirq.protocols.approximate_equality import (
     approx_eq,
     SupportsApproximateEquality,
@@ -26,6 +31,9 @@ from cirq.protocols.channel import (
     channel,
     has_channel,
     SupportsChannel,
+)
+from cirq.protocols.control import (
+    control,
 )
 from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfo,
@@ -44,6 +52,7 @@ from cirq.protocols.inverse import (
     inverse,
 )
 from cirq.protocols.measurement_key import (
+    is_measurement,
     measurement_key,
 )
 from cirq.protocols.mixture import (

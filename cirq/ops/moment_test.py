@@ -70,6 +70,28 @@ def test_equality():
     eq.make_equality_group(lambda: Moment([cirq.CZ(a, c), cirq.CZ(b, d)]))
 
 
+def test_approx_eq():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert not cirq.approx_eq(Moment([cirq.X(a)]), cirq.X(a))
+
+    # Default is empty. Iterables get frozen into tuples.
+    assert cirq.approx_eq(Moment(), Moment([]))
+    assert cirq.approx_eq(Moment([]), Moment(()))
+
+    assert cirq.approx_eq(Moment([cirq.X(a)]), Moment([cirq.X(a)]))
+    assert not cirq.approx_eq(Moment([cirq.X(a)]), Moment([cirq.X(b)]))
+
+    assert cirq.approx_eq(Moment([cirq.XPowGate(exponent=0)(a)]),
+                          Moment([cirq.XPowGate(exponent=1e-9)(a)]))
+    assert not cirq.approx_eq(Moment([cirq.XPowGate(exponent=0)(a)]),
+                              Moment([cirq.XPowGate(exponent=1e-7)(a)]))
+    assert cirq.approx_eq(Moment([cirq.XPowGate(exponent=0)(a)]),
+                          Moment([cirq.XPowGate(exponent=1e-7)(a)]),
+                          atol=1e-6)
+
+
 def test_operates_on():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
