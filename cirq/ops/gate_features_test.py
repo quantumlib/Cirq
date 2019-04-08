@@ -152,10 +152,13 @@ def test_qasm_output_args_format():
 
 
 def test_multi_qubit_gate_validate():
-    class Dummy(cirq.MultiQubitGate):
+    class Dummy(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
 
     a, b, c, d = cirq.LineQubit.range(4)
 

@@ -380,12 +380,15 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(gate_features.MultiQubitGate):
+class MeasurementGate(raw_types.Gate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
     of measurements.
     """
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def __init__(self,
                  num_qubits: int,
@@ -403,9 +406,7 @@ class MeasurementGate(gate_features.MultiQubitGate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
-        assert isinstance(num_qubits, int)
-
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
         if (self.invert_mask is not None and
@@ -539,8 +540,9 @@ def measure_each(*qubits: raw_types.Qid,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+
 @value.value_equality
-class IdentityGate(gate_features.MultiQubitGate):
+class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
@@ -550,7 +552,10 @@ class IdentityGate(gate_features.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
