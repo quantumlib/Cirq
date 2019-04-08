@@ -59,6 +59,7 @@ class Circuit:
         findall_operations
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        are_all_matches_terminal
         are_all_measurements_terminal
         to_unitary_matrix
         apply_unitary_effect_to_state
@@ -780,9 +781,24 @@ class Circuit:
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
     def are_all_measurements_terminal(self):
+        """Whether all measurement gates are at the end of the circuit."""
+        return self.are_all_matches_terminal(protocols.is_measurement)
+
+    def are_all_matches_terminal(self,
+            predicate: Callable[[ops.Operation], bool]):
+        """Check whether all of the ops that satisfy a predicate are terminal.
+
+        Args:
+            predicate: A predicate on ops.Operations which is being checked.
+
+        Returns:
+            Whether or not all `Operation`s in a circuit that satisfy the
+            given predicate are terminal.
+        """
         return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(protocols.is_measurement))
+            self.next_moment_operating_on(op.qubits, i + 1) is None for
+            (i, op) in self.findall_operations(predicate)
+        )
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
