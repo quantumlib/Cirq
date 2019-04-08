@@ -102,7 +102,7 @@ class Simulator(simulator.SimulatesSamples,
         for step_result in simulate_moments(circuit):
            # do something with the wave function via step_result.state
 
-    Note also that simulations can be stochastic, i.e. return differenet results
+    Note also that simulations can be stochastic, i.e. return different results
     for different runs.  The first version of this occurs for measurements,
     where the results of the measurement are recorded.  This can also
     occur when the circuit has mixtures of unitaries.
