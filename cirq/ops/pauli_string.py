@@ -26,10 +26,10 @@ from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 TDefault = TypeVar('TDefault')
 
 
-@value.value_equality
+@value.value_equality(manual_cls=True)
 class PauliString(raw_types.Operation):
     def __init__(self,
-                 qubit_pauli_map: Mapping[raw_types.Qid, Pauli],
+                 qubit_pauli_map: Mapping[raw_types.Qid, Pauli] = (),
                  coefficient: Union[int, float, complex] = 1) -> None:
         self._qubit_pauli_map = dict(qubit_pauli_map)
         self._coefficient = complex(coefficient)
@@ -44,8 +44,17 @@ class PauliString(raw_types.Operation):
         return self._coefficient
 
     def _value_equality_values_(self):
+        if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
+            q, p = list(self._qubit_pauli_map.items())[0]
+            return gate_operation.GateOperation(
+                p, [q])._value_equality_values_()
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
+
+    def _value_equality_values_cls_(self):
+        if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
+            return gate_operation.GateOperation
+        return PauliString
 
     def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
@@ -70,6 +79,21 @@ class PauliString(raw_types.Operation):
     def __mul__(self, other):
         if isinstance(other, (int, float, complex)):
             return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, PauliString):
+            s1 = set(self.keys())
+            s2 = set(other.keys())
+            extra_phase = 1
+            terms = {}
+            for c in s1 - s2:
+                terms[c] = self[c]
+            for c in s2 - s1:
+                terms[c] = other[c]
+            for c in s1 & s2:
+                f, p = self[c].phased_pauli_product(other[c])
+                extra_phase *= f
+                if p is not None:
+                    terms[c] = p
+            return PauliString(terms, self.coefficient * extra_phase)
         return NotImplemented
 
     def __rmul__(self, other):
@@ -271,6 +295,43 @@ class PauliString(raw_types.Operation):
                                                    pauli_map.get(qubit0),
                                                    gate.pauli0,
                                                    gate.invert0)
-        assert quarter_kickback % 2 == 0, ('Impossible condition.  '
+        assert quarter_kickback % 2 == 0, (
+            'Impossible condition.  '
             'quarter_kickback is either incremented twice or never.')
         return quarter_kickback % 4 == 2
+
+
+class SingleQubitPauliStringGateOperation(gate_operation.GateOperation,
+                                          PauliString):
+    """A Pauli operation applied to a qubit.
+
+    Satisfies the contract of both GateOperation and PauliString. Relies
+    implicitly on the fact that PauliString({q: X}) compares as equal to
+    GateOperation(X, [q]).
+    """
+
+    def __init__(self, pauli: Pauli, qubit: raw_types.Qid):
+        PauliString.__init__(self, {qubit: pauli})
+        gate_operation.GateOperation.__init__(self,
+                                              cast(raw_types.Gate, pauli),
+                                              [qubit])
+
+    def as_pauli_string(self) -> PauliString:
+        return PauliString({self.qubits[0]: cast(Pauli, self.gate)})
+
+    def __mul__(self, other):
+        if isinstance(other, SingleQubitPauliStringGateOperation):
+            return self.as_pauli_string() * other.as_pauli_string()
+        if isinstance(other, (PauliString, complex, float, int)):
+            return self.as_pauli_string() * other
+        return NotImplemented
+
+    def __rmul__(self, other):
+        if isinstance(other, SingleQubitPauliStringGateOperation):
+            return other.as_pauli_string() * self.as_pauli_string()
+        if isinstance(other, (PauliString, complex, float, int)):
+            return other * self.as_pauli_string()
+        return NotImplemented
+
+    def __neg__(self):
+        return -self.as_pauli_string()

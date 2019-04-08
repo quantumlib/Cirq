@@ -74,7 +74,8 @@ class _SupportsValueEquality(Protocol):
 def _value_equality_eq(self: _SupportsValueEquality,
                        other: _SupportsValueEquality) -> bool:
     cls_self = self._value_equality_values_cls_()
-    if not isinstance(other, cls_self):
+    get_cls_other = getattr(other, '_value_equality_values_cls_', None)
+    if get_cls_other is None or get_cls_other() != cls_self:
         return NotImplemented
     cls_other = other._value_equality_values_cls_()
     if cls_self != cls_other:
@@ -117,6 +118,7 @@ def value_equality(cls: type,
                    *,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
+                   manual_cls: bool = False,
                    approximate: bool = False
                    ) -> type:
     pass
@@ -126,6 +128,7 @@ def value_equality(cls: type,
 def value_equality(*,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
+                   manual_cls: bool = False,
                    approximate: bool = False
                    ) -> Callable[[type], type]:
     pass
@@ -135,6 +138,7 @@ def value_equality(cls: type = None,
                    *,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
+                   manual_cls: bool = False,
                    approximate: bool = False
                    ) -> Union[Callable[[type], type], type]:
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
@@ -170,6 +174,10 @@ def value_equality(cls: type = None,
             classes will not be considered equal to each other. Useful for when
             the decorated class is an abstract class or trait that is helping to
             define equality for many conceptually distinct concrete classes.
+        manual_cls: When set, the method '_value_equality_values_cls_' must be
+            implemented. This allows one class to compare as equal to another
+            that is also using value equality, by returning the other class'
+            type. Incompatible with `distinct_child_types`.
         approximate: When set, the decorated class will be enhanced with
             `_approx_eq_` implementation and thus start to support the
             `SupportsApproximateEquality` protocol.
@@ -181,8 +189,13 @@ def value_equality(cls: type = None,
         return lambda deferred_cls: value_equality(
             deferred_cls,
             unhashable=unhashable,
+            manual_cls=manual_cls,
             distinct_child_types=distinct_child_types,
             approximate=approximate)
+
+    if distinct_child_types and manual_cls:
+        raise ValueError("'distinct_child_types' is "
+                         "incompatible with 'manual_cls")
 
     values_getter = getattr(cls, '_value_equality_values_', None)
     if values_getter is None:
@@ -191,6 +204,12 @@ def value_equality(cls: type = None,
 
     if distinct_child_types:
         setattr(cls, '_value_equality_values_cls_', lambda self: type(self))
+    elif manual_cls:
+        cls_getter = getattr(cls, '_value_equality_values_cls_', None)
+        if cls_getter is None:
+            raise TypeError('The @cirq.value_equality decorator requires a '
+                            '_value_equality_values_cls_ method to be defined '
+                            'when "manual_cls" is set.')
     else:
         setattr(cls, '_value_equality_values_cls_', lambda self: cls)
     setattr(cls, '__hash__', None if unhashable else _value_equality_hash)

@@ -64,8 +64,9 @@ def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
         return result
 
     if isinstance(controllee, collections.Iterable):
-        return op_tree.transform_op_tree(controllee, op_transformation=
-                                      lambda op: control(op, control_qubits))
+        return op_tree.transform_op_tree(
+            controllee,
+            op_transformation=lambda op: control(op, control_qubits))
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default

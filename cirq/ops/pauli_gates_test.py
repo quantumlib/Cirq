@@ -24,6 +24,20 @@ def test_equals():
     eq.add_equality_group(cirq.Z, cirq.ops.pauli_gates.Z, cirq.ZPowGate())
 
 
+def test_phased_pauli_product():
+    assert cirq.X.phased_pauli_product(cirq.X) == (1, None)
+    assert cirq.X.phased_pauli_product(cirq.Y) == (1j, cirq.Z)
+    assert cirq.X.phased_pauli_product(cirq.Z) == (-1j, cirq.Y)
+
+    assert cirq.Y.phased_pauli_product(cirq.X) == (-1j, cirq.Z)
+    assert cirq.Y.phased_pauli_product(cirq.Y) == (1, None)
+    assert cirq.Y.phased_pauli_product(cirq.Z) == (1j, cirq.X)
+
+    assert cirq.Z.phased_pauli_product(cirq.X) == (1j, cirq.Y)
+    assert cirq.Z.phased_pauli_product(cirq.Y) == (-1j, cirq.X)
+    assert cirq.Z.phased_pauli_product(cirq.Z) == (1, None)
+
+
 def test_isinstance():
     assert isinstance(cirq.X, cirq.XPowGate)
     assert isinstance(cirq.Y, cirq.YPowGate)
