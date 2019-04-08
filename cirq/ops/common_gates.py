@@ -412,11 +412,6 @@ class MeasurementGate(gate_features.MultiQubitGate):
             len(self.invert_mask) > self.num_qubits()):
             raise ValueError('len(invert_mask) > num_qubits')
 
-    @staticmethod
-    def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        return (cirq.protocols.measurement_key(op, None) is not None
-                and cirq.protocols.has_channel(op))
-
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
         old_mask = self.invert_mask or ()
