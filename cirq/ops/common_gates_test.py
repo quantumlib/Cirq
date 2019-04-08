@@ -593,25 +593,6 @@ b: ───X───────@───────@───────�
 """)
 
 
-def test_is_measurement():
-    class NotImplementedOperation(cirq.Operation):
-        def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
-            raise NotImplementedError()
-
-        @property
-        def qubits(self):
-            raise NotImplementedError()
-
-    q = cirq.NamedQubit('q')
-    assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
-    assert cirq.MeasurementGate.is_measurement(
-        cirq.MeasurementGate(num_qubits=1, key='b'))
-
-    assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
-    assert not cirq.MeasurementGate.is_measurement(cirq.X)
-    assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())
-
-
 def test_rx_unitary():
     s = np.sqrt(0.5)
     np.testing.assert_allclose(

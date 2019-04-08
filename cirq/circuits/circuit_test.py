@@ -1208,6 +1208,53 @@ def test_are_all_measurements_terminal():
     assert not c.are_all_measurements_terminal()
 
 
+def test_all_terminal():
+    def is_x_pow_gate(op):
+        return cirq.op_gate_of_type(op, cirq.XPowGate) is not None
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    xa = cirq.X.on(a)
+    xb = cirq.X.on(b)
+
+    ya = cirq.Y.on(a)
+    yb = cirq.Y.on(b)
+
+    c = Circuit()
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa, xb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, xa)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb, ya, yb)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya, xa)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+
 def test_clear_operations_touching():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -2851,19 +2898,19 @@ def test_submoments():
     )
 
     cirq.testing.assert_has_diagram(circuit, """
-          ┌───────────┐
-0: ───H────@──────────────@────────
-           │              │
-1: ───@────┼@─────────────┼────────
-      │    ││             │
-2: ───@────┼┼────@────────┼────H───
-           ││    │        │
-3: ───H────@┼────┼────────X^0.5────
+          ┌───────────┐   ┌──────┐
+0: ───H────@───────────────@─────────
+           │               │
+1: ───@────┼@──────────────┼─────────
+      │    ││              │
+2: ───@────┼┼────@─────────┼────H────
+           ││    │         │
+3: ───H────@┼────┼─────────X^0.5─────
             │    │
-4: ─────────X^0.5┼────────H────────
+4: ─────────X^0.5┼─────────H─────────
                  │
-5: ──────────────X^0.5─────────────
-          └───────────┘
+5: ──────────────X^0.5───────────────
+          └───────────┘   └──────┘
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
@@ -2877,25 +2924,27 @@ def test_submoments():
 │ │ │ @─┼─────┼─────X^0.5 │
 └╴│ │ │ │     │     │    ╶┘
   │ │ │ │     │     │
-  @─┼─┼─X^0.5 H     │
-  │ │ H │     │     │
+┌╴│ │ │ │     │     │    ╶┐
+│ @─┼─┼─X^0.5 H     │     │
+│ │ │ H │     │     │     │
+└╴│ │ │ │     │     │    ╶┘
   │ │ │ │     │     │
 """, transpose=True)
 
     cirq.testing.assert_has_diagram(circuit, r"""
-          /-----------\
-0: ---H----@--------------@--------
-           |              |
-1: ---@----|@-------------|--------
-      |    ||             |
-2: ---@----||----@--------|----H---
-           ||    |        |
-3: ---H----@|----|--------X^0.5----
+          /-----------\   /------\
+0: ---H----@---------------@---------
+           |               |
+1: ---@----|@--------------|---------
+      |    ||              |
+2: ---@----||----@---------|----H----
+           ||    |         |
+3: ---H----@|----|---------X^0.5-----
             |    |
-4: ---------X^0.5|--------H--------
+4: ---------X^0.5|---------H---------
                  |
-5: --------------X^0.5-------------
-          \-----------/
+5: --------------X^0.5---------------
+          \-----------/   \------/
 """, use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit, r"""
@@ -2909,8 +2958,10 @@ def test_submoments():
 | | | @-------------X^0.5 |
 \ | | | |     |     |     /
   | | | |     |     |
-  @-----X^0.5 H     |
-  | | H |     |     |
+/ | | | |     |     |     \
+| @-----X^0.5 H     |     |
+| | | H |     |     |     |
+\ | | | |     |     |     /
   | | | |     |     |
 """, use_unicode_characters=False, transpose=True)
 
@@ -2966,3 +3017,35 @@ def test_pow_valid_only_for_minus_1():
 def test_device_propagates():
     c = cirq.Circuit(device=moment_and_op_type_validating_device)
     assert c[:].device is moment_and_op_type_validating_device
+
+def test_moment_groups():
+    qubits = [cirq.GridQubit(x, y) for x in range(8) for y in range(8)]
+    c0 = cirq.H(qubits[0])
+    c7 = cirq.H(qubits[7])
+    cz14 = cirq.CZ(qubits[1], qubits[4])
+    cz25 = cirq.CZ(qubits[2], qubits[5])
+    cz36 = cirq.CZ(qubits[3], qubits[6])
+    moment1 = cirq.Moment([c0, cz14, cz25, c7])
+    moment2 = cirq.Moment([c0, cz14, cz25, cz36, c7])
+    moment3 = cirq.Moment([cz14, cz25, cz36])
+    moment4 = cirq.Moment([cz25, cz36])
+    circuit = cirq.Circuit((moment1, moment2, moment3, moment4))
+    cirq.testing.assert_has_diagram(circuit, r"""
+           ┌──┐   ┌───┐   ┌───┐   ┌──┐
+(0, 0): ────H──────H─────────────────────
+
+(0, 1): ────@──────@───────@─────────────
+            │      │       │
+(0, 2): ────┼@─────┼@──────┼@──────@─────
+            ││     ││      ││      │
+(0, 3): ────┼┼─────┼┼@─────┼┼@─────┼@────
+            ││     │││     │││     ││
+(0, 4): ────@┼─────@┼┼─────@┼┼─────┼┼────
+             │      ││      ││     ││
+(0, 5): ─────@──────@┼──────@┼─────@┼────
+                     │       │      │
+(0, 6): ─────────────@───────@──────@────
+
+(0, 7): ────H──────H─────────────────────
+           └──┘   └───┘   └───┘   └──┘
+""", use_unicode_characters=True)
