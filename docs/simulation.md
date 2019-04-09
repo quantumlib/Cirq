@@ -1,6 +1,17 @@
 ## Simulation
 
 Cirq comes with built in Python simulators for testing out
+small circuits.  There are two types of simulators
+
+* Pure state simulators that apply sparse matrix updates.
+The pure state simulators support both unitary gates as
+well as channels that are probabilistic combinations (mixtures)
+of unitaries or 
+
+* Mixed state simulators that keep track of the entire density
+matrix and can be used
+
+Cirq comes with built in Python simulators for testing out
 small circuits.  One of these simulators works for generic
 gates that implement their unitary matrix, ``cirq.Simulator``.
 The other simulator is customized for the native gate set
