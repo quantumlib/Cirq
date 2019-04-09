@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING
 
 import sympy
 from cirq.ops import common_gates, eigen_gate
