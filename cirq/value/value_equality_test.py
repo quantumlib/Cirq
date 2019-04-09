@@ -242,7 +242,7 @@ def test_value_equality_forgot_method():
 
 
 def test_bad_manual_cls():
-    with pytest.raises(ValueError, mach='incompatible'):
+    with pytest.raises(ValueError, match='incompatible'):
         @cirq.value_equality(manual_cls=True, distinct_child_types=True)
         class C:
             pass
