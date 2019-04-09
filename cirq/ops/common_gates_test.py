@@ -298,21 +298,21 @@ def test_text_diagrams():
         cirq.CZ(a, b),
         cirq.CNOT(a, b),
         cirq.CNOT(b, a),
-        cirq.H(a),
+        cirq.H(a)**0.5,
         cirq.ISWAP(a, b)**-1,
         cirq.I(a),
         cirq.IdentityGate(2)(a, b))
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H───iSwap──────I───I───
-      │                             │   │   │       │              │
-b: ───×─────────────────────────────@───X───@───────iSwap^-1───────I───
+a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H^0.5───iSwap──────I───I───
+      │                             │   │   │           │              │
+b: ───×─────────────────────────────@───X───@───────────iSwap^-1───────I───
 """)
 
     cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H---iSwap------I---I---
-      |                                |   |   |       |              |
-b: ---swap-----------------------------@---X---@-------iSwap^-1-------I---
+a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H^0.5---iSwap------I---I---
+      |                                |   |   |           |              |
+b: ---swap-----------------------------@---X---@-----------iSwap^-1-------I---
 """, use_unicode_characters=False)
 
 
@@ -591,25 +591,6 @@ a: ───@───H───X───T───X───T^-1───H─�
       │       │       │              │
 b: ───X───────@───────@──────────────X───
 """)
-
-
-def test_is_measurement():
-    class NotImplementedOperation(cirq.Operation):
-        def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
-            raise NotImplementedError()
-
-        @property
-        def qubits(self):
-            raise NotImplementedError()
-
-    q = cirq.NamedQubit('q')
-    assert cirq.MeasurementGate.is_measurement(cirq.measure(q))
-    assert cirq.MeasurementGate.is_measurement(
-        cirq.MeasurementGate(num_qubits=1, key='b'))
-
-    assert not cirq.MeasurementGate.is_measurement(cirq.X(q))
-    assert not cirq.MeasurementGate.is_measurement(cirq.X)
-    assert not cirq.MeasurementGate.is_measurement(NotImplementedOperation())
 
 
 def test_rx_unitary():

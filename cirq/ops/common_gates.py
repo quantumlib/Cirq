@@ -92,15 +92,15 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return {
+        return value.LinearDict({
             'I': phase * np.cos(angle),
             'X': -1j * phase * np.sin(angle),
-        }
+        })
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
@@ -188,15 +188,15 @@ class YPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return {
+        return value.LinearDict({
             'I': phase * np.cos(angle),
             'Y': -1j * phase * np.sin(angle),
-        }
+        })
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> Union[str, protocols.CircuitDiagramInfo]:
@@ -295,15 +295,15 @@ class ZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return {
+        return value.LinearDict({
             'I': phase * np.cos(angle),
             'Z': -1j * phase * np.sin(angle),
-        }
+        })
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
@@ -380,12 +380,15 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(gate_features.MultiQubitGate):
+class MeasurementGate(raw_types.Gate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
     of measurements.
     """
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def __init__(self,
                  num_qubits: int,
@@ -403,19 +406,12 @@ class MeasurementGate(gate_features.MultiQubitGate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
-        assert isinstance(num_qubits, int)
-
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
         if (self.invert_mask is not None and
             len(self.invert_mask) > self.num_qubits()):
             raise ValueError('len(invert_mask) > num_qubits')
-
-    @staticmethod
-    def is_measurement(op: Union[raw_types.Gate, raw_types.Operation]) -> bool:
-        return (cirq.protocols.measurement_key(op, None) is not None
-                and cirq.protocols.has_channel(op))
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
@@ -544,8 +540,9 @@ def measure_each(*qubits: raw_types.Qid,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+
 @value.value_equality
-class IdentityGate(gate_features.MultiQubitGate):
+class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
@@ -555,7 +552,10 @@ class IdentityGate(gate_features.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
@@ -564,8 +564,8 @@ class IdentityGate(gate_features.MultiQubitGate):
         self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
-        return {'I' * self.num_qubits(): 1.0}
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return value.LinearDict({'I' * self.num_qubits(): 1.0})
 
     def __repr__(self):
         if self.num_qubits() == 1:
@@ -621,16 +621,16 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return {
+        return value.LinearDict({
             'I': phase * np.cos(angle),
             'X': -1j * phase * np.sin(angle) / np.sqrt(2),
             'Z': -1j * phase * np.sin(angle) / np.sqrt(2),
-        }
+        })
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
@@ -660,7 +660,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('H',))
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('H',),
+            exponent=self._diagram_exponent(args))
 
     def _qasm_(self,
                args: protocols.QasmArgs,
@@ -729,18 +731,18 @@ class CZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return {
+        return value.LinearDict({
             'II': global_phase * (1 - c),
             'IZ': global_phase * c,
             'ZI': global_phase * c,
             'ZZ': global_phase * -c,
-        }
+        })
 
     def _phase_by_(self, phase_turns, qubit_index):
         return self
@@ -852,18 +854,18 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return {
+        return value.LinearDict({
             'II': global_phase * (1 - c),
             'IX': global_phase * c,
             'ZI': global_phase * c,
             'ZX': global_phase * -c,
-        }
+        })
 
     def _qasm_(self,
                args: protocols.QasmArgs,
@@ -956,18 +958,18 @@ class SwapPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         swap_phase = 1j**self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return {
+        return value.LinearDict({
             'II': global_phase * (1 - c),
             'XX': global_phase * c,
             'YY': global_phase * c,
             'ZZ': global_phase * c,
-        }
+        })
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
@@ -1071,18 +1073,18 @@ class ISwapPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         angle = np.pi * self._exponent / 4
         c, s = np.cos(angle), np.sin(angle)
-        return {
+        return value.LinearDict({
             'II': global_phase * c * c,
             'XX': global_phase * c * s * 1j,
             'YY': global_phase * s * c * 1j,
             'ZZ': global_phase * s * s,
-        }
+        })
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:

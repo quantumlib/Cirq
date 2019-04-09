@@ -45,13 +45,13 @@ def operations_to_part_lens(
 
 
 class AcquaintanceOpportunityGate(
-        ops.MultiQubitGate, ops.InterchangeableQubitsGate):
+        ops.Gate, ops.InterchangeableQubitsGate):
     """Represents an acquaintance opportunity. An acquaintance opportunity is
     essentially a placeholder in a swap network that may later be replaced with
     a logical gate."""
 
     def __init__(self, num_qubits: int):
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
 
     def __repr__(self):
         return ('cirq.contrib.acquaintance.AcquaintanceOpportunityGate('
@@ -62,6 +62,10 @@ class AcquaintanceOpportunityGate(
         wire_symbol = '█' if args.use_unicode_characters else 'Acq'
         wire_symbols = (wire_symbol,) * self.num_qubits()
         return wire_symbols
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
+
 
 def acquaint(*qubits) -> ops.GateOperation:
     return AcquaintanceOpportunityGate(len(qubits)).on(*qubits)

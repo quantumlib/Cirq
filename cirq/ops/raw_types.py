@@ -14,15 +14,17 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Sequence, Tuple, TYPE_CHECKING, Callable, TypeVar, Any
+from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
 
 import abc
 
-from cirq import protocols, value
+from cirq import value
+from cirq.protocols import decompose, inverse
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq.ops import gate_operation
+    from cirq.ops import gate_operation, linear_combinations
+    # pylint: enable=unused-import
 
 
 class Qid(metaclass=abc.ABCMeta):
@@ -98,6 +100,9 @@ class Gate(metaclass=abc.ABCMeta):
     must implement the `num_qubits` method declaring how many qubits they
     act on. The gate feature classes `SingleQubitGate` and `TwoQubitGate`
     can be used to avoid writing this boilerplate.
+
+    Linear combinations of gates can be created by adding gates together and
+    multiplying them by scalars.
     """
 
     def validate_args(self, qubits: Sequence[Qid]) -> None:
@@ -134,6 +139,46 @@ class Gate(metaclass=abc.ABCMeta):
                     repr(self)))
         return gate_operation.GateOperation(self, list(qubits))
 
+    def wrap_in_linear_combination(
+            self,
+            coefficient: Union[complex, float, int]=1
+            ) -> 'linear_combinations.LinearCombinationOfGates':
+        from cirq.ops import linear_combinations
+        return linear_combinations.LinearCombinationOfGates({self: coefficient})
+
+    def __add__(self,
+                other: Union['Gate',
+                             'linear_combinations.LinearCombinationOfGates']
+                ) -> 'linear_combinations.LinearCombinationOfGates':
+        if isinstance(other, Gate):
+            return (self.wrap_in_linear_combination() +
+                    other.wrap_in_linear_combination())
+        return self.wrap_in_linear_combination() + other
+
+    def __sub__(self,
+                other: Union['Gate',
+                             'linear_combinations.LinearCombinationOfGates']
+                ) -> 'linear_combinations.LinearCombinationOfGates':
+        if isinstance(other, Gate):
+            return (self.wrap_in_linear_combination() -
+                    other.wrap_in_linear_combination())
+        return self.wrap_in_linear_combination() - other
+
+    def __neg__(self) -> 'linear_combinations.LinearCombinationOfGates':
+        return self.wrap_in_linear_combination(coefficient=-1)
+
+    def __mul__(self, other: Union[complex, float, int]
+                ) -> 'linear_combinations.LinearCombinationOfGates':
+        return self.wrap_in_linear_combination(coefficient=other)
+
+    def __rmul__(self, other: Union[complex, float, int]
+                 ) -> 'linear_combinations.LinearCombinationOfGates':
+        return self.wrap_in_linear_combination(coefficient=other)
+
+    def __truediv__(self, other: Union[complex, float, int]
+                    ) -> 'linear_combinations.LinearCombinationOfGates':
+        return self.wrap_in_linear_combination(coefficient=1 / other)
+
     def __pow__(self, power):
         if power == 1:
             return self
@@ -142,14 +187,14 @@ class Gate(metaclass=abc.ABCMeta):
             # HACK: break cycle
             from cirq.line import line_qubit
 
-            decomposed = protocols.decompose_once_with_qubits(
+            decomposed = decompose.decompose_once_with_qubits(
                 self,
                 qubits=line_qubit.LineQubit.range(self.num_qubits()),
                 default=None)
             if decomposed is None:
                 return NotImplemented
 
-            inverse_decomposed = protocols.inverse(decomposed, None)
+            inverse_decomposed = inverse.inverse(decomposed, None)
             if inverse_decomposed is None:
                 return NotImplemented
 
@@ -160,11 +205,22 @@ class Gate(metaclass=abc.ABCMeta):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
+    def controlled_by(self, *control_qubits: Qid) -> 'Gate':
+        """Returns a controlled version of this gate.
+
+        Args:
+            control_qubits: Optional qubits to control the gate by.
+        """
+        # Avoids circular import.
+        from cirq.ops import ControlledGate
+        return ControlledGate(self, control_qubits,
+                              len(control_qubits) if control_qubits is not None
+                                                  else 1)
+
     @abc.abstractmethod
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
         raise NotImplementedError()
-
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
@@ -199,6 +255,20 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
+    def controlled_by(self, *control_qubits: Qid) -> 'Operation':
+        """Returns a controlled version of this operation.
+
+        Args:
+            control_qubits: Qubits to control the operation by. Required.
+        """
+        # Avoids circular import.
+        from cirq.ops import ControlledOperation
+        if control_qubits is None or len(control_qubits) is 0:
+            raise ValueError(
+                "Can't get controlled operation without control qubit. Op: {}"
+                .format(repr(self)))
+        else:
+            return ControlledOperation(control_qubits, self)
 
 @value.value_equality
 class _InverseCompositeGate(Gate):
@@ -218,7 +288,7 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return protocols.inverse(protocols.decompose_once_with_qubits(
+        return inverse.inverse(decompose.decompose_once_with_qubits(
             self._original, qubits))
 
     def _value_equality_values_(self):

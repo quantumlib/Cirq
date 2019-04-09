@@ -75,7 +75,7 @@ import numpy as np
 import cirq
 
 
-class PhaseEstimation(cirq.MultiQubitGate):
+class PhaseEstimation(cirq.Gate):
     """
     A gate for Quantum Phase Estimation.
 
@@ -85,8 +85,12 @@ class PhaseEstimation(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits, unitary):
-        super(PhaseEstimation, self).__init__(num_qubits)
+        super(PhaseEstimation, self)
+        self._num_qubits = num_qubits
         self.U = unitary
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def _decompose_(self, qubits):
         qubits = list(qubits)
@@ -124,7 +128,7 @@ class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
         return self.eigen_components
 
 
-class PhaseKickback(cirq.MultiQubitGate):
+class PhaseKickback(cirq.Gate):
     """
     A gate for the phase kickback stage of Quantum Phase Estimation.
 
@@ -135,8 +139,12 @@ class PhaseKickback(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits, unitary):
-        super(PhaseKickback, self).__init__(num_qubits)
+        super(PhaseKickback, self)
+        self._num_qubits = num_qubits
         self.U = unitary
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def _decompose_(self, qubits):
         qubits = list(qubits)
@@ -145,7 +153,7 @@ class PhaseKickback(cirq.MultiQubitGate):
             yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
 
 
-class Qft(cirq.MultiQubitGate):
+class Qft(cirq.Gate):
     """
     Quantum gate for the Quantum Fourier Transformation.
 
@@ -154,7 +162,11 @@ class Qft(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super(Qft, self).__init__(num_qubits)
+        super(Qft, self)
+        self._num_qubits = num_qubits
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def _decompose_(self, qubits):
         processed_qubits = []
@@ -165,7 +177,7 @@ class Qft(cirq.MultiQubitGate):
             processed_qubits.insert(0, q_head)
 
 
-class EigenRotation(cirq.MultiQubitGate):
+class EigenRotation(cirq.Gate):
     """
     EigenRotation performs the set of rotation on the ancilla qubit equivalent
     to division on the memory register by each eigenvalue of the matrix. The
@@ -179,10 +191,14 @@ class EigenRotation(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits, C, t):
-        super(EigenRotation, self).__init__(num_qubits)
+        super(EigenRotation, self)
+        self._num_qubits = num_qubits
         self.C = C
         self.t = t
         self.N = 2**(num_qubits-1)
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def _decompose_(self, qubits):
         for k in range(self.N):
