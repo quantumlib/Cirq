@@ -238,3 +238,16 @@ def test_value_equality_forgot_method():
         @cirq.value_equality
         class _:
             pass
+
+
+def test_bad_manual_cls():
+    with pytest.raises(ValueError, match='incompatible'):
+        @cirq.value_equality(manual_cls=True, distinct_child_types=True)
+        class C:
+            pass
+
+    with pytest.raises(TypeError, match='_value_equality_values_cls_'):
+        @cirq.value_equality(manual_cls=True)
+        class C:
+            def _value_equality_values_(self):
+                return None

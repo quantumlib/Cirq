@@ -291,6 +291,13 @@ def test_mul_strings():
         d: cirq.Z,
     })
 
+    assert cirq.X(a) * cirq.PauliString({a: cirq.X}) == cirq.PauliString()
+    assert cirq.PauliString({a: cirq.X}) * cirq.X(a) == cirq.PauliString()
+    assert cirq.X(a) * cirq.X(a) == cirq.PauliString()
+
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = cirq.X(a) * object()
+
 
 def test_op_equivalence():
     a, b = cirq.LineQubit.range(2)
