@@ -16,8 +16,6 @@ import pytest
 
 import cirq
 
-from cirq.contrib.paulistring import PauliStringGateOperation
-
 
 def _make_qubits(n):
     return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
@@ -30,7 +28,7 @@ def test_op_calls_validate():
     class ValidError(Exception):
         pass
 
-    class ValiGate(PauliStringGateOperation):
+    class ValiGate(cirq.PauliStringGateOperation):
         def validate_args(self, qubits):
             super().validate_args(qubits)
             if bad_qubit in qubits:
@@ -50,7 +48,7 @@ def test_op_calls_validate():
 def test_on_wrong_number_qubits():
     q0, q1, q2 = _make_qubits(3)
 
-    class DummyGate(PauliStringGateOperation):
+    class DummyGate(cirq.PauliStringGateOperation):
         def map_qubits(self, qubit_map):
             ps = self.pauli_string.map_qubits(qubit_map)
             return DummyGate(ps)
@@ -67,7 +65,7 @@ def test_on_wrong_number_qubits():
 
 
 def test_default_text_diagram():
-    class DiagramGate(PauliStringGateOperation):
+    class DiagramGate(cirq.PauliStringGateOperation):
         def map_qubits(self, qubit_map):
             pass
 

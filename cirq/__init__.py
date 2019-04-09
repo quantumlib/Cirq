@@ -127,6 +127,8 @@ from cirq.ops import (
     PauliInteractionGate,
     PauliString,
     PauliStringExpectation,
+    PauliStringGateOperation,
+    PauliStringPhasor,
     PauliTransform,
     PhaseDampingChannel,
     PhaseFlipChannel,
