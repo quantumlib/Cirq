@@ -414,6 +414,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     def with_qubits(self, *new_qubits: raw_types.Qid
                     ) -> 'SingleQubitPauliStringGateOperation':
+        if len(new_qubits) != 1:
+            raise ValueError("len(new_qubits) != 1")
         return SingleQubitPauliStringGateOperation(
             cast(pauli_gates.Pauli, self.gate),
             new_qubits[0])
@@ -429,8 +431,6 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, SingleQubitPauliStringGateOperation):
-            return other._as_pauli_string() * self._as_pauli_string()
         if isinstance(other, (PauliString, complex, float, int)):
             return other * self._as_pauli_string()
         return NotImplemented
