@@ -297,6 +297,9 @@ def test_mul_strings():
 
     with pytest.raises(TypeError, match='unsupported'):
         _ = cirq.X(a) * object()
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = object() * cirq.X(a)
+    assert -cirq.X(a) == -cirq.PauliString({a: cirq.X})
 
 
 def test_op_equivalence():

@@ -245,9 +245,11 @@ def test_bad_manual_cls():
         @cirq.value_equality(manual_cls=True, distinct_child_types=True)
         class C:
             pass
+        del C
 
     with pytest.raises(TypeError, match='_value_equality_values_cls_'):
         @cirq.value_equality(manual_cls=True)
-        class C:
+        class D:
             def _value_equality_values_(self):
-                return None
+                pass
+        del D

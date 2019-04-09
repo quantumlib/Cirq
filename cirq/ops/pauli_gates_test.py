@@ -93,6 +93,16 @@ def test_by_relative_index():
     assert cirq.Pauli.by_relative_index(cirq.Z, 3) == cirq.Z
 
 
+def test_too_many_qubits():
+    a, b = cirq.LineQubit.range(2)
+    with pytest.raises(ValueError, match='single qubit'):
+        _ = cirq.X.on(a, b)
+
+    x = cirq.X(a)
+    with pytest.raises(ValueError, match='len(new_qubits)'):
+        _ = x.with_qubits(a, b)
+
+
 def test_relative_index_consistency():
     for pauli_1 in (cirq.X, cirq.Y, cirq.Z):
         for pauli_2 in (cirq.X, cirq.Y, cirq.Z):
