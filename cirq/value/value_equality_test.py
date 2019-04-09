@@ -236,12 +236,13 @@ def test_value_equality_approximate_typing():
 def test_value_equality_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_'):
         @cirq.value_equality
-        class _:
+        class C:
             pass
+        del C
 
 
 def test_bad_manual_cls():
-    with pytest.raises(ValueError, match='incompatible'):
+    with pytest.raises(ValueError, mach='incompatible'):
         @cirq.value_equality(manual_cls=True, distinct_child_types=True)
         class C:
             pass

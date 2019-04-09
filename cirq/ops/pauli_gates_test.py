@@ -99,7 +99,7 @@ def test_too_many_qubits():
         _ = cirq.X.on(a, b)
 
     x = cirq.X(a)
-    with pytest.raises(ValueError, match='len(new_qubits)'):
+    with pytest.raises(ValueError, match=r'len\(new_qubits\)'):
         _ = x.with_qubits(a, b)
 
 
