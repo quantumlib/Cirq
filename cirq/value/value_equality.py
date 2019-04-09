@@ -36,7 +36,6 @@ class _SupportsValueEquality(Protocol):
             Values used when determining if the receiving object is equal to
             another object.
         """
-        pass
 
     def _value_equality_approximate_values_(self) -> Any:
         """Returns value or values used for approximate equality.
@@ -68,7 +67,6 @@ class _SupportsValueEquality(Protocol):
             Type used when determining if the receiving object is equal to
             another object.
         """
-        pass
 
 
 def _value_equality_eq(self: _SupportsValueEquality,
