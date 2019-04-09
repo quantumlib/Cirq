@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, Union, TYPE_CHECKING, cast, Tuple, Optional
+from typing import Union, TYPE_CHECKING, Tuple, Optional
 
 import sympy
-from cirq.ops import common_gates, eigen_gate, raw_types, gate_operation
-from cirq.type_workarounds import NotImplementedType
+from cirq.ops import common_gates, raw_types
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
