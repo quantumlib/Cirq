@@ -31,9 +31,7 @@ measurements are provided
     measure
     measure_each
 """
-from typing import (
-    Any, Callable, cast, Dict, Iterable, List, Optional, Tuple, Union,
-)
+from typing import Any, Callable, cast, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import sympy
