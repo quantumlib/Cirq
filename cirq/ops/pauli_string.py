@@ -323,7 +323,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def with_qubits(self, *new_qubits: raw_types.Qid
                     ) -> 'SingleQubitPauliStringGateOperation':
         if len(new_qubits) != 1:
-            raise ValueError("len(new_qubits) != 1")
+            raise ValueError(r"len\(new_qubits\) != 1")
         return SingleQubitPauliStringGateOperation(
             cast(Pauli, self.gate),
             new_qubits[0])
