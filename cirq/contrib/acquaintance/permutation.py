@@ -46,7 +46,6 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
     def permutation(self) -> Dict[int, int]:
         """permutation = {i: s[i]} indicates that the i-th element is mapped to
         the s[i]-th element."""
-        pass
 
     def update_mapping(self, mapping: Dict[ops.Qid, LogicalIndex],
                        keys: Sequence[ops.Qid]
