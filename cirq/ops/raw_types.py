@@ -49,7 +49,6 @@ class Qid(metaclass=abc.ABCMeta):
         their type name. Qubits of the same type are then sorted using their
         comparison key.
         """
-        pass
 
     def _cmp_tuple(self):
         return type(self).__name__, repr(type(self)), self._comparison_key()
