@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import List
+from typing import List, cast
 
 import numpy as np
 import pytest
@@ -384,7 +384,7 @@ def _assert_pass_over(ops: List[cirq.Operation],
                          itertools.product(range(3), (-1, +1)))
 def test_pass_operations_over_single(shift: int, sign: int):
     q0, q1 = _make_qubits(2)
-    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
+    X, Y, Z = (cirq.Pauli.by_relative_index(cast(cirq.Pauli, pauli), shift)
                for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)

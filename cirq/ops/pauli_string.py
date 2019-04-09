@@ -28,9 +28,12 @@ TDefault = TypeVar('TDefault')
 
 @value.value_equality(manual_cls=True)
 class PauliString(raw_types.Operation):
-    def __init__(self,
-                 qubit_pauli_map: Mapping[raw_types.Qid, Pauli] = (),
-                 coefficient: Union[int, float, complex] = 1) -> None:
+    def __init__(
+            self,
+            qubit_pauli_map: Optional[Mapping[raw_types.Qid, Pauli]] = None,
+            coefficient: Union[int, float, complex] = 1) -> None:
+        if qubit_pauli_map is None:
+            qubit_pauli_map = {}
         self._qubit_pauli_map = dict(qubit_pauli_map)
         self._coefficient = complex(coefficient)
 
@@ -301,8 +304,9 @@ class PauliString(raw_types.Operation):
         return quarter_kickback % 4 == 2
 
 
-class SingleQubitPauliStringGateOperation(gate_operation.GateOperation,
-                                          PauliString):
+# Ignoring type because mypy believes `with_qubits` methods are incompatible.
+class SingleQubitPauliStringGateOperation(  # type: ignore
+        gate_operation.GateOperation, PauliString):
     """A Pauli operation applied to a qubit.
 
     Satisfies the contract of both GateOperation and PauliString. Relies
@@ -315,6 +319,12 @@ class SingleQubitPauliStringGateOperation(gate_operation.GateOperation,
         gate_operation.GateOperation.__init__(self,
                                               cast(raw_types.Gate, pauli),
                                               [qubit])
+
+    def with_qubits(self, *new_qubits: raw_types.Qid
+                    ) -> 'SingleQubitPauliStringGateOperation':
+        return SingleQubitPauliStringGateOperation(
+            cast(Pauli, self.gate),
+            new_qubits[0])
 
     def as_pauli_string(self) -> PauliString:
         return PauliString({self.qubits[0]: cast(Pauli, self.gate)})
