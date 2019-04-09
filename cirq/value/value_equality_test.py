@@ -236,21 +236,18 @@ def test_value_equality_approximate_typing():
 def test_value_equality_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_'):
         @cirq.value_equality
-        class C:
-            pass
-        del C
+        class _: pass
 
 
-def test_bad_manual_cls():
+def test_bad_manual_cls_incompatible_args():
     with pytest.raises(ValueError, match='incompatible'):
         @cirq.value_equality(manual_cls=True, distinct_child_types=True)
-        class C:
-            pass
-        del C
+        class _: pass
 
+
+def test_bad_manual_cls_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_cls_'):
         @cirq.value_equality(manual_cls=True)
-        class D:
+        class _:
             def _value_equality_values_(self):
                 pass
-        del D
