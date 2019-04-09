@@ -42,4 +42,3 @@ class LinePlacementStrategy(metaclass=abc.ABCMeta):
         Returns:
             Linear sequences found on the chip.
         """
-        pass
