@@ -37,7 +37,12 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         # Vacuous consistency.
         return
 
-    qubit_count = len(unitary).bit_length() - 1
+    controls = getattr(val, 'control_qubits', None)
+    if controls is None:
+        qubit_count = len(unitary).bit_length() - 1
+    else:
+        qubit_count = len(unitary).bit_length() - 1 - (len(controls) -
+                                                       controls.count(None))
     if isinstance(val, ops.Operation):
         qubits = val.qubits
         op = val
