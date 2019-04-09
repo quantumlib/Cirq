@@ -3,7 +3,7 @@
 
 # For testing and analyzing code.
 mypy==0.641.*
-pylint==2.1.*
+pylint==2.3.*
 pytest==3.8.*
 pytest-cov==2.5.*
 pytest-benchmark==3.2.*
