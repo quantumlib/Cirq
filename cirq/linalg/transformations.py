@@ -220,7 +220,7 @@ def apply_matrix_to_slices(
 
 
 def partial_trace(tensor: np.ndarray,
-                  keep_indices: List[int]):
+                  keep_indices: List[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
     The input tensor must have shape `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
