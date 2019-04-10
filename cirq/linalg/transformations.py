@@ -217,3 +217,38 @@ def apply_matrix_to_slices(
                 out[s_i] += target[s_j] * matrix[i, j]
 
     return out
+
+
+def partial_trace(tensor: np.ndarray,
+                  keep_indices: List[int]) -> np.ndarray:
+    """Takes the partial trace of a given tensor.
+
+    The input tensor must have shape `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
+    The trace is done over all indices that are not in keep_indices. The
+    resulting tensor has shape `(d_{i_0}, ..., d_{i_r}, d_{i_0}, ..., d_{i_r})`
+    where `i_j` is the `j`th element of `keep_indices`.
+
+    Args:
+        tensor: The tensor to sum over. This tensor must have a shape
+            `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
+        keep_indices: Which indices to not sum over. These are only the indices
+            of the first half of the tensors indices (i.e. all elements must
+            be between `0` and `tensor.ndims / 2 - 1` inclusive).
+
+    Raises:
+        ValueError: if the tensor is not of the correct shape or the indices
+            are not from the first half of valid indices for the tensor.
+    """
+    ndim = tensor.ndim // 2
+    if not all(tensor.shape[i] == tensor.shape[i + ndim] for i in range(ndim)):
+        raise ValueError('Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+                         'd_{{k-1}}) but had shape ({}).'.format(tensor.shape))
+    if not all(i < ndim for i in keep_indices):
+        raise ValueError('keep_indices were {} but must be in first half, '
+                         'i.e. have index less that {}.'.format(keep_indices,
+                                                                ndim))
+    keep_set = set(keep_indices)
+    keep_map = dict(zip(keep_indices, sorted(keep_indices)))
+    left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
+    right_indices = [ndim + i if i in keep_set else i for i in left_indices]
+    return np.einsum(tensor, left_indices + right_indices)
