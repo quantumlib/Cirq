@@ -43,7 +43,6 @@ class SupportsApproximateEquality(Protocol):
             NotImplemented when approximate equality is not implemented for
             given types.
         """
-        pass
 
 
 def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:

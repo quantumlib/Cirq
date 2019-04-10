@@ -26,7 +26,7 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=ops.Qid)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
-class PermutationGate(ops.MultiQubitGate, metaclass=abc.ABCMeta):
+class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
     """A permutation gate indicates a change in the mapping from qubits to
     logical indices.
 
@@ -36,14 +36,16 @@ class PermutationGate(ops.MultiQubitGate, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, num_qubits: int, swap_gate: ops.Gate=ops.SWAP) -> None:
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
         self.swap_gate = swap_gate
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     @abc.abstractmethod
     def permutation(self) -> Dict[int, int]:
         """permutation = {i: s[i]} indicates that the i-th element is mapped to
         the s[i]-th element."""
-        pass
 
     def update_mapping(self, mapping: Dict[ops.Qid, LogicalIndex],
                        keys: Sequence[ops.Qid]

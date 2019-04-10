@@ -1208,6 +1208,53 @@ def test_are_all_measurements_terminal():
     assert not c.are_all_measurements_terminal()
 
 
+def test_all_terminal():
+    def is_x_pow_gate(op):
+        return cirq.op_gate_of_type(op, cirq.XPowGate) is not None
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    xa = cirq.X.on(a)
+    xb = cirq.X.on(b)
+
+    ya = cirq.Y.on(a)
+    yb = cirq.Y.on(b)
+
+    c = Circuit()
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa, xb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, xa)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb, ya, yb)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya, xa)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+
 def test_clear_operations_touching():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1452,9 +1499,12 @@ def test_circuit_diagram_on_gate_without_info():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
 
-    class FGate(cirq.MultiQubitGate):
+    class FGate(cirq.Gate):
         def __init__(self, num_qubits=1):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'
@@ -1841,10 +1891,13 @@ def test_composite_gate_to_unitary_matrix():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.MultiQubitGate):
+    class MultiTargetCZ(cirq.Gate):
 
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs

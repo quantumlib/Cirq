@@ -76,7 +76,6 @@ from cirq.ops.eigen_gate import (
 )
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
-    MultiQubitGate,
     SingleQubitGate,
     ThreeQubitGate,
     TwoQubitGate,
