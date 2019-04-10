@@ -70,6 +70,7 @@ from cirq.linalg import (
     map_eigenvalues,
     match_global_phase,
     matrix_from_basis_coefficients,
+    partial_trace,
     PAULI_BASIS,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
