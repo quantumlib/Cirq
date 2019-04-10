@@ -14,7 +14,7 @@
 
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
-from typing import Any, Dict, TypeVar, Union
+from typing import Any, TypeVar, Union
 
 from cirq import value
 from cirq.linalg import operator_spaces

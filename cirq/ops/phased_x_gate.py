@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import Dict, Union, Sequence, Tuple, Optional, cast
+from typing import Union, Sequence, Tuple, Optional, cast
 
 import numpy as np
 import sympy
