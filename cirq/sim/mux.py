@@ -18,22 +18,21 @@ from typing import List, Type, Union, Optional
 
 import numpy as np
 
-from cirq import circuits, protocols, study, devices, schedules
+from cirq import circuits, protocols, study, schedules
 from cirq.sim import sparse_simulator, density_matrix_simulator
 
 
-def run(program: Union[circuits.Circuit, schedules.Schedule],
-        *,
-        param_resolver: Optional[study.ParamResolver] = None,
-        repetitions: int = 1,
-        dtype: Type[np.number] = np.complex64) -> study.TrialResult:
+def sample(program: Union[circuits.Circuit, schedules.Schedule],
+           *,
+           param_resolver: Optional[study.ParamResolver] = None,
+           repetitions: int = 1,
+           dtype: Type[np.number] = np.complex64) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
         program: The circuit or schedule to sample from.
         param_resolver: Parameters to run with the program.
         repetitions: The number of samples to take.
-        noise: Noise model used to to inject noise while taking samples.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Defaults to fast, i.e. to `numpy.complex64`.
@@ -53,12 +52,12 @@ def run(program: Union[circuits.Circuit, schedules.Schedule],
             repetitions=repetitions)
 
 
-def run_sweep(program: Union[circuits.Circuit, schedules.Schedule],
-              params: study.Sweepable,
-              *,
-              repetitions: int = 1,
-              dtype: Type[np.number] = np.complex64
-              ) -> List[study.TrialResult]:
+def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
+                 params: study.Sweepable,
+                 *,
+                 repetitions: int = 1,
+                 dtype: Type[np.number] = np.complex64
+                 ) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -69,7 +68,6 @@ def run_sweep(program: Union[circuits.Circuit, schedules.Schedule],
         params: Parameters to run with the program.
         repetitions: The number of repetitions to simulate, per set of
             parameter values.
-        noise: Noise model used to to inject noise while taking samples.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Defaults to fast, i.e. to `numpy.complex64`.
@@ -84,9 +82,9 @@ def run_sweep(program: Union[circuits.Circuit, schedules.Schedule],
 
     trial_results = []  # type: List[study.TrialResult]
     for param_resolver in param_resolvers:
-        measurements = run(circuit,
-                           param_resolver=param_resolver,
-                           repetitions=repetitions,
-                           dtype=dtype)
+        measurements = sample(circuit,
+                              param_resolver=param_resolver,
+                              repetitions=repetitions,
+                              dtype=dtype)
         trial_results.append(measurements)
     return trial_results

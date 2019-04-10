@@ -24,11 +24,11 @@ def test_run():
     q = cirq.NamedQubit('q')
 
     # Unitary.
-    results = cirq.run(cirq.Circuit.from_ops(cirq.X(q), cirq.measure(q)))
+    results = cirq.sample(cirq.Circuit.from_ops(cirq.X(q), cirq.measure(q)))
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Intermediate measurements.
-    results = cirq.run(cirq.Circuit.from_ops(
+    results = cirq.sample(cirq.Circuit.from_ops(
         cirq.measure(q, key='drop'),
         cirq.X(q),
         cirq.measure(q),
@@ -45,7 +45,7 @@ def test_run_sweep():
         cirq.measure(q))
 
     # Unitary.
-    results = cirq.run_sweep(c, cirq.Linspace('t', 0, 1, 5), repetitions=3)
+    results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 5), repetitions=3)
     assert len(results) == 5
     for result in results:
         assert result.histogram(key=q) == collections.Counter({1: 3})
@@ -56,7 +56,7 @@ def test_run_sweep():
         cirq.Z(q)**sympy.Symbol('t'),
         cirq.amplitude_damp(1).on(q),
         cirq.measure(q))
-    results = cirq.run_sweep(
+    results = cirq.sample_sweep(
         c,
         cirq.Linspace('t', 0, 1, 5),
         repetitions=3)
