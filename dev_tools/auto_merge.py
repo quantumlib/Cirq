@@ -1,5 +1,6 @@
 import datetime
 import re
+import traceback
 from typing import Optional, List, Any, Dict, Set, Union
 
 import json
@@ -940,7 +941,10 @@ def main():
     log('Watching for automergeable PRs.')
     problem_seen_times = {}  # type: Dict[int, datetime.datetime]
     while True:
-        duty_cycle(repo, problem_seen_times)
+        try:
+            duty_cycle(repo, problem_seen_times)
+        except Exception:  # Anything but a keyboard interrupt / system exit.
+            traceback.print_exc()
         wait_for_polling_period()
 
 

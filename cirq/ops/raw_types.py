@@ -107,7 +107,8 @@ class Gate(metaclass=abc.ABCMeta):
     def validate_args(self, qubits: Sequence[Qid]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
-        By default only checks qubit count. Child classes can override.
+        By default checks if input is of type Qid and qubit count.
+        Child classes can override.
 
         Args:
             qubits: The collection of qubits to potentially apply the gate to.
@@ -115,6 +116,11 @@ class Gate(metaclass=abc.ABCMeta):
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
+        if len(qubits) == 0:
+            raise ValueError(
+                "Applied a gate to an empty set of qubits. Gate: {}".format(
+                    repr(self)))
+
         if len(qubits) != self.num_qubits():
             raise ValueError(
                 'Wrong number of qubits for <{!r}>. '
@@ -122,6 +128,11 @@ class Gate(metaclass=abc.ABCMeta):
                     self,
                     self.num_qubits(),
                     qubits))
+
+        if any([not isinstance(qubit, Qid)
+                for qubit in qubits]):
+            raise ValueError(
+                    'Gate was called with type different than Qid.')
 
     def on(self, *qubits: Qid) -> 'gate_operation.GateOperation':
         """Returns an application of this gate to the given qubits.
@@ -131,11 +142,6 @@ class Gate(metaclass=abc.ABCMeta):
         """
         # Avoids circular import.
         from cirq.ops import gate_operation
-
-        if len(qubits) == 0:
-            raise ValueError(
-                "Applied a gate to an empty set of qubits. Gate: {}".format(
-                    repr(self)))
         return gate_operation.GateOperation(self, list(qubits))
 
     def wrap_in_linear_combination(
