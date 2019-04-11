@@ -212,6 +212,8 @@ from cirq.sim import (
     dirac_notation,
     measure_state_vector,
     measure_density_matrix,
+    sample,
+    sample_sweep,
     sample_density_matrix,
     sample_state_vector,
     SimulatesFinalState,
