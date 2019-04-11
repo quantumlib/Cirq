@@ -70,7 +70,7 @@ class EjectZ():
                     continue
 
                 # Z gate before measurement is a no-op. Drop tracked phase.
-                if ops.MeasurementGate.is_measurement(op):
+                if ops.op_gate_of_type(op, ops.MeasurementGate):
                     for q in op.qubits:
                         qubit_phase[q] = 0
 

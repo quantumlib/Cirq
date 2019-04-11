@@ -70,6 +70,7 @@ from cirq.linalg import (
     map_eigenvalues,
     match_global_phase,
     matrix_from_basis_coefficients,
+    partial_trace,
     PAULI_BASIS,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
@@ -97,6 +98,7 @@ from cirq.ops import (
     CZ,
     CZPowGate,
     ControlledGate,
+    ControlledOperation,
     DensityMatrixDisplay,
     DepolarizingChannel,
     EigenGate,
@@ -116,9 +118,8 @@ from cirq.ops import (
     measure,
     measure_each,
     Moment,
-    MultiQubitGate,
     NamedQubit,
-    ControlledOperation,
+    op_gate_of_type,
     OP_TREE,
     Operation,
     ParallelGateOperation,
@@ -274,6 +275,7 @@ from cirq.protocols import (
     has_mixture_channel,
     has_unitary,
     inverse,
+    is_measurement,
     is_parameterized,
     measurement_key,
     mixture,
@@ -307,6 +309,13 @@ from cirq.protocols import (
 
 from cirq.ion import (
     MS,
+    two_qubit_matrix_to_ion_operations,
+    IonDevice,
+    ConvertToIonGates,
+)
+from cirq.neutral_atoms import (
+    NeutralAtomDevice,
+    ConvertToNeutralAtomGates,
 )
 # pylint: enable=redefined-builtin
 
