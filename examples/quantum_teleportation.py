@@ -66,9 +66,12 @@ def main():
 
     sim = cirq.Simulator()
 
+    # Create qubits.
+    q0, q1 = cirq.LineQubit.range(2)
+
     # Produces the message using random X and Y gates
     message = sim.simulate(cirq.Circuit.from_ops(
-        [cirq.X(0)**ranX, cirq.Y(0)**ranY]))
+        [cirq.X(q0)**ranX, cirq.Y(q1)**ranY]))
 
     print("\nBloch Sphere of Message After Random X and Y Gates:")
     # Prints the Bloch Sphere of the Message after the X and Y gates
