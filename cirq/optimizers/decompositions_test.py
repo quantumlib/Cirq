@@ -216,6 +216,7 @@ def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
 def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         pre_turns, post_turns):
     atol = 1e-6
+    aggr_atol = atol * 10.0
 
     intended_effect = cirq.dot(
         cirq.unitary(cirq.Z**(2 * pre_turns)),
@@ -226,7 +227,7 @@ def test_single_qubit_matrix_to_native_gates_fuzz_half_turns_always_one_gate(
         intended_effect, atol=atol)
 
     assert len(gates) == 1
-    assert_gates_implement_unitary(gates, intended_effect, atol=atol)
+    assert_gates_implement_unitary(gates, intended_effect, atol=aggr_atol)
 
 
 def test_single_qubit_matrix_to_native_gates_tolerance_z():
