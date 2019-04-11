@@ -154,6 +154,7 @@ def targeted_conjugate(
     target: np.ndarray,
     indices: Sequence[int],
     conj_indices: Sequence[int],
+    buffer: Optional[np.ndarray] = None,
     out: Optional[np.ndarray] = None) -> np.ndarray:
     """Conjugates the given tensor about the target tensor.
 
@@ -175,17 +176,17 @@ def targeted_conjugate(
             target.
         conj_indices; The indices which will be contracted between the
             complex conjugate of the tensor and the target.
+        buffer: A buffer to store partial results in.  If not specified or None,
+            a new buffer is used.
         out: The buffer to store the results in. If not specified or None, a new
             buffer is used. Must have the same shape as target.
 
     Returns:
         The result the conjugation.
     """
-    first_multiply = targeted_left_multiply(tensor, target, indices, out=out)
-    return targeted_left_multiply(np.conjugate(tensor),
-                                  first_multiply,
-                                  conj_indices,
-                                  out=out)
+    first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
+    return targeted_left_multiply(np.conjugate(tensor), first_multiply,
+                                  conj_indices, out=out)
 
 
 _TSliceAtom = Union[int, slice, 'ellipsis']

@@ -182,11 +182,30 @@ def test_targeted_conjugate():
     np.testing.assert_almost_equal(result, expected)
 
 
+def test_targeted_conjugate_multiple_indices():
+    a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate(a, b, [0, 1], [2, 3])
+    expected = np.einsum('ijkl,klmn,mnop->ijop', a, b,
+                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_multiple_indices_flip_order():
+    a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate(a, b, [1, 0], [3, 2])
+    expected = np.einsum('ijkl,lknm,mnop->jipo', a, b,
+                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    np.testing.assert_almost_equal(result, expected)
+
+
 def test_targeted_conjugate_out():
     a = np.reshape([0, 1, 2j, 3j], (2, 2))
     b = np.reshape(np.arange(16), (2,) * 4)
+    buffer = np.empty((2,) * 4, dtype=a.dtype)
     out = np.empty((2,) * 4, dtype=a.dtype)
-    result = cirq.targeted_conjugate(a, b, [0], [2], out)
+    result = cirq.targeted_conjugate(a, b, [0], [2], buffer, out)
     assert result is out
     expected = np.einsum('ij,jklm,ln->iknm', a, b,
                          np.transpose(np.conjugate(a)))

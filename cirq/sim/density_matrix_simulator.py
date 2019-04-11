@@ -258,6 +258,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     sum_buffer = np.zeros((2,) * 2 * num_qubits,
                                           dtype=self._dtype)
                     buffer = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
+                    out = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
                     for krauss in channel:
                         krauss_tensor = np.reshape(krauss.astype(self._dtype),
                                                    (2,) * gate.num_qubits() * 2)
@@ -266,7 +267,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                                            matrix,
                                                            indices,
                                                            conj_indices,
-                                                           out=buffer)
+                                                           buffer=buffer,
+                                                           out=out)
                         sum_buffer += result
                     np.copyto(dst=matrix, src=sum_buffer)
             yield DensityMatrixStepResult(
