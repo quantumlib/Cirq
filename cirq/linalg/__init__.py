@@ -67,5 +67,6 @@ from cirq.linalg.transformations import (
     match_global_phase,
     partial_trace,
     reflection_matrix_pow,
+    targeted_conjugate,
     targeted_left_multiply,
 )

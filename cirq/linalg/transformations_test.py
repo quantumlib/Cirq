@@ -168,6 +168,28 @@ def test_targeted_left_multiply_out():
         atol=1e-8)
 
 
+def test_targeted_conjugate():
+    a = np.reshape([0, 1, 2j, 3j], (2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate(a, b, [0], [2])
+    expected = np.einsum('ij,jklm,ln->iknm', a, b, np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+    result = cirq.targeted_conjugate(a, b, [1], [3])
+    expected = np.einsum('ij,kjlm,mn->kiln', a, b, np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_out():
+    a = np.reshape([0, 1, 2j, 3j], (2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    out = np.empty((2,) * 4, dtype=a.dtype)
+    result = cirq.targeted_conjugate(a, b, [0], [2], out)
+    assert result is out
+    expected = np.einsum('ij,jklm,ln->iknm', a, b, np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+
 def test_apply_matrix_to_slices():
     # Output is input.
     with pytest.raises(ValueError, match='out'):

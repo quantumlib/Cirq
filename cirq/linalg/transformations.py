@@ -149,6 +149,45 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      **({'out': out} if out is not None else {}))
 
 
+def targeted_conjugate(
+    tensor: np.ndarray,
+    target: np.ndarray,
+    indices: Sequence[int],
+    conj_indices: Sequence[int],
+    out: Optional[np.ndarray] = None) -> np.ndarray:
+    """Conjugates the given tensor about the target tensor.
+
+    This method takes a target tensor and contracts (sums over indices)
+    this tensor over a set of indices, and contracts this the conjugate
+    of this tensor over a separate set of indices.
+
+    Specifically this computes
+        sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}}
+        * target_{k_0,...,k_{r-1},l_0,...,l_{r-1}
+        * tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*
+    where the sum is over indices where j_s = k_s and s is in `indices`
+    and l_s = m_s and s is in `conj_indices`.
+
+    Args:
+        tensor: The tensor that will be conjugated about the target tensor.
+        target: The tensor that will receive the conjugation.
+        indices: The indices which will be contracted between the tensor and
+            target.
+        conj_indices; The indices which will be contracted between the
+            complex conjugate of the tensor and the target.
+        out: The buffer to store the results in. If not specified or None, a new
+            buffer is used. Must have the same shape as target.
+
+    Returns:
+        The result the conjugation.
+    """
+    first_multiply = targeted_left_multiply(tensor, target, indices, out=out)
+    return targeted_left_multiply(np.conjugate(tensor),
+                                  first_multiply,
+                                  conj_indices,
+                                  out=out)
+
+
 _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
