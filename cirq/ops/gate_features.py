@@ -47,10 +47,6 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             ValueError if targets are not instances of Qid.
         """
-        if any([not isinstance(target, raw_types.Qid)
-                for target in targets]):
-            raise ValueError(
-                    'on_each() was called with type different than Qid.')
         return [self.on(target) for target in targets]
 
 
