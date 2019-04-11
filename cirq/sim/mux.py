@@ -14,7 +14,7 @@
 
 """Sampling/simulation methods that delegate to appropriate simulators."""
 
-from typing import List, Type, Union, Optional
+from typing import List, Optional, Type, Union
 
 import numpy as np
 
@@ -35,7 +35,7 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
         repetitions: The number of samples to take.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
-            Defaults to fast, i.e. to `numpy.complex64`.
+            Favors speed over precision by default, i.e. uses `numpy.complex64`.
     """
 
     # State vector simulation is much faster, but only works if no randomness.
@@ -70,7 +70,7 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
             parameter values.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
-            Defaults to fast, i.e. to `numpy.complex64`.
+            Favors speed over precision by default, i.e. uses `numpy.complex64`.
 
     Returns:
         TrialResult list for this run; one for each possible parameter

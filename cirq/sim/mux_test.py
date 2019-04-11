@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sampling/simulation methods that delegate to appropriate simulators."""
+"""Tests sampling/simulation methods that delegate to appropriate simulators."""
 import collections
 
 import sympy
@@ -20,7 +20,7 @@ import sympy
 import cirq
 
 
-def test_run():
+def test_sample():
     q = cirq.NamedQubit('q')
 
     # Unitary.
@@ -37,29 +37,29 @@ def test_run():
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
 
-def test_run_sweep():
+def test_sample_sweep():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit.from_ops(
         cirq.X(q),
-        cirq.Z(q)**sympy.Symbol('t'),
+        cirq.Y(q)**sympy.Symbol('t'),
         cirq.measure(q))
 
     # Unitary.
-    results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 5), repetitions=3)
-    assert len(results) == 5
-    for result in results:
-        assert result.histogram(key=q) == collections.Counter({1: 3})
+    results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 2), repetitions=3)
+    assert len(results) == 2
+    assert results[0].histogram(key=q) == collections.Counter({1: 3})
+    assert results[1].histogram(key=q) == collections.Counter({0: 3})
 
     # Overdamped.
     c = cirq.Circuit.from_ops(
         cirq.X(q),
-        cirq.Z(q)**sympy.Symbol('t'),
         cirq.amplitude_damp(1).on(q),
+        cirq.Y(q)**sympy.Symbol('t'),
         cirq.measure(q))
     results = cirq.sample_sweep(
         c,
-        cirq.Linspace('t', 0, 1, 5),
+        cirq.Linspace('t', 0, 1, 2),
         repetitions=3)
-    assert len(results) == 5
-    for result in results:
-        assert result.histogram(key=q) == collections.Counter({0: 3})
+    assert len(results) == 2
+    assert results[0].histogram(key=q) == collections.Counter({0: 3})
+    assert results[1].histogram(key=q) == collections.Counter({1: 3})
