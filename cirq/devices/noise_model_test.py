@@ -37,7 +37,7 @@ def test_requires_one_override():
         pass
 
     with pytest.raises(AssertionError, match='override'):
-        c = C()
+        _ = C()
 
 
 def test_infers_other_methods():
@@ -101,6 +101,9 @@ def test_no_noise():
     assert cirq.NO_NOISE.noisy_operation(cirq.X(q)) == cirq.X(q)
     assert cirq.NO_NOISE.noisy_moment(m, [q]) is m
     assert cirq.NO_NOISE.noisy_moments([m, m], [q]) == [m, m]
+    assert cirq.NO_NOISE == cirq.NO_NOISE
+    assert str(cirq.NO_NOISE) == '(no noise)'
+    cirq.testing.assert_equivalent_repr(cirq.NO_NOISE)
 
 
 def test_constant_qubit_noise():
@@ -114,3 +117,6 @@ def test_constant_qubit_noise():
         [cirq.X(a), damp(a), damp(b), damp(c)],
         [damp(a), damp(b), damp(c)]
     ]
+
+    with pytest.raises(ValueError, match='num_qubits'):
+        _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
