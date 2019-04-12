@@ -243,7 +243,6 @@ def test_simulation_trial_result_str():
 
 
 def test_pretty_print():
-    q = cirq.NamedQubit('a')
     result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))
 
     # Test Jupyter console output from

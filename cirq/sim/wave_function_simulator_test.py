@@ -92,7 +92,7 @@ def test_str_big():
     qs = cirq.LineQubit.range(20)
     result = cirq.WaveFunctionTrialResult(cirq.ParamResolver(), {},
                                           cirq.WaveFunctionSimulatorState(
-                                              np.array([1] * 2**20),
+                                              np.array([1] * 2**10),
                                               {q: q.x
                                                for q in qs}))
     assert str(result) == ('measurements: (no measurements)\n'
