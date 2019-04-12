@@ -24,6 +24,26 @@ def _make_qubits(n):
     return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
 
 
+def test_init():
+    a, b, c = cirq.LineQubit.range(3)
+    with pytest.raises(ValueError, match='eigenvalues'):
+        _ = cirq.PauliStringPhasor(1j * cirq.X(a))
+
+    v1 = cirq.PauliStringPhasor(-cirq.X(a),
+                                exponent_neg=0.25,
+                                exponent_pos=-0.5)
+    assert v1.pauli_string == cirq.X(a)
+    assert v1.exponent_neg == -0.5
+    assert v1.exponent_pos == 0.25
+
+    v2 = cirq.PauliStringPhasor(cirq.X(a),
+                                exponent_neg=0.75,
+                                exponent_pos=-0.125)
+    assert v2.pauli_string == cirq.X(a)
+    assert v2.exponent_neg == 0.75
+    assert v2.exponent_pos == -0.125
+
+
 def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
@@ -456,3 +476,7 @@ def test_str():
             q0: cirq.X
         }, -1))**-0.5
     assert str(ps) == '(X(q0)*Y(q1)*Z(q2))**0.5'
+
+    assert str(np.exp(1j * np.pi * cirq.X(q0) * cirq.Y(q1))) == 'exp(iπ*X(q0)*Y(q1))'
+    assert str(np.exp(-0.5j * np.pi * cirq.X(q0) * cirq.Y(q1))) == 'exp(-iπ0.5*X(q0)*Y(q1))'
+    assert str(np.exp(1j * np.pi * cirq.PauliString())) == 'exp(iπ*I)'

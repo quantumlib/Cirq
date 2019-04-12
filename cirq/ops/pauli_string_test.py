@@ -441,6 +441,22 @@ def test_pos():
     assert ps1 == +ps1
 
 
+def test_pow():
+    q = cirq.LineQubit(0)
+    assert cirq.PauliString({q: cirq.X})**0.25 == cirq.X(q)**0.25
+    assert cirq.PauliString({q: cirq.Y})**0.25 == cirq.Y(q)**0.25
+    assert cirq.PauliString({q: cirq.Z})**0.25 == cirq.Z(q)**0.25
+
+
+def test_numpy_ufunc():
+    with pytest.raises(TypeError, match="returned NotImplemented"):
+        _ = np.sin(cirq.PauliString())
+    with pytest.raises(NotImplementedError, match="non-hermitian"):
+        _ = np.exp(cirq.PauliString())
+    x = np.exp(1j * np.pi * cirq.PauliString())
+    assert x is not None
+
+
 def test_map_qubits():
     a, b = (cirq.NamedQubit(name) for name in 'ab')
     q0, q1 = _make_qubits(2)

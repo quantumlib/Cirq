@@ -79,12 +79,6 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
             exponent_neg=self.exponent_neg,
             exponent_pos=self.exponent_pos)
 
-    def map_phases(self, phase_map: Callable[[float], float]):
-        return PauliStringPhasor(
-            self.pauli_string,
-            exponent_neg=phase_map(self.exponent_neg),
-            exponent_pos=phase_map(self.exponent_pos))
-
     def __pow__(self,
                 exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
         pn = protocols.mul(self.exponent_neg, exponent, None)
@@ -163,9 +157,10 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     def __str__(self):
         if self.exponent_pos == -self.exponent_neg:
-            return 'exp({}iπ{}{})'.format('-' if self.exponent_pos < 0 else '',
-                                          abs(self.exponent_pos),
-                                          self.pauli_string)
+            return 'exp({}iπ{}*{})'.format(
+                '-' if self.exponent_pos < 0 else '', ''
+                if abs(self.exponent_relative) == 1 else abs(
+                    self.exponent_pos * 2), self.pauli_string)
         return '({})**{}'.format(self.pauli_string, self.exponent_relative)
 
 
