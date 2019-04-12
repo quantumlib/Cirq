@@ -18,7 +18,7 @@ from typing import List, Optional, Type, Union
 
 import numpy as np
 
-from cirq import circuits, protocols, study, schedules
+from cirq import circuits, protocols, study, schedules, ops, line
 from cirq.sim import sparse_simulator, density_matrix_simulator
 
 
@@ -50,6 +50,53 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
             program=program,
             param_resolver=param_resolver,
             repetitions=repetitions)
+
+
+def out_vector(program: Union[ops.Operation, ops.Gate, circuits.Circuit, schedules.Schedule],
+               *,
+               initial_state: Union[int, np.ndarray] = 0,
+               param_resolver: Optional[study.ParamResolver] = None,
+               qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+               dtype: Type[np.number] = np.complex64
+               ) -> 'np.ndarray':
+    """Returns the wavefunction resulting from applying an object.
+
+    Args:
+        program: The circuit, schedule, gate, or operation to apply to the
+            initial state in order to produce the result.
+        param_resolver: Parameters to run with the program.
+        qubit_order: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        initial_state: If an int, the state is set to the computational
+            basis state corresponding to this state. Otherwise  if this
+            is a np.ndarray it is the full initial state. In this case it
+            must be the correct size, be normalized (an L2 norm of 1), and
+            be safely castable to an appropriate dtype for the simulator.
+        dtype: The `numpy.dtype` used by the simulation. Typically one of
+            `numpy.complex64` or `numpy.complex128`.
+            Favors speed over precision by default, i.e. uses `numpy.complex64`.
+    """
+
+    if not protocols.has_unitary(program):
+        raise ValueError(
+            "Given object is not unitary. "
+            "Non-unitary operations don't have "
+            "a single well defined output state vector. "
+            "Maybe you wanted `cirq.sample_wavefunction`?")
+
+    if isinstance(program, ops.Gate):
+        program = circuits.Circuit.from_ops(program.on(
+            *line.LineQubit.range(program.num_qubits())))
+    elif isinstance(program, ops.Operation):
+        program = circuits.Circuit.from_ops(program)
+
+    return sparse_simulator.Simulator(dtype=dtype).simulate(
+        program=program,
+        initial_state=initial_state,
+        qubit_order=qubit_order,
+        param_resolver=param_resolver
+    ).state_vector()
 
 
 def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],

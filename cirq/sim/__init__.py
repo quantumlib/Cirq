@@ -26,6 +26,7 @@ from cirq.sim.density_matrix_simulator import (
     DensityMatrixTrialResult,
 )
 from cirq.sim.mux import (
+    out_vector,
     sample,
     sample_sweep,
 )
