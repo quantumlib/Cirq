@@ -156,7 +156,7 @@ def targeted_conjugate_about(
     conj_indices: Sequence[int],
     buffer: Optional[np.ndarray] = None,
     out: Optional[np.ndarray] = None) -> np.ndarray:
-    """Conjugates the given tensor about the target tensor.
+    r"""Conjugates the given tensor about the target tensor.
 
     This method takes a target tensor, first contracts (sums over indices)
     this tensor over a set of indices, and then contracts this the conjugate
