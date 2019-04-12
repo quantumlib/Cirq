@@ -2077,7 +2077,10 @@ def test_apply_unitary_effect_to_state():
         atol=1e-8)
 
     # Dtypes.
-    for dt in (np.complex64, np.complex128, np.complex256):
+    dtypes = [np.complex64, np.complex128]
+    if hasattr(np, 'complex256'):  # Some systems don't support 128 bit floats.
+        dtypes.append(np.complex256)
+    for dt in dtypes:
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
                 initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt),

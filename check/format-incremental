@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Formats lines of python code that have been modified.
+#
+# Usage:
+#     check/format-incremental [BASE_REVISION] [--apply]
+#
+# Without '--apply', the diff that would be applied is printed and the exit
+# status is 1 if there are any changes or else 0 if no changes are needed.
+#
+# With '--apply', the exit status is 0 and the changed files are actually
+# reformated.
+#
+# Note that sometimes yapf will format unchanged lines. In particular, it
+# completely ignores the changed line ranges when fixing indentation.
+#
+# You can specify a base git revision to compare against (i.e. to use when
+# determining whether or not a line is considered to have "changed"). For
+# example, you can compare against 'origin/master' or 'HEAD~1'.
+#
+# If you don't specify a base revision, the following defaults will be tried, in
+# order, until one exists:
+#
+#     1. upstream/master
+#     2. origin/master
+#     3. master
+#
+# If none exists, the script fails.
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $(git rev-parse --show-toplevel)
+
+# Parse arguments.
+only_print=1
+rev=""
+for arg in $@; do
+    if [[ "${arg}" == "--apply" ]]; then
+        only_print=0
+    elif [ -z "${rev}" ]; then
+        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+            echo -e "\e[31mNo revision '${arg}'.\e[0m" >&2
+            exit 1
+        fi
+        rev="${arg}"
+    else
+        echo -e "\e[31mToo many arguments. Expected [revision] [--apply].\e[0m" >&2
+        exit 1
+    fi
+done
+
+# Figure out which branch to compare against.
+if [ -z "${rev}" ]; then
+    if [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
+        rev=upstream/master
+    elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
+        rev=origin/master
+    elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
+        rev=master
+    else
+        echo -e "\e[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m" >&2
+        exit 1
+    fi
+fi
+echo "Comparing against revision '${rev}'." >&2
+
+# Get the _test version of changed python files.
+needed_changes=0
+changed_files=$(git diff --name-only ${rev} -- | grep "\.py$")
+esc=$(printf '\033')
+for changed_file in ${changed_files}; do
+    # Extract changed line ranges from diff output.
+    changed_line_ranges=$( \
+        git diff --unified=0 master -- "${changed_file}" \
+        | perl -ne 'chomp(); if (/@@ -\d+(,\d+)? \+(\d+)(,)?(\d+)? @@/) {$end=$2+($4 or 1)-1; print "--lines=$2-$end "}' \
+    )
+
+    # Do the formatting.
+    results=$(yapf --style=google --diff "${changed_file}" ${changed_line_ranges})
+
+    # Print colorized error messages.
+    if [ ! -z "${results}" ]; then
+        needed_changes=1
+        if (( only_print == 0 )); then
+            $(yapf --style=google --in-place "${changed_file}" ${changed_line_ranges})
+        else
+            echo -e "\n\e[31mChanges in ${changed_file} require formatting:\e[0m\n${results}" \
+                | sed "s/^\(+ .*\)$/${esc}[32m\\1${esc}[0m/" \
+                | sed "s/^\(- .*\)$/${esc}[31m\\1${esc}[0m/"
+        fi
+    fi
+done
+
+if (( needed_changes == 0 )); then
+    echo -e "\e[32mNo formatting needed on changed lines\e[0m."
+elif (( only_print == 1 )); then
+    echo -e "\e[31mSome formatting needed on changed lines\e[0m."
+    exit 1
+else
+    echo -e "\e[32mReformatted changed lines\e[0m."
+fi
