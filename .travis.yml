@@ -25,6 +25,13 @@ matrix:
     script: check/pylint
 
   - os: linux
+    env: NAME=format
+    python: "3.5.2"
+    install:
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
+    script: check/format-incremental
+
+  - os: linux
     env: NAME=pytest-and-incremental-coverage
     python: "3.5.2"
     install:
