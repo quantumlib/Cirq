@@ -75,6 +75,7 @@ from cirq.linalg import (
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,
+    targeted_conjugate_about,
     targeted_left_multiply,
 )
 
