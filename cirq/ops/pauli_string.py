@@ -97,7 +97,8 @@ class PauliString(raw_types.Operation):
                 extra_phase *= f
                 if p != common_gates.I:
                     terms[c] = p
-            return PauliString(terms, self.coefficient * extra_phase)
+            return PauliString(
+                terms, self.coefficient * other.coefficient * extra_phase)
         return NotImplemented
 
     def __rmul__(self, other):
