@@ -25,8 +25,9 @@ class Sampler(metaclass=abc.ABCMeta):
     def run(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: 'study.ParamResolverOrSimilarType'=None,
-            repetitions: int=1,) -> study.TrialResult:
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
+            repetitions: int = 1,
+    ) -> study.TrialResult:
         """Samples from the given Circuit or Schedule.
 
         Args:
@@ -37,8 +38,7 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(program,
-                              study.ParamResolver(param_resolver),
+        return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
 
     @abc.abstractmethod
@@ -46,7 +46,8 @@ class Sampler(metaclass=abc.ABCMeta):
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
             params: study.Sweepable,
-            repetitions: int=1,) -> List[study.TrialResult]:
+            repetitions: int = 1,
+    ) -> List[study.TrialResult]:
         """Samples from the given Circuit or Schedule.
 
         In contrast to run, this allows for sweeping over different parameter

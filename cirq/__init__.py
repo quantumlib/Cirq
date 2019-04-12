@@ -231,7 +231,8 @@ from cirq.sim import (
     validate_normalized_state,
     WaveFunctionTrialResult,
     WaveFunctionStepResult,
-    WaveFunctionSimulatorState,)
+    WaveFunctionSimulatorState,
+)
 
 from cirq.study import (
     ComputeDisplaysResult,
