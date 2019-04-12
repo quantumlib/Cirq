@@ -90,20 +90,19 @@ def test_wave_function_trial_result_state_mixin():
 
 def test_str_big():
     qs = cirq.LineQubit.range(20)
-    result = cirq.WaveFunctionTrialResult(cirq.ParamResolver(), {},
-                                          cirq.WaveFunctionSimulatorState(
-                                              np.array([1] * 2**10),
-                                              {q: q.x
-                                               for q in qs}))
-    assert str(result) == ('measurements: (no measurements)\n'
-                           'output vector: [1 1 1 ... 1 1 1]')
+    result = cirq.WaveFunctionTrialResult(
+        cirq.ParamResolver(), {},
+        cirq.WaveFunctionSimulatorState(np.array([1] * 2**10),
+                                        {q: q.x for q in qs}))
+    assert str(result).startswith('measurements: (no measurements)\n'
+                                  'output vector: [1 1 1 ..')
 
 
 def test_pretty_print():
     q = cirq.NamedQubit('a')
-    result = cirq.WaveFunctionTrialResult(cirq.ParamResolver(), {},
-                                          cirq.WaveFunctionSimulatorState(
-                                              np.array([1]), {q: 0}))
+    result = cirq.WaveFunctionTrialResult(
+        cirq.ParamResolver(), {},
+        cirq.WaveFunctionSimulatorState(np.array([1]), {q: 0}))
 
     # Test Jupyter console output from
     class FakePrinter:

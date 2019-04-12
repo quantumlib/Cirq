@@ -230,9 +230,7 @@ def test_simulation_trial_result_repr():
 def test_simulation_trial_result_str():
     assert str(
         cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({
-                's': 1
-            }),
+            params=cirq.ParamResolver({'s': 1}),
             measurements={},
             final_simulator_state=(0, 1))) == '(no measurements)'
 
