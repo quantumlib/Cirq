@@ -228,10 +228,13 @@ def test_simulation_trial_result_repr():
 
 
 def test_simulation_trial_result_str():
-    assert str(cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'s': 1}),
-        measurements={},
-        final_simulator_state=(0, 1))) == '(no measurements)'
+    assert str(
+        cirq.SimulationTrialResult(
+            params=cirq.ParamResolver({
+                's': 1
+            }),
+            measurements={},
+            final_simulator_state=(0, 1))) == '(no measurements)'
 
     assert str(cirq.SimulationTrialResult(
         params=cirq.ParamResolver({'s': 1}),
@@ -241,17 +244,17 @@ def test_simulation_trial_result_str():
 
 def test_pretty_print():
     q = cirq.NamedQubit('a')
-    result = cirq.SimulationTrialResult(
-        cirq.ParamResolver(),
-        {},
-        np.array([1]))
+    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))
 
     # Test Jupyter console output from
     class FakePrinter:
+
         def __init__(self):
             self.text_pretty = ''
+
         def text(self, to_print):
             self.text_pretty += to_print
+
     p = FakePrinter()
     result._repr_pretty_(p, False)
     assert p.text_pretty == '(no measurements)'

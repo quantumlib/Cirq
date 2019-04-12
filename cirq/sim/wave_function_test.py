@@ -579,17 +579,19 @@ def test_step_result_bloch_vector():
 
 def test_pretty_print():
     q = cirq.NamedQubit('a')
-    result = cirq.WaveFunctionTrialResult(
-        cirq.ParamResolver(),
-        {},
-        cirq.WaveFunctionSimulatorState(np.array([1]), {q: 0}))
+    result = cirq.WaveFunctionTrialResult(cirq.ParamResolver(), {},
+                                          cirq.WaveFunctionSimulatorState(
+                                              np.array([1]), {q: 0}))
 
     # Test Jupyter console output from
     class FakePrinter:
+
         def __init__(self):
             self.text_pretty = ''
+
         def text(self, to_print):
             self.text_pretty += to_print
+
     p = FakePrinter()
     result._repr_pretty_(p, False)
     assert p.text_pretty == 'measurements: (no measurements)\noutput vector: |⟩'
