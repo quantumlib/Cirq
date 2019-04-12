@@ -17,25 +17,19 @@ from typing import Dict, Iterable, Union, Callable
 import sympy
 
 from cirq import value, protocols
-from cirq.ops import (
-    raw_types,
-    common_gates,
-    pauli_string as ps,
-    pauli_gates,
-    op_tree,
-    pauli_string_raw_types
-)
+from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
+                      op_tree, pauli_string_raw_types)
 
 
 @value.value_equality(approximate=True)
 class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     """An operation that phases a Pauli string."""
+
     def __init__(self,
                  pauli_string: ps.PauliString,
                  *,
-                 exponent_neg: Union[int, float, sympy.Basic]=1,
-                 exponent_pos: Union[int, float, sympy.Basic]=0
-                 ) -> None:
+                 exponent_neg: Union[int, float, sympy.Basic] = 1,
+                 exponent_pos: Union[int, float, sympy.Basic] = 0) -> None:
         """Initializes the operation.
 
         At most one angle argument may be specified. If more are specified,
@@ -66,8 +60,8 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     @property
     def exponent_relative(self) -> Union[int, float, sympy.Basic]:
-        return value.canonicalize_half_turns(
-            self.exponent_neg - self.exponent_pos)
+        return value.canonicalize_half_turns(self.exponent_neg -
+                                             self.exponent_pos)
 
     def _value_equality_values_(self):
         return (
@@ -84,25 +78,19 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         return False
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]):
-        return PauliStringPhasor(
-            self.pauli_string.map_qubits(qubit_map),
-            exponent_neg=self.exponent_neg,
-            exponent_pos=self.exponent_pos)
+        return PauliStringPhasor(self.pauli_string.map_qubits(qubit_map),
+                                 exponent_neg=self.exponent_neg,
+                                 exponent_pos=self.exponent_pos)
 
     def map_phases(self, phase_map: Callable[[float], float]):
-        return PauliStringPhasor(
-            self.pauli_string,
-            exponent_neg=phase_map(self.exponent_neg),
-            exponent_pos=phase_map(self.exponent_pos))
+        return PauliStringPhasor(self.pauli_string,
+                                 exponent_neg=phase_map(self.exponent_neg),
+                                 exponent_pos=phase_map(self.exponent_pos))
 
     def __pow__(self,
                 exponent: Union[float, sympy.Symbol]) -> 'PauliStringPhasor':
-        pn = protocols.mul(self.exponent_neg,
-                           exponent,
-                           None)
-        pp = protocols.mul(self.exponent_pos,
-                           exponent,
-                           None)
+        pn = protocols.mul(self.exponent_neg, exponent, None)
+        pp = protocols.mul(self.exponent_pos, exponent, None)
         if pn is None or pp is None:
             return NotImplemented
         return PauliStringPhasor(self.pauli_string,
@@ -117,10 +105,9 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
             raise ValueError('Cannot merge operations: {}, {}'.format(self, op))
         pp = self.exponent_pos + op.exponent_pos
         pn = self.exponent_neg + op.exponent_neg
-        return PauliStringPhasor(
-            self.pauli_string,
-            exponent_pos=pp,
-            exponent_neg=pn)
+        return PauliStringPhasor(self.pauli_string,
+                                 exponent_pos=pp,
+                                 exponent_neg=pn)
 
     def _decompose_(self) -> op_tree.OP_TREE:
         if len(self.pauli_string) <= 0:
@@ -143,10 +130,9 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         yield protocols.inverse(to_z_ops)
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
-        return self._pauli_string_diagram_info(
-            args,
-            exponent=self.exponent_relative)
+                              ) -> protocols.CircuitDiagramInfo:
+        return self._pauli_string_diagram_info(args,
+                                               exponent=self.exponent_relative)
 
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(
@@ -159,46 +145,39 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     def _resolve_parameters_(self, param_resolver) -> 'PauliStringPhasor':
         return PauliStringPhasor(
             self.pauli_string,
-            exponent_neg=param_resolver.value_of(
-                self.exponent_neg),
-            exponent_pos=param_resolver.value_of(
-                self.exponent_pos))
+            exponent_neg=param_resolver.value_of(self.exponent_neg),
+            exponent_pos=param_resolver.value_of(self.exponent_pos))
 
     def pass_operations_over(self,
                              ops: Iterable[raw_types.Operation],
                              after_to_before: bool = False
-                             ) -> 'PauliStringPhasor':
+                            ) -> 'PauliStringPhasor':
         new_pauli_string = self.pauli_string.pass_operations_over(
             ops, after_to_before)
         pp = self.exponent_pos
         pn = self.exponent_neg
-        return PauliStringPhasor(
-            new_pauli_string,
-            exponent_pos=pp,
-            exponent_neg=pn)
+        return PauliStringPhasor(new_pauli_string,
+                                 exponent_pos=pp,
+                                 exponent_neg=pn)
 
     def __repr__(self):
         return ('cirq.PauliStringPhasor({!r}, '
                 'exponent_neg={!r}, '
-                'exponent_pos={!r})'.format(
-                    self.pauli_string,
-                    self.exponent_neg,
-                    self.exponent_pos))
+                'exponent_pos={!r})'.format(self.pauli_string,
+                                            self.exponent_neg,
+                                            self.exponent_pos))
 
     def __str__(self):
         if self.exponent_pos == -self.exponent_neg:
-            return 'exp({}iπ{}{})'.format(
-                '-' if self.exponent_pos < 0 else '',
-                abs(self.exponent_pos),
-                self.pauli_string)
-        return '({})**{}'.format(
-            self.pauli_string,
-            self.exponent_relative)
+            return 'exp({}iπ{}{})'.format('-' if self.exponent_pos < 0 else '',
+                                          abs(self.exponent_pos),
+                                          self.pauli_string)
+        return '({})**{}'.format(self.pauli_string, self.exponent_relative)
 
 
 def xor_nonlocal_decompose(qubits: Iterable[raw_types.Qid],
                            onto_qubit: raw_types.Qid
-                           ) -> Iterable[raw_types.Operation]:
+                          ) -> Iterable[raw_types.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:
         if qubit != onto_qubit:

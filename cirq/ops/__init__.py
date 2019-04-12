@@ -137,11 +137,9 @@ from cirq.ops.pauli_string import (
     SingleQubitPauliStringGateOperation,
 )
 from cirq.ops.pauli_string_phasor import (
-    PauliStringPhasor,
-)
+    PauliStringPhasor,)
 from cirq.ops.pauli_string_raw_types import (
-    PauliStringGateOperation,
-)
+    PauliStringGateOperation,)
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,
 )

@@ -65,8 +65,7 @@ def test_convert_keep_clifford():
 def test_already_converted():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit.from_ops(
-        cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X)),
-    )
+        cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X)),)
     c_orig = cirq.Circuit(circuit)
     ConvertToPauliStringPhasors().optimize_circuit(circuit)
 

@@ -29,6 +29,7 @@ def test_op_calls_validate():
         pass
 
     class ValiGate(cirq.PauliStringGateOperation):
+
         def validate_args(self, qubits):
             super().validate_args(qubits)
             if bad_qubit in qubits:
@@ -49,6 +50,7 @@ def test_on_wrong_number_qubits():
     q0, q1, q2 = _make_qubits(3)
 
     class DummyGate(cirq.PauliStringGateOperation):
+
         def map_qubits(self, qubit_map):
             ps = self.pauli_string.map_qubits(qubit_map)
             return DummyGate(ps)
@@ -65,12 +67,14 @@ def test_on_wrong_number_qubits():
 
 
 def test_default_text_diagram():
+
     class DiagramGate(cirq.PauliStringGateOperation):
+
         def map_qubits(self, qubit_map):
             pass
 
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                                   ) -> cirq.CircuitDiagramInfo:
+                                  ) -> cirq.CircuitDiagramInfo:
             return self._pauli_string_diagram_info(args)
 
     q0, q1, q2 = _make_qubits(3)
@@ -80,7 +84,8 @@ def test_default_text_diagram():
         DiagramGate(ps),
         DiagramGate(-ps),
     )
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(
+        circuit, """
 q0: ───[X]───[X]───
        │     │
 q1: ───[Y]───[Y]───

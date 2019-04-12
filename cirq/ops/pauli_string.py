@@ -37,11 +37,10 @@ TDefault = TypeVar('TDefault')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
-    def __init__(
-            self,
-            qubit_pauli_map: Optional[Mapping[raw_types.Qid,
-                                              pauli_gates.Pauli]] = None,
-            coefficient: Union[int, float, complex] = 1) -> None:
+    def __init__(self,
+                 qubit_pauli_map: Optional[
+                     Mapping[raw_types.Qid, pauli_gates.Pauli]] = None,
+                 coefficient: Union[int, float, complex] = 1) -> None:
         if qubit_pauli_map is None:
             qubit_pauli_map = {}
         self._qubit_pauli_map = dict(qubit_pauli_map)
@@ -82,8 +81,8 @@ class PauliString(raw_types.Operation):
         pass
 
     @overload
-    def get(self, key: raw_types.Qid, default: TDefault
-            ) -> Union[pauli_gates.Pauli, TDefault]:
+    def get(self, key: raw_types.Qid,
+            default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
     def get(self, key: raw_types.Qid, default=None):
@@ -180,16 +179,14 @@ class PauliString(raw_types.Operation):
 
         return prefix + '*'.join(factors)
 
-    def zip_items(self, other: 'PauliString'
-                  ) -> Iterator[Tuple[raw_types.Qid,
-                                      Tuple[pauli_gates.Pauli,
-                                            pauli_gates.Pauli]]]:
+    def zip_items(self, other: 'PauliString') -> Iterator[
+            Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
         for qubit, pauli0 in self.items():
             if qubit in other:
                 yield qubit, (pauli0, other[qubit])
 
     def zip_paulis(self, other: 'PauliString'
-                   ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
+                  ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
         return (paulis for qubit, paulis in self.zip_items(other))
 
     def commutes_with(self, other: 'PauliString') -> bool:
@@ -261,8 +258,8 @@ class PauliString(raw_types.Operation):
             # HACK: avoid circular import.
             from cirq.ops.pauli_string_phasor import PauliStringPhasor
             return PauliStringPhasor(PauliString(self._qubit_pauli_map),
-                                     exponent_neg=+half_turns/2,
-                                     exponent_pos=-half_turns/2)
+                                     exponent_neg=+half_turns / 2,
+                                     exponent_pos=-half_turns / 2)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
@@ -360,6 +357,7 @@ class PauliString(raw_types.Operation):
             qubit0: raw_types.Qid,
             qubit1: raw_types.Qid,
             after_to_before: bool = False) -> bool:
+
         def merge_and_kickback(qubit: raw_types.Qid,
                                pauli_left: Optional[pauli_gates.Pauli],
                                pauli_right: Optional[pauli_gates.Pauli],
@@ -417,8 +415,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
                    ) -> 'SingleQubitPauliStringGateOperation':
         if len(new_qubits) != 1:
             raise ValueError("len(new_qubits) != 1")
-        return SingleQubitPauliStringGateOperation(cast(pauli_gates.Pauli, self.gate),
-                                                   new_qubits[0])
+        return SingleQubitPauliStringGateOperation(
+            cast(pauli_gates.Pauli, self.gate), new_qubits[0])
 
     def _as_pauli_string(self) -> PauliString:
         return PauliString({self.qubits[0]: cast(pauli_gates.Pauli, self.gate)})

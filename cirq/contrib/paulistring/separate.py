@@ -61,9 +61,10 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
         circuit contains measurements.
     """
     return circuits.Circuit(
-                ops.Moment(op for op in moment.operations
-                           if not isinstance(op, ops.PauliStringPhasor))
-                           for moment in circuit)
+        ops.Moment(op
+                   for op in moment.operations
+                   if not isinstance(op, ops.PauliStringPhasor))
+        for moment in circuit)
 
 
 def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
