@@ -149,13 +149,12 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      **({'out': out} if out is not None else {}))
 
 
-def targeted_conjugate_about(
-    tensor: np.ndarray,
-    target: np.ndarray,
-    indices: Sequence[int],
-    conj_indices: Sequence[int] = None,
-    buffer: Optional[np.ndarray] = None,
-    out: Optional[np.ndarray] = None) -> np.ndarray:
+def targeted_conjugate_about(tensor: np.ndarray,
+                             target: np.ndarray,
+                             indices: Sequence[int],
+                             conj_indices: Sequence[int] = None,
+                             buffer: Optional[np.ndarray] = None,
+                             out: Optional[np.ndarray] = None) -> np.ndarray:
     r"""Conjugates the given tensor about the target tensor.
 
     This method computes a target tensor conjugated by another tensor.
@@ -196,8 +195,10 @@ def targeted_conjugate_about(
     """
     conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
     first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
-    return targeted_left_multiply(np.conjugate(tensor), first_multiply,
-                                  conj_indices, out=out)
+    return targeted_left_multiply(np.conjugate(tensor),
+                                  first_multiply,
+                                  conj_indices,
+                                  out=out)
 
 
 _TSliceAtom = Union[int, slice, 'ellipsis']
