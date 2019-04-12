@@ -575,28 +575,3 @@ def test_step_result_bloch_vector():
         step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0,
         step_result.bloch_vector_of(q0))
-
-
-def test_pretty_print():
-    q = cirq.NamedQubit('a')
-    result = cirq.WaveFunctionTrialResult(cirq.ParamResolver(), {},
-                                          cirq.WaveFunctionSimulatorState(
-                                              np.array([1]), {q: 0}))
-
-    # Test Jupyter console output from
-    class FakePrinter:
-
-        def __init__(self):
-            self.text_pretty = ''
-
-        def text(self, to_print):
-            self.text_pretty += to_print
-
-    p = FakePrinter()
-    result._repr_pretty_(p, False)
-    assert p.text_pretty == 'measurements: (no measurements)\noutput vector: |⟩'
-
-    # Test cycle handling
-    p = FakePrinter()
-    result._repr_pretty_(p, True)
-    assert p.text_pretty == 'WaveFunctionTrialResult(...)'
