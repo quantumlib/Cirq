@@ -60,7 +60,7 @@ different unitary evolutions.
 In this case it is possible to perform
 monte carlo simulations of these gates using a wave function based simulator
 (and not a density matrix based simulator).  In this case instead of
-implementing the `SupporstChannel` protocol, one should implement the
+implementing the `SupportsChannel` protocol, one should implement the
 `SupportsMixture` protocol.  To do this one should implement the
 `_mixture_(self) -> Sequence[Tuple[float, np.ndarray]]` protocol.  This
 returns a sequence of tuples. The first element of each tuple is the
@@ -89,7 +89,7 @@ Specifically this channel implements the evolution
 Here p<sub>x</sub> is the probability that the X Pauli gate is applied and
 no other gate is applied, and similarly for p<sub>y</sub> and p<sub>z</sub>.
 
-A particular case of the asymetric depolarizing channel is the case where
+A particular case of the asymmetric depolarizing channel is the case where
 each of the different Paulis occur with the same probability.  This is
 encapsulated in the `DepolarizingChannel` gate, which takes a probability `p`
 such that each Pauli gate occurs with probability `p/3`.
