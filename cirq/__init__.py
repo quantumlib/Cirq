@@ -216,6 +216,7 @@ from cirq.sim import (
     sample_sweep,
     sample_density_matrix,
     sample_state_vector,
+    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -230,8 +231,7 @@ from cirq.sim import (
     validate_normalized_state,
     WaveFunctionTrialResult,
     WaveFunctionStepResult,
-    WaveFunctionSimulatorState,
-)
+    WaveFunctionSimulatorState,)
 
 from cirq.study import (
     ComputeDisplaysResult,

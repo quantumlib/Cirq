@@ -119,10 +119,12 @@ class TomographyResult:
         fig.show()
 
 
-def rabi_oscillations(sampler: sim.Sampler, qubit: devices.GridQubit,
-                      max_angle: float = 2 * np.pi, *,
-                      repetitions: int = 1000,
-                      num_points: int = 200) -> RabiResult:
+def rabi_oscillations(sampler: sim.Sampler,
+                      qubit: devices.GridQubit,
+                      max_angle: float=2 * np.pi,
+                      *,
+                      repetitions: int=1000,
+                      num_points: int=200) -> RabiResult:
     """Runs a Rabi oscillation experiment.
 
     Rotates a qubit around the x-axis of the Bloch sphere by a sequence of Rabi
@@ -155,15 +157,14 @@ def rabi_oscillations(sampler: sim.Sampler, qubit: devices.GridQubit,
     return RabiResult(angles, excited_state_probs)
 
 
-def single_qubit_randomized_benchmarking(sampler: sim.Sampler,
-                                         qubit: devices.GridQubit,
-                                         use_xy_basis: bool = True,
-                                         *,
-                                         num_clifford_range: Sequence[int]
-                                         = range(10, 100, 10),
-                                         num_circuits: int = 20,
-                                         repetitions: int = 1000
-                                         ) -> RandomizedBenchMarkResult:
+def single_qubit_randomized_benchmarking(
+        sampler: sim.Sampler,
+        qubit: devices.GridQubit,
+        use_xy_basis: bool=True,
+        *,
+        num_clifford_range: Sequence[int]=range(10, 100, 10),
+        num_circuits: int=20,
+        repetitions: int=1000) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of a single qubit.
 
     A total of num_circuits random circuits are generated, each of which
@@ -215,15 +216,14 @@ def single_qubit_randomized_benchmarking(sampler: sim.Sampler,
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def two_qubit_randomized_benchmarking(sampler: sim.Sampler,
-                                      first_qubit: devices.GridQubit,
-                                      second_qubit: devices.GridQubit,
-                                      *,
-                                      num_clifford_range: Sequence[int]
-                                      = range(5, 50, 5),
-                                      num_circuits: int = 20,
-                                      repetitions: int = 1000
-                                      ) -> RandomizedBenchMarkResult:
+def two_qubit_randomized_benchmarking(
+        sampler: sim.Sampler,
+        first_qubit: devices.GridQubit,
+        second_qubit: devices.GridQubit,
+        *,
+        num_clifford_range: Sequence[int]=range(5, 50, 5),
+        num_circuits: int=20,
+        repetitions: int=1000) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of two qubits.
 
     A total of num_circuits random circuits are generated, each of which
@@ -278,7 +278,7 @@ def two_qubit_randomized_benchmarking(sampler: sim.Sampler,
 def single_qubit_state_tomography(sampler: sim.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
-                                  repetitions: int = 1000) -> TomographyResult:
+                                  repetitions: int=1000) -> TomographyResult:
     """Single-qubit state tomography.
 
     The density matrix of the output state of a circuit is measured by first
@@ -325,7 +325,7 @@ def two_qubit_state_tomography(sampler: sim.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,
-                               repetitions: int = 1000) -> TomographyResult:
+                               repetitions: int=1000) -> TomographyResult:
     r"""Two-qubit state tomography.
 
     To measure the density matrix of the output state of a two-qubit circuit,

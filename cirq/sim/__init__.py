@@ -30,8 +30,7 @@ from cirq.sim.mux import (
     sample_sweep,
 )
 from cirq.sim.sampler import (
-    Sampler,
-)
+    Sampler,)
 from cirq.sim.simulator import (
     SimulatesSamples,
     StepResult,
