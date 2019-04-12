@@ -273,7 +273,7 @@ def check_for_uncovered_lines(env: env_tools.PreparedEnv) -> int:
     changed_files = env.get_changed_files()
 
     # Find/print lines that were changed but aren't covered.
-    uncovered_count = 0
+    uncovered_count= 0
     for changed_file in changed_files:
         if not is_applicable_python_file(changed_file):
             continue
