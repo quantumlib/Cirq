@@ -154,8 +154,7 @@ class LinearPermutationGate(PermutationGate):
             return self
         if exponent == -1:
             return LinearPermutationGate(
-                self._num_qubits,
-                {v: k for k, v in self._permutation.items()},
+                self._num_qubits, {v: k for k, v in self._permutation.items()},
                 self.swap_gate)
         return NotImplemented
 
