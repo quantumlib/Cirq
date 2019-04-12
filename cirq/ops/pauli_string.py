@@ -28,6 +28,7 @@ TDefault = TypeVar('TDefault')
 
 @value.value_equality(manual_cls=True)
 class PauliString(raw_types.Operation):
+
     def __init__(
             self,
             qubit_pauli_map: Optional[Mapping[raw_types.Qid, Pauli]] = None,
@@ -49,8 +50,8 @@ class PauliString(raw_types.Operation):
     def _value_equality_values_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
             q, p = list(self._qubit_pauli_map.items())[0]
-            return gate_operation.GateOperation(
-                p, [q])._value_equality_values_()
+            return gate_operation.GateOperation(p,
+                                                [q])._value_equality_values_()
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
@@ -94,7 +95,7 @@ class PauliString(raw_types.Operation):
             for c in s1 & s2:
                 f, p = self[c].phased_pauli_product(other[c])
                 extra_phase *= f
-                if p is not None:
+                if p != common_gates.I:
                     terms[c] = p
             return PauliString(terms, self.coefficient * extra_phase)
         return NotImplemented
@@ -316,17 +317,15 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     def __init__(self, pauli: Pauli, qubit: raw_types.Qid):
         PauliString.__init__(self, {qubit: pauli})
-        gate_operation.GateOperation.__init__(self,
-                                              cast(raw_types.Gate, pauli),
+        gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
                                               [qubit])
 
     def with_qubits(self, *new_qubits: raw_types.Qid
-                    ) -> 'SingleQubitPauliStringGateOperation':
+                   ) -> 'SingleQubitPauliStringGateOperation':
         if len(new_qubits) != 1:
             raise ValueError("len(new_qubits) != 1")
-        return SingleQubitPauliStringGateOperation(
-            cast(Pauli, self.gate),
-            new_qubits[0])
+        return SingleQubitPauliStringGateOperation(cast(Pauli, self.gate),
+                                                   new_qubits[0])
 
     def as_pauli_string(self) -> PauliString:
         return PauliString({self.qubits[0]: cast(Pauli, self.gate)})
