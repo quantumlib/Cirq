@@ -280,9 +280,7 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
     def __str__(self):
         samples = super().__str__()
         final = self.state_vector()
-        if len([1
-                for e in final
-                if abs(e) > 0.001]) < 16:
+        if len([1 for e in final if abs(e) > 0.001]) < 16:
             wave = self.dirac_notation(3)
         else:
             wave = str(final)
