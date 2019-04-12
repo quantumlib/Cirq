@@ -73,24 +73,26 @@ esc=$(printf '\033')
 for changed_file in ${changed_files}; do
     # Extract changed line ranges from diff output.
     changed_line_ranges=$( \
-        git diff --unified=0 master -- "${changed_file}" \
+        git diff --unified=0 "${rev}" -- "${changed_file}" \
         | perl -ne 'chomp(); if (/@@ -\d+(,\d+)? \+(\d+)(,)?(\d+)? @@/) {$end=$2+($4 or 1)-1; print "--lines=$2-$end "}' \
     )
 
-    # Do the formatting.
-    results=$(yapf --style=google --diff "${changed_file}" ${changed_line_ranges})
+    if [[ "${changed_line_ranges}" != "--lines=0-0 " ]]; then
+        # Do the formatting.
+        results=$(yapf --style=google --diff "${changed_file}" ${changed_line_ranges})
 
-    # Print colorized error messages.
-    if [ ! -z "${results}" ]; then
-        needed_changes=1
-        if (( only_print == 0 )); then
-            $(yapf --style=google --in-place "${changed_file}" ${changed_line_ranges})
-        else
-            echo -e "\n\e[31mChanges in ${changed_file} require formatting:\e[0m\n${results}" \
-                | sed "s/^\(+ .*\)$/${esc}[32m\\1${esc}[0m/" \
-                | sed "s/^\(- .*\)$/${esc}[31m\\1${esc}[0m/"
+        # Print colorized error messages.
+        if [ ! -z "${results}" ]; then
+            needed_changes=1
+            if (( only_print == 0 )); then
+                $(yapf --style=google --in-place "${changed_file}" ${changed_line_ranges})
+            else
+                echo -e "\n\e[31mChanges in ${changed_file} require formatting:\e[0m\n${results}" \
+                    | sed "s/^\(+ .*\)$/${esc}[32m\\1${esc}[0m/" \
+                    | sed "s/^\(- .*\)$/${esc}[31m\\1${esc}[0m/"
+            fi
         fi
-    fi
+     fi
 done
 
 if (( needed_changes == 0 )); then
