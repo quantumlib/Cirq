@@ -119,7 +119,7 @@ class TomographyResult:
         fig.show()
 
 
-def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
+def rabi_oscillations(sampler: sim.Sampler, qubit: devices.GridQubit,
                       max_angle: float = 2 * np.pi, *,
                       repetitions: int = 1000,
                       num_points: int = 200) -> RabiResult:
@@ -155,7 +155,7 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
     return RabiResult(angles, excited_state_probs)
 
 
-def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
+def single_qubit_randomized_benchmarking(sampler: sim.Sampler,
                                          qubit: devices.GridQubit,
                                          use_xy_basis: bool = True,
                                          *,
@@ -215,7 +215,7 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
+def two_qubit_randomized_benchmarking(sampler: sim.Sampler,
                                       first_qubit: devices.GridQubit,
                                       second_qubit: devices.GridQubit,
                                       *,
@@ -275,7 +275,7 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
+def single_qubit_state_tomography(sampler: sim.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
                                   repetitions: int = 1000) -> TomographyResult:
@@ -321,7 +321,7 @@ def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
     return TomographyResult(rho)
 
 
-def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
+def two_qubit_state_tomography(sampler: sim.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,

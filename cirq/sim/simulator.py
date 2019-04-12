@@ -33,33 +33,14 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, schedules, study, value
+from cirq.sim import sampler
 
 
-class SimulatesSamples(metaclass=abc.ABCMeta):
+class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
     """
-
-    def run(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: 'study.ParamResolverOrSimilarType' = None,
-        repetitions: int = 1,
-    ) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
-
-        Args:
-            program: The circuit or schedule to simulate.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-
-        Returns:
-            TrialResult for a run.
-        """
-        return self.run_sweep(program,
-                              study.ParamResolver(param_resolver),
-                              repetitions)[0]
 
     def run_sweep(
         self,
