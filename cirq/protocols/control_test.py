@@ -43,7 +43,7 @@ def test_controlless(controllee):
     assert cirq.protocols.control(controllee, [p,q], None) is None
 
 
-def test_control_error():
+def test_controlled_by_error():
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = cirq.protocols.control(ReturnsNotImplemented(), [p])
     with pytest.raises(TypeError, match="no controlled_by method"):

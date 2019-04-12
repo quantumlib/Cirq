@@ -398,6 +398,7 @@ def test_mul_strings():
     assert cirq.X(a) * cirq.PauliString({a: cirq.X}) == cirq.PauliString()
     assert cirq.PauliString({a: cirq.X}) * cirq.X(a) == cirq.PauliString()
     assert cirq.X(a) * cirq.X(a) == cirq.PauliString()
+    assert -cirq.X(a) * -cirq.X(a) == cirq.PauliString()
 
     with pytest.raises(TypeError, match='unsupported'):
         _ = cirq.X(a) * object()
@@ -421,14 +422,10 @@ def test_op_equivalence():
 
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*various_x)
-    eq.add_equality_group(cirq.Y(a),
-                          cirq.PauliString({a: cirq.Y}))
+    eq.add_equality_group(cirq.Y(a), cirq.PauliString({a: cirq.Y}))
     eq.add_equality_group(-cirq.PauliString({a: cirq.X}))
-    eq.add_equality_group(cirq.Z(a),
-                          cirq.PauliString({a: cirq.Z}))
-    eq.add_equality_group(cirq.Z(b),
-                          cirq.PauliString({b: cirq.Z}))
-
+    eq.add_equality_group(cirq.Z(a), cirq.PauliString({a: cirq.Z}))
+    eq.add_equality_group(cirq.Z(b), cirq.PauliString({b: cirq.Z}))
 
 
 def test_op_product():
@@ -441,7 +438,9 @@ def test_op_product():
     assert cirq.X(a) * cirq.X(a) == cirq.PauliString()
     assert cirq.X(a) * cirq.Y(a) == 1j * cirq.PauliString({a: cirq.Z})
     assert cirq.Y(a) * cirq.Z(b) * cirq.X(a) == -1j * cirq.PauliString({
-        a: cirq.Z, b: cirq.Z})
+        a: cirq.Z,
+        b: cirq.Z
+    })
 
 
 def test_pos():

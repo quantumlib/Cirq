@@ -52,12 +52,10 @@ class Check(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def command_line_switch(self) -> str:
         """Used to identify this check from the command line."""
-        pass
 
     @abc.abstractmethod
     def context(self) -> str:
         """The name of this status check, as shown on github."""
-        pass
 
     @abc.abstractmethod
     def perform_check(self,
@@ -72,7 +70,6 @@ class Check(metaclass=abc.ABCMeta):
         Returns:
             A tuple containing a pass/fail boolean and then a details message.
         """
-        pass
 
     def needs_python2_env(self):
         return False

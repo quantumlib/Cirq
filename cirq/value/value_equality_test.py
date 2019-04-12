@@ -36,6 +36,7 @@ class BasicD:
 
 @cirq.value_equality(manual_cls=True)
 class MasqueradePositiveD:
+
     def __init__(self, x):
         self.x = x
 
@@ -72,8 +73,7 @@ def test_value_equality_basic():
 def test_value_equality_manual():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(MasqueradePositiveD(3), BasicD(3))
-    eq.add_equality_group(MasqueradePositiveD(4),
-                          MasqueradePositiveD(4),
+    eq.add_equality_group(MasqueradePositiveD(4), MasqueradePositiveD(4),
                           BasicD(4))
     eq.add_equality_group(MasqueradePositiveD(-1), MasqueradePositiveD(-1))
     eq.add_equality_group(BasicD(-1))
@@ -239,17 +239,27 @@ def test_value_equality_forgot_method():
         class _:
             pass
 
+    assert True  # HACK: sacrificial line for indentation bug in 3to2.
 
-def test_bad_manual_cls():
+
+def test_bad_manual_cls_incompatible_args():
     with pytest.raises(ValueError, match='incompatible'):
-        @cirq.value_equality(manual_cls=True, distinct_child_types=True)
-        class C:
-            pass
-        del C
 
+        @cirq.value_equality(manual_cls=True, distinct_child_types=True)
+        class _:
+            pass
+
+    assert True  # HACK: sacrificial line for indentation bug in 3to2.
+
+
+@cirq.testing.only_test_in_python3
+def test_bad_manual_cls_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_cls_'):
+
         @cirq.value_equality(manual_cls=True)
-        class D:
+        class _:
+
             def _value_equality_values_(self):
                 pass
-        del D
+
+    assert True  # HACK: sacrificial line for indentation bug in 3to2.

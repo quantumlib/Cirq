@@ -36,7 +36,6 @@ class _SupportsValueEquality(Protocol):
             Values used when determining if the receiving object is equal to
             another object.
         """
-        pass
 
     def _value_equality_approximate_values_(self) -> Any:
         """Returns value or values used for approximate equality.
@@ -58,6 +57,8 @@ class _SupportsValueEquality(Protocol):
     def _value_equality_values_cls_(self) -> Any:
         """Automatically implemented by the `cirq.value_equality` decorator.
 
+        Can be manually implemented by setting `manual_cls` in the decorator.
+
         This method encodes the logic used to determine whether or not objects
         that have the same equivalence values but different types are considered
         to be equal. By default, this returns the decorated type. But there is
@@ -68,14 +69,13 @@ class _SupportsValueEquality(Protocol):
             Type used when determining if the receiving object is equal to
             another object.
         """
-        pass
 
 
 def _value_equality_eq(self: _SupportsValueEquality,
                        other: _SupportsValueEquality) -> bool:
     cls_self = self._value_equality_values_cls_()
     get_cls_other = getattr(other, '_value_equality_values_cls_', None)
-    if get_cls_other is None or get_cls_other() != cls_self:
+    if get_cls_other is None:
         return NotImplemented
     cls_other = other._value_equality_values_cls_()
     if cls_self != cls_other:
@@ -119,8 +119,7 @@ def value_equality(cls: type,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
                    manual_cls: bool = False,
-                   approximate: bool = False
-                   ) -> type:
+                   approximate: bool = False) -> type:
     pass
 
 
@@ -129,8 +128,7 @@ def value_equality(*,
                    unhashable: bool = False,
                    distinct_child_types: bool = False,
                    manual_cls: bool = False,
-                   approximate: bool = False
-                   ) -> Callable[[type], type]:
+                   approximate: bool = False) -> Callable[[type], type]:
     pass
 
 
@@ -140,7 +138,7 @@ def value_equality(cls: type = None,
                    distinct_child_types: bool = False,
                    manual_cls: bool = False,
                    approximate: bool = False
-                   ) -> Union[Callable[[type], type], type]:
+                  ) -> Union[Callable[[type], type], type]:
     """Implements __eq__/__ne__/__hash__ via a _value_equality_values_ method.
 
     _value_equality_values_ is a method that the decorated class must implement.
@@ -175,9 +173,10 @@ def value_equality(cls: type = None,
             the decorated class is an abstract class or trait that is helping to
             define equality for many conceptually distinct concrete classes.
         manual_cls: When set, the method '_value_equality_values_cls_' must be
-            implemented. This allows one class to compare as equal to another
-            that is also using value equality, by returning the other class'
-            type. Incompatible with `distinct_child_types`.
+            implemented. This allows a new class to compare as equal to another
+            existing class that is also using value equality, by having the new
+            class return the existing class' type.
+            Incompatible with `distinct_child_types`.
         approximate: When set, the decorated class will be enhanced with
             `_approx_eq_` implementation and thus start to support the
             `SupportsApproximateEquality` protocol.
@@ -186,12 +185,12 @@ def value_equality(cls: type = None,
     # If keyword arguments were specified, python invokes the decorator method
     # without a `cls` argument, then passes `cls` into the result.
     if cls is None:
-        return lambda deferred_cls: value_equality(
-            deferred_cls,
-            unhashable=unhashable,
-            manual_cls=manual_cls,
-            distinct_child_types=distinct_child_types,
-            approximate=approximate)
+        return lambda deferred_cls: value_equality(deferred_cls,
+                                                   unhashable=unhashable,
+                                                   manual_cls=manual_cls,
+                                                   distinct_child_types=
+                                                   distinct_child_types,
+                                                   approximate=approximate)
 
     if distinct_child_types and manual_cls:
         raise ValueError("'distinct_child_types' is "

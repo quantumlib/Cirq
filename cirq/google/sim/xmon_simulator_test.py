@@ -372,6 +372,8 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
+@pytest.mark.skipif(not hasattr(np, 'float128'),
+                    reason="system doesn't have np.float128")
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()

@@ -13,9 +13,7 @@
 # limitations under the License.
 
 
-from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
-    Any)
+from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
 
 import numpy as np
 

@@ -19,8 +19,7 @@ print(CNOT(q0, q1))
 ``Gate``s operate on a specific number of qubit and classes that
 implement ``Gate`` must supply the ``num_qubits`` method.  For
 convenience one can use the ``SingleQubitGate``, ``TwoQubitGate``,
-and ``ThreeQubitGate`` classes for these common gate sizes. Boiler
-plate code can also be reduced by using `MultiQubitGate`.
+and ``ThreeQubitGate`` classes for these common gate sizes. 
 
 ### Magic Methods
 

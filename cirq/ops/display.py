@@ -56,13 +56,11 @@ class SamplesDisplay(raw_types.Operation):
     @abc.abstractmethod
     def measurement_basis_change(self) -> op_tree.OP_TREE:
         """Operations to perform prior to measurement."""
-        pass
 
     @property
     @abc.abstractmethod
     def num_samples(self) -> int:
         """The number of measurement samples to take."""
-        pass
 
     @abc.abstractmethod
     def value_derived_from_samples(self,
@@ -79,7 +77,6 @@ class SamplesDisplay(raw_types.Operation):
         Returns:
             The value of the display.
         """
-        pass
 
 
 class WaveFunctionDisplay(raw_types.Operation):
@@ -102,7 +99,6 @@ class WaveFunctionDisplay(raw_types.Operation):
             qubit_map: A dictionary from qubit to qubit index in the
                 ordering used to define the wavefunction.
         """
-        pass
 
 
 class DensityMatrixDisplay(WaveFunctionDisplay):
@@ -120,7 +116,6 @@ class DensityMatrixDisplay(WaveFunctionDisplay):
             qubit_map: A dictionary from qubit to qubit index in the
                 ordering used to define the wavefunction.
         """
-        pass
 
     def value_derived_from_wavefunction(self,
                                         state: np.ndarray,

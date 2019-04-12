@@ -52,10 +52,11 @@ class Pauli(metaclass=abc.ABCMeta):
         """Relative index of self w.r.t. second in the (X, Y, Z) cycle."""
         return (self._index - second._index + 1) % 3 - 1
 
-    def phased_pauli_product(self, other: 'Pauli') -> Tuple[complex,
-                                                            Optional['Pauli']]:
+    def phased_pauli_product(
+            self, other: 'Pauli'
+    ) -> Tuple[complex, Union['Pauli', 'common_gates.IdentityGate']]:
         if self == other:
-            return 1, None
+            return 1, common_gates.I
         return 1j**other.relative_index(self), self.third(other)
 
     def __gt__(self, other):
@@ -68,16 +69,16 @@ class Pauli(metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
-    def on(self, *qubits: raw_types.Qid
-           ) -> 'SingleQubitPauliStringGateOperation':
+    def on(self,
+           *qubits: raw_types.Qid) -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
             *qubits: The collection of qubits to potentially apply the gate to.
         """
         if len(qubits) != 1:
-            raise ValueError('Expected a single qubit, got <{!r}>.'.format(
-                qubits))
+            raise ValueError(
+                'Expected a single qubit, got <{!r}>.'.format(qubits))
         from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
