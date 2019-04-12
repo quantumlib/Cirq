@@ -263,12 +263,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         krauss_tensor = np.reshape(krauss.astype(self._dtype),
                                                    (2,) * gate.num_qubits() * 2)
                         conj_indices = [num_qubits + x for x in indices]
-                        result = linalg.targeted_conjugate(krauss_tensor,
-                                                           matrix,
-                                                           indices,
-                                                           conj_indices,
-                                                           buffer=buffer,
-                                                           out=out)
+                        result = linalg.targeted_conjugate_about(krauss_tensor,
+                                                                 matrix,
+                                                                 indices,
+                                                                 conj_indices,
+                                                                 buffer=buffer,
+                                                                 out=out)
                         sum_buffer += result
                     np.copyto(dst=matrix, src=sum_buffer)
             yield DensityMatrixStepResult(

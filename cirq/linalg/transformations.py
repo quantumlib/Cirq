@@ -149,7 +149,7 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      **({'out': out} if out is not None else {}))
 
 
-def targeted_conjugate(
+def targeted_conjugate_about(
     tensor: np.ndarray,
     target: np.ndarray,
     indices: Sequence[int],
@@ -158,9 +158,16 @@ def targeted_conjugate(
     out: Optional[np.ndarray] = None) -> np.ndarray:
     """Conjugates the given tensor about the target tensor.
 
-    This method takes a target tensor and contracts (sums over indices)
-    this tensor over a set of indices, and contracts this the conjugate
-    of this tensor over a separate set of indices.
+    This method takes a target tensor, first contracts (sums over indices)
+    this tensor over a set of indices, and then contracts this the conjugate
+    of this tensor over a separate set of indices. Here conjugate is used in
+    the sense of conjugating by a matrix, i.a. A conjugated about B is
+    $A B A^\dagger$ where $\dagger$ represents the conjugate transpose.
+
+    Abstractly this compute $A \cdot B \cdot A^\dagger$ where A and B are
+    multi-dimensional arrays, and instead of matrix multiplication $\cdot$
+    is a contraction between the given indices (indices for first $\cdot$,
+    conj_indices for second $\cdot$).
 
     Specifically this computes
         sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}}
