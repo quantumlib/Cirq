@@ -32,8 +32,7 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
     def find_merge_point(
             start_i: int,
             string_op: ops.PauliStringPhasor,
-            stop_at_cz: bool,
-    ) -> Tuple[int, ops.PauliStringPhasor, int]:
+            stop_at_cz: bool,) -> Tuple[int, ops.PauliStringPhasor, int]:
         STOP = 0
         CONTINUE = 1
         SKIP = 2
@@ -49,8 +48,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                 return STOP if stop_at_cz else CONTINUE
             if (isinstance(op, ops.PauliStringPhasor) and
                     len(op.qubits) == 1 and
-                (op.pauli_string[op.qubits[0]] == current_string.pauli_string[
-                    op.qubits[0]])):
+                (op.pauli_string[op.qubits[0]] ==
+                 current_string.pauli_string[op.qubits[0]])):
                 return SKIP
             return STOP
 
@@ -88,9 +87,9 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             trans = remaining_cliff_gate.transform(pauli)
             pauli = trans.to
             quarter_turns *= -1 if trans.flip else 1
-            string_op = ops.PauliStringPhasor(ops.PauliString.from_single(
-                cliff_op.qubits[0], pauli),
-                                              exponent_neg=quarter_turns / 2)
+            string_op = ops.PauliStringPhasor(
+                ops.PauliString.from_single(cliff_op.qubits[0], pauli),
+                exponent_neg=quarter_turns / 2)
 
             merge_i, merge_op, num_passed = find_merge_point(start_i, string_op,
                                                              quarter_turns == 2)

@@ -24,14 +24,13 @@ from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 
-pauli_eigen_map = cast(
-    Dict[pauli_gates.Pauli, np.ndarray], {
-        pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]
-                                 ]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
-        pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]
-                                 ]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
-        pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
-    })
+pauli_eigen_map = cast(Dict[pauli_gates.Pauli, np.ndarray], {
+    pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]]),
+                    np.array([[0.5, -0.5], [-0.5, 0.5]])),
+    pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]]),
+                    np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
+    pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
+})
 
 
 @value.value_equality

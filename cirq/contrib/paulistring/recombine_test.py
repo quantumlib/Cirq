@@ -18,8 +18,7 @@ import cirq
 from cirq.contrib.paulistring import (
     convert_and_separate_circuit,
     pauli_string_dag_from_circuit,
-    move_pauli_strings_into_circuit,
-)
+    move_pauli_strings_into_circuit,)
 
 
 def _assert_no_multi_qubit_pauli_strings(circuit: cirq.Circuit) -> None:

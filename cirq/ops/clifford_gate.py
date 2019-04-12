@@ -181,8 +181,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                       pauli_gates.Z: z_to}
             pauli_map_to = {
                 cast(Pauli, p): trans
-                for p, trans in xyz_to.items()
-                if trans is not None
+                for p, trans in xyz_to.items() if trans is not None
             }
         elif x_to is not None or y_to is not None or z_to is not None:
             raise ValueError('{} can take either pauli_map_to or a combination'
