@@ -168,6 +168,74 @@ def test_targeted_left_multiply_out():
         atol=1e-8)
 
 
+def test_targeted_conjugate_simple():
+    a = np.array([[0, 1j], [0, 0]])
+    # yapf: disable
+    b = np.reshape(
+        np.array([1, 2, 3, 4,
+                  5, 6, 7, 8,
+                  9, 10, 11, 12,
+                  13, 14, 15, 16]),
+        (2,) * 4
+    )
+    expected = np.reshape(
+        np.array([11, 12, 0, 0,
+                  15, 16, 0, 0,
+                  0, 0, 0, 0,
+                  0, 0, 0, 0]),
+        (2,) * 4
+    )
+    # yapf: enable
+    result = cirq.targeted_conjugate_about(a, b, [0])
+    # Should move lower right block to upper right.
+    # Conjugation should result in multiplication by 1 (since 1j * -1j == 1).
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate():
+    a = np.reshape([0, 1, 2j, 3j], (2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate_about(a, b, [0])
+    expected = np.einsum('ij,jklm,ln->iknm', a, b,
+                         np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+    result = cirq.targeted_conjugate_about(a, b, [1])
+    expected = np.einsum('ij,kjlm,mn->kiln', a, b,
+                         np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_multiple_indices():
+    a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate_about(a, b, [0, 1])
+    expected = np.einsum('ijkl,klmn,mnop->ijop', a, b,
+                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_multiple_indices_flip_order():
+    a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate_about(a, b, [1, 0], [3, 2])
+    expected = np.einsum('ijkl,lknm,mnop->jipo', a, b,
+                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_out():
+    a = np.reshape([0, 1, 2j, 3j], (2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    buffer = np.empty((2,) * 4, dtype=a.dtype)
+    out = np.empty((2,) * 4, dtype=a.dtype)
+    result = cirq.targeted_conjugate_about(a, b, [0], buffer=buffer, out=out)
+    assert result is out
+    expected = np.einsum('ij,jklm,ln->iknm', a, b,
+                         np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+
 def test_apply_matrix_to_slices():
     # Output is input.
     with pytest.raises(ValueError, match='out'):
