@@ -192,7 +192,7 @@ class _QubitGrouping:
             return NotImplemented
 
         # Drop measurements.
-        if ops.MeasurementGate.is_measurement(op):
+        if protocols.is_measurement(op):
             return []
 
         # Immediately completely decompose two qubit unitary operations.

@@ -214,11 +214,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         def keep(potential_op: ops.Operation) -> bool:
             return (protocols.has_channel(potential_op)
-                    or ops.MeasurementGate.is_measurement(potential_op)
+                    or (ops.op_gate_of_type(potential_op,
+                                            ops.MeasurementGate) is not None)
                     or isinstance(potential_op,
                                   (ops.SamplesDisplay,
-                                      ops.WaveFunctionDisplay,
-                                      ops.DensityMatrixDisplay))
+                                   ops.WaveFunctionDisplay,
+                                   ops.DensityMatrixDisplay))
                     )
 
         matrix = np.reshape(matrix, (2,) * num_qubits * 2)
@@ -238,9 +239,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                   ops.WaveFunctionDisplay,
                                   ops.DensityMatrixDisplay)):
                     continue
-                elif ops.MeasurementGate.is_measurement(op):
-                    meas = cast(ops.MeasurementGate,
-                                cast(ops.GateOperation, op).gate)
+                # TODO: support more general measurements.
+                meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+                if meas:
                     if perform_measurements:
                         invert_mask = meas.invert_mask or num_qubits * (False,)
                         # Measure updates inline.
@@ -256,19 +257,17 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                     channel = protocols.channel(gate)
                     sum_buffer = np.zeros((2,) * 2 * num_qubits,
                                           dtype=self._dtype)
+                    buffer = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
+                    out = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
                     for krauss in channel:
                         krauss_tensor = np.reshape(krauss.astype(self._dtype),
                                                    (2,) * gate.num_qubits() * 2)
-                        buffer = linalg.targeted_left_multiply(krauss_tensor,
-                                                               matrix,
-                                                               indices)
-                        # No need to transpose as we are acting on the tensor
-                        # representation of matrix, so transpose is done for us.
-                        buffer = linalg.targeted_left_multiply(
-                            np.conjugate(krauss_tensor),
-                            buffer,
-                            [num_qubits + x for x in indices])
-                        sum_buffer += buffer
+                        result = linalg.targeted_conjugate_about(krauss_tensor,
+                                                                 matrix,
+                                                                 indices,
+                                                                 buffer=buffer,
+                                                                 out=out)
+                        sum_buffer += result
                     np.copyto(dst=matrix, src=sum_buffer)
             yield DensityMatrixStepResult(
                     density_matrix=matrix,

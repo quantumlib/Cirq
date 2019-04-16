@@ -113,7 +113,6 @@ class PointOptimizer():
             A description of the optimization to perform, or else None if no
             change should be made.
         """
-        pass
 
     def optimize_circuit(self, circuit: Circuit):
         frontier = defaultdict(lambda: 0)  # type: Dict[Qid, int]

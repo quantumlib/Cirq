@@ -49,7 +49,6 @@ class PauliStringGateOperation(ops.Operation,
 
         new_pauli_string = self.pauli_string.map_qubits(qubit_map)
         """
-        pass
 
     @property
     def qubits(self) -> Tuple[ops.Qid, ...]:

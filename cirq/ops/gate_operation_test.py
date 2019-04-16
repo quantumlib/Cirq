@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import numpy as np
 import pytest
 import sympy
@@ -51,10 +52,14 @@ def test_gate_operation_eq():
                           cirq.GateOperation(cirq.CZ, r12))
 
     @cirq.value_equality
-    class PairGate(cirq.MultiQubitGate, cirq.InterchangeableQubitsGate):
+    class PairGate(cirq.Gate, cirq.InterchangeableQubitsGate):
         """Interchangeable substes."""
+
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def qubit_index_to_equivalence_group_key(self, index: int):
             return index // 2
@@ -235,3 +240,19 @@ def test_repr():
 
     assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
+
+
+def test_op_gate_of_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
+    assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
+
+    class NonGateOperation(cirq.Operation):
+        def qubits(self) :
+            pass
+
+        def with_qubits(self, *new_qubits):
+            pass
+
+    assert cirq.op_gate_of_type(NonGateOperation(), cirq.X) is None

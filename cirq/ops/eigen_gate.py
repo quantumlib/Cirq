@@ -249,7 +249,6 @@ class EigenGate(raw_types.Gate):
                                   [-0.5, +0.5]])),
                 ]
         """
-        pass
 
     def _period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized when equating.
