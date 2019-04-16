@@ -384,9 +384,11 @@ class Engine:
             'scheduling_config': {
                 'priority': priority,
                 'processor_selector': {
-                    'processor_names': ['projects/%s/processors/%s' % (
-                        job_config.project_id, processor_id) for processor_id in
-                                        processor_ids]
+                    'processor_names': [
+                        'projects/%s/processors/%s' %
+                        (job_config.project_id, processor_id)
+                        for processor_id in processor_ids
+                    ]
                 }
             },
         }
