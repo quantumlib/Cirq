@@ -446,11 +446,13 @@ class MeasurementGate(raw_types.Gate):
         return self.key
 
     def _channel_(self):
-        size = (2**self.num_qubits(),) * 2
+        size = 2**self.num_qubits()
+
         def delta(i):
-            result = np.zeros(size)
+            result = np.zeros((size, size))
             result[i][i] = 1
             return result
+
         return tuple(delta(i) for i in range(size))
 
     def _has_channel_(self):
