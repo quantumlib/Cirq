@@ -2,14 +2,14 @@
 
 For simulation, it is useful to have `Gate`s that enact noisy quantum evolution.
 Cirq supports modeling noise via *operator sum* representations of
-noise (these evolutions are also known as quantum operations or quantum
-dynamical maps).  This formalism models evolution of the density matrix
-via
+noise (these evolutions are also known as quantum operations, quantum
+dynamical maps, or superoperators).  This formalism models evolution of the
+density matrix via
 
 ![Operator sum representation: $\rho \rightarrow \sum_k A_k \rho A_k^\dagger$](resources/OperatorSumDef.gif)
 
-Where here the A<sub>k</sub> are *Krauss* operators (sometimes called
-superoperators). These operators are not necessarily unitary and must satisfy
+Where here the A<sub>k</sub> are *Krauss* operators. These operators are not
+necessarily unitary and must satisfy
 the trace preserving property
 
 ![Operator sum normalization: $\sum_k A_k^\dagger A_k = I$](resources/OperatorSumNormDef.gif)
