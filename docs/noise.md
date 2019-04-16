@@ -1,7 +1,7 @@
 ## Noise
 
-For simulation it is useful to have `Gate`s that enact noisy quantum evolution.
-Currently Cirq supports modeling noise via *operator sum* representations of
+For simulation, it is useful to have `Gate`s that enact noisy quantum evolution.
+Cirq supports modeling noise via *operator sum* representations of
 noise (these evolutions are also known as quantum operations or quantum
 dynamical maps).  This formalism models evolution of the density matrix
 via
@@ -22,25 +22,25 @@ mixtures of unitaries, one can implement the `mixture` protocol.
 
 #### cirq.channel and def _channel_
 
-To represent an operator sum evolution a `Gate` should implement the
-`SupportsChannel` protocol.  To do this the `Gate` should implement the
+To represent an operator sum evolution, a `Gate` should implement the
+`SupportsChannel` protocol.  To do this, the `Gate` should implement the
 `_channel_(self) -> Sequence[np.ndarray]:` method.  This method should return
 the sequence of `numpy` matrices corresponding to the Krauss operators. The
 basis in which this matrix is expressed is always implicit with respect to
-the object being called. For example, for GateOperations these matrices
+the object being called. For example, in GateOperations, these matrices
 must be ordered with respect to the list of qubits that the channel is
 applied to. The qubit-to-amplitude order mapping matches the
 ordering of `numpy.kron(A, B)`, where `A` is a qubit earlier in the list
 than the qubit `B`.
 
-In one has defined `_channel_`, then that `Gate` and any `GateOperation`
+If one has defined `_channel_`, then that `Gate` and any `GateOperation`
 that uses that gate can be used as an argument to `cirq.channel` and
 `cirq.channel` will return this sequence of matrices.
 
 Besides objects that support `_channel_`, `cirq.channel` will also fall
-back to other objects that can be interpreted as channels.  For example if a
+back to other objects that can be interpreted as channels.  For example, if a
 channel is a probabilistic mixture of unitary gates (see below), then
-`cirq.channel` will fall back to seeing of the object supports `_mixture_`.
+`cirq.channel` will fall back to seeing the object supports `_mixture_`.
 If `_mixture_` is not supported, then `cirq.channel` checks to see if
 `_unitary_` is supported.
 
@@ -58,14 +58,14 @@ different unitary evolutions.
 ![Mixture channel: $\rho \rightarrow \sum_k p_k U_k \rho U_k^\dagger {\rm ~where~} \sum_k p_k =1 {\rm ~and~ U_k U_k^\dagger= I}$](resources/MixtureChannelDef.gif)
 
 In this case it is possible to perform
-monte carlo simulations of these gates using a wave function based simulator
-(and not a density matrix based simulator).  In this case instead of
+Monte Carlo simulations of these gates using a wave function based simulator
+(and not a density matrix based simulator).  In this case, instead of
 implementing the `SupportsChannel` protocol, one should implement the
-`SupportsMixture` protocol.  To do this one should implement the
+`SupportsMixture` protocol.  To do this, one should implement the
 `_mixture_(self) -> Sequence[Tuple[float, np.ndarray]]` protocol.  This
 returns a sequence of tuples. The first element of each tuple is the
 probability of the unitary and the second element is the unitary. Like
-channel above the basis for these matrices is implicit with respect to the
+channel above, the basis for these matrices is implicit with respect to the
 object being called.  One should also make `_has_mixture_` return `True` to
 indicate to callers that the object supports the mixture protocol.  If one
 wants to get the mixture channel directly, one can call `cirq.mixture_channel`.
@@ -79,10 +79,10 @@ Cirq supports many commonly used quantum channels out of the box, see
 
 These asymmetric depolarizing channel represents probabilistically selecting
 one of three Pauli gates to apply or doing nothing to the state. This is
-implemented via a `_mixture_` method so that monte carlo simulation with a
+implemented via a `_mixture_` method so that a Monte Carlo simulation with a
 wave function simulator can be used.
 
-Specifically this channel implements the evolution
+This channel implements the evolution
 
 ![Asymmetric depolarizing channel: $\rho \rightarrow (1-p_x-p_y-p_z) \rho + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z$](resources/AsymmetricDepolarizingChannelDef.gif)
 

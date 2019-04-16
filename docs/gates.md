@@ -22,10 +22,10 @@ convenience one can use the ``SingleQubitGate``, ``TwoQubitGate``,
 and ``ThreeQubitGate`` classes for these common gate sizes. 
 
 The most common type of ``Gate`` is one that corresponds to applying
-a unitary evolution on the qubits that the gate acts on. However
+a unitary evolution on the qubits that the gate acts on.
 ``Gate``s can also correspond to noisy evolution on the qubits. This
-version of a gate is not used when sending the circuit to an actual
-quantum computer for execution, of course, but can be used with
+version of a gate is not used when sending the circuit to a
+quantum computer for execution, but it can be used with
 various simulators. See [noise documentation](noise.md) .
 
 
