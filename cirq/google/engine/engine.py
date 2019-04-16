@@ -30,7 +30,7 @@ import string
 import time
 import urllib.parse
 from collections import Iterable
-from typing import cast, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 from apiclient import discovery
 
 from cirq import optimizers, circuits
@@ -193,7 +193,7 @@ class Engine:
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            processor_ids: List[str] = ['xmonsim']) -> TrialResult:
+            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -323,7 +323,7 @@ class Engine:
             params: Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
-            processor_ids: List[str] = ['xmonsim']) -> 'EngineJob':
+            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
