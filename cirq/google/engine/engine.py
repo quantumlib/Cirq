@@ -185,15 +185,15 @@ class Engine:
             discoveryServiceUrl=discovery_service_url,
             **kwargs)
 
-    def run(self,
+    def run(
+            self,
             *,  # Force keyword args.
             program: Union[circuits.Circuit, Schedule],
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            processor_ids: List[str] = ['xmonsim']
-            ) -> TrialResult:
+            processor_ids: List[str] = ['xmonsim']) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -208,12 +208,14 @@ class Engine:
         Returns:
             A single TrialResult for this run.
         """
-        return list(self.run_sweep(program=program,
-                                   job_config=job_config,
-                                   params=[param_resolver],
-                                   repetitions=repetitions,
-                                   priority=priority,
-                                   processor_ids=processor_ids))[0]
+        return list(
+            self.run_sweep(
+                program=program,
+                job_config=job_config,
+                params=[param_resolver],
+                repetitions=repetitions,
+                priority=priority,
+                processor_ids=processor_ids))[0]
 
     def _infer_project_id(self, job_config) -> None:
         if job_config.project_id is not None:
@@ -314,15 +316,15 @@ class Engine:
         else:
             raise TypeError('Unexpected program type.')
 
-    def run_sweep(self,
-                  *,  # Force keyword args.
-                  program: Union[circuits.Circuit, Schedule],
-                  job_config: Optional[JobConfig] = None,
-                  params: Sweepable = None,
-                  repetitions: int = 1,
-                  priority: int = 500,
-                  processor_ids: List[str] = ['xmonsim']
-                  ) -> 'EngineJob':
+    def run_sweep(
+            self,
+            *,  # Force keyword args.
+            program: Union[circuits.Circuit, Schedule],
+            job_config: Optional[JobConfig] = None,
+            params: Sweepable = None,
+            repetitions: int = 1,
+            priority: int = 500,
+            processor_ids: List[str] = ['xmonsim']) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -385,8 +387,8 @@ class Engine:
                 'priority': priority,
                 'processor_selector': {
                     'processor_names': [
-                        'projects/%s/processors/%s' %
-                        (job_config.project_id, processor_id)
+                        'projects/%s/processors/%s' % (job_config.project_id,
+                                                       processor_id)
                         for processor_id in processor_ids
                     ]
                 }
