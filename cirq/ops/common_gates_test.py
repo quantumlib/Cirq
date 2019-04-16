@@ -540,6 +540,7 @@ def test_measurement_channel():
     np.testing.assert_allclose(
             cirq.channel(cirq.MeasurementGate(1)),
             (np.array([[1, 0], [0, 0]]), np.array([[0, 0], [0, 1]])))
+    # yapf: disable
     np.testing.assert_allclose(
             cirq.channel(cirq.MeasurementGate(2)),
             (np.array([[1, 0, 0, 0],
@@ -558,6 +559,7 @@ def test_measurement_channel():
                        [0, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 0, 1]])))
+    # yapf: enable
 
 
 def test_measurement_qubit_count_vs_mask_length():
