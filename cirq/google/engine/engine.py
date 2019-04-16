@@ -209,13 +209,12 @@ class Engine:
             A single TrialResult for this run.
         """
         return list(
-            self.run_sweep(
-                program=program,
-                job_config=job_config,
-                params=[param_resolver],
-                repetitions=repetitions,
-                priority=priority,
-                processor_ids=processor_ids))[0]
+            self.run_sweep(program=program,
+                           job_config=job_config,
+                           params=[param_resolver],
+                           repetitions=repetitions,
+                           priority=priority,
+                           processor_ids=processor_ids))[0]
 
     def _infer_project_id(self, job_config) -> None:
         if job_config.project_id is not None:
@@ -387,8 +386,8 @@ class Engine:
                 'priority': priority,
                 'processor_selector': {
                     'processor_names': [
-                        'projects/%s/processors/%s' % (job_config.project_id,
-                                                       processor_id)
+                        'projects/%s/processors/%s' %
+                        (job_config.project_id, processor_id)
                         for processor_id in processor_ids
                     ]
                 }
