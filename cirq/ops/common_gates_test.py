@@ -429,13 +429,31 @@ def test_repr():
 def test_str():
     assert str(cirq.X) == 'X'
     assert str(cirq.X**0.5) == 'X**0.5'
+    assert str(cirq.Rx(np.pi)) == 'Rx(π)'
+    assert str(cirq.Rx(0.5 * np.pi)) == 'Rx(0.5π)'
+    assert str(cirq.XPowGate(
+        global_shift=-0.25)) == 'XPowGate(exponent=1.0, global_shift=-0.25)'
 
     assert str(cirq.Z) == 'Z'
     assert str(cirq.Z**0.5) == 'S'
     assert str(cirq.Z**0.125) == 'Z**0.125'
+    assert str(cirq.Rz(np.pi)) == 'Rz(π)'
+    assert str(cirq.Rz(1.4 * np.pi)) == 'Rz(1.4π)'
+    assert str(cirq.ZPowGate(
+        global_shift=0.25)) == 'ZPowGate(exponent=1.0, global_shift=0.25)'
+
+    assert str(cirq.S) == 'S'
+    assert str(cirq.S**-1) == 'S**-1'
+    assert str(cirq.T) == 'T'
+    assert str(cirq.T**-1) == 'T**-1'
 
     assert str(cirq.Y) == 'Y'
     assert str(cirq.Y**0.5) == 'Y**0.5'
+    assert str(cirq.Ry(np.pi)) == 'Ry(π)'
+    assert str(cirq.Ry(3.14 * np.pi)) == 'Ry(3.14π)'
+    assert str(cirq.YPowGate(
+        exponent=2,
+        global_shift=-0.25)) == 'YPowGate(exponent=2, global_shift=-0.25)'
 
     assert str(cirq.CNOT) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
@@ -445,7 +463,6 @@ def test_str():
 
     assert str(cirq.ISWAP) == 'ISWAP'
     assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
-
 
 def test_measurement_gate_diagram():
     # Shows key.
