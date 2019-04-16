@@ -8,11 +8,14 @@ via
 
 ![Operator sum representation: $\rho \rightarrow \sum_k A_k \rho A_k^\dagger$](resources/OperatorSumDef.gif)
 
-Where here the the A<sub>k</sub> are *Krauss* operators. These operators
-are not necessarily unitary and must satisfy the trace preserving
-property
+Where here the A<sub>k</sub> are *Krauss* operators (sometimes called
+superoperators). These operators are not necessarily unitary and must satisfy
+the trace preserving property
 
 ![Operator sum normalization: $\sum_k A_k^\dagger A_k = I$](resources/OperatorSumNormDef.gif)
+
+As a noisy channel, Krauss operators are not unique. For more details of these
+operators see [John Preskill's notes](http://www.theory.caltech.edu/people/preskill/ph219/chap3_15.pdf).
 
 ### Magic methods
 
@@ -65,10 +68,11 @@ implementing the `SupportsChannel` protocol, one should implement the
 `_mixture_(self) -> Sequence[Tuple[float, np.ndarray]]` protocol.  This
 returns a sequence of tuples. The first element of each tuple is the
 probability of the unitary and the second element is the unitary. Like
-channel above, the basis for these matrices is implicit with respect to the
-object being called.  One should also make `_has_mixture_` return `True` to
-indicate to callers that the object supports the mixture protocol.  If one
-wants to get the mixture channel directly, one can call `cirq.mixture_channel`.
+the `_channel_` method described above, the basis for these matrices is
+implicit with respect to the object being called.  One should also make
+`_has_mixture_` return `True` to indicate to callers that the object supports
+the mixture protocol.  If one wants to get the mixture channel directly, one
+can call `cirq.mixture_channel`.
 
 ### Common Channels
 
