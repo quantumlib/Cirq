@@ -30,7 +30,7 @@ import string
 import time
 import urllib.parse
 from collections import Iterable
-from typing import cast, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
 from apiclient import discovery
 
 from cirq import optimizers, circuits
@@ -185,15 +185,15 @@ class Engine:
             discoveryServiceUrl=discovery_service_url,
             **kwargs)
 
-    def run(self,
+    def run(
+            self,
             *,  # Force keyword args.
             program: Union[circuits.Circuit, Schedule],
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            target_route: str = '/xmonsim'
-            ) -> TrialResult:
+            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -203,17 +203,18 @@ class Engine:
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
-            target_route: The engine route to run against.
+            processor_ids: The engine processors to run against.
 
         Returns:
             A single TrialResult for this run.
         """
-        return list(self.run_sweep(program=program,
-                                   job_config=job_config,
-                                   params=[param_resolver],
-                                   repetitions=repetitions,
-                                   priority=priority,
-                                   target_route=target_route))[0]
+        return list(
+            self.run_sweep(program=program,
+                           job_config=job_config,
+                           params=[param_resolver],
+                           repetitions=repetitions,
+                           priority=priority,
+                           processor_ids=processor_ids))[0]
 
     def _infer_project_id(self, job_config) -> None:
         if job_config.project_id is not None:
@@ -314,15 +315,15 @@ class Engine:
         else:
             raise TypeError('Unexpected program type.')
 
-    def run_sweep(self,
-                  *,  # Force keyword args.
-                  program: Union[circuits.Circuit, Schedule],
-                  job_config: Optional[JobConfig] = None,
-                  params: Sweepable = None,
-                  repetitions: int = 1,
-                  priority: int = 500,
-                  target_route: str = '/xmonsim'
-                  ) -> 'EngineJob':
+    def run_sweep(
+            self,
+            *,  # Force keyword args.
+            program: Union[circuits.Circuit, Schedule],
+            job_config: Optional[JobConfig] = None,
+            params: Sweepable = None,
+            repetitions: int = 1,
+            priority: int = 500,
+            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -335,7 +336,7 @@ class Engine:
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
-            target_route: The engine route to run against.
+            processor_ids: The engine processors to run against.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -383,7 +384,13 @@ class Engine:
             },
             'scheduling_config': {
                 'priority': priority,
-                'target_route': target_route
+                'processor_selector': {
+                    'processor_names': [
+                        'projects/%s/processors/%s' %
+                        (job_config.project_id, processor_id)
+                        for processor_id in processor_ids
+                    ]
+                }
             },
         }
         response = self.service.projects().programs().jobs().create(
