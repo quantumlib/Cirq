@@ -117,7 +117,7 @@ corresponds to
 
 ![Generalized amplitude damping channel: $\rho \rightarrow \sum_{k=0}^3 M_k \rho M_k \\ M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix} \\ M_1 = \sqrt{p} \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix} \\ M_2 = \sqrt{1-p} \begin{bmatrix} \sqrt{1-\gamma} & 0 \\ 0 & 1 \\ \end{bmatrix} \\ M_3 = \sqrt{1-p} \begin{bmatrix} 0 & 0 \\ \sqrt{\gamma} & 0 \end{bmatrix}$](resources/GeneralizedAmplitudeDampingChannelDef.gif)
 
-Where &#947; is the probability of the interaction be dissipative and
+Where &#947; is the probability of the interaction being dissipative and
 `p` is the probability that the qubit and environment exchange energy. The
 amplitude damping channel corresponds to `p=1`.
 
