@@ -48,10 +48,9 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
             repetitions=repetitions)
 
     return density_matrix_simulator.DensityMatrixSimulator(
-        dtype=dtype, noise=noise).run(
-            program=program,
-            param_resolver=param_resolver,
-            repetitions=repetitions)
+        dtype=dtype, noise=noise).run(program=program,
+                                      param_resolver=param_resolver,
+                                      repetitions=repetitions)
 
 
 def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
@@ -60,7 +59,7 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                  noise: devices.NoiseModel = devices.NO_NOISE,
                  repetitions: int = 1,
                  dtype: Type[np.number] = np.complex64
-                 ) -> List[study.TrialResult]:
+                ) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter

@@ -45,10 +45,9 @@ class NoiseModel:
         ]), 'Must override noisy_moments, noisy_moment, or noisy_operation.'
         return super().__new__(cls)
 
-    def noisy_moments(self,
-                      moments: 'Iterable[cirq.Moment]',
+    def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
                       system_qubits: Sequence['cirq.Qid']
-                      ) -> Sequence['cirq.OP_TREE']:
+                     ) -> Sequence['cirq.OP_TREE']:
         """Adds possibly stateful noise to a series of moments.
 
         Args:
@@ -73,10 +72,8 @@ class NoiseModel:
 
         assert False, 'Should be unreachable.'
 
-    def noisy_moment(self,
-                     moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']
-                     ) -> 'cirq.OP_TREE':
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Adds noise to the operations from a moment.
 
         Args:
@@ -109,8 +106,7 @@ class NoiseModel:
                                       operation.qubits)
 
         if not hasattr(self.noisy_moment, '_not_overridden'):
-            return self.noisy_moment(ops.Moment([operation]),
-                                     operation.qubits)
+            return self.noisy_moment(ops.Moment([operation]), operation.qubits)
 
         assert False, 'Should be unreachable.'
 
@@ -123,16 +119,12 @@ class NoiseModel:
 class _NoNoiseModel(NoiseModel):
     """A default noise model that adds no noise."""
 
-    def noisy_moments(self,
-                      moments: 'Iterable[cirq.Moment]',
-                      system_qubits: Sequence['cirq.Qid']
-                      ):
+    def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
+                      system_qubits: Sequence['cirq.Qid']):
         return list(moments)
 
-    def noisy_moment(self,
-                     moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']
-                     ):
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
         return moment
 
     def noisy_operation(self, operation: 'cirq.Operation'):
@@ -156,10 +148,8 @@ class ConstantQubitNoiseModel(NoiseModel):
             raise ValueError('noise.num_qubits() != 1')
         self.qubit_noise_gate = qubit_noise_gate
 
-    def noisy_moment(self,
-                     moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']
-                     ):
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
         return list(moment) + [self.qubit_noise_gate(q) for q in system_qubits]
 
 

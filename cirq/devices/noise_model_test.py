@@ -33,6 +33,7 @@ def _assert_equivalent_op_tree_sequence(x: Sequence[cirq.OP_TREE],
 
 
 def test_requires_one_override():
+
     class C(cirq.NoiseModel):
         pass
 
@@ -44,6 +45,7 @@ def test_infers_other_methods():
     q = cirq.LineQubit(0)
 
     class NoiseModelWithNoisyMomentListMethod(cirq.NoiseModel):
+
         def noisy_moments(self, moments, system_qubits):
             result = []
             for moment in moments:
@@ -54,42 +56,35 @@ def test_infers_other_methods():
             return result
 
     a = NoiseModelWithNoisyMomentListMethod()
-    _assert_equivalent_op_tree(
-        a.noisy_operation(cirq.H(q)),
-        cirq.X(q))
-    _assert_equivalent_op_tree(
-        a.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-        cirq.X(q))
+    _assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)), cirq.X(q))
+    _assert_equivalent_op_tree(a.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
+                               cirq.X(q))
     _assert_equivalent_op_tree_sequence(
         a.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.X(q)])
 
     class NoiseModelWithNoisyMomentMethod(cirq.NoiseModel):
+
         def noisy_moment(self, moment, system_qubits):
             return cirq.Y.on_each(*moment.qubits)
 
     b = NoiseModelWithNoisyMomentMethod()
-    _assert_equivalent_op_tree(
-        b.noisy_operation(cirq.H(q)),
-        cirq.Y(q))
-    _assert_equivalent_op_tree(
-        b.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-        cirq.Y(q))
+    _assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)), cirq.Y(q))
+    _assert_equivalent_op_tree(b.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
+                               cirq.Y(q))
     _assert_equivalent_op_tree_sequence(
         b.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.Y(q)])
 
     class NoiseModelWithNoisyOperationMethod(cirq.NoiseModel):
+
         def noisy_operation(self, operation: 'cirq.Operation'):
             return cirq.Z(operation.qubits[0])
 
     c = NoiseModelWithNoisyOperationMethod()
-    _assert_equivalent_op_tree(
-        c.noisy_operation(cirq.H(q)),
-        cirq.Z(q))
-    _assert_equivalent_op_tree(
-        c.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-        cirq.Z(q))
+    _assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)), cirq.Z(q))
+    _assert_equivalent_op_tree(c.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
+                               cirq.Z(q))
     _assert_equivalent_op_tree_sequence(
         c.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.Z(q)])
@@ -112,11 +107,9 @@ def test_constant_qubit_noise():
     damp_all = cirq.ConstantQubitNoiseModel(damp)
     assert damp_all.noisy_moments(
         [cirq.Moment([cirq.X(a)]), cirq.Moment()],
-        [a, b, c]
-    ) == [
-        [cirq.X(a), damp(a), damp(b), damp(c)],
-        [damp(a), damp(b), damp(c)]
-    ]
+        [a, b, c]) == [[cirq.X(a), damp(a),
+                        damp(b), damp(c)], [damp(a), damp(b),
+                                            damp(c)]]
 
     with pytest.raises(ValueError, match='num_qubits'):
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
