@@ -49,7 +49,6 @@ from cirq.linalg.operator_spaces import (
 )
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
-    slice_for_qubits_equal_to,
     commutes,
     is_diagonal,
     is_hermitian,
@@ -57,6 +56,7 @@ from cirq.linalg.predicates import (
     is_special_orthogonal,
     is_special_unitary,
     is_unitary,
+    slice_for_qubits_equal_to,
 )
 from cirq.linalg.tolerance import (
     all_near_zero,

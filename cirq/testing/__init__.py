@@ -17,8 +17,8 @@
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
     assert_eigen_gate_has_consistent_apply_unitary,
-    assert_has_consistent_apply_unitary_for_various_exponents,
     assert_has_consistent_apply_unitary,
+    assert_has_consistent_apply_unitary_for_various_exponents,
     assert_has_diagram,
     assert_same_circuits,
     highlight_text_differences,
@@ -33,8 +33,8 @@ from cirq.testing.consistent_pauli_expansion import (
     assert_pauli_expansion_is_consistent_with_unitary,
 )
 from cirq.testing.consistent_protocols import (
-    assert_implements_consistent_protocols,
     assert_eigengate_implements_consistent_protocols,
+    assert_implements_consistent_protocols,
 )
 from cirq.testing.consistent_qasm import (
     assert_qasm_is_consistent_with_unitary,
@@ -50,12 +50,12 @@ from cirq.testing.file_tester import (
     TempFilePath,
 )
 from cirq.testing.lin_alg_utils import (
+    assert_allclose_up_to_global_phase,
     random_orthogonal,
     random_special_orthogonal,
     random_special_unitary,
     random_superposition,
     random_unitary,
-    assert_allclose_up_to_global_phase,
 )
 from cirq.testing.order_tester import (
     OrderTester,

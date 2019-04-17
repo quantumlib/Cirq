@@ -29,12 +29,12 @@ from cirq.contrib.paulistring.convert_gate_set import (
 )
 from cirq.contrib.paulistring.separate import (
     convert_and_separate_circuit,
-    regular_half,
     pauli_string_half,
+    regular_half,
 )
 from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
+    pauli_string_reorder_pred,
 )
 from cirq.contrib.paulistring.recombine import (
     move_pauli_strings_into_circuit,

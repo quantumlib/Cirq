@@ -43,8 +43,8 @@ from cirq.optimizers.merge_interactions import (
 )
 
 from cirq.optimizers.merge_single_qubit_gates import (
-    MergeSingleQubitGates,
     merge_single_qubit_gates_into_phased_x_z,
+    MergeSingleQubitGates,
 )
 
 from cirq.optimizers.decompositions import (

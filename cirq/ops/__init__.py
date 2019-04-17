@@ -16,8 +16,8 @@
 """
 
 from cirq.ops.clifford_gate import (
-    SingleQubitCliffordGate,
     PauliTransform,
+    SingleQubitCliffordGate,
 )
 from cirq.ops.common_channels import (
     amplitude_damp,
@@ -31,8 +31,8 @@ from cirq.ops.common_channels import (
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     phase_damp,
-    PhaseDampingChannel,
     phase_flip,
+    PhaseDampingChannel,
     PhaseFlipChannel,
 )
 from cirq.ops.common_gates import (
@@ -49,9 +49,6 @@ from cirq.ops.common_gates import (
     measure,
     measure_each,
     MeasurementGate,
-    XPowGate,
-    YPowGate,
-    ZPowGate,
     Rx,
     Ry,
     Rz,
@@ -59,6 +56,9 @@ from cirq.ops.common_gates import (
     SWAP,
     SwapPowGate,
     T,
+    XPowGate,
+    YPowGate,
+    ZPowGate,
 )
 from cirq.ops.controlled_gate import (
     ControlledGate,
@@ -66,10 +66,10 @@ from cirq.ops.controlled_gate import (
 from cirq.ops.display import (
     ApproxPauliStringExpectation,
     DensityMatrixDisplay,
+    pauli_string_expectation,
     PauliStringExpectation,
     SamplesDisplay,
     WaveFunctionDisplay,
-    pauli_string_expectation,
 )
 from cirq.ops.eigen_gate import (
     EigenGate,
@@ -110,9 +110,9 @@ from cirq.ops.named_qubit import (
     NamedQubit,
 )
 from cirq.ops.op_tree import (
-    OP_TREE,
     flatten_op_tree,
     freeze_op_tree,
+    OP_TREE,
     transform_op_tree,
 )
 from cirq.ops.parity_gates import (
