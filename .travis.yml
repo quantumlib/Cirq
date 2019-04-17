@@ -40,9 +40,7 @@ matrix:
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master
 
-  - os:
-	- linux
-	- windows
+  - os: windows
     env: NAME=pytest (without contrib)
     python: "3.6"
     install:
