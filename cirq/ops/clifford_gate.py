@@ -275,8 +275,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if self == SingleQubitCliffordGate.H:
             return common_gates.H(qubit),
         rotations = self.decompose_rotation()
-        return tuple(
-            cast(raw_types.Gate, r).on(qubit)**(qt / 2) for r, qt in rotations)
+        return tuple(r.on(qubit)**(qt / 2) for r, qt in rotations)
 
     def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
         """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)

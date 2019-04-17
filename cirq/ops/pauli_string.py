@@ -318,8 +318,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     def __init__(self, pauli: Pauli, qubit: raw_types.Qid):
         PauliString.__init__(self, {qubit: pauli})
-        gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
-                                              [qubit])
+        gate_operation.GateOperation.__init__(self, pauli, [qubit])
 
     def with_qubits(self, *new_qubits: raw_types.Qid
                    ) -> 'SingleQubitPauliStringGateOperation':
