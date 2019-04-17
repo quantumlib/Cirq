@@ -133,9 +133,16 @@ class XPowGate(eigen_gate.EigenGate,
             phase_exponent=phase_turns * 2)
 
     def __str__(self) -> str:
-        if self._exponent == 1:
-            return 'X'
-        return 'X**{!r}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Rx(π)'
+            return 'Rx({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'X'
+            return 'X**{}'.format(self._exponent)
+        return ('XPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -229,9 +236,16 @@ class YPowGate(eigen_gate.EigenGate,
             phase_exponent=0.5 + phase_turns * 2)
 
     def __str__(self) -> str:
-        if self._exponent == 1:
-            return 'Y'
-        return 'Y**{}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Ry(π)'
+            return 'Ry({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'Y'
+            return 'Y**{}'.format(self._exponent)
+        return ('YPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -340,17 +354,24 @@ class ZPowGate(eigen_gate.EigenGate,
                                self._exponent, qubits[0])
 
     def __str__(self) -> str:
-        if self._exponent == 0.25:
-            return 'T'
-        if self._exponent == -0.25:
-            return 'T**-1'
-        if self._exponent == 0.5:
-            return 'S'
-        if self._exponent == -0.5:
-            return 'S**-1'
-        if self._exponent == 1:
-            return 'Z'
-        return 'Z**{}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Rz(π)'
+            return 'Rz({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 0.25:
+                return 'T'
+            if self._exponent == -0.25:
+                return 'T**-1'
+            if self._exponent == 0.5:
+                return 'S'
+            if self._exponent == -0.5:
+                return 'S**-1'
+            if self._exponent == 1:
+                return 'Z'
+            return 'Z**{}'.format(self._exponent)
+        return ('ZPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -425,12 +446,14 @@ class MeasurementGate(raw_types.Gate):
         return self.key
 
     def _channel_(self):
-        size = 2 ** self.num_qubits()
-        zero = np.zeros((size, size))
-        zero[0][0] = 1.0
-        one = np.zeros((size, size))
-        one[-1][-1] = 1.0
-        return (zero, one)
+        size = 2**self.num_qubits()
+
+        def delta(i):
+            result = np.zeros((size, size))
+            result[i][i] = 1
+            return result
+
+        return tuple(delta(i) for i in range(size))
 
     def _has_channel_(self):
         return True
