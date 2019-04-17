@@ -13,28 +13,31 @@
 # limitations under the License.
 
 from cirq.google.convert_to_xmon_gates import (
-    ConvertToXmonGates,
-)
+    ConvertToXmonGates,)
+
 from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
 )
+
 from cirq.google.xmon_device import (
-    XmonDevice,
-)
+    XmonDevice,)
+
 from cirq.google.optimize import (
-    optimized_for_xmon,
-)
+    optimized_for_xmon,)
+
 from cirq.google.sim import (
     XmonOptions,
     XmonSimulator,
     XmonStepResult,
 )
+
 from cirq.google.engine import (
     engine_from_environment,
     Engine,
     JobConfig,
 )
+
 from cirq.google.programs import (
     gate_to_proto_dict,
     is_native_xmon_gate,

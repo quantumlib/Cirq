@@ -37,8 +37,7 @@ from cirq.contrib.acquaintance.gates import (
 )
 
 from cirq.contrib.acquaintance.inspection_utils import (
-    get_logical_acquaintance_opportunities,
-)
+    get_logical_acquaintance_opportunities,)
 
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates,
@@ -47,8 +46,7 @@ from cirq.contrib.acquaintance.mutation_utils import (
 )
 
 from cirq.contrib.acquaintance.optimizers import (
-    remove_redundant_acquaintance_opportunities,
-)
+    remove_redundant_acquaintance_opportunities,)
 
 from cirq.contrib.acquaintance.permutation import (
     LinearPermutationGate,
@@ -58,12 +56,10 @@ from cirq.contrib.acquaintance.permutation import (
 )
 
 from cirq.contrib.acquaintance.shift import (
-    CircularShiftGate,
-)
+    CircularShiftGate,)
 
 from cirq.contrib.acquaintance.shift_swap_network import (
-    ShiftSwapNetworkGate,
-)
+    ShiftSwapNetworkGate,)
 
 from cirq.contrib.acquaintance.strategies import (
     complete_acquaintance_strategy,
@@ -72,5 +68,4 @@ from cirq.contrib.acquaintance.strategies import (
 )
 
 from cirq.contrib.acquaintance import (
-    testing,
-)
+    testing,)

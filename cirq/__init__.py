@@ -30,7 +30,7 @@ from cirq.circuits import (
 )
 
 from cirq.devices import (
-    Device
+    Device,
     GridQubit,
     UnconstrainedDevice,
 )

@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from cirq.devices.device import (
-    Device,
-)
+    Device,)
+
 from cirq.devices.grid_qubit import (
-    GridQubit,
-)
+    GridQubit,)
+
 from cirq.devices.unconstrained_device import (
-    UnconstrainedDevice,
-)
+    UnconstrainedDevice,)
