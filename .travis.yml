@@ -41,8 +41,13 @@ matrix:
     script: check/pytest-and-incremental-coverage master
 
   - os: windows
-    env: NAME=pytest (without contrib)
-    python: "3.6"
+     language: sh
+     python: "3.5.2"
+    before_install:
+          - choco install python3
+          - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+          - python -m pip install --upgrade pip wheel
+        env: NAME=pytest (without contrib)
     install:
       - pip install -r requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
