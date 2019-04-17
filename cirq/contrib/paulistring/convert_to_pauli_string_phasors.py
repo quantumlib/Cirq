@@ -20,7 +20,8 @@ from cirq import ops, optimizers, protocols, linalg
 from cirq.circuits.circuit import Circuit
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
-    PointOptimizer,)
+    PointOptimizer,
+)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -77,8 +78,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             else:
                 pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    ops.PauliStringPhasor(
-                        pauli_string, exponent_neg=round(half_turns, 10)))
+                    ops.PauliStringPhasor(pauli_string,
+                                          exponent_neg=round(half_turns, 10)))
         return out_ops
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:

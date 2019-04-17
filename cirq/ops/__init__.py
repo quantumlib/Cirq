@@ -134,7 +134,8 @@ from cirq.ops.pauli_interaction_gate import (
 )
 from cirq.ops.pauli_string import (
     PauliString,
-    SingleQubitPauliStringGateOperation,)
+    SingleQubitPauliStringGateOperation,
+)
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,)
 from cirq.ops.pauli_string_raw_types import (

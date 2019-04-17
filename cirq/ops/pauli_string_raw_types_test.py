@@ -82,8 +82,10 @@ def test_default_text_diagram():
 
     circuit = cirq.Circuit.from_ops(
         DiagramGate(ps),
-        DiagramGate(-ps),)
-    cirq.testing.assert_has_diagram(circuit, """
+        DiagramGate(-ps),
+    )
+    cirq.testing.assert_has_diagram(
+        circuit, """
 q0: ───[X]───[X]───
        │     │
 q1: ───[Y]───[Y]───

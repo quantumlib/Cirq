@@ -92,21 +92,21 @@ def test_exponentiation_as_exponent():
         _ = math.e**(math.pi * p)
 
     with pytest.raises(TypeError, match='unsupported'):
-        _ = 'test' **p
+        _ = 'test'**p
 
-    assert cirq.approx_eq(math.e**(-1j * math.pi * p),
-                          cirq.PauliStringPhasor(
-                              p, exponent_neg=0.5, exponent_pos=-0.5))
+    assert cirq.approx_eq(
+        math.e**(-1j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=-0.5))
 
-    assert cirq.approx_eq(math.e**(0.5j * math.pi * p),
-                          cirq.PauliStringPhasor(
-                              p, exponent_neg=-0.25, exponent_pos=0.25))
+    assert cirq.approx_eq(
+        math.e**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
-    assert cirq.approx_eq(2**(0.5j * math.pi * p),
-                          cirq.PauliStringPhasor(
-                              p,
-                              exponent_neg=-0.25 * math.log(2),
-                              exponent_pos=0.25 * math.log(2)))
+    assert cirq.approx_eq(
+        2**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p,
+                               exponent_neg=-0.25 * math.log(2),
+                               exponent_pos=0.25 * math.log(2)))
 
     assert cirq.approx_eq(
         np.exp(0.5j * math.pi * p),
@@ -125,8 +125,8 @@ def test_exponentiate_single_value_as_exponent():
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Z(q)),
                           cirq.Rz(0.25 * math.pi).on(q))
 
-    assert cirq.approx_eq(
-        np.exp(-0.3j * math.pi * cirq.X(q)), cirq.Rx(0.3 * math.pi).on(q))
+    assert cirq.approx_eq(np.exp(-0.3j * math.pi * cirq.X(q)),
+                          cirq.Rx(0.3 * math.pi).on(q))
 
     assert cirq.approx_eq(cirq.X(q)**0.5, cirq.XPowGate(exponent=0.5).on(q))
 
@@ -150,23 +150,21 @@ def test_exponentiation_as_base():
 
     assert p**-1 == p
 
-    assert cirq.approx_eq(p**0.5,
-                          cirq.PauliStringPhasor(
-                              p, exponent_neg=0.5, exponent_pos=0))
+    assert cirq.approx_eq(
+        p**0.5, cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=0))
 
-    assert cirq.approx_eq(p**-0.5,
-                          cirq.PauliStringPhasor(
-                              p, exponent_neg=-0.5, exponent_pos=0))
+    assert cirq.approx_eq(
+        p**-0.5, cirq.PauliStringPhasor(p, exponent_neg=-0.5, exponent_pos=0))
 
-    assert cirq.approx_eq(math.e**(0.5j * math.pi * p),
-                          cirq.PauliStringPhasor(
-                              p, exponent_neg=-0.25, exponent_pos=0.25))
+    assert cirq.approx_eq(
+        math.e**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
-    assert cirq.approx_eq(2**(0.5j * math.pi * p),
-                          cirq.PauliStringPhasor(
-                              p,
-                              exponent_neg=-0.25 * math.log(2),
-                              exponent_pos=0.25 * math.log(2)))
+    assert cirq.approx_eq(
+        2**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p,
+                               exponent_neg=-0.25 * math.log(2),
+                               exponent_pos=0.25 * math.log(2)))
 
     assert cirq.approx_eq(
         np.exp(0.5j * math.pi * p),

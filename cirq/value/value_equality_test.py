@@ -73,8 +73,8 @@ def test_value_equality_basic():
 def test_value_equality_manual():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(MasqueradePositiveD(3), BasicD(3))
-    eq.add_equality_group(
-        MasqueradePositiveD(4), MasqueradePositiveD(4), BasicD(4))
+    eq.add_equality_group(MasqueradePositiveD(4), MasqueradePositiveD(4),
+                          BasicD(4))
     eq.add_equality_group(MasqueradePositiveD(-1), MasqueradePositiveD(-1))
     eq.add_equality_group(BasicD(-1))
 

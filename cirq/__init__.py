@@ -178,7 +178,8 @@ from cirq.ops import (
     pauli_string_expectation,
     phase_damp,
     phase_flip,
-    transform_op_tree,)
+    transform_op_tree,
+)
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
