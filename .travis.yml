@@ -41,8 +41,8 @@ matrix:
     script: check/pytest-and-incremental-coverage master
 
   - os: linux
-        env: NAME=pytest (without contrib)
-	python: "3.6"
+    env: NAME=pytest (without contrib)
+    python: "3.6"
     install:
       - pip install -r requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
@@ -60,14 +60,14 @@ matrix:
       - PATH=$(pwd)/protoc3.5/bin:${PATH}
     script: check/pytest2
 
-    - os: windows
-      language: sh
-      python: "3.5.2"
-      before_install:
-	  - choco install python3
-          - export PATH="/c/Python35:/c/Python35/Scripts:$PATH"
-          - python -m pip install --upgrade pip wheel
-       install:
-	   - pip install -r requirements.txt
-	   - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-       script: check/pytest --ignore=cirq/contrib
+  - os: windows
+    language: sh
+    python: "3.5.2"
+    before_install:
+    - choco install python3
+    - export PATH="/c/Python35:/c/Python35/Scripts:$PATH"
+    - python -m pip install --upgrade pip wheel
+    install:
+    - pip install -r requirements.txt
+    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --ignore=cirq/contrib
