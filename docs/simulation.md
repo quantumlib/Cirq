@@ -349,15 +349,16 @@ simulator starts to do sharding. By default this is 10.
 ### Mixed state simulations
 
 In addition to pure state simulation, Cirq also supports
-simulation of mixed states.  The simulator for this is not
+simulation of mixed states. The simulator for this is not
 as efficient as the pure state simulators, but they allow
-for a large class of noisy circuits to be run, as well as
-keeping track of the density matrix of the simulation, which
-can allow for more exact simulation (for example the pure
-state simulator's Monte Carlo simulation only allows from
-sampling from the density matrix, not explicitly having access
-to the entries of the density matrix). Mixed state simulation
-is supported by
+for a larger class of noisy circuits to be run, as well as
+keeping track of the density matrix of the simulation. This
+later fact can allow for more exact simulations (for example
+the pure state simulator's Monte Carlo simulation only
+allows  sampling from the density matrix, not explicitly giving
+the entries of the density matrix like the mixed state simulator
+can do). Mixed state simulation is supported by by the
+``cirq.DensityMatrixSimulator`` class.
 
 Here is a simple example of simulating a channel using the
 mixed state simulator
@@ -374,8 +375,8 @@ Here we create a state in an equal superposition of 0 and 1,
 and then apply amplitude damping which takes 1 to 0 with
 something like a probability of 0.2. We see that instead of
 about 50 percent of the timing being in 0, about 20 percent
-of the 1 has been converted into 0, so we end up with
-around 60 percent 0.
+of the 1 has been converted into 0, so we end up with total
+around 60 percent in the 0 state.
 
 Like the pure state simulators, the mixed state simulator
 supports ``run`` and ``run_sweeps`` methods. In addition the
@@ -399,11 +400,3 @@ print(np.around(result.final_density_matrix, 3))
 ```
 Here we see that we have access to the density matrix at the
 end of the simulation via ``final_density_matrix``.
-
-### Multiplex (mux) convenience methods
-
-Finally there are a set of convenience methods which attempt
-to pick the correct simulation method given a circuit.  For
-example if the circuit has channels these methods will pick
-the density matrix simulator.
-
