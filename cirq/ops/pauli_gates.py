@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
 
-class Pauli(metaclass=abc.ABCMeta):
+class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     """Represents the Pauli gates.
 
     This is an abstract class with no public subclasses. The only instances

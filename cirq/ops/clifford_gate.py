@@ -181,7 +181,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                       pauli_gates.Z: z_to}
             pauli_map_to = {
                 cast(Pauli, p): trans
-                for p, trans in xyz_to.items() if trans is not None
+                for p, trans in xyz_to.items()
+                if trans is not None
             }
         elif x_to is not None or y_to is not None or z_to is not None:
             raise ValueError('{} can take either pauli_map_to or a combination'
@@ -274,8 +275,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if self == SingleQubitCliffordGate.H:
             return common_gates.H(qubit),
         rotations = self.decompose_rotation()
-        return tuple(
-            cast(raw_types.Gate, r).on(qubit)**(qt / 2) for r, qt in rotations)
+        return tuple(r.on(qubit)**(qt / 2) for r, qt in rotations)
 
     def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
         """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)

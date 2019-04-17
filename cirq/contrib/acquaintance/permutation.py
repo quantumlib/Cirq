@@ -149,6 +149,15 @@ class LinearPermutationGate(PermutationGate):
     def __bool__(self):
         return bool(_canonicalize_permutation(self._permutation))
 
+    def __pow__(self, exponent):
+        if exponent == 1:
+            return self
+        if exponent == -1:
+            return LinearPermutationGate(
+                self._num_qubits, {v: k for k, v in self._permutation.items()},
+                self.swap_gate)
+        return NotImplemented
+
 
 def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
                    operations: ops.OP_TREE

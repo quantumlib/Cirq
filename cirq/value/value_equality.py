@@ -116,10 +116,10 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
 @overload
 def value_equality(cls: type,
                    *,
-                   unhashable: bool=False,
-                   distinct_child_types: bool=False,
-                   manual_cls: bool=False,
-                   approximate: bool=False) -> type:
+                   unhashable: bool = False,
+                   distinct_child_types: bool = False,
+                   manual_cls: bool = False,
+                   approximate: bool = False) -> type:
     pass
 
 

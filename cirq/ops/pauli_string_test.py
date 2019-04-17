@@ -399,9 +399,7 @@ def test_op_equivalence():
     a, b = cirq.LineQubit.range(2)
     various_x = [
         cirq.X(a),
-        cirq.PauliString({
-            a: cirq.X
-        }),
+        cirq.PauliString({a: cirq.X}),
         cirq.PauliString.from_single(a, cirq.X),
         cirq.SingleQubitPauliStringGateOperation(cirq.X, a),
         cirq.GateOperation(cirq.X, [a]),
@@ -427,11 +425,10 @@ def test_op_product():
 
     assert cirq.X(a) * cirq.X(a) == cirq.PauliString()
     assert cirq.X(a) * cirq.Y(a) == 1j * cirq.PauliString({a: cirq.Z})
-    assert cirq.Y(a) * cirq.Z(b) * cirq.X(a) == -1j * cirq.PauliString(
-        {
-            a: cirq.Z,
-            b: cirq.Z
-        })
+    assert cirq.Y(a) * cirq.Z(b) * cirq.X(a) == -1j * cirq.PauliString({
+        a: cirq.Z,
+        b: cirq.Z
+    })
 
 
 def test_pos():

@@ -532,8 +532,18 @@ class SimulationTrialResult:
 
         results = sorted(
             [(key, bitstring(val)) for key, val in self.measurements.items()])
+        if not results:
+            return '(no measurements)'
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('SimulationTrialResult(...)')
+        else:
+            p.text(str(self))
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
