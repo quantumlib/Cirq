@@ -277,6 +277,24 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
                 measurements,
                 self.final_simulator_state)
 
+    def __str__(self):
+        samples = super().__str__()
+        final = self.state_vector()
+        if len([1 for e in final if abs(e) > 0.001]) < 16:
+            wave = self.dirac_notation(3)
+        else:
+            wave = str(final)
+
+        return 'measurements: {}\noutput vector: {}'.format(samples, wave)
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('WaveFunctionTrialResult(...)')
+        else:
+            p.text(str(self))
+
     def __repr__(self):
         return ('cirq.WaveFunctionTrialResult(params={!r}, '
                 'measurements={!r}, '
