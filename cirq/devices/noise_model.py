@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,20 @@ if TYPE_CHECKING:
 
 
 class NoiseModel:
-    """Replaces operations and moments with noisy counterparts."""
+    """Replaces operations and moments with noisy counterparts.
+
+    A child class must override *at least one* of the following three methods:
+
+        noisy_moments
+        noisy_moment
+        noisy_operation
+
+    The methods that are not overriden will be implemented in terms of the ones
+    that are.
+
+    Simulators told to use a noise model will use these methods in order to
+    dynamically rewrite the program they are simulating.
+    """
 
     def __new__(cls, *args, **kwargs):
         assert not all([
