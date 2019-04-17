@@ -1012,7 +1012,7 @@ def test_simulator_simulate_trial_result_str():
         device=test_device,
     )
     result = cirq.google.XmonSimulator().simulate(circuit)
-    assert str(result) == "measurements: a=1 b=1 c=0\noutput vector: (-1)|110⟩"
+    assert str(result) == "measurements: a=1 b=1 c=0\noutput vector: -1|110⟩"
 
 
 def test_simulator_implied_measurement_key():
