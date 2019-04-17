@@ -1,15 +1,29 @@
 ## Simulation
 
 Cirq comes with built in Python simulators for testing out
-small circuits.  One of these simulators works for generic
-gates that implement their unitary matrix, ``cirq.Simulator``.
+small circuits.  The two main types of simulations that Cirq
+supports are pure state simulators and mixed state simulators.
+For pure state simulations there are two variations of simulators.
+One of these pure state simulators works for generic
+gates that implement their unitary matrix: ``cirq.Simulator``.
 The other simulator is customized for the native gate set
 of Google's Xmon hardware ``cirq.google.XmonSimulator``.
 This later simulator can shard its simulation  across
 different processes/threads and so take advantage of
 multiple cores/CPUs.  Depending on your local computer
 architecture one or the other of these may be faster, but
-we recommend starting with ``cirq.Simulator``.
+we recommend starting with ``cirq.Simulator``.  Mixed state
+simulators are supported by ``cirq.DensityMatrixSimulator``.
+
+In general the name *pure state simulator* and *mixed state
+simulators* refers to the fact that these simulations are
+for quantum circuits, including unitary, measurements, and noise
+that keeps the evolution in a pure state or a mixed state,
+respectively. In other words, there are some noisy evolutions
+that are supported by the pure state simulator, as long as they
+preserve the purity of the state.
+
+## Introduction to pure state simulation
 
 Here is a simple circuit
 ```python
@@ -186,6 +200,36 @@ alternatively one can pass an integer and then the state
 will be set lie entirely in the computation basis state
 for the binary expansion of the passed integer.
 
+### Monte Carlo simulations of noise
+
+Some [noise](noise.md) models can be thought of as randomly
+applying unitary evolutions with different probabilities. Such
+noise models are amenable to Monte Carlo simulation. An example
+of such a noise model is the bit flip channel. This channel
+randomly applied either does nothing (identity) or applies
+a Pauli `cirq.X` gate:
+
+![Bit flip channel: $\rho \rightarrow (1-p) \rho + p X \rho X$](resources/BitFlipChannelDef.gif)
+
+Lets see a use of this in a simulator
+```python
+q = cirq.NamedQubit('a')
+circuit = cirq.Circuit.from_ops(cirq.bit_flip(p=0.2)(q), cirq.measure(q))
+simulator = cirq.Simulator()
+result = simulator.run(circuit, repetitions=100)
+print(result.histogram(key='a'))
+# prints something like
+# Counter({1: 17, 0: 83})
+```
+Here we see that, as expected about 20 percent of the time the
+bit is flipped.
+
+Channels that support this sort of evolution implement the
+`SupportsMixture` protocol.  Also note that this functionality
+is currently only supported in the pure state simulator and
+not in the density state simulator.  If the mixed state simulator
+encounters a mixture, it will treat it as a general channel.
+
 ### XmonSimulator
 
 In addition to ``cirq.Simulator`` there is also a simulator
@@ -300,3 +344,66 @@ not really help for very few number of qubits, and in fact can
 hurt because processes have a fixed (large) cost in Python.
 This is the minimum number of qubits that are needed before the
 simulator starts to do sharding. By default this is 10.
+
+
+### Mixed state simulations
+
+In addition to pure state simulation, Cirq also supports
+simulation of mixed states.  The simulator for this is not
+as efficient as the pure state simulators, but they allow
+for a large class of noisy circuits to be run, as well as
+keeping track of the density matrix of the simulation, which
+can allow for more exact simulation (for example the pure
+state simulator's Monte Carlo simulation only allows from
+sampling from the density matrix, not explicitly having access
+to the entries of the density matrix). Mixed state simulation
+is supported by
+
+Here is a simple example of simulating a channel using the
+mixed state simulator
+```python
+q = cirq.NamedQubit('a')
+circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.amplitude_damp(0.2)(q), cirq.measure(q))
+simulator = cirq.DensityMatrixSimulator()
+result = simulator.run(circuit, repetitions=100)
+print(result.histogram(key='a'))
+# prints something like
+# Counter({0: 61, 1: 39})
+```
+Here we create a state in an equal superposition of 0 and 1,
+and then apply amplitude damping which takes 1 to 0 with
+something like a probability of 0.2. We see that instead of
+about 50 percent of the timing being in 0, about 20 percent
+of the 1 has been converted into 0, so we end up with
+around 60 percent 0.
+
+Like the pure state simulators, the mixed state simulator
+supports ``run`` and ``run_sweeps`` methods. In addition the
+``cirq.DensityMatrixSimulator`` also supports getting access
+to the density matrix of the circuit at the end of simulating
+the circuit, or when stepping through the circuit.  These are
+done by the ``simulate`` and ``simulate_sweep`` methods, or,
+for stepping through the circuit, via the ``simulate_moment_steps``
+method.   For example we can simulate creating an equal
+superposition followed by an amplitude damping channel with a
+gamma of 0.2 by
+```
+q = cirq.NamedQubit('a')
+circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.amplitude_damp(0.2)(q))
+simulator = cirq.DensityMatrixSimulator()
+result = simulator.simulate(circuit)
+print(np.around(result.final_density_matrix, 3))
+# prints
+# [[0.6  +0.j 0.447+0.j]
+#  [0.447+0.j 0.4  +0.j]]
+```
+Here we see that we have access to the density matrix at the
+end of the simulation via ``final_density_matrix``.
+
+### Multiplex (mux) convenience methods
+
+Finally there are a set of convenience methods which attempt
+to pick the correct simulation method given a circuit.  For
+example if the circuit has channels these methods will pick
+the density matrix simulator.
+
