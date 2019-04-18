@@ -7,7 +7,7 @@ from cirq.experiments.google_v2_supremacy_circuit import (
 from cirq.experiments.qubit_characterizations import (
     rabi_oscillations,
     single_qubit_randomized_benchmarking,
-    two_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
+    two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
 )

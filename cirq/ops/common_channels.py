@@ -514,11 +514,11 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
 
         With:
 
-            M_0 = \sqrt{p} \begin{bmatrix}
+            M_0 = \sqrt{1 - p} \begin{bmatrix}
                                 1 & 0  \\
                                 0 & 1
                             \end{bmatrix}
-            M_1 = \sqrt{1-p} \begin{bmatrix}
+            M_1 = \sqrt{p} \begin{bmatrix}
                                 1 & 0 \\
                                 0 & -1
                             \end{bmatrix}
@@ -530,7 +530,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
             ValueError: if p is not a valid probability.
         """
         self._p = value.validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(0., 0., 1. - p)
+        self._delegate = AsymmetricDepolarizingChannel(0., 0., p)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()
@@ -639,13 +639,13 @@ class BitFlipChannel(gate_features.SingleQubitGate):
 
         With:
 
-            M_0 = \sqrt{p} \begin{bmatrix}
+            M_0 = \sqrt{1 - p} \begin{bmatrix}
                                 1 & 0  \\
                                 0 & 1
                            \end{bmatrix}
-            M_1 = \sqrt{1-p} \begin{bmatrix}
+            M_1 = \sqrt{p} \begin{bmatrix}
                                 0 & 1 \\
-                                1 & -0
+                                1 & 0
                              \end{bmatrix}
 
         Args:
@@ -655,7 +655,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
             ValueError: if p is not a valid probability.
         """
         self._p = value.validate_probability(p, 'p')
-        self._delegate = AsymmetricDepolarizingChannel(1. - p, 0., 0.)
+        self._delegate = AsymmetricDepolarizingChannel(p, 0., 0.)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         mixture = self._delegate._mixture_()
