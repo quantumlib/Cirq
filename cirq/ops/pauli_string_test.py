@@ -13,13 +13,10 @@
 # limitations under the License.
 
 import itertools
-from typing import List
+from typing import List, cast
 
 import numpy as np
 import pytest
-from cirq.testing import (
-    EqualsTester,
-)
 
 import cirq
 
@@ -38,7 +35,7 @@ def _sample_qubit_pauli_maps():
 
 def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
-    eq = EqualsTester()
+    eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
         lambda: cirq.PauliString({}),
         lambda: cirq.PauliString({}, +1))
@@ -271,7 +268,7 @@ def test_negate():
     assert -neg_ps1 == ps1
 
 
-def test_mul():
+def test_mul_scalar():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliString({a: cirq.X, b: cirq.Y})
     assert -p == -1 * p == -1.0 * p == p * -1 == p * complex(-1)
@@ -281,6 +278,65 @@ def test_mul():
         _ = p * 'test'
     with pytest.raises(TypeError):
         _ = 'test' * p
+
+
+def test_mul_strings():
+    a, b, c, d = cirq.LineQubit.range(4)
+    p1 = cirq.PauliString({a: cirq.X, b: cirq.Y, c: cirq.Z})
+    p2 = cirq.PauliString({b: cirq.X, c: cirq.Y, d: cirq.Z})
+    assert p1 * p2 == -cirq.PauliString({
+        a: cirq.X,
+        b: cirq.Z,
+        c: cirq.X,
+        d: cirq.Z,
+    })
+
+    assert cirq.X(a) * cirq.PauliString({a: cirq.X}) == cirq.PauliString()
+    assert cirq.PauliString({a: cirq.X}) * cirq.X(a) == cirq.PauliString()
+    assert cirq.X(a) * cirq.X(a) == cirq.PauliString()
+    assert -cirq.X(a) * -cirq.X(a) == cirq.PauliString()
+
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = cirq.X(a) * object()
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = object() * cirq.X(a)
+    assert -cirq.X(a) == -cirq.PauliString({a: cirq.X})
+
+
+def test_op_equivalence():
+    a, b = cirq.LineQubit.range(2)
+    various_x = [
+        cirq.X(a),
+        cirq.PauliString({a: cirq.X}),
+        cirq.PauliString.from_single(a, cirq.X),
+        cirq.SingleQubitPauliStringGateOperation(cirq.X, a),
+        cirq.GateOperation(cirq.X, [a]),
+    ]
+
+    for x in various_x:
+        cirq.testing.assert_equivalent_repr(x)
+
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(*various_x)
+    eq.add_equality_group(cirq.Y(a), cirq.PauliString({a: cirq.Y}))
+    eq.add_equality_group(-cirq.PauliString({a: cirq.X}))
+    eq.add_equality_group(cirq.Z(a), cirq.PauliString({a: cirq.Z}))
+    eq.add_equality_group(cirq.Z(b), cirq.PauliString({b: cirq.Z}))
+
+
+def test_op_product():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.X(a) * cirq.X(b) == cirq.PauliString({a: cirq.X, b: cirq.X})
+    assert cirq.X(a) * cirq.Y(b) == cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert cirq.Z(a) * cirq.Y(b) == cirq.PauliString({a: cirq.Z, b: cirq.Y})
+
+    assert cirq.X(a) * cirq.X(a) == cirq.PauliString()
+    assert cirq.X(a) * cirq.Y(a) == 1j * cirq.PauliString({a: cirq.Z})
+    assert cirq.Y(a) * cirq.Z(b) * cirq.X(a) == -1j * cirq.PauliString({
+        a: cirq.Z,
+        b: cirq.Z
+    })
 
 
 def test_pos():
@@ -337,7 +393,7 @@ def _assert_pass_over(ops: List[cirq.Operation],
                          itertools.product(range(3), (-1, +1)))
 def test_pass_operations_over_single(shift: int, sign: int):
     q0, q1 = _make_qubits(2)
-    X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
+    X, Y, Z = (cirq.Pauli.by_relative_index(cast(cirq.Pauli, pauli), shift)
                for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)

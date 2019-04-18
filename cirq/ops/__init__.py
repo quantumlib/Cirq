@@ -143,8 +143,9 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
-    PauliString,)
-
+    PauliString,
+    SingleQubitPauliStringGateOperation,
+)
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
 

@@ -154,6 +154,7 @@ from cirq.ops import (
     SamplesDisplay,
     SingleQubitCliffordGate,
     SingleQubitGate,
+    SingleQubitPauliStringGateOperation,
     SingleQubitMatrixGate,
     SWAP,
     SwapPowGate,
