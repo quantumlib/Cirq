@@ -62,13 +62,13 @@ class BadGateInconsistentPauliExpansion(cirq.SingleQubitGate):
 
 def test_assert_pauli_expansion_is_consistent_with_unitary():
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateExplicitPauliExpansion())
+        GoodGateExplicitPauliExpansion())
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateNoPauliExpansion())
+        GoodGateNoPauliExpansion())
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateNoUnitary())
+        GoodGateNoUnitary())
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateNoPauliExpansionNoUnitary())
+        GoodGateNoPauliExpansionNoUnitary())
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
