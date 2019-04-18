@@ -96,8 +96,9 @@ def test_equal_up_to_global_phase():
         ],
     ]
     for g1 in groups:
-        for g2 in groups:
-            for e1 in g1:
+        for e1 in g1:
+            assert not e1.equal_up_to_global_phase("not even close")
+            for g2 in groups:
                 for e2 in g2:
                     assert e1.equal_up_to_global_phase(e2) == (g1 is g2)
 
