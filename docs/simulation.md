@@ -354,7 +354,7 @@ for a larger class of noisy circuits to be run as well as
 keeping track of the simulation's density matrix. This
 later fact can allow for more exact simulations (for example
 the pure state simulator's Monte Carlo simulation only
-allows  sampling from the density matrix, not explicitly giving
+allows sampling from the density matrix, not explicitly giving
 the entries of the density matrix like the mixed state simulator
 can do). Mixed state simulation is supported by the
 ``cirq.DensityMatrixSimulator`` class.
@@ -378,7 +378,7 @@ of the 1 has been converted into 0, so we end up with total
 around 60 percent in the 0 state.
 
 Like the pure state simulators, the mixed state simulator
-supports ``run`` and ``run_sweeps`` methods. In addition the
+supports ``run`` and ``run_sweeps`` methods. The
 ``cirq.DensityMatrixSimulator`` also supports getting access
 to the density matrix of the circuit at the end of simulating
 the circuit, or when stepping through the circuit.  These are
