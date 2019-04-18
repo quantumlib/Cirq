@@ -25,7 +25,7 @@ def _make_qubits(n):
 
 
 def test_init():
-    a, b, c = cirq.LineQubit.range(3)
+    a = cirq.LineQubit(0)
     with pytest.raises(ValueError, match='eigenvalues'):
         _ = cirq.PauliStringPhasor(1j * cirq.X(a))
 
