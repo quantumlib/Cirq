@@ -19,33 +19,39 @@ from cirq.sim.density_matrix_utils import (
     sample_density_matrix,
     to_valid_density_matrix,
 )
+
 from cirq.sim.density_matrix_simulator import (
+    DensityMatrixSimulator,
     DensityMatrixSimulatorState,
     DensityMatrixStepResult,
-    DensityMatrixSimulator,
     DensityMatrixTrialResult,
 )
+
 from cirq.sim.mux import (
     sample,
     sample_sweep,
 )
+
 from cirq.sim.simulator import (
-    SimulatesSamples,
-    StepResult,
-    SimulatesIntermediateState,
     SimulatesFinalState,
-    SimulationTrialResult
+    SimulatesIntermediateState,
+    SimulatesSamples,
+    SimulationTrialResult,
+    StepResult,
 )
+
 from cirq.sim.sparse_simulator import (
     Simulator,
     SparseSimulatorStep,
 )
+
 from cirq.sim.wave_function_simulator import (
     SimulatesIntermediateWaveFunction,
     WaveFunctionSimulatorState,
     WaveFunctionStepResult,
-    WaveFunctionTrialResult
+    WaveFunctionTrialResult,
 )
+
 from cirq.sim.wave_function import (
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,

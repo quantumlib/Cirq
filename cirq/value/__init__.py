@@ -17,22 +17,23 @@ from cirq.value.angle import (
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
 )
+
 from cirq.value.duration import (
-    Duration,
-)
+    Duration,)
+
 from cirq.value.linear_dict import (
     LinearDict,
     Scalar,
 )
+
 from cirq.value.probability import (
-    validate_probability,
-)
+    validate_probability,)
+
 from cirq.value.periodic_value import (
-    PeriodicValue,
-)
+    PeriodicValue,)
+
 from cirq.value.timestamp import (
-    Timestamp,
-)
+    Timestamp,)
+
 from cirq.value.value_equality import (
-    value_equality,
-)
+    value_equality,)
