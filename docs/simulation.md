@@ -1,26 +1,26 @@
 ## Simulation
 
-Cirq comes with built in Python simulators for testing out
+Cirq comes with built in Python simulators for testing
 small circuits.  The two main types of simulations that Cirq
-supports are pure state simulators and mixed state simulators.
-For pure state simulations there are two variations of simulators.
-One of these pure state simulators works for generic
-gates that implement their unitary matrix: ``cirq.Simulator``.
-The other simulator is customized for the native gate set
+supports are pure state and mixed state.
+There are two variations of simulators for pure state simulations.
+One works for generic
+gates that implement their unitary matrix: ``cirq.Simulator``
+and the other is customized for the native gate set
 of Google's Xmon hardware ``cirq.google.XmonSimulator``.
 This later simulator can shard its simulation  across
-different processes/threads and so take advantage of
+different processes/threads to take advantage of
 multiple cores/CPUs.  Depending on your local computer
-architecture one or the other of these may be faster, but
-we recommend starting with ``cirq.Simulator``.  Mixed state
+architecture, one or the other of these may be faster.
+We recommend starting with ``cirq.Simulator``.  Mixed state
 simulators are supported by ``cirq.DensityMatrixSimulator``.
 
-In general the name *pure state simulator* and *mixed state
+The names *pure state simulator* and *mixed state
 simulators* refers to the fact that these simulations are
-for quantum circuits, including unitary, measurements, and noise
-that keeps the evolution in a pure state or a mixed state,
-respectively. In other words, there are some noisy evolutions
-that are supported by the pure state simulator, as long as they
+for quantum circuits; including unitary, measurements, and noise
+that keeps the evolution in a pure state or a mixed state.
+In other words, there are some noisy evolutions
+that are supported by the pure state simulator as long as they
 preserve the purity of the state.
 
 ## Introduction to pure state simulation
@@ -221,8 +221,7 @@ print(result.histogram(key='a'))
 # prints something like
 # Counter({1: 17, 0: 83})
 ```
-Here we see that, as expected about 20 percent of the time the
-bit is flipped.
+As expected, the bit is flipped about 20 percent of the time.
 
 Channels that support this sort of evolution implement the
 `SupportsMixture` protocol.  Also note that this functionality
@@ -349,15 +348,15 @@ simulator starts to do sharding. By default this is 10.
 ### Mixed state simulations
 
 In addition to pure state simulation, Cirq also supports
-simulation of mixed states. The simulator for this is not
-as efficient as the pure state simulators, but they allow
-for a larger class of noisy circuits to be run, as well as
-keeping track of the density matrix of the simulation. This
+simulation of mixed states. Even though this simulator is not
+as efficient as the pure state simulators, they allow
+for a larger class of noisy circuits to be run as well as
+keeping track of the simulation's density matrix. This
 later fact can allow for more exact simulations (for example
 the pure state simulator's Monte Carlo simulation only
 allows  sampling from the density matrix, not explicitly giving
 the entries of the density matrix like the mixed state simulator
-can do). Mixed state simulation is supported by by the
+can do). Mixed state simulation is supported by the
 ``cirq.DensityMatrixSimulator`` class.
 
 Here is a simple example of simulating a channel using the
@@ -371,8 +370,8 @@ print(result.histogram(key='a'))
 # prints something like
 # Counter({0: 61, 1: 39})
 ```
-Here we create a state in an equal superposition of 0 and 1,
-and then apply amplitude damping which takes 1 to 0 with
+We create a state in an equal superposition of 0 and 1
+then apply amplitude damping which takes 1 to 0 with
 something like a probability of 0.2. We see that instead of
 about 50 percent of the timing being in 0, about 20 percent
 of the 1 has been converted into 0, so we end up with total
@@ -385,7 +384,7 @@ to the density matrix of the circuit at the end of simulating
 the circuit, or when stepping through the circuit.  These are
 done by the ``simulate`` and ``simulate_sweep`` methods, or,
 for stepping through the circuit, via the ``simulate_moment_steps``
-method.   For example we can simulate creating an equal
+method.   For example, we can simulate creating an equal
 superposition followed by an amplitude damping channel with a
 gamma of 0.2 by
 ```
@@ -398,5 +397,5 @@ print(np.around(result.final_density_matrix, 3))
 # [[0.6  +0.j 0.447+0.j]
 #  [0.447+0.j 0.4  +0.j]]
 ```
-Here we see that we have access to the density matrix at the
+We see that we have access to the density matrix at the
 end of the simulation via ``final_density_matrix``.
