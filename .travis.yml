@@ -59,3 +59,15 @@ matrix:
       - unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
       - PATH=$(pwd)/protoc3.5/bin:${PATH}
     script: check/pytest2
+
+  - os: windows
+    language: sh
+    python: "3.5.2"
+    before_install:
+    - choco install python3
+    - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+    - pip install --upgrade pip wheel
+    install:
+    - pip install -r requirements.txt
+    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --ignore=cirq/contrib
