@@ -17,8 +17,8 @@
 from __future__ import absolute_import
 
 import multiprocessing
-import pytest
 import sys
+import pytest
 
 import numpy as np
 
