@@ -73,5 +73,4 @@ and we'll do our best to help and to improve this documentation.
 """
 
 from cirq.contrib.tpu.circuit_to_tensorflow import (
-    circuit_to_tensorflow_runnable,
-)
+    circuit_to_tensorflow_runnable,)

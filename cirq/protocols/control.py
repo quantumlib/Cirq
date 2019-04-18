@@ -29,6 +29,7 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 TDefault = TypeVar('TDefault')
 
+
 def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
             control_qubits: Sequence['cirq.Qid'] = None,
             default: Any = RaiseTypeErrorIfNotProvided) -> Any:

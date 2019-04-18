@@ -21,5 +21,4 @@ from cirq.google.engine.engine import (
 )
 
 from cirq.google.engine.env_config import (
-    engine_from_environment,
-)
+    engine_from_environment,)
