@@ -81,7 +81,8 @@ def test_fills_gaps():
 
 
 @pytest.mark.skipif(sys.platform.startswith('win'),
-                    reason="skipping linux-only tests")
+                    reason='Skipping test on Windows due'
+                    'to lack of multiprocessor support')
 def test_with_multiprocessing_pool():
     one = np.array([1])
     handle = mem_manager.SharedMemManager.create_array(one)
@@ -94,7 +95,8 @@ def test_with_multiprocessing_pool():
 
 
 @pytest.mark.skipif(sys.platform.startswith('win'),
-                    reason="skipping linux-only tests")
+                    reason='Skipping test on Windows due'
+                    'to lack of multiprocessor support')
 def test_with_multiple_multiprocessing_pools():
     one = np.array([1])
     two = np.array([2])
