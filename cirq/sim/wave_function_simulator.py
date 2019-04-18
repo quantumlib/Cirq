@@ -31,7 +31,6 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
     Implementors of this interface should implement the _simulator_iterator
     method."""
 
-
     @abc.abstractmethod
     def _simulator_iterator(
         self,

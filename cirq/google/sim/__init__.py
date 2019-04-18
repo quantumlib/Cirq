@@ -20,6 +20,6 @@ from cirq.google.sim.xmon_simulator import (
     XmonSimulator,
     XmonStepResult,
 )
+
 from cirq.google.sim.xmon_stepper import (
-    Stepper,
-)
+    Stepper,)
