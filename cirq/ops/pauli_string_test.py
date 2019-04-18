@@ -448,8 +448,8 @@ def test_pow():
     assert p**-1 == p
     assert (-p)**1 == -p
     assert (-p)**-1 == -p
-    assert (1j*p)**1 == 1j*p
-    assert (1j*p)**-1 == -1j*p
+    assert (1j * p)**1 == 1j * p
+    assert (1j * p)**-1 == -1j * p
 
 
 def test_numpy_ufunc():

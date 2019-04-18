@@ -88,7 +88,10 @@ def test_equal_up_to_global_phase():
                                    exponent_neg=0.25),
         ],
         [
-            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X, b: cirq.Y}),
+            cirq.PauliStringPhasor(cirq.PauliString({
+                a: cirq.X,
+                b: cirq.Y
+            }),
                                    exponent_neg=0.25),
         ],
     ]
