@@ -30,8 +30,11 @@ from cirq.circuits import (
 )
 
 from cirq.devices import (
+    ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    NO_NOISE,
+    NoiseModel,
     UnconstrainedDevice,
 )
 
