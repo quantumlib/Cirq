@@ -640,7 +640,7 @@ def test_non_context_manager(num_prefix_qubits):
 
 
 @pytest.mark.skipif(sys.platform.startswith('win'),
-                    reason='Skipping test on Windows due'
+                    reason='Skipping test on Windows due '
                     'to lack of multiprocessor support')
 @pytest.mark.parametrize(('num_prefix_qubits', 'use_processes'),
                          ((0, True), (0, False), (2, True), (2, False)))
