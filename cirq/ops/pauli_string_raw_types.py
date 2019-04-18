@@ -56,13 +56,9 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
             self,
             args: protocols.CircuitDiagramInfoArgs,
             exponent: Any = 1,
-            exponent_absorbs_sign: bool = False,
     ) -> protocols.CircuitDiagramInfo:
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
         syms = tuple(
             '[{}]'.format(self.pauli_string[qubit]) for qubit in qubits)
-        if exponent_absorbs_sign and self.pauli_string.coefficient == -1:
-            # TODO: generalize to other coefficients.
-            exponent = -exponent
         return protocols.CircuitDiagramInfo(wire_symbols=syms,
                                             exponent=exponent)

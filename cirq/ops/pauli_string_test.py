@@ -437,10 +437,19 @@ def test_pos():
 
 
 def test_pow():
-    q = cirq.LineQubit(0)
-    assert cirq.PauliString({q: cirq.X})**0.25 == cirq.X(q)**0.25
-    assert cirq.PauliString({q: cirq.Y})**0.25 == cirq.Y(q)**0.25
-    assert cirq.PauliString({q: cirq.Z})**0.25 == cirq.Z(q)**0.25
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.PauliString({a: cirq.X})**0.25 == cirq.X(a)**0.25
+    assert cirq.PauliString({a: cirq.Y})**0.25 == cirq.Y(a)**0.25
+    assert cirq.PauliString({a: cirq.Z})**0.25 == cirq.Z(a)**0.25
+
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert p**1 == p
+    assert p**-1 == p
+    assert (-p)**1 == -p
+    assert (-p)**-1 == -p
+    assert (1j*p)**1 == 1j*p
+    assert (1j*p)**-1 == -1j*p
 
 
 def test_numpy_ufunc():

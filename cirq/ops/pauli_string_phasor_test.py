@@ -67,6 +67,38 @@ def test_eq_ne_hash():
         cirq.PauliStringPhasor(ps1, exponent_neg=sympy.Symbol('a')))
 
 
+def test_equal_up_to_global_phase():
+    a, b = cirq.LineQubit.range(2)
+    groups = [
+        [
+            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X}),
+                                   exponent_neg=0.25),
+            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X}),
+                                   exponent_neg=0,
+                                   exponent_pos=-0.25),
+            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X}),
+                                   exponent_pos=-0.125,
+                                   exponent_neg=0.125),
+        ],
+        [
+            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X})),
+        ],
+        [
+            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.Y}),
+                                   exponent_neg=0.25),
+        ],
+        [
+            cirq.PauliStringPhasor(cirq.PauliString({a: cirq.X, b: cirq.Y}),
+                                   exponent_neg=0.25),
+        ],
+    ]
+    for g1 in groups:
+        for g2 in groups:
+            for e1 in g1:
+                for e2 in g2:
+                    assert e1.equal_up_to_global_phase(e2) == (g1 is g2)
+
+
 def test_map_qubits():
     q0, q1, q2, q3 = _make_qubits(4)
     qubit_map = {q1: q2, q0: q3}
@@ -81,6 +113,18 @@ def test_map_qubits():
     }),
                                    exponent_neg=0.1)
     assert before.map_qubits(qubit_map) == after
+
+
+def test_pow():
+    a = cirq.LineQubit(0)
+    s = cirq.PauliString({a: cirq.X})
+    p = cirq.PauliStringPhasor(s, exponent_neg=0.25, exponent_pos=0.5)
+    assert p**0.5 == cirq.PauliStringPhasor(s,
+                                            exponent_neg=0.125,
+                                            exponent_pos=0.25)
+    with pytest.raises(TypeError, match='unsupported operand'):
+        _ = p**object()
+    assert p**1 == p
 
 
 def test_pass_operations_over():
