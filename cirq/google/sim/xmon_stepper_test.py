@@ -638,6 +638,7 @@ def test_non_context_manager(num_prefix_qubits):
     assert result
     stepper.__exit__()
 
+
 @pytest.mark.skipif(sys.platform.startswith('win'),
                     reason="skipping linux-only tests")
 @pytest.mark.parametrize(('num_prefix_qubits', 'use_processes'),

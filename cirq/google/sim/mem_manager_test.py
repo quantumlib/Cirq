@@ -79,6 +79,7 @@ def test_fills_gaps():
         mem_manager.SharedMemManager.free_array(handle)
     mem_manager.SharedMemManager.free_array(new_handle)
 
+
 @pytest.mark.skipif(sys.platform.startswith('win'),
                     reason="skipping linux-only tests")
 def test_with_multiprocessing_pool():
@@ -90,6 +91,7 @@ def test_with_multiprocessing_pool():
     pool.join()
     np.testing.assert_equal([1] * 10, result)
     mem_manager.SharedMemManager.free_array(handle)
+
 
 @pytest.mark.skipif(sys.platform.startswith('win'),
                     reason="skipping linux-only tests")
