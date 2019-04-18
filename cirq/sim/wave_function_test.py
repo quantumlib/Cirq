@@ -224,7 +224,6 @@ def test_dirac_notation_precision():
     assert_dirac_notation([sqrt, sqrt], "0.7|0⟩ + 0.7|1⟩", decimals=1)
     assert_dirac_notation([sqrt, sqrt], "0.707|0⟩ + 0.707|1⟩", decimals=3)
 
-
 def test_to_valid_state_vector():
     np.testing.assert_almost_equal(cirq.to_valid_state_vector(
         np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),

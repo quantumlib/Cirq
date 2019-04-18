@@ -115,7 +115,7 @@ def test_with_qubits_and_transform_qubits():
 
     # The gate's constraints should be applied when changing the qubits.
     with pytest.raises(ValueError):
-        _ = cirq.Y(cirq.LineQubit(0)).with_qubits(cirq.LineQubit(0),
+        _ = cirq.H(cirq.LineQubit(0)).with_qubits(cirq.LineQubit(0),
                                                   cirq.LineQubit(1))
 
 

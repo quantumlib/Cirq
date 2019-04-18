@@ -105,6 +105,10 @@ for file in ${files_to_update}; do
     sed -i '1s/^/# coding=utf-8\n/' ${file}
 done
 
+# Replace `super().__str__()` with `super().__unicode__()`
+for file in ${files_to_update}; do
+    sed -ie 's/).__str__()/).__unicode__()/g' ${file}
+done
 # Whenever a __str__ method is defined, delegate to __unicode__.
 for file in ${files_to_update}; do
     sed -i "s/^\(\s\+\?\)def __str__(self):/\1def __str__(self):\n\1    return unicode(self).encode('utf-8')\n\n\1def __unicode__(self):/" ${file}
