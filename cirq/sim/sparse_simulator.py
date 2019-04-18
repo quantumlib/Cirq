@@ -120,7 +120,7 @@ class Simulator(simulator.SimulatesSamples,
     See `Simulator` for the definitions of the supported methods.
     """
 
-    def __init__(self, dtype=np.complex64):
+    def __init__(self, *, dtype=np.complex64):
         """A sparse matrix simulator.
 
         Args:

@@ -214,6 +214,7 @@ def test_simulation_trial_result_equality():
                                    measurements={'m': np.array([[1]])},
                                    final_simulator_state=(0, 1)))
 
+
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
 @cirq.testing.only_test_in_python3
 def test_simulation_trial_result_repr():
@@ -227,7 +228,35 @@ def test_simulation_trial_result_repr():
 
 
 def test_simulation_trial_result_str():
+    assert str(
+        cirq.SimulationTrialResult(
+            params=cirq.ParamResolver({'s': 1}),
+            measurements={},
+            final_simulator_state=(0, 1))) == '(no measurements)'
+
     assert str(cirq.SimulationTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[1]])},
         final_simulator_state=(0, 1))) == 'm=1'
+
+
+def test_pretty_print():
+    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))
+
+    # Test Jupyter console output from
+    class FakePrinter:
+
+        def __init__(self):
+            self.text_pretty = ''
+
+        def text(self, to_print):
+            self.text_pretty += to_print
+
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == '(no measurements)'
+
+    # Test cycle handling
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'SimulationTrialResult(...)'

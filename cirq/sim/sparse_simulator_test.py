@@ -38,7 +38,7 @@ def test_run_no_measurements(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_no_results(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.Simulator(dtype)
+    simulator = cirq.Simulator(dtype=dtype)
 
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
     result = simulator.run(circuit)
