@@ -18,6 +18,7 @@ from __future__ import absolute_import
 
 import multiprocessing
 import pytest
+from sys
 
 import numpy as np
 
@@ -78,7 +79,8 @@ def test_fills_gaps():
         mem_manager.SharedMemManager.free_array(handle)
     mem_manager.SharedMemManager.free_array(new_handle)
 
-
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason="skipping linux-only tests")
 def test_with_multiprocessing_pool():
     one = np.array([1])
     handle = mem_manager.SharedMemManager.create_array(one)
@@ -89,7 +91,8 @@ def test_with_multiprocessing_pool():
     np.testing.assert_equal([1] * 10, result)
     mem_manager.SharedMemManager.free_array(handle)
 
-
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason="skipping linux-only tests")
 def test_with_multiple_multiprocessing_pools():
     one = np.array([1])
     two = np.array([2])
