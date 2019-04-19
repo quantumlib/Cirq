@@ -63,6 +63,9 @@ class PauliString(raw_types.Operation):
     def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
+    def __abs__(self) -> 'PauliString':
+        return PauliString(self._qubit_pauli_map)
+
     def __getitem__(self, key: raw_types.Qid) -> Pauli:
         return self._qubit_pauli_map[key]
 
@@ -129,6 +132,9 @@ class PauliString(raw_types.Operation):
 
     def __iter__(self) -> Iterator[raw_types.Qid]:
         return iter(self._qubit_pauli_map.keys())
+
+    def __bool__(self):
+        return bool(self._qubit_pauli_map)
 
     def __len__(self) -> int:
         return len(self._qubit_pauli_map)

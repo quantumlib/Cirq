@@ -220,7 +220,6 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
-    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -328,6 +327,14 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.work import (
+    async_collect_samples,
+    PauliStringSampleCollector,
+    SampleCollector,
+    Sampler,
+)
+
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.

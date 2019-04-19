@@ -14,7 +14,7 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import abc
-from typing import (List, Union)
+from typing import (List, Union, Awaitable)
 
 from cirq import circuits, schedules, study
 
@@ -40,6 +40,12 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
+
+    def async_sample(self,
+                     circuit: circuits.Circuit,
+                     *,
+                     repetitions: int) -> Awaitable[study.TrialResult]:
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def run_sweep(
