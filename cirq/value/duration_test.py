@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import cirq
@@ -29,6 +30,26 @@ def test_init():
     assert isinstance(Duration(nanos=1).total_picos(), int)
     assert isinstance(Duration(picos=1.0).total_picos(), float)
     assert isinstance(Duration(nanos=1.0).total_picos(), float)
+
+
+def test_init_timedelta():
+    assert Duration.from_timedelta(
+        timedelta(microseconds=0)).total_picos() == 0
+    assert Duration.from_timedelta(
+        timedelta(microseconds=513)).total_picos() == 513_000_000
+    assert Duration.from_timedelta(
+        timedelta(microseconds=-5)).total_picos() == -5_000_000
+    assert Duration.from_timedelta(
+        timedelta(microseconds=211)).total_picos() == 211_000_000
+
+    assert Duration.from_timedelta(
+        timedelta(seconds=3)).total_picos() == 3_000_000_000_000
+    assert Duration.from_timedelta(
+        timedelta(seconds=-5)).total_picos() == -5_000_000_000_000
+    assert Duration.from_timedelta(
+        timedelta(seconds=3)).total_nanos() == 3_000_000_000
+    assert Duration.from_timedelta(
+        timedelta(seconds=-5)).total_nanos() == -5_000_000_000
 
 
 def test_total_nanoseconds():

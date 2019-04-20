@@ -14,6 +14,7 @@
 """A typed time delta that supports picosecond accuracy."""
 
 from typing import Union
+from datetime import timedelta
 
 
 class Duration:
@@ -36,6 +37,12 @@ class Duration:
         else:
             # Try to preserve type information.
             self._picos = nanos * 1000 if nanos else picos
+
+    @classmethod
+    def from_timedelta(cls, duration: timedelta) -> 'Duration':
+        """Creates a Duration from datetime.timedelta"""
+        duration_in_picos = duration.total_seconds() * 10**12
+        return cls(picos=duration_in_picos)
 
     def total_picos(self) -> float:
         """Returns the number of picoseconds that the duration spans."""
