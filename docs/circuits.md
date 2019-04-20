@@ -362,3 +362,29 @@ print(circuit[1:3])
 Especially useful is dropping the last moment (which are often just
 measurements): ``circuit[:-1]``, or reversing a circuit:
 ``circuit[::-1]``.
+
+
+### Exporting and importing circuits 
+
+Cirq supports a subset of OpenQASM gates:
+
+
+| QASM gate | Cirq gate |
+| u3(φ,θ,γ) | QasmUGate (φ,θ,γ) | 
+| u2 |  | 
+u1
+cx
+id 
+u0
+x
+y
+z
+h
+s
+sdg
+t
+tdg
+rx
+ry
+rz
+cz| | 
