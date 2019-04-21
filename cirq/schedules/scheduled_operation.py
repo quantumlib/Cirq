@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
+from typing import Union
+
 from cirq import ops
 from cirq.devices import Device
 from cirq.value import Duration, Timestamp
@@ -22,7 +25,7 @@ class ScheduledOperation:
 
     def __init__(self,
                  time: Timestamp,
-                 duration: Duration,
+                 duration: Union[Duration, timedelta],
                  operation: ops.Operation) -> None:
         """Initializes the scheduled operation.
 
@@ -31,6 +34,8 @@ class ScheduledOperation:
             duration: How long the operation lasts.
             operation: The operation.
         """
+        if isinstance(duration, timedelta):
+            duration = Duration.from_timedelta(duration)
         self.time = time
         self.duration = duration
         self.operation = operation

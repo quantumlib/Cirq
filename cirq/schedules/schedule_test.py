@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import cirq
@@ -38,6 +39,30 @@ def test_equality():
     et.make_equality_group(lambda: simple_schedule(q1))
     et.make_equality_group(lambda: simple_schedule(q0, start_picos=1000))
     et.make_equality_group(lambda: simple_schedule(q0, duration_picos=1000))
+    et.make_equality_group(lambda: simple_schedule(q0, num_ops=3))
+    et.make_equality_group(lambda: simple_schedule(q1, num_ops=3))
+
+
+def test_equality_timedelta():
+    et = cirq.testing.EqualsTester()
+
+    def simple_schedule(q, start_picos=0, duration_micros=1, num_ops=1):
+        time_picos = start_picos
+        scheduled_ops = []
+        for _ in range(num_ops):
+            op = cirq.ScheduledOperation(cirq.Timestamp(picos=time_picos),
+                                        timedelta(microseconds=duration_micros),
+                                        cirq.H(q))
+            scheduled_ops.append(op)
+            time_picos += duration_micros * 1_000_000
+        return cirq.Schedule(device=UnconstrainedDevice,
+                             scheduled_operations=scheduled_ops)
+
+    q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
+    et.make_equality_group(lambda: simple_schedule(q0))
+    et.make_equality_group(lambda: simple_schedule(q1))
+    et.make_equality_group(lambda: simple_schedule(q0, start_picos=1000))
+    et.make_equality_group(lambda: simple_schedule(q0, duration_micros=5))
     et.make_equality_group(lambda: simple_schedule(q0, num_ops=3))
     et.make_equality_group(lambda: simple_schedule(q1, num_ops=3))
 
