@@ -17,55 +17,58 @@
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
     assert_eigen_gate_has_consistent_apply_unitary,
-    assert_has_consistent_apply_unitary_for_various_exponents,
     assert_has_consistent_apply_unitary,
+    assert_has_consistent_apply_unitary_for_various_exponents,
     assert_has_diagram,
     assert_same_circuits,
     highlight_text_differences,
 )
+
 from cirq.testing.consistent_phase_by import (
-    assert_phase_by_is_consistent_with_unitary,
-)
+    assert_phase_by_is_consistent_with_unitary,)
+
 from cirq.testing.consistent_decomposition import (
-    assert_decompose_is_consistent_with_unitary,
-)
+    assert_decompose_is_consistent_with_unitary,)
+
 from cirq.testing.consistent_pauli_expansion import (
-    assert_pauli_expansion_is_consistent_with_unitary,
-)
+    assert_pauli_expansion_is_consistent_with_unitary,)
+
 from cirq.testing.consistent_protocols import (
-    assert_implements_consistent_protocols,
     assert_eigengate_implements_consistent_protocols,
+    assert_implements_consistent_protocols,
 )
+
 from cirq.testing.consistent_qasm import (
-    assert_qasm_is_consistent_with_unitary,
-)
+    assert_qasm_is_consistent_with_unitary,)
+
 from cirq.testing.equals_tester import (
-    EqualsTester,
-)
+    EqualsTester,)
+
 from cirq.testing.equivalent_repr_eval import (
-    assert_equivalent_repr,
-)
+    assert_equivalent_repr,)
+
 from cirq.testing.file_tester import (
     TempDirectoryPath,
     TempFilePath,
 )
+
 from cirq.testing.lin_alg_utils import (
+    assert_allclose_up_to_global_phase,
     random_orthogonal,
     random_special_orthogonal,
     random_special_unitary,
     random_superposition,
     random_unitary,
-    assert_allclose_up_to_global_phase,
 )
+
 from cirq.testing.order_tester import (
-    OrderTester,
-)
+    OrderTester,)
+
 from cirq.testing.random_circuit import (
-    random_circuit,
-)
+    random_circuit,)
+
 from cirq.testing.only_test_in_python3 import (
-    only_test_in_python3,
-)
+    only_test_in_python3,)
+
 from cirq.testing.sample_circuits import (
-    nonoptimal_toffoli_circuit,
-)
+    nonoptimal_toffoli_circuit,)

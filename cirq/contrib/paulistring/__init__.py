@@ -13,38 +13,39 @@
 # limitations under the License.
 
 from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation,
-)
+    PauliStringGateOperation,)
+
 from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor,
-)
+    PauliStringPhasor,)
+
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
-    ConvertToPauliStringPhasors,
-)
+    ConvertToPauliStringPhasors,)
+
 from cirq.contrib.paulistring.convert_to_clifford_gates import (
-    ConvertToSingleQubitCliffordGates,
-)
+    ConvertToSingleQubitCliffordGates,)
+
 from cirq.contrib.paulistring.convert_gate_set import (
-    converted_gate_set,
-)
+    converted_gate_set,)
+
 from cirq.contrib.paulistring.separate import (
     convert_and_separate_circuit,
-    regular_half,
     pauli_string_half,
+    regular_half,
 )
+
 from cirq.contrib.paulistring.pauli_string_dag import (
-    pauli_string_reorder_pred,
     pauli_string_dag_from_circuit,
+    pauli_string_reorder_pred,
 )
+
 from cirq.contrib.paulistring.recombine import (
-    move_pauli_strings_into_circuit,
-)
+    move_pauli_strings_into_circuit,)
+
 from cirq.contrib.paulistring.pauli_string_optimize import (
-    pauli_string_optimized_circuit,
-)
+    pauli_string_optimized_circuit,)
+
 from cirq.contrib.paulistring.clifford_optimize import (
-    clifford_optimized_circuit,
-)
+    clifford_optimized_circuit,)
+
 from cirq.contrib.paulistring.optimize import (
-    optimized_circuit,
-)
+    optimized_circuit,)

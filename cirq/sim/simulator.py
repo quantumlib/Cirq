@@ -33,33 +33,14 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, schedules, study, value
+from cirq.sim import sampler
 
 
-class SimulatesSamples(metaclass=abc.ABCMeta):
+class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
     """
-
-    def run(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: 'study.ParamResolverOrSimilarType' = None,
-        repetitions: int = 1,
-    ) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
-
-        Args:
-            program: The circuit or schedule to simulate.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-
-        Returns:
-            TrialResult for a run.
-        """
-        return self.run_sweep(program,
-                              study.ParamResolver(param_resolver),
-                              repetitions)[0]
 
     def run_sweep(
         self,
@@ -532,8 +513,18 @@ class SimulationTrialResult:
 
         results = sorted(
             [(key, bitstring(val)) for key, val in self.measurements.items()])
+        if not results:
+            return '(no measurements)'
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('SimulationTrialResult(...)')
+        else:
+            p.text(str(self))
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in

@@ -285,17 +285,14 @@ def test_phase_damping_channel_text_diagram():
 
 def test_phase_flip_channel():
     d = cirq.phase_flip(0.3)
-    np.testing.assert_almost_equal(cirq.channel(d),
-                                  (np.sqrt(0.3) * np.eye(2),
-                                   np.sqrt(1.-0.3) * Z))
+    np.testing.assert_almost_equal(
+        cirq.channel(d), (np.sqrt(1. - 0.3) * np.eye(2), np.sqrt(0.3) * Z))
     assert cirq.has_channel(d)
 
 
 def test_phase_flip_mixture():
     d = cirq.phase_flip(0.3)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.3, np.eye(2)),
-                           (0.7, Z)))
+    assert_mixtures_equal(cirq.mixture(d), ((0.7, np.eye(2)), (0.3, Z)))
     assert cirq.has_mixture_channel(d)
 
 
@@ -340,17 +337,14 @@ def test_phase_flip_channel_text_diagram():
 
 def test_bit_flip_channel():
     d = cirq.bit_flip(0.3)
-    np.testing.assert_almost_equal(cirq.channel(d),
-                                  (np.sqrt(0.3) * np.eye(2),
-                                   np.sqrt(1.0 - 0.3) * X))
+    np.testing.assert_almost_equal(
+        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(.3) * X))
     assert cirq.has_channel(d)
 
 
 def test_bit_flip_mixture():
     d = cirq.bit_flip(0.3)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.3, np.eye(2)),
-                           (0.7, X)))
+    assert_mixtures_equal(cirq.mixture(d), ((0.7, np.eye(2)), (0.3, X)))
     assert cirq.has_mixture_channel(d)
 
 

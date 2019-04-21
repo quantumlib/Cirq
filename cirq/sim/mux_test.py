@@ -36,6 +36,17 @@ def test_sample():
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
+    # Overdamped everywhere.
+    results = cirq.sample(cirq.Circuit.from_ops(
+        cirq.measure(q, key='drop'),
+        cirq.X(q),
+        cirq.measure(q),
+    ),
+                          noise=cirq.ConstantQubitNoiseModel(
+                              cirq.amplitude_damp(1)))
+    assert results.histogram(key='drop') == collections.Counter({0: 1})
+    assert results.histogram(key=q) == collections.Counter({0: 1})
+
 
 def test_sample_sweep():
     q = cirq.NamedQubit('q')
@@ -63,3 +74,15 @@ def test_sample_sweep():
     assert len(results) == 2
     assert results[0].histogram(key=q) == collections.Counter({0: 3})
     assert results[1].histogram(key=q) == collections.Counter({1: 3})
+
+    # Overdamped everywhere.
+    c = cirq.Circuit.from_ops(cirq.X(q),
+                              cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
+    results = cirq.sample_sweep(c,
+                                cirq.Linspace('t', 0, 1, 2),
+                                noise=cirq.ConstantQubitNoiseModel(
+                                    cirq.amplitude_damp(1)),
+                                repetitions=3)
+    assert len(results) == 2
+    assert results[0].histogram(key=q) == collections.Counter({0: 3})
+    assert results[1].histogram(key=q) == collections.Counter({0: 3})
