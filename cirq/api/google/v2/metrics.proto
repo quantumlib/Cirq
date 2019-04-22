@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package cirq.api.google.v1;
+
+option java_package = "com.google.cirq.api.google.v2";
+option java_outer_classname = "CalibrationProto";
+option java_multiple_files = true;
+
+// Performance metrics for a quantum processor.
+message Metrics {
+
+  // The time the metrics were collected, in milliseconds since Jan 1, 1970.
+  // Metric collection take time, so this is the time at which all of the
+  // metrics have been collected.
+  uint64 collection_time_ms = 1;
+
+  // Map from a metric type to a collection of the metrics all of this type.
+  // Keys should be snake_case and fairly descriptive of the metric.
+  map<string, MetricCollection> metrics = 2;
+}
+
+// A collection of metrics of the same type.
+message MetricCollection {
+  // The metrics in the collection. These should all be of the same type.
+  repeated Metric metrics = 1;
+
+  // A human readable string describing what metrics in this collection
+  // represent.
+  string description = 2;
+}
+
+
+// The actual metrics.
+message Metric {
+
+  // One of these metric classes.
+  oneof metric {
+    // Metric associated with sets of qubits.
+    QubitsProperty qubits_property = 1;
+
+    // Metric associated with the entire processor.
+    GlobalProperty global_property = 2;
+  }
+}
+
+// Properties associated with one or more quantum bits.
+message QubitsProperty {
+
+  // The ids of the qubits associated with this property. Should not be empty.
+  // If metrics associated with entire processor are used, GlobalProperty
+  // should be used instead of QubitProperty.
+  repeated string qubit_id = 1;
+
+  // The values of this property. Repeated to support multi-dimensional
+  // properties.
+  repeated Value values = 2;
+}
+
+// Properties associated with an entire processor.
+message GlobalProperty {
+  // The values of this property. Repeated to support multi-dimensional
+  // properties.
+  repeated Value values = 1;
+}
+
+// A generic metric value. Metrics of the same type should all support only
+// one of the types.
+message Value {
+  // The raw value.
+  oneof val {
+    float float_val = 1;
+
+    double double_val = 2;
+
+    int32 int32_val = 3;
+
+    int64 int64_val = 4;
+  }
+}
