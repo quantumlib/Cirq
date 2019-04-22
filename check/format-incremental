@@ -66,6 +66,17 @@ if [ -z "${rev}" ]; then
 fi
 echo "Comparing against revision '${rev}'." >&2
 
+# Copy over .yapfignore or use local version. Cleanup if copying.
+ignore_exists='[ -f .yapfignore ]'
+if ! $ignore_exists; then
+  function cleanup {
+    rm .yapfignore
+  }
+  trap cleanup EXIT;
+fi
+cp -n dev_tools/conf/.yapfignore .yapfignore
+
+
 # Get the _test version of changed python files.
 needed_changes=0
 changed_files=$(git diff --name-only ${rev} -- | grep "\.py$")
