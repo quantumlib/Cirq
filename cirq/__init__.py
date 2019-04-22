@@ -222,6 +222,7 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
+    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
