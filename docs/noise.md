@@ -77,7 +77,7 @@ can call `cirq.mixture_channel`.
 ### Common Channels
 
 Cirq supports many commonly used quantum channels out of the box, see
-[`ops/common_channels.py`](/cirq/ops/common_channels.py).
+[`ops/common_channels.py`](https://github.com/quantumlib/Cirq/blob/master/cirq/ops/common_channels.py).
 
 #### AsymmetricDepolarizingChannel, DepolarizingChannel, BitFlipChannel, and PhaseFlipChannel
 
