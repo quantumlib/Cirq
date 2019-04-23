@@ -128,7 +128,7 @@ mypy --config-file=dev_tools/conf/mypy.ini .
 ```
 
 This can be a bit tedious, because you have to specify the configuration files each time.
-A more convenient way to run checks is to via the scripts in the [check/](/check) directory, which specify configuration arguments for you and cover more use cases:
+A more convenient way to run checks is to via the scripts in the [check/](https://github.com/quantumlib/Cirq/tree/master/check) directory, which specify configuration arguments for you and cover more use cases:
 
 ```bash
 # Run all tests in the repository.
@@ -152,7 +152,7 @@ A more convenient way to run checks is to via the scripts in the [check/](/check
 
 The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
 For example, you may be running an older version of `pylint` or `numpy`.
-In order to run a check that is significantly more likely to agree with the travis builds, you can use the [continuous-integration/check.sh](/continuous-integration/check.sh) script:
+In order to run a check that is significantly more likely to agree with the travis builds, you can use the [continuous-integration/check.sh](https://github.com/quantumlib/Cirq/blob/master/continuous-integration/check.sh) script:
 
 ```bash
 ./continuous-integration/check.sh
@@ -166,7 +166,7 @@ This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `increment
 
 ### Producing the Python 2.7 code
 
-Run [dev_tools/python2.7-generate.sh](/dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
+Run [dev_tools/python2.7-generate.sh](https://github.com/quantumlib/Cirq/blob/master/dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
 
 ```bash
 ./dev_tools/python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
@@ -276,13 +276,13 @@ The HTML output will go into the `docs/_build` directory.
 
     If everything goes smoothly, the script will finish by printing `VERIFIED`.
 
-3. Set the version number in [cirq/_version.py](/cirq/_version.py).
+3. Set the version number in [cirq/_version.py](https://github.com/quantumlib/Cirq/blob/master/cirq/_version.py).
 
     Development versions end with `.dev` or `.dev#`.
     For example, `0.0.4.dev500` is a development version of the release version `0.0.4`.
     For a release, create a pull request turning `#.#.#.dev*` into `#.#.#` and a follow up pull request turning `#.#.#` into `(#+1).#.#.dev`.
 
-4. Run [dev_tools/packaging/produce-package.sh](/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
+4. Run [dev_tools/packaging/produce-package.sh](https://github.com/quantumlib/Cirq/blob/master/dev_tools/packaging/produce-package.sh) to produce pypi artifacts.
 
     ```bash
     dev_tools/packaging/produce-package.sh dist
