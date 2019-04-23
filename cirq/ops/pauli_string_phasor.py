@@ -23,7 +23,12 @@ from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
 
 @value.value_equality(approximate=True)
 class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
-    """An operation that phases a Pauli string."""
+    """An operation that phases the eigenstates of a Pauli string.
+
+    The -1 eigenstates of the Pauli string will have their amplitude multiplied
+    by e^(i pi exponent_neg) while +1 eigenstates of the Pauli string will have
+    their amplitude multiplied by e^(i pi exponent_pos).
+    """
 
     def __init__(self,
                  pauli_string: ps.PauliString,
@@ -32,18 +37,13 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                  exponent_pos: Union[int, float, sympy.Basic] = 0) -> None:
         """Initializes the operation.
 
-        At most one angle argument may be specified. If more are specified,
-        the result is considered ambiguous and an error is thrown. If no angle
-        argument is given, the default value of one half turn is used.
-
         Args:
-            pauli_string: The PauliString to phase.
-            exponent_neg: The amount that this operation should phase
-                the -1 eigenstate of the observable specified by the given
-                PauliString.
-            exponent_pos: The amount that this operation should phase
-                the +1 eigenstate of the observable specified by the given
-                PauliString.
+            pauli_string: The PauliString defining the positive and negative
+                eigenspaces that will be independently phased.
+            exponent_neg: How much to phase vectors in the negative eigenspace,
+                in the form of the t in (-1)**t = exp(i pi t).
+            exponent_pos: How much to phase vectors in the positive eigenspace,
+                in the form of the t in (-1)**t = exp(i pi t).
         """
         if pauli_string.coefficient == -1:
             pauli_string = -pauli_string
