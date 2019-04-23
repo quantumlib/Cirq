@@ -174,7 +174,7 @@ print(circuit)
 ```
 One thing to notice here.  First `cirq.X` is a `Gate` object. There
 are many different gates supported by Cirq. A good place to look
-at gates that are defined is in [common_gates.py](/cirq/ops/common_gates.py).
+at gates that are defined is in [common_gates.py](https://github.com/quantumlib/Cirq/blob/master/cirq/ops/common_gates.py).
 One common confusion to avoid is the difference between a gate class 
 and a gate object (which is an instantiation of a class).  The second is that gate
 objects are transformed into `Operation`s (technically `GateOperation`s)
