@@ -15,31 +15,40 @@
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload, Optional, cast)
 
+import cmath
+import math
+
+import numpy as np
+
 from cirq import value
 from cirq.ops import (
-    raw_types, gate_operation, common_gates, op_tree, pauli_gates
+    raw_types,
+    gate_operation,
+    common_gates,
+    op_tree,
+    pauli_gates,
+    clifford_gate,
+    pauli_interaction_gate,
 )
-from cirq.ops.pauli_gates import Pauli
-from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
 TDefault = TypeVar('TDefault')
 
 
-@value.value_equality(manual_cls=True)
+@value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
-    def __init__(
-            self,
-            qubit_pauli_map: Optional[Mapping[raw_types.Qid, Pauli]] = None,
-            coefficient: Union[int, float, complex] = 1) -> None:
+    def __init__(self,
+                 qubit_pauli_map: Optional[
+                     Mapping[raw_types.Qid, pauli_gates.Pauli]] = None,
+                 coefficient: Union[int, float, complex] = 1) -> None:
         if qubit_pauli_map is None:
             qubit_pauli_map = {}
         self._qubit_pauli_map = dict(qubit_pauli_map)
         self._coefficient = complex(coefficient)
 
     @staticmethod
-    def from_single(qubit: raw_types.Qid, pauli: Pauli) -> 'PauliString':
+    def from_single(qubit: raw_types.Qid,
+                    pauli: pauli_gates.Pauli) -> 'PauliString':
         """Creates a PauliString with a single qubit."""
         return PauliString({qubit: pauli})
 
@@ -63,17 +72,17 @@ class PauliString(raw_types.Operation):
     def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
-    def __getitem__(self, key: raw_types.Qid) -> Pauli:
+    def __getitem__(self, key: raw_types.Qid) -> pauli_gates.Pauli:
         return self._qubit_pauli_map[key]
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: raw_types.Qid) -> Pauli:
+    def get(self, key: raw_types.Qid) -> pauli_gates.Pauli:
         pass
 
     @overload
-    def get(self, key: raw_types.Qid, default: TDefault
-            ) -> Union[Pauli, TDefault]:
+    def get(self, key: raw_types.Qid,
+            default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
     def get(self, key: raw_types.Qid, default=None):
@@ -121,7 +130,7 @@ class PauliString(raw_types.Operation):
                                     (self[q] for q in self.qubits))),
                            self._coefficient)
 
-    def values(self) -> ValuesView[Pauli]:
+    def values(self) -> ValuesView[pauli_gates.Pauli]:
         return self._qubit_pauli_map.values()
 
     def items(self) -> ItemsView:
@@ -134,31 +143,50 @@ class PauliString(raw_types.Operation):
         return len(self._qubit_pauli_map)
 
     def __repr__(self):
-        map_str = ', '.join(('{!r}: {!r}'.format(qubit, self[qubit])
-                             for qubit in sorted(self.qubits)))
-        return 'cirq.PauliString({{{}}}, {})'.format(map_str, self._coefficient)
+        ordered_qubits = sorted(self.qubits)
+        prefix = ''
+
+        factors = []
+        if self._coefficient == -1:
+            prefix = '-'
+        elif self._coefficient != 1:
+            factors.append(repr(self._coefficient))
+
+        if not ordered_qubits:
+            factors.append('cirq.PauliString()')
+        for q in ordered_qubits:
+            factors.append(repr(cast(raw_types.Gate, self[q]).on(q)))
+
+        fused = prefix + '*'.join(factors)
+        if len(factors) > 1:
+            return '({})'.format(fused)
+        return fused
 
     def __str__(self):
         ordered_qubits = sorted(self.qubits)
-        prefix = (
-            '-' if self._coefficient == -1
-            else '' if self._coefficient == 1
-            else '{}*'.format(self._coefficient)
-        )
-        if not ordered_qubits:
-            return '{}{}'.format(prefix, 'I')
-        return '{}{}'.format(
-            prefix,
-            '*'.join('{}({})'.format(self[q], q, self[q])
-                     for q in ordered_qubits))
+        prefix = ''
 
-    def zip_items(self, other: 'PauliString'
-                  ) -> Iterator[Tuple[raw_types.Qid, Tuple[Pauli, Pauli]]]:
+        factors = []
+        if self._coefficient == -1:
+            prefix = '-'
+        elif self._coefficient != 1:
+            factors.append(repr(self._coefficient))
+
+        if not ordered_qubits:
+            factors.append('I')
+        for q in ordered_qubits:
+            factors.append(str(cast(raw_types.Gate, self[q]).on(q)))
+
+        return prefix + '*'.join(factors)
+
+    def zip_items(self, other: 'PauliString') -> Iterator[
+            Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
         for qubit, pauli0 in self.items():
             if qubit in other:
                 yield qubit, (pauli0, other[qubit])
 
-    def zip_paulis(self, other: 'PauliString') -> Iterator[Tuple[Pauli, Pauli]]:
+    def zip_paulis(self, other: 'PauliString'
+                  ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
         return (paulis for qubit, paulis in self.zip_items(other))
 
     def commutes_with(self, other: 'PauliString') -> bool:
@@ -172,6 +200,68 @@ class PauliString(raw_types.Operation):
     def __pos__(self) -> 'PauliString':
         return self
 
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        """Override behavior of numpy's exp method."""
+        if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
+            return math.e**self
+        return NotImplemented
+
+    def __pow__(self, power):
+        if power == 1:
+            return self
+        if power == -1:
+            return PauliString(self._qubit_pauli_map, self.coefficient**-1)
+        if isinstance(power, (int, float)):
+            # HACK: avoid circular import.
+            from cirq.ops.pauli_string_phasor import PauliStringPhasor
+            r, i = cmath.polar(self.coefficient)
+            if abs(r - 1) > 0.0001:
+                raise NotImplementedError(
+                    "Raised a non-unitary PauliString to a power <{!r}**{!r}>. "
+                    "Coefficient must be unit-length.".format(self, power))
+
+            if len(self) == 1:
+                q, p = next(iter(self.items()))
+                gates = {
+                    pauli_gates.X: common_gates.XPowGate,
+                    pauli_gates.Y: common_gates.YPowGate,
+                    pauli_gates.Z: common_gates.ZPowGate,
+                }
+                return gates[p](exponent=power).on(q)
+
+            # HACK: avoid circular import.
+            from cirq.ops.pauli_string_phasor import PauliStringPhasor
+            global_half_turns = power * (i / math.pi)
+            return PauliStringPhasor(PauliString(self._qubit_pauli_map),
+                                     exponent_neg=global_half_turns + power,
+                                     exponent_pos=global_half_turns)
+        return NotImplemented
+
+    def __rpow__(self, base):
+        if isinstance(base, (int, float)) and base > 0:
+            if abs(self.coefficient.real) > 0.0001:
+                raise NotImplementedError(
+                    "Exponentiated to a non-hermitian PauliString <{}**{}>. "
+                    "Coefficient must be imaginary.".format(base, self))
+
+            half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
+
+            if len(self) == 1:
+                q, p = next(iter(self.items()))
+                gates = {
+                    pauli_gates.X: common_gates.XPowGate,
+                    pauli_gates.Y: common_gates.YPowGate,
+                    pauli_gates.Z: common_gates.ZPowGate,
+                }
+                return gates[p](exponent=half_turns, global_shift=-0.5).on(q)
+
+            # HACK: avoid circular import.
+            from cirq.ops.pauli_string_phasor import PauliStringPhasor
+            return PauliStringPhasor(PauliString(self._qubit_pauli_map),
+                                     exponent_neg=+half_turns / 2,
+                                     exponent_pos=-half_turns / 2)
+        return NotImplemented
+
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
                    ) -> 'PauliString':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
@@ -182,7 +272,7 @@ class PauliString(raw_types.Operation):
         """Returns operations to convert the qubits to the computational basis.
         """
         for qubit, pauli in self.items():
-            yield SingleQubitCliffordGate.from_single_map(
+            yield clifford_gate.SingleQubitCliffordGate.from_single_map(
                 {pauli: (pauli_gates.Z, False)})(qubit)
 
     def pass_operations_over(self,
@@ -229,29 +319,29 @@ class PauliString(raw_types.Operation):
         return PauliString(pauli_map, coef)
 
     @staticmethod
-    def _pass_operation_over(pauli_map: Dict[raw_types.Qid, Pauli],
+    def _pass_operation_over(pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
                              op: raw_types.Operation,
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
             gate = op.gate
-            if isinstance(gate, SingleQubitCliffordGate):
+            if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
                 return PauliString._pass_single_clifford_gate_over(
                     pauli_map, gate, op.qubits[0],
                     after_to_before=after_to_before)
             if isinstance(gate, common_gates.CZPowGate):
-                gate = PauliInteractionGate.CZ
-            if isinstance(gate, PauliInteractionGate):
+                gate = pauli_interaction_gate.PauliInteractionGate.CZ
+            if isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(
                     pauli_map, gate, op.qubits[0], op.qubits[1],
                     after_to_before=after_to_before)
         raise TypeError('Unsupported operation: {!r}'.format(op))
 
     @staticmethod
-    def _pass_single_clifford_gate_over(pauli_map: Dict[raw_types.Qid,
-                                                        Pauli],
-                                        gate: SingleQubitCliffordGate,
-                                        qubit: raw_types.Qid,
-                                        after_to_before: bool = False) -> bool:
+    def _pass_single_clifford_gate_over(
+            pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
+            gate: clifford_gate.SingleQubitCliffordGate,
+            qubit: raw_types.Qid,
+            after_to_before: bool = False) -> bool:
         if qubit not in pauli_map:
             return False
         if not after_to_before:
@@ -261,13 +351,13 @@ class PauliString(raw_types.Operation):
         return inv
 
     @staticmethod
-    def _pass_pauli_interaction_gate_over(pauli_map: Dict[raw_types.Qid,
-                                                          Pauli],
-                                          gate: PauliInteractionGate,
-                                          qubit0: raw_types.Qid,
-                                          qubit1: raw_types.Qid,
-                                          after_to_before: bool = False
-                                          ) -> bool:
+    def _pass_pauli_interaction_gate_over(
+            pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
+            gate: pauli_interaction_gate.PauliInteractionGate,
+            qubit0: raw_types.Qid,
+            qubit1: raw_types.Qid,
+            after_to_before: bool = False) -> bool:
+
         def merge_and_kickback(qubit: raw_types.Qid,
                                pauli_left: Optional[pauli_gates.Pauli],
                                pauli_right: Optional[pauli_gates.Pauli],
@@ -316,31 +406,32 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     GateOperation(X, [q]).
     """
 
-    def __init__(self, pauli: Pauli, qubit: raw_types.Qid):
+    def __init__(self, pauli: pauli_gates.Pauli, qubit: raw_types.Qid):
         PauliString.__init__(self, {qubit: pauli})
-        gate_operation.GateOperation.__init__(self, pauli, [qubit])
+        gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
+                                              [qubit])
 
     def with_qubits(self, *new_qubits: raw_types.Qid
                    ) -> 'SingleQubitPauliStringGateOperation':
         if len(new_qubits) != 1:
             raise ValueError("len(new_qubits) != 1")
-        return SingleQubitPauliStringGateOperation(cast(Pauli, self.gate),
-                                                   new_qubits[0])
+        return SingleQubitPauliStringGateOperation(
+            cast(pauli_gates.Pauli, self.gate), new_qubits[0])
 
-    def as_pauli_string(self) -> PauliString:
-        return PauliString({self.qubits[0]: cast(Pauli, self.gate)})
+    def _as_pauli_string(self) -> PauliString:
+        return PauliString({self.qubits[0]: cast(pauli_gates.Pauli, self.gate)})
 
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
-            return self.as_pauli_string() * other.as_pauli_string()
+            return self._as_pauli_string() * other._as_pauli_string()
         if isinstance(other, (PauliString, complex, float, int)):
-            return self.as_pauli_string() * other
+            return self._as_pauli_string() * other
         return NotImplemented
 
     def __rmul__(self, other):
         if isinstance(other, (PauliString, complex, float, int)):
-            return other * self.as_pauli_string()
+            return other * self._as_pauli_string()
         return NotImplemented
 
     def __neg__(self):
-        return -self.as_pauli_string()
+        return -self._as_pauli_string()
