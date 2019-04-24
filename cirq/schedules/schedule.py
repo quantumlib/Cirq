@@ -72,12 +72,14 @@ class Schedule:
 
     __hash__ = None  # type: ignore
 
-    def query(self, *,  # Forces keyword args.
-              time: Timestamp,
-              duration: Union[Duration, timedelta] = Duration(),
-              qubits: Iterable[Qid] = None,
-              include_query_end_time=False,
-              include_op_end_times=False) -> List[ScheduledOperation]:
+    def query(
+            self,
+            *,  # Forces keyword args.
+            time: Timestamp,
+            duration: Union[Duration, timedelta] = Duration(),
+            qubits: Iterable[Qid] = None,
+            include_query_end_time=False,
+            include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:

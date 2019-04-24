@@ -58,12 +58,13 @@ def test_init():
 def test_init_timedelta():
     from datetime import timedelta
     timedelta_duration = timedelta(microseconds=1)
-    d =  cg.XmonDevice(measurement_duration=timedelta_duration,
-                         exp_w_duration=2 * timedelta_duration,
-                         exp_11_duration=3 * timedelta_duration,
-                         qubits=[cirq.GridQubit(row, col)
-                                 for col in range(2)
-                                 for row in range(2)])
+    d = cg.XmonDevice(
+        measurement_duration=timedelta_duration,
+        exp_w_duration=2 * timedelta_duration,
+        exp_11_duration=3 * timedelta_duration,
+        qubits=[
+            cirq.GridQubit(row, col) for col in range(2) for row in range(2)
+        ])
     microsecond = cirq.Duration(nanos=1000)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)

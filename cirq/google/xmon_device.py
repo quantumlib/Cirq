@@ -30,8 +30,7 @@ class XmonDevice(devices.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.
     """
 
-    def __init__(self,
-                 measurement_duration: Union[value.Duration, timedelta],
+    def __init__(self, measurement_duration: Union[value.Duration, timedelta],
                  exp_w_duration: Union[value.Duration, timedelta],
                  exp_11_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[GridQubit]) -> None:
@@ -45,7 +44,7 @@ class XmonDevice(devices.Device):
         """
         if isinstance(measurement_duration, timedelta):
             measurement_duration = value.Duration.from_timedelta(
-                                                     measurement_duration)
+                measurement_duration)
         if isinstance(exp_w_duration, timedelta):
             exp_w_duration = value.Duration.from_timedelta(exp_w_duration)
         if isinstance(exp_11_duration, timedelta):

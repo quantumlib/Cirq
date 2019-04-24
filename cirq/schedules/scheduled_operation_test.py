@@ -33,7 +33,7 @@ def test_init_timedelta():
                            duration=timedelta(microseconds=7),
                            operation=cirq.H(cirq.NamedQubit('a')))
     assert r.time == Timestamp(picos=5)
-    assert r.duration == Duration(picos=7E6)
+    assert r.duration == Duration(picos=7 * 10**6)
     assert r.operation == cirq.H(cirq.NamedQubit('a'))
 
 

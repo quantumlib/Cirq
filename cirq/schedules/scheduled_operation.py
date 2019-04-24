@@ -23,9 +23,7 @@ from cirq.value import Duration, Timestamp
 class ScheduledOperation:
     """An operation that happens over a specified time interval."""
 
-    def __init__(self,
-                 time: Timestamp,
-                 duration: Union[Duration, timedelta],
+    def __init__(self, time: Timestamp, duration: Union[Duration, timedelta],
                  operation: ops.Operation) -> None:
         """Initializes the scheduled operation.
 

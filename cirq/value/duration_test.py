@@ -33,8 +33,7 @@ def test_init():
 
 
 def test_init_timedelta():
-    assert Duration.from_timedelta(
-        timedelta(microseconds=0)).total_picos() == 0
+    assert Duration.from_timedelta(timedelta(microseconds=0)).total_picos() == 0
     assert Duration.from_timedelta(
         timedelta(microseconds=513)).total_picos() == 513 * 10**6
     assert Duration.from_timedelta(

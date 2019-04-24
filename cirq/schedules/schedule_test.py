@@ -50,11 +50,11 @@ def test_equality_timedelta():
         time_picos = start_picos
         scheduled_ops = []
         for _ in range(num_ops):
-            op = cirq.ScheduledOperation(cirq.Timestamp(picos=time_picos),
-                                        timedelta(microseconds=duration_micros),
-                                        cirq.H(q))
+            op = cirq.ScheduledOperation(
+                cirq.Timestamp(picos=time_picos),
+                timedelta(microseconds=duration_micros), cirq.H(q))
             scheduled_ops.append(op)
-            time_picos += duration_micros * 1_000_000
+            time_picos += duration_micros * 10**6
         return cirq.Schedule(device=UnconstrainedDevice,
                              scheduled_operations=scheduled_ops)
 

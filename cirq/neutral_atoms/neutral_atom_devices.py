@@ -30,14 +30,11 @@ class NeutralAtomDevice(devices.Device):
     A device with qubits placed on a grid.
     """
 
-    def __init__(self,
-                 measurement_duration: Union[Duration, timedelta],
+    def __init__(self, measurement_duration: Union[Duration, timedelta],
                  gate_duration: Union[Duration, timedelta],
-                 control_radius: float,
-                 max_parallel_z: int,
-                 max_parallel_xy: int,
-                 max_parallel_c: int,
-                 qubits: Iterable[GridQubit])->None:
+                 control_radius: float, max_parallel_z: int,
+                 max_parallel_xy: int, max_parallel_c: int,
+                 qubits: Iterable[GridQubit]) -> None:
         """
         Initializes the description of the AQuA device.
 

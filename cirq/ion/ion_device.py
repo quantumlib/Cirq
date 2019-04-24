@@ -31,8 +31,7 @@ class IonDevice(devices.Device):
     Qubits have all-to-all connectivity.
     """
 
-    def __init__(self,
-                 measurement_duration: Union[value.Duration, timedelta],
+    def __init__(self, measurement_duration: Union[value.Duration, timedelta],
                  twoq_gates_duration: Union[value.Duration, timedelta],
                  oneq_gates_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[LineQubit]) -> None:
@@ -208,8 +207,3 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))
             seen.add(key)
-
-
-
-
-
