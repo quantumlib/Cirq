@@ -16,7 +16,6 @@ from typing import Tuple
 
 from cirq import ops, circuits
 
-from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
@@ -62,9 +61,10 @@ def regular_half(circuit: circuits.Circuit) -> circuits.Circuit:
         circuit contains measurements.
     """
     return circuits.Circuit(
-                ops.Moment(op for op in moment.operations
-                           if not isinstance(op, PauliStringPhasor))
-                           for moment in circuit)
+        ops.Moment(op
+                   for op in moment.operations
+                   if not isinstance(op, ops.PauliStringPhasor))
+        for moment in circuit)
 
 
 def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
@@ -88,11 +88,11 @@ def _pull_non_clifford_before(circuit: circuits.Circuit) -> ops.OP_TREE:
         for i in reversed(range(moment_end)):
             moment = circuit[i]
             for op in moment.operations:
-                if not isinstance(op, PauliStringPhasor):
+                if not isinstance(op, ops.PauliStringPhasor):
                     yield op
 
     for i, moment in enumerate(circuit):
         for op in moment.operations:
-            if isinstance(op, PauliStringPhasor):
+            if isinstance(op, ops.PauliStringPhasor):
                 ops_to_cross = _iter_ops_range_reversed(i)
                 yield op.pass_operations_over(ops_to_cross)

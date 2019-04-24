@@ -22,7 +22,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.contrib.paulistring.pauli_string_phasor import PauliStringPhasor
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -68,7 +67,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                     and linalg.all_near_zero_mod(half_turns, 0.5)):
                 cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
                     pauli, round(half_turns * 2))
-                if out_ops and not isinstance(out_ops[-1], PauliStringPhasor):
+                if out_ops and not isinstance(out_ops[-1],
+                                              ops.PauliStringPhasor):
                     op = cast(ops.GateOperation, out_ops[-1])
                     gate = cast(ops.SingleQubitCliffordGate, op.gate)
                     out_ops[-1] = gate.merged_with(cliff_gate)(qubit)
@@ -78,13 +78,13 @@ class ConvertToPauliStringPhasors(PointOptimizer):
             else:
                 pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    PauliStringPhasor(pauli_string,
-                                      half_turns=round(half_turns, 10)))
+                    ops.PauliStringPhasor(pauli_string,
+                                          exponent_neg=round(half_turns, 10)))
         return out_ops
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
-        # Don't change if it's already a PauliStringPhasor
-        if isinstance(op, PauliStringPhasor):
+        # Don't change if it's already a ops.PauliStringPhasor
+        if isinstance(op, ops.PauliStringPhasor):
             return op
 
         if (self.keep_clifford

@@ -46,7 +46,7 @@ class SupportsChannel(Protocol):
         These matrices are the terms in the operator sum representation of
         a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},
         then this describes the channel:
-            \rho -> \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
+            \rho \rightarrow \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
         These matrices are required to satisfy the trace preserving condition
             \sum_{k=0}^{r-1} A_i^\dagger A_i = I
         where I is the identity matrix. The matrices A_i are sometimes called
@@ -93,7 +93,7 @@ def channel(val: Any,
     These matrices are the terms in the operator sum representation of
     a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},
     then this describes the channel:
-        \rho -> \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
+        \rho \rightarrow \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
     These matrices are required to satisfy the trace preserving condition
         \sum_{k=0}^{r-1} A_i^\dagger A_i = I
     where I is the identity matrix. The matrices A_i are sometimes called
