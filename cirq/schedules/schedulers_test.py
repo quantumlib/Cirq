@@ -32,12 +32,10 @@ class _TestDevice(cirq.Device):
         self.qubits = [cirq.LineQubit(x) for x in range(10)]
 
     def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
-        if isinstance(operation, cirq.GateOperation):
-            g = operation.gate
-            if isinstance(g, cirq.HPowGate):
-                return cirq.Duration(nanos=20)
-            if isinstance(g, cirq.CZPowGate):
-                return cirq.Duration(nanos=40)
+        if cirq.op_gate_of_type(operation, cirq.HPowGate):
+            return cirq.Duration(nanos=20)
+        if cirq.op_gate_of_type(operation, cirq.CZPowGate):
+            return cirq.Duration(nanos=40)
         raise ValueError('Unsupported operation: {!r}'.format(operation))
 
     def validate_gate(self, gate: cirq.Gate):
