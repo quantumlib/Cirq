@@ -4,6 +4,7 @@ language: python
 branches:
   only:
     - master
+    - v0.5.0-dev
 
 before_install:
   - pip install --upgrade pip setuptools wheel
