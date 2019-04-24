@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, Optional, TYPE_CHECKING
+from datetime import timedelta
+from typing import cast, Iterable, Optional, Union, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.line import LineQubit
@@ -31,9 +32,9 @@ class IonDevice(devices.Device):
     """
 
     def __init__(self,
-                 measurement_duration: value.Duration,
-                 twoq_gates_duration: value.Duration,
-                 oneq_gates_duration: value.Duration,
+                 measurement_duration: Union[value.Duration, timedelta],
+                 twoq_gates_duration: Union[value.Duration, timedelta],
+                 oneq_gates_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[LineQubit]) -> None:
         """Initializes the description of an ion trap device.
 
@@ -44,6 +45,15 @@ class IonDevice(devices.Device):
             operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
+        if isinstance(measurement_duration, timedelta):
+            measurement_duration = \
+                value.Duration.from_timedelta(measurement_duration)
+        if isinstance(twoq_gates_duration, timedelta):
+            twoq_gates_duration = \
+                value.Duration.from_timedelta(twoq_gates_duration)
+        if isinstance(oneq_gates_duration, timedelta):
+            oneq_gates_duration = \
+                value.Duration.from_timedelta(oneq_gates_duration)
         self._measurement_duration = measurement_duration
         self._twoq_gates_duration = twoq_gates_duration
         self._oneq_gates_duration = oneq_gates_duration
