@@ -792,7 +792,7 @@ class Circuit:
             predicate: A predicate on ops.Operations which is being checked.
 
         Returns:
-            Whether or not all `Operation`s in a circuit that satisfy the
+            Whether or not all `Operation` s in a circuit that satisfy the
             given predicate are terminal.
         """
         return all(
