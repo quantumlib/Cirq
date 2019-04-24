@@ -4,7 +4,6 @@ language: python
 branches:
   only:
     - master
-    - v0.3.0-dev
     - v0.5.0-dev
 
 before_install:
