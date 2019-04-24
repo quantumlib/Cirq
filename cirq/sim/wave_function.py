@@ -258,9 +258,8 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        # Python 2 rounds imaginary numbers to 0, so need to round separately.
-        val = (round(state[x].real, decimals)
-               + 1j * round(state[x].imag, decimals))
+        val = round(state[x], decimals)
+        
         if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag
             format_str = "{:." + str(decimals) + "g}j"
