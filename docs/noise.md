@@ -6,13 +6,13 @@ noise (these evolutions are also known as quantum operations, quantum
 dynamical maps, or superoperators).  This formalism models evolution of the
 density matrix via
 
-![Operator sum representation: $\rho \rightarrow \sum_k A_k \rho A_k^\dagger$](resources/OperatorSumDef.gif)
+$$\rho \rightarrow \sum_k A_k \rho A_k^\dagger$$
 
 Where A<sub>k</sub> are *Krauss* operators. These operators are not
 necessarily unitary and must satisfy
 the trace preserving property
 
-![Operator sum normalization: $\sum_k A_k^\dagger A_k = I$](resources/OperatorSumNormDef.gif)
+$$\sum_k A_k^\dagger A_k = I$$
 
 As a noisy channel, Krauss operators are not unique. For more details of these
 operators see [John Preskill's notes](http://www.theory.caltech.edu/people/preskill/ph219/chap3_15.pdf).
@@ -58,7 +58,7 @@ channel.
 Some channels can be interpreted as probabilistically selecting between
 different unitary evolutions.
 
-![Mixture channel: $\rho \rightarrow \sum_k p_k U_k \rho U_k^\dagger {\rm ~where~} \sum_k p_k =1 {\rm ~and~ U_k U_k^\dagger= I}$](resources/MixtureChannelDef.gif)
+$$\rho \rightarrow \sum_k p_k U_k \rho U_k^\dagger {\rm ~where~} \sum_k p_k =1 {\rm ~and~ U_k U_k^\dagger= I}$$
 
 In this case, it is possible to perform
 Monte Carlo simulations of these gates using a wave function based simulator
@@ -88,7 +88,9 @@ wave function simulator can be used.
 
 This channel implements the evolution
 
-![Asymmetric depolarizing channel: $\rho \rightarrow (1-p_x-p_y-p_z) \rho + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z$](resources/AsymmetricDepolarizingChannelDef.gif)
+$$
+\rho \rightarrow (1-p_x-p_y-p_z) \rho + p_x X \rho X + p_y Y \rho Y + p_z Z \rho Z
+$$
 
 Here p<sub>x</sub> is the probability that the X Pauli gate is applied and
 no other gate is applied, and similarly for p<sub>y</sub> and p<sub>z</sub>.
@@ -101,7 +103,7 @@ such that each Pauli gate occurs with probability `p/3`.
 To construct channels, useful helpers are provided `cirq.asymmetric_depolarize`
 and `cirq.depolarize`.
 
-Another common case is when only a Pauli X (bit flip) can occur, or
+Another common case is when only a Pauli X (bit flip) can occur, or()
 when only a Pauli Y (phase flip) can occur. These correspond to
 `BitFlipChannel` and `PhaseFlipChannel` with helpers `cirq.bit_flip` and
 `cirq.phase_flip`.
@@ -115,7 +117,15 @@ dissipation of energy to a surrounding environment. Cirq has implementations
 of both of these channels. The generalized amplitude damping channel
 corresponds to
 
-![Generalized amplitude damping channel: $\rho \rightarrow \sum_{k=0}^3 M_k \rho M_k \\ M_0 = \sqrt{p} \begin{bmatrix} 1 & 0  \\ 0 & \sqrt{1 - \gamma} \end{bmatrix} \\ M_1 = \sqrt{p} \begin{bmatrix} 0 & \sqrt{\gamma} \\ 0 & 0 \end{bmatrix} \\ M_2 = \sqrt{1-p} \begin{bmatrix} \sqrt{1-\gamma} & 0 \\ 0 & 1 \\ \end{bmatrix} \\ M_3 = \sqrt{1-p} \begin{bmatrix} 0 & 0 \\ \sqrt{\gamma} & 0 \end{bmatrix}$](resources/GeneralizedAmplitudeDampingChannelDef.gif)
+$$
+\begin{aligned}
+\rho \rightarrow& \sum_{k=0}^3 M_k \rho M_k \newline
+M_0 =& \sqrt{p} \begin{bmatrix} 1 & 0  \cr 0 & \sqrt{1 - \gamma} \end{bmatrix} \newline
+M_1 =& \sqrt{p} \begin{bmatrix} 0 & \sqrt{\gamma} \cr 0 & 0 \end{bmatrix} \newline
+M_2 =& \sqrt{1-p} \begin{bmatrix} \sqrt{1-\gamma} & 0 \cr 0 & 1 \\ \end{bmatrix} \newline
+M_3 =& \sqrt{1-p} \begin{bmatrix} 0 & 0 \cr \sqrt{\gamma} & 0 \end{bmatrix}
+\end{aligned}
+$$
 
 Where &#947; is the probability of the interaction being dissipative and
 `p` is the probability that the qubit and environment exchange energy. The
