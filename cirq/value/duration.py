@@ -53,14 +53,28 @@ class Duration:
         return self._picos / 1000.0
 
     def __add__(self, other) -> 'Duration':
-        if not isinstance(other, type(self)):
+        if isinstance(other, timedelta):
+            other = Duration.from_timedelta(other)
+        elif not isinstance(other, type(self)):
             return NotImplemented
         return Duration(picos=self._picos + other._picos)
 
+    def __radd__(self, other) -> 'Duration':
+        return self.__add__(other)
+
     def __sub__(self, other) -> 'Duration':
+        if isinstance(other, timedelta):
+            other = Duration.from_timedelta(other)
         if not isinstance(other, type(self)):
             return NotImplemented
         return Duration(picos=self._picos - other._picos)
+
+    def __rsub__(self, other) -> 'Duration':
+        if isinstance(other, timedelta):
+            other = Duration.from_timedelta(other)
+            return Duration(picos=other._picos - self._picos)
+        else:
+            return NotImplemented
 
     def __mul__(self, other) -> 'Duration':
         if not isinstance(other, (int, float)):

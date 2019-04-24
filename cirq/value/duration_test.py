@@ -108,6 +108,11 @@ def test_add():
     assert Duration() + Duration() == Duration()
     assert Duration(picos=1) + Duration(picos=2) == Duration(picos=3)
 
+    assert Duration(picos=1) + \
+            timedelta(microseconds=2) == Duration(picos=2_000_001)
+    assert timedelta(microseconds=1) + \
+            Duration(picos=2) == Duration(picos=1_000_002)
+
     with pytest.raises(TypeError):
         _ = 1 + Duration()
     with pytest.raises(TypeError):
@@ -117,6 +122,11 @@ def test_add():
 def test_sub():
     assert Duration() - Duration() == Duration()
     assert Duration(picos=1) - Duration(picos=2) == Duration(picos=-1)
+
+    assert Duration(picos=1) - \
+            timedelta(microseconds=2) == Duration(picos=-1_999_999)
+    assert timedelta(microseconds=1) - \
+            Duration(picos=2) == Duration(picos=999_998)
 
     with pytest.raises(TypeError):
         _ = 1 - Duration()
