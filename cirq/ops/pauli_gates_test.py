@@ -24,6 +24,20 @@ def test_equals():
     eq.add_equality_group(cirq.Z, cirq.ops.pauli_gates.Z, cirq.ZPowGate())
 
 
+def test_phased_pauli_product():
+    assert cirq.X.phased_pauli_product(cirq.X) == (1, cirq.I)
+    assert cirq.X.phased_pauli_product(cirq.Y) == (1j, cirq.Z)
+    assert cirq.X.phased_pauli_product(cirq.Z) == (-1j, cirq.Y)
+
+    assert cirq.Y.phased_pauli_product(cirq.X) == (-1j, cirq.Z)
+    assert cirq.Y.phased_pauli_product(cirq.Y) == (1, cirq.I)
+    assert cirq.Y.phased_pauli_product(cirq.Z) == (1j, cirq.X)
+
+    assert cirq.Z.phased_pauli_product(cirq.X) == (1j, cirq.Y)
+    assert cirq.Z.phased_pauli_product(cirq.Y) == (-1j, cirq.X)
+    assert cirq.Z.phased_pauli_product(cirq.Z) == (1, cirq.I)
+
+
 def test_isinstance():
     assert isinstance(cirq.X, cirq.XPowGate)
     assert isinstance(cirq.Y, cirq.YPowGate)
@@ -77,6 +91,16 @@ def test_by_relative_index():
     assert cirq.Pauli.by_relative_index(cirq.Z, 1) == cirq.X
     assert cirq.Pauli.by_relative_index(cirq.Z, 2) == cirq.Y
     assert cirq.Pauli.by_relative_index(cirq.Z, 3) == cirq.Z
+
+
+def test_too_many_qubits():
+    a, b = cirq.LineQubit.range(2)
+    with pytest.raises(ValueError, match='single qubit'):
+        _ = cirq.X.on(a, b)
+
+    x = cirq.X(a)
+    with pytest.raises(ValueError, match=r'len\(new_qubits\)'):
+        _ = x.with_qubits(a, b)
 
 
 def test_relative_index_consistency():

@@ -126,7 +126,6 @@ def channel(val: Any,
     if channel_result is not NotImplemented:
         return tuple(channel_result)
 
-
     mixture_getter = getattr(val, '_mixture_', None)
     mixture_result = (
         NotImplemented if mixture_getter is None else mixture_getter())
