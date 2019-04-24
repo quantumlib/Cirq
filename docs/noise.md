@@ -103,7 +103,7 @@ such that each Pauli gate occurs with probability `p/3`.
 To construct channels, useful helpers are provided `cirq.asymmetric_depolarize`
 and `cirq.depolarize`.
 
-Another common case is when only a Pauli X (bit flip) can occur, or()
+Another common case is when only a Pauli X (bit flip) can occur, or
 when only a Pauli Y (phase flip) can occur. These correspond to
 `BitFlipChannel` and `PhaseFlipChannel` with helpers `cirq.bit_flip` and
 `cirq.phase_flip`.
