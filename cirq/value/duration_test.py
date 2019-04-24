@@ -36,20 +36,20 @@ def test_init_timedelta():
     assert Duration.from_timedelta(
         timedelta(microseconds=0)).total_picos() == 0
     assert Duration.from_timedelta(
-        timedelta(microseconds=513)).total_picos() == 513_000_000
+        timedelta(microseconds=513)).total_picos() == 513 * 10**6
     assert Duration.from_timedelta(
-        timedelta(microseconds=-5)).total_picos() == -5_000_000
+        timedelta(microseconds=-5)).total_picos() == -5 * 10**6
     assert Duration.from_timedelta(
-        timedelta(microseconds=211)).total_picos() == 211_000_000
+        timedelta(microseconds=211)).total_picos() == 211 * 10**6
 
     assert Duration.from_timedelta(
-        timedelta(seconds=3)).total_picos() == 3_000_000_000_000
+        timedelta(seconds=3)).total_picos() == 3 * 10**12
     assert Duration.from_timedelta(
-        timedelta(seconds=-5)).total_picos() == -5_000_000_000_000
+        timedelta(seconds=-5)).total_picos() == -5 * 10**12
     assert Duration.from_timedelta(
-        timedelta(seconds=3)).total_nanos() == 3_000_000_000
+        timedelta(seconds=3)).total_nanos() == 3 * 10**9
     assert Duration.from_timedelta(
-        timedelta(seconds=-5)).total_nanos() == -5_000_000_000
+        timedelta(seconds=-5)).total_nanos() == -5 * 10**9
 
 
 def test_total_nanoseconds():
@@ -109,9 +109,9 @@ def test_add():
     assert Duration(picos=1) + Duration(picos=2) == Duration(picos=3)
 
     assert Duration(picos=1) + \
-            timedelta(microseconds=2) == Duration(picos=2_000_001)
+            timedelta(microseconds=2) == Duration(picos=2000001)
     assert timedelta(microseconds=1) + \
-            Duration(picos=2) == Duration(picos=1_000_002)
+            Duration(picos=2) == Duration(picos=1000002)
 
     with pytest.raises(TypeError):
         _ = 1 + Duration()
@@ -124,9 +124,9 @@ def test_sub():
     assert Duration(picos=1) - Duration(picos=2) == Duration(picos=-1)
 
     assert Duration(picos=1) - \
-            timedelta(microseconds=2) == Duration(picos=-1_999_999)
+            timedelta(microseconds=2) == Duration(picos=-1999999)
     assert timedelta(microseconds=1) - \
-            Duration(picos=2) == Duration(picos=999_998)
+            Duration(picos=2) == Duration(picos=999998)
 
     with pytest.raises(TypeError):
         _ = 1 - Duration()

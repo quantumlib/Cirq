@@ -64,7 +64,7 @@ def test_init_timedelta():
                          qubits=[cirq.GridQubit(row, col)
                                  for col in range(2)
                                  for row in range(2)])
-    microsecond = cirq.Duration(nanos=1_000)
+    microsecond = cirq.Duration(nanos=1000)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)

@@ -27,9 +27,10 @@ def square_device(width: int,
     us = (cirq.Duration(nanos=10**3)
             if not use_timedelta else timedelta(microseconds=1))
     ms = (cirq.Duration(nanos=10**6)
-            if not use_timedelta else timedelta(microseconds=1_000))
-    return neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
-                              gate_duration=100 * us,
+            if not use_timedelta else timedelta(microseconds=1000))
+    return neutral_atoms.NeutralAtomDevice(
+                              measurement_duration=50 * ms, # type: ignore
+                              gate_duration=100 * us,       # type: ignore
                               control_radius=1.5,
                               max_parallel_z=3,
                               max_parallel_xy=3,
