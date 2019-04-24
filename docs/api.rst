@@ -541,7 +541,6 @@ waiting area.
     :toctree: generated/
 
     contrib.acquaintance
-    contrib.jobs
     contrib.paulistring
     contrib.qcircuit
     contrib.quirk
