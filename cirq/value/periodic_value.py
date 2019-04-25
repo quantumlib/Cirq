@@ -79,7 +79,7 @@ class PeriodicValue:
 
     def __repr__(self):
         return 'cirq.PeriodicValue({}, {})'.format(
-                proper_repr(self.value), proper_repr(self.period))
+            proper_repr(self.value), proper_repr(self.period))
 
     def _is_parameterized_(self):
         return any(isinstance(val, sympy.Basic)
