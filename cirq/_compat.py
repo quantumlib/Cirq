@@ -81,6 +81,7 @@ else:
                             'pi',
                             'Mul',
                             'Add',
+                            'Mod',
                             'Integer',
                             'Float',
                             'Rational']
