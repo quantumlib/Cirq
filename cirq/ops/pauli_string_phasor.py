@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, Union, Callable
+from typing import Dict, Iterable, Union
 
 import sympy
 
