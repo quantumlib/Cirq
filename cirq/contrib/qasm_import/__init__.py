@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for contributions.
-
-Any contributions not ready for full production can be put in a subdirectory in
-this package.
-"""
-
-from cirq.contrib import acquaintance
-from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
-from cirq.contrib.qasm_import import QasmCircuitParser
+from cirq.contrib.qasm_import.qasm import (
+    QasmCircuitParser,
+    QasmException
+)

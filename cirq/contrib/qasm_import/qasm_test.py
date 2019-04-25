@@ -12,12 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for contributions.
+import re
 
-Any contributions not ready for full production can be put in a subdirectory in
-this package.
-"""
+from cirq.contrib.qasm_import import QasmCircuitParser, QasmException
 
-from cirq.contrib import acquaintance
-from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
-from cirq.contrib.qasm_import import QasmCircuitParser
+
+def test_missing_header():
+    assert_parse_error("", r"""missing QASM header""")
+
+
+def assert_parse_error(qasm_string: str, error_regexp):
+    try:
+        circuit = QasmCircuitParser(qasm_string).parse()
+        raise AssertionError(
+            'Expected QASM parser to throw error matching `{}`,'
+            ' instead returned {}'.format(error_regexp, circuit))
+    except QasmException as ex:
+        assert re.match(error_regexp, ex.message)
+        assert qasm_string == ex.qasm

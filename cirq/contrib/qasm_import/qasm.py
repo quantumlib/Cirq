@@ -12,12 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for contributions.
+from cirq.circuits import Circuit
 
-Any contributions not ready for full production can be put in a subdirectory in
-this package.
-"""
 
-from cirq.contrib import acquaintance
-from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
-from cirq.contrib.qasm_import import QasmCircuitParser
+class QasmCircuitParser:
+    def __init__(self, qasm: str):
+        self.qasm = qasm
+
+    def parse(self) -> Circuit:
+
+        raise QasmException("missing QASM header", self.qasm)
+
+
+class QasmException(Exception):
+
+    def __init__(self, message: str, qasm: str) -> None:
+        self.message = message
+        self.qasm = qasm
+
