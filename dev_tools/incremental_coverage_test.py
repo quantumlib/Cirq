@@ -26,12 +26,12 @@ def test_determine_ignored_lines():
     """) == {2}
 
     assert f("""
-        a = 0  
+        a = 0
         b = 0  # coverage: ignore
     """) == {3}
 
     assert f("""
-        a = 0  # coverage: ignore  
+        a = 0  # coverage: ignore
         b = 0  # coverage: ignore
     """) == {2, 3}
 
@@ -88,7 +88,7 @@ def test_determine_ignored_lines():
         a = 6#coverage: ignore
         a = 7#coverage: ignore\t
         a = 8#coverage:\tignore\t
-        
+
         b = 1 # no cover
         b = 2 # coverage: definitely
         b = 3 # lint: ignore

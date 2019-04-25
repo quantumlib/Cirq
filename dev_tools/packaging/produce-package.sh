@@ -56,19 +56,3 @@ git checkout FETCH_HEAD -b work --quiet
 if [ ! -z "${SPECIFIED_VERSION}" ]; then
     echo '__version__ = "'"${SPECIFIED_VERSION}"'"' > "${tmp_git_dir}/${PROJECT_NAME}/_version.py"
 fi
-
-# Python 3 wheel.
-echo "Producing python 3 package files..."
-python3 setup.py -q bdist_wheel -d "${out_dir}"
-
-# Python 2 wheel.
-echo "Generating python 2.7 source..."
-tmp_py2_dir=$(mktemp -d "/tmp/produce-package-py2.XXXXXXXXXXXXXXXX")
-trap "{ rm -rf ${tmp_py2_dir}; }" EXIT
-"${tmp_git_dir}/dev_tools/python2.7-generate.sh" "${tmp_py2_dir}/py2" "${tmp_git_dir}"
-echo "Producing python 2.7 package files..."
-export PYTHONPATH="${tmp_py2_dir}/py2"
-cd "${tmp_py2_dir}/py2"
-python2 setup.py -q bdist_wheel -d "${out_dir}"
-
-ls "${out_dir}"

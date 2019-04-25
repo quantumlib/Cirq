@@ -259,7 +259,7 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
         val = round(state[x], decimals)
-        
+
         if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag
             format_str = "{:." + str(decimals) + "g}j"

@@ -303,17 +303,6 @@ Highlighted differences:
 
 """
 
-    # Work around an issue when this test is run in python2, where using
-    # match=expected_error causes an UnicodeEncodeError.
-    with pytest.raises(AssertionError) as ex_info:
-        cirq.testing.assert_has_diagram(circuit, u"""
-0: ───@───
-      │
-1: ───Z───
-""")
-    assert expected_error in ex_info.value.args[0]
-
-
 def test_assert_has_consistent_apply_unitary():
     class IdentityReturningUnalteredWorkspace:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
