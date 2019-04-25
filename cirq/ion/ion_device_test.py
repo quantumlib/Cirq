@@ -24,7 +24,7 @@ import cirq.ion as ci
 def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
     ms = (1000 * cirq.Duration(nanos=1) if not use_timedelta else timedelta(
         microseconds=1))
-    return ci.IonDevice(
+    return ci.IonDevice(  # type: ignore
         measurement_duration=100 * ms,  # type: ignore
         twoq_gates_duration=200 * ms,  # type: ignore
         oneq_gates_duration=10 * ms,  # type: ignore

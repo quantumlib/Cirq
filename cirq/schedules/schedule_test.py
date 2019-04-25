@@ -178,6 +178,34 @@ def test_query_overlapping_operations_exclusive():
     assert schedule.query(time=zero + 3.5 * ps, duration=ps) == []
 
 
+def test_query_timedelta():
+    q = cirq.NamedQubit('q')
+    zero = cirq.Timestamp(picos=0)
+    ms = timedelta(microseconds=1000)
+    op1 = cirq.ScheduledOperation(zero, 2 * ms, cirq.H(q))
+    op2 = cirq.ScheduledOperation(zero + ms, 2 * ms, cirq.H(q))
+    schedule = cirq.Schedule(device=UnconstrainedDevice,
+                             scheduled_operations=[op2, op1])
+
+    def query(t, d=timedelta(), qubits=None):
+        return schedule.query(time=t,
+                              duration=d,
+                              qubits=qubits,
+                              include_query_end_time=True,
+                              include_op_end_times=True)
+
+    assert query(zero - 0.5 * ms, ms) == [op1]
+    assert query(zero - 0.5 * ms, 2 * ms) == [op1, op2]
+    assert query(zero, ms) == [op1, op2]
+    assert query(zero + 0.5 * ms, ms) == [op1, op2]
+    assert query(zero + ms, ms) == [op1, op2]
+    assert query(zero + 1.5 * ms, ms) == [op1, op2]
+    assert query(zero + 2.0 * ms, ms) == [op1, op2]
+    assert query(zero + 2.5 * ms, ms) == [op2]
+    assert query(zero + 3.0 * ms, ms) == [op2]
+    assert query(zero + 3.5 * ms, ms) == []
+
+
 def test_slice_operations():
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
