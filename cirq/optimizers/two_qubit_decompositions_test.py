@@ -95,8 +95,7 @@ def assert_cz_depth_below(operations, threshold, must_be_full):
     for op in operations:
         assert len(op.qubits) <= 2
         if len(op.qubits) == 2:
-            assert isinstance(op, cirq.GateOperation)
-            assert isinstance(op.gate, cirq.CZPowGate)
+            assert cirq.op_gate_of_type(op, cirq.CZPowGate)
             e = value.canonicalize_half_turns(op.gate.exponent)
             if must_be_full:
                 assert e == 1
