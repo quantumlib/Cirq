@@ -291,6 +291,7 @@ operations, and other types.
     apply_unitary
     approx_eq
     channel
+    control
     circuit_diagram_info
     decompose
     decompose_once
