@@ -73,8 +73,7 @@ class _TestDevice(cirq.Device):
                     raise ValueError('Adjacent CZ operations: {} vs {}'.format(
                         scheduled_operation, other))
 
-    def check_if_cz_adjacent(self,
-                             cz_op: cirq.Operation,
+    def check_if_cz_adjacent(self, cz_op: cirq.Operation,
                              other_op: cirq.Operation):
         if cirq.op_gate_of_type(other_op, cirq.HPowGate):
             return False
