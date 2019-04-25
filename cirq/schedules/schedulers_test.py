@@ -66,8 +66,7 @@ class _TestDevice(cirq.Device):
             scheduled_operation: cirq.ScheduledOperation):
         op = scheduled_operation.operation
         self.validate_operation(op)
-        if (isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.CZPowGate)):
+        if cirq.op_gate_of_type(op, cirq.CZPowGate):
             for other in schedule.operations_happening_at_same_time_as(
                     scheduled_operation):
                 if self.check_if_cz_adjacent(op, other.operation):
@@ -75,10 +74,9 @@ class _TestDevice(cirq.Device):
                         scheduled_operation, other))
 
     def check_if_cz_adjacent(self,
-                             cz_op: cirq.GateOperation,
+                             cz_op: cirq.Operation,
                              other_op: cirq.Operation):
-        if (isinstance(other_op, cirq.GateOperation) and
-                isinstance(other_op.gate, cirq.HPowGate)):
+        if cirq.op_gate_of_type(other_op, cirq.HPowGate):
             return False
         return any(cast(cirq.LineQubit, q).is_adjacent(cast(cirq.LineQubit, p))
                    for q in cz_op.qubits

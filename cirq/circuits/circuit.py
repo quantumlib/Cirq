@@ -774,8 +774,7 @@ class Circuit:
             gate type.
         """
         result = self.findall_operations(
-            lambda operation: (isinstance(operation, ops.GateOperation) and
-                               isinstance(operation.gate, gate_type)))
+            lambda operation: bool(ops.op_gate_of_type(operation, gate_type)))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)

@@ -22,8 +22,7 @@ import cirq.contrib.acquaintance as cca
 
 
 def test_swap_permutation_gate():
-    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
-                            op.gate == cirq.SWAP)
+    no_decomp = lambda op: cirq.op_gate_of_type(op, cirq.SWAP)
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     gate = cca.SwapPermutationGate()
@@ -33,8 +32,7 @@ def test_swap_permutation_gate():
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 
 
-    no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
-                            op.gate == cirq.CZ)
+    no_decomp = lambda op: cirq.op_gate_of_type(op, cirq.CZ)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate(cirq.CZ)(a, b))
     expander(circuit)
