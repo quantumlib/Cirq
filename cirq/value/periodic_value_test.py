@@ -16,6 +16,8 @@ import sympy
 
 import cirq
 
+import pytest
+
 
 def test_periodic_value_equality():
     eq = cirq.testing.EqualsTester()
@@ -135,3 +137,11 @@ def test_periodic_value_is_parameterized():
     assert cirq.is_parameterized(cirq.PeriodicValue(sympy.Symbol('v'), 3.0))
     assert cirq.is_parameterized(
             cirq.PeriodicValue(sympy.Symbol('v'), sympy.Symbol('p')))
+
+
+@pytest.mark.parametrize('val', [
+    cirq.PeriodicValue(0.4, 1.0), cirq.PeriodicValue(0.0, 2.0),
+    cirq.PeriodicValue(1.0, 3), cirq.PeriodicValue(-2.1, 3.0)
+])
+def test_periodic_value_repr(val):
+    cirq.testing.assert_equivalent_repr(val)
