@@ -77,8 +77,7 @@ class PeriodicValue:
         return cirq.protocols.approx_eq(low, high, atol=atol)
 
     def __repr__(self):
-        return 'cirq.PeriodicValue({!r}, {!r})'.format(
-                self.value, self.period)
+        return 'cirq.PeriodicValue({!r}, {!r})'.format(self.value, self.period)
 
     def _is_parameterized_(self):
         return any(isinstance(val, sympy.Basic)

@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import sympy
 
 import cirq
-
-import pytest
 
 
 def test_periodic_value_equality():
@@ -140,8 +139,10 @@ def test_periodic_value_is_parameterized():
 
 
 @pytest.mark.parametrize('val', [
-    cirq.PeriodicValue(0.4, 1.0), cirq.PeriodicValue(0.0, 2.0),
-    cirq.PeriodicValue(1.0, 3), cirq.PeriodicValue(-2.1, 3.0)
+    cirq.PeriodicValue(0.4, 1.0),
+    cirq.PeriodicValue(0.0, 2.0),
+    cirq.PeriodicValue(1.0, 3),
+    cirq.PeriodicValue(-2.1, 3.0)
 ])
 def test_periodic_value_repr(val):
     cirq.testing.assert_equivalent_repr(val)
