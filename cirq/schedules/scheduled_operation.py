@@ -32,10 +32,8 @@ class ScheduledOperation:
             duration: How long the operation lasts.
             operation: The operation.
         """
-        if isinstance(duration, timedelta):
-            duration = Duration.from_timedelta(duration)
         self.time = time
-        self.duration = duration
+        self.duration = Duration.create(duration)
         self.operation = operation
 
     @staticmethod

@@ -96,8 +96,7 @@ class Schedule:
         Returns:
             A list of scheduled operations meeting the specified conditions.
         """
-        if isinstance(duration, timedelta):
-            duration = Duration.from_timedelta(duration)
+        duration = Duration.create(duration)
         earliest_time = time - self._max_duration
         end_time = time + duration
         qubits = None if qubits is None else frozenset(qubits)

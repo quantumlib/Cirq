@@ -58,12 +58,8 @@ class NeutralAtomDevice(devices.Device):
             ValueError: if the wrong qubit type is provided or if invalid
                 parallel parameters are provided
         """
-        if isinstance(measurement_duration, timedelta):
-            measurement_duration = Duration.from_timedelta(measurement_duration)
-        if isinstance(gate_duration, timedelta):
-            gate_duration = Duration.from_timedelta(gate_duration)
-        self._measurement_duration = measurement_duration
-        self._gate_duration = gate_duration
+        self._measurement_duration = Duration.create(measurement_duration)
+        self._gate_duration = Duration.create(gate_duration)
         self._control_radius = control_radius
         self._max_parallel_z = max_parallel_z
         self._max_parallel_xy = max_parallel_xy

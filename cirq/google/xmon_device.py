@@ -42,16 +42,9 @@ class XmonDevice(devices.Device):
             exp_11_duration: The maximum duration of an ExpZ operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
-        if isinstance(measurement_duration, timedelta):
-            measurement_duration = value.Duration.from_timedelta(
-                measurement_duration)
-        if isinstance(exp_w_duration, timedelta):
-            exp_w_duration = value.Duration.from_timedelta(exp_w_duration)
-        if isinstance(exp_11_duration, timedelta):
-            exp_11_duration = value.Duration.from_timedelta(exp_11_duration)
-        self._measurement_duration = measurement_duration
-        self._exp_w_duration = exp_w_duration
-        self._exp_z_duration = exp_11_duration
+        self._measurement_duration = value.Duration.create(measurement_duration)
+        self._exp_w_duration = value.Duration.create(exp_w_duration)
+        self._exp_z_duration = value.Duration.create(exp_11_duration)
         self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:

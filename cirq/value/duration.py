@@ -39,10 +39,16 @@ class Duration:
             self._picos = nanos * 1000 if nanos else picos
 
     @classmethod
-    def from_timedelta(cls, duration: timedelta) -> 'Duration':
-        """Creates a Duration from datetime.timedelta"""
-        duration_in_picos = duration.total_seconds() * 10**12
-        return cls(picos=duration_in_picos)
+    def create(cls, duration: Union['Duration', timedelta]) -> 'Duration':
+        """Creates a Duration from datetime.timedelta if necessary"""
+        if isinstance(duration, cls):
+            return duration
+        elif isinstance(duration, timedelta):
+            duration_in_picos = duration.total_seconds() * 10**12
+            return cls(picos=duration_in_picos)
+        else:
+            raise TypeError(
+                'Only datetime.timedelta and cirq.Duration are supported.')
 
     def total_picos(self) -> float:
         """Returns the number of picoseconds that the duration spans."""
@@ -53,28 +59,21 @@ class Duration:
         return self._picos / 1000.0
 
     def __add__(self, other) -> 'Duration':
-        if isinstance(other, timedelta):
-            other = Duration.from_timedelta(other)
-        elif not isinstance(other, type(self)):
+        if not isinstance(other, (type(self), timedelta)):
             return NotImplemented
+        other = Duration.create(other)
         return Duration(picos=self._picos + other._picos)
 
     def __radd__(self, other) -> 'Duration':
         return self.__add__(other)
 
     def __sub__(self, other) -> 'Duration':
-        if isinstance(other, timedelta):
-            other = Duration.from_timedelta(other)
-        if not isinstance(other, type(self)):
-            return NotImplemented
+        other = Duration.create(other)
         return Duration(picos=self._picos - other._picos)
 
     def __rsub__(self, other) -> 'Duration':
-        if isinstance(other, timedelta):
-            other = Duration.from_timedelta(other)
-            return Duration(picos=other._picos - self._picos)
-        else:
-            return NotImplemented
+        other = Duration.create(other)
+        return Duration(picos=other._picos - self._picos)
 
     def __mul__(self, other) -> 'Duration':
         if not isinstance(other, (int, float)):

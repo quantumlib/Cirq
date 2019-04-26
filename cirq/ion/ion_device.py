@@ -44,18 +44,9 @@ class IonDevice(devices.Device):
             operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
-        if isinstance(measurement_duration, timedelta):
-            measurement_duration = \
-                value.Duration.from_timedelta(measurement_duration)
-        if isinstance(twoq_gates_duration, timedelta):
-            twoq_gates_duration = \
-                value.Duration.from_timedelta(twoq_gates_duration)
-        if isinstance(oneq_gates_duration, timedelta):
-            oneq_gates_duration = \
-                value.Duration.from_timedelta(oneq_gates_duration)
-        self._measurement_duration = measurement_duration
-        self._twoq_gates_duration = twoq_gates_duration
-        self._oneq_gates_duration = oneq_gates_duration
+        self._measurement_duration = value.Duration.create(measurement_duration)
+        self._twoq_gates_duration = value.Duration.create(twoq_gates_duration)
+        self._oneq_gates_duration = value.Duration.create(oneq_gates_duration)
         self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:

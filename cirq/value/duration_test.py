@@ -33,22 +33,18 @@ def test_init():
 
 
 def test_init_timedelta():
-    assert Duration.from_timedelta(timedelta(microseconds=0)).total_picos() == 0
-    assert Duration.from_timedelta(
+    assert Duration.create(timedelta(microseconds=0)).total_picos() == 0
+    assert Duration.create(
         timedelta(microseconds=513)).total_picos() == 513 * 10**6
-    assert Duration.from_timedelta(
+    assert Duration.create(
         timedelta(microseconds=-5)).total_picos() == -5 * 10**6
-    assert Duration.from_timedelta(
+    assert Duration.create(
         timedelta(microseconds=211)).total_picos() == 211 * 10**6
 
-    assert Duration.from_timedelta(
-        timedelta(seconds=3)).total_picos() == 3 * 10**12
-    assert Duration.from_timedelta(
-        timedelta(seconds=-5)).total_picos() == -5 * 10**12
-    assert Duration.from_timedelta(
-        timedelta(seconds=3)).total_nanos() == 3 * 10**9
-    assert Duration.from_timedelta(
-        timedelta(seconds=-5)).total_nanos() == -5 * 10**9
+    assert Duration.create(timedelta(seconds=3)).total_picos() == 3 * 10**12
+    assert Duration.create(timedelta(seconds=-5)).total_picos() == -5 * 10**12
+    assert Duration.create(timedelta(seconds=3)).total_nanos() == 3 * 10**9
+    assert Duration.create(timedelta(seconds=-5)).total_nanos() == -5 * 10**9
 
 
 def test_total_nanoseconds():
