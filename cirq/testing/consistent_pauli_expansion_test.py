@@ -32,11 +32,6 @@ class GoodGateExplicitPauliExpansion(cirq.SingleQubitGate):
                                 'Z': np.sqrt(1/6)})
 
 
-class GoodGateImplicitPauliExpansion(cirq.SingleQubitGate):
-    def _unitary_(self) -> np.ndarray:
-        return np.eye(2)
-
-
 class GoodGateNoPauliExpansion(cirq.Gate):
 
     def num_qubits(self) -> int:
@@ -67,15 +62,13 @@ class BadGateInconsistentPauliExpansion(cirq.SingleQubitGate):
 
 def test_assert_pauli_expansion_is_consistent_with_unitary():
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateExplicitPauliExpansion())
+        GoodGateExplicitPauliExpansion())
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateImplicitPauliExpansion())
+        GoodGateNoPauliExpansion())
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateNoPauliExpansion())
+        GoodGateNoUnitary())
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateNoUnitary())
-    cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
-            GoodGateNoPauliExpansionNoUnitary())
+        GoodGateNoPauliExpansionNoUnitary())
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_pauli_expansion_is_consistent_with_unitary(
