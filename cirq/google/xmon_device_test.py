@@ -55,6 +55,30 @@ def test_init():
         _ = d.duration_of(cirq.SingleQubitGate().on(q00))
 
 
+def test_init_timedelta():
+    from datetime import timedelta
+    timedelta_duration = timedelta(microseconds=1)
+    d = cg.XmonDevice(
+        measurement_duration=timedelta_duration,
+        exp_w_duration=2 * timedelta_duration,
+        exp_11_duration=3 * timedelta_duration,
+        qubits=[
+            cirq.GridQubit(row, col) for col in range(2) for row in range(2)
+        ])
+    microsecond = cirq.Duration(nanos=1000)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
+    q11 = cirq.GridQubit(1, 1)
+
+    assert d.qubits == {q00, q01, q10, q11}
+    assert d.duration_of(cirq.Z(q00)) == 0 * microsecond
+    assert d.duration_of(cirq.measure(q00)) == microsecond
+    assert d.duration_of(cirq.measure(q00, q01)) == microsecond
+    assert d.duration_of(cirq.X(q00)) == 2 * microsecond
+    assert d.duration_of(cirq.CZ(q00, q01)) == 3 * microsecond
+
+
 @cirq.testing.only_test_in_python3
 def test_repr():
     d = square_device(2, 2, holes=[])

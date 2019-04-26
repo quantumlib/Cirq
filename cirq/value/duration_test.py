@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import cirq
@@ -29,6 +30,21 @@ def test_init():
     assert isinstance(Duration(nanos=1).total_picos(), int)
     assert isinstance(Duration(picos=1.0).total_picos(), float)
     assert isinstance(Duration(nanos=1.0).total_picos(), float)
+
+
+def test_init_timedelta():
+    assert Duration.create(timedelta(microseconds=0)).total_picos() == 0
+    assert Duration.create(
+        timedelta(microseconds=513)).total_picos() == 513 * 10**6
+    assert Duration.create(
+        timedelta(microseconds=-5)).total_picos() == -5 * 10**6
+    assert Duration.create(
+        timedelta(microseconds=211)).total_picos() == 211 * 10**6
+
+    assert Duration.create(timedelta(seconds=3)).total_picos() == 3 * 10**12
+    assert Duration.create(timedelta(seconds=-5)).total_picos() == -5 * 10**12
+    assert Duration.create(timedelta(seconds=3)).total_nanos() == 3 * 10**9
+    assert Duration.create(timedelta(seconds=-5)).total_nanos() == -5 * 10**9
 
 
 def test_total_nanoseconds():
@@ -87,6 +103,11 @@ def test_add():
     assert Duration() + Duration() == Duration()
     assert Duration(picos=1) + Duration(picos=2) == Duration(picos=3)
 
+    assert Duration(picos=1) + \
+            timedelta(microseconds=2) == Duration(picos=2000001)
+    assert timedelta(microseconds=1) + \
+            Duration(picos=2) == Duration(picos=1000002)
+
     with pytest.raises(TypeError):
         _ = 1 + Duration()
     with pytest.raises(TypeError):
@@ -96,6 +117,11 @@ def test_add():
 def test_sub():
     assert Duration() - Duration() == Duration()
     assert Duration(picos=1) - Duration(picos=2) == Duration(picos=-1)
+
+    assert Duration(picos=1) - \
+            timedelta(microseconds=2) == Duration(picos=-1999999)
+    assert timedelta(microseconds=1) - \
+            Duration(picos=2) == Duration(picos=999998)
 
     with pytest.raises(TypeError):
         _ = 1 - Duration()

@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast, Optional, List, TYPE_CHECKING
+from datetime import timedelta
+from typing import Iterable, cast, Optional, List, Union, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq.google import convert_to_xmon_gates
@@ -29,10 +30,9 @@ class XmonDevice(devices.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.
     """
 
-    def __init__(self,
-                 measurement_duration: value.Duration,
-                 exp_w_duration: value.Duration,
-                 exp_11_duration: value.Duration,
+    def __init__(self, measurement_duration: Union[value.Duration, timedelta],
+                 exp_w_duration: Union[value.Duration, timedelta],
+                 exp_11_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[GridQubit]) -> None:
         """Initializes the description of an xmon device.
 
@@ -42,9 +42,9 @@ class XmonDevice(devices.Device):
             exp_11_duration: The maximum duration of an ExpZ operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
-        self._measurement_duration = measurement_duration
-        self._exp_w_duration = exp_w_duration
-        self._exp_z_duration = exp_11_duration
+        self._measurement_duration = value.Duration.create(measurement_duration)
+        self._exp_w_duration = value.Duration.create(exp_w_duration)
+        self._exp_z_duration = value.Duration.create(exp_11_duration)
         self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:

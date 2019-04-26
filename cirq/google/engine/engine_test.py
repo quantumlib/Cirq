@@ -134,7 +134,8 @@ def test_circuit_device_validation_fails(build):
 
 @mock.patch.object(discovery, 'build')
 def test_schedule_device_validation_fails(build):
-    scheduled_op = cirq.ScheduledOperation(time=None, duration=None,
+    scheduled_op = cirq.ScheduledOperation(time=None,
+                                           duration=cirq.Duration(),
                                            operation=cirq.H.on(
                                                cirq.NamedQubit("dorothy")))
     schedule = cirq.Schedule(device=cg.Foxtail,
