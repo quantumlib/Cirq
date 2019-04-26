@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, Optional, TYPE_CHECKING
+from datetime import timedelta
+from typing import cast, Iterable, Optional, Union, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.line import LineQubit
@@ -30,10 +31,9 @@ class IonDevice(devices.Device):
     Qubits have all-to-all connectivity.
     """
 
-    def __init__(self,
-                 measurement_duration: value.Duration,
-                 twoq_gates_duration: value.Duration,
-                 oneq_gates_duration: value.Duration,
+    def __init__(self, measurement_duration: Union[value.Duration, timedelta],
+                 twoq_gates_duration: Union[value.Duration, timedelta],
+                 oneq_gates_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[LineQubit]) -> None:
         """Initializes the description of an ion trap device.
 
@@ -44,9 +44,9 @@ class IonDevice(devices.Device):
             operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
-        self._measurement_duration = measurement_duration
-        self._twoq_gates_duration = twoq_gates_duration
-        self._oneq_gates_duration = oneq_gates_duration
+        self._measurement_duration = value.Duration.create(measurement_duration)
+        self._twoq_gates_duration = value.Duration.create(twoq_gates_duration)
+        self._oneq_gates_duration = value.Duration.create(oneq_gates_duration)
         self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:

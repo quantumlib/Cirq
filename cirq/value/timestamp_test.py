@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import cirq
@@ -87,6 +88,11 @@ def test_add():
     assert Timestamp(picos=1) + Duration(picos=2) == Timestamp(picos=3)
     assert Duration(picos=3) + Timestamp(picos=-5) == Timestamp(picos=-2)
 
+    assert Timestamp(picos=1) + timedelta(microseconds=2) == Timestamp(
+        picos=2000001)
+    assert timedelta(microseconds=3) + Timestamp(picos=-5) == Timestamp(
+        picos=2999995)
+
     with pytest.raises(TypeError):
         assert Timestamp() + Timestamp() == Timestamp()
     with pytest.raises(TypeError):
@@ -99,6 +105,8 @@ def test_sub():
     assert Timestamp() - Timestamp() == Duration()
     assert Timestamp(picos=1) - Timestamp(picos=2) == Duration(picos=-1)
     assert Timestamp(picos=5) - Duration(picos=2) == Timestamp(picos=3)
+    assert Timestamp(picos=5) - timedelta(microseconds=2) == Timestamp(
+        picos=-1999995)
 
     with pytest.raises(TypeError):
         _ = Duration() - Timestamp()
