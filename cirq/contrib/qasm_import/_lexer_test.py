@@ -21,7 +21,7 @@ def test_numbers():
 
 def test_supported_format():
     assert str(QasmLexer("OPENQASM 2.0;").token()) == \
-           "LexToken(QASM20,'OPENQASM 2.0;',1,0)"
+           "LexToken(FORMAT_SPEC,'2.0',1,0)"
 
 
 def test_qelib_inc():

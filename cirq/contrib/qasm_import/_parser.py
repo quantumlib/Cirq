@@ -45,15 +45,20 @@ class QasmParser(object):
         p[0] = p[1]
 
     def p_qasm_0(self, p):
-        """qasm : QASM20 circuit"""
-        self.supportedFormat = True
+        """qasm : format circuit"""
         p[0] = Qasm(True, False, p[2])
 
     def p_qasm_1(self, p):
-        """qasm : QASM20 QELIBINC circuit"""
-        self.supportedFormat = True
-        self.qelib1Include = True
+        """qasm : format QELIBINC circuit"""
         p[0] = Qasm(True, True, p[3])
+
+    def p_format(self, p):
+        """format : FORMAT_SPEC"""
+        if p[1] != "2.0":
+            raise QasmException(
+                "Unsupported OpenQASM version: {}, "
+                "only 2.0 is supported currently by Cirq".format(
+                    p[1]), self.qasm)
 
     def p_qasm_error(self, p):
         """qasm : QELIBINC
@@ -68,7 +73,7 @@ class QasmParser(object):
         raise QasmException("Syntax error in input on {}".format(p), self.qasm)
 
     def p_empty(self, p):
-        'empty :'
+        """empty :"""
         pass
 
     def parse(self) -> Qasm:

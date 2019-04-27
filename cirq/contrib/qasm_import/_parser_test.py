@@ -23,11 +23,25 @@ def test_format_header_circuit():
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
 
+def test_unsupported_format():
+    qasm = "OPENQASM 2.1;"
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with no format error")
+    except QasmException as ex:
+        assert ex.qasm == qasm
+        assert ex.message == "Unsupported OpenQASM version: 2.1, " \
+                             "only 2.0 is supported currently by Cirq"
+        pass
+
+
 def test_format_header_with_quelibinc_circuit():
-    parsed_qasm = """OPENQASM 2.0;
+    qasm = """OPENQASM 2.0;
 include "qelib1.inc";
 """
-    parser = QasmParser(parsed_qasm)
+    parser = QasmParser(qasm)
 
     parsed_qasm = parser.parse()
 

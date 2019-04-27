@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 
 import ply.lex as lex
@@ -11,7 +12,7 @@ class QasmLexer(object):
         self.lex.input(qasm)
 
     tokens = [
-        'QASM20',
+        'FORMAT_SPEC',
         'NUMBER',
         'QELIBINC',
     ]
@@ -27,8 +28,10 @@ class QasmLexer(object):
         t.value = int(t.value)
         return t
 
-    def t_QASM20(self, t):
-        r'OPENQASM(\s+)2.0;'
+    def t_FORMAT_SPEC(self, t):
+        r"""OPENQASM(\s+)([^\s\t\;]*);"""
+        match = re.match(r"""OPENQASM(\s+)([^\s\t\;]*);""", t.value)
+        t.value = match.groups()[1]
         return t
 
     def t_QELIBINC(self, t):
