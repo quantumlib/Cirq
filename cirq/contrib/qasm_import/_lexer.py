@@ -12,7 +12,8 @@ class QasmLexer(object):
 
     tokens = [
         'QASM20',
-        'NUMBER'
+        'NUMBER',
+        'QELIBINC',
     ]
 
     def t_newline(self, t):
@@ -27,7 +28,11 @@ class QasmLexer(object):
         return t
 
     def t_QASM20(self, t):
-        r'OPENQASM\s 2.0;'
+        r'OPENQASM(\s+)2.0;'
+        return t
+
+    def t_QELIBINC(self, t):
+        r'include(\s+)"qelib1.inc";'
         return t
 
     def t_error(self, t):

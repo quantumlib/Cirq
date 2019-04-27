@@ -19,6 +19,11 @@ def test_numbers():
     assert str(QasmLexer("046").token()) == 'LexToken(NUMBER,46,1,0)'
 
 
-def test_format():
+def test_supported_format():
     assert str(QasmLexer("OPENQASM 2.0;").token()) == \
            "LexToken(QASM20,'OPENQASM 2.0;',1,0)"
+
+
+def test_qelib_inc():
+    assert str(QasmLexer('include "qelib1.inc";').token()) == \
+           "LexToken(QELIBINC,'include \"qelib1.inc\";',1,0)"
