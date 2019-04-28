@@ -284,25 +284,6 @@ def test_assert_has_diagram():
 1: ───X───
 """)
 
-    expected_error = """Circuit's text diagram differs from the desired diagram.
-
-Diagram of actual circuit:
-0: ───@───
-      │
-1: ───X───
-
-Desired text diagram:
-0: ───@───
-      │
-1: ───Z───
-
-Highlighted differences:
-0: ───@───
-      │
-1: ───█───
-
-"""
-
 def test_assert_has_consistent_apply_unitary():
     class IdentityReturningUnalteredWorkspace:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:

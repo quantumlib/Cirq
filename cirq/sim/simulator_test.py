@@ -13,11 +13,11 @@
 # limitations under the License.
 """Tests for simulator.py"""
 
+import mock
 import numpy as np
 import pytest
 
 import cirq
-
 
 @mock.patch.multiple(cirq.SimulatesSamples,
                      __abstractmethods__=set(),

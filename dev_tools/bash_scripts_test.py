@@ -37,7 +37,6 @@ def run(*, script_file: str, arg: str ='', setup: str = ''
 
     intercepted = [
         'python',
-        'python2',
         'python3',
         'pylint',
         'pytest',

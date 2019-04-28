@@ -239,7 +239,7 @@ def test_value_equality_forgot_method():
         class _:
             pass
 
-    assert True  # HACK: sacrificial line for indentation bug in 3to2.
+    assert True
 
 
 def test_bad_manual_cls_incompatible_args():
@@ -249,10 +249,7 @@ def test_bad_manual_cls_incompatible_args():
         class _:
             pass
 
-    assert True  # HACK: sacrificial line for indentation bug in 3to2.
 
-
-@cirq.testing.only_test_in_python3
 def test_bad_manual_cls_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_cls_'):
 
@@ -262,4 +259,4 @@ def test_bad_manual_cls_forgot_method():
             def _value_equality_values_(self):
                 pass
 
-    assert True  # HACK: sacrificial line for indentation bug in 3to2.
+    assert True
