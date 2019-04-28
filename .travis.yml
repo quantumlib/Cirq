@@ -63,12 +63,12 @@ matrix:
   - os: windows
     env: NAME=windows
     language: sh
-    python: "3.7"
+    python: "3.7.3"
     before_install:
     - choco install python -version 3.7.3
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-    - pip install --upgrade pip wheel
+    - pip install --upgrade pip wheel --user
     install:
-    - pip install -r requirements.txt
-    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    - pip install -r requirements.txt --user
+    - pip install -r dev_tools/conf/pip-list-dev-tools.txt --user
     script: check/pytest --ignore=cirq/contrib
