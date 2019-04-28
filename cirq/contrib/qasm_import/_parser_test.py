@@ -63,3 +63,39 @@ def test_error_not_starting_with_format(qasm: str):
         assert ex.qasm == qasm
         assert ex.message == "Missing 'OPENQASM 2.0;' statement"
         pass
+
+
+def test_multiple_qreg_declaration():
+    qasm = """
+     OPENQASM 2.0; 
+     include "qelib1.inc";
+     qreg a_quantum_register [ 1337 ];
+     qreg q[42];
+"""
+    parser = QasmParser(qasm)
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+    ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
+    assert parsed_qasm.qregs == {'a_quantum_register': 1337, 'q': 42}
+
+
+def test_multiple_creg_declaration():
+    qasm = """
+     OPENQASM 2.0; 
+     include "qelib1.inc";
+     creg a_classical_register [1337];
+     qreg a_quantum_register [1337];
+     creg c[42];
+"""
+    parser = QasmParser(qasm)
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+    ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
+    assert parsed_qasm.qregs == {'a_quantum_register': 1337}
+    assert parsed_qasm.cregs == {'a_classical_register': 1337, 'c': 42}

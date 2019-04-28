@@ -19,13 +19,17 @@ from ply import yacc
 
 class Qasm(object):
 
-    def __init__(self, supportedFormat: bool, qelib1Include: bool, c: Circuit):
+    def __init__(self, supportedFormat: bool, qelib1Include: bool, qregs: dict,
+                 cregs: dict,
+                 c: Circuit):
         # defines whether the Quantum Experience standard header
         # is present or not
         self.qelib1Include = qelib1Include
         # defines if it has a supported format or not
         self.supportedFormat = supportedFormat
         # circuit
+        self.qregs = qregs
+        self.cregs = cregs
         self.circuit = c
 
 
@@ -36,6 +40,7 @@ class QasmParser(object):
         self.parser = yacc.yacc(module=self,
                                 debug=False,
                                 write_tables=False)
+        self.reset()
 
     tokens = QasmLexer.tokens
     start = 'start'
@@ -46,11 +51,11 @@ class QasmParser(object):
 
     def p_qasm_0(self, p):
         """qasm : format circuit"""
-        p[0] = Qasm(True, False, p[2])
+        p[0] = Qasm(True, False, self.qregs, self.cregs, p[2])
 
     def p_qasm_1(self, p):
         """qasm : format QELIBINC circuit"""
-        p[0] = Qasm(True, True, p[3])
+        p[0] = Qasm(True, True, self.qregs, self.cregs, p[3])
 
     def p_format(self, p):
         """format : FORMAT_SPEC"""
@@ -65,9 +70,32 @@ class QasmParser(object):
                 | circuit """
         raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
 
-    def p_circuit(self, p):
+    # circuit : new_qreg circuit
+    #         | empty
+
+    def p_circuit_qreg(self, p):
+        """circuit : new_qreg circuit"""
+        name, length = p[1]
+        self.qregs[name] = length
+        p[0] = self.circuit
+
+    def p_circuit_creg(self, p):
+        """circuit : new_creg circuit"""
+        name, length = p[1]
+        self.cregs[name] = length
+        p[0] = self.circuit
+
+    def p_circuit_empty(self, p):
         """circuit : empty"""
-        p[0] = Circuit()
+        p[0] = self.circuit
+
+    def p_new_qreg_0(self, p):
+        """new_qreg : QREG ID '[' NATURAL_NUMBER ']' ';' """
+        p[0] = (p[2], p[4])
+
+    def p_new_creg_0(self, p):
+        """new_creg : CREG ID '[' NATURAL_NUMBER ']' ';' """
+        p[0] = (p[2], p[4])
 
     def p_error(self, p):
         raise QasmException("Syntax error in input on {}".format(p), self.qasm)
@@ -77,4 +105,10 @@ class QasmParser(object):
         pass
 
     def parse(self) -> Qasm:
+        self.reset()
         return self.parser.parse(lexer=QasmLexer(self.qasm))
+
+    def reset(self):
+        self.circuit = Circuit()
+        self.qregs = {}
+        self.cregs = {}
