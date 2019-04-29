@@ -43,18 +43,19 @@ def test_qelib_inc():
 
 
 @pytest.mark.parametrize(
-    'id',
+    'identifier',
     [
         'b',
+        'CX',
         'abc',
         'aXY03',
         'a_valid_name_with_02_digits_and_underscores'
     ]
 )
-def test_valid_ids(id: str):
-    token = QasmLexer(id).token()
+def test_valid_ids(identifier: str):
+    token = QasmLexer(identifier).token()
     assert token.type == "ID"
-    assert token.value == id
+    assert token.value == identifier
 
 
 def test_qreg():
@@ -78,7 +79,6 @@ def test_qreg():
     token = lexer.token()
     assert token.type == ";"
     assert token.value == ";"
-
 
 
 def test_creg():

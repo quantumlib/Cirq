@@ -12,7 +12,7 @@ class QasmLexer(object):
         self.lex = lex.lex(object=self, debug=True)
         self.lex.input(qasm)
 
-    literals = "{}[]();"
+    literals = "{}[]();,"
 
     reserved = {
         'qreg': 'QREG',
@@ -56,7 +56,7 @@ class QasmLexer(object):
         return t
 
     def t_ID(self, t):
-        r"""[a-z][a-zA-Z\d_]*"""
+        r"""[a-zA-Z][a-zA-Z\d_]*"""
         return t
 
     def t_error(self, t):
