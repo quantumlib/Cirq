@@ -17,11 +17,11 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
 
 import abc
 
+from math import gcd
 import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import gcd
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
