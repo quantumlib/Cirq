@@ -117,9 +117,7 @@ See the previous section for instructions.
 
 ### Running continuous integration checks locally
 
-There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
-
-The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yourself as follows:
+The simplest way to run checks is to invoke `pytest`, `pylint`, or `mypy` for yourself:
 
 ```bash
 pytest
@@ -148,20 +146,12 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
 # Only run tests associated with files that have changed when diffed vs master (or a custom revision of your choice).
 ./check/pytest-changed-files [BASE_REVISION]
+
+# Show (or apply) formatting changes required to make touched lines agree with the style guide.
+./check/format-incremental [BASE_REVISION] [--apply]
 ```
 
-The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
-For example, you may be running an older version of `pylint` or `numpy`.
-In order to run a check that is significantly more likely to agree with the travis builds, you can use the [continuous-integration/check.sh](https://github.com/quantumlib/Cirq/blob/master/continuous-integration/check.sh) script:
-
-```bash
-./continuous-integration/check.sh
-```
-
-This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies, transpile the python 2 code, and run all relevant checks within those clean environments.
-Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `continuous-integration/check.sh` is significantly slower than the simpler check scripts.
-When using this script, you can run a subset of the checks using the ```--only``` flag.
-This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
+Note that, when the packages installed in your virtual environment are out of date, these scripts can disagree with the results computed by the continuous integration builds run on travis.
 
 
 ### Producing the Python 2.7 code

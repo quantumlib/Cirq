@@ -17,7 +17,12 @@
 import os
 import sys
 
-from dev_tools import all_checks, prepared_env, shell_tools
+from dev_tools import (
+    check_pytest_with_coverage,
+    check_incremental_coverage,
+    prepared_env,
+    shell_tools,
+)
 
 
 def main():
@@ -35,9 +40,12 @@ def main():
         compare_commit_id=comparison_branch,
         destination_directory=os.getcwd(),
         virtual_env_path=None)
+    pytest = check_pytest_with_coverage.TestAndPrepareCoverageCheck()
+    incremental_coverage = check_incremental_coverage.IncrementalCoverageCheck(
+        pytest)
     check_results = [
-        all_checks.pytest.run(env, False, set()),
-        all_checks.incremental_coverage.run(env, False, set()),
+        pytest.run(env, False, set()),
+        incremental_coverage.run(env, False, set()),
     ]
     if any(not e.success for e in check_results):
         print(shell_tools.highlight(
