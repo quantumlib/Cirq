@@ -19,29 +19,29 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='metrics.proto',
   package='cirq.api.google.v1',
   syntax='proto3',
-  serialized_pb=_b('\n\rmetrics.proto\x12\x12\x63irq.api.google.v1\"\xb6\x01\n\x07Metrics\x12\x1a\n\x12\x63ollection_time_ms\x18\x01 \x01(\x04\x12\x39\n\x07metrics\x18\x02 \x03(\x0b\x32(.cirq.api.google.v1.Metrics.MetricsEntry\x1aT\n\x0cMetricsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x33\n\x05value\x18\x02 \x01(\x0b\x32$.cirq.api.google.v1.MetricCollection:\x02\x38\x01\"T\n\x10MetricCollection\x12+\n\x07metrics\x18\x01 \x03(\x0b\x32\x1a.cirq.api.google.v1.Metric\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"\x90\x01\n\x06Metric\x12=\n\x0fqubits_property\x18\x01 \x01(\x0b\x32\".cirq.api.google.v1.QubitsPropertyH\x00\x12=\n\x0fglobal_property\x18\x02 \x01(\x0b\x32\".cirq.api.google.v1.GlobalPropertyH\x00\x42\x08\n\x06metric\"M\n\x0eQubitsProperty\x12\x10\n\x08qubit_id\x18\x01 \x03(\t\x12)\n\x06values\x18\x02 \x03(\x0b\x32\x19.cirq.api.google.v1.Value\";\n\x0eGlobalProperty\x12)\n\x06values\x18\x01 \x03(\x0b\x32\x19.cirq.api.google.v1.Value\"c\n\x05Value\x12\x13\n\tfloat_val\x18\x01 \x01(\x02H\x00\x12\x14\n\ndouble_val\x18\x02 \x01(\x01H\x00\x12\x13\n\tint32_val\x18\x03 \x01(\x05H\x00\x12\x13\n\tint64_val\x18\x04 \x01(\x03H\x00\x42\x05\n\x03valB3\n\x1d\x63om.google.cirq.api.google.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\rmetrics.proto\x12\x12\x63irq.api.google.v1\"\xce\x01\n\x13PerformanceSnapshot\x12\x1a\n\x12\x63ollection_time_ms\x18\x01 \x01(\x04\x12\x45\n\x07metrics\x18\x02 \x03(\x0b\x32\x34.cirq.api.google.v1.PerformanceSnapshot.MetricsEntry\x1aT\n\x0cMetricsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x33\n\x05value\x18\x02 \x01(\x0b\x32$.cirq.api.google.v1.MetricCollection:\x02\x38\x01\"T\n\x10MetricCollection\x12+\n\x07metrics\x18\x01 \x03(\x0b\x32\x1a.cirq.api.google.v1.Metric\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"\x90\x01\n\x06Metric\x12=\n\x0fqubits_property\x18\x01 \x01(\x0b\x32\".cirq.api.google.v1.QubitsPropertyH\x00\x12=\n\x0fglobal_property\x18\x02 \x01(\x0b\x32\".cirq.api.google.v1.GlobalPropertyH\x00\x42\x08\n\x06metric\"M\n\x0eQubitsProperty\x12\x10\n\x08qubit_id\x18\x01 \x03(\t\x12)\n\x06values\x18\x02 \x03(\x0b\x32\x19.cirq.api.google.v1.Value\";\n\x0eGlobalProperty\x12)\n\x06values\x18\x01 \x03(\x0b\x32\x19.cirq.api.google.v1.Value\"c\n\x05Value\x12\x13\n\tfloat_val\x18\x01 \x01(\x02H\x00\x12\x14\n\ndouble_val\x18\x02 \x01(\x01H\x00\x12\x13\n\tint32_val\x18\x03 \x01(\x05H\x00\x12\x13\n\tint64_val\x18\x04 \x01(\x03H\x00\x42\x05\n\x03valB3\n\x1d\x63om.google.cirq.api.google.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
 
-_METRICS_METRICSENTRY = _descriptor.Descriptor(
+_PERFORMANCESNAPSHOT_METRICSENTRY = _descriptor.Descriptor(
   name='MetricsEntry',
-  full_name='cirq.api.google.v1.Metrics.MetricsEntry',
+  full_name='cirq.api.google.v1.PerformanceSnapshot.MetricsEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='cirq.api.google.v1.Metrics.MetricsEntry.key', index=0,
+      name='key', full_name='cirq.api.google.v1.PerformanceSnapshot.MetricsEntry.key', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='value', full_name='cirq.api.google.v1.Metrics.MetricsEntry.value', index=1,
+      name='value', full_name='cirq.api.google.v1.PerformanceSnapshot.MetricsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -59,26 +59,26 @@ _METRICS_METRICSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=136,
-  serialized_end=220,
+  serialized_start=160,
+  serialized_end=244,
 )
 
-_METRICS = _descriptor.Descriptor(
-  name='Metrics',
-  full_name='cirq.api.google.v1.Metrics',
+_PERFORMANCESNAPSHOT = _descriptor.Descriptor(
+  name='PerformanceSnapshot',
+  full_name='cirq.api.google.v1.PerformanceSnapshot',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='collection_time_ms', full_name='cirq.api.google.v1.Metrics.collection_time_ms', index=0,
+      name='collection_time_ms', full_name='cirq.api.google.v1.PerformanceSnapshot.collection_time_ms', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='metrics', full_name='cirq.api.google.v1.Metrics.metrics', index=1,
+      name='metrics', full_name='cirq.api.google.v1.PerformanceSnapshot.metrics', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -87,7 +87,7 @@ _METRICS = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_METRICS_METRICSENTRY, ],
+  nested_types=[_PERFORMANCESNAPSHOT_METRICSENTRY, ],
   enum_types=[
   ],
   options=None,
@@ -97,7 +97,7 @@ _METRICS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=38,
-  serialized_end=220,
+  serialized_end=244,
 )
 
 
@@ -134,8 +134,8 @@ _METRICCOLLECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=222,
-  serialized_end=306,
+  serialized_start=246,
+  serialized_end=330,
 )
 
 
@@ -175,8 +175,8 @@ _METRIC = _descriptor.Descriptor(
       name='metric', full_name='cirq.api.google.v1.Metric.metric',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=309,
-  serialized_end=453,
+  serialized_start=333,
+  serialized_end=477,
 )
 
 
@@ -213,8 +213,8 @@ _QUBITSPROPERTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=455,
-  serialized_end=532,
+  serialized_start=479,
+  serialized_end=556,
 )
 
 
@@ -244,8 +244,8 @@ _GLOBALPROPERTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=534,
-  serialized_end=593,
+  serialized_start=558,
+  serialized_end=617,
 )
 
 
@@ -299,13 +299,13 @@ _VALUE = _descriptor.Descriptor(
       name='val', full_name='cirq.api.google.v1.Value.val',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=595,
-  serialized_end=694,
+  serialized_start=619,
+  serialized_end=718,
 )
 
-_METRICS_METRICSENTRY.fields_by_name['value'].message_type = _METRICCOLLECTION
-_METRICS_METRICSENTRY.containing_type = _METRICS
-_METRICS.fields_by_name['metrics'].message_type = _METRICS_METRICSENTRY
+_PERFORMANCESNAPSHOT_METRICSENTRY.fields_by_name['value'].message_type = _METRICCOLLECTION
+_PERFORMANCESNAPSHOT_METRICSENTRY.containing_type = _PERFORMANCESNAPSHOT
+_PERFORMANCESNAPSHOT.fields_by_name['metrics'].message_type = _PERFORMANCESNAPSHOT_METRICSENTRY
 _METRICCOLLECTION.fields_by_name['metrics'].message_type = _METRIC
 _METRIC.fields_by_name['qubits_property'].message_type = _QUBITSPROPERTY
 _METRIC.fields_by_name['global_property'].message_type = _GLOBALPROPERTY
@@ -329,27 +329,27 @@ _VALUE.fields_by_name['int32_val'].containing_oneof = _VALUE.oneofs_by_name['val
 _VALUE.oneofs_by_name['val'].fields.append(
   _VALUE.fields_by_name['int64_val'])
 _VALUE.fields_by_name['int64_val'].containing_oneof = _VALUE.oneofs_by_name['val']
-DESCRIPTOR.message_types_by_name['Metrics'] = _METRICS
+DESCRIPTOR.message_types_by_name['PerformanceSnapshot'] = _PERFORMANCESNAPSHOT
 DESCRIPTOR.message_types_by_name['MetricCollection'] = _METRICCOLLECTION
 DESCRIPTOR.message_types_by_name['Metric'] = _METRIC
 DESCRIPTOR.message_types_by_name['QubitsProperty'] = _QUBITSPROPERTY
 DESCRIPTOR.message_types_by_name['GlobalProperty'] = _GLOBALPROPERTY
 DESCRIPTOR.message_types_by_name['Value'] = _VALUE
 
-Metrics = _reflection.GeneratedProtocolMessageType('Metrics', (_message.Message,), dict(
+PerformanceSnapshot = _reflection.GeneratedProtocolMessageType('PerformanceSnapshot', (_message.Message,), dict(
 
   MetricsEntry = _reflection.GeneratedProtocolMessageType('MetricsEntry', (_message.Message,), dict(
-    DESCRIPTOR = _METRICS_METRICSENTRY,
+    DESCRIPTOR = _PERFORMANCESNAPSHOT_METRICSENTRY,
     __module__ = 'metrics_pb2'
-    # @@protoc_insertion_point(class_scope:cirq.api.google.v1.Metrics.MetricsEntry)
+    # @@protoc_insertion_point(class_scope:cirq.api.google.v1.PerformanceSnapshot.MetricsEntry)
     ))
   ,
-  DESCRIPTOR = _METRICS,
+  DESCRIPTOR = _PERFORMANCESNAPSHOT,
   __module__ = 'metrics_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.Metrics)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.PerformanceSnapshot)
   ))
-_sym_db.RegisterMessage(Metrics)
-_sym_db.RegisterMessage(Metrics.MetricsEntry)
+_sym_db.RegisterMessage(PerformanceSnapshot)
+_sym_db.RegisterMessage(PerformanceSnapshot.MetricsEntry)
 
 MetricCollection = _reflection.GeneratedProtocolMessageType('MetricCollection', (_message.Message,), dict(
   DESCRIPTOR = _METRICCOLLECTION,
@@ -389,6 +389,6 @@ _sym_db.RegisterMessage(Value)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\035com.google.cirq.api.google.v2B\020CalibrationProtoP\001'))
-_METRICS_METRICSENTRY.has_options = True
-_METRICS_METRICSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_PERFORMANCESNAPSHOT_METRICSENTRY.has_options = True
+_PERFORMANCESNAPSHOT_METRICSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)

@@ -6,12 +6,13 @@ option java_package = "com.google.cirq.api.google.v2";
 option java_outer_classname = "CalibrationProto";
 option java_multiple_files = true;
 
-// Performance metrics for a quantum processor.
-message Metrics {
+// A snapshot of the performance metrics for a quantum processor at a
+// particular time.
+message PerformanceSnapshot {
 
-  // The time the metrics were collected, in milliseconds since Jan 1, 1970.
-  // Metric collection take time, so this is the time at which all of the
-  // metrics have been collected.
+  // The time the metrics were collected, in unix time (milliseconds since
+  // Epoch minus leap seconds). Metric collection take time, so this is the
+  // time at which all of the metrics have been collected.
   uint64 collection_time_ms = 1;
 
   // Map from a metric type to a collection of the metrics all of this type.
