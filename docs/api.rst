@@ -291,6 +291,7 @@ operations, and other types.
     apply_unitary
     approx_eq
     channel
+    control
     circuit_diagram_info
     decompose
     decompose_once
@@ -540,7 +541,6 @@ waiting area.
     :toctree: generated/
 
     contrib.acquaintance
-    contrib.jobs
     contrib.paulistring
     contrib.qcircuit
     contrib.quirk

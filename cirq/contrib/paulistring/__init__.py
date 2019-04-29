@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation,)
-
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor,)
-
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors,)
 

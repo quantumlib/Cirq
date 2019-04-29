@@ -12,32 +12,57 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import cirq
 import cirq.neutral_atoms as neutral_atoms
 
 
-def square_device(width: int, height: int, holes=(),
-                  max_controls=2) -> neutral_atoms.NeutralAtomDevice:
-    us = cirq.Duration(nanos=10**3)
-    ms = cirq.Duration(nanos=10**6)
-    return neutral_atoms.NeutralAtomDevice(measurement_duration=50 * ms,
-                              gate_duration=100 * us,
-                              control_radius=1.5,
-                              max_parallel_z=3,
-                              max_parallel_xy=3,
-                              max_parallel_c=max_controls,
-                              qubits=[cirq.GridQubit(row, col)
-                              for col in range(width)
-                              for row in range(height)
-                              if cirq.GridQubit(row, col) not in holes])
+def square_device(width: int,
+                  height: int,
+                  holes=(),
+                  max_controls=2,
+                  use_timedelta=False) -> neutral_atoms.NeutralAtomDevice:
+    us = (cirq.Duration(nanos=10**3) if not use_timedelta else timedelta(
+        microseconds=1))
+    ms = (cirq.Duration(nanos=10**6) if not use_timedelta else timedelta(
+        microseconds=1000))
+    return neutral_atoms.NeutralAtomDevice(  # type: ignore
+        measurement_duration=50 * ms,  # type: ignore
+        gate_duration=100 * us,  # type: ignore
+        control_radius=1.5,
+        max_parallel_z=3,
+        max_parallel_xy=3,
+        max_parallel_c=max_controls,
+        qubits=[
+            cirq.GridQubit(row, col)
+            for col in range(width)
+            for row in range(height)
+            if cirq.GridQubit(row, col) not in holes
+        ])
 
 
 def test_init():
     d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)])
     us = cirq.Duration(nanos=10 ** 3)
     ms = cirq.Duration(nanos=10 ** 6)
+    q00 = cirq.GridQubit(0, 0)
+    q01 = cirq.GridQubit(0, 1)
+    q10 = cirq.GridQubit(1, 0)
+
+    assert d.qubits == {q10, q00, q01}
+    assert d.duration_of(cirq.GateOperation(cirq.IdentityGate(1),
+                                            [q00])) == 100 * us
+    assert d.duration_of(cirq.measure(q00)) == 50 * ms
+    with pytest.raises(ValueError):
+        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
+
+
+def test_init_timedelta():
+    d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)], use_timedelta=True)
+    us = cirq.Duration(nanos=10**3)
+    ms = cirq.Duration(nanos=10**6)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)
