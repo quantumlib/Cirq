@@ -60,7 +60,7 @@ tmp_dir=$(mktemp -d "/tmp/verify-published-package.XXXXXXXXXXXXXXXX")
 cd "${tmp_dir}"
 trap "{ rm -rf ${tmp_dir}; }" EXIT
 
-# Test both the python 2 and python 3 versions.
+# Test python 3 versions.
 for PYTHON_VERSION in python3; do
     # Prepare.
     RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
