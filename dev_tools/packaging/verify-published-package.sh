@@ -61,13 +61,9 @@ cd "${tmp_dir}"
 trap "{ rm -rf ${tmp_dir}; }" EXIT
 
 # Test both the python 2 and python 3 versions.
-for PYTHON_VERSION in python2 python3; do
+for PYTHON_VERSION in python3; do
     # Prepare.
-    if [ "${PYTHON_VERSION}" = "python2" ]; then
-        RUNTIME_DEPS_FILE="${REPO_ROOT}/dev_tools/python2.7-requirements.txt"
-    else
-        RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
-    fi
+    RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
     CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq/contrib/contrib-requirements.txt"
 
     echo -e "\n\e[32m${PYTHON_VERSION}\e[0m"
@@ -89,11 +85,7 @@ for PYTHON_VERSION in python2 python3; do
 
     # Run tests.
     echo Installing pytest requirements
-    if [ "${PYTHON_VERSION}" = "python2" ]; then
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest mock pytest-benchmark
-    else
-        "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest pytest-benchmark
-    fi
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest pytest-benchmark
     PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
     echo Running cirq tests
     cirq_dir="${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
