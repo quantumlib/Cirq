@@ -217,7 +217,7 @@ def test_simulation_trial_result_equality():
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_simulation_trial_result_repr():
     assert repr(cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
                                            measurements={'m': np.array([[1]])},
