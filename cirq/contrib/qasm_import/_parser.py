@@ -13,7 +13,6 @@
 # limitations under the License.
 import operator
 
-import sympy
 from ply import yacc
 
 from cirq import Circuit, NamedQubit, CNOT
@@ -173,18 +172,21 @@ class QasmParser(object):
         if id == "U":
             if len(params) != 3:
                 raise QasmException(
-                    'U called with {} params, instead of 3! Params: {}, Args: {} '.format(
-                        len(params), params, args), self.qasm)
+                    'U called with {} params, instead of 3! '
+                    'Params: {}, Args: {} at line {}'.format(
+                        len(params), params, args, p.lineno(3)), self.qasm)
             if len(args) != 1:
                 raise QasmException(
-                    'U called with {} args, instead of 1! Params: {}, Args: {} '.format(
-                        len(args), params, args), self.qasm)
+                    'U called with {} args, instead of 1! '
+                    'Params: {}, Args: {} at line {}'.format(
+                        len(args), params, args, p.lineno(5)), self.qasm)
             qreg = args[0]
 
             if len(qreg) > 1:
                 raise QasmException(
-                    'U called with quantum register instead of 1 qubit! Params: {}, Args: {} '.format(
-                        len(qreg), params, args), self.qasm)
+                    'U called with quantum register instead of 1 qubit! '
+                    'Params: {}, Args: {} at line {} '.format(
+                        len(qreg), params, args, p.lineno(5)), self.qasm)
 
             p[0] = QasmUGate(params[1], params[0], params[2])(qreg[0])
 
