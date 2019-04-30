@@ -166,10 +166,10 @@ class QasmParser(object):
 
     def p_gate_op_with_params(self, p):
         """gate_op :  ID '(' params ')' args"""
-        id = p[1]
+        gate = p[1]
         params = p[3]
         args = p[5]
-        if id == "U":
+        if gate == "U":
             if len(params) != 3:
                 raise QasmException(
                     'U called with {} params, instead of 3! '
