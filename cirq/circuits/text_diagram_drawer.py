@@ -75,16 +75,20 @@ class TextDiagramDrawer:
                        )  # type: Dict[Tuple[int, int], _DiagramText]
         self.horizontal_lines = (
             [] if horizontal_lines is None else
-            list(horizontal_lines))  # type: List[_HorizontalLine]
+            list(horizontal_lines)
+        )  # type: List[_HorizontalLine]
         self.vertical_lines = (
             [] if vertical_lines is None else
-            list(vertical_lines))  # type: List[_VerticalLine]
+            list(vertical_lines)
+        )  # type: List[_VerticalLine]
         self.horizontal_padding = (
             dict() if horizontal_padding is None else
-            dict(horizontal_padding))  # type: Dict[int, Union[int, float]]
+            dict(horizontal_padding)
+        )  # type: Dict[int, Union[int, float]]
         self.vertical_padding = (
             dict() if vertical_padding is None else
-            dict(vertical_padding))  # type: Dict[int, Union[int, float]]
+            dict(vertical_padding)
+        )  # type: Dict[int, Union[int, float]]
 
     def _value_equality_values_(self):
         attrs = ('entries', 'horizontal_lines', 'vertical_lines',
@@ -332,12 +336,11 @@ class TextDiagramDrawer:
         return block_diagram.render()
 
     def copy(self):
-        return self.__class__(
-            entries=self.entries,
-            vertical_lines=self.vertical_lines,
-            horizontal_lines=self.horizontal_lines,
-            vertical_padding=self.vertical_padding,
-            horizontal_padding=self.horizontal_padding)
+        return self.__class__(entries=self.entries,
+                              vertical_lines=self.vertical_lines,
+                              horizontal_lines=self.horizontal_lines,
+                              vertical_padding=self.vertical_padding,
+                              horizontal_padding=self.horizontal_padding)
 
     def shift(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
         self._transform_coordinates(lambda x, y: (x + dx, y + dy))
@@ -357,8 +360,8 @@ class TextDiagramDrawer:
     @classmethod
     def vstack(cls,
                diagrams: Sequence['TextDiagramDrawer'],
-               padding_resolver: Optional[Callable[[Sequence[Optional[int]]],
-                                                   int]] = None):
+               padding_resolver: Optional[
+                   Callable[[Sequence[Optional[int]]], int]] = None):
         """Vertically stack text diagrams.
 
         Args:
@@ -396,8 +399,8 @@ class TextDiagramDrawer:
     @classmethod
     def hstack(cls,
                diagrams: Sequence['TextDiagramDrawer'],
-               padding_resolver: Optional[Callable[[Sequence[Optional[int]]],
-                                                   int]] = None):
+               padding_resolver: Optional[
+                   Callable[[Sequence[Optional[int]]], int]] = None):
         """Horizontally stack text diagrams.
 
         Args:

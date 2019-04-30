@@ -43,9 +43,9 @@ def assert_has_rendering(actual: TextDiagramDrawer, desired: str,
         '{}\n'
         '\n'
         'Highlighted differences:\n'
-        '{}\n'.format(actual_diagram, desired_diagram,
-                      ct.highlight_text_differences(actual_diagram,
-                                                    desired_diagram)))
+        '{}\n'.format(
+            actual_diagram, desired_diagram,
+            ct.highlight_text_differences(actual_diagram, desired_diagram)))
 
 
 def test_draw_entries_and_lines_with_options():
