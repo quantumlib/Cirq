@@ -13,35 +13,38 @@
 # limitations under the License.
 
 from cirq.google.convert_to_xmon_gates import (
-    ConvertToXmonGates,
-)
+    ConvertToXmonGates,)
+
 from cirq.google.known_devices import (
     Bristlecone,
     Foxtail,
 )
+
 from cirq.google.xmon_device import (
-    XmonDevice,
-)
+    XmonDevice,)
+
 from cirq.google.optimize import (
-    optimized_for_xmon,
-)
+    optimized_for_xmon,)
+
 from cirq.google.sim import (
     XmonOptions,
     XmonSimulator,
     XmonStepResult,
 )
+
 from cirq.google.engine import (
     engine_from_environment,
     Engine,
     JobConfig,
 )
+
 from cirq.google.programs import (
     gate_to_proto_dict,
-    is_native_xmon_op,
     is_native_xmon_gate,
+    is_native_xmon_op,
+    pack_results,
     schedule_from_proto_dicts,
     schedule_to_proto_dicts,
-    pack_results,
     unpack_results,
     xmon_op_from_proto_dict,
 )
@@ -49,6 +52,6 @@ from cirq.google.programs import (
 from cirq.google.line import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
-    LinePlacementStrategy,
     line_on_device,
+    LinePlacementStrategy,
 )

@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, Optional, TYPE_CHECKING
+from datetime import timedelta
+from typing import cast, Iterable, Optional, Union, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.line import LineQubit
@@ -30,10 +31,9 @@ class IonDevice(devices.Device):
     Qubits have all-to-all connectivity.
     """
 
-    def __init__(self,
-                 measurement_duration: value.Duration,
-                 twoq_gates_duration: value.Duration,
-                 oneq_gates_duration: value.Duration,
+    def __init__(self, measurement_duration: Union[value.Duration, timedelta],
+                 twoq_gates_duration: Union[value.Duration, timedelta],
+                 oneq_gates_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[LineQubit]) -> None:
         """Initializes the description of an ion trap device.
 
@@ -44,9 +44,9 @@ class IonDevice(devices.Device):
             operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
-        self._measurement_duration = measurement_duration
-        self._twoq_gates_duration = twoq_gates_duration
-        self._oneq_gates_duration = oneq_gates_duration
+        self._measurement_duration = value.Duration.create(measurement_duration)
+        self._twoq_gates_duration = value.Duration.create(twoq_gates_duration)
+        self._oneq_gates_duration = value.Duration.create(oneq_gates_duration)
         self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
@@ -56,15 +56,14 @@ class IonDevice(devices.Device):
         return convert_to_ion_gates.ConvertToIonGates().convert_circuit(circuit)
 
     def duration_of(self, operation):
-        if isinstance(operation, ops.GateOperation):
-            if isinstance(operation.gate, ops.XXPowGate):
-                return self._twoq_gates_duration
-            if isinstance(operation.gate, (ops.XPowGate,
-                                           ops.YPowGate,
-                                           ops.ZPowGate)):
-                return self._oneq_gates_duration
-            if isinstance(operation.gate, ops.MeasurementGate):
-                return self._measurement_duration
+        if ops.op_gate_of_type(operation, ops.XXPowGate):
+            return self._twoq_gates_duration
+        if (ops.op_gate_of_type(operation, ops.XPowGate) or
+                ops.op_gate_of_type(operation, ops.YPowGate) or
+                ops.op_gate_of_type(operation, ops.ZPowGate)):
+            return self._oneq_gates_duration
+        if ops.op_gate_of_type(operation, ops.MeasurementGate):
+            return self._measurement_duration
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
     def validate_gate(self, gate: ops.Gate):
@@ -133,8 +132,7 @@ class IonDevice(devices.Device):
 
         if not super().can_add_operation_into_moment(operation, moment):
             return False
-        if (isinstance(operation, ops.GateOperation) and
-                isinstance(operation.gate, ops.XXPowGate)):
+        if ops.op_gate_of_type(operation, ops.XXPowGate):
             return not self._check_if_XXPow_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
                 cast(Iterable[ops.GateOperation], moment.operations))
@@ -198,8 +196,3 @@ def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))
             seen.add(key)
-
-
-
-
-

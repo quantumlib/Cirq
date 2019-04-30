@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import numpy as np
 import pytest
 import sympy
 
 import cirq
-from cirq.testing.mock import mock
 
 
 def test_invalid_dtype():
@@ -38,7 +38,7 @@ def test_run_no_measurements(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_no_results(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(dtype)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
 
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
     result = simulator.run(circuit)
@@ -91,7 +91,7 @@ def test_run_mixture(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(cirq.bit_flip(0.5)(q0),
                                     cirq.measure(q0), cirq.measure(q1))
-    simulator = cirq.DensityMatrixSimulator(dtype)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     result = simulator.run(circuit, repetitions=100)
     np.testing.assert_equal(result.measurements['1'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
@@ -106,7 +106,7 @@ def test_run_channel(dtype):
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.amplitude_damp(0.5)(q0),
                                     cirq.measure(q0), cirq.measure(q1))
 
-    simulator = cirq.DensityMatrixSimulator(dtype)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     result = simulator.run(circuit, repetitions=100)
     np.testing.assert_equal(result.measurements['1'], [[0]] * 100)
     # Test that we get at least one of each result. Probability of this test
@@ -394,7 +394,6 @@ def test_simulate_moment_steps_empty_circuit(dtype):
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    print(step.simulator_state().density_matrix)
     assert step.simulator_state() == cirq.DensityMatrixSimulatorState(
         density_matrix=np.array([[1]]), qubit_map={})
 
@@ -466,7 +465,7 @@ def test_density_matrix_simulator_state_eq():
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_density_matrix_simulator_state_repr():
     q0 = cirq.LineQubit(0)
     assert (repr(cirq.DensityMatrixSimulatorState(
@@ -504,7 +503,7 @@ def test_density_matrix_trial_result_eq():
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_density_matrix_trial_result_repr():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.DensityMatrixSimulatorState(

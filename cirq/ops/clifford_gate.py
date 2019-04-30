@@ -16,10 +16,11 @@ from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols
 from cirq.ops import common_gates, gate_features, named_qubit, op_tree, \
     pauli_gates, raw_types
 from cirq.ops.pauli_gates import Pauli
+from cirq.value.value_equality import value_equality
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
@@ -31,7 +32,7 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
     pass
 
 
-@value.value_equality
+@value_equality
 class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     """Any single qubit Clifford rotation."""
     I = _pretend_initialized()
@@ -179,9 +180,11 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             xyz_to = {pauli_gates.X: x_to,
                       pauli_gates.Y: y_to,
                       pauli_gates.Z: z_to}
-            pauli_map_to = {p: trans
-                            for p, trans in xyz_to.items()
-                            if trans is not None}
+            pauli_map_to = {
+                cast(Pauli, p): trans
+                for p, trans in xyz_to.items()
+                if trans is not None
+            }
         elif x_to is not None or y_to is not None or z_to is not None:
             raise ValueError('{} can take either pauli_map_to or a combination'
                              ' of x_to, y_to, and z_to but both were given')
@@ -231,8 +234,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         """Tests if the two circuits would be equivalent up to global phase:
             --self--gate-- and --gate--self--"""
         for pauli0 in (pauli_gates.X, pauli_gates.Z):
-            pauli1, flip1 = self.transform(pauli0)
-            pauli2, flip2 = gate.transform(pauli1)
+            pauli1, flip1 = self.transform(cast(Pauli, pauli0))
+            pauli2, flip2 = gate.transform(cast(Pauli, pauli1))
             pauli3, flip3 = self._inverse_map[pauli2]
             pauli4, flip4 = gate._inverse_map[pauli3]
             if pauli4 != pauli0 or (flip1 ^ flip2 ^ flip3 ^ flip4):
@@ -273,7 +276,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if self == SingleQubitCliffordGate.H:
             return common_gates.H(qubit),
         rotations = self.decompose_rotation()
-        return tuple(r(qubit) ** (qt / 2) for r, qt in rotations)
+        return tuple(r.on(qubit)**(qt / 2) for r, qt in rotations)
 
     def decompose_rotation(self) -> Sequence[Tuple[Pauli, int]]:
         """Returns ((first_rotation_axis, first_rotation_quarter_turns), ...)

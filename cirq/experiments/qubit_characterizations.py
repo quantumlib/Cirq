@@ -119,8 +119,10 @@ class TomographyResult:
         fig.show()
 
 
-def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
-                      max_angle: float = 2 * np.pi, *,
+def rabi_oscillations(sampler: sim.Sampler,
+                      qubit: devices.GridQubit,
+                      max_angle: float = 2 * np.pi,
+                      *,
                       repetitions: int = 1000,
                       num_points: int = 200) -> RabiResult:
     """Runs a Rabi oscillation experiment.
@@ -155,15 +157,14 @@ def rabi_oscillations(sampler: sim.SimulatesSamples, qubit: devices.GridQubit,
     return RabiResult(angles, excited_state_probs)
 
 
-def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
-                                         qubit: devices.GridQubit,
-                                         use_xy_basis: bool = True,
-                                         *,
-                                         num_clifford_range: Sequence[int]
-                                         = range(10, 100, 10),
-                                         num_circuits: int = 20,
-                                         repetitions: int = 1000
-                                         ) -> RandomizedBenchMarkResult:
+def single_qubit_randomized_benchmarking(
+        sampler: sim.Sampler,
+        qubit: devices.GridQubit,
+        use_xy_basis: bool = True,
+        *,
+        num_clifford_range: Sequence[int] = range(10, 100, 10),
+        num_circuits: int = 20,
+        repetitions: int = 1000) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of a single qubit.
 
     A total of num_circuits random circuits are generated, each of which
@@ -215,15 +216,14 @@ def single_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
-                                      first_qubit: devices.GridQubit,
-                                      second_qubit: devices.GridQubit,
-                                      *,
-                                      num_clifford_range: Sequence[int]
-                                      = range(5, 50, 5),
-                                      num_circuits: int = 20,
-                                      repetitions: int = 1000
-                                      ) -> RandomizedBenchMarkResult:
+def two_qubit_randomized_benchmarking(
+        sampler: sim.Sampler,
+        first_qubit: devices.GridQubit,
+        second_qubit: devices.GridQubit,
+        *,
+        num_clifford_range: Sequence[int] = range(5, 50, 5),
+        num_circuits: int = 20,
+        repetitions: int = 1000) -> RandomizedBenchMarkResult:
     """Clifford-based randomized benchmarking (RB) of two qubits.
 
     A total of num_circuits random circuits are generated, each of which
@@ -275,7 +275,7 @@ def two_qubit_randomized_benchmarking(sampler: sim.SimulatesSamples,
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
+def single_qubit_state_tomography(sampler: sim.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
                                   repetitions: int = 1000) -> TomographyResult:
@@ -321,7 +321,7 @@ def single_qubit_state_tomography(sampler: sim.SimulatesSamples,
     return TomographyResult(rho)
 
 
-def two_qubit_state_tomography(sampler: sim.SimulatesSamples,
+def two_qubit_state_tomography(sampler: sim.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,

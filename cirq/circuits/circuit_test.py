@@ -221,7 +221,7 @@ def test_bool():
     assert Circuit.from_ops(cirq.X(cirq.NamedQubit('a')))
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
 
@@ -325,7 +325,7 @@ a b
         use_unicode_characters=True,
         transpose=True)
 
-     # 2-qubit ascii-only test
+    # 2-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit, """
 a: ---@---@-------@---
       |   |       |
@@ -360,7 +360,7 @@ def test_symbol_addition_in_gate_exponent():
 
 
     cirq.testing.assert_has_diagram(circuit,
-"""
+                                    """
 a
 │
 X^0.5
@@ -369,14 +369,14 @@ Y^(a + b)
 │
 """,
                                     use_unicode_characters=True,
-     transpose=True)
+                                    transpose=True)
 
     cirq.testing.assert_has_diagram(circuit,
                                     'a: ---X^0.5---Y^(a + b)---',
                                     use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit,
-"""
+                                    """
 a
 |
 X^0.5
@@ -384,7 +384,7 @@ X^0.5
 Y^(a + b)
 |
 
-""",
+ """,
                                     use_unicode_characters=False,
                                     transpose=True)
 
@@ -1208,6 +1208,53 @@ def test_are_all_measurements_terminal():
     assert not c.are_all_measurements_terminal()
 
 
+def test_all_terminal():
+    def is_x_pow_gate(op):
+        return cirq.op_gate_of_type(op, cirq.XPowGate) is not None
+
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    xa = cirq.X.on(a)
+    xb = cirq.X.on(b)
+
+    ya = cirq.Y.on(a)
+    yb = cirq.Y.on(b)
+
+    c = Circuit()
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(ya, yb, xa, xb)
+    assert c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, xa)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xb, ya, yb)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+    c = Circuit.from_ops(xa, ya, xa)
+    assert not c.are_all_matches_terminal(is_x_pow_gate)
+
+
 def test_clear_operations_touching():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1452,9 +1499,12 @@ def test_circuit_diagram_on_gate_without_info():
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
 
-    class FGate(cirq.MultiQubitGate):
+    class FGate(cirq.Gate):
         def __init__(self, num_qubits=1):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def __repr__(self):
             return 'python-object-FGate:arbitrary-digits'
@@ -1841,10 +1891,13 @@ def test_composite_gate_to_unitary_matrix():
 
 
 def test_expanding_gate_symbols():
-    class MultiTargetCZ(cirq.MultiQubitGate):
+    class MultiTargetCZ(cirq.Gate):
 
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def _circuit_diagram_info_(self,
                                    args: cirq.CircuitDiagramInfoArgs
@@ -2024,7 +2077,10 @@ def test_apply_unitary_effect_to_state():
         atol=1e-8)
 
     # Dtypes.
-    for dt in (np.complex64, np.complex128, np.complex256):
+    dtypes = [np.complex64, np.complex128]
+    if hasattr(np, 'complex256'):  # Some systems don't support 128 bit floats.
+        dtypes.append(np.complex256)
+    for dt in dtypes:
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
                 initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt),
@@ -2593,8 +2649,7 @@ def test_to_qasm():
         cirq.X(q0),
     )
     assert circuit.to_qasm() == cirq.qasm(circuit)
-    assert (circuit.to_qasm() ==
-"""// Generated from Cirq v{}
+    assert (circuit.to_qasm() == """// Generated from Cirq v{}
 
 OPENQASM 2.0;
 include "qelib1.inc";
@@ -2617,8 +2672,7 @@ def test_save_qasm():
         circuit.save_qasm(file_path)
         with open(file_path, 'r') as f:
             file_content = f.read()
-    assert (file_content ==
-"""// Generated from Cirq v{}
+    assert (file_content == """// Generated from Cirq v{}
 
 OPENQASM 2.0;
 include "qelib1.inc";

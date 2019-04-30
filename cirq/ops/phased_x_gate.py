@@ -13,21 +13,23 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import Dict, Union, Sequence, Tuple, Optional, cast
+from typing import Union, Sequence, Tuple, Optional, cast
 
+import math
 import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import gcd, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
+from cirq.value.value_equality import value_equality
 
 # Note: avoiding 'from/as' because it creates a circular dependency in python 2.
 import cirq.ops.common_gates
 
 
-@value.value_equality
+@value_equality
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
 
@@ -212,7 +214,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return None
         if len(int_periods) == 1:
             return int_periods[0]
-        return int_periods[0] * int_periods[1] / gcd(*int_periods)
+        return int_periods[0] * int_periods[1] / math.gcd(*int_periods)
 
     @property
     def _canonical_exponent(self):

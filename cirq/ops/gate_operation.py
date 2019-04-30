@@ -21,7 +21,8 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols
+from cirq.value.value_equality import value_equality
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
@@ -30,7 +31,7 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-@value.value_equality(approximate=True)
+@value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
 
@@ -185,9 +186,8 @@ class GateOperation(raw_types.Operation):
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 
-def op_gate_of_type(
-        op: raw_types.Operation,
-        gate_type: Type[TV]) -> Optional[TV]:
+def op_gate_of_type(op: raw_types.Operation,
+                    gate_type: Type[TV]) -> Optional[TV]:
     """Returns the gate of given type, if the op has that gate otherwise None.
     """
     if isinstance(op, GateOperation) and isinstance(op.gate, gate_type):

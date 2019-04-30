@@ -90,8 +90,7 @@ class StrategyExecutor(circuits.PointOptimizer):
                         circuit: circuits.Circuit,
                         index: int,
                         op: ops.Operation):
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, AcquaintanceOpportunityGate)):
+        if ops.op_gate_of_type(op, AcquaintanceOpportunityGate):
             logical_indices = tuple(self.mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(
                     logical_indices, op.qubits)
@@ -117,7 +116,7 @@ class AcquaintanceOperation(ops.GateOperation):
     logical indices on a particular set of physical qubits.
     """
     def __init__(self,
-                 qubits: Sequence[ops.raw_types.Qid],
+                 qubits: Sequence[ops.Qid],
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')

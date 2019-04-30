@@ -17,11 +17,13 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
 
 import abc
 
+import math
 import numpy as np
 import sympy
 
-from cirq import value, protocols
-from cirq._compat import gcd
+from cirq import protocols, value
+from cirq.protocols.circuit_diagram_info import CircuitDiagramInfoArgs
+from cirq.value.value_equality import value_equality
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -47,7 +49,7 @@ EigenComponent = NamedTuple(
 )
 
 
-@value.value_equality(distinct_child_types=True, approximate=True)
+@value_equality(distinct_child_types=True, approximate=True)
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
@@ -125,7 +127,7 @@ class EigenGate(raw_types.Gate):
         # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(self,
-                          args: protocols.CircuitDiagramInfoArgs,
+                          args: CircuitDiagramInfoArgs,
                           *,
                           ignore_global_phase: bool = True):
         """The exponent to use in circuit diagrams.
@@ -249,7 +251,6 @@ class EigenGate(raw_types.Gate):
                                   [-0.5, +0.5]])),
                 ]
         """
-        pass
 
     def _period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized when equating.
@@ -324,7 +325,7 @@ class EigenGate(raw_types.Gate):
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
     for r in vals:
-        t = t * r // gcd(t, r)
+        t = t * r // math.gcd(t, r)
     return t
 
 

@@ -27,8 +27,9 @@ import abc
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols
 from cirq.ops import op_tree, raw_types
+from cirq.value.value_equality import value_equality
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -56,13 +57,11 @@ class SamplesDisplay(raw_types.Operation):
     @abc.abstractmethod
     def measurement_basis_change(self) -> op_tree.OP_TREE:
         """Operations to perform prior to measurement."""
-        pass
 
     @property
     @abc.abstractmethod
     def num_samples(self) -> int:
         """The number of measurement samples to take."""
-        pass
 
     @abc.abstractmethod
     def value_derived_from_samples(self,
@@ -79,7 +78,6 @@ class SamplesDisplay(raw_types.Operation):
         Returns:
             The value of the display.
         """
-        pass
 
 
 class WaveFunctionDisplay(raw_types.Operation):
@@ -102,7 +100,6 @@ class WaveFunctionDisplay(raw_types.Operation):
             qubit_map: A dictionary from qubit to qubit index in the
                 ordering used to define the wavefunction.
         """
-        pass
 
 
 class DensityMatrixDisplay(WaveFunctionDisplay):
@@ -120,7 +117,6 @@ class DensityMatrixDisplay(WaveFunctionDisplay):
             qubit_map: A dictionary from qubit to qubit index in the
                 ordering used to define the wavefunction.
         """
-        pass
 
     def value_derived_from_wavefunction(self,
                                         state: np.ndarray,
@@ -130,7 +126,7 @@ class DensityMatrixDisplay(WaveFunctionDisplay):
         return self.value_derived_from_density_matrix(density_matrix, qubit_map)
 
 
-@value.value_equality
+@value_equality
 class ApproxPauliStringExpectation(SamplesDisplay):
     """Approximate expectation value of a Pauli string."""
 
@@ -174,7 +170,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string, self._num_samples, self._key
 
 
-@value.value_equality
+@value_equality
 class PauliStringExpectation(DensityMatrixDisplay):
     """Expectation value of a Pauli string."""
 

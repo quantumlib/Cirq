@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import pytest
 
 from cirq.circuits import TextDiagramDrawer
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
 from cirq.circuits.text_diagram_drawer import (
         _HorizontalLine, _VerticalLine, _DiagramText)
-from cirq.testing.mock import mock
 import cirq.testing as ct
 
 
@@ -365,7 +365,6 @@ def test_drawer_eq():
     alt_d.write(0, 0, 'A')
     alt_d.write(1, 0, 'B')
     alt_d.write(1, 1, 'C')
-
     eq.add_equality_group(d, alt_d)
 
     dd = TextDiagramDrawer()
