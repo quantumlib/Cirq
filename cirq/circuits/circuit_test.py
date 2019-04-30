@@ -377,12 +377,12 @@ Y^(a + b)
 
     cirq.testing.assert_has_diagram(circuit,
                                     """
- a
- |
- X^0.5
- |
- Y^(a + b)
- |
+a
+|
+X^0.5
+|
+Y^(a + b)
+|
 
  """,
                                     use_unicode_characters=False,
@@ -2651,16 +2651,16 @@ def test_to_qasm():
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (circuit.to_qasm() == """// Generated from Cirq v{}
 
- OPENQASM 2.0;
- include "qelib1.inc";
+OPENQASM 2.0;
+include "qelib1.inc";
 
 
- // Qubits: [q0]
- qreg q[1];
+// Qubits: [q0]
+qreg q[1];
 
 
- x q[0];
- """.format(cirq.__version__))
+x q[0];
+""".format(cirq.__version__))
 
 
 def test_save_qasm():
@@ -2674,12 +2674,12 @@ def test_save_qasm():
             file_content = f.read()
     assert (file_content == """// Generated from Cirq v{}
 
- OPENQASM 2.0;
- include "qelib1.inc";
+OPENQASM 2.0;
+include "qelib1.inc";
 
 
- // Qubits: [q0]
- qreg q[1];
+// Qubits: [q0]
+qreg q[1];
 
 
 x q[0];
