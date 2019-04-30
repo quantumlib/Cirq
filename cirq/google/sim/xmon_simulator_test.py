@@ -60,6 +60,10 @@ def large_circuit():
     circuit.append([cirq.measure(*qubits, key='meas')])
     return circuit
 
+def empty_measurement_circuit(qubit):
+    circuit = cirq.Circuit()
+    circuit.append([cirq.measure(qubit, key='meas')])
+    return circuit
 
 def test_xmon_options_negative_num_shards():
     with pytest.raises(AssertionError):
@@ -105,8 +109,8 @@ SCHEDULERS = [None, cirq.moment_by_moment_schedule]
 def test_run_no_results(scheduler, use_processes):
     options = cg.XmonOptions(use_processes=use_processes)
     simulator = cg.XmonSimulator(options)
-    result = run(simulator, basic_circuit(), scheduler)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        run(simulator, basic_circuit(), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -128,8 +132,8 @@ def test_run(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_empty_circuit(scheduler):
     simulator = cg.XmonSimulator()
-    result = run(simulator, cirq.Circuit(device=test_device), scheduler)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        run(simulator, cirq.Circuit(device=test_device), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -594,6 +598,7 @@ def test_param_resolver_param_dict():
         phase_exponent=0.0)
     circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_w(Q1))
+    circuit.append([cirq.measure(Q1, key='meas')])
     resolver = cirq.ParamResolver({'a': 0.5})
 
     simulator = cg.XmonSimulator()
@@ -657,6 +662,7 @@ def test_unsupported_gate_defense_in_depth(scheduler):
     circuit = cirq.Circuit()
     gate = UnsupportedGate()
     circuit.append([gate(Q2)])
+    circuit.append([cirq.measure(Q2, key='meas')])
 
     # Pretend there's a place where we forgot to validate.
     circuit._device = test_device
@@ -666,7 +672,7 @@ def test_unsupported_gate_defense_in_depth(scheduler):
         _ = run(simulator, circuit, scheduler)
 
     with pytest.raises(ValueError, match="using an XmonDevice"):
-        _ = run(simulator, cirq.Circuit(), scheduler)
+        _ = run(simulator, empty_measurement_circuit(Q2), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)

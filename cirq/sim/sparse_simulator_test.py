@@ -31,8 +31,8 @@ def test_run_no_measurements(dtype):
     simulator = cirq.Simulator(dtype=dtype)
 
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
-    result = simulator.run(circuit)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        simulator.run(circuit)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -41,15 +41,15 @@ def test_run_no_results(dtype):
     simulator = cirq.Simulator(dtype=dtype)
 
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
-    result = simulator.run(circuit)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        simulator.run(circuit)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_empty_circuit(dtype):
     simulator = cirq.Simulator(dtype=dtype)
-    result = simulator.run(cirq.Circuit())
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        simulator.run(cirq.Circuit())
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -524,6 +524,7 @@ def test_invalid_run_no_unitary():
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
     circuit = cirq.Circuit.from_ops(NoUnitary()(q0))
+    circuit.append([cirq.measure(q0, key='meas')])
     with pytest.raises(TypeError, match='unitary'):
         simulator.run(circuit)
 
