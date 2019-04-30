@@ -20,7 +20,7 @@ import cirq
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     v = cirq.TrialResult(
         params=cirq.ParamResolver({'a': 2}),

@@ -72,7 +72,7 @@ _RESULTS = {
 }
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     v = cirq.google.JobConfig(project_id='my-project-id',
                               program_id='my-program-id',
@@ -477,7 +477,7 @@ def test_implied_job_config_gcs_prefix(build):
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://better/'
 
 
-@cirq.testing.only_test_in_python3  # uses re.fullmatch
+# uses re.fullmatch
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config(build):
     eng = cg.Engine(api_key="key")

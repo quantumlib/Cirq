@@ -87,7 +87,7 @@ def test_cmp():
 # In python 2, comparisons fallback to __cmp__ and don't fail.
 # But a custom __cmp__ that does fail would result in == failing.
 # So we throw up our hands and let it be.
-@cirq.testing.only_test_in_python3
+
 def test_cmp_vs_other_type():
     with pytest.raises(TypeError):
         _ = Duration() < 0

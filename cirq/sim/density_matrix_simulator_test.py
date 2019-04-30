@@ -465,7 +465,7 @@ def test_density_matrix_simulator_state_eq():
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_density_matrix_simulator_state_repr():
     q0 = cirq.LineQubit(0)
     assert (repr(cirq.DensityMatrixSimulatorState(
@@ -503,7 +503,7 @@ def test_density_matrix_trial_result_eq():
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_density_matrix_trial_result_repr():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.DensityMatrixSimulatorState(

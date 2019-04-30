@@ -221,7 +221,7 @@ def test_bool():
     assert Circuit.from_ops(cirq.X(cirq.NamedQubit('a')))
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     assert repr(cirq.Circuit()) == 'cirq.Circuit()'
 
@@ -325,7 +325,7 @@ a b
         use_unicode_characters=True,
         transpose=True)
 
-     # 2-qubit ascii-only test
+    # 2-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit, """
 a: ---@---@-------@---
       |   |       |
@@ -360,14 +360,14 @@ def test_symbol_addition_in_gate_exponent():
 
 
     cirq.testing.assert_has_diagram(circuit,
-"""
-a
-│
-X^0.5
-│
-Y^(a + b)
-│
-""",
+ """
+ a
+ │
+ X^0.5
+ │
+ Y^(a + b)
+ │
+ """,
                                     use_unicode_characters=True,
      transpose=True)
 
@@ -376,15 +376,15 @@ Y^(a + b)
                                     use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit,
-"""
-a
-|
-X^0.5
-|
-Y^(a + b)
-|
+ """
+ a
+ |
+ X^0.5
+ |
+ Y^(a + b)
+ |
 
-""",
+ """,
                                     use_unicode_characters=False,
                                     transpose=True)
 
@@ -2650,18 +2650,18 @@ def test_to_qasm():
     )
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (circuit.to_qasm() ==
-"""// Generated from Cirq v{}
+ """// Generated from Cirq v{}
 
-OPENQASM 2.0;
-include "qelib1.inc";
-
-
-// Qubits: [q0]
-qreg q[1];
+ OPENQASM 2.0;
+ include "qelib1.inc";
 
 
-x q[0];
-""".format(cirq.__version__))
+ // Qubits: [q0]
+ qreg q[1];
+
+
+ x q[0];
+ """.format(cirq.__version__))
 
 
 def test_save_qasm():
@@ -2674,14 +2674,14 @@ def test_save_qasm():
         with open(file_path, 'r') as f:
             file_content = f.read()
     assert (file_content ==
-"""// Generated from Cirq v{}
+ """// Generated from Cirq v{}
 
-OPENQASM 2.0;
-include "qelib1.inc";
+ OPENQASM 2.0;
+ include "qelib1.inc";
 
 
-// Qubits: [q0]
-qreg q[1];
+ // Qubits: [q0]
+ qreg q[1];
 
 
 x q[0];

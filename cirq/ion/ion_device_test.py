@@ -89,7 +89,7 @@ def test_decomposition():
             """, use_unicode_characters=True)
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     d = ion_device(3)
 
