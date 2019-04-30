@@ -42,6 +42,7 @@ class QasmLexer(object):
         return t
 
     def t_NUMBER(selfs, t):
+        # pylint: disable=line-too-long
         r"""(([0-9]+|([0-9]+)?\.[0-9]+|[0-9]+\.)[eE][+-]?[0-9]+)|(([0-9]+)?\.[0-9]+|[0-9]+\.)"""
         t.value = Number(t.value)
         return t
