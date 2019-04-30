@@ -74,20 +74,16 @@ class TextDiagramDrawer:
         self.entries = (dict() if entries is None else dict(entries)
                        )  # type: Dict[Tuple[int, int], _DiagramText]
         self.horizontal_lines = (
-            [] if horizontal_lines is None else
-            list(horizontal_lines)
+            [] if horizontal_lines is None else list(horizontal_lines)
         )  # type: List[_HorizontalLine]
         self.vertical_lines = (
-            [] if vertical_lines is None else
-            list(vertical_lines)
+            [] if vertical_lines is None else list(vertical_lines)
         )  # type: List[_VerticalLine]
         self.horizontal_padding = (
-            dict() if horizontal_padding is None else
-            dict(horizontal_padding)
+            dict() if horizontal_padding is None else dict(horizontal_padding)
         )  # type: Dict[int, Union[int, float]]
         self.vertical_padding = (
-            dict() if vertical_padding is None else
-            dict(vertical_padding)
+            dict() if vertical_padding is None else dict(vertical_padding)
         )  # type: Dict[int, Union[int, float]]
 
     def _value_equality_values_(self):
