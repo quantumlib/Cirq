@@ -8,60 +8,31 @@ option java_multiple_files = true;
 
 // A snapshot of the performance metrics for a quantum processor at a
 // particular time.
-message PerformanceSnapshot {
+message MetricSnapshot {
 
   // The time the metrics were collected, in unix time (milliseconds since
   // Epoch minus leap seconds). Metric collection take time, so this is the
   // time at which all of the metrics have been collected.
   uint64 collection_time_ms = 1;
 
-  // Map from a metric type to a collection of the metrics all of this type.
-  // Keys should be snake_case and fairly descriptive of the metric.
-  map<string, MetricCollection> metrics = 2;
+  // All of the metrics collected during this snapshot.
+  repeated Metric metrics = 2;
 }
-
-// A collection of metrics of the same type.
-message MetricCollection {
-  // The metrics in the collection. These should all be of the same type.
-  repeated Metric metrics = 1;
-
-  // A human readable string describing what metrics in this collection
-  // represent.
-  string description = 2;
-}
-
 
 // The actual metrics.
 message Metric {
+  // The name of the metric. This is the type of metric, i.e. 't1' or
+  // 'randomized_benchmarking'.
+  string name = 1;
 
-  // One of these metric classes.
-  oneof metric {
-    // Metric associated with sets of qubits.
-    QubitsProperty qubits_property = 1;
+  // The targets of the metrics. Targets include things like the qubits (i.e.
+  // strings like `q0_1`), but may also be empty when the metric applies
+  // globally.
+  repeated string targets = 2;
 
-    // Metric associated with the entire processor.
-    GlobalProperty global_property = 2;
-  }
-}
-
-// Properties associated with one or more quantum bits.
-message QubitsProperty {
-
-  // The ids of the qubits associated with this property. Should not be empty.
-  // If metrics associated with entire processor are used, GlobalProperty
-  // should be used instead of QubitProperty.
-  repeated string qubit_id = 1;
-
-  // The values of this property. Repeated to support multi-dimensional
-  // properties.
-  repeated Value values = 2;
-}
-
-// Properties associated with an entire processor.
-message GlobalProperty {
-  // The values of this property. Repeated to support multi-dimensional
-  // properties.
-  repeated Value values = 1;
+  // The values of this Metrics. Repeated to support multivalued metrics like
+  // tomography.
+  repeated Value values = 3;
 }
 
 // A generic metric value. Metrics of the same type should all support only
@@ -69,12 +40,12 @@ message GlobalProperty {
 message Value {
   // The raw value.
   oneof val {
-    float float_val = 1;
+    double double_val = 1;
 
-    double double_val = 2;
+    int32 int32_val = 2;
 
-    int32 int32_val = 3;
+    int64 int64_val = 3;
 
-    int64 int64_val = 4;
+    string str_value = 4;
   }
 }
