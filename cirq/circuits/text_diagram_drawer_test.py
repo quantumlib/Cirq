@@ -17,15 +17,13 @@ import pytest
 
 from cirq.circuits import TextDiagramDrawer
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
-from cirq.circuits.text_diagram_drawer import (
-        _HorizontalLine, _VerticalLine, _DiagramText)
+from cirq.circuits.text_diagram_drawer import (_HorizontalLine, _VerticalLine,
+                                               _DiagramText)
 import cirq.testing as ct
 
 
-def assert_has_rendering(
-        actual: TextDiagramDrawer,
-        desired: str,
-        **kwargs) -> None:
+def assert_has_rendering(actual: TextDiagramDrawer, desired: str,
+                         **kwargs) -> None:
     """Determines if a given diagram has the desired rendering.
 
     Args:
@@ -46,9 +44,8 @@ def assert_has_rendering(
         '\n'
         'Highlighted differences:\n'
         '{}\n'.format(actual_diagram, desired_diagram,
-                ct.highlight_text_differences(actual_diagram,
-                                              desired_diagram))
-    )
+                      ct.highlight_text_differences(actual_diagram,
+                                                    desired_diagram)))
 
 
 def test_draw_entries_and_lines_with_options():
@@ -200,11 +197,12 @@ def test_drawer_copy():
     orig_vertical_padding = {0: 2}
     orig_horizontal_padding = {1: 3}
     kwargs = {
-            'entries': orig_entries,
-            'vertical_lines': orig_vertical_lines,
-            'horizontal_lines': orig_horizontal_lines,
-            'vertical_padding': orig_vertical_padding,
-            'horizontal_padding': orig_horizontal_padding}
+        'entries': orig_entries,
+        'vertical_lines': orig_vertical_lines,
+        'horizontal_lines': orig_horizontal_lines,
+        'vertical_padding': orig_vertical_padding,
+        'horizontal_padding': orig_horizontal_padding
+    }
     orig_drawer = TextDiagramDrawer(**kwargs)
 
     same_drawer = TextDiagramDrawer(**kwargs)
@@ -287,7 +285,6 @@ AB
         print(dd.vertical_padding)
         TextDiagramDrawer.hstack((d, dd))
 
-
     dd.force_vertical_padding_after(0, 0)
     expected = """
 AB D
@@ -303,7 +300,6 @@ AB D
 
     with pytest.raises(ValueError):
         TextDiagramDrawer.vstack((d, dd))
-
 
     vstacked = TextDiagramDrawer.vstack((dd, d), padding_resolver=max)
     expected = """
@@ -351,6 +347,7 @@ AB D
     """.strip()
     assert_has_rendering(hstacked_min, expected)
 
+
 def test_drawer_eq():
     assert TextDiagramDrawer().__eq__(23) == NotImplemented
 
@@ -373,4 +370,3 @@ def test_drawer_eq():
     dd.write(1, 1, 'F')
 
     eq.add_equality_group(dd)
-

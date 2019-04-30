@@ -115,8 +115,8 @@ class AcquaintanceOperation(ops.GateOperation):
     """Represents an a acquaintance opportunity between a particular set of
     logical indices on a particular set of physical qubits.
     """
-    def __init__(self,
-                 qubits: Sequence[ops.Qid],
+
+    def __init__(self, qubits: Sequence[ops.Qid],
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')

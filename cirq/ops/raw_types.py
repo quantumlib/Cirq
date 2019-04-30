@@ -276,6 +276,7 @@ class Operation(metaclass=abc.ABCMeta):
         else:
             return ControlledOperation(control_qubits, self)
 
+
 @value_equality
 class _InverseCompositeGate(Gate):
     """The inverse of a composite gate."""
@@ -294,8 +295,7 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return inverse(decompose_once_with_qubits(
-            self._original, qubits))
+        return inverse(decompose_once_with_qubits(self._original, qubits))
 
     def _value_equality_values_(self):
         return self._original

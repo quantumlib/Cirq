@@ -98,5 +98,4 @@ from cirq.protocols.unitary import (
 )
 # out of alphabetical order to avoid circular import
 from cirq.protocols.control import (
-    control,
-)
+    control,)
