@@ -179,7 +179,7 @@ def test_query_overlapping_operations_exclusive():
 
 
 # In python 2, timedelta doesn't support multiplication with floats
-@cirq.testing.only_test_in_python3
+
 def test_query_timedelta():
     q = cirq.NamedQubit('q')
     zero = cirq.Timestamp(picos=0)
