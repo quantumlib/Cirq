@@ -103,16 +103,28 @@ def test_multiple_creg_declaration():
 def test_cx_gate():
     qasm = """
      OPENQASM 2.0;          
-     qreg q[2];
-     CX q[0], q[1];
+     qreg q1[2];
+     qreg q2[2];
+     CX q1[0], q1[1];
+     CX q1, q2[0];
+     CX q2, q1;      
 """
     parser = QasmParser(qasm)
 
-    q0 = cirq.NamedQubit('q0')
-    q1 = cirq.NamedQubit('q1')
+    q1_0 = cirq.NamedQubit('q1_0')
+    q1_1 = cirq.NamedQubit('q1_1')
+    q2_0 = cirq.NamedQubit('q2_0')
+    q2_1 = cirq.NamedQubit('q2_1')
 
     expectedCircuit = Circuit()
-    expectedCircuit.append(cirq.CNOT(q0, q1))
+    # CX q1[0], q1[1];
+    expectedCircuit.append(cirq.CNOT(q1_0, q1_1))
+    # CX q1, q2[0];
+    expectedCircuit.append(cirq.CNOT(q1_0, q2_0))
+    expectedCircuit.append(cirq.CNOT(q1_1, q2_0))
+    # CX q2, q1;
+    expectedCircuit.append(cirq.CNOT(q2_0, q1_0))
+    expectedCircuit.append(cirq.CNOT(q2_1, q1_1))
 
     parsed_qasm = parser.parse()
 
@@ -120,10 +132,10 @@ def test_cx_gate():
     assert parsed_qasm.qelib1Include is False
 
     ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
-    assert parsed_qasm.qregs == {'q': 2}
+    assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
 
 
-def test_cx_gate_wrong_args():
+def test_cx_gate_not_enough_args():
     qasm = """
      OPENQASM 2.0;          
      qreg q[2];
@@ -137,6 +149,24 @@ def test_cx_gate_wrong_args():
     except QasmException as ex:
         assert ex.qasm == qasm
         assert ex.message == "CX only takes 2 args, got: 1, at line 0"
+
+
+def test_cx_gate_mismatched_registers():
+    qasm = """
+     OPENQASM 2.0;
+     qreg q1[2];
+     qreg q2[3];
+     CX q1, q2;
+"""
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with mismatching registers error")
+    except QasmException as ex:
+        assert ex.qasm == qasm
+        assert ex.message == "Non matching quantum registers of " \
+                             "length 2 and 3 at line 5"
 
 #
 # def test_u_gate():

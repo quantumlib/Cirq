@@ -92,7 +92,7 @@ class QasmParser(object):
 
     def p_circuit_gate_op(self, p):
         """circuit : gate_op circuit"""
-        self.circuit.append(p[1])
+        self.circuit.insert(0, p[1])
         p[0] = self.circuit
 
     def p_circuit_empty(self, p):
@@ -122,7 +122,26 @@ class QasmParser(object):
                     "CX only takes 2 args, got: {}, at line {}"
                         .format(len(args), p.lineno(2)),
                     self.qasm)
-            p[0] = CNOT(args[0], args[1])
+            ctrl_register = args[0]
+            target_register = args[1]
+
+            if len(ctrl_register) == 1 and len(target_register) == 1:
+                p[0] = CNOT(ctrl_register[0], target_register[0])
+            elif len(ctrl_register) == 1 and len(target_register) > 1:
+                p[0] = [CNOT(ctrl_register[0], target_qubit)
+                        for target_qubit in target_register]
+            elif len(ctrl_register) > 1 and len(target_register) == 1:
+                p[0] = [CNOT(ctrl_qubit, target_register[0])
+                        for ctrl_qubit in ctrl_register]
+            elif len(ctrl_register) == len(target_register):
+                p[0] = [CNOT(ctrl_register[i], target_register[i])
+                        for i in range(len(ctrl_register))]
+            else:
+                raise QasmException(
+                    "Non matching quantum registers of length {} and {} "
+                    "at line {}".format(
+                        len(ctrl_register), len(target_register), p.lineno(1)),
+                    self.qasm)
 
     # args : arg ',' args
     #      | arg ';'
@@ -139,24 +158,37 @@ class QasmParser(object):
     # arg : ID '[' NATURAL_NUMBER ']'
     #
 
-    def p_arg(self, p):
+    def p_arg_bit(self, p):
         """arg : ID '[' NATURAL_NUMBER ']' """
         reg = p[1]
         num = p[3]
-        arg_name = str(reg) + str(num)
+        arg_name = str(reg) + "_" + str(num)
         if reg in self.qregs.keys():
             if arg_name not in self.qubits.keys():
                 self.qubits[arg_name] = NamedQubit(arg_name)
-            p[0] = self.qubits[arg_name]
+            p[0] = [self.qubits[arg_name]]
         else:
             raise QasmException(
-                'undefined quantum/classical register {}'.format(arg_name),
+                'undefined quantum/classical register "{}" '
+                'at line no: {}'.format(reg, p.lineno(1)),
                 self.qasm)
 
-    # TODO next
-    # def p_arg(self, p):
-    #     """arg : ID"""
-    #
+    def p_arg_register(self, p):
+        """arg : ID """
+        reg = p[1]
+        if reg in self.qregs.keys():
+            qubits = []
+            for num in range(self.qregs[reg]):
+                arg_name = str(reg) + "_" + str(num)
+                if arg_name not in self.qubits.keys():
+                    self.qubits[arg_name] = NamedQubit(arg_name)
+                qubits.append(self.qubits[arg_name])
+            p[0] = qubits
+        else:
+            raise QasmException(
+                'undefined quantum/classical register "{}" '
+                'at line no: {}'.format(reg, p.lineno(1)),
+                self.qasm)
 
     def p_error(self, p):
         if p is None:
