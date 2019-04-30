@@ -23,7 +23,7 @@ def test_named_qubit_str():
 
 
 # Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
+
 def test_named_qubit_repr():
     q = cirq.NamedQubit('a')
     assert repr(q) == "cirq.NamedQubit('a')"
