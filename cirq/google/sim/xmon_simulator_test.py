@@ -60,10 +60,12 @@ def large_circuit():
     circuit.append([cirq.measure(*qubits, key='meas')])
     return circuit
 
+
 def empty_measurement_circuit(qubit):
     circuit = cirq.Circuit()
     circuit.append([cirq.measure(qubit, key='meas')])
     return circuit
+
 
 def test_xmon_options_negative_num_shards():
     with pytest.raises(AssertionError):
