@@ -12,78 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Workarounds for differences between version 2 and 3 of python."""
+"""Workarounds for sympy issues"""
 
-import sys
-
-
-# Python 3 deprecates `fractions.gcd` in factor of `math.gcd`. Also, `math.gcd`
-# never returns a negative result whereas `fractions.gcd` seems to match the
-# sign of the second argument.
-
-# coverage: ignore
 from typing import Any
-
 import sympy
 import numpy as np
 
 
-if sys.version_info < (3,):
+def proper_repr(value: Any) -> str:
+    """Overrides sympy and numpy returning repr strings that don't parse."""
 
-    import fractions   # pylint: disable=unused-import
-    import re
+    if isinstance(value, sympy.Basic):
+        result = sympy.srepr(value)
 
-    def gcd(a, b):
-        return abs(fractions.gcd(a, b))
+        # HACK: work around https://github.com/sympy/sympy/issues/16074
+        # (only handles a few cases)
+        fixed_tokens = [
+            'Symbol', 'pi', 'Mul', 'Add', 'Mod', 'Integer', 'Float', 'Rational'
+        ]
+        for token in fixed_tokens:
+            result = result.replace(token, 'sympy.' + token)
 
+        return result
 
-    def proper_repr(value: Any) -> str:
-        """Overrides sympy and numpy returning repr strings that don't parse."""
-
-        if isinstance(value, sympy.Basic):
-            result = sympy.srepr(value)
-
-            # HACK: work around https://github.com/sympy/sympy/issues/16074
-            # (only handles a few cases)
-            fixed_tokens = [
-                'Symbol', 'pi', 'Mul', 'Add', 'Mod', 'Integer', 'Float',
-                'Rational'
-            ]
-            for token in fixed_tokens:
-                result = result.replace(token, 'sympy.' + token)
-
-            # HACK: work around https://github.com/sympy/sympy/issues/16086
-            result = re.sub(
-                r'sympy.Symbol\(([^u][^)]*)\)', r'sympy.Symbol(u"\1")', result)
-            return result
-
-        if isinstance(value, np.ndarray):
-            return 'np.array({!r})'.format(value.tolist())
-
-        return repr(value)
-
-else:
-
-    from math import gcd  # pylint: disable=unused-import
-
-    def proper_repr(value: Any) -> str:
-        """Overrides sympy and numpy returning repr strings that don't parse."""
-
-        if isinstance(value, sympy.Basic):
-            result = sympy.srepr(value)
-
-            # HACK: work around https://github.com/sympy/sympy/issues/16074
-            # (only handles a few cases)
-            fixed_tokens = [
-                'Symbol', 'pi', 'Mul', 'Add', 'Mod', 'Integer', 'Float',
-                'Rational'
-            ]
-            for token in fixed_tokens:
-                result = result.replace(token, 'sympy.' + token)
-
-            return result
-
-        if isinstance(value, np.ndarray):
-            return 'np.array({!r})'.format(value.tolist())
-
-        return repr(value)
+    if isinstance(value, np.ndarray):
+        return 'np.array({!r})'.format(value.tolist())
+    return repr(value)
