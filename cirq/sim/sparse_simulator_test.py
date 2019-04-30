@@ -17,7 +17,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq.testing.mock import mock
+import mock
 
 
 def test_invalid_dtype():

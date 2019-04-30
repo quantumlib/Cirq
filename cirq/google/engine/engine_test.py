@@ -23,7 +23,7 @@ from apiclient import discovery
 
 import cirq
 import cirq.google as cg
-from cirq.testing.mock import mock
+import mock
 
 
 _A_RESULT = {

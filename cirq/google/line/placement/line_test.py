@@ -15,7 +15,7 @@
 import cirq
 import cirq.google as cg
 
-from cirq.testing.mock import mock
+import mock
 
 
 def test_anneal_method_calls_anneal_search():

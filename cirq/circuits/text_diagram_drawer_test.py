@@ -15,7 +15,7 @@
 import pytest
 
 from cirq.circuits import TextDiagramDrawer
-from cirq.testing.mock import mock
+import mock
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
 
 

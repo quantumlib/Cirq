@@ -26,7 +26,7 @@ from cirq.google.line.placement.anneal import (
     index_2d,
 )
 from cirq.google.line.placement.chip import chip_as_adjacency_list
-from cirq.testing.mock import mock
+import mock
 from cirq.value import Duration
 
 
