@@ -15,11 +15,12 @@
 """An `XPowGate` conjugated by `ZPowGate`s."""
 from typing import Union, Sequence, Tuple, Optional, cast
 
+import math
 import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import gcd, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
 
@@ -212,7 +213,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return None
         if len(int_periods) == 1:
             return int_periods[0]
-        return int_periods[0] * int_periods[1] / gcd(*int_periods)
+        return int_periods[0] * int_periods[1] / math.gcd(*int_periods)
 
     @property
     def _canonical_exponent(self):
