@@ -19,29 +19,29 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='metrics.proto',
   package='cirq.api.google.v1',
   syntax='proto3',
-  serialized_pb=_b('\n\rmetrics.proto\x12\x12\x63irq.api.google.v1\"Y\n\x0eMetricSnapshot\x12\x1a\n\x12\x63ollection_time_ms\x18\x01 \x01(\x04\x12+\n\x07metrics\x18\x02 \x03(\x0b\x32\x1a.cirq.api.google.v1.Metric\"R\n\x06Metric\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07targets\x18\x02 \x03(\t\x12)\n\x06values\x18\x03 \x03(\x0b\x32\x19.cirq.api.google.v1.Value\"c\n\x05Value\x12\x14\n\ndouble_val\x18\x01 \x01(\x01H\x00\x12\x13\n\tint32_val\x18\x02 \x01(\x05H\x00\x12\x13\n\tint64_val\x18\x03 \x01(\x03H\x00\x12\x13\n\tstr_value\x18\x04 \x01(\tH\x00\x42\x05\n\x03valB3\n\x1d\x63om.google.cirq.api.google.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\rmetrics.proto\x12\x12\x63irq.api.google.v1\"T\n\x0fMetricsSnapshot\x12\x14\n\x0ctimestamp_ms\x18\x01 \x01(\x04\x12+\n\x07metrics\x18\x02 \x03(\x0b\x32\x1a.cirq.api.google.v1.Metric\"R\n\x06Metric\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07targets\x18\x02 \x03(\t\x12)\n\x06values\x18\x03 \x03(\x0b\x32\x19.cirq.api.google.v1.Value\"a\n\x05Value\x12\x14\n\ndouble_val\x18\x01 \x01(\x01H\x00\x12\x13\n\tint32_val\x18\x02 \x01(\x05H\x00\x12\x13\n\tint64_val\x18\x03 \x01(\x03H\x00\x12\x11\n\x07str_val\x18\x04 \x01(\tH\x00\x42\x05\n\x03valB3\n\x1d\x63om.google.cirq.api.google.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
 
-_METRICSNAPSHOT = _descriptor.Descriptor(
-  name='MetricSnapshot',
-  full_name='cirq.api.google.v1.MetricSnapshot',
+_METRICSSNAPSHOT = _descriptor.Descriptor(
+  name='MetricsSnapshot',
+  full_name='cirq.api.google.v1.MetricsSnapshot',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='collection_time_ms', full_name='cirq.api.google.v1.MetricSnapshot.collection_time_ms', index=0,
+      name='timestamp_ms', full_name='cirq.api.google.v1.MetricsSnapshot.timestamp_ms', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='metrics', full_name='cirq.api.google.v1.MetricSnapshot.metrics', index=1,
+      name='metrics', full_name='cirq.api.google.v1.MetricsSnapshot.metrics', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -60,7 +60,7 @@ _METRICSNAPSHOT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=37,
-  serialized_end=126,
+  serialized_end=121,
 )
 
 
@@ -104,8 +104,8 @@ _METRIC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=128,
-  serialized_end=210,
+  serialized_start=123,
+  serialized_end=205,
 )
 
 
@@ -138,7 +138,7 @@ _VALUE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='str_value', full_name='cirq.api.google.v1.Value.str_value', index=3,
+      name='str_val', full_name='cirq.api.google.v1.Value.str_val', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -159,11 +159,11 @@ _VALUE = _descriptor.Descriptor(
       name='val', full_name='cirq.api.google.v1.Value.val',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=212,
-  serialized_end=311,
+  serialized_start=207,
+  serialized_end=304,
 )
 
-_METRICSNAPSHOT.fields_by_name['metrics'].message_type = _METRIC
+_METRICSSNAPSHOT.fields_by_name['metrics'].message_type = _METRIC
 _METRIC.fields_by_name['values'].message_type = _VALUE
 _VALUE.oneofs_by_name['val'].fields.append(
   _VALUE.fields_by_name['double_val'])
@@ -175,18 +175,18 @@ _VALUE.oneofs_by_name['val'].fields.append(
   _VALUE.fields_by_name['int64_val'])
 _VALUE.fields_by_name['int64_val'].containing_oneof = _VALUE.oneofs_by_name['val']
 _VALUE.oneofs_by_name['val'].fields.append(
-  _VALUE.fields_by_name['str_value'])
-_VALUE.fields_by_name['str_value'].containing_oneof = _VALUE.oneofs_by_name['val']
-DESCRIPTOR.message_types_by_name['MetricSnapshot'] = _METRICSNAPSHOT
+  _VALUE.fields_by_name['str_val'])
+_VALUE.fields_by_name['str_val'].containing_oneof = _VALUE.oneofs_by_name['val']
+DESCRIPTOR.message_types_by_name['MetricsSnapshot'] = _METRICSSNAPSHOT
 DESCRIPTOR.message_types_by_name['Metric'] = _METRIC
 DESCRIPTOR.message_types_by_name['Value'] = _VALUE
 
-MetricSnapshot = _reflection.GeneratedProtocolMessageType('MetricSnapshot', (_message.Message,), dict(
-  DESCRIPTOR = _METRICSNAPSHOT,
+MetricsSnapshot = _reflection.GeneratedProtocolMessageType('MetricsSnapshot', (_message.Message,), dict(
+  DESCRIPTOR = _METRICSSNAPSHOT,
   __module__ = 'metrics_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.MetricSnapshot)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v1.MetricsSnapshot)
   ))
-_sym_db.RegisterMessage(MetricSnapshot)
+_sym_db.RegisterMessage(MetricsSnapshot)
 
 Metric = _reflection.GeneratedProtocolMessageType('Metric', (_message.Message,), dict(
   DESCRIPTOR = _METRIC,
