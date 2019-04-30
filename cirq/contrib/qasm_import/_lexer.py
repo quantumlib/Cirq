@@ -2,6 +2,8 @@ import re
 from typing import Optional
 
 import ply.lex as lex
+import sympy
+from sympy import Number
 
 
 class QasmLexer(object):
@@ -12,7 +14,7 @@ class QasmLexer(object):
         self.lex = lex.lex(object=self, debug=True)
         self.lex.input(qasm)
 
-    literals = "{}[]();,"
+    literals = "{}[]();,+/*-^"
 
     reserved = {
         'qreg': 'QREG',
@@ -21,9 +23,11 @@ class QasmLexer(object):
 
     tokens = [
                  'FORMAT_SPEC',
+                 'NUMBER',
                  'NATURAL_NUMBER',
                  'QELIBINC',
                  'ID',
+                 'PI',
              ] + list(reserved.values())
 
     def t_newline(self, t):
@@ -31,6 +35,16 @@ class QasmLexer(object):
         t.lexer.lineno += len(t.value)
 
     t_ignore = ' \t'
+
+    def t_PI(selfs, t):
+        r"""pi"""
+        t.value = sympy.pi
+        return t
+
+    def t_NUMBER(selfs, t):
+        r"""(([0-9]+|([0-9]+)?\.[0-9]+|[0-9]+\.)[eE][+-]?[0-9]+)|(([0-9]+)?\.[0-9]+|[0-9]+\.)"""
+        t.value = Number(t.value)
+        return t
 
     def t_NATURAL_NUMBER(self, t):
         r"""\d+"""

@@ -69,6 +69,8 @@ class QasmUGate(ops.SingleQubitGate):
         ]
         return linalg.dot(*map(protocols.unitary, operations))
 
+    def __eq__(self, other):
+        return isinstance(other, QasmUGate) and other.lmda == self.lmda and other.theta == self.theta and other.phi == self.phi
 
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):

@@ -6,6 +6,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+from sympy import Number
+import sympy
 
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
@@ -56,6 +58,33 @@ def test_valid_ids(identifier: str):
     token = QasmLexer(identifier).token()
     assert token.type == "ID"
     assert token.value == identifier
+
+
+@pytest.mark.parametrize(
+    'number',
+    [
+        # '01',
+        # '1',
+        '.333',
+        '1.0',
+        '0.1',
+        '2.0e-05',
+        '1.2E+05',
+        '123123.2132312'
+    ]
+)
+def test_reals(number: str):
+    token = QasmLexer(number).token()
+
+    assert token.type == "NUMBER"
+    assert token.value == Number(number)
+
+
+def test_pi():
+    lexer = QasmLexer('pi')
+    token = lexer.token()
+    assert token.type == "PI"
+    assert token.value == sympy.pi
 
 
 def test_qreg():

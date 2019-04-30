@@ -6,10 +6,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+import sympy
+from sympy import Number
 
 import cirq
 import cirq.testing as ct
 from cirq import Circuit
+from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._parser import QasmParser
 
@@ -168,24 +171,27 @@ def test_cx_gate_mismatched_registers():
         assert ex.message == "Non matching quantum registers of " \
                              "length 2 and 3 at line 5"
 
-#
-# def test_u_gate():
-#     qasm = """
-#      OPENQASM 2.0;
-#      qreg q[1];
-#      U(pi, pi*2.3, 4.5 * pi) q[0];
-# """
-#     parser = QasmParser(qasm)
-#
-#     q0 = cirq.NamedQubit('q0')
-#
-#     expectedCircuit = Circuit()
-#     expectedCircuit.append(cirq.QasmUGate()(q0))
-#
-#     parsed_qasm = parser.parse()
-#
-#     assert parsed_qasm.supportedFormat is True
-#     assert parsed_qasm.qelib1Include is False
-#
-#     ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
-#     assert parsed_qasm.qregs == {'q': 2}
+
+def test_u_gate():
+    qasm = """
+     OPENQASM 2.0;
+     qreg q[1];
+     U(pi, 2 * pi, pi / 3.0) q[0];
+"""
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expectedCircuit = Circuit()
+    expectedCircuit.append(
+        QasmUGate(Number(2) * sympy.pi,
+                  sympy.pi,
+                  sympy.pi / Number(3.0))(q0))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is False
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    assert parsed_qasm.qregs == {'q': 1}

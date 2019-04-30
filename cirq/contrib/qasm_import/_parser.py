@@ -11,9 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import operator
+
+import sympy
 from ply import yacc
 
 from cirq import Circuit, NamedQubit, CNOT
+from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
@@ -46,6 +50,16 @@ class QasmParser(object):
         self.cregs = {}
         self.parsedQasm = None
         self.qubits = {}
+        self.external_functions = ['sin', 'cos', 'tan', 'exp', 'ln', 'sqrt',
+                                   'acos', 'atan', 'asin']
+
+        self.binary_operators = {
+            '+': operator.add,
+            '-': operator.sub,
+            '*': operator.mul,
+            '/': operator.truediv,
+            '^': operator.pow
+        }
 
     tokens = QasmLexer.tokens
     start = 'start'
@@ -112,10 +126,18 @@ class QasmParser(object):
         p[0] = (p[2], p[4])
 
     # gate operations
+    # gate_op : ID args
+    #         | ID ( params ) args
 
-    def p_gate_op(self, p):
-        """gate_op :  ID args"""
-        args = p[2]
+    def p_gate_op_no_params(self, p):
+        """gate_op :  ID args
+                   | ID '(' ')' args"""
+
+        if p[2] == '(':
+            args = p[4]
+        else:
+            args = p[2]
+
         if p[1] == "CX":
             if len(args) != 2:
                 raise QasmException(
@@ -142,6 +164,65 @@ class QasmParser(object):
                     "at line {}".format(
                         len(ctrl_register), len(target_register), p.lineno(1)),
                     self.qasm)
+
+    def p_gate_op_with_params(self, p):
+        """gate_op :  ID '(' params ')' args"""
+        id = p[1]
+        params = p[3]
+        args = p[5]
+        if id == "U":
+            if len(params) != 3:
+                raise QasmException(
+                    'U called with {} params, instead of 3! Params: {}, Args: {} '.format(
+                        len(params), params, args), self.qasm)
+            if len(args) != 1:
+                raise QasmException(
+                    'U called with {} args, instead of 1! Params: {}, Args: {} '.format(
+                        len(args), params, args), self.qasm)
+            qreg = args[0]
+
+            if len(qreg) > 1:
+                raise QasmException(
+                    'U called with quantum register instead of 1 qubit! Params: {}, Args: {} '.format(
+                        len(qreg), params, args), self.qasm)
+
+            p[0] = QasmUGate(params[1], params[0], params[2])(qreg[0])
+
+    # params : parameter ',' params
+    #        | parameter
+    def p_params_multiple(self, p):
+        """params : expr ',' params"""
+        print('params multiple {} {} {} '.format(p[1], p[2], p[3]))
+        p[3].insert(0, p[1])
+        p[0] = p[3]
+        print('   p[0] = {}'.format(p[0]))
+
+    def p_params_single(self, p):
+        """params : expr """
+        print('params single {} '.format(p[1]))
+        p[0] = [p[1]]
+
+    # expr : term
+    #            | func '(' expression ')' """
+    #            | binary_op
+    #            | unary_op
+    def p_expr_term(self, p):
+        """expr : term"""
+        p[0] = p[1]
+
+    def p_expr_binary(self, p):
+        """expr : expr '*' expr
+                | expr '/' expr
+                | expr '+' expr
+                | expr '-' expr
+        """
+        p[0] = self.binary_operators[p[2]](p[1], p[3])
+
+    def p_term(self, p):
+        """term : NUMBER
+                | NATURAL_NUMBER
+                | PI """
+        p[0] = p[1]
 
     # args : arg ',' args
     #      | arg ';'
@@ -194,7 +275,9 @@ class QasmParser(object):
         if p is None:
             raise QasmException('Unexpected end of file', self.qasm)
 
-        raise QasmException("Syntax error in input on {}".format(p), self.qasm)
+        raise QasmException(
+            "Syntax error: '{}' at line {}".format(p.value, p.lineno),
+            self.qasm)
 
     def p_empty(self, p):
         """empty :"""
