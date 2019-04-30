@@ -120,10 +120,8 @@ class ExposeAcquaintanceGates(optimizers.ExpandComposite):
     in order to make them explicit."""
     def __init__(self):
         circuits.PointOptimizer.__init__(self)
-        self.no_decomp = lambda op: (
-                not get_acquaintance_size(op) or
-                (isinstance(op, ops.GateOperation) and
-                 isinstance(op.gate, AcquaintanceOpportunityGate)))
+        self.no_decomp = lambda op: (not get_acquaintance_size(
+            op) or ops.op_gate_of_type(op, AcquaintanceOpportunityGate))
 
 
 expose_acquaintance_gates = ExposeAcquaintanceGates()
