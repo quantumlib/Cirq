@@ -360,23 +360,23 @@ def test_symbol_addition_in_gate_exponent():
 
 
     cirq.testing.assert_has_diagram(circuit,
- """
- a
- │
- X^0.5
- │
- Y^(a + b)
- │
- """,
+                                    """
+a
+│
+X^0.5
+│
+Y^(a + b)
+│
+""",
                                     use_unicode_characters=True,
-     transpose=True)
+                                    transpose=True)
 
     cirq.testing.assert_has_diagram(circuit,
                                     'a: ---X^0.5---Y^(a + b)---',
                                     use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(circuit,
- """
+                                    """
  a
  |
  X^0.5
@@ -2649,8 +2649,7 @@ def test_to_qasm():
         cirq.X(q0),
     )
     assert circuit.to_qasm() == cirq.qasm(circuit)
-    assert (circuit.to_qasm() ==
- """// Generated from Cirq v{}
+    assert (circuit.to_qasm() == """// Generated from Cirq v{}
 
  OPENQASM 2.0;
  include "qelib1.inc";
@@ -2673,8 +2672,7 @@ def test_save_qasm():
         circuit.save_qasm(file_path)
         with open(file_path, 'r') as f:
             file_content = f.read()
-    assert (file_content ==
- """// Generated from Cirq v{}
+    assert (file_content == """// Generated from Cirq v{}
 
  OPENQASM 2.0;
  include "qelib1.inc";
