@@ -47,6 +47,8 @@ class RabiResult:
         Args:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
+        ax = plt.gca()
+        ax.set_ylim([0, 1])
         fig = plt.figure()
         plt.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
                  figure=fig, **plot_kwargs)
@@ -87,6 +89,7 @@ class RandomizedBenchMarkResult:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
         fig = plt.figure()
+
         plt.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Number of Cliffords", figure=fig)
