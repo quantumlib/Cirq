@@ -155,6 +155,17 @@ def test_circuit_diagram():
 2: ───H(2)───
 """)
 
+    c = cirq.Circuit()
+    c.append(cirq.ControlledOperation(qubits[:2], MultiH(1)(*qubits[2:])))
+
+    cirq.testing.assert_has_diagram(c, """
+0: ───@──────
+      │
+1: ───@──────
+      │
+2: ───H(2)───
+""")
+
 
 class MockGate(cirq.TwoQubitGate):
 
