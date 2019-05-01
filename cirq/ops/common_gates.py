@@ -38,13 +38,9 @@ import sympy
 
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation, phased_x_gate
 
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.phased_x_gate
-
 
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,

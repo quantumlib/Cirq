@@ -21,11 +21,8 @@ import sympy
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, raw_types, op_tree
+from cirq.ops import gate_features, raw_types, op_tree, common_gates
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.common_gates
 
 
 @value.value_equality
