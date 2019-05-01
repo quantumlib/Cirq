@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "cirq/api/google/v2/run_context.proto";
-
 package cirq.api.google.v2;
 
 option java_package = "com.google.cirq.api.google.v2";
@@ -13,11 +11,40 @@ message Program {
   // The language in which the program is written.
   Language language = 1;
 
-  // Details of how the program should be scheduled.
-  Scheduling scheduling = 2;
+  // Programs can be specified by moments or a scheduled operations.
+  // The moment structure is an abstract structure, useful for display
+  // purposes, whereas the scheduled operations represent the desired
+  // exactly timed schedule. The moment structure should be compatible
+  // with the scheduled operation timing.
 
-  // The quantum circuit, specified as a list of operations.
-  repeated Operation operations = 2;
+  // The quantum circuit, specified as a series of moments (abstract
+  // slices of times with gates acting on disjoint sets of qubits).
+  repeated Moment moments = 2;
+
+  // The quantum circuit, specified as a series of operations at specific
+  // start times.
+  repeated ScheduledOperation scheduled_operations = 3;
+}
+
+// A moment is a collection of operations that operate on a disjoint set of
+// qubits. Conceptually a moment represents operations that all occurring
+// the same finite period of time.
+message Moment {
+  // All of the operations in the moment. Each operation must act on different
+  // qubits.
+  repeated Operation operations = 1;
+}
+
+// An operation occurring at a specific start time.
+message ScheduledOperation {
+  // Which operation is to be scheduled.
+  Operation operation = 1;
+
+  // The start time of the operation, with zero representing the absolute
+  // start of the circuit.
+  //
+  // This must be consistent with the moment structure and must be positive.
+  int64 start_time_picos = 2;
 }
 
 // The language in which the program is expressed.
@@ -27,36 +54,6 @@ message Language {
 
   // The language supported by ArgFunctions.
   string arg_function_language = 2;
-}
-
-enum SchedulingType {
-  // The scheduling type is unspecified.
-  SCHEDULING_TYPE_UNSPECIFIED = 0;
-
-  // Scheduling should rely on the start time field being set in every
-  // operation.
-  //
-  // If this is used, moment_index is ignored.
-  START_TIME = 1;
-
-  // With a moment every gate is executed as early as possible. The duration
-  // of a moment is the length of the longest gate in that moment.
-  //
-  // If this is used, start_time_picos is ignored.
-  START_ALIGNED_MOMENTS = 2;
-
-  // All operations are scheduled to happen as early as possible. This is
-  // greedily determined passing over the operations in the order they
-  // are specified in Program.
-  //
-  // If this is used, start_time_picos and moment_index are both ignored.
-  EARLIEST = 3;
-}
-
-// Details of how the circuit is scheduled on to the device.
-message Scheduling {
-  // What type of scheduling is used.
-  SchedulingType type = 1;
 }
 
 // An operation acts on a set of qubits.
@@ -72,34 +69,27 @@ message Operation {
 
   // If the operation produces results, these are referenced by these keys.
   repeated string keys = 4;
-
-  // The start time of the operation, with zero representing the absolute
-  // start of the circuit.
-  //
-  // Must be set if START_TIME scheduling is used.
-  int64 start_time_picos = 5;
-
-  // Which moment this operation belongs to. A moment is a collection of
-  // operations that are conceptually associated with the same time slice.
-  // This index is which integer time slice this is associated with.
-  //
-  // Must be set if START_ALIGNED_MOMENT scheduling is used.
-  int32 moment_index = 6;
 }
 
 // The instruction identifying the action taken on the quantum computer.
 message Gate {
+  // Name for the Gate, such as 'x' or 'exp_x' or 'x_pow'.
   string id = 1;
 }
 
 // An identifier for a qubit.
 message Qubit {
+  // Identifies will depend on the device being scheduled upon.
+  // These depend on the device being scheduled upon.
+  //
+  // Typically ids for qubits on a line are simple string versions of integers,
+  // while for qubits on a square grid these are integers separated by a
+  // underscore, i.e. '0_1', '1_2', etc.
   string id = 2;
 }
 
 // Arguments needed to specify a gate.
 message Arg {
-
   // Arguments are either a number, a symbol, or an argument function
   // (which recursively depends on Arg).
   //
@@ -124,7 +114,8 @@ message Arg {
 // What language is supported is specified by the arg_function_language
 // in the language message.
 message ArgFunction {
-  // The name of the function.
+  // The name of the function. I.e. if the function is the sum of two symbols,
+  // this could be '+', and the args would be two string symbol values.
   string type = 1;
 
   // The arguments to the function.
