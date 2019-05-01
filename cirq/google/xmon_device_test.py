@@ -79,7 +79,7 @@ def test_init_timedelta():
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * microsecond
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     d = square_device(2, 2, holes=[])
 

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import pytest
 
 from cirq.circuits import TextDiagramDrawer
-from cirq.testing.mock import mock
 from cirq.circuits._block_diagram_drawer_test import _assert_same_diagram
 
 

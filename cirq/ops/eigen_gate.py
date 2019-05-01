@@ -17,11 +17,11 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
 
 import abc
 
+import math
 import numpy as np
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import gcd
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -323,7 +323,7 @@ class EigenGate(raw_types.Gate):
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
     for r in vals:
-        t = t * r // gcd(t, r)
+        t = t * r // math.gcd(t, r)
     return t
 
 

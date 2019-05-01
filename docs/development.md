@@ -140,9 +140,6 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 # Typecheck all python files in the repository.
 ./check/mypy [files-and-flags-for-mypy]
 
-# Transpile to python 2 and run tests.
-./check/pytest2  # Note: you must be in a python 2 virtual env to run this.
-
 # Compute incremental coverage vs master (or a custom revision of your choice).
 ./check/pytest-and-incremental-coverage [BASE_REVISION]
 
@@ -161,7 +158,7 @@ In order to run a check that is significantly more likely to agree with the trav
 This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies, transpile the python 2 code, and run all relevant checks within those clean environments.
 Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `continuous-integration/check.sh` is significantly slower than the simpler check scripts.
 When using this script, you can run a subset of the checks using the ```--only``` flag.
-This flag value can be `pylint`, `typecheck`, `pytest`, `pytest2`, or `incremental-coverage`.
+This flag value can be `pylint`, `typecheck`, `pytest`, or `incremental-coverage`.
 
 
 ### Producing the Python 2.7 code

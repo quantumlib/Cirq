@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import os
+import mock
 import pytest
 from apiclient import discovery
 
 import cirq
-from cirq.testing.mock import mock
 
 
 @mock.patch.object(discovery, 'build')
