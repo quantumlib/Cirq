@@ -104,13 +104,6 @@ def main():
         check_results = []
         failures = set()
         for c in checks:
-            # Prepare environment if needed.
-            if c.needs_python2_env() and env2 is None:
-                env2 = env_tools.derive_temporary_python2_environment(
-                    destination_directory=test_dir_2,
-                    python3_environment=env,
-                    verbose=verbose)
-
             # Run the check.
             print()
             result = c.pick_env_and_run_and_report(env, env2, verbose, failures)
