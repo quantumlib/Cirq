@@ -3,7 +3,7 @@ syntax = "proto3";
 package cirq.api.google.v1;
 
 option java_package = "com.google.cirq.api.google.v1";
-option java_outer_classname = "ProgramProto";
+option java_outer_classname = "ParamsProto";
 option java_multiple_files = true;
 
 // Specifies how to repeatedly sample a circuit, with or without sweeping over

@@ -32,7 +32,7 @@ message ParameterSweep {
 message Sweep {
 
   // The sweep is either a function of sweeps or an actual assignment of
-  // a symbol to
+  // a symbol to a list of values.
   oneof sweep {
     SweepFunction sweep_function = 1;
     SingleSweep single_sweep = 2;
