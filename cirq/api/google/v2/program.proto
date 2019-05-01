@@ -11,19 +11,31 @@ message Program {
   // The language in which the program is written.
   Language language = 1;
 
-  // Programs can be specified by moments or a scheduled operations.
-  // The moment structure is an abstract structure, useful for display
-  // purposes, whereas the scheduled operations represent the desired
-  // exactly timed schedule. The moment structure should be compatible
-  // with the scheduled operation timing.
+  // Programs can be specified by a circuit or a schedule.
+  oneof program {
+    // A circuit is an abstract representation as a series of moments, each
+    // moment having a set of gates that act on disjoint qubits. Circuits don't
+    // have absolute times for their operations (gates acting on qubits).
+    //
+    // When circuits are scheduled on hardware operations within a moment
+    // will all be scheduled to start at the same time, and the length of
+    // time associated with a moment will be equal to the duration of the
+    // longest operation in the moment. Subsequent moments will start as soon
+    // as the longest operation in the previous moment finishes.
+    Circuit circuit = 2;
 
-  // The quantum circuit, specified as a series of moments (abstract
-  // slices of times with gates acting on disjoint sets of qubits).
-  repeated Moment moments = 2;
+    // Schedules are a list of operations (gates acting on qubits) that specify
+    // absolute start times for the operations.
+    Schedule schedule = 3;
+  }
+}
 
-  // The quantum circuit, specified as a series of operations at specific
-  // start times.
-  repeated ScheduledOperation scheduled_operations = 3;
+// The quantum circuit, specified as a series of moments (abstract
+// slices of times with gates acting on disjoint sets of qubits).
+message Circuit {
+  // The moments of the circuit, with the first element corresponding to the
+  // first set of operations to apply, etc.
+  repeated Moment moments = 1;
 }
 
 // A moment is a collection of operations that operate on a disjoint set of
@@ -33,6 +45,13 @@ message Moment {
   // All of the operations in the moment. Each operation must act on different
   // qubits.
   repeated Operation operations = 1;
+}
+
+// The quantum circuit, specified as a series of operations at specific
+// start times.
+message Schedule {
+  // A list of all the operations and their absolute start times.
+  repeated ScheduledOperation scheduled_operations = 3;
 }
 
 // An operation occurring at a specific start time.
