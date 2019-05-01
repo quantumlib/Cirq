@@ -133,7 +133,7 @@ def test_pow():
 
 def test_consistent():
     a, b = cirq.LineQubit.range(2)
-    op = np.exp(1j * np.pi/2 * cirq.X(a) * cirq.X(b))
+    op = np.exp(1j * np.pi / 2 * cirq.X(a) * cirq.X(b))
     cirq.testing.assert_implements_consistent_protocols(op)
 
 
