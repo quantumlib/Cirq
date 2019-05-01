@@ -41,6 +41,12 @@ def test_fsim_eq():
         cirq.FSimGate(1, 2).on(b, a))
 
 
+def test_fsim_approx_eq():
+    assert cirq.approx_eq(cirq.FSimGate(1, 2),
+                          cirq.FSimGate(1.00001, 2.00001),
+                          atol=0.01)
+
+
 def test_fsim_consistent():
     gate = cirq.FSimGate(theta=np.pi / 3, phi=np.pi / 5)
     cirq.testing.assert_implements_consistent_protocols(gate)

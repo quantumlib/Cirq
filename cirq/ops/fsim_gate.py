@@ -33,7 +33,7 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class FSimGate(gate_features.TwoQubitGate,
                gate_features.InterchangeableQubitsGate):
     """Fermionic simulation gate family.
