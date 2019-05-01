@@ -155,26 +155,10 @@ In order to run a check that is significantly more likely to agree with the trav
 ./continuous-integration/check.sh
 ```
 
-This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies, transpile the python 2 code, and run all relevant checks within those clean environments.
+This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies and run all relevant checks within those clean environments.
 Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `continuous-integration/check.sh` is significantly slower than the simpler check scripts.
 When using this script, you can run a subset of the checks using the ```--only``` flag.
 This flag value can be `pylint`, `typecheck`, `pytest`, or `incremental-coverage`.
-
-
-### Producing the Python 2.7 code
-
-Run [dev_tools/python2.7-generate.sh](https://github.com/quantumlib/Cirq/blob/master/dev_tools/python2.7-generate.sh) to transpile cirq's python 3 code into python 2.7 code:
-
-```bash
-./dev_tools/python2.7-generate.sh [output_dir] [input_dir] [virtual_env_with_3to2]
-```
-
-If you don't specify any arguments then the input directory will be the current
-working directory, the output directory will be `python2.7-output` within the
-current directory, and `3to2` will be invoked in the current environment.
-
-The script fails with no effects if the output directory already exists.
-
 
 ### Writing docstrings and generating documentation
 
@@ -251,9 +235,7 @@ The HTML output will go into the `docs/_build` directory.
     ./dev_tools/packaging/verify-published-package.sh FULL_VERSION_REPORTED_BY_PUBLISH_SCRIPT --test
    ```
 
-    The script will create fresh virtual environments, install cirq and its dependencies, check that code importing cirq executes, and run the tests over the installed code.
-    It will do this for both python 2 and python 3.
-    If everything goes smoothly, the script will finish by printing `VERIFIED`.
+    The script will create fresh virtual environments, install cirq and its dependencies, check that code importing cirq executes, and run the tests over the installed code. If everything goes smoothly, the script will finish by printing `VERIFIED`.
 
 2. Do a dry run with prod pypi
 

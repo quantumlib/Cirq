@@ -1,4 +1,4 @@
-# Runtime requirements for the python 3 version of cirq.
+# Runtime requirements for contrib.
 
 pylatex==1.3.*
 tensorflow

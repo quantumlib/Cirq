@@ -21,7 +21,7 @@ That way you have control over when a breaking change affects you.
 
 ### Installing on Linux
 
-0. Make sure you have python 3.5.2 or greater (or else python 2.7).
+0. Make sure you have python 3.5.2 or greater.
 
     See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) @ the hitchhiker's guide to python.
 
@@ -57,7 +57,7 @@ That way you have control over when a breaking change affects you.
 
 ### Installing on Mac OS X
 
-0. Make sure you have python 3.5 or greater (or else python 2.7).
+0. Make sure you have python 3.5 or greater.
 
     See [Installing Python 3 on Mac OS X](https://docs.python-guide.org/starting/install3/osx/) @ the hitchhiker's guide to python.
 
@@ -86,7 +86,7 @@ That way you have control over when a breaking change affects you.
 
 0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](#installing-on-linux) instead of these instructions.
 
-1. Make sure you have python 3.5 or greater (or else python 2.7.9+).
+1. Make sure you have python 3.5 or greater.
 
     See [Installing Python 3 on Windows](https://docs.python-guide.org/starting/install3/win/) @ the hitchhiker's guide to python.
 
