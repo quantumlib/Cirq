@@ -147,7 +147,8 @@ def test_circuit_diagram():
     c = cirq.Circuit()
     c.append(cirq.ControlledOperation(qubits[:1], MultiH(2)(*qubits[1:])))
 
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(
+        c, """
 0: ───@──────
       │
 1: ───H(1)───
@@ -158,7 +159,8 @@ def test_circuit_diagram():
     c = cirq.Circuit()
     c.append(cirq.ControlledOperation(qubits[:2], MultiH(1)(*qubits[2:])))
 
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(
+        c, """
 0: ───@──────
       │
 1: ───@──────
