@@ -101,6 +101,9 @@ class GateOperation(raw_types.Operation):
                                                     self.qubits,
                                                     NotImplemented)
 
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return protocols.pauli_expansion(self.gate)
+
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(
