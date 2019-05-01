@@ -69,9 +69,15 @@ message ScheduledOperation {
 // The language in which the program is expressed.
 message Language {
   // The name of the gate set being used.
+  //
+  // Valid names for the gate sets can be found in cirq/google/gate_sets.py.
   string gate_set = 1;
 
-  // The language supported by ArgFunctions.
+  // The language supported by ArgFunctions. These specifies what allowed
+  // ArgFunction types there are.
+  //
+  // Valid names for the arg function language can be found in
+  // cirq/google/arg_func_langs.py
   string arg_function_language = 2;
 }
 
@@ -92,14 +98,16 @@ message Operation {
 
 // The instruction identifying the action taken on the quantum computer.
 message Gate {
-  // Name for the Gate, such as 'x' or 'exp_x' or 'x_pow'.
+  // Name for the Gate.
+  //
+  // These names must match those specified in the gate set.  This is found
+  // in cirq/google/gate_sets.py.
   string id = 1;
 }
 
 // An identifier for a qubit.
 message Qubit {
-  // Identifies will depend on the device being scheduled upon.
-  // These depend on the device being scheduled upon.
+  // Id of the qubit. These depend on the device being scheduled upon.
   //
   // Typically ids for qubits on a line are simple string versions of integers,
   // while for qubits on a square grid these are integers separated by a
@@ -135,6 +143,8 @@ message Arg {
 message ArgFunction {
   // The name of the function. I.e. if the function is the sum of two symbols,
   // this could be '+', and the args would be two string symbol values.
+  //
+  // Valid values for the type are given in cirq/google/arg_func_langs.py
   string type = 1;
 
   // The arguments to the function.
