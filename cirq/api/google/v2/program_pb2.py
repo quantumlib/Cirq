@@ -19,11 +19,33 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cirq/api/google/v2/program.proto',
   package='cirq.api.google.v2',
   syntax='proto3',
-  serialized_pb=_b('\n cirq/api/google/v2/program.proto\x12\x12\x63irq.api.google.v2\"\xa6\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.api.google.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.api.google.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v2.ScheduleH\x00\x42\t\n\x07program\"6\n\x07\x43ircuit\x12+\n\x07moments\x18\x01 \x03(\x0b\x32\x1a.cirq.api.google.v2.Moment\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.api.google.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.api.google.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x93\x01\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.api.google.v2.Gate\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.Arg\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.api.google.v2.Qubit\x12\x0c\n\x04keys\x18\x04 \x03(\t\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"a\n\x03\x41rg\x12\x10\n\x06number\x18\x01 \x01(\x02H\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.api.google.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.ArgB/\n\x1d\x63om.google.cirq.api.google.v2B\x0cProgramProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n cirq/api/google/v2/program.proto\x12\x12\x63irq.api.google.v2\"\xa6\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.api.google.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.api.google.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v2.ScheduleH\x00\x42\t\n\x07program\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.api.google.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.api.google.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.api.google.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.api.google.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x93\x01\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.api.google.v2.Gate\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.Arg\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.api.google.v2.Qubit\x12\x0c\n\x04keys\x18\x04 \x03(\t\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"a\n\x03\x41rg\x12\x10\n\x06number\x18\x01 \x01(\x02H\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.api.google.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.ArgB/\n\x1d\x63om.google.cirq.api.google.v2B\x0cProgramProtoP\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+_CIRCUIT_SCHEDULINGSTRATEGY = _descriptor.EnumDescriptor(
+  name='SchedulingStrategy',
+  full_name='cirq.api.google.v2.Circuit.SchedulingStrategy',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='SCHEDULING_STRATEGY_UNSPECIFIED', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MOMENT_BY_MOMENT', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=359,
+  serialized_end=438,
+)
+_sym_db.RegisterEnumDescriptor(_CIRCUIT_SCHEDULINGSTRATEGY)
 
 
 _PROGRAM = _descriptor.Descriptor(
@@ -82,8 +104,15 @@ _CIRCUIT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='moments', full_name='cirq.api.google.v2.Circuit.moments', index=0,
-      number=1, type=11, cpp_type=10, label=3,
+      name='scheduling_strategy', full_name='cirq.api.google.v2.Circuit.scheduling_strategy', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='moments', full_name='cirq.api.google.v2.Circuit.moments', index=1,
+      number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -93,6 +122,7 @@ _CIRCUIT = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _CIRCUIT_SCHEDULINGSTRATEGY,
   ],
   options=None,
   is_extendable=False,
@@ -100,8 +130,8 @@ _CIRCUIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=225,
-  serialized_end=279,
+  serialized_start=226,
+  serialized_end=438,
 )
 
 
@@ -131,8 +161,8 @@ _MOMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=281,
-  serialized_end=340,
+  serialized_start=440,
+  serialized_end=499,
 )
 
 
@@ -162,8 +192,8 @@ _SCHEDULE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=342,
-  serialized_end=422,
+  serialized_start=501,
+  serialized_end=581,
 )
 
 
@@ -200,8 +230,8 @@ _SCHEDULEDOPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=424,
-  serialized_end=520,
+  serialized_start=583,
+  serialized_end=679,
 )
 
 
@@ -238,8 +268,8 @@ _LANGUAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=522,
-  serialized_end=581,
+  serialized_start=681,
+  serialized_end=740,
 )
 
 
@@ -290,8 +320,8 @@ _OPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=584,
-  serialized_end=731,
+  serialized_start=743,
+  serialized_end=890,
 )
 
 
@@ -321,8 +351,8 @@ _GATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=733,
-  serialized_end=751,
+  serialized_start=892,
+  serialized_end=910,
 )
 
 
@@ -352,8 +382,8 @@ _QUBIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=753,
-  serialized_end=772,
+  serialized_start=912,
+  serialized_end=931,
 )
 
 
@@ -400,8 +430,8 @@ _ARG = _descriptor.Descriptor(
       name='arg', full_name='cirq.api.google.v2.Arg.arg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=774,
-  serialized_end=871,
+  serialized_start=933,
+  serialized_end=1030,
 )
 
 
@@ -438,8 +468,8 @@ _ARGFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=873,
-  serialized_end=939,
+  serialized_start=1032,
+  serialized_end=1098,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -451,7 +481,9 @@ _PROGRAM.fields_by_name['circuit'].containing_oneof = _PROGRAM.oneofs_by_name['p
 _PROGRAM.oneofs_by_name['program'].fields.append(
   _PROGRAM.fields_by_name['schedule'])
 _PROGRAM.fields_by_name['schedule'].containing_oneof = _PROGRAM.oneofs_by_name['program']
+_CIRCUIT.fields_by_name['scheduling_strategy'].enum_type = _CIRCUIT_SCHEDULINGSTRATEGY
 _CIRCUIT.fields_by_name['moments'].message_type = _MOMENT
+_CIRCUIT_SCHEDULINGSTRATEGY.containing_type = _CIRCUIT
 _MOMENT.fields_by_name['operations'].message_type = _OPERATION
 _SCHEDULE.fields_by_name['scheduled_operations'].message_type = _SCHEDULEDOPERATION
 _SCHEDULEDOPERATION.fields_by_name['operation'].message_type = _OPERATION
