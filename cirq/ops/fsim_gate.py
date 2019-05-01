@@ -131,6 +131,8 @@ def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:
     unit = 'π' if args.use_unicode_characters else 'pi'
     if radians == np.pi:
         return unit
+    if radians == 0:
+        return '0'
     if radians == -np.pi:
         return '-' + unit
     if args.precision is not None:
