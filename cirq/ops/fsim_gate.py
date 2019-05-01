@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines the fermionic simulation gate family.
 
 This is the family of two-qubit gates that preserve excitations (number of ON
@@ -80,19 +79,18 @@ class FSimGate(gate_features.TwoQubitGate,
             [0, 0, 0, c],
         ])
 
-    def _resolve_parameters_(self,
-                             param_resolver: 'cirq.ParamResolver'
-                             ) -> 'cirq.FSimGate':
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
+                            ) -> 'cirq.FSimGate':
         return FSimGate(
             protocols.resolve_parameters(self.theta, param_resolver),
             protocols.resolve_parameters(self.phi, param_resolver))
 
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'
-                       ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self,
+                        args: 'cirq.ApplyUnitaryArgs') -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
-            inner_matrix = protocols.unitary(cirq.Rx(-2*self.theta))
+            inner_matrix = protocols.unitary(cirq.Rx(-2 * self.theta))
             oi = args.subspace_index(0b01)
             io = args.subspace_index(0b10)
             out = cirq.apply_matrix_to_slices(args.target_tensor,
@@ -120,14 +118,11 @@ class FSimGate(gate_features.TwoQubitGate,
         return 'fsim({}, {})'.format(t, p), '#2'
 
     def __pow__(self, power):
-        return FSimGate(
-            cirq.mul(self.theta, power),
-            cirq.mul(self.phi, power))
+        return FSimGate(cirq.mul(self.theta, power), cirq.mul(self.phi, power))
 
     def __repr__(self):
-        return 'cirq.FSimGate(theta={}, phi={})'.format(
-            proper_repr(self.theta),
-            proper_repr(self.phi))
+        return 'cirq.FSimGate(theta={}, phi={})'.format(proper_repr(self.theta),
+                                                        proper_repr(self.phi))
 
 
 def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:

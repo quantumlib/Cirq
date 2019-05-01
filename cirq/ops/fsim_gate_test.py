@@ -35,39 +35,47 @@ def test_fsim_eq():
     eq.add_equality_group(cirq.FSimGate(2, 1))
     eq.add_equality_group(cirq.FSimGate(0, 0))
     eq.add_equality_group(cirq.FSimGate(1, 1))
-    eq.add_equality_group(cirq.FSimGate(1, 2).on(a, b),
-                          cirq.FSimGate(1, 2).on(b, a))
+    eq.add_equality_group(
+        cirq.FSimGate(1, 2).on(a, b),
+        cirq.FSimGate(1, 2).on(b, a))
 
 
 def test_fsim_consistent():
-    gate = cirq.FSimGate(theta=np.pi/3, phi=np.pi/5)
+    gate = cirq.FSimGate(theta=np.pi / 3, phi=np.pi / 5)
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
 def test_fsim_circuit():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(
-        cirq.FSimGate(np.pi/2, np.pi).on(a, b),
-        cirq.FSimGate(-np.pi, np.pi/2).on(a, b),
+        cirq.FSimGate(np.pi / 2, np.pi).on(a, b),
+        cirq.FSimGate(-np.pi, np.pi / 2).on(a, b),
     )
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(
+        c, """
 0: ───fsim(0.5π, π)───fsim(-π, 0.5π)───
       │               │
 1: ───#2──────────────#2───────────────
     """)
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(c,
+                                    """
 0: ---fsim(0.5pi, pi)---fsim(-pi, 0.5pi)---
       |                 |
 1: ---#2----------------#2-----------------
-        """, use_unicode_characters=False)
-    cirq.testing.assert_has_diagram(c, """
+        """,
+                                    use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(c,
+                                    """
 0: ---fsim(1.5707963267948966, pi)---fsim(-pi, 1.5707963267948966)---
       |                              |
 1: ---#2-----------------------------#2------------------------------
-""", use_unicode_characters=False, precision=None)
+""",
+                                    use_unicode_characters=False,
+                                    precision=None)
 
 
 def test_fsim_unitary():
+    # yapf: disable
     np.testing.assert_allclose(
         cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
         np.array([[1, 0, 0, 0],
@@ -147,3 +155,4 @@ def test_fsim_unitary():
                   [0, s*1j, s, 0],
                   [0, 0, 0, 0.5 + np.sqrt(0.75)*1j]]),
         atol=1e-8)
+    # yapf: enable
