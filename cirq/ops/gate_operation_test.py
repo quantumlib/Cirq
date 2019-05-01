@@ -185,8 +185,8 @@ def test_pauli_expansion():
     b = cirq.NamedQubit('b')
 
     assert cirq.pauli_expansion(cirq.X(a)) == cirq.LinearDict({'X': 1})
-    assert (cirq.pauli_expansion(cirq.CNOT(a, b)) ==
-            cirq.pauli_expansion(cirq.CNOT))
+    assert (cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(
+        cirq.CNOT))
 
 
 def test_unitary():
