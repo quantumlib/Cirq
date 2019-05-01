@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import sympy
 
 import cirq
 
@@ -72,6 +73,19 @@ def test_fsim_circuit():
 """,
                                     use_unicode_characters=False,
                                     precision=None)
+
+
+def test_resolve():
+    f = cirq.FSimGate(sympy.Symbol('a'), sympy.Symbol('b'))
+    assert cirq.is_parameterized(f)
+
+    f = cirq.resolve_parameters(f, {'a': 2})
+    assert f == cirq.FSimGate(2, sympy.Symbol('b'))
+    assert cirq.is_parameterized(f)
+
+    f = cirq.resolve_parameters(f, {'b': 1})
+    assert f == cirq.FSimGate(2, 1)
+    assert not cirq.is_parameterized(f)
 
 
 def test_fsim_unitary():
