@@ -145,6 +145,8 @@ message ArgFunction {
   // this could be '+', and the args would be two string symbol values.
   //
   // Valid values for the type are given in cirq/google/arg_func_langs.py
+  // and must be consistent with the arg_function_language specified in the
+  // language field of the program.
   string type = 1;
 
   // The arguments to the function.
