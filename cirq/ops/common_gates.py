@@ -36,7 +36,7 @@ from typing import Any, Callable, cast, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import sympy
 
-from cirq import linalg, protocols, value
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
