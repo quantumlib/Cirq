@@ -745,7 +745,7 @@ class CZPowGate(eigen_gate.EigenGate,
             return NotImplemented
 
         c = 1j**(2 * self._exponent)
-        one_one = linalg.slice_for_qubits_equal_to(args.axes, 0b11)
+        one_one = args.subspace_index(0b11)
         args.target_tensor[one_one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
