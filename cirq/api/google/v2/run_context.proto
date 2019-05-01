@@ -41,36 +41,44 @@ message Sweep {
 
 // A function that takes multiple sweeps and produces more sweeps.
 message SweepFunction {
-  // The type of function. Currently supports
-  //
-  // product: A cartesian product of parameter sweeps.
-  // zip: The zip product of parameter sweeps.
-  //
-  // Example of product:
-  // If one of the sweeps assigns
-  // "a": 0.0
-  // "a": 1.0
-  // and another assigns
-  // "b": 2.0
-  // "b": 3.0
-  // then the product of these assigns all possible combinations.
-  // "a": 0.0, "b": 2.0
-  // "a": 0.0, "b": 3.0
-  // "a": 1.0, "b": 2.0
-  // "a": 1.0, "b": 3.0
-  //
-  // Example of a zip:
-  // If one of the sweeps assigns
-  // "a": 0.0
-  // "a": 1.0
-  // and another assigns
-  // "b": 2.0
-  // "b": 3.0
-  // then the product of these assigns
-  // "a": 0.0, "b": 2.0
-  // "a": 1.0, "b": 3.0
-  // Note: if one sweep is shorter, the others will be truncated.
-  string type = 1;
+  // The type of sweep function.
+  enum FunctionType {
+    // The function type is not specified. Should never be used.
+    FUNCTION_TYPE_UNSPECIFIED = 0;
+
+    // A Cartesian product of parameter sweeps.
+    //
+    // Example of product:
+    // If one of the sweeps assigns
+    // "a": 0.0
+    // "a": 1.0
+    // and another assigns
+    // "b": 2.0
+    // "b": 3.0
+    // then the product of these assigns all possible combinations.
+    // "a": 0.0, "b": 2.0
+    // "a": 0.0, "b": 3.0
+    // "a": 1.0, "b": 2.0
+    // "a": 1.0, "b": 3.0
+    PRODUCT = 1;
+
+    // A zip product of parameter sweeps.
+    //
+    // Example of zip:
+    // If one of the sweeps assigns
+    // "a": 0.0
+    // "a": 1.0
+    // and another assigns
+    // "b": 2.0
+    // "b": 3.0
+    // then the product of these assigns
+    // "a": 0.0, "b": 2.0
+    // "a": 1.0, "b": 3.0
+    // Note: if one sweep is shorter, the others will be truncated.
+    ZIP = 2;
+  }
+
+  FunctionType function_type = 1;
 
   // The argument sweeps to the function.
   repeated Sweep sweeps = 2;

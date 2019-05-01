@@ -16,12 +16,6 @@ message Program {
     // A circuit is an abstract representation as a series of moments, each
     // moment having a set of gates that act on disjoint qubits. Circuits don't
     // have absolute times for their operations (gates acting on qubits).
-    //
-    // When circuits are scheduled on hardware operations within a moment
-    // will all be scheduled to start at the same time, and the length of
-    // time associated with a moment will be equal to the duration of the
-    // longest operation in the moment. Subsequent moments will start as soon
-    // as the longest operation in the previous moment finishes.
     Circuit circuit = 2;
 
     // Schedules are a list of operations (gates acting on qubits) that specify
@@ -33,9 +27,23 @@ message Program {
 // The quantum circuit, specified as a series of moments (abstract
 // slices of times with gates acting on disjoint sets of qubits).
 message Circuit {
+  // How the circuit is scheduled.
+  enum SchedulingStrategy {
+    // The scheduling strategy is unspecified.
+    SCHEDULING_STRATEGY_UNSPECIFIED = 0;
+
+    // Each operation in a moment starts at the same time. The start of the
+    // next moment is given by the duration of the longest operation in
+    // the current moment.
+    MOMENT_BY_MOMENT = 1;
+  }
+
+  SchedulingStrategy scheduling_strategy = 1;
+
+
   // The moments of the circuit, with the first element corresponding to the
   // first set of operations to apply, etc.
-  repeated Moment moments = 1;
+  repeated Moment moments = 2;
 }
 
 // A moment is a collection of operations that operate on a disjoint set of
