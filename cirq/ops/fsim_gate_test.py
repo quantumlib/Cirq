@@ -23,8 +23,8 @@ def test_fsim_init():
     assert f.phi == 2
 
     f2 = cirq.FSimGate(theta=1, phi=2)
-    assert f.theta == 1
-    assert f.phi == 2
+    assert f2.theta == 1
+    assert f2.phi == 2
 
 
 def test_fsim_eq():

@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Defines the fermionic simulation gate family."""
+"""Defines the fermionic simulation gate family.
+
+This is the family of two-qubit gates that preserve excitations (number of ON
+qubits), ignoring single-qubit gates and global phase. For example, when using
+the second quantized representation of electrons to simulate chemistry, this is
+a natural gateset because each ON qubit corresponds to an electron and in the
+context of chemistry the electron count is conserved over time. This property
+applies more generally to fermions, thus the name of the gate.
+"""
 
 import cmath
 import math
@@ -21,10 +29,9 @@ from typing import Optional
 import numpy as np
 
 import cirq
-from cirq import value
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import gate_features
-from cirq.ops.common_gates import _rads_func_symbol
 
 
 @value.value_equality
@@ -77,15 +84,15 @@ class FSimGate(gate_features.TwoQubitGate,
                              param_resolver: 'cirq.ParamResolver'
                              ) -> 'cirq.FSimGate':
         return FSimGate(
-            cirq.resolve_parameters(self.theta, param_resolver),
-            cirq.resolve_parameters(self.phi, param_resolver))
+            protocols.resolve_parameters(self.theta, param_resolver),
+            protocols.resolve_parameters(self.phi, param_resolver))
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'
                        ) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
-            inner_matrix = cirq.unitary(cirq.Rx(-2*self.theta))
+            inner_matrix = protocols.unitary(cirq.Rx(-2*self.theta))
             oi = args.subspace_index(0b01)
             io = args.subspace_index(0b10)
             out = cirq.apply_matrix_to_slices(args.target_tensor,
