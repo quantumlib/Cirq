@@ -151,7 +151,9 @@ class GateOperation(raw_types.Operation):
 
     def _phase_by_(self, phase_turns: float,
                    qubit_index: int) -> 'GateOperation':
-        phased_gate = protocols.phase_by(self.gate, phase_turns, qubit_index,
+        phased_gate = protocols.phase_by(self.gate,
+                                         phase_turns,
+                                         qubit_index,
                                          default=None)
         if phased_gate is None:
             return NotImplemented
