@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import shutil
 import sys
 from typing import Optional, Iterable, Callable, cast
 
@@ -136,4 +135,3 @@ def prepare_temporary_test_environment(
                        compare_commit_id=env.compare_commit_id,
                        destination_directory=env.destination_directory,
                        virtual_env_path=env_path)
-
