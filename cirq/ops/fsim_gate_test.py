@@ -80,8 +80,7 @@ def test_fsim_circuit():
                                     use_unicode_characters=False,
                                     precision=None)
     c = cirq.Circuit.from_ops(
-        cirq.FSimGate(sympy.Symbol('a') + sympy.Symbol('b'), 0).on(a, b),
-    )
+        cirq.FSimGate(sympy.Symbol('a') + sympy.Symbol('b'), 0).on(a, b))
     cirq.testing.assert_has_diagram(
         c, """
 0: ───fsim(a + b, 0)───
