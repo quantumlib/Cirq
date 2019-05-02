@@ -89,6 +89,8 @@ class RandomizedBenchMarkResult:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
         fig = plt.figure()
+        ax = plt.gca()
+        ax.set_ylim([0, 1])
 
         plt.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
                  figure=fig, **plot_kwargs)
@@ -506,7 +508,7 @@ def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
 
 def _matrix_bar_plot(mat: np.ndarray, z_label: str, fig: plt.Figure,
                      plt_position: int, kets: Sequence[str] = None,
-                     title: str = None) -> None:
+                     title: str = None, ylim: (int, int) = None) -> None:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
@@ -523,7 +525,10 @@ def _matrix_bar_plot(mat: np.ndarray, z_label: str, fig: plt.Figure,
               alpha=1.0)
 
     ax1.set_zlabel(z_label)
-    ax1.set_zlim3d(min(0, np.amin(mat)), max(0, np.amax(mat)))
+    if ylim is not None:
+        ax1.set_zlim3d(ylim[0], ylim[1])
+    else:
+        ax1.set_zlim3d(min(0, np.amin(mat)), max(0, np.amax(mat)))
 
     if kets is not None:
         plt.xticks(np.arange(num_cols) + 0.15, kets)
@@ -544,9 +549,9 @@ def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     mat_im = np.imag(mat)
     fig = plt.figure(figsize=(12.0, 5.0))
     _matrix_bar_plot(mat_re, r'Real($\rho$)', fig, 121, kets,
-                     'Density Matrix (Real Part)')
+                     'Density Matrix (Real Part)', ylim=(-1,1))
     _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', fig, 122, kets,
-                     'Density Matrix (Imaginary Part)')
+                     'Density Matrix (Imaginary Part)', ylim=(-1,1))
     return fig
 
 
