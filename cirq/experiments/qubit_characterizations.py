@@ -1,8 +1,8 @@
 import itertools
 
 from typing import Sequence, Tuple, Iterator, Any, NamedTuple, List
-import sympy
 import numpy as np
+import sympy
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
