@@ -506,9 +506,9 @@ def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
     return idx
 
 
-def _matrix_bar_plot(mat: np.ndarray, z_label: str, fig: plt.Figure,
+def _matrix_bar_plot(mat: np.ndarray,z_label: str, fig: plt.Figure,
                      plt_position: int, kets: Sequence[str] = None,
-                     title: str = None, ylim: (int, int) = None) -> None:
+                     title: str = None, ylim: Tuple[int, int] = None) -> None:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
