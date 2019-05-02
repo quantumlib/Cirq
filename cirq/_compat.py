@@ -15,8 +15,8 @@
 """Workarounds for sympy issues"""
 
 from typing import Any
-import sympy
 import numpy as np
+import sympy
 
 
 def proper_repr(value: Any) -> str:
