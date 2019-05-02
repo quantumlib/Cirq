@@ -512,7 +512,7 @@ def _matrix_bar_plot(mat: np.ndarray,
                      plt_position: int,
                      kets: Sequence[str] = None,
                      title: str = None,
-                     ylim: Tuple[int, int] = None) -> None:
+                     ylim: Tuple[int, int] = (-1, 1)) -> None:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
@@ -529,10 +529,7 @@ def _matrix_bar_plot(mat: np.ndarray,
               alpha=1.0)
 
     ax1.set_zlabel(z_label)
-    if ylim is not None:
-        ax1.set_zlim3d(ylim[0], ylim[1])
-    else:
-        ax1.set_zlim3d(min(0, np.amin(mat)), max(0, np.amax(mat)))
+    ax1.set_zlim3d(ylim[0], ylim[1])
 
     if kets is not None:
         plt.xticks(np.arange(num_cols) + 0.15, kets)
