@@ -276,6 +276,7 @@ from cirq.protocols import (
     approx_eq,
     control,
     channel,
+    check_parameters,
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
