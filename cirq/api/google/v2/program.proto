@@ -37,7 +37,7 @@ message Circuit {
     // the current moment.
     MOMENT_BY_MOMENT = 1;
   }
-  
+
   SchedulingStrategy scheduling_strategy = 1;
 
   // The moments of the circuit, with the first element corresponding to the
