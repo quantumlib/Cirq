@@ -64,6 +64,17 @@ class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
+
+        if protocols.is_parameterized(circuit):
+            unresolved_params = protocols.check_parameters(circuit, params)
+            if unresolved_params is not None:
+                raise ValueError(
+                    'Cannot simulate. Circuit has unresolved '
+                    'parameterized operations. Check that you passed '
+                    'a parameter resolver, and that it specifies all '
+                    'the necessary parameters.\n\nHere are the '
+                    'unresolved operations: {}'.format(unresolved_params))
+
         param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
