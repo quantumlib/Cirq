@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import sympy
 
 import cirq
@@ -67,3 +68,19 @@ def test_skips_empty_resolution():
     t = Tester()
     assert cirq.resolve_parameters(t, {}) is t
     assert cirq.resolve_parameters(t, {'x': 2}) == 5
+
+
+def test_check_parameters():
+    c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0))**sympy.Symbol('x'))
+    r = cirq.ParamResolver({'y': 0.5})
+    c_p = cirq.check_parameters(c, r)
+    assert str(c_p) == str('[\'x\']')
+    r_c = cirq.resolve_parameters(c, r)
+    with pytest.raises(ValueError):
+        cirq.Simulator().run(r_c)
+
+    sweep = cirq.Linspace(key='y', start=0.1, stop=0.9, length=5)
+    c_p = cirq.check_parameters(c, sweep)
+    assert str(c_p) == str('[\'x\']')
+    with pytest.raises(ValueError):
+        cirq.Simulator().run_sweep(c, params=sweep)
