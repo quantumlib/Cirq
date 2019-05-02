@@ -47,9 +47,9 @@ class RabiResult:
         Args:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
+        fig = plt.figure()
         ax = plt.gca()
         ax.set_ylim([0, 1])
-        fig = plt.figure()
         plt.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
