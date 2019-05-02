@@ -506,9 +506,13 @@ def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
     return idx
 
 
-def _matrix_bar_plot(mat: np.ndarray,z_label: str, fig: plt.Figure,
-                     plt_position: int, kets: Sequence[str] = None,
-                     title: str = None, ylim: Tuple[int, int] = None) -> None:
+def _matrix_bar_plot(mat: np.ndarray,
+                     z_label: str,
+                     fig: plt.Figure,
+                     plt_position: int,
+                     kets: Sequence[str] = None,
+                     title: str = None,
+                     ylim: Tuple[int, int] = None) -> None:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
@@ -548,10 +552,20 @@ def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     mat_re = np.real(mat)
     mat_im = np.imag(mat)
     fig = plt.figure(figsize=(12.0, 5.0))
-    _matrix_bar_plot(mat_re, r'Real($\rho$)', fig, 121, kets,
-                     'Density Matrix (Real Part)', ylim=(-1,1))
-    _matrix_bar_plot(mat_im, r'Imaginary($\rho$)', fig, 122, kets,
-                     'Density Matrix (Imaginary Part)', ylim=(-1,1))
+    _matrix_bar_plot(mat_re,
+                     r'Real($\rho$)',
+                     fig,
+                     121,
+                     kets,
+                     'Density Matrix (Real Part)',
+                     ylim=(-1, 1))
+    _matrix_bar_plot(mat_im,
+                     r'Imaginary($\rho$)',
+                     fig,
+                     122,
+                     kets,
+                     'Density Matrix (Imaginary Part)',
+                     ylim=(-1, 1))
     return fig
 
 
