@@ -16,7 +16,7 @@
 import abc
 from typing import (List, Union)
 
-from cirq import circuits, schedules, study
+from cirq import circuits, protocols, schedules, study
 
 
 class Sampler(metaclass=abc.ABCMeta):
@@ -38,6 +38,21 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             TrialResult for a run.
         """
+        circuit = (program if isinstance(program, circuits.Circuit) else
+                   program.to_circuit())
+
+        if protocols.is_parameterized(circuit):
+            unresolved_params = protocols.check_parameters(
+                circuit, study.ParamResolver(param_resolver))
+            if unresolved_params is not None:
+                raise ValueError(
+                    'Cannot simulate. Circuit has unresolved '
+                    'parameterized operations. Either use run_sweep '
+                    'or check that you passed a parameter resolver, '
+                    'and that it specifies all the necessary '
+                    'parameters.\n\nHere are the unresolved '
+                    'operations: {}'.format(unresolved_params))
+
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
 
