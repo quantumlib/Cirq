@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google.convert_to_xmon_gates import (
-    ConvertToXmonGates,)
-
-from cirq.google.known_devices import (
-    Bristlecone,
-    Foxtail,
+from cirq.google.engine import (
+    engine_from_environment,
+    Engine,
+    JobConfig,
 )
 
-from cirq.google.xmon_device import (
-    XmonDevice,)
-
-from cirq.google.optimize import (
-    optimized_for_xmon,)
+from cirq.google.line import (
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    line_on_device,
+    LinePlacementStrategy,
+)
 
 from cirq.google.sim import (
     XmonOptions,
@@ -32,11 +31,20 @@ from cirq.google.sim import (
     XmonStepResult,
 )
 
-from cirq.google.engine import (
-    engine_from_environment,
-    Engine,
-    JobConfig,
+from cirq.google.convert_to_xmon_gates import (
+    ConvertToXmonGates,)
+
+from cirq.google.gate_sets import (
+    XMON,)
+
+from cirq.google.known_devices import (
+    Bristlecone,
+    Foxtail,
 )
+
+from cirq.google.optimize import (
+    optimized_for_xmon,)
+
 
 from cirq.google.programs import (
     gate_to_proto_dict,
@@ -49,9 +57,5 @@ from cirq.google.programs import (
     xmon_op_from_proto_dict,
 )
 
-from cirq.google.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    line_on_device,
-    LinePlacementStrategy,
-)
+from cirq.google.xmon_device import (
+    XmonDevice,)
