@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import Any, List, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
 
 import sympy
@@ -97,3 +97,44 @@ def resolve_parameters(
         return result
     else:
         return val
+
+
+def check_parameters(val: Any, param_resolver: 'cirq.study.Sweepable') -> Any:
+    """Checks for unresolved parameters.
+
+    This function will check the provided circuit against the
+    provided parameters to determined if there are any unresolved
+    parameters.
+
+    Args:
+        val: The object to check for missing parameters
+        param_resolver: the object to use for resolving all symbols
+
+    Returns:
+        Any unresolved parameters.
+    """
+    from cirq import protocols, study
+
+    try:
+        all_ops = list(val.all_operations())
+    except TypeError:
+        all_ops = []
+    c_params = []  # type: List[str]
+    s_params = []  # type: List[str]
+    param_list = study.to_resolvers(param_resolver)
+
+    for x in range(len(all_ops)):
+        if is_parameterized(all_ops[x]):
+            c_params.append(
+                str(protocols.circuit_diagram_info(all_ops[x]).exponent))
+
+    for param in param_list:
+        if hasattr(param, 'param_dict'):
+            for key in param.param_dict.items():
+                if key[0] not in list(s_params):
+                    s_params.append(key[0])
+
+    if len(list(set(c_params).difference(s_params))) > 0:
+        return (list(set(c_params).difference(s_params)))
+    else:
+        return None
