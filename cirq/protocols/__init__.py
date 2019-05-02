@@ -86,6 +86,7 @@ from cirq.protocols.trace_distance_bound import (
     trace_distance_bound,
 )
 from cirq.protocols.resolve_parameters import (
+    check_parameters,
     is_parameterized,
     resolve_parameters,
     SupportsParameterization,
