@@ -86,13 +86,8 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
             return result
 
     # Compare primitive types directly.
-    if isinstance(val, (int, float)):
-        if not isinstance(other, (int, float)):
-            return False
-        return _isclose(val, other, atol=atol)
-
-    if isinstance(val, complex):
-        if not isinstance(other, complex):
+    if isinstance(val, (int, float, complex)):
+        if not isinstance(other, (int, float, complex)):
             return False
         return _isclose(val, other, atol=atol)
 
