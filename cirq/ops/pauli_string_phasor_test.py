@@ -131,6 +131,12 @@ def test_pow():
     assert p**1 == p
 
 
+def test_consistent():
+    a, b = cirq.LineQubit.range(2)
+    op = np.exp(1j * np.pi / 2 * cirq.X(a) * cirq.X(b))
+    cirq.testing.assert_implements_consistent_protocols(op)
+
+
 def test_pass_operations_over():
     q0, q1 = _make_qubits(2)
     op = cirq.SingleQubitCliffordGate.from_double_map({
