@@ -180,6 +180,15 @@ def test_parameterizable_effect():
     assert op2 == cirq.S.on(q)
 
 
+def test_pauli_expansion():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert cirq.pauli_expansion(cirq.X(a)) == cirq.LinearDict({'X': 1})
+    assert (cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(
+        cirq.CNOT))
+
+
 def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
