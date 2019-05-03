@@ -268,10 +268,7 @@ def so4_to_magic_su2s(
 class AxisAngleDecomposition:
     """Represents a unitary operation as an axis, angle, and global phase."""
 
-    def __init__(self,
-                 *,
-                 angle: float,
-                 axis: Tuple[float, float, float],
+    def __init__(self, *, angle: float, axis: Tuple[float, float, float],
                  global_phase: Union[int, float, complex]):
         self.global_phase = complex(global_phase)
         self.axis = tuple(axis)
@@ -301,14 +298,12 @@ class AxisAngleDecomposition:
             z = -z
             angle = -angle
 
-        return AxisAngleDecomposition(
-            axis=(x, y, z),
-            angle=angle,
-            global_phase=p)
+        return AxisAngleDecomposition(axis=(x, y, z),
+                                      angle=angle,
+                                      global_phase=p)
 
     def _value_equality_values_(self):
-        return (value.PeriodicValue(self.angle, period=math.pi*2),
-                self.axis,
+        return (value.PeriodicValue(self.angle, period=math.pi * 2), self.axis,
                 self.global_phase)
 
     def _unitary_(self):
@@ -322,10 +317,9 @@ class AxisAngleDecomposition:
         return (c * i + 1j * s * (x * xm + y * ym + z * zm)) * self.global_phase
 
     def __repr__(self):
-        return (
-            'cirq.AxisAngleDecomposition('
-            'angle={!r}, axis={!r}, global_phase={!r})'.format(
-                self.angle, self.axis, self.global_phase))
+        return ('cirq.AxisAngleDecomposition('
+                'angle={!r}, axis={!r}, global_phase={!r})'.format(
+                    self.angle, self.axis, self.global_phase))
 
 
 def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
@@ -358,25 +352,20 @@ def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
     x = np.real(xp / p)
     y = np.real(yp / p)
     z = np.real(zp / p)
-    angle = -2*math.acos(w)
+    angle = -2 * math.acos(w)
 
     # Normalize axis.
-    n = math.sqrt(x*x + y*y + z*z)
+    n = math.sqrt(x * x + y * y + z * z)
     if n < 0.0000001:
         # There's an axis singularity near θ=0.
         # Default to no rotation around the X axis.
-        return AxisAngleDecomposition(global_phase=p,
-                                      angle=0,
-                                      axis=(1, 0, 0))
+        return AxisAngleDecomposition(global_phase=p, angle=0, axis=(1, 0, 0))
     x /= n
     y /= n
     z /= n
 
-    return AxisAngleDecomposition(
-        axis=(x, y, z),
-        angle=angle,
-        global_phase=p
-    ).canonicalize()
+    return AxisAngleDecomposition(axis=(x, y, z), angle=angle,
+                                  global_phase=p).canonicalize()
 
 
 @value.value_equality
