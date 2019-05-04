@@ -44,14 +44,13 @@ class Sampler(metaclass=abc.ABCMeta):
         if protocols.is_parameterized(circuit):
             unresolved_params = protocols.check_parameters(
                 circuit, study.ParamResolver(param_resolver))
-            if unresolved_params is not None:
-                raise ValueError(
-                    'Cannot simulate. Circuit has unresolved '
-                    'parameterized operations. Either use run_sweep '
-                    'or check that you passed a parameter resolver, '
-                    'and that it specifies all the necessary '
-                    'parameters.\n\nHere are the unresolved '
-                    'operations: {}'.format(unresolved_params))
+            raise ValueError(
+                'Cannot simulate. Circuit has unresolved '
+                'parameterized operations. Either use run_sweep '
+                'or check that you passed a parameter resolver, '
+                'and that it specifies all the necessary '
+                'parameters.\n\nHere are the unresolved '
+                'operations: {}'.format(unresolved_params))
 
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
