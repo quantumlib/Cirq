@@ -13,6 +13,7 @@
 # limitations under the License.
 import operator
 
+import sympy
 from ply import yacc
 
 from cirq import Circuit, NamedQubit, CNOT
@@ -49,8 +50,16 @@ class QasmParser(object):
         self.cregs = {}
         self.parsedQasm = None
         self.qubits = {}
-        self.external_functions = ['sin', 'cos', 'tan', 'exp', 'ln', 'sqrt',
-                                   'acos', 'atan', 'asin']
+        self.functions = {
+            'sin': sympy.sin,
+            'cos': sympy.cos,
+            'tan': sympy.tan,
+            'exp': sympy.exp,
+            'ln': sympy.ln, 'sqrt': sympy.sqrt,
+            'acos': sympy.acos,
+            'atan': sympy.atan,
+            'asin': sympy.asin
+        }
 
         self.binary_operators = {
             '+': operator.add,
@@ -188,20 +197,17 @@ class QasmParser(object):
                     'Params: {}, Args: {} at line {} '.format(
                         len(qreg), params, args, p.lineno(5)), self.qasm)
 
-            p[0] = QasmUGate(params[1], params[0], params[2])(qreg[0])
+            p[0] = QasmUGate(params[2], params[0], params[1])(qreg[0])
 
     # params : parameter ',' params
     #        | parameter
     def p_params_multiple(self, p):
         """params : expr ',' params"""
-        print('params multiple {} {} {} '.format(p[1], p[2], p[3]))
         p[3].insert(0, p[1])
         p[0] = p[3]
-        print('   p[0] = {}'.format(p[0]))
 
     def p_params_single(self, p):
         """params : expr """
-        print('params single {} '.format(p[1]))
         p[0] = [p[1]]
 
     # expr : term
@@ -212,11 +218,34 @@ class QasmParser(object):
         """expr : term"""
         p[0] = p[1]
 
+    def p_expr_parens(self, p):
+        """expr : '(' expr ')'"""
+        p[0] = p[2]
+
+    def p_expr_function_call(self, p):
+        """expr : ID '(' expr ')'"""
+        func = p[1]
+        if func not in self.functions.keys():
+            raise QasmException(
+                "Function not recognized: '{}' at line {}".format(func,
+                                                                  p.lineno(1)),
+                self.qasm)
+        p[0] = self.functions[func](p[3])
+
+    def p_expr_unary(self, p):
+        """expr : '-' expr
+                | '+' expr """
+        if p[1] == '-':
+            p[0] = - p[2]
+        else:
+            p[0] = p[2]
+
     def p_expr_binary(self, p):
         """expr : expr '*' expr
                 | expr '/' expr
                 | expr '+' expr
                 | expr '-' expr
+                | expr '^' expr
         """
         p[0] = self.binary_operators[p[2]](p[1], p[3])
 

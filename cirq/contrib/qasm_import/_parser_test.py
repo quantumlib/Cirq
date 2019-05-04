@@ -184,9 +184,9 @@ def test_u_gate():
 
     expectedCircuit = Circuit()
     expectedCircuit.append(
-        QasmUGate(Number(2) * sympy.pi,
+        QasmUGate(sympy.pi / Number(3.0),
                   sympy.pi,
-                  sympy.pi / Number(3.0))(q0))
+                  Number(2) * sympy.pi)(q0))
 
     parsed_qasm = parser.parse()
 
@@ -195,3 +195,73 @@ def test_u_gate():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
     assert parsed_qasm.qregs == {'q': 1}
+
+
+@pytest.mark.parametrize(
+    'expr',
+    [
+        '.333 + 4',
+        '1.0 * 2',
+        '0.1 ^ pi',
+        '0.1 / pi',
+        '2.0e-05 ^ (1/2)',
+        '1.2E+05 * (3 + 2)',
+        '123123.2132312 * cos(pi)',
+        '123123.2132312 * sin(2 * pi)',
+        '3 + 4 * 2',
+        '3 * 4 + 2',
+        '3 * 4 ^ 2',
+        '3 * 4 ^ 2',
+        '3 - 4 ^ 2',
+        '(-1) * pi',
+        '(+1) * pi',
+        '-3 * 5 + 2',
+        '+4 * (-3) ^ 5 - 2',
+        'tan(123123.2132312)',
+        'ln(pi)',
+        'exp(2*pi)',
+        'sqrt(4)',
+        'acos(1)',
+        'atan(0.2)',
+        'asin(1.2)',
+    ]
+)
+def test_expressions(expr: str):
+    qasm = """
+     OPENQASM 2.0;
+     qreg q[1];
+     U({}, 2 * pi, pi / 3.0) q[0];
+""".format(expr)
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expectedCircuit = Circuit()
+    expectedCircuit.append(
+        QasmUGate(sympy.pi / Number(3.0),
+                  sympy.sympify(expr),
+                  Number(2) * sympy.pi)(q0))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is False
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    assert parsed_qasm.qregs == {'q': 1}
+
+
+def test_unknown_function():
+    qasm = """
+     OPENQASM 2.0;
+     qreg q[1];
+     U(nonexistent(3), 2 * pi, pi / 3.0) q[0];
+"""
+    parser = QasmParser(qasm)
+    try:
+        parser.parse()
+        raise AssertionError("should fail with no format error")
+    except QasmException as ex:
+        assert ex.qasm == qasm
+        assert ex.message == "Function not recognized: 'nonexistent' at line 4"
