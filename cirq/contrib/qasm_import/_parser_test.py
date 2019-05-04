@@ -53,11 +53,8 @@ include "qelib1.inc";
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
 
-@pytest.mark.parametrize('qasm', [
-    "",
-    "include \"qelib1.inc\";"
-])
-def test_error_not_starting_with_format(qasm: str):
+def test_error_not_starting_with_format():
+    qasm = "include \"qelib1.inc\";"
     parser = QasmParser(qasm)
     try:
         parser.parse()
@@ -65,6 +62,15 @@ def test_error_not_starting_with_format(qasm: str):
     except QasmException as ex:
         assert ex.qasm == qasm
         assert ex.message == "Missing 'OPENQASM 2.0;' statement"
+
+
+def test_error_on_empty():
+    parser = QasmParser("")
+    try:
+        parser.parse()
+        raise AssertionError("should fail with no format error")
+    except QasmException as ex:
+        assert ex.message == "Unexpected end of file"
 
 
 def test_multiple_qreg_declaration():
@@ -103,7 +109,7 @@ def test_multiple_creg_declaration():
     assert parsed_qasm.cregs == {'a_classical_register': 1337, 'c': 42}
 
 
-def test_cx_gate():
+def test_CX_gate():
     qasm = """
      OPENQASM 2.0;          
      qreg q1[2];
@@ -265,3 +271,60 @@ def test_unknown_function():
     except QasmException as ex:
         assert ex.qasm == qasm
         assert ex.message == "Function not recognized: 'nonexistent' at line 4"
+
+
+def test_cx_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     cx q[0], q[1];
+"""
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expectedCircuit = Circuit()
+    expectedCircuit.append(cirq.CNOT(q0, q1))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_id_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     id q[0];
+     id q;
+"""
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expectedCircuit = Circuit()
+    expectedCircuit.append(cirq.IdentityGate(1).on(q0))
+    expectedCircuit.append(cirq.IdentityGate(2).on(q0, q1))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+## TODO: CNOT on registers - combine with CX
+## TODO: other gates
+## TODO: generalize the qreg validation and assignment logic
+## TODO: comments

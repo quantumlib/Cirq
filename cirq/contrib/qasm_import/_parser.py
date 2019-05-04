@@ -16,6 +16,7 @@ import operator
 import sympy
 from ply import yacc
 
+import cirq
 from cirq import Circuit, NamedQubit, CNOT
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
@@ -40,7 +41,19 @@ class Qasm(object):
 
 class QasmParser(object):
 
+    def id_gate(self, args, lineno):
+        if len(args) != 1:
+            raise QasmException('ID gate called {} args at line no {}'
+                                .format(len(args), lineno), self.qasm)
+
+        return cirq.IdentityGate(len(args[0]))(*args[0])
+
     def __init__(self, qasm: str):
+        self.standard_gates = {
+            'cx': lambda args, lineno: CNOT(*[q[0] for q in args]),
+            'id': self.id_gate
+
+        }
         self.qasm = qasm
         self.parser = yacc.yacc(module=self,
                                 debug=False,
@@ -48,7 +61,7 @@ class QasmParser(object):
         self.circuit = Circuit()
         self.qregs = {}
         self.cregs = {}
-        self.parsedQasm = None
+        self.qelibinc = False
         self.qubits = {}
         self.functions = {
             'sin': sympy.sin,
@@ -68,6 +81,8 @@ class QasmParser(object):
             '/': operator.truediv,
             '^': operator.pow
         }
+        self.parsedQasm = None
+        self.supported_format = False
 
     tokens = QasmLexer.tokens
     start = 'start'
@@ -76,13 +91,39 @@ class QasmParser(object):
         """start : qasm"""
         p[0] = p[1]
 
+    def p_qasm_01(self, p):
+        """qasm : format"""
+        self.supported_format = True
+        print('supported format')
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
+                    self.cregs, self.circuit)
+
+    def p_qasm_03(self, p):
+        """qasm : QELIBINC"""
+        if self.supported_format is False:
+            raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
+
     def p_qasm_0(self, p):
-        """qasm : format circuit"""
-        p[0] = Qasm(True, False, self.qregs, self.cregs, p[2])
+        """qasm : qasm format"""
+        self.supported_format = True
+        print('supported format')
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
+                    self.cregs, self.circuit)
 
     def p_qasm_1(self, p):
-        """qasm : format QELIBINC circuit"""
-        p[0] = Qasm(True, True, self.qregs, self.cregs, p[3])
+        """qasm : qasm QELIBINC"""
+        if self.supported_format is False:
+            raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
+        self.qelibinc = True
+        print('QELIBINC!')
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
+                    self.cregs, self.circuit)
+
+    def p_qasm_2(self, p):
+        """qasm : qasm circuit"""
+        print('circuit!!')
+        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
+                    self.cregs, p[2])
 
     def p_format(self, p):
         """format : FORMAT_SPEC"""
@@ -91,11 +132,6 @@ class QasmParser(object):
                 "Unsupported OpenQASM version: {}, "
                 "only 2.0 is supported currently by Cirq".format(
                     p[1]), self.qasm)
-
-    def p_qasm_error(self, p):
-        """qasm : QELIBINC
-                | circuit """
-        raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
 
     # circuit : new_qreg circuit
     #         | new_creg circuit
@@ -146,7 +182,8 @@ class QasmParser(object):
         else:
             args = p[2]
 
-        if p[1] == "CX":
+        gate = p[1]
+        if gate == "CX":
             if len(args) != 2:
                 raise QasmException(
                     "CX only takes 2 args, got: {}, at line {}"
@@ -172,6 +209,14 @@ class QasmParser(object):
                     "at line {}".format(
                         len(ctrl_register), len(target_register), p.lineno(1)),
                     self.qasm)
+            return
+        if self.qelibinc is False or gate not in self.standard_gates.keys():
+            raise QasmException(
+                'Unknown gate {} at line {}, '
+                'maybe you forgot to include the standard qelib1.inc?'.format(
+                    gate, p.lineno(1)), self.qasm)
+
+        p[0] = self.standard_gates[gate](args, p.lineno(1))
 
     def p_gate_op_with_params(self, p):
         """gate_op :  ID '(' params ')' args"""
@@ -198,6 +243,14 @@ class QasmParser(object):
                         len(qreg), params, args, p.lineno(5)), self.qasm)
 
             p[0] = QasmUGate(params[2], params[0], params[1])(qreg[0])
+            return
+        if self.qelibinc is False or gate not in self.standard_gates.keys():
+            raise QasmException(
+                'Unknown gate {} at line {}, '
+                'maybe you forgot to include the standard qelib1.inc?'.format(
+                    gate, p.lineno(1)), self.qasm)
+        if all(len(qreg) == 1 for qreg in args):
+            p[0] = self.standard_gates[gate](*params).on(*[q[0] for q in args])
 
     # params : parameter ',' params
     #        | parameter
