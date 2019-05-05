@@ -280,6 +280,7 @@ def test_unknown_function():
         ('CX', cirq.CNOT),
         ('cz', cirq.CZ),
         ('cy', cirq.ControlledGate(cirq.Y)),
+        ('swap', cirq.SWAP),
     ]
 )
 def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
@@ -325,6 +326,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
         'CX',
         'cz',
         'cy',
+        'swap',
     ]
 )
 def test_two_qubit_gates_not_enough_args(qasm_gate: str):
@@ -408,7 +410,6 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
-## TODO: CNOT on registers - combine with CX
 ## TODO: other gates
 ## TODO: generalize the qreg validation and assignment logic
 ## TODO: comments

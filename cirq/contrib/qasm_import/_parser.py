@@ -25,14 +25,16 @@ from cirq.contrib.qasm_import._lexer import QasmLexer
 
 class Qasm(object):
 
-    def __init__(self, supportedFormat: bool, qelib1Include: bool, qregs: dict,
+    def __init__(self, supported_format: bool,
+                 qelib1_include: bool,
+                 qregs: dict,
                  cregs: dict,
                  c: Circuit):
         # defines whether the Quantum Experience standard header
         # is present or not
-        self.qelib1Include = qelib1Include
+        self.qelib1Include = qelib1_include
         # defines if it has a supported format or not
-        self.supportedFormat = supportedFormat
+        self.supportedFormat = supported_format
         # circuit
         self.qregs = qregs
         self.cregs = cregs
@@ -63,9 +65,10 @@ class QasmParser(object):
         def call_gate(args, lineno):
             if len(args) != 2:
                 raise QasmException(
-                    "{} only takes 2 args, got: {}, at line {}".format(qasm_gate,
-                                                                       len(args),
-                                                                       lineno),
+                    "{} only takes 2 args, got: {}, at line {}".format(
+                        qasm_gate,
+                        len(args),
+                        lineno),
                     self.qasm)
             ctrl_register = args[0]
             target_register = args[1]
@@ -87,6 +90,7 @@ class QasmParser(object):
                     "at line {}".format(
                         len(ctrl_register), len(target_register), lineno),
                     self.qasm)
+
         return call_gate
 
     def __init__(self, qasm: str):
@@ -94,6 +98,7 @@ class QasmParser(object):
             'cx': self.two_qubit_gate('cx', CNOT),
             'cy': self.two_qubit_gate('cy', cirq.ControlledGate(cirq.Y)),
             'cz': self.two_qubit_gate('cz', cirq.CZ),
+            'swap': self.two_qubit_gate('swap', cirq.SWAP),
             'id': self.id_gate,
             'rx': self.rotation_gate(cirq.Rx),
             'ry': self.rotation_gate(cirq.Ry),
@@ -137,37 +142,25 @@ class QasmParser(object):
         """start : qasm"""
         p[0] = p[1]
 
-    def p_qasm_01(self, p):
+    def p_qasm_format_only(self, p):
         """qasm : format"""
         self.supported_format = True
-        print('supported format')
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
                     self.cregs, self.circuit)
 
-    def p_qasm_03(self, p):
+    def p_qasm_include_without_format_error(self, p):
         """qasm : QELIBINC"""
         if self.supported_format is False:
             raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
 
-    def p_qasm_0(self, p):
-        """qasm : qasm format"""
-        self.supported_format = True
-        print('supported format')
-        p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
-                    self.cregs, self.circuit)
-
-    def p_qasm_1(self, p):
+    def p_qasm_include(self, p):
         """qasm : qasm QELIBINC"""
-        if self.supported_format is False:
-            raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
         self.qelibinc = True
-        print('QELIBINC!')
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
                     self.cregs, self.circuit)
 
-    def p_qasm_2(self, p):
+    def p_qasm_circuit(self, p):
         """qasm : qasm circuit"""
-        print('circuit!!')
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
                     self.cregs, p[2])
 
