@@ -8,7 +8,7 @@
 import pytest
 import sympy
 from sympy import Number
-
+import numpy as np
 import cirq
 import cirq.testing as ct
 from cirq import Circuit
@@ -125,26 +125,26 @@ def test_CX_gate():
     q2_0 = cirq.NamedQubit('q2_0')
     q2_1 = cirq.NamedQubit('q2_1')
 
-    expectedCircuit = Circuit()
+    expected_circuit = Circuit()
     # CX q1[0], q1[1];
-    expectedCircuit.append(cirq.CNOT(q1_0, q1_1))
+    expected_circuit.append(cirq.CNOT(q1_0, q1_1))
     # CX q1, q2[0];
-    expectedCircuit.append(cirq.CNOT(q1_0, q2_0))
-    expectedCircuit.append(cirq.CNOT(q1_1, q2_0))
+    expected_circuit.append(cirq.CNOT(q1_0, q2_0))
+    expected_circuit.append(cirq.CNOT(q1_1, q2_0))
     # CX q2, q1;
-    expectedCircuit.append(cirq.CNOT(q2_0, q1_0))
-    expectedCircuit.append(cirq.CNOT(q2_1, q1_1))
+    expected_circuit.append(cirq.CNOT(q2_0, q1_0))
+    expected_circuit.append(cirq.CNOT(q2_1, q1_1))
 
     parsed_qasm = parser.parse()
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is False
 
-    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
 
 
-def test_cx_gate_not_enough_args():
+def test_CX_gate_not_enough_args():
     qasm = """
      OPENQASM 2.0;          
      qreg q[2];
@@ -157,7 +157,7 @@ def test_cx_gate_not_enough_args():
         raise AssertionError("should fail with wrong arg length error")
     except QasmException as ex:
         assert ex.qasm == qasm
-        assert ex.message == "CX only takes 2 args, got: 1, at line 0"
+        assert ex.message == "CX only takes 2 args, got: 1, at line 4"
 
 
 def test_cx_gate_mismatched_registers():
@@ -188,8 +188,8 @@ def test_u_gate():
 
     q0 = cirq.NamedQubit('q_0')
 
-    expectedCircuit = Circuit()
-    expectedCircuit.append(
+    expected_circuit = Circuit()
+    expected_circuit.append(
         QasmUGate(sympy.pi / Number(3.0),
                   sympy.pi,
                   Number(2) * sympy.pi)(q0))
@@ -199,7 +199,7 @@ def test_u_gate():
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is False
 
-    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
 
 
@@ -243,8 +243,8 @@ def test_expressions(expr: str):
 
     q0 = cirq.NamedQubit('q_0')
 
-    expectedCircuit = Circuit()
-    expectedCircuit.append(
+    expected_circuit = Circuit()
+    expected_circuit.append(
         QasmUGate(sympy.pi / Number(3.0),
                   sympy.sympify(expr),
                   Number(2) * sympy.pi)(q0))
@@ -254,7 +254,7 @@ def test_expressions(expr: str):
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is False
 
-    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 1}
 
 
@@ -273,29 +273,77 @@ def test_unknown_function():
         assert ex.message == "Function not recognized: 'nonexistent' at line 4"
 
 
-def test_cx_gate():
+@pytest.mark.parametrize(
+    'qasm_gate,cirq_gate',
+    [
+        ('cx', cirq.CNOT),
+        ('CX', cirq.CNOT),
+        ('cz', cirq.CZ),
+        ('cy', cirq.ControlledGate(cirq.Y)),
+    ]
+)
+def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
     qasm = """
-     OPENQASM 2.0;
-     include "qelib1.inc";
-     qreg q[2];
-     cx q[0], q[1];
-"""
-
+     OPENQASM 2.0;   
+     include "qelib1.inc";       
+     qreg q1[2];
+     qreg q2[2];
+     {0} q1[0], q1[1];
+     {0} q1, q2[0];
+     {0} q2, q1;      
+""".format(qasm_gate)
     parser = QasmParser(qasm)
 
-    q0 = cirq.NamedQubit('q_0')
-    q1 = cirq.NamedQubit('q_1')
+    q1_0 = cirq.NamedQubit('q1_0')
+    q1_1 = cirq.NamedQubit('q1_1')
+    q2_0 = cirq.NamedQubit('q2_0')
+    q2_1 = cirq.NamedQubit('q2_1')
 
-    expectedCircuit = Circuit()
-    expectedCircuit.append(cirq.CNOT(q0, q1))
+    expected_circuit = Circuit()
+    # CX q1[0], q1[1];
+    expected_circuit.append(cirq_gate(q1_0, q1_1))
+    # CX q1, q2[0];
+    expected_circuit.append(cirq_gate(q1_0, q2_0))
+    expected_circuit.append(cirq_gate(q1_1, q2_0))
+    # CX q2, q1;
+    expected_circuit.append(cirq_gate(q2_0, q1_0))
+    expected_circuit.append(cirq_gate(q2_1, q1_1))
 
     parsed_qasm = parser.parse()
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is True
 
-    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
-    assert parsed_qasm.qregs == {'q': 2}
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
+
+
+@pytest.mark.parametrize(
+    'qasm_gate',
+    [
+        'cx',
+        'CX',
+        'cz',
+        'cy',
+    ]
+)
+def test_two_qubit_gates_not_enough_args(qasm_gate: str):
+    qasm = """
+     OPENQASM 2.0;    
+     include "qelib1.inc";             
+     qreg q[2];
+     {} q[0];
+""".format(qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with wrong arg length error")
+    except QasmException as ex:
+        assert ex.qasm == qasm
+        assert ex.message == "{} only takes 2 args, got: 1," \
+                             " at line 5".format(qasm_gate)
 
 
 def test_id_gate():
@@ -312,16 +360,52 @@ def test_id_gate():
     q0 = cirq.NamedQubit('q_0')
     q1 = cirq.NamedQubit('q_1')
 
-    expectedCircuit = Circuit()
-    expectedCircuit.append(cirq.IdentityGate(1).on(q0))
-    expectedCircuit.append(cirq.IdentityGate(2).on(q0, q1))
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.IdentityGate(1).on(q0))
+    expected_circuit.append(cirq.IdentityGate(2).on(q0, q1))
 
     parsed_qasm = parser.parse()
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is True
 
-    ct.assert_same_circuits(parsed_qasm.circuit, expectedCircuit)
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+@pytest.mark.parametrize(
+    'qasm_gate,cirq_gate',
+    [
+        ('rx', cirq.Rx),
+        ('ry', cirq.Ry),
+        ('rz', cirq.Rz),
+    ]
+)
+def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {} (pi/2) q[0];
+     {} (pi) q;
+    """.format(qasm_gate, qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq_gate(np.pi / 2).on(q0))
+    expected_circuit.append(cirq.Moment([cirq_gate(np.pi).on(q0),
+                                         cirq_gate(np.pi).on(q1)]))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
 
 ## TODO: CNOT on registers - combine with CX

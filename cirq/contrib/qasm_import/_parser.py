@@ -48,10 +48,56 @@ class QasmParser(object):
 
         return cirq.IdentityGate(len(args[0]))(*args[0])
 
+    def rotation_gate(self, gate):
+        def call_gate(params, args, lineno):
+            if len(args) != 1:
+                raise QasmException('ID gate called {} args at line no {}'
+                                    .format(len(args), lineno), self.qasm)
+
+            for q in args[0]:
+                yield gate(params[0])(q)
+
+        return call_gate
+
+    def two_qubit_gate(self, qasm_gate, cirq_gate):
+        def call_gate(args, lineno):
+            if len(args) != 2:
+                raise QasmException(
+                    "{} only takes 2 args, got: {}, at line {}".format(qasm_gate,
+                                                                       len(args),
+                                                                       lineno),
+                    self.qasm)
+            ctrl_register = args[0]
+            target_register = args[1]
+
+            if len(ctrl_register) == 1 and len(target_register) == 1:
+                return cirq_gate(ctrl_register[0], target_register[0])
+            elif len(ctrl_register) == 1 and len(target_register) > 1:
+                return [cirq_gate(ctrl_register[0], target_qubit)
+                        for target_qubit in target_register]
+            elif len(ctrl_register) > 1 and len(target_register) == 1:
+                return [cirq_gate(ctrl_qubit, target_register[0])
+                        for ctrl_qubit in ctrl_register]
+            elif len(ctrl_register) == len(target_register):
+                return [cirq_gate(ctrl_register[i], target_register[i])
+                        for i in range(len(ctrl_register))]
+            else:
+                raise QasmException(
+                    "Non matching quantum registers of length {} and {} "
+                    "at line {}".format(
+                        len(ctrl_register), len(target_register), lineno),
+                    self.qasm)
+        return call_gate
+
     def __init__(self, qasm: str):
         self.standard_gates = {
-            'cx': lambda args, lineno: CNOT(*[q[0] for q in args]),
-            'id': self.id_gate
+            'cx': self.two_qubit_gate('cx', CNOT),
+            'cy': self.two_qubit_gate('cy', cirq.ControlledGate(cirq.Y)),
+            'cz': self.two_qubit_gate('cz', cirq.CZ),
+            'id': self.id_gate,
+            'rx': self.rotation_gate(cirq.Rx),
+            'ry': self.rotation_gate(cirq.Ry),
+            'rz': self.rotation_gate(cirq.Rz)
 
         }
         self.qasm = qasm
@@ -184,31 +230,7 @@ class QasmParser(object):
 
         gate = p[1]
         if gate == "CX":
-            if len(args) != 2:
-                raise QasmException(
-                    "CX only takes 2 args, got: {}, at line {}"
-                        .format(len(args), p.lineno(2)),
-                    self.qasm)
-            ctrl_register = args[0]
-            target_register = args[1]
-
-            if len(ctrl_register) == 1 and len(target_register) == 1:
-                p[0] = CNOT(ctrl_register[0], target_register[0])
-            elif len(ctrl_register) == 1 and len(target_register) > 1:
-                p[0] = [CNOT(ctrl_register[0], target_qubit)
-                        for target_qubit in target_register]
-            elif len(ctrl_register) > 1 and len(target_register) == 1:
-                p[0] = [CNOT(ctrl_qubit, target_register[0])
-                        for ctrl_qubit in ctrl_register]
-            elif len(ctrl_register) == len(target_register):
-                p[0] = [CNOT(ctrl_register[i], target_register[i])
-                        for i in range(len(ctrl_register))]
-            else:
-                raise QasmException(
-                    "Non matching quantum registers of length {} and {} "
-                    "at line {}".format(
-                        len(ctrl_register), len(target_register), p.lineno(1)),
-                    self.qasm)
+            p[0] = self.two_qubit_gate('CX', CNOT)(args, p.lineno(1))
             return
         if self.qelibinc is False or gate not in self.standard_gates.keys():
             raise QasmException(
@@ -249,8 +271,7 @@ class QasmParser(object):
                 'Unknown gate {} at line {}, '
                 'maybe you forgot to include the standard qelib1.inc?'.format(
                     gate, p.lineno(1)), self.qasm)
-        if all(len(qreg) == 1 for qreg in args):
-            p[0] = self.standard_gates[gate](*params).on(*[q[0] for q in args])
+        p[0] = self.standard_gates[gate](params, args, p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter
