@@ -148,8 +148,9 @@ class QasmParser(object):
         p[0] = Qasm(self.supported_format, self.qelibinc, self.qregs,
                     self.cregs, self.circuit)
 
-    def p_qasm_include_without_format_error(self, p):
-        """qasm : QELIBINC"""
+    def p_qasm_no_format_specified_error(self, p):
+        """qasm : QELIBINC
+                | circuit """
         if self.supported_format is False:
             raise QasmException("Missing 'OPENQASM 2.0;' statement", self.qasm)
 

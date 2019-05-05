@@ -53,8 +53,15 @@ include "qelib1.inc";
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
 
-def test_error_not_starting_with_format():
-    qasm = "include \"qelib1.inc\";"
+@pytest.mark.parametrize(
+    'qasm',
+    [
+        "include \"qelib1.inc\";",
+        "",
+        "qreg q[3];",
+    ]
+)
+def test_error_not_starting_with_format(qasm: str):
     parser = QasmParser(qasm)
     try:
         parser.parse()
@@ -62,15 +69,6 @@ def test_error_not_starting_with_format():
     except QasmException as ex:
         assert ex.qasm == qasm
         assert ex.message == "Missing 'OPENQASM 2.0;' statement"
-
-
-def test_error_on_empty():
-    parser = QasmParser("")
-    try:
-        parser.parse()
-        raise AssertionError("should fail with no format error")
-    except QasmException as ex:
-        assert ex.message == "Unexpected end of file"
 
 
 def test_multiple_qreg_declaration():
