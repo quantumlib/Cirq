@@ -13,6 +13,9 @@
 # limitations under the License.
 
 from cirq.contrib.qasm_import.qasm import (
-    QasmCircuitParser,
+    QasmCircuitParser
+)
+
+from cirq.contrib.qasm_import.exception import (
     QasmException
 )

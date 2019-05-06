@@ -13,18 +13,13 @@
 # limitations under the License.
 
 from cirq.circuits import Circuit
+from cirq.contrib.qasm_import._parser import QasmParser
 
 
 class QasmCircuitParser:
     def __init__(self, qasm: str):
         self.qasm = qasm
+        self.parser = QasmParser(qasm)
 
     def parse(self) -> Circuit:
-        raise QasmException("missing QASM header")
-
-
-class QasmException(Exception):
-
-    def __init__(self, message: str) -> None:
-        self.message = message
-
+        return self.parser.parse().circuit

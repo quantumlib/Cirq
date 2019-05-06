@@ -231,6 +231,43 @@ def test_u_gate():
     assert parsed_qasm.qregs == {'q': 2}
 
 
+def test_u3_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     u3(pi, 2 * pi, pi / 3.0) q[0];
+     u3(pi, 2 * pi, pi / 3.0) q;
+"""
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(
+        QasmUGate(sympy.pi / Number(3.0),
+                  sympy.pi,
+                  Number(2) * sympy.pi)(q0))
+
+    expected_circuit.append(cirq.Moment(
+        [QasmUGate(sympy.pi / Number(3.0),
+                   sympy.pi,
+                   Number(2) * sympy.pi)(q0),
+         QasmUGate(sympy.pi / Number(3.0),
+                   sympy.pi,
+                   Number(2) * sympy.pi)(q1)
+         ]))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
 @pytest.mark.parametrize(
     'expr',
     [
@@ -753,3 +790,4 @@ def test_measure_mismathed_register_size():
 
 
 ## TODO: DRY up test assertions
+## TODO: convert sympy expressions to float()

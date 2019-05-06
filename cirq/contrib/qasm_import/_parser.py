@@ -20,7 +20,7 @@ from ply import yacc
 import cirq
 from cirq import Circuit, NamedQubit, CNOT
 from cirq.circuits.qasm_output import QasmUGate
-from cirq.contrib.qasm_import import QasmException
+from cirq.contrib.qasm_import.exception import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
 
@@ -119,6 +119,7 @@ class QasmParser(object):
             'U': self.u_gate()
         }
         self.standard_gates = {
+            'u3': self.u_gate(),
             'x': self.make_gate('x', cirq.X,
                                 num_params=0,
                                 num_args=1),

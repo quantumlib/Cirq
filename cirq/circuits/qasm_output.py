@@ -21,6 +21,7 @@ from typing import (
 from typing import Set  # pylint: disable=unused-import
 
 import numpy as np
+import sympy
 
 from cirq import ops, linalg, protocols, value
 
@@ -63,9 +64,9 @@ class QasmUGate(ops.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         # Source: https://arxiv.org/abs/1707.03429 (equation 2)
         operations = [
-            ops.Rz(self.phi * np.pi),
-            ops.Ry(self.theta * np.pi),
-            ops.Rz(self.lmda * np.pi),
+            ops.Rz(float(self.phi) * np.pi),
+            ops.Ry(float(self.theta) * np.pi),
+            ops.Rz(float(self.lmda) * np.pi),
         ]
         return linalg.dot(*map(protocols.unitary, operations))
 
