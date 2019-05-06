@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import Iterable
 import cirq
 
 
@@ -63,7 +64,7 @@ def equal_up_to_global_phase(
        elements are compared recursively. Types of `val` and `other` does not
        necessarily needs to match each other. They just need to be iterable and
        have the same structure.
-     - For all other types, fall back on _approx_eq_
+     - For all other types, fall back to _approx_eq_
 
     Args:
         val: Source object for approximate comparison.
@@ -73,7 +74,7 @@ def equal_up_to_global_phase(
               absolute tolerance.
 
     Returns:
-        True if objects are approximately equal, False otherwise.
+        True if objects are approximately equal up to phase, False otherwise.
     """
 
     # fall back to _equal_up_to_global_phase_ for val.
@@ -96,73 +97,68 @@ def equal_up_to_global_phase(
     if isinstance(val, complex):
         if not isinstance(other, (complex, float, int)):
             return False
-        return cirq.approx_eq(np.abs(val), np.abs(other))
+        return cirq.approx_eq(np.abs(val), np.abs(other), atol=atol)
 
     # Try to compare source and target recursively, assuming they're iterable.
     result = _eq_up_to_phase_iterables(val, other, atol=atol)
 
     # Fallback to cir approx_eq for remaining types
     if result is NotImplemented:
-        return cirq.approx_eq(val, other)
+        return cirq.approx_eq(val, other, atol=atol)
     return result
 
 
 def _eq_up_to_phase_iterables(val: Any, other: Any, *,
                          atol: Union[int, float]) -> bool:
-    """Iterates over arguments and calls approx_eq recursively.
+    """Iterates over arguments and checks for equality up to global phase.
 
-    Types of `val` and `other` does not necessarily needs to match each other.
-    They just need to be iterable of the same length and have the same
-    structure, approx_eq() will be called on each consecutive element of `val`
-    and `other`.
+    For iterables of the same length and comparable structure, check that the
+    difference between phases of corresponding elements can be described by a
+    single complex value.
 
     Args:
-        val: Source for approximate comparison.
-        other: Target for approximate comparison.
-        atol: The minimum absolute tolerance. See np.isclose() documentation for
-              details.
+        val: Source for comparison.
+        other: Target for comparison.
+        atol: The minimum absolute tolerance.
 
     Returns:
-        True if objects are approximately equal, False otherwise. Returns
-        NotImplemented when approximate equality is not implemented for given
-        types.
+        True if objects are approximately equal up to phase, False otherwise.
+        Returns NotImplemented when approximate equality is not implemented
+        for given types.
     """
 
-    def get_iter(iterable):
+    if not (isinstance(val, Iterable) and isinstance(other, Iterable)):
+        return NotImplemented
+
+    val_it = iter(val)
+    other_it = iter(other)
+    global_phase = None
+
+    while True:
         try:
-            return iter(iterable)
-        except TypeError:
-            return None
-
-    val_it = get_iter(val)
-    other_it = get_iter(other)
-
-    if val_it is not None and other_it is not None:
-        while True:
+            val_next = next(val_it)
+        # only allow phase comparison for equal-length containers
+        except StopIteration:
             try:
-                val_next = next(val_it)
-            except StopIteration:
-                try:
-                    next(other_it)
-                    return False
-                except StopIteration:
-                    return True
-
-            try:
-                other_next = next(other_it)
-            except StopIteration:
+                next(other_it)
                 return False
+            except StopIteration:
+                return True
 
-            result = approx_eq(val_next, other_next, atol=atol)
-            if result is not True:
-                return result
+        try:
+            other_next = next(other_it)
+        except StopIteration:
+            return False
+        # check that a single value describes all phase differences between
+        # corresponding values in the containers
+        if global_phase is None:
+            global_phase = _phase_difference(val_next, other_next)
+        current_phase = _phase_difference(val_next, other_next)
+        if not cirq.approx_eq(current_phase, global_phase, atol=atol):
+            return False
 
     return NotImplemented
 
-
-# def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:
-#     """Convenience wrapper around np.isclose."""
-#     return True if np.isclose([a], [b], atol=atol, rtol=0.0)[0] else False
 
 def _phase_difference(a: complex, b: complex):
     """Compute the angle between two complex numbers in the Argand plane."""
