@@ -14,7 +14,7 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
 

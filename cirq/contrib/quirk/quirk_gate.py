@@ -185,13 +185,11 @@ def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
     sub = known_quirk_op_for_operation(op.sub_operation)
     if sub is None:
         return None
-    return QuirkOp(*(('•',)*len(op.controls) + sub.keys),
-                   can_merge=False)
+    return QuirkOp(*(('•',) * len(op.controls) + sub.keys), can_merge=False)
 
 
 _known_gate_conversions = cast(
-    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
-    {
+    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]], {
         ops.CCXPowGate: ccx_to_known,
         ops.CCZPowGate: ccz_to_known,
         ops.CSwapGate: cswap_to_known,
@@ -203,5 +201,4 @@ _known_gate_conversions = cast(
         ops.SwapPowGate: swap_to_known,
         ops.HPowGate: h_to_known,
         ops.MeasurementGate: lambda _: QuirkOp('Measure')
-    }
-)
+    })

@@ -38,7 +38,7 @@ import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -508,8 +508,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure(*qubits: raw_types.Qid,
             key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()
-            ) -> raw_types.Operation:
+            invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -545,7 +544,7 @@ def measure(*qubits: raw_types.Qid,
 
 def measure_each(*qubits: raw_types.Qid,
                  key_func: Callable[[raw_types.Qid], str] = str
-                 ) -> List[raw_types.Operation]:
+                ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
