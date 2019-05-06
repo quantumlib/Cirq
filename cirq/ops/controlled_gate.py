@@ -18,7 +18,7 @@ import numpy as np
 
 import cirq
 from cirq import linalg, protocols, value
-from cirq.ops import raw_types, controlled_operation as cop, gate_operation
+from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
 
