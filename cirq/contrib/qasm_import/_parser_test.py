@@ -5,10 +5,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 import sympy
 from sympy import Number
-import numpy as np
+
 import cirq
 import cirq.testing as ct
 from cirq import Circuit
@@ -67,6 +68,23 @@ def test_error_not_starting_with_format(qasm: str):
         raise AssertionError("should fail with no format error")
     except QasmException as ex:
         assert ex.message == "Missing 'OPENQASM 2.0;' statement"
+
+
+def test_comments():
+    parser = QasmParser("""
+    //this is the format 
+    OPENQASM 2.0;
+    // this is some other comment
+    include "qelib1.inc";
+    // and something at the end of the file
+    // multiline 
+    """)
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+    ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
 
 def test_multiple_qreg_declaration():
@@ -649,6 +667,5 @@ def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
         assert ex.message == "{} takes 0 parameter(s), got: 1, " \
                              "at line 5".format(qasm_gate)
 
-## TODO: comments
 ## TODO: measurement
 ## TODO: DRY up test assertions

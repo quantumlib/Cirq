@@ -28,6 +28,7 @@ class QasmLexer(object):
                  'QELIBINC',
                  'ID',
                  'PI',
+                 'COMMENT',
              ] + list(reserved.values())
 
     def t_newline(self, t):
@@ -73,6 +74,10 @@ class QasmLexer(object):
     def t_ID(self, t):
         r"""[a-zA-Z][a-zA-Z\d_]*"""
         return t
+
+    def t_COMMENT(self, t):
+        r"""//.*"""
+        pass
 
     def t_error(self, t):
         print("Illegal character '%s'" % t.value[0])
