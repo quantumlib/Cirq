@@ -86,7 +86,6 @@ class QasmLexer(object):
 
     def t_COMMENT(self, t):
         r"""//.*"""
-        pass
 
     def t_error(self, t):
         print("Illegal character '%s'" % t.value[0])
