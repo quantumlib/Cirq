@@ -11,7 +11,7 @@ class QasmLexer(object):
 
     def __init__(self, qasm: str):
         self.qasm = qasm
-        self.lex = lex.lex(object=self, debug=True)
+        self.lex = lex.lex(object=self, debug=False)
         self.lex.input(qasm)
 
     literals = "{}[]();,+/*-^"
@@ -30,7 +30,6 @@ class QasmLexer(object):
                  'QELIBINC',
                  'ID',
                  'PI',
-                 'COMMENT',
              ] + list(reserved.values())
 
     def t_newline(self, t):

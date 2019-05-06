@@ -88,7 +88,7 @@ class QasmParser(object):
             for qbit_index in range(reg_size):
                 final_gate = cirq_gate
                 if num_params > 0:
-                    final_gate = cirq_gate(*params)
+                    final_gate = cirq_gate(*[float(p) for p in params])
                 yield final_gate(*[qreg[min(len(qreg) - 1, qbit_index)]
                                    for qreg in args])
 

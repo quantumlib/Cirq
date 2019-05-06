@@ -160,6 +160,8 @@ def test_CX_gate():
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
 
+    cirq.Simulator().run(parsed_qasm.circuit)
+
 
 def test_CX_gate_not_enough_args():
     qasm = """
@@ -209,17 +211,17 @@ def test_u_gate():
 
     expected_circuit = Circuit()
     expected_circuit.append(
-        QasmUGate(sympy.pi / Number(3.0),
-                  sympy.pi,
-                  Number(2) * sympy.pi)(q0))
+        QasmUGate(float(sympy.pi / Number(3.0)),
+                  float(sympy.pi),
+                  float(Number(2) * sympy.pi))(q0))
 
     expected_circuit.append(cirq.Moment(
-        [QasmUGate(sympy.pi / Number(3.0),
-                   sympy.pi,
-                   Number(2) * sympy.pi)(q0),
-         QasmUGate(sympy.pi / Number(3.0),
-                   sympy.pi,
-                   Number(2) * sympy.pi)(q1)
+        [QasmUGate(float(sympy.pi / Number(3.0)),
+                   float(sympy.pi),
+                   float(Number(2) * sympy.pi))(q0),
+         QasmUGate(float(sympy.pi / Number(3.0)),
+                   float(sympy.pi),
+                   float(Number(2) * sympy.pi))(q1)
          ]))
 
     parsed_qasm = parser.parse()
@@ -229,6 +231,7 @@ def test_u_gate():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 def test_u3_gate():
@@ -246,17 +249,17 @@ def test_u3_gate():
 
     expected_circuit = Circuit()
     expected_circuit.append(
-        QasmUGate(sympy.pi / Number(3.0),
-                  sympy.pi,
-                  Number(2) * sympy.pi)(q0))
+        QasmUGate(float(sympy.pi / Number(3.0)),
+                  float(sympy.pi),
+                  float(Number(2) * sympy.pi))(q0))
 
     expected_circuit.append(cirq.Moment(
-        [QasmUGate(sympy.pi / Number(3.0),
-                   sympy.pi,
-                   Number(2) * sympy.pi)(q0),
-         QasmUGate(sympy.pi / Number(3.0),
-                   sympy.pi,
-                   Number(2) * sympy.pi)(q1)
+        [QasmUGate(float(sympy.pi / Number(3.0)),
+                   float(sympy.pi),
+                   float(Number(2) * sympy.pi))(q0),
+         QasmUGate(float(sympy.pi / Number(3.0)),
+                   float(sympy.pi),
+                   float(Number(2) * sympy.pi))(q1)
          ]))
 
     parsed_qasm = parser.parse()
@@ -266,6 +269,7 @@ def test_u3_gate():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 @pytest.mark.parametrize(
@@ -294,7 +298,6 @@ def test_u3_gate():
         'sqrt(4)',
         'acos(1)',
         'atan(0.2)',
-        'asin(1.2)',
     ]
 )
 def test_expressions(expr: str):
@@ -310,9 +313,9 @@ def test_expressions(expr: str):
 
     expected_circuit = Circuit()
     expected_circuit.append(
-        QasmUGate(sympy.pi / Number(3.0),
-                  sympy.sympify(expr),
-                  Number(2) * sympy.pi)(q0))
+        QasmUGate(float(sympy.pi / Number(3.0)),
+                  float(sympy.sympify(expr)),
+                  float(Number(2) * sympy.pi))(q0))
 
     parsed_qasm = parser.parse()
 
@@ -363,6 +366,7 @@ def test_id_gate():
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 rotation_gates = [
@@ -391,9 +395,9 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
-    expected_circuit.append(cirq_gate(np.pi / 2).on(q0))
-    expected_circuit.append(cirq.Moment([cirq_gate(np.pi).on(q0),
-                                         cirq_gate(np.pi).on(q1)]))
+    expected_circuit.append(cirq_gate(float(np.pi / 2)).on(q0))
+    expected_circuit.append(cirq.Moment([cirq_gate(float(np.pi)).on(q0),
+                                         cirq_gate(float(np.pi)).on(q1)]))
 
     parsed_qasm = parser.parse()
 
@@ -402,6 +406,7 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 @pytest.mark.parametrize(
@@ -519,6 +524,7 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 two_qubit_gates = [('cx', cirq.CNOT),
@@ -567,6 +573,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 @pytest.mark.parametrize(
@@ -659,6 +666,7 @@ def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2, 'q3': 2}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 @pytest.mark.parametrize(
@@ -735,7 +743,7 @@ def test_measure_individual_bits():
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2}
     assert parsed_qasm.cregs == {'c1': 2}
-
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 def test_measure_registers():
     qasm = """
@@ -768,9 +776,10 @@ def test_measure_registers():
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 3}
     assert parsed_qasm.cregs == {'c1': 3}
+    cirq.Simulator().run(parsed_qasm.circuit)
 
 
-def test_measure_mismathed_register_size():
+def test_measure_mismatched_register_size():
     qasm = """
          OPENQASM 2.0;   
          include "qelib1.inc";       
@@ -789,5 +798,5 @@ def test_measure_mismathed_register_size():
                              "for measurement at line 6"
 
 
-## TODO: DRY up test assertions
-## TODO: convert sympy expressions to float()
+    ## TODO: DRY up test assertions
+    ## TODO: convert sympy expressions to float()
