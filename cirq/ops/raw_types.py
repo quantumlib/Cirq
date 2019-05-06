@@ -218,9 +218,9 @@ class Gate(metaclass=abc.ABCMeta):
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
-        return ControlledGate(self, control_qubits,
-                              len(control_qubits) if control_qubits is not None
-                                                  else 1)
+        if len(control_qubits) == 0:
+            return self
+        return ControlledGate(self, control_qubits, len(control_qubits))
 
     @abc.abstractmethod
     def num_qubits(self) -> int:
