@@ -272,6 +272,7 @@ class Operation(metaclass=abc.ABCMeta):
             return self
         return ControlledOperation(control_qubits, self)
 
+
 @value.value_equality
 class _InverseCompositeGate(Gate):
     """The inverse of a composite gate."""
