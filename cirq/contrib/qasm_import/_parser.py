@@ -250,6 +250,7 @@ class QasmParser(object):
     # circuit : new_qreg circuit
     #         | new_creg circuit
     #         | gate_op circuit
+    #         | measurement circuit
     #         | empty
 
     def p_circuit_qreg(self, p):
@@ -262,8 +263,9 @@ class QasmParser(object):
         self.cregs[name] = length
         p[0] = self.circuit
 
-    def p_circuit_gate_op(self, p):
-        """circuit : gate_op circuit"""
+    def p_circuit_gate_or_measurement(self, p):
+        """circuit : gate_op circuit
+                   | measurement circuit"""
         self.circuit.insert(0, p[1])
         p[0] = self.circuit
 
@@ -281,6 +283,8 @@ class QasmParser(object):
 
     def p_new_creg_0(self, p):
         """new_creg : CREG ID '[' NATURAL_NUMBER ']' ';' """
+        name, length = p[2], p[4]
+        self.cregs[name] = length
         p[0] = (p[2], p[4])
 
     # gate operations
@@ -403,42 +407,72 @@ class QasmParser(object):
         if reg in self.qregs.keys():
             qubits = []
             for num in range(self.qregs[reg]):
-                arg_name = str(reg) + "_" + str(num)
+                arg_name = self.make_name(num, reg)
                 if arg_name not in self.qubits.keys():
                     self.qubits[arg_name] = NamedQubit(arg_name)
                 qubits.append(self.qubits[arg_name])
             p[0] = qubits
+        elif reg in self.cregs.keys():
+            keys = []
+            for num in range(self.cregs[reg]):
+                arg_name = self.make_name(num, reg)
+                keys.append(arg_name)
+            p[0] = keys
         else:
             raise QasmException(
                 'undefined quantum/classical register "{}" '
-                'at line no: {}'.format(reg, p.lineno(1)))
+                'at line {}'.format(reg, p.lineno(1)))
+
+    def make_name(self, num, reg):
+        return str(reg) + "_" + str(num)
 
     def p_arg_bit(self, p):
         """arg : ID '[' NATURAL_NUMBER ']' """
         reg = p[1]
         num = p[3]
-        arg_name = str(reg) + "_" + str(num)
+        arg_name = self.make_name(num, reg)
         if reg in self.qregs.keys():
             if arg_name not in self.qubits.keys():
                 self.qubits[arg_name] = NamedQubit(arg_name)
             p[0] = [self.qubits[arg_name]]
+        elif reg in self.cregs.keys():
+            p[0] = [arg_name]
         else:
             raise QasmException(
                 'undefined quantum/classical register "{}" '
                 'at line no: {}'.format(reg, p.lineno(1)))
+
+    # measurement operations
+    # measurement : MEASURE arg ARROW arg
+    def p_measurement(self, p):
+        """measurement : MEASURE arg ARROW arg ';'"""
+        qreg = p[2]
+        creg = p[4]
+
+        if len(qreg) != len(creg):
+            raise QasmException(
+                'mismatched register sizes {} -> {} for measurement '
+                'at line {}'.format(len(qreg), len(creg), p.lineno(1)))
+
+        measurements = []
+        for i in range(len(qreg)):
+            measurements.append(cirq.MeasurementGate(num_qubits=1, key=creg[i])
+                                .on(qreg[i]))
+        p[0] = measurements
 
     def p_error(self, p):
         if p is None:
             raise QasmException('Unexpected end of file')
 
         raise QasmException(
-            """{}
-Syntax error: '{}' 
-at line {}, column {}""".format(self.debug_context(p),
-                                p.value,
-                                p.lineno,
-                                self.find_column(p)
-                                ))
+            """Syntax error: '{}'
+{} 
+at line {}, column {}""".format(
+                p.value,
+                self.debug_context(p),
+                p.lineno,
+                self.find_column(p)
+            ))
 
     def find_column(self, p):
         line_start = self.qasm.rfind('\n', 0, p.lexpos) + 1
