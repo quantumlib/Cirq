@@ -29,4 +29,3 @@ def assert_parse_error(qasm_string: str, error_regexp):
             ' instead returned {}'.format(error_regexp, circuit))
     except QasmException as ex:
         assert re.match(error_regexp, ex.message)
-        assert qasm_string == ex.qasm

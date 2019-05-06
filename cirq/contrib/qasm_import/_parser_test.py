@@ -35,7 +35,6 @@ def test_unsupported_format():
         parser.parse()
         raise AssertionError("should fail with no format error")
     except QasmException as ex:
-        assert ex.qasm == qasm
         assert ex.message == "Unsupported OpenQASM version: 2.1, " \
                              "only 2.0 is supported currently by Cirq"
 
@@ -67,7 +66,6 @@ def test_error_not_starting_with_format(qasm: str):
         parser.parse()
         raise AssertionError("should fail with no format error")
     except QasmException as ex:
-        assert ex.qasm == qasm
         assert ex.message == "Missing 'OPENQASM 2.0;' statement"
 
 
@@ -87,6 +85,8 @@ def test_multiple_qreg_declaration():
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
     assert parsed_qasm.qregs == {'a_quantum_register': 1337, 'q': 42}
 
+
+## TODO: qreg[0] should be error
 
 def test_multiple_creg_declaration():
     qasm = """
@@ -154,8 +154,9 @@ def test_CX_gate_not_enough_args():
         parser.parse()
         raise AssertionError("should fail with wrong arg length error")
     except QasmException as ex:
-        assert ex.qasm == qasm
-        assert ex.message == "CX only takes 2 args, got: 1, at line 4"
+        assert ex.message == "CX only takes 2 arg(s) " \
+                             "(qubits and/or registers)" \
+                             ", got: 1, at line 4"
 
 
 def test_cx_gate_mismatched_registers():
@@ -171,20 +172,21 @@ def test_cx_gate_mismatched_registers():
         parser.parse()
         raise AssertionError("should fail with mismatching registers error")
     except QasmException as ex:
-        assert ex.qasm == qasm
         assert ex.message == "Non matching quantum registers of " \
-                             "length 2 and 3 at line 5"
+                             "length [2, 3] at line 5"
 
 
 def test_u_gate():
     qasm = """
      OPENQASM 2.0;
-     qreg q[1];
+     qreg q[2];
      U(pi, 2 * pi, pi / 3.0) q[0];
+     U(pi, 2 * pi, pi / 3.0) q;
 """
     parser = QasmParser(qasm)
 
     q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
     expected_circuit.append(
@@ -192,13 +194,22 @@ def test_u_gate():
                   sympy.pi,
                   Number(2) * sympy.pi)(q0))
 
+    expected_circuit.append(cirq.Moment(
+        [QasmUGate(sympy.pi / Number(3.0),
+                   sympy.pi,
+                   Number(2) * sympy.pi)(q0),
+         QasmUGate(sympy.pi / Number(3.0),
+                   sympy.pi,
+                   Number(2) * sympy.pi)(q1)
+         ]))
+
     parsed_qasm = parser.parse()
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is False
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
-    assert parsed_qasm.qregs == {'q': 1}
+    assert parsed_qasm.qregs == {'q': 2}
 
 
 @pytest.mark.parametrize(
@@ -267,19 +278,204 @@ def test_unknown_function():
         parser.parse()
         raise AssertionError("should fail with no format error")
     except QasmException as ex:
-        assert ex.qasm == qasm
-        assert ex.message == "Function not recognized: 'nonexistent' at line 4"
+        assert ex.message == "Function not recognized: 'nonexistent' " \
+                             "at line 4"
+
+
+def test_id_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     id q[0];
+     id q;
+"""
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq.IdentityGate(1).on(q0))
+    expected_circuit.append(cirq.IdentityGate(2).on(q0, q1))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+rotation_gates = [
+    ('rx', cirq.Rx),
+    ('ry', cirq.Ry),
+    ('rz', cirq.Rz),
+]
 
 
 @pytest.mark.parametrize(
     'qasm_gate,cirq_gate',
-    [
-        ('cx', cirq.CNOT),
-        ('CX', cirq.CNOT),
-        ('cz', cirq.CZ),
-        ('cy', cirq.ControlledGate(cirq.Y)),
-        ('swap', cirq.SWAP),
-    ]
+    rotation_gates
+)
+def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {}(pi/2) q[0];
+     {}(pi) q;
+    """.format(qasm_gate, qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq_gate(np.pi / 2).on(q0))
+    expected_circuit.append(cirq.Moment([cirq_gate(np.pi).on(q0),
+                                         cirq_gate(np.pi).on(q1)]))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+@pytest.mark.parametrize(
+    'qasm_gate',
+    [g[0] for g in rotation_gates]
+)
+def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
+    qasm = """
+     OPENQASM 2.0;    
+     include "qelib1.inc";             
+     qreg q[2];     
+     {}(pi) q[0], q[1];     
+""".format(qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with wrong arg length error")
+    except QasmException as ex:
+        assert ex.message == "{} only takes 1 arg(s) " \
+                             "(qubits and/or registers)" \
+                             ", got: 2, at line 5".format(qasm_gate)
+
+
+@pytest.mark.parametrize(
+    'qasm_gate',
+    [g[0] for g in rotation_gates]
+)
+def test_rotation_gates_zero_params_error(qasm_gate: str):
+    qasm = """
+     OPENQASM 2.0;    
+     include "qelib1.inc";             
+     qreg q[2];     
+     {}() q[1];     
+""".format(qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with wrong params length error")
+    except QasmException as ex:
+        assert ex.message == "{} takes 1 parameter(s), got: 0," \
+                             " at line 5".format(qasm_gate)
+
+
+@pytest.mark.parametrize(
+    'qasm_gate',
+    [g[0] for g in rotation_gates]
+)
+def test_rotation_gates_too_much_params_error(qasm_gate: str):
+    qasm = """
+     OPENQASM 2.0;    
+     include "qelib1.inc";             
+     qreg q[2];     
+     {}(pi, pi) q[1];     
+""".format(qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with wrong params length error")
+    except QasmException as ex:
+        assert ex.message == "{} takes 1 parameter(s), got: 2," \
+                             " at line 5".format(qasm_gate)
+
+
+one_qubit_gates = [
+    ('x', cirq.X),
+    ('y', cirq.Y),
+    ('z', cirq.Z),
+    ('h', cirq.H),
+    ('s', cirq.S),
+    ('t', cirq.T),
+    ('sdg', cirq.S ** -1),
+    ('tdg', cirq.T ** -1),
+]
+
+
+@pytest.mark.parametrize(
+    'qasm_gate,cirq_gate',
+    one_qubit_gates
+)
+def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {0} q[0];
+     {0} q;
+     {0}() q;
+     {0}() q;
+    """.format(qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(cirq_gate.on(q0))
+    expected_circuit.append(cirq.Moment([cirq_gate.on(q0),
+                                         cirq_gate.on(q1)]))
+    expected_circuit.append(cirq.Moment([cirq_gate.on(q0),
+                                         cirq_gate.on(q1)]))
+    expected_circuit.append(cirq.Moment([cirq_gate.on(q0),
+                                         cirq_gate.on(q1)]))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+two_qubit_gates = [('cx', cirq.CNOT),
+                   ('CX', cirq.CNOT),
+                   ('cz', cirq.CZ),
+                   ('cy', cirq.ControlledGate(cirq.Y)),
+                   ('swap', cirq.SWAP),
+                   ('ch', cirq.ControlledGate(cirq.H))]
+
+
+@pytest.mark.parametrize(
+    'qasm_gate,cirq_gate',
+    two_qubit_gates
 )
 def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
     qasm = """
@@ -319,13 +515,7 @@ def test_two_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
 
 @pytest.mark.parametrize(
     'qasm_gate',
-    [
-        'cx',
-        'CX',
-        'cz',
-        'cy',
-        'swap',
-    ]
+    [g[0] for g in two_qubit_gates]
 )
 def test_two_qubit_gates_not_enough_args(qasm_gate: str):
     qasm = """
@@ -341,88 +531,21 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str):
         parser.parse()
         raise AssertionError("should fail with wrong arg length error")
     except QasmException as ex:
-        assert ex.qasm == qasm
-        assert ex.message == "{} only takes 2 args, got: 1," \
+        assert ex.message == "{} only takes 2 arg(s) " \
+                             "(qubits and/or registers), got: 1," \
                              " at line 5".format(qasm_gate)
-
-
-def test_id_gate():
-    qasm = """
-     OPENQASM 2.0;
-     include "qelib1.inc";
-     qreg q[2];
-     id q[0];
-     id q;
-"""
-
-    parser = QasmParser(qasm)
-
-    q0 = cirq.NamedQubit('q_0')
-    q1 = cirq.NamedQubit('q_1')
-
-    expected_circuit = Circuit()
-    expected_circuit.append(cirq.IdentityGate(1).on(q0))
-    expected_circuit.append(cirq.IdentityGate(2).on(q0, q1))
-
-    parsed_qasm = parser.parse()
-
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
-
-    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
-    assert parsed_qasm.qregs == {'q': 2}
-
-
-@pytest.mark.parametrize(
-    'qasm_gate,cirq_gate',
-    [
-        ('rx', cirq.Rx),
-        ('ry', cirq.Ry),
-        ('rz', cirq.Rz),
-    ]
-)
-def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
-    qasm = """
-     OPENQASM 2.0;
-     include "qelib1.inc";
-     qreg q[2];
-     {}(pi/2) q[0];
-     {}(pi) q;
-    """.format(qasm_gate, qasm_gate)
-
-    parser = QasmParser(qasm)
-
-    q0 = cirq.NamedQubit('q_0')
-    q1 = cirq.NamedQubit('q_1')
-
-    expected_circuit = Circuit()
-    expected_circuit.append(cirq_gate(np.pi / 2).on(q0))
-    expected_circuit.append(cirq.Moment([cirq_gate(np.pi).on(q0),
-                                         cirq_gate(np.pi).on(q1)]))
-
-    parsed_qasm = parser.parse()
-
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
-
-    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
-    assert parsed_qasm.qregs == {'q': 2}
 
 
 @pytest.mark.parametrize(
     'qasm_gate',
-    [
-        'rx',
-        'rz',
-        'ry',
-    ]
+    [g[0] for g in two_qubit_gates]
 )
-def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
+def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str):
     qasm = """
      OPENQASM 2.0;    
      include "qelib1.inc";             
-     qreg q[2];     
-     {}(pi) q[0], q[1];     
+     qreg q[2];
+     {}(pi) q[0];
 """.format(qasm_gate)
 
     parser = QasmParser(qasm)
@@ -431,38 +554,101 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
         parser.parse()
         raise AssertionError("should fail with wrong arg length error")
     except QasmException as ex:
-        assert ex.qasm == qasm
-        assert ex.message == "{} only takes 1 argument, got 2," \
-                             " at line 5".format(qasm_gate)
+        assert ex.message == "{} takes 0 parameter(s), got: 1, " \
+                             "at line 5".format(qasm_gate)
+
+
+three_qubit_gates = [('ccx', cirq.TOFFOLI),
+                     ('cswap', cirq.CSWAP)]
+
+
+@pytest.mark.parametrize(
+    'qasm_gate,cirq_gate',
+    three_qubit_gates
+)
+def test_three_qubit_gates(qasm_gate: str, cirq_gate: cirq.TwoQubitGate):
+    qasm = """
+     OPENQASM 2.0;   
+     include "qelib1.inc";       
+     qreg q1[2];
+     qreg q2[2];
+     qreg q3[2];
+     {0} q1[0], q1[1], q2[0];
+     {0} q1, q2[0], q3[0];
+     {0} q1, q2, q3;      
+""".format(qasm_gate)
+    parser = QasmParser(qasm)
+
+    q1_0 = cirq.NamedQubit('q1_0')
+    q1_1 = cirq.NamedQubit('q1_1')
+    q2_0 = cirq.NamedQubit('q2_0')
+    q2_1 = cirq.NamedQubit('q2_1')
+    q3_0 = cirq.NamedQubit('q3_0')
+    q3_1 = cirq.NamedQubit('q3_1')
+
+    expected_circuit = Circuit()
+
+    expected_circuit.append(cirq_gate(q1_0, q1_1, q2_0))
+
+    expected_circuit.append(cirq_gate(q1_0, q2_0, q3_0))
+    expected_circuit.append(cirq_gate(q1_1, q2_0, q3_0))
+
+    expected_circuit.append(cirq_gate(q1_0, q2_0, q3_0))
+    expected_circuit.append(cirq_gate(q1_1, q2_1, q3_1))
+
+    parsed_qasm = parser.parse()
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q1': 2, 'q2': 2, 'q3': 2}
 
 
 @pytest.mark.parametrize(
     'qasm_gate',
-    [
-        'rx',
-        'rz',
-        'ry',
-    ]
+    [g[0] for g in three_qubit_gates]
 )
-def test_rotation_gates_wrong_number_of_params(qasm_gate: str):
+def test_three_qubit_gates_not_enough_args(qasm_gate: str):
     qasm = """
-     OPENQASM 2.0;    
-     include "qelib1.inc";             
-     qreg q[2];     
-     {}() q[1];     
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {} q[0];
 """.format(qasm_gate)
 
     parser = QasmParser(qasm)
 
     try:
         parser.parse()
-        raise AssertionError("should fail with wrong params length error")
+        raise AssertionError("should fail with wrong arg length error")
     except QasmException as ex:
-        assert ex.qasm == qasm
-        assert ex.message == "{} requires 1 parameter, got 0," \
-                             " at line 5".format(qasm_gate)
+        assert ex.message == "{} only takes 3 arg(s) " \
+                             "(qubits and/or registers)" \
+                             ", got: 1, at line 5".format(qasm_gate)
 
-## TODO: other gates
-## TODO: generalize the qreg validation and assignment logic
+
+@pytest.mark.parametrize(
+    'qasm_gate',
+    [g[0] for g in three_qubit_gates]
+)
+def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[2];
+     {}(pi) q[0];
+""".format(qasm_gate)
+
+    parser = QasmParser(qasm)
+
+    try:
+        parser.parse()
+        raise AssertionError("should fail with wrong arg length error")
+    except QasmException as ex:
+        assert ex.message == "{} takes 0 parameter(s), got: 1, " \
+                             "at line 5".format(qasm_gate)
+
 ## TODO: comments
 ## TODO: measurement
+## TODO: DRY up test assertions

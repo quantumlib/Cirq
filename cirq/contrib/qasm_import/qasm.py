@@ -20,13 +20,11 @@ class QasmCircuitParser:
         self.qasm = qasm
 
     def parse(self) -> Circuit:
-
-        raise QasmException("missing QASM header", self.qasm)
+        raise QasmException("missing QASM header")
 
 
 class QasmException(Exception):
 
-    def __init__(self, message: str, qasm: str) -> None:
+    def __init__(self, message: str) -> None:
         self.message = message
-        self.qasm = qasm
 
