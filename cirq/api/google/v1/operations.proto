@@ -18,7 +18,9 @@ message Qubit {
 // A number specified as a constant plus an optional parameter lookup.
 message ParameterizedFloat {
   // Constant or parameter.
-  oneof value {
+  oneof value
+  repeated bytes bytes_points = 2;
+{
     // A constant value.
     float raw = 1;
 
