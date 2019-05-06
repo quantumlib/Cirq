@@ -216,7 +216,6 @@ def test_simulation_trial_result_equality():
                                    final_simulator_state=(0, 1)))
 
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
 
 def test_simulation_trial_result_repr():
     assert repr(cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
