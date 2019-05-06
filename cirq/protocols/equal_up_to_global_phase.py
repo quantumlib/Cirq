@@ -69,9 +69,8 @@ def equal_up_to_global_phase(
     Args:
         val: Source object for approximate comparison.
         other: Target object for approximate comparison.
-        atol: The minimum absolute tolerance. See np.isclose() documentation for
-              details. Defaults to 1e-8 which matches np.isclose() default
-              absolute tolerance.
+        atol: The minimum absolute tolerance. This places an upper bound on
+        the differences in _magnitudes_ of two compared complex numbers.
 
     Returns:
         True if objects are approximately equal up to phase, False otherwise.
@@ -93,9 +92,10 @@ def equal_up_to_global_phase(
         if result is not NotImplemented:
             return result
 
-    # Try to compare the magnitude of two numbers.
+    # Try to compare the magnitude of two complex numbers.
+    # FIXME: why restrict casting int, float -> complex for comparison?
     if isinstance(val, complex):
-        if not isinstance(other, (complex, float, int)):
+        if not isinstance(other, complex):
             return False
         return cirq.approx_eq(np.abs(val), np.abs(other), atol=atol)
 
