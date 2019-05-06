@@ -26,7 +26,8 @@ from cirq.type_workarounds import NotImplementedType
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
-    def __init__(self, sub_gate: raw_types.Gate,
+    def __init__(self,
+                 sub_gate: raw_types.Gate,
                  control_qubits: Sequence[Optional[raw_types.Qid]] = None,
                  num_controls: int = None) -> None:
         """Initializes the controlled gate.
@@ -44,7 +45,7 @@ class ControlledGate(raw_types.Gate):
             raise ValueError('More specified control qubits than num_controls')
 
         # Leave unspecified controls as Nones.
-        self.control_qubits = ((None,)*(num_controls - len(control_qubits)) +
+        self.control_qubits = ((None,) * (num_controls - len(control_qubits)) +
                                tuple(control_qubits))  # type: ignore
 
         # Flatten nested ControlledGates.
@@ -95,9 +96,8 @@ class ControlledGate(raw_types.Gate):
             else:
                 merged_controls.append(control)
 
-        return cop.ControlledOperation(
-            merged_controls,
-            self.sub_gate.on(*remaining_qubits))
+        return cop.ControlledOperation(merged_controls,
+                                       self.sub_gate.on(*remaining_qubits))
 
     def _value_equality_values_(self):
         return (
@@ -174,9 +174,9 @@ class ControlledGate(raw_types.Gate):
 
         if all(e is None for e in self.control_qubits):
             return ('cirq.ControlledGate(sub_gate={!r}, '
-                    'num_controls={!r})'.format(
-                self.sub_gate, len(self.control_qubits)))
+                    'num_controls={!r})'.format(self.sub_gate,
+                                                len(self.control_qubits)))
 
         return ('cirq.ControlledGate(sub_gate={!r}, '
-                'control_qubits={!r})'.format(
-            self.sub_gate, self.control_qubits))
+                'control_qubits={!r})'.format(self.sub_gate,
+                                              self.control_qubits))

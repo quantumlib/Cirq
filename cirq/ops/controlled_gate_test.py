@@ -207,8 +207,7 @@ def test_controlled_by():
     # Equality ignores ordering but cares about set and quantity.
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(g, g.controlled_by())
-    eq.add_equality_group(g.controlled_by(a, b),
-                          g.controlled_by(b, a),
+    eq.add_equality_group(g.controlled_by(a, b), g.controlled_by(b, a),
                           cirq.ControlledGate(g, [a, b]),
                           g.controlled_by(a).controlled_by(b))
     eq.add_equality_group(g.controlled_by(a))
@@ -332,8 +331,8 @@ def test_extrapolatable_effect():
     assert (cirq.ControlledGate(cirq.Z).on(a, b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5).on(a, b))
 
-    assert (cirq.ControlledGate(cirq.Z)**0.5 ==
-            cirq.ControlledGate(cirq.Z**0.5))
+    assert (cirq.ControlledGate(cirq.Z)**0.5 == cirq.ControlledGate(
+        cirq.Z**0.5))
 
     assert (cirq.ControlledGate(cirq.Z, [a]).on(b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5, [a]).on(b))
@@ -450,12 +449,12 @@ def test_bounded_effect():
 
 def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.ControlledGate(cirq.Z))
-    cirq.testing.assert_equivalent_repr(cirq.ControlledGate(
-        cirq.Z, num_controls=1))
-    cirq.testing.assert_equivalent_repr(cirq.ControlledGate(
-        cirq.Z, num_controls=2))
-    cirq.testing.assert_equivalent_repr(cirq.ControlledGate(
-        cirq.Y, control_qubits=[cirq.LineQubit(1)]))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ControlledGate(cirq.Z, num_controls=1))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ControlledGate(cirq.Z, num_controls=2))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ControlledGate(cirq.Y, control_qubits=[cirq.LineQubit(1)]))
 
 
 def test_str():
