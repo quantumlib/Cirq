@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import operator
+from typing import List
 
 import sympy
 from ply import yacc
@@ -43,18 +44,28 @@ class Qasm(object):
 
 class QasmParser(object):
 
-    def id_gate(self, args, lineno):
+    def id_gate(self,
+                params: List[sympy.Number] = None,
+                args: List[cirq.Qid] = None,
+                lineno: int = 0):
         if len(args) != 1:
             raise QasmException('ID gate called {} args at line no {}'
                                 .format(len(args), lineno), self.qasm)
 
         return cirq.IdentityGate(len(args[0]))(*args[0])
 
-    def rotation_gate(self, gate):
-        def call_gate(params, args, lineno):
+    def rotation_gate(self, qasm_gate, gate):
+        def call_gate(params: List[sympy.Number] = None,
+                      args: List[cirq.Qid] = None,
+                      lineno: int = 0):
+            if params is None or len(params) == 0:
+                raise QasmException(
+                    '{} requires 1 parameter, got {}, at line {}'.format(
+                        qasm_gate, len(params), lineno), self.qasm)
             if len(args) != 1:
-                raise QasmException('ID gate called {} args at line no {}'
-                                    .format(len(args), lineno), self.qasm)
+                raise QasmException(
+                    '{} only takes 1 argument, got {}, at line {}'.format(
+                        qasm_gate, len(args), lineno), self.qasm)
 
             for q in args[0]:
                 yield gate(params[0])(q)
@@ -62,7 +73,9 @@ class QasmParser(object):
         return call_gate
 
     def two_qubit_gate(self, qasm_gate, cirq_gate):
-        def call_gate(args, lineno):
+        def call_gate(params: List[sympy.Number] = None,
+                      args: List[cirq.Qid] = None,
+                      lineno: int = 0):
             if len(args) != 2:
                 raise QasmException(
                     "{} only takes 2 args, got: {}, at line {}".format(
@@ -100,9 +113,9 @@ class QasmParser(object):
             'cz': self.two_qubit_gate('cz', cirq.CZ),
             'swap': self.two_qubit_gate('swap', cirq.SWAP),
             'id': self.id_gate,
-            'rx': self.rotation_gate(cirq.Rx),
-            'ry': self.rotation_gate(cirq.Ry),
-            'rz': self.rotation_gate(cirq.Rz)
+            'rx': self.rotation_gate('rx', cirq.Rx),
+            'ry': self.rotation_gate('ry', cirq.Ry),
+            'rz': self.rotation_gate('rz', cirq.Rz)
 
         }
         self.qasm = qasm
@@ -119,7 +132,8 @@ class QasmParser(object):
             'cos': sympy.cos,
             'tan': sympy.tan,
             'exp': sympy.exp,
-            'ln': sympy.ln, 'sqrt': sympy.sqrt,
+            'ln': sympy.ln,
+            'sqrt': sympy.sqrt,
             'acos': sympy.acos,
             'atan': sympy.atan,
             'asin': sympy.asin
@@ -211,6 +225,7 @@ class QasmParser(object):
 
     # gate operations
     # gate_op : ID args
+    #         | ID () args
     #         | ID ( params ) args
 
     def p_gate_op_no_params(self, p):
@@ -224,7 +239,8 @@ class QasmParser(object):
 
         gate = p[1]
         if gate == "CX":
-            p[0] = self.two_qubit_gate('CX', CNOT)(args, p.lineno(1))
+            p[0] = self.two_qubit_gate('CX', CNOT)(args=args,
+                                                   lineno=p.lineno(1))
             return
         if self.qelibinc is False or gate not in self.standard_gates.keys():
             raise QasmException(
@@ -232,7 +248,9 @@ class QasmParser(object):
                 'maybe you forgot to include the standard qelib1.inc?'.format(
                     gate, p.lineno(1)), self.qasm)
 
-        p[0] = self.standard_gates[gate](args, p.lineno(1))
+        p[0] = self.standard_gates[gate](args=args,
+                                         params=[],
+                                         lineno=p.lineno(1))
 
     def p_gate_op_with_params(self, p):
         """gate_op :  ID '(' params ')' args"""
@@ -265,7 +283,9 @@ class QasmParser(object):
                 'Unknown gate {} at line {}, '
                 'maybe you forgot to include the standard qelib1.inc?'.format(
                     gate, p.lineno(1)), self.qasm)
-        p[0] = self.standard_gates[gate](params, args, p.lineno(1))
+        p[0] = self.standard_gates[gate](params=params,
+                                         args=args,
+                                         lineno=p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter
@@ -335,23 +355,9 @@ class QasmParser(object):
         """args : arg ';'"""
         p[0] = [p[1]]
 
-    # arg : ID '[' NATURAL_NUMBER ']'
+    # arg : ID
+    #     | ID '[' NATURAL_NUMBER ']'
     #
-
-    def p_arg_bit(self, p):
-        """arg : ID '[' NATURAL_NUMBER ']' """
-        reg = p[1]
-        num = p[3]
-        arg_name = str(reg) + "_" + str(num)
-        if reg in self.qregs.keys():
-            if arg_name not in self.qubits.keys():
-                self.qubits[arg_name] = NamedQubit(arg_name)
-            p[0] = [self.qubits[arg_name]]
-        else:
-            raise QasmException(
-                'undefined quantum/classical register "{}" '
-                'at line no: {}'.format(reg, p.lineno(1)),
-                self.qasm)
 
     def p_arg_register(self, p):
         """arg : ID """
@@ -370,13 +376,38 @@ class QasmParser(object):
                 'at line no: {}'.format(reg, p.lineno(1)),
                 self.qasm)
 
+    def p_arg_bit(self, p):
+        """arg : ID '[' NATURAL_NUMBER ']' """
+        reg = p[1]
+        num = p[3]
+        arg_name = str(reg) + "_" + str(num)
+        if reg in self.qregs.keys():
+            if arg_name not in self.qubits.keys():
+                self.qubits[arg_name] = NamedQubit(arg_name)
+            p[0] = [self.qubits[arg_name]]
+        else:
+            raise QasmException(
+                'undefined quantum/classical register "{}" '
+                'at line no: {}'.format(reg, p.lineno(1)),
+                self.qasm)
+
     def p_error(self, p):
         if p is None:
             raise QasmException('Unexpected end of file', self.qasm)
 
         raise QasmException(
-            "Syntax error: '{}' at line {}".format(p.value, p.lineno),
+            """{}
+Syntax error: '{}' 
+at line {}, column {}""".format(self.debug_context(p),
+                                p.value,
+                                p.lineno,
+                                self.find_column(p)
+                                ),
             self.qasm)
+
+    def find_column(self, p):
+        line_start = self.qasm.rfind('\n', 0, p.lexpos) + 1
+        return (p.lexpos - line_start) + 1
 
     def p_empty(self, p):
         """empty :"""
@@ -385,3 +416,11 @@ class QasmParser(object):
         if self.parsedQasm is None:
             self.parsedQasm = self.parser.parse(lexer=QasmLexer(self.qasm))
         return self.parsedQasm
+
+    def debug_context(self, p):
+        debug_start = max(self.qasm.rfind('\n', 0, p.lexpos) + 1, p.lexpos - 5)
+        debug_end = min(self.qasm.find('\n', p.lexpos, p.lexpos + 5),
+                        p.lexpos + 5)
+
+        return "..." + self.qasm[debug_start:debug_end] + "\n" + (" " * (
+                3 + p.lexpos - debug_start)) + "^"
