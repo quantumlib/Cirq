@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.circuits import Circuit
+from cirq import circuits
 from cirq.contrib.qasm_import._parser import QasmParser
 
 
@@ -21,5 +21,5 @@ class QasmCircuitParser:
         self.qasm = qasm
         self.parser = QasmParser(qasm)
 
-    def parse(self) -> Circuit:
+    def parse(self) -> circuits.Circuit:
         return self.parser.parse().circuit

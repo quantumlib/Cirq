@@ -19,24 +19,23 @@ Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
 
+import re
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
-
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
-import re
 import numpy as np
 
+import cirq._version
 from cirq import devices, ops, study, protocols
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
-from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
+from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.type_workarounds import NotImplementedType
-import cirq._version
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -1558,6 +1557,11 @@ class Circuit:
                 register.
         """
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
+
+    @classmethod
+    def from_qasm(cls, qasm:str):
+        from cirq.contrib import QasmCircuitParser
+        return QasmCircuitParser(qasm).parse()
 
 
 def _resolve_operations(
