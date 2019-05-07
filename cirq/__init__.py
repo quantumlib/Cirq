@@ -331,7 +331,6 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
-
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
@@ -341,5 +340,3 @@ from cirq import (
     google,
     testing,
 )
-
-

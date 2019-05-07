@@ -14,12 +14,12 @@
 
 """Utility classes for representing QASM."""
 
-import re
+from typing import Set  # pylint: disable=unused-import
 from typing import (
     Callable, Dict, Optional, Sequence, Tuple, Union
 )
-from typing import Set  # pylint: disable=unused-import
 
+import re
 import numpy as np
 
 from cirq import ops, linalg, protocols, value
