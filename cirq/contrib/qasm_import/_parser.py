@@ -57,14 +57,9 @@ class QasmParser(object):
     def make_gate(self, qasm_gate: str, cirq_gate: Callable[[Any], cirq.Gate],
                   num_params: int, num_args: int):
 
-        def call_gate(params: Optional[List[sympy.Number]] = None,
-                      args: Optional[List[List[cirq.Qid]]] = None,
+        def call_gate(params: List[sympy.Number],
+                      args: List[List[cirq.Qid]],
                       lineno: int = 0) -> Iterable[cirq.GateOperation]:
-            if args is None:
-                args = []
-            if params is None:
-                params = []
-
             self.validate_params(qasm_gate, params, num_params, lineno)
             self.validate_args(qasm_gate, args, num_args, lineno)
             reg_size = 1
@@ -91,27 +86,18 @@ class QasmParser(object):
     def u_gate(self):
         operation = self.make_gate('U', QasmUGate, num_args=1, num_params=3)
 
-        def call_gate(params: Optional[List[sympy.Number]] = None,
-                      args: Optional[List[List[cirq.Qid]]] = None,
+        def call_gate(params: List[sympy.Number],
+                      args: List[List[cirq.Qid]],
                       lineno: int = 0) -> Iterable[cirq.GateOperation]:
-            if args is None:
-                args = []
-            if params is None:
-                params = []
-
             self.validate_params('U', params, 3, lineno)
             return operation([params[2], params[0], params[1]], args, lineno)
 
         return call_gate
 
     def id_gate(self,
-                params: Optional[List[sympy.Number]] = None,
-                args: Optional[List[List[cirq.Qid]]] = None,
+                params: List[sympy.Number],
+                args: List[List[cirq.Qid]],
                 lineno: int = 0) -> Iterable[cirq.GateOperation]:
-        if args is None:
-            args = []
-        if params is None:
-            params = []
         self.validate_args('id', args, 1, lineno)
         self.validate_params('id', params, 0, lineno)
         return cirq.IdentityGate(len(args[0]))(*args[0])
