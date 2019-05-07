@@ -21,8 +21,12 @@ import numpy as np
 import cirq
 
 
-def assert_dirac_notation(vec, expected, decimals=2):
+def assert_dirac_notation_numpy(vec, expected, decimals=2):
     assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
+
+
+def assert_dirac_notation_python(vec, expected, decimals=2):
+    assert cirq.dirac_notation(vec, decimals=decimals) == expected
 
 
 def test_state_mixin():
@@ -190,39 +194,43 @@ def test_density_matrix_invalid():
 def test_dirac_notation():
     sqrt = np.sqrt(0.5)
     exp_pi_2 = 0.5 + 0.5j
-    assert_dirac_notation([0, 0], "0")
-    assert_dirac_notation([1], "|⟩")
-    assert_dirac_notation([sqrt, sqrt], "0.71|0⟩ + 0.71|1⟩")
-    assert_dirac_notation([-sqrt, sqrt], "-0.71|0⟩ + 0.71|1⟩")
-    assert_dirac_notation([sqrt, -sqrt], "0.71|0⟩ - 0.71|1⟩")
-    assert_dirac_notation([-sqrt, -sqrt], "-0.71|0⟩ - 0.71|1⟩")
-    assert_dirac_notation([sqrt, 1j * sqrt], "0.71|0⟩ + 0.71j|1⟩")
-    assert_dirac_notation([sqrt, exp_pi_2], "0.71|0⟩ + (0.5+0.5j)|1⟩")
-    assert_dirac_notation([exp_pi_2, -sqrt], "(0.5+0.5j)|0⟩ - 0.71|1⟩")
-    assert_dirac_notation([exp_pi_2, 0.5 - 0.5j],
-                          "(0.5+0.5j)|0⟩ + (0.5-0.5j)|1⟩")
-    assert_dirac_notation([0.5, 0.5, -0.5, -0.5],
-                          "0.5|00⟩ + 0.5|01⟩ - 0.5|10⟩ - 0.5|11⟩")
+    assert_dirac_notation_numpy([0, 0], "0")
+    assert_dirac_notation_python([1], "|⟩")
+    assert_dirac_notation_numpy([sqrt, sqrt], "0.71|0⟩ + 0.71|1⟩")
+    assert_dirac_notation_python([-sqrt, sqrt], "-0.71|0⟩ + 0.71|1⟩")
+    assert_dirac_notation_numpy([sqrt, -sqrt], "0.71|0⟩ - 0.71|1⟩")
+    assert_dirac_notation_python([-sqrt, -sqrt], "-0.71|0⟩ - 0.71|1⟩")
+    assert_dirac_notation_numpy([sqrt, 1j * sqrt], "0.71|0⟩ + 0.71j|1⟩")
+    assert_dirac_notation_python([sqrt, exp_pi_2], "0.71|0⟩ + (0.5+0.5j)|1⟩")
+    assert_dirac_notation_numpy([exp_pi_2, -sqrt], "(0.5+0.5j)|0⟩ - 0.71|1⟩")
+    assert_dirac_notation_python([exp_pi_2, 0.5 - 0.5j],
+                                 "(0.5+0.5j)|0⟩ + (0.5-0.5j)|1⟩")
+    assert_dirac_notation_numpy([0.5, 0.5, -0.5, -0.5],
+                                "0.5|00⟩ + 0.5|01⟩ - 0.5|10⟩ - 0.5|11⟩")
+    assert_dirac_notation_python([0.71j, 0.71j], "0.71j|0⟩ + 0.71j|1⟩")
 
 
 def test_dirac_notation_partial_state():
     sqrt = np.sqrt(0.5)
     exp_pi_2 = 0.5 + 0.5j
-    assert_dirac_notation([1, 0], "|0⟩")
-    assert_dirac_notation([1j, 0], "1j|0⟩")
-    assert_dirac_notation([0, 1], "|1⟩")
-    assert_dirac_notation([0, 1j], "1j|1⟩")
-    assert_dirac_notation([sqrt, 0, 0, sqrt], "0.71|00⟩ + 0.71|11⟩")
-    assert_dirac_notation([sqrt, sqrt, 0, 0], "0.71|00⟩ + 0.71|01⟩")
-    assert_dirac_notation([exp_pi_2, 0, 0, exp_pi_2],
-                        "(0.5+0.5j)|00⟩ + (0.5+0.5j)|11⟩")
-    assert_dirac_notation([0, 0, 0, 1], "|11⟩")
+    assert_dirac_notation_numpy([1, 0], "|0⟩")
+    assert_dirac_notation_python([1j, 0], "1j|0⟩")
+    assert_dirac_notation_numpy([0, 1], "|1⟩")
+    assert_dirac_notation_python([0, 1j], "1j|1⟩")
+    assert_dirac_notation_numpy([sqrt, 0, 0, sqrt], "0.71|00⟩ + 0.71|11⟩")
+    assert_dirac_notation_python([sqrt, sqrt, 0, 0], "0.71|00⟩ + 0.71|01⟩")
+    assert_dirac_notation_numpy([exp_pi_2, 0, 0, exp_pi_2],
+                                "(0.5+0.5j)|00⟩ + (0.5+0.5j)|11⟩")
+    assert_dirac_notation_python([0, 0, 0, 1], "|11⟩")
 
 
 def test_dirac_notation_precision():
     sqrt = np.sqrt(0.5)
-    assert_dirac_notation([sqrt, sqrt], "0.7|0⟩ + 0.7|1⟩", decimals=1)
-    assert_dirac_notation([sqrt, sqrt], "0.707|0⟩ + 0.707|1⟩", decimals=3)
+    assert_dirac_notation_numpy([sqrt, sqrt], "0.7|0⟩ + 0.7|1⟩", decimals=1)
+    assert_dirac_notation_python([sqrt, sqrt],
+                                 "0.707|0⟩ + 0.707|1⟩",
+                                 decimals=3)
+
 
 def test_to_valid_state_vector():
     np.testing.assert_almost_equal(cirq.to_valid_state_vector(

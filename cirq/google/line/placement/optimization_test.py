@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import math
-import mock
+from unittest import mock
 import pytest
 
 from cirq.google.line.placement import optimization
