@@ -479,7 +479,7 @@ class QasmParser(object):
 
         raise QasmException(
             """Syntax error: '{}'
-{} 
+{}
 at line {}, column {}""".format(
                 p.value,
                 self.debug_context(p),

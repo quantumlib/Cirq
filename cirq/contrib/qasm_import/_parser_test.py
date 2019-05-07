@@ -104,11 +104,11 @@ def test_multiple_qreg_declaration():
 @pytest.mark.parametrize(
     'qasm',
     [
-        """OPENQASM 2.0;                   
+        """OPENQASM 2.0;
            qreg q[2];
            creg q[3];
                """,
-        """OPENQASM 2.0;                   
+        """OPENQASM 2.0;
            creg q[2];
            qreg q[3];
                """,
@@ -125,11 +125,11 @@ def test_already_defined_error(qasm: str):
 @pytest.mark.parametrize(
     'qasm',
     [
-        """OPENQASM 2.0;                   
-           qreg q[0];           
+        """OPENQASM 2.0;
+           qreg q[0];
                """,
-        """OPENQASM 2.0;                   
-           creg q[0];           
+        """OPENQASM 2.0;
+           creg q[0];
                """,
     ]
 )
