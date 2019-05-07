@@ -14,7 +14,7 @@
 
 from typing import Iterable, List
 
-import mock
+from unittest import mock
 import numpy as np
 import pytest
 
