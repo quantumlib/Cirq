@@ -50,7 +50,7 @@ matrix:
 
   - os: linux
     env: NAME=performance tests
-    python: "3.7"
+    python: "3.6"
     install:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
