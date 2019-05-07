@@ -540,12 +540,11 @@ def test_rotation_gates_too_much_params_error(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(
+            QasmException,
+            match=r".*{}.* takes 1 parameter\(s\).*got.*2.*line 5".format(
+                qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong params length error")
-    except QasmException as ex:
-        assert ex.message == "{} takes 1 parameter(s), got: 2," \
-                             " at line 5".format(qasm_gate)
 
 
 one_qubit_gates = [
