@@ -48,8 +48,7 @@ matrix:
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --ignore=cirq/contrib --benchmark-skip
 
-
-    - os: linux
+  - os: linux
     env: NAME=Performance tests
     python: "3.7"
     install:
