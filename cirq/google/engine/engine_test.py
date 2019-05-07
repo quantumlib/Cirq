@@ -15,7 +15,7 @@
 """Tests for engine."""
 import base64
 import re
-import mock
+from unittest import mock
 import numpy as np
 import pytest
 
