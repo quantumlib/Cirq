@@ -17,6 +17,7 @@ from typing import Dict, Iterable, Union
 import sympy
 
 from cirq import value, protocols
+from cirq._compat import proper_repr
 from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
                       op_tree, pauli_string_raw_types)
 
@@ -157,10 +158,10 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     def __repr__(self):
         return ('cirq.PauliStringPhasor({!r}, '
-                'exponent_neg={!r}, '
-                'exponent_pos={!r})'.format(self.pauli_string,
-                                            self.exponent_neg,
-                                            self.exponent_pos))
+                'exponent_neg={}, '
+                'exponent_pos={})'.format(self.pauli_string,
+                                          proper_repr(self.exponent_neg),
+                                          proper_repr(self.exponent_pos)))
 
     def __str__(self):
         if self.exponent_pos == -self.exponent_neg:

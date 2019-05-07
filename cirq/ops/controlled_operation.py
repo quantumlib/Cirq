@@ -133,25 +133,26 @@ class ControlledOperation(raw_types.Operation):
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> Optional[protocols.CircuitDiagramInfo]:
+        n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(
-            known_qubit_count=(args.known_qubit_count - 1
+            known_qubit_count=(args.known_qubit_count - n
                                if args.known_qubit_count is not None else None),
-            known_qubits=(args.known_qubits[1:]
+            known_qubits=(args.known_qubits[n:]
                           if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map
-        )
+            qubit_map=args.qubit_map)
         sub_info = protocols.circuit_diagram_info(self.sub_operation,
                                                   sub_args,
                                                   None)
         if sub_info is None:
             return NotImplemented
 
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('@',) + sub_info.wire_symbols,
-            exponent=sub_info.exponent)
+        return protocols.CircuitDiagramInfo(wire_symbols=('@',) * n +
+                                            sub_info.wire_symbols,
+                                            exponent=sub_info.exponent)
+
 
 def _positions_after_removals_at(initial_positions: Sequence[int],
                                  removals: Sequence[int]) -> List[int]:

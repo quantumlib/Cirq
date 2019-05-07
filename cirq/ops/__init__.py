@@ -78,6 +78,9 @@ from cirq.ops.display import (
 from cirq.ops.eigen_gate import (
     EigenGate,)
 
+from cirq.ops.fsim_gate import (
+    FSimGate,)
+
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
     SingleQubitGate,
