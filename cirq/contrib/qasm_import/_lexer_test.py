@@ -18,16 +18,7 @@ def test_empty_circuit():
     assert QasmLexer("").token() is None
 
 
-@pytest.mark.parametrize(
-    'number',
-    [
-        "00000",
-        "03",
-        "3",
-        "0045",
-        "21"
-    ]
-)
+@pytest.mark.parametrize('number', ["00000", "03", "3", "0045", "21"])
 def test_natural_numbers(number: str):
     token = QasmLexer(number).token()
     assert token is not None
@@ -74,14 +65,7 @@ def test_measurment():
 
 @pytest.mark.parametrize(
     'identifier',
-    [
-        'b',
-        'CX',
-        'abc',
-        'aXY03',
-        'a_valid_name_with_02_digits_and_underscores'
-    ]
-)
+    ['b', 'CX', 'abc', 'aXY03', 'a_valid_name_with_02_digits_and_underscores'])
 def test_valid_ids(identifier: str):
     token = QasmLexer(identifier).token()
 
@@ -91,16 +75,7 @@ def test_valid_ids(identifier: str):
 
 
 @pytest.mark.parametrize(
-    'number',
-    [
-        '.333',
-        '1.0',
-        '0.1',
-        '2.0e-05',
-        '1.2E+05',
-        '123123.2132312'
-    ]
-)
+    'number', ['.333', '1.0', '0.1', '2.0e-05', '1.2E+05', '123123.2132312'])
 def test_reals(number: str):
     token = QasmLexer(number).token()
 
@@ -165,6 +140,5 @@ def test_creg():
 def test_error():
     lexer = QasmLexer('θ')
 
-    with pytest.raises(QasmException,
-                       match="Illegal character 'θ' at line 1"):
+    with pytest.raises(QasmException, match="Illegal character 'θ' at line 1"):
         lexer.token()

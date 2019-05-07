@@ -40,13 +40,13 @@ class QasmLexer(object):
     }
 
     tokens = [
-                 'FORMAT_SPEC',
-                 'NUMBER',
-                 'NATURAL_NUMBER',
-                 'QELIBINC',
-                 'ID',
-                 'PI',
-             ] + list(reserved.values())
+        'FORMAT_SPEC',
+        'NUMBER',
+        'NATURAL_NUMBER',
+        'QELIBINC',
+        'ID',
+        'PI',
+    ] + list(reserved.values())
 
     def t_newline(self, t):
         r"""\n+"""
@@ -104,8 +104,8 @@ class QasmLexer(object):
         r"""//.*"""
 
     def t_error(self, t):
-        raise QasmException("Illegal character '{}' at line {}"
-                            .format(t.value[0], t.lineno))
+        raise QasmException("Illegal character '{}' at line {}".format(
+            t.value[0], t.lineno))
 
     def token(self) -> Optional[lex.Token]:
         return self.lex.token()

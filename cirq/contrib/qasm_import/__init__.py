@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.qasm_import.qasm import (
-    QasmCircuitParser
-)
+from cirq.contrib.qasm_import.qasm import (QasmCircuitParser)
 
-from cirq.contrib.qasm_import.exception import (
-    QasmException
-)
+from cirq.contrib.qasm_import.exception import (QasmException)

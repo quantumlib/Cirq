@@ -1560,7 +1560,7 @@ class Circuit:
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
     @classmethod
-    def from_qasm(cls, qasm:str):
+    def from_qasm(cls, qasm: str):
         from cirq.contrib import QasmCircuitParser
         return QasmCircuitParser(qasm).parse()
 

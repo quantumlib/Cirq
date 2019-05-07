@@ -26,11 +26,8 @@ from cirq.contrib.qasm_import.exception import QasmException
 
 class Qasm(object):
 
-    def __init__(self, supported_format: bool,
-                 qelib1_include: bool,
-                 qregs: dict,
-                 cregs: dict,
-                 c: Circuit):
+    def __init__(self, supported_format: bool, qelib1_include: bool,
+                 qregs: dict, cregs: dict, c: Circuit):
         # defines whether the Quantum Experience standard header
         # is present or not
         self.qelib1Include = qelib1_include
@@ -48,26 +45,18 @@ class QasmParser(object):
         if len(params) != num_params:
             raise QasmException(
                 "{} takes {} parameter(s), got: {}, at line {}".format(
-                    qasm_gate,
-                    num_params,
-                    len(params),
-                    lineno))
+                    qasm_gate, num_params, len(params), lineno))
 
     def validate_args(self, qasm_gate, args, num_args, lineno):
         if len(args) != num_args:
             raise QasmException(
                 "{} only takes {} arg(s) (qubits and/or registers), "
-                "got: {}, at line {}".format(
-                    qasm_gate,
-                    num_args,
-                    len(args),
-                    lineno))
+                "got: {}, at line {}".format(qasm_gate, num_args, len(args),
+                                             lineno))
 
-    def make_gate(self,
-                  qasm_gate: str,
-                  cirq_gate: Callable[[Any], cirq.Gate],
-                  num_params: int,
-                  num_args: int):
+    def make_gate(self, qasm_gate: str, cirq_gate: Callable[[Any], cirq.Gate],
+                  num_params: int, num_args: int):
+
         def call_gate(params: Optional[List[sympy.Number]] = None,
                       args: Optional[List[List[cirq.Qid]]] = None,
                       lineno: int = 0) -> Iterable[cirq.GateOperation]:
@@ -86,16 +75,16 @@ class QasmParser(object):
                     else:
                         raise QasmException(
                             "Non matching quantum registers of length {} "
-                            "at line {}".format(
-                                [len(reg) for reg in args], lineno))
+                            "at line {}".format([len(reg) for reg in args],
+                                                lineno))
 
             for qbit_index in range(reg_size):
                 final_gate = cirq_gate if isinstance(cirq_gate, cirq.Gate) \
                     else cirq_gate(*[float(p)
                                      for p in params])  # type: cirq.Gate
 
-                yield final_gate.on(*[qreg[min(len(qreg) - 1, qbit_index)]
-                                      for qreg in args])
+                yield final_gate.on(
+                    *[qreg[min(len(qreg) - 1, qbit_index)] for qreg in args])
 
         return call_gate
 
@@ -133,70 +122,57 @@ class QasmParser(object):
             'U': self.u_gate()
         }
         self.standard_gates = {
-            'u3': self.u_gate(),
-            'x': self.make_gate('x', cirq.X,
-                                num_params=0,
-                                num_args=1),
-            'y': self.make_gate('y', cirq.Y,
-                                num_params=0,
-                                num_args=1),
-            'z': self.make_gate('z', cirq.Z,
-                                num_params=0,
-                                num_args=1),
-            'h': self.make_gate('h', cirq.H,
-                                num_params=0,
-                                num_args=1),
-            's': self.make_gate('s', cirq.S,
-                                num_params=0,
-                                num_args=1),
-            't': self.make_gate('t', cirq.T,
-                                num_params=0,
-                                num_args=1),
-            'sdg': self.make_gate('sdg', cirq.S ** -1,
-                                  num_params=0,
-                                  num_args=1),
-            'tdg': self.make_gate('tdg', cirq.T ** -1,
-                                  num_params=0,
-                                  num_args=1),
-            'cx': self.make_gate('cx', CNOT,
-                                 num_params=0,
-                                 num_args=2),
-            'cy': self.make_gate('cy', cirq.ControlledGate(cirq.Y),
-                                 num_params=0,
-                                 num_args=2),
-            'cz': self.make_gate('cz', cirq.CZ,
-                                 num_params=0,
-                                 num_args=2),
-            'swap': self.make_gate('swap', cirq.SWAP,
-                                   num_params=0,
-                                   num_args=2),
-            'ch': self.make_gate('ch', cirq.ControlledGate(cirq.H),
-                                 num_params=0,
-                                 num_args=2),
-            'id': self.id_gate,
-            'rx': self.make_gate('rx', cirq.Rx,
-                                 num_params=1,
-                                 num_args=1),
-            'ry': self.make_gate('ry', cirq.Ry,
-                                 num_params=1,
-                                 num_args=1),
-            'rz': self.make_gate('rz', cirq.Rz,
-                                 num_params=1,
-                                 num_args=1),
-            'ccx': self.make_gate('ccx', cirq.TOFFOLI,
-                                  num_args=3,
-                                  num_params=0),
-            'cswap': self.make_gate('cswap', cirq.CSWAP,
-                                    num_args=3,
-                                    num_params=0)
-
+            'u3':
+            self.u_gate(),
+            'x':
+            self.make_gate('x', cirq.X, num_params=0, num_args=1),
+            'y':
+            self.make_gate('y', cirq.Y, num_params=0, num_args=1),
+            'z':
+            self.make_gate('z', cirq.Z, num_params=0, num_args=1),
+            'h':
+            self.make_gate('h', cirq.H, num_params=0, num_args=1),
+            's':
+            self.make_gate('s', cirq.S, num_params=0, num_args=1),
+            't':
+            self.make_gate('t', cirq.T, num_params=0, num_args=1),
+            'sdg':
+            self.make_gate('sdg', cirq.S**-1, num_params=0, num_args=1),
+            'tdg':
+            self.make_gate('tdg', cirq.T**-1, num_params=0, num_args=1),
+            'cx':
+            self.make_gate('cx', CNOT, num_params=0, num_args=2),
+            'cy':
+            self.make_gate('cy',
+                           cirq.ControlledGate(cirq.Y),
+                           num_params=0,
+                           num_args=2),
+            'cz':
+            self.make_gate('cz', cirq.CZ, num_params=0, num_args=2),
+            'swap':
+            self.make_gate('swap', cirq.SWAP, num_params=0, num_args=2),
+            'ch':
+            self.make_gate('ch',
+                           cirq.ControlledGate(cirq.H),
+                           num_params=0,
+                           num_args=2),
+            'id':
+            self.id_gate,
+            'rx':
+            self.make_gate('rx', cirq.Rx, num_params=1, num_args=1),
+            'ry':
+            self.make_gate('ry', cirq.Ry, num_params=1, num_args=1),
+            'rz':
+            self.make_gate('rz', cirq.Rz, num_params=1, num_args=1),
+            'ccx':
+            self.make_gate('ccx', cirq.TOFFOLI, num_args=3, num_params=0),
+            'cswap':
+            self.make_gate('cswap', cirq.CSWAP, num_args=3, num_params=0)
         }
         self.standard_gates.update(**self.basic_gates)
 
         self.qasm = qasm
-        self.parser = yacc.yacc(module=self,
-                                debug=False,
-                                write_tables=False)
+        self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
         self.qregs = {}  # type: Dict[str,int]
         self.cregs = {}  # type: Dict[str,int]
@@ -259,8 +235,7 @@ class QasmParser(object):
         if p[1] != "2.0":
             raise QasmException(
                 "Unsupported OpenQASM version: {}, "
-                "only 2.0 is supported currently by Cirq".format(
-                    p[1]))
+                "only 2.0 is supported currently by Cirq".format(p[1]))
 
     # circuit : new_reg circuit
     #         | gate_op circuit
@@ -314,30 +289,23 @@ class QasmParser(object):
 
     def p_gate_op_with_params(self, p):
         """gate_op :  ID '(' params ')' args"""
-        self._resolve_gate_operation(args=p[5],
-                                     gate=p[1],
-                                     p=p,
-                                     params=p[3])
+        self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
-    def _resolve_gate_operation(self,
-                                args: List[List[cirq.Qid]],
-                                gate: str, p: Any,
-                                params: List[sympy.Number]):
+    def _resolve_gate_operation(self, args: List[List[cirq.Qid]], gate: str,
+                                p: Any, params: List[sympy.Number]):
         if self.qelibinc is False:
             if gate not in self.basic_gates.keys():
-                raise QasmException(
-                    'Unknown gate "{}" at line {}, '
-                    'maybe you forgot to include '
-                    'the standard qelib1.inc?'.format(
-                        gate, p.lineno(1)))
+                raise QasmException('Unknown gate "{}" at line {}, '
+                                    'maybe you forgot to include '
+                                    'the standard qelib1.inc?'.format(
+                                        gate, p.lineno(1)))
             p[0] = self.basic_gates[gate](args=args,
                                           params=params,
                                           lineno=p.lineno(1))
         else:
             if gate not in self.standard_gates.keys():
-                raise QasmException(
-                    'Unknown gate "{}" at line {}'.format(
-                        gate, p.lineno(1)))
+                raise QasmException('Unknown gate "{}" at line {}'.format(
+                    gate, p.lineno(1)))
 
             p[0] = self.standard_gates[gate](args=args,
                                              params=params,
@@ -371,15 +339,15 @@ class QasmParser(object):
         func = p[1]
         if func not in self.functions.keys():
             raise QasmException(
-                "Function not recognized: '{}' at line {}".format(func,
-                                                                  p.lineno(1)))
+                "Function not recognized: '{}' at line {}".format(
+                    func, p.lineno(1)))
         p[0] = self.functions[func](p[3])
 
     def p_expr_unary(self, p):
         """expr : '-' expr
                 | '+' expr """
         if p[1] == '-':
-            p[0] = - p[2]
+            p[0] = -p[2]
         else:
             p[0] = p[2]
 
@@ -432,9 +400,8 @@ class QasmParser(object):
                 keys.append(arg_name)
             p[0] = keys
         else:
-            raise QasmException(
-                'Undefined quantum/classical register "{}" '
-                'at line {}'.format(reg, p.lineno(1)))
+            raise QasmException('Undefined quantum/classical register "{}" '
+                                'at line {}'.format(reg, p.lineno(1)))
 
     def make_name(self, num, reg):
         return str(reg) + "_" + str(num)
@@ -451,9 +418,8 @@ class QasmParser(object):
         elif reg in self.cregs.keys():
             p[0] = [arg_name]
         else:
-            raise QasmException(
-                'Undefined quantum/classical register "{}" '
-                'at line {}'.format(reg, p.lineno(1)))
+            raise QasmException('Undefined quantum/classical register "{}" '
+                                'at line {}'.format(reg, p.lineno(1)))
 
     # measurement operations
     # measurement : MEASURE arg ARROW arg
@@ -469,23 +435,18 @@ class QasmParser(object):
 
         measurements = []
         for i in range(len(qreg)):
-            measurements.append(cirq.MeasurementGate(num_qubits=1, key=creg[i])
-                                .on(qreg[i]))
+            measurements.append(
+                cirq.MeasurementGate(num_qubits=1, key=creg[i]).on(qreg[i]))
         p[0] = measurements
 
     def p_error(self, p):
         if p is None:
             raise QasmException('Unexpected end of file')
 
-        raise QasmException(
-            """Syntax error: '{}'
+        raise QasmException("""Syntax error: '{}'
 {}
-at line {}, column {}""".format(
-                p.value,
-                self.debug_context(p),
-                p.lineno,
-                self.find_column(p)
-            ))
+at line {}, column {}""".format(p.value, self.debug_context(p), p.lineno,
+                                self.find_column(p)))
 
     def find_column(self, p):
         line_start = self.qasm.rfind('\n', 0, p.lexpos) + 1
@@ -504,5 +465,5 @@ at line {}, column {}""".format(
         debug_end = min(self.qasm.find('\n', p.lexpos, p.lexpos + 5),
                         p.lexpos + 5)
 
-        return "..." + self.qasm[debug_start:debug_end] + "\n" + (" " * (
-                3 + p.lexpos - debug_start)) + "^"
+        return "..." + self.qasm[debug_start:debug_end] + "\n" + (
+            " " * (3 + p.lexpos - debug_start)) + "^"

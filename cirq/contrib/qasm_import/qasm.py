@@ -17,6 +17,7 @@ from cirq.contrib.qasm_import._parser import QasmParser
 
 
 class QasmCircuitParser:
+
     def __init__(self, qasm: str):
         self.qasm = qasm
         self.parser = QasmParser(qasm)

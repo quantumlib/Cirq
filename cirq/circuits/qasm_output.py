@@ -75,6 +75,7 @@ class QasmUGate(ops.SingleQubitGate):
                other.theta == self.theta and \
                other.phi == self.phi
 
+
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):
     def __init__(self, kak: linalg.KakDecomposition) -> None:
