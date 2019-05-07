@@ -108,8 +108,12 @@ def equal_up_to_global_phase(
     return result
 
 
-def _eq_up_to_phase_iterables(val: Any, other: Any, *,
-                         atol: Union[int, float]) -> bool:
+def _eq_up_to_phase_iterables(
+    val: Any,
+    other: Any,
+    *,
+    atol: Union[int, float]
+) -> bool:
     """Iterates over arguments and checks for equality up to global phase.
 
     For iterables of the same length and comparable structure, check that the
