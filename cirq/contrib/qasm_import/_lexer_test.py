@@ -5,9 +5,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import pytest
-from sympy import Number
 import sympy
+from sympy import Number
 
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
@@ -29,18 +30,21 @@ def test_empty_circuit():
 )
 def test_natural_numbers(number: str):
     token = QasmLexer(number).token()
+    assert token is not None
     assert token.type == "NATURAL_NUMBER"
     assert token.value == int(number)
 
 
 def test_supported_format():
     token = QasmLexer("OPENQASM 2.0;").token()
+    assert token is not None
     assert token.type == "FORMAT_SPEC"
     assert token.value == '2.0'
 
 
 def test_qelib_inc():
     token = QasmLexer('include "qelib1.inc";').token()
+    assert token is not None
     assert token.type == "QELIBINC"
     assert token.value == 'include "qelib1.inc";'
 
@@ -80,6 +84,8 @@ def test_measurment():
 )
 def test_valid_ids(identifier: str):
     token = QasmLexer(identifier).token()
+
+    assert token is not None
     assert token.type == "ID"
     assert token.value == identifier
 
@@ -98,6 +104,7 @@ def test_valid_ids(identifier: str):
 def test_reals(number: str):
     token = QasmLexer(number).token()
 
+    assert token is not None
     assert token.type == "NUMBER"
     assert token.value == Number(number)
 

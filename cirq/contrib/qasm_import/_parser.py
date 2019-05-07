@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import operator
-from typing import List, Any
+from typing import List, Any, Union, Iterable, Callable, Dict, Optional
 
 import sympy
 from ply import yacc
@@ -65,15 +65,19 @@ class QasmParser(object):
 
     def make_gate(self,
                   qasm_gate: str,
-                  cirq_gate: cirq.Gate,
+                  cirq_gate: Callable[[Any], cirq.Gate],
                   num_params: int,
                   num_args: int):
-        def call_gate(params: List[sympy.Number] = None,
-                      args: List[cirq.Qid] = None,
-                      lineno: int = 0):
+        def call_gate(params: Optional[List[sympy.Number]] = None,
+                      args: Optional[List[List[cirq.Qid]]] = None,
+                      lineno: int = 0) -> Iterable[cirq.GateOperation]:
+            if args is None:
+                args = []
+            if params is None:
+                params = []
+
             self.validate_params(qasm_gate, params, num_params, lineno)
             self.validate_args(qasm_gate, args, num_args, lineno)
-
             reg_size = 1
             for reg in args:
                 if len(reg) > 1 and len(reg) != reg_size:
@@ -86,29 +90,39 @@ class QasmParser(object):
                                 [len(reg) for reg in args], lineno))
 
             for qbit_index in range(reg_size):
-                final_gate = cirq_gate
-                if num_params > 0:
-                    final_gate = cirq_gate(*[float(p) for p in params])
-                yield final_gate(*[qreg[min(len(qreg) - 1, qbit_index)]
-                                   for qreg in args])
+                final_gate = cirq_gate if isinstance(cirq_gate, cirq.Gate) \
+                    else cirq_gate(*[float(p)
+                                     for p in params])  # type: cirq.Gate
+
+                yield final_gate.on(*[qreg[min(len(qreg) - 1, qbit_index)]
+                                      for qreg in args])
 
         return call_gate
 
     def u_gate(self):
         operation = self.make_gate('U', QasmUGate, num_args=1, num_params=3)
 
-        def call_gate(params: List[sympy.Number] = None,
-                      args: List[List[cirq.Qid]] = None,
-                      lineno: int = 0):
+        def call_gate(params: Optional[List[sympy.Number]] = None,
+                      args: Optional[List[List[cirq.Qid]]] = None,
+                      lineno: int = 0) -> Iterable[cirq.GateOperation]:
+            if args is None:
+                args = []
+            if params is None:
+                params = []
+
             self.validate_params('U', params, 3, lineno)
             return operation([params[2], params[0], params[1]], args, lineno)
 
         return call_gate
 
     def id_gate(self,
-                params: List[sympy.Number] = None,
-                args: List[List[cirq.Qid]] = None,
-                lineno: int = 0):
+                params: Optional[List[sympy.Number]] = None,
+                args: Optional[List[List[cirq.Qid]]] = None,
+                lineno: int = 0) -> Iterable[cirq.GateOperation]:
+        if args is None:
+            args = []
+        if params is None:
+            params = []
         self.validate_args('id', args, 1, lineno)
         self.validate_params('id', params, 0, lineno)
         return cirq.IdentityGate(len(args[0]))(*args[0])
@@ -184,10 +198,10 @@ class QasmParser(object):
                                 debug=False,
                                 write_tables=False)
         self.circuit = Circuit()
-        self.qregs = {}
-        self.cregs = {}
+        self.qregs = {}  # type: Dict[str,int]
+        self.cregs = {}  # type: Dict[str,int]
         self.qelibinc = False
-        self.qubits = {}
+        self.qubits = {}  # type: Dict[str,cirq.NamedQubit]
         self.functions = {
             'sin': sympy.sin,
             'cos': sympy.cos,
@@ -207,7 +221,7 @@ class QasmParser(object):
             '/': operator.truediv,
             '^': operator.pow
         }
-        self.parsedQasm = None
+        self.parsedQasm = None  # type: Optional[Qasm]
         self.supported_format = False
 
     tokens = QasmLexer.tokens
@@ -313,7 +327,8 @@ class QasmParser(object):
             if gate not in self.basic_gates.keys():
                 raise QasmException(
                     'Unknown gate "{}" at line {}, '
-                    'maybe you forgot to include the standard qelib1.inc?'.format(
+                    'maybe you forgot to include '
+                    'the standard qelib1.inc?'.format(
                         gate, p.lineno(1)))
             p[0] = self.basic_gates[gate](args=args,
                                           params=params,
