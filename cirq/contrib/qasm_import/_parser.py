@@ -20,8 +20,8 @@ from ply import yacc
 import cirq
 from cirq import Circuit, NamedQubit, CNOT
 from cirq.circuits.qasm_output import QasmUGate
-from cirq.contrib.qasm_import.exception import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
+from cirq.contrib.qasm_import.exception import QasmException
 
 
 class Qasm(object):
@@ -248,20 +248,13 @@ class QasmParser(object):
                 "only 2.0 is supported currently by Cirq".format(
                     p[1]))
 
-    # circuit : new_qreg circuit
-    #         | new_creg circuit
+    # circuit : new_reg circuit
     #         | gate_op circuit
     #         | measurement circuit
     #         | empty
 
-    def p_circuit_qreg(self, p):
-        """circuit : new_qreg circuit"""
-        p[0] = self.circuit
-
-    def p_circuit_creg(self, p):
-        """circuit : new_creg circuit"""
-        name, length = p[1]
-        self.cregs[name] = length
+    def p_circuit_reg(self, p):
+        """circuit : new_reg circuit"""
         p[0] = self.circuit
 
     def p_circuit_gate_or_measurement(self, p):
@@ -276,17 +269,21 @@ class QasmParser(object):
 
     # qreg and creg
 
-    def p_new_qreg_0(self, p):
-        """new_qreg : QREG ID '[' NATURAL_NUMBER ']' ';' """
+    def p_new_reg(self, p):
+        """new_reg : QREG ID '[' NATURAL_NUMBER ']' ';'
+                    | CREG ID '[' NATURAL_NUMBER ']' ';'"""
         name, length = p[2], p[4]
-        self.qregs[name] = length
+        if name in self.qregs.keys() or name in self.cregs.keys():
+            raise QasmException("{} is already defined "
+                                "at line {}".format(name, p.lineno(2)))
+        if length <= 0:
+            raise QasmException("Illegal, zero-length register '{}' "
+                                "at line {}".format(name, p.lineno(4)))
+        if p[1] == "qreg":
+            self.qregs[name] = length
+        else:
+            self.cregs[name] = length
         p[0] = (name, length)
-
-    def p_new_creg_0(self, p):
-        """new_creg : CREG ID '[' NATURAL_NUMBER ']' ';' """
-        name, length = p[2], p[4]
-        self.cregs[name] = length
-        p[0] = (p[2], p[4])
 
     # gate operations
     # gate_op : ID args
@@ -421,7 +418,7 @@ class QasmParser(object):
             p[0] = keys
         else:
             raise QasmException(
-                'undefined quantum/classical register "{}" '
+                'Undefined quantum/classical register "{}" '
                 'at line {}'.format(reg, p.lineno(1)))
 
     def make_name(self, num, reg):
@@ -440,8 +437,8 @@ class QasmParser(object):
             p[0] = [arg_name]
         else:
             raise QasmException(
-                'undefined quantum/classical register "{}" '
-                'at line no: {}'.format(reg, p.lineno(1)))
+                'Undefined quantum/classical register "{}" '
+                'at line {}'.format(reg, p.lineno(1)))
 
     # measurement operations
     # measurement : MEASURE arg ARROW arg

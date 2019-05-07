@@ -32,12 +32,10 @@ def test_unsupported_format():
     qasm = "OPENQASM 2.1;"
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match="Unsupported OpenQASM version: 2.1, "
+                             "only 2.0 is supported currently by Cirq"):
         parser.parse()
-        raise AssertionError("should fail with no format error")
-    except QasmException as ex:
-        assert ex.message == "Unsupported OpenQASM version: 2.1, " \
-                             "only 2.0 is supported currently by Cirq"
 
 
 def test_format_header_with_quelibinc_circuit():
@@ -63,11 +61,10 @@ include "qelib1.inc";
 )
 def test_error_not_starting_with_format(qasm: str):
     parser = QasmParser(qasm)
-    try:
+
+    with pytest.raises(QasmException,
+                       match="Missing 'OPENQASM 2.0;' statement"):
         parser.parse()
-        raise AssertionError("should fail with no format error")
-    except QasmException as ex:
-        assert ex.message == "Missing 'OPENQASM 2.0;' statement"
 
 
 def test_comments():
@@ -106,6 +103,58 @@ def test_multiple_qreg_declaration():
 
 ## TODO: qreg q[0] should be error
 ## TODO: qreg q[1]; creg q[1] should be error
+
+@pytest.mark.parametrize(
+    'qasm',
+    [
+        """OPENQASM 2.0;                   
+           qreg q[2];
+           creg q[3];
+               """,
+        """OPENQASM 2.0;                   
+           creg q[2];
+           qreg q[3];
+               """,
+    ]
+)
+def test_already_defined_error(qasm: str):
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match=r"q.*already defined.* line 3"):
+        parser.parse()
+
+
+@pytest.mark.parametrize(
+    'qasm',
+    [
+        """OPENQASM 2.0;                   
+           qreg q[0];           
+               """,
+        """OPENQASM 2.0;                   
+           creg q[0];           
+               """,
+    ]
+)
+def test_zero_length_register(qasm: str):
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match="Illegal, zero-length register 'q' at line 2"):
+        parser.parse()
+
+
+def test_unexpected_end_of_file():
+    qasm = """
+                OPENQASM 2.0;
+                include
+           """
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match="Unexpected end of file"):
+        parser.parse()
+
 
 def test_multiple_creg_declaration():
     qasm = """
@@ -171,13 +220,11 @@ def test_CX_gate_not_enough_args():
 """
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r"CX only takes 2 arg\(s\) " \
+                             r"\(qubits and/or registers\)" \
+                             r", got: 1, at line 4"):
         parser.parse()
-        raise AssertionError("should fail with wrong arg length error")
-    except QasmException as ex:
-        assert ex.message == "CX only takes 2 arg(s) " \
-                             "(qubits and/or registers)" \
-                             ", got: 1, at line 4"
 
 
 def test_cx_gate_mismatched_registers():
@@ -189,12 +236,77 @@ def test_cx_gate_mismatched_registers():
 """
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r"Non matching quantum registers of "
+                             r"length \[2, 3\] at line 5"):
         parser.parse()
-        raise AssertionError("should fail with mismatching registers error")
-    except QasmException as ex:
-        assert ex.message == "Non matching quantum registers of " \
-                             "length [2, 3] at line 5"
+
+
+def test_unknown_basic_gate():
+    qasm = """
+         OPENQASM 2.0;          
+         qreg q[2];
+         foobar q[0];
+    """
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match=r"""Unknown gate "foobar".* line 4.*forgot.*\?"""):
+        parser.parse()
+
+
+def test_unknown_standard_gate():
+    qasm = """
+         OPENQASM 2.0;  
+         include "qelib1.inc";        
+         qreg q[2];
+         foobar q[0];
+    """
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match=r"""Unknown gate "foobar" at line 5"""):
+        parser.parse()
+
+
+def test_syntax_error():
+    qasm = """
+         OPENQASM 2.0;                   
+         qreg q[2] bla;
+         foobar q[0];
+    """
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match=r"""Syntax error: 'bla'.*"""):
+        parser.parse()
+
+
+def test_undefined_register_from_qubit_arg():
+    qasm = """
+            OPENQASM 2.0;                   
+            qreg q[2];
+            CX q[0], q2[1];
+       """
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined.*register.*q2.*"""):
+        parser.parse()
+
+
+def test_undefined_register_from_register_arg():
+    qasm = """
+            OPENQASM 2.0;                   
+            qreg q[2];
+            qreg q2[2];
+            CX q1, q2;
+       """
+    parser = QasmParser(qasm)
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined.*register.*q.*"""):
+        parser.parse()
 
 
 def test_u_gate():
@@ -333,12 +445,11 @@ def test_unknown_function():
      U(nonexistent(3), 2 * pi, pi / 3.0) q[0];
 """
     parser = QasmParser(qasm)
-    try:
+
+    with pytest.raises(QasmException,
+                       match=r"Function not recognized:"
+                             r" 'nonexistent' at line 4"):
         parser.parse()
-        raise AssertionError("should fail with no format error")
-    except QasmException as ex:
-        assert ex.message == "Function not recognized: 'nonexistent' " \
-                             "at line 4"
 
 
 def test_id_gate():
@@ -423,13 +534,10 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r".*{}.* takes 1 arg\(s\).*got.*2.*line 5"
+                               .format(qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong arg length error")
-    except QasmException as ex:
-        assert ex.message == "{} only takes 1 arg(s) " \
-                             "(qubits and/or registers)" \
-                             ", got: 2, at line 5".format(qasm_gate)
 
 
 @pytest.mark.parametrize(
@@ -446,12 +554,10 @@ def test_rotation_gates_zero_params_error(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r".*{}.* takes 1 parameter\(s\).*got.*0.*line 5"
+                               .format(qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong params length error")
-    except QasmException as ex:
-        assert ex.message == "{} takes 1 parameter(s), got: 0," \
-                             " at line 5".format(qasm_gate)
 
 
 @pytest.mark.parametrize(
@@ -590,13 +696,10 @@ def test_two_qubit_gates_not_enough_args(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r".*{}.* takes 2 arg\(s\).*got.*1.*line 5"
+                               .format(qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong arg length error")
-    except QasmException as ex:
-        assert ex.message == "{} only takes 2 arg(s) " \
-                             "(qubits and/or registers), got: 1," \
-                             " at line 5".format(qasm_gate)
 
 
 @pytest.mark.parametrize(
@@ -613,12 +716,10 @@ def test_two_qubit_gates_with_too_much_parameters(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r".*{}.* takes 0 parameter\(s\).*got.*1.*line 5"
+                               .format(qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong arg length error")
-    except QasmException as ex:
-        assert ex.message == "{} takes 0 parameter(s), got: 1, " \
-                             "at line 5".format(qasm_gate)
 
 
 three_qubit_gates = [('ccx', cirq.TOFFOLI),
@@ -683,13 +784,10 @@ def test_three_qubit_gates_not_enough_args(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r""".*{}.* takes 3 arg\(s\).*got.*1.*line 5"""
+                               .format(qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong arg length error")
-    except QasmException as ex:
-        assert ex.message == "{} only takes 3 arg(s) " \
-                             "(qubits and/or registers)" \
-                             ", got: 1, at line 5".format(qasm_gate)
 
 
 @pytest.mark.parametrize(
@@ -706,12 +804,10 @@ def test_three_qubit_gates_with_too_much_parameters(qasm_gate: str):
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r""".*{}.*parameter.*line 5.*"""
+                               .format(qasm_gate)):
         parser.parse()
-        raise AssertionError("should fail with wrong arg length error")
-    except QasmException as ex:
-        assert ex.message == "{} takes 0 parameter(s), got: 1, " \
-                             "at line 5".format(qasm_gate)
 
 
 def test_measure_individual_bits():
@@ -744,6 +840,7 @@ def test_measure_individual_bits():
     assert parsed_qasm.qregs == {'q1': 2}
     assert parsed_qasm.cregs == {'c1': 2}
     cirq.Simulator().run(parsed_qasm.circuit)
+
 
 def test_measure_registers():
     qasm = """
@@ -790,13 +887,6 @@ def test_measure_mismatched_register_size():
 
     parser = QasmParser(qasm)
 
-    try:
+    with pytest.raises(QasmException,
+                       match=r""".*mismatched register sizes 2 -> 3.*line 6"""):
         parser.parse()
-        raise AssertionError("should fail with mismathed registers error")
-    except QasmException as ex:
-        assert ex.message == "mismatched register sizes 2 -> 3 " \
-                             "for measurement at line 6"
-
-
-    ## TODO: DRY up test assertions
-    ## TODO: convert sympy expressions to float()

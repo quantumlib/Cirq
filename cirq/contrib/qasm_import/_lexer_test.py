@@ -9,6 +9,7 @@ import pytest
 from sympy import Number
 import sympy
 
+from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
 
@@ -154,3 +155,11 @@ def test_creg():
     token = lexer.token()
     assert token.type == ";"
     assert token.value == ";"
+
+
+def test_error():
+    lexer = QasmLexer('θ')
+
+    with pytest.raises(QasmException,
+                       match="Illegal character 'θ' at line 1"):
+        lexer.token()

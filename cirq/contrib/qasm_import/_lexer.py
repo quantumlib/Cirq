@@ -5,6 +5,8 @@ import ply.lex as lex
 import sympy
 from sympy import Number
 
+from cirq.contrib.qasm_import.exception import QasmException
+
 
 class QasmLexer(object):
     NATURAL_NUMBER = "NATURAL_NUMBER"
@@ -88,8 +90,8 @@ class QasmLexer(object):
         r"""//.*"""
 
     def t_error(self, t):
-        print("Illegal character '%s'" % t.value[0])
-        # t.lexer.skip(1)
+        raise QasmException("Illegal character '{}' at line {}"
+                            .format(t.value[0], t.lineno))
 
     def token(self) -> Optional[lex.Token]:
         return self.lex.token()
