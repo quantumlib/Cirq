@@ -101,9 +101,6 @@ def test_multiple_qreg_declaration():
     assert parsed_qasm.qregs == {'a_quantum_register': 1337, 'q': 42}
 
 
-## TODO: qreg q[0] should be error
-## TODO: qreg q[1]; creg q[1] should be error
-
 @pytest.mark.parametrize(
     'qasm',
     [

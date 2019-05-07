@@ -87,8 +87,6 @@ def test_valid_ids(identifier: str):
 @pytest.mark.parametrize(
     'number',
     [
-        # '01',
-        # '1',
         '.333',
         '1.0',
         '0.1',
