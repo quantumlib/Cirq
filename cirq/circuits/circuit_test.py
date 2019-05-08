@@ -3056,16 +3056,3 @@ def test_moment_groups():
 (0, 7): ────H──────H─────────────────────
            └──┘   └───┘   └───┘   └──┘
 """, use_unicode_characters=True)
-
-
-def test_from_qasm():
-    circuit = cirq.Circuit.from_qasm("""
-    OPENQASM 2.0;
-    include "qelib1.inc";
-    qreg q[1];
-    h q[0];
-    """)
-
-    expected_circuit = cirq.Circuit()
-    expected_circuit.append(cirq.H(cirq.NamedQubit('q_0')))
-    cirq.testing.assert_same_circuits(circuit, expected_circuit)

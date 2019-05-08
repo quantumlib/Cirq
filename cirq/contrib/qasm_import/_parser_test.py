@@ -207,9 +207,9 @@ def test_CX_gate_not_enough_args():
     parser = QasmParser(qasm)
 
     with pytest.raises(QasmException,
-                       match=r"CX only takes 2 arg\(s\) " \
-                             r"\(qubits and/or registers\)" \
-                             r", got: 1, at line 4"):
+                       match=(r"CX only takes 2 arg\(s\) "
+                              r"\(qubits and/or registers\)"
+                              r", got: 1, at line 4")):
         parser.parse()
 
 

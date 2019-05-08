@@ -74,9 +74,9 @@ class QasmParser(object):
                                                 lineno))
 
             for qbit_index in range(reg_size):
-                final_gate = cirq_gate if isinstance(cirq_gate, cirq.Gate) \
-                    else cirq_gate(*[float(p)
-                                     for p in params])  # type: cirq.Gate
+                final_gate = (cirq_gate if isinstance(cirq_gate, cirq.Gate) else
+                              cirq_gate(*[float(p) for p in params])
+                             )  # type: cirq.Gate
 
                 yield final_gate.on(
                     *[qreg[min(len(qreg) - 1, qbit_index)] for qreg in args])
