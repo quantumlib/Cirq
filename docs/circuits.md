@@ -455,4 +455,4 @@ Mixed register / qubit arguments are supported as long as the register sizes are
 #### Mapping classical registers to measurement keys
 
 For a classical register `creg cbar[n];` the QASM importer will create measurement keys named `cbar_0`..`cbar_<n-1>`.
-Measurements on registers result in multiple single-qubit `MeasurementGate`  
+Measurements on registers result in multiple single-qubit `MeasurementGate`, with the measurement key matched up with the qubit. 
