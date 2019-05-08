@@ -1561,7 +1561,7 @@ class Circuit:
 
     @classmethod
     def from_qasm(cls, qasm: str):
-        from cirq.contrib import QasmCircuitParser
+        from cirq.contrib.qasm_import.qasm import QasmCircuitParser
         return QasmCircuitParser(qasm).parse()
 
 
