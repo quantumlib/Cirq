@@ -373,6 +373,13 @@ Error handling is very simple - on any lexical or syntactical error a `QasmExcep
 
 #### Importing cirq.Circuit from QASM format
 
+
+Requirements: you will need to have `ply` installed, for the QASM import functionality to work:
+
+```bash
+pip install ply==3.4
+```
+
 The following call will create a circuit defined by the input QASM string:
 
 ```python
