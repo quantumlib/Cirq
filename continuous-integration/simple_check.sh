@@ -20,7 +20,6 @@
 # In particular, this script DOES NOT:
 #
 # 1. Create fresh test environments with updated deps (requires virtualenv).
-# 2. Run python 2 compatibility tests (requires the protobuf compiler).
 #
 # What this script DOES do is run pylint, mypy, pytest, and incremental code
 # coverage against your local python 3 dev copy of cirq.
