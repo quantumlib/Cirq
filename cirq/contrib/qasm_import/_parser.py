@@ -11,15 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import operator
-from typing import List, Any, Union, Iterable, Callable, Dict, Optional
+from typing import Dict, Optional
 
-import sympy
 from ply import yacc
 
-import cirq
-from cirq import Circuit, NamedQubit, CNOT
-from cirq.circuits.qasm_output import QasmUGate
+from cirq import Circuit
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
 
@@ -108,9 +104,6 @@ class QasmParser(object):
         if name in self.qregs.keys() or name in self.cregs.keys():
             raise QasmException("{} is already defined "
                                 "at line {}".format(name, p.lineno(2)))
-        if length <= 0:
-            raise QasmException("Illegal, zero-length register '{}' "
-                                "at line {}".format(name, p.lineno(4)))
         if p[1] == "qreg":
             self.qregs[name] = length
         else:

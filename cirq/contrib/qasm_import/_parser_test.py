@@ -5,15 +5,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import pytest
-import sympy
-from sympy import Number
 
-import cirq
 import cirq.testing as ct
 from cirq import Circuit
-from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._parser import QasmParser
 
@@ -112,22 +107,6 @@ def test_already_defined_error(qasm: str):
     parser = QasmParser(qasm)
 
     with pytest.raises(QasmException, match=r"q.*already defined.* line 3"):
-        parser.parse()
-
-
-@pytest.mark.parametrize('qasm', [
-    """OPENQASM 2.0;
-           qreg q[0];
-               """,
-    """OPENQASM 2.0;
-           creg q[0];
-               """,
-])
-def test_zero_length_register(qasm: str):
-    parser = QasmParser(qasm)
-
-    with pytest.raises(QasmException,
-                       match="Illegal, zero-length register 'q' at line 2"):
         parser.parse()
 
 

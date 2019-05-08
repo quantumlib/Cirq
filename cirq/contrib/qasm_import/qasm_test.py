@@ -11,6 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cirq
 
-from cirq.contrib.qasm_import.exception import (QasmException)
-from cirq.contrib.qasm_import.qasm import (QasmCircuitParser)
+
+# TODO as we grow the language, we'll add more complex examples here
+def test_consistency_with_qasm_output():
+    circuit1 = cirq.Circuit()
+    qasm1 = cirq.qasm(circuit1)
+    circuit2 = cirq.contrib.qasm_import.qasm.QasmCircuitParser(qasm1).parse()
+    cirq.testing.assert_same_circuits(circuit1, circuit2)
