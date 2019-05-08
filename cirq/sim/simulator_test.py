@@ -13,7 +13,7 @@
 # limitations under the License.
 """Tests for simulator.py"""
 
-import mock
+from unittest import mock
 import numpy as np
 import pytest
 
