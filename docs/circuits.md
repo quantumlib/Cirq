@@ -383,12 +383,16 @@ pip install ply==3.4
 The following call will create a circuit defined by the input QASM string:
 
 ```python
-circuit = cirq.Circuit.from_qasm("""
+from cirq.contrib.qasm_import.qasm import QasmCircuitParser
+circuit = QasmCircuitParser("""
     OPENQASM 2.0;
     include "qelib1.inc";
     qreg q[1];
+    creg meas[1];
     h q[0];
-    """)
+    measure q -> meas;
+    """).parse()
+print(circuit)
 ```
 
 #### Supported Control statements 
