@@ -216,6 +216,9 @@ class Circuit:
         del self._moments[key]
 
     def __iadd__(self, other):
+        if isinstance(other, ops.gate_operation.GateOperation):
+            self.append(other)
+            return self
         if not isinstance(other, type(self)):
             return NotImplemented
         if (other.device != self._device and

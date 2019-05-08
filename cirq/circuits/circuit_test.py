@@ -415,7 +415,12 @@ def test_concatenate():
     c = Circuit()
     d = Circuit([Moment([cirq.X(b)])])
     e = Circuit([Moment([cirq.X(a), cirq.X(b)])])
+    f = Circuit()
 
+    f += cirq.H(a)
+    f += cirq.CNOT(a, b)
+
+    assert f == cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b))
     assert c + d == Circuit([Moment([cirq.X(b)])])
     assert d + c == Circuit([Moment([cirq.X(b)])])
     assert e + d == Circuit([
