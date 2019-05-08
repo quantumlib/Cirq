@@ -1,18 +1,19 @@
 import cirq
+import examples.basic_arithmetic
 import examples.bell_inequality
 import examples.bernstein_vazirani
+import examples.bcs_mean_field
 import examples.deutsch
 import examples.grover
-import examples.place_on_bristlecone
 import examples.hello_qubit
-import examples.quantum_fourier_transform
-import examples.bcs_mean_field
-import examples.phase_estimator
-import examples.basic_arithmetic
-import examples.quantum_teleportation
-import examples.superdense_coding
 import examples.hhl
+import examples.phase_estimator
+import examples.place_on_bristlecone
+import examples.quantum_fourier_transform
+import examples.quantum_teleportation
 import examples.qubit_characterizations_example
+import examples.superdense_coding
+import examples.swap_networks
 
 
 def test_example_runs_bernstein_vazirani():
@@ -76,3 +77,7 @@ def test_example_runs_hhl():
 
 def test_example_runs_qubit_characterizations():
     examples.qubit_characterizations_example.main()
+
+
+def test_example_swap_networks():
+    examples.swap_networks.main()
