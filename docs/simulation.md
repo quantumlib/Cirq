@@ -23,7 +23,7 @@ In other words, there are some noisy evolutions
 that are supported by the pure state simulator as long as they
 preserve the purity of the state.
 
-## Introduction to pure state simulation
+### Introduction to pure state simulation
 
 Here is a simple circuit
 ```python
