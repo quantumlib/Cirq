@@ -61,12 +61,6 @@ def large_circuit():
     return circuit
 
 
-def empty_measurement_circuit(qubit):
-    circuit = cirq.Circuit()
-    circuit.append([cirq.measure(qubit, key='meas')])
-    return circuit
-
-
 def test_xmon_options_negative_num_shards():
     with pytest.raises(AssertionError):
         cg.XmonOptions(num_shards=-1)
@@ -674,7 +668,8 @@ def test_unsupported_gate_defense_in_depth(scheduler):
         _ = run(simulator, circuit, scheduler)
 
     with pytest.raises(ValueError, match="using an XmonDevice"):
-        _ = run(simulator, empty_measurement_circuit(Q2), scheduler)
+        _ = run(simulator, cirq.Circuit.from_ops(cirq.measure(Q2, key='meas')),
+                scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
