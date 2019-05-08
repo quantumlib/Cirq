@@ -6,9 +6,13 @@ import random
 import cirq
 import cirq.contrib.acquaintance as cca
 
+
 def get_random_graph(n_vertices, edge_prob=0.5):
-    return [ij for ij in itertools.combinations(range(n_vertices), 2)
-            if random.random() <= edge_prob]
+    return [
+        ij for ij in itertools.combinations(range(n_vertices), 2)
+        if random.random() <= edge_prob
+    ]
+
 
 def get_max_cut_qaoa_circuit(n_vertices, edges, beta, gamma):
     """Implement a single round of QAOA for MaxCut using linearly connected
@@ -47,8 +51,8 @@ def get_max_cut_qaoa_circuit(n_vertices, edges, beta, gamma):
 
     # The greedy execution strategy replaces inserts the logical gates into the
     # circuit at the first opportunity.
-    execution_strategy = cca.GreedyExecutionStrategy(
-            phase_sep_gates, initial_mapping)
+    execution_strategy = cca.GreedyExecutionStrategy(phase_sep_gates,
+                                                     initial_mapping)
 
     # The final mapping may be different from the initial one.
     # In this case, the mapping is simply reversed
@@ -65,6 +69,7 @@ def get_max_cut_qaoa_circuit(n_vertices, edges, beta, gamma):
     mixing_circuit = cirq.Circuit.from_ops(cirq.X(q)**beta for q in qubits)
     return phase_separation_circuit + mixing_circuit
 
+
 def main():
     n_vertices = 6
     edges = get_random_graph(n_vertices)
@@ -72,6 +77,7 @@ def main():
     circuit = get_max_cut_qaoa_circuit(n_vertices, edges, beta, gamma)
     print('1-round QAOA circuit:')
     print(circuit)
+
 
 if __name__ == '__main__':
     main()
