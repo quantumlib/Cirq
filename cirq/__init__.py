@@ -115,6 +115,7 @@ from cirq.ops import (
     flatten_op_tree,
     FREDKIN,
     freeze_op_tree,
+    FSimGate,
     Gate,
     GateOperation,
     generalized_amplitude_damp,
