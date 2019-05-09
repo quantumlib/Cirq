@@ -29,7 +29,7 @@ def get_max_cut_qaoa_circuit(n_vertices, edges, beta, gamma):
         angles.
     """
 
-    ## G_{i,j} ∝ exp(i gamma (|01><01| + |10><10|))
+    # G_{i,j} ∝ exp(i gamma (|01><01| + |10><10|))
     phase_sep_gates = {edge: cirq.ZZ**gamma for edge in edges}
 
     qubits = cirq.LineQubit.range(n_vertices)
