@@ -79,6 +79,21 @@ class FSimGate(gate_features.TwoQubitGate,
             [0, 0, 0, c],
         ])
 
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        a = math.cos(self.theta)
+        b = 1j * math.sin(self.theta)
+        c = cmath.exp(1j * self.phi)
+        return value.LinearDict({
+            'II': (1 + c) / 4 + a / 2,
+            'IZ': (1 - c) / 4,
+            'ZI': (1 - c) / 4,
+            'ZZ': (1 + c) / 4 - a / 2,
+            'XX': b / 2,
+            'YY': b / 2,
+        })
+
     def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
                             ) -> 'cirq.FSimGate':
         return FSimGate(
