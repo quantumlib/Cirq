@@ -30,7 +30,6 @@ from cirq.ops import (
     raw_types,
 )
 
-
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
                  gate_features.InterchangeableQubitsGate):
@@ -143,6 +142,86 @@ class CCZPowGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return 'CCZ'
         return 'CCZ**{}'.format(self._exponent)
+
+class ThreeQubitDiagonalGate(eigen_gate.EigenGate
+                             gate_features.ThreeQubitGate,
+                             gate_features.InterchangeableQubitsGate):
+    def __init__(self,
+                 a: float = 0.0,
+                 b: float = 0.0,
+                 c: float = 0.0,
+                 d: float = 0.0,
+                 e: float = 0.0,
+                 f: float = 0.0,
+                 g: float = 0.0,
+                 h: float = 0.0) -> None:
+        self._diag_angles = []
+        self._diag_angles.append(a)
+        self._diag_angles.append(b)
+        self._diag_angles.append(c)
+        self._diag_angles.append(d)
+        self._diag_angles.append(e)
+        self._diag_angles.append(f)
+        self._diag_angles.append(g)
+        self._diag_angles.append(h)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        return np.diag([np.exp(1j * angle) for angle in self._diag_angles])
+   
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
+
+
+    def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
+        return ThreeQubitDiagonalGate(*(self._date_angles * exponent))
+
+
+    def _decompose_(self, qubits):
+        a, b, c = qubits
+        if hasattr(b, 'is_adjacent'):
+            if not b.is_adjacent(a):
+                b, c = c, b
+            elif not b.is_adjacent(c):
+                a, b = b, a
+        sweep_abc = [common_gates.CNOT(a, b),
+                     common_gates.CNOT(b, c)]
+        phase_matrix = np.array([[0, 0, 1, 0, 1, 1, 1],
+                                 [0, 1, 0, 1, 1, 0, 1],
+                                 [0, 1, 1, 1, 0, 1, 0],
+                                 [1, 0, 0, 1, 1, 1, 0],
+                                 [1, 0, 1, 1, 0, 0, 1],
+                                 [1, 1, 0, 0, 0, 1, 1],
+                                 [1, 1, 1, 0, 1, 0, 0]])
+        phase_solutions = np.linalg.solve(phase_matrix, self._diag_angles[1:])
+        p_gates = []
+        for solution in phase_solutions:
+            p_gates.append(common_gates.T**(4*solution))
+        
+        return [
+            p_gates[0](a), p_gates[1](b), p_gates[2](c),
+            sweep_abc,
+            p_gates[3](b), p_gates[4](c),
+            sweep_abc,
+            p_gates[5](c),
+            sweep_abc,
+            p_gates[6](c),
+            sweep_abc,
+        ]
+
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._diag_angles % (2*np.pi) == other._diag_angles % (2*np.pi)
+    
+    def __ne__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return not self == other
+    
+    def __hash__(self):
+        angles = tuple(angle % (2*np.pi) for angle in self._diag_angles)
+        return hash((ThreeQubitDiagonalGate, angles))
 
 
 class CCXPowGate(eigen_gate.EigenGate,
