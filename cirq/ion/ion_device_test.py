@@ -83,9 +83,9 @@ def test_decomposition():
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
     cirq.testing.assert_has_diagram(ion_circuit, """
-0: ───X───Ry(0.5π)───MS(0.25π)───Rx(-0.5π)───Ry(-0.5π)───
-                     │
-1: ──────────────────MS(0.25π)───Rx(-0.5π)───────────────
+0: ───Y^0.5───Z───MS(0.25π)───PhasedX(-0.5)^0.5───S^-1───
+                  │
+1: ───────────────MS(0.25π)───X^-0.5─────────────────────
             """, use_unicode_characters=True)
 
 

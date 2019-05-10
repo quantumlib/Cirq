@@ -83,6 +83,7 @@ class ConvertToIonGates:
         for moment in circuit:
             for op in moment.operations:
                 new_circuit.append(self.convert_one(op))
+        optimizers.merge_single_qubit_gates_into_phased_x_z(new_circuit)
 
         return new_circuit
 
