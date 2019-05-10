@@ -60,7 +60,8 @@ class IonDevice(devices.Device):
             return self._twoq_gates_duration
         if (ops.op_gate_of_type(operation, ops.XPowGate) or
                 ops.op_gate_of_type(operation, ops.YPowGate) or
-                ops.op_gate_of_type(operation, ops.ZPowGate)):
+                ops.op_gate_of_type(operation, ops.ZPowGate) or
+                ops.op_gate_of_type(operation, ops.PhasedXPowGate)):
             return self._oneq_gates_duration
         if ops.op_gate_of_type(operation, ops.MeasurementGate):
             return self._measurement_duration
@@ -70,6 +71,7 @@ class IonDevice(devices.Device):
         if not isinstance(gate, (ops.XPowGate,
                                  ops.YPowGate,
                                  ops.ZPowGate,
+                                 ops.PhasedXPowGate,
                                  ops.XXPowGate,
                                  ops.MeasurementGate)):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))

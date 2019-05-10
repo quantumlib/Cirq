@@ -100,4 +100,5 @@ def is_native_ion_gate(gate: ops.Gate) -> bool:
                              ops.MeasurementGate,
                              ops.XPowGate,
                              ops.YPowGate,
-                             ops.ZPowGate))
+                             ops.ZPowGate,
+                             ops.PhasedXPowGate))
