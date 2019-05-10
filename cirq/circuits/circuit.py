@@ -27,7 +27,6 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
-import json
 import re
 import numpy as np
 
@@ -60,6 +59,7 @@ class Circuit:
         findall_operations
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        are_all_matches_terminal
         are_all_measurements_terminal
         to_unitary_matrix
         apply_unitary_effect_to_state
@@ -146,6 +146,16 @@ class Circuit:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._moments == other._moments and self._device == other._device
+
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
 
     def __ne__(self, other):
         return not self == other
@@ -763,17 +773,31 @@ class Circuit:
             An iterator (index, operation, gate)'s for operations with the given
             gate type.
         """
-        result = self.findall_operations(
-            lambda operation: (isinstance(operation, ops.GateOperation) and
-                               isinstance(operation.gate, gate_type)))
+        result = self.findall_operations(lambda operation: bool(
+            ops.op_gate_of_type(operation, gate_type)))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
     def are_all_measurements_terminal(self):
+        """Whether all measurement gates are at the end of the circuit."""
+        return self.are_all_matches_terminal(protocols.is_measurement)
+
+    def are_all_matches_terminal(self,
+            predicate: Callable[[ops.Operation], bool]):
+        """Check whether all of the ops that satisfy a predicate are terminal.
+
+        Args:
+            predicate: A predicate on ops.Operations which is being checked.
+
+        Returns:
+            Whether or not all `Operation` s in a circuit that satisfy the
+            given predicate are terminal.
+        """
         return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(ops.MeasurementGate.is_measurement))
+            self.next_moment_operating_on(op.qubits, i + 1) is None for
+            (i, op) in self.findall_operations(predicate)
+        )
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -1269,7 +1293,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
+                protocols.is_measurement(op)
                 for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
@@ -1342,8 +1366,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
-                for op in self.all_operations()):
+                protocols.is_measurement(op) for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
         if not self.are_all_measurements_terminal():
@@ -1576,12 +1599,10 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
-def _is_exposed_formula(text):
-    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
 
+def _is_exposed_formula(text: str) -> bool:
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
-def _encode(text):
-    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
@@ -1589,9 +1610,9 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
-        return (name
+        return ('({})'.format(name)
                 if _is_exposed_formula(name)
-                else '({})'.format(_encode(name)))
+                else name)
 
     if info.exponent == 0:
         return '0'
@@ -1645,6 +1666,7 @@ def _draw_moment_in_diagram(
     if not moment.operations:
         out_diagram.write(x0, 0, '')
 
+    max_x = x0
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
@@ -1682,10 +1704,12 @@ def _draw_moment_in_diagram(
                 # Add an exponent to every label
                 for index in indices:
                     out_diagram.write(x, index, '^' + exponent)
+        if x > max_x:
+            max_x = x
 
     # Group together columns belonging to the same Moment.
-    if moment.operations and x > x0:
-        moment_groups.append((x0, x))
+    if moment.operations and max_x > x0:
+        moment_groups.append((x0, max_x))
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
@@ -1770,12 +1794,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    if ops.MeasurementGate.is_measurement(op):
-        gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-        return [ops.X(q)
-                for q, b in zip(op.qubits, gate.invert_mask)
-                if b]
-
+    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
+    if gate:
+        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
     return NotImplemented
 
 

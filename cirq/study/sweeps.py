@@ -90,7 +90,6 @@ class Sweep(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def keys(self) -> List[str]:
         """The keys for the all of the sympy.Symbols that are resolved."""
-        pass
 
     @abc.abstractmethod
     def __len__(self) -> int:
@@ -103,7 +102,6 @@ class Sweep(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
         """An iterator over (key, value) pairs assigning Symbol key to value."""
-        pass
 
 
 class _Unit(Sweep):

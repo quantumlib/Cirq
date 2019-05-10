@@ -34,6 +34,35 @@ def test_single_qubit_gate_validate_args():
         g.validate_args([q1, q2])
 
 
+def test_single_qubit_gate_validates_on_each():
+    class Dummy(cirq.SingleQubitGate):
+        def matrix(self):
+            pass
+    g = Dummy()
+    assert g.num_qubits() == 1
+
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
+
+    _ = g.on_each(*test_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on_each(test_qubits)
+
+
+def test_single_qubit_validates_on():
+    class Dummy(cirq.SingleQubitGate):
+        def matrix(self):
+            pass
+    g = Dummy()
+    assert g.num_qubits() == 1
+
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
+
+    with pytest.raises(ValueError):
+        _ = g.on(*test_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on(test_qubits)
+
+
 def test_two_qubit_gate_is_abstract_can_implement():
     class Included(cirq.TwoQubitGate):
         def matrix(self):
@@ -152,10 +181,13 @@ def test_qasm_output_args_format():
 
 
 def test_multi_qubit_gate_validate():
-    class Dummy(cirq.MultiQubitGate):
+    class Dummy(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
 
     a, b, c, d = cirq.LineQubit.range(4)
 

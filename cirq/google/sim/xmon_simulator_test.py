@@ -372,6 +372,8 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
+@pytest.mark.skipif(not hasattr(np, 'float128'),
+                    reason="system doesn't have np.float128")
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()
@@ -1010,7 +1012,7 @@ def test_simulator_simulate_trial_result_str():
         device=test_device,
     )
     result = cirq.google.XmonSimulator().simulate(circuit)
-    assert str(result) == "a=1 b=1 c=0"
+    assert str(result) == "measurements: a=1 b=1 c=0\noutput vector: -1|110⟩"
 
 
 def test_simulator_implied_measurement_key():

@@ -16,22 +16,22 @@ import pytest
 
 import cirq
 
+class ValiGate(cirq.Gate):
+    def num_qubits(self):
+        return 2
 
-def test_gate_calls_validate():
-    class ValiGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
+    def validate_args(self, qubits):
+        if len(qubits) == 3:
+            raise ValueError()
 
-        def validate_args(self, qubits):
-            if len(qubits) == 3:
-                raise ValueError()
+q00 = cirq.NamedQubit('q00')
+q01 = cirq.NamedQubit('q01')
+q10 = cirq.NamedQubit('q10')
 
+
+def test_gate():
     g = ValiGate()
     assert g.num_qubits() == 2
-
-    q00 = cirq.NamedQubit('q00')
-    q01 = cirq.NamedQubit('q01')
-    q10 = cirq.NamedQubit('q10')
 
     _ = g.on(q00, q10)
     with pytest.raises(ValueError):
@@ -41,6 +41,25 @@ def test_gate_calls_validate():
     _ = g(q00, q10)
     with pytest.raises(ValueError):
         _ = g(q10, q01, q00)
+
+
+def test_control():
+    g = ValiGate()
+    controlled_g = g.controlled_by()
+    assert controlled_g.sub_gate == g
+    assert controlled_g.control_qubits == ()
+    specified_controlled_g = g.controlled_by(q00, q01)
+    assert specified_controlled_g.sub_gate == g
+    assert specified_controlled_g.control_qubits == (q00, q01)
+
+
+def test_op():
+    g = ValiGate()
+    op = g(q00)
+    assert op.controlled_by() is op
+    controlled_op = op.controlled_by(q01, q10)
+    assert controlled_op.sub_operation == op
+    assert controlled_op.controls == (q01, q10)
 
 
 def test_default_validation_and_inverse():
@@ -89,3 +108,16 @@ def test_no_inverse_if_not_unitary():
             return cirq.amplitude_damp(0.5).on(qubits[0])
 
     assert cirq.inverse(TestGate(), None) is None
+
+
+@pytest.mark.parametrize('expression, expected_result', (
+    (cirq.X * 2, 2 * cirq.X),
+    (cirq.Y * 2, cirq.Y + cirq.Y),
+    (cirq.Z - cirq.Z + cirq.Z, cirq.Z.wrap_in_linear_combination()),
+    (1j * cirq.S * 1j, -cirq.S),
+    (cirq.CZ * 1, cirq.CZ / 1),
+    (-cirq.CSWAP * 1j, cirq.CSWAP / 1j),
+    (cirq.TOFFOLI * 0.5, cirq.TOFFOLI / 2),
+))
+def test_gate_algebra(expression, expected_result):
+    assert expression == expected_result

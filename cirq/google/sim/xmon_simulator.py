@@ -375,7 +375,7 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
         Note that this does not collapse the wave function.
 
         Returns:
-            Measurement results with True corresponding to the |1> state.
+            Measurement results with True corresponding to the `|1>` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits.
         """

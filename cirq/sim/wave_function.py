@@ -258,21 +258,25 @@ def dirac_notation(state: Sequence, decimals: int=2) -> str:
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        # Python 2 rounds imaginary numbers to 0, so need to round separately.
         val = (round(state[x].real, decimals)
                + 1j * round(state[x].imag, decimals))
+
         if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag
-            format_str = "({:." + str(decimals) + "g}j)"
-        if round(val.imag, decimals) == 0 and round(val.real, decimals) != 0:
+            format_str = "{:." + str(decimals) + "g}j"
+        elif round(val.imag, decimals) == 0 and round(val.real, decimals) != 0:
             val = val.real
+            format_str = "{:." + str(decimals) + "g}"
         if val != 0:
-            if round(state[x], decimals) == 1:
+            if round(state[x].real, decimals) == 1 and \
+               round(state[x].imag, decimals) == 0:
                 components.append(ket.format(perm_list[x]))
             else:
                 components.append((format_str + ket).format(val, perm_list[x]))
+    if not components:
+        return '0'
 
-    return ' + '.join(components)
+    return ' + '.join(components).replace(' + -', ' - ')
 
 
 def to_valid_state_vector(state_rep: Union[int, np.ndarray],

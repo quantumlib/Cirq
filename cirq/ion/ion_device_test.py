@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import numpy as np
@@ -20,13 +21,14 @@ import cirq
 import cirq.ion as ci
 
 
-@pytest.fixture
-def test_ion_device(chain_length) -> ci.IonDevice:
-    ms = 1000*cirq.Duration(nanos=1)
-    return ci.IonDevice(measurement_duration=100*ms,
-                        twoq_gates_duration=200*ms,
-                        oneq_gates_duration=10*ms,
-                        qubits=cirq.LineQubit.range(chain_length))
+def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
+    ms = (1000 * cirq.Duration(nanos=1) if not use_timedelta else timedelta(
+        microseconds=1))
+    return ci.IonDevice(  # type: ignore
+        measurement_duration=100 * ms,  # type: ignore
+        twoq_gates_duration=200 * ms,  # type: ignore
+        oneq_gates_duration=10 * ms,  # type: ignore
+        qubits=cirq.LineQubit.range(chain_length))
 
 
 class NotImplementedOperation(cirq.Operation):
@@ -39,7 +41,23 @@ class NotImplementedOperation(cirq.Operation):
 
 
 def test_init():
-    d = test_ion_device(3)
+    d = ion_device(3)
+    ms = 1000 * cirq.Duration(nanos=1)
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    q2 = cirq.LineQubit(2)
+
+    assert d.qubits == {q0, q1, q2}
+    assert d.duration_of(cirq.Z(q0)) == 10 * ms
+    assert d.duration_of(cirq.measure(q0)) == 100 * ms
+    assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
+    assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
+    with pytest.raises(ValueError):
+        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+
+
+def test_init_timedelta():
+    d = ion_device(3, use_timedelta=True)
     ms = 1000*cirq.Duration(nanos=1)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
@@ -55,7 +73,7 @@ def test_init():
 
 
 def test_decomposition():
-    d = test_ion_device(3)
+    d = ion_device(3)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     assert d.decompose_operation(cirq.H(q0)) == [
@@ -71,9 +89,9 @@ def test_decomposition():
             """, use_unicode_characters=True)
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
-    d = test_ion_device(3)
+    d = ion_device(3)
 
     assert repr(d) == ("IonDevice("
                        "measurement_duration=cirq.Duration(picos=100000000), "
@@ -84,14 +102,14 @@ def test_repr():
 
 
 def test_validate_measurement_non_adjacent_qubits_ok():
-    d = test_ion_device(3)
+    d = ion_device(3)
 
     d.validate_operation(cirq.GateOperation(
         cirq.MeasurementGate(2), (cirq.LineQubit(0), cirq.LineQubit(1))))
 
 
 def test_validate_operation_existing_qubits():
-    d = test_ion_device(3)
+    d = ion_device(3)
 
     d.validate_operation(cirq.GateOperation(
         cirq.XX,
@@ -113,7 +131,7 @@ def test_validate_operation_existing_qubits():
 
 
 def test_validate_operation_supported_gate():
-    d = test_ion_device(3)
+    d = ion_device(3)
 
     class MyGate(cirq.Gate):
 
@@ -131,7 +149,7 @@ def test_validate_operation_supported_gate():
 
 
 def test_validate_scheduled_operation_adjacent_XXPow_Z():
-    d = test_ion_device(3)
+    d = ion_device(3)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     q2 = cirq.LineQubit(2)
@@ -149,7 +167,7 @@ def test_validate_scheduled_operation_adjacent_XXPow_Z():
 
 
 def test_validate_scheduled_operation_XXPow_on_same_qubit():
-    d = test_ion_device(3)
+    d = ion_device(3)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     q2 = cirq.LineQubit(2)
@@ -164,7 +182,7 @@ def test_validate_scheduled_operation_XXPow_on_same_qubit():
 
 
 def test_can_add_operation_into_moment():
-    d = test_ion_device(3)
+    d = ion_device(3)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     q2 = cirq.LineQubit(2)
@@ -180,13 +198,13 @@ def test_can_add_operation_into_moment():
 
 def test_ion_device_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: test_ion_device(3))
+    eq.make_equality_group(lambda: ion_device(3))
     eq.make_equality_group(
-        lambda: test_ion_device(4))
+        lambda: ion_device(4))
 
 
 def test_validate_circuit_repeat_measurement_keys():
-    d = test_ion_device(3)
+    d = ion_device(3)
 
     circuit = cirq.Circuit()
     circuit.append([cirq.measure(cirq.LineQubit(0), key='a'),
@@ -197,7 +215,7 @@ def test_validate_circuit_repeat_measurement_keys():
 
 
 def test_validate_schedule_repeat_measurement_keys():
-    d = test_ion_device(3)
+    d = ion_device(3)
 
     s = cirq.Schedule(d, [
         cirq.ScheduledOperation.op_at_on(
@@ -211,13 +229,13 @@ def test_validate_schedule_repeat_measurement_keys():
 
 
 def test_ion_device_str():
-    assert str(test_ion_device(3)).strip() == """
+    assert str(ion_device(3)).strip() == """
 0───1───2
     """.strip()
 
 
 def test_at():
-    d = test_ion_device(3)
+    d = ion_device(3)
     assert d.at(-1) is None
     assert d.at(0) == cirq.LineQubit(0)
     assert d.at(2) == cirq.LineQubit(2)

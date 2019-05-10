@@ -26,7 +26,7 @@ class SupportsApproximateEquality(Protocol):
             self,
             other: Any,
             *,
-            atol: float
+            atol: Union[int, float]
         ) -> bool:
         """Approximate comparator.
 
@@ -43,7 +43,6 @@ class SupportsApproximateEquality(Protocol):
             NotImplemented when approximate equality is not implemented for
             given types.
         """
-        pass
 
 
 def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
@@ -106,7 +105,8 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     return result
 
 
-def _approx_eq_iterables(val: Any, other: Any, *, atol: float) -> bool:
+def _approx_eq_iterables(val: Any, other: Any, *,
+                         atol: Union[int, float]) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
     Types of `val` and `other` does not necessarily needs to match each other.
@@ -158,6 +158,6 @@ def _approx_eq_iterables(val: Any, other: Any, *, atol: float) -> bool:
     return NotImplemented
 
 
-def _isclose(a: Any, b: Any, *, atol: float) -> bool:
+def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:
     """Convenience wrapper around np.isclose."""
     return True if np.isclose([a], [b], atol=atol, rtol=0.0)[0] else False
