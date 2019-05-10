@@ -96,9 +96,5 @@ def is_native_ion_gate(gate: ops.Gate) -> bool:
     Returns:
         True if the gate is native to the ion, false otherwise.
     """
-    return isinstance(gate, (ops.XXPowGate,
-                             ops.MeasurementGate,
-                             ops.XPowGate,
-                             ops.YPowGate,
-                             ops.ZPowGate,
-                             ops.PhasedXPowGate))
+    return isinstance(gate, (ops.XXPowGate, ops.MeasurementGate, ops.XPowGate,
+                             ops.YPowGate, ops.ZPowGate, ops.PhasedXPowGate))
