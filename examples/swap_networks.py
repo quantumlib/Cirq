@@ -1,14 +1,20 @@
 """Demonstrates swap networks.
 
-Swap networks are used to get around limited connectivity in a hardware device. In this example, we'll give a concrete application by using the acquaintance submodule to implement a single-round QAOA for Maximum Cut on a linearly connected device even with an arbitrary problem graph.
+Swap networks are used to get around limited connectivity in a hardware device.
+In this example, we'll give a concrete application by using the acquaintance
+submodule to implement a single-round QAOA for Maximum Cut on a linearly
+connected device even with an arbitrary problem graph.
 
-Specifically, we'd like to implement the circuit U_mix(β) * U_phase(𝛾), where 
+Specifically, we'd like to implement the circuit U_mix(β) * U_phase(𝛾), where
 
     U_mix(β) = X**β ⊗ X**β ⊗ ⋯ ⊗ X**β,
     U_phase(𝛾) = ZZ_{e_m}**𝛾 ⋯ ZZ_{e_2}**𝛾· ZZ_{e_1}**𝛾, and
-    {e_1, e_2, …, e_m} are the edges of the graph whose maximum cut we would like to find.
+    {e_1, e_2, …, e_m} are the edges of the graph whose maximum cut we would
+        like to find.
 
-The details of QAOA are irrelevant; for our purposes here, it is sufficient to say that we want to apply a 2-qubit gate to pairs of qubits, even when the implied graph is not a subgraph of the hardware adjacency graph.
+The details of QAOA are irrelevant; for our purposes here, it is sufficient to
+say that we want to apply a 2-qubit gate to pairs of qubits, even when the
+implied graph is not a subgraph of the hardware adjacency graph.
 """
 
 import itertools
