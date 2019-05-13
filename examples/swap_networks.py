@@ -19,7 +19,7 @@ implied graph is not a subgraph of the hardware adjacency graph.
 
 import itertools
 import random
-from typing import Dict, Sequence, Tuple, TypeVar, Union
+from typing import Dict, List, Sequence, Tuple, TypeVar, Union
 
 import cirq
 import cirq.contrib.acquaintance as cca
@@ -31,7 +31,8 @@ LogicalMappingKey = TypeVar('LogicalMappingKey', bound=cirq.Qid)
 LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 
-def get_random_graph(n_vertices, edge_prob=0.5):
+def get_random_graph(n_vertices: int,
+                     edge_prob: float = 0.5) -> List[Tuple[int, int]]:
     return [
         ij for ij in itertools.combinations(range(n_vertices), 2)
         if random.random() <= edge_prob
