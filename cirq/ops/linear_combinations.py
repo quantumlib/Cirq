@@ -136,17 +136,6 @@ class LinearCombinationOfGateOperations(
 
     where in each term qubits not explicitly listed are assumed to be acted on
     by the identity operator. Note that A may not be unitary or even normal.
-
-    Rather than creating LinearCombinationOfGateOperations instance explicitly,
-    one may use overloaded arithmetic operators. For example,
-
-        cirq.LinearCombinationOfGateOperations({cirq.X(q1): 2, cirq.Z(q2): -2})
-
-    is equivalent to
-
-        2 * cirq.X(q1) - 2 * cirq.Z(q2)
-
-    TODO: Overloaded arithmetic operators are not implemented yet.
     """
 
     def __init__(self,
