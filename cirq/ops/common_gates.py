@@ -897,6 +897,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
     def __str__(self) -> str:
+        print("Hey")
         if self._exponent == 1:
             return 'CNOT'
         return 'CNOT**{!r}'.format(self._exponent)
@@ -922,6 +923,22 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             "keyword arguments. But got args={!r}, kwargs={!r}.".format(
                 args, kwargs))
 
+class CXPowGate(CNotPowGate):
+    """Another name for CNotPowGate"""
+    def __repr__(self):
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'cirq.CX'
+            return '(cirq.CX**{})'.format(proper_repr(self._exponent))
+        return (
+            'cirq.CxPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
+
+    def __str__(self) -> str:
+        if self._exponent == 1:
+            return 'CX'
+        return 'Cx**{!r}'.format(self._exponent)
 
 class SwapPowGate(eigen_gate.EigenGate,
                   gate_features.TwoQubitGate,
@@ -1203,6 +1220,7 @@ CZ = CZPowGate()
 #      [0, 0, 0, 1],
 #      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
+CX = CXPowGate()
 
 
 # The swap gate.

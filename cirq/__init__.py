@@ -106,6 +106,7 @@ from cirq.ops import (
     ControlledOperation,
     CSWAP,
     CSwapGate,
+    CX,
     CZ,
     CZPowGate,
     DensityMatrixDisplay,

@@ -410,6 +410,9 @@ def test_repr():
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
+    assert repr(cirq.CX) == 'cirq.CX'
+    assert repr(cirq.CX**0.5) == '(cirq.CX**0.5)'
+
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
