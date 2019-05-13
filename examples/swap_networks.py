@@ -50,6 +50,10 @@ def get_phase_sep_circuit(gates: LogicalGates,
         print(circuit)
         print('\n\n')
 
+    acquaintance_opportunities = cca.get_logical_acquaintance_opportunities(
+        circuit, initial_mapping)
+    assert set(frozenset(edge) for edge in gates) <= acquaintance_opportunities
+
     cca.expose_acquaintance_gates(circuit)
     if verbose:
         print('Circuit with acquaintance opportunities show explicitly:')
