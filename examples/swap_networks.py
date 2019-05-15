@@ -33,7 +33,8 @@ LogicalMapping = Dict[LogicalMappingKey, LogicalIndex]
 
 def get_random_graph(n_vertices: int,
                      edge_prob: float = 0.5) -> List[Tuple[int, int]]:
-    return [cast(Tuple[int, int], ij)
+    return [
+        cast(Tuple[int, int], ij)
         for ij in itertools.combinations(range(n_vertices), 2)
         if random.random() <= edge_prob
     ]
