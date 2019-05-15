@@ -22,7 +22,7 @@ t1 = cirq.TrialResult(params=cirq.ParamResolver({'a': 2}),
 t2 = cirq.TrialResult(params=cirq.ParamResolver({'b': 3}),
                       repetitions=2,
                       measurements={'m': np.array([[1, 2]])})
-t3 = cirq.TrialResult(params=cirq.ParamResolver({'a': 2, 'b': 3}),
+t3 = cirq.TrialResult(params=cirq.ParamResolver(dict([('a', 2), ('b', 3)])),
                       repetitions=2,
                       measurements={'m': np.array([[1, 2]])})
 
@@ -71,14 +71,14 @@ def test_trial_result_equality():
     et.add_equality_group(
         cirq.SweepTrialResult(),
         cirq.SweepTrialResult([t1, t2, t3]).slice_where_params_match({'a': 3}),
-        cirq.SweepTrialResult([t1, t2]).slice_where_params_match({'a': 2,
-                                                                  'b': 3}))
+        cirq.SweepTrialResult([t1, t2]).slice_where_params_match(
+            dict([('a', 2), ('b', 3)])))
     et.add_equality_group(cirq.SweepTrialResult([t1]))
     et.add_equality_group(cirq.SweepTrialResult([t2]))
     et.add_equality_group(
         cirq.SweepTrialResult([t3]),
-        cirq.SweepTrialResult([t1, t2, t3]).slice_where_params_match({'a': 2,
-                                                                      'b': 3}),
+        cirq.SweepTrialResult([t1, t2, t3]).slice_where_params_match(
+            dict([('a', 2), ('b', 3)])),
         cirq.SweepTrialResult([t3]).slice_where_params_match({}))
     et.add_equality_group(cirq.SweepTrialResult([t1, t2]),
                           cirq.SweepTrialResult([t2, t1]))
