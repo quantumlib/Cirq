@@ -15,8 +15,6 @@
 
 from typing import Dict, Any, TYPE_CHECKING, List, Set
 
-import collections
-
 from cirq import value
 from cirq.study import resolver, trial_result
 
