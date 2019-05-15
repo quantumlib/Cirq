@@ -164,6 +164,7 @@ from cirq.ops.raw_types import (
 )
 
 from cirq.ops.three_qubit_gates import (
+    CCNOT,
     CCX,
     CCXPowGate,
     CCZ,

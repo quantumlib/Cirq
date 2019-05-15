@@ -100,6 +100,7 @@ from cirq.ops import (
     CCXPowGate,
     CCZ,
     CCZPowGate,
+    CCNOT,
     CNOT,
     CNotPowGate,
     ControlledGate,
