@@ -622,6 +622,7 @@ def test_works_on_operation():
             return self.q,
 
         def with_qubits(self, *new_qubits):
+            # coverage: ignore
             return XAsOp(new_qubits[0])
 
         def _channel_(self):
