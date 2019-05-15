@@ -99,14 +99,13 @@ def main():
                 report_pending(e, checks, currently_pending),
             verbose=verbose)
 
-        env2 = None
 
         check_results = []
         failures = set()
         for c in checks:
             # Run the check.
             print()
-            result = c.pick_env_and_run_and_report(env, env2, verbose, failures)
+            result = c.pick_env_and_run_and_report(env, verbose, failures)
 
             # Record results.
             check_results.append(result)
