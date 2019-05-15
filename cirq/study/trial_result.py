@@ -21,7 +21,7 @@ from typing import (
 import collections
 import numpy as np
 
-from cirq import ops
+from cirq import value, ops
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -90,6 +90,7 @@ def _key_to_str(key: TMeasurementKey) -> str:
     return ','.join(str(q) for q in key)
 
 
+@value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
 
@@ -228,7 +229,6 @@ class TrialResult:
         return self.multi_measurement_histogram(
             keys=[key],
             fold_func=lambda e: fold_func(e[0]))
-
 
     def __repr__(self):
         return ('cirq.TrialResult(params={!r}, '

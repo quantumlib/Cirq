@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines sweep trial results."""
 
 from typing import Dict, Any, TYPE_CHECKING, List, Set
@@ -51,11 +50,10 @@ class SweepTrialResult:
         self._index = {}  # type: Dict[str, Set[int]]
         for i, result in enumerate(self.trial_results):
             for key, value in result.params.param_dict.items():
-                self._index.setdefault(key+str(value), set()).add(i)
-
+                self._index.setdefault(key + str(value), set()).add(i)
 
     def trials_where_params_match(
-        self, param_dict: resolver.ParamResolverOrSimilarType
+            self, param_dict: resolver.ParamResolverOrSimilarType
     ) -> List[trial_result.TrialResult]:
         """
         Gets the list of TrialResults that match the input mapping of
@@ -71,13 +69,12 @@ class SweepTrialResult:
         trial_results_match = set(range(len(self.trial_results)))
         for key, value in resolver.ParamResolver(param_dict).param_dict.items():
             trial_results_match.intersection_update(
-                self._index.get(key+str(value), set()))
+                self._index.get(key + str(value), set()))
         return [self.trial_results[i] for i in trial_results_match]
 
-
-    def slice_where_params_match(
-        self, param_dict: resolver.ParamResolverOrSimilarType
-    ) -> 'cirq.SweepTrialResult':
+    def slice_where_params_match(self,
+                                 param_dict: resolver.ParamResolverOrSimilarType
+                                ) -> 'cirq.SweepTrialResult':
         """
         Gets a SweepTrialResult which represents a slice of the current one
         limited to the TrialResults that match the input mapping of parameters
@@ -92,11 +89,9 @@ class SweepTrialResult:
         """
         return SweepTrialResult(self.trials_where_params_match(param_dict))
 
-
     def __repr__(self):
-        return ('cirq.SweepTrialResult(trial_results={!r})'
-            ).format(self.trial_results)
-
+        return ('cirq.SweepTrialResult(trial_results={!r})').format(
+            self.trial_results)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -106,11 +101,9 @@ class SweepTrialResult:
         else:
             p.text(str(self))
 
-
     def __str__(self):
-        return '[{' + '}, {'.join([str(trial_result) for
-                                   trial_result in self.trial_results]) + '}]'
-
+        return '[{' + '}, {'.join(
+            [str(trial_result) for trial_result in self.trial_results]) + '}]'
 
     def _value_equality_values_(self):
-        return collections.Counter(self.trial_results)
+        return sorted([repr(result) for result in self.trial_results])
