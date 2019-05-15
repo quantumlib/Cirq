@@ -34,16 +34,6 @@ class SweepTrialResult:
 
     def __init__(self,
                  trial_results: List[trial_result.TrialResult] = None) -> None:
-        """
-        Args:
-            params: A ParamResolver of settings used for this result.
-            measurements: A dictionary from measurement gate key to measurement
-                results. The value for each key is a 2-D array of booleans,
-                with the first index running over the repetitions, and the
-                second index running over the qubits for the corresponding
-                measurements.
-            repetitions: The number of times the circuit was sampled.
-        """
         self.trial_results = trial_results if trial_results is not None else []
         self._index = {}  # type: Dict[str, Set[int]]
         for i, result in enumerate(self.trial_results):
