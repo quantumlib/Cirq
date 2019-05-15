@@ -613,6 +613,7 @@ def test_compute_samples_displays(dtype):
 def test_works_on_operation():
 
     class XAsOp(cirq.Operation):
+
         def __init__(self, q):
             self.q = q
 
@@ -628,4 +629,7 @@ def test_works_on_operation():
 
     s = cirq.DensityMatrixSimulator()
     c = cirq.Circuit.from_ops(XAsOp(cirq.LineQubit(0)))
-    np.testing.assert_allclose(s.simulate(c).final_simulator_state.density_matrix, np.diag([0, 1]), atol=1e-8)
+    np.testing.assert_allclose(
+        s.simulate(c).final_simulator_state.density_matrix,
+        np.diag([0, 1]),
+        atol=1e-8)
