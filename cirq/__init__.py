@@ -250,6 +250,7 @@ from cirq.study import (
     Points,
     Sweep,
     Sweepable,
+    SweepTrialResult,
     to_resolvers,
     TrialResult,
     UnitSweep,
