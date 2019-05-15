@@ -410,9 +410,6 @@ def test_repr():
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
-    assert repr(cirq.CX) == 'cirq.CX'
-    assert repr(cirq.CX**0.5) == '(cirq.CX**0.5)'
-
     assert repr(cirq.SWAP) == 'cirq.SWAP'
     assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
 
@@ -458,7 +455,7 @@ def test_str():
         exponent=2,
         global_shift=-0.25)) == 'YPowGate(exponent=2, global_shift=-0.25)'
 
-    assert str(cirq.CNOT) == 'CNOT'
+    assert str(cirq.CX) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
 
     assert str(cirq.SWAP) == 'SWAP'
