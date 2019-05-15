@@ -682,7 +682,7 @@ class Circuit:
         it is involves a qubit in the start_frontier dictionary, comes after
         the moment listed in that dictionary, and before any blocking
         operations that involve that qubit.  Operations are only considered
-        to blocking the qubits that they operate on, so a blocking operation
+        to be blocking the qubits that they operate on, so a blocking operation
         that does not operate on any qubit in the starting frontier is not
         actually considered blocking.  See `reachable_frontier_from` for a more
         in depth example of reachable states.
