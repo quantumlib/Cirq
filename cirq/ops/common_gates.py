@@ -1203,6 +1203,7 @@ CZ = CZPowGate()
 #      [0, 0, 0, 1],
 #      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
+CX = CNOT
 
 
 # The swap gate.
