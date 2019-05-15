@@ -258,15 +258,14 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         measurements[key].extend(corrected)
                 else:
                     # TODO: Use apply_channel similar to apply_unitary.
-                    gate = cast(ops.GateOperation, op).gate
-                    channel = protocols.channel(gate)
+                    channel = protocols.channel(op)
                     sum_buffer = np.zeros((2,) * 2 * num_qubits,
                                           dtype=self._dtype)
                     buffer = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
                     out = np.empty((2,) * 2 * num_qubits, dtype=self._dtype)
                     for krauss in channel:
                         krauss_tensor = np.reshape(krauss.astype(self._dtype),
-                                                   (2,) * gate.num_qubits() * 2)
+                                                   (2,) * len(op.qubits) * 2)
                         result = linalg.targeted_conjugate_about(krauss_tensor,
                                                                  matrix,
                                                                  indices,
