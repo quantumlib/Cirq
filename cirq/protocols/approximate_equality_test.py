@@ -24,6 +24,15 @@ def test_approx_eq_primitives():
     assert not cirq.approx_eq(complex(1, 1), complex(1.1, 1.2), atol=0.1)
 
 
+def test_approx_eq_mixed_primitives():
+    assert cirq.approx_eq(complex(1, 0), 1, atol=1e-09)
+    assert not cirq.approx_eq(complex(1, 1e-4), 1, atol=1e-09)
+    assert cirq.approx_eq(complex(1, 1e-10), 1.0, atol=1e-09)
+    assert not cirq.approx_eq(complex(1, 1e-8), 1.0, atol=1e-09)
+    assert cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-9)
+    assert not cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-11)
+
+
 def test_approx_eq_special_numerics():
     assert not cirq.approx_eq(float('nan'), 0, atol=0.0)
     assert not cirq.approx_eq(float('nan'), float('nan'), atol=0.0)
@@ -121,7 +130,5 @@ def test_approx_eq_types_mismatch():
     assert not cirq.approx_eq(A(0), B(0), atol=0.0)
     assert not cirq.approx_eq(C(0), A(0), atol=0.0)
     assert not cirq.approx_eq(A(0), C(0), atol=0.0)
-    assert not cirq.approx_eq(complex(0, 0), 0, atol=0.0)
-    assert not cirq.approx_eq(0, complex(0, 0), atol=0.0)
     assert not cirq.approx_eq(0, [0], atol=1.0)
     assert not cirq.approx_eq([0], 0, atol=0.0)
