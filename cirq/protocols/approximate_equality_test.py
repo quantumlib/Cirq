@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
 import numpy as np
+import cirq
 
 
 def test_approx_eq_primitives():

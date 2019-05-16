@@ -122,6 +122,8 @@ class Gate(metaclass=abc.ABCMeta):
                     repr(self)))
 
         if len(qubits) != self.num_qubits():
+            print(len(qubits))
+            print(self.num_qubits())
             raise ValueError(
                 'Wrong number of qubits for <{!r}>. '
                 'Expected {} qubits but got <{!r}>.'.format(
