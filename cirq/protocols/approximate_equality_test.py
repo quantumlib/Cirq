@@ -15,6 +15,7 @@
 import cirq
 import numpy as np
 
+
 def test_approx_eq_primitives():
     assert not cirq.approx_eq(1, 2, atol=1e-01)
     assert cirq.approx_eq(1.0, 1.0 + 1e-10, atol=1e-09)

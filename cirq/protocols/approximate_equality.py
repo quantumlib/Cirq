@@ -14,8 +14,8 @@
 
 from typing import Any, Union
 
-import numpy as np
 import numbers
+import numpy as np
 
 from typing_extensions import Protocol
 
