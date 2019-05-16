@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -47,8 +48,12 @@ def test_fsim_approx_eq():
                           atol=0.01)
 
 
-def test_fsim_consistent():
-    gate = cirq.FSimGate(theta=np.pi / 3, phi=np.pi / 5)
+@pytest.mark.parametrize('theta, phi',
+                         ((0, 0), (np.pi / 3, np.pi / 5),
+                          (-np.pi / 3, np.pi / 5), (np.pi / 3, -np.pi / 5),
+                          (-np.pi / 3, -np.pi / 5), (np.pi / 2, 0.5)))
+def test_fsim_consistent(theta, phi):
+    gate = cirq.FSimGate(theta=theta, phi=phi)
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 

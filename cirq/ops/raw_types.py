@@ -268,12 +268,10 @@ class Operation(metaclass=abc.ABCMeta):
         """
         # Avoids circular import.
         from cirq.ops import ControlledOperation
-        if control_qubits is None or len(control_qubits) is 0:
-            raise ValueError(
-                "Can't get controlled operation without control qubit. Op: {}"
-                .format(repr(self)))
-        else:
-            return ControlledOperation(control_qubits, self)
+        if len(control_qubits) == 0:
+            return self
+        return ControlledOperation(control_qubits, self)
+
 
 @value.value_equality
 class _InverseCompositeGate(Gate):

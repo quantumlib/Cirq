@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-import mock
+from unittest import mock
 import pytest
 from apiclient import discovery
 

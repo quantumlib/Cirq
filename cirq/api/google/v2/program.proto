@@ -127,8 +127,8 @@ message Arg {
   // Arguments are either a number, a symbol, or an argument function
   // (which recursively depends on Arg).
   //
-  // Number is used to specify an argument that does not vary depending on
-  // RunContext.
+  // ArgValue is used to specify an argument that does not vary
+  // depending on RunContext.
   //
   // Symbol is used when an argument will be resolved (supplied a value)
   // by a Run Context.
@@ -136,9 +136,17 @@ message Arg {
   // Functions are used to define a simple s-expression tree describing
   // how to combine numbers and symbols mathematically.
   oneof arg {
-    float number = 1;
+    ArgValue arg_value = 1;
     string symbol = 2;
     ArgFunction func = 3;
+  }
+}
+
+// Value that can be passed as an argument to a gate.
+message ArgValue {
+  oneof arg_value {
+    float float_value = 1;
+    bytes bytes_value = 2;
   }
 }
 

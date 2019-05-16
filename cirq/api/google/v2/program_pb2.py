@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='cirq/api/google/v2/program.proto',
   package='cirq.api.google.v2',
   syntax='proto3',
-  serialized_pb=_b('\n cirq/api/google/v2/program.proto\x12\x12\x63irq.api.google.v2\"\xa6\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.api.google.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.api.google.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v2.ScheduleH\x00\x42\t\n\x07program\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.api.google.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.api.google.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.api.google.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.api.google.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x93\x01\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.api.google.v2.Gate\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.Arg\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.api.google.v2.Qubit\x12\x0c\n\x04keys\x18\x04 \x03(\t\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"a\n\x03\x41rg\x12\x10\n\x06number\x18\x01 \x01(\x02H\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.api.google.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.ArgB/\n\x1d\x63om.google.cirq.api.google.v2B\x0cProgramProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n cirq/api/google/v2/program.proto\x12\x12\x63irq.api.google.v2\"\xa6\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.api.google.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.api.google.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v2.ScheduleH\x00\x42\t\n\x07program\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.api.google.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.api.google.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.api.google.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.api.google.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.api.google.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x93\x01\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.api.google.v2.Gate\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.Arg\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.api.google.v2.Qubit\x12\x0c\n\x04keys\x18\x04 \x03(\t\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x82\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.api.google.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.api.google.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\"E\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12\x15\n\x0b\x62ytes_value\x18\x02 \x01(\x0cH\x00\x42\x0b\n\targ_value\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.api.google.v2.ArgB/\n\x1d\x63om.google.cirq.api.google.v2B\x0cProgramProtoP\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -395,9 +395,9 @@ _ARG = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='number', full_name='cirq.api.google.v2.Arg.number', index=0,
-      number=1, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      name='arg_value', full_name='cirq.api.google.v2.Arg.arg_value', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -430,8 +430,49 @@ _ARG = _descriptor.Descriptor(
       name='arg', full_name='cirq.api.google.v2.Arg.arg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=933,
-  serialized_end=1030,
+  serialized_start=934,
+  serialized_end=1064,
+)
+
+
+_ARGVALUE = _descriptor.Descriptor(
+  name='ArgValue',
+  full_name='cirq.api.google.v2.ArgValue',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='float_value', full_name='cirq.api.google.v2.ArgValue.float_value', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bytes_value', full_name='cirq.api.google.v2.ArgValue.bytes_value', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='arg_value', full_name='cirq.api.google.v2.ArgValue.arg_value',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=1066,
+  serialized_end=1135,
 )
 
 
@@ -468,8 +509,8 @@ _ARGFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1032,
-  serialized_end=1098,
+  serialized_start=1137,
+  serialized_end=1203,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -490,16 +531,23 @@ _SCHEDULEDOPERATION.fields_by_name['operation'].message_type = _OPERATION
 _OPERATION.fields_by_name['gate'].message_type = _GATE
 _OPERATION.fields_by_name['args'].message_type = _ARG
 _OPERATION.fields_by_name['qubits'].message_type = _QUBIT
+_ARG.fields_by_name['arg_value'].message_type = _ARGVALUE
 _ARG.fields_by_name['func'].message_type = _ARGFUNCTION
 _ARG.oneofs_by_name['arg'].fields.append(
-  _ARG.fields_by_name['number'])
-_ARG.fields_by_name['number'].containing_oneof = _ARG.oneofs_by_name['arg']
+  _ARG.fields_by_name['arg_value'])
+_ARG.fields_by_name['arg_value'].containing_oneof = _ARG.oneofs_by_name['arg']
 _ARG.oneofs_by_name['arg'].fields.append(
   _ARG.fields_by_name['symbol'])
 _ARG.fields_by_name['symbol'].containing_oneof = _ARG.oneofs_by_name['arg']
 _ARG.oneofs_by_name['arg'].fields.append(
   _ARG.fields_by_name['func'])
 _ARG.fields_by_name['func'].containing_oneof = _ARG.oneofs_by_name['arg']
+_ARGVALUE.oneofs_by_name['arg_value'].fields.append(
+  _ARGVALUE.fields_by_name['float_value'])
+_ARGVALUE.fields_by_name['float_value'].containing_oneof = _ARGVALUE.oneofs_by_name['arg_value']
+_ARGVALUE.oneofs_by_name['arg_value'].fields.append(
+  _ARGVALUE.fields_by_name['bytes_value'])
+_ARGVALUE.fields_by_name['bytes_value'].containing_oneof = _ARGVALUE.oneofs_by_name['arg_value']
 _ARGFUNCTION.fields_by_name['args'].message_type = _ARG
 DESCRIPTOR.message_types_by_name['Program'] = _PROGRAM
 DESCRIPTOR.message_types_by_name['Circuit'] = _CIRCUIT
@@ -511,6 +559,7 @@ DESCRIPTOR.message_types_by_name['Operation'] = _OPERATION
 DESCRIPTOR.message_types_by_name['Gate'] = _GATE
 DESCRIPTOR.message_types_by_name['Qubit'] = _QUBIT
 DESCRIPTOR.message_types_by_name['Arg'] = _ARG
+DESCRIPTOR.message_types_by_name['ArgValue'] = _ARGVALUE
 DESCRIPTOR.message_types_by_name['ArgFunction'] = _ARGFUNCTION
 
 Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), dict(
@@ -582,6 +631,13 @@ Arg = _reflection.GeneratedProtocolMessageType('Arg', (_message.Message,), dict(
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Arg)
   ))
 _sym_db.RegisterMessage(Arg)
+
+ArgValue = _reflection.GeneratedProtocolMessageType('ArgValue', (_message.Message,), dict(
+  DESCRIPTOR = _ARGVALUE,
+  __module__ = 'cirq.api.google.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ArgValue)
+  ))
+_sym_db.RegisterMessage(ArgValue)
 
 ArgFunction = _reflection.GeneratedProtocolMessageType('ArgFunction', (_message.Message,), dict(
   DESCRIPTOR = _ARGFUNCTION,
