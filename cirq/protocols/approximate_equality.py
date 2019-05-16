@@ -15,6 +15,7 @@
 from typing import Any, Union
 
 import numpy as np
+import numbers
 
 from typing_extensions import Protocol
 
@@ -86,8 +87,8 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
             return result
 
     # Compare primitive types directly.
-    if isinstance(val, (int, float, complex)):
-        if not isinstance(other, (int, float, complex)):
+    if isinstance(val, numbers.Number):
+        if not isinstance(other, numbers.Number):
             return False
         return _isclose(val, other, atol=atol)
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import cirq
-
+import numpy as np
 
 def test_approx_eq_primitives():
     assert not cirq.approx_eq(1, 2, atol=1e-01)
@@ -32,6 +32,14 @@ def test_approx_eq_mixed_primitives():
     assert not cirq.approx_eq(complex(1, 1e-8), 1.0, atol=1e-09)
     assert cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-9)
     assert not cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-11)
+
+
+def test_approx_eq_mixed_numpy_dtypes():
+    assert cirq.approx_eq(np.float32(1), 1.0 + 1e-10, atol=1e-9)
+    assert cirq.approx_eq(np.float64(1), np.complex64(1 + 1e-8j), atol=1e-4)
+    assert cirq.approx_eq(np.uint8(1), np.complex64(1 + 1e-8j), atol=1e-4)
+    assert cirq.approx_eq(np.complex256(1), complex(1, 1e-8), atol=1e-4)
+    assert cirq.approx_eq(np.int32(1), 1, atol=1e-9)
 
 
 def test_approx_eq_special_numerics():
