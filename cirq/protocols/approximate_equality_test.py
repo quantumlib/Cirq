@@ -16,6 +16,7 @@ import cirq
 
 
 def test_approx_eq_primitives():
+    assert not cirq.approx_eq(1, 2, atol=1e-01)
     assert cirq.approx_eq(1.0, 1.0 + 1e-10, atol=1e-09)
     assert not cirq.approx_eq(1.0, 1.0 + 1e-10, atol=1e-11)
     assert cirq.approx_eq(0.0, 1e-10, atol=1e-09)
@@ -25,7 +26,7 @@ def test_approx_eq_primitives():
 
 
 def test_approx_eq_mixed_primitives():
-    assert cirq.approx_eq(complex(1, 0), 1, atol=1e-09)
+    assert cirq.approx_eq(complex(1, 1e-10), 1, atol=1e-09)
     assert not cirq.approx_eq(complex(1, 1e-4), 1, atol=1e-09)
     assert cirq.approx_eq(complex(1, 1e-10), 1.0, atol=1e-09)
     assert not cirq.approx_eq(complex(1, 1e-8), 1.0, atol=1e-09)
