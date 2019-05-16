@@ -13,14 +13,16 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
+from cirq.api.google.v2 import program_pb2 as cirq_dot_api_dot_google_dot_v2_dot_program__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='cirq/api/google/v2/run_context.proto',
   package='cirq.api.google.v2',
   syntax='proto3',
-  serialized_pb=_b('\n$cirq/api/google/v2/run_context.proto\x12\x12\x63irq.api.google.v2\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.api.google.v2.ParameterSweep\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.api.google.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.api.google.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.api.google.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xc6\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.api.google.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.api.google.v2.Sweep\"C\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\"\x8d\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.api.google.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v2.LinspaceH\x00\x42\x07\n\x05sweep\"\x18\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x42\x32\n\x1d\x63om.google.cirq.api.google.v2B\x0fRunContextProtoP\x01\x62\x06proto3')
-)
+  serialized_pb=_b('\n$cirq/api/google/v2/run_context.proto\x12\x12\x63irq.api.google.v2\x1a cirq/api/google/v2/program.proto\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.api.google.v2.ParameterSweep\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.api.google.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.api.google.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.api.google.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xc6\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.api.google.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.api.google.v2.Sweep\"C\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\"\x8d\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.api.google.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.api.google.v2.LinspaceH\x00\x42\x07\n\x05sweep\"6\n\x06Points\x12,\n\x06points\x18\x01 \x03(\x0b\x32\x1c.cirq.api.google.v2.ArgValue\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x42\x32\n\x1d\x63om.google.cirq.api.google.v2B\x0fRunContextProtoP\x01\x62\x06proto3')
+  ,
+  dependencies=[cirq_dot_api_dot_google_dot_v2_dot_program__pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
@@ -46,8 +48,8 @@ _SWEEPFUNCTION_FUNCTIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=486,
-  serialized_end=553,
+  serialized_start=520,
+  serialized_end=587,
 )
 _sym_db.RegisterEnumDescriptor(_SWEEPFUNCTION_FUNCTIONTYPE)
 
@@ -78,8 +80,8 @@ _RUNCONTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=60,
-  serialized_end=134,
+  serialized_start=94,
+  serialized_end=168,
 )
 
 
@@ -116,8 +118,8 @@ _PARAMETERSWEEP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=136,
-  serialized_end=215,
+  serialized_start=170,
+  serialized_end=249,
 )
 
 
@@ -157,8 +159,8 @@ _SWEEP = _descriptor.Descriptor(
       name='sweep', full_name='cirq.api.google.v2.Sweep.sweep',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=218,
-  serialized_end=352,
+  serialized_start=252,
+  serialized_end=386,
 )
 
 
@@ -196,8 +198,8 @@ _SWEEPFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=355,
-  serialized_end=553,
+  serialized_start=389,
+  serialized_end=587,
 )
 
 
@@ -244,8 +246,8 @@ _SINGLESWEEP = _descriptor.Descriptor(
       name='sweep', full_name='cirq.api.google.v2.SingleSweep.sweep',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=556,
-  serialized_end=697,
+  serialized_start=590,
+  serialized_end=731,
 )
 
 
@@ -258,7 +260,7 @@ _POINTS = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='points', full_name='cirq.api.google.v2.Points.points', index=0,
-      number=1, type=2, cpp_type=6, label=3,
+      number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -275,8 +277,8 @@ _POINTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=699,
-  serialized_end=723,
+  serialized_start=733,
+  serialized_end=787,
 )
 
 
@@ -320,8 +322,8 @@ _LINSPACE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=725,
-  serialized_end=796,
+  serialized_start=789,
+  serialized_end=860,
 )
 
 _RUNCONTEXT.fields_by_name['parameter_sweeps'].message_type = _PARAMETERSWEEP
@@ -345,6 +347,7 @@ _SINGLESWEEP.fields_by_name['points'].containing_oneof = _SINGLESWEEP.oneofs_by_
 _SINGLESWEEP.oneofs_by_name['sweep'].fields.append(
   _SINGLESWEEP.fields_by_name['linspace'])
 _SINGLESWEEP.fields_by_name['linspace'].containing_oneof = _SINGLESWEEP.oneofs_by_name['sweep']
+_POINTS.fields_by_name['points'].message_type = cirq_dot_api_dot_google_dot_v2_dot_program__pb2._ARGVALUE
 DESCRIPTOR.message_types_by_name['RunContext'] = _RUNCONTEXT
 DESCRIPTOR.message_types_by_name['ParameterSweep'] = _PARAMETERSWEEP
 DESCRIPTOR.message_types_by_name['Sweep'] = _SWEEP

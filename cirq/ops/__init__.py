@@ -40,6 +40,7 @@ from cirq.ops.common_channels import (
 from cirq.ops.common_gates import (
     CNOT,
     CNotPowGate,
+    CX,
     CZ,
     CZPowGate,
     H,
@@ -163,6 +164,7 @@ from cirq.ops.raw_types import (
 )
 
 from cirq.ops.three_qubit_gates import (
+    CCNOT,
     CCX,
     CCXPowGate,
     CCZ,
