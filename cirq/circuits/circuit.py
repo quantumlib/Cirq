@@ -681,8 +681,8 @@ class Circuit:
         operation is encountered.  An operation is part of the list if
         it is involves a qubit in the start_frontier dictionary, comes after
         the moment listed in that dictionary, and before any blocking
-        operationi that involve that qubit.  Operations are only considered
-        to blocking the qubits that they operate on, so a blocking operation
+        operations that involve that qubit.  Operations are only considered
+        to be blocking the qubits that they operate on, so a blocking operation
         that does not operate on any qubit in the starting frontier is not
         actually considered blocking.  See `reachable_frontier_from` for a more
         in depth example of reachable states.
