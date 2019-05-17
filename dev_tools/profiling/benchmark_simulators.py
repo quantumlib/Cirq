@@ -61,6 +61,10 @@ def simulate(sim_type: str,
             q1 = cirq.GridQubit(0, np.random.randint(num_qubits - 1))
             q2 = cirq.GridQubit(0, q1.col + 1)
             circuit.append(cirq.CZ(q1, q2)**np.random.random())
+    circuit.append([
+        cirq.measure(cirq.GridQubit(0, np.random.randint(num_qubits)),
+                     key='meas')
+    ])
 
     if sim_type == _XMON:
         options = cg.XmonOptions(num_shards=2 ** num_prefix_qubits,
