@@ -32,10 +32,10 @@ if TYPE_CHECKING:
 
 class _StateAndBuffers:
 
-    def __init__(self, n: int, state: np.ndarray):
-        self.n = n
-        self.state = state
-        self.buffers = [np.empty_like(state) for _ in range(3)]
+    def __init__(self, num_qubits: int, matrix: np.ndarray):
+        self.num_qubits = num_qubits
+        self.matrix = matrix
+        self.buffers = [np.empty_like(matrix) for _ in range(3)]
 
 
 class DensityMatrixSimulator(simulator.SimulatesSamples,
@@ -208,16 +208,16 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         result = protocols.apply_channel(
             op,
             args=protocols.ApplyChannelArgs(
-                target_tensor=state.state,
+                target_tensor=state.matrix,
                 out_buffer=state.buffers[0],
                 auxiliary_buffer0=state.buffers[1],
                 auxiliary_buffer1=state.buffers[2],
                 left_axes=indices,
-                right_axes=[e + state.n for e in indices]))
+                right_axes=[e + state.num_qubits for e in indices]))
         for i in range(3):
             if result is state.buffers[i]:
-                state.buffers[i] = state.state
-        state.state = result
+                state.buffers[i] = state.matrix
+        state.matrix = result
 
     def _base_iterator(
             self,
@@ -279,7 +279,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         invert_mask = meas.invert_mask or num_qubits * (False,)
                         # Measure updates inline.
                         bits, _ = density_matrix_utils.measure_density_matrix(
-                            state.state, indices, out=state.state)
+                            state.matrix, indices, out=state.matrix)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
                         key = protocols.measurement_key(meas)
@@ -287,7 +287,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 else:
                     # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
-            yield DensityMatrixStepResult(density_matrix=state.state,
+            yield DensityMatrixStepResult(density_matrix=state.matrix,
                                           measurements=measurements,
                                           qubit_map=qubit_map,
                                           dtype=self._dtype)
