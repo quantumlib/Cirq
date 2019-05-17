@@ -11,6 +11,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     export PYENV_VERSION=$PYTHON
     export PATH="/Users/travis/.pyenv/shims:${PATH}"
     pyenv virtualenv venv
+    source /Users/travis/.pyenv/versions/3.6.0/envs/venv
     python --version
     python -m pip install -r requirements.txt
     python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
