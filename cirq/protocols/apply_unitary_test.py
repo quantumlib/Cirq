@@ -161,3 +161,20 @@ def test_apply_unitaries():
         0.5,
     ],
                                atol=1e-8)
+
+    # Empty.
+    result = cirq.apply_unitaries(unitary_values=[], qubits=[])
+    np.testing.assert_allclose(result, [1])
+    result = cirq.apply_unitaries(unitary_values=[], qubits=[], default=None)
+    np.testing.assert_allclose(result, [1])
+
+    # Non-unitary operation.
+    with pytest.raises(TypeError, match='non-unitary'):
+        _ = cirq.apply_unitaries(unitary_values=[cirq.depolarize(0.5).on(a)],
+                                 qubits=[a])
+    assert cirq.apply_unitaries(unitary_values=[cirq.depolarize(0.5).on(a)],
+                                qubits=[a],
+                                default=None) is None
+    assert cirq.apply_unitaries(unitary_values=[cirq.depolarize(0.5).on(a)],
+                                qubits=[a],
+                                default=1) == 1

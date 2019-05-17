@@ -15,7 +15,16 @@
 """A protocol for implementing high performance unitary left-multiplies."""
 
 
-from typing import Any, Union, TypeVar, Tuple, Iterable, Dict, Optional, Sequence, TYPE_CHECKING
+from typing import (
+    Any,
+    Union,
+    TypeVar,
+    Tuple,
+    Iterable,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+)
 
 import numpy as np
 from typing_extensions import Protocol
