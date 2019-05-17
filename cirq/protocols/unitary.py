@@ -266,7 +266,7 @@ def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
 
 def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _decompose_ method."""
-    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    operations, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return None
     has_unitaries = [has_unitary(op) for op in operations]
@@ -278,7 +278,7 @@ def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
 def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
     """
-    from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
+    from cirq.protocols.apply_unitary import ApplyUnitaryArgs
     from cirq import linalg, line, ops
 
     method = getattr(val, '_apply_unitary_', None)
