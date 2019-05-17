@@ -103,3 +103,61 @@ def test_apply_unitary_presence_absence():
             s,
             cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
             default=None) is not None
+
+
+def test_apply_unitaries():
+    a, b, c = cirq.LineQubit.range(3)
+
+    result = cirq.apply_unitaries(
+        unitary_values=[cirq.H(a),
+                        cirq.CNOT(a, b),
+                        cirq.H(c).controlled_by(b)],
+        qubits=[a, b, c])
+    np.testing.assert_allclose(result.reshape(8), [
+        np.sqrt(0.5),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.5,
+        0.5,
+    ],
+                               atol=1e-8)
+
+    # Different order.
+    result = cirq.apply_unitaries(
+        unitary_values=[cirq.H(a),
+                        cirq.CNOT(a, b),
+                        cirq.H(c).controlled_by(b)],
+        qubits=[a, c, b])
+    np.testing.assert_allclose(result.reshape(8), [
+        np.sqrt(0.5),
+        0,
+        0,
+        0,
+        0,
+        0.5,
+        0,
+        0.5,
+    ],
+                               atol=1e-8)
+
+    # Explicit arguments.
+    result = cirq.apply_unitaries(
+        unitary_values=[cirq.H(a),
+                        cirq.CNOT(a, b),
+                        cirq.H(c).controlled_by(b)],
+        qubits=[a, b, c],
+        args=cirq.ApplyUnitaryArgs())
+    np.testing.assert_allclose(result.reshape(8), [
+        np.sqrt(0.5),
+        0,
+        0,
+        0,
+        0,
+        0.5,
+        0,
+        0.5,
+    ],
+                               atol=1e-8)
