@@ -15,6 +15,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     python --version
     mkdir ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
     python -m pip install -r requirements.txt
+    python -m pip install -r cirq/contrib/contrib-requirements.txt
     python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     check/pytest-and-incremental-coverage master
     fi
