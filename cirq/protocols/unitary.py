@@ -12,7 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    TypeVar,
+    Union,
+    Optional,
+    Tuple,
+    List,
+    Sequence,
+)
 
 import numpy as np
 from typing_extensions import Protocol
@@ -119,50 +128,6 @@ def unitary(val: Any,
                     "but it returned NotImplemented.".format(type(val)))
 
 
-def has_unitary(val: Any) -> bool:
-    """Returns whether the value has a unitary matrix representation.
-
-    Returns:
-        If `val` has a _has_unitary_ method and its result is not
-        NotImplemented, that result is returned. Otherwise, if `val` is a
-        cirq.Gate or cirq.Operation, a decomposition is attempted and the
-        resulting unitary is returned if has_unitary is True for all operations
-        of the decompostion. Otherwise, if the value has a _unitary_ method
-        return if that has a non-default value. Returns False if neither
-        function exists.
-    """
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
-    # HACK: Avoids circular dependencies.
-    from cirq import Gate, Operation, LineQubit
-
-    getter = getattr(val, '_has_unitary_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
-        return result
-
-    # Fallback to explicit _unitary_
-    unitary_getter = getattr(val, '_unitary_', None)
-    if unitary_getter is not None and unitary_getter() is not NotImplemented:
-        return True
-
-    # Fallback to decomposition for gates and operations
-    if isinstance(val, Gate):
-        # Since gates don't know about qubits, we need to create some
-        decomposed_val = decompose_once_with_qubits(val,
-            LineQubit.range(val.num_qubits()),
-            default=None)
-        if decomposed_val is not None:
-            return all(has_unitary(v) for v in decomposed_val)
-    elif isinstance(val, Operation):
-        decomposed_val = decompose_once(val, default=None)
-        if decomposed_val is not None:
-            return all(has_unitary(v) for v in decomposed_val)
-
-    # Finally, fallback to full unitary method, including decomposition
-    return unitary(val, None) is not None
-
-
 def _decompose_and_get_unitary(val: Union['cirq.Operation', 'cirq.Gate']
                                ) -> np.ndarray:
     """Try to decompose a cirq.Operation or cirq.Gate, and return its unitary
@@ -208,3 +173,110 @@ def _decompose_and_get_unitary(val: Union['cirq.Operation', 'cirq.Gate']
             state = result
         if result is not None:
             return result.reshape((1 << n, 1 << n))
+
+
+def has_unitary(val: Any) -> bool:
+    """Determines whether the value has a unitary effect.
+
+    A value has a unitary effect iff any of the following conditions are met:
+
+    - It has a `_has_unitary_` method that returns True.
+    - It has a `_unitary_` method that doesn't return None or NotImplemented.
+    - It has an `_apply_unitary_` method that doesn't return None or
+        NotImplemented.
+    - It has a `_decompose_` method that returns an `OP_TREE` of operations, and
+        each operation in the list has a unitary effect.
+
+    It is assumed that, when multiple methods are present, they will be
+    consistent with each other.
+
+    If the given value does not implement any of the specified methods, the
+    default result is False.
+
+    Args:
+        The value that may or may not have a unitary effect.
+
+    Returns:
+        Whether or not `val` has a unitary effect.
+    """
+    strats = [
+        _strat_has_unitary_from_has_unitary, _strat_has_unitary_from_decompose,
+        _strat_has_unitary_from_apply_unitary, _strat_has_unitary_from_unitary
+    ]
+    for strat in strats:
+        result = strat(val)
+        if result is not None:
+            return result
+
+    # If you can't tell that it's unitary, it's not unitary.
+    return False
+
+
+def _strat_has_unitary_from_has_unitary(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's unitary-ness via its _has_unitary_ method."""
+    getter = getattr(val, '_has_unitary_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is NotImplemented:
+        return None
+    return result
+
+
+def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's unitary-ness via its _unitary_ method."""
+    getter = getattr(val, '_unitary_', None)
+    if getter is None:
+        return None
+    result = getter()
+    return result is not NotImplemented and result is not None
+
+
+def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's unitary-ness via its _decompose_ method."""
+    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    if operations is None:
+        return None
+    has_unitaries = [has_unitary(op) for op in operations]
+    if any(v is None or v is NotImplemented for v in has_unitaries):
+        return None
+    return all(has_unitaries)
+
+
+def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
+    """
+    from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
+    from cirq import linalg, line, ops
+
+    method = getattr(val, '_apply_unitary_', None)
+    if method is None:
+        return None
+    if isinstance(val, ops.Gate):
+        val = val.on(*line.LineQubit.range(val.num_qubits()))
+    if not isinstance(val, ops.Operation):
+        return None
+
+    n = len(val.qubits)
+    state = linalg.one_hot(shape=(2,) * n, dtype=np.complex64)
+    buffer = np.empty_like(state)
+    result = method(ApplyUnitaryArgs(state, buffer, range(n)))
+    return result is not None and result is not NotImplemented
+
+
+def _try_decompose_into_operations_and_qubits(
+        val: Any
+) -> Tuple[Optional[List['cirq.Operation']], Sequence['cirq.Qid']]:
+    """Returns the value's decomposition (if any) and the qubits it applies to.
+    """
+    from cirq.protocols.decompose import (decompose_once,
+                                          decompose_once_with_qubits)
+    from cirq import LineQubit, Gate, Operation
+
+    if isinstance(val, Gate):
+        # Gates don't specify qubits, and so must be handled specially.
+        qubits = LineQubit.range(val.num_qubits())
+        return decompose_once_with_qubits(val, qubits, None), qubits
+
+    if isinstance(val, Operation):
+        return decompose_once(val, None), val.qubits
+
+    return None, ()

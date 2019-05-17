@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Optional
 
 import numpy as np
 import pytest
@@ -64,7 +65,10 @@ class FullyImplemented(cirq.Gate):
         self.unitary_value = unitary_value
     def _has_unitary_(self) -> bool:
         return self.unitary_value
-    def _unitary_(self) -> np.ndarray:
+
+    def _unitary_(self) -> Optional[np.ndarray]:
+        if not self.unitary_value:
+            return None
         return m1
     def num_qubits(self):
         return 1
@@ -200,3 +204,33 @@ def test_decomposed_unitary():
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))
     assert cirq.unitary(DecomposableNoUnitary((a,)), None) is None
+
+
+def test_unitary_from_apply_unitary():
+
+    class ApplyGate(cirq.Gate):
+
+        def num_qubits(self):
+            return 1
+
+        def _apply_unitary_(self, args):
+            return cirq.apply_unitary(cirq.X(cirq.LineQubit(0)), args)
+
+    class ApplyOp(cirq.Operation):
+
+        def __init__(self, q):
+            self.q = q
+
+        @property
+        def qubits(self):
+            return self.q,
+
+        def with_qubits(self, *new_qubits):
+            # coverage: ignore
+            return ApplyOp(*new_qubits)
+
+        def _apply_unitary_(self, args):
+            return cirq.apply_unitary(cirq.X(self.q), args)
+
+    assert cirq.has_unitary(ApplyGate())
+    assert cirq.has_unitary(ApplyOp(cirq.LineQubit(0)))
