@@ -1164,6 +1164,50 @@ def test_findall_operations_until_blocked():
             is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
 
 
+def test_has_measurements():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    xa = cirq.X.on(a)
+    xb = cirq.X.on(b)
+
+    ma = cirq.measure(a)
+    mb = cirq.measure(b)
+
+    c = Circuit()
+    assert not c.has_measurements()
+
+    c = Circuit.from_ops(xa, xb)
+    assert not c.has_measurements()
+
+    c = Circuit.from_ops(ma)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(ma, mb)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(xa, ma)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(xa, ma, xb, mb)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(ma, xa)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(ma, xa, mb)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(xa, ma, xb, xa)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(ma, ma)
+    assert c.has_measurements()
+
+    c = Circuit.from_ops(xa, ma, xa)
+    assert c.has_measurements()
+
+
 def test_are_all_measurements_terminal():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
