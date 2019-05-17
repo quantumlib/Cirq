@@ -178,3 +178,9 @@ def test_apply_unitaries():
     assert cirq.apply_unitaries(unitary_values=[cirq.depolarize(0.5).on(a)],
                                 qubits=[a],
                                 default=1) == 1
+
+    # Inconsistent arguments.
+    with pytest.raises(ValueError, match='len'):
+        _ = cirq.apply_unitaries(unitary_values=[],
+                                 qubits=[],
+                                 args=cirq.ApplyUnitaryArgs.default(1))
