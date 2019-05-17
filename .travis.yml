@@ -48,7 +48,7 @@ matrix:
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --ignore=cirq/contrib --benchmark-skip
 
-    - os: osx
+  - os: osx
     env: NAME=pytest (without contrib)
     python: "3.6"
     install:
