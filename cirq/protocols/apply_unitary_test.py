@@ -149,15 +149,15 @@ def test_apply_unitaries():
                         cirq.CNOT(a, b),
                         cirq.H(c).controlled_by(b)],
         qubits=[a, b, c],
-        args=cirq.ApplyUnitaryArgs())
+        args=cirq.ApplyUnitaryArgs.default(num_qubits=3))
     np.testing.assert_allclose(result.reshape(8), [
         np.sqrt(0.5),
         0,
         0,
         0,
         0,
-        0.5,
         0,
+        0.5,
         0.5,
     ],
                                atol=1e-8)
