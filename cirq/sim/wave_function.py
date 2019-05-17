@@ -322,7 +322,7 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
                 'initial state was {} but expected state for {} qubits'.format(
                     state_rep, num_qubits))
         else:
-            state = np.zeros(2 ** num_qubits, dtype=dtype)
+            state = np.zeros(2**num_qubits, dtype=dtype)
             state[state_rep] = 1.0
     else:
         raise TypeError('initial_state was not of type int or ndarray')
