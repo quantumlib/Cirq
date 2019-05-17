@@ -1188,37 +1188,37 @@ def test_has_measurements():
     ma = cirq.measure(a)
     mb = cirq.measure(b)
 
-    c = Circuit()
+    c = cirq.Circuit()
     assert not c.has_measurements()
 
-    c = Circuit.from_ops(xa, xb)
+    c = cirq.Circuit.from_ops(xa, xb)
     assert not c.has_measurements()
 
-    c = Circuit.from_ops(ma)
+    c = cirq.Circuit.from_ops(ma)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(ma, mb)
+    c = cirq.Circuit.from_ops(ma, mb)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(xa, ma)
+    c = cirq.Circuit.from_ops(xa, ma)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(xa, ma, xb, mb)
+    c = cirq.Circuit.from_ops(xa, ma, xb, mb)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(ma, xa)
+    c = cirq.Circuit.from_ops(ma, xa)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(ma, xa, mb)
+    c = cirq.Circuit.from_ops(ma, xa, mb)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(xa, ma, xb, xa)
+    c = cirq.Circuit.from_ops(xa, ma, xb, xa)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(ma, ma)
+    c = cirq.Circuit.from_ops(ma, ma)
     assert c.has_measurements()
 
-    c = Circuit.from_ops(xa, ma, xa)
+    c = cirq.Circuit.from_ops(xa, ma, xa)
     assert c.has_measurements()
 
 
