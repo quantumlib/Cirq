@@ -76,20 +76,17 @@ def test_equality():
     eq.add_equality_group(cirq.Circuit(),
                           cirq.Circuit(device=cirq.UnconstrainedDevice),
                           cirq.Circuit([]), cirq.Circuit(()))
-    eq.add_equality_group(
-        cirq.Circuit([cirq.Moment()]),
-        cirq.Circuit((cirq.Moment(),)))
+    eq.add_equality_group(cirq.Circuit([cirq.Moment()]),
+                          cirq.Circuit((cirq.Moment(),)))
     eq.add_equality_group(cirq.Circuit(device=cg.Foxtail))
 
     # Equality depends on structure and contents.
     eq.add_equality_group(cirq.Circuit([cirq.Moment([cirq.X(a)])]))
     eq.add_equality_group(cirq.Circuit([cirq.Moment([cirq.X(b)])]))
     eq.add_equality_group(
-        cirq.Circuit(
-            [cirq.Moment([cirq.X(a)]),
-             cirq.Moment([cirq.X(b)])]))
-    eq.add_equality_group(
-        cirq.Circuit([cirq.Moment([cirq.X(a), cirq.X(b)])]))
+        cirq.Circuit([cirq.Moment([cirq.X(a)]),
+                      cirq.Moment([cirq.X(b)])]))
+    eq.add_equality_group(cirq.Circuit([cirq.Moment([cirq.X(a), cirq.X(b)])]))
 
     # Big case.
     eq.add_equality_group(
@@ -136,19 +133,21 @@ def test_approx_eq():
     assert not cirq.approx_eq(cirq.Circuit([cirq.Moment([cirq.X(a)])]),
                               cirq.Circuit([cirq.Moment([cirq.X(b)])]))
 
-    assert cirq.approx_eq(cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
-                          cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=1e-9)(a)])]))
+    assert cirq.approx_eq(
+        cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
+        cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=1e-9)(a)])]))
 
-    assert not cirq.approx_eq(cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
-                              cirq.Circuit(
-                                  [cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]))
-    assert cirq.approx_eq(cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
-                          cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]),
-                          atol=1e-6)
+    assert not cirq.approx_eq(
+        cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
+        cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]))
+    assert cirq.approx_eq(
+        cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
+        cirq.Circuit([cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]),
+        atol=1e-6)
 
-    assert not cirq.approx_eq(cirq.Circuit([cirq.Moment([cirq.X(a)])]),
-                              cirq.Circuit([cirq.Moment([cirq.X(a)])],
-                                      device=TestDevice()))
+    assert not cirq.approx_eq(
+        cirq.Circuit([cirq.Moment([cirq.X(a)])]),
+        cirq.Circuit([cirq.Moment([cirq.X(a)])], device=TestDevice()))
 
 
 def test_append_single():
@@ -173,10 +172,9 @@ def test_append_multiple():
 
     c = cirq.Circuit()
     c.append([cirq.X(a), cirq.X(b)], cirq.InsertStrategy.NEW)
-    assert c == cirq.Circuit([
-        cirq.Moment([cirq.X(a)]),
-        cirq.Moment([cirq.X(b)])
-    ])
+    assert c == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.X(b)])])
 
     c = cirq.Circuit()
     c.append([cirq.X(a), cirq.X(b)], cirq.InsertStrategy.EARLIEST)
@@ -203,8 +201,10 @@ def test_append_moments():
     ])
 
     c = cirq.Circuit()
-    c.append([cirq.Moment([cirq.X(a), cirq.X(b)]),
-              cirq.Moment([cirq.X(a), cirq.X(b)])], cirq.InsertStrategy.NEW)
+    c.append([
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)])
+    ], cirq.InsertStrategy.NEW)
     assert c == cirq.Circuit([
         cirq.Moment([cirq.X(a), cirq.X(b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
@@ -242,9 +242,7 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == 'cirq.Circuit(device=cirq.google.Foxtail)'
 
-    c = cirq.Circuit.from_ops(
-        cirq.Z(cirq.GridQubit(0, 0)),
-        device=cg.Foxtail)
+    c = cirq.Circuit.from_ops(cirq.Z(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == """cirq.Circuit(moments=[
     cirq.Moment(operations=[
@@ -391,14 +389,21 @@ def test_slice():
         cirq.Moment([cirq.H(b)]),
     ])
     assert c[0:1] == cirq.Circuit([cirq.Moment([cirq.H(a), cirq.H(b)])])
-    assert c[::2] == cirq.Circuit([
-        cirq.Moment([cirq.H(a), cirq.H(b)]), cirq.Moment([cirq.H(b)])
-    ])
+    assert c[::2] == cirq.Circuit(
+        [cirq.Moment([cirq.H(a), cirq.H(b)]),
+         cirq.Moment([cirq.H(b)])])
     assert c[0:1:2] == cirq.Circuit([cirq.Moment([cirq.H(a), cirq.H(b)])])
-    assert c[1:3:] == cirq.Circuit([cirq.Moment([cirq.CZ(a, b)]), cirq.Moment([cirq.H(b)])])
-    assert c[::-1] == cirq.Circuit([cirq.Moment([cirq.H(b)]), cirq.Moment([cirq.CZ(a, b)]),
-                               cirq.Moment([cirq.H(a), cirq.H(b)])])
-    assert c[3:0:-1] == cirq.Circuit([cirq.Moment([cirq.H(b)]), cirq.Moment([cirq.CZ(a, b)])])
+    assert c[1:3:] == cirq.Circuit(
+        [cirq.Moment([cirq.CZ(a, b)]),
+         cirq.Moment([cirq.H(b)])])
+    assert c[::-1] == cirq.Circuit([
+        cirq.Moment([cirq.H(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.H(a), cirq.H(b)])
+    ])
+    assert c[3:0:-1] == cirq.Circuit(
+        [cirq.Moment([cirq.H(b)]),
+         cirq.Moment([cirq.CZ(a, b)])])
     assert c[0:2:-1] == cirq.Circuit()
 
 
@@ -412,10 +417,9 @@ def test_concatenate():
 
     assert c + d == cirq.Circuit([cirq.Moment([cirq.X(b)])])
     assert d + c == cirq.Circuit([cirq.Moment([cirq.X(b)])])
-    assert e + d == cirq.Circuit([
-        cirq.Moment([cirq.X(a), cirq.X(b)]),
-        cirq.Moment([cirq.X(b)])
-    ])
+    assert e + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a), cirq.X(b)]),
+         cirq.Moment([cirq.X(b)])])
 
     d += c
     assert d == cirq.Circuit([cirq.Moment([cirq.X(b)])])
@@ -511,16 +515,19 @@ def test_multiply():
 
     assert c * 0 == cirq.Circuit()
     assert d * 0 == cirq.Circuit()
-    assert d * 2 == cirq.Circuit([cirq.Moment([cirq.X(a)]),
-                             cirq.Moment([cirq.X(a)])])
+    assert d * 2 == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.X(a)])])
     assert 1 * c == cirq.Circuit()
     assert -1 * d == cirq.Circuit()
     assert 1 * d == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
     d *= 3
-    assert d == cirq.Circuit([cirq.Moment([cirq.X(a)]),
-                         cirq.Moment([cirq.X(a)]),
-                         cirq.Moment([cirq.X(a)])])
+    assert d == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.X(a)])
+    ])
 
     with pytest.raises(TypeError):
         _ = c * 'a'
@@ -630,8 +637,11 @@ def test_insert_op_tree_newinline():
             assert c.operation_at(qubits[i], actual_index) == op_list[i]
 
     c2 = cirq.Circuit()
-    c2.insert(0, [cirq.CZ(a, b), cirq.H(a), cirq.X(b), cirq.H(b), cirq.X(a)],
-              cirq.InsertStrategy.NEW_THEN_INLINE)
+    c2.insert(
+        0,
+        [cirq.CZ(a, b),
+         cirq.H(a), cirq.X(b),
+         cirq.H(b), cirq.X(a)], cirq.InsertStrategy.NEW_THEN_INLINE)
     assert c == c2
 
 
@@ -673,7 +683,8 @@ def test_insert_moment():
     b = cirq.NamedQubit('bob')
     c = cirq.Circuit()
 
-    moment_list = [(-10, 0, [cirq.CZ(a, b)], a, cirq.InsertStrategy.NEW_THEN_INLINE),
+    moment_list = [(-10, 0, [cirq.CZ(a, b)], a,
+                    cirq.InsertStrategy.NEW_THEN_INLINE),
                    (-20, 0, [cirq.X(a)], a, cirq.InsertStrategy.NEW),
                    (20, 2, [cirq.X(b)], b, cirq.InsertStrategy.INLINE),
                    (2, 2, [cirq.H(b)], b, cirq.InsertStrategy.EARLIEST),
@@ -730,7 +741,11 @@ def test_insert_at_frontier_init():
     op = cirq.X(x)
     circuit = cirq.Circuit.from_ops(op)
     actual_frontier = circuit.insert_at_frontier(op, 3)
-    expected_circuit = cirq.Circuit([cirq.Moment([op]), cirq.Moment(), cirq.Moment(), cirq.Moment([op])])
+    expected_circuit = cirq.Circuit(
+        [cirq.Moment([op]),
+         cirq.Moment(),
+         cirq.Moment(),
+         cirq.Moment([op])])
     assert circuit == expected_circuit
     expected_frontier = defaultdict(lambda: 0)
     expected_frontier[x] = 4
@@ -743,17 +758,18 @@ def test_insert_at_frontier_init():
 
 
 def test_insert_at_frontier():
+
     class Replacer(cirq.PointOptimizer):
+
         def __init__(self, replacer=(lambda x: x)):
             super().__init__()
             self.replacer = replacer
 
         def optimization_at(self, circuit, index, op):
             new_ops = self.replacer(op)
-            return cirq.PointOptimizationSummary(
-                clear_span=1,
-                clear_qubits=op.qubits,
-                new_operations=new_ops)
+            return cirq.PointOptimizationSummary(clear_span=1,
+                                                 clear_qubits=op.qubits,
+                                                 new_operations=new_ops)
 
     replacer = lambda op: ((cirq.Z(op.qubits[0]),) * 2 +
                            (op, cirq.Y(op.qubits[0])))
@@ -795,9 +811,11 @@ c: ─────────────────────────�
 
     duplicate = Replacer(lambda op: (op,) * 2)
     circuit = cirq.Circuit([
-        cirq.Moment([cirq.CZ(qubits[j], qubits[j + 1])
-                for j in range(i % 2, 5, 2)])
-        for i in range(4)])
+        cirq.Moment(
+            [cirq.CZ(qubits[j], qubits[j + 1])
+             for j in range(i % 2, 5, 2)])
+        for i in range(4)
+    ])
 
     duplicate.optimize_circuit(circuit)
     cirq.testing.assert_has_diagram(circuit, """
@@ -815,7 +833,8 @@ f: ───@───@───────────@───@────�
 """)
 
     circuit = cirq.Circuit([
-        cirq.Moment([cirq.CZ(*qubits[2:4]), cirq.CNOT(*qubits[:2])]),
+        cirq.Moment([cirq.CZ(*qubits[2:4]),
+                     cirq.CNOT(*qubits[:2])]),
         cirq.Moment([cirq.CNOT(*qubits[1::-1])])
     ])
 
@@ -1324,10 +1343,7 @@ def test_all_qubits():
     ])
     assert c.all_qubits() == {a, b}
 
-    c = cirq.Circuit([
-        cirq.Moment([cirq.CZ(a, b)]),
-        cirq.Moment([cirq.X(a)])
-    ])
+    c = cirq.Circuit([cirq.Moment([cirq.CZ(a, b)]), cirq.Moment([cirq.X(a)])])
     assert c.all_qubits() == {a, b}
 
 
@@ -1357,10 +1373,7 @@ def test_all_operations():
     ])
     assert list(c.all_operations()) == [cirq.CZ(a, b)]
 
-    c = cirq.Circuit([
-        cirq.Moment([cirq.CZ(a, b)]),
-        cirq.Moment([cirq.X(a)])
-    ])
+    c = cirq.Circuit([cirq.Moment([cirq.CZ(a, b)]), cirq.Moment([cirq.X(a)])])
     assert list(c.all_operations()) == [cirq.CZ(a, b), cirq.X(a)]
 
     c = cirq.Circuit([
@@ -1369,7 +1382,8 @@ def test_all_operations():
         cirq.Moment([]),
         cirq.Moment([cirq.CNOT(a, b)]),
         cirq.Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
-        cirq.Moment([])])
+        cirq.Moment([])
+    ])
 
     assert list(c.all_operations()) == [
         cirq.X(a),
@@ -1413,9 +1427,7 @@ def test_to_text_diagram_teleportation_to_diagram():
         cirq.Moment([cirq.X(msg)**0.5]),
         cirq.Moment([cirq.CNOT(msg, ali)]),
         cirq.Moment([cirq.H(msg)]),
-        cirq.Moment(
-            [cirq.measure(msg),
-             cirq.measure(ali)]),
+        cirq.Moment([cirq.measure(msg), cirq.measure(ali)]),
         cirq.Moment([cirq.CNOT(ali, bob)]),
         cirq.Moment([cirq.CNOT(msg, tmp)]),
         cirq.Moment([cirq.CZ(bob, tmp)]),
@@ -1508,21 +1520,25 @@ def test_circuit_diagram_on_gate_without_info():
     f = FGate()
     cirq.testing.assert_has_diagram(cirq.Circuit([
         cirq.Moment([f.on(q)]),
-    ]), """
+    ]),
+                                    """
 (0, 0): ---python-object-FGate:arbitrary-digits---
-""", use_unicode_characters=False)
+""",
+                                    use_unicode_characters=False)
 
     f3 = FGate(3)
     # When used on multiple qubits, show the qubit order as a digit suffix.
     cirq.testing.assert_has_diagram(cirq.Circuit([
         cirq.Moment([f3.on(q, q3, q2)]),
-    ]), """
+    ]),
+                                    """
 (0, 0): ---python-object-FGate:arbitrary-digits---
            |
 (0, 1): ---#3-------------------------------------
            |
 (0, 2): ---#2-------------------------------------
-""", use_unicode_characters=False)
+""",
+                                    use_unicode_characters=False)
 
 
 def test_to_text_diagram_multi_qubit_gate():
@@ -1675,10 +1691,8 @@ def test_text_diagram_jupyter():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    circuit = cirq.Circuit.from_ops((
-                cirq.CNOT(a, b),
-                cirq.CNOT(b, c),
-                cirq.CNOT(c, a)) * 50)
+    circuit = cirq.Circuit.from_ops(
+        (cirq.CNOT(a, b), cirq.CNOT(b, c), cirq.CNOT(c, a)) * 50)
     text_expected = circuit.to_text_diagram()
 
     # Test Jupyter console output from
@@ -1707,50 +1721,48 @@ def test_circuit_to_unitary_matrix():
     b = cirq.NamedQubit('b')
 
     # Single qubit gates.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).to_unitary_matrix(),
-        np.array([
-            [1j, 1],
-            [1, 1j],
-        ]) * np.sqrt(0.5),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.X(a)**0.5).to_unitary_matrix(),
+                                                    np.array([
+                                                        [1j, 1],
+                                                        [1, 1j],
+                                                    ]) * np.sqrt(0.5),
+                                                    atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.Circuit.from_ops(cirq.Y(a)**0.25).to_unitary_matrix(),
         cirq.unitary(cirq.Y(a)**0.25),
         atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.Z(a), cirq.X(b)).to_unitary_matrix(),
-        np.array([
-            [0, 1, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, -1],
-            [0, 0, -1, 0],
-        ]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.Z(a), cirq.X(b)).to_unitary_matrix(),
+                                                    np.array([
+                                                        [0, 1, 0, 0],
+                                                        [1, 0, 0, 0],
+                                                        [0, 0, 0, -1],
+                                                        [0, 0, -1, 0],
+                                                    ]),
+                                                    atol=1e-8)
 
     # Single qubit gates and two qubit gate.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.Z(a),
-                         cirq.X(b),
-                         cirq.CNOT(a, b)).to_unitary_matrix(),
-        np.array([
-            [0, 1, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, -1, 0],
-            [0, 0, 0, -1],
-        ]),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.H(b),
-                         cirq.CNOT(b, a)**0.5,
-                         cirq.Y(a)**0.5).to_unitary_matrix(),
-        np.array([
-            [1, 1, -1, -1],
-            [1j, -1j, -1j, 1j],
-            [1, 1, 1, 1],
-            [1, -1, 1, -1],
-        ]) * np.sqrt(0.25),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.Z(a), cirq.X(b), cirq.CNOT(a, b)).to_unitary_matrix(),
+                                                    np.array([
+                                                        [0, 1, 0, 0],
+                                                        [1, 0, 0, 0],
+                                                        [0, 0, -1, 0],
+                                                        [0, 0, 0, -1],
+                                                    ]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.H(b),
+        cirq.CNOT(b, a)**0.5,
+        cirq.Y(a)**0.5).to_unitary_matrix(),
+                                                    np.array([
+                                                        [1, 1, -1, -1],
+                                                        [1j, -1j, -1j, 1j],
+                                                        [1, 1, 1, 1],
+                                                        [1, -1, 1, -1],
+                                                    ]) * np.sqrt(0.25),
+                                                    atol=1e-8)
 
     # Measurement gate has no corresponding matrix.
     c = cirq.Circuit.from_ops(cirq.measure(a))
@@ -1787,16 +1799,14 @@ def test_circuit_to_unitary_matrix():
         _ = c.to_unitary_matrix()
 
     # Non-terminal measurements are not ignored (multiple qubits).
-    c = cirq.Circuit.from_ops(
-        cirq.measure(a),
-        cirq.measure(b),
-        cirq.CNOT(a, b))
+    c = cirq.Circuit.from_ops(cirq.measure(a), cirq.measure(b), cirq.CNOT(a, b))
     with pytest.raises(ValueError):
         _ = c.to_unitary_matrix()
 
     # Gates without matrix or decomposition raise exception
     class MysteryGate(cirq.TwoQubitGate):
         pass
+
     c = cirq.Circuit.from_ops(MysteryGate()(a, b))
     with pytest.raises(TypeError):
         _ = c.to_unitary_matrix()
@@ -1818,16 +1828,15 @@ def test_circuit_unitary():
     assert not cirq.has_unitary(with_inner_measure)
     assert cirq.unitary(with_inner_measure, None) is None
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(cirq.Circuit.from_ops(
-            cirq.X(q)**0.5),
-            cirq.measure(q),
-        ),
-        np.array([
-            [1j, 1],
-            [1, 1j],
-        ]) * np.sqrt(0.5),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
+        cirq.Circuit.from_ops(cirq.X(q)**0.5),
+        cirq.measure(q),
+    ),
+                                                    np.array([
+                                                        [1j, 1],
+                                                        [1, 1j],
+                                                    ]) * np.sqrt(0.5),
+                                                    atol=1e-8)
 
 
 def test_simple_circuits_to_unitary_matrix():
@@ -1869,13 +1878,9 @@ def test_composite_gate_to_unitary_matrix():
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = cirq.Circuit.from_ops(
-        cirq.X(a),
-        CnotComposite()(a, b),
-        cirq.X(a),
-        cirq.measure(a),
-        cirq.X(b),
-        cirq.measure(b))
+    c = cirq.Circuit.from_ops(cirq.X(a),
+                              CnotComposite()(a, b), cirq.X(a), cirq.measure(a),
+                              cirq.X(b), cirq.measure(b))
     assert cirq.has_unitary(c)
 
     mat = c.to_unitary_matrix()
@@ -2439,8 +2444,8 @@ def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
 def test_next_moments_operating_on():
     for _ in range(20):
         n_moments = randint(1, 10)
-        circuit = cirq.testing.random_circuit(
-            randint(1, 20), n_moments, random())
+        circuit = cirq.testing.random_circuit(randint(1, 20), n_moments,
+                                              random())
         circuit_qubits = circuit.all_qubits()
         n_key_qubits = randint(int(bool(circuit_qubits)), len(circuit_qubits))
         key_qubits = sample(circuit_qubits, n_key_qubits)
@@ -2465,15 +2470,17 @@ def test_pick_inserted_ops_moment_indices():
         second_half = cirq.Circuit(circuit[start:])
         operations = tuple(op for moment in second_half
                 for op in moment.operations)
-        squeezed_second_half = cirq.Circuit.from_ops(operations,
-                strategy=cirq.InsertStrategy.EARLIEST)
+        squeezed_second_half = cirq.Circuit.from_ops(
+            operations, strategy=cirq.InsertStrategy.EARLIEST)
         expected_circuit = cirq.Circuit(first_half._moments +
-                                   squeezed_second_half._moments)
-        expected_circuit._moments += [cirq.Moment() for _ in
-                range(len(circuit) - len(expected_circuit))]
+                                        squeezed_second_half._moments)
+        expected_circuit._moments += [
+            cirq.Moment() for _ in range(len(circuit) - len(expected_circuit))
+        ]
         insert_indices, _ = circuit._pick_inserted_ops_moment_indices(
             operations, start)
-        actual_circuit = cirq.Circuit(first_half._moments +
+        actual_circuit = cirq.Circuit(
+            first_half._moments +
             [cirq.Moment() for _ in range(n_moments - start)])
         for op, insert_index in zip(operations, insert_indices):
             actual_circuit._moments[insert_index] = (
@@ -2486,15 +2493,16 @@ def test_push_frontier_new_moments():
     insertion_index = 3
     circuit = cirq.Circuit()
     circuit._insert_operations([operation], [insertion_index])
-    assert circuit == cirq.Circuit([cirq.Moment() for _ in range(insertion_index)] +
-                              [cirq.Moment([operation])])
+    assert circuit == cirq.Circuit(
+        [cirq.Moment() for _ in range(insertion_index)] +
+        [cirq.Moment([operation])])
 
 
 def test_push_frontier_random_circuit():
     for _ in range(20):
         n_moments = randint(1, 10)
-        circuit = cirq.testing.random_circuit(
-            randint(1, 20), n_moments, random())
+        circuit = cirq.testing.random_circuit(randint(1, 20), n_moments,
+                                              random())
         qubits = circuit.all_qubits()
         early_frontier = {q: randint(0, n_moments) for q in
                           sample(qubits, randint(0, len(qubits)))}
@@ -2519,7 +2527,7 @@ def test_push_frontier_random_circuit():
             if orig_early_frontier[q] == insert_index:
                 assert orig_early_frontier[q] == early_frontier[q]
                 assert (not n_new_moments) or (
-                        circuit._moments[early_frontier[q]] == cirq.Moment())
+                    circuit._moments[early_frontier[q]] == cirq.Moment())
             elif orig_early_frontier[q] == len(orig_moments):
                 assert early_frontier[q] == len(circuit)
             else:
@@ -2527,9 +2535,10 @@ def test_push_frontier_random_circuit():
                         circuit._moments[early_frontier[q]])
 
 
-@pytest.mark.parametrize('circuit',
-    [cirq.testing.random_circuit(cirq.LineQubit.range(10), 10, 0.5)
-     for _ in range(20)])
+@pytest.mark.parametrize('circuit', [
+    cirq.testing.random_circuit(cirq.LineQubit.range(10), 10, 0.5)
+    for _ in range(20)
+])
 def test_insert_operations_random_circuits(circuit):
     n_moments = len(circuit)
     operations, insert_indices = [], []
