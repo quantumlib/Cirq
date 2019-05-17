@@ -36,6 +36,9 @@ from cirq.linalg.decompositions import (
     so4_to_magic_su2s,
 )
 
+from cirq.linalg.states import (
+    one_hot,)
+
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
