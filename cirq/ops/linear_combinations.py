@@ -17,7 +17,7 @@ from typing import Mapping, Optional, Tuple, Union
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import gate_operation, raw_types
+from cirq.ops import raw_types
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -113,15 +113,14 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return result
 
 
-class LinearCombinationOfGateOperations(
-        value.LinearDict[gate_operation.GateOperation]):
+class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     """Represents operator defined by linear combination of gate operations.
 
     If G1, ..., Gn are gate operations, {q1_1, ..., q1_k1}, {q2_1, ..., q2_k2},
     ..., {qn_1, ..., qn_kn} are (not necessarily disjoint) sets of qubits and
     b1, b2, ..., bn are complex numbers, then
 
-        LinearCombinationOfGateOperations({
+        LinearCombinationOfOperations({
             G1(q1_1, ..., q1_k1): b1,
             G2(q2_1, ..., q2_k2): b2,
             ...,
@@ -139,8 +138,7 @@ class LinearCombinationOfGateOperations(
     """
 
     def __init__(self,
-                 terms: Mapping[gate_operation.GateOperation, value.Scalar]
-                ) -> None:
+                 terms: Mapping[raw_types.Operation, value.Scalar]) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -149,8 +147,8 @@ class LinearCombinationOfGateOperations(
         """
         super().__init__(terms, validator=self._is_compatible)
 
-    def _is_compatible(self, gate: gate_operation.GateOperation) -> bool:
-        return isinstance(gate, gate_operation.GateOperation)
+    def _is_compatible(self, gate: raw_types.Operation) -> bool:
+        return isinstance(gate, raw_types.Operation)
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:

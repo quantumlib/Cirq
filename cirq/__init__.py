@@ -130,7 +130,7 @@ from cirq.ops import (
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
-    LinearCombinationOfGateOperations,
+    LinearCombinationOfOperations,
     measure,
     measure_each,
     MeasurementGate,

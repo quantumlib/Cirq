@@ -120,19 +120,19 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(
 
 def get_matrix(operator: Union[cirq.Gate, cirq.GateOperation, cirq.
                                LinearCombinationOfGates, cirq.
-                               LinearCombinationOfGateOperations]
-              ) -> np.ndarray:
-    if isinstance(operator, (cirq.LinearCombinationOfGates,
-                             cirq.LinearCombinationOfGateOperations)):
+                               LinearCombinationOfOperations]) -> np.ndarray:
+    if isinstance(
+            operator,
+        (cirq.LinearCombinationOfGates, cirq.LinearCombinationOfOperations)):
         return operator.matrix()
     return cirq.unitary(operator)
 
 
 def assert_linear_combinations_are_equal(
         actual: Union[cirq.LinearCombinationOfGates, cirq.
-                      LinearCombinationOfGateOperations],
+                      LinearCombinationOfOperations],
         expected: Union[cirq.LinearCombinationOfGates, cirq.
-                        LinearCombinationOfGateOperations]) -> None:
+                        LinearCombinationOfOperations]) -> None:
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
     assert np.allclose(actual_matrix, expected_matrix)
@@ -192,8 +192,8 @@ def test_in_place_manipulations_of_linear_combination_of_gates(gates):
     cirq.CZ(q0, q1),
     cirq.FREDKIN(q0, q1, q2),
 ))
-def test_empty_linear_combination_of_gate_operations_accepts_all_operations(op):
-    combination = cirq.LinearCombinationOfGateOperations({})
+def test_empty_linear_combination_of_operations_accepts_all_operations(op):
+    combination = cirq.LinearCombinationOfOperations({})
     combination[op] = -0.5j
     assert len(combination) == 1
 
@@ -216,13 +216,13 @@ def test_empty_linear_combination_of_gate_operations_accepts_all_operations(op):
         cirq.CZ(q1, q2): 0.5
     },
 ))
-def test_linear_combination_of_gate_operations_is_consistent(terms):
-    combination_1 = cirq.LinearCombinationOfGateOperations(terms)
+def test_linear_combination_of_operations_is_consistent(terms):
+    combination_1 = cirq.LinearCombinationOfOperations(terms)
 
-    combination_2 = cirq.LinearCombinationOfGateOperations({})
+    combination_2 = cirq.LinearCombinationOfOperations({})
     combination_2.update(terms)
 
-    combination_3 = cirq.LinearCombinationOfGateOperations({})
+    combination_3 = cirq.LinearCombinationOfOperations({})
     for gate, coefficient in terms.items():
         combination_3[gate] += coefficient
 
@@ -248,9 +248,9 @@ def test_linear_combination_of_gate_operations_is_consistent(terms):
         cirq.CNOT(q1, q2): 0.25
     }, (q0, q1, q2)),
 ))
-def test_linear_combination_of_gate_operations_has_correct_qubits(
+def test_linear_combination_of_operations_has_correct_qubits(
         terms, expected_qubits):
-    combination = cirq.LinearCombinationOfGateOperations(terms)
+    combination = cirq.LinearCombinationOfOperations(terms)
     assert combination.qubits == expected_qubits
 
 
@@ -454,9 +454,9 @@ def test_linear_combination_of_gate_operations_has_correct_qubits(
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3j],
      ])),
 ))
-def test_linear_combination_of_gate_operations_has_correct_matrix(
+def test_linear_combination_of_operations_has_correct_matrix(
         terms, expected_matrix):
-    combination = cirq.LinearCombinationOfGateOperations(terms)
+    combination = cirq.LinearCombinationOfOperations(terms)
     assert np.all(combination.matrix() == expected_matrix)
 
 
@@ -527,9 +527,9 @@ def test_linear_combination_of_gate_operations_has_correct_matrix(
         'ZX': -1
     }),
 ))
-def test_linear_combination_of_gate_operations_has_correct_pauli_expansion(
+def test_linear_combination_of_operations_has_correct_pauli_expansion(
         terms, expected_expansion):
-    combination = cirq.LinearCombinationOfGateOperations(terms)
+    combination = cirq.LinearCombinationOfOperations(terms)
     actual_expansion = cirq.pauli_expansion(combination)
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
     for name in actual_expansion.keys():
