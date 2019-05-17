@@ -240,6 +240,18 @@ def test_kak_decomposition(target):
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 
+def test_kak_decomposition_interaction_coefficients():
+    a, b = cirq.LineQubit(0), cirq.LineQubit(1)
+    theta = 0.3
+    circuit = cirq.Circuit()
+    circuit.append(cirq.ISWAP.on(a, b))
+    circuit.append(
+        cirq.ZZPowGate(exponent=2 * theta / np.pi, global_shift=-0.5).on(a, b))
+
+    assert cirq.kak_decomposition(cirq.unitary(circuit)).interaction_coefficients == \
+    (0.7853981633974483, 0.7853981633974482, 0.2999999999999998)
+
+
 def test_kak_decomposition_eq():
     eq = cirq.testing.EqualsTester()
 
