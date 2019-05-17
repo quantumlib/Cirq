@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utility methods for creating vectors and matrices."""
 
 from typing import Sequence, Union, Type
@@ -23,7 +22,7 @@ def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,
             shape: Union[int, Sequence[int]],
             dtype: Type[np.number]) -> np.ndarray:
-    """Returns a numpy array that with a single 1 and otherwise 0.
+    """Returns a numpy array with a single 1 entry, and 0 everywhere else.
 
     Args:
         index: The index that should store 1 instead of 0.

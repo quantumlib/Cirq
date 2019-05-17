@@ -322,7 +322,9 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
                 'initial state was {} but expected state for {} qubits'.format(
                     state_rep, num_qubits))
         else:
-            state = linalg.one_hot(shape=2**num_qubits, dtype=dtype, index=state_rep)
+            state = linalg.one_hot(shape=2**num_qubits,
+                                   dtype=dtype,
+                                   index=state_rep)
     else:
         raise TypeError('initial_state was not of type int or ndarray')
     validate_normalized_state(state, num_qubits, dtype)
