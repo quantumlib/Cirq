@@ -49,7 +49,7 @@ matrix:
     script: check/pytest --ignore=cirq/contrib --benchmark-skip
 
   - os: osx
-    env: NAME=pytest (without contrib)
+    env: NAME=pytest-and-incremental-coverage macOS
     python: "3.6"
     install:
       - pip install -r requirements.txt
