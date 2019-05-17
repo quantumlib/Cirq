@@ -124,9 +124,9 @@ class DummyOperation(cirq.Operation):
 
 
 def test_unitary():
-    with pytest.raises(TypeError, match='no _unitary_ method'):
+    with pytest.raises(TypeError, match='unitary effect'):
         _ = cirq.unitary(NoMethod())
-    with pytest.raises(TypeError, match='returned NotImplemented'):
+    with pytest.raises(TypeError, match='unitary effect'):
         _ = cirq.unitary(ReturnsNotImplemented())
     assert cirq.unitary(ReturnsMatrix()) is m1
 
@@ -159,18 +159,18 @@ def test_has_unitary():
     assert not cirq.has_unitary(FullyImplemented(False))
 
 
-def test_decompose_and_get_unitary():
-    from cirq.protocols.unitary import _decompose_and_get_unitary
-    np.testing.assert_allclose(_decompose_and_get_unitary(
-        DecomposableOperation((a,), True)), m1)
-    np.testing.assert_allclose(_decompose_and_get_unitary(
-        DecomposableOperation((a, b), True)), m2)
-    np.testing.assert_allclose(_decompose_and_get_unitary(
-        DecomposableOrder((a, b, c))), m3)
-    np.testing.assert_allclose(_decompose_and_get_unitary(
-        DummyOperation((a,))), np.eye(2))
-    np.testing.assert_allclose(_decompose_and_get_unitary(
-        DummyOperation((a, b))), np.eye(4))
+def test_strat_unitary_from_decompose():
+    from cirq.protocols.unitary import _strat_unitary_from_decompose
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(DecomposableOperation((a,), True)), m1)
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(DecomposableOperation((a, b), True)), m2)
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(DecomposableOrder((a, b, c))), m3)
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(DummyOperation((a,))), np.eye(2))
+    np.testing.assert_allclose(
+        _strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
 
 
 def test_decomposed_has_unitary():
@@ -234,3 +234,8 @@ def test_unitary_from_apply_unitary():
 
     assert cirq.has_unitary(ApplyGate())
     assert cirq.has_unitary(ApplyOp(cirq.LineQubit(0)))
+
+    np.testing.assert_allclose(cirq.unitary(ApplyGate()),
+                               np.array([[0, 1], [1, 0]]))
+    np.testing.assert_allclose(cirq.unitary(ApplyOp(cirq.LineQubit(0))),
+                               np.array([[0, 1], [1, 0]]))
