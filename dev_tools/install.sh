@@ -5,7 +5,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     # Install some custom requirements on macOS
     # e.g. brew install pyenv-virtualenv
     brew update
-    brew install openssl readline
+    brew install openssl readline pyenv-virtualenv
     brew outdated pyenv || brew upgrade pyenv
     pyenv install $PYTHON
     export PYENV_VERSION=$PYTHON
