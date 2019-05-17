@@ -779,6 +779,9 @@ class Circuit:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
+    def has_measurements(self):
+        return any(self.findall_operations(protocols.is_measurement))
+
     def are_all_measurements_terminal(self):
         """Whether all measurement gates are at the end of the circuit."""
         return self.are_all_matches_terminal(protocols.is_measurement)
