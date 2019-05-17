@@ -13,6 +13,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     pyenv virtualenv venv
     source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate
     python --version
+    mkdir ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
     python -m pip install -r requirements.txt
     python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     check/pytest-and-incremental-coverage master
