@@ -18,6 +18,7 @@ from typing import List, Tuple, cast
 
 import numpy as np
 
+import cirq
 from cirq import ops, linalg, protocols
 from cirq.linalg.tolerance import near_zero_mod
 
@@ -68,7 +69,8 @@ def single_qubit_matrix_to_pauli_rotations(
         linalg.deconstruct_single_qubit_matrix_into_angles(mat))
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    m_pauli = ops.pauli_gates.X  # type: ops.pauli_gates.Pauli
+    m_pauli = ops.pauli_gates.X  # type: ignore \
+    # https://github.com/quantumlib/Cirq/pull/1638
     z_ht_after = z_rad_after / np.pi + 0.5
 
     # Clean up angles
@@ -77,7 +79,8 @@ def single_qubit_matrix_to_pauli_rotations(
             (is_half_turn(m_ht) and is_no_turn(z_ht_before-z_ht_after))):
             z_ht_before += 0.5
             z_ht_after -= 0.5
-            m_pauli = ops.pauli_gates.Y
+            m_pauli = cirq.ops.pauli_gates.Y  # type: ignore \
+            # https://github.com/quantumlib/Cirq/pull/1638
         if is_half_turn(z_ht_before) or is_half_turn(z_ht_after):
             z_ht_before -= 1
             z_ht_after += 1
@@ -90,10 +93,9 @@ def single_qubit_matrix_to_pauli_rotations(
         z_ht_before = 0
 
     # Generate operations
-    rotation_list = [
-        (ops.pauli_gates.Z, z_ht_before),
-        (m_pauli, m_ht),
-        (ops.pauli_gates.Z, z_ht_after)]
+    rotation_list = [(ops.pauli_gates.Z, z_ht_before), (m_pauli, m_ht),
+                     (ops.pauli_gates.Z, z_ht_after)]  # type: ignore \
+    # https://github.com/quantumlib/Cirq/pull/1638
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
