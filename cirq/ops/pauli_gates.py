@@ -42,6 +42,9 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         self._index = index
         self._name = name
 
+    def num_qubits(self):
+        return 1
+
     def commutes_with(self, other: 'Pauli') -> bool:
         return self is other
 
