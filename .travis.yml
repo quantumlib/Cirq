@@ -50,10 +50,12 @@ matrix:
 
   - os: osx
     env: NAME=pytest-and-incremental-coverage macOS
-    python: "3.6"
+    language: generic
+    env: PYTHON=3.6.0
     install:
-      - pip install -r requirements.txt
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - ./dev_tools/install.sh
+      - python -m pip install -r requirements.txt
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master
 
   - os: linux

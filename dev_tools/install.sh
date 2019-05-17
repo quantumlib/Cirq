@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ $TRAVIS_OS_NAME = 'osx' ]; then
+
+    # Install some custom requirements on macOS
+    # e.g. brew install pyenv-virtualenv
+    brew update
+    brew install openssl readline
+    brew outdated pyenv || brew upgrade pyenv
+    pyenv install $PYTHON
+    export PYENV_VERSION=$PYTHON
+    export PATH="/Users/travis/.pyenv/shims:${PATH}"
+    pyenv-virtualenv venv
+    source venv/bin/activate
+    python --version
+
+    case "${TOXENV}" in
+        py36)
+            # Install some custom Python 3.6 requirements on macOS
+            ;;
+        py37)
+            # Install some custom Python 3.7 requirements on macOS
+            ;;
+    esac
+else
+    # Install some custom requirements on Linux
+fi
