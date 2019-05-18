@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import numpy as np
+from fractions import Fraction
+from decimal import Decimal
 import cirq
 
 
@@ -35,7 +37,43 @@ def test_approx_eq_mixed_primitives():
     assert not cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-11)
 
 
-def test_approx_eq_mixed_numpy_dtypes():
+def test_numpy_dtype_compatibility():
+    i_a, i_b, i_c = 0, 1, 2
+    i_types = [np.intc, np.intp, np.int0, np.int8, np.int16, np.int32, np.int64]
+    for i_type in i_types:
+        assert cirq.approx_eq(i_type(i_a), i_type(i_b), atol=1)
+        assert not cirq.approx_eq(i_type(i_a), i_type(i_c), atol=1)
+    u_types = [np.uint, np.uint0, np.uint8, np.uint16, np.uint32, np.uint64]
+    for u_type in u_types:
+        assert cirq.approx_eq(u_type(i_a), u_type(i_b), atol=1)
+        assert not cirq.approx_eq(u_type(i_a), u_type(i_c), atol=1)
+
+    f_a, f_b, f_c = 0, 1e-8, 1
+    f_types = [np.float16, np.float32, np.float64, np.float128]
+    for f_type in f_types:
+        assert cirq.approx_eq(f_type(f_a), f_type(f_b), atol=1e-8)
+        assert not cirq.approx_eq(f_type(f_a), f_type(f_c), atol=1e-8)
+
+    c_a, c_b, c_c = 0, 1e-8j, 1j
+    c_types = [np.complex64, np.complex128, np.complex256]
+    for c_type in c_types:
+        assert cirq.approx_eq(c_type(c_a), c_type(c_b), atol=1e-8)
+        assert not cirq.approx_eq(c_type(c_a), c_type(c_c), atol=1e-8)
+
+
+def test_fractions_compatibility():
+    assert cirq.approx_eq(Fraction(0), Fraction(1, int(1e10)), atol=1e-9)
+    assert not cirq.approx_eq(Fraction(0), Fraction(1, int(1e7)), atol=1e-9)
+    assert not cirq.approx_eq(Fraction(0), Fraction(1, 0), atol=1e-9)
+
+
+def test_decimal_compatibility():
+    assert cirq.approx_eq(Decimal('0'), Decimal('0.0000000001'), atol=1e-9)
+    assert not cirq.approx_eq(Decimal('0'), Decimal('0.00000001'), atol=1e-9)
+    assert not cirq.approx_eq(Decimal('NaN'), Decimal('-Infinity'), atol=1e-9)
+
+
+def test_approx_eq_mixed_types():
     assert cirq.approx_eq(np.float32(1), 1.0 + 1e-10, atol=1e-9)
     assert cirq.approx_eq(np.float64(1), np.complex64(1 + 1e-8j), atol=1e-4)
     assert cirq.approx_eq(np.uint8(1), np.complex64(1 + 1e-8j), atol=1e-4)
