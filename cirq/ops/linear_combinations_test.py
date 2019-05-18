@@ -191,6 +191,13 @@ def test_in_place_manipulations_of_linear_combination_of_gates(gates):
     cirq.XX(q0, q1),
     cirq.CZ(q0, q1),
     cirq.FREDKIN(q0, q1, q2),
+    cirq.ControlledOperation((q0, q1), cirq.H(q2)),
+    cirq.ParallelGateOperation(cirq.X, (q0, q1, q2)),
+    cirq.PauliString({
+        q0: cirq.X,
+        q1: cirq.Y,
+        q2: cirq.Z
+    }),
 ))
 def test_empty_linear_combination_of_operations_accepts_all_operations(op):
     combination = cirq.LinearCombinationOfOperations({})
@@ -534,3 +541,23 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
     assert set(actual_expansion.keys()) == set(expected_expansion.keys())
     for name in actual_expansion.keys():
         assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
+
+
+@pytest.mark.parametrize('expression, expected_result', (
+    (cirq.LinearCombinationOfOperations({cirq.XX(q0, q1): 2}),
+     cirq.LinearCombinationOfOperations(
+         {cirq.ParallelGateOperation(cirq.X, (q0, q1)): 2})),
+    (cirq.LinearCombinationOfOperations({cirq.CNOT(q0, q1): 2}),
+     cirq.LinearCombinationOfOperations(
+         {
+             cirq.IdentityGate(2).on(q0, q1): 1,
+             cirq.PauliString({q1: cirq.X}): 1,
+             cirq.PauliString({q0: cirq.Z}): 1,
+             cirq.PauliString({
+                 q0: cirq.Z,
+                 q1: cirq.X,
+             }): -1
+         })),
+))
+def test_operation_expressions(expression, expected_result):
+    assert_linear_combinations_are_equal(expression, expected_result)
