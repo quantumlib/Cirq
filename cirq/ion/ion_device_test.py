@@ -82,11 +82,13 @@ def test_decomposition():
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
-    cirq.testing.assert_has_diagram(ion_circuit, """
-0: ───X───Ry(0.5π)───MS(0.25π)───Rx(-0.5π)───Ry(-0.5π)───
-                     │
-1: ──────────────────MS(0.25π)───Rx(-0.5π)───────────────
-            """, use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(ion_circuit,
+                                    """
+0: ───Y^0.5───Z───MS(0.25π)───PhasedX(-0.5)^0.5───S^-1───
+                  │
+1: ───────────────MS(0.25π)───X^-0.5─────────────────────
+            """,
+                                    use_unicode_characters=True)
 
 
 
@@ -115,6 +117,10 @@ def test_validate_operation_existing_qubits():
         cirq.XX,
         (cirq.LineQubit(0), cirq.LineQubit(1))))
     d.validate_operation(cirq.Z(cirq.LineQubit(0)))
+    d.validate_operation(
+        cirq.PhasedXPowGate(phase_exponent=0.75,
+                            exponent=0.25,
+                            global_shift=0.1).on(cirq.LineQubit(1)))
 
     with pytest.raises(ValueError):
         d.validate_operation(
