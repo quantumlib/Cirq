@@ -20,7 +20,7 @@ import math
 
 import numpy as np
 
-from cirq import value
+from cirq import protocols, value
 from cirq.ops import (
     raw_types,
     gate_operation,
@@ -178,6 +178,12 @@ class PauliString(raw_types.Operation):
             factors.append(str(cast(raw_types.Gate, self[q]).on(q)))
 
         return prefix + '*'.join(factors)
+
+    def _unitary_(self) -> np.ndarray:
+        u = np.array([self.coefficient], dtype=np.complex128)
+        for pauli in self.values():
+            u = np.kron(u, protocols.unitary(pauli))
+        return u
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
