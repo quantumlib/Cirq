@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from typing import Any, Union
+from fractions import Fraction
+from decimal import Decimal
 
 import numbers
 import numpy as np
@@ -156,4 +158,10 @@ def _approx_eq_iterables(val: Any, other: Any, *,
 
 def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:
     """Convenience wrapper around np.isclose."""
-    return True if np.isclose([a], [b], atol=atol, rtol=0.0)[0] else False
+    x1 = np.asarray([a])
+    if isinstance(a, (Fraction, Decimal)):
+        x1 = x1.astype(np.float64)
+    x2 = np.asarray([b])
+    if isinstance(b, (Fraction, Decimal)):
+        x2 = x2.astype(np.float64)
+    return True if np.isclose(x1, x2, atol=atol, rtol=0.0)[0] else False

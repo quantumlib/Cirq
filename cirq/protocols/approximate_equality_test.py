@@ -64,7 +64,6 @@ def test_numpy_dtype_compatibility():
 def test_fractions_compatibility():
     assert cirq.approx_eq(Fraction(0), Fraction(1, int(1e10)), atol=1e-9)
     assert not cirq.approx_eq(Fraction(0), Fraction(1, int(1e7)), atol=1e-9)
-    assert not cirq.approx_eq(Fraction(0), Fraction(1, 0), atol=1e-9)
 
 
 def test_decimal_compatibility():
@@ -79,6 +78,12 @@ def test_approx_eq_mixed_types():
     assert cirq.approx_eq(np.uint8(1), np.complex64(1 + 1e-8j), atol=1e-4)
     assert cirq.approx_eq(np.complex256(1), complex(1, 1e-8), atol=1e-4)
     assert cirq.approx_eq(np.int32(1), 1, atol=1e-9)
+    assert cirq.approx_eq(complex(0.5, 0), Fraction(1, 2), atol=0.0)
+    assert cirq.approx_eq(0.5 + 1e-4j, Fraction(1, 2), atol=1e-4)
+    assert cirq.approx_eq(0, Fraction(1, 100000000), atol=1e-8)
+    assert cirq.approx_eq(np.uint16(1), Decimal('1'), atol=0.0)
+    assert cirq.approx_eq(np.float64(1.0), Decimal('1.00000001'), atol=1e-8)
+    assert not cirq.approx_eq(np.complex64(1e-5j), Decimal('0.001'), atol=1e-4)
 
 
 def test_approx_eq_special_numerics():
