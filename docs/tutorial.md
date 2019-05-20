@@ -140,8 +140,8 @@ print(qubits)
 # [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2), cirq.GridQubit(1, 0), cirq.GridQubit(1, 1), cirq.GridQubit(1, 2), cirq.GridQubit(2, 0), cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
 ```
 Here we see that we've created a bunch of `GridQubit`s. 
-`GridQubit`s implement the `QubitId` class, which just means
-that they are equatable and hashable. `QubitId` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
+`GridQubit`s implement the `Qid` class, which just means
+that they are equatable and hashable. `Qid` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
 have a row and column, indicating their position on a grid.
 
 Now that we have some qubits, let us construct a `Circuit` on these qubits.
@@ -174,7 +174,7 @@ print(circuit)
 ```
 One thing to notice here.  First `cirq.X` is a `Gate` object. There
 are many different gates supported by Cirq. A good place to look
-at gates that are defined is in [common_gates.py](/cirq/ops/common_gates.py).
+at gates that are defined is in [common_gates.py](https://github.com/quantumlib/Cirq/blob/master/cirq/ops/common_gates.py).
 One common confusion to avoid is the difference between a gate class 
 and a gate object (which is an instantiation of a class).  The second is that gate
 objects are transformed into `Operation`s (technically `GateOperation`s)
@@ -198,7 +198,7 @@ insertion strategy:
 ```python
 circuit = cirq.Circuit()
 circuit.append([cirq.H(q) for q in qubits if (q.row + q.col) % 2 == 0],
-               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+               strategy=cirq.InsertStrategy.EARLIEST)
 circuit.append([cirq.X(q) for q in qubits if (q.row + q.col) % 2 == 1],
                strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 print(circuit)
@@ -237,7 +237,7 @@ Here we see that we can iterate over a `Circuit`'s `Moment`s.
 If you look closely at the circuit creation code above you will see that
 we applied the `append` method to both a `generator` and a `list` (recall that
 in Python one can use generator comprehensions in method calls).
-Inspecting the [code](/cirq/circuits/circuit.py) for append one sees that
+Inspecting the [code](https://github.com/quantumlib/Cirq/blob/master/cirq/circuits/circuit.py) for append one sees that
 the append method generally takes an `OP_TREE` (or a `Moment`).  What is
 an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE`
 is anything that can be flattened, perhaps recursively, into a list
@@ -291,15 +291,15 @@ instances
 ```python
 import random
 def rand2d(rows, cols):
-    return [[random.choice([+1, -1]) for _ in range(rows)] for _ in range(cols)]
+    return [[random.choice([+1, -1]) for _ in range(cols)] for _ in range(rows)]
 
 def random_instance(length):
     # transverse field terms
     h = rand2d(length, length)
     # links within a row
-    jr = rand2d(length, length - 1)
+    jr = rand2d(length - 1, length)
     # links within a column
-    jc = rand2d(length - 1, length)
+    jc = rand2d(length, length - 1)
     return (h, jr, jc)
     
 h, jr, jc = random_instance(3)
@@ -429,7 +429,7 @@ To run a simulation of the full circuit we simply create a
 simulator, and pass the circuit to the simulator.
 
 ```python
-simulator = cirq.google.XmonSimulator()
+simulator = cirq.Simulator()
 circuit = cirq.Circuit()    
 circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
 circuit.append(cirq.measure(*qubits, key='x'))

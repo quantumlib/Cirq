@@ -29,7 +29,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
                  *,
                  rewriter: Optional[Callable[[List[ops.Operation]],
                                              Optional[ops.OP_TREE]]] = None,
-                 synthesizer: Optional[Callable[[ops.QubitId, np.ndarray],
+                 synthesizer: Optional[Callable[[ops.Qid, np.ndarray],
                                                 Optional[ops.OP_TREE]]] = None):
         """
         Args:
@@ -79,15 +79,15 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
                         ) -> Optional[circuits.PointOptimizationSummary]:
         if len(op.qubits) != 1:
             return None
-
         start = {op.qubits[0]: index}
-        end = circuit.reachable_frontier_from(
+
+        op_list = circuit.findall_operations_until_blocked(
             start,
             is_blocker=lambda next_op: len(
                 next_op.qubits) != 1 or not protocols.has_unitary(next_op))
-        operations_indexed = circuit.findall_operations_between(start, end)
-        operations = [e for _, e in operations_indexed]
-        indices = [e for e, _ in operations_indexed]
+        operations = [op for idx,op in op_list]
+        indices = [idx for idx,op in op_list]
+
         rewritten = self._rewrite(operations)
 
         if rewritten is None:
@@ -112,7 +112,7 @@ def merge_single_qubit_gates_into_phased_x_z(
             negligible gates to be dropped, smaller values increase accuracy.
     """
 
-    def synth(qubit: ops.QubitId, matrix: np.ndarray) -> List[ops.Operation]:
+    def synth(qubit: ops.Qid, matrix: np.ndarray) -> List[ops.Operation]:
         out_gates = decompositions.single_qubit_matrix_to_phased_x_z(
             matrix, atol)
         return [gate(qubit) for gate in out_gates]

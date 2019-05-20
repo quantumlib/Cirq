@@ -14,8 +14,9 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Any, Iterable, TypeVar, Callable, Sequence
+from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
 
+from cirq.protocols import approx_eq
 from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
@@ -55,7 +56,16 @@ class Moment:
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
 
-    def operates_on(self, qubits: Iterable[raw_types.QubitId]) -> bool:
+    def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
+        """Determines if the moment has operations touching the given qubit.
+        Args:
+            qubit: The qubit that may or may not be touched by operations.
+        Returns:
+            Whether this moment has operations involving the qubit.
+        """
+        return qubit in self.qubits
+
+    def operates_on(self, qubits: Iterable[raw_types.Qid]) -> bool:
         """Determines if the moment has operations touching the given qubits.
 
         Args:
@@ -64,8 +74,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubits.
         """
-        qubits = frozenset(qubits)
-        return any(q in qubits for op in self.operations for q in op.qubits)
+        return any(q in qubits for q in self.qubits)
 
     def with_operation(self, operation: raw_types.Operation):
         """Returns an equal moment, but with the given op added.
@@ -78,7 +87,7 @@ class Moment:
         """
         return Moment(self.operations + (operation,))
 
-    def without_operations_touching(self, qubits: Iterable[raw_types.QubitId]):
+    def without_operations_touching(self, qubits: Iterable[raw_types.Qid]):
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -105,6 +114,12 @@ class Moment:
             return NotImplemented
         return self.operations == other.operations
 
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return approx_eq(self.operations, other.operations, atol=atol)
+
     def __ne__(self, other):
         return not self == other
 
@@ -127,7 +142,7 @@ class Moment:
         return ' and '.join(str(op) for op in self.operations)
 
     def transform_qubits(self: TSelf_Moment,
-                         func: Callable[[raw_types.QubitId], raw_types.QubitId]
+                         func: Callable[[raw_types.Qid], raw_types.Qid]
                          ) -> TSelf_Moment:
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)

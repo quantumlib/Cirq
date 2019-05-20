@@ -16,6 +16,7 @@
 
 import itertools
 import multiprocessing.pool as pool
+import sys
 import numpy as np
 import pytest
 
@@ -638,6 +639,9 @@ def test_non_context_manager(num_prefix_qubits):
     stepper.__exit__()
 
 
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason='Skipping test on Windows due '
+                    'to lack of multiprocessor support')
 @pytest.mark.parametrize(('num_prefix_qubits', 'use_processes'),
                          ((0, True), (0, False), (2, True), (2, False)))
 def test_large_circuit_unitary(num_prefix_qubits, use_processes):

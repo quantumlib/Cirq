@@ -31,7 +31,6 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
     Implementors of this interface should implement the _simulator_iterator
     method."""
 
-
     @abc.abstractmethod
     def _simulator_iterator(
         self,
@@ -166,7 +165,7 @@ def _enter_moment_display_values_into_dictionary(
     moment: ops.Moment,
     state: np.ndarray,
     qubit_order: ops.QubitOrder,
-    qubit_map: Dict[ops.QubitId, int]):
+    qubit_map: Dict[ops.Qid, int]):
     for op in moment:
         if isinstance(op, ops.WaveFunctionDisplay):
             display_values[op.key] = (
@@ -179,7 +178,7 @@ def _enter_moment_display_values_into_dictionary(
 def _compute_samples_display_value(display: ops.SamplesDisplay,
     state: np.ndarray,
     qubit_order: ops.QubitOrder,
-    qubit_map: Dict[ops.QubitId, int]):
+    qubit_map: Dict[ops.Qid, int]):
     basis_change_circuit = circuits.Circuit.from_ops(
         display.measurement_basis_change())
     modified_state = basis_change_circuit.apply_unitary_effect_to_state(
@@ -210,7 +209,7 @@ class WaveFunctionSimulatorState:
 
     def __init__(self,
         state_vector: np.ndarray,
-        qubit_map: Dict[ops.QubitId, int]):
+        qubit_map: Dict[ops.Qid, int]):
         self.state_vector = state_vector
         self.qubit_map = qubit_map
 
@@ -276,6 +275,24 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
         return (self.params,
                 measurements,
                 self.final_simulator_state)
+
+    def __str__(self):
+        samples = super().__str__()
+        final = self.state_vector()
+        if len([1 for e in final if abs(e) > 0.001]) < 16:
+            wave = self.dirac_notation(3)
+        else:
+            wave = str(final)
+
+        return 'measurements: {}\noutput vector: {}'.format(samples, wave)
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('WaveFunctionTrialResult(...)')
+        else:
+            p.text(str(self))
 
     def __repr__(self):
         return ('cirq.WaveFunctionTrialResult(params={!r}, '

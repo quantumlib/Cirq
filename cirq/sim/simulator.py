@@ -32,34 +32,15 @@ import collections
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study, value
+from cirq import circuits, ops, protocols, schedules, study, value
+from cirq.sim import sampler
 
 
-class SimulatesSamples(metaclass=abc.ABCMeta):
+class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
     """
-
-    def run(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: Optional[study.ParamResolver] = None,
-        repetitions: int = 1,
-    ) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
-
-        Args:
-            program: The circuit or schedule to simulate.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-
-        Returns:
-            TrialResult for a run.
-        """
-        return self.run_sweep(program,
-                              [param_resolver or study.ParamResolver({})],
-                              repetitions)[0]
 
     def run_sweep(
         self,
@@ -83,6 +64,8 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
+        if not circuit.has_measurements():
+            raise ValueError("Circuit has no measurements to sample.")
         param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
@@ -121,7 +104,7 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
     def compute_samples_displays(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: Optional[study.ParamResolver] = None,
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
     ) -> study.ComputeDisplaysResult:
         """Computes SamplesDisplays in the supplied Circuit or Schedule.
 
@@ -133,7 +116,8 @@ class SimulatesSamples(metaclass=abc.ABCMeta):
             ComputeDisplaysResult for the simulation.
         """
         return self.compute_samples_displays_sweep(
-            program, [param_resolver or study.ParamResolver({})])[0]
+            program,
+            study.ParamResolver(param_resolver))[0]
 
     def compute_samples_displays_sweep(
             self,
@@ -200,7 +184,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     def simulate(
         self,
         program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: Optional[study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> 'SimulationTrialResult':
@@ -222,10 +206,11 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         Returns:
             SimulationTrialResults for the simulation. Includes the final state.
         """
-        return self.simulate_sweep(program,
-                                   [param_resolver or study.ParamResolver({})],
-                                   qubit_order,
-                                   initial_state)[0]
+        return self.simulate_sweep(
+            program,
+            study.ParamResolver(param_resolver),
+            qubit_order,
+            initial_state)[0]
 
     @abc.abstractmethod
     def simulate_sweep(
@@ -321,7 +306,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     def simulate_moment_steps(
         self,
         circuit: circuits.Circuit,
-        param_resolver: Optional[study.ParamResolver] = None,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None
     ) -> Iterator:
@@ -344,9 +329,11 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             Iterator that steps through the simulation, simulating each
             moment and returning a StepResult for each moment.
         """
-        param_resolver = param_resolver or study.ParamResolver({})
-        return self._simulator_iterator(circuit, param_resolver, qubit_order,
-                                        initial_state)
+        return self._simulator_iterator(
+            circuit,
+            study.ParamResolver(param_resolver),
+            qubit_order,
+            initial_state)
 
     @abc.abstractmethod
     def _simulator_iterator(
@@ -420,7 +407,7 @@ class StepResult(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def sample(self,
-               qubits: List[ops.QubitId],
+               qubits: List[ops.Qid],
                repetitions: int = 1) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
@@ -470,16 +457,17 @@ class StepResult(metaclass=abc.ABCMeta):
                 operations from `measurement_ops`.
         """
         bounds = {}  # type: Dict[str, Tuple]
-        all_qubits = []  # type: List[ops.QubitId]
+        all_qubits = []  # type: List[ops.Qid]
         current_index = 0
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError('{} was not a MeasurementGate'.format(gate))
-            if gate.key in bounds:
+            key = protocols.measurement_key(gate)
+            if key in bounds:
                 raise ValueError(
-                    'Duplicate MeasurementGate with key {}'.format(gate.key))
-            bounds[gate.key] = (current_index, current_index + len(op.qubits))
+                    'Duplicate MeasurementGate with key {}'.format(key))
+            bounds[key] = (current_index, current_index + len(op.qubits))
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
@@ -527,8 +515,18 @@ class SimulationTrialResult:
 
         results = sorted(
             [(key, bitstring(val)) for key, val in self.measurements.items()])
+        if not results:
+            return '(no measurements)'
         return ' '.join(
             ['{}={}'.format(key, val) for key, val in results])
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('SimulationTrialResult(...)')
+        else:
+            p.text(str(self))
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in

@@ -17,8 +17,6 @@ import numpy as np
 import cirq
 
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
 def test_wave_function_trial_result_repr():
     final_simulator_state = cirq.WaveFunctionSimulatorState(
         qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1]))
@@ -86,3 +84,38 @@ def test_wave_function_trial_result_state_mixin():
     np.testing.assert_array_almost_equal(bloch,
                                          result.bloch_vector_of(qubits[1]))
     assert result.dirac_notation() == '|01⟩'
+
+
+def test_str_big():
+    qs = cirq.LineQubit.range(20)
+    result = cirq.WaveFunctionTrialResult(
+        cirq.ParamResolver(), {},
+        cirq.WaveFunctionSimulatorState(np.array([1] * 2**10),
+                                        {q: q.x for q in qs}))
+    assert str(result).startswith('measurements: (no measurements)\n'
+                                  'output vector: [1 1 1 ..')
+
+
+def test_pretty_print():
+    q = cirq.NamedQubit('a')
+    result = cirq.WaveFunctionTrialResult(
+        cirq.ParamResolver(), {},
+        cirq.WaveFunctionSimulatorState(np.array([1]), {q: 0}))
+
+    # Test Jupyter console output from
+    class FakePrinter:
+
+        def __init__(self):
+            self.text_pretty = ''
+
+        def text(self, to_print):
+            self.text_pretty += to_print
+
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == 'measurements: (no measurements)\noutput vector: |⟩'
+
+    # Test cycle handling
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'WaveFunctionTrialResult(...)'

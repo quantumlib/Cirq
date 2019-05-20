@@ -63,7 +63,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         else:
             return ops.SingleQubitCliffordGate.I
 
-    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.QubitId
+    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.Qid
                                ) -> Optional[ops.Operation]:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)
@@ -78,8 +78,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def _keep(self, op: ops.Operation) -> bool:
         # Don't change if it's already a SingleQubitCliffordGate
-        return (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, ops.SingleQubitCliffordGate))
+        return bool(ops.op_gate_of_type(op, ops.SingleQubitCliffordGate))
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Single qubit gate with known matrix?

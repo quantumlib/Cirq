@@ -27,8 +27,8 @@ from cirq.optimizers import (
 )
 
 
-def two_qubit_matrix_to_operations(q0: ops.QubitId,
-                                   q1: ops.QubitId,
+def two_qubit_matrix_to_operations(q0: ops.Qid,
+                                   q1: ops.Qid,
                                    mat: np.ndarray,
                                    allow_partial_czs: bool,
                                    atol: float = 1e-8,
@@ -58,8 +58,8 @@ def two_qubit_matrix_to_operations(q0: ops.QubitId,
         return operations
 
 
-def _xx_interaction_via_full_czs(q0: ops.QubitId,
-                                 q1: ops.QubitId,
+def _xx_interaction_via_full_czs(q0: ops.Qid,
+                                 q1: ops.Qid,
                                  x: float):
     a = x * -2 / np.pi
     yield ops.H(q1)
@@ -69,8 +69,8 @@ def _xx_interaction_via_full_czs(q0: ops.QubitId,
     yield ops.H(q1)
 
 
-def _xx_yy_interaction_via_full_czs(q0: ops.QubitId,
-                                    q1: ops.QubitId,
+def _xx_yy_interaction_via_full_czs(q0: ops.Qid,
+                                    q1: ops.Qid,
                                     x: float,
                                     y: float):
     a = x * -2 / np.pi
@@ -87,8 +87,8 @@ def _xx_yy_interaction_via_full_czs(q0: ops.QubitId,
     yield ops.X(q0)**-0.5
 
 
-def _xx_yy_zz_interaction_via_full_czs(q0: ops.QubitId,
-                                       q1: ops.QubitId,
+def _xx_yy_zz_interaction_via_full_czs(q0: ops.Qid,
+                                       q1: ops.Qid,
                                        x: float,
                                        y: float,
                                        z: float):
@@ -122,8 +122,8 @@ def _cleanup_operations(operations: List[ops.Operation]):
     return list(circuit.all_operations())
 
 
-def _kak_decomposition_to_operations(q0: ops.QubitId,
-                                     q1: ops.QubitId,
+def _kak_decomposition_to_operations(q0: ops.Qid,
+                                     q1: ops.Qid,
                                      kak: linalg.KakDecomposition,
                                      allow_partial_czs: bool,
                                      atol: float = 1e-8
@@ -155,8 +155,8 @@ def _is_trivial_angle(rad: float, atol: float) -> bool:
     return abs(rad) < atol or abs(abs(rad) - np.pi / 4) < atol
 
 
-def _parity_interaction(q0: ops.QubitId,
-                        q1: ops.QubitId,
+def _parity_interaction(q0: ops.Qid,
+                        q1: ops.Qid,
                         rads: float,
                         atol: float,
                         gate: Optional[ops.Gate] = None):
@@ -182,13 +182,13 @@ def _parity_interaction(q0: ops.QubitId,
         yield g.on(q0), g.on(q1)
 
 
-def _do_single_on(u: np.ndarray, q: ops.QubitId, atol: float=1e-8):
+def _do_single_on(u: np.ndarray, q: ops.Qid, atol: float=1e-8):
     for gate in decompositions.single_qubit_matrix_to_gates(u, atol):
         yield gate(q)
 
 
-def _non_local_part(q0: ops.QubitId,
-                    q1: ops.QubitId,
+def _non_local_part(q0: ops.Qid,
+                    q1: ops.Qid,
                     interaction_coefficients: Tuple[float, float, float],
                     allow_partial_czs: bool,
                     atol: float = 1e-8):

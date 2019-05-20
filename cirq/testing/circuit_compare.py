@@ -38,7 +38,7 @@ def highlight_text_differences(actual: str, expected: str) -> str:
 
 
 def _measurement_subspaces(
-        measured_qubits: Iterable[ops.QubitId],
+        measured_qubits: Iterable[ops.Qid],
         n_qubits: int
 ) -> Sequence[Sequence[int]]:
     """Computes subspaces associated with projective measurement.
@@ -117,11 +117,11 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
     """
     measured_qubits_actual = {qubit
                               for op in actual.all_operations()
-                              if ops.MeasurementGate.is_measurement(op)
+                              if protocols.is_measurement(op)
                               for qubit in op.qubits}
     measured_qubits_reference = {qubit
                                  for op in reference.all_operations()
-                                 if ops.MeasurementGate.is_measurement(op)
+                                 if protocols.is_measurement(op)
                                  for qubit in op.qubits}
     assert actual.are_all_measurements_terminal()
     assert reference.are_all_measurements_terminal()

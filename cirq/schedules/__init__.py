@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from cirq.schedules.schedule import (
-    Schedule,
-)
+    Schedule,)
+
 from cirq.schedules.scheduled_operation import (
-    ScheduledOperation,
-)
+    ScheduledOperation,)
+
 from cirq.schedules.schedulers import (
-    moment_by_moment_schedule,
-)
+    moment_by_moment_schedule,)

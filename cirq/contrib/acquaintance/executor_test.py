@@ -24,10 +24,14 @@ import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
 
-class ExampleGate(cirq.MultiQubitGate):
+class ExampleGate(cirq.Gate):
+
     def __init__(self, wire_symbols: Sequence[str]) -> None:
-        super().__init__(len(wire_symbols))
+        self._num_qubits = len(wire_symbols)
         self._wire_symbols = tuple(wire_symbols)
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs):
         return self._wire_symbols
@@ -82,10 +86,9 @@ def test_executor_explicit():
     ct.assert_has_diagram(circuit, expected_text_diagram)
 
 
-class DiagonalGate(cirq.MultiQubitGate):
-    def __init__(self, num_qubits: int, diagonal: np.ndarray) -> None:
-        super().__init__(num_qubits)
+class DiagonalGate(cirq.Gate):
 
+    def __init__(self, num_qubits: int, diagonal: np.ndarray) -> None:
         dimension = 2 ** num_qubits
         if (diagonal.shape != (dimension,) or not
             np.allclose(
@@ -103,6 +106,9 @@ class DiagonalGate(cirq.MultiQubitGate):
         assert (args.known_qubit_count is None or
                 args.known_qubit_count == qubit_count)
         return ('Diag',) * qubit_count
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     @staticmethod
     def random(num_qubits: int):
@@ -136,7 +142,7 @@ def test_diagonal_gate():
 
 def random_diagonal_gates(num_qubits: int,
                  acquaintance_size: int
-                 ) -> Dict[Tuple[cirq.QubitId, ...], cirq.Gate]:
+                 ) -> Dict[Tuple[cirq.Qid, ...], cirq.Gate]:
 
     return {Q: DiagonalGate.random(acquaintance_size)
              for Q in
@@ -155,7 +161,7 @@ def random_diagonal_gates(num_qubits: int,
       ])
 def test_executor_random(num_qubits: int,
                          acquaintance_size: int,
-                         gates: Dict[Tuple[cirq.QubitId, ...], cirq.Gate]):
+                         gates: Dict[Tuple[cirq.Qid, ...], cirq.Gate]):
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
 
@@ -165,7 +171,7 @@ def test_executor_random(num_qubits: int,
     initial_mapping = {q: q for q in qubits}
     final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
-    circuit.append(cca.LinearPermutationGate(permutation)(*qubits))
+    circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
     actual_unitary = circuit.to_unitary_matrix()
 
     np.testing.assert_allclose(
@@ -184,3 +190,6 @@ def test_acquaintance_operation():
         op = cca.AcquaintanceOperation(physical_qubits, logical_indices)
         assert op.logical_indices == logical_indices
         assert op.qubits == physical_qubits
+        wire_symbols = tuple('({})'.format(i) for i in logical_indices)
+        assert (cirq.circuit_diagram_info(op) ==
+                cirq.CircuitDiagramInfo(wire_symbols=wire_symbols))

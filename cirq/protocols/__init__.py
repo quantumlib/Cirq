@@ -18,6 +18,11 @@ from cirq.protocols.apply_unitary import (
     ApplyUnitaryArgs,
     SupportsApplyUnitary,
 )
+from cirq.protocols.apply_channel import (
+    apply_channel,
+    ApplyChannelArgs,
+    SupportsApplyChannel,
+)
 from cirq.protocols.approximate_equality import (
     approx_eq,
     SupportsApproximateEquality,
@@ -27,10 +32,13 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
+from cirq.protocols.control import (
+    control,
+)
 from cirq.protocols.circuit_diagram_info import (
+    circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
-    circuit_diagram_info,
     SupportsCircuitDiagramInfo,
 )
 from cirq.protocols.decompose import (
@@ -44,13 +52,14 @@ from cirq.protocols.inverse import (
     inverse,
 )
 from cirq.protocols.measurement_key import (
+    is_measurement,
     measurement_key,
 )
 from cirq.protocols.mixture import (
-    mixture,
-    mixture_channel,
     has_mixture,
     has_mixture_channel,
+    mixture,
+    mixture_channel,
     SupportsMixture,
     validate_mixture,
 )
@@ -77,16 +86,16 @@ from cirq.protocols.trace_distance_bound import (
     trace_distance_bound,
 )
 from cirq.protocols.resolve_parameters import (
-    SupportsParameterization,
     is_parameterized,
     resolve_parameters,
+    SupportsParameterization,
 )
 from cirq.protocols.phase import (
-    SupportsPhase,
     phase_by,
+    SupportsPhase,
 )
 from cirq.protocols.unitary import (
-    SupportsUnitary,
     has_unitary,
+    SupportsUnitary,
     unitary,
 )

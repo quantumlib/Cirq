@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import numpy as np
 import pytest
 import sympy
@@ -28,9 +29,8 @@ def test_gate_operation_init():
 def test_invalid_gate_operation():
     three_qubit_gate = cirq.ThreeQubitGate()
     single_qubit = [cirq.GridQubit(0, 0)]
-    with pytest.raises(ValueError) as bad:
+    with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
-    assert 'Three-qubit gate not applied to three qubits:' in str(bad.value)
 
 
 def test_gate_operation_eq():
@@ -52,10 +52,14 @@ def test_gate_operation_eq():
                           cirq.GateOperation(cirq.CZ, r12))
 
     @cirq.value_equality
-    class PairGate(cirq.MultiQubitGate, cirq.InterchangeableQubitsGate):
+    class PairGate(cirq.Gate, cirq.InterchangeableQubitsGate):
         """Interchangeable substes."""
+
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def qubit_index_to_equivalence_group_key(self, index: int):
             return index // 2
@@ -72,6 +76,25 @@ def test_gate_operation_eq():
     eq.add_equality_group(p(a0, b0, a1, b1, c0))
     eq.add_equality_group(p(a0, c0, b0, b1, a1))
     eq.add_equality_group(p(b0, a1, a0, b1, c0))
+
+
+def test_gate_operation_approx_eq():
+    a = [cirq.NamedQubit('r1')]
+    b = [cirq.NamedQubit('r2')]
+
+    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(), a),
+                          cirq.GateOperation(cirq.XPowGate(), a))
+    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(), a),
+                              cirq.GateOperation(cirq.XPowGate(), b))
+
+    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                          cirq.GateOperation(cirq.XPowGate(exponent=1e-9), a))
+    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                              cirq.GateOperation(cirq.XPowGate(exponent=1e-7),
+                                                 a))
+    assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                          cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a),
+                          atol=1e-6)
 
 
 def test_gate_operation_pow():
@@ -92,7 +115,7 @@ def test_with_qubits_and_transform_qubits():
 
     # The gate's constraints should be applied when changing the qubits.
     with pytest.raises(ValueError):
-        _ = cirq.Y(cirq.LineQubit(0)).with_qubits(cirq.LineQubit(0),
+        _ = cirq.H(cirq.LineQubit(0)).with_qubits(cirq.LineQubit(0),
                                                   cirq.LineQubit(1))
 
 
@@ -157,6 +180,15 @@ def test_parameterizable_effect():
     assert op2 == cirq.S.on(q)
 
 
+def test_pauli_expansion():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    assert cirq.pauli_expansion(cirq.X(a)) == cirq.LinearDict({'X': 1})
+    assert (cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(
+        cirq.CNOT))
+
+
 def test_unitary():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -217,3 +249,19 @@ def test_repr():
 
     assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
+
+
+def test_op_gate_of_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
+    assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
+
+    class NonGateOperation(cirq.Operation):
+        def qubits(self) :
+            pass
+
+        def with_qubits(self, *new_qubits):
+            pass
+
+    assert cirq.op_gate_of_type(NonGateOperation(), cirq.X) is None

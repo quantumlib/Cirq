@@ -19,7 +19,7 @@ import cirq
 
 
 def test_apply_unitary_presence_absence():
-    m = np.array([[1, 0], [0, -1]])
+    m = np.diag([1, -1])
 
     class NoUnitaryEffect:
         pass
@@ -65,7 +65,7 @@ def test_apply_unitary_presence_absence():
     ]
 
     def make_input():
-        return np.array([1, 1, 1, 1], dtype=np.complex128).reshape((2, 2))
+        return np.ones((2, 2))
 
     def assert_works(val):
         expected_outputs = [

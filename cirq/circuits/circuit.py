@@ -27,7 +27,6 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
-import json
 import re
 import numpy as np
 
@@ -58,7 +57,9 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_until_blocked
         findall_operations_with_gate_type
+        are_all_matches_terminal
         are_all_measurements_terminal
         to_unitary_matrix
         apply_unitary_effect_to_state
@@ -146,6 +147,16 @@ class Circuit:
             return NotImplemented
         return self._moments == other._moments and self._device == other._device
 
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
+
     def __ne__(self, other):
         return not self == other
 
@@ -170,7 +181,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key])
+            return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
         else:
@@ -298,7 +309,7 @@ class Circuit:
     def with_device(
             self,
             new_device: devices.Device,
-            qubit_mapping: Callable[[ops.QubitId], ops.QubitId] = lambda e: e,
+            qubit_mapping: Callable[[ops.Qid], ops.Qid] = lambda e: e,
     ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
@@ -332,7 +343,7 @@ class Circuit:
                 + '</pre>')
 
     def _first_moment_operating_on(self,
-                                   qubits: Iterable[ops.QubitId],
+                                   qubits: Iterable[ops.Qid],
                                    indices: Iterable[int]) -> Optional[int]:
         qubits = frozenset(qubits)
         for m in indices:
@@ -341,7 +352,7 @@ class Circuit:
         return None
 
     def next_moment_operating_on(self,
-                                 qubits: Iterable[ops.QubitId],
+                                 qubits: Iterable[ops.Qid],
                                  start_moment_index: int = 0,
                                  max_distance: int = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
@@ -372,9 +383,9 @@ class Circuit:
             range(start_moment_index, start_moment_index + max_distance))
 
     def next_moments_operating_on(self,
-                                  qubits: Iterable[ops.QubitId],
+                                  qubits: Iterable[ops.Qid],
                                   start_moment_index: int = 0
-                                  ) -> Dict[ops.QubitId, int]:
+                                  ) -> Dict[ops.Qid, int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -398,7 +409,7 @@ class Circuit:
 
     def prev_moment_operating_on(
             self,
-            qubits: Sequence[ops.QubitId],
+            qubits: Sequence[ops.Qid],
             end_moment_index: Optional[int] = None,
             max_distance: Optional[int] = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
@@ -456,10 +467,10 @@ class Circuit:
 
     def reachable_frontier_from(
             self,
-            start_frontier: Dict[ops.QubitId, int],
+            start_frontier: Dict[ops.Qid, int],
             *,
             is_blocker: Callable[[ops.Operation], bool] = lambda op: False
-    ) -> Dict[ops.QubitId, int]:
+    ) -> Dict[ops.Qid, int]:
         """Determines how far can be reached into a circuit under certain rules.
 
         The location L = (qubit, moment_index) is *reachable* if and only if:
@@ -567,11 +578,11 @@ class Circuit:
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active = set()  # type: Set[ops.QubitId]
+        active = set()  # type: Set[ops.Qid]
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
-        def enqueue_next(qubit: ops.QubitId, moment: int) -> None:
+        def enqueue_next(qubit: ops.Qid, moment: int) -> None:
             next_moment = self.next_moment_operating_on([qubit], moment)
             if next_moment is None:
                 end_frontier[qubit] = max(len(self), start_frontier[qubit])
@@ -610,8 +621,8 @@ class Circuit:
         return end_frontier
 
     def findall_operations_between(self,
-                                   start_frontier: Dict[ops.QubitId, int],
-                                   end_frontier: Dict[ops.QubitId, int],
+                                   start_frontier: Dict[ops.Qid, int],
+                                   end_frontier: Dict[ops.Qid, int],
                                    omit_crossing_operations: bool = False
                                    ) -> List[Tuple[int, ops.Operation]]:
         """Finds operations between the two given frontiers.
@@ -659,8 +670,54 @@ class Circuit:
 
         return list(result)
 
+    def findall_operations_until_blocked(
+            self,
+            start_frontier: Dict[ops.Qid, int],
+            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+    ) -> List[Tuple[int, ops.Operation]]:
+        """
+        Finds all operations until a blocking operation is hit.  This returns
+        a list of all operations from the starting frontier until a blocking
+        operation is encountered.  An operation is part of the list if
+        it is involves a qubit in the start_frontier dictionary, comes after
+        the moment listed in that dictionary, and before any blocking
+        operations that involve that qubit.  Operations are only considered
+        to be blocking the qubits that they operate on, so a blocking operation
+        that does not operate on any qubit in the starting frontier is not
+        actually considered blocking.  See `reachable_frontier_from` for a more
+        in depth example of reachable states.
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
+        """
+        op_list = []
+        max_index = len(self._moments)
+        for qubit in start_frontier:
+            current_index = start_frontier[qubit]
+            if current_index < 0:
+                current_index = 0
+            while current_index < max_index:
+                if self[current_index].operates_on_single_qubit(qubit):
+                    next_op = self.operation_at(qubit, current_index)
+                    if next_op is not None:
+                        if is_blocker(next_op):
+                            break
+                        op_list.append((current_index,next_op))
+                current_index+=1
+        return op_list
+
     def operation_at(self,
-                     qubit: ops.QubitId,
+                     qubit: ops.Qid,
                      moment_index: int) -> Optional[ops.Operation]:
         """Finds the operation on a qubit within a moment, if any.
 
@@ -716,17 +773,34 @@ class Circuit:
             An iterator (index, operation, gate)'s for operations with the given
             gate type.
         """
-        result = self.findall_operations(
-            lambda operation: (isinstance(operation, ops.GateOperation) and
-                               isinstance(operation.gate, gate_type)))
+        result = self.findall_operations(lambda operation: bool(
+            ops.op_gate_of_type(operation, gate_type)))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
+    def has_measurements(self):
+        return any(self.findall_operations(protocols.is_measurement))
+
     def are_all_measurements_terminal(self):
+        """Whether all measurement gates are at the end of the circuit."""
+        return self.are_all_matches_terminal(protocols.is_measurement)
+
+    def are_all_matches_terminal(self,
+            predicate: Callable[[ops.Operation], bool]):
+        """Check whether all of the ops that satisfy a predicate are terminal.
+
+        Args:
+            predicate: A predicate on ops.Operations which is being checked.
+
+        Returns:
+            Whether or not all `Operation` s in a circuit that satisfy the
+            given predicate are terminal.
+        """
         return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(ops.MeasurementGate.is_measurement))
+            self.next_moment_operating_on(op.qubits, i + 1) is None for
+            (i, op) in self.findall_operations(predicate)
+        )
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -771,7 +845,7 @@ class Circuit:
 
     def _has_op_at(self,
                    moment_index: int,
-                   qubits: Iterable[ops.QubitId]) -> bool:
+                   qubits: Iterable[ops.Qid]) -> bool:
         return (0 <= moment_index < len(self._moments) and
                 self._moments[moment_index].operates_on(qubits))
 
@@ -892,10 +966,10 @@ class Circuit:
     @staticmethod
     def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
                                           start: int = 0,
-                                          frontier: Dict[ops.QubitId,
+                                          frontier: Dict[ops.Qid,
                                                          int] = None
                                           ) -> Tuple[Sequence[int],
-                                                     Dict[ops.QubitId, int]]:
+                                                     Dict[ops.Qid, int]]:
         """Greedily assigns operations to moments.
 
         Args:
@@ -921,9 +995,9 @@ class Circuit:
         return moment_indices, frontier
 
     def _push_frontier(self,
-                       early_frontier: Dict[ops.QubitId, int],
-                       late_frontier: Dict[ops.QubitId, int],
-                       update_qubits: Iterable[ops.QubitId] = None
+                       early_frontier: Dict[ops.Qid, int],
+                       late_frontier: Dict[ops.Qid, int],
+                       update_qubits: Iterable[ops.Qid] = None
                        ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
@@ -997,8 +1071,8 @@ class Circuit:
     def insert_at_frontier(self,
                            operations: ops.OP_TREE,
                            start: int,
-                           frontier: Dict[ops.QubitId, int] = None
-                           ) -> Dict[ops.QubitId, int]:
+                           frontier: Dict[ops.Qid, int] = None
+                           ) -> Dict[ops.Qid, int]:
         """Inserts operations inline at frontier.
 
         Args:
@@ -1135,7 +1209,7 @@ class Circuit:
         self.insert(len(self._moments), moment_or_operation_tree, strategy)
 
     def clear_operations_touching(self,
-                                  qubits: Iterable[ops.QubitId],
+                                  qubits: Iterable[ops.Qid],
                                   moment_indices: Iterable[int]):
         """Clears operations that are touching given qubits at given moments.
 
@@ -1150,7 +1224,7 @@ class Circuit:
                 self._moments[k] = self._moments[k].without_operations_touching(
                     qubits)
 
-    def all_qubits(self) -> FrozenSet[ops.QubitId]:
+    def all_qubits(self) -> FrozenSet[ops.Qid]:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self._moments for q in m.qubits)
 
@@ -1190,7 +1264,7 @@ class Circuit:
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.QubitId] = (),
+            qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
@@ -1222,7 +1296,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
+                protocols.is_measurement(op)
                 for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
@@ -1243,7 +1317,7 @@ class Circuit:
             self,
             initial_state: Union[int, np.ndarray] = 0,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.QubitId] = (),
+            qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
@@ -1295,8 +1369,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
-                for op in self.all_operations()):
+                protocols.is_measurement(op) for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
         if not self.are_all_measurements_terminal():
@@ -1352,7 +1425,7 @@ class Circuit:
             self,
             *,
             use_unicode_characters: bool = True,
-            qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
+            qubit_namer: Optional[Callable[[ops.Qid], str]] = None,
             transpose: bool = False,
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -1423,7 +1496,7 @@ class Circuit:
                 param_resolver)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        resolved_circuit = Circuit(resolved_moments)
+        resolved_circuit = Circuit(resolved_moments, device=self.device)
         return resolved_circuit
 
     def _qasm_(self) -> str:
@@ -1529,12 +1602,10 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
-def _is_exposed_formula(text):
-    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
 
+def _is_exposed_formula(text: str) -> bool:
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
-def _encode(text):
-    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
@@ -1542,9 +1613,9 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
-        return (name
+        return ('({})'.format(name)
                 if _is_exposed_formula(name)
-                else '({})'.format(_encode(name)))
+                else name)
 
     if info.exponent == 0:
         return '0'
@@ -1581,7 +1652,7 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 def _draw_moment_in_diagram(
         moment: ops.Moment,
         use_unicode_characters: bool,
-        qubit_map: Dict[ops.QubitId, int],
+        qubit_map: Dict[ops.Qid, int],
         out_diagram: TextDiagramDrawer,
         precision: Optional[int],
         moment_groups: List[Tuple[int, int]],
@@ -1598,6 +1669,7 @@ def _draw_moment_in_diagram(
     if not moment.operations:
         out_diagram.write(x0, 0, '')
 
+    max_x = x0
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
@@ -1635,10 +1707,12 @@ def _draw_moment_in_diagram(
                 # Add an exponent to every label
                 for index in indices:
                     out_diagram.write(x, index, '^' + exponent)
+        if x > max_x:
+            max_x = x
 
     # Group together columns belonging to the same Moment.
-    if moment.operations and x > x0:
-        moment_groups.append((x0, x))
+    if moment.operations and max_x > x0:
+        moment_groups.append((x0, max_x))
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
@@ -1673,7 +1747,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 
 def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray,
-                           qubits: Tuple[ops.QubitId, ...],
+                           qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
@@ -1723,12 +1797,9 @@ def _apply_unitary_circuit(circuit: Circuit,
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    if ops.MeasurementGate.is_measurement(op):
-        gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-        return [ops.X(q)
-                for q, b in zip(op.qubits, gate.invert_mask)
-                if b]
-
+    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
+    if gate:
+        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
     return NotImplemented
 
 

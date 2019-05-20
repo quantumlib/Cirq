@@ -1,4 +1,6 @@
 import datetime
+import re
+import traceback
 from typing import Optional, List, Any, Dict, Set, Union
 
 import json
@@ -11,6 +13,11 @@ import requests
 from dev_tools.github_repository import GithubRepository
 
 
+GITHUB_REPO_NAME = 'cirq'
+GITHUB_REPO_ORGANIZATION = 'quantumlib'
+ACCESS_TOKEN_ENV_VARIABLE = 'CIRQ_BOT_GITHUB_ACCESS_TOKEN'
+
+POLLING_PERIOD = datetime.timedelta(seconds=10)
 HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = ['automerge', HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
@@ -22,7 +29,9 @@ def is_recent_date(date: datetime.datetime) -> bool:
 
 
 class CannotAutomergeError(RuntimeError):
-    pass
+    def __init__(self, *args, may_be_temporary: bool = False):
+        super().__init__(*args)
+        self.may_be_temporary = may_be_temporary
 
 
 class PullRequestDetails:
@@ -171,20 +180,6 @@ def check_auto_merge_labeler(repo: GithubRepository, pull_id: int
     return check_collaborator_has_write(repo, relevant[-1]['actor']['login'])
 
 
-def find_existing_status_comment(repo: GithubRepository, pull_id: int
-                                 ) -> Optional[Dict[str, Any]]:
-    expected_user = 'CirqBot'
-    expected_text = 'Automerge pending: '
-
-    comments = list_pr_comments(repo, pull_id)
-    for comment in comments:
-        if comment['user']['login'] == expected_user:
-            if expected_text in comment['body']:
-                return comment
-
-    return None
-
-
 def add_comment(repo: GithubRepository, pull_id: int, text: str) -> None:
     """
     References:
@@ -223,23 +218,6 @@ def edit_comment(repo: GithubRepository, text: str, comment_id: int) -> None:
     if response.status_code != 200:
         raise RuntimeError('Edit comment failed. Code: {}. Content: {}.'.format(
             response.status_code, response.content))
-
-
-def leave_status_comment(repo: GithubRepository,
-                         pull_id: int,
-                         success: Optional[bool],
-                         state_description: str) -> None:
-    cur = find_existing_status_comment(repo, pull_id)
-    if success:
-        body = 'Automerge done.'
-    elif success is None:
-        body = 'Automerge: {}'.format(state_description)
-    else:
-        body = 'Automerge cancelled: {}'.format(state_description)
-    if cur is None:
-        add_comment(repo, pull_id, body)
-    else:
-        edit_comment(repo, body, cur['id'])
 
 
 def get_branch_details(repo: GithubRepository, branch: str) -> Any:
@@ -398,11 +376,11 @@ def log(*args):
     print(*args)
 
 
-def wait_a_tick():
+def wait_for_polling_period():
     global _last_print_was_tick
     _last_print_was_tick = True
     print('.', end='', flush=True)
-    time.sleep(5)
+    time.sleep(POLLING_PERIOD.total_seconds())
 
 
 def absent_status_checks(pr: PullRequestDetails,
@@ -480,6 +458,59 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
         raise RuntimeError(
             'Comment delete failed. Code: {}. Content: {}.'.format(
                 response.status_code, response.content))
+
+
+def attempt_update_branch_button(pr: PullRequestDetails
+                                 ) -> Union[bool, CannotAutomergeError]:
+    session_cookie = os.getenv('CIRQ_BOT_UPDATE_BRANCH_COOKIE')
+    if session_cookie is None:
+        return attempt_sync_with_master(pr)
+
+    # Get the pull request page.
+    pr_url = 'https://github.com/{}/{}/pull/{}'.format(
+        pr.repo.organization,
+        pr.repo.name,
+        pr.pull_id)
+    cookies = {'user_session': session_cookie}
+    response = requests.get(pr_url, cookies=cookies)
+    if response.status_code != 200:
+        raise RuntimeError(
+            'Failed to read PR page. Code: {}. Content: {}.'.format(
+                response.status_code, response.content))
+
+    # Find the update branch button and relevant tokens.
+    html = response.content.decode()
+    form_guts = re.match(
+        '.*<form class="branch-action-btn'
+        '.*action=".+/pull/.+/update_branch"'
+        '.*<input name="utf8" type="hidden" value="([^"]+)"'
+        '.*<input type="hidden" name="authenticity_token" value="([^"]+)"'
+        '.*<input type="hidden" name="expected_head_oid" value="([^"]+)"'
+        '.*</form>.*', html, re.DOTALL)
+    if form_guts is None:
+        raise RuntimeError(
+            'Failed to find update branch button. Html: {}.'.format(
+                html))
+
+    # Press the update branch button.
+    data = {
+        'utf8': '✓',
+        'authenticity_token': form_guts.group(2),
+        'expected_head_oid': form_guts.group(3),
+    }
+    update_url = 'https://github.com/{}/{}/pull/{}/update_branch'.format(
+        pr.repo.organization,
+        pr.repo.name,
+        pr.pull_id)
+    update_response = requests.post(update_url,
+                                    cookies=dict(response.cookies),
+                                    data=data)
+    if update_response.status_code != 200:
+        raise RuntimeError(
+            'Failed to hit update branch button. Code: {}. Content: {}.'.format(
+                update_response.status_code, update_response.content))
+
+    return True
 
 
 def attempt_sync_with_master(pr: PullRequestDetails
@@ -701,6 +732,8 @@ def find_problem_with_automergeability_of_pr(
         return CannotAutomergeError('Not an open pull request.')
     if pr.base_branch_name != 'master':
         return CannotAutomergeError('Can only automerge into master.')
+    if pr.payload['mergeable_state'] == 'dirty':
+        return CannotAutomergeError('There are merge conflicts.')
 
     # Only collaborators with write access can use the automerge labels.
     label_problem = check_auto_merge_labeler(pr.repo, pr.pull_id)
@@ -730,13 +763,15 @@ def find_problem_with_automergeability_of_pr(
                 'Missing statuses: {!r}'.format(sorted(missing_statuses)))
 
         # Can't figure out how to make it merge.
-        if pr.payload['mergeable'] is None:
-            return CannotAutomergeError(
-                "PR isn't classified as mergeable (I don't understand why).")
         if pr.payload['mergeable_state'] == 'blocked':
             if status_check_state is True:
                 return CannotAutomergeError(
-                    "Merging is blocked (I don't understand why).")
+                    "Merging is blocked (I don't understand why).",
+                    may_be_temporary=True)
+        if pr.payload['mergeable'] is False:
+            return CannotAutomergeError(
+                "PR isn't classified as mergeable (I don't understand why).",
+                may_be_temporary=True)
 
     return None
 
@@ -756,14 +791,34 @@ def cannot_merge_pr(pr: PullRequestDetails, reason: CannotAutomergeError):
             remove_label_from_pr(pr.repo, pr.pull_id, label)
 
 
-def gather_auto_mergeable_prs(repo: GithubRepository
-                              ) -> List[PullRequestDetails]:
+def drop_temporary(pr: PullRequestDetails,
+                   problem: Optional[CannotAutomergeError],
+                   prev_seen_times: Dict[int, datetime.datetime],
+                   next_seen_times: Dict[int, datetime.datetime],
+                   ) -> Optional[CannotAutomergeError]:
+    """Filters out problems that may be temporary."""
+
+    if problem is not None and problem.may_be_temporary:
+        since = prev_seen_times.get(pr.pull_id, datetime.datetime.utcnow())
+        if is_recent_date(since):
+            next_seen_times[pr.pull_id] = since
+            return None
+
+    return problem
+
+
+def gather_auto_mergeable_prs(
+        repo: GithubRepository,
+        problem_seen_times: Dict[int, datetime.datetime]
+) -> List[PullRequestDetails]:
     result = []
     raw_prs = list_open_pull_requests(repo)
     master_branch_data = get_branch_details(repo, 'master')
     if branch_data_modified_recently(master_branch_data):
         return []
 
+    prev_seen_times = dict(problem_seen_times)
+    problem_seen_times.clear()
     for raw_pr in raw_prs:
         if not raw_pr.marked_automergeable:
             continue
@@ -772,11 +827,16 @@ def gather_auto_mergeable_prs(repo: GithubRepository
         pr = PullRequestDetails.from_github(repo, raw_pr.pull_id)
         problem = find_problem_with_automergeability_of_pr(pr,
                                                            master_branch_data)
-        if problem is not None:
-            cannot_merge_pr(pr, problem)
-            continue
+        if problem is None:
+            result.append(pr)
 
-        result.append(pr)
+        persistent_problem = drop_temporary(pr,
+                                            problem,
+                                            prev_seen_times=prev_seen_times,
+                                            next_seen_times=problem_seen_times)
+        if persistent_problem is not None:
+            cannot_merge_pr(pr, persistent_problem)
+
     return result
 
 
@@ -831,22 +891,24 @@ def pick_head_pr(active_prs: List[PullRequestDetails]
             return pr
 
     promoted = max(active_prs, key=merge_desirability)
-    log('Automerging PR#{} ({!r}).'.format(
+    log('Automerging PR#{} ({!r}) first.'.format(
         promoted.pull_id,
         promoted.title))
     add_labels_to_pr(promoted.repo, promoted.pull_id, HEAD_AUTO_MERGE_LABEL)
     return promoted
 
 
-def duty_cycle(repo: GithubRepository):
-    active_prs = gather_auto_mergeable_prs(repo)
+def duty_cycle(repo: GithubRepository,
+               persistent_temporary_problems: Dict[int, datetime.datetime]):
+    active_prs = gather_auto_mergeable_prs(repo,
+                                           persistent_temporary_problems)
     head_pr = pick_head_pr(active_prs)
     if head_pr is None:
         return
 
     state = classify_pr_synced_state(head_pr)
     if state is False:
-        result = attempt_sync_with_master(head_pr)
+        result = attempt_update_branch_button(head_pr)
     elif state is True:
         result = attempt_squash_merge(head_pr)
         if result is True:
@@ -859,7 +921,6 @@ def duty_cycle(repo: GithubRepository):
 
     if isinstance(result, CannotAutomergeError):
         cannot_merge_pr(head_pr, result)
-        return
 
 
 def indent(text: str) -> str:
@@ -867,20 +928,24 @@ def indent(text: str) -> str:
 
 
 def main():
-    access_token = os.getenv('CIRQ_BOT_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
-        print('CIRQ_BOT_GITHUB_ACCESS_TOKEN not set.', file=sys.stderr)
+        print('{} not set.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr)
         sys.exit(1)
 
     repo = GithubRepository(
-        organization='quantumlib',
-        name='cirq',
+        organization=GITHUB_REPO_ORGANIZATION,
+        name=GITHUB_REPO_NAME,
         access_token=access_token)
 
     log('Watching for automergeable PRs.')
+    problem_seen_times = {}  # type: Dict[int, datetime.datetime]
     while True:
-        duty_cycle(repo)
-        wait_a_tick()
+        try:
+            duty_cycle(repo, problem_seen_times)
+        except Exception:  # Anything but a keyboard interrupt / system exit.
+            traceback.print_exc()
+        wait_for_polling_period()
 
 
 if __name__ == '__main__':

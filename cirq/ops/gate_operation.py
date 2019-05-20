@@ -15,8 +15,9 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
-    Any)
+    Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar, TYPE_CHECKING,
+    Union
+)
 
 import numpy as np
 
@@ -29,13 +30,13 @@ if TYPE_CHECKING:
     from typing import Dict, List
 
 
-@value.value_equality
+@value.value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
 
     def __init__(self,
                  gate: raw_types.Gate,
-                 qubits: Sequence[raw_types.QubitId]) -> None:
+                 qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
             gate: The gate to apply.
@@ -51,11 +52,11 @@ class GateOperation(raw_types.Operation):
         return self._gate
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self, *new_qubits: raw_types.QubitId) -> 'GateOperation':
+    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'GateOperation':
         return self.gate.on(*new_qubits)
 
     def with_gate(self, new_gate: raw_types.Gate) -> 'GateOperation':
@@ -77,14 +78,14 @@ class GateOperation(raw_types.Operation):
                                ', '.join(str(e) for e in self.qubits))
 
     def _group_interchangeable_qubits(self) -> Tuple[
-            Union[raw_types.QubitId,
-                  Tuple[int, FrozenSet[raw_types.QubitId]]],
+            Union[raw_types.Qid,
+                  Tuple[int, FrozenSet[raw_types.Qid]]],
             ...]:
 
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
-        groups = {}  # type: Dict[int, List[raw_types.QubitId]]
+        groups = {}  # type: Dict[int, List[raw_types.Qid]]
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:
@@ -100,6 +101,9 @@ class GateOperation(raw_types.Operation):
                                                     self.qubits,
                                                     NotImplemented)
 
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return protocols.pauli_expansion(self.gate)
+
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(
@@ -108,31 +112,31 @@ class GateOperation(raw_types.Operation):
             default=NotImplemented)
 
     def _has_unitary_(self) -> bool:
-        return protocols.has_unitary(self._gate)
+        return protocols.has_unitary(self.gate)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self._gate, NotImplemented)
+        return protocols.unitary(self.gate, NotImplemented)
 
     def _has_mixture_(self) -> bool:
-        return protocols.has_mixture(self._gate)
+        return protocols.has_mixture(self.gate)
 
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
-        return protocols.mixture(self._gate, NotImplemented)
+        return protocols.mixture(self.gate, NotImplemented)
 
     def _has_channel_(self) -> bool:
-        return protocols.has_channel(self._gate)
+        return protocols.has_channel(self.gate)
 
     def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.channel(self._gate, NotImplemented)
+        return protocols.channel(self.gate, NotImplemented)
 
     def _measurement_key_(self) -> str:
-        return protocols.measurement_key(self._gate, NotImplemented)
+        return protocols.measurement_key(self.gate, NotImplemented)
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self._gate)
+        return protocols.is_parameterized(self.gate)
 
     def _resolve_parameters_(self, resolver):
-        resolved_gate = protocols.resolve_parameters(self._gate, resolver)
+        resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
     def _circuit_diagram_info_(self,
@@ -147,7 +151,9 @@ class GateOperation(raw_types.Operation):
 
     def _phase_by_(self, phase_turns: float,
                    qubit_index: int) -> 'GateOperation':
-        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
+        phased_gate = protocols.phase_by(self.gate,
+                                         phase_turns,
+                                         qubit_index,
                                          default=None)
         if phased_gate is None:
             return NotImplemented
@@ -179,3 +185,14 @@ class GateOperation(raw_types.Operation):
                               args=args,
                               qubits=self.qubits,
                               default=None)
+
+
+TV = TypeVar('TV', bound=raw_types.Gate)
+
+
+def op_gate_of_type(op: raw_types.Operation,
+                    gate_type: Type[TV]) -> Optional[TV]:
+    """Returns gate of given type, if op has that gate otherwise None."""
+    if isinstance(op, GateOperation) and isinstance(op.gate, gate_type):
+        return op.gate
+    return None

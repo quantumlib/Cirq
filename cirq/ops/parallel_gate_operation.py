@@ -13,9 +13,7 @@
 # limitations under the License.
 
 
-from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
-    Any)
+from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -34,7 +32,7 @@ class ParallelGateOperation(raw_types.Operation):
 
     def __init__(self,
                  gate: raw_types.Gate,
-                 qubits: Sequence[raw_types.QubitId]) -> None:
+                 qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
             gate: the gate to apply
@@ -55,12 +53,12 @@ class ParallelGateOperation(raw_types.Operation):
         return self._gate
 
     @property
-    def qubits(self) -> Tuple[raw_types.QubitId, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
     def with_qubits(self,
-                    *new_qubits: raw_types.QubitId) -> 'ParallelGateOperation':
+                    *new_qubits: raw_types.Qid) -> 'ParallelGateOperation':
         """ParallelGateOperation with same the gate but new qubits"""
         return ParallelGateOperation(self.gate, new_qubits)
 
@@ -123,7 +121,7 @@ class ParallelGateOperation(raw_types.Operation):
         # unitary to each qubit. This will blow up memory fast.
         unitary = single_unitary
         for _ in range(len(self.qubits) - 1):
-            unitary = np.outer(unitary, single_unitary)
+            unitary = np.kron(unitary, single_unitary)
 
         return unitary
 
@@ -151,18 +149,11 @@ class ParallelGateOperation(raw_types.Operation):
                                             exponent=diagram_info.exponent,
                                             connected=False)
 
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'ParallelGateOperation':
-        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
-                                         default=None)
-        if phased_gate is None:
-            return NotImplemented
-        return self.with_gate(phased_gate)
-
     def __pow__(self, exponent: Any) -> 'ParallelGateOperation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
+
         For extrapolatable gate G this means the following two are equivalent:
 
             (G ** 1.5)(qubit)  or  G(qubit) ** 1.5
