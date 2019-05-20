@@ -158,10 +158,19 @@ def _approx_eq_iterables(val: Any, other: Any, *,
 
 def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:
     """Convenience wrapper around np.isclose."""
+
+    # support casting some standard numeric types
     x1 = np.asarray([a])
     if isinstance(a, (Fraction, Decimal)):
         x1 = x1.astype(np.float64)
     x2 = np.asarray([b])
     if isinstance(b, (Fraction, Decimal)):
         x2 = x2.astype(np.float64)
-    return True if np.isclose(x1, x2, atol=atol, rtol=0.0)[0] else False
+
+    # workaround np.isfinite type limitations. Cast to bool to avoid np.bool_
+    try:
+        result = bool(np.isclose(x1, x2, atol=atol, rtol=0.0)[0])
+    except TypeError:
+        return NotImplemented
+
+    return result
