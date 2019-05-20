@@ -22,6 +22,12 @@ from cirq.linalg import operator_spaces
 
 def assert_pauli_expansion_is_consistent_with_unitary(val: Any) -> None:
     """Checks Pauli expansion against unitary matrix."""
+    # Check to see if the protocol is supported without doing a fallback
+    # to unitary, otherwise the test is vacuous.
+    method = getattr(val, '_pauli_expansion_', None)
+    if method is None:
+        return
+
     pauli_expansion = protocols.pauli_expansion(val, default=None)
     if pauli_expansion is None:
         return

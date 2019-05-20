@@ -35,14 +35,9 @@
 #
 #     pip install cirq==VERSION_YOU_UPLOADED
 #
-# Python 3 test installation:
+# Test installation:
 #
 #     pip install -r requirements.txt
-#     pip install --index-url https://test.pypi.org/simple/ cirq==VERSION_YOU_UPLOADED
-#
-# Python 2 test installation:
-#
-#     pip install -r dev_tools/python2.7-requirements.txt
 #     pip install --index-url https://test.pypi.org/simple/ cirq==VERSION_YOU_UPLOADED
 ################################################################################
 

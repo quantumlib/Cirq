@@ -14,7 +14,8 @@
 
 import itertools
 import collections
-from typing import Iterable, cast, DefaultDict
+from datetime import timedelta
+from typing import Iterable, cast, DefaultDict, Union
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
@@ -29,14 +30,11 @@ class NeutralAtomDevice(devices.Device):
     A device with qubits placed on a grid.
     """
 
-    def __init__(self,
-                 measurement_duration: Duration,
-                 gate_duration: Duration,
-                 control_radius: float,
-                 max_parallel_z: int,
-                 max_parallel_xy: int,
-                 max_parallel_c: int,
-                 qubits: Iterable[GridQubit])->None:
+    def __init__(self, measurement_duration: Union[Duration, timedelta],
+                 gate_duration: Union[Duration, timedelta],
+                 control_radius: float, max_parallel_z: int,
+                 max_parallel_xy: int, max_parallel_c: int,
+                 qubits: Iterable[GridQubit]) -> None:
         """
         Initializes the description of the AQuA device.
 
@@ -60,8 +58,8 @@ class NeutralAtomDevice(devices.Device):
             ValueError: if the wrong qubit type is provided or if invalid
                 parallel parameters are provided
         """
-        self._measurement_duration = measurement_duration
-        self._gate_duration = gate_duration
+        self._measurement_duration = Duration.create(measurement_duration)
+        self._gate_duration = Duration.create(gate_duration)
         self._control_radius = control_radius
         self._max_parallel_z = max_parallel_z
         self._max_parallel_xy = max_parallel_xy

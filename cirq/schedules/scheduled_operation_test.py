@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import timedelta
 
 import cirq
 from cirq.schedules import ScheduledOperation
@@ -24,6 +25,15 @@ def test_init():
                            operation=cirq.H(cirq.NamedQubit('a')))
     assert r.time == Timestamp(picos=5)
     assert r.duration == Duration(picos=7)
+    assert r.operation == cirq.H(cirq.NamedQubit('a'))
+
+
+def test_init_timedelta():
+    r = ScheduledOperation(time=Timestamp(picos=5),
+                           duration=timedelta(microseconds=7),
+                           operation=cirq.H(cirq.NamedQubit('a')))
+    assert r.time == Timestamp(picos=5)
+    assert r.duration == Duration(picos=7 * 10**6)
     assert r.operation == cirq.H(cirq.NamedQubit('a'))
 
 

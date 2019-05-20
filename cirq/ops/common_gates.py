@@ -31,22 +31,17 @@ measurements are provided
     measure
     measure_each
 """
-from typing import (
-    Any, Callable, cast, Dict, Iterable, List, Optional, Tuple, Union,
-)
+from typing import Any, Callable, cast, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import sympy
 
-from cirq import linalg, protocols, value
+import cirq
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.phased_x_gate
-
 
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
@@ -135,9 +130,16 @@ class XPowGate(eigen_gate.EigenGate,
             phase_exponent=phase_turns * 2)
 
     def __str__(self) -> str:
-        if self._exponent == 1:
-            return 'X'
-        return 'X**{!r}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Rx(π)'
+            return 'Rx({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'X'
+            return 'X**{}'.format(self._exponent)
+        return ('XPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -231,9 +233,16 @@ class YPowGate(eigen_gate.EigenGate,
             phase_exponent=0.5 + phase_turns * 2)
 
     def __str__(self) -> str:
-        if self._exponent == 1:
-            return 'Y'
-        return 'Y**{}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Ry(π)'
+            return 'Ry({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'Y'
+            return 'Y**{}'.format(self._exponent)
+        return ('YPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -342,17 +351,24 @@ class ZPowGate(eigen_gate.EigenGate,
                                self._exponent, qubits[0])
 
     def __str__(self) -> str:
-        if self._exponent == 0.25:
-            return 'T'
-        if self._exponent == -0.25:
-            return 'T**-1'
-        if self._exponent == 0.5:
-            return 'S'
-        if self._exponent == -0.5:
-            return 'S**-1'
-        if self._exponent == 1:
-            return 'Z'
-        return 'Z**{}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Rz(π)'
+            return 'Rz({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 0.25:
+                return 'T'
+            if self._exponent == -0.25:
+                return 'T**-1'
+            if self._exponent == 0.5:
+                return 'S'
+            if self._exponent == -0.5:
+                return 'S**-1'
+            if self._exponent == 1:
+                return 'Z'
+            return 'Z**{}'.format(self._exponent)
+        return ('ZPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -380,12 +396,15 @@ class ZPowGate(eigen_gate.EigenGate,
 
 
 @value.value_equality
-class MeasurementGate(gate_features.MultiQubitGate):
+class MeasurementGate(raw_types.Gate):
     """A gate that measures qubits in the computational basis.
 
     The measurement gate contains a key that is used to identify results
     of measurements.
     """
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def __init__(self,
                  num_qubits: int,
@@ -403,9 +422,7 @@ class MeasurementGate(gate_features.MultiQubitGate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
-        assert isinstance(num_qubits, int)
-
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
         if (self.invert_mask is not None and
@@ -426,12 +443,14 @@ class MeasurementGate(gate_features.MultiQubitGate):
         return self.key
 
     def _channel_(self):
-        size = 2 ** self.num_qubits()
-        zero = np.zeros((size, size))
-        zero[0][0] = 1.0
-        one = np.zeros((size, size))
-        one[-1][-1] = 1.0
-        return (zero, one)
+        size = 2**self.num_qubits()
+
+        def delta(i):
+            result = np.zeros((size, size))
+            result[i][i] = 1
+            return result
+
+        return tuple(delta(i) for i in range(size))
 
     def _has_channel_(self):
         return True
@@ -539,8 +558,9 @@ def measure_each(*qubits: raw_types.Qid,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+
 @value.value_equality
-class IdentityGate(gate_features.MultiQubitGate):
+class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
 
     The unitary matrix of this gate is a diagonal matrix with all 1s on the
@@ -550,7 +570,10 @@ class IdentityGate(gate_features.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super().__init__(num_qubits)
+        self._num_qubits = num_qubits
+
+    def num_qubits(self) -> int:
+        return self._num_qubits
 
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
@@ -719,7 +742,7 @@ class CZPowGate(eigen_gate.EigenGate,
             return NotImplemented
 
         c = 1j**(2 * self._exponent)
-        one_one = linalg.slice_for_qubits_equal_to(args.axes, 0b11)
+        one_one = args.subspace_index(0b11)
         args.target_tensor[one_one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
@@ -1177,6 +1200,7 @@ CZ = CZPowGate()
 #      [0, 0, 0, 1],
 #      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
+CX = CNOT
 
 
 # The swap gate.

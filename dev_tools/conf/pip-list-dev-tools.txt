@@ -1,12 +1,10 @@
-# For transpilation to python 2.
-3to2==1.*
-
 # For testing and analyzing code.
 mypy==0.641.*
-pylint==2.1.*
+pylint==2.3.*
 pytest==3.8.*
 pytest-cov==2.5.*
 pytest-benchmark==3.2.*
+yapf==0.27.*
 
 # For uploading packages to pypi.
 twine
