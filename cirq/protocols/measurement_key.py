@@ -33,9 +33,9 @@ class SupportsMeasurementKey(Protocol):
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
     That is a general quantum channel may enact the evolution
-        \rho -> \sum_k A_k \rho A_k^\dagger
+        \rho \rightarrow \sum_k A_k \rho A_k^\dagger
     where as a measurement enacts the evolution
-        \rho -> A_k \rho A_k^\dagger
+        \rho \rightarrow A_k \rho A_k^\dagger
     conditional on the measurement outcome being k.
     """
 

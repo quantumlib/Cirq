@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import itertools
+import math
 from typing import List, cast
 
 import numpy as np
@@ -82,6 +83,92 @@ def test_equal_up_to_coefficient():
     assert not cirq.PauliString({q0: cirq.X}, +1).equal_up_to_coefficient(
                cirq.PauliString({}, -1))
 
+
+def test_exponentiation_as_exponent():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+
+    with pytest.raises(NotImplementedError, match='non-hermitian'):
+        _ = math.e**(math.pi * p)
+
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = 'test'**p
+
+    assert cirq.approx_eq(
+        math.e**(-1j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=-0.5))
+
+    assert cirq.approx_eq(
+        math.e**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
+
+    assert cirq.approx_eq(
+        2**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p,
+                               exponent_neg=-0.25 * math.log(2),
+                               exponent_pos=0.25 * math.log(2)))
+
+    assert cirq.approx_eq(
+        np.exp(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
+
+
+def test_exponentiate_single_value_as_exponent():
+    q = cirq.LineQubit(0)
+
+    assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.X(q)),
+                          cirq.Rx(0.25 * math.pi).on(q))
+
+    assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Y(q)),
+                          cirq.Ry(0.25 * math.pi).on(q))
+
+    assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Z(q)),
+                          cirq.Rz(0.25 * math.pi).on(q))
+
+    assert cirq.approx_eq(np.exp(-0.3j * math.pi * cirq.X(q)),
+                          cirq.Rx(0.3 * math.pi).on(q))
+
+    assert cirq.approx_eq(cirq.X(q)**0.5, cirq.XPowGate(exponent=0.5).on(q))
+
+    assert cirq.approx_eq(cirq.Y(q)**0.5, cirq.YPowGate(exponent=0.5).on(q))
+
+    assert cirq.approx_eq(cirq.Z(q)**0.5, cirq.ZPowGate(exponent=0.5).on(q))
+
+
+def test_exponentiation_as_base():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+
+    with pytest.raises(NotImplementedError, match='non-unitary'):
+        _ = (2 * p)**5
+
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = p**'test'
+
+    with pytest.raises(TypeError, match='unsupported'):
+        _ = p**1j
+
+    assert p**-1 == p
+
+    assert cirq.approx_eq(
+        p**0.5, cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=0))
+
+    assert cirq.approx_eq(
+        p**-0.5, cirq.PauliStringPhasor(p, exponent_neg=-0.5, exponent_pos=0))
+
+    assert cirq.approx_eq(
+        math.e**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
+
+    assert cirq.approx_eq(
+        2**(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p,
+                               exponent_neg=-0.25 * math.log(2),
+                               exponent_pos=0.25 * math.log(2)))
+
+    assert cirq.approx_eq(
+        np.exp(0.5j * math.pi * p),
+        cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
 
 @pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
@@ -165,6 +252,9 @@ def test_repr():
     pauli_string = cirq.PauliString({q2: cirq.X, q1: cirq.Y, q0: cirq.Z})
     cirq.testing.assert_equivalent_repr(pauli_string)
     cirq.testing.assert_equivalent_repr(-pauli_string)
+    cirq.testing.assert_equivalent_repr(1j * pauli_string)
+    cirq.testing.assert_equivalent_repr(2 * pauli_string)
+    cirq.testing.assert_equivalent_repr(cirq.PauliString())
 
 
 def test_str():
@@ -344,6 +434,31 @@ def test_pos():
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps1 = cirq.PauliString(qubit_pauli_map)
     assert ps1 == +ps1
+
+
+def test_pow():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.PauliString({a: cirq.X})**0.25 == cirq.X(a)**0.25
+    assert cirq.PauliString({a: cirq.Y})**0.25 == cirq.Y(a)**0.25
+    assert cirq.PauliString({a: cirq.Z})**0.25 == cirq.Z(a)**0.25
+
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert p**1 == p
+    assert p**-1 == p
+    assert (-p)**1 == -p
+    assert (-p)**-1 == -p
+    assert (1j * p)**1 == 1j * p
+    assert (1j * p)**-1 == -1j * p
+
+
+def test_numpy_ufunc():
+    with pytest.raises(TypeError, match="returned NotImplemented"):
+        _ = np.sin(cirq.PauliString())
+    with pytest.raises(NotImplementedError, match="non-hermitian"):
+        _ = np.exp(cirq.PauliString())
+    x = np.exp(1j * np.pi * cirq.PauliString())
+    assert x is not None
 
 
 def test_map_qubits():

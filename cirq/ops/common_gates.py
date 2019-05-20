@@ -36,15 +36,12 @@ from typing import Any, Callable, cast, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import sympy
 
-from cirq import linalg, protocols, value
+import cirq
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
 
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.phased_x_gate
-
 
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
@@ -745,7 +742,7 @@ class CZPowGate(eigen_gate.EigenGate,
             return NotImplemented
 
         c = 1j**(2 * self._exponent)
-        one_one = linalg.slice_for_qubits_equal_to(args.axes, 0b11)
+        one_one = args.subspace_index(0b11)
         args.target_tensor[one_one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
@@ -1203,6 +1200,7 @@ CZ = CZPowGate()
 #      [0, 0, 0, 1],
 #      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
+CX = CNOT
 
 
 # The swap gate.

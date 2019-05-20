@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
 
 import numpy as np
@@ -20,12 +21,14 @@ import cirq
 import cirq.ion as ci
 
 
-def ion_device(chain_length:int) -> ci.IonDevice:
-    ms = 1000*cirq.Duration(nanos=1)
-    return ci.IonDevice(measurement_duration=100*ms,
-                        twoq_gates_duration=200*ms,
-                        oneq_gates_duration=10*ms,
-                        qubits=cirq.LineQubit.range(chain_length))
+def ion_device(chain_length: int, use_timedelta=False) -> ci.IonDevice:
+    ms = (1000 * cirq.Duration(nanos=1) if not use_timedelta else timedelta(
+        microseconds=1))
+    return ci.IonDevice(  # type: ignore
+        measurement_duration=100 * ms,  # type: ignore
+        twoq_gates_duration=200 * ms,  # type: ignore
+        oneq_gates_duration=10 * ms,  # type: ignore
+        qubits=cirq.LineQubit.range(chain_length))
 
 
 class NotImplementedOperation(cirq.Operation):
@@ -39,6 +42,22 @@ class NotImplementedOperation(cirq.Operation):
 
 def test_init():
     d = ion_device(3)
+    ms = 1000 * cirq.Duration(nanos=1)
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    q2 = cirq.LineQubit(2)
+
+    assert d.qubits == {q0, q1, q2}
+    assert d.duration_of(cirq.Z(q0)) == 10 * ms
+    assert d.duration_of(cirq.measure(q0)) == 100 * ms
+    assert d.duration_of(cirq.measure(q0, q1)) == 100 * ms
+    assert d.duration_of(cirq.ops.XX(q0, q1)) == 200 * ms
+    with pytest.raises(ValueError):
+        _ = d.duration_of(cirq.SingleQubitGate().on(q0))
+
+
+def test_init_timedelta():
+    d = ion_device(3, use_timedelta=True)
     ms = 1000*cirq.Duration(nanos=1)
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
@@ -63,14 +82,16 @@ def test_decomposition():
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
-    cirq.testing.assert_has_diagram(ion_circuit, """
-0: ───X───Ry(0.5π)───MS(0.25π)───Rx(-0.5π)───Ry(-0.5π)───
-                     │
-1: ──────────────────MS(0.25π)───Rx(-0.5π)───────────────
-            """, use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(ion_circuit,
+                                    """
+0: ───Y^0.5───Z───MS(0.25π)───PhasedX(-0.5)^0.5───S^-1───
+                  │
+1: ───────────────MS(0.25π)───X^-0.5─────────────────────
+            """,
+                                    use_unicode_characters=True)
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     d = ion_device(3)
 
@@ -96,6 +117,10 @@ def test_validate_operation_existing_qubits():
         cirq.XX,
         (cirq.LineQubit(0), cirq.LineQubit(1))))
     d.validate_operation(cirq.Z(cirq.LineQubit(0)))
+    d.validate_operation(
+        cirq.PhasedXPowGate(phase_exponent=0.75,
+                            exponent=0.25,
+                            global_shift=0.1).on(cirq.LineQubit(1)))
 
     with pytest.raises(ValueError):
         d.validate_operation(

@@ -15,7 +15,6 @@
 import pytest
 
 import cirq
-from cirq.contrib.paulistring import PauliStringPhasor
 
 from cirq.contrib.paulistring import converted_gate_set
 
@@ -24,26 +23,21 @@ from cirq.contrib.paulistring import converted_gate_set
     (cirq.X(q0), cirq.SingleQubitCliffordGate.X(q0)),
     (cirq.Y(q0), cirq.SingleQubitCliffordGate.Y(q0)),
     (cirq.Z(q0), cirq.SingleQubitCliffordGate.Z(q0)),
-    (cirq.X(q0) ** 0.5, cirq.SingleQubitCliffordGate.X_sqrt(q0)),
-    (cirq.Y(q0) ** 0.5, cirq.SingleQubitCliffordGate.Y_sqrt(q0)),
-    (cirq.Z(q0) ** 0.5, cirq.SingleQubitCliffordGate.Z_sqrt(q0)),
-    (cirq.X(q0) ** -0.5, cirq.SingleQubitCliffordGate.X_nsqrt(q0)),
-    (cirq.Y(q0) ** -0.5, cirq.SingleQubitCliffordGate.Y_nsqrt(q0)),
-    (cirq.Z(q0) ** -0.5, cirq.SingleQubitCliffordGate.Z_nsqrt(q0)),
-
-    (cirq.X(q0) ** 0.25,
-     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X)) ** 0.25),
-    (cirq.Y(q0) ** 0.25,
-     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Y)) ** 0.25),
-    (cirq.Z(q0) ** 0.25,
-     PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Z)) ** 0.25),
-
-    (cirq.X(q0) ** 0, ()),
-
+    (cirq.X(q0)**0.5, cirq.SingleQubitCliffordGate.X_sqrt(q0)),
+    (cirq.Y(q0)**0.5, cirq.SingleQubitCliffordGate.Y_sqrt(q0)),
+    (cirq.Z(q0)**0.5, cirq.SingleQubitCliffordGate.Z_sqrt(q0)),
+    (cirq.X(q0)**-0.5, cirq.SingleQubitCliffordGate.X_nsqrt(q0)),
+    (cirq.Y(q0)**-0.5, cirq.SingleQubitCliffordGate.Y_nsqrt(q0)),
+    (cirq.Z(q0)**-0.5, cirq.SingleQubitCliffordGate.Z_nsqrt(q0)),
+    (cirq.X(q0)**0.25,
+     cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X))**0.25),
+    (cirq.Y(q0)**0.25,
+     cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Y))**0.25),
+    (cirq.Z(q0)**0.25,
+     cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Z))**0.25),
+    (cirq.X(q0)**0, ()),
     (cirq.CZ(q0, q1), cirq.CZ(q0, q1)),
-
-    (cirq.measure(q0, q1, key='key'),
-     cirq.measure(q0, q1, key='key')),
+    (cirq.measure(q0, q1, key='key'), cirq.measure(q0, q1, key='key')),
 ))(cirq.LineQubit(0), cirq.LineQubit(1)))
 def test_converts_various_ops(op, expected_ops):
     before = cirq.Circuit.from_ops(op)
