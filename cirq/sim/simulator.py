@@ -64,6 +64,8 @@ class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
+        if not circuit.has_measurements():
+            raise ValueError("Circuit has no measurements to sample.")
         param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
