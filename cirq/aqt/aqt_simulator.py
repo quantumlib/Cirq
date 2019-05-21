@@ -32,11 +32,15 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    def add_noise(self,gate,qubits,angle):
+    def add_noise(self,
+                  gate:str,
+                  qubits:list,
+                  angle:float):
         """Adds a noise operation after a gate including specified crosstalk
         Args:
             gate: Operation where noise should be added
             qubits: List of integers, specifying the qubits
+            angle: rotation angle of the operation. Required for crosstalk simulation
         """
         if self.simulate_ideal == True:
             return None
@@ -67,7 +71,6 @@ class AQTSimulator:
             self.add_noise(gate, gate_list[2],angle)
         #TODO: Better solution for measurement at the end
         self.circuit.append(measure(*[qubit for qubit in self.qubit_list], key='m'))
-        print(self.circuit)
 
     def simulate_samples(self, repetitions:int) -> study.TrialResult:
         """Samples the circuit
