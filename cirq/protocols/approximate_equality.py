@@ -92,7 +92,9 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     if isinstance(val, numbers.Number):
         if not isinstance(other, numbers.Number):
             return False
-        return _isclose(val, other, atol=atol)
+        result = _isclose(val, other, atol=atol)
+        if result is not NotImplemented:
+            return result
 
     # Try to compare source and target recursively, assuming they're iterable.
     result = _approx_eq_iterables(val, other, atol=atol)

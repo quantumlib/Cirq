@@ -14,6 +14,7 @@
 
 from fractions import Fraction
 from decimal import Decimal
+from numbers import Number
 import numpy as np
 import cirq
 
@@ -93,6 +94,32 @@ def test_approx_eq_special_numerics():
     assert not cirq.approx_eq(float('inf'), 5, atol=0.0)
     assert not cirq.approx_eq(float('inf'), 0, atol=0.0)
     assert cirq.approx_eq(float('inf'), float('inf'), atol=0.0)
+
+
+class X(Number):
+    """Subtype of Number that can fallback to __eq__"""
+
+    def __init__(self, val):
+        self.val = val
+
+    def __eq__(self, other):
+        if not isinstance(self, type(other)):
+            return NotImplemented
+        return self.val == other.val
+
+
+class Y(Number):
+    """Subtype of Number that cannot fallback to __eq__"""
+
+    def __init__(self):
+        pass
+
+
+def test_approx_eq_number_uses__eq__():
+    assert cirq.approx_eq(C(0), C(0), atol=0.0)
+    assert not cirq.approx_eq(X(0), X(1), atol=0.0)
+    assert not cirq.approx_eq(X(0), 0, atol=0.0)
+    assert not cirq.approx_eq(Y(), 1, atol=0.0)
 
 
 def test_approx_eq_tuple():
