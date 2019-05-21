@@ -15,10 +15,11 @@ class engine_return:
         return self.test_dict
 
     def update(self,*args,**kwargs):
-        print(self.counter)
         if self.counter >= 1:
             self.test_dict['status'] = 'finished'
         return self
+
+put_call_args = {'data': '[["X", 0.1, [0]]]', 'acccess_token': 'testkey', 'repetitions': 10, 'no_qubits': 1}
 
 def test_aqt_sampler():
     e_return = engine_return()
@@ -32,12 +33,14 @@ def test_aqt_sampler():
         circuit = Circuit.from_ops(X(qubit) ** theta)
         sweep = study.Linspace(key='theta', start=0.1, stop=max_angle / np.pi,
                                length=num_points)
-        results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=1)
-        angles = np.linspace(0.0, max_angle, num_points)
+        results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=1, access_token='testkey')
         excited_state_probs = np.zeros(num_points)
         for i in range(num_points):
             excited_state_probs[i] = np.mean(results[i].measurements['m'])
         print(excited_state_probs)
+    callargs = mock_method.call_args[1]['data']
+    for keys in put_call_args:
+        assert callargs[keys] == put_call_args[keys]
     assert mock_method.call_count == 2
 
 def test_aqt_sampler_sim():
