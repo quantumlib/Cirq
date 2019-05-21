@@ -1,5 +1,6 @@
 from cirq import Circuit,Simulator, LineQubit, study
 from cirq import measure,X,Y,XX,depolarize
+from cirq.aqt.aqt_device import default_noise_dict
 import json
 import numpy as np
 
@@ -15,7 +16,8 @@ class AQTSimulator:
     def __init__(self,
                  no_qubit:int,
                  circuit: Circuit = None,
-                 simulate_ideal: bool = False):
+                 simulate_ideal: bool = False,
+                 noise_dict: dict = {}):
         """Initializes the AQT simulator
         Args:
             no_qubit: Number of qubits
@@ -25,15 +27,13 @@ class AQTSimulator:
         self.circuit = circuit
         self.no_qubit = no_qubit
         self.qubit_list = LineQubit.range(no_qubit)
-        self.noise_dict = {}
-        #TODO: Add a more realistic noise model, Move noise model definition to aqt_device.py
-        self.noise_dict['X'] = depolarize(1e-3)
-        self.noise_dict['Y'] = depolarize(1e-3)
-        self.noise_dict['MS'] = depolarize(1e-2)
+        if noise_dict == {}:
+            noise_dict = default_noise_dict
+        self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    def add_noise(self,gate,qubits):
-        """Adds a noise operation after a gate
+    def add_noise(self,gate,qubits,angle):
+        """Adds a noise operation after a gate including specified crosstalk
         Args:
             gate: Operation where noise should be added
             qubits: List of integers, specifying the qubits
@@ -41,7 +41,16 @@ class AQTSimulator:
         if self.simulate_ideal == True:
             return None
         for qubit_idx in qubits:
-            self.circuit.append(self.noise_dict[gate].on(qubit_idx))
+            self.circuit.append(self.noise_dict[gate].on(self.qubit_list[qubit_idx]))
+            crosstalk_list = [qubit_idx+1, qubit_idx-1]
+            for crosstalk_qubit in crosstalk_list:
+                try:
+                    if crosstalk_qubit >= 0 and gate != 'MS':
+                        #TODO: Add MS gate crosstalk
+                        xtalk_op = gate_dict[gate].on(self.qubit_list[crosstalk_qubit]) ** (angle*self.noise_dict['crosstalk'])
+                        self.circuit.append(xtalk_op)
+                except IndexError:
+                    pass
 
     def generate_circuit_from_list(self, json_string:str):
         """Generates a list of cirq operations from a json string
@@ -55,9 +64,10 @@ class AQTSimulator:
             angle = gate_list[1]
             qubits = [self.qubit_list[i] for i in gate_list[2]]
             self.circuit.append(gate_dict[gate].on(*qubits) ** angle)
-            self.add_noise(gate, qubits)
+            self.add_noise(gate, gate_list[2],angle)
         #TODO: Better solution for measurement at the end
         self.circuit.append(measure(*[qubit for qubit in self.qubit_list], key='m'))
+        print(self.circuit)
 
     def simulate_samples(self, repetitions:int) -> study.TrialResult:
         """Samples the circuit
