@@ -3,25 +3,42 @@ from cirq.aqt.aqt_device import get_aqt_device
 from cirq import LineQubit,X,XX,Circuit, measure, study
 import sympy
 import numpy as np
+import mock, json
 
-# def test_aqt_sampler():
-#      #TODO: create AQT ion trap object with given number of qubits
-#      theta = sympy.Symbol('theta')
-#      num_points =10
-#      max_angle = np.pi
-#      repetitions = 10
-#      sampler = AQTSampler()
-#      qubit = LineQubit(0)
-#      circuit = Circuit.from_ops(X(qubit) ** theta)
-#      circuit.append(measure(qubit, key='z'))
-#      sweep = study.Linspace(key='theta', start=0.1, stop=max_angle / np.pi,
-#                             length=num_points)
-#      results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=1)
-#      angles = np.linspace(0.0, max_angle, num_points)
-#      excited_state_probs = np.zeros(num_points)
-#      for i in range(num_points):
-#          excited_state_probs[i] = np.mean(results[i].measurements['m'])
-#      print(excited_state_probs)
+class engine_return:
+    def __init__(self):
+        self.test_dict = {'status':'queued','samples':[0,0,0,0,0,0,0,0,0,0]}
+        self.counter = 0
+
+    def json(self):
+        self.counter += 1
+        return self.test_dict
+
+    def update(self,*args,**kwargs):
+        print(self.counter)
+        if self.counter >= 1:
+            self.test_dict['status'] = 'finished'
+        return self
+
+def test_aqt_sampler():
+    e_return = engine_return()
+    with mock.patch('cirq.aqt.aqt_sampler.put', return_value=e_return, side_effect=e_return.update) as mock_method:
+        theta = sympy.Symbol('theta')
+        num_points =1
+        max_angle = np.pi
+        repetitions = 10
+        sampler = AQTSampler()
+        qubit = LineQubit(0)
+        circuit = Circuit.from_ops(X(qubit) ** theta)
+        sweep = study.Linspace(key='theta', start=0.1, stop=max_angle / np.pi,
+                               length=num_points)
+        results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=1)
+        angles = np.linspace(0.0, max_angle, num_points)
+        excited_state_probs = np.zeros(num_points)
+        for i in range(num_points):
+            excited_state_probs[i] = np.mean(results[i].measurements['m'])
+        print(excited_state_probs)
+    assert mock_method.call_count == 2
 
 def test_aqt_sampler_sim():
     theta = sympy.Symbol('theta')
