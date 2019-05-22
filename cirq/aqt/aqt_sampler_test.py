@@ -72,7 +72,7 @@ def test_aqt_sampler_sim():
     max_angle = np.pi
     repetitions = 100
     no_qubit = 4
-    device, qubits = get_aqt_device(no_qubit)
+    _device, qubits = get_aqt_device(no_qubit)
     sampler = AQTSamplerSim()
     sampler.simulate_ideal = True
     circuit = Circuit.from_ops(X(qubits[3])**theta)
@@ -97,7 +97,7 @@ def test_aqt_sampler_sim_xtalk():
     max_angle = np.pi
     repetitions = 100
     no_qubit = 4
-    device, qubits = get_aqt_device(no_qubit)
+    _device, qubits = get_aqt_device(no_qubit)
     sampler = AQTSamplerSim()
     sampler.simulate_ideal = False
     circuit = Circuit.from_ops(X(qubits[0]), X(qubits[3]), X(qubits[2]))
@@ -105,7 +105,7 @@ def test_aqt_sampler_sim_xtalk():
                            start=0.1,
                            stop=max_angle / np.pi,
                            length=num_points)
-    results = sampler.run_sweep(circuit,
+    _results = sampler.run_sweep(circuit,
                                 params=sweep,
                                 repetitions=repetitions,
                                 no_qubit=no_qubit)
@@ -118,7 +118,7 @@ def test_aqt_sampler_ms():
     device, qubits = get_aqt_device(no_qubit)
     sampler = AQTSamplerSim()
     circuit = Circuit(device=device)
-    for i in range(9):
+    for _dummy in range(9):
         circuit.append(XX(qubits[0], qubits[1])**0.5)
     results = sampler.run(circuit, repetitions=repetitions, no_qubit=no_qubit)
     hist = (results.histogram(key='m'))
