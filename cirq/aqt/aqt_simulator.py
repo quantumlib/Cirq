@@ -80,7 +80,7 @@ class AQTSimulator:
         Returns:
             TrialResult from Cirq.Simulator
         """
-        if self.circuit == None:
+        if self.circuit == Circuit():
             raise RuntimeError('simulate ideal called without defining a valid circuit')
         sim = Simulator()
         result = sim.run(self.circuit, repetitions=repetitions)
