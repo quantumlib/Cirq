@@ -111,7 +111,6 @@ def test_aqt_sampler_sim_xtalk():
                                 no_qubit=no_qubit)
 
 
-
 def test_aqt_sampler_ms():
     # TODO: Check big/little endian of result
     repetitions = 100
