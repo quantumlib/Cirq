@@ -205,11 +205,9 @@ class AQTSamplerSim(AQTSampler):
         Returns:
             measurement results as an array of boolean
         """
-        try:
-            simulate_ideal = self.simulate_ideal
-        except AttributeError:
-            simulate_ideal = False
-        sim = AQTSimulator(no_qubit=no_qubit, simulate_ideal=simulate_ideal)
+        if self.simulate_ideal == None:
+            self.simulate_ideal = False
+        sim = AQTSimulator(no_qubit=no_qubit, simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
         return data.measurements['m']
