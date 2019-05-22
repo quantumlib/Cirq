@@ -1,6 +1,5 @@
 from cirq import LineQubit, IonDevice, Duration
 from cirq import depolarize
-
 """Current device parameters for the AQt ion trap device"""
 
 

@@ -3,7 +3,6 @@ import json
 from cirq import Circuit, Simulator, LineQubit, study
 from cirq import measure, X, Y, XX
 from cirq.aqt.aqt_device import default_noise_dict
-
 """Simulator for the AQT ion trap device"""
 
 gate_dict = {}
@@ -33,10 +32,7 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    def add_noise(self,
-                  gate: str,
-                  qubits: list,
-                  angle: float):
+    def add_noise(self, gate: str, qubits: list, angle: float):
         """Adds a noise operation after a gate including specified crosstalk
         Args:
             gate: Operation where noise should be added
@@ -47,8 +43,8 @@ class AQTSimulator:
         if self.simulate_ideal == True:
             return None
         for qubit_idx in qubits:
-            self.circuit.append(
-                self.noise_dict[gate].on(self.qubit_list[qubit_idx]))
+            self.circuit.append(self.noise_dict[gate].on(
+                self.qubit_list[qubit_idx]))
             crosstalk_list = [qubit_idx + 1, qubit_idx - 1]
             for crosstalk_qubit in crosstalk_list:
                 try:
@@ -73,11 +69,11 @@ class AQTSimulator:
             gate = gate_list[0]
             angle = gate_list[1]
             qubits = [self.qubit_list[i] for i in gate_list[2]]
-            self.circuit.append(gate_dict[gate].on(*qubits) ** angle)
+            self.circuit.append(gate_dict[gate].on(*qubits)**angle)
             self.add_noise(gate, gate_list[2], angle)
         # TODO: Better solution for measurement at the end
-        self.circuit.append(measure(*[qubit for qubit in self.qubit_list],
-                                    key='m'))
+        self.circuit.append(
+            measure(*[qubit for qubit in self.qubit_list], key='m'))
 
     def simulate_samples(self, repetitions: int) -> study.TrialResult:
         """Samples the circuit
@@ -87,7 +83,7 @@ class AQTSimulator:
             TrialResult from Cirq.Simulator
         """
         if self.circuit == Circuit():
-            raise RuntimeError('simulate ideal called without defining a valid circuit')
+            raise RuntimeError('simulate ideal called without a valid circuit')
         sim = Simulator()
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
