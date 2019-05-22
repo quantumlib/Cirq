@@ -20,7 +20,8 @@ Sweepable = Union[
 
 class AQTSampler(Sampler):
     """Sampler for the AQT ion trap device
-    This sampler connects to the AQT machine and runs a single circuit or an entire sweep remotely
+    This sampler connects to the AQT machine and
+    runs a single circuit or an entire sweep remotely
     """
 
     def _run_api(self,
@@ -69,12 +70,17 @@ class AQTSampler(Sampler):
         Returns:
             measurement results as an array of boolean
         """
-        data = put(remote_host, data={'data': json_str, 'id': id, 'repetitions': repetitions,
+        data = put(remote_host, data={'data': json_str,
+                                      'id': id,
+                                      'repetitions': repetitions,
                                       'no_qubits': no_qubit}).json()
         while data['status'] != 'finished':
             time.sleep(1.0)
-            data = put(remote_host, data={'data': json_str, 'id': id, 'acccess_token': access_token,
-                                          'repetitions': repetitions, 'no_qubits': no_qubit}).json()
+            data = put(remote_host, data={'data': json_str,
+                                          'id': id,
+                                          'acccess_token': access_token,
+                                          'repetitions': repetitions,
+                                          'no_qubits': no_qubit}).json()
         measurements_int = data['samples']
         measurements = np.zeros((len(measurements_int), no_qubit))
         for i, result_int in enumerate(measurements_int):
@@ -99,7 +105,8 @@ class AQTSampler(Sampler):
         values.
 
         Args:
-            program: The circuit or schedule to simulate. Should be generated using AQTSampler.generate_circuit_from_list
+            program: The circuit or schedule to simulate.
+            Should be generated using AQTSampler.generate_circuit_from_list
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             no_qubit: The number of qubits in the system
@@ -110,7 +117,8 @@ class AQTSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        # TODO: Where should we get the no_qubits?? Probably from the measurement in the circuit!
+        # TODO: Where should we get the no_qubits??
+        # TODO: Probably from the measurement in the circuit!
         meas_name = 'm'  # TODO: Get measurement name from circuit
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
@@ -120,11 +128,16 @@ class AQTSampler(Sampler):
             id = uuid.uuid1()
             json_list = self._run_api(circuit=circuit,
                                       param_resolver=param_resolver)
-            results = self._send_json(json_list, id, repetitions=repetitions, no_qubit=no_qubit,
-                                      remote_host=remote_host, access_token=access_token)
+            results = self._send_json(json_list,
+                                      id,
+                                      repetitions=repetitions,
+                                      no_qubit=no_qubit,
+                                      remote_host=remote_host,
+                                      access_token=access_token)
+            res_dict = {meas_name: results}
             trial_results.append(study.TrialResult(params=param_resolver,
                                                    repetitions=repetitions,
-                                                   measurements={meas_name: results}))
+                                                   measurements=res_dict))
         return trial_results
 
     def run(
@@ -138,7 +151,8 @@ class AQTSampler(Sampler):
         """Samples from the given Circuit or Schedule.
 
         Args:
-            program: The circuit or schedule to simulate. Should be generated using AQTSampler.generate_circuit_from_list
+            program: The circuit or schedule to simulate.
+            Should be generated using AQTSampler.generate_circuit_from_list
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             no_qubit: The number of qubits
@@ -146,13 +160,18 @@ class AQTSampler(Sampler):
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(program, study.ParamResolver(param_resolver),
-                              repetitions=repetitions, no_qubit=no_qubit, remote_host=remote_host)[0]
+        return self.run_sweep(program,
+                              study.ParamResolver(param_resolver),
+                              repetitions=repetitions,
+                              no_qubit=no_qubit,
+                              remote_host=remote_host)[0]
 
 
 class AQTSamplerSim(AQTSampler):
     """Sampler using the AQT simulator
-    when the attribute simulate_ideal is set to True, an ideal circuit is sampled
+    When the attribute simulate_ideal is set to True,0
+    an ideal circuit is sampled
+
     If not, the error model defined in aqt_simulator_test.py is used
     Example for running the ideal sampler:
 
@@ -168,7 +187,7 @@ class AQTSamplerSim(AQTSampler):
                    repetitions: int = 1,
                    no_qubit: int = 1,
                    ):
-        """Replaces the remote host with a local imulator
+        """Replaces the remote host with a local simulator
         Args:
             json_str: json representation of the circuit
             id: Unique id of the datapoint
@@ -183,7 +202,8 @@ class AQTSamplerSim(AQTSampler):
             simulate_ideal = self.simulate_ideal
         except AttributeError:
             simulate_ideal = False
-        sim = AQTSimulator(no_qubit=no_qubit, simulate_ideal=simulate_ideal)
+        sim = AQTSimulator(no_qubit=no_qubit,
+                           simulate_ideal=simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
         return data.measurements['m']

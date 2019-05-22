@@ -9,7 +9,8 @@ from cirq.aqt.aqt_device import get_aqt_device
 
 class engine_return:
     def __init__(self):
-        self.test_dict = {'status': 'queued', 'samples': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+        self.test_dict = {'status': 'queued',
+                          'samples': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         self.counter = 0
 
     def json(self):
@@ -22,12 +23,15 @@ class engine_return:
         return self
 
 
-put_call_args = {'data': '[["X", 0.1, [0]]]', 'acccess_token': 'testkey', 'repetitions': 10, 'no_qubits': 1}
+put_call_args = {'data': '[["X", 0.1, [0]]]',
+                 'acccess_token': 'testkey', 'repetitions': 10, 'no_qubits': 1}
 
 
 def test_aqt_sampler():
     e_return = engine_return()
-    with mock.patch('cirq.aqt.aqt_sampler.put', return_value=e_return, side_effect=e_return.update) as mock_method:
+    with mock.patch('cirq.aqt.aqt_sampler.put',
+                    return_value=e_return,
+                    side_effect=e_return.update) as mock_method:
         theta = sympy.Symbol('theta')
         num_points = 1
         max_angle = np.pi
@@ -35,9 +39,14 @@ def test_aqt_sampler():
         sampler = AQTSampler()
         qubit = LineQubit(0)
         circuit = Circuit.from_ops(X(qubit) ** theta)
-        sweep = study.Linspace(key='theta', start=0.1, stop=max_angle / np.pi,
+        sweep = study.Linspace(key='theta',
+                               start=0.1,
+                               stop=max_angle / np.pi,
                                length=num_points)
-        results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=1, access_token='testkey')
+        results = sampler.run_sweep(circuit, params=sweep,
+                                    repetitions=repetitions,
+                                    no_qubit=1,
+                                    access_token='testkey')
         excited_state_probs = np.zeros(num_points)
         for i in range(num_points):
             excited_state_probs[i] = np.mean(results[i].measurements['m'])
@@ -60,7 +69,8 @@ def test_aqt_sampler_sim():
     circuit = Circuit.from_ops(X(qubits[3]) ** theta)
     sweep = study.Linspace(key='theta', start=0.1, stop=max_angle / np.pi,
                            length=num_points)
-    results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=no_qubit)
+    results = sampler.run_sweep(circuit, params=sweep,
+                                repetitions=repetitions, no_qubit=no_qubit)
     angles = np.linspace(0.0, max_angle, num_points)
     excited_state_probs = np.zeros(num_points)
     # print(results)
@@ -80,9 +90,14 @@ def test_aqt_sampler_sim_xtalk():
     sampler = AQTSamplerSim()
     sampler.simulate_ideal = False
     circuit = Circuit.from_ops(X(qubits[0]), X(qubits[3]), X(qubits[2]))
-    sweep = study.Linspace(key='theta', start=0.1, stop=max_angle / np.pi,
+    sweep = study.Linspace(key='theta',
+                           start=0.1,
+                           stop=max_angle / np.pi,
                            length=num_points)
-    results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions, no_qubit=no_qubit)
+    results = sampler.run_sweep(circuit,
+                                params=sweep,
+                                repetitions=repetitions,
+                                no_qubit=no_qubit)
     angles = np.linspace(0.0, max_angle, num_points)
     excited_state_probs = np.zeros(num_points)
 
@@ -96,7 +111,9 @@ def test_aqt_sampler_ms():
     circuit = Circuit(device=device)
     for i in range(9):
         circuit.append(XX(qubits[0], qubits[1]) ** 0.5)
-    results = sampler.run(circuit, repetitions=repetitions, no_qubit=no_qubit)
+    results = sampler.run(circuit,
+                          repetitions=repetitions,
+                          no_qubit=no_qubit)
     hist = (results.histogram(key='m'))
     print(hist)
     assert hist[12] > repetitions / 3
