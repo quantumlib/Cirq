@@ -1,7 +1,8 @@
 import mock
 import numpy as np
-import sympy
 import pytest
+import sympy
+
 
 from cirq import LineQubit, X, Y, Z, XX, Circuit, study
 from cirq.aqt import AQTSampler, AQTSamplerSim
