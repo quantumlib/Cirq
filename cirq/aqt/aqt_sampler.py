@@ -92,7 +92,6 @@ class AQTSampler(Sampler):
         measurements = np.zeros((len(measurements_int), no_qubit))
         for i, result_int in enumerate(measurements_int):
             for j in range(no_qubit):
-                # print(i,j,bin(result_int)[-j],np.floor(result_int/2**j))
                 measurements[i, j] = np.floor(result_int / 2**j)
         # TODO: Check Big endian/little endian encoding!
         return measurements
