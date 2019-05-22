@@ -9,6 +9,7 @@ from cirq.aqt.aqt_device import get_aqt_device
 
 class engine_return:
     """A put mock class for testing the REST interface"""
+
     def __init__(self):
         self.test_dict = {
             'status': 'queued',
