@@ -23,4 +23,4 @@ default_noise_dict = {}
 default_noise_dict['X'] = depolarize(1e-3)
 default_noise_dict['Y'] = depolarize(1e-3)
 default_noise_dict['MS'] = depolarize(1e-2)
-default_noise_dict['crosstalk'] = 0.03
+default_noise_dict['crosstalk'] = 0.03  # type: ignore

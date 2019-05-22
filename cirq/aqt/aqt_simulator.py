@@ -5,11 +5,7 @@ from cirq import measure, X, Y, XX
 from cirq.aqt.aqt_device import default_noise_dict
 """Simulator for the AQT ion trap device"""
 
-gate_dict = {}
-gate_dict['X'] = X
-gate_dict['Y'] = Y
-gate_dict['MS'] = XX
-
+gate_dict = {'X': X, 'Y': Y, 'MS': XX}
 
 class AQTSimulator:
     """A simulator for the AQT device."""
@@ -29,7 +25,7 @@ class AQTSimulator:
         self.circuit = circuit
         self.no_qubit = no_qubit
         self.qubit_list = LineQubit.range(no_qubit)
-        if noise_dict == None:
+        if noise_dict is None:
             noise_dict = default_noise_dict
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
@@ -42,19 +38,20 @@ class AQTSimulator:
             angle: rotation angle of the operation.
                    Required for crosstalk simulation
         """
-        if self.simulate_ideal == True:
+        if self.simulate_ideal:
             return None
         for qubit_idx in qubits:
-            self.circuit.append(self.noise_dict[gate].on(
+            self.circuit.append(self.noise_dict[gate].on(  # type: ignore
                 self.qubit_list[qubit_idx]))
             crosstalk_list = [qubit_idx + 1, qubit_idx - 1]
             for crosstalk_qubit in crosstalk_list:
                 try:
                     if crosstalk_qubit >= 0 and gate != 'MS':
                         # TODO: Add MS gate crosstalk
+                        xtalk_amp = self.noise_dict['crosstalk']
                         xtalk_op = gate_dict[gate].on(
                             self.qubit_list[crosstalk_qubit]) ** \
-                                   (angle * self.noise_dict['crosstalk'])
+                                   (angle * xtalk_amp)  # type: ignore
                         self.circuit.append(xtalk_op)
                 except IndexError:
                     pass

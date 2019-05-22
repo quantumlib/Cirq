@@ -5,17 +5,31 @@ from typing import Iterable, List, Union
 
 import numpy as np
 from requests import put  # TODO: Specify as a dependency
-
 from cirq import XPowGate, YPowGate, XXPowGate
 from cirq import circuits, schedules, study, Sampler, resolve_parameters
-from cirq.aqt.aqt_simulator import AQTSimulator
+from cirq.ops.eigen_gate import EigenGate
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Sweep
+from cirq.aqt.aqt_simulator import AQTSimulator
 
 Sweepable = Union[ParamResolver, Iterable[ParamResolver], Sweep,
                   Iterable[Sweep]]
 """Samplers for the AQT ion trap device"""
 
+
+def get_op_string(op_obj:EigenGate):
+    """Find the string representation for a given gate
+    Params:
+        op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
+    if isinstance(op_obj, XXPowGate):
+        op_str = 'MS'
+    elif isinstance(op_obj, XPowGate):
+        op_str = 'X'
+    elif isinstance(op_obj, YPowGate):
+        op_str = 'Y'
+    else:
+        raise RuntimeError('Got unknown gate:',op_obj)
+    return op_str
 
 class AQTSampler(Sampler):
     """Sampler for the AQT ion trap device
@@ -36,18 +50,14 @@ class AQTSampler(Sampler):
         Returns:
             json formatted string of the sequence
         """
-        op_dict = {}
-        op_dict[XXPowGate] = 'MS'
-        op_dict[XPowGate] = 'X'
-        op_dict[YPowGate] = 'Y'
+
         seq_list = []
-        circuit = resolve_parameters(circuit, param_resolver)
+        circuit = resolve_parameters(circuit, param_resolver)  # type: ignore
         # TODO: Check if circuit is empty
         for op in circuit.all_operations():
-            qubits = [obj.x for obj in op.qubits]
-            for key in op_dict:
-                if isinstance(op.gate, key):
-                    seq_list.append([op_dict[key], op.gate.exponent, qubits])
+            qubits = [obj.x for obj in op.qubits]  # type: ignore
+            op_str = get_op_string(op.gate)  # type: ignore
+            seq_list.append([op_str, op.gate.exponent, qubits])  # type: ignore
         json_list = json.dumps(seq_list)
         return json_list
 
@@ -207,7 +217,7 @@ class AQTSamplerSim(AQTSampler):
         """
         if self.simulate_ideal == None:
             self.simulate_ideal = False
-        sim = AQTSimulator(no_qubit=no_qubit,
+        sim = AQTSimulator(no_qubit=no_qubit, # type: ignore
                            simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
