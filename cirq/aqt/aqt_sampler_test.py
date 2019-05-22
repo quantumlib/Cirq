@@ -106,9 +106,9 @@ def test_aqt_sampler_sim_xtalk():
                            stop=max_angle / np.pi,
                            length=num_points)
     _results = sampler.run_sweep(circuit,
-                                params=sweep,
-                                repetitions=repetitions,
-                                no_qubit=no_qubit)
+                                 params=sweep,
+                                 repetitions=repetitions,
+                                 no_qubit=no_qubit)
 
 
 def test_aqt_sampler_ms():
