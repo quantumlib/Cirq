@@ -2,10 +2,13 @@ from cirq import LineQubit, IonDevice,Duration
 from cirq import depolarize
 """Current device parameters for the AQt ion trap device"""
 
-def get_aqt_device(no_qubits: int) -> [IonDevice, list]:
+
+def get_aqt_device(no_qubits: int):
     """Returns an AQT ion device
-    :param no_qubits: number of qubits
-    :return: IonDevice, qubit_list
+    :Args:
+        no_qubits: number of qubits
+    Returns:
+         IonDevice, qubit_list
     """
     qubit_list = LineQubit.range(no_qubits)
     us = 1000*Duration(nanos=1)

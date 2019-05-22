@@ -53,7 +53,7 @@ class AQTSampler(Sampler):
 
     def _send_json(self,
                    json_str: str,
-                   id: str,
+                   id: Union[str,uuid.UUID],
                    remote_host: str = 'http://localhost:5000',
                    access_token: str = '',
                    repetitions: int = 1,
@@ -159,24 +159,24 @@ class AQTSamplerSim(AQTSampler):
     sampler = AQTSamplerSim()
     sampler.simulate_ideal=True
     """
+
+
+
     def _send_json(self,
                    json_str: str,
-                   id: str,
-                   repetitions: int = 1,
-                   no_qubit: int = 1,
+                   id: Union[str,uuid.UUID],
                    remote_host: str = 'http://localhost:5000',
                    access_token: str = '',
+                   repetitions: int = 1,
+                   no_qubit: int = 1,
                    ):
-        """Replaces the remote host with a local simulator
+        """Replaces the remote host with a local imulator
         Args:
-            Returns:
-            TrialResult for a run.
-        json_str: json representation of the circuit
+            json_str: json representation of the circuit
             id: Unique id of the datapoint
+            remote_host: address of the remote device
             repetitions: Number of repetitions
             no_qubit: Number of qubits present in the device
-            remote_host: address of the remote device - Not used in the simulator
-            access_token: access token for the remote api - Not used in the simulator
 
         Returns:
             measurement results as an array of boolean

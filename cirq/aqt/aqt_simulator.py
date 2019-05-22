@@ -3,6 +3,7 @@ from cirq import measure,X,Y,XX,depolarize
 from cirq.aqt.aqt_device import default_noise_dict
 import json
 import numpy as np
+from typing import cast, Iterable, List, Union
 
 
 """Simulator for the AQT ion trap device"""
@@ -15,7 +16,7 @@ gate_dict['MS'] = XX
 class AQTSimulator:
     def __init__(self,
                  no_qubit:int,
-                 circuit: Circuit = None,
+                 circuit: Circuit = Circuit(),
                  simulate_ideal: bool = False,
                  noise_dict: dict = {}):
         """Initializes the AQT simulator
@@ -61,7 +62,7 @@ class AQTSimulator:
         Args:
             json_string: json that specifies the sequence
         """
-        self.circuit = Circuit()  # TODO add ion device here
+        self.circuit = Circuit()  # TODO add ion device here, is this still required?
         json_obj = json.loads(json_string)
         for gate_list in json_obj:
             gate = gate_list[0]
