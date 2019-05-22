@@ -84,10 +84,7 @@ def test_decomposition():
     ion_circuit = d.decompose_circuit(circuit)
     d.validate_circuit(ion_circuit)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit,
-        ion_circuit,
-        atol=1e-6
-    )
+        circuit, ion_circuit, atol=1e-6)
 
 
 def test_repr():

@@ -86,10 +86,7 @@ def test_convert_to_ion_circuit():
 
     ion_device.validate_circuit(ion_circuit_1)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        clifford_circuit_1,
-        ion_circuit_1,
-        atol=1e-6
-    )
+        clifford_circuit_1, ion_circuit_1, atol=1e-6)
     clifford_circuit_2 = cirq.Circuit()
     clifford_circuit_2.append([cirq.X(q0), cirq.CNOT(q1, q0), cirq.MS(
         np.pi/4).on(q0, q1)])
@@ -97,7 +94,4 @@ def test_convert_to_ion_circuit():
         clifford_circuit_2)
     ion_device.validate_circuit(ion_circuit_2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        clifford_circuit_2,
-        ion_circuit_2,
-        atol=1e-6
-    )
+        clifford_circuit_2, ion_circuit_2, atol=1e-6)
