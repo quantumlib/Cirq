@@ -218,8 +218,8 @@ class AQTSamplerSim(AQTSampler):
         """
         if self.simulate_ideal == None:
             self.simulate_ideal = False
-        sim = AQTSimulator(
-            no_qubit=no_qubit,  # type: ignore
+        sim = AQTSimulator(  # type: ignore
+            no_qubit=no_qubit,
             simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
