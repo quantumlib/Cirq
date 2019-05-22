@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import shutil
 import sys
 from typing import Optional, Iterable, Callable, cast
 
@@ -135,61 +134,4 @@ def prepare_temporary_test_environment(
                        actual_commit_id=env.actual_commit_id,
                        compare_commit_id=env.compare_commit_id,
                        destination_directory=env.destination_directory,
-                       virtual_env_path=env_path)
-
-
-def derive_temporary_python2_environment(
-        destination_directory: str,
-        python3_environment: PreparedEnv,
-        verbose: bool,
-        env_name: str = '.test_virtualenv_py2',
-        python_path: str = "/usr/bin/python2.7") -> PreparedEnv:
-    """Creates a python 2.7 environment starting from a prepared python 3 one.
-
-    Args:
-        destination_directory: Where to put the python 2 environment.
-        python3_environment: The prepared environment to start from.
-        verbose: When set, more progress output is produced.
-        env_name: The name to use for the virtualenv directory.
-        python_path: The python binary to use.
-
-    Returns:
-        A description of the environment that was prepared.
-    """
-
-    shutil.rmtree(destination_directory)
-    input_directory = cast(str, python3_environment.destination_directory)
-    os.chdir(input_directory)
-    conversion_script_path = os.path.join(
-        input_directory,
-        'dev_tools',
-        'python2.7-generate.sh')
-    shell_tools.run_cmd('bash',
-                        conversion_script_path,
-                        destination_directory,
-                        input_directory,
-                        python3_environment.virtual_env_path,
-                        out=sys.stderr)
-    os.chdir(destination_directory)
-
-    # Create virtual environment.
-    env_path = os.path.join(destination_directory, env_name)
-    # (These files are output by dev_tools/python2.7-generate.sh.)
-    req_path = os.path.join(destination_directory, 'requirements.txt')
-    dev_req_path = os.path.join(destination_directory,
-                                'pip-list-test-tools.txt')
-    contrib_req_path = os.path.join(destination_directory,
-                                    'cirq',
-                                    'contrib',
-                                    'contrib-requirements.txt')
-    req_paths = [req_path, dev_req_path, contrib_req_path]
-    create_virtual_env(venv_path=env_path,
-                       python_path=python_path,
-                       requirements_paths=req_paths,
-                       verbose=verbose)
-
-    return PreparedEnv(github_repo=python3_environment.repository,
-                       actual_commit_id=python3_environment.actual_commit_id,
-                       compare_commit_id=python3_environment.compare_commit_id,
-                       destination_directory=destination_directory,
                        virtual_env_path=env_path)

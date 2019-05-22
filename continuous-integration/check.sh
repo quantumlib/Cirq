@@ -21,7 +21,7 @@
 # bash continuous-integration/check.sh \
 #    [pull-request-number] \
 #    [access-token] \
-#    [--only=pylint|typecheck|pytest|pytest2|incremental-coverage] \
+#    [--only=pylint|typecheck|pytest|incremental-coverage] \
 #    [--verbose]
 #
 # If no pull request number is given, the script will check files in its
