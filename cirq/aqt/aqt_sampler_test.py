@@ -84,7 +84,6 @@ def test_aqt_sampler_sim():
                                 params=sweep,
                                 repetitions=repetitions,
                                 no_qubit=no_qubit)
-    angles = np.linspace(0.0, max_angle, num_points)
     excited_state_probs = np.zeros(num_points)
     # print(results)
     for i in range(num_points):
@@ -94,7 +93,6 @@ def test_aqt_sampler_sim():
 
 
 def test_aqt_sampler_sim_xtalk():
-    theta = sympy.Symbol('theta')
     num_points = 10
     max_angle = np.pi
     repetitions = 100
@@ -111,8 +109,7 @@ def test_aqt_sampler_sim_xtalk():
                                 params=sweep,
                                 repetitions=repetitions,
                                 no_qubit=no_qubit)
-    angles = np.linspace(0.0, max_angle, num_points)
-    excited_state_probs = np.zeros(num_points)
+
 
 
 def test_aqt_sampler_ms():

@@ -54,7 +54,7 @@ class AQTSampler(Sampler):
     def _send_json(
             self,
             json_str: str,
-            id: Union[str, uuid.UUID],
+            id_str: Union[str, uuid.UUID],
             remote_host: str = 'http://localhost:5000',
             access_token: str = '',
             repetitions: int = 1,
@@ -63,7 +63,7 @@ class AQTSampler(Sampler):
         """Sends the json string to the remote AQT device
         Args:
             json_str: json representation of the circuit
-            id: Unique id of the datapoint
+            id_str: Unique id of the datapoint
             remote_host: address of the remote device
             repetitions: Number of repetitions
             no_qubit: Number of qubits present in the device
@@ -74,7 +74,7 @@ class AQTSampler(Sampler):
         data = put(remote_host,
                    data={
                        'data': json_str,
-                       'id': id,
+                       'id': id_str,
                        'repetitions': repetitions,
                        'no_qubits': no_qubit
                    }).json()
@@ -83,7 +83,7 @@ class AQTSampler(Sampler):
             data = put(remote_host,
                        data={
                            'data': json_str,
-                           'id': id,
+                           'id': id_str,
                            'acccess_token': access_token,
                            'repetitions': repetitions,
                            'no_qubits': no_qubit
@@ -130,11 +130,11 @@ class AQTSampler(Sampler):
         param_resolvers = study.to_resolvers(params)
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
-            id = uuid.uuid1()
+            id_str = uuid.uuid1()
             json_list = self._run_api(circuit=circuit,
                                       param_resolver=param_resolver)
             results = self._send_json(json_list,
-                                      id,
+                                      id_str,
                                       repetitions=repetitions,
                                       no_qubit=no_qubit,
                                       remote_host=remote_host,
@@ -184,11 +184,12 @@ class AQTSamplerSim(AQTSampler):
     sampler = AQTSamplerSim()
     sampler.simulate_ideal=True
     """
+    simulate_ideal = None
 
     def _send_json(
             self,
             json_str: str,
-            id: Union[str, uuid.UUID],
+            id_str: Union[str, uuid.UUID],
             remote_host: str = 'http://localhost:5000',
             access_token: str = '',
             repetitions: int = 1,
@@ -197,7 +198,7 @@ class AQTSamplerSim(AQTSampler):
         """Replaces the remote host with a local simulator
         Args:
             json_str: json representation of the circuit
-            id: Unique id of the datapoint
+            id_str: Unique id of the datapoint
             remote_host: address of the remote device
             repetitions: Number of repetitions
             no_qubit: Number of qubits present in the device

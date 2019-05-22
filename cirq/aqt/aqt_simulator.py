@@ -1,5 +1,5 @@
 import json
-
+from typing import Union
 from cirq import Circuit, Simulator, LineQubit, study
 from cirq import measure, X, Y, XX
 from cirq.aqt.aqt_device import default_noise_dict
@@ -18,7 +18,7 @@ class AQTSimulator:
                  no_qubit: int,
                  circuit: Circuit = Circuit(),
                  simulate_ideal: bool = False,
-                 noise_dict: dict = {}):
+                 noise_dict: Union[dict, None] = None):
         """Initializes the AQT simulator
         Args:
             no_qubit: Number of qubits
@@ -29,7 +29,7 @@ class AQTSimulator:
         self.circuit = circuit
         self.no_qubit = no_qubit
         self.qubit_list = LineQubit.range(no_qubit)
-        if noise_dict == {}:
+        if noise_dict == None:
             noise_dict = default_noise_dict
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
