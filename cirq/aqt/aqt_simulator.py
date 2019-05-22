@@ -12,6 +12,7 @@ gate_dict['MS'] = XX
 
 
 class AQTSimulator:
+    """A simulator for the AQT device."""
     def __init__(self,
                  no_qubit: int,
                  circuit: Circuit = Circuit(),
