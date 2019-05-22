@@ -2,7 +2,7 @@ from cirq import LineQubit, IonDevice, Duration
 from cirq import depolarize
 """Current device parameters for the AQT/UIBK ion trap device
 
-The device is based on a linear calcium ion string with 
+The device is based on a linear calcium ion string with
 arbitrary connectivity. For more information see:
 
 https://quantumoptics.at/en/publications/journal-articles.html
