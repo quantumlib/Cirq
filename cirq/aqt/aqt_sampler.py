@@ -17,7 +17,7 @@ Sweepable = Union[ParamResolver, Iterable[ParamResolver], Sweep,
 """Samplers for the AQT ion trap device"""
 
 
-def get_op_string(op_obj:EigenGate):
+def get_op_string(op_obj: EigenGate):
     """Find the string representation for a given gate
     Params:
         op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
@@ -28,8 +28,9 @@ def get_op_string(op_obj:EigenGate):
     elif isinstance(op_obj, YPowGate):
         op_str = 'Y'
     else:
-        raise RuntimeError('Got unknown gate:',op_obj)
+        raise RuntimeError('Got unknown gate:', op_obj)
     return op_str
+
 
 class AQTSampler(Sampler):
     """Sampler for the AQT ion trap device
@@ -217,8 +218,9 @@ class AQTSamplerSim(AQTSampler):
         """
         if self.simulate_ideal == None:
             self.simulate_ideal = False
-        sim = AQTSimulator(no_qubit=no_qubit, # type: ignore
-                           simulate_ideal=self.simulate_ideal)
+        sim = AQTSimulator(
+            no_qubit=no_qubit,  # type: ignore
+            simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
         return data.measurements['m']

@@ -1,7 +1,7 @@
 import mock
 import numpy as np
 import sympy
-from nose.tools import raises
+import pytest
 
 from cirq import LineQubit, X, Y, Z, XX, Circuit, study
 from cirq.aqt import AQTSampler, AQTSamplerSim
@@ -128,13 +128,15 @@ def test_aqt_sampler_ms():
     assert hist[0] > repetitions / 3
 
 
-@raises(RuntimeError)
 def test_aqt_sampler_wrong_gate():
     repetitions = 100
     no_qubit = 4
     device, qubits = get_aqt_device(no_qubit)
     sampler = AQTSamplerSim()
     circuit = Circuit(device=device)
-    circuit.append(Y(qubits[0]) ** 0.5)
+    circuit.append(Y(qubits[0])**0.5)
     circuit.append(Z(qubits[0])**0.5)
-    _results = sampler.run(circuit, repetitions=repetitions, no_qubit=no_qubit)
+    with pytest.raises(RuntimeError):
+        _results = sampler.run(circuit,
+                               repetitions=repetitions,
+                               no_qubit=no_qubit)

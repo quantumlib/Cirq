@@ -7,6 +7,7 @@ from cirq.aqt.aqt_device import default_noise_dict
 
 gate_dict = {'X': X, 'Y': Y, 'MS': XX}
 
+
 class AQTSimulator:
     """A simulator for the AQT device."""
 

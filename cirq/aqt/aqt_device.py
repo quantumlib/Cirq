@@ -1,6 +1,17 @@
 from cirq import LineQubit, IonDevice, Duration
 from cirq import depolarize
-"""Current device parameters for the AQt ion trap device"""
+"""Current device parameters for the AQT/UIBK ion trap device
+
+The device is based on a linear calcium ion string with 
+arbitrary connectivity. For more information see:
+
+https://quantumoptics.at/en/publications/journal-articles.html
+
+https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta
+
+The native gate set is local gates: X,Y, and XX entangling gates
+
+"""
 
 
 def get_aqt_device(no_qubits: int):
