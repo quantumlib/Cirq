@@ -85,35 +85,43 @@ class GridQubit(ops.Qid):
         You can use any character other than a hyphen to mark a qubit. As an
         example, the qubits for the Bristlecone device could be represented by
         the below diagram. This produces a diamond-shaped grid of qubits, and
-        qubits with the same letter correspond to the same readout line. This
-        method makes no distinction between the different non-hyphen characters.
+        qubits with the same letter correspond to the same readout line.
 
-        -----AB-----
-        ----ABCD----
-        ---ABCDEF---
-        --ABCDEFGH--
-        -ABCDEFGHIJ-
+        .....AB.....
+        ....ABCD....
+        ...ABCDEF...
+        ..ABCDEFGH..
+        .ABCDEFGHIJ.
         ABCDEFGHIJKL
-        -CDEFGHIJKL-
-        --EFGHIJKL--
-        ---GHIJKL---
-        ----IJKL----
-        -----KL-----
+        .CDEFGHIJKL.
+        ..EFGHIJKL..
+        ...GHIJKL...
+        ....IJKL....
+        .....KL.....
 
         Args:
             diagram: String representing the qubit layout. Each line represents
-                a row, and each character in the row is a qubit, or a blank
-                site if the character is a hyphen '-'. The top-left corner of
-                the diagram will be have coordinate (0,0).
+                a row. Alphanumeric characters are assigned as qubits.
+                Dots ('.'), dashes ('-'), and spaces (' ') are treated as
+                empty locations in the grid. If diagram has characters other
+                than alphanumerics, spacers, and newlines ('\n'), an error will
+                be thrown. The top-left corner of the diagram will be have
+                coordinate (0,0).
 
         Returns:
             A list of GridQubits corresponding to the provided diagram
+
+        Raises:
+            ValueError: If the input string contains an invalid character.
         """
         lines = diagram.strip().split('\n')
+        no_qubit_characters = ['.', '-', ' ']
         qubits = []
         for row, line in enumerate(lines):
             for col, c in enumerate(line.strip()):
-                if c != '-':
+                if c not in no_qubit_characters:
+                    if not c.isalnum():
+                        raise ValueError("Input string has invalid character")
                     qubits.append(GridQubit(row, col))
         return qubits
 
