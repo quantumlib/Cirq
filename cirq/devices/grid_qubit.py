@@ -60,7 +60,7 @@ class GridQubit(ops.Qid):
         """Proto dict must have 'row' and 'col' keys."""
         if 'id' in proto_dict:
             row, col = proto_dict['id'].split('_')
-            return GridQubit(row=str(row), col=str(col))
+            return GridQubit(row=int(row), col=int(col))
         # TODO: Deprecate v1 proto method.
         if 'row' not in proto_dict or 'col' not in proto_dict:
             raise ValueError(

@@ -46,10 +46,11 @@ from cirq.google.known_devices import (
 )
 
 from cirq.google.op_deserializer import (
-    GateOpDeserializer,)
+    DeserializingArg,
+    GateOpDeserializer,
+)
 
-from cirq.google.op_serializer import (
-    GateOpSerializer,)
+from cirq.google.op_serializer import (GateOpSerializer, SerializingArg)
 
 from cirq.google.optimize import (
     optimized_for_xmon,)

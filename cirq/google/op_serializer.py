@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, List, NamedTuple, Optional, Type, TypeVar, Union
+from typing import Callable, cast, Dict, List, NamedTuple, Type, TypeVar, Union
 
 import sympy
 
-from cirq import ops
+from cirq import devices, ops
 from cirq.google import arg_func_langs
 
-# GateType
+# Type for variables that are subclasses of ops.Gate.
 Gate = TypeVar('Gate', bound=ops.Gate)
 
 
@@ -71,12 +71,14 @@ class GateOpSerializer:
 
     def to_proto(self, op: ops.GateOperation) -> Dict:
         """Returns the cirq.api.google.v2.Operation message as a proto dict."""
+        if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
+            raise ValueError('All qubits must be GridQubits')
         proto_dict = {
             'gate': {
                 'id': self.serialized_gate_id
             },
             'qubits': [{
-                'id': qubit.proto_id()
+                'id': cast(devices.GridQubit, qubit).proto_id()
             } for qubit in op.qubits]
         }  # type: Dict
         gate = op.gate
@@ -105,13 +107,14 @@ class GateOpSerializer:
             if isinstance(getattr(type(gate), arg.serialized_name, None),
                           property):
                 attr_property = getattr(gate, gate_getter, None)
-                value = attr_property.fget()
+                if attr_property is not None:
+                    value = attr_property.fget()
             else:
                 # Check if it is an attribute.
-                attr = getattr(gate, arg.gate_getter, None)
+                attr = getattr(gate, gate_getter, None)
                 if attr is not None:
                     value = attr
-            if value is None:
+            if value is None and arg.required:
                 raise ValueError(
                     'Gate {!r} does not have attribute or property {}'.format(
                         gate, gate_getter))
@@ -123,22 +126,40 @@ class GateOpSerializer:
                 'Argument {} is required, but could not get from gate {!r}'.
                 format(arg.serialized_name, gate))
 
-        if value is not None and not isinstance(value, arg.serialized_type):
-            raise ValueError(
-                'Argument {} had type {} but gate {!r} return type {}'.format(
-                    arg.serialized_name, arg.serialized_type, gate,
-                    type(value)))
+        if isinstance(value, sympy.Symbol):
+            return value
+
+        if value is not None:
+            self._check_type(value, arg)
 
         return value
+
+    def _check_type(self, value: arg_func_langs.ArgValue,
+                    arg: SerializingArg) -> None:
+        if arg.serialized_type == List[bool]:
+            if (not isinstance(value, (list, tuple)) or
+                    not all(isinstance(x, bool) for x in value)):
+                raise ValueError('Expected type List[bool] but was {}'.format(
+                    type(value)))
+        elif arg.serialized_type == float:
+            if not isinstance(value, (float, int)):
+                raise ValueError(
+                    'Expected type convertible to float but was {}'.format(
+                        type(value)))
+        elif value is not None and not isinstance(value, arg.serialized_type):
+            raise ValueError(
+                'Argument {} had type {} but gate returned type {}'.format(
+                    arg.serialized_name, arg.serialized_type, type(value)))
 
     def _arg_value_to_proto(self, value: arg_func_langs.ArgValue) -> Dict:
         arg_value = lambda x: {'arg_value': x}
         if isinstance(value, float) or isinstance(value, int):
             return arg_value({'float_value': float(value)})
-        if isinstance(self, bytes):
-            return arg_value({'bytes_value': bytes(value)})
-        if isinstance(self, str):
-            return arg_value({'str_value': str(value)})
+        if isinstance(value, str):
+            return arg_value({'string_value': str(value)})
+        if ((isinstance(value, list) or isinstance(value, tuple)) and
+            (all(isinstance(x, bool) for x in value))):
+            return arg_value({'bool_values': {'values': list(value)}})
         if isinstance(value, sympy.Symbol):
             return {'symbol': str(value.free_symbols.pop())}
         raise ValueError('Unsupported type of arg value: {}'.format(

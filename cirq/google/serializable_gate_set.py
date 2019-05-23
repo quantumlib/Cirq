@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Union
+from typing import cast, Dict, Iterable, Optional, Union
 
 from cirq.google import op_deserializer, op_serializer
 
@@ -39,7 +39,7 @@ class SerializableGateSet():
             proto['circuit'] = self._serialize_circuit(program)
         else:
             proto['schedule'] = self._serialize_schedule(program)
-        return program
+        return proto
 
     def serialize_op(self, op: ops.Operation):
         gate_op = cast(ops.GateOperation, op)
@@ -50,8 +50,8 @@ class SerializableGateSet():
                 return self.serializers[gate_type_mro].to_proto(gate_op)
         raise ValueError('Cannot serialize op of type {}'.format(gate_type))
 
-    def deserialize(self,
-                    proto: Dict) -> Union[circuits.Circuit, schedules.Schedule]:
+    def deserialize(self, proto: Dict, device: Optional[devices.Device] = None
+                   ) -> Union[circuits.Circuit, schedules.Schedule]:
         if 'language' not in proto or 'gate_set' not in proto['language']:
             raise ValueError('')
         if proto['language']['gate_set'] != self.gate_set_name:
@@ -59,7 +59,11 @@ class SerializableGateSet():
         if 'circuit' in proto:
             return self._deserialize_circuit(proto['circuit'])
         elif 'schedule' in proto:
-            return self._deserialize_schedule(proto['schedule'])
+            if device is None:
+                raise ValueError(
+                    'Deserializing schedule requires a device but None was given.'
+                )
+            return self._deserialize_schedule(proto['schedule'], device)
         else:
             raise ValueError('')
 
@@ -71,41 +75,31 @@ class SerializableGateSet():
         if gate_id in self.deserializers:
             return self.deserializers[gate_id].from_proto(operation_proto)
         else:
-            raise ValueError('')
+            raise ValueError(
+                'Unsupported serialized gate with id {}'.format(gate_id))
 
     def _serialize_circuit(self, circuit: circuits.Circuit) -> Dict:
         moment_protos = []
         for moment in circuit:
-            moment_proto = []
-            for op in moment:
-                moment_proto.append(self.serialize_op(op))
-            moment_protos.append(moment_protos)
-        return {
-            'language': {
-                'gate_set': self.gate_set_name
-            },
-            'circuit': {
-                'moments': moment_protos
+            moment_proto = {
+                'operations': [self.serialize_op(op) for op in moment]
             }
+            moment_protos.append(moment_proto)
+        return {
+            'scheduling_strategy': 1,  # MOMENT_BY_MOMENT
+            'moments': moment_protos
         }
 
     def _serialize_schedule(self, schedule: schedules.Schedule) -> Dict:
         scheduled_op_protos = []
-        for start_time, scheduled_op in schedule.scheduled_operations.items():
+        for scheduled_op in schedule.scheduled_operations:
             scheduled_op_protos.append({
                 'operation':
                 self.serialize_op(scheduled_op.operation),
                 'start_time_picos':
                 scheduled_op.time.raw_picos()
             })
-        return {
-            'language': {
-                'gate_set': self.gate_set_name
-            },
-            'schedule': {
-                'scheduled_operations': scheduled_op_protos
-            }
-        }
+        return {'scheduled_operations': scheduled_op_protos}
 
     def _deserialize_circuit(self, circuit_proto: Dict) -> circuits.Circuit:
         moments = []
@@ -115,8 +109,10 @@ class SerializableGateSet():
             if 'operations' not in moment_proto:
                 moments.append(ops.Moment())
                 continue
-            ops = [self.deserialize_op(o) for o in moment_proto['operations']]
-            moments.append(ops.Moment(ops))
+            moment_ops = [
+                self.deserialize_op(o) for o in moment_proto['operations']
+            ]
+            moments.append(ops.Moment(moment_ops))
         return circuits.Circuit(moments)
 
     def _deserialize_schedule(self, schedule_proto: Dict,

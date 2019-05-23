@@ -13,6 +13,8 @@
 # limitations under the License.
 """Gate sets supported by Google's apis."""
 
+from typing import List
+
 from cirq import ops, protocols
 from cirq.google import op_serializer, op_deserializer, serializable_gate_set
 
@@ -89,9 +91,8 @@ class XmonGateSet(serializable_gate_set.SerializableGateSet):
                                          gate_getter=protocols.measurement_key),
                                      op_serializer.SerializingArg(
                                          serialized_name='invert_mask',
-                                         serialized_type=list,
-                                         gate_getter='invert_mask',
-                                         required=False)
+                                         serialized_type=List[bool],
+                                         gate_getter='invert_mask')
                                  ])
                          ],
                          deserializers=[
@@ -101,10 +102,10 @@ class XmonGateSet(serializable_gate_set.SerializableGateSet):
                                  args=[
                                      op_deserializer.DeserializingArg(
                                          serialized_name='axis_half_turns',
-                                         constructor_name='phase_exponent'),
+                                         constructor_arg_name='phase_exponent'),
                                      op_deserializer.DeserializingArg(
                                          serialized_name='half_turns',
-                                         constructor_name='exponent')
+                                         constructor_arg_name='exponent')
                                  ]),
                              op_deserializer.GateOpDeserializer(
                                  serialized_gate_id='exp_z',
@@ -112,15 +113,15 @@ class XmonGateSet(serializable_gate_set.SerializableGateSet):
                                  args=[
                                      op_deserializer.DeserializingArg(
                                          serialized_name='half_turns',
-                                         constructor_name='exponent')
+                                         constructor_arg_name='exponent')
                                  ]),
                              op_deserializer.GateOpDeserializer(
-                                 serialized_gate_id='exp_cz',
+                                 serialized_gate_id='exp_11',
                                  gate_constructor=ops.CZPowGate,
                                  args=[
                                      op_deserializer.DeserializingArg(
                                          serialized_name='half_turns',
-                                         constructor_name='exponent')
+                                         constructor_arg_name='exponent')
                                  ]),
                              op_deserializer.GateOpDeserializer(
                                  serialized_gate_id='meas',
@@ -128,11 +129,11 @@ class XmonGateSet(serializable_gate_set.SerializableGateSet):
                                  args=[
                                      op_deserializer.DeserializingArg(
                                          serialized_name='key',
-                                         constructor_name='key'),
+                                         constructor_arg_name='key'),
                                      op_deserializer.DeserializingArg(
                                          serialized_name='invert_mask',
-                                         constructor_name='invert_mask',
-                                         required=False)
+                                         constructor_arg_name='invert_mask',
+                                         value_func=lambda x: tuple(x))
                                  ],
                                  num_qubits_param='num_qubits'),
                          ])
