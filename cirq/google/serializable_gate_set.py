@@ -67,7 +67,7 @@ class SerializableGateSet():
         for gate_type_mro in gate_type.mro():
             # Check all super classes in method resolution order.
             if gate_type_mro in self.serializers:
-                return self.serializers[gate_type_mro].to_proto(gate_op)
+                return self.serializers[gate_type_mro].to_proto_dict(gate_op)
         raise ValueError('Cannot serialize op of type {}'.format(gate_type))
 
     def deserialize(self, proto: Dict, device: Optional[devices.Device] = None
@@ -116,7 +116,7 @@ class SerializableGateSet():
 
         gate_id = operation_proto['gate']['id']
         if gate_id in self.deserializers.keys():
-            return self.deserializers[gate_id].from_proto(operation_proto)
+            return self.deserializers[gate_id].from_proto_dict(operation_proto)
         else:
             raise ValueError(
                 'Unsupported serialized gate with id {}'.format(gate_id))

@@ -116,7 +116,7 @@ message Qubit {
   //
   // Typically ids for qubits on a line are simple string versions of integers,
   // while for qubits on a square grid these are integers separated by a
-  // comma, i.e. '0, 1', '1, 2', etc.
+  // underscore, i.e. '0_1', '1_2', etc.
   string id = 2;
 }
 

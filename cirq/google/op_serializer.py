@@ -77,7 +77,7 @@ class GateOpSerializer:
         self.serialized_gate_id = serialized_gate_id
         self.args = args
 
-    def to_proto(self, op: ops.GateOperation) -> Dict:
+    def to_proto_dict(self, op: ops.GateOperation) -> Dict:
         """Returns the cirq.api.google.v2.Operation message as a proto dict."""
         if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
             raise ValueError('All qubits must be GridQubits')
@@ -111,17 +111,7 @@ class GateOpSerializer:
         gate_getter = arg.gate_getter
 
         if isinstance(gate_getter, str):
-            # Check if it is a property.
-            if isinstance(getattr(type(gate), arg.serialized_name, None),
-                          property):
-                attr_property = getattr(gate, gate_getter, None)
-                if attr_property is not None:
-                    value = attr_property.fget()
-            else:
-                # Check if it is an attribute.
-                attr = getattr(gate, gate_getter, None)
-                if attr is not None:
-                    value = attr
+            value = getattr(gate, gate_getter, None)
             if value is None and arg.required:
                 raise ValueError(
                     'Gate {!r} does not have attribute or property {}'.format(

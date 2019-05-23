@@ -58,12 +58,12 @@ def test_serialize_deserialize_circuit():
             'moments': [
                 {
                     'operations': [
-                        X_SERIALIZER.to_proto(cirq.X(q0)),
-                        X_SERIALIZER.to_proto(cirq.X(q1))
+                        X_SERIALIZER.to_proto_dict(cirq.X(q0)),
+                        X_SERIALIZER.to_proto_dict(cirq.X(q1))
                     ]
                 },
                 {
-                    'operations': [X_SERIALIZER.to_proto(cirq.X(q0))]
+                    'operations': [X_SERIALIZER.to_proto_dict(cirq.X(q0))]
                 },
             ]
         },
@@ -127,15 +127,15 @@ def test_serialize_deserialize_schedule():
         'schedule': {
             'scheduled_operations': [
                 {
-                    'operation': X_SERIALIZER.to_proto(cirq.X(q0)),
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
                     'start_time_picos': 0
                 },
                 {
-                    'operation': X_SERIALIZER.to_proto(cirq.X(q1)),
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q1)),
                     'start_time_picos': 200000,
                 },
                 {
-                    'operation': X_SERIALIZER.to_proto(cirq.X(q0)),
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
                     'start_time_picos': 400000,
                 },
             ]
@@ -363,7 +363,7 @@ def test_deserialize_no_start_time_picos():
         'schedule': {
             'scheduled_operations': [
                 {
-                    'operation': X_SERIALIZER.to_proto(cirq.X(q0)),
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
                 },
             ]
         },

@@ -80,7 +80,7 @@ def test_from_proto(val_type, val, arg_value):
         }]
     }
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto(serialized)
+    result = deserializer.from_proto_dict(serialized)
     assert result == GateWithAttribute(val)(q)
 
 
@@ -109,7 +109,7 @@ def test_from_proto_required_missing():
         }]
     }
     with pytest.raises(ValueError, match='my_val'):
-        deserializer.from_proto(serialized)
+        deserializer.from_proto_dict(serialized)
 
 
 def test_from_proto_unknown_arg_type():
@@ -137,7 +137,7 @@ def test_from_proto_unknown_arg_type():
         }]
     }
     with pytest.raises(ValueError, match='my_val'):
-        deserializer.from_proto(serialized)
+        deserializer.from_proto_dict(serialized)
 
 
 def test_from_proto_value_func():
@@ -165,7 +165,7 @@ def test_from_proto_value_func():
         }]
     }
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto(serialized)
+    result = deserializer.from_proto_dict(serialized)
     assert result == GateWithAttribute(1.1)(q)
 
 
@@ -198,5 +198,5 @@ def test_from_proto_not_required_ok():
         }]
     }
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto(serialized)
+    result = deserializer.from_proto_dict(serialized)
     assert result == GateWithAttribute(0.1)(q)

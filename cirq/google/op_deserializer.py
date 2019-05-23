@@ -82,7 +82,7 @@ class GateOpDeserializer():
         self.args = args
         self.num_qubits_param = num_qubits_param
 
-    def from_proto(self, proto: Dict) -> ops.GateOperation:
+    def from_proto_dict(self, proto: Dict) -> ops.GateOperation:
         """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
         qubits = [devices.GridQubit.from_proto_dict(x) for x in proto['qubits']]
         args = self._args_from_proto(proto['args']) if 'args' in proto else {}

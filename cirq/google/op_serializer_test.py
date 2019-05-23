@@ -91,7 +91,7 @@ def test_to_proto_attribute(val_type, val, arg_value):
                                              gate_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto(GateWithAttribute(val)(q))
+    result = serializer.to_proto_dict(GateWithAttribute(val)(q))
     expected = {
         'gate': {
             'id': 'my_gate'
@@ -117,7 +117,7 @@ def test_to_proto_property(val_type, val, arg_value):
                                              gate_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto(GateWithProperty(val)(q))
+    result = serializer.to_proto_dict(GateWithProperty(val)(q))
     expected = {
         'gate': {
             'id': 'my_gate'
@@ -143,7 +143,7 @@ def test_to_proto_callable(val_type, val, arg_value):
                                              gate_getter=get_val)
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto(GateWithMethod(val)(q))
+    result = serializer.to_proto_dict(GateWithMethod(val)(q))
     expected = {
         'gate': {
             'id': 'my_gate'
@@ -169,7 +169,7 @@ def test_to_proto_gate_mismatch():
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='GateWithAttribute.*GateWithProperty'):
-        serializer.to_proto(GateWithAttribute(1.0)(q))
+        serializer.to_proto_dict(GateWithAttribute(1.0)(q))
 
 
 def test_to_proto_unsupported_type():
@@ -183,7 +183,7 @@ def test_to_proto_unsupported_type():
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='bytes'):
-        serializer.to_proto(GateWithProperty(b's')(q))
+        serializer.to_proto_dict(GateWithProperty(b's')(q))
 
 
 def test_to_proto_unsupported_qubit_type():
@@ -197,7 +197,7 @@ def test_to_proto_unsupported_qubit_type():
                                      ])
     q = cirq.NamedQubit('a')
     with pytest.raises(ValueError, match='GridQubit'):
-        serializer.to_proto(GateWithProperty(1.0)(q))
+        serializer.to_proto_dict(GateWithProperty(1.0)(q))
 
 
 def test_to_proto_required_but_not_present():
@@ -207,11 +207,25 @@ def test_to_proto_required_but_not_present():
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=float,
-                                             gate_getter='missing_val')
+                                             gate_getter=lambda x: None)
                                      ])
     q = cirq.GridQubit(1, 2)
-    with pytest.raises(ValueError, match='missing_val'):
-        serializer.to_proto(GateWithProperty(1.0)(q))
+    with pytest.raises(ValueError, match='required'):
+        serializer.to_proto_dict(GateWithProperty(1.0)(q))
+
+
+def test_to_proto_no_getattr():
+    serializer = cg.GateOpSerializer(gate_type=GateWithProperty,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             gate_getter='nope')
+                                     ])
+    q = cirq.GridQubit(1, 2)
+    with pytest.raises(ValueError, match='does not have'):
+        serializer.to_proto_dict(GateWithProperty(1.0)(q))
 
 
 def test_to_proto_not_required_ok():
@@ -244,7 +258,7 @@ def test_to_proto_not_required_ok():
     }
 
     q = cirq.GridQubit(1, 2)
-    assert serializer.to_proto(GateWithProperty(0.1)(q)) == expected
+    assert serializer.to_proto_dict(GateWithProperty(0.1)(q)) == expected
 
 
 @pytest.mark.parametrize(
@@ -262,4 +276,4 @@ def test_to_proto_type_mismatch(val_type, val):
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match=str(type(val))):
-        serializer.to_proto(GateWithProperty(val)(q))
+        serializer.to_proto_dict(GateWithProperty(val)(q))
