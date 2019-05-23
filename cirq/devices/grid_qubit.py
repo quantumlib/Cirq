@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict
+from typing import Dict, List
 
 from cirq import ops
 
@@ -37,6 +37,54 @@ class GridQubit(ops.Qid):
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
+
+    @staticmethod
+    def square(size: int) -> List['GridQubit']:
+        """Returns a square of GridQubits
+
+        Args:
+            size: Length of a side of the square
+
+        Returns:
+            A list of GridQubits filling in a square grid
+        """
+        return [GridQubit(row, col) for row in range(size)
+                for col in range(size)]
+
+    @staticmethod
+    def rect(rows: int, cols: int) -> List['GridQubit']:
+        """Returns a rectangle of GridQubits
+
+        Args:
+            rows: Number of rows in the rectangle
+            cols: Number of columns in the rectangle
+
+        Returns:
+            A list of GridQubits filling in a rectangular grid
+        """
+        return [GridQubit(row, col) for row in range(rows)
+                for col in range(cols)]
+
+    @staticmethod
+    def from_pic(s: str) -> List['GridQubit']:
+        """Parse ASCIIart device layout into info about qubits and connectivity.
+
+        Args:
+            s: String representing the qubit layout. Each line represents a row,
+                and each character in the row is a qubit, or a blank site if the
+                character is a hyphen '-'.
+
+        Returns:
+            A list of GridQubits corresponding to the provided picture
+        """
+        lines = s.strip().split('\n')
+        qubits = []
+        for row, line in enumerate(lines):
+            for col, c in enumerate(line.strip()):
+                if c != '-':
+                    qubit = GridQubit(row, col)
+                    qubits.append(qubit)
+        return qubits
 
     def __repr__(self):
         return 'cirq.GridQubit({}, {})'.format(self.row, self.col)
