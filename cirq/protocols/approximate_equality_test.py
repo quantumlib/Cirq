@@ -15,6 +15,8 @@
 from fractions import Fraction
 from decimal import Decimal
 from numbers import Number
+import sys
+import pytest
 import numpy as np
 import cirq
 
@@ -38,6 +40,9 @@ def test_approx_eq_mixed_primitives():
     assert not cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-11)
 
 
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason='Skipping test on Windows due '
+                    'to lack of numpy data type')
 def test_numpy_dtype_compatibility():
     i_a, i_b, i_c = 0, 1, 2
     i_types = [np.intc, np.intp, np.int0, np.int8, np.int16, np.int32, np.int64]
@@ -73,6 +78,9 @@ def test_decimal_compatibility():
     assert not cirq.approx_eq(Decimal('NaN'), Decimal('-Infinity'), atol=1e-9)
 
 
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason='Skipping test on Windows due '
+                    'to lack of numpy data type')
 def test_approx_eq_mixed_types():
     assert cirq.approx_eq(np.float32(1), 1.0 + 1e-10, atol=1e-9)
     assert cirq.approx_eq(np.float64(1), np.complex64(1 + 1e-8j), atol=1e-4)
