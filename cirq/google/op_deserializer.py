@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterable, NamedTuple, \
-    Optional, Type, TypeVar
+from typing import Any, Callable, Dict, Iterable, NamedTuple, Optional
 
 import sympy
 
 from cirq import devices, ops
-from cirq.google import arg_func_langs, op_serializer
+from cirq.google import arg_func_langs
 
 
 class DeserializingArg(NamedTuple):
@@ -90,13 +89,14 @@ class GateOpDeserializer():
         for arg in self.args:
             if arg.serialized_name not in args_proto_dict and arg.required:
                 raise ValueError(
-                    'Argument {} not in serialized input for but is required.'
-                        .format(arg.serialized_name))
+                    'Argument {} not in serialized input for but is required.'.
+                    format(arg.serialized_name))
 
             value = None  # type: Optional[arg_func_langs.ArgValue]
             if arg.serialized_name in args_proto_dict:
                 if 'arg_value' in args_proto_dict[arg.serialized_name]:
-                    arg_value = args_proto_dict[arg.serialized_name]['arg_value']
+                    arg_value = args_proto_dict[
+                        arg.serialized_name]['arg_value']
                     if 'float_value' in arg_value:
                         value = float(arg_value['float_value'])
                     elif 'bool_values' in arg_value:

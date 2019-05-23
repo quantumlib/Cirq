@@ -147,8 +147,7 @@ def test_from_proto_value_func():
                                              cg.DeserializingArg(
                                                  serialized_name='my_val',
                                                  constructor_arg_name='val',
-                                                 value_func=lambda x: x + 1
-                                             )
+                                                 value_func=lambda x: x + 1)
                                          ])
     serialized = {
         'gate': {
@@ -181,8 +180,7 @@ def test_from_proto_not_required_ok():
                                              cg.DeserializingArg(
                                                  serialized_name='not_req',
                                                  constructor_arg_name='not_req',
-                                                 required=False
-                                             )
+                                                 required=False)
                                          ])
     serialized = {
         'gate': {

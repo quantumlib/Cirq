@@ -36,9 +36,7 @@ from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 
 from cirq.google.gate_sets import (
-    XmonGateSet,
-    XMON,
-)
+    XMON,)
 
 from cirq.google.known_devices import (
     Bristlecone,

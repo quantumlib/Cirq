@@ -153,12 +153,12 @@ class GateOpSerializer:
 
     def _arg_value_to_proto(self, value: arg_func_langs.ArgValue) -> Dict:
         arg_value = lambda x: {'arg_value': x}
-        if isinstance(value, float) or isinstance(value, int):
+        if isinstance(value, (float, int)):
             return arg_value({'float_value': float(value)})
         if isinstance(value, str):
             return arg_value({'string_value': str(value)})
-        if ((isinstance(value, list) or isinstance(value, tuple)) and
-            (all(isinstance(x, bool) for x in value))):
+        if (isinstance(value, (list, tuple)) and
+                all(isinstance(x, bool) for x in value)):
             return arg_value({'bool_values': {'values': list(value)}})
         if isinstance(value, sympy.Symbol):
             return {'symbol': str(value.free_symbols.pop())}

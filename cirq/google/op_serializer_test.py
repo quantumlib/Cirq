@@ -213,21 +213,20 @@ def test_to_proto_required_but_not_present():
     with pytest.raises(ValueError, match='missing_val'):
         serializer.to_proto(GateWithProperty(1.0)(q))
 
+
 def test_to_proto_not_required_ok():
-    serializer = cg.GateOpSerializer(gate_type=GateWithProperty,
-                                     serialized_gate_id='my_gate',
-                                     args=[
-                                         cg.SerializingArg(
-                                             serialized_name='my_val',
-                                             serialized_type=float,
-                                             gate_getter='val'),
-                                         cg.SerializingArg(
-                                             serialized_name='not_req',
-                                             serialized_type=float,
-                                             gate_getter='not_req',
-                                             required=False
-                                         )
-                                     ])
+    serializer = cg.GateOpSerializer(
+        gate_type=GateWithProperty,
+        serialized_gate_id='my_gate',
+        args=[
+            cg.SerializingArg(serialized_name='my_val',
+                              serialized_type=float,
+                              gate_getter='val'),
+            cg.SerializingArg(serialized_name='not_req',
+                              serialized_type=float,
+                              gate_getter='not_req',
+                              required=False)
+        ])
     expected = {
         'gate': {
             'id': 'my_gate'
