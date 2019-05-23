@@ -13,7 +13,7 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.api.google.v2 protos."""
 
-from typing import cast, Dict, Iterable, Optional, Tuple, Type, Union
+from typing import cast, Dict, Iterable, Optional, Tuple, Union
 
 from cirq.google import op_deserializer, op_serializer
 

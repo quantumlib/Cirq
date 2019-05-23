@@ -20,7 +20,12 @@ from cirq import devices, ops
 from cirq.google import arg_func_langs
 
 
-class DeserializingArg(NamedTuple):
+class DeserializingArg(
+        NamedTuple(
+            'DeserializingArg',
+            [('serialized_name', str), ('constructor_arg_name', str),
+             ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
+             ('required', bool)])):
     """Specification of the arguments to deserialize an argument to a gate.
 
     Attributes:
@@ -30,17 +35,20 @@ class DeserializingArg(NamedTuple):
             the gate corresponding to this serialized argument.
         value_func: Sometimes a value from the serialized proto needs to
             converted to an appropriate type or form. This function takes the
-            serialized value and returns the appropriate type.
+            serialized value and returns the appropriate type. Defaults to
+            None.
         required: Whether a value must be specified when constructing the
-            deserialized gate.
+            deserialized gate. Defaults to True.
     """
-    serialized_name: str
 
-    constructor_arg_name: str
-
-    value_func: Optional[Callable[[arg_func_langs.ArgValue], Any]] = None
-
-    required: bool = True
+    def __new__(cls,
+                serialized_name,
+                constructor_arg_name,
+                value_func=None,
+                required=True):
+        return super(DeserializingArg,
+                     cls).__new__(cls, serialized_name, constructor_arg_name,
+                                  value_func, required)
 
 
 class GateOpDeserializer():

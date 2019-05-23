@@ -23,7 +23,13 @@ from cirq.google import arg_func_langs
 Gate = TypeVar('Gate', bound=ops.Gate)
 
 
-class SerializingArg(NamedTuple):
+class SerializingArg(
+        NamedTuple('SerializingArg',
+                   [('serialized_name', str),
+                    ('serialized_type', Type[arg_func_langs.ArgValue]),
+                    ('gate_getter',
+                     Union[str, Callable[[ops.Gate], arg_func_langs.ArgValue]]),
+                    ('required', bool)])):
     """Specification of the arguments for a Gate and its serialization.
 
     Attributes:
@@ -37,13 +43,15 @@ class SerializingArg(NamedTuple):
         required: Whether this argument is a required argument for the
             serialized form.
     """
-    serialized_name: str
 
-    serialized_type: Type[arg_func_langs.ArgValue]
-
-    gate_getter: Union[str, Callable[[ops.Gate], arg_func_langs.ArgValue]]
-
-    required: bool = True
+    def __new__(cls,
+                serialized_name,
+                serialized_type,
+                gate_getter,
+                required=True):
+        return super(SerializingArg,
+                     cls).__new__(cls, serialized_name, serialized_type,
+                                  gate_getter, required)
 
 
 class GateOpSerializer:
