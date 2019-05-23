@@ -39,25 +39,23 @@ class GridQubit(ops.Qid):
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
     @staticmethod
-    def square(size: int, top: int = 0, left: int = 0) -> List['GridQubit']:
-        """Returns a square of GridQubits
+    def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
+        """Returns a square of GridQubits.
 
         Args:
-            size: Length of a side of the square
+            diameter: Length of a side of the square
             top: Row number of the topmost row
             left: Column number of the leftmost row
 
         Returns:
             A list of GridQubits filling in a square grid
         """
-        return [GridQubit(row, col)
-                for row in range(top, top+size)
-                for col in range(left, left+size)]
+        return GridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
     def rect(rows: int, cols: int,
              top: int = 0, left: int = 0) -> List['GridQubit']:
-        """Returns a rectangle of GridQubits
+        """Returns a rectangle of GridQubits.
 
         Args:
             rows: Number of rows in the rectangle
@@ -68,29 +66,55 @@ class GridQubit(ops.Qid):
         Returns:
             A list of GridQubits filling in a rectangular grid
         """
-        return [GridQubit(row, col)
-                for row in range(top, top+rows)
-                for col in range(left, left+cols)]
+        return [
+            GridQubit(row, col)
+            for row in range(top, top+rows)
+            for col in range(left, left+cols)
+        ]
 
     @staticmethod
-    def from_pic(s: str) -> List['GridQubit']:
-        """Parse ASCIIart device layout into info about qubits and connectivity.
+    def from_diagram(diagram: str) -> List['GridQubit']:
+        """Parse ASCII art device layout into info about qubits and
+        connectivity. As an example, the below diagram will create a list of
+        GridQubits in a pyramid structure.
+        ---A---
+        --AAA--
+        -AAAAA-
+        AAAAAAA
+
+        You can use any character other than a hyphen to mark a qubit. As an
+        example, the qubits for the Bristlecone device could be represented by
+        the below diagram. This produces a diamond-shaped grid of qubits, and
+        qubits with the same letter correspond to the same readout line. This
+        method makes no distinction between the different non-hyphen characters.
+
+        -----AB-----
+        ----ABCD----
+        ---ABCDEF---
+        --ABCDEFGH--
+        -ABCDEFGHIJ-
+        ABCDEFGHIJKL
+        -CDEFGHIJKL-
+        --EFGHIJKL--
+        ---GHIJKL---
+        ----IJKL----
+        -----KL-----
 
         Args:
-            s: String representing the qubit layout. Each line represents a row,
-                and each character in the row is a qubit, or a blank site if the
-                character is a hyphen '-'.
+            diagram: String representing the qubit layout. Each line represents
+                a row, and each character in the row is a qubit, or a blank
+                site if the character is a hyphen '-'. The top-left corner of
+                the diagram will be have coordinate (0,0).
 
         Returns:
-            A list of GridQubits corresponding to the provided picture
+            A list of GridQubits corresponding to the provided diagram
         """
-        lines = s.strip().split('\n')
+        lines = diagram.strip().split('\n')
         qubits = []
         for row, line in enumerate(lines):
             for col, c in enumerate(line.strip()):
                 if c != '-':
-                    qubit = GridQubit(row, col)
-                    qubits.append(qubit)
+                    qubits.append(GridQubit(row, col))
         return qubits
 
     def __repr__(self):
