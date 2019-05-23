@@ -53,8 +53,8 @@ class GridQubit(ops.Qid):
         return GridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
-    def rect(rows: int, cols: int,
-             top: int = 0, left: int = 0) -> List['GridQubit']:
+    def rect(rows: int, cols: int, top: int = 0,
+             left: int = 0) -> List['GridQubit']:
         """Returns a rectangle of GridQubits.
 
         Args:
@@ -68,8 +68,8 @@ class GridQubit(ops.Qid):
         """
         return [
             GridQubit(row, col)
-            for row in range(top, top+rows)
-            for col in range(left, left+cols)
+            for row in range(top, top + rows)
+            for col in range(left, left + cols)
         ]
 
     @staticmethod

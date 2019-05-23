@@ -48,11 +48,10 @@ def test_square():
 
 
 def test_rec():
-    assert cirq.GridQubit.rect(1, 2, top=5, left=6) == [
-        cirq.GridQubit(5, 6),
-        cirq.GridQubit(5, 7)
-    ]
-    assert cirq.GirdQubit.rect(2, 2) == [
+    assert cirq.GridQubit.rect(
+        1, 2, top=5, left=6) == [cirq.GridQubit(5, 6),
+                                 cirq.GridQubit(5, 7)]
+    assert cirq.GridQubit.rect(2, 2) == [
         cirq.GridQubit(0, 0),
         cirq.GridQubit(0, 1),
         cirq.GridQubit(1, 0),
