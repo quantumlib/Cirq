@@ -67,7 +67,8 @@ class GridQubit(ops.Qid):
         Returns:
             A matrix of GridQubits filling in a rectangular grid
         """
-        return [[GridQubit(row, col) for row in range(top, top + rows)]
+        return [[GridQubit(row, col)
+                 for row in range(top, top + rows)]
                 for col in range(left, left + cols)]
 
     @staticmethod
