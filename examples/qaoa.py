@@ -106,7 +106,7 @@ def main():
         return -mean
 
     # Pick an initial guess
-    x0 = np.random.uniform(-np.pi, np.pi, size=2*p)
+    x0 = np.random.uniform(-np.pi, np.pi, size=2 * p)
 
     # Optimize f
     print('Optimizing objective function ...')
@@ -116,8 +116,9 @@ def main():
                             options={'maxiter': 50})
 
     # Compute best possible cut value via brute force search
-    max_cut_value = max(cut_value(bitstring, graph)
-                        for bitstring in itertools.product(range(2), repeat=n))
+    max_cut_value = max(
+            cut_value(bitstring, graph)
+            for bitstring in itertools.product(range(2), repeat=n))
 
     # Print the results
     print('The largest cut value found was {}.'.format(largest_cut_value_found))
@@ -138,7 +139,8 @@ def qaoa_max_cut_unitary(
         graph,  # Nodes should be integers
 ) -> cirq.OP_TREE:
     for beta, gamma in zip(betas, gammas):
-        yield (Rzz(-0.5*gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
+        yield (
+            Rzz(-0.5*gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
         yield cirq.Rx(beta).on_each(*qubits)
 
 
@@ -154,8 +156,7 @@ def qaoa_max_cut_circuit(
         # Apply QAOA unitary
         qaoa_max_cut_unitary(qubits, betas, gammas, graph),
         # Measure
-        cirq.measure(*qubits, key='m')
-    )
+        cirq.measure(*qubits, key='m'))
 
 
 def cut_value(bitstring, graph):
