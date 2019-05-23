@@ -77,7 +77,6 @@ def test_approx_eq_mixed_types():
     assert cirq.approx_eq(np.float32(1), 1.0 + 1e-10, atol=1e-9)
     assert cirq.approx_eq(np.float64(1), np.complex64(1 + 1e-8j), atol=1e-4)
     assert cirq.approx_eq(np.uint8(1), np.complex64(1 + 1e-8j), atol=1e-4)
-    assert cirq.approx_eq(np.complex256(1), complex(1, 1e-8), atol=1e-4)
     assert cirq.approx_eq(np.int32(1), 1, atol=1e-9)
     assert cirq.approx_eq(complex(0.5, 0), Fraction(1, 2), atol=0.0)
     assert cirq.approx_eq(0.5 + 1e-4j, Fraction(1, 2), atol=1e-4)
