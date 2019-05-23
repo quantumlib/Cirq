@@ -66,8 +66,27 @@ def test_cz_init():
     assert cirq.CZPowGate(exponent=5).exponent == 5
     assert (cirq.CZ**0.5).exponent == 0.5
 
+
 def test_transformations():
-    pass
+    pi = np.pi
+    initialRx = cirq.Rx(0.4)
+    expectedPowx = cirq.X**(0.4/pi)
+    recievedPowx = initialRx.as_pow_gate()
+    backToRx = recievedPowx.as_rotation()
+    assert recievedPowx == expectedPowx
+    assert backToRx == initialRx
+    initialRy = cirq.Ry(0.123)
+    expectedPowy = cirq.Y**(0.123/pi)
+    recievedPowy = initialRy.as_pow_gate()
+    backToRy = recievedPowy.as_rotation()
+    assert recievedPowy == expectedPowy
+    assert backToRy == initialRy
+    initialRz = cirq.Rz(-1.53)
+    expectedPowz = cirq.Z**(-1.53/pi)
+    recievedPowz = initialRz.as_pow_gate()
+    backToRz = recievedPowz.as_rotation()
+    assert recievedPowz == expectedPowz
+    assert backToRz == initialRz
 
 
 def test_cz_str():
