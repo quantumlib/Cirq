@@ -39,31 +39,38 @@ class GridQubit(ops.Qid):
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
     @staticmethod
-    def square(size: int) -> List['GridQubit']:
+    def square(size: int, top: int = 0, left: int = 0) -> List['GridQubit']:
         """Returns a square of GridQubits
 
         Args:
             size: Length of a side of the square
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
 
         Returns:
             A list of GridQubits filling in a square grid
         """
-        return [GridQubit(row, col) for row in range(size)
-                for col in range(size)]
+        return [GridQubit(row, col)
+                for row in range(top, top+size)
+                for col in range(left, left+size)]
 
     @staticmethod
-    def rect(rows: int, cols: int) -> List['GridQubit']:
+    def rect(rows: int, cols: int,
+             top: int = 0, left: int = 0) -> List['GridQubit']:
         """Returns a rectangle of GridQubits
 
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
 
         Returns:
             A list of GridQubits filling in a rectangular grid
         """
-        return [GridQubit(row, col) for row in range(rows)
-                for col in range(cols)]
+        return [GridQubit(row, col)
+                for row in range(top, top+rows)
+                for col in range(left, left+cols)]
 
     @staticmethod
     def from_pic(s: str) -> List['GridQubit']:
