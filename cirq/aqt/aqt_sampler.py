@@ -149,6 +149,7 @@ class AQTSampler(Sampler):
                                       no_qubit=no_qubit,
                                       remote_host=remote_host,
                                       access_token=access_token)
+            results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
                 study.TrialResult(params=param_resolver,
