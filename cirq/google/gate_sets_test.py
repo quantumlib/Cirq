@@ -20,10 +20,6 @@ import cirq
 import cirq.google as cg
 
 
-def arg_value(x):
-    return 'string_value' if isinstance(x, str) else 'float_value'
-
-
 @pytest.mark.parametrize(
     ('gate', 'axis_half_turns', 'half_turns'),
     ((cirq.X, 0.0, 1.0), (cirq.X**0.2, 0.0, 0.2), (cirq.Y, 0.5, 1.0),
@@ -507,7 +503,7 @@ def test_deserialize_circuit():
     assert cg.XMON.deserialize(serialized) == circuit
 
 
-def deserialize_schedule():
+def test_deserialize_schedule():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     scheduled_ops = [

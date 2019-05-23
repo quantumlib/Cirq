@@ -31,9 +31,6 @@ class GateWithAttribute(cirq.SingleQubitGate):
     def _value_equality_values_(self):
         return (self.val,)
 
-    def __repr__(self):
-        return 'GateWithAttribute({!r})'.format(self.val)
-
 
 TEST_CASES = ((float, 1.0, {
     'arg_value': {
