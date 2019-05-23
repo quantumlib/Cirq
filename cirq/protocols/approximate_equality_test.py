@@ -50,13 +50,13 @@ def test_numpy_dtype_compatibility():
         assert not cirq.approx_eq(u_type(i_a), u_type(i_c), atol=1)
 
     f_a, f_b, f_c = 0, 1e-8, 1
-    f_types = [np.float16, np.float32, np.float64, np.float128]
+    f_types = [np.float16, np.float32, np.float64]
     for f_type in f_types:
         assert cirq.approx_eq(f_type(f_a), f_type(f_b), atol=1e-8)
         assert not cirq.approx_eq(f_type(f_a), f_type(f_c), atol=1e-8)
 
     c_a, c_b, c_c = 0, 1e-8j, 1j
-    c_types = [np.complex64, np.complex128, np.complex256]
+    c_types = [np.complex64, np.complex128]
     for c_type in c_types:
         assert cirq.approx_eq(c_type(c_a), c_type(c_b), atol=1e-8)
         assert not cirq.approx_eq(c_type(c_a), c_type(c_c), atol=1e-8)
