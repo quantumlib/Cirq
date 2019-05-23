@@ -66,6 +66,9 @@ def test_cz_init():
     assert cirq.CZPowGate(exponent=5).exponent == 5
     assert (cirq.CZ**0.5).exponent == 0.5
 
+def test_transformations():
+    pass
+
 
 def test_cz_str():
     assert str(cirq.CZ) == 'CZ'
