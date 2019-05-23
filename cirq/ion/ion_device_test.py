@@ -112,6 +112,10 @@ def test_validate_operation_existing_qubits():
         cirq.XX,
         (cirq.LineQubit(0), cirq.LineQubit(1))))
     d.validate_operation(cirq.Z(cirq.LineQubit(0)))
+    d.validate_operation(
+        cirq.PhasedXPowGate(phase_exponent=0.75,
+                            exponent=0.25,
+                            global_shift=0.1).on(cirq.LineQubit(1)))
 
     with pytest.raises(ValueError):
         d.validate_operation(
