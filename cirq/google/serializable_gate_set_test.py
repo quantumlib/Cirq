@@ -39,6 +39,10 @@ MY_GATE_SET = cg.SerializableGateSet(gate_set_name='my_gate_set',
                                      deserializers=[X_DESERIALIZER])
 
 
+def test_supported_gate_types():
+    assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate,)
+
+
 def test_serialize_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
@@ -81,6 +85,21 @@ def test_serialize_deserialize_empty_circuit():
         },
     }
     assert proto == MY_GATE_SET.serialize(circuit)
+    assert MY_GATE_SET.deserialize(proto) == circuit
+
+
+def test_deserialize_empty_moment():
+    circuit = cirq.Circuit([cirq.Moment()])
+
+    proto = {
+        'language': {
+            'gate_set': 'my_gate_set'
+        },
+        'circuit': {
+            'scheduling_strategy': 1,
+            'moments': [{}]
+        },
+    }
     assert MY_GATE_SET.deserialize(proto) == circuit
 
 
@@ -185,6 +204,59 @@ def test_serialize_deserialize_op_subclass():
     assert MY_GATE_SET.deserialize_op(proto) == cirq.X(q0)
 
 
+def test_deserialize_op_invalid_gate():
+    proto = {
+        'gate': {},
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.1
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }]
+    }
+    with pytest.raises(ValueError, match='does not have a gate'):
+        MY_GATE_SET.deserialize_op(proto)
+
+    proto = {
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.1
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }]
+    }
+    with pytest.raises(ValueError, match='does not have a gate'):
+        MY_GATE_SET.deserialize_op(proto)
+
+
+def test_deserialize_unsupported_gate_type():
+    proto = {
+        'gate': {
+            'id': 'no_pow'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.1
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }]
+    }
+    with pytest.raises(ValueError, match='no_pow'):
+        MY_GATE_SET.deserialize_op(proto)
+
+
 def test_serialize_op_unsupported_type():
     q0 = cirq.GridQubit(1, 1)
     with pytest.raises(ValueError, match='YPowGate'):
@@ -239,3 +311,62 @@ def test_deserialize_missing_circuit_or_schedule():
     }
     with pytest.raises(ValueError, match='circuit or schedule'):
         MY_GATE_SET.deserialize(proto)
+
+
+def test_deserialize_no_moments():
+    proto = {
+        'language': {
+            'gate_set': 'my_gate_set'
+        },
+        'circuit': {
+            'scheduling_strategy': 1,
+        },
+    }
+    with pytest.raises(ValueError, match='moments'):
+        MY_GATE_SET.deserialize(proto)
+
+
+def test_deserialize_no_scheduled_ops():
+    proto = {
+        'language': {
+            'gate_set': 'my_gate_set'
+        },
+        'schedule': {},
+    }
+    with pytest.raises(ValueError, match='operations'):
+        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)
+
+
+def test_deserialize_no_operation():
+    proto = {
+        'language': {
+            'gate_set': 'my_gate_set'
+        },
+        'schedule': {
+            'scheduled_operations': [
+                {
+                    'start_time_picos': 0
+                },
+            ]
+        },
+    }
+    with pytest.raises(ValueError, match='operation'):
+        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)
+
+
+def test_deserialize_no_start_time_picos():
+    q0 = cirq.GridQubit(1, 1)
+    proto = {
+        'language': {
+            'gate_set': 'my_gate_set'
+        },
+        'schedule': {
+            'scheduled_operations': [
+                {
+                    'operation': X_SERIALIZER.to_proto(cirq.X(q0)),
+                },
+            ]
+        },
+    }
+    with pytest.raises(ValueError, match='operation'):
+        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)

@@ -33,7 +33,7 @@ class SerializableGateSet():
         self.serializers = {s.gate_type: s for s in serializers}
         self.deserializers = {d.serialized_gate_id: d for d in deserializers}
 
-    def support_gate_types(self) -> Tuple:
+    def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
     def serialize(self,
@@ -112,7 +112,7 @@ class SerializableGateSet():
             The deserialized Operation.
         """
         if 'gate' not in operation_proto or 'id' not in operation_proto['gate']:
-            raise ValueError('')
+            raise ValueError('Operation proto does not have a gate.')
 
         gate_id = operation_proto['gate']['id']
         if gate_id in self.deserializers.keys():
@@ -147,7 +147,7 @@ class SerializableGateSet():
     def _deserialize_circuit(self, circuit_proto: Dict) -> circuits.Circuit:
         moments = []
         if 'moments' not in circuit_proto:
-            raise ValueError('')
+            raise ValueError('Circuit proto has no moments.')
         for moment_proto in circuit_proto['moments']:
             if 'operations' not in moment_proto:
                 moments.append(ops.Moment())
@@ -161,13 +161,15 @@ class SerializableGateSet():
     def _deserialize_schedule(self, schedule_proto: Dict,
                               device: devices.Device) -> schedules.Schedule:
         if 'scheduled_operations' not in schedule_proto:
-            raise ValueError('')
+            raise ValueError('Schedule proto missing scheduled operations.')
         scheduled_ops = []
         for scheduled_op_proto in schedule_proto['scheduled_operations']:
             if 'operation' not in scheduled_op_proto:
-                raise ValueError()
+                raise ValueError('Scheduled op missing an operation {}'.format(
+                    scheduled_op_proto))
             if 'start_time_picos' not in scheduled_op_proto:
-                raise ValueError()
+                raise ValueError('Scheduled op missing a start time {}'.format(
+                    scheduled_op_proto))
             scheduled_op = schedules.ScheduledOperation.op_at_on(
                 operation=self.deserialize_op(scheduled_op_proto['operation']),
                 time=value.Timestamp(
