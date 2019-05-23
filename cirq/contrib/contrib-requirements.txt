@@ -1,4 +1,4 @@
 # Runtime requirements for contrib.
 
 pylatex==1.3.*
-tensorflow
+tf-nightly
