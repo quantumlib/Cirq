@@ -75,6 +75,8 @@ ABCDEFGHIJKL
 """
     assert (cirq.GridQubit.from_diagram(s) ==
             cirq.google.known_devices._parse_device(s)[0])
+    with pytest.raises(ValueError, match="Input string has invalid character"):
+        cirq.GridQubit.from_diagram('@')
 
 
 def test_xmon_qubit_ordering():
