@@ -82,12 +82,9 @@ def test_decomposition():
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
-    cirq.testing.assert_has_diagram(ion_circuit, """
-0: ───X───Ry(0.5π)───MS(0.25π)───Rx(-0.5π)───Ry(-0.5π)───
-                     │
-1: ──────────────────MS(0.25π)───Rx(-0.5π)───────────────
-            """, use_unicode_characters=True)
-
+    d.validate_circuit(ion_circuit)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        circuit, ion_circuit, atol=1e-6)
 
 
 def test_repr():
