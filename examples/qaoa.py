@@ -84,6 +84,7 @@ def main():
 
     # Define objective function (we'll use the negative expected cut value)
     num_samples = 1000
+
     def f(x):
         # Create circuit
         betas = x[:p]
