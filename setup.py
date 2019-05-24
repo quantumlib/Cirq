@@ -44,4 +44,7 @@ setup(name='cirq',
       description=description,
       long_description=long_description,
       packages=cirq_packages,
-      package_data={'cirq.api.google.v1': ['*.proto']})
+      package_data={
+          'cirq.api.google.v1': ['*.proto'],
+          'cirq.api.google.v2': ['*.proto'],
+      })
