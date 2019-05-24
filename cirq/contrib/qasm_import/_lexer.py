@@ -21,7 +21,6 @@ from cirq.contrib.qasm_import.exception import QasmException
 
 
 class QasmLexer(object):
-    NATURAL_NUMBER = "NATURAL_NUMBER"
 
     def __init__(self, qasm: str):
         self.qasm = qasm
