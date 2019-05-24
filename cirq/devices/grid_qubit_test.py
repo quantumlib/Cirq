@@ -48,9 +48,9 @@ def test_rec():
                                                         [cirq.GridQubit(5, 7)]]
     assert cirq.GridQubit.rect(
         2, 2) == [[cirq.GridQubit(0, 0),
-                   cirq.GridQubit(1, 0)],
-                  [cirq.GridQubit(0, 1),
-                   cirq.GridQubit(1, 1)]]
+                                          cirq.GridQubit(1, 0)],
+                                         [cirq.GridQubit(0, 1),
+                                          cirq.GridQubit(1, 1)]]
 
 
 def test_diagram():
