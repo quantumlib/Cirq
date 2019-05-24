@@ -39,8 +39,7 @@ class GridQubit(ops.Qid):
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
 
     @staticmethod
-    def square(diameter: int, top: int = 0,
-               left: int = 0) -> List[List['GridQubit']]:
+    def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
         """Returns a square of GridQubits.
 
         Args:
@@ -49,13 +48,13 @@ class GridQubit(ops.Qid):
             left: Column number of the leftmost row
 
         Returns:
-            A matrix of GridQubits filling in a square grid
+            A list of GridQubits filling in a square grid
         """
         return GridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
     def rect(rows: int, cols: int, top: int = 0,
-             left: int = 0) -> List[List['GridQubit']]:
+             left: int = 0) -> List['GridQubit']:
         """Returns a rectangle of GridQubits.
 
         Args:
@@ -65,10 +64,13 @@ class GridQubit(ops.Qid):
             left: Column number of the leftmost row
 
         Returns:
-            A matrix of GridQubits filling in a rectangular grid
+            A list of GridQubits filling in a rectangular grid
         """
-        return [[GridQubit(row, col) for row in range(top, top + rows)]
-                for col in range(left, left + cols)]
+        return [
+            GridQubit(row, col)
+            for row in range(top, top + rows)
+            for col in range(left, left + cols)
+        ]
 
     @staticmethod
     def from_diagram(diagram: str) -> List['GridQubit']:
