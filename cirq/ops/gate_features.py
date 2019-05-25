@@ -45,9 +45,15 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             Operations applying this gate to the target qubits.
 
         Raises:
-            ValueError if targets are not instances of Qid.
+            ValueError if targets are not instances of Qid or List[Qid].
         """
-        return [self.on(target) for target in targets]
+        operations = []
+        for target in targets:
+            if isinstance(target, list):
+                operations.extend(self.on_each(*target))
+            else:
+                operations.append(self.on(target))
+        return operations
 
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
