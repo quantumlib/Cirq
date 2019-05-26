@@ -28,7 +28,6 @@ class EngineReturn:
         return self
 
 
-
 def test_aqt_sampler():
     put_call_args = {
         'data': '[["X", 0.1, [0]]]',
@@ -119,7 +118,9 @@ def test_aqt_sampler_ms():
     circuit = Circuit(device=device)
     for _dummy in range(9):
         circuit.append(XX(qubits[0], qubits[1])**0.5)
-    results = sampler.run(circuit, repetitions=repetitions, num_qubits=num_qubits)
+    results = sampler.run(circuit,
+                          repetitions=repetitions,
+                          num_qubits=num_qubits)
     hist = (results.histogram(key='m'))
     print(hist)
     assert hist[12] > repetitions / 3

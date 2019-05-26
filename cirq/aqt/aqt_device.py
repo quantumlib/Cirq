@@ -2,8 +2,6 @@ import json
 from typing import Union, Tuple, List
 from cirq import Circuit, Simulator, LineQubit, study, IonDevice
 from cirq import measure, X, Y, XX, Duration, depolarize
-
-
 """Current device parameters for the AQT/UIBK ion trap device
 
 The device is based on a linear calcium ion string with
@@ -16,8 +14,6 @@ https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta
 The native gate set is local gates: X,Y, and XX entangling gates
 
 """
-
-
 
 gate_dict = {'X': X, 'Y': Y, 'MS': XX}
 
