@@ -8,7 +8,7 @@ from cirq.aqt import AQTSampler, AQTSamplerSim
 from cirq.aqt.aqt_device import get_aqt_device
 
 
-class engine_return:
+class EngineReturn:
     """A put mock class for testing the REST interface"""
 
     def __init__(self):
@@ -28,16 +28,15 @@ class engine_return:
         return self
 
 
-put_call_args = {
-    'data': '[["X", 0.1, [0]]]',
-    'acccess_token': 'testkey',
-    'repetitions': 10,
-    'no_qubits': 1
-}
-
 
 def test_aqt_sampler():
-    e_return = engine_return()
+    put_call_args = {
+        'data': '[["X", 0.1, [0]]]',
+        'acccess_token': 'testkey',
+        'repetitions': 10,
+        'num_qubits': 1
+    }
+    e_return = EngineReturn()
     with mock.patch('cirq.aqt.aqt_sampler.put',
                     return_value=e_return,
                     side_effect=e_return.update) as mock_method:
@@ -55,12 +54,11 @@ def test_aqt_sampler():
         results = sampler.run_sweep(circuit,
                                     params=sweep,
                                     repetitions=repetitions,
-                                    no_qubit=1,
+                                    num_qubits=1,
                                     access_token='testkey')
         excited_state_probs = np.zeros(num_points)
         for i in range(num_points):
             excited_state_probs[i] = np.mean(results[i].measurements['m'])
-        print(excited_state_probs)
     callargs = mock_method.call_args[1]['data']
     for keys in put_call_args:
         assert callargs[keys] == put_call_args[keys]
@@ -72,8 +70,8 @@ def test_aqt_sampler_sim():
     num_points = 10
     max_angle = np.pi
     repetitions = 100
-    no_qubit = 4
-    _device, qubits = get_aqt_device(no_qubit)
+    num_qubits = 4
+    _device, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerSim()
     sampler.simulate_ideal = True
     circuit = Circuit.from_ops(X(qubits[3])**theta)
@@ -84,7 +82,7 @@ def test_aqt_sampler_sim():
     results = sampler.run_sweep(circuit,
                                 params=sweep,
                                 repetitions=repetitions,
-                                no_qubit=no_qubit)
+                                num_qubits=num_qubits)
     excited_state_probs = np.zeros(num_points)
     # print(results)
     for i in range(num_points):
@@ -97,8 +95,8 @@ def test_aqt_sampler_sim_xtalk():
     num_points = 10
     max_angle = np.pi
     repetitions = 100
-    no_qubit = 4
-    _device, qubits = get_aqt_device(no_qubit)
+    num_qubits = 4
+    _device, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerSim()
     sampler.simulate_ideal = False
     circuit = Circuit.from_ops(X(qubits[0]), X(qubits[3]), X(qubits[2]))
@@ -109,19 +107,19 @@ def test_aqt_sampler_sim_xtalk():
     _results = sampler.run_sweep(circuit,
                                  params=sweep,
                                  repetitions=repetitions,
-                                 no_qubit=no_qubit)
+                                 num_qubits=num_qubits)
 
 
 def test_aqt_sampler_ms():
     # TODO: Check big/little endian of result
     repetitions = 100
-    no_qubit = 4
-    device, qubits = get_aqt_device(no_qubit)
+    num_qubits = 4
+    device, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerSim()
     circuit = Circuit(device=device)
     for _dummy in range(9):
         circuit.append(XX(qubits[0], qubits[1])**0.5)
-    results = sampler.run(circuit, repetitions=repetitions, no_qubit=no_qubit)
+    results = sampler.run(circuit, repetitions=repetitions, num_qubits=num_qubits)
     hist = (results.histogram(key='m'))
     print(hist)
     assert hist[12] > repetitions / 3
@@ -130,8 +128,8 @@ def test_aqt_sampler_ms():
 
 def test_aqt_sampler_wrong_gate():
     repetitions = 100
-    no_qubit = 4
-    device, qubits = get_aqt_device(no_qubit)
+    num_qubits = 4
+    device, qubits = get_aqt_device(num_qubits)
     sampler = AQTSamplerSim()
     circuit = Circuit(device=device)
     circuit.append(Y(qubits[0])**0.5)
@@ -139,4 +137,4 @@ def test_aqt_sampler_wrong_gate():
     with pytest.raises(RuntimeError):
         _results = sampler.run(circuit,
                                repetitions=repetitions,
-                               no_qubit=no_qubit)
+                               num_qubits=num_qubits)

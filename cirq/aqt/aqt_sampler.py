@@ -10,7 +10,7 @@ from cirq import circuits, schedules, study, Sampler, resolve_parameters
 from cirq.ops.eigen_gate import EigenGate
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Sweep
-from cirq.aqt.aqt_simulator import AQTSimulator
+from cirq.aqt.aqt_device import AQTSimulator
 
 Sweepable = Union[ParamResolver, Iterable[ParamResolver], Sweep,
                   Iterable[Sweep]]
@@ -69,7 +69,7 @@ class AQTSampler(Sampler):
             remote_host: str = 'http://localhost:5000',
             access_token: str = '',
             repetitions: int = 1,
-            no_qubit: int = 1,
+            num_qubits: int = 1,
     ):
         """Sends the json string to the remote AQT device
         Args:
@@ -77,7 +77,7 @@ class AQTSampler(Sampler):
             id_str: Unique id of the datapoint
             remote_host: address of the remote device
             repetitions: Number of repetitions
-            no_qubit: Number of qubits present in the device
+            num_qubits: Number of qubits present in the device
 
         Returns:
             measurement results as an array of boolean
@@ -87,7 +87,7 @@ class AQTSampler(Sampler):
                        'data': json_str,
                        'id': id_str,
                        'repetitions': repetitions,
-                       'no_qubits': no_qubit
+                       'num_qubits': num_qubits
                    }).json()
         while data['status'] != 'finished':
             time.sleep(1.0)
@@ -97,12 +97,12 @@ class AQTSampler(Sampler):
                            'id': id_str,
                            'acccess_token': access_token,
                            'repetitions': repetitions,
-                           'no_qubits': no_qubit
+                           'num_qubits': num_qubits
                        }).json()
         measurements_int = data['samples']
-        measurements = np.zeros((len(measurements_int), no_qubit))
+        measurements = np.zeros((len(measurements_int), num_qubits))
         for i, result_int in enumerate(measurements_int):
-            for j in range(no_qubit):
+            for j in range(num_qubits):
                 measurements[i, j] = np.floor(result_int / 2**j)
         # TODO: Check Big endian/little endian encoding!
         return measurements
@@ -111,7 +111,7 @@ class AQTSampler(Sampler):
                   program: Union[circuits.Circuit, schedules.Schedule],
                   params: study.Sweepable,
                   repetitions: int = 1,
-                  no_qubit: int = 1,
+                  num_qubits: int = 1,
                   remote_host: str = 'http://localhost:5000',
                   access_token: str = '') -> List[study.TrialResult]:
         """Samples from the given Circuit or Schedule.
@@ -124,7 +124,7 @@ class AQTSampler(Sampler):
             Should be generated using AQTSampler.generate_circuit_from_list
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            no_qubit: The number of qubits in the system
+            num_qubits: The number of qubits in the system
             remote_host: address of the remote device
             access_token: access token for the remote api
 
@@ -132,7 +132,7 @@ class AQTSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        # TODO: Where should we get the no_qubits??
+        # TODO: Where should we get the num_qubits??
         # TODO: Probably from the measurement in the circuit!
         meas_name = 'm'  # TODO: Get measurement name from circuit
         circuit = (program if isinstance(program, circuits.Circuit) else
@@ -146,7 +146,7 @@ class AQTSampler(Sampler):
             results = self._send_json(json_list,
                                       id_str,
                                       repetitions=repetitions,
-                                      no_qubit=no_qubit,
+                                      num_qubits=num_qubits,
                                       remote_host=remote_host,
                                       access_token=access_token)
             results = results.astype(bool)
@@ -162,7 +162,7 @@ class AQTSampler(Sampler):
             program: Union[circuits.Circuit, schedules.Schedule],
             param_resolver: 'study.ParamResolverOrSimilarType' = None,
             repetitions: int = 1,
-            no_qubit: int = 4,
+            num_qubits: int = 4,
             remote_host: str = 'http://localhost:5000',
     ) -> study.TrialResult:
         """Samples from the given Circuit or Schedule.
@@ -172,7 +172,7 @@ class AQTSampler(Sampler):
             Should be generated using AQTSampler.generate_circuit_from_list
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            no_qubit: The number of qubits
+            num_qubits: The number of qubits
 
         Returns:
             TrialResult for a run.
@@ -180,7 +180,7 @@ class AQTSampler(Sampler):
         return self.run_sweep(program,
                               study.ParamResolver(param_resolver),
                               repetitions=repetitions,
-                              no_qubit=no_qubit,
+                              num_qubits=num_qubits,
                               remote_host=remote_host)[0]
 
 
@@ -204,7 +204,7 @@ class AQTSamplerSim(AQTSampler):
             remote_host: str = 'http://localhost:5000',
             access_token: str = '',
             repetitions: int = 1,
-            no_qubit: int = 1,
+            num_qubits: int = 1,
     ):
         """Replaces the remote host with a local simulator
         Args:
@@ -212,7 +212,7 @@ class AQTSamplerSim(AQTSampler):
             id_str: Unique id of the datapoint
             remote_host: address of the remote device
             repetitions: Number of repetitions
-            no_qubit: Number of qubits present in the device
+            num_qubits: Number of qubits present in the device
 
         Returns:
             measurement results as an array of boolean
@@ -220,7 +220,7 @@ class AQTSamplerSim(AQTSampler):
         if self.simulate_ideal == None:
             self.simulate_ideal = False
         sim = AQTSimulator(  # type: ignore
-            no_qubit=no_qubit,
+            num_qubits=num_qubits,
             simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
