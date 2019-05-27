@@ -208,8 +208,7 @@ class AQTSamplerSim(AQTSampler):
             json_str: str,
             id_str: Union[str, uuid.UUID],
             repetitions: int = 1,
-            num_qubits: int = 1,
-    ) -> np.ndarray:
+            num_qubits: int = 1) -> np.ndarray:
         """Replaces the remote host with a local simulator
         Args:
             json_str: Json representation of the circuit.
