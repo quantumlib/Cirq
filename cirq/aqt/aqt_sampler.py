@@ -35,7 +35,14 @@ class AQTSampler(Sampler):
     runs a single circuit or an entire sweep remotely
     """
 
-    def __init__(self, remote_host, access_token):
+    def __init__(self,
+                 remote_host : str,
+                 access_token: str):
+        """
+        Args:
+            remote_host: Address of the remote device.
+            access_token: Access token for the remote api.
+        """
         self.remote_host = remote_host
         self.access_token = access_token
 
@@ -72,14 +79,13 @@ class AQTSampler(Sampler):
     ):
         """Sends the json string to the remote AQT device
         Args:
-            json_str: json representation of the circuit
-            id_str: Unique id of the datapoint
-            remote_host: address of the remote device
-            repetitions: Number of repetitions
-            num_qubits: Number of qubits present in the device
+            json_str: Json representation of the circuit.
+            id_str: Unique id of the datapoint.
+            repetitions: Number of repetitions.
+            num_qubits: Number of qubits present in the device.
 
         Returns:
-            measurement results as an array of boolean
+            Measurement results as an array of boolean.
         """
         while True:
             time.sleep(1.0)
@@ -116,8 +122,6 @@ class AQTSampler(Sampler):
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             num_qubits: The number of qubits in the system.
-            remote_host: Address of the remote device.
-            access_token: Access token for the remote api.
 
         The parameters remote_host and access_token are not used.
 
@@ -183,10 +187,21 @@ class AQTSamplerSim(AQTSampler):
     sampler.simulate_ideal=True
     """
 
-    def __init__(self, remote_host='', access_token=''):
+    def __init__(self,
+                 remote_host: str ='',
+                 access_token: str ='',
+                 simulate_ideal: bool = False):
+        """
+
+        Args:
+            remote_host: Remote host is not used by the local simulator.
+            access_token: Access token is not used by the local simulator.
+            simulate_ideal: Boolean that determines whether a noisy or
+                            an ideal simulation is performed.
+        """
         self.remote_host = remote_host
         self.access_token = access_token
-        self.simulate_ideal = None
+        self.simulate_ideal = simulate_ideal
 
     def _send_json(
             self,
@@ -194,20 +209,17 @@ class AQTSamplerSim(AQTSampler):
             id_str: Union[str, uuid.UUID],
             repetitions: int = 1,
             num_qubits: int = 1,
-    ):
+            ) -> np.ndarray:
         """Replaces the remote host with a local simulator
         Args:
             json_str: Json representation of the circuit.
             id_str: Unique id of the datapoint.
-            remote_host: Address of the remote device.
             repetitions: Number of repetitions.
             num_qubits: Number of qubits present in the device.
 
         Returns:
-            Measurement results as an array of boolean.
+            Measurement results as an ndarray of booleans.
         """
-        if self.simulate_ideal is None:
-            self.simulate_ideal = False
         sim = AQTSimulator(num_qubits=num_qubits,
                            simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
