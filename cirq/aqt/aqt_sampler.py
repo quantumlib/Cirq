@@ -1,7 +1,7 @@
 import json
 import time
 import uuid
-from typing import Iterable, List, Union
+from typing import Iterable, List, Tuple, Union
 
 import numpy as np
 from requests import put
@@ -35,6 +35,10 @@ class AQTSampler(Sampler):
     runs a single circuit or an entire sweep remotely
     """
 
+    def __init__(self, remote_host, access_token):
+        self.remote_host = remote_host
+        self.access_token = access_token
+
     def _run_api(
             self,
             circuit: circuits.Circuit,
@@ -49,13 +53,13 @@ class AQTSampler(Sampler):
             json formatted string of the sequence
         """
 
-        seq_list = []
-        circuit = resolve_parameters(circuit, param_resolver)  # type: ignore
+        seq_list: List[Tuple[str, float, List[int]]] = []
+        circuit = resolve_parameters(circuit, param_resolver)
         # TODO: Check if circuit is empty
         for op in circuit.all_operations():
             qubits = [obj.x for obj in op.qubits]  # type: ignore
             op_str = get_op_string(op.gate)  # type: ignore
-            seq_list.append([op_str, op.gate.exponent, qubits])  # type: ignore
+            seq_list.append((op_str, op.gate.exponent, qubits))  # type: ignore
         json_list = json.dumps(seq_list)
         return json_list
 
@@ -63,8 +67,6 @@ class AQTSampler(Sampler):
             self,
             json_str: str,
             id_str: Union[str, uuid.UUID],
-            remote_host: str,
-            access_token: str = '',
             repetitions: int = 1,
             num_qubits: int = 1,
     ):
@@ -81,11 +83,11 @@ class AQTSampler(Sampler):
         """
         while True:
             time.sleep(1.0)
-            data = put(remote_host,
+            data = put(self.remote_host,
                        data={
                            'data': json_str,
                            'id': id_str,
-                           'acccess_token': access_token,
+                           'acccess_token': self.access_token,
                            'repetitions': repetitions,
                            'num_qubits': num_qubits
                        }).json()
@@ -101,10 +103,8 @@ class AQTSampler(Sampler):
     def run_sweep(self,
                   program: Union[circuits.Circuit, schedules.Schedule],
                   params: study.Sweepable,
-                  remote_host: str = 'None',
                   repetitions: int = 1,
-                  num_qubits: int = 1,
-                  access_token: str = '') -> List[study.TrialResult]:
+                  num_qubits: int = 1) -> List[study.TrialResult]:
         """Samples from the given Circuit or Schedule.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -139,9 +139,7 @@ class AQTSampler(Sampler):
             results = self._send_json(json_list,
                                       id_str,
                                       repetitions=repetitions,
-                                      num_qubits=num_qubits,
-                                      remote_host=remote_host,
-                                      access_token=access_token)
+                                      num_qubits=num_qubits)
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
@@ -150,14 +148,11 @@ class AQTSampler(Sampler):
                                   measurements=res_dict))
         return trial_results
 
-    def run(
-            self,
+    def run(self,
             program: Union[circuits.Circuit, schedules.Schedule],
             param_resolver: 'study.ParamResolverOrSimilarType' = None,
             repetitions: int = 1,
-            num_qubits: int = 4,
-            remote_host: str = 'http://localhost:5000',
-    ) -> study.TrialResult:
+            num_qubits: int = 4) -> study.TrialResult:
         """Samples from the given Circuit or Schedule.
 
         Args:
@@ -173,8 +168,7 @@ class AQTSampler(Sampler):
         return self.run_sweep(program,
                               study.ParamResolver(param_resolver),
                               repetitions=repetitions,
-                              num_qubits=num_qubits,
-                              remote_host=remote_host)[0]
+                              num_qubits=num_qubits)[0]
 
 
 class AQTSamplerSim(AQTSampler):
@@ -188,14 +182,16 @@ class AQTSamplerSim(AQTSampler):
     sampler = AQTSamplerSim()
     sampler.simulate_ideal=True
     """
-    simulate_ideal = None
+
+    def __init__(self, remote_host='', access_token=''):
+        self.remote_host = remote_host
+        self.access_token = access_token
+        self.simulate_ideal = None
 
     def _send_json(
             self,
             json_str: str,
             id_str: Union[str, uuid.UUID],
-            remote_host: str = 'http://localhost:5000',
-            access_token: str = '',
             repetitions: int = 1,
             num_qubits: int = 1,
     ):
@@ -210,11 +206,10 @@ class AQTSamplerSim(AQTSampler):
         Returns:
             Measurement results as an array of boolean.
         """
-        if self.simulate_ideal == None:
+        if self.simulate_ideal is None:
             self.simulate_ideal = False
-        sim = AQTSimulator(
-            num_qubits=num_qubits,
-            simulate_ideal=self.simulate_ideal)
+        sim = AQTSimulator(num_qubits=num_qubits,
+                           simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
         return data.measurements['m']

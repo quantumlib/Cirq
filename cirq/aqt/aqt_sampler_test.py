@@ -43,7 +43,8 @@ def test_aqt_sampler():
         num_points = 1
         max_angle = np.pi
         repetitions = 10
-        sampler = AQTSampler()
+        sampler = AQTSampler(remote_host="http://localhost:5000",
+                             access_token='testkey')
         qubit = LineQubit(0)
         circuit = Circuit.from_ops(X(qubit)**theta)
         sweep = study.Linspace(key='theta',
@@ -53,9 +54,7 @@ def test_aqt_sampler():
         results = sampler.run_sweep(circuit,
                                     params=sweep,
                                     repetitions=repetitions,
-                                    num_qubits=1,
-                                    remote_host="http://localhost:5000",
-                                    access_token='testkey')
+                                    num_qubits=1)
         excited_state_probs = np.zeros(num_points)
         for i in range(num_points):
             excited_state_probs[i] = np.mean(results[i].measurements['m'])
