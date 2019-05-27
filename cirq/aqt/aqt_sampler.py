@@ -1,7 +1,7 @@
 import json
 import time
 import uuid
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Union
 
 import numpy as np
 from requests import put
@@ -75,8 +75,7 @@ class AQTSampler(Sampler):
             json_str: str,
             id_str: Union[str, uuid.UUID],
             repetitions: int = 1,
-            num_qubits: int = 1,
-    ):
+            num_qubits: int = 1):
         """Sends the json string to the remote AQT device
         Args:
             json_str: Json representation of the circuit.
