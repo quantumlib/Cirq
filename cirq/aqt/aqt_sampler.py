@@ -69,13 +69,12 @@ class AQTSampler(Sampler):
         json_list = json.dumps(seq_list)
         return json_list
 
-    def _send_json(
-            self,
-            *,
-            json_str: str,
-            id_str: Union[str, uuid.UUID],
-            repetitions: int = 1,
-            num_qubits: int = 1):
+    def _send_json(self,
+                   *,
+                   json_str: str,
+                   id_str: Union[str, uuid.UUID],
+                   repetitions: int = 1,
+                   num_qubits: int = 1):
         """Sends the json string to the remote AQT device
         Args:
             json_str: Json representation of the circuit.
@@ -202,13 +201,12 @@ class AQTSamplerSim(AQTSampler):
         self.access_token = access_token
         self.simulate_ideal = simulate_ideal
 
-    def _send_json(
-            self,
-            *,
-            json_str: str,
-            id_str: Union[str, uuid.UUID],
-            repetitions: int = 1,
-            num_qubits: int = 1) -> np.ndarray:
+    def _send_json(self,
+                   *,
+                   json_str: str,
+                   id_str: Union[str, uuid.UUID],
+                   repetitions: int = 1,
+                   num_qubits: int = 1) -> np.ndarray:
         """Replaces the remote host with a local simulator
         Args:
             json_str: Json representation of the circuit.
