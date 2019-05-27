@@ -58,7 +58,8 @@ class AQTSampler(Sampler):
             json formatted string of the sequence
         """
 
-        seq_list: List[Tuple[str, float, List[int]]] = []
+        #seq_list: List[Tuple[str, float, List[int]]] = []
+        seq_list = []
         circuit = resolve_parameters(circuit, param_resolver)  # type: ignore
         # TODO: Check if circuit is empty
         for op in circuit.all_operations():
