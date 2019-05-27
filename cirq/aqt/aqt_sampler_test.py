@@ -54,6 +54,7 @@ def test_aqt_sampler():
                                     params=sweep,
                                     repetitions=repetitions,
                                     num_qubits=1,
+                                    remote_host="http://localhost:5000",
                                     access_token='testkey')
         excited_state_probs = np.zeros(num_points)
         for i in range(num_points):
