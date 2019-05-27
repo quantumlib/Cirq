@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq import LineQubit, X, Y, Z, XX, Circuit, study
+from cirq import X, Y, Z, XX, Circuit, study
 from cirq.aqt import AQTSampler, AQTSamplerSim
 from cirq.aqt.aqt_device import get_aqt_device
 
@@ -45,8 +45,8 @@ def test_aqt_sampler():
         repetitions = 10
         sampler = AQTSampler(remote_host="http://localhost:5000",
                              access_token='testkey')
-        qubit = LineQubit(0)
-        circuit = Circuit.from_ops(X(qubit)**theta)
+        _device, qubits = get_aqt_device(4)
+        circuit = Circuit.from_ops(X(qubits[0])**theta)
         sweep = study.Linspace(key='theta',
                                start=0.1,
                                stop=max_angle / np.pi,
@@ -110,7 +110,6 @@ def test_aqt_sampler_sim_xtalk():
 
 
 def test_aqt_sampler_ms():
-    # TODO: Check big/little endian of result
     repetitions = 100
     num_qubits = 4
     device, qubits = get_aqt_device(num_qubits)
@@ -135,7 +134,7 @@ def test_aqt_sampler_wrong_gate():
     circuit = Circuit(device=device)
     circuit.append(Y(qubits[0])**0.5)
     circuit.append(Z(qubits[0])**0.5)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         _results = sampler.run(circuit,
                                repetitions=repetitions,
                                num_qubits=num_qubits)

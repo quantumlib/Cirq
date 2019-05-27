@@ -25,7 +25,7 @@ def get_op_string(op_obj: ops.EigenGate):
     elif isinstance(op_obj, ops.YPowGate):
         op_str = 'Y'
     else:
-        raise RuntimeError('Got unknown gate:', op_obj)
+        raise ValueError('Got unknown gate:', op_obj)
     return op_str
 
 
@@ -35,9 +35,7 @@ class AQTSampler(Sampler):
     runs a single circuit or an entire sweep remotely
     """
 
-    def __init__(self,
-                 remote_host : str,
-                 access_token: str):
+    def __init__(self, remote_host: str, access_token: str):
         """
         Args:
             remote_host: Address of the remote device.
@@ -61,7 +59,7 @@ class AQTSampler(Sampler):
         """
 
         seq_list: List[Tuple[str, float, List[int]]] = []
-        circuit = resolve_parameters(circuit, param_resolver)
+        circuit = resolve_parameters(circuit, param_resolver)  # type: ignore
         # TODO: Check if circuit is empty
         for op in circuit.all_operations():
             qubits = [obj.x for obj in op.qubits]  # type: ignore
@@ -72,6 +70,7 @@ class AQTSampler(Sampler):
 
     def _send_json(
             self,
+            *,
             json_str: str,
             id_str: Union[str, uuid.UUID],
             repetitions: int = 1,
@@ -140,8 +139,8 @@ class AQTSampler(Sampler):
             id_str = uuid.uuid1()
             json_list = self._run_api(circuit=circuit,
                                       param_resolver=param_resolver)
-            results = self._send_json(json_list,
-                                      id_str,
+            results = self._send_json(json_str=json_list,
+                                      id_str=id_str,
                                       repetitions=repetitions,
                                       num_qubits=num_qubits)
             results = results.astype(bool)
@@ -188,8 +187,8 @@ class AQTSamplerSim(AQTSampler):
     """
 
     def __init__(self,
-                 remote_host: str ='',
-                 access_token: str ='',
+                 remote_host: str = '',
+                 access_token: str = '',
                  simulate_ideal: bool = False):
         """
 
@@ -205,11 +204,12 @@ class AQTSamplerSim(AQTSampler):
 
     def _send_json(
             self,
+            *,
             json_str: str,
             id_str: Union[str, uuid.UUID],
             repetitions: int = 1,
             num_qubits: int = 1,
-            ) -> np.ndarray:
+    ) -> np.ndarray:
         """Replaces the remote host with a local simulator
         Args:
             json_str: Json representation of the circuit.
