@@ -87,6 +87,11 @@ def test_unitary():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
+    diagonal_angles = [np.pi * i / 4 for i in range(0,8)]
+    assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(*diagonal_angles))
+    np.testing.assert_allclose(cirq.unitary(
+        cirq.ThreeQubitDiagonalGate(*diagonal_angles)),
+        np.diag([np.exp(1j * angle) for angle in diagonal_angles]), atol=1e-8)
 
 def test_str():
     assert str(cirq.CCX) == 'TOFFOLI'
@@ -128,6 +133,11 @@ def test_eq():
     eq.add_equality_group(cirq.TOFFOLI(a, b, d))
     eq.add_equality_group(cirq.CSWAP(a, b, c), cirq.FREDKIN(a, b, c))
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
+    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
+    eq.add_equality_group(
+            cirq.ThreeQubitDiagonalGate(*diagonal_angles),
+            cirq.ThreeQubitDiagonalGate(
+                *[angle + 2 * np.pi for angle in diagonal_angles]))
 
 
 @pytest.mark.parametrize('op,max_two_cost', [
@@ -141,6 +151,10 @@ def test_eq():
     (cirq.CSWAP(cirq.LineQubit(1),
                 cirq.LineQubit(0),
                 cirq.LineQubit(2)), 12),
+    (cirq.ThreeQubitDiagonalGate(
+        *[np.pi * i / 4 for i in range(0, 8)])(cirq.LineQubit(1),
+                                               cirq.LineQubit(2),
+                                               cirq.LineQubit(3)), 8),
 ])
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     ops = tuple(
@@ -152,7 +166,8 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.CCX, cirq.CSWAP, cirq.CCZ,
+    cirq.CCX, cirq.CSWAP, cirq.CCZ, 
+    cirq.ThreeQubitDiagonalGate(*[np.pi * i / 4 for i in range(0, 8)]),
 ])
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
@@ -167,6 +182,7 @@ def test_decomposition_respects_locality(gate):
 
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
+    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
     circuit = cirq.Circuit.from_ops(
         cirq.TOFFOLI(a, b, c),
         cirq.TOFFOLI(a, b, c)**0.5,
@@ -174,23 +190,24 @@ def test_diagram():
         cirq.CCZ(a, d, b),
         cirq.CCZ(a, d, b)**0.5,
         cirq.CSWAP(a, c, d),
-        cirq.FREDKIN(a, b, c)
+        cirq.FREDKIN(a, b, c),
+        cirq.ThreeQubitDiagonalGate(*diagonal_angles)(a, b, c)
     )
     cirq.testing.assert_has_diagram(circuit, """
-0: ───@───@───────@───@───@───────@───@───
-      │   │       │   │   │       │   │
-1: ───@───@───────X───@───@───────┼───×───
-      │   │       │   │   │       │   │
-2: ───X───X^0.5───@───┼───┼───────×───×───
+0: ───@───@───────@───@───@───────@───@───diag───
+      │   │       │   │   │       │   │   │
+1: ───@───@───────X───@───@───────┼───×───#2─────
+      │   │       │   │   │       │   │   │
+2: ───X───X^0.5───@───┼───┼───────×───×───#3─────
                       │   │       │
-3: ───────────────────@───@^0.5───×───────
+3: ───────────────────@───@^0.5───×──────────────
 """)
     cirq.testing.assert_has_diagram(circuit, """
-0: ---@---@-------@---@---@-------@------@------
-      |   |       |   |   |       |      |
-1: ---@---@-------X---@---@-------|------swap---
-      |   |       |   |   |       |      |
-2: ---X---X^0.5---@---|---|-------swap---swap---
+0: ---@---@-------@---@---@-------@------@------diag---
+      |   |       |   |   |       |      |      |
+1: ---@---@-------X---@---@-------|------swap---#2-----
+      |   |       |   |   |       |      |      |
+2: ---X---X^0.5---@---|---|-------swap---swap---#3-----
                       |   |       |
-3: -------------------@---@^0.5---swap----------
+3: -------------------@---@^0.5---swap-----------------
 """, use_unicode_characters=False)

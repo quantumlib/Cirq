@@ -146,6 +146,7 @@ from cirq.ops import (
     T,
     TOFFOLI,
     ThreeQubitGate,
+    ThreeQubitDiagonalGate,
     TwoQubitGate,
     TwoQubitMatrixGate,
     WaveFunctionDisplay,
