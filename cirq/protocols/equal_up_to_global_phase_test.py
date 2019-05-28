@@ -27,9 +27,10 @@ def test_equal_up_to_global_phase_primitives():
     assert cirq.equal_up_to_global_phase(0, 0, atol=1e-09)
 
 
-def test_approx_eq_numeric_iterables():
+def test_equal_up_to_global_numeric_iterables():
     # TODO: tuples, lists, numpy arrays
     assert cirq.equal_up_to_global_phase([], [], atol=0.0)
+    assert cirq.equal_up_to_global_phase([[]], [[]], atol=0.0)
     assert cirq.equal_up_to_global_phase([1j, 1], [1j, 1])
     assert cirq.equal_up_to_global_phase([1j, 1j], [1, 1])
     assert cirq.equal_up_to_global_phase([1j, 1], [1, -1j])
@@ -41,20 +42,26 @@ def test_approx_eq_numeric_iterables():
     assert not cirq.equal_up_to_global_phase((1j, 1), (1, 1j))
 
 
-def test_approx_eq_mixed_array_types():
+def test_equal_up_to_global_numpy_array():
+    assert cirq.equal_up_to_global_phase(
+        np.asarray([1j, 1j]), np.asarray([1, 1], dtype=np.complex64))
+    assert not cirq.equal_up_to_global_phase(
+        np.asarray([1j, -1j]), np.asarray([1, 1], dtype=np.complex64))
+    assert cirq.equal_up_to_global_phase(np.asarray([]), np.asarray([]))
+    assert cirq.equal_up_to_global_phase(np.asarray([[]]), np.asarray([[]]))
+
+
+def test_equal_up_to_global_mixed_array_types():
     a = [1j, 1, -1j, -1]
     b = [-1, 1j, 1, -1j]
     c = [-1, 1, -1, 1]
     assert cirq.equal_up_to_global_phase(a, tuple(b))
     assert not cirq.equal_up_to_global_phase(a, tuple(c))
+
     c_types = [np.complex64, np.complex128]
     if hasattr(np, 'complex256'):
         c_types.append(np.complex256)
     for c_type in c_types:
-        assert cirq.equal_up_to_global_phase(
-            np.asarray(a, dtype=c_type), np.asarray(b, dtype=c_type))
-        assert not cirq.equal_up_to_global_phase(
-            np.asarray(a, dtype=c_type), np.asarray(c, dtype=c_type))
         assert cirq.equal_up_to_global_phase(
             np.asarray(a, dtype=c_type), tuple(b))
         assert not cirq.equal_up_to_global_phase(
@@ -62,7 +69,7 @@ def test_approx_eq_mixed_array_types():
         assert cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type), b)
         assert not cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type), c)
 
-    # object arrays and mixed array/scalar
+    # object arrays and mixed array/scalar comparisons
     assert not cirq.equal_up_to_global_phase([1j], 1j)
     assert not cirq.equal_up_to_global_phase(
         np.asarray([1], dtype=np.complex128), np.exp(1j))
@@ -105,7 +112,6 @@ def test_approx_eq_supported():
     assert cirq.equal_up_to_global_phase(B(0.0j), 1e-8j, atol=1e-8)
     assert cirq.equal_up_to_global_phase(1e-8j, B(0.0j), atol=1e-8)
     assert not cirq.equal_up_to_global_phase(1e-8j, B(0.0 + 0j), atol=1e-10)
-    # reject attempt to cast types
-    assert not cirq.equal_up_to_global_phase(A(0.1), A(0.1j), atol=1e-2)
-    assert not cirq.equal_up_to_global_phase(A(0.0), A(0.1j), atol=0.0)
+    # cast types
+    assert cirq.equal_up_to_global_phase(A(0.1), A(0.1j), atol=1e-2)
     assert not cirq.equal_up_to_global_phase(1e-8j, B(0.0), atol=1e-10)

@@ -98,7 +98,10 @@ def equal_up_to_global_phase(
     if isinstance(val, Iterable) and isinstance(other, Iterable):
         a = np.array(val)
         b = np.array(other)
-        if (a.dtype.kind in set('uifc') and b.dtype.kind in set('uifc')):
+        # FIXME: allclose_up_to_global_phase doesn't support mismatched sizes
+        # FIXME: allclose_up_to_global_phase doesn't support empty arrays
+        if a.shape == b.shape and any(a) and any(b) and \
+                a.dtype.kind in set('uifc') and b.dtype.kind in set('uifc'):
             return cirq.linalg.allclose_up_to_global_phase(a, b, atol=atol)
 
     # fall back to approx_eq for compare the magnitude of two numbers.
