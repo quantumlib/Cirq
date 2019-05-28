@@ -252,7 +252,8 @@ def decompose(
             queue[:0] = ops.flatten_op_tree(decomposed)
             continue
 
-        if isinstance(item, collections.Iterable):
+        if (not isinstance(item, ops.Operation) and
+                isinstance(item, collections.Iterable)):
             queue[:0] = ops.flatten_op_tree(item)
             continue
 

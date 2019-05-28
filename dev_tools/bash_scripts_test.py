@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import os
 
 import cirq
 from dev_tools import shell_tools
 
 
-def only_in_python3_on_posix(func):
+def only_on_posix(func):
     if os.name != 'posix':
-        return None
-    if sys.version_info.major < 3:
         return None
     return func
 
@@ -37,7 +33,6 @@ def run(*, script_file: str, arg: str ='', setup: str = ''
 
     intercepted = [
         'python',
-        'python2',
         'python3',
         'pylint',
         'pytest',
@@ -68,7 +63,7 @@ chmod +x ./test-script
             err=shell_tools.TeeCapture())
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_pytest_changed_files_file_selection():
 
     result = run(script_file='check/pytest-changed-files',
@@ -129,7 +124,7 @@ def test_pytest_changed_files_file_selection():
         "Found 1 differing files with associated tests.\n").split()
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_pytest_changed_files_branch_selection():
 
     result = run(script_file='check/pytest-changed-files', arg='HEAD')
@@ -231,7 +226,7 @@ def test_pytest_changed_files_branch_selection():
         "Found 0 differing files with associated tests.\n").split()
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_pytest_and_incremental_coverage_branch_selection():
     result = run(script_file='check/pytest-and-incremental-coverage',
                  arg='HEAD')

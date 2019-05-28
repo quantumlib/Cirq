@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Check protobuf modules initialize successfully."""
 
-import sys
-
-if sys.version_info < (3,):
-    import mock  # pylint: disable=unused-import
-else:
-    from unittest import mock
+# pylint: disable=unused-import
+from cirq.api.google.v2 import metrics_pb2
+from cirq.api.google.v2 import program_pb2
+from cirq.api.google.v2 import result_pb2
+from cirq.api.google.v2 import run_context_pb2
+# pylint: enable=unused-import

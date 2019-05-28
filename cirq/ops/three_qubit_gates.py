@@ -14,7 +14,7 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
@@ -504,4 +504,5 @@ CSWAP = CSwapGate()
 
 # Common names.
 TOFFOLI = CCX
+CCNOT = TOFFOLI
 FREDKIN = CSWAP
