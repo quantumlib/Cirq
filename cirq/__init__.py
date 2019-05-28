@@ -75,6 +75,7 @@ from cirq.linalg import (
     map_eigenvalues,
     match_global_phase,
     matrix_from_basis_coefficients,
+    one_hot,
     partial_trace,
     PAULI_BASIS,
     reflection_matrix_pow,
