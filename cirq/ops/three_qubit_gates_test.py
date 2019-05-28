@@ -32,6 +32,10 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
 
+    diag_angles = [np.pi * i / 4 for i in range(0, 8)]
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.ThreeQubitDiagonalGate(*diag_angles),
+        ignoring_global_phase=True)
 
 def test_init():
     assert (cirq.CCZ**0.5).exponent == 0.5
@@ -135,9 +139,9 @@ def test_eq():
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
     diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
     eq.add_equality_group(
-            cirq.ThreeQubitDiagonalGate(*diagonal_angles),
-            cirq.ThreeQubitDiagonalGate(
-                *[angle + 2 * np.pi for angle in diagonal_angles]))
+        cirq.ThreeQubitDiagonalGate(*diagonal_angles),
+        cirq.ThreeQubitDiagonalGate(
+            *[angle + 2 * np.pi for angle in diagonal_angles]))
 
 
 @pytest.mark.parametrize('op,max_two_cost', [
@@ -166,7 +170,7 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.CCX, cirq.CSWAP, cirq.CCZ, 
+    cirq.CCX, cirq.CSWAP, cirq.CCZ,
     cirq.ThreeQubitDiagonalGate(*[np.pi * i / 4 for i in range(0, 8)]),
 ])
 def test_decomposition_respects_locality(gate):
@@ -211,3 +215,15 @@ def test_diagram():
                       |   |       |
 3: -------------------@---@^0.5---swap-----------------
 """, use_unicode_characters=False)
+
+def test_diagonal_exponent():
+    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
+    diagonal_gate = cirq.ThreeQubitDiagonalGate(*diagonal_angles)
+    
+    sqrt_diagonal_gate = diagonal_gate**.5
+    
+    expected_angles = [np.pi * i / 8 for i in range(0, 8)]
+    np.testing.assert_allclose(expected_angles,
+                               sqrt_diagonal_gate._diag_angles,
+                               atol=1e-8)
+

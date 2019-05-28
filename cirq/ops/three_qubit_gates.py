@@ -14,7 +14,7 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -154,7 +154,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                  f: float = 0.0,
                  g: float = 0.0,
                  h: float = 0.0) -> None:
-        self._diag_angles = []
+        self._diag_angles: List[float] = []
         self._diag_angles.append(a)
         self._diag_angles.append(b)
         self._diag_angles.append(c)
@@ -164,17 +164,20 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         self._diag_angles.append(g)
         self._diag_angles.append(h)
         self._matrix = np.diag(
-                [np.exp(1j * angle) for angle in self._diag_angles])
+            [np.exp(1j * angle) for angle in self._diag_angles])
 
     def _unitary_(self) -> np.ndarray:
         return self._matrix
-   
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('diag', '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
-        return ThreeQubitDiagonalGate(*(self._date_angles * exponent))
+        if not isinstance(exponent, (int, float)):
+            return NotImplemented
+        return ThreeQubitDiagonalGate(
+            *[angle * exponent for angle in self._diag_angles])
 
 
     def _decompose_(self, qubits):
@@ -190,7 +193,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                     [0, 0, 1, 0, 1, 1, 1][x_0]   [l_1]
                     [0, 1, 0, 1, 1, 0, 1][x_1]   [l_2]
                     [0, 1, 1, 1, 0, 1, 0][x_2]   [l_3]
-                    [1, 0, 0, 1, 1, 1, 0][x_3] = [l_4] 
+                    [1, 0, 0, 1, 1, 1, 0][x_3] = [l_4]
                     [1, 0, 1, 1, 0, 0, 1][x_4]   [l_5]
                     [1, 1, 0, 0, 0, 1, 1][x_5]   [l_6]
                     [1, 1, 1, 0, 1, 0, 0][x_6]   [l_7]
@@ -216,13 +219,13 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                                  [1, 0, 1, 1, 0, 0, 1],
                                  [1, 1, 0, 0, 0, 1, 1],
                                  [1, 1, 1, 0, 1, 0, 0]])
-        shifted_angles_tail = [angle - self._diag_angles[0] 
-                for angle in self._diag_angles[1:]]
+        shifted_angles_tail = [angle - self._diag_angles[0]
+                               for angle in self._diag_angles[1:]]
         phase_solutions = np.linalg.solve(phase_matrix, shifted_angles_tail)
         p_gates = []
         for solution in phase_solutions:
-            p_gates.append(common_gates.T**(4*solution))
-        
+            p_gates.append(common_gates.T**(4*solution / np.pi))
+
         return [
             p_gates[0](a), p_gates[1](b), p_gates[2](c),
             sweep_abc,
@@ -233,28 +236,32 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             p_gates[6](c),
             sweep_abc,
         ]
-    
+
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
-        if self._matrix == np.identity(8):
+        if np.allclose(self._matrix, np.identity(8)):
             return args.target_tensor
         return linalg.targeted_left_multiply(
-                matrix.astype(args.target_tensor.dtype).reshape(
-                    (2,) * (2 * len(args.axes))),
-                args.target_tensor,
-                args.axes,
-                out=args.available_buffer)
+            self._matrix.astype(args.target_tensor.dtype).reshape(
+                (2,) * (2 * len(args.axes))),
+            args.target_tensor,
+            args.axes,
+            out=args.available_buffer)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return np.allclose([np.exp(1j * angle) for angle in self._diag_angles], 
+        return np.allclose([np.exp(1j * angle) for angle in self._diag_angles],
                            [np.exp(1j * angle) for angle in other._diag_angles])
-    
+
     def __ne__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
         return not self == other
-    
+
+    def __repr__(self) -> str:
+        return 'cirq.ThreeQubitDiagonalGate(*{})'.format(
+            proper_repr(self._diag_angles))
+
 
 class CCXPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
