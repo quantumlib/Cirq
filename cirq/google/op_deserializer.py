@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Iterable, NamedTuple, Optional
-
+from typing import Any, Callable, Dict, NamedTuple, Optional, Sequence
 import sympy
 
 from cirq import devices, ops
@@ -21,11 +20,12 @@ from cirq.google import arg_func_langs
 
 
 class DeserializingArg(
-        NamedTuple(
-            'DeserializingArg',
-            [('serialized_name', str), ('constructor_arg_name', str),
-             ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
-             ('required', bool)])):
+        NamedTuple('DeserializingArg', [
+            ('serialized_name', str),
+            ('constructor_arg_name', str),
+            ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
+            ('required', bool),
+        ])):
     """Specification of the arguments to deserialize an argument to a gate.
 
     Attributes:
@@ -51,7 +51,7 @@ class DeserializingArg(
                                   value_func, required)
 
 
-class GateOpDeserializer():
+class GateOpDeserializer:
     """Describes how to deserialize a proto to a given Gate type.
 
     Attributes:
@@ -61,7 +61,7 @@ class GateOpDeserializer():
     def __init__(self,
                  serialized_gate_id: str,
                  gate_constructor: type,
-                 args: Iterable[DeserializingArg],
+                 args: Sequence[DeserializingArg],
                  num_qubits_param: Optional[str] = None):
         """Constructs a deserializer.
 
@@ -97,7 +97,7 @@ class GateOpDeserializer():
         for arg in self.args:
             if arg.serialized_name not in args_proto_dict and arg.required:
                 raise ValueError(
-                    'Argument {} not in serialized input for but is required.'.
+                    'Argument {} not in deserializing args, but is required.'.
                     format(arg.serialized_name))
 
             value = None  # type: Optional[arg_func_langs.ArgValue]

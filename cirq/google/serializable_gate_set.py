@@ -20,7 +20,7 @@ from cirq.google import op_deserializer, op_serializer
 from cirq import circuits, devices, ops, schedules, value
 
 
-class SerializableGateSet():
+class SerializableGateSet:
     """A class for serializing and deserializing programs and operations.
 
     This class is for cirq.api.google.v2. protos.
