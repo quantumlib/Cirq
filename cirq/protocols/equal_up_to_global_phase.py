@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import Iterable
+import numbers
 import cirq
 
 
@@ -76,7 +77,7 @@ def equal_up_to_global_phase(
         True if objects are approximately equal up to phase, False otherwise.
     """
 
-    # fall back to _equal_up_to_global_phase_ for val.
+    # attempt _equal_up_to_global_phase_ for val.
     eq_up_to_phase_getter = getattr(val, '_equal_up_to_global_phase_', None)
     if eq_up_to_phase_getter is not None:
         result = eq_up_to_phase_getter(other, atol)
@@ -92,80 +93,21 @@ def equal_up_to_global_phase(
         if result is not NotImplemented:
             return result
 
-    # Try to compare the magnitude of two complex numbers.
-    # FIXME: why restrict casting int, float -> complex for comparison?
-    if isinstance(val, complex):
-        if not isinstance(other, complex):
-            return False
-        return cirq.approx_eq(np.abs(val), np.abs(other), atol=atol)
+    # fall back to special check for numeric arrays
+    # defer to numpy automatic type casting to determine numeric type
+    if isinstance(val, Iterable) and isinstance(other, Iterable):
+        a = np.array(val)
+        b = np.array(other)
+        if (a.dtype.kind in set('uifc') and b.dtype.kind in set('uifc')):
+            return cirq.linalg.allclose_up_to_global_phase(a, b, atol=atol)
 
-    # Try to compare source and target recursively, assuming they're iterable.
-    result = _eq_up_to_phase_iterables(val, other, atol=atol)
+    # fall back to approx_eq for compare the magnitude of two numbers.
+    if isinstance(val, numbers.Number):
+        if not isinstance(other, numbers.Number):
+            return False
+        result = cirq.approx_eq(abs(val), abs(other), atol=atol)
+        if result is not NotImplemented:
+            return result
 
     # Fallback to cir approx_eq for remaining types
-    if result is NotImplemented:
-        return cirq.approx_eq(val, other, atol=atol)
-    return result
-
-
-def _eq_up_to_phase_iterables(
-    val: Any,
-    other: Any,
-    *,
-    atol: Union[int, float]
-) -> bool:
-    """Iterates over arguments and checks for equality up to global phase.
-
-    For iterables of the same length and comparable structure, check that the
-    difference between phases of corresponding elements can be described by a
-    single complex value.
-
-    Args:
-        val: Source for comparison.
-        other: Target for comparison.
-        atol: The minimum absolute tolerance.
-
-    Returns:
-        True if objects are approximately equal up to phase, False otherwise.
-        Returns NotImplemented when approximate equality is not implemented
-        for given types.
-    """
-
-    if not (isinstance(val, Iterable) and isinstance(other, Iterable)):
-        return NotImplemented
-
-    val_it = iter(val)
-    other_it = iter(other)
-    global_phase = None
-
-    while True:
-        try:
-            val_next = next(val_it)
-        # only allow phase comparison for equal-length containers
-        except StopIteration:
-            try:
-                next(other_it)
-                return False
-            except StopIteration:
-                return True
-
-        try:
-            other_next = next(other_it)
-        except StopIteration:
-            return False
-        # check that a single value describes all phase differences between
-        # corresponding values in the containers
-        if global_phase is None:
-            global_phase = _phase_difference(val_next, other_next)
-        current_phase = _phase_difference(val_next, other_next)
-        if not cirq.approx_eq(current_phase, global_phase, atol=atol):
-            return False
-
-    return NotImplemented
-
-
-def _phase_difference(a: complex, b: complex):
-    """Compute the angle between two complex numbers in the Argand plane."""
-    phi1 = np.arctan2(a.imag, a.real)
-    phi2 = np.arctan2(b.imag, b.real)
-    return cirq.PeriodicValue(phi1 - phi2, 2.0 * np.pi)
+    return cirq.approx_eq(val, other, atol=atol)
