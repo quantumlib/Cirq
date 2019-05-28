@@ -18,9 +18,11 @@ import cirq
 def test_equal_up_to_global_phase_primitives():
     assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 + 1j, atol=1e-09)
     assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 - 1j, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(np.exp(1j*3.3), 1.0 + 0.0j, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(np.exp(1j*3.3), 1.0, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(np.exp(1j*3.3), 1, atol=1e-09)
+    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3),
+                                         1.0 + 0.0j,
+                                         atol=1e-09)
+    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3), 1.0, atol=1e-09)
+    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3), 1, atol=1e-09)
     assert cirq.equal_up_to_global_phase(1j, 1, atol=1e-10)
     # atol is determined by magnitude of complex vector, not components
     assert cirq.equal_up_to_global_phase(0.0, 1e-10, atol=1e-09)
@@ -43,8 +45,8 @@ def test_equal_up_to_global_numeric_iterables():
 
 
 def test_equal_up_to_global_numpy_array():
-    assert cirq.equal_up_to_global_phase(
-        np.asarray([1j, 1j]), np.asarray([1, 1], dtype=np.complex64))
+    assert cirq.equal_up_to_global_phase(np.asarray([1j, 1j]),
+                                         np.asarray([1, 1], dtype=np.complex64))
     assert not cirq.equal_up_to_global_phase(
         np.asarray([1j, -1j]), np.asarray([1, 1], dtype=np.complex64))
     assert cirq.equal_up_to_global_phase(np.asarray([]), np.asarray([]))
@@ -62,10 +64,10 @@ def test_equal_up_to_global_mixed_array_types():
     if hasattr(np, 'complex256'):
         c_types.append(np.complex256)
     for c_type in c_types:
-        assert cirq.equal_up_to_global_phase(
-            np.asarray(a, dtype=c_type), tuple(b))
-        assert not cirq.equal_up_to_global_phase(
-            np.asarray(a, dtype=c_type), tuple(c))
+        assert cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type),
+                                             tuple(b))
+        assert not cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type),
+                                                 tuple(c))
         assert cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type), b)
         assert not cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type), c)
 
@@ -88,9 +90,9 @@ class A:
     def _equal_up_to_global_phase_(self, other, atol):
         if not isinstance(other, A):
             return NotImplemented
-        return cirq.equal_up_to_global_phase(
-            self.val[0], other.val[0], atol=atol
-        )
+        return cirq.equal_up_to_global_phase(self.val[0],
+                                             other.val[0],
+                                             atol=atol)
 
 
 # Dummy container class implementing _equal_up_to_global_phase_
@@ -106,7 +108,7 @@ class B:
         return cirq.equal_up_to_global_phase(self.val[0], other, atol=atol)
 
 
-def test_approx_eq_supported():
+def test_equal_up_to_global_phase_eq_supported():
     assert cirq.equal_up_to_global_phase(A(0.1 + 0j), A(0.1j), atol=1e-2)
     assert not cirq.equal_up_to_global_phase(A(0.0 + 0j), A(0.1j), atol=0.0)
     assert cirq.equal_up_to_global_phase(B(0.0j), 1e-8j, atol=1e-8)

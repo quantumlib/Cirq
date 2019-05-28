@@ -14,25 +14,19 @@
 
 from collections import Iterable
 import numbers
-import cirq
-
-
-from typing import Any, Union
 
 import numpy as np
-
+from typing import Any, Union
 from typing_extensions import Protocol
+
+import cirq
 
 
 class SupportsEqualUpToGlobalPhase(Protocol):
     """Object which can be compared for equality mod global phase."""
 
-    def _equal_up_to_global_phase_(
-            self,
-            other: Any,
-            *,
-            atol: Union[int, float]
-        ) -> bool:
+    def _equal_up_to_global_phase_(self, other: Any, *,
+                                   atol: Union[int, float]) -> bool:
         """Approximate comparator.
 
         Types implementing this protocol define their own logic for comparison
@@ -50,12 +44,10 @@ class SupportsEqualUpToGlobalPhase(Protocol):
         """
 
 
-def equal_up_to_global_phase(
-    val: Any,
-    other: Any,
-    *,
-    atol: Union[int, float] = 1e-8
-) -> bool:
+def equal_up_to_global_phase(val: Any,
+                             other: Any,
+                             *,
+                             atol: Union[int, float] = 1e-8) -> bool:
     """Determine whether two objects are equal up to global phase.
 
     If `val` implements SupportsEqualUpToGlobalPhase protocol then it is
@@ -85,9 +77,8 @@ def equal_up_to_global_phase(
             return result
 
     # fall back to _equal_up_to_global_phase_ for other.
-    other_eq_up_to_phase_getter = getattr(
-        other, '_equal_up_to_global_phase_', None
-    )
+    other_eq_up_to_phase_getter = getattr(other, '_equal_up_to_global_phase_',
+                                          None)
     if other_eq_up_to_phase_getter is not None:
         result = other_eq_up_to_phase_getter(val, atol)
         if result is not NotImplemented:
