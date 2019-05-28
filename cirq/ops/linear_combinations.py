@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping, Optional, Tuple, Union
+from typing import Mapping, Optional, Tuple, Union, List
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types
+from cirq.ops.pauli_string import PauliString
+from cirq.value import linear_dict
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -192,7 +194,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         def extend(expansion: value.LinearDict[str],
                    qubits: Tuple[raw_types.Qid, ...],
                    all_qubits: Tuple[raw_types.Qid, ...]
-                  ) -> value.LinearDict[str]:
+                   ) -> value.LinearDict[str]:
             """Extends Pauli expansion on qubits to expansion on all_qubits."""
             return value.LinearDict({
                 extend_term(p, qubits, all_qubits): c
@@ -205,3 +207,54 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
             extended_expansion = extend(expansion, op.qubits, self.qubits)
             result += extended_expansion * coefficient
         return result
+
+
+class PauliSum:
+    """Represents operator defined by linear combination of PauliStrings.
+
+    Since PauliStrings store their own coefficients, this class
+    does not implement the LinearDict interface. Instead, you can
+    add and subtract terms and then iterate over the resulting
+    (simplified) expression.
+
+    Under the hood, this class is backed by a LinearDict with coefficient-less
+    PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
+    iteration.
+
+    """
+
+    def __init__(self, linear_dict):
+        self._linear_dict = linear_dict
+
+    @classmethod
+    def from_pauli_strings(cls, terms: List[PauliString]):
+        terms = {pstring.unit(): pstring.coefficient for pstring in terms}
+        return cls(linear_dict=value.LinearDict(terms))
+
+    def __iter__(self):
+        for vec, coeff in self._linear_dict.items():
+            yield PauliString.from_unit(vec, coeff)
+
+    def __iadd__(self, other):
+        if isinstance(other, PauliString):
+            other = PauliSum.from_pauli_strings([other])
+
+        self._linear_dict += other._linear_dict
+        return self
+
+    def __isub__(self, other):
+        if isinstance(other, PauliString):
+            other = PauliSum.from_pauli_strings([other])
+        self._linear_dict -= other
+        return self
+
+    def __repr__(self) -> str:
+        return self._linear_dict.__repr__()
+
+    def __format__(self, format_spec: str) -> str:
+        terms = [(PauliString.from_unit(v), self._linear_dict[v])
+                 for v in self._linear_dict.keys()]
+        return linear_dict._format_terms(terms=terms, format_spec=format_spec)
+
+    def __str__(self):
+        return self.__format__('.3f')

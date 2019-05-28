@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast)
+                    Tuple, TypeVar, Union, ValuesView, overload, Optional,
+                    cast, FrozenSet)
 
 import cmath
 import math
@@ -32,6 +33,7 @@ from cirq.ops import (
 )
 
 TDefault = TypeVar('TDefault')
+UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 
 
 @value.value_equality(approximate=True, manual_cls=True)
@@ -56,13 +58,26 @@ class PauliString(raw_types.Operation):
     def coefficient(self) -> complex:
         return self._coefficient
 
+    def unit(self) -> UnitPauliStringT:
+        """The PauliString without a coefficient.
+
+        This is analogous to the 'unit vector' for this PauliString.
+        This is suitable for using as a key in a dictionary, particularly
+        for use in PauliSum's backing LinearDict.
+        """
+        return frozenset(self._qubit_pauli_map.items())
+
+    @staticmethod
+    def from_unit(unit: UnitPauliStringT,
+                  coefficient: Union[int, float, complex] = 1):
+        return PauliString(dict(unit), coefficient=coefficient)
+
     def _value_equality_values_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
             q, p = list(self._qubit_pauli_map.items())[0]
             return gate_operation.GateOperation(p,
                                                 [q])._value_equality_values_()
-        return (frozenset(self._qubit_pauli_map.items()),
-                self._coefficient)
+        return self.unit(), self._coefficient
 
     def _value_equality_values_cls_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
@@ -114,6 +129,12 @@ class PauliString(raw_types.Operation):
         if isinstance(other, (int, float, complex)):
             return PauliString(self._qubit_pauli_map, self._coefficient * other)
         return NotImplemented
+
+    def __add__(self, other):
+        from cirq.ops.linear_combinations import PauliSum
+        if isinstance(other, PauliString):
+            return PauliSum.from_pauli_strings([self, other])
+        return other + self
 
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
