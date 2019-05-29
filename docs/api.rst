@@ -518,7 +518,6 @@ general testing utilities.
     testing.EqualsTester
     testing.highlight_text_differences
     testing.nonoptimal_toffoli_circuit
-    testing.only_test_in_python3
     testing.OrderTester
     testing.random_circuit
     testing.random_orthogonal
