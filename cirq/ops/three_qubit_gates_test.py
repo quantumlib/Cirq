@@ -219,9 +219,9 @@ def test_diagram():
 def test_diagonal_exponent():
     diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(*diagonal_angles)
-    
+
     sqrt_diagonal_gate = diagonal_gate**.5
-    
+ 
     expected_angles = [np.pi * i / 8 for i in range(0, 8)]
     np.testing.assert_allclose(expected_angles,
                                sqrt_diagonal_gate._diag_angles,
