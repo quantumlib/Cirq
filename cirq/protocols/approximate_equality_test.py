@@ -50,13 +50,17 @@ def test_numpy_dtype_compatibility():
         assert not cirq.approx_eq(u_type(i_a), u_type(i_c), atol=1)
 
     f_a, f_b, f_c = 0, 1e-8, 1
-    f_types = [np.float16, np.float32, np.float64, np.float128]
+    f_types = [np.float16, np.float32, np.float64]
+    if hasattr(np, 'float128'):
+        f_types.append(np.float128)
     for f_type in f_types:
         assert cirq.approx_eq(f_type(f_a), f_type(f_b), atol=1e-8)
         assert not cirq.approx_eq(f_type(f_a), f_type(f_c), atol=1e-8)
 
     c_a, c_b, c_c = 0, 1e-8j, 1j
-    c_types = [np.complex64, np.complex128, np.complex256]
+    c_types = [np.complex64, np.complex128]
+    if hasattr(np, 'complex256'):
+        c_types.append(np.complex256)
     for c_type in c_types:
         assert cirq.approx_eq(c_type(c_a), c_type(c_b), atol=1e-8)
         assert not cirq.approx_eq(c_type(c_a), c_type(c_c), atol=1e-8)
@@ -77,7 +81,8 @@ def test_approx_eq_mixed_types():
     assert cirq.approx_eq(np.float32(1), 1.0 + 1e-10, atol=1e-9)
     assert cirq.approx_eq(np.float64(1), np.complex64(1 + 1e-8j), atol=1e-4)
     assert cirq.approx_eq(np.uint8(1), np.complex64(1 + 1e-8j), atol=1e-4)
-    assert cirq.approx_eq(np.complex256(1), complex(1, 1e-8), atol=1e-4)
+    if hasattr(np, 'complex256'):
+        assert cirq.approx_eq(np.complex256(1), complex(1, 1e-8), atol=1e-4)
     assert cirq.approx_eq(np.int32(1), 1, atol=1e-9)
     assert cirq.approx_eq(complex(0.5, 0), Fraction(1, 2), atol=0.0)
     assert cirq.approx_eq(0.5 + 1e-4j, Fraction(1, 2), atol=1e-4)
