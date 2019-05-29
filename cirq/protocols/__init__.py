@@ -49,8 +49,7 @@ from cirq.protocols.decompose import (
     SupportsDecomposeWithQubits,
 )
 from cirq.protocols.equal_up_to_global_phase import (
-    equal_up_to_global_phase,
-)
+    equal_up_to_global_phase,)
 from cirq.protocols.inverse import (
     inverse,
 )
