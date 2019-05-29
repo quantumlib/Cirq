@@ -154,7 +154,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                  f: float = 0.0,
                  g: float = 0.0,
                  h: float = 0.0) -> None:
-        self._diag_angles = [] # type: List[float]
+        self._diag_angles = []  # type: List[float]
         self._diag_angles.append(a)
         self._diag_angles.append(b)
         self._diag_angles.append(c)
@@ -170,7 +170,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return self._matrix
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                              ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('diag', '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
@@ -210,26 +210,26 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                 b, c = c, b
             elif not b.is_adjacent(c):
                 a, b = b, a
-        sweep_abc = [common_gates.CNOT(a, b),
-                     common_gates.CNOT(b, c)]
-        phase_matrix = np.array([[0, 0, 1, 0, 1, 1, 1],
-                                 [0, 1, 0, 1, 1, 0, 1],
-                                 [0, 1, 1, 1, 0, 1, 0],
-                                 [1, 0, 0, 1, 1, 1, 0],
-                                 [1, 0, 1, 1, 0, 0, 1],
-                                 [1, 1, 0, 0, 0, 1, 1],
+        sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
+        phase_matrix = np.array([[0, 0, 1, 0, 1, 1, 1], [0, 1, 0, 1, 1, 0, 1],
+                                 [0, 1, 1, 1, 0, 1, 0], [1, 0, 0, 1, 1, 1, 0],
+                                 [1, 0, 1, 1, 0, 0, 1], [1, 1, 0, 0, 0, 1, 1],
                                  [1, 1, 1, 0, 1, 0, 0]])
-        shifted_angles_tail = [angle - self._diag_angles[0]
-                               for angle in self._diag_angles[1:]]
+        shifted_angles_tail = [
+                angle - self._diag_angles[0] for angle in self._diag_angles[1:]
+        ]
         phase_solutions = np.linalg.solve(phase_matrix, shifted_angles_tail)
         p_gates = []
         for solution in phase_solutions:
-            p_gates.append(common_gates.T**(4*solution / np.pi))
+            p_gates.append(common_gates.T**(4 * solution / np.pi))
 
         return [
-            p_gates[0](a), p_gates[1](b), p_gates[2](c),
+            p_gates[0](a),
+            p_gates[1](b),
+            p_gates[2](c),
             sweep_abc,
-            p_gates[3](b), p_gates[4](c),
+            p_gates[3](b),
+            p_gates[4](c),
             sweep_abc,
             p_gates[5](c),
             sweep_abc,
@@ -240,12 +240,11 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         if np.allclose(self._matrix, np.identity(8)):
             return args.target_tensor
-        return linalg.targeted_left_multiply(
-            self._matrix.astype(args.target_tensor.dtype).reshape(
-                (2,) * (2 * len(args.axes))),
-            args.target_tensor,
-            args.axes,
-            out=args.available_buffer)
+        return linalg.targeted_left_multiply(self._matrix.astype(
+            args.target_tensor.dtype).reshape((2,) * (2 * len(args.axes))),
+                                             args.target_tensor,
+                                             args.axes,
+                                             out=args.available_buffer)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

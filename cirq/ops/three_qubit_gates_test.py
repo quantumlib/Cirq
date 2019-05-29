@@ -34,8 +34,7 @@ def test_consistent_protocols():
 
     diag_angles = [np.pi * i / 4 for i in range(0, 8)]
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ThreeQubitDiagonalGate(*diag_angles),
-        ignoring_global_phase=True)
+        cirq.ThreeQubitDiagonalGate(*diag_angles), ignoring_global_phase=True)
 
 def test_init():
     assert (cirq.CCZ**0.5).exponent == 0.5
@@ -91,10 +90,10 @@ def test_unitary():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
-    diagonal_angles = [np.pi * i / 4 for i in range(0,8)]
+    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
     assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(*diagonal_angles))
-    np.testing.assert_allclose(cirq.unitary(
-        cirq.ThreeQubitDiagonalGate(*diagonal_angles)),
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.ThreeQubitDiagonalGate(*diagonal_angles)),
         np.diag([np.exp(1j * angle) for angle in diagonal_angles]), atol=1e-8)
 
 def test_str():
@@ -147,18 +146,12 @@ def test_eq():
 @pytest.mark.parametrize('op,max_two_cost', [
     (cirq.CCZ(*cirq.LineQubit.range(3)), 8),
     (cirq.CCX(*cirq.LineQubit.range(3)), 8),
-    (cirq.CCZ(cirq.LineQubit(0),
-              cirq.LineQubit(2),
-              cirq.LineQubit(1)), 8),
+    (cirq.CCZ(cirq.LineQubit(0), cirq.LineQubit(2), cirq.LineQubit(1)), 8),
     (cirq.CSWAP(*cirq.LineQubit.range(3)), 9),
     (cirq.CSWAP(*reversed(cirq.LineQubit.range(3))), 9),
-    (cirq.CSWAP(cirq.LineQubit(1),
-                cirq.LineQubit(0),
-                cirq.LineQubit(2)), 12),
-    (cirq.ThreeQubitDiagonalGate(
-        *[np.pi * i / 4 for i in range(0, 8)])(cirq.LineQubit(1),
-                                               cirq.LineQubit(2),
-                                               cirq.LineQubit(3)), 8),
+    (cirq.CSWAP(cirq.LineQubit(1), cirq.LineQubit(0), cirq.LineQubit(2)), 12),
+    (cirq.ThreeQubitDiagonalGate(*[np.pi * i / 4 for i in range(0, 8)])(
+        cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3)), 8),
 ])
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     ops = tuple(
@@ -170,7 +163,9 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.CCX, cirq.CSWAP, cirq.CCZ,
+    cirq.CCX,
+    cirq.CSWAP,
+    cirq.CCZ,
     cirq.ThreeQubitDiagonalGate(*[np.pi * i / 4 for i in range(0, 8)]),
 ])
 def test_decomposition_respects_locality(gate):
@@ -189,14 +184,9 @@ def test_diagram():
     diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
     circuit = cirq.Circuit.from_ops(
         cirq.TOFFOLI(a, b, c),
-        cirq.TOFFOLI(a, b, c)**0.5,
-        cirq.CCX(a, c, b),
-        cirq.CCZ(a, d, b),
-        cirq.CCZ(a, d, b)**0.5,
-        cirq.CSWAP(a, c, d),
-        cirq.FREDKIN(a, b, c),
-        cirq.ThreeQubitDiagonalGate(*diagonal_angles)(a, b, c)
-    )
+        cirq.TOFFOLI(a, b, c)**0.5, cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
+        cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d), cirq.FREDKIN(a, b, c),
+        cirq.ThreeQubitDiagonalGate(*diagonal_angles)(a, b, c))
     cirq.testing.assert_has_diagram(circuit, """
 0: ───@───@───────@───@───@───────@───@───diag───
       │   │       │   │   │       │   │   │
@@ -206,7 +196,8 @@ def test_diagram():
                       │   │       │
 3: ───────────────────@───@^0.5───×──────────────
 """)
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit,
+                                    """
 0: ---@---@-------@---@---@-------@------@------diag---
       |   |       |   |   |       |      |      |
 1: ---@---@-------X---@---@-------|------swap---#2-----
