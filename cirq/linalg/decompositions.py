@@ -363,20 +363,25 @@ class KakDecomposition:
             before)
 
 
-def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
+def kak_canonicalize_vector(x: float, y: float, z: float,
+                            atol: float = 1e-8) -> KakDecomposition:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
 
     Args:
         x: The strength of the XX interaction.
         y: The strength of the YY interaction.
         z: The strength of the ZZ interaction.
+        atol: If any of the coefficients are less than atol, they will be
+        rounded down to zero
 
     Returns:
         The canonicalized decomposition, with vector coefficients (x2, y2, z2)
         satisfying:
 
-            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
-            z2 ≠ -π/4
+            0 ≤ z2 ≤ y2 ≤ x2 < π/2
+            x2 + y2 ≤ π/2
+            if z2 =0, kx ≤ π/4
+
 
         Guarantees that the implied output matrix:
 
@@ -433,34 +438,43 @@ def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
         right[0] = combinators.dot(s, right[0])
         right[1] = combinators.dot(s, right[1])
 
-    # Shifts an axis strength into the range (-π/4, π/4].
+    # Shifts an axis strength into the range [0, pi/2).
     def canonical_shift(k):
-        while v[k] <= -np.pi / 4:
+        while v[k] < 0:
             shift(k, +1)
-        while v[k] > np.pi / 4:
+        while v[k] >= np.pi / 2:
             shift(k, -1)
 
     # Sorts axis strengths into descending order by absolute magnitude.
     def sort():
-        if abs(v[0]) < abs(v[1]):
+        if v[0] < v[1]:
             swap(0, 1)
-        if abs(v[1]) < abs(v[2]):
+        if v[1] < v[2]:
             swap(1, 2)
-        if abs(v[0]) < abs(v[1]):
+        if v[0] < v[1]:
             swap(0, 1)
 
-    # Get all strengths to (-¼π, ¼π] in descending order by absolute magnitude.
+    # Get all strengths to [0, pi/2) in descending order by absolute magnitude.
     canonical_shift(0)
     canonical_shift(1)
     canonical_shift(2)
     sort()
 
-    # Move all negativity into z.
-    if v[0] < 0:
+    if v[0]+v[1] > np.pi/2:
+        swap(0, 1)
+        negate(0, 1)
+        shift(0, 1)
+        shift(1, 1)
+        sort()
+
+    if v[0] > np.pi/4 and v[2] < atol:
+        v[2] = 0
         negate(0, 2)
-    if v[1] < 0:
-        negate(1, 2)
-    canonical_shift(2)
+        shift(0, 1)
+
+    for index, coef in enumerate(v):
+        if coef < atol:
+            v[index] = 0
 
     return KakDecomposition(
         global_phase=phase[0],

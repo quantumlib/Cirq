@@ -213,10 +213,12 @@ def test_kak_canonicalize_vector(x, y, z):
     b1, b0 = kak.single_qubit_operations_before
     m2 = cirq.unitary(kak)
 
-    assert 0.0 <= x2 <= np.pi / 4
-    assert 0.0 <= y2 <= np.pi / 4
-    assert -np.pi / 4 <= z2 <= np.pi / 4
+    assert 0.0 <= x2 < np.pi / 2
+    assert 0.0 <= y2 < np.pi / 2
+    assert 0.0 <= z2 <= np.pi / 2
     assert abs(x2) >= abs(y2) >= abs(z2)
+    assert x2 + y2 <= np.pi/2
+    assert not z2 == 0 or x2 <= np.pi / 4
     assert cirq.is_special_unitary(a1)
     assert cirq.is_special_unitary(a0)
     assert cirq.is_special_unitary(b1)
