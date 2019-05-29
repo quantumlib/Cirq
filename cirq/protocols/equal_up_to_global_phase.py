@@ -15,9 +15,9 @@
 from collections import Iterable
 import numbers
 from typing import Any, Union
-from typing_extensions import Protocol
 
 import numpy as np
+from typing_extensions import Protocol
 
 import cirq
 
