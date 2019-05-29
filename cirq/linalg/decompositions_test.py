@@ -217,7 +217,7 @@ def test_kak_canonicalize_vector(x, y, z):
     assert 0.0 <= y2 < np.pi / 2
     assert 0.0 <= z2 <= np.pi / 2
     assert abs(x2) >= abs(y2) >= abs(z2)
-    assert x2 + y2 <= np.pi/2
+    assert x2 + y2 <= np.pi / 2
     assert not z2 == 0 or x2 <= np.pi / 4
     assert cirq.is_special_unitary(a1)
     assert cirq.is_special_unitary(a0)

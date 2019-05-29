@@ -460,14 +460,14 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
     canonical_shift(2)
     sort()
 
-    if v[0]+v[1] > np.pi/2:
+    if v[0] + v[1] > np.pi / 2:
         swap(0, 1)
         negate(0, 1)
         shift(0, 1)
         shift(1, 1)
         sort()
 
-    if v[0] > np.pi/4 and v[2] < atol:
+    if v[0] > np.pi / 4 and v[2] < atol:
         v[2] = 0
         negate(0, 2)
         shift(0, 1)
