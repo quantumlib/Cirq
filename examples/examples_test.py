@@ -9,6 +9,7 @@ import examples.quantum_fourier_transform
 import examples.bcs_mean_field
 import examples.phase_estimator
 import examples.basic_arithmetic
+import examples.qaoa
 import examples.quantum_teleportation
 import examples.superdense_coding
 import examples.hhl
@@ -60,6 +61,10 @@ def test_example_runs_basic_arithmetic():
 
 def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
+
+
+def test_example_runs_qaoa():
+    examples.qaoa.main()
 
 
 def test_example_runs_quantum_teleportation():
