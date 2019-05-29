@@ -99,7 +99,7 @@ def equal_up_to_global_phase(val: Any,
     if isinstance(val, numbers.Number):
         if not isinstance(other, numbers.Number):
             return False
-        result = cirq.approx_eq(np.abs(val), np.abs(other), atol=atol)
+        result = cirq.approx_eq(abs(val), abs(other), atol=atol)
         if result is not NotImplemented:
             return result
 
