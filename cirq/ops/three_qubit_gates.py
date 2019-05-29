@@ -154,7 +154,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                  f: float = 0.0,
                  g: float = 0.0,
                  h: float = 0.0) -> None:
-        self._diag_angles = []
+        self._diag_angles = [] # type: List[float]
         self._diag_angles.append(a)
         self._diag_angles.append(b)
         self._diag_angles.append(c)
