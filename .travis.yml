@@ -46,4 +46,13 @@ matrix:
     install:
       - pip install -r requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --ignore=cirq/contrib
+    script: check/pytest --ignore=cirq/contrib --benchmark-skip
+
+  - os: linux
+    env: NAME=performance tests
+    python: "3.6"
+    install:
+      - pip install -r requirements.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --benchmark-only

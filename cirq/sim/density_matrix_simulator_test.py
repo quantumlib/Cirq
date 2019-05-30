@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
 import numpy as np
 import pytest
 import sympy
@@ -31,8 +31,8 @@ def test_run_no_measurements(dtype):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
 
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
-    result = simulator.run(circuit)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        simulator.run(circuit)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -41,15 +41,15 @@ def test_run_no_results(dtype):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
 
     circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
-    result = simulator.run(circuit)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        simulator.run(circuit)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_empty_circuit(dtype):
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    result = simulator.run(cirq.Circuit())
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        simulator.run(cirq.Circuit())
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -464,8 +464,6 @@ def test_density_matrix_simulator_state_eq():
                                          qubit_map={q0: 0, q1: 1}))
 
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-
 def test_density_matrix_simulator_state_repr():
     q0 = cirq.LineQubit(0)
     assert (repr(cirq.DensityMatrixSimulatorState(
@@ -501,8 +499,6 @@ def test_density_matrix_trial_result_eq():
             measurements={'m': np.array([[1]])},
             final_simulator_state=final_simulator_state))
 
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
 
 def test_density_matrix_trial_result_repr():
     q0 = cirq.LineQubit(0)
@@ -612,3 +608,49 @@ def test_compute_samples_displays(dtype):
                                atol=1e-7)
     np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
                                atol=1e-7)
+
+
+def test_works_on_operation():
+
+    class XAsOp(cirq.Operation):
+
+        def __init__(self, q):
+            self.q = q
+
+        @property
+        def qubits(self):
+            return self.q,
+
+        def with_qubits(self, *new_qubits):
+            # coverage: ignore
+            return XAsOp(new_qubits[0])
+
+        def _channel_(self):
+            return cirq.channel(cirq.X)
+
+    s = cirq.DensityMatrixSimulator()
+    c = cirq.Circuit.from_ops(XAsOp(cirq.LineQubit(0)))
+    np.testing.assert_allclose(
+        s.simulate(c).final_simulator_state.density_matrix,
+        np.diag([0, 1]),
+        atol=1e-8)
+
+
+def test_works_on_pauli_string_phasor():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
+    sim = cirq.DensityMatrixSimulator()
+    result = sim.simulate(c).final_simulator_state.density_matrix
+    np.testing.assert_allclose(result.reshape(4, 4),
+                               np.diag([0, 0, 0, 1]),
+                               atol=1e-8)
+
+
+def test_works_on_pauli_string():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.X(a) * cirq.X(b))
+    sim = cirq.DensityMatrixSimulator()
+    result = sim.simulate(c).final_simulator_state.density_matrix
+    np.testing.assert_allclose(result.reshape(4, 4),
+                               np.diag([0, 0, 0, 1]),
+                               atol=1e-8)

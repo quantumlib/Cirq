@@ -21,9 +21,6 @@ def test_named_qubit_str():
     assert q.name == 'a'
     assert str(q) == 'a'
 
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-
 def test_named_qubit_repr():
     q = cirq.NamedQubit('a')
     assert repr(q) == "cirq.NamedQubit('a')"

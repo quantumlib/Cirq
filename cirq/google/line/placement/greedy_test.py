@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import Iterable
-import mock
+from unittest import mock
 import pytest
 
 import cirq

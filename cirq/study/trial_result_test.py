@@ -19,7 +19,6 @@ import pytest
 import cirq
 
 
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
 
 def test_repr():
     v = cirq.TrialResult(
