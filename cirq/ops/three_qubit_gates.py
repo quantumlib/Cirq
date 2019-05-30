@@ -143,8 +143,10 @@ class CCZPowGate(eigen_gate.EigenGate,
             return 'CCZ'
         return 'CCZ**{}'.format(self._exponent)
 
+
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     """A gate given by a diagonal 8x8 matrix."""
+
     def __init__(self,
                  a: float = 0.0,
                  b: float = 0.0,
@@ -178,7 +180,6 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             return NotImplemented
         return ThreeQubitDiagonalGate(
             *[angle * exponent for angle in self._diag_angles])
-
 
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
@@ -216,7 +217,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                                  [1, 0, 1, 1, 0, 0, 1], [1, 1, 0, 0, 0, 1, 1],
                                  [1, 1, 1, 0, 1, 0, 0]])
         shifted_angles_tail = [
-                angle - self._diag_angles[0] for angle in self._diag_angles[1:]
+            angle - self._diag_angles[0] for angle in self._diag_angles[1:]
         ]
         phase_solutions = np.linalg.solve(phase_matrix, shifted_angles_tail)
         p_gates = []
