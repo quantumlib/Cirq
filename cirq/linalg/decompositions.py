@@ -321,8 +321,8 @@ class AxisAngleDecomposition:
 
     def _value_equality_values_(self):
         v = self.canonicalize(atol=0)
-        return (value.PeriodicValue(v.angle, period=math.pi * 2), v.axis,
-                v.global_phase)
+        return (value.PeriodicValue(v.angle,
+                                    period=math.pi * 2), v.axis, v.global_phase)
 
     def _unitary_(self):
         """The unitary represented by this axis angle rotation.
@@ -342,11 +342,9 @@ class AxisAngleDecomposition:
         return (c * i + 1j * s * (x * xm + y * ym + z * zm)) * self.global_phase
 
     def __str__(self):
-        axis_terms = '+'.join(
-            '{:.3g}*{}'.format(e, a) if e < 0.9999 else a
-            for e, a in zip(self.axis, ['X', 'Y', 'Z'])
-            if abs(e) >= 1e-8
-        ).replace('+-', '-')
+        axis_terms = '+'.join('{:.3g}*{}'.format(e, a) if e < 0.9999 else a
+                              for e, a in zip(self.axis, ['X', 'Y', 'Z'])
+                              if abs(e) >= 1e-8).replace('+-', '-')
         return '{:.3g}*π around {}'.format(
             self.angle / np.pi,
             axis_terms,

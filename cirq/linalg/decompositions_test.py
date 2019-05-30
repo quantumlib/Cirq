@@ -312,11 +312,16 @@ def test_axis_angle_decomposition_eq():
     eq.make_equality_group(lambda: cirq.AxisAngleDecomposition(
         angle=1, axis=(0.8, 0.6, 0), global_phase=-1))
     eq.add_equality_group(
-        cirq.AxisAngleDecomposition(angle=5, axis=(0.8, 0.6, 0), global_phase=-1))
+        cirq.AxisAngleDecomposition(angle=5,
+                                    axis=(0.8, 0.6, 0),
+                                    global_phase=-1))
     eq.add_equality_group(
-        cirq.AxisAngleDecomposition(angle=1, axis=(0.8, 0, 0.6), global_phase=-1))
+        cirq.AxisAngleDecomposition(angle=1,
+                                    axis=(0.8, 0, 0.6),
+                                    global_phase=-1))
     eq.add_equality_group(
-        cirq.AxisAngleDecomposition(angle=1, axis=(0.8, 0.6, 0), global_phase=1))
+        cirq.AxisAngleDecomposition(angle=1, axis=(0.8, 0.6, 0),
+                                    global_phase=1))
 
 
 def test_axis_angle_decomposition_repr():
@@ -330,14 +335,15 @@ def test_axis_angle_decomposition_str():
     assert str(cirq.axis_angle(cirq.unitary(cirq.X))) == '1*π around X'
     assert str(cirq.axis_angle(cirq.unitary(cirq.Y))) == '1*π around Y'
     assert str(cirq.axis_angle(cirq.unitary(cirq.Z))) == '1*π around Z'
-    assert str(cirq.axis_angle(cirq.unitary(cirq.H))
-               ) == '1*π around 0.707*X+0.707*Z'
-    assert str(cirq.axis_angle(cirq.unitary(cirq.H**0.5))
-               ) == '0.5*π around 0.707*X+0.707*Z'
-    assert str(cirq.axis_angle(cirq.unitary(cirq.X**0.25) @
-                               cirq.unitary(cirq.Y**0.25) @
-                               cirq.unitary(cirq.Z**0.25))
-               ) == '0.477*π around 0.679*X+0.281*Y+0.679*Z'
+    assert str(cirq.axis_angle(cirq.unitary(
+        cirq.H))) == '1*π around 0.707*X+0.707*Z'
+    assert str(cirq.axis_angle(cirq.unitary(
+        cirq.H**0.5))) == '0.5*π around 0.707*X+0.707*Z'
+    assert str(
+        cirq.axis_angle(
+            cirq.unitary(cirq.X**0.25) @ cirq.unitary(cirq.Y**0.25)
+            @ cirq.unitary(cirq.Z**
+                           0.25))) == '0.477*π around 0.679*X+0.281*Y+0.679*Z'
 
 
 def test_axis_angle_decomposition_unitary():
