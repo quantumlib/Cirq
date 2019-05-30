@@ -47,10 +47,8 @@ def _rotation_matrix(angle: float) -> np.ndarray:
 def deconstruct_single_qubit_matrix_into_angles(
         mat: np.ndarray) -> Tuple[float, float, float]:
     """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
-
     Args:
         mat: The 2x2 unitary matrix to break down.
-
     Returns:
         A tuple containing the amount to phase around Z, then rotate around Y,
         then phase around Z (all in radians).
@@ -77,11 +75,9 @@ def deconstruct_single_qubit_matrix_into_angles(
 def _group_similar(items: List[T],
                    comparer: Callable[[T, T], bool]) -> List[List[T]]:
     """Combines similar items into groups.
-
   Args:
     items: The list of items to group.
     comparer: Determines if two items are similar.
-
   Returns:
     A list of groups of items.
   """
@@ -103,23 +99,19 @@ def _perp_eigendecompose(matrix: np.ndarray,
                          atol: float = 1e-8,
                          ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
-
     numpy.linalg.eig doesn't guarantee that eigenvectors from the same
     eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
     a perpendicular set. It further checks that all eigenvectors are
     perpendicular and raises an ArithmeticError otherwise.
-
     Args:
         matrix: The matrix to decompose.
         rtol: Relative threshold for determining whether eigenvalues are from
               the same eigenspace and whether eigenvectors are perpendicular.
         atol: Absolute threshold for determining whether eigenvalues are from
               the same eigenspace and whether eigenvectors are perpendicular.
-
     Returns:
         The eigenvalues and column eigenvectors. The i'th eigenvalue is
         associated with the i'th column eigenvector.
-
     Raises:
         ArithmeticError: Failed to find perpendicular eigenvectors.
     """
@@ -152,15 +144,12 @@ def map_eigenvalues(
         rtol: float = 1e-5,
         atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
-
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
-
     Args:
         matrix: The matrix to modify with the function.
         func: The function to apply to the eigenvalues of the matrix.
         rtol: Relative threshold used when separating eigenspaces.
         atol: Absolute threshold used when separating eigenspaces.
-
     Returns:
         The transformed matrix.
     """
@@ -180,18 +169,14 @@ def kron_factor_4x4_to_2x2s(
         matrix: np.ndarray,
 ) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
-
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
     Requires the matrix to have a non-zero determinant.
     Giving an incorrect matrix will cause garbage output.
-
     Args:
         matrix: The 4x4 unitary matrix to factor.
-
     Returns:
         A scalar factor and a pair of 2x2 unit-determinant matrices. The
         kronecker product of all three is equal to the given matrix.
-
     Raises:
         ValueError:
             The given matrix can't be tensor-factored into 2x2 pieces.
@@ -231,25 +216,20 @@ def so4_to_magic_su2s(
         check_preconditions: bool = True
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
-
     Mag is the magic basis matrix:
-
         1  0  0  i
         0  i  1  0
         0  i -1  0     (times sqrt(0.5) to normalize)
         1  0  0 -i
-
     Args:
         mat: A real 4x4 orthogonal matrix.
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
         check_preconditions: When set, the code verifies that the given
             matrix is from SO(4). Defaults to set.
-
     Returns:
         A pair (A, B) of matrices in SU(2) such that Mag.H @ kron(A, B) @ Mag
         is approximately equal to the given matrix.
-
     Raises:
         ValueError: Bad matrix.
         """
@@ -267,19 +247,14 @@ def so4_to_magic_su2s(
 @value.value_equality
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
-
     Any two qubit operation U can be decomposed into the form
-
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
-
     This class stores g, (b0, b1), (x, y, z), and (a0, a1).
-
     Attributes:
         global_phase: g from the above equation.
         single_qubit_operations_before: b0, b1 from the above equation.
         interaction_coefficients: x, y, z from the above equation.
         single_qubit_operations_after: a0, a1 from the above equation.
-
     References:
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
@@ -292,9 +267,7 @@ class KakDecomposition:
                  interaction_coefficients: Tuple[float, float, float],
                  single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
         """Initializes a decomposition for a two-qubit operation U.
-
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
-
         Args:
             global_phase: g from the above equation.
             single_qubit_operations_before: b0, b1 from the above equation.
@@ -340,7 +313,6 @@ class KakDecomposition:
 
     def _unitary_(self):
         """Returns the decomposition's two-qubit unitary matrix.
-
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
         """
         before = np.kron(*self.single_qubit_operations_before)
@@ -364,31 +336,21 @@ class KakDecomposition:
 
 
 def kak_canonicalize_vector(x: float, y: float, z: float,
-                            atol: float = 1e-8) -> KakDecomposition:
+                            atol: float = 1e-9) -> KakDecomposition:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
-
     Args:
         x: The strength of the XX interaction.
         y: The strength of the YY interaction.
         z: The strength of the ZZ interaction.
-        atol: If any of the coefficients are less than atol, they will be
-        rounded down to zero
-
+        atol: How close x2 must be to π/4 to guarantee z2 >= 0
     Returns:
         The canonicalized decomposition, with vector coefficients (x2, y2, z2)
         satisfying:
-
-            0 ≤ z2 ≤ y2 ≤ x2 < π/2
-            x2 + y2 ≤ π/2
-            if z2 =0, x2 ≤ π/4
-
-
+            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
+            if x2 = π/4, z2 >= 0
         Guarantees that the implied output matrix:
-
             g · (a1 ⊗ a0) · exp(i·(x2·XX + y2·YY + z2·ZZ)) · (b1 ⊗ b0)
-
         is approximately equal to the implied input matrix:
-
             exp(i·(x·XX + y·YY + z·ZZ))
     """
 
@@ -438,43 +400,39 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
         right[0] = combinators.dot(s, right[0])
         right[1] = combinators.dot(s, right[1])
 
-    # Shifts an axis strength into the range [0, pi/2).
+    # Shifts an axis strength into the range (-π/4, π/4].
     def canonical_shift(k):
-        while v[k] < 0:
+        while v[k] <= -np.pi / 4:
             shift(k, +1)
-        while v[k] >= np.pi / 2:
+        while v[k] > np.pi / 4:
             shift(k, -1)
 
     # Sorts axis strengths into descending order by absolute magnitude.
     def sort():
-        if v[0] < v[1]:
+        if abs(v[0]) < abs(v[1]):
             swap(0, 1)
-        if v[1] < v[2]:
+        if abs(v[1]) < abs(v[2]):
             swap(1, 2)
-        if v[0] < v[1]:
+        if abs(v[0]) < abs(v[1]):
             swap(0, 1)
 
-    # Get all strengths to [0, pi/2) in descending order by absolute magnitude.
+    # Get all strengths to (-¼π, ¼π] in descending order by absolute magnitude.
     canonical_shift(0)
     canonical_shift(1)
     canonical_shift(2)
     sort()
 
-    if v[0] + v[1] > np.pi / 2:
-        swap(0, 1)
-        negate(0, 1)
-        shift(0, 1)
-        shift(1, 1)
-        sort()
-
-    if v[0] > np.pi / 4 and v[2] < atol:
-        v[2] = 0
+    # Move all negativity into z.
+    if v[0] < 0:
         negate(0, 2)
-        shift(0, 1)
+    if v[1] < 0:
+        negate(1, 2)
+    canonical_shift(2)
 
-    for index, coef in enumerate(v):
-        if coef < atol:
-            v[index] = 0
+    # If x = π/4, force z to be positive
+    if v[0] > np.pi / 4 - atol and v[2] < 0:
+        shift(0, -1)
+        negate(0, 2)
 
     return KakDecomposition(
         global_phase=phase[0],
@@ -488,23 +446,18 @@ def kak_decomposition(
         rtol: float = 1e-5,
         atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
-
     Args:
         mat: The 4x4 unitary matrix to decompose.
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
-
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
         coefficients x, y, z satisfy:
-
             0 ≤ abs(z) ≤ y ≤ x ≤ π/4
             z ≠ -π/4
-
     Raises:
         ValueError: Bad matrix.
         ArithmeticError: Failed to perform the decomposition.
-
     References:
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
