@@ -136,8 +136,8 @@ class GateOpSerializer:
     def _check_type(self, value: arg_func_langs.ArgValue,
                     arg: SerializingArg) -> None:
         if arg.serialized_type == List[bool]:
-            if (not isinstance(value, (list, tuple, np.ndarray))
-                or not all(isinstance(x, (bool, np.bool_)) for x in value)):
+            if (not isinstance(value, (list, tuple, np.ndarray)) or
+                    not all(isinstance(x, (bool, np.bool_)) for x in value)):
                 raise ValueError('Expected type List[bool] but was {}'.format(
                     type(value)))
         elif arg.serialized_type == float:
