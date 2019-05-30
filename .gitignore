@@ -1,7 +1,6 @@
 # ignore compiled python files
 __pycache__
 *.pyc
-python2.7-output/*
 
 # ignore idea SDK
 .idea/*

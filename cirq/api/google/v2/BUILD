@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 proto_library(
     name = "metrics_proto",
     srcs = ["metrics.proto"],
@@ -19,4 +21,7 @@ proto_library(
 proto_library(
     name = "run_context_proto",
     srcs = ["run_contex.proto"],
+    deps = [
+        "program_proto",
+    ],
 )

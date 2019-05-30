@@ -118,6 +118,11 @@ class PauliString(raw_types.Operation):
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
 
+    def _decompose_(self):
+        # HACK: Avoid circular dependency.
+        from cirq.ops import pauli_string_phasor
+        return pauli_string_phasor.PauliStringPhasor(self)._decompose_()
+
     def keys(self) -> KeysView[raw_types.Qid]:
         return self._qubit_pauli_map.keys()
 
@@ -212,8 +217,6 @@ class PauliString(raw_types.Operation):
         if power == -1:
             return PauliString(self._qubit_pauli_map, self.coefficient**-1)
         if isinstance(power, (int, float)):
-            # HACK: avoid circular import.
-            from cirq.ops.pauli_string_phasor import PauliStringPhasor
             r, i = cmath.polar(self.coefficient)
             if abs(r - 1) > 0.0001:
                 raise NotImplementedError(
@@ -229,12 +232,14 @@ class PauliString(raw_types.Operation):
                 }
                 return gates[p](exponent=power).on(q)
 
-            # HACK: avoid circular import.
-            from cirq.ops.pauli_string_phasor import PauliStringPhasor
             global_half_turns = power * (i / math.pi)
-            return PauliStringPhasor(PauliString(self._qubit_pauli_map),
-                                     exponent_neg=global_half_turns + power,
-                                     exponent_pos=global_half_turns)
+
+            # HACK: Avoid circular dependency.
+            from cirq.ops import pauli_string_phasor
+            return pauli_string_phasor.PauliStringPhasor(
+                PauliString(self._qubit_pauli_map),
+                exponent_neg=global_half_turns + power,
+                exponent_pos=global_half_turns)
         return NotImplemented
 
     def __rpow__(self, base):
@@ -255,11 +260,12 @@ class PauliString(raw_types.Operation):
                 }
                 return gates[p](exponent=half_turns, global_shift=-0.5).on(q)
 
-            # HACK: avoid circular import.
-            from cirq.ops.pauli_string_phasor import PauliStringPhasor
-            return PauliStringPhasor(PauliString(self._qubit_pauli_map),
-                                     exponent_neg=+half_turns / 2,
-                                     exponent_pos=-half_turns / 2)
+            # HACK: Avoid circular dependency.
+            from cirq.ops import pauli_string_phasor
+            return pauli_string_phasor.PauliStringPhasor(
+                PauliString(self._qubit_pauli_map),
+                exponent_neg=+half_turns / 2,
+                exponent_pos=-half_turns / 2)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]

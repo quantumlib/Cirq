@@ -29,11 +29,12 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq.value.value_equality import value_equality
 from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 
-@value.value_equality(approximate=True)
+@value_equality(approximate=True)
 class FSimGate(gate_features.TwoQubitGate,
                gate_features.InterchangeableQubitsGate):
     """Fermionic simulation gate family.
@@ -78,6 +79,21 @@ class FSimGate(gate_features.TwoQubitGate,
             [0, b, a, 0],
             [0, 0, 0, c],
         ])
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        a = math.cos(self.theta)
+        b = 1j * math.sin(self.theta)
+        c = cmath.exp(1j * self.phi)
+        return value.LinearDict({
+            'II': (1 + c) / 4 + a / 2,
+            'IZ': (1 - c) / 4,
+            'ZI': (1 - c) / 4,
+            'ZZ': (1 + c) / 4 - a / 2,
+            'XX': b / 2,
+            'YY': b / 2,
+        })
 
     def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
                             ) -> 'cirq.FSimGate':

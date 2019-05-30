@@ -21,10 +21,10 @@ from typing import (
 
 import numpy as np
 
-from cirq import protocols
-from cirq.value.value_equality import value_equality
+from cirq import protocols, value
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
+from cirq.value.value_equality import value_equality
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
