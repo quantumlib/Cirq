@@ -14,6 +14,7 @@
 
 from typing import List
 
+import numpy as np
 import pytest
 import sympy
 
@@ -51,33 +52,47 @@ def get_val(gate):
     return gate.get_val()
 
 
-TEST_CASES = ((float, 1.0, {
-    'arg_value': {
-        'float_value': 1.0
-    }
-}), (str, 'abc', {
-    'arg_value': {
-        'string_value': 'abc'
-    }
-}), (float, 1, {
-    'arg_value': {
-        'float_value': 1.0
-    }
-}), (List[bool], [True, False], {
-    'arg_value': {
-        'bool_values': {
-            'values': [True, False]
+TEST_CASES = (
+    (float, 1.0, {
+        'arg_value': {
+            'float_value': 1.0
         }
-    }
-}), (List[bool], (True, False), {
-    'arg_value': {
-        'bool_values': {
-            'values': [True, False]
+    }),
+    (str, 'abc', {
+        'arg_value': {
+            'string_value': 'abc'
         }
-    }
-}), (sympy.Symbol, sympy.Symbol('x'), {
-    'symbol': 'x'
-}))
+    }),
+    (float, 1, {
+        'arg_value': {
+            'float_value': 1.0
+        }
+    }),
+    (List[bool], [True, False], {
+        'arg_value': {
+            'bool_values': {
+                'values': [True, False]
+            }
+        }
+    }),
+    (List[bool], (True, False), {
+        'arg_value': {
+            'bool_values': {
+                'values': [True, False]
+            }
+        }
+    }),
+    (List[bool], np.array([True, False], dtype=np.bool), {
+        'arg_value': {
+            'bool_values': {
+                'values': [True, False]
+            }
+        }
+    }),
+    (sympy.Symbol, sympy.Symbol('x'), {
+        'symbol': 'x'
+    }),
+)
 
 
 @pytest.mark.parametrize(('val_type', 'val', 'arg_value'), TEST_CASES)

@@ -14,6 +14,7 @@
 
 from typing import Callable, cast, Dict, List, NamedTuple, Type, TypeVar, Union
 
+import numpy as np
 import sympy
 
 from cirq import devices, ops
@@ -135,8 +136,8 @@ class GateOpSerializer:
     def _check_type(self, value: arg_func_langs.ArgValue,
                     arg: SerializingArg) -> None:
         if arg.serialized_type == List[bool]:
-            if (not isinstance(value, (list, tuple)) or
-                    not all(isinstance(x, bool) for x in value)):
+            if (not isinstance(value, (list, tuple, np.ndarray))
+                or not all(isinstance(x, (bool, np.bool_)) for x in value)):
                 raise ValueError('Expected type List[bool] but was {}'.format(
                     type(value)))
         elif arg.serialized_type == float:
@@ -155,8 +156,8 @@ class GateOpSerializer:
             return arg_value({'float_value': float(value)})
         if isinstance(value, str):
             return arg_value({'string_value': str(value)})
-        if (isinstance(value, (list, tuple)) and
-                all(isinstance(x, bool) for x in value)):
+        if (isinstance(value, (list, tuple, np.ndarray)) and
+                all(isinstance(x, (bool, np.bool_)) for x in value)):
             return arg_value({'bool_values': {'values': list(value)}})
         if isinstance(value, sympy.Symbol):
             return {'symbol': str(value.free_symbols.pop())}
