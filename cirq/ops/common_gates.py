@@ -44,6 +44,7 @@ from cirq.value.value_equality import value_equality
 
 from cirq.type_workarounds import NotImplementedType
 
+
 @value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
