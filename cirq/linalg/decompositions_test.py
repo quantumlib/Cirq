@@ -310,18 +310,20 @@ def test_axis_angle_decomposition_eq():
     eq = cirq.testing.EqualsTester()
 
     eq.make_equality_group(lambda: cirq.AxisAngleDecomposition(
-        angle=1, axis=(2, 3, 4), global_phase=-1))
+        angle=1, axis=(0.8, 0.6, 0), global_phase=-1))
     eq.add_equality_group(
-        cirq.AxisAngleDecomposition(angle=5, axis=(2, 3, 4), global_phase=-1))
+        cirq.AxisAngleDecomposition(angle=5, axis=(0.8, 0.6, 0), global_phase=-1))
     eq.add_equality_group(
-        cirq.AxisAngleDecomposition(angle=1, axis=(2, 5, 4), global_phase=-1))
+        cirq.AxisAngleDecomposition(angle=1, axis=(0.8, 0, 0.6), global_phase=-1))
     eq.add_equality_group(
-        cirq.AxisAngleDecomposition(angle=1, axis=(2, 3, 4), global_phase=1))
+        cirq.AxisAngleDecomposition(angle=1, axis=(0.8, 0.6, 0), global_phase=1))
 
 
 def test_axis_angle_decomposition_repr():
     cirq.testing.assert_equivalent_repr(
-        cirq.AxisAngleDecomposition(angle=1, axis=(2, 3, 4), global_phase=-1))
+        cirq.AxisAngleDecomposition(angle=1,
+                                    axis=(0, 0.6, 0.8),
+                                    global_phase=-1))
 
 
 def test_axis_angle_decomposition_unitary():
@@ -400,3 +402,41 @@ def test_axis_angle_canonicalize():
     assert a.global_phase == 1j
     assert a.axis == (1, 0, 0)
     assert a.angle == -np.pi / 2
+
+    a = cirq.AxisAngleDecomposition(angle=np.pi + 0.01,
+                                    axis=(1, 0, 0),
+                                    global_phase=1j).canonicalize(atol=0.1)
+    assert a.global_phase == 1j
+    assert a.axis == (1, 0, 0)
+    assert a.angle == np.pi + 0.01
+
+    a = cirq.AxisAngleDecomposition(angle=np.pi + 0.01,
+                                    axis=(1, 0, 0),
+                                    global_phase=1j).canonicalize(atol=0.001)
+    assert a.global_phase == -1j
+    assert a.axis == (1, 0, 0)
+    assert np.isclose(a.angle, -np.pi + 0.01)
+
+
+def test_axis_angle_canonicalize_approx_equal():
+    a1 = cirq.AxisAngleDecomposition(angle=np.pi,
+                                     axis=(1, 0, 0),
+                                     global_phase=1)
+    a2 = cirq.AxisAngleDecomposition(angle=-np.pi,
+                                     axis=(1, 0, 0),
+                                     global_phase=-1)
+    b1 = cirq.AxisAngleDecomposition(angle=np.pi,
+                                     axis=(1, 0, 0),
+                                     global_phase=-1)
+    assert cirq.approx_eq(a1, a2, atol=1e-8)
+    assert not cirq.approx_eq(a1, b1, atol=1e-8)
+
+
+def test_axis_angle_init():
+    a = cirq.AxisAngleDecomposition(angle=1, axis=(0, 1, 0), global_phase=1j)
+    assert a.angle == 1
+    assert a.axis == (0, 1, 0)
+    assert a.global_phase == 1j
+
+    with pytest.raises(ValueError, match='normalize'):
+        cirq.AxisAngleDecomposition(angle=1, axis=(0, 0.5, 0), global_phase=1)

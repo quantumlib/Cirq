@@ -270,26 +270,33 @@ class AxisAngleDecomposition:
 
     def __init__(self, *, angle: float, axis: Tuple[float, float, float],
                  global_phase: Union[int, float, complex]):
+        if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
+            raise ValueError('Axis vector must be normalized.')
         self.global_phase = complex(global_phase)
         self.axis = tuple(axis)
         self.angle = float(angle)
 
-    def canonicalize(self) -> 'AxisAngleDecomposition':
+    def canonicalize(self, atol: float = 1e-8) -> 'AxisAngleDecomposition':
+        """Returns a standardized AxisAngleDecomposition with the same unitary.
+
+        Ensures the axis (x, y, z) satisfies x+y+z >= 0.
+        Ensures the angle theta satisfies -pi + atol < theta <= pi + atol.
+
+        Args:
+            atol: Absolute tolerance for errors in the representation and the
+                canonicalization. Determines how much larger a value needs to
+                be than pi before it wraps into the negative range (so that
+                approximation errors less than the tolerance do not cause sign
+                instabilities).
+
+        Returns:
+            The canonicalized AxisAngleDecomposition.
+        """
+        assert 0 <= atol < np.pi
+
         angle = self.angle
         x, y, z = self.axis
         p = self.global_phase
-
-        # Prefer angle in (-π, π].
-        if not (-np.pi < angle <= np.pi):
-            angle += np.pi
-            angle %= np.pi * 4
-            angle -= np.pi
-        if angle > np.pi:
-            angle -= np.pi * 2
-            p = -p
-        if angle <= -np.pi:
-            angle += np.pi * 2
-            p = -p
 
         # Prefer axes that point positive-ward.
         if x + y + z < 0:
@@ -298,15 +305,33 @@ class AxisAngleDecomposition:
             z = -z
             angle = -angle
 
+        # Prefer angle in (-π, π].
+        if abs(angle) >= np.pi * 2:
+            angle %= np.pi * 4
+        while angle <= -np.pi + atol:
+            angle += np.pi * 2
+            p = -p
+        while angle > np.pi + atol:
+            angle -= np.pi * 2
+            p = -p
+
         return AxisAngleDecomposition(axis=(x, y, z),
                                       angle=angle,
                                       global_phase=p)
 
     def _value_equality_values_(self):
-        return (value.PeriodicValue(self.angle, period=math.pi * 2), self.axis,
-                self.global_phase)
+        v = self.canonicalize(atol=0)
+        return (value.PeriodicValue(v.angle, period=math.pi * 2), v.axis,
+                v.global_phase)
 
     def _unitary_(self):
+        """The unitary represented by this axis angle rotation.
+
+        Returns:
+            The unitary $g e^{(i t) (xX + yY + zZ)}$ where t is the angle theta,
+            (x, y, z) is the unit vector along the axis, and g is the global
+            phase.
+        """
         x, y, z = self.axis
         xm = np.array([[0, 1], [1, 0]])
         ym = np.array([[0, -1j], [1j, 0]])
