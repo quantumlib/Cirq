@@ -40,6 +40,7 @@ from cirq.ops.common_channels import (
 from cirq.ops.common_gates import (
     CNOT,
     CNotPowGate,
+    CX,
     CZ,
     CZPowGate,
     H,
@@ -77,6 +78,9 @@ from cirq.ops.display import (
 
 from cirq.ops.eigen_gate import (
     EigenGate,)
+
+from cirq.ops.fsim_gate import (
+    FSimGate,)
 
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
@@ -146,6 +150,10 @@ from cirq.ops.pauli_string import (
     PauliString,
     SingleQubitPauliStringGateOperation,
 )
+from cirq.ops.pauli_string_phasor import (
+    PauliStringPhasor,)
+from cirq.ops.pauli_string_raw_types import (
+    PauliStringGateOperation,)
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
 
@@ -156,6 +164,7 @@ from cirq.ops.raw_types import (
 )
 
 from cirq.ops.three_qubit_gates import (
+    CCNOT,
     CCX,
     CCXPowGate,
     CCZ,

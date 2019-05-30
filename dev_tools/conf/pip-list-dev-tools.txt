@@ -1,6 +1,3 @@
-# For transpilation to python 2.
-3to2==1.*
-
 # For testing and analyzing code.
 mypy==0.641.*
 pylint==2.3.*

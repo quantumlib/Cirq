@@ -15,3 +15,4 @@
 """Google apis for running quantum programs remotely."""
 
 from cirq.api.google import v1
+from cirq.api.google import v2

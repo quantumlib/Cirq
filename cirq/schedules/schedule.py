@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 from typing import Iterable, List, TYPE_CHECKING, Union, cast
 
 from sortedcontainers import SortedListWithKey
@@ -71,12 +72,14 @@ class Schedule:
 
     __hash__ = None  # type: ignore
 
-    def query(self, *,  # Forces keyword args.
-              time: Timestamp,
-              duration: Duration = Duration(),
-              qubits: Iterable[Qid] = None,
-              include_query_end_time=False,
-              include_op_end_times=False) -> List[ScheduledOperation]:
+    def query(
+            self,
+            *,  # Forces keyword args.
+            time: Timestamp,
+            duration: Union[Duration, timedelta] = Duration(),
+            qubits: Iterable[Qid] = None,
+            include_query_end_time=False,
+            include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:
@@ -93,6 +96,7 @@ class Schedule:
         Returns:
             A list of scheduled operations meeting the specified conditions.
         """
+        duration = Duration.create(duration)
         earliest_time = time - self._max_duration
         end_time = time + duration
         qubits = None if qubits is None else frozenset(qubits)

@@ -216,14 +216,7 @@ class Circuit:
         del self._moments[key]
 
     def __iadd__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        if (other.device != self._device and
-                other.device != devices.UnconstrainedDevice):
-            raise ValueError("Other circuit's device is not compatible.")
-        for moment in other:
-            self._device.validate_moment(moment)
-        self._moments += other._moments
+        self.append(other)
         return self
 
     def __add__(self, other):
@@ -681,8 +674,8 @@ class Circuit:
         operation is encountered.  An operation is part of the list if
         it is involves a qubit in the start_frontier dictionary, comes after
         the moment listed in that dictionary, and before any blocking
-        operationi that involve that qubit.  Operations are only considered
-        to blocking the qubits that they operate on, so a blocking operation
+        operations that involve that qubit.  Operations are only considered
+        to be blocking the qubits that they operate on, so a blocking operation
         that does not operate on any qubit in the starting frontier is not
         actually considered blocking.  See `reachable_frontier_from` for a more
         in depth example of reachable states.
@@ -773,12 +766,14 @@ class Circuit:
             An iterator (index, operation, gate)'s for operations with the given
             gate type.
         """
-        result = self.findall_operations(
-            lambda operation: (isinstance(operation, ops.GateOperation) and
-                               isinstance(operation.gate, gate_type)))
+        result = self.findall_operations(lambda operation: bool(
+            ops.op_gate_of_type(operation, gate_type)))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
+
+    def has_measurements(self):
+        return any(self.findall_operations(protocols.is_measurement))
 
     def are_all_measurements_terminal(self):
         """Whether all measurement gates are at the end of the circuit."""
@@ -792,7 +787,7 @@ class Circuit:
             predicate: A predicate on ops.Operations which is being checked.
 
         Returns:
-            Whether or not all `Operation`s in a circuit that satisfy the
+            Whether or not all `Operation` s in a circuit that satisfy the
             given predicate are terminal.
         """
         return all(

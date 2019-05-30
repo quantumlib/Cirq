@@ -18,8 +18,6 @@ from typing import (
 
 from cirq import ops, circuits
 
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor)
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
     pauli_string_dag_from_circuit)
@@ -28,9 +26,9 @@ from cirq.contrib.paulistring.pauli_string_dag import (
 def _possible_string_placements(
         possible_nodes: Iterable[Any],
         output_ops: Sequence[ops.Operation],
-        key: Callable[[Any], PauliStringPhasor] = lambda node: node.val,
-        ) -> Iterator[Tuple[PauliStringPhasor, int,
-                            circuits.Unique[PauliStringPhasor]]]:
+        key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
+) -> Iterator[Tuple[ops.PauliStringPhasor, int, circuits.
+                    Unique[ops.PauliStringPhasor]]]:
     for possible_node in possible_nodes:
         string_op = key(possible_node)
         # Try moving the Pauli string through, stop at measurements
@@ -40,8 +38,8 @@ def _possible_string_placements(
             if not set(out_op.qubits) & set(string_op.qubits):
                 # Skip if operations don't share qubits
                 continue
-            if (isinstance(out_op, PauliStringPhasor)
-                and out_op.pauli_string.commutes_with(string_op.pauli_string)):
+            if (isinstance(out_op, ops.PauliStringPhasor) and
+                    out_op.pauli_string.commutes_with(string_op.pauli_string)):
                 # Pass through another Pauli string if they commute
                 continue
             if not (isinstance(out_op, ops.GateOperation) and
