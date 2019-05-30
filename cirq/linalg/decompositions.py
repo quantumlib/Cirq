@@ -380,7 +380,7 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
 
             0 ≤ z2 ≤ y2 ≤ x2 < π/2
             x2 + y2 ≤ π/2
-            if z2 =0, kx ≤ π/4
+            if z2 =0, x2 ≤ π/4
 
 
         Guarantees that the implied output matrix:
