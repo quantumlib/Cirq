@@ -341,6 +341,17 @@ class AxisAngleDecomposition:
         s = math.sin(-self.angle / 2)
         return (c * i + 1j * s * (x * xm + y * ym + z * zm)) * self.global_phase
 
+    def __str__(self):
+        axis_terms = '+'.join(
+            '{:.3g}*{}'.format(e, a) if e < 0.9999 else a
+            for e, a in zip(self.axis, ['X', 'Y', 'Z'])
+            if abs(e) >= 1e-8
+        ).replace('+-', '-')
+        return '{:.3g}*π around {}'.format(
+            self.angle / np.pi,
+            axis_terms,
+        )
+
     def __repr__(self):
         return ('cirq.AxisAngleDecomposition('
                 'angle={!r}, axis={!r}, global_phase={!r})'.format(
