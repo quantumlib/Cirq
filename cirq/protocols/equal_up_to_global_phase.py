@@ -87,19 +87,14 @@ def equal_up_to_global_phase(val: Any,
     # fall back to special check for numeric arrays
     # defer to numpy automatic type casting to determine numeric type
     if isinstance(val, Iterable) and isinstance(other, Iterable):
-        a = np.array(val)
-        b = np.array(other)
-        # FIXME: allclose_up_to_global_phase doesn't support mismatched sizes
-        # FIXME: allclose_up_to_global_phase doesn't support empty arrays
-        if a.shape == b.shape and any(a) and any(b) and \
-                a.dtype.kind in set('uifc') and b.dtype.kind in set('uifc'):
+        a = np.asarray(val)
+        b = np.asarray(other)
+        if a.dtype.kind in 'uifc' and b.dtype.kind in 'uifc':
             return cirq.linalg.allclose_up_to_global_phase(a, b, atol=atol)
 
     # fall back to approx_eq for compare the magnitude of two numbers.
-    if isinstance(val, numbers.Number):
-        if not isinstance(other, numbers.Number):
-            return False
-        result = cirq.approx_eq(abs(val), abs(other), atol=atol)
+    if isinstance(val, numbers.Number) and isinstance(other, numbers.Number):
+        result = cirq.approx_eq(abs(val), abs(other), atol=atol)  # type: ignore
         if result is not NotImplemented:
             return result
 
