@@ -49,6 +49,8 @@ from cirq.linalg import (
     all_near_zero_mod,
     allclose_up_to_global_phase,
     apply_matrix_to_slices,
+    axis_angle,
+    AxisAngleDecomposition,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     block_diag,
