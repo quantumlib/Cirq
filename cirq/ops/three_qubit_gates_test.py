@@ -36,6 +36,7 @@ def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
         cirq.ThreeQubitDiagonalGate(*diag_angles), ignoring_global_phase=True)
 
+
 def test_init():
     assert (cirq.CCZ**0.5).exponent == 0.5
     assert (cirq.CCZ**0.25).exponent == 0.25
@@ -94,7 +95,9 @@ def test_unitary():
     assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(*diagonal_angles))
     np.testing.assert_allclose(
         cirq.unitary(cirq.ThreeQubitDiagonalGate(*diagonal_angles)),
-        np.diag([np.exp(1j * angle) for angle in diagonal_angles]), atol=1e-8)
+        np.diag([np.exp(1j * angle) for angle in diagonal_angles]),
+        atol=1e-8)
+
 
 def test_str():
     assert str(cirq.CCX) == 'TOFFOLI'
@@ -187,7 +190,8 @@ def test_diagram():
         cirq.TOFFOLI(a, b, c)**0.5, cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
         cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d), cirq.FREDKIN(a, b, c),
         cirq.ThreeQubitDiagonalGate(*diagonal_angles)(a, b, c))
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(
+        circuit, """
 0: ───@───@───────@───@───@───────@───@───diag───
       │   │       │   │   │       │   │   │
 1: ───@───@───────X───@───@───────┼───×───#2─────
@@ -205,7 +209,9 @@ def test_diagram():
 2: ---X---X^0.5---@---|---|-------swap---swap---#3-----
                       |   |       |
 3: -------------------@---@^0.5---swap-----------------
-""", use_unicode_characters=False)
+""", 
+                                    use_unicode_characters=False)
+
 
 def test_diagonal_exponent():
     diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
@@ -217,4 +223,3 @@ def test_diagonal_exponent():
     np.testing.assert_allclose(expected_angles,
                                sqrt_diagonal_gate._diag_angles,
                                atol=1e-8)
-
