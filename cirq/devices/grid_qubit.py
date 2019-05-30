@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict
+from typing import Dict, List
 
 from cirq import ops
 
@@ -37,6 +37,93 @@ class GridQubit(ops.Qid):
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
+
+    @staticmethod
+    def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
+        """Returns a square of GridQubits.
+
+        Args:
+            diameter: Length of a side of the square
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
+
+        Returns:
+            A list of GridQubits filling in a square grid
+        """
+        return GridQubit.rect(diameter, diameter, top=top, left=left)
+
+    @staticmethod
+    def rect(rows: int, cols: int, top: int = 0,
+             left: int = 0) -> List['GridQubit']:
+        """Returns a rectangle of GridQubits.
+
+        Args:
+            rows: Number of rows in the rectangle
+            cols: Number of columns in the rectangle
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
+
+        Returns:
+            A list of GridQubits filling in a rectangular grid
+        """
+        return [
+            GridQubit(row, col)
+            for row in range(top, top + rows)
+            for col in range(left, left + cols)
+        ]
+
+    @staticmethod
+    def from_diagram(diagram: str) -> List['GridQubit']:
+        """Parse ASCII art device layout into info about qubits and
+        connectivity. As an example, the below diagram will create a list of
+        GridQubits in a pyramid structure.
+        ---A---
+        --AAA--
+        -AAAAA-
+        AAAAAAA
+
+        You can use any character other than a hyphen to mark a qubit. As an
+        example, the qubits for the Bristlecone device could be represented by
+        the below diagram. This produces a diamond-shaped grid of qubits, and
+        qubits with the same letter correspond to the same readout line.
+
+        .....AB.....
+        ....ABCD....
+        ...ABCDEF...
+        ..ABCDEFGH..
+        .ABCDEFGHIJ.
+        ABCDEFGHIJKL
+        .CDEFGHIJKL.
+        ..EFGHIJKL..
+        ...GHIJKL...
+        ....IJKL....
+        .....KL.....
+
+        Args:
+            diagram: String representing the qubit layout. Each line represents
+                a row. Alphanumeric characters are assigned as qubits.
+                Dots ('.'), dashes ('-'), and spaces (' ') are treated as
+                empty locations in the grid. If diagram has characters other
+                than alphanumerics, spacers, and newlines ('\n'), an error will
+                be thrown. The top-left corner of the diagram will be have
+                coordinate (0,0).
+
+        Returns:
+            A list of GridQubits corresponding to the provided diagram
+
+        Raises:
+            ValueError: If the input string contains an invalid character.
+        """
+        lines = diagram.strip().split('\n')
+        no_qubit_characters = ['.', '-', ' ']
+        qubits = []
+        for row, line in enumerate(lines):
+            for col, c in enumerate(line.strip()):
+                if c not in no_qubit_characters:
+                    if not c.isalnum():
+                        raise ValueError("Input string has invalid character")
+                    qubits.append(GridQubit(row, col))
+        return qubits
 
     def __repr__(self):
         return 'cirq.GridQubit({}, {})'.format(self.row, self.col)
