@@ -616,3 +616,8 @@ def test_with_qubits():
     for q in new_qubits:
         assert new_pauli_string[q] == cirq.Pauli.by_index(q.x)
     assert new_pauli_string.coefficient == -1
+
+
+def test_bool():
+    assert not bool(cirq.PauliString({}))
+    assert bool(cirq.PauliString({a: cirq.X}))
