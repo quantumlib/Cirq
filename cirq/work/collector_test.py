@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import abc
-from typing import Optional, Any, TypeVar, NamedTuple, Iterable, Union, List
-
-import numpy as np
-
 import cirq
 
 

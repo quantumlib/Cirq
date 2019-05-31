@@ -25,7 +25,6 @@ from cirq.ops import (
     raw_types,
     gate_operation,
     common_gates,
-    op_tree,
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,

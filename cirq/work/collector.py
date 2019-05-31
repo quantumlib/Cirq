@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import Optional, Any, TypeVar, NamedTuple, Iterable, Union, List
+from typing import Optional, Any, Iterable, Union, List
 
 import numpy as np
 
@@ -25,6 +25,7 @@ from cirq.work import sampler, work_pool
 class CircuitSampleJob:
     """Describes a sampling task."""
 
+    # pylint: disable=redefined-builtin
     def __init__(self,
                  circuit: circuits.Circuit,
                  *,
@@ -44,6 +45,7 @@ class CircuitSampleJob:
         self.circuit = circuit
         self.repetitions = repetitions
         self.id = id
+    # pylint: enable=redefined-builtin
 
     def _value_equality_values_(self):
         return self.circuit, self.repetitions, self.id
@@ -67,7 +69,6 @@ class SampleCollector(metaclass=abc.ABCMeta):
             samples to take, and a key value that can be used in the
             `on_job_result` method to recognize which job this is.
         """
-        pass
 
     @abc.abstractmethod
     def on_job_result(self, job: CircuitSampleJob,
@@ -76,7 +77,6 @@ class SampleCollector(metaclass=abc.ABCMeta):
 
         The results should be incorporated into the collector's state.
         """
-        pass
 
 
 async def async_collect_samples(collector: SampleCollector,

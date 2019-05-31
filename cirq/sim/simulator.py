@@ -25,8 +25,9 @@ Simulator types include:
 """
 import asyncio
 import threading
-from typing import (Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional,
-                    Awaitable)
+from typing import (
+    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional,
+                    )
 
 import abc
 import collections

@@ -14,8 +14,6 @@
 
 import asyncio
 
-import pytest
-
 import cirq
 from cirq.work.work_pool import CompletionOrderedAsyncWorkPool
 

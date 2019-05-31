@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import collections
-from typing import Optional, Mapping, MutableMapping, cast, Union
+from typing import Optional, MutableMapping, cast, Union
 
 import numpy as np
 
@@ -96,8 +96,6 @@ def _circuit_plus_pauli_string_measurements(circuit: circuits.Circuit,
     """A circuit measuring the given observable at the end of the given circuit.
     """
     assert pauli_string
-    n = len(pauli_string.keys())
-
     circuit = circuit.copy()
     circuit.append(ops.Moment(pauli_string.to_z_basis_ops()))
     circuit.append(
