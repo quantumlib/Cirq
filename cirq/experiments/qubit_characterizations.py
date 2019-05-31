@@ -163,7 +163,7 @@ def rabi_oscillations(sampler: work.Sampler,
 
 
 def single_qubit_randomized_benchmarking(
-        sampler: work.sampler,
+        sampler: work.Sampler,
         qubit: devices.GridQubit,
         use_xy_basis: bool = True,
         *,
@@ -222,7 +222,7 @@ def single_qubit_randomized_benchmarking(
 
 
 def two_qubit_randomized_benchmarking(
-        sampler: work.sampler,
+        sampler: work.Sampler,
         first_qubit: devices.GridQubit,
         second_qubit: devices.GridQubit,
         *,
@@ -280,7 +280,7 @@ def two_qubit_randomized_benchmarking(
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def single_qubit_state_tomography(sampler: work.sampler,
+def single_qubit_state_tomography(sampler: work.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
                                   repetitions: int = 1000) -> TomographyResult:
@@ -326,7 +326,7 @@ def single_qubit_state_tomography(sampler: work.sampler,
     return TomographyResult(rho)
 
 
-def two_qubit_state_tomography(sampler: work.sampler,
+def two_qubit_state_tomography(sampler: work.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,

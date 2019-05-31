@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import collections
-from typing import Optional
+from typing import Optional, Mapping, MutableMapping, cast, Union
 
 import numpy as np
 
@@ -42,11 +42,14 @@ class PauliStringSampleCollector(collector.SampleCollector):
         self._samples_per_job = max_samples_per_job
         self._terms = [
             # Merge coefficients.
-            (ops.PauliString(pauli_string), coef * pauli_string.coefficient)
+            (pauli_string / pauli_string.coefficient,
+             coef * pauli_string.coefficient)
             for pauli_string, coef in terms.items()
         ]
-        self._zeros = collections.defaultdict(lambda: 0)
-        self._ones = collections.defaultdict(lambda: 0)
+        self._zeros = collections.defaultdict(
+            lambda: 0)  # type: MutableMapping[ops.PauliString, int]
+        self._ones = collections.defaultdict(
+            lambda: 0)  # type: MutableMapping[ops.PauliString, int]
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
@@ -67,22 +70,24 @@ class PauliStringSampleCollector(collector.SampleCollector):
 
     def on_job_result(self, job: collector.CircuitSampleJob,
                       result: study.TrialResult):
+        job_id = cast(ops.PauliString, job.id)
         parities = result.histogram(key='out',
                                     fold_func=lambda bits: np.sum(bits) % 2)
-        self._zeros[job.id] += parities[0]
-        self._ones[job.id] += parities[1]
+        self._zeros[job_id] += parities[0]
+        self._ones[job_id] += parities[1]
 
-    def estimated_energy(self) -> float:
+    def estimated_energy(self) -> Union[float, complex]:
         """Sums up the sampled expectations, weighted by their coefficients."""
-        energy = 0
+        energy = 0j
         for pauli_string, coef in self._terms:
             a = self._zeros[pauli_string]
             b = self._ones[pauli_string]
             if a + b:
                 energy += coef * (a - b) / (a + b)
         energy = complex(energy)
-        assert energy.imag == 0
-        return energy.real
+        if energy.imag == 0:
+            energy = energy.real
+        return energy
 
 
 def _circuit_plus_pauli_string_measurements(circuit: circuits.Circuit,

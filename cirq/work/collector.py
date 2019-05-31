@@ -149,7 +149,7 @@ async def async_collect_samples(collector: SampleCollector,
 
 def _flatten_jobs(
         given: Union[None, CircuitSampleJob, Iterable[CircuitSampleJob]]):
-    out = []
+    out = []  # type: List[CircuitSampleJob]
     _flatten_jobs_helper(out, given)
     return out
 

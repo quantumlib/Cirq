@@ -14,26 +14,24 @@
 
 import asyncio
 import collections
-from typing import Optional, Awaitable, TypeVar, Generic
-
-TWork = TypeVar('TWork')
+from typing import Optional, Awaitable, Deque
 
 
-class CompletionOrderedAsyncWorkPool(Generic[TWork]):
+class CompletionOrderedAsyncWorkPool:
     """Ensures given work is executing, and exposes it in completion order."""
 
     def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = None):
         self._loop = loop if loop is not None else asyncio.get_event_loop()
         self._allow_anext = asyncio.Semaphore(value=0)
         self._no_more_work_coming = False
-        self._done_event = asyncio.Future()
-        self._work_queue = collections.deque()
-        self._out_queue = collections.deque()
+        self._done_event = asyncio.Future()  # type: asyncio.Future
+        self._work_queue = collections.deque()  # type: Deque[asyncio.Future]
+        self._out_queue = collections.deque()  # type: Deque[asyncio.Future]
 
-    def include_work(self, work: Awaitable[TWork]) -> None:
+    def include_work(self, work: Awaitable) -> None:
         """Adds asynchronous work into the pool and begins executing it."""
         assert not self._no_more_work_coming
-        output = asyncio.Future()
+        output = asyncio.Future()  # type: asyncio.Future
         self._out_queue.append(output)
         self._work_queue.append(output)
         asyncio.ensure_future(self._async_handle_work_completion(work),
@@ -49,7 +47,7 @@ class CompletionOrderedAsyncWorkPool(Generic[TWork]):
         """The amount of work still in the pool that has completed."""
         return len(self._out_queue)
 
-    async def _async_handle_work_completion(self, work: Awaitable[TWork]):
+    async def _async_handle_work_completion(self, work: Awaitable):
         try:
             result = await work
             self._work_queue.popleft().set_result(result)
@@ -68,7 +66,7 @@ class CompletionOrderedAsyncWorkPool(Generic[TWork]):
         assert not self._no_more_work_coming
         self._react_to_progress()
 
-    async def _anext_helper(self) -> TWork:
+    async def _anext_helper(self):
         await self._allow_anext.acquire()
         if self._out_queue:
             return await self._out_queue.popleft()
@@ -76,7 +74,7 @@ class CompletionOrderedAsyncWorkPool(Generic[TWork]):
             self._allow_anext.release()
             raise StopAsyncIteration('no_more_work')
 
-    def __anext__(self) -> TWork:
+    def __anext__(self) -> Awaitable:
         return asyncio.ensure_future(self._anext_helper())
 
     async def async_all_done(self) -> None:

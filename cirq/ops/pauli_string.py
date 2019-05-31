@@ -118,6 +118,11 @@ class PauliString(raw_types.Operation):
             return PauliString(self._qubit_pauli_map, self._coefficient * other)
         return NotImplemented
 
+    def __truediv__(self, other):
+        if isinstance(other, (int, float, complex)):
+            return PauliString(self._qubit_pauli_map, self._coefficient / other)
+        return NotImplemented
+
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
 
@@ -280,7 +285,7 @@ class PauliString(raw_types.Operation):
                                for qubit, pauli in self.items()}
         return PauliString(new_qubit_pauli_map, self._coefficient)
 
-    def to_z_basis_ops(self) -> op_tree.OP_TREE:
+    def to_z_basis_ops(self) -> Iterator[raw_types.Operation]:
         """Returns operations to convert the qubits to the computational basis.
         """
         for qubit, pauli in self.items():

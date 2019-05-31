@@ -44,8 +44,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     async def async_sample(self,
                            program: Union[circuits.Circuit, schedules.Schedule],
-                           *, repetitions: int) -> Awaitable[study.TrialResult]:
-        done = asyncio.Future()
+                           *, repetitions: int) -> study.TrialResult:
+        done = asyncio.Future()  # type: asyncio.Future
         loop = asyncio.get_event_loop()
 
         def run():
