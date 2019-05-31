@@ -14,7 +14,6 @@
 
 import asyncio
 import collections
-import concurrent.futures
 from typing import Optional, Awaitable, TypeVar, Generic
 
 TWork = TypeVar('TWork')
@@ -32,7 +31,7 @@ class CompletionOrderedAsyncWorkPool(Generic[TWork]):
         self._out_queue = collections.deque()
 
     def include_work(self, work: Awaitable[TWork]) -> None:
-        """Adds work into the pool and begins executing it."""
+        """Adds asynchronous work into the pool and begins executing it."""
         assert not self._no_more_work_coming
         output = asyncio.Future()
         self._out_queue.append(output)
@@ -42,10 +41,12 @@ class CompletionOrderedAsyncWorkPool(Generic[TWork]):
 
     @property
     def num_active(self) -> int:
+        """The amount of work in the pool that has not completed."""
         return len(self._work_queue)
 
     @property
     def num_uncollected(self) -> int:
+        """The amount of work still in the pool that has completed."""
         return len(self._out_queue)
 
     async def _async_handle_work_completion(self, work: Awaitable[TWork]):
@@ -79,6 +80,11 @@ class CompletionOrderedAsyncWorkPool(Generic[TWork]):
         return asyncio.ensure_future(self._anext_helper())
 
     async def async_all_done(self) -> None:
+        """An awaitable that completes once all work is completed.
+
+        Note: all work is completed only after the `set_all_work_received_flag`
+        method is called, and then all work still in the pool completes.
+        """
         await self._done_event
 
     def __aiter__(self):

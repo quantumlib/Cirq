@@ -13,34 +13,53 @@
 # limitations under the License.
 
 import abc
-from typing import Optional, Any, TypeVar, Generic, NamedTuple, Iterable, Union, \
-    List
+from typing import Optional, Any, TypeVar, NamedTuple, Iterable, Union, List
 
 import numpy as np
 
-from cirq import circuits, study
+from cirq import circuits, study, value
 from cirq.work import sampler, work_pool
 
-TResult = TypeVar('TResult')
-TKey = TypeVar('TKey')
 
-
-class CircuitSampleJob(NamedTuple('CircuitSampleJobBase', [
-    ('circuit', circuits.Circuit),
-    ('repetitions', int),
-    ('key', TKey)
-]), Generic[TKey]):
+@value.value_equality(unhashable=True)
+class CircuitSampleJob:
     """Describes a sampling task."""
-    pass
+    def __init__(self,
+                 circuit: circuits.Circuit,
+                 *,
+                 repetitions: int,
+                 id: Any = None):
+        """
+        Args:
+            circuit: The circuit to sample from.
+            repetitions: How many times to sample the circuit.
+            id: An arbitrary value associated with the job. This value is used
+                so that when a job completes and is handed back, it is possible
+                to tell what the job was for. For example, the key could be a
+                string like "main_run" or "calibration_run", or it could be set
+                to the component of the Hamiltonian (e.g. a PauliString) that
+                the circuit is supposed to be helping to estimate.
+        """
+        self.circuit = circuit
+        self.repetitions = repetitions
+        self.id = id
+
+    def _value_equality_values_(self):
+        return self.circuit, self.repetitions, self.id
+
+    def __repr__(self):
+        return ('cirq.CircuitSampleJob('
+                'id={!r}, repetitions={!r}, circuit={!r})').format(
+            self.id, self.repetitions, self.circuit)
 
 
-class SampleCollector(Generic[TKey, TResult], metaclass=abc.ABCMeta):
+class SampleCollector(metaclass=abc.ABCMeta):
     """An interface for concurrently collecting sample data."""
 
     @abc.abstractmethod
     def next_job(self) -> Union[None,
-                                CircuitSampleJob[TKey],
-                                Iterable[CircuitSampleJob[TKey]]]:
+                                CircuitSampleJob,
+                                Iterable[CircuitSampleJob]]:
         """Called by driving code when more sampling can be started.
 
         Returns:
@@ -60,16 +79,13 @@ class SampleCollector(Generic[TKey, TResult], metaclass=abc.ABCMeta):
         """
         pass
 
-    def result(self) -> TResult:
-        """Produces the collector's final statistic."""
-        pass
 
-
-async def async_collect_samples(collector: SampleCollector[Any, TResult],
+async def async_collect_samples(collector: SampleCollector,
                                 sampler: sampler.Sampler,
                                 *,
                                 min_concurrent_jobs: int = 1,
-                                max_total_samples: Optional[int] = None) -> TResult:
+                                max_total_samples: Optional[int] = None
+                                ) -> None:
     """Concurrently collects samples from a simulator or hardware.
 
     Args:
@@ -118,21 +134,19 @@ async def async_collect_samples(collector: SampleCollector[Any, TResult],
         done_job, done_val = await pool.__anext__()
         collector.on_job_result(done_job, done_val)
 
-    return collector.result()
-
 
 def _flatten_jobs(given: Union[None,
-                                      CircuitSampleJob[TKey],
-                                      Iterable[CircuitSampleJob[TKey]]]):
+                                CircuitSampleJob,
+                                Iterable[CircuitSampleJob]]):
     out = []
     _flatten_jobs_helper(out, given)
     return out
 
 
-def _flatten_jobs_helper(out: List[CircuitSampleJob[TKey]],
+def _flatten_jobs_helper(out: List[CircuitSampleJob],
                          given: Union[None,
-                                      CircuitSampleJob[TKey],
-                                      Iterable[CircuitSampleJob[TKey]]]):
+                                      CircuitSampleJob,
+                                      Iterable[CircuitSampleJob]]):
     if isinstance(given, CircuitSampleJob):
         out.append(given)
     elif given is not None:

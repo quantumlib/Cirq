@@ -23,9 +23,10 @@ Simulator types include:
     SimulatesIntermediateState: allows for access to the state of the simulation
         as the simulation iterates through the moments of a cirq.
 """
-
+import asyncio
+import threading
 from typing import (
-    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional)
+    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional, Awaitable)
 
 import abc
 import collections
@@ -40,6 +41,20 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     Implementors of this interface should implement the _run method.
     """
+
+    async def async_sample(self,
+                           program: Union[circuits.Circuit, schedules.Schedule],
+                           *,
+                           repetitions: int) -> Awaitable[study.TrialResult]:
+        done = asyncio.Future()
+        loop = asyncio.get_event_loop()
+
+        def run():
+            result = self.run(program, repetitions=repetitions)
+            loop.call_soon_threadsafe(lambda: done.set_result(result))
+        t = threading.Thread(target=run)
+        t.start()
+        return await done
 
     def run_sweep(
         self,

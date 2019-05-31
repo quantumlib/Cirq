@@ -22,6 +22,21 @@ from cirq import circuits, schedules, study
 class Sampler(metaclass=abc.ABCMeta):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
+    @abc.abstractmethod
+    def async_sample(self,
+                     program: Union[circuits.Circuit, schedules.Schedule],
+                     *,
+                     repetitions: int) -> Awaitable[study.TrialResult]:
+        """Asynchronously samples from the given Circuit or Schedule.
+
+        Args:
+            program: The circuit or schedule to sample from.
+            repetitions: The number of times to sample.
+
+        Returns:
+            An awaitable TrialResult.
+        """
+
     def run(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
@@ -31,21 +46,15 @@ class Sampler(metaclass=abc.ABCMeta):
         """Samples from the given Circuit or Schedule.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit or schedule to sample from.
             param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
+            repetitions: The number of times to sample.
 
         Returns:
             TrialResult for a run.
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
-
-    def async_sample(self,
-                     circuit: circuits.Circuit,
-                     *,
-                     repetitions: int) -> Awaitable[study.TrialResult]:
-        raise NotImplementedError()
 
     @abc.abstractmethod
     def run_sweep(
@@ -60,9 +69,9 @@ class Sampler(metaclass=abc.ABCMeta):
         values.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit or schedule to sample from.
             params: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
+            repetitions: The number of times to sample.
 
         Returns:
             TrialResult list for this run; one for each possible parameter
