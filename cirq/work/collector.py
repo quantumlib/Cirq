@@ -85,7 +85,23 @@ async def async_collect_samples(collector: SampleCollector,
                                 concurrency: int = 2,
                                 max_total_samples: Optional[int] = None
                                ) -> None:
-    """Concurrently collects samples from a simulator or hardware.
+    """Concurrently collects samples from a simulator or hardware sampler.
+
+    Examples:
+
+        ```
+        collector = cirq.PauliStringCollector(...)
+        await cirq.async_collect_samples(
+            sampler=cirq.Simulator(),
+            collector=collector,
+            concurrency=3)
+        print(collector.estimated_energy())
+        ```
+
+    See Also:
+
+        Python 3 documentation "Coroutines and Tasks"
+        https://docs.python.org/3/library/asyncio-task.html
 
     Args:
         collector: Determines which circuits to sample next, and processes the
