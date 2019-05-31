@@ -619,5 +619,6 @@ def test_with_qubits():
 
 
 def test_bool():
+    a = cirq.LineQubit(0)
     assert not bool(cirq.PauliString({}))
     assert bool(cirq.PauliString({a: cirq.X}))
