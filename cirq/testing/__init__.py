@@ -14,7 +14,7 @@
 
 """Utilities for testing code."""
 
-from cirq.testing.async import (
+from cirq.testing.asynchronous import (
     assert_asyncio_still_running,
     assert_asyncio_will_have_result,
     assert_asyncio_will_raise,

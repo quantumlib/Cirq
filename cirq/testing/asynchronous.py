@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import asyncio
-from collections import Awaitable
-from typing import Any, Type, Union, Coroutine
+from collections import Awaitable, Coroutine
+from typing import Any, Type, Union
 
 import pytest
 
