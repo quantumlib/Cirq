@@ -14,7 +14,7 @@
 
 import asyncio
 import collections
-from typing import Optional, Awaitable, Deque, Union
+from typing import Optional, Awaitable, Union
 
 
 class CompletionOrderedAsyncWorkPool:
@@ -25,8 +25,8 @@ class CompletionOrderedAsyncWorkPool:
         self._allow_anext = asyncio.Semaphore(value=0)
         self._no_more_work_coming = False
         self._done_event = asyncio.Future()  # type: asyncio.Future
-        self._work_queue = collections.deque()  # type: Deque[asyncio.Future]
-        self._out_queue = collections.deque()  # type: Deque[asyncio.Future]
+        self._work_queue = collections.deque()  # type: collections.deque
+        self._out_queue = collections.deque()  # type: collections.deque
 
     def include_work(self, work: Union[Awaitable, asyncio.Future]) -> None:
         """Adds asynchronous work into the pool and begins executing it."""
