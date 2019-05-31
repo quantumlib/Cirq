@@ -23,10 +23,8 @@ class Sampler(metaclass=abc.ABCMeta):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 
     @abc.abstractmethod
-    def async_sample(self,
-                     program: Union[circuits.Circuit, schedules.Schedule],
-                     *,
-                     repetitions: int) -> Awaitable[study.TrialResult]:
+    def async_sample(self, program: Union[circuits.Circuit, schedules.Schedule],
+                     *, repetitions: int) -> Awaitable[study.TrialResult]:
         """Asynchronously samples from the given Circuit or Schedule.
 
         Args:

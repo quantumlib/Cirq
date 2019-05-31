@@ -25,8 +25,8 @@ Simulator types include:
 """
 import asyncio
 import threading
-from typing import (
-    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional, Awaitable)
+from typing import (Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional,
+                    Awaitable)
 
 import abc
 import collections
@@ -44,14 +44,14 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     async def async_sample(self,
                            program: Union[circuits.Circuit, schedules.Schedule],
-                           *,
-                           repetitions: int) -> Awaitable[study.TrialResult]:
+                           *, repetitions: int) -> Awaitable[study.TrialResult]:
         done = asyncio.Future()
         loop = asyncio.get_event_loop()
 
         def run():
             result = self.run(program, repetitions=repetitions)
             loop.call_soon_threadsafe(lambda: done.set_result(result))
+
         t = threading.Thread(target=run)
         t.start()
         return await done

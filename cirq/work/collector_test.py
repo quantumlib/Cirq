@@ -25,43 +25,38 @@ def test_circuit_sample_job_equality():
     c1 = cirq.Circuit()
     c2 = cirq.Circuit.from_ops(cirq.measure(cirq.LineQubit(0)))
 
-    eq.add_equality_group(
-        cirq.CircuitSampleJob(c1, repetitions=10),
-        cirq.CircuitSampleJob(c1, repetitions=10, id=None)
-    )
+    eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10),
+                          cirq.CircuitSampleJob(c1, repetitions=10, id=None))
     eq.add_equality_group(cirq.CircuitSampleJob(c2, repetitions=10))
     eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=100))
     eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10, id='test'))
 
 
 def test_circuit_sample_job_repr():
-    cirq.testing.assert_equivalent_repr(cirq.CircuitSampleJob(
-        cirq.Circuit.from_ops(cirq.H(cirq.LineQubit(0))),
-        repetitions=10,
-        id='guess'))
+    cirq.testing.assert_equivalent_repr(
+        cirq.CircuitSampleJob(cirq.Circuit.from_ops(cirq.H(cirq.LineQubit(0))),
+                              repetitions=10,
+                              id='guess'))
 
 
 def test_async_collect():
     received = []
 
     class TestCollector(cirq.SampleCollector):
+
         def next_job(self):
             q = cirq.LineQubit(0)
-            circuit = cirq.Circuit.from_ops(
-                cirq.H(q),
-                cirq.measure(q))
-            return cirq.CircuitSampleJob(
-                circuit=circuit,
-                repetitions=10,
-                id='test')
+            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            return cirq.CircuitSampleJob(circuit=circuit,
+                                         repetitions=10,
+                                         id='test')
 
         def on_job_result(self, job, result):
             received.append(job.id)
 
-    completion = cirq.async_collect_samples(
-        collector=TestCollector(),
-        sampler=cirq.Simulator(),
-        max_total_samples=100,
-        concurrency=5)
+    completion = cirq.async_collect_samples(collector=TestCollector(),
+                                            sampler=cirq.Simulator(),
+                                            max_total_samples=100,
+                                            concurrency=5)
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert received == ['test'] * 10

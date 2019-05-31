@@ -24,6 +24,7 @@ from cirq.work import sampler, work_pool
 @value.value_equality(unhashable=True)
 class CircuitSampleJob:
     """Describes a sampling task."""
+
     def __init__(self,
                  circuit: circuits.Circuit,
                  *,
@@ -50,16 +51,15 @@ class CircuitSampleJob:
     def __repr__(self):
         return ('cirq.CircuitSampleJob('
                 'id={!r}, repetitions={!r}, circuit={!r})').format(
-            self.id, self.repetitions, self.circuit)
+                    self.id, self.repetitions, self.circuit)
 
 
 class SampleCollector(metaclass=abc.ABCMeta):
     """An interface for concurrently collecting sample data."""
 
     @abc.abstractmethod
-    def next_job(self) -> Union[None,
-                                CircuitSampleJob,
-                                Iterable[CircuitSampleJob]]:
+    def next_job(self
+                ) -> Union[None, CircuitSampleJob, Iterable[CircuitSampleJob]]:
         """Called by driving code when more sampling can be started.
 
         Returns:
@@ -70,8 +70,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def on_job_result(self,
-                      job: CircuitSampleJob,
+    def on_job_result(self, job: CircuitSampleJob,
                       result: study.TrialResult) -> None:
         """Called by driving code when sample results have become available.
 
@@ -85,7 +84,7 @@ async def async_collect_samples(collector: SampleCollector,
                                 *,
                                 concurrency: int = 2,
                                 max_total_samples: Optional[int] = None
-                                ) -> None:
+                               ) -> None:
     """Concurrently collects samples from a simulator or hardware.
 
     Args:
@@ -102,19 +101,16 @@ async def async_collect_samples(collector: SampleCollector,
     """
     pool = work_pool.CompletionOrderedAsyncWorkPool()
     remaining_samples = (np.infty
-                         if max_total_samples is None
-                         else max_total_samples)
+                         if max_total_samples is None else max_total_samples)
 
     async def _start_async_job(job):
-        return job, await sampler.async_sample(
-            job.circuit,
-            repetitions=job.repetitions)
+        return job, await sampler.async_sample(job.circuit,
+                                               repetitions=job.repetitions)
 
     # Keep dispatching and processing work.
     while True:
         # Fill up the work pool.
-        while (remaining_samples > 0 and
-               pool.num_uncollected < concurrency):
+        while (remaining_samples > 0 and pool.num_uncollected < concurrency):
             new_jobs = _flatten_jobs(collector.next_job())
 
             # If no jobs were given, stop asking until something completes.
@@ -135,18 +131,16 @@ async def async_collect_samples(collector: SampleCollector,
         collector.on_job_result(done_job, done_val)
 
 
-def _flatten_jobs(given: Union[None,
-                                CircuitSampleJob,
-                                Iterable[CircuitSampleJob]]):
+def _flatten_jobs(
+        given: Union[None, CircuitSampleJob, Iterable[CircuitSampleJob]]):
     out = []
     _flatten_jobs_helper(out, given)
     return out
 
 
-def _flatten_jobs_helper(out: List[CircuitSampleJob],
-                         given: Union[None,
-                                      CircuitSampleJob,
-                                      Iterable[CircuitSampleJob]]):
+def _flatten_jobs_helper(
+        out: List[CircuitSampleJob],
+        given: Union[None, CircuitSampleJob, Iterable[CircuitSampleJob]]):
     if isinstance(given, CircuitSampleJob):
         out.append(given)
     elif given is not None:

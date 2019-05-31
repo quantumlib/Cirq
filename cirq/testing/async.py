@@ -18,14 +18,12 @@ from typing import Any, Type, Union, Coroutine
 
 import pytest
 
-
 _just_return_result = ([],)
 
 
-def assert_asyncio_still_running(future: Union[Awaitable,
-                                               asyncio.Future,
-                                               Coroutine],
-                                 timeout: float = 0.001):
+def assert_asyncio_still_running(
+        future: Union[Awaitable, asyncio.Future, Coroutine],
+        timeout: float = 0.001):
     """Checks that the given asyncio future has not completed.
 
     Works by running the asyncio event loop for a short amount of time.
@@ -40,18 +38,16 @@ def assert_asyncio_still_running(future: Union[Awaitable,
     """
     try:
         asyncio.get_event_loop().run_until_complete(
-            asyncio.wait_for(asyncio.shield(future), timeout=0.001)
-        )
+            asyncio.wait_for(asyncio.shield(future), timeout=0.001))
         assert False, "Not running: {!r}".format(future)
     except asyncio.TimeoutError:
         pass
 
 
-def assert_asyncio_will_have_result(future: Union[Awaitable,
-                                                  asyncio.Future,
-                                                  Coroutine],
-                                    expected: Any = _just_return_result,
-                                    timeout: float = 1.0) -> Any:
+def assert_asyncio_will_have_result(
+        future: Union[Awaitable, asyncio.Future, Coroutine],
+        expected: Any = _just_return_result,
+        timeout: float = 1.0) -> Any:
     """Checks that the given asyncio future completes with the given value.
 
     Works by running the asyncio event loop for up to the given timeout.
@@ -81,13 +77,12 @@ def assert_asyncio_will_have_result(future: Union[Awaitable,
         assert False, "Not done: {}".format(future)
 
 
-def assert_asyncio_will_raise(future: Union[Awaitable,
-                                            asyncio.Future,
-                                            Coroutine],
-                              expected: Type,
-                              *,
-                              match: str,
-                              timeout: float = 1.0):
+def assert_asyncio_will_raise(
+        future: Union[Awaitable, asyncio.Future, Coroutine],
+        expected: Type,
+        *,
+        match: str,
+        timeout: float = 1.0):
     """Checks that the given asyncio future fails with a matching error.
 
     Works by running the asyncio event loop for up to the given timeout.

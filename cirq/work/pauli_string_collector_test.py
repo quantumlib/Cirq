@@ -17,20 +17,18 @@ import cirq
 
 def test_pauli_string_sample_collector():
     a, b = cirq.LineQubit.range(2)
-    p = cirq.PauliStringSampleCollector(
-        cirq.Circuit.from_ops(
-            cirq.H(a),
-            cirq.CNOT(a, b),
-            cirq.X(a),
-            cirq.Z(b)),
-        samples_per_term=100,
-        terms=cirq.LinearDict({
-            cirq.X(a) * cirq.X(b): 1,
-            cirq.Y(a) * cirq.Y(b): -16,
-            cirq.Z(a) * cirq.Z(b): 4,
-        }))
-    completion = cirq.async_collect_samples(
-        collector=p,
-        sampler=cirq.Simulator())
+    p = cirq.PauliStringSampleCollector(cirq.Circuit.from_ops(
+        cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
+                                        samples_per_term=100,
+                                        terms=cirq.LinearDict({
+                                            cirq.X(a) * cirq.X(b):
+                                            1,
+                                            cirq.Y(a) * cirq.Y(b):
+                                            -16,
+                                            cirq.Z(a) * cirq.Z(b):
+                                            4,
+                                        }))
+    completion = cirq.async_collect_samples(collector=p,
+                                            sampler=cirq.Simulator())
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert p.estimated_energy() == 11

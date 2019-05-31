@@ -55,22 +55,20 @@ class PauliStringSampleCollector(collector.SampleCollector):
         if i >= len(self._terms):
             return None
         pauli, _ = self._terms[i]
-        remaining = self._samples_per_term * (i + 1
-                                              ) - self._total_samples_requested
+        remaining = self._samples_per_term * (i +
+                                              1) - self._total_samples_requested
         amount_to_request = min(remaining, self._samples_per_job)
         self._total_samples_requested += amount_to_request
         return collector.CircuitSampleJob(
-            circuit=_circuit_plus_pauli_string_measurements(self._circuit,
-                                                            pauli),
+            circuit=_circuit_plus_pauli_string_measurements(
+                self._circuit, pauli),
             repetitions=amount_to_request,
             id=pauli)
 
-    def on_job_result(self,
-                      job: collector.CircuitSampleJob,
+    def on_job_result(self, job: collector.CircuitSampleJob,
                       result: study.TrialResult):
-        parities = result.histogram(
-            key='out',
-            fold_func=lambda bits: np.sum(bits) % 2)
+        parities = result.histogram(key='out',
+                                    fold_func=lambda bits: np.sum(bits) % 2)
         self._zeros[job.id] += parities[0]
         self._ones[job.id] += parities[1]
 
@@ -89,7 +87,7 @@ class PauliStringSampleCollector(collector.SampleCollector):
 
 def _circuit_plus_pauli_string_measurements(circuit: circuits.Circuit,
                                             pauli_string: ops.PauliString
-                                            ) -> circuits.Circuit:
+                                           ) -> circuits.Circuit:
     """A circuit measuring the given observable at the end of the given circuit.
     """
     assert pauli_string
@@ -97,7 +95,6 @@ def _circuit_plus_pauli_string_measurements(circuit: circuits.Circuit,
 
     circuit = circuit.copy()
     circuit.append(ops.Moment(pauli_string.to_z_basis_ops()))
-    circuit.append(ops.Moment([
-        ops.measure(*sorted(pauli_string.keys()), key='out')
-    ]))
+    circuit.append(
+        ops.Moment([ops.measure(*sorted(pauli_string.keys()), key='out')]))
     return circuit

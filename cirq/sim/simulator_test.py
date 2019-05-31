@@ -266,6 +266,7 @@ def test_async_sample():
     m = {'mock': np.array([[0], [1]])}
 
     class MockSimulator(cirq.SimulatesSamples):
+
         def _run(self, circuit, param_resolver, repetitions):
             return m
 
