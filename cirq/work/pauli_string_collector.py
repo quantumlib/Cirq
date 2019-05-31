@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import collections
-import random
 from typing import Optional
 
 import numpy as np
@@ -29,7 +28,7 @@ class PauliStringSampleCollector(collector.SampleCollector):
                  circuit: circuits.Circuit,
                  samples_per_term: int,
                  terms: value.LinearDict[ops.PauliString],
-                 max_samples_per_job: int = 1000):
+                 max_samples_per_job: int = 1000000):
         """
         Args:
             circuit: Produces the state to be tested.
@@ -83,7 +82,9 @@ class PauliStringSampleCollector(collector.SampleCollector):
             b = self._ones[pauli_string]
             if a + b:
                 energy += coef * (a - b) / (a + b)
-        return energy
+        energy = complex(energy)
+        assert energy.imag == 0
+        return energy.real
 
 
 def _circuit_plus_pauli_string_measurements(circuit: circuits.Circuit,

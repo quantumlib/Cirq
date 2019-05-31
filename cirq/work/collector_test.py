@@ -42,26 +42,26 @@ def test_circuit_sample_job_repr():
 
 
 def test_async_collect():
-    class ManualCollector(cirq.SampleCollector):
+    received = []
+
+    class TestCollector(cirq.SampleCollector):
         def next_job(self):
             q = cirq.LineQubit(0)
+            circuit = cirq.Circuit.from_ops(
+                cirq.H(q),
+                cirq.measure(q))
             return cirq.CircuitSampleJob(
-                circuit=cirq.Circuit.from_ops(
-                    cirq.H(q),
-                    cirq.measure(q)),
+                circuit=circuit,
                 repetitions=10,
                 id='test')
 
         def on_job_result(self, job, result):
-            assert job.id == 'test'
-            assert False
-            pass
+            received.append(job.id)
 
-    m = ManualCollector()
-
-    r = cirq.async_collect_samples(
-        m,
-        sampler=cirq.Simulator())
-    cirq.testing.assert_asyncio_will_have_result(r, None)
-    print(r)
-    assert False
+    completion = cirq.async_collect_samples(
+        collector=TestCollector(),
+        sampler=cirq.Simulator(),
+        max_total_samples=100,
+        concurrency=5)
+    cirq.testing.assert_asyncio_will_have_result(completion, None)
+    assert received == ['test'] * 10

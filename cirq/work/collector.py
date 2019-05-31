@@ -83,7 +83,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
 async def async_collect_samples(collector: SampleCollector,
                                 sampler: sampler.Sampler,
                                 *,
-                                min_concurrent_jobs: int = 1,
+                                concurrency: int = 2,
                                 max_total_samples: Optional[int] = None
                                 ) -> None:
     """Concurrently collects samples from a simulator or hardware.
@@ -92,8 +92,8 @@ async def async_collect_samples(collector: SampleCollector,
         collector: Determines which circuits to sample next, and processes the
             resulting samples. This object will be mutated.
         sampler: The simulator or hardware to take samples from.
-        min_concurrent_jobs: Desired minimum number of sampling jobs to have in
-            flight at any given time.
+        concurrency: Desired number of sampling jobs to have in flight at any
+            given time.
         max_total_samples: Optional limit on the maximum number of samples to
             collect.
 
@@ -114,7 +114,7 @@ async def async_collect_samples(collector: SampleCollector,
     while True:
         # Fill up the work pool.
         while (remaining_samples > 0 and
-               pool.num_uncollected < min_concurrent_jobs):
+               pool.num_uncollected < concurrency):
             new_jobs = _flatten_jobs(collector.next_job())
 
             # If no jobs were given, stop asking until something completes.
