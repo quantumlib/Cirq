@@ -266,7 +266,15 @@ def so4_to_magic_su2s(
 
 @value.value_equality(approximate=True)
 class AxisAngleDecomposition:
-    """Represents a unitary operation as an axis, angle, and global phase."""
+    """Represents a unitary operation as an axis, angle, and global phase.
+
+    The unitary $U$ is decomposed as follows:
+
+        $$U = g e^{-i \theta/2 (xX + yY + zZ)}$$
+
+    where \theta is the rotation angle, (x, y, z) is a unit vector along the
+    rotation axis, and g is the global phase.
+    """
 
     def __init__(self, *, angle: float, axis: Tuple[float, float, float],
                  global_phase: Union[int, float, complex]):
@@ -325,13 +333,6 @@ class AxisAngleDecomposition:
                                     period=math.pi * 2), v.axis, v.global_phase)
 
     def _unitary_(self):
-        """The unitary represented by this axis angle rotation.
-
-        Returns:
-            The unitary $g e^{(i t) (xX + yY + zZ)}$ where t is the angle theta,
-            (x, y, z) is the unit vector along the axis, and g is the global
-            phase.
-        """
         x, y, z = self.axis
         xm = np.array([[0, 1], [1, 0]])
         ym = np.array([[0, -1j], [1j, 0]])
