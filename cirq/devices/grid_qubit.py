@@ -131,16 +131,24 @@ class GridQubit(ops.Qid):
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
-    def to_proto_dict(self) -> Dict:
+    def to_proto_dict(self, v2_proto=False) -> Dict:
         """Return the proto in dictionary form."""
+        # TODO: Deprecate v1 proto method.
         return {
             'row': self.row,
             'col': self.col,
         }
 
+    def proto_id(self):
+        return '{}_{}'.format(self.row, self.col)
+
     @staticmethod
     def from_proto_dict(proto_dict: Dict) -> 'GridQubit':
         """Proto dict must have 'row' and 'col' keys."""
+        if 'id' in proto_dict:
+            row, col = proto_dict['id'].split('_')
+            return GridQubit(row=int(row), col=int(col))
+        # TODO: Deprecate v1 proto method.
         if 'row' not in proto_dict or 'col' not in proto_dict:
             raise ValueError(
                 'Proto dict does not contain row or col: {}'.format(proto_dict))
