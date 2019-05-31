@@ -40,7 +40,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     """
     def __init__(self,
                  terms: Optional[Mapping[TVector, Scalar]] = None,
-                 validator: Callable[[TVector], bool]=lambda _: True) -> None:
+                 validator: Callable[[TVector], bool] = lambda _: True) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
