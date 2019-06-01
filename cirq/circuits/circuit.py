@@ -216,14 +216,7 @@ class Circuit:
         del self._moments[key]
 
     def __iadd__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        if (other.device != self._device and
-                other.device != devices.UnconstrainedDevice):
-            raise ValueError("Other circuit's device is not compatible.")
-        for moment in other:
-            self._device.validate_moment(moment)
-        self._moments += other._moments
+        self.append(other)
         return self
 
     def __add__(self, other):

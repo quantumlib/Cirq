@@ -1,7 +1,7 @@
 # Runtime requirements for the python 3 version of cirq.
 
 google-api-python-client~=1.6
-matplotlib~=2.2
+matplotlib~=3.0
 networkx~=2.1
 numpy~=1.16
 protobuf~=3.5
