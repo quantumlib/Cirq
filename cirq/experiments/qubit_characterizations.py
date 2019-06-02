@@ -451,8 +451,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int],
     q_0_i = 3 - i
     q_1_j = 3 - j
     indices = [q_1_j - 1, 4 * q_0_i - 1, 4 * q_0_i + q_1_j - 1]
-    signs = [(-1) ** (j == 2), (-1) ** (i == 2),
-             (-1) ** (int(i == 2) + int(j == 2))]
+    signs = [(-1) ** (j == 2), (-1) ** (i == 2), (-1) ** ((i == 2) + (j == 2))]
     return mat_idx, indices, signs
 
 
