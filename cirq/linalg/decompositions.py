@@ -103,6 +103,7 @@ def _perp_eigendecompose(matrix: np.ndarray,
                          atol: float = 1e-8,
                          ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
+
     numpy.linalg.eig doesn't guarantee that eigenvectors from the same
     eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
     a perpendicular set. It further checks that all eigenvectors are
@@ -151,6 +152,7 @@ def map_eigenvalues(
         rtol: float = 1e-5,
         atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
+
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
 
     Args:
@@ -178,6 +180,7 @@ def kron_factor_4x4_to_2x2s(
         matrix: np.ndarray,
 ) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
+
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
     Requires the matrix to have a non-zero determinant.
     Giving an incorrect matrix will cause garbage output.
@@ -228,7 +231,9 @@ def so4_to_magic_su2s(
         check_preconditions: bool = True
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
+
     Mag is the magic basis matrix:
+
         1  0  0  i
         0  i  1  0
         0  i -1  0     (times sqrt(0.5) to normalize)
@@ -262,8 +267,11 @@ def so4_to_magic_su2s(
 @value.value_equality
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
+
     Any two qubit operation U can be decomposed into the form
+
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
+
     This class stores g, (b0, b1), (x, y, z), and (a0, a1).
 
     Attributes:
@@ -284,6 +292,7 @@ class KakDecomposition:
                  interaction_coefficients: Tuple[float, float, float],
                  single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
         """Initializes a decomposition for a two-qubit operation U.
+
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
 
         Args:
@@ -331,6 +340,7 @@ class KakDecomposition:
 
     def _unitary_(self):
         """Returns the decomposition's two-qubit unitary matrix.
+
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
         """
         before = np.kron(*self.single_qubit_operations_before)
