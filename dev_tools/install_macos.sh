@@ -14,3 +14,4 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate
     mkdir ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
     fi
+    

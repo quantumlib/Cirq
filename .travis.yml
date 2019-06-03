@@ -49,27 +49,16 @@ matrix:
     script: check/pytest --ignore=cirq/contrib --benchmark-skip
 
   - os: osx
-    env: NAME=pytest (without contrib) macOS
+    env: NAME=pytest (macOS)
     language: generic
-    env: PYTHON=3.7.3
+    env: PYTHON=3.7.0
     install:
-      - ./dev_tools/install.sh
+      - ./dev_tools/install_macos.sh
       - source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate
       - pip install -r requirements.txt
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --ignore=cirq/contrib --benchmark-skip
-
-  - os: osx
-    env: NAME=pytest-and-incremental-coverage macOS
-    language: generic
-    env: PYTHON=3.6.0
-    install:
-      - ./dev_tools/install.sh
-      - source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate
-      - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
-      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest-and-incremental-coverage master
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --benchmark-skip
 
   - os: linux
     env: NAME=performance tests
