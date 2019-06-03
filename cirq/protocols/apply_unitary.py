@@ -17,13 +17,13 @@
 
 from typing import (
     Any,
-    Union,
-    TypeVar,
-    Tuple,
     Iterable,
     Optional,
     Sequence,
+    Tuple,
     TYPE_CHECKING,
+    TypeVar,
+    Union,
 )
 
 import numpy as np
@@ -94,7 +94,9 @@ class ApplyUnitaryArgs:
     @staticmethod
     def default(num_qubits: int) -> 'ApplyUnitaryArgs':
         """A default instance starting in state |0⟩."""
-        state = linalg.one_hot(shape=(2,) * num_qubits, dtype=np.complex128)
+        state = linalg.one_hot(index=(0,) * num_qubits,
+                               shape=(2,) * num_qubits,
+                               dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     def subspace_index(self, little_endian_bits_int: int
