@@ -490,8 +490,9 @@ def kak_decomposition(
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
         coefficients x, y, z satisfy:
-            0 ≤ abs(z) ≤ y ≤ x ≤ π/4
-            z ≠ -π/4
+
+            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
+            if x2 = π/4, z2 >= 0
 
     Raises:
         ValueError: Bad matrix.
