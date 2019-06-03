@@ -50,11 +50,11 @@ matrix:
 
   - os: osx
     env: NAME=pytest (macOS)
+    python: "3.7.0"
     language: generic
-    env: PYTHON=3.7.0
     install:
       - ./dev_tools/install_macos.sh
-      - source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate
+      - source /Users/travis/.pyenv/versions/3.7.0/envs/venv/bin/activate
       - pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
