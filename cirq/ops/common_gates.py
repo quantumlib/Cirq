@@ -36,15 +36,12 @@ from typing import Any, Callable, cast, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import sympy
 
+import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.phased_x_gate
-
 
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
@@ -1202,6 +1199,7 @@ CZ = CZPowGate()
 #      [0, 0, 0, 1],
 #      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
+CX = CNOT
 
 
 # The swap gate.

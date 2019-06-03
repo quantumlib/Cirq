@@ -12,9 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union
+import numpy as np
 
-import sympy
+import cirq
 
-# Argument types for gates. ArgFunction's are not currently supported.
-ArgValue = Union[int, float, List[bool], str, sympy.Symbol]
+
+def test_one_hot():
+    result = cirq.one_hot(shape=4, dtype=np.int32)
+    assert result.dtype == np.int32
+    np.testing.assert_array_equal(result, [1, 0, 0, 0])
+
+    np.testing.assert_array_equal(
+        cirq.one_hot(shape=[2, 3], dtype=np.complex64), [[1, 0, 0], [0, 0, 0]])
+
+    np.testing.assert_array_equal(
+        cirq.one_hot(shape=[2, 3], dtype=np.complex64, index=(0, 2)),
+        [[0, 0, 1], [0, 0, 0]])
+
+    np.testing.assert_array_equal(
+        cirq.one_hot(shape=5, dtype=np.complex128, index=3), [0, 0, 0, 1, 0])

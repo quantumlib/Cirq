@@ -18,6 +18,12 @@ import pytest
 import cirq
 
 
+def test_empty_init():
+    v = cirq.LinearDict()
+    assert v == cirq.LinearDict({})
+    assert not v
+
+
 @pytest.mark.parametrize('keys, coefficient, terms_expected', (
     ((), 10, {}),
     (('X',), 2, {'X': 2}),

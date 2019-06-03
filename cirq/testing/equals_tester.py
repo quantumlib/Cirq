@@ -77,8 +77,10 @@ class EqualsTester:
                     "They're equal.".format(v1, v2))
 
         # Check that group items hash to the same thing, or are all unhashable.
-        hashes = [hash(v) if isinstance(v, collections.Hashable) else None
-                  for v in group_items]
+        hashes = [
+            hash(v) if isinstance(v, collections.abc.Hashable) else None
+            for v in group_items
+        ]
         if len(set(hashes)) > 1:
             examples = ((v1, h1, v2, h2)
                         for v1, h1 in zip(group_items, hashes)

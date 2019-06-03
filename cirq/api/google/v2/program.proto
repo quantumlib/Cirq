@@ -93,14 +93,12 @@ message Operation {
   // Which gate this operation corresponds to.
   Gate gate = 1;
 
-  // Arguments needed to fully specify the gate.
-  repeated Arg args = 2;
+  // Map from the argument name to the Argument needed to fully specify
+  // the gate.
+  map<string, Arg> args = 2;
 
   // Which qubits the operation acts on.
   repeated Qubit qubits = 3;
-
-  // If the operation produces results, these are referenced by these keys.
-  repeated string keys = 4;
 }
 
 // The instruction identifying the action taken on the quantum computer.
@@ -127,8 +125,8 @@ message Arg {
   // Arguments are either a number, a symbol, or an argument function
   // (which recursively depends on Arg).
   //
-  // Number is used to specify an argument that does not vary depending on
-  // RunContext.
+  // ArgValue is used to specify an argument that does not vary
+  // depending on RunContext.
   //
   // Symbol is used when an argument will be resolved (supplied a value)
   // by a Run Context.
@@ -136,10 +134,24 @@ message Arg {
   // Functions are used to define a simple s-expression tree describing
   // how to combine numbers and symbols mathematically.
   oneof arg {
-    float number = 1;
+    ArgValue arg_value = 1;
     string symbol = 2;
     ArgFunction func = 3;
   }
+}
+
+// Value that can be passed as an argument to a gate.
+message ArgValue {
+  oneof arg_value {
+    float float_value = 1;
+    RepeatedBoolean bool_values = 2;
+    string string_value = 3;
+  }
+}
+
+// A repeated boolean value.
+message RepeatedBoolean {
+  repeated bool values = 1;
 }
 
 // A function of arguments. This is an s-expression tree representing

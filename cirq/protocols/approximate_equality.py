@@ -13,7 +13,10 @@
 # limitations under the License.
 
 from typing import Any, Union
+from fractions import Fraction
+from decimal import Decimal
 
+import numbers
 import numpy as np
 
 from typing_extensions import Protocol
@@ -86,15 +89,12 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
             return result
 
     # Compare primitive types directly.
-    if isinstance(val, (int, float)):
-        if not isinstance(other, (int, float)):
+    if isinstance(val, numbers.Number):
+        if not isinstance(other, numbers.Number):
             return False
-        return _isclose(val, other, atol=atol)
-
-    if isinstance(val, complex):
-        if not isinstance(other, complex):
-            return False
-        return _isclose(val, other, atol=atol)
+        result = _isclose(val, other, atol=atol)
+        if result is not NotImplemented:
+            return result
 
     # Try to compare source and target recursively, assuming they're iterable.
     result = _approx_eq_iterables(val, other, atol=atol)
@@ -160,4 +160,19 @@ def _approx_eq_iterables(val: Any, other: Any, *,
 
 def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:
     """Convenience wrapper around np.isclose."""
-    return True if np.isclose([a], [b], atol=atol, rtol=0.0)[0] else False
+
+    # support casting some standard numeric types
+    x1 = np.asarray([a])
+    if isinstance(a, (Fraction, Decimal)):
+        x1 = x1.astype(np.float64)
+    x2 = np.asarray([b])
+    if isinstance(b, (Fraction, Decimal)):
+        x2 = x2.astype(np.float64)
+
+    # workaround np.isfinite type limitations. Cast to bool to avoid np.bool_
+    try:
+        result = bool(np.isclose(x1, x2, atol=atol, rtol=0.0)[0])
+    except TypeError:
+        return NotImplemented
+
+    return result

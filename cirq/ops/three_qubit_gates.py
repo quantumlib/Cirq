@@ -386,4 +386,5 @@ CSWAP = CSwapGate()
 
 # Common names.
 TOFFOLI = CCX
+CCNOT = TOFFOLI
 FREDKIN = CSWAP

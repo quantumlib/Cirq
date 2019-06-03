@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "cirq/api/google/v2/program.proto";
+
 package cirq.api.google.v2;
 
 option java_package = "com.google.cirq.api.google.v2";
@@ -103,7 +105,7 @@ message SingleSweep {
 // A list of explicit values.
 message Points {
   // The values.
-  repeated float points = 1;
+  repeated ArgValue points = 1;
 }
 
 // A range of evenly-spaced values.

@@ -121,7 +121,7 @@ class ParallelGateOperation(raw_types.Operation):
         # unitary to each qubit. This will blow up memory fast.
         unitary = single_unitary
         for _ in range(len(self.qubits) - 1):
-            unitary = np.outer(unitary, single_unitary)
+            unitary = np.kron(unitary, single_unitary)
 
         return unitary
 
@@ -148,14 +148,6 @@ class ParallelGateOperation(raw_types.Operation):
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,
                                             exponent=diagram_info.exponent,
                                             connected=False)
-
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'ParallelGateOperation':
-        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
-                                         default=None)
-        if phased_gate is None:
-            return NotImplemented
-        return self.with_gate(phased_gate)
 
     def __pow__(self, exponent: Any) -> 'ParallelGateOperation':
         """Raise gate to a power, then reapply to the same qubits.

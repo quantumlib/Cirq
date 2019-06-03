@@ -15,6 +15,7 @@
 """Tests sampling/simulation methods that delegate to appropriate simulators."""
 import collections
 
+import pytest
 import sympy
 
 import cirq
@@ -23,6 +24,8 @@ import cirq
 def test_sample():
     q = cirq.NamedQubit('q')
 
+    with pytest.raises(ValueError, match="no measurements"):
+        cirq.sample(cirq.Circuit.from_ops(cirq.X(q)))
     # Unitary.
     results = cirq.sample(cirq.Circuit.from_ops(cirq.X(q), cirq.measure(q)))
     assert results.histogram(key=q) == collections.Counter({1: 1})
