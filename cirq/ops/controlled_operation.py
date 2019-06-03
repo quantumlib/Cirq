@@ -56,7 +56,7 @@ class ControlledOperation(raw_types.Operation):
         return [ControlledOperation(self.controls, op) for op in result]
 
     def _value_equality_values_(self):
-        return self.controls, self.sub_operation
+        return frozenset(self.controls), self.sub_operation
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
         n = len(self.controls)

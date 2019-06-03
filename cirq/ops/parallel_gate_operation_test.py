@@ -103,12 +103,11 @@ def test_unitary():
     assert not cirq.has_unitary(p)
     assert cirq.unitary(p, None) is None
     np.testing.assert_allclose(cirq.unitary(q),
-                               np.array([
-                                   [0. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j],
-                                   [0. + 0.j, 1. + 0.j, 1. + 0.j, 0. + 0.j],
-                                   [0. + 0.j, 1. + 0.j, 1. + 0.j, 0. + 0.j],
-                                   [0. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j]
-                               ]),
+                               np.array(
+                                   [[0. + 0.j, 0. + 0.j, 0. + 0.j, 1. + 0.j],
+                                    [0. + 0.j, 0. + 0.j, 1. + 0.j, 0. + 0.j],
+                                    [0. + 0.j, 1. + 0.j, 0. + 0.j, 0. + 0.j],
+                                    [1. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j]]),
                                atol=1e-8)
 
 
@@ -132,18 +131,6 @@ def test_str():
     assert str(cirq.ParallelGateOperation(cirq.X, (a, b))) == 'X(0, 1)'
 
 
-def test_phase():
-    g1 = cirq.SingleQubitGate()
-    g2 = cirq.S
-    g3 = cirq.phase_by(g2, 1, 0)
-    qreg = cirq.LineQubit.range(2)
-    op1 = cirq.ParallelGateOperation(g1, qreg)
-    op2 = cirq.ParallelGateOperation(g2, qreg)
-    assert cirq.phase_by(op2, 1, 0) == cirq.ParallelGateOperation(g3, qreg)
-    with pytest.raises(TypeError):
-        cirq.phase_by(op1, 1, 0)
-
-
 def test_equivalent_circuit():
     qreg = cirq.LineQubit.range(4)
     oldc = cirq.Circuit()
@@ -161,3 +148,14 @@ def test_equivalent_circuit():
                                                                            newc,
                                                                            atol=
                                                                            1e-6)
+
+
+@pytest.mark.parametrize('gate, qubits', (
+    (cirq.X, (cirq.NamedQubit('q'),)),
+    (cirq.Y, cirq.LineQubit.range(2)),
+    (cirq.Z, cirq.LineQubit.range(3)),
+    (cirq.H, cirq.LineQubit.range(4)),
+))
+def test_parallel_gate_operation_is_consistent(gate, qubits):
+    op = cirq.ParallelGateOperation(gate, qubits)
+    cirq.testing.assert_implements_consistent_protocols(op)
