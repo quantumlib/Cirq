@@ -376,11 +376,16 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
     Returns:
         The canonicalized decomposition, with vector coefficients (x2, y2, z2)
         satisfying:
+
             0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
             if x2 = π/4, z2 >= 0
+
         Guarantees that the implied output matrix:
+
             g · (a1 ⊗ a0) · exp(i·(x2·XX + y2·YY + z2·ZZ)) · (b1 ⊗ b0)
+
         is approximately equal to the implied input matrix:
+
             exp(i·(x·XX + y·YY + z·ZZ))
     """
 
