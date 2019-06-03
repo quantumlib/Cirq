@@ -591,3 +591,23 @@ def test_simulate_measurement_inversions():
 
     c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(False,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}
+
+
+def test_works_on_pauli_string_phasor():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
+    sim = cirq.Simulator()
+    result = sim.simulate(c).final_simulator_state.state_vector
+    np.testing.assert_allclose(result.reshape(4),
+                               np.array([0, 0, 0, 1j]),
+                               atol=1e-8)
+
+
+def test_works_on_pauli_string():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.X(a) * cirq.X(b))
+    sim = cirq.Simulator()
+    result = sim.simulate(c).final_simulator_state.state_vector
+    np.testing.assert_allclose(result.reshape(4),
+                               np.array([0, 0, 0, 1]),
+                               atol=1e-8)
