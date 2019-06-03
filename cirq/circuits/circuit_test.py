@@ -437,8 +437,6 @@ def test_concatenate():
 
     with pytest.raises(TypeError):
         _ = c + 'a'
-    with pytest.raises(TypeError):
-        c += 'a'
 
 
 def test_concatenate_with_device():
@@ -452,10 +450,7 @@ def test_concatenate_with_device():
     cone += unr
     with pytest.raises(ValueError):
         _ = cone + fox
-    with pytest.raises(ValueError):
-        unr += cone
-    with pytest.raises(ValueError):
-        cone += fox
+
 
     unr.append(cirq.X(cirq.NamedQubit('not_allowed')))
     with pytest.raises(ValueError):
