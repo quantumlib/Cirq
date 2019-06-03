@@ -47,8 +47,10 @@ def _rotation_matrix(angle: float) -> np.ndarray:
 def deconstruct_single_qubit_matrix_into_angles(
         mat: np.ndarray) -> Tuple[float, float, float]:
     """Breaks down a 2x2 unitary into more useful ZYZ angle parameters.
+
     Args:
         mat: The 2x2 unitary matrix to break down.
+
     Returns:
         A tuple containing the amount to phase around Z, then rotate around Y,
         then phase around Z (all in radians).
@@ -75,9 +77,11 @@ def deconstruct_single_qubit_matrix_into_angles(
 def _group_similar(items: List[T],
                    comparer: Callable[[T, T], bool]) -> List[List[T]]:
     """Combines similar items into groups.
+
   Args:
     items: The list of items to group.
     comparer: Determines if two items are similar.
+
   Returns:
     A list of groups of items.
   """
@@ -103,15 +107,18 @@ def _perp_eigendecompose(matrix: np.ndarray,
     eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
     a perpendicular set. It further checks that all eigenvectors are
     perpendicular and raises an ArithmeticError otherwise.
+
     Args:
         matrix: The matrix to decompose.
         rtol: Relative threshold for determining whether eigenvalues are from
               the same eigenspace and whether eigenvectors are perpendicular.
         atol: Absolute threshold for determining whether eigenvalues are from
               the same eigenspace and whether eigenvectors are perpendicular.
+
     Returns:
         The eigenvalues and column eigenvectors. The i'th eigenvalue is
         associated with the i'th column eigenvector.
+
     Raises:
         ArithmeticError: Failed to find perpendicular eigenvectors.
     """
@@ -145,11 +152,13 @@ def map_eigenvalues(
         atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
+
     Args:
         matrix: The matrix to modify with the function.
         func: The function to apply to the eigenvalues of the matrix.
         rtol: Relative threshold used when separating eigenspaces.
         atol: Absolute threshold used when separating eigenspaces.
+
     Returns:
         The transformed matrix.
     """
@@ -172,11 +181,14 @@ def kron_factor_4x4_to_2x2s(
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
     Requires the matrix to have a non-zero determinant.
     Giving an incorrect matrix will cause garbage output.
+
     Args:
         matrix: The 4x4 unitary matrix to factor.
+
     Returns:
         A scalar factor and a pair of 2x2 unit-determinant matrices. The
         kronecker product of all three is equal to the given matrix.
+
     Raises:
         ValueError:
             The given matrix can't be tensor-factored into 2x2 pieces.
@@ -221,15 +233,18 @@ def so4_to_magic_su2s(
         0  i  1  0
         0  i -1  0     (times sqrt(0.5) to normalize)
         1  0  0 -i
+
     Args:
         mat: A real 4x4 orthogonal matrix.
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
         check_preconditions: When set, the code verifies that the given
             matrix is from SO(4). Defaults to set.
+
     Returns:
         A pair (A, B) of matrices in SU(2) such that Mag.H @ kron(A, B) @ Mag
         is approximately equal to the given matrix.
+
     Raises:
         ValueError: Bad matrix.
         """
@@ -250,11 +265,13 @@ class KakDecomposition:
     Any two qubit operation U can be decomposed into the form
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
     This class stores g, (b0, b1), (x, y, z), and (a0, a1).
+
     Attributes:
         global_phase: g from the above equation.
         single_qubit_operations_before: b0, b1 from the above equation.
         interaction_coefficients: x, y, z from the above equation.
         single_qubit_operations_after: a0, a1 from the above equation.
+
     References:
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
@@ -268,6 +285,7 @@ class KakDecomposition:
                  single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
         """Initializes a decomposition for a two-qubit operation U.
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
+
         Args:
             global_phase: g from the above equation.
             single_qubit_operations_before: b0, b1 from the above equation.
@@ -338,11 +356,13 @@ class KakDecomposition:
 def kak_canonicalize_vector(x: float, y: float, z: float,
                             atol: float = 1e-9) -> KakDecomposition:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
+
     Args:
         x: The strength of the XX interaction.
         y: The strength of the YY interaction.
         z: The strength of the ZZ interaction.
         atol: How close x2 must be to π/4 to guarantee z2 >= 0
+
     Returns:
         The canonicalized decomposition, with vector coefficients (x2, y2, z2)
         satisfying:
@@ -446,18 +466,22 @@ def kak_decomposition(
         rtol: float = 1e-5,
         atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
+
     Args:
         mat: The 4x4 unitary matrix to decompose.
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
+
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
         coefficients x, y, z satisfy:
             0 ≤ abs(z) ≤ y ≤ x ≤ π/4
             z ≠ -π/4
+
     Raises:
         ValueError: Bad matrix.
         ArithmeticError: Failed to perform the decomposition.
+
     References:
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
