@@ -11,3 +11,7 @@ from cirq.experiments.qubit_characterizations import (
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
 )
+
+from cirq.experiments.cross_entropy_benchmarking import (
+    cross_entropy_benchmarking
+)
