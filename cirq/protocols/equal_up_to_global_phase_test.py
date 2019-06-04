@@ -16,32 +16,45 @@ import cirq
 
 
 def test_equal_up_to_global_phase_primitives():
-    assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 + 1j, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 - 1j, atol=1e-09)
+    assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 + 1j, atol=1e-9)
+    assert cirq.equal_up_to_global_phase(1.0 + 1j, 1.0 - 1j, atol=1e-9)
     assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3),
                                          1.0 + 0.0j,
-                                         atol=1e-09)
-    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3), 1.0, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3), 1, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(1j, 1, atol=1e-10)
-    # atol is determined by magnitude of complex vector, not components
-    assert cirq.equal_up_to_global_phase(0.0, 1e-10, atol=1e-09)
-    assert cirq.equal_up_to_global_phase(0, 0, atol=1e-09)
+                                         atol=1e-9)
+    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3), 1.0, atol=1e-9)
+    assert cirq.equal_up_to_global_phase(np.exp(1j * 3.3), 1, atol=1e-9)
+    assert cirq.equal_up_to_global_phase(1j, 1 + 1e-10, atol=1e-9)
+    assert not cirq.equal_up_to_global_phase(1j, 1 + 1e-10, atol=1e-11)
+    # atol is applied to magnitude of complex vector, not components.
+    assert cirq.equal_up_to_global_phase(1.0 + 0.1j, 1.0, atol=0.01)
+    assert not cirq.equal_up_to_global_phase(1.0 + 0.1j, 1.0, atol=0.001)
+    assert cirq.equal_up_to_global_phase(1.0 + 1j, np.sqrt(2) + 1e-8, atol=1e-7)
+    assert not cirq.equal_up_to_global_phase(1.0 + 1j,
+                                             np.sqrt(2) + 1e-7,
+                                             atol=1e-8)
+    assert cirq.equal_up_to_global_phase(1.0 + 1e-10j, 1.0, atol=1e-15)
 
 
 def test_equal_up_to_global_numeric_iterables():
-    # TODO: tuples, lists, numpy arrays
-    assert cirq.equal_up_to_global_phase([], [], atol=0.0)
-    assert cirq.equal_up_to_global_phase([[]], [[]], atol=0.0)
-    assert cirq.equal_up_to_global_phase([1j, 1], [1j, 1])
-    assert cirq.equal_up_to_global_phase([1j, 1j], [1, 1])
-    assert cirq.equal_up_to_global_phase([1j, 1], [1, -1j])
-    assert not cirq.equal_up_to_global_phase([1j, -1j], [1, 1])
-    assert not cirq.equal_up_to_global_phase([1j, 1], [1, 1j])
-    assert not cirq.equal_up_to_global_phase([1j, 1], [1j, 1, 0])
+    assert cirq.equal_up_to_global_phase([], [], atol=1e-9)
+    assert cirq.equal_up_to_global_phase([[]], [[]], atol=1e-9)
+    assert cirq.equal_up_to_global_phase([1j, 1], [1j, 1], atol=1e-9)
+    assert cirq.equal_up_to_global_phase([1j, 1j],
+                                         [1 + 0.1j, 1 + 0.1j],
+                                         atol=0.01)
+    assert not cirq.equal_up_to_global_phase([1j, 1j],
+                                             [1 + 0.1j, 1 - 0.1j],
+                                             atol=0.01)
+    assert not cirq.equal_up_to_global_phase([1j, 1j],
+                                             [1 + 0.1j, 1 + 0.1j],
+                                             atol=1e-3)
+    assert not cirq.equal_up_to_global_phase([1j, -1j], [1, 1], atol=0.0)
+    assert not cirq.equal_up_to_global_phase([1j, 1], [1, 1j], atol=0.0)
+    assert not cirq.equal_up_to_global_phase([1j, 1], [1j, 1, 0], atol=0.0)
 
-    assert cirq.equal_up_to_global_phase((1j, 1j), (1, 1))
-    assert not cirq.equal_up_to_global_phase((1j, 1), (1, 1j))
+    assert cirq.equal_up_to_global_phase((1j, 1j), (1, 1 + 1e-4), atol=1e-3)
+    assert not cirq.equal_up_to_global_phase((1j, 1j), (1, 1 + 1e-4), atol=1e-5)
+    assert not cirq.equal_up_to_global_phase((1j, 1), (1, 1j), atol=1e-09)
 
 
 def test_equal_up_to_global_numpy_array():
@@ -71,7 +84,7 @@ def test_equal_up_to_global_mixed_array_types():
         assert cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type), b)
         assert not cirq.equal_up_to_global_phase(np.asarray(a, dtype=c_type), c)
 
-    # object arrays and mixed array/scalar comparisons
+    # Object arrays and mixed array/scalar comparisons.
     assert not cirq.equal_up_to_global_phase([1j], 1j)
     assert not cirq.equal_up_to_global_phase(
         np.asarray([1], dtype=np.complex128), np.exp(1j))
@@ -81,7 +94,7 @@ def test_equal_up_to_global_mixed_array_types():
 
 
 # Dummy container class implementing _equal_up_to_global_phase_
-# for homogeneous comparison, with nontrivial getter
+# for homogeneous comparison, with nontrivial getter.
 class A:
 
     def __init__(self, val):
@@ -96,7 +109,7 @@ class A:
 
 
 # Dummy container class implementing _equal_up_to_global_phase_
-# for heterogeneous comparison
+# for heterogeneous comparison.
 class B:
 
     def __init__(self, val):
