@@ -24,6 +24,7 @@ class ValiGate(cirq.Gate):
         if len(qubits) == 3:
             raise ValueError()
 
+
 q00 = cirq.NamedQubit('q00')
 q01 = cirq.NamedQubit('q01')
 q10 = cirq.NamedQubit('q10')

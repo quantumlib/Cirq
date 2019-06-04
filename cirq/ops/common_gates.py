@@ -505,8 +505,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure(*qubits: raw_types.Qid,
             key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()
-            ) -> gate_operation.GateOperation:
+            invert_mask: Tuple[bool, ...] = ()) -> gate_operation.GateOperation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -542,7 +541,7 @@ def measure(*qubits: raw_types.Qid,
 
 def measure_each(*qubits: raw_types.Qid,
                  key_func: Callable[[raw_types.Qid], str] = str
-                 ) -> List[gate_operation.GateOperation]:
+                ) -> List[gate_operation.GateOperation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.

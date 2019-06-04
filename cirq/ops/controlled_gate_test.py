@@ -303,9 +303,8 @@ def test_extrapolatable_effect():
     assert (cirq.ControlledGate(cirq.Z).on(a, b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5).on(a, b))
 
-
-    assert (cirq.ControlledGate(cirq.Z)**0.5 ==
-            cirq.ControlledGate(cirq.Z**0.5, [a]))
+    assert (cirq.ControlledGate(cirq.Z)**0.5 == cirq.ControlledGate(
+        cirq.Z**0.5, [a]))
 
     assert (cirq.ControlledGate(cirq.Z, [a]).on(b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5, [a]).on(b))
@@ -422,10 +421,10 @@ def test_bounded_effect():
 
 
 def test_repr():
-    assert repr(
-        cirq.ControlledGate(cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
-    assert (repr(cirq.ControlledGate(cirq.Z, [cirq.LineQubit(0)])) ==
-            "cirq.ControlledGate(sub_gate=cirq.Z, "
+    assert repr(cirq.ControlledGate(
+        cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
+    assert (repr(cirq.ControlledGate(
+        cirq.Z, [cirq.LineQubit(0)])) == "cirq.ControlledGate(sub_gate=cirq.Z, "
             "control_qubits=(cirq.LineQubit(0),), "
             "num_controls=1)")
 

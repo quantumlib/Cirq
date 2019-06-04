@@ -218,14 +218,15 @@ class Gate(metaclass=abc.ABCMeta):
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
-        return ControlledGate(self, control_qubits,
-                              len(control_qubits) if control_qubits is not None
-                                                  else 1)
+        return ControlledGate(
+            self, control_qubits,
+            len(control_qubits) if control_qubits is not None else 1)
 
     @abc.abstractmethod
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
         raise NotImplementedError()
+
 
 TSelf_Operation = TypeVar('TSelf_Operation', bound='Operation')
 
@@ -242,8 +243,7 @@ class Operation(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_qubits(self: TSelf_Operation,
-                    *new_qubits: Qid) -> TSelf_Operation:
+    def with_qubits(self: TSelf_Operation, *new_qubits: Qid) -> TSelf_Operation:
         pass
 
     def transform_qubits(self: TSelf_Operation,
