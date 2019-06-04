@@ -31,9 +31,8 @@ def test_equal_up_to_global_phase_primitives():
     assert cirq.equal_up_to_global_phase(1.0 + 0.1j, 1.0, atol=0.01)
     assert not cirq.equal_up_to_global_phase(1.0 + 0.1j, 1.0, atol=0.001)
     assert cirq.equal_up_to_global_phase(1.0 + 1j, np.sqrt(2) + 1e-8, atol=1e-7)
-    assert not cirq.equal_up_to_global_phase(1.0 + 1j,
-                                             np.sqrt(2) + 1e-7,
-                                             atol=1e-8)
+    assert not cirq.equal_up_to_global_phase(
+        1.0 + 1j, np.sqrt(2) + 1e-7, atol=1e-8)
     assert cirq.equal_up_to_global_phase(1.0 + 1e-10j, 1.0, atol=1e-15)
 
 
@@ -41,19 +40,15 @@ def test_equal_up_to_global_numeric_iterables():
     assert cirq.equal_up_to_global_phase([], [], atol=1e-9)
     assert cirq.equal_up_to_global_phase([[]], [[]], atol=1e-9)
     assert cirq.equal_up_to_global_phase([1j, 1], [1j, 1], atol=1e-9)
-    assert cirq.equal_up_to_global_phase([1j, 1j],
-                                         [1 + 0.1j, 1 + 0.1j],
+    assert cirq.equal_up_to_global_phase([1j, 1j], [1 + 0.1j, 1 + 0.1j],
                                          atol=0.01)
-    assert not cirq.equal_up_to_global_phase([1j, 1j],
-                                             [1 + 0.1j, 1 - 0.1j],
+    assert not cirq.equal_up_to_global_phase([1j, 1j], [1 + 0.1j, 1 - 0.1j],
                                              atol=0.01)
-    assert not cirq.equal_up_to_global_phase([1j, 1j],
-                                             [1 + 0.1j, 1 + 0.1j],
+    assert not cirq.equal_up_to_global_phase([1j, 1j], [1 + 0.1j, 1 + 0.1j],
                                              atol=1e-3)
     assert not cirq.equal_up_to_global_phase([1j, -1j], [1, 1], atol=0.0)
     assert not cirq.equal_up_to_global_phase([1j, 1], [1, 1j], atol=0.0)
     assert not cirq.equal_up_to_global_phase([1j, 1], [1j, 1, 0], atol=0.0)
-
     assert cirq.equal_up_to_global_phase((1j, 1j), (1, 1 + 1e-4), atol=1e-3)
     assert not cirq.equal_up_to_global_phase((1j, 1j), (1, 1 + 1e-4), atol=1e-5)
     assert not cirq.equal_up_to_global_phase((1j, 1), (1, 1j), atol=1e-09)
