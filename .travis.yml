@@ -58,7 +58,7 @@ matrix:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --benchmark-autosave --benchmark-only --benchmark-compare-fail=mean:0.001
+    script: check/pytest --benchmark-autosave --benchmark-only --benchmark-compare --benchmark-compare-fail=min:10%
      
   - os: windows
     env: NAME=pytest (Windows)
