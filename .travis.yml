@@ -58,7 +58,8 @@ matrix:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-      - ls .benchmarks
+      - cd .benchmarks/Linux-CPython-3.6-64bit
+      - ls
     script: check/pytest --benchmark-autosave --benchmark-only
      
   - os: windows
