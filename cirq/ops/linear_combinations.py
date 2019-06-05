@@ -147,8 +147,8 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """
         super().__init__(terms, validator=self._is_compatible)
 
-    def _is_compatible(self, gate: raw_types.Operation) -> bool:
-        return isinstance(gate, raw_types.Operation)
+    def _is_compatible(self, operation: raw_types.Operation) -> bool:
+        return isinstance(operation, raw_types.Operation)
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
