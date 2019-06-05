@@ -165,36 +165,19 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         Raises:
             TypeError: if any of the gates in self does not provide a unitary.
         """
-
-        def extend(u: np.ndarray, qubits: Tuple[raw_types.Qid, ...],
-                   all_qubits: Tuple[raw_types.Qid, ...]) -> np.ndarray:
-            """Extends unitary on qubits to unitary on all_qubits."""
-            assert qubits
-            assert set(qubits).issubset(all_qubits)
-            assert u.shape == (2**len(qubits), 2**len(qubits))
-
-            if qubits[0] != all_qubits[0]:
-                return np.kron(np.eye(2), extend(u, qubits, all_qubits[1:]))
-
-            if len(qubits) == 1:
-                return np.kron(u, np.eye(2**(len(all_qubits) - 1)))
-
-            ab, cd = np.split(u, 2, axis=0)
-            a, b = np.split(ab, 2, axis=1)
-            c, d = np.split(cd, 2, axis=1)
-            a = extend(a, qubits[1:], all_qubits[1:])
-            b = extend(b, qubits[1:], all_qubits[1:])
-            c = extend(c, qubits[1:], all_qubits[1:])
-            d = extend(d, qubits[1:], all_qubits[1:])
-            return np.block([[a, b], [c, d]])
-
-        num_dim = 2**len(self.qubits)
-        result = np.zeros((num_dim, num_dim), dtype=np.complex128)
+        num_qubits = len(self.qubits)
+        num_dim = 2**num_qubits
+        qubit_to_axis = {q: i for i, q in enumerate(self.qubits)}
+        result = np.zeros((2,) * (2 * num_qubits), dtype=np.complex128)
         for op, coefficient in self.items():
-            u = protocols.unitary(op)
-            extended_u = extend(u, op.qubits, self.qubits)
-            result += extended_u * coefficient
-        return result
+            identity = np.eye(num_dim,
+                              dtype=np.complex128).reshape(result.shape)
+            workspace = np.empty_like(identity)
+            axes = tuple(qubit_to_axis[q] for q in op.qubits)
+            u = protocols.apply_unitary(
+                op, protocols.ApplyUnitaryArgs(identity, workspace, axes))
+            result += coefficient * u
+        return result.reshape((num_dim, num_dim))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         """Computes Pauli expansion of self from Pauli expansions of terms."""

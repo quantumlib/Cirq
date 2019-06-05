@@ -464,7 +464,7 @@ def test_linear_combination_of_operations_has_correct_qubits(
 def test_linear_combination_of_operations_has_correct_matrix(
         terms, expected_matrix):
     combination = cirq.LinearCombinationOfOperations(terms)
-    assert np.all(combination.matrix() == expected_matrix)
+    assert np.allclose(combination.matrix(), expected_matrix)
 
 
 @pytest.mark.parametrize('terms, expected_expansion', (
