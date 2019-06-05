@@ -59,7 +59,7 @@ matrix:
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - ls .benchmarks
-    script: check/pytest --benchmark-autosave --benchmark-only && cd .benchmarks/Linux-CPython-3.6-64bit && ls -t | tail -n +2 | xargs rm -- && ls
+    script: check/pytest --benchmark-autosave --benchmark-only --benchmark-compare --benchmark-compare-fail=min:10% && cd .benchmarks/Linux-CPython-3.6-64bit && ls -t | tail -n +2 | xargs rm -- && ls
      
   - os: windows
     env: NAME=pytest (Windows)
