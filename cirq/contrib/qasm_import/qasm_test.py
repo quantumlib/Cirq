@@ -18,5 +18,5 @@ import cirq
 def test_consistency_with_qasm_output():
     circuit1 = cirq.Circuit()
     qasm1 = cirq.qasm(circuit1)
-    circuit2 = cirq.contrib.qasm_import.qasm.QasmCircuitParser(qasm1).parse()
+    circuit2 = cirq.contrib.qasm_import.qasm.QasmCircuitParser().parse(qasm1)
     cirq.testing.assert_same_circuits(circuit1, circuit2)

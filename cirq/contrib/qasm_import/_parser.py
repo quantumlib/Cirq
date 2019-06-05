@@ -37,13 +37,13 @@ class Qasm(object):
 
 class QasmParser(object):
 
-    def __init__(self, qasm: str):
-        self.qasm = qasm
+    def __init__(self):
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
         self.qregs = {}  # type: Dict[str,int]
         self.cregs = {}  # type: Dict[str,int]
         self.qelibinc = False
+        self.lexer = QasmLexer()
         self.supported_format = False
         self.parsedQasm = None  # type: Optional[Qasm]
 
@@ -126,9 +126,11 @@ at line {}, column {}""".format(p.value, self.debug_context(p), p.lineno,
     def p_empty(self, p):
         """empty :"""
 
-    def parse(self) -> Qasm:
+    def parse(self, qasm: str) -> Qasm:
         if self.parsedQasm is None:
-            self.parsedQasm = self.parser.parse(lexer=QasmLexer(self.qasm))
+            self.qasm = qasm
+            self.lexer.input(self.qasm)
+            self.parsedQasm = self.parser.parse(lexer=self.lexer)
         return self.parsedQasm
 
     def debug_context(self, p):

@@ -14,9 +14,9 @@ from cirq.contrib.qasm_import._parser import QasmParser
 
 
 def test_format_header_circuit():
-    parser = QasmParser("OPENQASM 2.0;")
+    parser = QasmParser()
 
-    parsed_qasm = parser.parse()
+    parsed_qasm = parser.parse("OPENQASM 2.0;")
 
     assert parsed_qasm.supportedFormat is True
     assert not parsed_qasm.qelib1Include
@@ -25,21 +25,21 @@ def test_format_header_circuit():
 
 def test_unsupported_format():
     qasm = "OPENQASM 2.1;"
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
     with pytest.raises(QasmException,
                        match="Unsupported OpenQASM version: 2.1, "
                        "only 2.0 is supported currently by Cirq"):
-        parser.parse()
+        parser.parse(qasm)
 
 
 def test_format_header_with_quelibinc_circuit():
     qasm = """OPENQASM 2.0;
 include "qelib1.inc";
 """
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
-    parsed_qasm = parser.parse()
+    parsed_qasm = parser.parse(qasm)
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is True
@@ -52,15 +52,17 @@ include "qelib1.inc";
     "qreg q[3];",
 ])
 def test_error_not_starting_with_format(qasm: str):
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
     with pytest.raises(QasmException,
                        match="Missing 'OPENQASM 2.0;' statement"):
-        parser.parse()
+        parser.parse(qasm)
 
 
 def test_comments():
-    parser = QasmParser("""
+    parser = QasmParser()
+
+    parsed_qasm = parser.parse("""
     //this is the format 
     OPENQASM 2.0;
     // this is some other comment
@@ -68,8 +70,6 @@ def test_comments():
     // and something at the end of the file
     // multiline 
     """)
-
-    parsed_qasm = parser.parse()
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is True
@@ -83,9 +83,9 @@ def test_multiple_qreg_declaration():
      qreg a_quantum_register [ 1337 ];
      qreg q[42];
 """
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
-    parsed_qasm = parser.parse()
+    parsed_qasm = parser.parse(qasm)
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is True
@@ -104,10 +104,10 @@ def test_multiple_qreg_declaration():
                """,
 ])
 def test_already_defined_error(qasm: str):
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
     with pytest.raises(QasmException, match=r"q.*already defined.* line 3"):
-        parser.parse()
+        parser.parse(qasm)
 
 
 def test_unexpected_end_of_file():
@@ -116,10 +116,10 @@ def test_unexpected_end_of_file():
                 include "qelib1.inc";
                 creg
            """
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
     with pytest.raises(QasmException, match="Unexpected end of file"):
-        parser.parse()
+        parser.parse(qasm)
 
 
 def test_multiple_creg_declaration():
@@ -130,9 +130,9 @@ def test_multiple_creg_declaration():
      qreg a_quantum_register [1337];
      creg c[42];
 """
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
-    parsed_qasm = parser.parse()
+    parsed_qasm = parser.parse(qasm)
 
     assert parsed_qasm.supportedFormat is True
     assert parsed_qasm.qelib1Include is True
@@ -147,7 +147,7 @@ def test_syntax_error():
          qreg q[2] bla;
          foobar q[0];
     """
-    parser = QasmParser(qasm)
+    parser = QasmParser()
 
     with pytest.raises(QasmException, match=r"""Syntax error: 'bla'.*"""):
-        parser.parse()
+        parser.parse(qasm)

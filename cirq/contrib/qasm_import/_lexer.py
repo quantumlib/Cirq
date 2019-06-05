@@ -22,10 +22,8 @@ from cirq.contrib.qasm_import.exception import QasmException
 
 class QasmLexer(object):
 
-    def __init__(self, qasm: str):
-        self.qasm = qasm
+    def __init__(self):
         self.lex = lex.lex(object=self, debug=False)
-        self.lex.input(qasm)
 
     literals = "{}[]();,+/*-^"
 
@@ -80,6 +78,9 @@ class QasmLexer(object):
     def t_error(self, t):
         raise QasmException("Illegal character '{}' at line {}".format(
             t.value[0], t.lineno))
+
+    def input(self, qasm):
+        self.lex.input(qasm)
 
     def token(self) -> Optional[lex.Token]:
         return self.lex.token()
