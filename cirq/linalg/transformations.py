@@ -309,27 +309,43 @@ def partial_trace(tensor: np.ndarray,
 
 def keep_qubits(state: np.ndarray,
                 keep_indices: List[int]) -> np.ndarray:
-    """Return a representation of the given state over a subset of qubits.
+    """Return a representation of the given state over a subset of its qubits.
+
+    A given wavefunction can be expressed over a subset of its qubits by
+    tracing out undesired qubits from the state's corresponding density matrix.
+    If the traced density matrix is rank 1 (pure state), then it can be
+    refactored into wavefunction form via eigendecomposition. Otherwise, the
+    outcome is a mixed state and cannot be expressed as a wavefunction.
+
+    Global phase of the input state will not necessariy be preserved in the
+    output state.
+
+    Args:
+        state: A wavefunction-like
 
     """
 
-    rho = np.kron(np.conj(np.reshape(state, (state.shape[0], 1)).T), state).reshape((2,2)*int(np.log2(state.shape[0])))
-    keep_rho = partial_trace(rho, keep_indices).reshape((2**len(keep_indices), 2**len(keep_indices)))
+    if not np.isclose(np.linalg.norm(state), 1):
+        raise ValueError("Input state must be normalized.")
+    if not len(set(keep_indices)) == len(keep_indices):
+        raise ValueError(
+            "keep_indices were {} but must be unique.".format(keep_indices))
+    dim = np.log2(state.shape[0])
+    if not dim.is_integer():
+        raise ValueError(
+            "Input wavefunction has bad length of {}.".format(state.shape[0]))
+    rho = np.kron(np.conj(np.reshape(state, (state.shape[0], 1)).T),
+                  state).reshape((2, 2)*int(dim))
+    new_dim = 2**len(keep_indices)
+    keep_rho = partial_trace(rho, keep_indices).reshape((new_dim,)*2)
     if not any(keep_indices):
         return keep_rho
 
     # FIXME: reasonable tolerance for purity check?
-    print(np.trace(keep_rho @ keep_rho))
     if approx_eq(np.trace(keep_rho @ keep_rho), 1):
-        # Purity of one implies rank 1 matrix, so eigendecomposition gives the
-        # "nearest kronecker product".
         w, v = np.linalg.eig(keep_rho)
-        print(w, v)
         # FIXME: reasonable tolerance for lone eigenvalue check?
-        return v[:,np.isclose(w, 1)]
-
-    # Removing qubits from an entangled state resulted in rank>1 outcome.
-    # Cannot safely factorize into a wavefunction.
+        return v[:,np.isclose(w, 1)].reshape((new_dim,))
 
     # FIXME: not sure how to deal with warnings
     print("Removing qubits from an entangled state resulted in mixture.")
