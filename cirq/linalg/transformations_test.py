@@ -380,22 +380,17 @@ def test_keep_qubits():
     state = np.kron(np.kron(a, b), c)
 
     np.testing.assert_almost_equal(np.abs(cirq.keep_qubits(state, [0, 1])), a)
+    np.testing.assert_almost_equal(np.abs(cirq.keep_qubits(state, [2, 3, 4])),
+                                   b)
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [2, 3, 4])),
-        b)
-    np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [5, 6, 7, 8])),
-        c)
+        np.abs(cirq.keep_qubits(state, [5, 6, 7, 8])), c)
 
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [0, 1, 2, 3, 4])),
-        np.kron(a, b))
+        np.abs(cirq.keep_qubits(state, [0, 1, 2, 3, 4])), np.kron(a, b))
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [0, 1, 5, 6, 7, 8])),
-        np.kron(a, c))
+        np.abs(cirq.keep_qubits(state, [0, 1, 5, 6, 7, 8])), np.kron(a, c))
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [2, 3, 4, 5, 6, 7, 8])),
-        np.kron(b, c))
+        np.abs(cirq.keep_qubits(state, [2, 3, 4, 5, 6, 7, 8])), np.kron(b, c))
 
 
 def test_keep_qubits_non_kron():
@@ -403,27 +398,26 @@ def test_keep_qubits_non_kron():
     state[0] = np.sqrt(0.5)
     state[-1] = np.sqrt(0.5)
 
-    single_mixed = 0.5*np.eye(2)
+    single_mixed = 0.5 * np.eye(2)
     for i in range(4):
         np.testing.assert_almost_equal(
             np.abs(cirq.keep_qubits(state, [i])),
             single_mixed)
 
     two_mixed = np.zeros((4,4))
-    two_mixed[0,0] = 0.5
-    two_mixed[3,3] = 0.5
+    two_mixed[0, 0] = 0.5
+    two_mixed[3, 3] = 0.5
     for i in range(4):
         np.testing.assert_almost_equal(
-            np.abs(cirq.keep_qubits(state, [i, (i + 1) % 4])),
-            two_mixed)
+            np.abs(cirq.keep_qubits(state, [i, (i + 1) % 4])), two_mixed)
 
 
 def test_keep_qubits_invalid_inputs():
     with pytest.raises(ValueError, match='normalized'):
         cirq.keep_qubits(np.arange(16), [1, 2])
     with pytest.raises(ValueError, match='2, 2'):
-        cirq.keep_qubits(np.arange(16) / np.linalg.norm(np.arange(16)),
-        [1, 2, 2])
+        cirq.keep_qubits(
+            np.arange(16) / np.linalg.norm(np.arange(16)), [1, 2, 2])
     with pytest.raises(ValueError, match='17'):
         cirq.keep_qubits(np.arange(17) / np.linalg.norm(np.arange(17)), [1])
     # Invalid inputs passed on to partial trace.
