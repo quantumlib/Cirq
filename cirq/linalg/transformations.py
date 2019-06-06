@@ -18,6 +18,7 @@ from typing import Tuple, Optional, Sequence, List, Union
 
 import numpy as np
 
+from cirq.protocols.approximate_equality import approx_eq
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     """Raises a matrix with two opposing eigenvalues to a power.
@@ -304,3 +305,33 @@ def partial_trace(tensor: np.ndarray,
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
     right_indices = [ndim + i if i in keep_set else i for i in left_indices]
     return np.einsum(tensor, left_indices + right_indices)
+
+
+def keep_qubits(state: np.ndarray,
+                keep_indices: List[int]) -> np.ndarray:
+    """Return a representation of the given state over a subset of qubits.
+
+    """
+
+    # TODO: bookmark input state's global phase somehow
+    state_phase = 1
+
+    rho = np.kron(np.conj(state.T), state)
+    keep_rho = partial_trace(rho, keep_indices)
+    # Use purity as a check for factorizability
+    # FIXME: just use np fall back since I know these types well enough?
+    # FIXME: reasonable tolerance for purity check
+    if approx_eq(np.trace(keep_rho @ keep_rho), 1):
+        # Purity of one implies rank 1 matrix, so eigendecomposition gives the
+        # "nearest kronecker product".
+        w, v = np.linalg.eig(keep_rho)
+        # FIXME: reasonable tolerance for lone eigenvalue check
+        idx = np.where(approx_eq(w, 1))
+        return v[idx]
+
+    # Removing qubits from an entangled state resulted in rank>1 outcome.
+    # Cannot safely factorize into a wavefunction.
+
+    # FIXME: not sure how to deal with warnings
+    print("Removing qubits from an entangled state resulted in mixture.")
+    return keep_rho
