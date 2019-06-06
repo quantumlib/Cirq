@@ -73,6 +73,7 @@ from cirq.linalg.tolerance import (
 
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,
+    keep_qubits,
     match_global_phase,
     partial_trace,
     reflection_matrix_pow,

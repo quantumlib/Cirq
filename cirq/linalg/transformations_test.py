@@ -371,3 +371,20 @@ def test_partial_trace_invalid_inputs():
     with pytest.raises(ValueError, match='2'):
         cirq.partial_trace(
             np.reshape(np.arange(2 * 2 * 2 * 2), (2,) * 4), [2])
+
+
+def test_keep_qubits():
+    a = np.arange(4) / np.linalg.norm(np.arange(4))
+    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
+    c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
+    state = np.kron(np.kron(a, b), c)
+    # state = state / np.linalg.norm(state)
+    print(cirq.keep_qubits(state, [0, 1]))
+    print(a)
+    # np.testing.assert_almost_equal(
+    #     cirq.partial_trace(state, []),
+    #     tr_a * tr_b * tr_c)
+
+
+def test_keep_qubits_non_kron():
+    pass

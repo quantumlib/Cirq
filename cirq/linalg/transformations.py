@@ -313,21 +313,20 @@ def keep_qubits(state: np.ndarray,
 
     """
 
-    # TODO: bookmark input state's global phase somehow
-    state_phase = 1
+    rho = np.kron(np.conj(np.reshape(state, (state.shape[0], 1)).T), state).reshape((2,2)*int(np.log2(state.shape[0])))
+    keep_rho = partial_trace(rho, keep_indices).reshape((2**len(keep_indices), 2**len(keep_indices)))
+    if not any(keep_indices):
+        return keep_rho
 
-    rho = np.kron(np.conj(state.T), state)
-    keep_rho = partial_trace(rho, keep_indices)
-    # Use purity as a check for factorizability
-    # FIXME: just use np fall back since I know these types well enough?
-    # FIXME: reasonable tolerance for purity check
+    # FIXME: reasonable tolerance for purity check?
+    print(np.trace(keep_rho @ keep_rho))
     if approx_eq(np.trace(keep_rho @ keep_rho), 1):
         # Purity of one implies rank 1 matrix, so eigendecomposition gives the
         # "nearest kronecker product".
         w, v = np.linalg.eig(keep_rho)
-        # FIXME: reasonable tolerance for lone eigenvalue check
-        idx = np.where(approx_eq(w, 1))
-        return v[idx]
+        print(w, v)
+        # FIXME: reasonable tolerance for lone eigenvalue check?
+        return v[:,np.isclose(w, 1)]
 
     # Removing qubits from an entangled state resulted in rank>1 outcome.
     # Cannot safely factorize into a wavefunction.
