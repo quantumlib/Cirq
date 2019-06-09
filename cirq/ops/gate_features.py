@@ -18,6 +18,8 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
+import collections
+from typing import Union, Iterable, Any, List
 
 from cirq.ops import op_tree, raw_types
 
@@ -35,7 +37,8 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self) -> int:
         return 1
 
-    def on_each(self, *targets: raw_types.Qid) -> op_tree.OP_TREE:
+    def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
+               ) -> Iterable[raw_types.Qid]:
         """Returns a list of operations apply this gate to each of the targets.
 
         Args:
@@ -47,12 +50,17 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             ValueError if targets are not instances of Qid or List[Qid].
         """
-        operations = []
+        operations: List = []
         for target in targets:
-            if isinstance(target, list):
+            if isinstance(target,
+                          collections.Iterable) and not isinstance(target, str):
                 operations.extend(self.on_each(*target))
-            else:
+            elif isinstance(target, raw_types.Qid):
                 operations.append(self.on(target))
+            else:
+                raise ValueError(
+                    'Gate was called with type different than Qid. Type: {}'.
+                    format(type(target)))
         return operations
 
 
