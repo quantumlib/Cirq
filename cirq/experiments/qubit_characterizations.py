@@ -358,7 +358,7 @@ def two_qubit_state_tomography(sampler: sim.Sampler,
 
     And if a Y/2 rotation is applied to the first qubit and a X/2 rotation
     is applied to the second qubit before measurement, the measurement
-    operators are (I -/+ sigma_x) \bigotimes (I +/- sigma_y). The probabilites
+    operators are (I -/+ sigma_x) \bigotimes (I +/- sigma_y). The probabilities
     obtained instead contribute to the following linear equations:
 
     c_02 - c_10 - c_12 = 4*P_00 - 1
@@ -428,9 +428,9 @@ def two_qubit_state_tomography(sampler: sim.Sampler,
         for j, rot_2 in enumerate(rots):
             m_idx, indices, signs = _indices_after_basis_rot(i, j)
             mat[m_idx: (m_idx + 3), indices] = s * np.tile(signs, (3, 1))
-            test_circuit = circuit + circuits.Circuit.from_ops(rot_1(
-                second_qubit))
-            test_circuit.append(rot_2(first_qubit))
+            test_circuit = circuit + circuits.Circuit.from_ops(
+                rot_1(first_qubit))
+            test_circuit.append(rot_2(second_qubit))
             probs = np.concatenate((probs, _measurement(test_circuit)))
 
     c, _, _, _ = np.linalg.lstsq(mat, 4.0 * probs - 1.0, rcond=-1)
@@ -451,7 +451,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int],
     q_0_i = 3 - i
     q_1_j = 3 - j
     indices = [q_1_j - 1, 4 * q_0_i - 1, 4 * q_0_i + q_1_j - 1]
-    signs = [(-1) ** (j == 2), (-1) ** (i == 2), (-1) ** (i == 2 + j == 2)]
+    signs = [(-1)**(j == 2), (-1)**(i == 2), (-1)**((i == 2) + (j == 2))]
     return mat_idx, indices, signs
 
 
