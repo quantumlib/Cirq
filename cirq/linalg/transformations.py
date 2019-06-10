@@ -66,8 +66,8 @@ def match_global_phase(a: np.ndarray,
     """
 
     # Not much point when they have different shapes.
-    if a.shape != b.shape:
-        return a, b
+    if a.shape != b.shape or a.size == 0:
+        return np.copy(a), np.copy(b)
 
     # Find the entry with the largest magnitude in one of the matrices.
     k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))

@@ -288,6 +288,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    equal_up_to_global_phase,
     has_channel,
     has_mixture,
     has_mixture_channel,

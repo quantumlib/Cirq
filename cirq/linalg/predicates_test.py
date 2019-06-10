@@ -346,6 +346,9 @@ def test_allclose_up_to_global_phase():
         np.array([1]),
         np.array([1j]))
 
+    assert not cirq.allclose_up_to_global_phase(np.array([[[1]]]), np.array([1
+                                                                            ]))
+
     assert cirq.allclose_up_to_global_phase(
         np.array([[1]]),
         np.array([[1]]))
