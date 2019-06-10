@@ -131,6 +131,7 @@ from cirq.ops import (
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
+    LinearCombinationOfOperations,
     measure,
     measure_each,
     MeasurementGate,

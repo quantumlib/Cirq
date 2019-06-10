@@ -67,7 +67,7 @@ class AcquaintanceOpportunityGate(
         return self._num_qubits
 
 
-def acquaint(*qubits) -> ops.GateOperation:
+def acquaint(*qubits) -> ops.Operation:
     return AcquaintanceOpportunityGate(len(qubits)).on(*qubits)
 
 Layers = NamedTuple('Layers', [

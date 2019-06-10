@@ -16,7 +16,7 @@
 
 from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
                     KeysView, Mapping, MutableMapping, overload, Tuple, TypeVar,
-                    Union, ValuesView)
+                    Union, ValuesView, Generic, Optional)
 
 Scalar = Union[complex, float]
 TVector = TypeVar('TVector')
@@ -24,7 +24,7 @@ TVector = TypeVar('TVector')
 TDefault = TypeVar('TDefault')
 
 
-class LinearDict(MutableMapping[TVector, Scalar]):
+class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     """Represents linear combination of things.
 
     LinearDict implements the basic linear algebraic operations of vector
@@ -39,8 +39,8 @@ class LinearDict(MutableMapping[TVector, Scalar]):
     to be linearly dependent.
     """
     def __init__(self,
-                 terms: Mapping[TVector, Scalar],
-                 validator: Callable[[TVector], bool]=lambda _: True) -> None:
+                 terms: Optional[Mapping[TVector, Scalar]] = None,
+                 validator: Callable[[TVector], bool] = lambda _: True) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -54,7 +54,8 @@ class LinearDict(MutableMapping[TVector, Scalar]):
         """
         self._is_valid = validator
         self._terms = dict()  # type: Dict[TVector, Scalar]
-        self.update(terms)
+        if terms is not None:
+            self.update(terms)
 
     TSelf = TypeVar('TSelf', bound='LinearDict[TVector]')
 
