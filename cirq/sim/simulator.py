@@ -300,7 +300,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
                 self._create_simulator_trial_result(
                     params=param_resolver,
                     measurements=measurements,
-                    final_simulator_state=step_result.simulator_state()))
+                    final_simulator_state=step_result._simulator_state()))
         return trial_results
 
     def simulate_moment_steps(
@@ -397,8 +397,11 @@ class StepResult(metaclass=abc.ABCMeta):
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
-    def simulator_state(self) -> Any:
-        """Returns the simulator_state of the simulator after this step.
+    def _simulator_state(self) -> Any:
+        """Returns the simulator state of the simulator after this step.
+
+        This method starts with an underscore to indicate that it is private.
+        To access public state, see public methods on StepResult.
 
         The form of the simulator_state depends on the implementation of the
         simulation,see documentation for the implementing class for the form of
@@ -490,8 +493,6 @@ class SimulationTrialResult:
             results. Measurement results are a numpy ndarray of actual boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
-        final_simulator_state: The final simulator state of the system after the
-            trial finishes.
     """
 
     def __init__(self,
@@ -500,14 +501,13 @@ class SimulationTrialResult:
         final_simulator_state: Any) -> None:
         self.params = params
         self.measurements = measurements
-        self.final_simulator_state = final_simulator_state
+        self._final_simulator_state = final_simulator_state
 
     def __repr__(self):
-        return (
-            'cirq.SimulationTrialResult(params={!r}, '
-            'measurements={!r}, '
-            'final_simulator_state={!r})').format(
-                self.params, self.measurements, self.final_simulator_state)
+        return ('cirq.SimulationTrialResult(params={!r}, '
+                'measurements={!r}, '
+                'final_simulator_state={!r})').format(
+                    self.params, self.measurements, self._final_simulator_state)
 
     def __str__(self):
         def bitstring(vals):
@@ -531,4 +531,4 @@ class SimulationTrialResult:
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
-        return (self.params, measurements, self.final_simulator_state)
+        return (self.params, measurements, self._final_simulator_state)
