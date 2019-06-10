@@ -89,6 +89,8 @@ class ParallelGateOperation(raw_types.Operation):
         """Replicates the logic the simulators use to apply the equivalent
            sequence of GateOperations
         """
+        if not protocols.has_unitary(self.gate):
+            return NotImplemented
         return protocols.apply_unitaries((self.gate(q) for q in self.qubits),
                                          self.qubits, args)
 
