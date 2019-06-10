@@ -21,7 +21,7 @@ import abc
 import collections
 from typing import Union, Iterable, Any, List
 
-from cirq.ops import op_tree, raw_types
+from cirq.ops import raw_types
 
 
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
@@ -38,7 +38,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return 1
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
-               ) -> Iterable[raw_types.Qid]:
+               ) -> List[raw_types.Operation]:
         """Returns a list of operations apply this gate to each of the targets.
 
         Args:
@@ -50,7 +50,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             ValueError if targets are not instances of Qid or List[Qid].
         """
-        operations: List = []
+        operations = [] # type: List[raw_types.Operation]
         for target in targets:
             if isinstance(target,
                           collections.Iterable) and not isinstance(target, str):
