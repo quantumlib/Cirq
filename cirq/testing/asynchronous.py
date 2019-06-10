@@ -18,7 +18,16 @@ from typing import Any, Type, Union
 
 import pytest
 
-_just_return_result = ([],)  # type: Any
+# A placeholder default value used to detect that callers did not specify an
+# 'expected' value argument in `assert_asyncio_will_have_result`, and so the
+# result should be returned without checking it.
+JUST_RETURN_RESULT = object()  # type: Any
+
+
+def _run_loop_waiting_for(future: Union[Awaitable, asyncio.Future, Coroutine],
+                          timeout: float):
+    return asyncio.get_event_loop().run_until_complete(
+        asyncio.wait_for(asyncio.shield(future), timeout=timeout))
 
 
 def assert_asyncio_still_running(
@@ -37,8 +46,7 @@ def assert_asyncio_still_running(
         AssertError: The future completed or failed within the timeout.
     """
     try:
-        asyncio.get_event_loop().run_until_complete(
-            asyncio.wait_for(asyncio.shield(future), timeout=0.001))
+        _run_loop_waiting_for(future, timeout)
         assert False, "Not running: {!r}".format(future)
     except asyncio.TimeoutError:
         pass
@@ -46,7 +54,7 @@ def assert_asyncio_still_running(
 
 def assert_asyncio_will_have_result(
         future: Union[Awaitable, asyncio.Future, Coroutine],
-        expected: Any = _just_return_result,
+        expected: Any = JUST_RETURN_RESULT,
         timeout: float = 1.0) -> Any:
     """Checks that the given asyncio future completes with the given value.
 
@@ -67,14 +75,13 @@ def assert_asyncio_will_have_result(
             the expected result.
     """
     try:
-        actual = asyncio.get_event_loop().run_until_complete(
-            asyncio.wait_for(asyncio.shield(future), timeout=timeout))
-        if expected is not _just_return_result:
-            assert actual == expected, "<{!r}> != <{!r}> from <{!r}>".format(
+        actual = _run_loop_waiting_for(future, timeout)
+        if expected is not JUST_RETURN_RESULT:
+            assert actual == expected, "{!r} != {!r} from {!r}".format(
                 actual, expected, future)
         return actual
     except asyncio.TimeoutError:
-        assert False, "Not done: {}".format(future)
+        assert False, "Not done: {!r}".format(future)
 
 
 def assert_asyncio_will_raise(
@@ -100,7 +107,6 @@ def assert_asyncio_will_raise(
     """
     try:
         with pytest.raises(expected, match=match):
-            asyncio.get_event_loop().run_until_complete(
-                asyncio.wait_for(asyncio.shield(future), timeout=timeout))
+            _run_loop_waiting_for(future, timeout)
     except asyncio.TimeoutError:
-        assert False, "Not done: {}".format(future)
+        assert False, "Not done: {!r}".format(future)
