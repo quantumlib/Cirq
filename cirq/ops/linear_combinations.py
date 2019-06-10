@@ -17,8 +17,8 @@ from typing import Mapping, Optional, Tuple, Union, List
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types
-from cirq.ops.pauli_string import PauliString
+from cirq.ops import raw_types, pauli_gates
+from cirq.ops.pauli_string import PauliString, UnitPauliStringT
 from cirq.value import linear_dict
 
 
@@ -209,6 +209,22 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return result
 
 
+def _is_linear_dict_of_unit_pauli_string(
+        linear_dict: value.LinearDict[UnitPauliStringT]) -> bool:
+    if not isinstance(linear_dict, value.LinearDict):
+        return False
+    for k in linear_dict.keys():
+        if not isinstance(k, frozenset):
+            return False
+        for qid, pauli in k:
+            if not isinstance(qid, raw_types.Qid):
+                return False
+            if not isinstance(pauli, pauli_gates.Pauli):
+                return False
+
+    return True
+
+
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
 
@@ -223,11 +239,16 @@ class PauliSum:
 
     """
 
-    def __init__(self, linear_dict):
+    def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT]):
+        if not _is_linear_dict_of_unit_pauli_string(linear_dict):
+            raise ValueError(
+                "PauliSum constructor takes a LinearDict[UnitPauliStringT]. "
+                "Consider using PauliSum.from_pauli_strings() or adding and "
+                "subtracting PauliStrings")
         self._linear_dict = linear_dict
 
     @classmethod
-    def from_pauli_strings(cls, terms: List[PauliString]):
+    def from_pauli_strings(cls, terms: List[PauliString]) -> 'PauliSum':
         terms = {pstring.unit(): pstring.coefficient for pstring in terms}
         return cls(linear_dict=value.LinearDict(terms))
 

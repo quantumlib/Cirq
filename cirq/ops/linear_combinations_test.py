@@ -579,3 +579,11 @@ def test_pauli_sum_from_list_of_strings():
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
     psum = cirq.PauliSum.from_pauli_strings([pstr1, pstr2])
     assert str(psum) == "1.000*X(0)*X(1)+1.000*Y(0)*Y(1)"
+
+def test_constructor_error():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    with pytest.raises(ValueError) as e:
+        cirq.PauliSum([pstr1, pstr2])
+    assert e.match("Consider using")
