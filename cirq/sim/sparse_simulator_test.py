@@ -209,7 +209,8 @@ def test_simulate_random_unitary(dtype):
             circuit_unitary.append(result.final_state)
         np.testing.assert_almost_equal(
             np.transpose(circuit_unitary),
-            random_circuit.to_unitary_matrix(qubit_order=[q0, q1]))
+            random_circuit.to_unitary_matrix(qubit_order=[q0, q1]),
+            decimal=6)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
