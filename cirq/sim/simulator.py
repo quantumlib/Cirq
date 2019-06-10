@@ -401,8 +401,7 @@ class StepResult(metaclass=abc.ABCMeta):
         """Returns the simulator state of the simulator after this step.
 
         This method starts with an underscore to indicate that it is private.
-        State that should be exposed should exposed on the child StepResult
-        class.
+        To access public state, see public methods on StepResult.
 
         The form of the simulator_state depends on the implementation of the
         simulation,see documentation for the implementing class for the form of
