@@ -14,6 +14,7 @@
 
 
 from cirq.protocols.apply_unitary import (
+    apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
     SupportsApplyUnitary,
