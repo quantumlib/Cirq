@@ -532,3 +532,7 @@ class SimulationTrialResult:
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
+
+    @property
+    def qubit_map(self):
+        return self._final_simulator_state.qubit_map
