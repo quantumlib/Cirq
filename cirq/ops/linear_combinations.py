@@ -251,7 +251,8 @@ class PauliSum:
         return self._linear_dict
 
     @classmethod
-    def from_pauli_strings(cls, terms: List[PauliString]) -> 'PauliSum':
+    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) \
+            -> 'PauliSum':
         if isinstance(terms, PauliString):
             terms = [terms]
         termdict = defaultdict(lambda: 0)
