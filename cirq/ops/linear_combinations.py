@@ -257,9 +257,16 @@ class PauliSum:
         terms = {pstring.unit(): pstring.coefficient for pstring in terms}
         return cls(linear_dict=value.LinearDict(terms))
 
+    def copy(self):
+        factory = type(self)
+        return factory(self._linear_dict.copy())
+
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():
             yield PauliString.from_unit(vec, coeff)
+
+    def __len__(self) -> int:
+        return len(self._linear_dict)
 
     def __iadd__(self, other):
         if isinstance(other, (float, int, complex)):
@@ -271,11 +278,43 @@ class PauliSum:
         self._linear_dict += other._linear_dict
         return self
 
+    def __add__(self, other):
+        result = self.copy()
+        result += other
+        return result
+
     def __isub__(self, other):
         if isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
         self._linear_dict -= other
         return self
+
+    def __sub__(self, other):
+        result = self.copy()
+        result -= other
+        return result
+
+    def __neg__(self):
+        factory = type(self)
+        return factory(-self._linear_dict)
+
+    def __imul__(self, a: value.Scalar):
+        self._linear_dict *= a
+        return self
+
+    def __mul__(self, a: value.Scalar):
+        result = self.copy()
+        result *= a
+        return result
+
+    def __rmul__(self, a: value.Scalar):
+        return self.__mul__(a)
+
+    def __truediv__(self, a: value.Scalar):
+        return self.__mul__(1 / a)
+
+    def __bool__(self) -> bool:
+        return bool(self._linear_dict)
 
     def __repr__(self) -> str:
         return self._linear_dict.__repr__()
