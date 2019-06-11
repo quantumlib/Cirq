@@ -574,23 +574,26 @@ def test_pauli_sum_construction():
     psum2 = cirq.PauliSum.from_pauli_strings([pstr1, pstr2])
     assert psum == psum2
 
+
 def test_pauli_sub():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
-    psum = pstr1-pstr2
+    psum = pstr1 - pstr2
 
-    psum2 = cirq.PauliSum.from_pauli_strings([pstr1, -1*pstr2])
+    psum2 = cirq.PauliSum.from_pauli_strings([pstr1, -1 * pstr2])
     assert psum == psum2
+
 
 def test_pauli_sub_simplify():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.X(q[0]) * cirq.X(q[1])
-    psum = pstr1-pstr2
+    psum = pstr1 - pstr2
 
     psum2 = cirq.PauliSum.from_pauli_strings([])
     assert psum == psum2
+
 
 def test_paulisum_validation():
     q = cirq.LineQubit.range(2)
@@ -616,6 +619,7 @@ def test_add_number_paulistring():
     assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
                                                      cirq.PauliString({}, 1.3)])
 
+
 def test_pauli_sum_formatting():
     q = cirq.LineQubit.range(2)
     pauli = cirq.X(q[0])
@@ -626,7 +630,7 @@ def test_pauli_sum_formatting():
     assert str(paulisum1) == '1.000*X(0)*X(1)+4.000*I'
     paulisum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
     assert str(paulisum2) == '1.000*X(0)*X(1)+1.000*Z(0)'
-    paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])*cirq.Z(q[1])
+    paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
     assert str(paulisum3) == '1.000*X(0)*X(1)+1.000*Z(0)*Z(1)'
     assert "{:.0f}".format(paulisum3) == '1*X(0)*X(1)+1*Z(0)*Z(1)'
 

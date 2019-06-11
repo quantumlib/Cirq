@@ -289,7 +289,7 @@ class PauliSum:
     def __isub__(self, other):
         if isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
-        self._linear_dict -= other
+        self._linear_dict -= other._linear_dict
         return self
 
     def __sub__(self, other):
