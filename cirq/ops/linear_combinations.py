@@ -320,7 +320,8 @@ class PauliSum:
         return bool(self._linear_dict)
 
     def __repr__(self) -> str:
-        return self._linear_dict.__repr__()
+        class_name = self.__class__.__name__
+        return 'cirq.{}({!r})'.format(class_name, self._linear_dict)
 
     def __format__(self, format_spec: str) -> str:
         terms = [(PauliString.from_unit(v), self._linear_dict[v])

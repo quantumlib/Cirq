@@ -652,3 +652,11 @@ def test_pauli_sum_formatting():
 
     empty = cirq.PauliSum.from_pauli_strings([])
     assert str(empty) == "0.000"
+
+
+def test_pauli_sum_repr():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum = pstr1 + pstr2
+    cirq.testing.assert_equivalent_repr(psum)
