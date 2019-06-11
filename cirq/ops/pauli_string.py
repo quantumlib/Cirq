@@ -145,7 +145,7 @@ class PauliString(raw_types.Operation):
             return PauliSum.from_pauli_strings(
                 [self, PauliString(coefficient=-other)])
         elif isinstance(other, PauliString):
-            return PauliSum.from_pauli_strings([self, other])
+            return PauliSum.from_pauli_strings([self, -other])
         return other - self
 
     def __contains__(self, key: raw_types.Qid) -> bool:

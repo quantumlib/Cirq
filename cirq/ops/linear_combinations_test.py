@@ -579,9 +579,17 @@ def test_pauli_sub():
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
     psum = pstr1-pstr2
-    print(psum)
 
     psum2 = cirq.PauliSum.from_pauli_strings([pstr1, -1*pstr2])
+    assert psum == psum2
+
+def test_pauli_sub_simplify():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.X(q[0]) * cirq.X(q[1])
+    psum = pstr1-pstr2
+
+    psum2 = cirq.PauliSum.from_pauli_strings([])
     assert psum == psum2
 
 def test_paulisum_validation():
@@ -596,8 +604,7 @@ def test_paulisum_validation():
 def test_add_number_paulisum():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
-    psum = cirq.PauliSum.from_pauli_strings([pstr1])
-    print(psum)
+    psum = cirq.PauliSum.from_pauli_strings([pstr1]) + 1.3
     assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
                                                      cirq.PauliString({}, 1.3)])
 

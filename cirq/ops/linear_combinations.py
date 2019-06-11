@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from collections import defaultdict
 from typing import Mapping, Optional, Tuple, Union, List
 
 import numpy as np
@@ -254,8 +254,10 @@ class PauliSum:
     def from_pauli_strings(cls, terms: List[PauliString]) -> 'PauliSum':
         if isinstance(terms, PauliString):
             terms = [terms]
-        terms = {pstring.unit(): pstring.coefficient for pstring in terms}
-        return cls(linear_dict=value.LinearDict(terms))
+        termdict = defaultdict(lambda: 0)
+        for pstring in terms:
+            termdict[pstring.unit()] += pstring.coefficient
+        return cls(linear_dict=value.LinearDict(termdict))
 
     def copy(self):
         factory = type(self)
