@@ -564,21 +564,16 @@ def test_operation_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
 
 
-def test_pauli_sum_from_adding_strings():
+def test_pauli_sum_construction():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
     psum = pstr1 + pstr2
-    assert str(psum) == "1.000*X(0)*X(1)+1.000*Y(0)*Y(1)"
     assert list(psum) == [pstr1, pstr2]
 
+    psum2 = cirq.PauliSum.from_pauli_strings([pstr1, pstr2])
+    assert psum == psum2
 
-def test_pauli_sum_from_list_of_strings():
-    q = cirq.LineQubit.range(2)
-    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
-    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
-    psum = cirq.PauliSum.from_pauli_strings([pstr1, pstr2])
-    assert str(psum) == "1.000*X(0)*X(1)+1.000*Y(0)*Y(1)"
 
 def test_constructor_error():
     q = cirq.LineQubit.range(2)
@@ -597,11 +592,10 @@ def test_add_number_paulisum():
     assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
                                                      cirq.PauliString({}, 1.3)])
 
+
 def test_add_number_paulistring():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     psum = pstr1 + 1.3
     assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
                                                      cirq.PauliString({}, 1.3)])
-
-
