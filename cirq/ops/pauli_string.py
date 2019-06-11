@@ -132,9 +132,21 @@ class PauliString(raw_types.Operation):
 
     def __add__(self, other):
         from cirq.ops.linear_combinations import PauliSum
-        if isinstance(other, PauliString):
+        if isinstance(other, (int, float, complex)):
+            return PauliSum.from_pauli_strings(
+                [self, PauliString(coefficient=other)])
+        elif isinstance(other, PauliString):
             return PauliSum.from_pauli_strings([self, other])
         return other + self
+
+    def __sub__(self, other):
+        from cirq.ops.linear_combinations import PauliSum
+        if isinstance(other, (int, float, complex)):
+            return PauliSum.from_pauli_strings(
+                [self, PauliString(coefficient=-other)])
+        elif isinstance(other, PauliString):
+            return PauliSum.from_pauli_strings([self, other])
+        return other - self
 
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map

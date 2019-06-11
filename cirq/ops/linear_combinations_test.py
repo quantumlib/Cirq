@@ -587,3 +587,21 @@ def test_constructor_error():
     with pytest.raises(ValueError) as e:
         cirq.PauliSum([pstr1, pstr2])
     assert e.match("Consider using")
+
+
+def test_add_number_paulisum():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    psum = cirq.PauliSum.from_pauli_strings([pstr1])
+    print(psum)
+    assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
+                                                     cirq.PauliString({}, 1.3)])
+
+def test_add_number_paulistring():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    psum = pstr1 + 1.3
+    assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
+                                                     cirq.PauliString({}, 1.3)])
+
+

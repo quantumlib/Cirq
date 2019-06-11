@@ -224,7 +224,7 @@ def _is_linear_dict_of_unit_pauli_string(
 
     return True
 
-
+@value.value_equality(approximate=True)
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
 
@@ -247,8 +247,13 @@ class PauliSum:
                 "subtracting PauliStrings")
         self._linear_dict = linear_dict
 
+    def _value_equality_values_(self):
+        return self._linear_dict
+
     @classmethod
     def from_pauli_strings(cls, terms: List[PauliString]) -> 'PauliSum':
+        if isinstance(terms, PauliString):
+            terms = [terms]
         terms = {pstring.unit(): pstring.coefficient for pstring in terms}
         return cls(linear_dict=value.LinearDict(terms))
 
@@ -257,7 +262,10 @@ class PauliSum:
             yield PauliString.from_unit(vec, coeff)
 
     def __iadd__(self, other):
-        if isinstance(other, PauliString):
+        if isinstance(other, (float, int, complex)):
+            other = PauliSum.from_pauli_strings(
+                [PauliString(coefficient=other)])
+        elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
 
         self._linear_dict += other._linear_dict
