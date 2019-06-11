@@ -38,4 +38,4 @@ class _UnconstrainedDeviceType(Device):
         return 'cirq.UnconstrainedDevice'  # coverage: ignore
 
 
-UnconstrainedDevice = _UnconstrainedDeviceType()
+UnconstrainedDevice = _UnconstrainedDeviceType()  # type: Device
