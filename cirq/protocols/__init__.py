@@ -14,6 +14,7 @@
 
 
 from cirq.protocols.apply_unitary import (
+    apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
     SupportsApplyUnitary,
@@ -48,6 +49,8 @@ from cirq.protocols.decompose import (
     SupportsDecompose,
     SupportsDecomposeWithQubits,
 )
+from cirq.protocols.equal_up_to_global_phase import (
+    equal_up_to_global_phase,)
 from cirq.protocols.inverse import (
     inverse,
 )
