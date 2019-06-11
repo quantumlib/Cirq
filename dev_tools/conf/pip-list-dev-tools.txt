@@ -5,6 +5,7 @@ pytest==3.8.*
 pytest-cov==2.5.*
 pytest-benchmark==3.2.*
 yapf==0.27.*
+mock
 
 # For uploading packages to pypi.
 twine
