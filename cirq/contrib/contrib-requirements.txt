@@ -1,5 +1,6 @@
 # Runtime requirements for contrib.
 
+ply==3.4
 pylatex==1.3.*
 # Python 3.7 support for Tensorflow is currently only supported in the nightly build.
 tf-nightly

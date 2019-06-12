@@ -15,7 +15,7 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import Set, NamedTuple  # pylint: disable=unused-import
+from typing import Set, NamedTuple, Union  # pylint: disable=unused-import
 from typing import Callable, List, Tuple, TypeVar
 
 import math
@@ -262,6 +262,145 @@ def so4_to_magic_su2s(
     _, a, b = kron_factor_4x4_to_2x2s(ab)
 
     return a, b
+
+
+@value.value_equality(approximate=True)
+class AxisAngleDecomposition:
+    """Represents a unitary operation as an axis, angle, and global phase.
+
+    The unitary $U$ is decomposed as follows:
+
+        $$U = g e^{-i \theta/2 (xX + yY + zZ)}$$
+
+    where \theta is the rotation angle, (x, y, z) is a unit vector along the
+    rotation axis, and g is the global phase.
+    """
+
+    def __init__(self, *, angle: float, axis: Tuple[float, float, float],
+                 global_phase: Union[int, float, complex]):
+        if not np.isclose(np.linalg.norm(axis, 2), 1, atol=1e-8):
+            raise ValueError('Axis vector must be normalized.')
+        self.global_phase = complex(global_phase)
+        self.axis = tuple(axis)
+        self.angle = float(angle)
+
+    def canonicalize(self, atol: float = 1e-8) -> 'AxisAngleDecomposition':
+        """Returns a standardized AxisAngleDecomposition with the same unitary.
+
+        Ensures the axis (x, y, z) satisfies x+y+z >= 0.
+        Ensures the angle theta satisfies -pi + atol < theta <= pi + atol.
+
+        Args:
+            atol: Absolute tolerance for errors in the representation and the
+                canonicalization. Determines how much larger a value needs to
+                be than pi before it wraps into the negative range (so that
+                approximation errors less than the tolerance do not cause sign
+                instabilities).
+
+        Returns:
+            The canonicalized AxisAngleDecomposition.
+        """
+        assert 0 <= atol < np.pi
+
+        angle = self.angle
+        x, y, z = self.axis
+        p = self.global_phase
+
+        # Prefer axes that point positive-ward.
+        if x + y + z < 0:
+            x = -x
+            y = -y
+            z = -z
+            angle = -angle
+
+        # Prefer angle in (-π, π].
+        if abs(angle) >= np.pi * 2:
+            angle %= np.pi * 4
+        while angle <= -np.pi + atol:
+            angle += np.pi * 2
+            p = -p
+        while angle > np.pi + atol:
+            angle -= np.pi * 2
+            p = -p
+
+        return AxisAngleDecomposition(axis=(x, y, z),
+                                      angle=angle,
+                                      global_phase=p)
+
+    def _value_equality_values_(self):
+        v = self.canonicalize(atol=0)
+        return (value.PeriodicValue(v.angle,
+                                    period=math.pi * 2), v.axis, v.global_phase)
+
+    def _unitary_(self):
+        x, y, z = self.axis
+        xm = np.array([[0, 1], [1, 0]])
+        ym = np.array([[0, -1j], [1j, 0]])
+        zm = np.diag([1, -1])
+        i = np.eye(2)
+        c = math.cos(-self.angle / 2)
+        s = math.sin(-self.angle / 2)
+        return (c * i + 1j * s * (x * xm + y * ym + z * zm)) * self.global_phase
+
+    def __str__(self):
+        axis_terms = '+'.join('{:.3g}*{}'.format(e, a) if e < 0.9999 else a
+                              for e, a in zip(self.axis, ['X', 'Y', 'Z'])
+                              if abs(e) >= 1e-8).replace('+-', '-')
+        return '{:.3g}*π around {}'.format(
+            self.angle / np.pi,
+            axis_terms,
+        )
+
+    def __repr__(self):
+        return ('cirq.AxisAngleDecomposition('
+                'angle={!r}, axis={!r}, global_phase={!r})'.format(
+                    self.angle, self.axis, self.global_phase))
+
+
+def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
+    """Decomposes a single-qubit unitary into axis, angle, and global phase.
+
+    Args:
+        single_qubit_unitary: The unitary of the single-qubit operation to
+            decompose.
+
+    Returns:
+        An AxisAngleDecomposition equivalent to the given unitary.
+    """
+    u = single_qubit_unitary
+    assert u.shape == (2, 2)
+    assert predicates.is_unitary(single_qubit_unitary, atol=1e-8)
+
+    # Extract phased quaternion components.
+    [a, b], [c, d] = u
+    wp = (a + d) / 2
+    xp = (b + c) / 2j
+    yp = (b - c) / 2
+    zp = (a - d) / 2j
+
+    # Extract global phase factor from largest component.
+    p = max(wp, xp, yp, zp, key=abs)
+    p /= abs(p)
+
+    # Cancel global phase factor, pushing components onto the real line.
+    w = min(1, max(-1, np.real(wp / p)))
+    x = np.real(xp / p)
+    y = np.real(yp / p)
+    z = np.real(zp / p)
+    angle = -2 * math.acos(w)
+
+    # Normalize axis.
+    n = math.sqrt(x * x + y * y + z * z)
+    if n < 0.0000001:
+        # There's an axis singularity near θ=0.
+        # Default to no rotation around the X axis.
+        return AxisAngleDecomposition(global_phase=p, angle=0, axis=(1, 0, 0))
+    x /= n
+    y /= n
+    z /= n
+
+    return AxisAngleDecomposition(axis=(x, y, z), angle=angle,
+                                  global_phase=p).canonicalize()
 
 
 @value.value_equality
