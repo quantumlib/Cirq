@@ -658,5 +658,5 @@ def test_pauli_sum_repr():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
-    psum = pstr1 + pstr2
+    psum = pstr1 + 2 * pstr2 + 1
     cirq.testing.assert_equivalent_repr(psum)
