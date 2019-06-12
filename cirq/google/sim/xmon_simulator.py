@@ -321,7 +321,7 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
         self.measurements = measurements or collections.defaultdict(list)
         self._stepper = stepper
 
-    def simulator_state(self) -> sim.WaveFunctionSimulatorState:
+    def _simulator_state(self) -> sim.WaveFunctionSimulatorState:
         return sim.WaveFunctionSimulatorState(
             state_vector=self._stepper.current_state, qubit_map=self.qubit_map)
 
