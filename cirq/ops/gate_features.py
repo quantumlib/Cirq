@@ -18,8 +18,10 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
+import collections
+from typing import Union, Iterable, Any, List
 
-from cirq.ops import op_tree, raw_types
+from cirq.ops import raw_types
 
 
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
@@ -35,7 +37,8 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self) -> int:
         return 1
 
-    def on_each(self, *targets: raw_types.Qid) -> op_tree.OP_TREE:
+    def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
+               ) -> List[raw_types.Operation]:
         """Returns a list of operations apply this gate to each of the targets.
 
         Args:
@@ -45,9 +48,20 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
             Operations applying this gate to the target qubits.
 
         Raises:
-            ValueError if targets are not instances of Qid.
+            ValueError if targets are not instances of Qid or List[Qid].
         """
-        return [self.on(target) for target in targets]
+        operations = []  # type: List[raw_types.Operation]
+        for target in targets:
+            if isinstance(target,
+                          collections.Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
+            elif isinstance(target, raw_types.Qid):
+                operations.append(self.on(target))
+            else:
+                raise ValueError(
+                    'Gate was called with type different than Qid. Type: {}'.
+                    format(type(target)))
+        return operations
 
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
