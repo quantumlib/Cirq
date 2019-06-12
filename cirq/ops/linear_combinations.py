@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections import defaultdict
-from typing import Mapping, Optional, Tuple, Union, List
+from typing import Mapping, Optional, Tuple, Union, List, FrozenSet
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types, pauli_gates
-from cirq.ops.pauli_string import PauliString, UnitPauliStringT
+from cirq.ops.pauli_string import PauliString
 from cirq.value import linear_dict
+
+UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -224,6 +226,12 @@ def _is_linear_dict_of_unit_pauli_string(
 
     return True
 
+
+def _pauli_string_from_unit(unit: UnitPauliStringT,
+                            coefficient: Union[int, float, complex] = 1):
+    return PauliString(dict(unit), coefficient=coefficient)
+
+
 @value.value_equality(approximate=True)
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.
@@ -236,7 +244,6 @@ class PauliSum:
     Under the hood, this class is backed by a LinearDict with coefficient-less
     PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
     iteration.
-
     """
 
     def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT]):
@@ -257,7 +264,8 @@ class PauliSum:
             terms = [terms]
         termdict = defaultdict(lambda: 0)
         for pstring in terms:
-            termdict[pstring.unit()] += pstring.coefficient
+            key = frozenset(pstring._qubit_pauli_map.items())
+            termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
     def copy(self):
@@ -266,7 +274,7 @@ class PauliSum:
 
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():
-            yield PauliString.from_unit(vec, coeff)
+            yield _pauli_string_from_unit(vec, coeff)
 
     def __len__(self) -> int:
         return len(self._linear_dict)
@@ -324,7 +332,7 @@ class PauliSum:
         return 'cirq.{}({!r})'.format(class_name, self._linear_dict)
 
     def __format__(self, format_spec: str) -> str:
-        terms = [(PauliString.from_unit(v), self._linear_dict[v])
+        terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
         return linear_dict._format_terms(terms=terms, format_spec=format_spec)
 
