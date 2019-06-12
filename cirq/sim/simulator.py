@@ -534,5 +534,8 @@ class SimulationTrialResult:
         return (self.params, measurements, self._final_simulator_state)
 
     @property
-    def qubit_map(self):
+    def qubit_map(self) -> Dict[ops.Qid, int]:
+        """A map from Qid to index used to define the ordering of the basis in
+        the result.
+        """
         return self._final_simulator_state.qubit_map
