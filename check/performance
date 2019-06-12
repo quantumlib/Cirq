@@ -11,6 +11,6 @@
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $(git rev-parse --show-toplevel)
 
-# Test will fail if Mean is 0.001 seconds slower for any test.
-pytest --benchmark-autosave --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:0.001  \
+# Test will fail if Mean is 0.1 seconds slower for any test.
+pytest --benchmark-autosave --benchmark-only --benchmark-compare --benchmark-compare-fail=mean:0.1  \
 && cd .benchmarks/Linux-CPython-3.6-64bit/ && ls -t | tail -n +2 | xargs rm -- && ls
