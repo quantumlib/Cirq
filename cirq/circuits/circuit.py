@@ -216,14 +216,7 @@ class Circuit:
         del self._moments[key]
 
     def __iadd__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        if (other.device != self._device and
-                other.device != devices.UnconstrainedDevice):
-            raise ValueError("Other circuit's device is not compatible.")
-        for moment in other:
-            self._device.validate_moment(moment)
-        self._moments += other._moments
+        self.append(other)
         return self
 
     def __add__(self, other):
@@ -1307,7 +1300,7 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
         n = len(qs)
 
-        state = np.eye(1 << n, dtype=np.complex128)
+        state = np.eye(1 << n, dtype=dtype)
         state.shape = (2,) * (2 * n)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
@@ -1771,8 +1764,7 @@ def _apply_unitary_circuit(circuit: Circuit,
     Returns:
         The left-multiplied state tensor.
     """
-    qubit_map = {q: i for i, q in enumerate(qubits)}
-    buffer = np.zeros(state.shape, dtype=dtype)
+    buffer = np.empty_like(state)
 
     def on_stuck(bad_op):
         return TypeError(
@@ -1785,15 +1777,9 @@ def _apply_unitary_circuit(circuit: Circuit,
         intercepting_decomposer=_decompose_measurement_inversions,
         on_stuck_raise=on_stuck)
 
-    for op in unitary_ops:
-        indices = [qubit_map[q] for q in op.qubits]
-        result = protocols.apply_unitary(
-            unitary_value=op,
-            args=protocols.ApplyUnitaryArgs(state, buffer, indices))
-        if result is buffer:
-            buffer = state
-        state = result
-    return state
+    return protocols.apply_unitaries(
+        unitary_ops, qubits,
+        protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits))))
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
