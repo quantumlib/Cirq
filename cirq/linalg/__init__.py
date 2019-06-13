@@ -27,6 +27,8 @@ from cirq.linalg.combinators import (
 )
 
 from cirq.linalg.decompositions import (
+    axis_angle,
+    AxisAngleDecomposition,
     deconstruct_single_qubit_matrix_into_angles,
     kak_canonicalize_vector,
     kak_decomposition,
