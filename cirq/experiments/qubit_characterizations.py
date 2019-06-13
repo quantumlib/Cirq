@@ -6,7 +6,9 @@ import sympy
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
+
 from cirq import circuits, devices, ops, protocols, sim, study
+import cirq
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
@@ -262,15 +264,14 @@ def two_qubit_randomized_benchmarking(
     Returns:
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
-    cliffords = _single_qubit_cliffords()
-    cfd_matrices = _two_qubit_clifford_matrices(first_qubit, second_qubit,
-                                                cliffords)
+    cliffords = _single_qubit_cliffords() #get all single qubit cliffords
+
     gnd_probs = []
     for num_cfds in num_clifford_range:
         gnd_probs_l = []
         for _ in range(num_circuits):
             circuit = _random_two_q_clifford(first_qubit, second_qubit,
-                                             num_cfds, cfd_matrices, cliffords)
+                                             num_cfds,  cliffords)
             circuit.append(ops.measure(first_qubit, second_qubit, key='z'))
             results = sampler.run(circuit, repetitions=repetitions)
             gnds = [(not r[0] and not r[1]) for r in results.measurements['z']]
@@ -486,7 +487,7 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                           num_cfds: int, cfd_matrices: np.ndarray,
+                           num_cfds: int,
                            cliffords: Cliffords
                            ) -> circuits.Circuit:
     clifford_group_size = 11520
@@ -494,8 +495,7 @@ def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
     circuit = circuits.Circuit()
     for idx in idx_list:
         circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
-    inv_idx = _find_inv_matrix(protocols.unitary(circuit), cfd_matrices)
-    circuit.append(_two_qubit_clifford(q_0, q_1, inv_idx, cliffords))
+    circuit.append(cirq.inverse(circuit))
     return circuit
 
 
@@ -622,7 +622,7 @@ def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
     s1_y = cliffords.s1_y
 
     idx_0 = int(idx / 480)
-    idx_1 = int((idx % 480) / 20)
+    idx_1 = int((idx % 480) * 0.05)
     idx_2 = idx - idx_0 * 480 - idx_1 * 20
     yield _single_qubit_gates(c1[idx_0], q_0)
     yield _single_qubit_gates(c1[idx_1], q_1)
