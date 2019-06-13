@@ -7,8 +7,8 @@ import sympy
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 
-from cirq import circuits, devices, ops, sim, study
-import cirq
+from cirq import circuits, protocols, devices, ops, sim, study
+
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
@@ -463,7 +463,7 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
     gate_sequence = []  # type: List[ops.Gate]
     for gate_id in gate_ids:
         gate_sequence.extend(cfds[gate_id])
-    gate_sequence.extend(cirq.inverse(gate_sequence))
+    gate_sequence.extend(protocols.inverse(gate_sequence))
     circuit = circuits.Circuit.from_ops(gate(qubit) for gate in gate_sequence)
     return circuit
 
@@ -476,7 +476,7 @@ def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
     circuit = circuits.Circuit()
     for idx in idx_list:
         circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
-    circuit.append(cirq.inverse(circuit))
+    circuit.append(protocols.inverse(circuit))
     return circuit
 
 
