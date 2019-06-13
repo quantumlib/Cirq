@@ -170,10 +170,15 @@ def test_parameterize():
     ) is NotImplemented
     assert cirq.unitary(parameterized_gate, default=None) is None
     assert cirq.is_parameterized(parameterized_gate)
+
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cirq.PhasedXPowGate(exponent=0.1,
                                                 phase_exponent=0.2)
+
+    unparameterized_gate = cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)
+    assert not cirq.is_parameterized(unparameterized_gate)
+    assert cirq.is_parameterized(unparameterized_gate**sympy.Symbol('a'))
 
 
 def test_trace_bound():
