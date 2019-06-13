@@ -1,6 +1,9 @@
 sudo: false
 language: python
 
+cache:
+  directories:
+    - .benchmarks
 branches:
   only:
     - master
@@ -55,7 +58,7 @@ matrix:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --benchmark-only
+    script: check/performance
      
   - os: windows
     env: NAME=pytest (Windows)
