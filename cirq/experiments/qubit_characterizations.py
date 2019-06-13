@@ -402,10 +402,10 @@ def two_qubit_state_tomography(sampler: sim.Sampler,
         prob_list = [results_hist[0], results_hist[1], results_hist[2]]
         return np.asarray(prob_list) / repetitions
 
-    sigma_0 = np.eye(2) / 2.0
-    sigma_1 = np.array([[0.0, 1.0], [1.0, 0.0]]) / 2.0
-    sigma_2 = np.array([[0.0, -1.0j], [1.0j, 0.0]]) / 2.0
-    sigma_3 = np.array([[1.0, 0.0], [0.0, -1.0]]) / 2.0
+    sigma_0 = np.eye(2) * 0.5
+    sigma_1 = np.array([[0.0, 1.0], [1.0, 0.0]]) * 0.5
+    sigma_2 = np.array([[0.0, -1.0j], [1.0j, 0.0]]) * 0.5
+    sigma_3 = np.array([[1.0, 0.0], [0.0, -1.0]]) * 0.5
     sigmas = [sigma_0, sigma_1, sigma_2, sigma_3]
 
     # Stores all 27 measured probabilities (P_00, P_01, P_10 after 9
