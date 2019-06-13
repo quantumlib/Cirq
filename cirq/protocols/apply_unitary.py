@@ -15,7 +15,16 @@
 """A protocol for implementing high performance unitary left-multiplies."""
 
 
-from typing import Any, Union, TypeVar, Tuple, Iterable
+from typing import (
+    Any,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 from typing_extensions import Protocol
@@ -23,6 +32,9 @@ from typing_extensions import Protocol
 from cirq import linalg
 from cirq.protocols.unitary import unitary
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    import cirq
 
 
 # This is a special indicator value used by the apply_unitary method
@@ -78,6 +90,14 @@ class ApplyUnitaryArgs:
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
+
+    @staticmethod
+    def default(num_qubits: int) -> 'ApplyUnitaryArgs':
+        """A default instance starting in state |0⟩."""
+        state = linalg.one_hot(index=(0,) * num_qubits,
+                               shape=(2,) * num_qubits,
+                               dtype=np.complex128)
+        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     def subspace_index(self, little_endian_bits_int: int
                        ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
@@ -236,3 +256,82 @@ def apply_unitary(unitary_value: Any,
         "object of type '{}' has no _apply_unitary_ or _unitary_ methods "
         "(or they returned None or NotImplemented).".format(
             type(unitary_value)))
+
+
+def apply_unitaries(unitary_values: Iterable[Any],
+                    qubits: Sequence['cirq.Qid'],
+                    args: Optional[ApplyUnitaryArgs] = None,
+                    default: Any = RaiseTypeErrorIfNotProvided
+                   ) -> Optional[np.ndarray]:
+    """Apply a series of unitaries onto a state tensor.
+
+    Uses `cirq.apply_unitary` on each of the unitary values, to apply them to
+    the state tensor from the `args` argument.
+
+    CAUTION: if one of the given unitary values does not have a unitary effect,
+    forcing the method to terminate, the method will not rollback changes
+    from previous unitary values.
+
+    Args:
+        unitary_values: The values with unitary effects to apply to the target.
+        qubits: The qubits that will be targeted by the unitary values. These
+            qubits match up, index by index, with the `indices` property of the
+            `args` argument.
+        args: A mutable `cirq.ApplyUnitaryArgs` object describing the target
+            tensor, available workspace, and axes to operate on. The attributes
+            of this object will be mutated as part of computing the result. If
+            not specified, this defaults to the zero state of the given qubits
+            with an axis ordering matching the given qubit ordering.
+        default: What should be returned if any of the unitary values actually
+            don't have a unitary effect. If not specified, a TypeError is
+            raised instead of returning a default value.
+
+    Returns:
+        If any of the unitary values do not have a unitary effect, the
+        specified default value is returned (or a TypeError is raised).
+        CAUTION: If this occurs, the contents of `args.target_tensor`
+        and `args.available_buffer` may have been mutated.
+
+        If all of the unitary values had a unitary effect that was
+        successfully applied, this method returns the `np.ndarray`
+        storing the final result. This `np.ndarray` may be
+        `args.target_tensor`, `args.available_buffer`, or some
+        other instance. The caller is responsible for dealing with
+        this potential aliasing of the inputs and the result.
+
+    Raises:
+        TypeError: An item from `unitary_values` doesn't have a unitary effect
+            and `default` wasn't specified.
+    """
+    if args is None:
+        args = ApplyUnitaryArgs.default(len(qubits))
+    if len(qubits) != len(args.axes):
+        raise ValueError('len(qubits) != len(args.axes)')
+    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
+    state = args.target_tensor
+    buffer = args.available_buffer
+
+    for op in unitary_values:
+        indices = [qubit_map[q] for q in op.qubits]
+        result = apply_unitary(unitary_value=op,
+                               args=ApplyUnitaryArgs(state, buffer, indices),
+                               default=None)
+
+        # Handle failure.
+        if result is None:
+            if default is RaiseTypeErrorIfNotProvided:
+                raise TypeError(
+                    "cirq.apply_unitaries failed. "
+                    "There was a non-unitary value in the `unitary_values` "
+                    "list.\n"
+                    "\n"
+                    "non-unitary value type: {}\n"
+                    "non-unitary value: {!r}".format(type(op), op))
+            return default
+
+        # Handle aliasing of results.
+        if result is buffer:
+            buffer = state
+        state = result
+
+    return state
