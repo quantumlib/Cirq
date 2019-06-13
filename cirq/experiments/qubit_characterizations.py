@@ -6,9 +6,7 @@ import sympy
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
-
-from cirq import circuits, protocols, devices, ops, sim, study
-
+from cirq import circuits, devices, ops, protocols, sim, study
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
