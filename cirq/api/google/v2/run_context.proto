@@ -105,7 +105,7 @@ message SingleSweep {
 // A list of explicit values.
 message Points {
   // The values.
-  repeated ArgValue points = 1;
+  repeated float points = 1;
 }
 
 // A range of evenly-spaced values.
