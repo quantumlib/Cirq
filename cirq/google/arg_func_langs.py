@@ -11,3 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import List, Union
+
+import sympy
+
+# Argument types for gates. ArgFunction's are not currently supported.
+ArgValue = Union[int, float, List[bool], str, sympy.Symbol]

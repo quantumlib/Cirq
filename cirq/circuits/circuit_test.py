@@ -437,8 +437,6 @@ def test_concatenate():
 
     with pytest.raises(TypeError):
         _ = c + 'a'
-    with pytest.raises(TypeError):
-        c += 'a'
 
 
 def test_concatenate_with_device():
@@ -452,10 +450,7 @@ def test_concatenate_with_device():
     cone += unr
     with pytest.raises(ValueError):
         _ = cone + fox
-    with pytest.raises(ValueError):
-        unr += cone
-    with pytest.raises(ValueError):
-        cone += fox
+
 
     unr.append(cirq.X(cirq.NamedQubit('not_allowed')))
     with pytest.raises(ValueError):
@@ -1862,6 +1857,12 @@ def test_circuit_to_unitary_matrix():
         ).to_unitary_matrix(),
         cirq.unitary(cirq.X),
         atol=1e-8)
+
+    # dtype
+    c = cirq.Circuit.from_ops(cirq.X(a))
+    assert c.to_unitary_matrix(dtype=np.complex64).dtype == np.complex64
+    assert c.to_unitary_matrix(dtype=np.complex128).dtype == np.complex128
+    assert c.to_unitary_matrix(dtype=np.float64).dtype == np.float64
 
 
 def test_circuit_unitary():
