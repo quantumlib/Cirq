@@ -65,6 +65,10 @@ matrix:
     env: NAME=pytest (Windows)
     language: sh
     python: "3.7.3"
+    cache:
+      - chocolatey
+      - directories:
+          - .benchmarks
     before_install:
     - choco install python --version 3.7.3
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
