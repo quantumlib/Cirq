@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "cirq/api/google/v2/program.proto";
-
 package cirq.api.google.v2;
 
 option java_package = "com.google.cirq.api.google.v2";
