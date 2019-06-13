@@ -208,13 +208,12 @@ def single_qubit_randomized_benchmarking(
 
     cliffords = _single_qubit_cliffords()
     c1 = cliffords.c1_in_xy if use_xy_basis else cliffords.c1_in_xz
-    cfd_mats = np.array([_gate_seq_to_mats(gates) for gates in c1])
 
     gnd_probs = []
     for num_cfds in num_clifford_range:
         excited_probs_l = []
         for _ in range(num_circuits):
-            circuit = _random_single_q_clifford(qubit, num_cfds, c1, cfd_mats)
+            circuit = _random_single_q_clifford(qubit, num_cfds, c1)
             circuit.append(ops.measure(qubit, key='z'))
             results = sampler.run(circuit, repetitions=repetitions)
             excited_probs_l.append(np.mean(results.measurements['z']))
@@ -264,7 +263,7 @@ def two_qubit_randomized_benchmarking(
     Returns:
         A RandomizedBenchMarkResult object that stores and plots the result.
     """
-    cliffords = _single_qubit_cliffords() #get all single qubit cliffords
+    cliffords = _single_qubit_cliffords()
 
     gnd_probs = []
     for num_cfds in num_clifford_range:
@@ -456,39 +455,21 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int],
     return mat_idx, indices, signs
 
 
-def _two_qubit_clifford_matrices(q_0: devices.GridQubit,
-                                 q_1: devices.GridQubit,
-                                 cliffords: Cliffords
-                                 ) -> np.ndarray:
-    mats = []
-
-    # Total number of different gates in the two-qubit Clifford group.
-    clifford_group_size = 11520
-
-    for i in range(clifford_group_size):
-        circuit = circuits.Circuit.from_ops(
-            _two_qubit_clifford(q_0, q_1, i, cliffords))
-        mats.append(protocols.unitary(circuit))
-    return np.array(mats)
-
-
 def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
-                              cfds: Sequence[Sequence[ops.Gate]],
-                              cfd_matrices: np.ndarray) -> circuits.Circuit:
+                              cfds: Sequence[Sequence[ops.Gate]]
+                              ) -> circuits.Circuit:
     clifford_group_size = 24
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
     gate_sequence = []  # type: List[ops.Gate]
     for gate_id in gate_ids:
         gate_sequence.extend(cfds[gate_id])
-    idx = _find_inv_matrix(_gate_seq_to_mats(gate_sequence), cfd_matrices)
-    gate_sequence.extend(cfds[idx])
+    gate_sequence.extend(cirq.inverse(gate_sequence))
     circuit = circuits.Circuit.from_ops(gate(qubit) for gate in gate_sequence)
     return circuit
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                           num_cfds: int,
-                           cliffords: Cliffords
+                           num_cfds: int, cliffords: Cliffords
                            ) -> circuits.Circuit:
     clifford_group_size = 11520
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
@@ -497,13 +478,6 @@ def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
         circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
     circuit.append(cirq.inverse(circuit))
     return circuit
-
-
-def _find_inv_matrix(mat: np.ndarray, mat_sequence: np.ndarray) -> int:
-    mat_prod = np.einsum('ij,...jk->...ik', mat, mat_sequence)
-    diag_sums = list(np.absolute(np.einsum('...ii->...', mat_prod)))
-    idx = diag_sums.index(max(diag_sums))
-    return idx
 
 
 def _matrix_bar_plot(mat: np.ndarray,
@@ -564,13 +538,6 @@ def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
                      'Density Matrix (Imaginary Part)',
                      ylim=(-1, 1))
     return fig
-
-
-def _gate_seq_to_mats(gate_seq: Sequence[ops.Gate]) -> np.ndarray:
-    mat_rep = protocols.unitary(gate_seq[0])
-    for gate in gate_seq[1:]:
-        mat_rep = np.dot(protocols.unitary(gate), mat_rep)
-    return mat_rep
 
 
 def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
