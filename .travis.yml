@@ -67,10 +67,9 @@ matrix:
     python: "3.7.3"
     cache:
       - directories:
-          - C:\Users\travis\AppData\Local\pip
+          - /c:/Users/travis/AppData/Local/pip
           - .benchmarks
     before_install:
-    - cd
     - choco install python --version 3.7.3
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     - python -m pip install --upgrade pip wheel
