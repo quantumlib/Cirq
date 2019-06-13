@@ -7,7 +7,7 @@ import sympy
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
 
-from cirq import circuits, devices, ops, protocols, sim, study
+from cirq import circuits, devices, ops, sim, study
 import cirq
 
 Cliffords = NamedTuple('Cliffords',
@@ -270,7 +270,7 @@ def two_qubit_randomized_benchmarking(
         gnd_probs_l = []
         for _ in range(num_circuits):
             circuit = _random_two_q_clifford(first_qubit, second_qubit,
-                                             num_cfds,  cliffords)
+                                             num_cfds, cliffords)
             circuit.append(ops.measure(first_qubit, second_qubit, key='z'))
             results = sampler.run(circuit, repetitions=repetitions)
             gnds = [(not r[0] and not r[1]) for r in results.measurements['z']]
@@ -457,7 +457,7 @@ def _indices_after_basis_rot(i: int, j: int) -> Tuple[int, Sequence[int],
 
 def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfds: Sequence[Sequence[ops.Gate]]
-                              ) -> circuits.Circuit:
+                             ) -> circuits.Circuit:
     clifford_group_size = 24
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
     gate_sequence = []  # type: List[ops.Gate]
@@ -469,8 +469,8 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                           num_cfds: int, cliffords: Cliffords
-                           ) -> circuits.Circuit:
+                           num_cfds: int,
+                           cliffords: Cliffords) -> circuits.Circuit:
     clifford_group_size = 11520
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
     circuit = circuits.Circuit()
