@@ -29,7 +29,8 @@ def test_single_qubit_randomized_benchmarking():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
     num_cfds = range(5, 20, 5)
-    results = single_qubit_randomized_benchmarking(simulator, qubit,
+    results = single_qubit_randomized_benchmarking(simulator,
+                                                   qubit,
                                                    num_clifford_range=num_cfds,
                                                    repetitions=100)
     g_pops = np.asarray(results.data)[:, 1]
@@ -43,7 +44,9 @@ def test_two_qubit_randomized_benchmarking():
     q_0 = GridQubit(0, 0)
     q_1 = GridQubit(0, 1)
     num_cfds = range(5, 20, 5)
-    results = two_qubit_randomized_benchmarking(simulator, q_0, q_1,
+    results = two_qubit_randomized_benchmarking(simulator,
+                                                q_0,
+                                                q_1,
                                                 num_clifford_range=num_cfds,
                                                 repetitions=100)
     g_pops = np.asarray(results.data)[:, 1]
