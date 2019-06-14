@@ -75,7 +75,3 @@ matrix:
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script:
       - check/pytest --benchmark-skip
-
-
-
-
