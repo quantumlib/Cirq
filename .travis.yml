@@ -69,6 +69,7 @@ matrix:
       - directories:
           - .benchmarks
           - C:/Users/travis/AppData/Local/pip/cache
+          - C:/Users/travis/AppData/Local/Package\ Cache
     before_install:
     - choco install python --version 3.7.3
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
@@ -76,6 +77,6 @@ matrix:
     install:
     - python -m pip install pytest
     script:
-    - cd C:/Users/travis/AppData/Local/Package\ Cache
+    - cd C:/Python37
     - dir
 
