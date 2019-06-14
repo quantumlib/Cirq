@@ -65,6 +65,8 @@ matrix:
     env: NAME=pytest (Windows)
     language: sh
     python: "3.7.3"
+    befre_script:
+      - dir
     cache:
       - directories:
           - C:/Users/travis/AppData/Local/pip/cache
