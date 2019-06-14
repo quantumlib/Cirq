@@ -635,6 +635,10 @@ def test_add_number_paulistring():
     assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
                                                      cirq.PauliString({}, 1.3)])
 
+    psum = pstr1 - 1.3
+    assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
+                                                     cirq.PauliString({}, -1.3)])
+
 
 def test_pauli_sum_formatting():
     q = cirq.LineQubit.range(2)
@@ -660,3 +664,34 @@ def test_pauli_sum_repr():
     pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
     psum = pstr1 + 2 * pstr2 + 1
     cirq.testing.assert_equivalent_repr(psum)
+
+
+def test_bad_arithmetic():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum = pstr1 + 2 * pstr2 + 1
+
+    with pytest.raises(TypeError):
+        psum += 'hi mom'
+
+    with pytest.raises(TypeError):
+        res = psum + 'hi mom'
+
+    with pytest.raises(TypeError):
+        psum -= 'hi mom'
+
+    with pytest.raises(TypeError):
+        res = psum - 'hi mom'
+
+    with pytest.raises(TypeError):
+        psum *= [1, 2, 3]
+
+    with pytest.raises(TypeError):
+        res = psum * [1, 2, 3]
+
+    with pytest.raises(TypeError):
+        res = [1, 2, 3] * psum
+
+    with pytest.raises(TypeError):
+        res = psum / [1, 2, 3]

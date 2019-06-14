@@ -286,21 +286,35 @@ class PauliSum:
         elif isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
 
+        if not isinstance(other, PauliSum):
+            return NotImplemented
+
         self._linear_dict += other._linear_dict
         return self
 
     def __add__(self, other):
+        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+            return NotImplemented
         result = self.copy()
         result += other
         return result
 
     def __isub__(self, other):
+        if isinstance(other, (float, int, complex)):
+            other = PauliSum.from_pauli_strings(
+                [PauliString(coefficient=other)])
         if isinstance(other, PauliString):
             other = PauliSum.from_pauli_strings([other])
+
+        if not isinstance(other, PauliSum):
+            return NotImplemented
+
         self._linear_dict -= other._linear_dict
         return self
 
     def __sub__(self, other):
+        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+            return NotImplemented
         result = self.copy()
         result -= other
         return result
