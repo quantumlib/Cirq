@@ -67,7 +67,6 @@ matrix:
     python: "3.7.3"
     cache:
       - directories:
-          - /C:/Users/travis/AppData/Local/pip
           - .benchmarks
     before_install:
     - choco install python --version 3.7.3
@@ -75,7 +74,9 @@ matrix:
     - python -m pip install --upgrade pip wheel
     install:
     - python -m pip install -r requirements.txt
-    - python -m pip install -r cirq/contrib/contrib-requirements.txt
-    - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --benchmark-skip
+    after_install:
+    - cd /C:/Users/travis/AppData/Local/pip
+    - dir
+
+    script: check/pytest --ignore=cirq/contrib --benchmark-skip cirq
 
