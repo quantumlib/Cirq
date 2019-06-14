@@ -43,7 +43,7 @@ matrix:
       - directories:
           - C:/Users/travis/Pip/Cache
     before_install:
-      - choco install travis_windows_python --source=./
+      - choco install ./travis_windows_python
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     install:
       - python -m pip install --upgrade pip wheel
