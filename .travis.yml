@@ -73,9 +73,8 @@ matrix:
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     - python -m pip install --upgrade pip wheel
     install:
-    - python -m pip install -r requirements.txt
     - python -m pip install pytest
     script:
-    - cd /C:/Users/travis/AppData/Local/pip
+    - cd C:\Users\travis\AppData\Local\pip
     - dir
 
