@@ -70,16 +70,12 @@ matrix:
           - C:/Users/travis/AppData/Local/pip/cache
           - C:/Users/travis/AppData/Local/Package\ Cache
     before_install:
-    - cd $TEMP/chocolatey
-    - dir
     - choco install python --version 3.7.3
-    - dir
+    - dir /A
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     install:
     - python -m pip install --upgrade pip wheel
     script:
-      - cd $TEMP
-      - cd
       - dir
 
 
