@@ -128,7 +128,7 @@ class GateOpDeserializer:
             if value is None and arg.required:
                 raise ValueError(
                     'Could not get arg {} from arg_proto {}'.format(
-                        arg.serialized_name, args.proto))
+                        arg.serialized_name, proto.args))
 
             if arg.value_func is not None:
                 value = arg.value_func(value)
