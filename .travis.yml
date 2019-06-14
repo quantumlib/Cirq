@@ -70,6 +70,7 @@ matrix:
           - C:/Users/travis/AppData/Local/pip/cache
           - C:/Users/travis/AppData/Local/Package\ Cache
     before_install:
+      - dir
       - choco install python --version 3.7.3
       - dir
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
@@ -78,7 +79,7 @@ matrix:
     script:
       - dir
     after_script:
-      - cd Cache
+      - cd $HOME/.casher
       - dir
 
 
