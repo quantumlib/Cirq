@@ -15,20 +15,6 @@ before_install:
 matrix:
   include:
   - os: linux
-    env: NAME=mypy
-    python: "3.5.2"
-    install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
-    script: check/mypy
-
-  - os: linux
-    env: NAME=pylint
-    python: "3.5.2"
-    install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
-    script: check/pylint
-
-  - os: linux
     env: NAME=format
     python: "3.5.2"
     install:
