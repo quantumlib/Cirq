@@ -67,7 +67,7 @@ matrix:
     python: "3.7.3"
     cache:
       - directories:
-          - /c:/Users/travis/AppData/Local/pip
+          - /C:/Users/travis/AppData/Local/pip
           - .benchmarks
     before_install:
     - choco install python --version 3.7.3
