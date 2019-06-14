@@ -71,7 +71,7 @@ matrix:
           - C:/Users/travis/Pip/Cache
     before_install:
       - choco config set cacheLocation C:/Users/travis/Chocolatey/Cache
-      - choco install python --version 3.7.3
+      - choco install python --version 3.7.3 --source=C:/Users/travis/Chocolatey/Cache
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     install:
       - python -m pip install --upgrade pip wheel
