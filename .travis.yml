@@ -65,24 +65,19 @@ matrix:
     env: NAME=pytest (Windows)
     language: sh
     python: "3.7.3"
-    befre_script:
-      - dir
     cache:
       - directories:
-          - C:/Users/travis/AppData/Local/pip/cache
-          - C:/Users/travis/AppData/Local/Package\ Cache
+          - C:/Users/travis/Chocolatey/Cache
+          - C:/Users/travis/Pip/Cache
     before_install:
-      - dir
-      - choco install python --version 3.7.3
-      - dir
+      - choco config set cacheLocation C:/Users/travis/Chocolatey/Cache
+      - choco install python --version 3.7.3 --source=C:/Users/travis/Chocolatey/Cache
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     install:
       - python -m pip install --upgrade pip wheel
     script:
       - dir
-    after_script:
-      - cd $HOME/.casher
-      - dir
+
 
 
 
