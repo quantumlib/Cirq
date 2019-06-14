@@ -97,7 +97,7 @@ def test_from_proto_required_missing():
         'args': {
             'not_my_val': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             }
         },
@@ -105,7 +105,7 @@ def test_from_proto_required_missing():
             'id': '1_2'
         }]
     }
-    with pytest.raises(ValueError, match='my_val'):
+    with pytest.raises(Exception, match='my_val'):
         deserializer.from_proto_dict(serialized)
 
 
@@ -125,7 +125,7 @@ def test_from_proto_unknown_arg_type():
         'args': {
             'my_val': {
                 'arg_value': {
-                    'what_value': 0.1
+                    'what_value': 0.125
                 }
             }
         },
@@ -133,7 +133,7 @@ def test_from_proto_unknown_arg_type():
             'id': '1_2'
         }]
     }
-    with pytest.raises(ValueError, match='my_val'):
+    with pytest.raises(Exception, match='what_value'):
         deserializer.from_proto_dict(serialized)
 
 
@@ -153,7 +153,7 @@ def test_from_proto_value_func():
         'args': {
             'my_val': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             }
         },
@@ -163,7 +163,7 @@ def test_from_proto_value_func():
     }
     q = cirq.GridQubit(1, 2)
     result = deserializer.from_proto_dict(serialized)
-    assert result == GateWithAttribute(1.1)(q)
+    assert result == GateWithAttribute(1.125)(q)
 
 
 def test_from_proto_not_required_ok():
@@ -186,7 +186,7 @@ def test_from_proto_not_required_ok():
         'args': {
             'my_val': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             }
         },
@@ -196,4 +196,4 @@ def test_from_proto_not_required_ok():
     }
     q = cirq.GridQubit(1, 2)
     result = deserializer.from_proto_dict(serialized)
-    assert result == GateWithAttribute(0.1)(q)
+    assert result == GateWithAttribute(0.125)(q)
