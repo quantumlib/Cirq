@@ -13,7 +13,6 @@
 # limitations under the License.
 from typing import Dict, Optional, List, Any, Iterable
 
-import sympy
 from ply import yacc
 
 import cirq
@@ -85,9 +84,9 @@ class QasmParser(object):
         self.parsedQasm = None  # type: Optional[Qasm]
         self.qubits = {}  # type: Dict[str,cirq.NamedQubit]
 
-    basic_gates: Dict[str, QasmGate] = {
+    basic_gates = {
         'CX': QasmGate(qasm_gate='CX', cirq_gate=CNOT, num_args=2)
-    }
+    }  # type: Dict[str, QasmGate]
 
     tokens = QasmLexer.tokens
     start = 'start'
