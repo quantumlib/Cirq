@@ -75,6 +75,6 @@ matrix:
     install:
     - python -m pip install pytest
     script:
-    - cd C:\Users\travis\AppData\Local\pip
+    - cd C:/Users/travis/AppData/Local/pip
     - dir
 
