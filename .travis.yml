@@ -79,5 +79,5 @@ matrix:
     - cd /C:/Users/travis/AppData/Local/pip
     - dir
 
-    script: check/pytest --ignore=cirq/contrib --benchmark-skip cirq
+    script: pytest cirq.devices
 
