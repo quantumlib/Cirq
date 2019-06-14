@@ -71,7 +71,7 @@ matrix:
           - C:/Users/travis/AppData/Local/Package\ Cache
     before_install:
     - choco install python --version 3.7.3
-    - dir /A
+    - dir
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     install:
     - python -m pip install --upgrade pip wheel
