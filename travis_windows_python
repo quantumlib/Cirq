@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+        <meta property="fb:app_id" content="235682883225736" />
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@nuget">
+
+    <meta property="og:title" content="python 3.7.3" />
+    <meta property="og:type" content="nugetgallery:package" />
+    <meta property="og:url" content="https://www.nuget.org/packages/python/" />
+    <meta property="og:description" content="Installs 64-bit Python for use in build scenarios." />
+    <meta property="og:determiner" content="a" />
+    <meta property="og:image" content="https://www.python.org/static/favicon.ico" />
+
+        <link rel="alternate" type="application/atom+xml" title="Subscribe to python updates" href="/packages/python/atom.xml" />
+
+    
+
+    <title>
+        NuGet Gallery
+        | python 3.7.3
+    </title>
+
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <link title="NuGet.org" type="application/opensearchdescription+xml" href="/opensearch.xml" rel="search">
+
+    <link href="/Content/gallery/css/site.min.css?v=JyyyThwoaQOYCy0kNNTPBVPVIUNEsr12rXVTMIRks441" rel="stylesheet"/>
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    
+
+                    <script>
+                    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                    ga('create', 'UA-62780441-33', 'auto');
+                    ga('set', 'anonymizeIp', true);
+                    ga('set', 'page', '');
+                    ga('set', 'title', '');
+                    ga('send', 'pageview');
+                </script>
+
+    
+    
+                <!-- Telemetry -->
+            <script type="text/javascript">
+                var appInsights = window.appInsights || function (config) {
+                    function s(config) {
+                        t[config] = function () {
+                            var i = arguments;
+                            t.queue.push(function () { t[config].apply(t, i) })
+                        }
+                    }
+
+                    var t = { config: config }, r = document, f = window, e = "script", o = r.createElement(e), i, u;
+                    for (o.src = config.url || "//az416426.vo.msecnd.net/scripts/a/ai.0.js", r.getElementsByTagName(e)[0].parentNode.appendChild(o), t.cookie = r.cookie, t.queue = [], i = ["Event", "Exception", "Metric", "PageView", "Trace"]; i.length;) s("track" + i.pop());
+                    return config.disableExceptionTracking || (i = "onerror", s("_" + i), u = f[i], f[i] = function (config, r, f, e, o) {
+                        var s = u && u(config, r, f, e, o);
+                        return s !== !0 && t["_" + i](config, r, f, e, o), s
+                    }), t
+                }({
+                    instrumentationKey: 'df3a36b9-dfba-401c-82ab-35690083be3e',
+                    samplingPercentage: 100
+                });
+
+                window.appInsights = appInsights;
+                appInsights.trackPageView();
+            </script>
+
+</head>
+<body>
+    
+
+
+
+
+<nav class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <a href="#" id="skipToContent" class="showOnFocus" title="Skip To Content">Skip To Content</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a href="/">
+                        <img class="navbar-logo" width="94" height="29" alt="NuGet home"
+                             src="/Content/gallery/img/logo-header.svg"
+                                 onerror="this.src='https://www.nuget.org/Content/gallery/img/logo-header-94x29.png'; this.onerror = null;"
+ />
+                    </a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav" role="tablist">
+                            <li class="active" role="presentation">
+        <a role="tab" aria-selected="true" href="/packages">
+            <span>Packages</span>
+        </a>
+    </li>
+
+                            <li class="" role="presentation">
+        <a role="tab" aria-selected="false" href="/packages/manage/upload">
+            <span>Upload</span>
+        </a>
+    </li>
+
+    <li class="" role="presentation">
+        <a role="tab" aria-selected="false" href="/stats">
+            <span>Statistics</span>
+        </a>
+    </li>
+                                                    <li class="" role="presentation">
+        <a role="tab" aria-selected="false" href="https://docs.microsoft.com/en-us/nuget/what-is-nuget">
+            <span>Documentation</span>
+        </a>
+    </li>
+
+                            <li class="" role="presentation">
+        <a role="tab" aria-selected="false" href="/downloads">
+            <span>Downloads</span>
+        </a>
+    </li>
+
+                            <li class="" role="presentation">
+        <a role="tab" aria-selected="false" href="https://blog.nuget.org/">
+            <span>Blog</span>
+        </a>
+    </li>
+
+                    </ul>
+                        <ul class="nav navbar-nav navbar-right" role="tablist">
+    <li class="" role="presentation">
+        <a role="tab" aria-selected="false" href="/users/account/LogOn?returnUrl=%2Fpackages%2Fpython%2F3.7.3" title="Sign in to an existing NuGet.org account">
+            <span>Sign in</span>
+        </a>
+    </li>
+                        </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="container search-container">
+            <div class="row">
+                <form aria-label="Package search bar" class="col-sm-12" action="/packages" method="get">
+                    <div class="input-group">
+    <input name="q" type="text" class="form-control" id="search" aria-label="Enter packages to search"
+           placeholder="Search for packages..." autocomplete="off"
+           value=""
+            />
+    <span class="input-group-btn">
+        <button class="btn btn-default btn-warning btn-search" type="submit"
+                title="Search for packages" aria-label="Search">
+            <span class="ms-Icon ms-Icon--Search" aria-hidden="true"></span>
+        </button>
+    </span>
+</div>
+                    <div id="autocomplete-results-container" class="text-left" tabindex="0"></div>
+
+<script type="text/html" id="autocomplete-results-row">
+    <!-- ko if: $data -->
+    <!-- ko if: $data.PackageRegistration -->
+    <div class="col-sm-4 autocomplete-row-id autocomplete-row-data">
+        <span data-bind="attr: { id: 'autocomplete-result-id-' + $data.PackageRegistration.Id, title: $data.PackageRegistration.Id }, text: $data.PackageRegistration.Id"></span>
+    </div>
+    <div class="col-sm-4 autocomplete-row-downloadcount text-right autocomplete-row-data">
+        <span data-bind="text: $data.DownloadCount + ' downloads'"></span>
+    </div>
+    <div class="col-sm-4 autocomplete-row-owners text-left autocomplete-row-data">
+        <span data-bind="text: $data.OwnersString + ' '"></span>
+    </div>
+    <!-- /ko -->
+    <!-- ko ifnot: $data.PackageRegistration -->
+    <div class="col-sm-12 autocomplete-row-id autocomplete-row-data">
+        <span data-bind="attr: { id: 'autocomplete-result-id-' + $data, title: $data  }, text: $data"></span>
+    </div>
+    <!-- /ko -->
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="autocomplete-results-template">
+    <!-- ko if: $data.data.length > 0 -->
+    <div data-bind="foreach: $data.data" id="autocomplete-results-list">
+        <a data-bind="attr: { id: 'autocomplete-result-row-' + $data, href: '/packages/' + $data, title: $data }" tabindex="-1">
+            <div data-bind="attr:{ id: 'autocomplete-container-' + $data }" class="autocomplete-results-row">
+            </div>
+        </a>
+    </div>
+    <!-- /ko -->
+</script>
+
+                </form>
+            </div>
+        </div>
+</nav>
+
+
+
+
+
+
+    <div id="skippedToContent">
+    
+
+
+
+
+
+
+
+
+
+<section role="main" class="container main-container page-package-details">
+    <div class="row">
+        <aside aria-label="Package icon" class="col-sm-1">
+            <h3>
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     src="https://www.python.org/static/favicon.ico"
+                         onerror="this.src='https://www.nuget.org/Content/gallery/img/default-package-icon-256x256.png'; this.onerror = null;"
+ />
+            </h3>
+        </aside>
+        <article class="col-sm-8 package-details-main">
+            <div class="package-title">
+                <h1>
+                    python
+                    <small class="text-nowrap">3.7.3</small>
+
+                </h1>
+
+            </div>
+
+                <p>Installs 64-bit Python for use in build scenarios.</p>
+
+
+
+
+
+
+    <div class="icon-text alert alert-info" >
+        <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+        
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    
+
+    </div>
+
+
+
+
+
+
+                <div class="install-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+
+    <li role="presentation" class="active">
+        <a href="#package-manager" aria-expanded="true"
+           id="package-manager-tab" class="package-manager-tab"
+           aria-selected="true"
+           aria-controls="package-manager" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for Package Manager">
+            Package Manager
+        </a>
+    </li>
+    <li role="presentation" class="">
+        <a href="#dotnet-cli" aria-expanded="false"
+           id="dotnet-cli-tab" class="package-manager-tab"
+           aria-selected="false"
+           aria-controls="dotnet-cli" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for .NET CLI">
+            .NET CLI
+        </a>
+    </li>
+    <li role="presentation" class="">
+        <a href="#package-reference" aria-expanded="false"
+           id="package-reference-tab" class="package-manager-tab"
+           aria-selected="false"
+           aria-controls="package-reference" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for PackageReference">
+            PackageReference
+        </a>
+    </li>
+    <li role="presentation" class="">
+        <a href="#paket-cli" aria-expanded="false"
+           id="paket-cli-tab" class="package-manager-tab"
+           aria-selected="false"
+           aria-controls="paket-cli" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for Paket CLI">
+            Paket CLI
+        </a>
+    </li>
+                    </ul>
+                    <div class="tab-content">
+
+    <div role="tabpanel" class="tab-pane active" id="package-manager">
+        <div>
+            <div class="install-script-row">
+                <pre class="install-script" id="package-manager-text">Install-Package python -Version 3.7.3</pre>
+                <div class="copy-button">
+                    <button id="package-manager-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="Copy the Package Manager command">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div role="tabpanel" class="tab-pane " id="dotnet-cli">
+        <div>
+            <div class="install-script-row">
+                <pre class="install-script" id="dotnet-cli-text">dotnet add package python --version 3.7.3</pre>
+                <div class="copy-button">
+                    <button id="dotnet-cli-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="Copy the .NET CLI command">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div role="tabpanel" class="tab-pane " id="package-reference">
+        <div>
+            <div class="install-script-row">
+                <pre class="install-script" id="package-reference-text">&lt;PackageReference Include=&quot;python&quot; Version=&quot;3.7.3&quot; /&gt;</pre>
+                <div class="copy-button">
+                    <button id="package-reference-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="Copy the PackageReference XML node">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    <div class="icon-text alert alert-info" >
+        <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+        
+For projects that support <a href="https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files">PackageReference</a>, copy this XML node into the project file to reference the package.
+                    
+    </div>
+    </div>
+    <div role="tabpanel" class="tab-pane " id="paket-cli">
+        <div>
+            <div class="install-script-row">
+                <pre class="install-script" id="paket-cli-text">paket add python --version 3.7.3</pre>
+                <div class="copy-button">
+                    <button id="paket-cli-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="Copy the Paket CLI command">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    <div class="icon-text alert alert-warning" >
+        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+        
+The NuGet Team does not provide support for this client. Please contact its <a href="https://fsprojects.github.io/Paket/contact.html">maintainers</a> for support.
+                    
+    </div>
+    </div>
+                    </div>
+                </div>
+
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
+                           aria-expanded="true" aria-controls="dependency-groups"
+                           id="show-dependency-groups">
+                            <i class="ms-Icon ms-Icon--ChevronDown"
+                               aria-hidden="true"></i>
+                            <span>Dependencies</span>
+                        </a>
+                    </h2>
+                        <p class="collapse in" id="dependency-groups">This package has no dependencies.</p>
+
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#version-history"
+                   aria-expanded="true" aria-controls="version-history" id="show-version-history">
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <span>Version History</span>
+                </a>
+            </h2>
+            <div class="version-history panel-collapse collapse in" aria-expanded="true" id="version-history">
+                <table class="table borderless">
+                    <thead>
+                        <tr>
+                            <th>Version</th>
+                            <th>Downloads</th>
+                            <th>Last updated</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="no-border">
+
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.8.0-b1" title="3.8.0-b1">
+                                            3.8.0-b1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        80
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-06-04T20:36:54.8200000">6/4/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.8.0-a4" title="3.8.0-a4">
+                                            3.8.0-a4
+                                        </a>
+                                    </td>
+                                    <td>
+                                        451
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-05-07T14:35:02.3130000">5/7/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.8.0-a3" title="3.8.0-a3">
+                                            3.8.0-a3
+                                        </a>
+                                    </td>
+                                    <td>
+                                        333
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-03-25T23:52:42.1830000">3/25/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.8.0-a2" title="3.8.0-a2">
+                                            3.8.0-a2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        180
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-02-25T19:37:30.8970000">2/25/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.8.0-a1" title="3.8.0-a1">
+                                            3.8.0-a1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        191
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-02-04T18:36:18.1270000">2/4/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+        </tbody><tbody class="no-border collapse in" id="hidden-versions">
+                                <tr class="bg-info">
+                                    <td>
+                                        <a href="/packages/python/3.7.3" title="3.7.3">
+                                            3.7.3
+                                        </a>
+                                    </td>
+                                    <td>
+                                        8,937
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-03-26T02:08:33.6000000">3/26/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.3-rc1" title="3.7.3-rc1">
+                                            3.7.3-rc1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        78
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2019-03-12T23:14:39.3830000">3/12/2019</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.2" title="3.7.2">
+                                            3.7.2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        11,841
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-12-24T00:49:16.7200000">12/24/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.2-rc1" title="3.7.2-rc1">
+                                            3.7.2-rc1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        190
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-12-12T00:34:29.6870000">12/12/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.1" title="3.7.1">
+                                            3.7.1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        148,616
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-10-20T20:36:43.4070000">10/20/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.1-rc2" title="3.7.1-rc2">
+                                            3.7.1-rc2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        134
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-10-14T01:33:08.2670000">10/14/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.1-rc1" title="3.7.1-rc1">
+                                            3.7.1-rc1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        141
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-09-26T22:46:32.6600000">9/26/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.0" title="3.7.0">
+                                            3.7.0
+                                        </a>
+                                    </td>
+                                    <td>
+                                        12,188
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-06-28T01:14:34.5270000">6/28/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.7.0-rc1" title="3.7.0-rc1">
+                                            3.7.0-rc1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        394
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-06-27T03:07:12.3130000">6/27/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.8" title="3.6.8">
+                                            3.6.8
+                                        </a>
+                                    </td>
+                                    <td>
+                                        1,186
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-12-24T00:49:56.9400000">12/24/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.8-rc1" title="3.6.8-rc1">
+                                            3.6.8-rc1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        102
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-12-12T00:54:22.4700000">12/12/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.7" title="3.6.7">
+                                            3.6.7
+                                        </a>
+                                    </td>
+                                    <td>
+                                        945
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-10-20T20:35:59.7970000">10/20/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.7-rc2" title="3.6.7-rc2">
+                                            3.6.7-rc2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        143
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-10-14T01:32:28.0000000">10/14/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.7-rc1" title="3.6.7-rc1">
+                                            3.6.7-rc1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        133
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-09-26T22:45:39.0500000">9/26/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.6" title="3.6.6">
+                                            3.6.6
+                                        </a>
+                                    </td>
+                                    <td>
+                                        1,828
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-06-27T15:31:00.6930000">6/27/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.5" title="3.6.5">
+                                            3.6.5
+                                        </a>
+                                    </td>
+                                    <td>
+                                        9,483
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2018-03-28T17:58:31.7170000">3/28/2018</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.4" title="3.6.4">
+                                            3.6.4
+                                        </a>
+                                    </td>
+                                    <td>
+                                        7,317
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2017-12-19T22:30:19.5470000">12/19/2017</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.3" title="3.6.3">
+                                            3.6.3
+                                        </a>
+                                    </td>
+                                    <td>
+                                        4,049
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2017-10-03T21:49:15.4300000">10/3/2017</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.2" title="3.6.2">
+                                            3.6.2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        44,856
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2017-07-25T21:21:04.1600000">7/25/2017</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.1" title="3.6.1">
+                                            3.6.1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        13,212
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2017-03-21T23:27:06.9170000">3/21/2017</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.6.0" title="3.6.0">
+                                            3.6.0
+                                        </a>
+                                    </td>
+                                    <td>
+                                        6,499
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2016-12-23T17:51:29.1230000">12/23/2016</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.5.4" title="3.5.4">
+                                            3.5.4
+                                        </a>
+                                    </td>
+                                    <td>
+                                        2,472
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2017-08-08T15:57:34.1870000">8/8/2017</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.5.3" title="3.5.3">
+                                            3.5.3
+                                        </a>
+                                    </td>
+                                    <td>
+                                        422
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2017-01-20T20:32:21.2900000">1/20/2017</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.5.2.2" title="3.5.2.2">
+                                            3.5.2.2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        2,503
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2016-11-23T18:14:06.4370000">11/23/2016</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.5.2.1" title="3.5.2.1">
+                                            3.5.2.1
+                                        </a>
+                                    </td>
+                                    <td>
+                                        301
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2016-11-17T16:07:07.2670000">11/17/2016</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="/packages/python/3.5.2" title="3.5.2">
+                                            3.5.2
+                                        </a>
+                                    </td>
+                                    <td>
+                                        9,569
+                                    </td>
+                                    <td>
+                                        <span data-datetime="2016-06-25T23:11:41.2000000">6/25/2016</span>
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                    </td>
+                                </tr>
+                    </tbody>
+                </table>
+                    <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
+                       aria-expanded="true" aria-controls="hidden-versions" id="show-hidden-versions">
+                        <i class="ms-Icon ms-Icon--CalculatorSubtract" aria-hidden="true"></i>
+                        <span>Show less</span>
+                    </a>
+            </div>
+        </article>
+        <aside aria-label="Package details info" class="col-sm-3 package-details-info">
+            <h2>Info</h2>
+            <ul class="list-unstyled ms-Icon-ul">
+                <li>
+                    <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                    last updated <span data-datetime="2019-03-26T02:08:33.6000000">3/26/2019</span>
+                </li>
+                    <li>
+                        <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
+                        <a href="https://www.python.org/" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
+https://www.python.org/                        </a>
+                    </li>
+                                                    <li>
+                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                            <a href="/packages/python/3.7.3/License"
+                               data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                    License Info
+                            </a>
+                    </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
+                    <a href="/packages/python/3.7.3/ContactOwners" title="Ask the package owners a question">Contact owners</a>
+                </li>
+                    <li>
+                        <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                        <a href="/packages/python/3.7.3/ReportAbuse" title="Report the package as abusive">
+                            Report
+                        </a>
+                    </li>
+
+                    <li>
+                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                        <a href="https://www.nuget.org/api/v2/package/python/3.7.3" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
+                        &nbsp;(10.94 MB)
+                    </li>
+                    <li class="no-clickonce">
+                        <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
+                        <a href="https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url=https://www.nuget.org/api/v2/package/python/3.7.3/&amp;id=python&amp;version=3.7.3" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                    </li>
+
+                
+
+
+            </ul>
+
+            <h2>Statistics</h2>
+            <ul class="list-unstyled ms-Icon-ul">
+                <li>
+                    <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                    293,177 total downloads
+                </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
+                    8,937 downloads
+                    of current version
+                </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
+                    270 downloads
+                    per day (avg)
+                </li>
+            </ul>
+                <a href="/stats/packages/python?groupby=Version" title="Package Statistics">View full stats</a>
+
+            <h2>Owners</h2>
+            <ul class="list-unstyled owner-list">
+            <li>
+            <a href="/profiles/steve.dower" title="steve.dower"><img src="https://secure.gravatar.com/avatar/c2b3825313341d29eed9094f3a7adfde?s=64&amp;r=g&amp;d=retro" class="owner-image" height="32" title="steve.dower" width="32" alt="gravatar" /></a>
+                <a href="/profiles/steve.dower" title="steve.dower">
+                    steve.dower
+                </a>
+            </li>
+            </ul>
+
+                    <h2>Authors</h2>
+                    <p>Python Software Foundation</p>
+                    <h2>Tags</h2>
+                    <p>
+                            <a href="/packages?q=Tags%3A%22python%22" title="Search for python" class="tag">python</a>
+                    </p>
+
+                <h2>Share</h2>
+                <p class="share-buttons">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.nuget.org/packages/python/&t=Check+out+python+on+%23NuGet." target="_blank">
+                        <img width="24" height="24" alt="Share this package on Facebook"
+                             src="https://www.nuget.org/Content/gallery/img/facebook.svg"
+                                 onerror="this.src='https://www.nuget.org/Content/gallery/img/facebook-24x24.png'; this.onerror = null;"
+ />
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=https://www.nuget.org/packages/python/&text=Check+out+python+on+%23NuGet." target="_blank">
+                        <img width="24" height="24" alt="Tweet this package"
+                             src="https://www.nuget.org/Content/gallery/img/twitter.svg"
+                                 onerror="this.src='https://www.nuget.org/Content/gallery/img/twitter-24x24.png'; this.onerror = null;"
+ />
+                    </a>
+                        <a href="/packages/python/atom.xml" data-track="atom-feed">
+                            <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of python"
+                                 src="https://www.nuget.org/Content/gallery/img/rss.svg"
+                                     onerror="this.src='https://www.nuget.org/Content/gallery/img/rss-24x24.png'; this.onerror = null;"
+ />
+                        </a>
+                </p>
+        </aside>
+    </div>
+</section>
+
+
+
+
+    </div>
+    <footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-4">
+                <span class="footer-heading"><a href="/policies/Contact">Contact</a></span>
+                <p>
+                    Got questions about NuGet or the NuGet Gallery?
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <span class="footer-heading"><a href="https://status.nuget.org/">Status</a></span>
+                <p>
+                    Find out the service status of NuGet.org and its related services.
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <span class="footer-heading">
+                    <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq">
+                        <abbr title="Frequently Asked Questions">FAQ</abbr>
+                    </a>
+                </span>
+                <p>
+                    Read the Frequently Asked Questions about NuGet and see if your question made the list.
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 row-gap">
+                <img alt="" aria-hidden="true" width="184" height="57"
+                     src="/Content/gallery/img/logo-footer.svg"
+                         onerror="this.src='https://www.nuget.org/Content/gallery/img/logo-footer-184x57.png'; this.onerror = null;"
+ />
+            </div>
+            <div class="col-md-9 row-gap">
+                <div class="row">
+                        <div class="col-md-12 footer-release-info">
+                            <p>
+                                        &#169; Microsoft 2019 -
+                                <a href="/policies/About">About</a> -
+                                <a href="/policies/Terms">Terms of Use</a> -
+                                <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy Policy</a>
+                                    - <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+                                <br />
+                            </p>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!--
+    This is the NuGet Gallery version 4.4.5-master.
+        Deployed from 8fff556 Link: https://www.github.com/NuGet/NuGetGallery/commit/8fff556
+        Built on master Link: https://www.github.com/NuGet/NuGetGallery/tree/master
+        Built on 2019-05-20T23:14:17.0000000+00:00
+    You are on NuGetGallery_IN_2.
+-->
+
+</footer>
+
+    <script src="/Scripts/gallery/site.min.js?v=5MjpKjeql8PLjyuMo15eDtBfPbXNk19MrYjdDmU5a9M1"></script>
+
+    
+
+
+    <style type="text/css">
+        #package-manager .install-script::before {    content: "PM> "}#dotnet-cli .install-script::before {    content: "> "}#paket-cli .install-script::before {    content: "> "}
+    </style>
+
+    <script type="text/javascript">
+        var packageManagers = ["package-manager","dotnet-cli","package-reference","paket-cli"];
+    </script>
+
+    <script src="/Scripts/gallery/page-display-package.min.js?v=mnkDbLmWNfgqH3DkgaSyjCT_RVU-cGP6RALJcon-A0E1"></script>
+
+
+</body>
+</html>
