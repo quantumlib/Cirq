@@ -76,6 +76,6 @@ matrix:
     install:
     - python -m pip install pytest
     script:
-    - cd C:/Users/travis/AppData/Local/
+    - cd C:/Users/travis/AppData/Local/Package\ Cache
     - dir
 
