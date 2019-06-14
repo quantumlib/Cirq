@@ -51,8 +51,8 @@ class QasmGate:
                 "got: {}, at line {}".format(self.qasm_gate, self.num_args,
                                              len(args), lineno))
 
-    def call(self, args: List[List[cirq.Qid]],
-             lineno: int = 0) -> Iterable[cirq.Operation]:
+    def on(self, args: List[List[cirq.Qid]],
+           lineno: int = 0) -> Iterable[cirq.Operation]:
         self.validate_args(args, lineno)
         reg_size = 1
         for reg in args:
@@ -172,7 +172,7 @@ class QasmParser(object):
                                 'maybe you forgot to include '
                                 'the standard qelib1.inc?'.format(
                                     gate, p.lineno(1)))
-        p[0] = self.basic_gates[gate].call(args=args, lineno=p.lineno(1))
+        p[0] = self.basic_gates[gate].on(args=args, lineno=p.lineno(1))
 
         # args : arg ',' args
         #      | arg ';'
