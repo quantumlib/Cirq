@@ -217,10 +217,8 @@ class QasmParser(object):
             if arg_name not in self.qubits.keys():
                 self.qubits[arg_name] = NamedQubit(arg_name)
             p[0] = [self.qubits[arg_name]]
-        elif reg in self.cregs.keys():
-            p[0] = [arg_name]
         else:
-            raise QasmException('Undefined quantum/classical register "{}" '
+            raise QasmException('Undefined quantum register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
 
     def p_error(self, p):
