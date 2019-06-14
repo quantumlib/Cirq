@@ -75,9 +75,7 @@ matrix:
     install:
     - python -m pip install -r requirements.txt
     - python -m pip install pytest
-    after_install:
+    script:
     - cd /C:/Users/travis/AppData/Local/pip
     - dir
-
-    script: pytest cirq.devices
 
