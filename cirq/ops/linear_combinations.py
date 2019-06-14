@@ -268,7 +268,7 @@ class PauliSum:
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
-    def copy(self):
+    def copy(self) -> 'PauliSum':
         factory = type(self)
         return factory(self._linear_dict.copy())
 
