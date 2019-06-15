@@ -54,11 +54,11 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         if p == 1 and not isinstance(exponent, sympy.Symbol):
             return cirq.ops.common_gates.XPowGate(
                 exponent=-exponent,
-                global_shift=global_shift)
+                global_shift=-1 - global_shift)
         if p == -0.5 and not isinstance(exponent, sympy.Symbol):
             return cirq.ops.common_gates.YPowGate(
                 exponent=-exponent,
-                global_shift=global_shift)
+                global_shift=-1 - global_shift)
         return super().__new__(cls)
 
     def __init__(self,
