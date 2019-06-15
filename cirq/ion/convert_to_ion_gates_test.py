@@ -24,6 +24,7 @@ class OtherX(cirq.SingleQubitGate):
         return np.array([[0, 1], [1, 0]])
 
 
+
 class NoUnitary(cirq.SingleQubitGate):
     pass
 
