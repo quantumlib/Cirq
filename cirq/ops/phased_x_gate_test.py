@@ -158,7 +158,7 @@ def test_str_repr():
 def test_det_continuity():
     g1u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=1, exponent=0.7))
     g2u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=0.99, exponent=0.7))
-    assert np.isclose(np.linalg.det(g1u),np.linalg.det(g2u))
+    assert np.isclose(np.linalg.det(g1u), np.linalg.det(g2u))
     g3u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=-0.5, exponent=0.7))
     g4u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=-0.51, exponent=0.7))
     assert np.isclose(np.linalg.det(g3u), np.linalg.det(g4u))

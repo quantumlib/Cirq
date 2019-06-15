@@ -36,11 +36,7 @@ def assert_optimizes(
         post(before)  # type: ignore #  error: "object" not callable
         post(expected)  # type: ignore #  error: "object" not callable
 
-    if cirq.has_unitary(before) and cirq.has_unitary(expected):
-        assert np.allclose(cirq.unitary(before), cirq.unitary(expected))
-    else:
-        assert before == expected, 'BEFORE {} : EXPECTED {}'.format(before,
-                                                                    expected)
+    assert np.allclose(cirq.unitary(before), cirq.unitary(expected))
 
 
 def test_leaves_singleton():
@@ -174,8 +170,7 @@ def test_rewrite():
 
 def test_merge_single_qubit_gates_into_phased_x_z():
     a, b = cirq.LineQubit.range(2)
-    assert_optimizes(
-        before=cirq.Circuit.from_ops(
+    assert_optimizes(before=cirq.Circuit.from_ops(
             cirq.X(a),
             cirq.Y(b)**0.5,
             cirq.CZ(a, b),
@@ -184,8 +179,6 @@ def test_merge_single_qubit_gates_into_phased_x_z():
         ),
         expected=cirq.Circuit.from_ops(
             cirq.X(a),
-            cirq.Y(b)**0.5,
-            cirq.CZ(a, b),
-            cirq.YPowGate(exponent=-0.5,global_shift=-1)(a)
-        ),
+            cirq.Y(b)**0.5, cirq.CZ(a, b),
+            cirq.YPowGate(exponent=-0.5,global_shift=-1)(a)),
         optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)

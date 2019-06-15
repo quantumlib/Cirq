@@ -195,10 +195,9 @@ def test_single_qubit_matrix_to_native_gates_known():
 
     actual = cirq.single_qubit_matrix_to_phased_x_z(
         np.array([[1, 1], [1, -1]]) * np.sqrt(0.5), atol=0.001)
-    assert cirq.approx_eq(actual,
-                          [cirq.YPowGate(exponent=-0.5, global_shift=-1),
-                           cirq.Z],
-                          atol=1e-9)
+    assert cirq.approx_eq(
+        actual, [cirq.YPowGate(exponent=-0.5, global_shift=-1), cirq.Z],
+        atol=1e-9)
 
 
 @pytest.mark.parametrize('intended_effect', [

@@ -52,14 +52,14 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 exponent=exponent,
                 global_shift=global_shift)
         if p == 1 and not isinstance(exponent, sympy.Symbol):
-            g = (global_shift if float(exponent).is_integer()
-                 else -1 - global_shift)
+            g = (global_shift if float(exponent).is_integer() else -1 -
+                 global_shift)
             return cirq.ops.common_gates.XPowGate(
                 exponent=-exponent,
                 global_shift=g)
         if p == -0.5 and not isinstance(exponent, sympy.Symbol):
-            g = (global_shift if float(exponent).is_integer()
-                 else -1 - global_shift)
+            g = (global_shift if float(exponent).is_integer() else -1 -
+                 global_shift)
             return cirq.ops.common_gates.YPowGate(
                 exponent=-exponent,
                 global_shift=g)
@@ -226,6 +226,3 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _value_equality_values_(self):
         return self.phase_exponent, self._canonical_exponent, self._global_shift
-
-    def exponents(self):
-        return self.phase_exponent, self._canonical_exponent

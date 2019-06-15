@@ -62,17 +62,16 @@ def test_convert_to_ion_gates():
                    cirq.ops.Rx(-1*np.pi/2).on(op.qubits[0]),
                    cirq.ops.Rx(-1*np.pi/2).on(op.qubits[1]),
                    cirq.ops.Ry(-1*np.pi/2).on(op.qubits[0])]
-    assert rcnot == [cirq.PhasedXPowGate(phase_exponent=-0.75, exponent=0.5).
-                         on(cirq.GridQubit(0, 0)),
-                     cirq.XPowGate(exponent=-0.25,
-                                   global_shift=-1).on(cirq.GridQubit(0, 1)),
-                     cirq.T.on(cirq.GridQubit(0, 0)),
-                     cirq.MS(-0.5*np.pi/2).on(cirq.GridQubit(0, 0),
-                                              cirq.GridQubit(0, 1)),
-                     (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
-                     cirq.XPowGate(exponent=-0.25,
-                                   global_shift=-1).on(cirq.GridQubit(0, 1)),
-                     (cirq.Z**-0.75).on(cirq.GridQubit(0, 0))]
+    assert rcnot == [
+        cirq.PhasedXPowGate(phase_exponent=-0.75,
+                            exponent=0.5).on(cirq.GridQubit(0, 0)),
+        cirq.XPowGate(exponent=-0.25, global_shift=-1).on(cirq.GridQubit(0, 1)),
+        cirq.T.on(cirq.GridQubit(0, 0)),
+        cirq.MS(- 0.5 * np.pi / 2).on(cirq.GridQubit(0, 0), cirq.GridQubit(0,
+                                                                           1)),
+        (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
+        cirq.XPowGate(exponent=-0.25, global_shift=-1).on(cirq.GridQubit(0, 1)),
+        (cirq.Z**-0.75).on(cirq.GridQubit(0, 0))]
 
 
 def test_convert_to_ion_circuit():
