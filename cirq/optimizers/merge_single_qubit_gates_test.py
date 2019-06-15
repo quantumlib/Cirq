@@ -177,8 +177,8 @@ def test_merge_single_qubit_gates_into_phased_x_z():
         cirq.H(a),
         cirq.Z(a),
     ),
-                    expected=cirq.Circuit.from_ops(
+                     expected=cirq.Circuit.from_ops(
                          cirq.X(a),
                          cirq.Y(b)**0.5, cirq.CZ(a, b),
                          cirq.YPowGate(exponent=-0.5, global_shift=-1)(a)),
-                    optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)
+                     optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)
