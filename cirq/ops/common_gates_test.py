@@ -703,13 +703,14 @@ def test_rz_unitary():
 
 def test_phase_by_xy():
     assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
-    assert cirq.phase_by(cirq.Y, 0.25, 0) == cirq.XPowGate(exponent=-1,
-                                                           global_shift=-1)
+    assert cirq.phase_by(cirq.Y, 0.25, 0) == cirq.X**-1
 
     assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
-    assert cirq.phase_by(cirq.Y**0.5, 0.25, 0) == cirq.X**-0.5
+    assert cirq.phase_by(cirq.Y**0.5, 0.25, 0) == cirq.XPowGate(exponent=-0.5,
+                                                                global_shift=-1)
     assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
-    assert cirq.phase_by(cirq.Y**-0.5, 0.25, 0) == cirq.X**0.5
+    assert cirq.phase_by(cirq.Y**-0.5, 0.25, 0) == cirq.XPowGate(exponent=0.5,
+                                                                global_shift=-1)
 
 
 def test_ixyz_circuit_diagram():
