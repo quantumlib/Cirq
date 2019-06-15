@@ -68,7 +68,7 @@ def test_convert_to_ion_gates():
         cirq.XPowGate(exponent=-0.25, global_shift=-1).on(cirq.GridQubit(0, 1)),
         cirq.T.on(cirq.GridQubit(0, 0)),
         cirq.MS(-0.5 * np.pi / 2).on(cirq.GridQubit(0, 0), cirq.GridQubit(0,
-                                                                           1)),
+                                                                          1)),
         (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
         cirq.XPowGate(exponent=-0.25, global_shift=-1).on(cirq.GridQubit(0, 1)),
         (cirq.Z**-0.75).on(cirq.GridQubit(0, 0))
