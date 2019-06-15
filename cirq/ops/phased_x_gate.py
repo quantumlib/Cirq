@@ -222,3 +222,6 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _value_equality_values_(self):
         return self.phase_exponent, self._canonical_exponent, self._global_shift
+
+    def exponents(self):
+        return self.phase_exponent, self._canonical_exponent

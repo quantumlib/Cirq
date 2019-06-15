@@ -94,7 +94,9 @@ def test_eq():
                           cirq.PhasedXPowGate(phase_exponent=0,
                                               exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=0),
-                          cirq.PhasedXPowGate(exponent=1, phase_exponent=1),
+                          cirq.PhasedXPowGate(exponent=1,
+                                              phase_exponent=1,
+                                              global_shift=-1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=2),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=-2),
                           cirq.X)
@@ -108,7 +110,8 @@ def test_eq():
                                               exponent=3),
                           cirq.Y,
                           cirq.PhasedXPowGate(phase_exponent=-0.5,
-                                              exponent=1))
+                                              exponent=1,
+                                              global_shift=-1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
                                               exponent=0.25),
                           cirq.Y**0.25)
@@ -231,8 +234,9 @@ def test_exponent_consistency(exponent, phase_exponent):
 
     g2 = cirq.PhasedXPowGate(exponent=g.exponent,
                              phase_exponent=g.phase_exponent)
-    assert g == g2
+
+    assert g.exponent == g2.exponent and g.phase_exponent == g2.phase_exponent
 
     u = cirq.protocols.unitary(g)
     u2 = cirq.protocols.unitary(g2)
-    assert np.all(u == u2)
+    assert cirq.allclose_up_to_global_phase(u, u2)
