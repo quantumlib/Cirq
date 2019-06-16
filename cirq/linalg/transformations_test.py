@@ -423,3 +423,20 @@ def test_keep_qubits_invalid_inputs():
     # Invalid inputs passed on to partial trace.
     with pytest.raises(ValueError, match='4'):
         cirq.keep_qubits(np.arange(16) / np.linalg.norm(np.arange(16)), [5])
+
+
+def test_keep_scratch():
+    # a = np.array([1,0,0,0,0,0,0,1])
+    # b = np.array([1, 0])
+    # state = np.kron(a,b)
+    # state = state / np.linalg.norm(state)
+    # keep = [0]
+    # print(state)
+    # print(cirq.keep_qubits(state, [0]))
+    a = np.array([1,0,0,1])/np.sqrt(2)
+    b = np.array([1,1])/np.sqrt(2)
+    state = np.kron(a,b)
+    state = state / np.linalg.norm(state)
+    keep = [0]
+    print(state)
+    print(cirq.keep_qubits(state, [0]))
