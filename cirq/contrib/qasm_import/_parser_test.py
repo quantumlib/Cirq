@@ -32,7 +32,7 @@ def test_unsupported_format():
 
     with pytest.raises(QasmException,
                        match="Unsupported OpenQASM version: 2.1, "
-                             "only 2.0 is supported currently by Cirq"):
+                       "only 2.0 is supported currently by Cirq"):
         parser.parse(qasm)
 
 
@@ -217,7 +217,7 @@ def test_cx_gate_mismatched_registers():
 
     with pytest.raises(QasmException,
                        match=r"Non matching quantum registers of "
-                             r"length \[2, 3\] at line 5"):
+                       r"length \[2, 3\] at line 5"):
         parser.parse(qasm)
 
 
