@@ -14,7 +14,7 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, Any
+from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
