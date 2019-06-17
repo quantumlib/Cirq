@@ -20,7 +20,7 @@ from typing import Dict, Iterator, List, Union
 
 import numpy as np
 
-from cirq import circuits, linalg, ops, protocols, study
+from cirq import circuits, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
 
 
@@ -315,9 +315,7 @@ class Simulator(simulator.SimulatesSamples,
         index = np.random.choice(range(len(unitaries)), p=probs)
         result = protocols.apply_unitary(objects_with_unitaries[index],
                                          args=protocols.ApplyUnitaryArgs(
-                                             data.state,
-                                             data.buffer,
-                                             indices))
+                                             data.state, data.buffer, indices))
         data.buffer = data.state
         data.state = result
 

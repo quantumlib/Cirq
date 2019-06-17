@@ -18,8 +18,8 @@ import pytest
 import cirq
 
 X = np.array([[0, 1], [1, 0]])
-Y = np.array( [[0, -1j], [1j, 0]])
-Z = np.array( [[1, 0], [0, -1]])
+Y = np.array([[0, -1j], [1j, 0]])
+Z = np.array([[1, 0], [0, -1]])
 
 
 def assert_mixtures_equal(actual, expected):
@@ -41,11 +41,8 @@ def test_asymmetric_depolarizing_channel():
 
 def test_asymmetric_depolarizing_mixture():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.4, cirq.I),
-                           (0.1, cirq.X),
-                           (0.2, cirq.Y),
-                           (0.3, cirq.Z)))
+    assert_mixtures_equal(cirq.mixture(d), ((0.4, cirq.I), (0.1, cirq.X),
+                                            (0.2, cirq.Y), (0.3, cirq.Z)))
     assert cirq.has_mixture_channel(d)
 
 
