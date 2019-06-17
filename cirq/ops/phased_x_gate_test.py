@@ -102,10 +102,13 @@ def test_eq():
                                               phase_exponent=2,
                                               global_shift=0.1))
 
-    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5, exponent=1),
-                          cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
+    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
+                                              exponent=1),
+                          cirq.PhasedXPowGate(phase_exponent=2.5,
+                                              exponent=3),
                           cirq.Y,
-                          cirq.PhasedXPowGate(phase_exponent=-0.5, exponent=1))
+                          cirq.PhasedXPowGate(phase_exponent=-0.5,
+                                              exponent=1))
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
                                               exponent=0.25),
                           cirq.Y**0.25)
@@ -153,15 +156,6 @@ def test_str_repr():
                 'exponent=4, global_shift=0.125)')
     assert repr(cirq.PhasedXPowGate(phase_exponent=0.25)
                 ) == 'cirq.PhasedXPowGate(phase_exponent=0.25)'
-
-
-def test_det_continuity():
-    g1u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=1, exponent=0.7))
-    g2u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=0.99, exponent=0.7))
-    assert np.isclose(np.linalg.det(g1u), np.linalg.det(g2u))
-    g3u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=-0.5, exponent=0.7))
-    g4u = cirq.unitary(cirq.PhasedXPowGate(phase_exponent=-0.51, exponent=0.7))
-    assert np.isclose(np.linalg.det(g3u), np.linalg.det(g4u))
 
 
 def test_parameterize():
@@ -228,9 +222,8 @@ def test_exponent_consistency(exponent, phase_exponent):
 
     g2 = cirq.PhasedXPowGate(exponent=g.exponent,
                              phase_exponent=g.phase_exponent)
-
-    assert g.exponent == g2.exponent and g.phase_exponent == g2.phase_exponent
+    assert g == g2
 
     u = cirq.protocols.unitary(g)
     u2 = cirq.protocols.unitary(g2)
-    assert cirq.allclose_up_to_global_phase(u, u2)
+    assert np.all(u == u2)

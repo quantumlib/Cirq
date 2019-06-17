@@ -29,19 +29,11 @@ def assert_optimizes(before: cirq.Circuit,
     opt.optimize_circuit(circuit)
     opt.optimize_circuit(expected)
 
-    if cirq.has_unitary(circuit):
-        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, expected, atol=1e-8)
-    else:
-        cirq.testing.assert_same_circuits(circuit, expected)
+    cirq.testing.assert_same_circuits(circuit, expected)
 
     # And it should be idempotent.
     opt.optimize_circuit(circuit)
-    if cirq.has_unitary(circuit):
-        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            circuit, expected, atol=1e-8)
-    else:
-        cirq.testing.assert_same_circuits(circuit, expected)
+    cirq.testing.assert_same_circuits(circuit, expected)
 
 
 def assert_removes_all_z_gates(circuit: cirq.Circuit):
