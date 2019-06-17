@@ -59,7 +59,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         self._p_i = 1 - value.validate_probability(p_x + p_y + p_z,
                                                    'p_x + p_y + p_z')
 
-
     def _mixture_(self) -> Sequence[Tuple[float, raw_types.Gate]]:
         return ((self._p_i, common_gates.I), (self._p_x, pauli_gates.X),
                 (self._p_y, pauli_gates.Y), (self._p_z, pauli_gates.Z))

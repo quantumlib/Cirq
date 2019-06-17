@@ -105,13 +105,11 @@ def test_depolarizing_channel():
                                     np.sqrt(0.1) * Z))
     assert cirq.has_channel(d)
 
+
 def test_depolarizing_mixture():
     d = cirq.depolarize(0.3)
-    assert_mixtures_equal(cirq.mixture(d),
-                          ((0.7, cirq.I),
-                           (0.1, cirq.X),
-                           (0.1, cirq.Y),
-                           (0.1, cirq.Z)))
+    assert_mixtures_equal(cirq.mixture(d), ((0.7, cirq.I), (0.1, cirq.X),
+                                            (0.1, cirq.Y), (0.1, cirq.Z)))
     assert cirq.has_mixture_channel(d)
 
 
