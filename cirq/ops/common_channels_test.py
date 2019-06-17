@@ -26,10 +26,7 @@ def assert_mixtures_equal(actual, expected):
     """Assert equal for tuple of mixed scalar and array types."""
     for a, e in zip(actual, expected):
         np.testing.assert_almost_equal(a[0], e[0])
-        if isinstance(e[1], np.ndarray):
-            np.testing.assert_almost_equal(a[1], e[1])
-        else:
-            assert a[1] == e[1]
+        assert a[1] == e[1]
 
 
 def test_asymmetric_depolarizing_channel():
