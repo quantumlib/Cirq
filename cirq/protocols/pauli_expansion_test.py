@@ -47,7 +47,6 @@ class HasUnitary:
     NoMethod(),
     ReturnsNotImplemented(),
     123,
-    np.eye(2),
     object(),
     cirq,
 ))

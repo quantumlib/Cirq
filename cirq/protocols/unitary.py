@@ -18,6 +18,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
+from cirq import linalg
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -97,6 +98,9 @@ def unitary(val: Any,
             returned NotImplemented) and also no default value was specified.
     """
     from cirq import Gate, Operation  # HACK: Avoids circular dependencies.
+
+    if isinstance(val, np.ndarray) and linalg.is_unitary(val):
+        return val
 
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()

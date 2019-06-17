@@ -14,12 +14,12 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable, Optional, Sequence, Tuple, Union
+from typing import Iterable, Optional, Sequence, Tuple, Union, Any
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import common_gates, pauli_gates, gate_features
+from cirq.ops import common_gates, pauli_gates, gate_features, raw_types
 
 
 @value.value_equality
@@ -59,11 +59,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         self._p_i = 1 - value.validate_probability(p_x + p_y + p_z,
                                                    'p_x + p_y + p_z')
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        return ((self._p_i, protocols.unitary(common_gates.I)),
-                (self._p_x, protocols.unitary(pauli_gates.X)),
-                (self._p_y, protocols.unitary(pauli_gates.Y)),
-                (self._p_z, protocols.unitary(pauli_gates.Z)))
+
+    def _mixture_(self) -> Sequence[Tuple[float, raw_types.Gate]]:
+        return ((self._p_i, common_gates.I),
+                (self._p_x, pauli_gates.X),
+                (self._p_y, pauli_gates.Y),
+                (self._p_z, pauli_gates.Z))
 
     def _has_mixture_(self) -> bool:
         return True
@@ -146,7 +147,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         self._p = p
         self._delegate = AsymmetricDepolarizingChannel(p / 3, p / 3, p / 3)
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+    def _mixture_(self) -> Sequence[Tuple[float, raw_types.Gate]]:
         return self._delegate._mixture_()
 
     def _has_mixture_(self) -> bool:
@@ -588,7 +589,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         self._p = value.validate_probability(p, 'p')
         self._delegate = AsymmetricDepolarizingChannel(0., 0., p)
 
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+    def _mixture_(self) -> Sequence[Tuple[float, raw_types.Gate]]:
         mixture = self._delegate._mixture_()
         # just return identity and z term
         return (mixture[0], mixture[3])

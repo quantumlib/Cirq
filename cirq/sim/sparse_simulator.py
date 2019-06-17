@@ -307,15 +307,17 @@ class Simulator(simulator.SimulatesSamples,
     def _simulate_mixture(self, op: ops.Operation, data: _StateAndBuffer,
             indices: List[int]) -> None:
         """Simulate an op that is a mixtures of unitaries."""
-        probs, unitaries = zip(*protocols.mixture(op))
+        probs, objects_with_unitaries = zip(*protocols.mixture(op))
+        unitaries = [protocols.unitary(u) for u in objects_with_unitaries]
         # We work around numpy barfing on choosing from a list of
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
         index = np.random.choice(range(len(unitaries)), p=probs)
-        shape = (2,) * (2 * len(indices))
-        unitary = unitaries[index].astype(self._dtype).reshape(shape)
-        result = linalg.targeted_left_multiply(unitary, data.state, indices,
-                                               out=data.buffer)
+        result = protocols.apply_unitary(objects_with_unitaries[index],
+                                         args=protocols.ApplyUnitaryArgs(
+                                             data.state,
+                                             data.buffer,
+                                             indices))
         data.buffer = data.state
         data.state = result
 
