@@ -49,9 +49,7 @@ def test_new_init():
     assert g._global_shift == 0.1
 
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=0), cirq.XPowGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1), cirq.XPowGate)
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=0.5), cirq.YPowGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1.5), cirq.YPowGate)
 
     x = cirq.PhasedXPowGate(phase_exponent=0,
                             exponent=0.1,
@@ -94,7 +92,6 @@ def test_eq():
                           cirq.PhasedXPowGate(phase_exponent=0,
                                               exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=0),
-                          cirq.PhasedXPowGate(exponent=1, phase_exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=2),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=-2),
                           cirq.X)
@@ -106,9 +103,7 @@ def test_eq():
                                               exponent=1),
                           cirq.PhasedXPowGate(phase_exponent=2.5,
                                               exponent=3),
-                          cirq.Y,
-                          cirq.PhasedXPowGate(phase_exponent=-0.5,
-                                              exponent=1))
+                          cirq.Y,)
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
                                               exponent=0.25),
                           cirq.Y**0.25)
