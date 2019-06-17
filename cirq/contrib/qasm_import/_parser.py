@@ -16,7 +16,7 @@ from typing import Dict, Optional, List, Any, Iterable
 from ply import yacc
 
 import cirq
-from cirq import Circuit, NamedQubit, CNOT
+from cirq import Circuit, NamedQubit, CX
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
 
@@ -71,7 +71,7 @@ class QasmGate:
             yield self.cirq_gate.on(*qubits)
 
 
-class QasmParser(object):
+class QasmParser():
 
     def __init__(self):
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
@@ -85,7 +85,7 @@ class QasmParser(object):
         self.qubits = {}  # type: Dict[str,cirq.NamedQubit]
 
     basic_gates = {
-        'CX': QasmGate(qasm_gate='CX', cirq_gate=CNOT, num_args=2)
+        'CX': QasmGate(qasm_gate='CX', cirq_gate=CX, num_args=2)
     }  # type: Dict[str, QasmGate]
 
     tokens = QasmLexer.tokens
