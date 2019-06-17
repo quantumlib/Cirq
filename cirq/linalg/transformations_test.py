@@ -425,18 +425,11 @@ def test_keep_qubits_invalid_inputs():
         cirq.keep_qubits(np.arange(16) / np.linalg.norm(np.arange(16)), [5])
 
 
-def test_keep_scratch():
-    # a = np.array([1,0,0,0,0,0,0,1])
-    # b = np.array([1, 0])
-    # state = np.kron(a,b)
-    # state = state / np.linalg.norm(state)
-    # keep = [0]
-    # print(state)
-    # print(cirq.keep_qubits(state, [0]))
+def test_keep_qubits_partial_entanglement():
+    """Test wavefunction trace."""
     a = np.array([1,0,0,1])/np.sqrt(2)
     b = np.array([1,1])/np.sqrt(2)
     state = np.kron(a,b)
     state = state / np.linalg.norm(state)
     keep = [0]
-    print(state)
-    print(cirq.keep_qubits(state, [0]))
+    traced = cirq.keep_qubits(state, [2]) # Raises ValueError.

@@ -15,6 +15,7 @@
 """Utility methods for transforming matrices."""
 
 from typing import Tuple, Optional, Sequence, List, Union
+import itertools
 
 import numpy as np
 
@@ -334,32 +335,19 @@ def keep_qubits(state: np.ndarray, keep_indices: List[int]) -> np.ndarray:
     if not dim.is_integer():
         raise ValueError("Input wavefunction has bad length of {}.".format(
             state.shape[0]))
+
     dim = int(dim)
-    # REMOVEME: 'attempt wavefunction trace' via slicing
     state = np.array(state).reshape((2,)*dim)
     all_indices = range(dim)
-    remove_indices = list(set(range(dim)) - set(keep_indices))
     keep_dim = len(keep_indices)
-    remove_dim = dim - keep_dim
-    import itertools
-    # iterate over all possible length `keep_dim` sets of indices to remove
-    # the set(s) that retain the largest magnitude is a factor candidate
+    # Iterate over all possible length-`keep_dim` sets of indices to keep.
+    # The set(s) that retain the largest magnitude is a factor candidate.
     max_mag = 0.0
-    # ordered list of all wfs computed
     wfs = []
     largest_seen_ind = []
-
-    for i, try_keep_indices in enumerate(itertools.combinations(all_indices,keep_dim)):
-        # try_keep_dim = len(try_keep_indices)
+    combinations_to_check = itertools.combinations(all_indices, keep_dim)
+    for i, try_keep_indices in enumerate(combinations_to_check):
         try_keep = np.asarray([state[predicates.slice_for_qubits_equal_to(try_keep_indices, i)].sum() for i in range(2**keep_dim)])
-        # print("keep:", try_keep_indices)
-        # print("keep state", try_keep)
-        # print("mag:", mag)
-        # # the other factor
-        # try_remove_indices = list(set(all_indices) - set(try_keep_indices))
-        # try_remove_dim = len(try_remove_indices)
-        # try_remove = np.asarray([state[predicates.slice_for_qubits_equal_to(try_remove_indices, i)].sum() for i in range(2**try_remove_dim)])
-
         mag = np.linalg.norm(try_keep)
         if approx_eq(mag, max_mag):
             largest_seen_ind.append(i)
@@ -367,41 +355,36 @@ def keep_qubits(state: np.ndarray, keep_indices: List[int]) -> np.ndarray:
             largest_seen_ind = [i]
             max_mag = mag
 
-        print("unnormalized try", try_keep)
         wfs.append(try_keep / np.linalg.norm(try_keep))
-    print("biggest mag", max_mag)
 
-    # do a dot product between this candidate and _all_ other wfs of the same size
+    # Inner product between this candidate and all other wfs of the same size.
     cum = 0.0
     for i in largest_seen_ind:
         cum = 0.0
-        # wf_i = np.array(wfs[i]) / np.linalg.norm(wfs[i]) #normalized candidate
         wf_i = wfs[i]
 
-        print("wf_i", wf_i)
         for j, wf_j in enumerate(wfs):
             if i != j:
-                print(wf_j) # un-normalized 'other'
-                print(wf_i)
                 cum += np.linalg.norm(np.dot(np.conj(wf_j).T, wf_i)) ** 2
-        print("ind", i, cum)
-    # rule out the case where _none_ of the candidates are pure factors
+        # The input trace indices gave a pure factorization
+        if cum == 1.0 and set(combinations_to_check[i]) == set(keep_indices):
+            return wf_i
 
-
-    return
-    rho = np.kron(np.conj(np.reshape(state, (state.shape[0], 1)).T),
-                  state).reshape((2, 2) * int(dim))
-    new_dim = 2**len(keep_indices)
-    keep_rho = partial_trace(rho, keep_indices).reshape((new_dim,) * 2)
-    if not any(keep_indices):
-        return keep_rho
-
-    # FIXME: reasonable tolerance for purity check?
-    if approx_eq(np.trace(keep_rho @ keep_rho), 1):
-        w, v = np.linalg.eig(keep_rho)
-        # FIXME: reasonable tolerance for lone eigenvalue check?
-        return v[:, np.isclose(w, 1)].reshape((new_dim,))
-
-    # FIXME: not sure how to deal with warnings
-    print("Removing qubits from an entangled state resulted in mixture.")
-    return keep_rho
+    raise ValueError("Wavefunction factorization returned a mixed state.")
+    # Ol
+    # rho = np.kron(np.conj(np.reshape(state, (state.shape[0], 1)).T),
+    #               state).reshape((2, 2) * int(dim))
+    # new_dim = 2**len(keep_indices)
+    # keep_rho = partial_trace(rho, keep_indices).reshape((new_dim,) * 2)
+    # if not any(keep_indices):
+    #     return keep_rho
+    #
+    # # FIXME: reasonable tolerance for purity check?
+    # if approx_eq(np.trace(keep_rho @ keep_rho), 1):
+    #     w, v = np.linalg.eig(keep_rho)
+    #     # FIXME: reasonable tolerance for lone eigenvalue check?
+    #     return v[:, np.isclose(w, 1)].reshape((new_dim,))
+    #
+    # # FIXME: not sure how to deal with warnings
+    # print("Removing qubits from an entangled state resulted in mixture.")
+    # return keep_rho
