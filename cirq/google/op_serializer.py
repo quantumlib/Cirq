@@ -45,7 +45,7 @@ class SerializingArg(
             a value of the serialized arg by supplying a lambda that
             returns this value (i.e. `lambda x: default_value`)
         required: Whether this argument is a required argument for the
-            serialized form. If this is not not
+            serialized form.
     """
 
     def __new__(cls,
@@ -77,11 +77,11 @@ class GateOpSerializer:
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
-            gate_predicate
-            gate_predict: Sometimes a gate can only be serialized for particular
-                argument values. If this is not None, then this predicate will
-                be checked before attempting to serialize the gate. If the
-                predicate is False, serialization will result in a None value.
+            gate_predicate: Sometimes a gate can only be serialized for
+                particular gate parameters. If this is not None, then
+                this predicate will be checked before attempting
+                to serialize the gate. If the predicate is False,
+                serialization will result in a None value.
             args: A list of specification of the arguments to the gate when
                 serializing, including how to get this information from the
                 gate of the given gate type.
@@ -131,7 +131,6 @@ class GateOpSerializer:
     def _value_from_gate(self, gate: ops.Gate,
                          arg: SerializingArg) -> arg_func_langs.ArgValue:
         value = None
-
         gate_getter = arg.gate_getter
 
         if isinstance(gate_getter, str):
