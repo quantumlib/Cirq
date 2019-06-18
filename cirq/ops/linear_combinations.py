@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections import defaultdict
-from typing import Mapping, Optional, Tuple, Union, List, FrozenSet
+from typing import Mapping, Optional, Tuple, Union, List, FrozenSet, DefaultDict
 
 import numpy as np
 
@@ -262,7 +262,7 @@ class PauliSum:
             -> 'PauliSum':
         if isinstance(terms, PauliString):
             terms = [terms]
-        termdict = defaultdict(lambda: 0)
+        termdict = defaultdict(lambda: 0)  # type: DefaultDict[UnitPauliStringT, value.Scalar]
         for pstring in terms:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient

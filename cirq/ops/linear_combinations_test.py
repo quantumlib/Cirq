@@ -636,8 +636,8 @@ def test_add_number_paulistring():
                                                      cirq.PauliString({}, 1.3)])
 
     psum = pstr1 - 1.3
-    assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
-                                                     cirq.PauliString({}, -1.3)])
+    assert psum == cirq.PauliSum.from_pauli_strings(
+        [pstr1, cirq.PauliString({}, -1.3)])
 
 
 def test_pauli_sum_formatting():
@@ -676,22 +676,22 @@ def test_bad_arithmetic():
         psum += 'hi mom'
 
     with pytest.raises(TypeError):
-        res = psum + 'hi mom'
+        _ = psum + 'hi mom'
 
     with pytest.raises(TypeError):
         psum -= 'hi mom'
 
     with pytest.raises(TypeError):
-        res = psum - 'hi mom'
+        _ = psum - 'hi mom'
 
     with pytest.raises(TypeError):
         psum *= [1, 2, 3]
 
     with pytest.raises(TypeError):
-        res = psum * [1, 2, 3]
+        _ = psum * [1, 2, 3]
 
     with pytest.raises(TypeError):
-        res = [1, 2, 3] * psum
+        _ = [1, 2, 3] * psum
 
     with pytest.raises(TypeError):
-        res = psum / [1, 2, 3]
+        _ = psum / [1, 2, 3]
