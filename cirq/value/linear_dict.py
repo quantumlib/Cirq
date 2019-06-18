@@ -41,9 +41,7 @@ def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
     return '({}+{}j)'.format(real_str, imag_str)
 
 
-def _format_term(format_spec: str,
-                 vector: TVector,
-                 coefficient: Scalar) -> str:
+def _format_term(format_spec: str, vector: TVector, coefficient: Scalar) -> str:
     coefficient_str = _format_coefficient(format_spec, coefficient)
     if not coefficient_str:
         return coefficient_str
@@ -53,10 +51,10 @@ def _format_term(format_spec: str,
     return '+' + result
 
 
-def _format_terms(terms: Iterable[Tuple[TVector, Scalar]],
-                  format_spec: str):
-    formatted_terms = [_format_term(format_spec, vector, coeff)
-                       for vector, coeff in terms]
+def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
+    formatted_terms = [
+        _format_term(format_spec, vector, coeff) for vector, coeff in terms
+    ]
     s = ''.join(formatted_terms)
     if not s:
         return '{:{fmt}}'.format(0, fmt=format_spec)

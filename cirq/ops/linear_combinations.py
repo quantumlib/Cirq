@@ -196,7 +196,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         def extend(expansion: value.LinearDict[str],
                    qubits: Tuple[raw_types.Qid, ...],
                    all_qubits: Tuple[raw_types.Qid, ...]
-                   ) -> value.LinearDict[str]:
+                  ) -> value.LinearDict[str]:
             """Extends Pauli expansion on qubits to expansion on all_qubits."""
             return value.LinearDict({
                 extend_term(p, qubits, all_qubits): c
@@ -262,7 +262,8 @@ class PauliSum:
             -> 'PauliSum':
         if isinstance(terms, PauliString):
             terms = [terms]
-        termdict = defaultdict(lambda: 0)  # type: DefaultDict[UnitPauliStringT, value.Scalar]
+        termdict = defaultdict(
+            lambda: 0)  # type: DefaultDict[UnitPauliStringT, value.Scalar]
         for pstring in terms:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient
