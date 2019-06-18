@@ -317,11 +317,10 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
             stepper: xmon_stepper.Stepper,
             qubit_map: Dict,
             measurements: Dict[str, np.ndarray]) -> None:
-        self.qubit_map = qubit_map or {}
-        self.measurements = measurements or collections.defaultdict(list)
+        super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._stepper = stepper
 
-    def simulator_state(self) -> sim.WaveFunctionSimulatorState:
+    def _simulator_state(self) -> sim.WaveFunctionSimulatorState:
         return sim.WaveFunctionSimulatorState(
             state_vector=self._stepper.current_state, qubit_map=self.qubit_map)
 
@@ -375,7 +374,7 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
         Note that this does not collapse the wave function.
 
         Returns:
-            Measurement results with True corresponding to the |1> state.
+            Measurement results with True corresponding to the `|1>` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits.
         """

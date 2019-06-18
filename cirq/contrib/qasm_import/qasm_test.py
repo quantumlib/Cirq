@@ -11,18 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cirq
 
-import sys
 
-
-def only_test_in_python3(func):
-    """A decorator that indicates a test should not execute in python 2.
-
-    For example, in python 2 repr('a') is "u'a'" instead of "'a'" when
-    from __future__ import unicode is present (which it will be, since 3to2
-    inserts it for us). This is annoying to work around when testing repr
-    methods, so instead you can just tag the test with this decorator.
-    """
-    if sys.version_info.major < 3:
-        return None  # coverage: ignore
-    return func
+# TODO as we grow the language, we'll add more complex examples here
+def test_consistency_with_qasm_output():
+    circuit1 = cirq.Circuit()
+    qasm1 = cirq.qasm(circuit1)
+    circuit2 = cirq.contrib.qasm_import.qasm.QasmCircuitParser().parse(qasm1)
+    cirq.testing.assert_same_circuits(circuit1, circuit2)

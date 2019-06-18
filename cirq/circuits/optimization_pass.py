@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from cirq.ops import Qid
     from typing import Dict
 
+
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
@@ -71,7 +72,7 @@ class PointOptimizationSummary:
             self.new_operations)
 
 
-class PointOptimizer():
+class PointOptimizer:
     """Makes circuit improvements focused on a specific location."""
 
     def __init__(self,

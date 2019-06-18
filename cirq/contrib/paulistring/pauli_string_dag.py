@@ -15,14 +15,12 @@
 from typing import cast
 
 from cirq import ops, circuits
-from cirq.contrib.paulistring.pauli_string_raw_types import (
-    PauliStringGateOperation)
 
 
 def pauli_string_reorder_pred(op1: ops.Operation,
                               op2: ops.Operation) -> bool:
-    ps1 = cast(PauliStringGateOperation, op1).pauli_string
-    ps2 = cast(PauliStringGateOperation, op2).pauli_string
+    ps1 = cast(ops.PauliStringGateOperation, op1).pauli_string
+    ps2 = cast(ops.PauliStringGateOperation, op2).pauli_string
     return ps1.commutes_with(ps2)
 
 

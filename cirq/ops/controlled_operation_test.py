@@ -88,7 +88,9 @@ def test_controlled_operation_eq():
     eq.make_equality_group(lambda: cirq.ControlledOperation([c1], cirq.X(q1)))
     eq.make_equality_group(lambda: cirq.ControlledOperation([c2], cirq.X(q1)))
     eq.make_equality_group(lambda: cirq.ControlledOperation([c1], cirq.Z(q1)))
-    eq.make_equality_group(lambda: cirq.ControlledOperation([c2], cirq.Z(q1)))
+    eq.add_equality_group(cirq.ControlledOperation([c2], cirq.Z(q1)))
+    eq.add_equality_group(cirq.ControlledOperation([c1, c2], cirq.Z(q1)),
+                          cirq.ControlledOperation([c2, c1], cirq.Z(q1)))
 
 
 def test_str():
@@ -147,10 +149,23 @@ def test_circuit_diagram():
     c = cirq.Circuit()
     c.append(cirq.ControlledOperation(qubits[:1], MultiH(2)(*qubits[1:])))
 
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(
+        c, """
 0: ───@──────
       │
 1: ───H(1)───
+      │
+2: ───H(2)───
+""")
+
+    c = cirq.Circuit()
+    c.append(cirq.ControlledOperation(qubits[:2], MultiH(1)(*qubits[2:])))
+
+    cirq.testing.assert_has_diagram(
+        c, """
+0: ───@──────
+      │
+1: ───@──────
       │
 2: ───H(2)───
 """)

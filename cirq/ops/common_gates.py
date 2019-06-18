@@ -36,15 +36,12 @@ from typing import Any, Callable, cast, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import sympy
 
-from cirq import linalg, protocols, value
+import cirq
+from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.phased_x_gate
-
 
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
@@ -133,9 +130,16 @@ class XPowGate(eigen_gate.EigenGate,
             phase_exponent=phase_turns * 2)
 
     def __str__(self) -> str:
-        if self._exponent == 1:
-            return 'X'
-        return 'X**{!r}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Rx(π)'
+            return 'Rx({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'X'
+            return 'X**{}'.format(self._exponent)
+        return ('XPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -229,9 +233,16 @@ class YPowGate(eigen_gate.EigenGate,
             phase_exponent=0.5 + phase_turns * 2)
 
     def __str__(self) -> str:
-        if self._exponent == 1:
-            return 'Y'
-        return 'Y**{}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Ry(π)'
+            return 'Ry({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 1:
+                return 'Y'
+            return 'Y**{}'.format(self._exponent)
+        return ('YPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -340,17 +351,24 @@ class ZPowGate(eigen_gate.EigenGate,
                                self._exponent, qubits[0])
 
     def __str__(self) -> str:
-        if self._exponent == 0.25:
-            return 'T'
-        if self._exponent == -0.25:
-            return 'T**-1'
-        if self._exponent == 0.5:
-            return 'S'
-        if self._exponent == -0.5:
-            return 'S**-1'
-        if self._exponent == 1:
-            return 'Z'
-        return 'Z**{}'.format(self._exponent)
+        if self._global_shift == -0.5:
+            if self._exponent == 1:
+                return 'Rz(π)'
+            return 'Rz({}π)'.format(self._exponent)
+        if self._global_shift == 0:
+            if self._exponent == 0.25:
+                return 'T'
+            if self._exponent == -0.25:
+                return 'T**-1'
+            if self._exponent == 0.5:
+                return 'S'
+            if self._exponent == -0.5:
+                return 'S**-1'
+            if self._exponent == 1:
+                return 'Z'
+            return 'Z**{}'.format(self._exponent)
+        return ('ZPowGate(exponent={}, '
+                'global_shift={!r})').format(self._exponent, self._global_shift)
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
@@ -425,12 +443,14 @@ class MeasurementGate(raw_types.Gate):
         return self.key
 
     def _channel_(self):
-        size = 2 ** self.num_qubits()
-        zero = np.zeros((size, size))
-        zero[0][0] = 1.0
-        one = np.zeros((size, size))
-        one[-1][-1] = 1.0
-        return (zero, one)
+        size = 2**self.num_qubits()
+
+        def delta(i):
+            result = np.zeros((size, size))
+            result[i][i] = 1
+            return result
+
+        return tuple(delta(i) for i in range(size))
 
     def _has_channel_(self):
         return True
@@ -485,8 +505,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure(*qubits: raw_types.Qid,
             key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()
-            ) -> gate_operation.GateOperation:
+            invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -522,7 +541,7 @@ def measure(*qubits: raw_types.Qid,
 
 def measure_each(*qubits: raw_types.Qid,
                  key_func: Callable[[raw_types.Qid], str] = str
-                 ) -> List[gate_operation.GateOperation]:
+                ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -722,7 +741,7 @@ class CZPowGate(eigen_gate.EigenGate,
             return NotImplemented
 
         c = 1j**(2 * self._exponent)
-        one_one = linalg.slice_for_qubits_equal_to(args.axes, 0b11)
+        one_one = args.subspace_index(0b11)
         args.target_tensor[one_one] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
@@ -889,7 +908,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         ).format(proper_repr(self._exponent), self._global_shift)
 
     def on(self, *args: raw_types.Qid,
-           **kwargs: raw_types.Qid) -> gate_operation.GateOperation:
+           **kwargs: raw_types.Qid) -> raw_types.Operation:
         if not kwargs:
             return super().on(*args)
         if not args and set(kwargs.keys()) == {'control', 'target'}:
@@ -1180,6 +1199,7 @@ CZ = CZPowGate()
 #      [0, 0, 0, 1],
 #      [0, 0, 1, 0]]
 CNOT = CNotPowGate()
+CX = CNOT
 
 
 # The swap gate.
