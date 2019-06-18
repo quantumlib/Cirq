@@ -427,9 +427,39 @@ def test_keep_qubits_invalid_inputs():
 
 def test_keep_qubits_partial_entanglement():
     """Test wavefunction trace."""
+    def _candidate_sub_wavefunction(kept_qubit_indices, wavefunction):
+        # assumes wavefunction has shape (2,2,2,2,2,...)
+        other_qubits = sorted(set(range(len(wavefunction.shape))) - set(kept_qubit_indices))
+        print("kept", kept_qubit_indices)
+        print("other", other_qubits)
+        # The candidates are remaining states when slicing out |other>.
+        candidates = [
+            wavefunction[cirq.slice_for_qubits_equal_to(other_qubits, k)]
+            for k in range(1 << len(other_qubits))
+        ]
+        print(candidates)
+        norms = [np.linalg.norm(c, 2) for c in candidates]
+        print(norms)
+
+        return max(
+            (
+                wavefunction[cirq.slice_for_qubits_equal_to(other_qubits, k)]
+                for k in range(1 << len(other_qubits))
+            ),
+            key=lambda c: np.linalg.norm(c, 2))
+
+
     a = np.array([1,0,0,1])/np.sqrt(2)
     b = np.array([1,1])/np.sqrt(2)
     state = np.kron(a,b)
     state = state / np.linalg.norm(state)
-    keep = [0]
-    traced = cirq.keep_qubits(state, [2]) # Raises ValueError.
+    # print("input state", state)
+    # traced = _candidate_sub_wavefunction([1], state.reshape(2,2,2))
+    # print(traced)
+    traced2 = cirq.keep_qubits(state.reshape(2,2,2), [2])
+    # traced2 = cirq.keep_qubits(state.reshape(2,2,2), [1])
+    # traced2 = cirq.keep_qubits(state.reshape(2,2,2), [1,2])
+    traced2 = cirq.keep_qubits(state.reshape(2,2,2), [0,1])
+
+if __name__ == "__main__":
+    test_keep_qubits_partial_entanglement()

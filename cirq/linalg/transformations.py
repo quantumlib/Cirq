@@ -309,82 +309,70 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-def keep_qubits(state: np.ndarray, keep_indices: List[int]) -> np.ndarray:
+def wavefunction_partial_trace(tensor: np.ndarray,
+                               keep_indices: List[int]) -> np.ndarray:
+    return
+
+def keep_qubits(wavefunction: np.ndarray,
+                keep_indices: List[int],
+                atol: Union[int, float] = 1e-8) -> np.ndarray:
     """Return a representation of the given state over a subset of its qubits.
 
-    A given wavefunction can be expressed over a subset of its qubits by
-    tracing out undesired qubits from the state's corresponding density matrix.
-    If the traced density matrix is rank 1 (pure state), then it can be
-    refactored into wavefunction form via eigendecomposition. Otherwise, the
-    outcome is a mixed state and cannot be expressed as a wavefunction.
+    The input wavfunction must have shape `(2,2,2,...)`.
 
-    Global phase of the input state will not necessariy be preserved in the
-    output state.
+    A given wavefunction can be efficiently expressed over a subset of its
+    qubits by comparing magnitudes of unnormalized wavefunctions that remain
+    after each possible state over the qubits to be removed is sliced out of
+    the total input wavefunction. The input state will be factorizable into
+     `keep_indices` if the sum of the absolute value of inner products between
+    the renormalized largest-magnitude candidate and all candidates ("coherence
+    measure") is 1, indicating the output state is a pure state. Global phase
+    of the input state will not necessariy be preserved in the output state.
+
+    If the provided wavefunction cannot be factored into a pure state over
+    `keep_indices`, the method will fail and raise `ValueError`.
 
     Args:
-        state: A wavefunction-like
+        wavefunction: A wavefunction to express over a qubit subset.
+        keep_indices: Which indices to express the wavefunction on.
+        atol: The minimum tolerance for comparing the output state's coherence
+            measure to 1.
 
+    Returns:
+        The wavefunction expressed over the desired subset of qubits.
+
+    Raises:
+        ValueError: if the wavefunction is not of the correct shape or the
+        indices are not a valid subset of the input wavefunction's indices, or
+        the result of factoring is not a pure state.
     """
 
-    if not np.isclose(np.linalg.norm(state), 1):
+    if not np.isclose(np.linalg.norm(wavefunction), 1):
         raise ValueError("Input state must be normalized.")
     if not len(set(keep_indices)) == len(keep_indices):
         raise ValueError(
             "keep_indices were {} but must be unique.".format(keep_indices))
-    dim = np.log2(state.shape[0])
-    if not dim.is_integer():
-        raise ValueError("Input wavefunction has bad length of {}.".format(
-            state.shape[0]))
+    n_qubits = len(wavefunction.shape)
+    if n_qubits < len(keep_indices) or \
+            any([ind >= n_qubits for ind in keep_indices]):
+        raise ValueError(
+            "keep_indices {} are not a valid subset of the input wavefunction.")
 
-    dim = int(dim)
-    state = np.array(state).reshape((2,)*dim)
-    all_indices = range(dim)
-    keep_dim = len(keep_indices)
-    # Iterate over all possible length-`keep_dim` sets of indices to keep.
-    # The set(s) that retain the largest magnitude is a factor candidate.
-    max_mag = 0.0
-    wfs = []
-    largest_seen_ind = []
-    combinations_to_check = itertools.combinations(all_indices, keep_dim)
-    for i, try_keep_indices in enumerate(combinations_to_check):
-        try_keep = np.asarray([state[predicates.slice_for_qubits_equal_to(try_keep_indices, i)].sum() for i in range(2**keep_dim)])
-        mag = np.linalg.norm(try_keep)
-        if approx_eq(mag, max_mag):
-            largest_seen_ind.append(i)
-        elif mag > max_mag:
-            largest_seen_ind = [i]
-            max_mag = mag
+    other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
+    candidates = [
+        wavefunction[predicates.slice_for_qubits_equal_to(other_qubits, k)]
+        for k in range(1 << len(other_qubits))
+    ]
+    best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
+    left = np.conj(best_candidate.reshape((1 << len(keep_indices),))).T
+    coherence_measure = sum([
+        abs(np.dot(left, c.reshape((1 << len(keep_indices),))))
+        for c in candidates
+    ])
 
-        wfs.append(try_keep / np.linalg.norm(try_keep))
+    if approx_eq(coherence_measure, 1, atol=atol):
+        return best_candidate
 
-    # Inner product between this candidate and all other wfs of the same size.
-    cum = 0.0
-    for i in largest_seen_ind:
-        cum = 0.0
-        wf_i = wfs[i]
-
-        for j, wf_j in enumerate(wfs):
-            if i != j:
-                cum += np.linalg.norm(np.dot(np.conj(wf_j).T, wf_i)) ** 2
-        # The input trace indices gave a pure factorization
-        if cum == 1.0 and set(combinations_to_check[i]) == set(keep_indices):
-            return wf_i
-
-    raise ValueError("Wavefunction factorization returned a mixed state.")
-    # Ol
-    # rho = np.kron(np.conj(np.reshape(state, (state.shape[0], 1)).T),
-    #               state).reshape((2, 2) * int(dim))
-    # new_dim = 2**len(keep_indices)
-    # keep_rho = partial_trace(rho, keep_indices).reshape((new_dim,) * 2)
-    # if not any(keep_indices):
-    #     return keep_rho
-    #
-    # # FIXME: reasonable tolerance for purity check?
-    # if approx_eq(np.trace(keep_rho @ keep_rho), 1):
-    #     w, v = np.linalg.eig(keep_rho)
-    #     # FIXME: reasonable tolerance for lone eigenvalue check?
-    #     return v[:, np.isclose(w, 1)].reshape((new_dim,))
-    #
-    # # FIXME: not sure how to deal with warnings
-    # print("Removing qubits from an entangled state resulted in mixture.")
-    # return keep_rho
+    raise ValueError(
+        "Input wavefunction could not be factored into pure state over "
+        "indices {}".format(keep_indices))
