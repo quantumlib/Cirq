@@ -150,6 +150,35 @@ def test_serialize_deserialize_schedule():
                                         cirq.google.Bristlecone) == schedule
 
 
+def test_serialize_deserialize_schedule_no_device():
+    q0 = cirq.GridQubit(1, 1)
+    q1 = cirq.GridQubit(1, 2)
+    proto = {
+        'language': {
+            'arg_function_language': '',
+            'gate_set': 'my_gate_set'
+        },
+        'schedule': {
+            'scheduled_operations': [
+                {
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
+                    'start_time_picos': '0'
+                },
+                {
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q1)),
+                    'start_time_picos': '200000',
+                },
+                {
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
+                    'start_time_picos': '400000',
+                },
+            ]
+        },
+    }
+    with pytest.raises(ValueError):
+        MY_GATE_SET.deserialize_dict(proto)
+
+
 def test_serialize_deserialize_empty_schedule():
     schedule = cirq.Schedule(device=cirq.google.Bristlecone,
                              scheduled_operations=[])

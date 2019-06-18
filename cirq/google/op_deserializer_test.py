@@ -197,3 +197,36 @@ def test_from_proto_not_required_ok():
     q = cirq.GridQubit(1, 2)
     result = deserializer.from_proto_dict(serialized)
     assert result == GateWithAttribute(0.125)(q)
+
+
+def test_from_proto_missing_required_arg():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val',
+                                             ),
+                                             cg.DeserializingArg(
+                                                 serialized_name='not_req',
+                                                 constructor_arg_name='not_req',
+                                                 required=False)
+                                         ])
+    serialized = {
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'not_req': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    q = cirq.GridQubit(1, 2)
+    with pytest.raises(ValueError):
+        deserializer.from_proto_dict(serialized)
