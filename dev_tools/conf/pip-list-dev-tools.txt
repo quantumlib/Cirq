@@ -1,10 +1,14 @@
 # For testing and analyzing code.
-mypy==0.641.*
+mypy==0.701.*
 pylint==2.3.*
 pytest==3.8.*
 pytest-cov==2.5.*
 pytest-benchmark==3.2.*
 yapf==0.27.*
+
+# For generating protobufs
+grpcio-tools==1.21.*
+mypy-protobuf==1.10
 
 # For uploading packages to pypi.
 twine
