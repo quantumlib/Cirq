@@ -227,6 +227,34 @@ def test_from_proto_missing_required_arg():
             'id': '1_2'
         }]
     }
-    q = cirq.GridQubit(1, 2)
+    with pytest.raises(ValueError):
+        deserializer.from_proto_dict(serialized)
+
+
+def test_from_proto_required_arg_not_assigned():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val',
+                                             ),
+                                             cg.DeserializingArg(
+                                                 serialized_name='not_req',
+                                                 constructor_arg_name='not_req',
+                                                 required=False)
+                                         ])
+    serialized = {
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
     with pytest.raises(ValueError):
         deserializer.from_proto_dict(serialized)
