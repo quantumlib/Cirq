@@ -237,7 +237,7 @@ def test_cx_gate_arg_overlap():
 
     with pytest.raises(QasmException,
                        match=r"Overlapping qubits in arguments"
-                             r" at line 4"):
+                       r" at line 4"):
         parser.parse(qasm)
 
 

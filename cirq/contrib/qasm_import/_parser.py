@@ -21,7 +21,7 @@ from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
 
 
-class Qasm(object):
+class Qasm:
 
     def __init__(self, supported_format: bool, qelib1_include: bool,
                  qregs: dict, cregs: dict, c: Circuit):
@@ -36,7 +36,7 @@ class Qasm(object):
         self.circuit = c
 
 
-class QasmGate:
+class QasmGateStatement:
 
     def __init__(self, qasm_gate: str, cirq_gate: cirq.Gate, num_args: int):
         self.qasm_gate = qasm_gate
@@ -72,7 +72,7 @@ class QasmGate:
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
         for i in range(reg_size):
-            qubits = [] # type: List[cirq.Qid]
+            qubits = []  # type: List[cirq.Qid]
             for qreg in args:
                 if len(qreg) == 1:  # single qubits
                     qubit = qreg[0]
@@ -85,7 +85,7 @@ class QasmGate:
             yield self.cirq_gate.on(*qubits)
 
 
-class QasmParser():
+class QasmParser:
 
     def __init__(self):
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
@@ -99,8 +99,8 @@ class QasmParser():
         self.qubits = {}  # type: Dict[str,cirq.NamedQubit]
 
     basic_gates = {
-        'CX': QasmGate(qasm_gate='CX', cirq_gate=CX, num_args=2)
-    }  # type: Dict[str, QasmGate]
+        'CX': QasmGateStatement(qasm_gate='CX', cirq_gate=CX, num_args=2)
+    }  # type: Dict[str, QasmGateStatement]
 
     tokens = QasmLexer.tokens
     start = 'start'
