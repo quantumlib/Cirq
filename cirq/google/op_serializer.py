@@ -45,7 +45,7 @@ class SerializingArg(
             a value of the serialized arg by supplying a lambda that
             returns this value (i.e. `lambda x: default_value`)
         required: Whether this argument is a required argument for the
-            serialized form.
+            serialized form. If this is not not
     """
 
     def __new__(cls,
@@ -66,13 +66,22 @@ class GateOpSerializer:
         serialized_gate_id: The id used when serializing the gate.
     """
 
-    def __init__(self, *, gate_type: Type[Gate], serialized_gate_id: str,
-                 args: List[SerializingArg]):
+    def __init__(self,
+                 *,
+                 gate_type: Type[Gate],
+                 serialized_gate_id: str,
+                 args: List[SerializingArg],
+                 gate_predicate: Callable[[ops.Gate], bool] = None):
         """Construct the serializer.
 
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
+            gate_predicate
+            gate_predict: Sometimes a gate can only be serialized for particular
+                argument values. If this is not None, then this predicate will
+                be checked before attempting to serialize the gate. If the
+                predicate is False, serialization will result in a None value.
             args: A list of specification of the arguments to the gate when
                 serializing, including how to get this information from the
                 gate of the given gate type.
@@ -80,9 +89,13 @@ class GateOpSerializer:
         self.gate_type = gate_type
         self.serialized_gate_id = serialized_gate_id
         self.args = args
+        self.gate_predicate = gate_predicate
 
-    def to_proto_dict(self, op: ops.GateOperation) -> Dict:
-        return json_format.MessageToDict(self.to_proto(op),
+    def to_proto_dict(self, op: ops.GateOperation) -> Optional[Dict]:
+        msg = self.to_proto(op)
+        if msg is None:
+            return None
+        return json_format.MessageToDict(msg,
                                          including_default_value_fields=True,
                                          preserving_proto_field_name=True,
                                          use_integers_for_enums=True)
@@ -90,7 +103,7 @@ class GateOpSerializer:
     def to_proto(self,
                  op: ops.GateOperation,
                  msg: Optional[v2.program_pb2.Operation] = None
-                ) -> v2.program_pb2.Operation:
+                ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.api.google.v2.Operation message as a proto dict."""
         if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
             raise ValueError('All qubits must be GridQubits')
@@ -100,13 +113,15 @@ class GateOpSerializer:
                 'Gate of type {} but serializer expected type {}'.format(
                     type(gate), self.gate_type))
 
+        if self.gate_predicate is not None and not self.gate_predicate(gate):
+            return None
+
         if msg is None:
             msg = v2.program_pb2.Operation()
 
         msg.gate.id = self.serialized_gate_id
         for qubit in op.qubits:
             msg.qubits.add().id = cast(devices.GridQubit, qubit).proto_id()
-
         for arg in self.args:
             value = self._value_from_gate(gate, arg)
             if value is not None:
@@ -116,6 +131,7 @@ class GateOpSerializer:
     def _value_from_gate(self, gate: ops.Gate,
                          arg: SerializingArg) -> arg_func_langs.ArgValue:
         value = None
+
         gate_getter = arg.gate_getter
 
         if isinstance(gate_getter, str):
