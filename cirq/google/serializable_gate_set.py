@@ -156,14 +156,8 @@ class SerializableGateSet:
                     'given.')
             return self._deserialize_schedule(proto.schedule, device)
         else:
-            # NOTE: this can happen when serializing an empty schedule,
-            if device is None:
-                raise ValueError(
-                    'Deserializing schedule requires a device but None was '
-                    'given.')
-            return self._deserialize_schedule(proto.schedule, device)
-            #raise ValueError(
-            #    'Program proto does not contain a circuit or schedule.')
+            raise ValueError(
+                'Program proto does not contain a circuit or schedule.')
 
     def deserialize_op_dict(self, operation_proto: Dict) -> ops.Operation:
         """Deserialize an Operation from a cirq.api.google.v2.Operation.

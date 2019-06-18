@@ -190,8 +190,8 @@ def test_serialize_deserialize_empty_schedule():
         }
     }
     assert proto == MY_GATE_SET.serialize_dict(schedule)
-    assert MY_GATE_SET.deserialize_dict(proto,
-                                        cirq.google.Bristlecone) == schedule
+    with pytest.raises(ValueError):
+        MY_GATE_SET.deserialize_dict(proto, cirq.google.Bristlecone)
 
 
 def test_serialize_deserialize_op():
