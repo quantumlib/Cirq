@@ -156,8 +156,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""
-        return (isinstance(self._exponent, sympy.Symbol) or
-                isinstance(self._phase_exponent, sympy.Symbol))
+        return (protocols.is_parameterized(self._exponent) or
+                protocols.is_parameterized(self._phase_exponent))
 
     def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""

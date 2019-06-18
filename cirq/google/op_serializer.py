@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, cast, Dict, List, NamedTuple, Type, TypeVar, Union
+from typing import (Callable, cast, Dict, List, NamedTuple, Optional, Type,
+                    TypeVar, Union)
 
 import numpy as np
 import sympy
+from google.protobuf import json_format
 
 from cirq import devices, ops
+from cirq.api.google import v2
 from cirq.google import arg_func_langs
 
 # Type for variables that are subclasses of ops.Gate.
@@ -79,32 +82,36 @@ class GateOpSerializer:
         self.args = args
 
     def to_proto_dict(self, op: ops.GateOperation) -> Dict:
+        return json_format.MessageToDict(self.to_proto(op),
+                                         including_default_value_fields=True,
+                                         preserving_proto_field_name=True,
+                                         use_integers_for_enums=True)
+
+    def to_proto(self,
+                 op: ops.GateOperation,
+                 msg: Optional[v2.program_pb2.Operation] = None
+                ) -> v2.program_pb2.Operation:
         """Returns the cirq.api.google.v2.Operation message as a proto dict."""
         if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
             raise ValueError('All qubits must be GridQubits')
-        proto_dict = {
-            'gate': {
-                'id': self.serialized_gate_id
-            },
-            'qubits': [{
-                'id': cast(devices.GridQubit, qubit).proto_id()
-            } for qubit in op.qubits]
-        }  # type: Dict
         gate = op.gate
         if not isinstance(gate, self.gate_type):
             raise ValueError(
                 'Gate of type {} but serializer expected type {}'.format(
                     type(gate), self.gate_type))
 
+        if msg is None:
+            msg = v2.program_pb2.Operation()
+
+        msg.gate.id = self.serialized_gate_id
+        for qubit in op.qubits:
+            msg.qubits.add().id = cast(devices.GridQubit, qubit).proto_id()
+
         for arg in self.args:
             value = self._value_from_gate(gate, arg)
             if value is not None:
-                arg_proto = self._arg_value_to_proto(value)
-                if 'args' not in proto_dict:
-                    proto_dict['args'] = {}
-                proto_dict['args'][arg.serialized_name] = arg_proto
-
-        return proto_dict
+                self._arg_value_to_proto(value, msg.args[arg.serialized_name])
+        return msg
 
     def _value_from_gate(self, gate: ops.Gate,
                          arg: SerializingArg) -> arg_func_langs.ArgValue:
@@ -150,16 +157,17 @@ class GateOpSerializer:
                 'Argument {} had type {} but gate returned type {}'.format(
                     arg.serialized_name, arg.serialized_type, type(value)))
 
-    def _arg_value_to_proto(self, value: arg_func_langs.ArgValue) -> Dict:
-        arg_value = lambda x: {'arg_value': x}
+    def _arg_value_to_proto(self, value: arg_func_langs.ArgValue,
+                            msg: v2.program_pb2.Arg) -> None:
         if isinstance(value, (float, int)):
-            return arg_value({'float_value': float(value)})
-        if isinstance(value, str):
-            return arg_value({'string_value': str(value)})
-        if (isinstance(value, (list, tuple, np.ndarray)) and
-                all(isinstance(x, (bool, np.bool_)) for x in value)):
-            return arg_value({'bool_values': {'values': list(value)}})
-        if isinstance(value, sympy.Symbol):
-            return {'symbol': str(value.free_symbols.pop())}
-        raise ValueError('Unsupported type of arg value: {}'.format(
-            type(value)))
+            msg.arg_value.float_value = float(value)
+        elif isinstance(value, str):
+            msg.arg_value.string_value = value
+        elif (isinstance(value, (list, tuple, np.ndarray)) and
+              all(isinstance(x, (bool, np.bool_)) for x in value)):
+            msg.arg_value.bool_values.values.extend(value)
+        elif isinstance(value, sympy.Symbol):
+            msg.symbol = str(value.free_symbols.pop())
+        else:
+            raise ValueError('Unsupported type of arg value: {}'.format(
+                type(value)))
