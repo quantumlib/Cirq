@@ -13,9 +13,7 @@
 # limitations under the License.
 
 
-from typing import (
-    Optional, Sequence, FrozenSet, Tuple, Union, TYPE_CHECKING,
-    Any)
+from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -91,22 +89,10 @@ class ParallelGateOperation(raw_types.Operation):
         """Replicates the logic the simulators use to apply the equivalent
            sequence of GateOperations
         """
-        state = args.target_tensor
-        buffer = args.available_buffer
-        for axis in args.axes:
-            result = protocols.apply_unitary(self.gate,
-                                             protocols.ApplyUnitaryArgs(
-                                                 state,
-                                                 buffer,
-                                                 (axis,)),
-                                             default=NotImplemented)
-
-            if result is buffer:
-                buffer = state
-
-            state = result
-
-        return state
+        if not protocols.has_unitary(self.gate):
+            return NotImplemented
+        return protocols.apply_unitaries((self.gate(q) for q in self.qubits),
+                                         self.qubits, args)
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.gate)
@@ -123,7 +109,7 @@ class ParallelGateOperation(raw_types.Operation):
         # unitary to each qubit. This will blow up memory fast.
         unitary = single_unitary
         for _ in range(len(self.qubits) - 1):
-            unitary = np.outer(unitary, single_unitary)
+            unitary = np.kron(unitary, single_unitary)
 
         return unitary
 
@@ -150,14 +136,6 @@ class ParallelGateOperation(raw_types.Operation):
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,
                                             exponent=diagram_info.exponent,
                                             connected=False)
-
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'ParallelGateOperation':
-        phased_gate = protocols.phase_by(self._gate, phase_turns, qubit_index,
-                                         default=None)
-        if phased_gate is None:
-            return NotImplemented
-        return self.with_gate(phased_gate)
 
     def __pow__(self, exponent: Any) -> 'ParallelGateOperation':
         """Raise gate to a power, then reapply to the same qubits.

@@ -1,6 +1,9 @@
 sudo: false
 language: python
 
+cache:
+  directories:
+    - .benchmarks
 branches:
   only:
     - master
@@ -25,6 +28,13 @@ matrix:
     script: check/pylint
 
   - os: linux
+    env: NAME=format
+    python: "3.5.2"
+    install:
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
+    script: check/format-incremental
+
+  - os: linux
     env: NAME=pytest-and-incremental-coverage
     python: "3.5.2"
     install:
@@ -39,16 +49,28 @@ matrix:
     install:
       - pip install -r requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --ignore=cirq/contrib
+    script: check/pytest --ignore=cirq/contrib --benchmark-skip
 
   - os: linux
-    env: NAME=pytest2
-    python: "2.7"
+    env: NAME=performance tests
+    python: "3.6"
     install:
-      - pip install -r dev_tools/python2.7-requirements.txt
-      - pip install -r dev_tools/conf/pip-list-python2.7-test-tools.txt
+      - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
-      - curl -OL https://github.com/google/protobuf/releases/download/v3.5.1/protoc-3.5.1-linux-x86_64.zip
-      - unzip protoc-3.5.1-linux-x86_64.zip -d protoc3.5
-      - PATH=$(pwd)/protoc3.5/bin:${PATH}
-    script: check/pytest2
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/performance
+     
+  - os: windows
+    env: NAME=pytest (Windows)
+    language: sh
+    python: "3.7.3"
+    before_install:
+    - choco install python --version 3.7.3
+    - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+    - python -m pip install --upgrade pip wheel
+    install:
+    - python -m pip install -r requirements.txt
+    - python -m pip install -r cirq/contrib/contrib-requirements.txt
+    - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --benchmark-skip
+    

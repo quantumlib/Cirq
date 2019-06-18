@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import Iterator
 import pytest
 
 import cirq
@@ -32,6 +33,40 @@ def test_single_qubit_gate_validate_args():
         g.validate_args([])
     with pytest.raises(ValueError):
         g.validate_args([q1, q2])
+
+
+def test_single_qubit_gate_validates_on_each():
+    class Dummy(cirq.SingleQubitGate):
+        def matrix(self):
+            pass
+    g = Dummy()
+    assert g.num_qubits() == 1
+
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
+
+    _ = g.on_each(*test_qubits)
+    _ = g.on_each(test_qubits)
+
+    test_non_qubits = [str(i) for i in range(3)]
+    with pytest.raises(ValueError):
+        _ = g.on_each(*test_non_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on_each(test_non_qubits)
+
+
+def test_single_qubit_validates_on():
+    class Dummy(cirq.SingleQubitGate):
+        def matrix(self):
+            pass
+    g = Dummy()
+    assert g.num_qubits() == 1
+
+    test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
+
+    with pytest.raises(ValueError):
+        _ = g.on(*test_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on(test_qubits)
 
 
 def test_two_qubit_gate_is_abstract_can_implement():
@@ -110,11 +145,26 @@ def test_on_each():
     assert c.on_each(a, b) == [c(a), c(b)]
     assert c.on_each(b, a) == [c(b), c(a)]
 
-    with pytest.raises(ValueError):
-        c.on_each([])
+    assert c.on_each([]) == []
+    assert c.on_each([a]) == [c(a)]
+    assert c.on_each([a, b]) == [c(a), c(b)]
+    assert c.on_each([b, a]) == [c(b), c(a)]
+    assert c.on_each([a, [b, a], b]) == [c(a), c(b), c(a), c(b)]
 
     with pytest.raises(ValueError):
-        c.on_each([a])
+        c.on_each('abcd')
+    with pytest.raises(ValueError):
+        c.on_each(['abcd'])
+    with pytest.raises(ValueError):
+        c.on_each([a, 'abcd'])
+
+    def iterator(qubits):
+        for i in range(len(qubits)):
+            yield qubits[i]
+
+    qubit_iterator = iterator([a, b, a, b])
+    assert isinstance(qubit_iterator, Iterator)
+    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
 
 
 def test_qasm_output_args_validate():
@@ -152,10 +202,13 @@ def test_qasm_output_args_format():
 
 
 def test_multi_qubit_gate_validate():
-    class Dummy(cirq.MultiQubitGate):
+    class Dummy(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return self._num_qubits
 
         def __init__(self, num_qubits):
-            super().__init__(num_qubits)
+            self._num_qubits = num_qubits
 
     a, b, c, d = cirq.LineQubit.range(4)
 

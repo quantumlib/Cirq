@@ -18,6 +18,8 @@ from typing import Any
 
 from typing_extensions import Protocol
 
+from cirq.protocols import has_channel
+
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
@@ -31,9 +33,9 @@ class SupportsMeasurementKey(Protocol):
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
     That is a general quantum channel may enact the evolution
-        \rho -> \sum_k A_k \rho A_k^\dagger
+        \rho \rightarrow \sum_k A_k \rho A_k^\dagger
     where as a measurement enacts the evolution
-        \rho -> A_k \rho A_k^\dagger
+        \rho \rightarrow A_k \rho A_k^\dagger
     conditional on the measurement outcome being k.
     """
 
@@ -82,3 +84,12 @@ def measurement_key(
 
     raise TypeError("object of type '{}' does have a _measurement_key_ method, "
                     "but it returned NotImplemented.".format(type(val)))
+
+
+def is_measurement(val: Any) -> bool:
+    """Returns whether or not the given value is a measurement.
+
+    A measurement must implement the `measurement_key` protocol and have a
+    channel, as represented by the `has_channel` protocol returning true.
+    """
+    return measurement_key(val, None) is not None and has_channel(val)

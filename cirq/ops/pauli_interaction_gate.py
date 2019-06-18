@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple, Union, cast, Dict
 
 import numpy as np
 import sympy
@@ -24,14 +24,14 @@ from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
 
-pauli_eigen_map = {
-    pauli_gates.X: (np.array([[0.5,  0.5], [0.5,   0.5]]),
-                    np.array([[0.5, -0.5], [-0.5,  0.5]])),
-    pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j,  0.5]]),
-                    np.array([[0.5,  0.5j], [-0.5j, 0.5]])),
-    pauli_gates.Z: (np.diag([1, 0]),
-                    np.diag([0, 1])),
-}
+pauli_eigen_map = cast(
+    Dict[pauli_gates.Pauli, np.ndarray], {
+        pauli_gates.X: (np.array([[0.5, 0.5], [0.5, 0.5]
+                                 ]), np.array([[0.5, -0.5], [-0.5, 0.5]])),
+        pauli_gates.Y: (np.array([[0.5, -0.5j], [0.5j, 0.5]
+                                 ]), np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
+        pauli_gates.Z: (np.diag([1, 0]), np.diag([0, 1])),
+    })
 
 
 @value.value_equality
@@ -106,7 +106,11 @@ class PauliInteractionGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
-        labels = {pauli_gates.X: 'X', pauli_gates.Y: 'Y', pauli_gates.Z: '@'}
+        labels = cast(Dict[pauli_gates.Pauli, np.ndarray], {
+            pauli_gates.X: 'X',
+            pauli_gates.Y: 'Y',
+            pauli_gates.Z: '@'
+        })
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted

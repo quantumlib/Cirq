@@ -105,8 +105,8 @@ SCHEDULERS = [None, cirq.moment_by_moment_schedule]
 def test_run_no_results(scheduler, use_processes):
     options = cg.XmonOptions(use_processes=use_processes)
     simulator = cg.XmonSimulator(options)
-    result = run(simulator, basic_circuit(), scheduler)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        run(simulator, basic_circuit(), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -128,8 +128,8 @@ def test_run(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_empty_circuit(scheduler):
     simulator = cg.XmonSimulator()
-    result = run(simulator, cirq.Circuit(device=test_device), scheduler)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        run(simulator, cirq.Circuit(device=test_device), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -372,6 +372,8 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
+@pytest.mark.skipif(not hasattr(np, 'float128'),
+                    reason="system doesn't have np.float128")
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()
@@ -592,6 +594,7 @@ def test_param_resolver_param_dict():
         phase_exponent=0.0)
     circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_w(Q1))
+    circuit.append([cirq.measure(Q1, key='meas')])
     resolver = cirq.ParamResolver({'a': 0.5})
 
     simulator = cg.XmonSimulator()
@@ -655,6 +658,7 @@ def test_unsupported_gate_defense_in_depth(scheduler):
     circuit = cirq.Circuit()
     gate = UnsupportedGate()
     circuit.append([gate(Q2)])
+    circuit.append([cirq.measure(Q2, key='meas')])
 
     # Pretend there's a place where we forgot to validate.
     circuit._device = test_device
@@ -664,7 +668,8 @@ def test_unsupported_gate_defense_in_depth(scheduler):
         _ = run(simulator, circuit, scheduler)
 
     with pytest.raises(ValueError, match="using an XmonDevice"):
-        _ = run(simulator, cirq.Circuit(), scheduler)
+        _ = run(simulator, cirq.Circuit.from_ops(cirq.measure(Q2, key='meas')),
+                scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -1010,7 +1015,7 @@ def test_simulator_simulate_trial_result_str():
         device=test_device,
     )
     result = cirq.google.XmonSimulator().simulate(circuit)
-    assert str(result) == "a=1 b=1 c=0"
+    assert str(result) == "measurements: a=1 b=1 c=0\noutput vector: -1|110⟩"
 
 
 def test_simulator_implied_measurement_key():

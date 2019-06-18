@@ -16,7 +16,7 @@
 
 from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
 
-from cirq import protocols
+from cirq.protocols import approx_eq
 from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
@@ -118,7 +118,7 @@ class Moment:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
-        return protocols.approx_eq(self.operations, other.operations, atol=atol)
+        return approx_eq(self.operations, other.operations, atol=atol)
 
     def __ne__(self, other):
         return not self == other

@@ -17,30 +17,39 @@ import pytest
 import cirq
 
 
-def test_gate_calls_validate():
-    class ValiGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
+class ValiGate(cirq.Gate):
+    def num_qubits(self):
+        return 2
 
-        def validate_args(self, qubits):
-            if len(qubits) == 3:
-                raise ValueError()
+    def validate_args(self, qubits):
+        if len(qubits) == 3:
+            raise ValueError()
+
+
+def test_gate():
+    a, b, c = cirq.LineQubit.range(3)
 
     g = ValiGate()
     assert g.num_qubits() == 2
 
-    q00 = cirq.NamedQubit('q00')
-    q01 = cirq.NamedQubit('q01')
-    q10 = cirq.NamedQubit('q10')
-
-    _ = g.on(q00, q10)
+    _ = g.on(a, c)
     with pytest.raises(ValueError):
-        _ = g.on(q00, q10, q01)
+        _ = g.on(a, c, b)
 
-    _ = g(q00)
-    _ = g(q00, q10)
+    _ = g(a)
+    _ = g(a, c)
     with pytest.raises(ValueError):
-        _ = g(q10, q01, q00)
+        _ = g(c, b, a)
+
+
+def test_op():
+    a, b, c = cirq.LineQubit.range(3)
+    g = ValiGate()
+    op = g(a)
+    assert op.controlled_by() is op
+    controlled_op = op.controlled_by(b, c)
+    assert controlled_op.sub_operation == op
+    assert controlled_op.controls == (b, c)
 
 
 def test_default_validation_and_inverse():

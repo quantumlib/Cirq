@@ -86,28 +86,29 @@ def unitary(val: Any,
 
     Returns:
         If `val` has a _unitary_ method and its result is not NotImplemented,
-        that result is returned. Otherwise, if `val` is a cirq.Operation, a
-        decomposition will be attempted and the resulting unitary will be
-        returned if unitaries exist for all operations of the decompostion.
-        If the result is still NotImplemented and a default value was specified,
-        the default value is returned.
+        that result is returned. Otherwise, if `val` is a cirq.Gate or
+        cirq.Operation, decomposition will be attempted and the resulting
+        unitary is returned if unitaries exist for all operations of the
+        decompostion. If the result is still NotImplemented and a default value
+        was specified, the default value is returned.
 
     Raises:
         TypeError: `val` doesn't have a _unitary_ method (or that method
             returned NotImplemented) and also no default value was specified.
     """
-    from cirq import Operation  # HACK: Avoids circular dependencies.
+    from cirq import Gate, Operation  # HACK: Avoids circular dependencies.
+
     getter = getattr(val, '_unitary_', None)
     result = NotImplemented if getter is None else getter()
-
-    # Fallback to decomposition for operations
-    if result is NotImplemented and isinstance(val, Operation):
-        decomposed_unitary = _decompose_and_get_unitary(val)
-        if decomposed_unitary is not None:
-            result = decomposed_unitary
-
     if result is not NotImplemented:
         return result
+
+    # Fallback to decomposition for gates and operations
+    if isinstance(val, (Gate, Operation)):
+        decomposed_unitary = _decompose_and_get_unitary(val)
+        if decomposed_unitary is not None:
+            return decomposed_unitary
+
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
@@ -124,47 +125,75 @@ def has_unitary(val: Any) -> bool:
     Returns:
         If `val` has a _has_unitary_ method and its result is not
         NotImplemented, that result is returned. Otherwise, if `val` is a
-        cirq.Operation, a decomposition will be attempted and the resulting
-        unitary will be returned if unitaries exist for all operations of the
-        decompostion. Otherwise, if the value has a _unitary_ method return if
-        that has a non-default value. Returns False if neither function exists.
+        cirq.Gate or cirq.Operation, a decomposition is attempted and the
+        resulting unitary is returned if has_unitary is True for all operations
+        of the decompostion. Otherwise, if the value has a _unitary_ method
+        return if that has a non-default value. Returns False if neither
+        function exists.
     """
-    from cirq.protocols.decompose import decompose_once
-    from cirq import Operation  # HACK: Avoids circular dependencies.
+    from cirq.protocols.decompose import (decompose_once,
+                                          decompose_once_with_qubits)
+    # HACK: Avoids circular dependencies.
+    from cirq import Gate, Operation, LineQubit
+
     getter = getattr(val, '_has_unitary_', None)
     result = NotImplemented if getter is None else getter()
-
-    # Fallback to decomposition for operations
-    if result is NotImplemented and isinstance(val, Operation):
-        decomposed_val = decompose_once(val, None)
-        if decomposed_val is not None:
-            result = all(has_unitary(v) for v in decomposed_val)
-
     if result is not NotImplemented:
         return result
 
-    # No _has_unitary_ function, use _unitary_ instead
+    # Fallback to explicit _unitary_
+    unitary_getter = getattr(val, '_unitary_', None)
+    if unitary_getter is not None and unitary_getter() is not NotImplemented:
+        return True
+
+    # Fallback to decomposition for gates and operations
+    if isinstance(val, Gate):
+        # Since gates don't know about qubits, we need to create some
+        decomposed_val = decompose_once_with_qubits(val,
+            LineQubit.range(val.num_qubits()),
+            default=None)
+        if decomposed_val is not None:
+            return all(has_unitary(v) for v in decomposed_val)
+    elif isinstance(val, Operation):
+        decomposed_val = decompose_once(val, default=None)
+        if decomposed_val is not None:
+            return all(has_unitary(v) for v in decomposed_val)
+
+    # Finally, fallback to full unitary method, including decomposition
     return unitary(val, None) is not None
 
 
-def _decompose_and_get_unitary(val: 'cirq.Operation') -> np.ndarray:
-    """Try to decompose an `Operation` and return its unitary.
+def _decompose_and_get_unitary(val: Union['cirq.Operation', 'cirq.Gate']
+                               ) -> np.ndarray:
+    """Try to decompose a cirq.Operation or cirq.Gate, and return its unitary
+    if it exists.
 
     Returns:
         If `val` can be decomposed into unitaries, calculate the resulting
         unitary and return it. If it doesn't exist, None is returned.
     """
     from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
-    from cirq.protocols.decompose import decompose_once
+    from cirq.protocols.decompose import (decompose_once,
+                                          decompose_once_with_qubits)
+    from cirq import Gate, LineQubit, Operation
 
-    decomposed_val = decompose_once(val, None)
+    if isinstance(val, Operation):
+        qubits = val.qubits
+        decomposed_val = decompose_once(val, default=None)
+    elif isinstance(val, Gate):
+        # Since gates don't know about qubits, we need to create some
+        qubits = tuple(LineQubit.range(val.num_qubits()))
+        decomposed_val = decompose_once_with_qubits(val,
+                                                    qubits,
+                                                    default=None)
+
     if decomposed_val is not None:
         # Calculate the resulting unitary (if it exists)
-        n = len(val.qubits)
+        n = len(qubits)
         state = np.eye(1 << n, dtype=np.complex128)
         state.shape = (2,) * (2 * n)
         buffer = np.zeros(state.shape, dtype=np.complex128)
-        qubit_map = {q: i for i, q in enumerate(val.qubits)}
+        qubit_map = {q: i for i, q in enumerate(qubits)}
         result = state
         for op in decomposed_val:
             indices = [qubit_map[q] for q in op.qubits]

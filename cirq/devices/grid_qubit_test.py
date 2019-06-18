@@ -32,6 +32,53 @@ def test_xmon_qubit_eq():
     eq.make_equality_group(lambda: cirq.GridQubit(50, 25))
 
 
+def test_square():
+    assert cirq.GridQubit.square(2, top=1, left=1) == [
+        cirq.GridQubit(1, 1),
+        cirq.GridQubit(1, 2),
+        cirq.GridQubit(2, 1),
+        cirq.GridQubit(2, 2)
+    ]
+    assert cirq.GridQubit.square(2) == [
+        cirq.GridQubit(0, 0),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0),
+        cirq.GridQubit(1, 1)
+    ]
+
+
+def test_rec():
+    assert cirq.GridQubit.rect(
+        1, 2, top=5, left=6) == [cirq.GridQubit(5, 6),
+                                 cirq.GridQubit(5, 7)]
+    assert cirq.GridQubit.rect(2, 2) == [
+        cirq.GridQubit(0, 0),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0),
+        cirq.GridQubit(1, 1)
+    ]
+
+
+def test_diagram():
+    s = """
+-----AB-----
+----ABCD----
+---ABCDEF---
+--ABCDEFGH--
+-ABCDEFGHIJ-
+ABCDEFGHIJKL
+-CDEFGHIJKL-
+--EFGHIJKL--
+---GHIJKL---
+----IJKL----
+-----KL-----
+"""
+    assert (cirq.GridQubit.from_diagram(s) ==
+            cirq.google.known_devices._parse_device(s)[0])
+    with pytest.raises(ValueError, match="Input string has invalid character"):
+        cirq.GridQubit.from_diagram('@')
+
+
 def test_xmon_qubit_ordering():
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(0, 1)
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(1, 0)

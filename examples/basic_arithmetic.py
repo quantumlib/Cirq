@@ -89,7 +89,7 @@ Execute Multiplier
 import cirq
 
 
-class Adder(cirq.MultiQubitGate):
+class Adder(cirq.Gate):
     """ A quantum circuit to calculate a + b
 
             -----------@---             ---@------------
@@ -123,7 +123,11 @@ class Adder(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super(Adder, self).__init__(num_qubits)
+        super(Adder, self)
+        self._num_qubits = num_qubits
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def carry(self, *qubits):
         c0, a, b, c1 = qubits
@@ -155,7 +159,7 @@ class Adder(cirq.MultiQubitGate):
             yield self.carry_sum(c[i], a[i], b[i])
 
 
-class Multiplier(cirq.MultiQubitGate):
+class Multiplier(cirq.Gate):
     """ A quantum circuit to calculate y * x
 
                        -                         -                 -
@@ -191,7 +195,11 @@ class Multiplier(cirq.MultiQubitGate):
     """
 
     def __init__(self, num_qubits):
-        super(Multiplier, self).__init__(num_qubits)
+        super(Multiplier, self)
+        self._num_qubits = num_qubits
+
+    def num_qubits(self):
+        return self._num_qubits
 
     def _decompose_(self, qubits):
         n = int(len(qubits)/5)
