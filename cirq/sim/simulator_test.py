@@ -261,3 +261,14 @@ def test_pretty_print():
     p = FakePrinter()
     result._repr_pretty_(p, True)
     assert p.text_pretty == 'SimulationTrialResult(...)'
+
+
+def test_simulation_trial_result_qubit_map():
+    q = cirq.LineQubit.range(2)
+    result = cirq.Simulator().simulate(
+        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    assert result.qubit_map == {q[0]: 0, q[1]: 1}
+
+    result = cirq.DensityMatrixSimulator().simulate(
+        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    assert result.qubit_map == {q[0]: 0, q[1]: 1}
