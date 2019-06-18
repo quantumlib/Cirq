@@ -7,8 +7,8 @@ pytest-benchmark==3.2.*
 yapf==0.27.*
 
 # For generating protobufs
-grpcio-tools == 1.21.*
-mypy-protobuf == 1.10
+grpcio-tools==1.21.*
+mypy-protobuf==1.10
 
 # For uploading packages to pypi.
 twine
