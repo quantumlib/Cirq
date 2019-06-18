@@ -317,8 +317,7 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
             stepper: xmon_stepper.Stepper,
             qubit_map: Dict,
             measurements: Dict[str, np.ndarray]) -> None:
-        self.qubit_map = qubit_map or {}
-        self.measurements = measurements or collections.defaultdict(list)
+        super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._stepper = stepper
 
     def _simulator_state(self) -> sim.WaveFunctionSimulatorState:
