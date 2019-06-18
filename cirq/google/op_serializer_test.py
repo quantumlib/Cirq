@@ -263,7 +263,7 @@ def test_to_proto_not_required_ok():
         'args': {
             'my_val': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             }
         },
@@ -273,13 +273,17 @@ def test_to_proto_not_required_ok():
     }
 
     q = cirq.GridQubit(1, 2)
-    assert serializer.to_proto_dict(GateWithProperty(0.1)(q)) == expected
+    assert serializer.to_proto_dict(GateWithProperty(0.125)(q)) == expected
 
 
-@pytest.mark.parametrize(
-    ('val_type', 'val'),
-    ((float, 's'), (str, 1.0), (sympy.Symbol, 1.0), (List[bool], [1.0]),
-     (List[bool], 'a'), (List[bool], (1.0,))))
+@pytest.mark.parametrize(('val_type', 'val'), (
+    (float, 's'),
+    (str, 1.0),
+    (sympy.Symbol, 1.0),
+    (List[bool], [1.0]),
+    (List[bool], 'a'),
+    (List[bool], (1.0,)),
+))
 def test_to_proto_type_mismatch(val_type, val):
     serializer = cg.GateOpSerializer(gate_type=GateWithProperty,
                                      serialized_gate_id='my_gate',
