@@ -309,8 +309,41 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-def wavefunction_partial_trace(tensor: np.ndarray,
+def wavefunction_partial_trace(wavefunction: np.ndarray,
                                keep_indices: List[int]) -> np.ndarray:
+    """Takes the partial trace of a wavefunction's density matrix.
+
+
+    """
+
+    n_qubits = len(wavefunction.shape)
+
+    # Attempt to do efficient state factoring
+    try:
+        state = keep_qubits(wavefunction, keep_indices).reshape(1 << len(keep_indices), 1)
+        # TODO: make sure shape is right here.
+        return np.kron(np.conj(state.T), state)
+    except ValueError:
+        pass
+
+
+    rho = np.kron(np.conj(state.reshape(state.shape[0], 1)).T,
+                  state).reshape((2, 2) * n_qubits)
+    new_dim = 2**len(keep_indices)
+    keep_rho = partial_trace(rho, keep_indices).reshape((new_dim,) * 2)
+    if not any(keep_indices):
+        return keep_rho
+
+    # FIXME: reasonable tolerance for purity check?
+    if approx_eq(np.trace(keep_rho @ keep_rho), 1):
+        w, v = np.linalg.eig(keep_rho)
+        # FIXME: reasonable tolerance for lone eigenvalue check?
+        return v[:, np.isclose(w, 1)].reshape((new_dim,))
+
+    # FIXME: not sure how to deal with warnings
+    print("Removing qubits from an entangled state resulted in mixture.")
+    return keep_rho
+
     return
 
 def keep_qubits(wavefunction: np.ndarray,
