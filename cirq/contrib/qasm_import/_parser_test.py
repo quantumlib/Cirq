@@ -5,7 +5,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from unittest import mock
 
 import pytest
 
@@ -80,8 +79,7 @@ def test_comments():
 
 
 def test_multiple_qreg_declaration():
-    qasm = """
-     OPENQASM 2.0; 
+    qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      qreg a_quantum_register [ 1337 ];
      qreg q[42];
@@ -114,10 +112,9 @@ def test_already_defined_error(qasm: str):
 
 
 def test_unexpected_end_of_file():
-    qasm = """
-                OPENQASM 2.0;
-                include "qelib1.inc";
-                creg
+    qasm = """OPENQASM 2.0;
+              include "qelib1.inc";
+              creg
            """
     parser = QasmParser()
 
@@ -126,8 +123,7 @@ def test_unexpected_end_of_file():
 
 
 def test_multiple_creg_declaration():
-    qasm = """
-     OPENQASM 2.0; 
+    qasm = """OPENQASM 2.0;
      include "qelib1.inc";
      creg a_classical_register [1337];
      qreg a_quantum_register [1337];
@@ -145,8 +141,7 @@ def test_multiple_creg_declaration():
 
 
 def test_syntax_error():
-    qasm = """
-         OPENQASM 2.0;                   
+    qasm = """OPENQASM 2.0;
          qreg q[2] bla;
          foobar q[0];
     """
@@ -157,8 +152,7 @@ def test_syntax_error():
 
 
 def test_CX_gate():
-    qasm = """
-     OPENQASM 2.0;          
+    qasm = """OPENQASM 2.0;
      qreg q1[2];
      qreg q2[2];
      CX q1[0], q1[1];
@@ -192,8 +186,7 @@ def test_CX_gate():
 
 
 def test_CX_gate_not_enough_args():
-    qasm = """
-     OPENQASM 2.0;          
+    qasm = """OPENQASM 2.0;
      qreg q[2];
      CX q[0];
 """
@@ -202,13 +195,12 @@ def test_CX_gate_not_enough_args():
     with pytest.raises(QasmException,
                        match=(r"CX only takes 2 arg\(s\) "
                               r"\(qubits and/or registers\)"
-                              r", got: 1, at line 4")):
+                              r", got: 1, at line 3")):
         parser.parse(qasm)
 
 
 def test_cx_gate_mismatched_registers():
-    qasm = """
-     OPENQASM 2.0;
+    qasm = """OPENQASM 2.0;
      qreg q1[2];
      qreg q2[3];
      CX q1, q2;
@@ -217,26 +209,52 @@ def test_cx_gate_mismatched_registers():
 
     with pytest.raises(QasmException,
                        match=r"Non matching quantum registers of "
-                       r"length \[2, 3\] at line 5"):
+                       r"length \[2, 3\] at line 4"):
+        parser.parse(qasm)
+
+
+def test_cx_gate_bounds():
+    qasm = """OPENQASM 2.0;
+     qreg q1[2];
+     qreg q2[3];
+     CX q1[4], q2[0];
+"""
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"Out of bounds qubit index 4"
+                       r" on register q1 of size 2 at line 4"):
+        parser.parse(qasm)
+
+
+def test_cx_gate_arg_overlap():
+    qasm = """OPENQASM 2.0;
+     qreg q1[2];
+     qreg q2[3];
+     CX q1[1], q1[1];
+"""
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"Overlapping qubits in arguments"
+                             r" at line 4"):
         parser.parse(qasm)
 
 
 def test_unknown_basic_gate():
-    qasm = """
-         OPENQASM 2.0;          
+    qasm = """OPENQASM 2.0;
          qreg q[2];
          foobar q[0];
     """
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"""Unknown gate "foobar".* line 4.*forgot.*\?"""):
+                       match=r"""Unknown gate "foobar".* line 3.*forgot.*\?"""):
         parser.parse(qasm)
 
 
 def test_undefined_register_from_qubit_arg():
-    qasm = """
-            OPENQASM 2.0;                   
+    qasm = """OPENQASM 2.0;
             qreg q[2];
             CX q[0], q2[1];
        """
@@ -247,8 +265,7 @@ def test_undefined_register_from_qubit_arg():
 
 
 def test_undefined_register_from_register_arg():
-    qasm = """
-            OPENQASM 2.0;                   
+    qasm = """OPENQASM 2.0;
             qreg q[2];
             qreg q2[2];
             CX q1, q2;

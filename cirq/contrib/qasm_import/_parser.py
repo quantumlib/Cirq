@@ -43,7 +43,7 @@ class QasmGate:
         self.cirq_gate = cirq_gate
         self.num_args = num_args
 
-    def validate_args(self, args, lineno):
+    def validate_args(self, args: List[List[cirq.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
                 "{} only takes {} arg(s) (qubits and/or registers), "
@@ -51,7 +51,7 @@ class QasmGate:
                                              len(args), lineno))
 
     def on(self, args: List[List[cirq.Qid]],
-           lineno: int = 0) -> Iterable[cirq.Operation]:
+           lineno: int) -> Iterable[cirq.Operation]:
         self.validate_args(args, lineno)
         reg_size = 1
         for reg in args:
@@ -63,11 +63,25 @@ class QasmGate:
                         "Non matching quantum registers of length {} "
                         "at line {}".format([len(reg) for reg in args], lineno))
 
+        # OpenQASM gates can be applied on single qubits and qubit registers.
+        # We represent single qubits as registers of size 1.
+        # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
+        # single qubit arguments can be mixed with qubit registers.
+        # Given quantum registers of length reg_size and single qubits are both
+        # used as arguments, we generate reg_size GateOperations via iterating
+        # through each qubit of the registers 0 to n-1 and use the same one
+        # qubit from the "single-qubit registers" for each operation.
         for i in range(reg_size):
-            # because of mixed quantum register/qubit support there can
-            # be single qubit registers and longer qubit registers
-            # for single qubit registers qreg[0], for longer ones qreg[i]
-            qubits = [qreg[min(len(qreg) - 1, i)] for qreg in args]
+            qubits = [] # type: List[cirq.Qid]
+            for qreg in args:
+                if len(qreg) == 1:  # single qubits
+                    qubit = qreg[0]
+                else:  # reg_size size register
+                    qubit = qreg[i]
+                if qubit in qubits:
+                    raise QasmException("Overlapping qubits in arguments"
+                                        " at line {}".format(lineno))
+                qubits.append(qubit)
             yield self.cirq_gate.on(*qubits)
 
 
@@ -213,6 +227,12 @@ class QasmParser():
         num = p[3]
         arg_name = self.make_name(num, reg)
         if reg in self.qregs.keys():
+            size = self.qregs[reg]
+            if num > size - 1:
+                raise QasmException('Out of bounds qubit index {} '
+                                    'on register {} of size {} '
+                                    'at line {}'.format(num, reg, size,
+                                                        p.lineno(1)))
             if arg_name not in self.qubits.keys():
                 self.qubits[arg_name] = NamedQubit(arg_name)
             p[0] = [self.qubits[arg_name]]
