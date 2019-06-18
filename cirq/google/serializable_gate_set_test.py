@@ -50,6 +50,7 @@ def test_serialize_deserialize_circuit():
 
     proto = {
         'language': {
+            'arg_function_language': '',
             'gate_set': 'my_gate_set'
         },
         'circuit': {
@@ -68,8 +69,8 @@ def test_serialize_deserialize_circuit():
             ]
         },
     }
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert proto == MY_GATE_SET.serialize_dict(circuit)
+    assert MY_GATE_SET.deserialize_dict(proto) == circuit
 
 
 def test_serialize_deserialize_empty_circuit():
@@ -77,6 +78,7 @@ def test_serialize_deserialize_empty_circuit():
 
     proto = {
         'language': {
+            'arg_function_language': '',
             'gate_set': 'my_gate_set'
         },
         'circuit': {
@@ -84,8 +86,8 @@ def test_serialize_deserialize_empty_circuit():
             'moments': []
         },
     }
-    assert proto == MY_GATE_SET.serialize(circuit)
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert proto == MY_GATE_SET.serialize_dict(circuit)
+    assert MY_GATE_SET.deserialize_dict(proto) == circuit
 
 
 def test_deserialize_empty_moment():
@@ -93,6 +95,7 @@ def test_deserialize_empty_moment():
 
     proto = {
         'language': {
+            'arg_function_language': '',
             'gate_set': 'my_gate_set'
         },
         'circuit': {
@@ -100,7 +103,7 @@ def test_deserialize_empty_moment():
             'moments': [{}]
         },
     }
-    assert MY_GATE_SET.deserialize(proto) == circuit
+    assert MY_GATE_SET.deserialize_dict(proto) == circuit
 
 
 def test_serialize_deserialize_schedule():
@@ -122,27 +125,58 @@ def test_serialize_deserialize_schedule():
 
     proto = {
         'language': {
+            'arg_function_language': '',
             'gate_set': 'my_gate_set'
         },
         'schedule': {
             'scheduled_operations': [
                 {
                     'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
-                    'start_time_picos': 0
+                    'start_time_picos': '0'
                 },
                 {
                     'operation': X_SERIALIZER.to_proto_dict(cirq.X(q1)),
-                    'start_time_picos': 200000,
+                    'start_time_picos': '200000',
                 },
                 {
                     'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
-                    'start_time_picos': 400000,
+                    'start_time_picos': '400000',
                 },
             ]
         },
     }
-    assert proto == MY_GATE_SET.serialize(schedule)
-    assert MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone) == schedule
+    assert proto == MY_GATE_SET.serialize_dict(schedule)
+    assert MY_GATE_SET.deserialize_dict(proto,
+                                        cirq.google.Bristlecone) == schedule
+
+
+def test_serialize_deserialize_schedule_no_device():
+    q0 = cirq.GridQubit(1, 1)
+    q1 = cirq.GridQubit(1, 2)
+    proto = {
+        'language': {
+            'arg_function_language': '',
+            'gate_set': 'my_gate_set'
+        },
+        'schedule': {
+            'scheduled_operations': [
+                {
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
+                    'start_time_picos': '0'
+                },
+                {
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q1)),
+                    'start_time_picos': '200000',
+                },
+                {
+                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
+                    'start_time_picos': '400000',
+                },
+            ]
+        },
+    }
+    with pytest.raises(ValueError):
+        MY_GATE_SET.deserialize_dict(proto)
 
 
 def test_serialize_deserialize_empty_schedule():
@@ -151,14 +185,13 @@ def test_serialize_deserialize_empty_schedule():
 
     proto = {
         'language': {
+            'arg_function_language': '',
             'gate_set': 'my_gate_set'
-        },
-        'schedule': {
-            'scheduled_operations': []
-        },
+        }
     }
-    assert proto == MY_GATE_SET.serialize(schedule)
-    assert MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone) == schedule
+    assert proto == MY_GATE_SET.serialize_dict(schedule)
+    with pytest.raises(ValueError):
+        MY_GATE_SET.deserialize_dict(proto, cirq.google.Bristlecone)
 
 
 def test_serialize_deserialize_op():
@@ -170,7 +203,7 @@ def test_serialize_deserialize_op():
         'args': {
             'half_turns': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             },
         },
@@ -178,8 +211,10 @@ def test_serialize_deserialize_op():
             'id': '1_1'
         }]
     }
-    assert proto == MY_GATE_SET.serialize_op(cirq.XPowGate(exponent=0.1)(q0))
-    assert MY_GATE_SET.deserialize_op(proto) == cirq.XPowGate(exponent=0.1)(q0)
+    assert proto == MY_GATE_SET.serialize_op_dict(
+        cirq.XPowGate(exponent=0.125)(q0))
+    assert MY_GATE_SET.deserialize_op_dict(proto) == cirq.XPowGate(
+        exponent=0.125)(q0)
 
 
 def test_serialize_deserialize_op_subclass():
@@ -200,8 +235,8 @@ def test_serialize_deserialize_op_subclass():
         }]
     }
     # cirq.X is a sublcass of XPowGate.
-    assert proto == MY_GATE_SET.serialize_op(cirq.X(q0))
-    assert MY_GATE_SET.deserialize_op(proto) == cirq.X(q0)
+    assert proto == MY_GATE_SET.serialize_op_dict(cirq.X(q0))
+    assert MY_GATE_SET.deserialize_op_dict(proto) == cirq.X(q0)
 
 
 def test_deserialize_op_invalid_gate():
@@ -210,7 +245,7 @@ def test_deserialize_op_invalid_gate():
         'args': {
             'half_turns': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             },
         },
@@ -219,13 +254,13 @@ def test_deserialize_op_invalid_gate():
         }]
     }
     with pytest.raises(ValueError, match='does not have a gate'):
-        MY_GATE_SET.deserialize_op(proto)
+        MY_GATE_SET.deserialize_op_dict(proto)
 
     proto = {
         'args': {
             'half_turns': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             },
         },
@@ -234,7 +269,7 @@ def test_deserialize_op_invalid_gate():
         }]
     }
     with pytest.raises(ValueError, match='does not have a gate'):
-        MY_GATE_SET.deserialize_op(proto)
+        MY_GATE_SET.deserialize_op_dict(proto)
 
 
 def test_deserialize_unsupported_gate_type():
@@ -245,7 +280,7 @@ def test_deserialize_unsupported_gate_type():
         'args': {
             'half_turns': {
                 'arg_value': {
-                    'float_value': 0.1
+                    'float_value': 0.125
                 }
             },
         },
@@ -254,13 +289,13 @@ def test_deserialize_unsupported_gate_type():
         }]
     }
     with pytest.raises(ValueError, match='no_pow'):
-        MY_GATE_SET.deserialize_op(proto)
+        MY_GATE_SET.deserialize_op_dict(proto)
 
 
 def test_serialize_op_unsupported_type():
     q0 = cirq.GridQubit(1, 1)
     with pytest.raises(ValueError, match='YPowGate'):
-        MY_GATE_SET.serialize_op(cirq.YPowGate()(q0))
+        MY_GATE_SET.serialize_op_dict(cirq.YPowGate()(q0))
 
 
 def test_deserialize_invalid_gate_set():
@@ -274,11 +309,11 @@ def test_deserialize_invalid_gate_set():
         },
     }
     with pytest.raises(ValueError, match='not_my_gate_set'):
-        MY_GATE_SET.deserialize(proto)
+        MY_GATE_SET.deserialize_dict(proto)
 
     proto['language'] = {}
     with pytest.raises(ValueError, match='Missing gate set'):
-        MY_GATE_SET.deserialize(proto)
+        MY_GATE_SET.deserialize_dict(proto)
 
     proto = {
         'circuit': {
@@ -287,7 +322,7 @@ def test_deserialize_invalid_gate_set():
         },
     }
     with pytest.raises(ValueError, match='Missing gate set'):
-        MY_GATE_SET.deserialize(proto)
+        MY_GATE_SET.deserialize_dict(proto)
 
 
 def test_deserialize_schedule_missing_device():
@@ -300,41 +335,7 @@ def test_deserialize_schedule_missing_device():
         },
     }
     with pytest.raises(ValueError, match='device'):
-        MY_GATE_SET.deserialize(proto)
-
-
-def test_deserialize_missing_circuit_or_schedule():
-    proto = {
-        'language': {
-            'gate_set': 'my_gate_set'
-        },
-    }
-    with pytest.raises(ValueError, match='circuit or schedule'):
-        MY_GATE_SET.deserialize(proto)
-
-
-def test_deserialize_no_moments():
-    proto = {
-        'language': {
-            'gate_set': 'my_gate_set'
-        },
-        'circuit': {
-            'scheduling_strategy': 1,
-        },
-    }
-    with pytest.raises(ValueError, match='moments'):
-        MY_GATE_SET.deserialize(proto)
-
-
-def test_deserialize_no_scheduled_ops():
-    proto = {
-        'language': {
-            'gate_set': 'my_gate_set'
-        },
-        'schedule': {},
-    }
-    with pytest.raises(ValueError, match='operations'):
-        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)
+        MY_GATE_SET.deserialize_dict(proto)
 
 
 def test_deserialize_no_operation():
@@ -351,22 +352,4 @@ def test_deserialize_no_operation():
         },
     }
     with pytest.raises(ValueError, match='operation'):
-        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)
-
-
-def test_deserialize_no_start_time_picos():
-    q0 = cirq.GridQubit(1, 1)
-    proto = {
-        'language': {
-            'gate_set': 'my_gate_set'
-        },
-        'schedule': {
-            'scheduled_operations': [
-                {
-                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
-                },
-            ]
-        },
-    }
-    with pytest.raises(ValueError, match='operation'):
-        MY_GATE_SET.deserialize(proto, cirq.google.Bristlecone)
+        MY_GATE_SET.deserialize_dict(proto, cirq.google.Bristlecone)
