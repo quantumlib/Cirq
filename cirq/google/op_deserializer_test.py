@@ -249,8 +249,7 @@ def test_from_proto_required_arg_not_assigned():
             'id': 'my_gate'
         },
         'args': {
-            'my_val': {
-            }
+            'my_val': {}
         },
         'qubits': [{
             'id': '1_2'
