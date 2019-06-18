@@ -15,6 +15,6 @@
 from cirq.google.line.placement import (
     AnnealSequenceSearchStrategy,
     GreedySequenceSearchStrategy,
-    LinePlacementStrategy,
     line_on_device,
+    LinePlacementStrategy,
 )

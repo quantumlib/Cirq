@@ -19,6 +19,7 @@ from typing import List, Tuple, cast
 import numpy as np
 
 from cirq import ops, linalg, protocols
+from cirq.linalg.tolerance import near_zero_mod
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
@@ -30,13 +31,13 @@ def _signed_mod_1(x: float) -> float:
 
 
 def single_qubit_matrix_to_pauli_rotations(
-        mat: np.ndarray, tolerance: float = 0
+        mat: np.ndarray, atol: float = 0
 ) -> List[Tuple[ops.Pauli, float]]:
     """Implements a single-qubit operation with few rotations.
 
     Args:
         mat: The 2x2 unitary matrix of the operation to implement.
-        tolerance: A limit on the amount of error introduced by the
+        atol: A limit on the amount of absolute error introduced by the
             construction.
 
     Returns:
@@ -44,10 +45,8 @@ def single_qubit_matrix_to_pauli_rotations(
         perform the desired operation.
     """
 
-    tol = linalg.Tolerance(atol=tolerance)
-
     def is_clifford_rotation(half_turns):
-        return tol.near_zero_mod(half_turns, 0.5)
+        return near_zero_mod(half_turns, 0.5, atol=atol)
 
     def to_quarter_turns(half_turns):
         return round(2 * half_turns) % 4
@@ -69,7 +68,7 @@ def single_qubit_matrix_to_pauli_rotations(
         linalg.deconstruct_single_qubit_matrix_into_angles(mat))
     z_ht_before = z_rad_before / np.pi - 0.5
     m_ht = y_rad / np.pi
-    m_pauli = ops.Pauli.X
+    m_pauli = ops.X  # type: ops.Pauli
     z_ht_after = z_rad_after / np.pi + 0.5
 
     # Clean up angles
@@ -78,7 +77,7 @@ def single_qubit_matrix_to_pauli_rotations(
             (is_half_turn(m_ht) and is_no_turn(z_ht_before-z_ht_after))):
             z_ht_before += 0.5
             z_ht_after -= 0.5
-            m_pauli = ops.Pauli.Y
+            m_pauli = ops.Y
         if is_half_turn(z_ht_before) or is_half_turn(z_ht_after):
             z_ht_before -= 1
             z_ht_after += 1
@@ -91,10 +90,7 @@ def single_qubit_matrix_to_pauli_rotations(
         z_ht_before = 0
 
     # Generate operations
-    rotation_list = [
-        (ops.Pauli.Z, z_ht_before),
-        (m_pauli, m_ht),
-        (ops.Pauli.Z, z_ht_after)]
+    rotation_list = [(ops.Z, z_ht_before), (m_pauli, m_ht), (ops.Z, z_ht_after)]
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
@@ -112,10 +108,8 @@ def single_qubit_matrix_to_gates(
         A list of gates that, when applied in order, perform the desired
             operation.
     """
-    pauli_to_gate = {ops.Pauli.X: ops.X, ops.Pauli.Y: ops.Y, ops.Pauli.Z: ops.Z}
     rotations = single_qubit_matrix_to_pauli_rotations(mat, tolerance)
-    return [cast(ops.SingleQubitGate, pauli_to_gate[pauli] ** ht)
-            for pauli, ht in rotations]
+    return [cast(ops.SingleQubitGate, pauli)**ht for pauli, ht in rotations]
 
 
 def single_qubit_op_to_framed_phase_form(

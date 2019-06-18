@@ -13,26 +13,27 @@
 # limitations under the License.
 """Tests for simulator.py"""
 
-from typing import List, Dict
-
+from unittest import mock
 import numpy as np
 import pytest
 
 import cirq
-from cirq.testing.mock import mock
 
 
-@mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
+
+@mock.patch.multiple(cirq.SimulatesSamples,
+                     __abstractmethods__=set(),
+                     _run=mock.Mock())
 def test_run_simulator_run():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': [[1]]}
+    expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     expected_result = cirq.TrialResult(repetitions=10,
                                        measurements=expected_measurements,
                                        params=param_resolver)
-    assert expected_result == simulator.run(circuit=circuit,
+    assert expected_result == simulator.run(program=circuit,
                                             repetitions=10,
                                             param_resolver=param_resolver)
     simulator._run.assert_called_once_with(circuit=circuit,
@@ -40,10 +41,12 @@ def test_run_simulator_run():
                                            param_resolver=param_resolver)
 
 
-@mock.patch.multiple(cirq.SimulatesSamples, _run=mock.Mock())
+@mock.patch.multiple(cirq.SimulatesSamples,
+                     __abstractmethods__=set(),
+                     _run=mock.Mock())
 def test_run_simulator_sweeps():
     simulator = cirq.SimulatesSamples()
-    expected_measurements = {'a': [[1]]}
+    expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [mock.Mock(cirq.ParamResolver),
@@ -55,34 +58,35 @@ def test_run_simulator_sweeps():
                                          measurements=expected_measurements,
                                          params=param_resolvers[1])]
     assert expected_results == simulator.run_sweep(program=circuit,
-                                                repetitions=10,
-                                                params=param_resolvers)
+                                                   repetitions=10,
+                                                   params=param_resolvers)
     simulator._run.assert_called_with(circuit=circuit,
                                       repetitions=10,
                                       param_resolver=mock.ANY)
     assert simulator._run.call_count == 2
 
 
-@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
+@mock.patch.multiple(cirq.SimulatesIntermediateState,
+                     __abstractmethods__=set(),
                      _simulator_iterator=mock.Mock())
-def test_wave_simulator():
-    simulator = cirq.SimulatesIntermediateWaveFunction()
+def test_intermediate_simulator():
+    simulator = cirq.SimulatesIntermediateState()
 
-    final_state = np.array([1, 0, 0, 0])
+    final_simulator_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
         result = mock.Mock()
         result.measurements = {'a': [True, True]}
         yield result
         result = mock.Mock()
         result.measurements = {'b': [True, False]}
-        result.state.return_value = final_state
+        result._simulator_state.return_value = final_simulator_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     qubit_order = mock.Mock(cirq.QubitOrder)
-    result = simulator.simulate(circuit=circuit,
+    result = simulator.simulate(program=circuit,
                                 param_resolver=param_resolver,
                                 qubit_order=qubit_order,
                                 initial_state=2)
@@ -90,39 +94,21 @@ def test_wave_simulator():
     np.testing.assert_equal(result.measurements['b'], [True, False])
     assert set(result.measurements.keys()) == {'a', 'b'}
     assert result.params == param_resolver
-    np.testing.assert_equal(result.final_state, final_state)
+    np.testing.assert_equal(result._final_simulator_state,
+                            final_simulator_state)
 
 
-@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
+@mock.patch.multiple(cirq.SimulatesIntermediateState,
+                     __abstractmethods__=set(),
                      _simulator_iterator=mock.Mock())
-def test_wave_simulator_no_steps():
-    simulator = cirq.SimulatesIntermediateWaveFunction()
-
-    initial_state = np.array([1, 0, 0, 0], dtype=np.complex64)
-
-    simulator._simulator_iterator.return_value = iter([])
-    circuit = cirq.testing.random_circuit(2, 20, 0.99)
-    param_resolver = mock.Mock(cirq.ParamResolver)
-    qubit_order = circuit.all_qubits()
-    result = simulator.simulate(circuit=circuit,
-                                param_resolver=param_resolver,
-                                qubit_order=list(qubit_order),
-                                initial_state=initial_state)
-    assert len(result.measurements) == 0
-    assert result.params == param_resolver
-    np.testing.assert_equal(result.final_state, initial_state)
-
-
-@mock.patch.multiple(cirq.SimulatesIntermediateWaveFunction,
-                     _simulator_iterator=mock.Mock())
-def test_wave_simulator_sweeps():
-    simulator = cirq.SimulatesIntermediateWaveFunction()
+def test_intermediate_sweeps():
+    simulator = cirq.SimulatesIntermediateState()
 
     final_state = np.array([1, 0, 0, 0])
     def steps(*args, **kwargs):
         result = mock.Mock()
         result.measurements = {'a': np.array([True, True])}
-        result.state.return_value = final_state
+        result._simulator_state.return_value = final_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -138,131 +124,13 @@ def test_wave_simulator_sweeps():
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[0],
-            final_state=final_state),
+            final_simulator_state=final_state),
         cirq.SimulationTrialResult(
             measurements={'a': np.array([True, True])},
             params=param_resolvers[1],
-            final_state=final_state)
+            final_simulator_state=final_state)
     ]
     assert results == expected_results
-
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
-def test_simulator_simulate_trial_result_repr():
-    v = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-
-    assert repr(v) == ("SimulationTrialResult("
-                       "params=cirq.ParamResolver({'a': 2}), "
-                       "measurements={'m': array([1, 2])}, "
-                       "final_state=array([0, 1, 0, 0]))")
-
-
-def test_simulator_trial_result_equality():
-    eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(
-        cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'a': 2}),
-            measurements={'m': np.array([1, 0])},
-            final_state=np.array([0, 1, 0, 0])))
-    eq.add_equality_group(
-        cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'a': 2}),
-            measurements={'m': np.array([1, 0])},
-            final_state=np.array([0, 0, 1, 0])))
-    eq.add_equality_group(
-        cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'a': 3}),
-            measurements={'m': np.array([1, 0])},
-            final_state=np.array([0, 0, 1, 0])))
-    eq.add_equality_group(
-        cirq.SimulationTrialResult(
-            params=cirq.ParamResolver({'a': 3}),
-            measurements={'m': np.array([0, 1])},
-            final_state=np.array([0, 0, 1, 0])))
-
-
-def test_simulator_trial_pretty_state():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    assert result.dirac_notation() == '|01⟩'
-
-
-def test_simulator_trial_density_matrix():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    rho = np.array([[0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho,
-        result.density_matrix())
-
-
-def test_simulator_trial_bloch_vector():
-    result = cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        measurements={'m': np.array([1, 2])},
-        final_state=np.array([0, 1, 0, 0]))
-    bloch = np.array([0,0,-1])
-    np.testing.assert_array_almost_equal(bloch,
-        result.bloch_vector(1))
-
-
-def test_step_result_pretty_state():
-    class BasicStepResult(cirq.StepResult):
-
-        def __init__(self, qubit_map: Dict,
-                measurements: Dict[str, List[bool]]) -> None:
-            super().__init__(qubit_map, measurements)
-
-        def state(self) -> np.ndarray:
-            return np.array([0, 1, 0, 0])
-
-    step_result = BasicStepResult({}, {})
-    assert step_result.dirac_notation() == '|01⟩'
-
-
-def test_step_result_density_matrix():
-    class BasicStepResult(cirq.StepResult):
-
-        def __init__(self, qubit_map: Dict,
-                measurements: Dict[str, List[bool]]) -> None:
-            super().__init__(qubit_map, measurements)
-
-        def state(self) -> np.ndarray:
-            return np.array([0, 1, 0, 0])
-
-    step_result = BasicStepResult({}, {})
-    rho = np.array([[0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix())
-
-
-def test_step_result_bloch_vector():
-    class BasicStepResult(cirq.StepResult):
-
-        def __init__(self, qubit_map: Dict,
-                measurements: Dict[str, List[bool]]) -> None:
-            super().__init__(qubit_map, measurements)
-
-        def state(self) -> np.ndarray:
-            return np.array([0, 1, 0, 0])
-
-    step_result = BasicStepResult({}, {})
-    bloch = np.array([0,0,-1])
-    np.testing.assert_array_almost_equal(bloch,
-        step_result.bloch_vector(1))
 
 
 class FakeStepResult(cirq.StepResult):
@@ -270,7 +138,10 @@ class FakeStepResult(cirq.StepResult):
     def __init__(self, ones_qubits):
         self._ones_qubits = set(ones_qubits)
 
-    def state(self):
+    def _simulator_state(self):
+        pass
+
+    def state_vector(self):
         pass
 
     def __setstate__(self, state):
@@ -323,27 +194,81 @@ def test_step_sample_measurement_ops_repeated_qubit():
                 [cirq.measure(q0), cirq.measure(q1, q2), cirq.measure(q0)])
 
 
-class MultiHTestGate(cirq.Gate):
-    def _decompose_(self, qubits):
-        return cirq.H.on_each(qubits)
+def test_simulation_trial_result_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({}),
+                                   measurements={},
+                                   final_simulator_state=()),
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({}),
+                                   measurements={},
+                                   final_simulator_state=()))
+    eq.add_equality_group(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={},
+                                   final_simulator_state=()))
+    eq.add_equality_group(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([[1]])},
+                                   final_simulator_state=()))
+    eq.add_equality_group(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([[1]])},
+                                   final_simulator_state=(0, 1)))
 
 
-def test_simulates_composite():
-    c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
-    expected = np.array([0.5] * 4)
-    np.testing.assert_allclose(c.apply_unitary_effect_to_state(),
-                               expected)
-    np.testing.assert_allclose(cirq.Simulator().simulate(c).final_state,
-                               expected)
+
+def test_simulation_trial_result_repr():
+    assert repr(cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                           measurements={'m': np.array([[1]])},
+                                           final_simulator_state=(0, 1))) == (
+               "cirq.SimulationTrialResult("
+               "params=cirq.ParamResolver({'s': 1}), "
+               "measurements={'m': array([[1]])}, "
+               "final_simulator_state=(0, 1))")
 
 
-def test_simulate_measurement_inversions():
-    q = cirq.NamedQubit('q')
+def test_simulation_trial_result_str():
+    assert str(
+        cirq.SimulationTrialResult(
+            params=cirq.ParamResolver({'s': 1}),
+            measurements={},
+            final_simulator_state=(0, 1))) == '(no measurements)'
 
-    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
-                                                   invert_mask=(True,)).on(q))
-    assert cirq.Simulator().simulate(c).measurements == {'q': np.array([True])}
+    assert str(cirq.SimulationTrialResult(
+        params=cirq.ParamResolver({'s': 1}),
+        measurements={'m': np.array([[1]])},
+        final_simulator_state=(0, 1))) == 'm=1'
 
-    c = cirq.Circuit.from_ops(cirq.MeasurementGate(key='q',
-                                                   invert_mask=(False,)).on(q))
-    assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}
+
+def test_pretty_print():
+    result = cirq.SimulationTrialResult(cirq.ParamResolver(), {}, np.array([1]))
+
+    # Test Jupyter console output from
+    class FakePrinter:
+
+        def __init__(self):
+            self.text_pretty = ''
+
+        def text(self, to_print):
+            self.text_pretty += to_print
+
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == '(no measurements)'
+
+    # Test cycle handling
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'SimulationTrialResult(...)'
+
+
+def test_simulation_trial_result_qubit_map():
+    q = cirq.LineQubit.range(2)
+    result = cirq.Simulator().simulate(
+        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    assert result.qubit_map == {q[0]: 0, q[1]: 1}
+
+    result = cirq.DensityMatrixSimulator().simulate(
+        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    assert result.qubit_map == {q[0]: 0, q[1]: 1}

@@ -21,9 +21,6 @@ def test_named_qubit_str():
     assert q.name == 'a'
     assert str(q) == 'a'
 
-
-# Python 2 gives a different repr due to unicode strings being prefixed with u.
-@cirq.testing.only_test_in_python3
 def test_named_qubit_repr():
     q = cirq.NamedQubit('a')
     assert repr(q) == "cirq.NamedQubit('a')"
@@ -60,3 +57,12 @@ def test_pad_digits():
     assert _pad_digits('a9') == 'a00000009:1'
     assert _pad_digits('a09') == 'a00000009:2'
     assert _pad_digits('a00000000:8') == 'a00000000:8:00000008:1'
+
+
+def test_named_qubit_range():
+    qubits = cirq.NamedQubit.range(2, prefix='a')
+    assert qubits == [cirq.NamedQubit('a0'), cirq.NamedQubit('a1')]
+
+    qubits = cirq.NamedQubit.range(-1, 4, 2, prefix='a')
+    assert qubits == [cirq.NamedQubit('a-1'),
+            cirq.NamedQubit('a1'), cirq.NamedQubit('a3')]

@@ -1,7 +1,7 @@
 ## Gates
 
 A ``Gate`` is an operation that can be applied to a collection of 
-qubits (objects with a ``QubitId``).  ``Gates`` can be applied
+qubits (objects with a ``Qid``).  ``Gates`` can be applied
 to qubits by calling their ``on`` method, or, alternatively
 calling the gate on the qubits.  The object created by such calls
 is an ``Operation``.
@@ -15,6 +15,19 @@ print(CNOT(q0, q1))
 # CNOT((0, 0), (0, 1))
 # CNOT((0, 0), (0, 1))
 ```
+
+``Gate``s operate on a specific number of qubit and classes that
+implement ``Gate`` must supply the ``num_qubits`` method.  For
+convenience one can use the ``SingleQubitGate``, ``TwoQubitGate``,
+and ``ThreeQubitGate`` classes for these common gate sizes. 
+
+The most common type of ``Gate`` is one that corresponds to applying
+a unitary evolution on the qubits that the gate acts on.
+``Gate``s can also correspond to noisy evolution on the qubits. This
+version of a gate is not used when sending the circuit to a
+quantum computer for execution, but it can be used with
+various simulators. See [noise documentation](noise.md) .
+
 
 ### Magic Methods
 

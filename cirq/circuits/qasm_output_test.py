@@ -36,6 +36,20 @@ def test_qasm_two_qubit_gate_repr():
         cirq.testing.random_unitary(4)))
 
 
+def test_qasm_u_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(2)
+    g = QasmUGate.from_matrix(u)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g),
+                                                    u,
+                                                    atol=1e-7)
+
+
+def test_qasm_two_qubit_gate_unitary():
+    u = cirq.testing.random_unitary(4)
+    g = QasmTwoQubitGate.from_matrix(u)
+    np.testing.assert_allclose(cirq.unitary(g), u)
+
+
 def test_empty_circuit():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
@@ -236,13 +250,13 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
         cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
 
         (
-            cirq.MeasurementGate('xX')(q0),
-            cirq.MeasurementGate('x_a')(q2),
-            cirq.MeasurementGate('x?')(q1),
-            cirq.MeasurementGate('X')(q3),
-            cirq.MeasurementGate('_x')(q4),
-            cirq.MeasurementGate('x_a')(q2),
-            cirq.MeasurementGate('multi', (False, True))(q1, q2, q3),
+            cirq.measure(q0, key='xX'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, key='x?'),
+            cirq.measure(q3, key='X'),
+            cirq.measure(q4, key='_x'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True))
         ) if include_measurments else (),
 
         DummyOperation(),
@@ -301,7 +315,7 @@ def test_output_unitary_same_as_qiskit():
 
 
 def test_fails_on_big_unknowns():
-    class UnrecognizedGate(cirq.Gate):
+    class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
     c = cirq.Circuit.from_ops(
         UnrecognizedGate().on(*cirq.LineQubit.range(3)))
@@ -468,12 +482,6 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
-
-
-def test_qasm_two_qubit_gate_unitary():
-    u = cirq.testing.random_unitary(4)
-    g = QasmTwoQubitGate.from_matrix(u)
-    np.testing.assert_allclose(cirq.unitary(g), u)
 
 
 def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):

@@ -12,25 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, TYPE_CHECKING, Sequence
+from typing import Dict, Sequence, TYPE_CHECKING
 
 import abc
 from collections import defaultdict
 
-from cirq import circuits, ops
-from cirq.contrib.acquaintance.gates import AcquaintanceOpportunityGate
+from cirq import circuits, devices, ops, protocols
+
+from cirq.contrib.acquaintance.gates import (
+        AcquaintanceOpportunityGate)
 from cirq.contrib.acquaintance.devices import (
         is_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate,
-        LogicalIndex,
+        LogicalIndex, LogicalIndexSequence,
         LogicalGates, LogicalMapping)
-from cirq.contrib.acquaintance.strategy import (
+from cirq.contrib.acquaintance.mutation_utils import (
         expose_acquaintance_gates)
+
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Callable, List, DefaultDict
+
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):
     """Tells StrategyExecutor how to execute an acquaintance strategy.
@@ -42,15 +46,26 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
     keep_acquaintance = False
 
     @abc.abstractproperty
+    def device(self) -> devices.Device:
+        """The device for which the executed acquaintance strategy should be
+        valid.
+        """
+
+
+    @abc.abstractproperty
     def initial_mapping(self) -> LogicalMapping:
         """The initial mapping of logical indices to qubits."""
+
 
     @abc.abstractmethod
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         """Gets the logical operations to apply to qubits."""
+
+    def __call__(self, *args, **kwargs):
+        return StrategyExecutor(self)(*args, **kwargs)
 
 
 class StrategyExecutor(circuits.PointOptimizer):
@@ -61,19 +76,21 @@ class StrategyExecutor(circuits.PointOptimizer):
         self.execution_strategy = execution_strategy
         self.mapping = execution_strategy.initial_mapping.copy()
 
+
     def __call__(self, strategy: circuits.Circuit):
         if not is_acquaintance_strategy(strategy):
             raise TypeError('not is_acquaintance_strategy(strategy)')
         expose_acquaintance_gates(strategy)
+        strategy.device = self.execution_strategy.device
         super().optimize_circuit(strategy)
         return self.mapping.copy()
+
 
     def optimization_at(self,
                         circuit: circuits.Circuit,
                         index: int,
                         op: ops.Operation):
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, AcquaintanceOpportunityGate)):
+        if ops.op_gate_of_type(op, AcquaintanceOpportunityGate):
             logical_indices = tuple(self.mapping[q] for q in op.qubits)
             logical_operations = self.execution_strategy.get_operations(
                     logical_indices, op.qubits)
@@ -93,6 +110,27 @@ class StrategyExecutor(circuits.PointOptimizer):
                          'are instances of AcquaintanceOpportunityGate or '
                          'PermutationGate.')
 
+
+class AcquaintanceOperation(ops.GateOperation):
+    """Represents an a acquaintance opportunity between a particular set of
+    logical indices on a particular set of physical qubits.
+    """
+    def __init__(self,
+                 qubits: Sequence[ops.raw_types.Qid],
+                 logical_indices: Sequence[LogicalIndex]) -> None:
+        if len(logical_indices) != len(qubits):
+            raise ValueError('len(logical_indices) != len(qubits)')
+        super().__init__(AcquaintanceOpportunityGate(num_qubits=len(qubits)),
+                         qubits)
+        self.logical_indices = logical_indices # type: LogicalIndexSequence
+
+    def _circuit_diagram_info_(self,
+            args: protocols.CircuitDiagramInfoArgs
+            ) -> protocols.CircuitDiagramInfo:
+        wire_symbols = tuple('({})'.format(i) for i in self.logical_indices)
+        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
+
+
 class GreedyExecutionStrategy(ExecutionStrategy):
     """A greedy execution strategy.
 
@@ -101,7 +139,8 @@ class GreedyExecutionStrategy(ExecutionStrategy):
     """
     def __init__(self,
                  gates: LogicalGates,
-                 initial_mapping: LogicalMapping
+                 initial_mapping: LogicalMapping,
+                 device: devices.Device = None
                  ) -> None:
         """
         Args:
@@ -115,14 +154,23 @@ class GreedyExecutionStrategy(ExecutionStrategy):
                     'are of the same arity.')
         self.index_set_to_gates = self.canonicalize_gates(gates)
         self._initial_mapping = initial_mapping.copy()
+        self._device = devices.UnconstrainedDevice if device is None else device
+
+
 
     @property
     def initial_mapping(self) -> LogicalMapping:
         return self._initial_mapping
 
+
+    @property
+    def device(self) -> devices.Device:
+        return self._device
+
+
     def get_operations(self,
                        indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.QubitId]
+                       qubits: Sequence[ops.Qid]
                        ) -> ops.OP_TREE:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:

@@ -105,6 +105,8 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
             iterable containing invertible items. Also, no `default` argument
             was specified.
     """
+    from cirq import ops  # HACK: avoid circular import
+
     # Check if object defines an inverse via __pow__.
     raiser = getattr(val, '__pow__', None)
     result = NotImplemented if raiser is None else raiser(-1)
@@ -113,7 +115,8 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
 
     # Maybe it's an iterable of invertible items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
-    if isinstance(val, collections.Iterable) and not isinstance(val, str):
+    if (isinstance(val, collections.Iterable) and
+            not isinstance(val, (str, ops.Operation))):
         unique_indicator = []  # type: List[Any]
         results = tuple(inverse(e, unique_indicator) for e in val)
         if all(e is not unique_indicator for e in results):

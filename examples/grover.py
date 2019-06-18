@@ -10,7 +10,7 @@ is enough) are considered.
 
 === REFERENCE ===
 Coles, Eidenbenz et al. Quantum Algorithm Implementations for Beginners
-https://arxiv.org/pdf/1804.03719.pdf
+https://arxiv.org/abs/1804.03719
 
 === EXAMPLE OUTPUT ===
 Secret bit sequence: [1, 0]
@@ -57,20 +57,20 @@ def make_grover_circuit(input_qubits, output_qubit, oracle):
     c.append([
         cirq.X(output_qubit),
         cirq.H(output_qubit),
-        cirq.H.on_each(input_qubits),
+        cirq.H.on_each(*input_qubits),
     ])
 
     # Query oracle.
     c.append(oracle)
 
     # Construct Grover operator.
-    c.append(cirq.H.on_each(input_qubits))
-    c.append(cirq.X.on_each(input_qubits))
+    c.append(cirq.H.on_each(*input_qubits))
+    c.append(cirq.X.on_each(*input_qubits))
     c.append(cirq.H.on(input_qubits[1]))
     c.append(cirq.CNOT(input_qubits[0], input_qubits[1]))
     c.append(cirq.H.on(input_qubits[1]))
-    c.append(cirq.X.on_each(input_qubits))
-    c.append(cirq.H.on_each(input_qubits))
+    c.append(cirq.X.on_each(*input_qubits))
+    c.append(cirq.H.on_each(*input_qubits))
 
     # Measure the result.
     c.append(cirq.measure(*input_qubits, key='result'))
@@ -102,7 +102,7 @@ def main():
     print(circuit)
 
     # Sample from the circuit a couple times.
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.run(circuit, repetitions=circuit_sample_count)
 
     frequencies = result.histogram(key='result', fold_func=bitstring)

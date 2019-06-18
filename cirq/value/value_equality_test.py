@@ -34,6 +34,19 @@ class BasicD:
         return self.x
 
 
+@cirq.value_equality(manual_cls=True)
+class MasqueradePositiveD:
+
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+    def _value_equality_values_cls_(self):
+        return BasicD if self.x > 0 else MasqueradePositiveD
+
+
 class BasicCa(BasicC):
     pass
 
@@ -55,6 +68,15 @@ def test_value_equality_basic():
     eq.add_equality_group(BasicD(1))
     eq.add_equality_group(BasicC(2))
     eq.add_equality_group(BasicCa(3))
+
+
+def test_value_equality_manual():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(MasqueradePositiveD(3), BasicD(3))
+    eq.add_equality_group(MasqueradePositiveD(4), MasqueradePositiveD(4),
+                          BasicD(4))
+    eq.add_equality_group(MasqueradePositiveD(-1), MasqueradePositiveD(-1))
+    eq.add_equality_group(BasicD(-1))
 
 
 @cirq.value_equality(unhashable=True)
@@ -140,8 +162,104 @@ def test_value_equality_distinct_child_types():
     eq.add_equality_group(DistinctD(1))
 
 
+@cirq.value_equality(approximate=True)
+class ApproxE:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+def test_value_equality_approximate():
+    assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.0), atol=0.1)
+    assert cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.3)
+    assert not cirq.approx_eq(ApproxE(0.0), ApproxE(0.2), atol=0.1)
+
+
+@cirq.value_equality(approximate=True)
+class PeriodicF:
+    def __init__(self, x, n):
+        self.x = x
+        self.n = n
+
+    def _value_equality_values_(self):
+        return self.x
+
+    def _value_equality_approximate_values_(self):
+        return self.x % self.n
+
+
+def test_value_equality_approximate_specialized():
+    assert PeriodicF(1, 4) != PeriodicF(5, 4)
+    assert cirq.approx_eq(PeriodicF(1, 4), PeriodicF(5, 4), atol=0.1)
+    assert not cirq.approx_eq(PeriodicF(1, 4), PeriodicF(6, 4), atol=0.1)
+
+
+def test_value_equality_approximate_not_supported():
+    assert not cirq.approx_eq(BasicC(0.0), BasicC(0.1), atol=0.2)
+
+
+class ApproxEa(ApproxE):
+    pass
+
+
+class ApproxEb(ApproxE):
+    pass
+
+
+@cirq.value_equality(distinct_child_types=True, approximate=True)
+class ApproxG:
+    def __init__(self, x):
+        self.x = x
+
+    def _value_equality_values_(self):
+        return self.x
+
+
+class ApproxGa(ApproxG):
+    pass
+
+
+class ApproxGb(ApproxG):
+    pass
+
+
+def test_value_equality_approximate_typing():
+    assert not cirq.approx_eq(ApproxE(0.0), PeriodicF(0.0, 1.0), atol=0.1)
+    assert cirq.approx_eq(ApproxEa(0.0), ApproxEb(0.0), atol=0.1)
+    assert cirq.approx_eq(ApproxG(0.0), ApproxG(0.0), atol=0.1)
+    assert not cirq.approx_eq(ApproxGa(0.0), ApproxGb(0.0), atol=0.1)
+    assert not cirq.approx_eq(ApproxG(0.0), ApproxGb(0.0), atol=0.1)
+
+
 def test_value_equality_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_'):
         @cirq.value_equality
         class _:
             pass
+
+    assert True  # HACK: sacrificial line for indentation bug in 3to2.
+
+
+def test_bad_manual_cls_incompatible_args():
+    with pytest.raises(ValueError, match='incompatible'):
+
+        @cirq.value_equality(manual_cls=True, distinct_child_types=True)
+        class _:
+            pass
+
+    assert True  # HACK: sacrificial line for indentation bug in 3to2.
+
+
+
+def test_bad_manual_cls_forgot_method():
+    with pytest.raises(TypeError, match='_value_equality_values_cls_'):
+
+        @cirq.value_equality(manual_cls=True)
+        class _:
+
+            def _value_equality_values_(self):
+                pass
+
+    assert True  # HACK: sacrificial line for indentation bug in 3to2.

@@ -19,39 +19,45 @@ import itertools
 import math
 import time
 from typing import Optional, Callable
-
 import numpy as np
 import pytest
+import sympy
+
 
 import cirq
 import cirq.google as cg
+from cirq.circuits.insert_strategy import InsertStrategy
 
 Q1 = cirq.GridQubit(0, 0)
 Q2 = cirq.GridQubit(1, 0)
 Q3 = cirq.GridQubit(2, 0)
+test_device = cirq.google.XmonDevice(
+    measurement_duration=cirq.Duration(nanos=1000),
+    exp_w_duration=cirq.Duration(nanos=20),
+    exp_11_duration=cirq.Duration(nanos=50),
+    qubits=[Q1, Q2, Q3])
 
 
 def basic_circuit():
     sqrt_x = cirq.PhasedXPowGate(exponent=-0.5, phase_exponent=0.0)
-    circuit = cirq.Circuit()
-    circuit.append(
-        [sqrt_x(Q1), sqrt_x(Q2),
-         cirq.CZ(Q1, Q2),
-         sqrt_x(Q1), sqrt_x(Q2),
-         cirq.Z(Q1)])
-    return circuit
+    return cirq.Circuit.from_ops(
+        sqrt_x(Q1), sqrt_x(Q2),
+        cirq.CZ(Q1, Q2),
+        sqrt_x(Q1), sqrt_x(Q2),
+        cirq.Z(Q1),
+        device=test_device)
 
 
 def large_circuit():
     np.random.seed(0)
-    qubits = [cirq.GridQubit(i, 0) for i in range(10)]
+    qubits = [cirq.GridQubit(0, i) for i in range(10)]
     sqrt_x = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0.0)
-    circuit = cirq.Circuit()
+    circuit = cirq.Circuit(device=cirq.google.Foxtail)
     for _ in range(11):
         circuit.append(
             [sqrt_x(qubit) for qubit in qubits if np.random.random() < 0.5])
         circuit.append([cirq.CZ(qubits[i], qubits[i + 1]) for i in range(9)])
-    circuit.append([cirq.MeasurementGate(key='meas')(*qubits)])
+    circuit.append([cirq.measure(*qubits, key='meas')])
     return circuit
 
 
@@ -79,7 +85,7 @@ def run(simulator: cg.XmonSimulator,
     if scheduler is None:
         program = circuit
     else:
-        program = scheduler(cirq.UnconstrainedDevice, circuit)
+        program = scheduler(circuit.device, circuit)
     return simulator.run(program, **kw)
 
 
@@ -87,7 +93,7 @@ def simulate(simulator, circuit, scheduler, **kw):
     if scheduler is None:
         program = circuit
     else:
-        program = scheduler(cirq.UnconstrainedDevice, circuit)
+        program = scheduler(circuit.device, circuit)
     return simulator.simulate(program, **kw)
 
 
@@ -99,8 +105,8 @@ SCHEDULERS = [None, cirq.moment_by_moment_schedule]
 def test_run_no_results(scheduler, use_processes):
     options = cg.XmonOptions(use_processes=use_processes)
     simulator = cg.XmonSimulator(options)
-    result = run(simulator, basic_circuit(), scheduler)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        run(simulator, basic_circuit(), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -108,8 +114,8 @@ def test_run(scheduler):
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+        [cirq.measure(Q1, key='a'), cirq.measure(Q2, key='b')],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
@@ -122,8 +128,8 @@ def test_run(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_empty_circuit(scheduler):
     simulator = cg.XmonSimulator()
-    result = run(simulator, cirq.Circuit(), scheduler)
-    assert len(result.measurements) == 0
+    with pytest.raises(ValueError, match="no measurements"):
+        run(simulator, cirq.Circuit(device=test_device), scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
@@ -131,20 +137,20 @@ def test_initial_state_empty_circuit_qubits_specified(scheduler):
     simulator = cg.XmonSimulator()
 
     result = simulate(simulator,
-                      cirq.Circuit(),
+                      cirq.Circuit(device=test_device),
                       scheduler,
                       qubit_order=[Q1, Q2])
     np.testing.assert_almost_equal(result.final_state, np.array([1, 0, 0, 0]))
 
     result = simulate(simulator,
-                      cirq.Circuit(),
+                      cirq.Circuit(device=test_device),
                       scheduler,
                       qubit_order=[Q1, Q2],
                       initial_state=1)
     np.testing.assert_almost_equal(result.final_state, np.array([0, 1, 0, 0]))
 
     result = simulate(simulator,
-                      cirq.Circuit(),
+                      cirq.Circuit(device=test_device),
                       scheduler,
                       qubit_order=[Q1, Q2],
                       initial_state=np.array([0, 1, 0, 0],
@@ -159,28 +165,30 @@ def test_qubit_order_to_wavefunction_order_matches_np_kron(scheduler):
     one = [0, 1]
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q1)),
+                      cirq.Circuit.from_ops(cirq.X(Q1), device=test_device),
                       scheduler,
                       qubit_order=[Q1, Q2])
     assert cirq.allclose_up_to_global_phase(
         result.final_state, np.kron(one, zero))
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q1)),
+                      cirq.Circuit.from_ops(cirq.X(Q1), device=test_device),
                       scheduler,
                       qubit_order=[Q2, Q1])
     assert cirq.allclose_up_to_global_phase(
         result.final_state, np.kron(zero, one))
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q1)),
+                      cirq.Circuit.from_ops(cirq.X(Q1), device=test_device),
                       scheduler,
                       qubit_order=cirq.QubitOrder.sorted_by(repr))
     assert cirq.allclose_up_to_global_phase(
         result.final_state, np.array(one))
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q1), cirq.Z(Q2)),
+                      cirq.Circuit.from_ops(cirq.X(Q1),
+                                            cirq.Z(Q2),
+                                            device=test_device),
                       scheduler,
                       qubit_order=cirq.QubitOrder.sorted_by(repr))
     assert cirq.allclose_up_to_global_phase(
@@ -192,28 +200,28 @@ def test_bit_flip_order_to_wavefunction_order_matches_np_kron(scheduler):
     simulator = cg.XmonSimulator()
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q1)),
+                      cirq.Circuit.from_ops(cirq.X(Q1), device=test_device),
                       scheduler,
                       qubit_order=[Q1, Q2, Q3])
     assert cirq.allclose_up_to_global_phase(
         result.final_state, np.array([0, 0, 0, 0, 1, 0, 0, 0]))
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q3)),
+                      cirq.Circuit.from_ops(cirq.X(Q3), device=test_device),
                       scheduler,
                       qubit_order=[Q1, Q2, Q3])
     assert cirq.allclose_up_to_global_phase(
         result.final_state, np.array([0, 1, 0, 0, 0, 0, 0, 0]))
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q3)),
+                      cirq.Circuit.from_ops(cirq.X(Q3), device=test_device),
                       scheduler,
                       qubit_order=[Q3, Q2, Q1])
     assert cirq.allclose_up_to_global_phase(
         result.final_state, np.array([0, 0, 0, 0, 1, 0, 0, 0]))
 
     result = simulate(simulator,
-                      cirq.Circuit.from_ops(cirq.X(Q3)),
+                      cirq.Circuit.from_ops(cirq.X(Q3), device=test_device),
                       scheduler,
                       qubit_order=[Q2, Q3, Q1])
     assert cirq.allclose_up_to_global_phase(
@@ -226,21 +234,21 @@ def test_invalid_initial_state_empty_circuit_qubits_specified(scheduler):
 
     with pytest.raises(ValueError):
         _ = simulate(simulator,
-                     cirq.Circuit(),
+                     cirq.Circuit(device=test_device),
                      scheduler,
                      qubit_order=[Q1, Q2],
                      initial_state=-1)
 
     with pytest.raises(ValueError):
         _ = simulate(simulator,
-                     cirq.Circuit(),
+                     cirq.Circuit(device=test_device),
                      scheduler,
                      qubit_order=[Q1, Q2],
                      initial_state=100)
 
     with pytest.raises(ValueError):
         _ = simulate(simulator,
-                     cirq.Circuit(),
+                     cirq.Circuit(device=test_device),
                      scheduler,
                      qubit_order=[Q1, Q2],
                      initial_state=np.array([0.0, 1.0], dtype=np.complex64))
@@ -250,13 +258,16 @@ def test_invalid_initial_state_empty_circuit_qubits_specified(scheduler):
 def test_initial_state_empty_circuit_qubits_not_specified(scheduler):
     simulator = cg.XmonSimulator()
 
-    result = simulate(simulator, cirq.Circuit(), scheduler)
+    result = simulate(simulator, cirq.Circuit(device=test_device), scheduler)
     np.testing.assert_almost_equal(result.final_state, np.array([1.0]))
 
-    result = simulate(simulator, cirq.Circuit(), scheduler, initial_state=0)
+    result = simulate(simulator,
+                      cirq.Circuit(device=test_device),
+                      scheduler,
+                      initial_state=0)
     np.testing.assert_almost_equal(result.final_state, np.array([1.0]))
 
-    result = simulate(simulator, cirq.Circuit(), scheduler,
+    result = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                       initial_state=np.array([1], dtype=np.complex64))
     np.testing.assert_almost_equal(result.final_state, np.array([1.0]))
 
@@ -266,14 +277,17 @@ def test_invalid_initial_state_empty_circuit_qubits_not_specified(scheduler):
     simulator = cg.XmonSimulator()
 
     with pytest.raises(ValueError):
-        _ = simulate(simulator, cirq.Circuit(), scheduler, initial_state=2)
+        _ = simulate(simulator,
+                     cirq.Circuit(device=test_device),
+                     scheduler,
+                     initial_state=2)
 
     with pytest.raises(ValueError):
-        _ = simulate(simulator, cirq.Circuit(), scheduler,
+        _ = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                      initial_state=np.array([2], dtype=np.complex64))
 
     with pytest.raises(ValueError):
-        _ = simulate(simulator, cirq.Circuit(), scheduler,
+        _ = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                      initial_state=np.array([1, 0], dtype=np.complex64))
 
 
@@ -297,13 +311,13 @@ def test_simulate_initial_state_int(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_initial_state_identity(scheduler):
     simulator = cg.XmonSimulator()
-    result0 = simulate(simulator, cirq.Circuit(), scheduler,
+    result0 = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                        initial_state=0, qubit_order=[Q1, Q2])
-    result1 = simulate(simulator, cirq.Circuit(), scheduler,
+    result1 = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                        initial_state=1, qubit_order=[Q1, Q2])
-    result2 = simulate(simulator, cirq.Circuit(), scheduler,
+    result2 = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                        initial_state=2, qubit_order=[Q1, Q2])
-    result3 = simulate(simulator, cirq.Circuit(), scheduler,
+    result3 = simulate(simulator, cirq.Circuit(device=test_device), scheduler,
                        initial_state=3, qubit_order=[Q1, Q2])
     np.testing.assert_almost_equal(result0.final_state,
                                    np.array([1, 0, 0, 0]))
@@ -325,13 +339,13 @@ def test_initial_state_consistency(scheduler):
     simulator = cg.XmonSimulator()
     for i in range(8):
         int_result = simulate(simulator,
-                              cirq.Circuit(),
+                              cirq.Circuit(device=test_device),
                               scheduler,
                               initial_state=i,
                               qubit_order=[Q1, Q2, Q3]).final_state
 
         array_result = simulate(simulator,
-                                cirq.Circuit(),
+                                cirq.Circuit(device=test_device),
                                 scheduler,
                                 initial_state=blip(i, 8),
                                 qubit_order=[Q1, Q2, Q3]).final_state
@@ -358,6 +372,8 @@ def test_simulate_initial_state_ndarray_upconvert(scheduler):
                                    np.array([0.5, 0.5j, 0.5j, 0.5]))
 
 
+@pytest.mark.skipif(not hasattr(np, 'float128'),
+                    reason="system doesn't have np.float128")
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_run_initial_state_ndarray_not_upconvertible(scheduler):
     simulator = cg.XmonSimulator()
@@ -407,8 +423,8 @@ def test_run_no_sharing_few_qubits(scheduler):
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+        [cirq.measure(Q1, key='a'), cirq.measure(Q2, key='b')],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator(
         cg.XmonOptions(min_qubits_before_shard=0))
@@ -427,8 +443,8 @@ def test_simulate_moment_steps():
     np.random.seed(0)
     circuit = basic_circuit()
     circuit.append(
-        [cirq.MeasurementGate(key='a')(Q1),
-         cirq.MeasurementGate(key='b')(Q2)])
+        [cirq.measure(Q1, key='a'), cirq.measure(Q2, key='b')],
+         strategy=InsertStrategy.NEW_THEN_INLINE)
 
     simulator = cg.XmonSimulator()
     results = []
@@ -446,7 +462,7 @@ def test_simulate_moment_steps_state():
     simulator = cg.XmonSimulator()
     results = []
     for step in simulator.simulate_moment_steps(circuit):
-        results.append(step.state())
+        results.append(step.state_vector())
     np.testing.assert_almost_equal(results,
                                    np.array([[0.5, 0.5j, 0.5j, -0.5],
                                              [0.5, 0.5j, 0.5j, 0.5],
@@ -462,8 +478,9 @@ def test_simulate_moment_steps_set_state():
     step = simulator.simulate_moment_steps(circuit)
 
     result = next(step)
-    result.set_state(0)
-    np.testing.assert_almost_equal(result.state(), np.array([1, 0, 0, 0]))
+    result.set_state_vector(0)
+    np.testing.assert_almost_equal(result.state_vector(),
+                                   np.array([1, 0, 0, 0]))
 
 
 def test_simulate_moment_steps_set_state_2():
@@ -474,16 +491,17 @@ def test_simulate_moment_steps_set_state_2():
     step = simulator.simulate_moment_steps(circuit)
 
     result = next(step)
-    result.set_state(np.array([1j, 0, 0, 0], dtype=np.complex64))
-    np.testing.assert_almost_equal(result.state(),
+    result.set_state_vector(np.array([1j, 0, 0, 0], dtype=np.complex64))
+    np.testing.assert_almost_equal(result.state_vector(),
                                    np.array([1j, 0, 0, 0], dtype=np.complex64))
 
 
 def test_simulate_moment_steps_sample():
     np.random.seed(0)
     circuit = cirq.Circuit.from_ops(cirq.X(Q1),
-                                    cirq.MeasurementGate(key='a')(Q1),
-                                    cirq.MeasurementGate(key='b')(Q2))
+                                    cirq.measure(Q1, key='a'),
+                                    cirq.measure(Q2, key='b'),
+                                    device=test_device)
     simulator = cg.XmonSimulator()
     for step in simulator.simulate_moment_steps(circuit, qubit_order=[Q1, Q2]):
         pass
@@ -509,9 +527,9 @@ def compute_gate(circuit, resolver, num_qubits=1):
 
 def test_param_resolver_exp_w_half_turns():
     exp_w = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
+        exponent=sympy.Symbol('a'),
         phase_exponent=0.0)
-    circuit = cirq.Circuit()
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': -0.5})
     result = compute_gate(circuit, resolver)
@@ -523,8 +541,8 @@ def test_param_resolver_exp_w_half_turns():
 
 def test_param_resolver_exp_w_axis_half_turns():
     exp_w = cirq.PhasedXPowGate(
-        exponent=1.0, phase_exponent=cirq.Symbol('a'))
-    circuit = cirq.Circuit()
+        exponent=1.0, phase_exponent=sympy.Symbol('a'))
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver)
@@ -535,9 +553,9 @@ def test_param_resolver_exp_w_axis_half_turns():
 
 def test_param_resolver_exp_w_multiple_params():
     exp_w = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
-        phase_exponent=cirq.Symbol('b'))
-    circuit = cirq.Circuit()
+        exponent=sympy.Symbol('a'),
+        phase_exponent=sympy.Symbol('b'))
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_w(Q1))
     resolver = cirq.ParamResolver({'a': -0.5, 'b': 0.5})
     result = compute_gate(circuit, resolver)
@@ -548,8 +566,8 @@ def test_param_resolver_exp_w_multiple_params():
 
 
 def test_param_resolver_exp_z_half_turns():
-    exp_z = cirq.Z**cirq.Symbol('a')
-    circuit = cirq.Circuit()
+    exp_z = cirq.Z**sympy.Symbol('a')
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_z(Q1))
     resolver = cirq.ParamResolver({'a': -0.5})
     result = compute_gate(circuit, resolver)
@@ -560,8 +578,8 @@ def test_param_resolver_exp_z_half_turns():
 
 
 def test_param_resolver_exp_11_half_turns():
-    circuit = cirq.Circuit()
-    circuit.append(cirq.CZ(Q1, Q2)**cirq.Symbol('a'))
+    circuit = cirq.Circuit(device=test_device)
+    circuit.append(cirq.CZ(Q1, Q2)**sympy.Symbol('a'))
     resolver = cirq.ParamResolver({'a': 0.5})
     result = compute_gate(circuit, resolver, num_qubits=2)
     # Slight hack: doesn't depend on order of qubits.
@@ -572,10 +590,11 @@ def test_param_resolver_exp_11_half_turns():
 
 def test_param_resolver_param_dict():
     exp_w = cirq.PhasedXPowGate(
-        exponent=cirq.Symbol('a'),
+        exponent=sympy.Symbol('a'),
         phase_exponent=0.0)
-    circuit = cirq.Circuit()
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(exp_w(Q1))
+    circuit.append([cirq.measure(Q1, key='meas')])
     resolver = cirq.ParamResolver({'a': 0.5})
 
     simulator = cg.XmonSimulator()
@@ -585,8 +604,9 @@ def test_param_resolver_param_dict():
 
 def test_run_circuit_sweep():
     circuit = cirq.Circuit.from_ops(
-        cirq.X(Q1)**cirq.Symbol('a'),
-        cirq.MeasurementGate('m').on(Q1),
+        cirq.X(Q1)**sympy.Symbol('a'),
+        cirq.measure(Q1, key='m'),
+        device=test_device,
     )
 
     sweep = cirq.Linspace('a', 0, 10, 11)
@@ -600,8 +620,9 @@ def test_run_circuit_sweep():
 
 def test_run_circuit_sweeps():
     circuit = cirq.Circuit.from_ops(
-        cirq.X(Q1)**cirq.Symbol('a'),
-        cirq.MeasurementGate('m').on(Q1),
+        cirq.X(Q1)**sympy.Symbol('a'),
+        cirq.measure(Q1, key='m'),
+        device=test_device,
     )
 
     sweep = cirq.Linspace('a', 0, 5, 6)
@@ -617,10 +638,9 @@ def test_run_circuit_sweeps():
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_composite_gates(scheduler):
-    circuit = cirq.Circuit()
+    circuit = cirq.Circuit(device=test_device)
     circuit.append([cirq.X(Q1), cirq.CNOT(Q1, Q2)])
-    m = cirq.MeasurementGate('a')
-    circuit.append([m(Q1, Q2)])
+    circuit.append([cirq.measure(Q1, Q2, key='a')])
 
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
@@ -634,34 +654,30 @@ class UnsupportedGate(cirq.SingleQubitGate):
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_unsupported_gate(scheduler):
+def test_unsupported_gate_defense_in_depth(scheduler):
     circuit = cirq.Circuit()
     gate = UnsupportedGate()
-    circuit.append([cirq.H(Q1), gate(Q2)])
+    circuit.append([gate(Q2)])
+    circuit.append([cirq.measure(Q2, key='meas')])
+
+    # Pretend there's a place where we forgot to validate.
+    circuit._device = test_device
 
     simulator = cg.XmonSimulator()
-    with pytest.raises(TypeError, message="UnsupportedGate"):
+    with pytest.raises(ValueError, match="UnsupportedGate"):
         _ = run(simulator, circuit, scheduler)
 
-
-@pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_unsupported_gate_composite(scheduler):
-    circuit = cirq.Circuit()
-    gate = UnsupportedGate()
-    circuit.append([cirq.H(Q1), gate(Q2)])
-
-    simulator = cg.XmonSimulator()
-    with pytest.raises(TypeError, message="UnsupportedGate"):
-        _ = run(simulator, circuit, scheduler)
+    with pytest.raises(ValueError, match="using an XmonDevice"):
+        _ = run(simulator, cirq.Circuit.from_ops(cirq.measure(Q2, key='meas')),
+                scheduler)
 
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_qubit_order(scheduler):
-    circuit = cirq.Circuit()
-    meas = cirq.MeasurementGate(key='')
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(cirq.X(Q2))
     circuit.append(cirq.X(Q1))
-    circuit.append([meas.on(Q1, Q3, Q2)])
+    circuit.append([cirq.measure(Q1, Q3, Q2, key='')])
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements[''], [[True, False, True]])
@@ -670,12 +686,14 @@ def test_measurement_qubit_order(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_inverted_measurement(scheduler):
     circuit = cirq.Circuit.from_ops(
-        cirq.MeasurementGate('a', invert_mask=(False,))(Q1),
+        cirq.measure(Q1, key='a', invert_mask=(False,)),
         cirq.X(Q1),
-        cirq.MeasurementGate('b', invert_mask=(False,))(Q1),
-        cirq.MeasurementGate('c', invert_mask=(True,))(Q1),
+        cirq.measure(Q1, key='b', invert_mask=(False,)),
+        cirq.measure(Q1, key='c', invert_mask=(True,)),
         cirq.X(Q1),
-        cirq.MeasurementGate('d', invert_mask=(True,))(Q1))
+        cirq.measure(Q1, key='d', invert_mask=(True,)),
+        device=test_device,
+    )
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements,
@@ -686,9 +704,11 @@ def test_inverted_measurement(scheduler):
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_inverted_measurement_multiple_qubits(scheduler):
     circuit = cirq.Circuit.from_ops(
-        cirq.MeasurementGate('a', invert_mask=(False, True))(Q1, Q2),
-        cirq.MeasurementGate('b', invert_mask=(True, False))(Q1, Q2),
-        cirq.MeasurementGate('c', invert_mask=(True, False))(Q2, Q1))
+        cirq.measure(Q1, Q2, key='a', invert_mask=(False, True)),
+        cirq.measure(Q1, Q2, key='b', invert_mask=(True, False)),
+        cirq.measure(Q2, Q1, key='c', invert_mask=(True, False)),
+        device=test_device,
+    )
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[False, True]])
@@ -698,13 +718,11 @@ def test_inverted_measurement_multiple_qubits(scheduler):
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_multiple_measurements(scheduler):
-    circuit = cirq.Circuit()
-    measure_a = cirq.MeasurementGate('a')
-    measure_b = cirq.MeasurementGate('b')
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(cirq.X(Q1))
-    circuit.append([measure_a.on(Q1, Q2)])
+    circuit.append([cirq.measure(Q1, Q2, key='a')])
     circuit.append(cirq.X(Q1))
-    circuit.append([measure_b.on(Q1, Q2)])
+    circuit.append([cirq.measure(Q1, Q2, key='b')])
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[True, False]])
@@ -713,12 +731,10 @@ def test_measurement_multiple_measurements(scheduler):
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_multiple_measurements_qubit_order(scheduler):
-    circuit = cirq.Circuit()
-    measure_a = cirq.MeasurementGate('a')
-    measure_b = cirq.MeasurementGate('b')
+    circuit = cirq.Circuit(device=test_device)
     circuit.append(cirq.X(Q1))
-    circuit.append([measure_a.on(Q1, Q2)])
-    circuit.append([measure_b.on(Q2, Q1)])
+    circuit.append([cirq.measure(Q1, Q2, key='a')])
+    circuit.append([cirq.measure(Q2, Q1, key='b')])
     simulator = cg.XmonSimulator()
     result = run(simulator, circuit, scheduler)
     np.testing.assert_equal(result.measurements['a'], [[True, False]])
@@ -727,41 +743,42 @@ def test_measurement_multiple_measurements_qubit_order(scheduler):
 
 @pytest.mark.parametrize('scheduler', SCHEDULERS)
 def test_measurement_keys_repeat(scheduler):
-    circuit = cirq.Circuit()
-    meas = cirq.MeasurementGate('a')
-    circuit.append([meas.on(Q1), cirq.X.on(Q1), cirq.X.on(Q2), meas.on(Q2)])
+    circuit = cirq.Circuit(device=test_device)
+    circuit.append([cirq.measure(Q1, key='a'), cirq.X.on(Q1), cirq.X.on(Q2),
+                    cirq.measure(Q2, key='a')])
     simulator = cg.XmonSimulator()
     with pytest.raises(ValueError, message='Repeated Measurement key a'):
         run(simulator, circuit, scheduler)
 
 
 def test_handedness_of_xmon_exp_x_gate():
-    circuit = cirq.Circuit.from_ops(cirq.X(Q1)**0.5)
+    circuit = cirq.Circuit.from_ops(cirq.X(Q1)**0.5, device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, -1j]) * np.sqrt(0.5),
         atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_y_gate():
-    circuit = cirq.Circuit.from_ops(cirq.Y(Q1)**0.5)
+    circuit = cirq.Circuit.from_ops(cirq.Y(Q1)**0.5, device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1]) * np.sqrt(0.5),
         atol=1e-7)
 
 
 def test_handedness_of_xmon_exp_z_gate():
     circuit = cirq.Circuit.from_ops(cirq.H(Q1),
-                                    cirq.Z(Q1)**0.5)
+                                    cirq.Z(Q1)**0.5,
+                                    device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -769,41 +786,45 @@ def test_handedness_of_xmon_exp_z_gate():
 def test_handedness_of_xmon_exp_11_gate():
     circuit = cirq.Circuit.from_ops(cirq.H(Q1),
                                     cirq.H(Q2),
-                                    cirq.CZ(Q1, Q2)**0.5)
+                                    cirq.CZ(Q1, Q2)**0.5,
+                                    device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1, 1, 1j]) / 2,
         atol=1e-7)
 
 
 def test_handedness_of_x_gate():
-    circuit = cirq.Circuit.from_ops(cirq.X(Q1)**0.5)
+    circuit = cirq.Circuit.from_ops(cirq.X(Q1)**0.5, device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, -1j]) * np.sqrt(0.5),
         atol=1e-7)
 
 
 def test_handedness_of_y_gate():
-    circuit = cirq.Circuit.from_ops(cirq.Y(Q1)**0.5)
+    circuit = cirq.Circuit.from_ops(cirq.Y(Q1)**0.5,
+                                    device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1]) * np.sqrt(0.5),
         atol=1e-7)
 
 
 def test_handedness_of_z_gate():
-    circuit = cirq.Circuit.from_ops(cirq.H(Q1), cirq.Z(Q1)**0.5)
+    circuit = cirq.Circuit.from_ops(cirq.H(Q1),
+                                    cirq.Z(Q1)**0.5,
+                                    device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-7)
 
@@ -811,11 +832,12 @@ def test_handedness_of_z_gate():
 def test_handedness_of_cz_gate():
     circuit = cirq.Circuit.from_ops(cirq.H(Q1),
                                     cirq.H(Q2),
-                                    cirq.CZ(Q1, Q2)**0.5)
+                                    cirq.CZ(Q1, Q2)**0.5,
+                                    device=test_device)
     simulator = cg.XmonSimulator()
     result = list(simulator.simulate_moment_steps(circuit))[-1]
     cirq.testing.assert_allclose_up_to_global_phase(
-        result.state(),
+        result.state_vector(),
         np.array([1, 1, 1, 1j]) / 2,
         atol=1e-7)
 
@@ -825,7 +847,8 @@ def test_handedness_of_basic_gates():
         cirq.X(Q1)**-0.5,
         cirq.Z(Q1)**-0.5,
         cirq.Y(Q1)**0.5,
-        cirq.MeasurementGate(key='').on(Q1),
+        cirq.measure(Q1, key=''),
+        device=test_device,
     )
     result = cg.XmonSimulator().run(circuit)
     np.testing.assert_equal(result.measurements[''], [[True]])
@@ -836,17 +859,17 @@ def test_handedness_of_xmon_gates():
         cirq.X(Q1)**-0.5,
         cirq.Z(Q1)**-0.5,
         cirq.Y(Q1)**0.5,
-        cirq.MeasurementGate(key='').on(Q1),
+        cirq.measure(Q1, key=''),
+        device=test_device,
     )
     result = cg.XmonSimulator().run(circuit)
     np.testing.assert_equal(result.measurements[''], [[True]])
 
 
 def bit_flip_circuit(flip0, flip1):
-    q1, q2 = cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)
-    g1, g2 = cirq.X(q1)**flip0, cirq.X(q2)**flip1
-    m1, m2 = cirq.MeasurementGate('q1')(q1), cirq.MeasurementGate('q2')(q2)
-    circuit = cirq.Circuit()
+    g1, g2 = cirq.X(Q1)**flip0, cirq.X(Q2)**flip1
+    m1, m2 = cirq.measure(Q1, key='q1'), cirq.measure(Q2, key='q2')
+    circuit = cirq.Circuit(device=test_device)
     circuit.append([g1, g2, m1, m2])
     return circuit
 
@@ -877,7 +900,7 @@ def test_circuit_repetitions_optimized_regression():
 
 def test_circuit_parameters():
     sim = cg.XmonSimulator()
-    circuit = bit_flip_circuit(cirq.Symbol('a'), cirq.Symbol('b'))
+    circuit = bit_flip_circuit(sympy.Symbol('a'), sympy.Symbol('b'))
 
     resolvers = [cirq.ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
@@ -897,14 +920,14 @@ def test_circuit_parameters():
 
 def test_circuit_bad_parameters():
     sim = cg.XmonSimulator()
-    circuit = bit_flip_circuit(cirq.Symbol('a'), cirq.Symbol('b'))
+    circuit = bit_flip_circuit(sympy.Symbol('a'), sympy.Symbol('b'))
     with pytest.raises(TypeError):
         sim.run_sweep(circuit, params=3, repetitions=1)
 
 
 def test_circuit_param_and_reps():
     sim = cg.XmonSimulator()
-    circuit = bit_flip_circuit(cirq.Symbol('a'), cirq.Symbol('b'))
+    circuit = bit_flip_circuit(sympy.Symbol('a'), sympy.Symbol('b'))
 
     resolvers = [cirq.ParamResolver({'a': b1, 'b': b2})
                  for b1 in range(2) for b2 in range(2)]
@@ -934,71 +957,65 @@ def assert_simulated_states_match_circuit_matrix_by_basis(circuit):
             qubit_order=basis))[-1]
         cirq.testing.assert_allclose_up_to_global_phase(
             col,
-            result.state(),
+            result.state_vector(),
             atol=1e-5)
 
 
 def test_compare_simulator_states_to_gate_matrices():
     assert_simulated_states_match_circuit_matrix_by_basis(
-        cirq.Circuit.from_ops(cirq.CNOT(Q1, Q2)))
+        cirq.Circuit.from_ops(cirq.CNOT(Q1, Q2), device=test_device))
 
     assert_simulated_states_match_circuit_matrix_by_basis(
-        cirq.Circuit.from_ops(cirq.Z(Q1)**0.5, cirq.Z(Q2)))
+        cirq.Circuit.from_ops(cirq.Z(Q1)**0.5, cirq.Z(Q2), device=test_device))
 
     assert_simulated_states_match_circuit_matrix_by_basis(
-        cirq.Circuit.from_ops(cirq.X(Q1)**0.5))
+        cirq.Circuit.from_ops(cirq.X(Q1)**0.5, device=test_device))
 
     assert_simulated_states_match_circuit_matrix_by_basis(
-        cirq.Circuit.from_ops(cirq.Y(Q2)**(1 / 3)))
+        cirq.Circuit.from_ops(cirq.Y(Q2)**(1 / 3), device=test_device))
 
     assert_simulated_states_match_circuit_matrix_by_basis(
-        cirq.Circuit.from_ops(cirq.H(Q2)))
+        cirq.Circuit.from_ops(cirq.H(Q2), device=test_device))
 
     assert_simulated_states_match_circuit_matrix_by_basis(
-        cirq.Circuit.from_ops(cirq.CZ(Q1, Q2)**0.5))
+        cirq.Circuit.from_ops(cirq.CZ(Q1, Q2)**0.5, device=test_device))
 
 
 def test_simulator_trial_result():
-    a = cirq.GridQubit(0, 0)
-    b = cirq.GridQubit(0, 1)
-    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
-        cirq.X(a),
-        cirq.CNOT(a, b),
-        cirq.measure(a, key='a'),
-        cirq.measure(b, key='b'),
-        cirq.measure(c, key='c')
+        cirq.X(Q1),
+        cirq.CNOT(Q1, Q2),
+        cirq.measure(Q1, key='a'),
+        cirq.measure(Q2, key='b'),
+        cirq.measure(Q3, key='c'),
+        device=test_device,
     )
     result = cirq.google.XmonSimulator().run(circuit)
     assert str(result) == 'a=1\nb=1\nc=0'
 
 
 def test_simulator_trial_repeated_result():
-    a = cirq.GridQubit(0, 0)
-    b = cirq.GridQubit(0, 1)
-    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
-        cirq.X(b),
-        cirq.measure(a, b, key='ab'),
-        cirq.measure(c, key='c')
+        cirq.X(Q2),
+        cirq.measure(Q1, Q2, key='ab'),
+        cirq.measure(Q3, key='c'),
+        device=test_device,
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == 'ab=00000, 11111\nc=00000'
 
 
 def test_simulator_simulate_trial_result_str():
-    a = cirq.GridQubit(0, 0)
-    b = cirq.GridQubit(0, 1)
-    c = cirq.GridQubit(0, 2)
     circuit = cirq.Circuit.from_ops(
-        cirq.X(a),
-        cirq.CNOT(a, b),
-        cirq.measure(a, key='a'),
-        cirq.measure(b, key='b'),
-        cirq.measure(c, key='c')
+        cirq.X(Q1),
+        cirq.CNOT(Q1, Q2),
+        cirq.measure(Q1, key='a'),
+        cirq.measure(Q2, key='b'),
+        cirq.measure(Q3, key='c'),
+        device=test_device,
     )
     result = cirq.google.XmonSimulator().simulate(circuit)
-    assert str(result) == "a=1 b=1 c=0"
+    assert str(result) == "measurements: a=1 b=1 c=0\noutput vector: -1|110⟩"
 
 
 def test_simulator_implied_measurement_key():
@@ -1007,8 +1024,7 @@ def test_simulator_implied_measurement_key():
         cirq.X(q),
         cirq.measure(q),
         cirq.measure(q, key='other'),
+        device=test_device,
     )
     result = cirq.google.XmonSimulator().run(circuit, repetitions=5)
     assert str(result) == "(0, 0)=11111\nother=11111"
-
-

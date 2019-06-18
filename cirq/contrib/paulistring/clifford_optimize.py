@@ -15,43 +15,40 @@
 from typing import Tuple, cast
 
 from cirq import ops, circuits
-from cirq.contrib.paulistring.pauli_string_phasor import (
-    PauliStringPhasor)
 from cirq.contrib.paulistring.convert_gate_set import (
     converted_gate_set)
 
 
 def clifford_optimized_circuit(circuit: circuits.Circuit,
-                               tolerance: float = 1e-8
+                               atol: float = 1e-8
                                ) -> circuits.Circuit:
     # Convert to a circuit with SingleQubitCliffordGates,
     # CZs and other ignored gates
     c_cliff = converted_gate_set(circuit, no_clifford_gates=False,
-                                 tolerance=tolerance)
+                                 atol=atol)
 
     all_ops = list(c_cliff.all_operations())
 
-    def find_merge_point(start_i: int,
-                         string_op: PauliStringPhasor,
-                         stop_at_cz: bool,
-                         ) -> Tuple[int, PauliStringPhasor, int]:
+    def find_merge_point(
+            start_i: int,
+            string_op: ops.PauliStringPhasor,
+            stop_at_cz: bool,
+    ) -> Tuple[int, ops.PauliStringPhasor, int]:
         STOP = 0
         CONTINUE = 1
         SKIP = 2
         def continue_condition(op: ops.Operation,
-                               current_string: PauliStringPhasor,
+                               current_string: ops.PauliStringPhasor,
                                is_first: bool) -> int:
-            if (isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.SingleQubitCliffordGate)):
+            if ops.op_gate_of_type(op, ops.SingleQubitCliffordGate):
                 return (CONTINUE if len(current_string.pauli_string) != 1
                                  else STOP)
-            if (isinstance(op, ops.GateOperation)
-                and isinstance(op.gate, ops.CZPowGate)):
+            if ops.op_gate_of_type(op, ops.CZPowGate):
                 return STOP if stop_at_cz else CONTINUE
-            if (isinstance(op, PauliStringPhasor)
-                and len(op.qubits) == 1
-                and (op.pauli_string[op.qubits[0]]
-                     == current_string.pauli_string[op.qubits[0]])):
+            if (isinstance(op, ops.PauliStringPhasor) and
+                    len(op.qubits) == 1 and
+                (op.pauli_string[op.qubits[0]] == current_string.pauli_string[
+                    op.qubits[0]])):
                 return SKIP
             return STOP
 
@@ -89,9 +86,9 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             trans = remaining_cliff_gate.transform(pauli)
             pauli = trans.to
             quarter_turns *= -1 if trans.flip else 1
-            string_op = PauliStringPhasor(
-                ops.PauliString.from_single(cliff_op.qubits[0], pauli),
-                half_turns=quarter_turns / 2)
+            string_op = ops.PauliStringPhasor(ops.PauliString.from_single(
+                cliff_op.qubits[0], pauli),
+                                              exponent_neg=quarter_turns / 2)
 
             merge_i, merge_op, num_passed = find_merge_point(start_i, string_op,
                                                              quarter_turns == 2)
@@ -99,8 +96,10 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             assert len(merge_op.pauli_string) == 1, 'PauliString length != 1'
 
             qubit, pauli = next(iter(merge_op.pauli_string.items()))
-            quarter_turns = round(merge_op.half_turns * 2)
-            quarter_turns *= (1, -1)[merge_op.pauli_string.negated]
+            quarter_turns = round(merge_op.exponent_relative * 2)
+            if merge_op.pauli_string.coefficient not in [1, -1]:
+                raise NotImplementedError("TODO: handle all coefficients.")
+            quarter_turns *= int(merge_op.pauli_string.coefficient.real)
             quarter_turns %= 4
             part_cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
                                         pauli, quarter_turns)
@@ -120,13 +119,13 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
                   and other_op.gate.exponent == 1
                   and quarter_turns == 2):
                 # Pass whole Pauli gate over CZ, possibly adding a Z gate
-                if pauli != ops.Pauli.Z:
+                if pauli != ops.pauli_gates.Z:
                     other_qubit = other_op.qubits[
                                     other_op.qubits.index(qubit)-1]
                     all_ops.insert(merge_i+1,
                                    ops.SingleQubitCliffordGate.Z(other_qubit))
                 all_ops.insert(merge_i+1, part_cliff_gate(qubit))
-            elif isinstance(other_op, PauliStringPhasor):
+            elif isinstance(other_op, ops.PauliStringPhasor):
                 # Pass over a non-Clifford gate
                 mod_op = other_op.pass_operations_over(
                                         [part_cliff_gate(qubit)])

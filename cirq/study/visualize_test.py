@@ -18,25 +18,23 @@ import numpy as np
 from matplotlib import pyplot as pl
 
 import cirq
-import cirq.google as cg
 from cirq.devices import GridQubit
 from cirq.study import visualize
 
 
 def test_plot_state_histogram():
     pl.switch_backend('PDF')
-    simulator = cg.XmonSimulator()
+    simulator = cirq.Simulator()
 
     q0 = GridQubit(0, 0)
     q1 = GridQubit(1, 0)
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.X(q1)])
-    circuit.append([cirq.MeasurementGate(key='q0')(q0),
-                    cirq.MeasurementGate(key='q1')(q1)])
-    results = simulator.run_sweep(program=circuit,
-                                  repetitions=5)
+    circuit.append([cirq.measure(q0, key='q0'), cirq.measure(q1, key='q1')])
+    result = simulator.run(program=circuit,
+                           repetitions=5)
 
-    values_plotted = visualize.plot_state_histogram(results[0])
+    values_plotted = visualize.plot_state_histogram(result)
     expected_values = [0., 0., 0., 5.]
 
     np.testing.assert_equal(values_plotted, expected_values)

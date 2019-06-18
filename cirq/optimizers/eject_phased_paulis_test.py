@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterable
+from typing import Iterable, cast
+
+import sympy
 
 import cirq
 
@@ -53,7 +55,9 @@ def assert_optimizes(before: cirq.Circuit,
 
 
 def quick_circuit(*moments: Iterable[cirq.OP_TREE]) -> cirq.Circuit:
-    return cirq.Circuit([cirq.Moment(cirq.flatten_op_tree(m)) for m in moments])
+    return cirq.Circuit([
+        cirq.Moment(cast(Iterable[cirq.Operation], cirq.flatten_op_tree(m)))
+        for m in moments])
 
 
 def test_absorbs_z():
@@ -309,12 +313,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cirq.X(a)],
-            [cirq.Z(a)**cirq.Symbol('z')],
+            [cirq.Z(a)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         expected=quick_circuit(
             [cirq.X(a)],
-            [cirq.Z(a)**cirq.Symbol('z')],
+            [cirq.Z(a)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         compare_unitaries=False)
@@ -322,12 +326,12 @@ def test_blocked_by_unknown_and_symbols():
     assert_optimizes(
         before=quick_circuit(
             [cirq.X(a)],
-            [cirq.CZ(a, b)**cirq.Symbol('z')],
+            [cirq.CZ(a, b)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         expected=quick_circuit(
             [cirq.X(a)],
-            [cirq.CZ(a, b)**cirq.Symbol('z')],
+            [cirq.CZ(a, b)**sympy.Symbol('z')],
             [cirq.X(a)],
         ),
         compare_unitaries=False)

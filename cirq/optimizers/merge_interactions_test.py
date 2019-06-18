@@ -15,6 +15,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
+import sympy
 
 import cirq
 
@@ -40,14 +41,8 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
         post(actual)
         post(expected)
 
-    if actual != expected:
-        # coverage: ignore
-        print('ACTUAL')
-        print(actual)
-        print('EXPECTED')
-        print(expected)
-    assert actual == expected
-
+    assert actual == expected, 'ACTUAL {} : EXPECTED {}'.format(actual,
+                                                                expected)
 
 def assert_optimization_not_broken(circuit):
     """Check that the unitary matrix for the input circuit is the same (up to
@@ -76,12 +71,12 @@ def test_ignores_czs_separated_by_parameterized():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.Z(a)**cirq.Symbol('boo')]),
+            cirq.Moment([cirq.Z(a)**sympy.Symbol('boo')]),
             cirq.Moment([cirq.CZ(a, b)]),
         ]))
 
@@ -193,7 +188,7 @@ def test_not_decompose_partial_czs():
 
 
 def test_post_clean_up():
-    class Marker(cirq.Gate):
+    class Marker(cirq.TwoQubitGate):
         pass
 
     a, b = cirq.LineQubit.range(2)

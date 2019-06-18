@@ -19,14 +19,9 @@ import cirq
 def assert_equal_mod_empty(expected, actual):
     drop_empty = cirq.DropEmptyMoments()
     drop_empty.optimize_circuit(actual)
-    if expected != actual:
-        # coverage: ignore
-        print('EXPECTED')
-        print(expected)
-        print('ACTUAL')
-        print(actual)
-    assert expected == actual
 
+    assert expected == actual, 'EXPECTED {} : ACTUAL {}'.format(expected,
+                                                                actual)
 
 def test_empty_circuit():
     circuit = cirq.Circuit()
@@ -114,7 +109,7 @@ def test_recursive_composite():
 
 
 def test_decompose_returns_not_flat_op_tree():
-    class DummyGate(cirq.Gate):
+    class DummyGate(cirq.SingleQubitGate):
         def _decompose_(self, qubits):
             q0, = qubits
             # Yield a tuple of gates instead of yielding a gate
@@ -130,7 +125,7 @@ def test_decompose_returns_not_flat_op_tree():
 
 
 def test_decompose_returns_deep_op_tree():
-    class DummyGate(cirq.Gate):
+    class DummyGate(cirq.TwoQubitGate):
         def _decompose_(self, qubits):
             q0, q1 = qubits
             # Yield a tuple

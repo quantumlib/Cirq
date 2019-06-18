@@ -17,7 +17,9 @@ from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
 
 import abc
 
+import math
 import numpy as np
+import sympy
 
 from cirq import value, protocols
 from cirq.ops import raw_types
@@ -45,7 +47,7 @@ EigenComponent = NamedTuple(
 )
 
 
-@value.value_equality(distinct_child_types=True)
+@value.value_equality(distinct_child_types=True, approximate=True)
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.
 
@@ -59,7 +61,7 @@ class EigenGate(raw_types.Gate):
     """
 
     def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[value.Symbol, float] = 1.0,
+                 exponent: Union[sympy.Basic, float] = 1.0,
                  global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
@@ -103,12 +105,12 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> Union[value.Symbol, float]:
+    def exponent(self) -> Union[sympy.Basic, float]:
         return self._exponent
 
     # virtual method
     def _with_exponent(self: TSelf,
-                       exponent: Union[value.Symbol, float]) -> TSelf:
+                       exponent: Union[sympy.Basic, float]) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -247,7 +249,6 @@ class EigenGate(raw_types.Gate):
                                   [-0.5, +0.5]])),
                 ]
         """
-        pass
 
     def _period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized when equating.
@@ -262,7 +263,7 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2/e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, value.Symbol]) -> TSelf:
+    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> TSelf:
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -272,7 +273,7 @@ class EigenGate(raw_types.Gate):
     def _canonical_exponent(self):
         if self._canonical_exponent_cached is None:
             period = self._period()
-            if not period or isinstance(self._exponent, value.Symbol):
+            if not period or protocols.is_parameterized(self._exponent):
                 self._canonical_exponent_cached = self._exponent
             else:
                 self._canonical_exponent_cached = self._exponent % period
@@ -281,8 +282,16 @@ class EigenGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self._canonical_exponent, self._global_shift
 
+    def _value_equality_approximate_values_(self):
+        period = self._period()
+        if not period or protocols.is_parameterized(self._exponent):
+            exponent = self._exponent
+        else:
+            exponent = value.PeriodicValue(self._exponent, period)
+        return exponent, self._global_shift
+
     def _trace_distance_bound_(self):
-        if isinstance(self._exponent, value.Symbol):
+        if protocols.is_parameterized(self._exponent):
             return 1
 
         angles = [half_turns for half_turns, _ in self._eigen_components()]
@@ -304,7 +313,7 @@ class EigenGate(raw_types.Gate):
         ], axis=0)
 
     def _is_parameterized_(self) -> bool:
-        return isinstance(self._exponent, value.Symbol)
+        return protocols.is_parameterized(self._exponent)
 
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
@@ -314,7 +323,7 @@ class EigenGate(raw_types.Gate):
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
     for r in vals:
-        t = t * r // fractions.gcd(t, r)
+        t = t * r // math.gcd(t, r)
     return t
 
 
@@ -353,7 +362,7 @@ def _approximate_common_period(periods: List[float],
     if len(periods) == 1:
         return abs(periods[0])
     approx_rational_periods = [
-        fractions.Fraction(int(np.round(p * approx_denom)), approx_denom)
+        fractions.Fraction(int(np.round(abs(p) * approx_denom)), approx_denom)
         for p in periods
     ]
     common = float(_common_rational_period(approx_rational_periods))

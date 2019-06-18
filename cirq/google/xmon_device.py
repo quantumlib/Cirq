@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, cast, Optional, List, TYPE_CHECKING
+from datetime import timedelta
+from typing import Iterable, cast, Optional, List, Union, TYPE_CHECKING
 
-from cirq import ops, circuits, value, devices
+from cirq import circuits, devices, ops, protocols, value
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 
@@ -29,10 +30,9 @@ class XmonDevice(devices.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.
     """
 
-    def __init__(self,
-                 measurement_duration: value.Duration,
-                 exp_w_duration: value.Duration,
-                 exp_11_duration: value.Duration,
+    def __init__(self, measurement_duration: Union[value.Duration, timedelta],
+                 exp_w_duration: Union[value.Duration, timedelta],
+                 exp_11_duration: Union[value.Duration, timedelta],
                  qubits: Iterable[GridQubit]) -> None:
         """Initializes the description of an xmon device.
 
@@ -42,9 +42,9 @@ class XmonDevice(devices.Device):
             exp_11_duration: The maximum duration of an ExpZ operation.
             qubits: Qubits on the device, identified by their x, y location.
         """
-        self._measurement_duration = measurement_duration
-        self._exp_w_duration = exp_w_duration
-        self._exp_z_duration = exp_11_duration
+        self._measurement_duration = value.Duration.create(measurement_duration)
+        self._exp_w_duration = value.Duration.create(exp_w_duration)
+        self._exp_z_duration = value.Duration.create(exp_11_duration)
         self.qubits = frozenset(qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
@@ -61,18 +61,17 @@ class XmonDevice(devices.Device):
         return [e for e in possibles if e in self.qubits]
 
     def duration_of(self, operation):
-        if isinstance(operation, ops.GateOperation):
-            if isinstance(operation.gate, ops.CZPowGate):
-                return self._exp_z_duration
-            if isinstance(operation.gate, ops.MeasurementGate):
-                return self._measurement_duration
-            if isinstance(operation.gate, (ops.XPowGate,
-                                           ops.YPowGate,
-                                           ops.PhasedXPowGate)):
-                return self._exp_w_duration
-            if isinstance(operation.gate, ops.ZPowGate):
-                # Z gates are performed in the control software.
-                return value.Duration()
+        if ops.op_gate_of_type(operation, ops.CZPowGate):
+            return self._exp_z_duration
+        if ops.op_gate_of_type(operation, ops.MeasurementGate):
+            return self._measurement_duration
+        if (ops.op_gate_of_type(operation, ops.XPowGate) or
+                ops.op_gate_of_type(operation, ops.YPowGate) or
+                ops.op_gate_of_type(operation, ops.PhasedXPowGate)):
+            return self._exp_w_duration
+        if ops.op_gate_of_type(operation, ops.ZPowGate):
+            # Z gates are performed in the control software.
+            return value.Duration()
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
     def validate_gate(self, gate: ops.Gate):
@@ -148,11 +147,10 @@ class XmonDevice(devices.Device):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def validate_moment(self, moment: circuits.Moment):
+    def validate_moment(self, moment: ops.Moment):
         super().validate_moment(moment)
         for op in moment.operations:
-            if (isinstance(op, ops.GateOperation) and
-                    isinstance(op.gate, ops.CZPowGate)):
+            if ops.op_gate_of_type(op, ops.CZPowGate):
                 for other in moment.operations:
                     if (other is not op and
                             self._check_if_exp11_operation_interacts(
@@ -163,13 +161,12 @@ class XmonDevice(devices.Device):
 
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
-                                      moment: circuits.Moment) -> bool:
+                                      moment: ops.Moment) -> bool:
         self.validate_moment(moment)
 
         if not super().can_add_operation_into_moment(operation, moment):
             return False
-        if (isinstance(operation, ops.GateOperation) and
-                isinstance(operation.gate, ops.CZPowGate)):
+        if ops.op_gate_of_type(operation, ops.CZPowGate):
             return not self._check_if_exp11_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
                 cast(Iterable[ops.GateOperation], moment.operations))
@@ -227,9 +224,8 @@ class XmonDevice(devices.Device):
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     seen = set()  # type: Set[str]
     for op in operations:
-        if ops.MeasurementGate.is_measurement(op):
-            key = cast(ops.MeasurementGate,
-                       cast(ops.GateOperation, op).gate).key
+        if protocols.is_measurement(op):
+            key = protocols.measurement_key(op)
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))
             seen.add(key)

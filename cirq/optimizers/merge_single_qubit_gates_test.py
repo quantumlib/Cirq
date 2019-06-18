@@ -33,19 +33,11 @@ def assert_optimizes(
         cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
-        post.optimize_circuit(before)
-        post.optimize_circuit(expected)
+        post(before)  # type: ignore #  error: "object" not callable
+        post(expected)  # type: ignore #  error: "object" not callable
 
-    try:
-        assert before == expected
-    except AssertionError:  # coverage: ignore
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("EXPECTED")
-        print(expected)
-        raise
-
+    assert before == expected, 'BEFORE {} : EXPECTED {}'.format(before,
+                                                                expected)
 
 def test_leaves_singleton():
     m = cirq.MergeSingleQubitGates()
@@ -140,7 +132,7 @@ def test_ignores_2qubit_target():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.Gate):
+    class UnsupportedDummy(cirq.SingleQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)

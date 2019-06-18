@@ -15,10 +15,10 @@
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
-
 from collections import defaultdict
+import sympy
 
-from cirq import circuits, ops, value, protocols
+from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from typing import Dict, List, Tuple
 
 
-class EjectZ(circuits.OptimizationPass):
+class EjectZ():
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
@@ -44,9 +44,9 @@ class EjectZ(circuits.OptimizationPass):
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
-        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.QubitId, float]
+        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.Qid, float]
 
-        def dump_tracked_phase(qubits: Iterable[ops.QubitId],
+        def dump_tracked_phase(qubits: Iterable[ops.Qid],
                                index: int) -> None:
             """Zeroes qubit_phase entries by emitting Z gates."""
             for q in qubits:
@@ -70,7 +70,7 @@ class EjectZ(circuits.OptimizationPass):
                     continue
 
                 # Z gate before measurement is a no-op. Drop tracked phase.
-                if ops.MeasurementGate.is_measurement(op):
+                if ops.op_gate_of_type(op, ops.MeasurementGate):
                     for q in op.qubits:
                         qubit_phase[q] = 0
 
@@ -105,6 +105,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op.gate, ops.ZPowGate):
         return None
     h = op.gate.exponent
-    if isinstance(h, value.Symbol):
+    if isinstance(h, sympy.Symbol):
         return None
     return h

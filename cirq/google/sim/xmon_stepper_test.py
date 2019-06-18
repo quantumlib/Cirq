@@ -16,6 +16,7 @@
 
 import itertools
 import multiprocessing.pool as pool
+import sys
 import numpy as np
 import pytest
 
@@ -638,17 +639,20 @@ def test_non_context_manager(num_prefix_qubits):
     stepper.__exit__()
 
 
+@pytest.mark.skipif(sys.platform.startswith('win'),
+                    reason='Skipping test on Windows due '
+                    'to lack of multiprocessor support')
 @pytest.mark.parametrize(('num_prefix_qubits', 'use_processes'),
                          ((0, True), (0, False), (2, True), (2, False)))
 def test_large_circuit_unitary(num_prefix_qubits, use_processes):
-    moments = random_moments(5, 40)
+    moments = random_moments(4, 20)
     columns = []
-    with xmon_stepper.Stepper(num_qubits=5,
+    with xmon_stepper.Stepper(num_qubits=4,
                               num_prefix_qubits=num_prefix_qubits,
                               initial_state=0,
                               min_qubits_before_shard=0,
                               use_processes=use_processes) as s:
-        for initial_state in range(2 ** 5):
+        for initial_state in range(2 ** 4):
             s.reset_state(initial_state)
             for moment in moments:
                 phase_map = {}
@@ -663,7 +667,7 @@ def test_large_circuit_unitary(num_prefix_qubits, use_processes):
             columns.append(s.current_state)
     unitary = np.array(columns).transpose()
     np.testing.assert_almost_equal(
-        np.dot(unitary, np.conj(unitary.T)), np.eye(2 ** 5), decimal=6)
+        np.dot(unitary, np.conj(unitary.T)), np.eye(2 ** 4), decimal=6)
 
 
 def random_moments(num_qubits, num_ops):
