@@ -64,6 +64,7 @@ matrix:
     env: NAME=pytest (Windows)
     language: sh
     python: "3.7.3"
+    cache: pip
     before_install:
     - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
     - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
