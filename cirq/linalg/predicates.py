@@ -202,6 +202,8 @@ def allclose_up_to_global_phase(
             other NaN entries.
     """
 
+    if a.shape != b.shape:
+        return False
     a, b = transformations.match_global_phase(a, b)
 
     # Should now be equivalent.
