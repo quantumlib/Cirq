@@ -66,7 +66,7 @@ matrix:
     python: "3.7.3"
     cache:
       directories:
-        - $HOME/pip/Cache
+        - $HOME/AppData/Local/pip/Cache
     before_install:
     - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
     - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
