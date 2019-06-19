@@ -31,6 +31,7 @@ from cirq.google.sim import (
     XmonStepResult,
 )
 
+
 from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 
@@ -42,9 +43,15 @@ from cirq.google.known_devices import (
     Foxtail,
 )
 
+from cirq.google.op_deserializer import (
+    DeserializingArg,
+    GateOpDeserializer,
+)
+
+from cirq.google.op_serializer import (GateOpSerializer, SerializingArg)
+
 from cirq.google.optimize import (
     optimized_for_xmon,)
-
 
 from cirq.google.programs import (
     gate_to_proto_dict,
@@ -56,6 +63,9 @@ from cirq.google.programs import (
     unpack_results,
     xmon_op_from_proto_dict,
 )
+
+from cirq.google.serializable_gate_set import (
+    SerializableGateSet,)
 
 from cirq.google.xmon_device import (
     XmonDevice,)
