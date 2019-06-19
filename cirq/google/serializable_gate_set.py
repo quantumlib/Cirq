@@ -15,18 +15,13 @@
 
 from collections import defaultdict
 
-from typing import (cast, Dict, Iterable, Optional, Tuple, Type, TYPE_CHECKING,
-                    Union)
+from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union
 
 from google.protobuf import json_format
 
 from cirq import circuits, devices, ops, schedules, value
 from cirq.api.google import v2
 from cirq.google import op_deserializer, op_serializer
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
 
 
 class SerializableGateSet:

@@ -66,18 +66,20 @@ class GateOpSerializer:
         serialized_gate_id: The id used when serializing the gate.
     """
 
-    def __init__(self,
-                 *,
-                 gate_type: Type[Gate],
-                 serialized_gate_id: str,
-                 args: List[SerializingArg],
-                 gate_predicate: Callable[[ops.Gate], bool] = None):
+    def __init__(
+            self,
+            *,
+            gate_type: Type[Gate],
+            serialized_gate_id: str,
+            args: List[SerializingArg],
+            can_serialize_predicate: Callable[[ops.Gate], bool] = lambda x: True
+    ):
         """Construct the serializer.
 
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
-            gate_predicate: Sometimes a gate can only be serialized for
+            can_serialize_predicate: Sometimes a gate can only be serialized for
                 particular gate parameters. If this is not None, then
                 this predicate will be checked before attempting
                 to serialize the gate. If the predicate is False,
@@ -89,7 +91,7 @@ class GateOpSerializer:
         self.gate_type = gate_type
         self.serialized_gate_id = serialized_gate_id
         self.args = args
-        self.gate_predicate = gate_predicate
+        self.can_serialize_predicate = can_serialize_predicate
 
     def to_proto_dict(self, op: ops.GateOperation) -> Optional[Dict]:
         msg = self.to_proto(op)
@@ -113,7 +115,7 @@ class GateOpSerializer:
                 'Gate of type {} but serializer expected type {}'.format(
                     type(gate), self.gate_type))
 
-        if self.gate_predicate is not None and not self.gate_predicate(gate):
+        if not self.can_serialize_predicate(gate):
             return None
 
         if msg is None:
