@@ -71,21 +71,21 @@ def test_transformations():
     pi = np.pi
     initialRx = cirq.Rx(0.4)
     expectedPowx = cirq.X**(0.4 / pi)
-    recievedPowx = initialRx.as_pow_gate()
-    backToRx = recievedPowx.as_rotation()
-    assert recievedPowx == expectedPowx
+    receivedPowx = initialRx.with_canonical_global_phase()
+    backToRx = receivedPowx.in_su2()
+    assert receivedPowx == expectedPowx
     assert backToRx == initialRx
     initialRy = cirq.Ry(0.123)
     expectedPowy = cirq.Y**(0.123 / pi)
-    recievedPowy = initialRy.as_pow_gate()
-    backToRy = recievedPowy.as_rotation()
-    assert recievedPowy == expectedPowy
+    receivedPowy = initialRy.with_canonical_global_phase()
+    backToRy = receivedPowy.in_su2()
+    assert receivedPowy == expectedPowy
     assert backToRy == initialRy
     initialRz = cirq.Rz(-1.53)
     expectedPowz = cirq.Z**(-1.53 / pi)
-    recievedPowz = initialRz.as_pow_gate()
-    backToRz = recievedPowz.as_rotation()
-    assert recievedPowz == expectedPowz
+    receivedPowz = initialRz.with_canonical_global_phase()
+    backToRz = receivedPowz.in_su2()
+    assert receivedPowz == expectedPowz
     assert backToRz == initialRz
 
 

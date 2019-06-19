@@ -81,10 +81,10 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
-    def as_rotation(self):
+    def in_su2(self):
         return XPowGate(exponent=self._exponent, global_shift=-0.5)
 
-    def as_pow_gate(self):
+    def with_canonical_global_phase(self):
         return XPowGate(exponent=self._exponent)
 
     def _eigen_components(self):
@@ -190,10 +190,10 @@ class YPowGate(eigen_gate.EigenGate,
     `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
     """
 
-    def as_rotation(self):
+    def in_su2(self):
         return YPowGate(exponent=self._exponent, global_shift=-0.5)
 
-    def as_pow_gate(self):
+    def with_canonical_global_phase(self):
         return YPowGate(exponent=self._exponent)
 
     def _eigen_components(self):
@@ -310,10 +310,10 @@ class ZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def as_rotation(self):
+    def in_su2(self):
         return ZPowGate(exponent=self._exponent, global_shift=-0.5)
 
-    def as_pow_gate(self):
+    def with_canonical_global_phase(self):
         return ZPowGate(exponent=self._exponent)
 
     def _eigen_components(self):
