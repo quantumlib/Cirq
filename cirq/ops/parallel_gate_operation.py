@@ -89,22 +89,10 @@ class ParallelGateOperation(raw_types.Operation):
         """Replicates the logic the simulators use to apply the equivalent
            sequence of GateOperations
         """
-        state = args.target_tensor
-        buffer = args.available_buffer
-        for axis in args.axes:
-            result = protocols.apply_unitary(self.gate,
-                                             protocols.ApplyUnitaryArgs(
-                                                 state,
-                                                 buffer,
-                                                 (axis,)),
-                                             default=NotImplemented)
-
-            if result is buffer:
-                buffer = state
-
-            state = result
-
-        return state
+        if not protocols.has_unitary(self.gate):
+            return NotImplemented
+        return protocols.apply_unitaries((self.gate(q) for q in self.qubits),
+                                         self.qubits, args)
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.gate)

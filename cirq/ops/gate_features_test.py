@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import Iterator
 import pytest
 
 import cirq
@@ -44,8 +45,13 @@ def test_single_qubit_gate_validates_on_each():
     test_qubits = [cirq.NamedQubit(str(i)) for i in range(3)]
 
     _ = g.on_each(*test_qubits)
+    _ = g.on_each(test_qubits)
+
+    test_non_qubits = [str(i) for i in range(3)]
     with pytest.raises(ValueError):
-        _ = g.on_each(test_qubits)
+        _ = g.on_each(*test_non_qubits)
+    with pytest.raises(ValueError):
+        _ = g.on_each(test_non_qubits)
 
 
 def test_single_qubit_validates_on():
@@ -139,11 +145,26 @@ def test_on_each():
     assert c.on_each(a, b) == [c(a), c(b)]
     assert c.on_each(b, a) == [c(b), c(a)]
 
-    with pytest.raises(ValueError):
-        c.on_each([])
+    assert c.on_each([]) == []
+    assert c.on_each([a]) == [c(a)]
+    assert c.on_each([a, b]) == [c(a), c(b)]
+    assert c.on_each([b, a]) == [c(b), c(a)]
+    assert c.on_each([a, [b, a], b]) == [c(a), c(b), c(a), c(b)]
 
     with pytest.raises(ValueError):
-        c.on_each([a])
+        c.on_each('abcd')
+    with pytest.raises(ValueError):
+        c.on_each(['abcd'])
+    with pytest.raises(ValueError):
+        c.on_each([a, 'abcd'])
+
+    def iterator(qubits):
+        for i in range(len(qubits)):
+            yield qubits[i]
+
+    qubit_iterator = iterator([a, b, a, b])
+    assert isinstance(qubit_iterator, Iterator)
+    assert c.on_each(qubit_iterator) == [c(a), c(b), c(a), c(b)]
 
 
 def test_qasm_output_args_validate():
