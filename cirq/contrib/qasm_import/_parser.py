@@ -42,7 +42,7 @@ class QasmGateStatement:
     """Specifies how to convert a call to an OpenQASM gate
         to a list of `cirq.GateOperation`s.
 
-        QasmGateStatement has the responsibility to validate the arguments
+        Has the responsibility to validate the arguments
         and parameters of the call and to generate a list of corresponding
         `cirq.GateOperation`s in the `on` method.
         """
