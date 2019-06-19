@@ -532,3 +532,10 @@ class SimulationTrialResult:
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
+
+    @property
+    def qubit_map(self) -> Dict[ops.Qid, int]:
+        """A map from Qid to index used to define the ordering of the basis in
+        the result.
+        """
+        return self._final_simulator_state.qubit_map
