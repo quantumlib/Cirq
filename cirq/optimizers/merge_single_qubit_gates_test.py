@@ -39,6 +39,7 @@ def assert_optimizes(
     assert before == expected, 'BEFORE {} : EXPECTED {}'.format(before,
                                                                 expected)
 
+
 def test_leaves_singleton():
     m = cirq.MergeSingleQubitGates()
     q = cirq.NamedQubit('q')
@@ -170,18 +171,17 @@ def test_rewrite():
 
 def test_merge_single_qubit_gates_into_phased_x_z():
     a, b = cirq.LineQubit.range(2)
-    assert_optimizes(
-        before=cirq.Circuit.from_ops(
-            cirq.X(a),
-            cirq.Y(b)**0.5,
-            cirq.CZ(a, b),
-            cirq.H(a),
-            cirq.Z(a),
-        ),
-        expected=cirq.Circuit.from_ops(
-            cirq.X(a),
-            cirq.Y(b)**0.5,
-            cirq.CZ(a, b),
-            cirq.Y(a)**-0.5,
-        ),
-        optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)
+    assert_optimizes(before=cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.Y(b)**0.5,
+        cirq.CZ(a, b),
+        cirq.H(a),
+        cirq.Z(a),
+    ),
+                     expected=cirq.Circuit.from_ops(
+                         cirq.PhasedXPowGate(phase_exponent=1)(a),
+                         cirq.Y(b)**0.5,
+                         cirq.CZ(a, b),
+                         (cirq.PhasedXPowGate(phase_exponent=-0.5)(a))**0.5,
+                     ),
+                     optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)

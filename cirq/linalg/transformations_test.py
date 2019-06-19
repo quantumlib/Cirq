@@ -66,6 +66,28 @@ def test_match_global_phase():
     np.testing.assert_allclose(d, b * -1j, atol=1e-10)
 
 
+def test_match_global_phase_incompatible_shape():
+    a = np.array([1])
+    b = np.array([1, 2])
+    c, d = cirq.match_global_phase(a, b)
+    assert c.shape == a.shape
+    assert d.shape == b.shape
+    assert c is not a
+    assert d is not b
+    assert np.allclose(c, a)
+    assert np.allclose(d, b)
+
+    a = np.array([])
+    b = np.array([])
+    c, d = cirq.match_global_phase(a, b)
+    assert c.shape == a.shape
+    assert d.shape == b.shape
+    assert c is not a
+    assert d is not b
+    assert np.allclose(c, a)
+    assert np.allclose(d, b)
+
+
 def test_match_global_phase_zeros():
     z = np.array([[0, 0], [0, 0]])
     b = np.array([[1, 1], [1, 1]])

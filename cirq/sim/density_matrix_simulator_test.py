@@ -267,6 +267,7 @@ def test_simulate_compare_to_wave_function_simulator(dtype):
         mixed_result = (cirq.DensityMatrixSimulator(dtype=dtype)
                         .simulate(circuit,qubit_order=qubits)
                         .final_density_matrix)
+        assert mixed_result.shape == (16, 16)
         np.testing.assert_almost_equal(mixed_result, pure_result)
 
 
@@ -394,7 +395,7 @@ def test_simulate_moment_steps_empty_circuit(dtype):
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    assert step.simulator_state() == cirq.DensityMatrixSimulatorState(
+    assert step._simulator_state() == cirq.DensityMatrixSimulatorState(
         density_matrix=np.array([[1]]), qubit_map={})
 
 
@@ -630,17 +631,16 @@ def test_works_on_operation():
 
     s = cirq.DensityMatrixSimulator()
     c = cirq.Circuit.from_ops(XAsOp(cirq.LineQubit(0)))
-    np.testing.assert_allclose(
-        s.simulate(c).final_simulator_state.density_matrix,
-        np.diag([0, 1]),
-        atol=1e-8)
+    np.testing.assert_allclose(s.simulate(c).final_density_matrix,
+                               np.diag([0, 1]),
+                               atol=1e-8)
 
 
 def test_works_on_pauli_string_phasor():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
     sim = cirq.DensityMatrixSimulator()
-    result = sim.simulate(c).final_simulator_state.density_matrix
+    result = sim.simulate(c).final_density_matrix
     np.testing.assert_allclose(result.reshape(4, 4),
                                np.diag([0, 0, 0, 1]),
                                atol=1e-8)
@@ -650,7 +650,7 @@ def test_works_on_pauli_string():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(cirq.X(a) * cirq.X(b))
     sim = cirq.DensityMatrixSimulator()
-    result = sim.simulate(c).final_simulator_state.density_matrix
+    result = sim.simulate(c).final_density_matrix
     np.testing.assert_allclose(result.reshape(4, 4),
                                np.diag([0, 0, 0, 1]),
                                atol=1e-8)
