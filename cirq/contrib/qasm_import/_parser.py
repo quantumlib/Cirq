@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Dict, Optional, List, Any, Iterable
+from typing import Dict, Optional, List, Any, Iterable, Tuple
+import numpy as np
+from ply import yacc
 
 import cirq
-import numpy as np
 from cirq import Circuit, NamedQubit, CX
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
-from ply import yacc
 
 
 class Qasm:
@@ -55,7 +55,7 @@ class QasmGateStatement:
 
                 Args:
                     qasm_gate: the symbol of the QASM gate
-                    cirq_gate: the gate class on the cirq side 
+                    cirq_gate: the gate class on the cirq side
                     num_args: the number of qubits (used in validation) this
                                 gate takes
                 """
@@ -74,7 +74,6 @@ class QasmGateStatement:
         if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
             raise QasmException("Non matching quantum registers of length {} "
                                 "at line {}".format(reg_sizes, lineno))
-
         # OpenQASM gates can be applied on single qubits and qubit registers.
         # We represent single qubits as registers of size 1.
         # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
@@ -83,7 +82,8 @@ class QasmGateStatement:
         # used as arguments, we generate reg_size GateOperations via iterating
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
-        for qubits in functools.reduce(np.broadcast, args):
+        op_qubits = functools.reduce(np.broadcast, args)  # type: np.broadcast
+        for qubits in op_qubits:  # type: Tuple[cirq.Qid]
             if len(np.unique(qubits)) < len(qubits):
                 raise QasmException("Overlapping qubits in arguments"
                                     " at line {}".format(lineno))
@@ -197,7 +197,7 @@ class QasmParser:
             raise QasmException('Unknown gate "{}" at line {}, '
                                 'maybe you forgot to include '
                                 'the standard qelib1.inc?'.format(
-                                    gate, p.lineno(1)))
+                gate, p.lineno(1)))
         p[0] = self.basic_gates[gate].on(args=args, lineno=p.lineno(1))
 
         # args : arg ',' args
@@ -282,4 +282,4 @@ at line {}, column {}""".format(p.value, self.debug_context(p), p.lineno,
                         p.lexpos + 5)
 
         return "..." + self.qasm[debug_start:debug_end] + "\n" + (
-            " " * (3 + p.lexpos - debug_start)) + "^"
+                " " * (3 + p.lexpos - debug_start)) + "^"
