@@ -115,12 +115,12 @@ class GateOpDeserializer:
                 which = arg_proto.WhichOneof('arg')
                 if which == 'arg_value':
                     arg_value = arg_proto.arg_value
-                    which = arg_value.WhichOneof('arg_value')
-                    if which == 'float_value':
+                    which_val = arg_value.WhichOneof('arg_value')
+                    if which_val == 'float_value':
                         value = float(arg_value.float_value)
-                    elif which == 'bool_values':
+                    elif which_val == 'bool_values':
                         value = arg_value.bool_values.values
-                    elif which == 'string_value':
+                    elif which_val == 'string_value':
                         value = str(arg_value.string_value)
                 elif which == 'symbol':
                     value = sympy.Symbol(arg_proto.symbol)

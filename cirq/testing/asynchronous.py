@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import asyncio
+import re
 from collections import Awaitable, Coroutine
 from typing import Any, Type, Union
-
-import pytest
 
 # A placeholder default value used to detect that callers did not specify an
 # 'expected' value argument in `assert_asyncio_will_have_result`, and so the
@@ -106,7 +105,11 @@ def assert_asyncio_will_raise(
             a matching exception.
     """
     try:
-        with pytest.raises(expected, match=match):
-            _run_loop_waiting_for(future, timeout)
+        _run_loop_waiting_for(future, timeout)
+    except expected as exc:
+        if match and not re.search(match, str(exc)):
+            assert False, "Pattern '{}' not found in '{}'".format(match, exc)
     except asyncio.TimeoutError:
         assert False, "Not done: {!r}".format(future)
+    else:
+        assert False, "DID NOT RAISE {}".format(expected)
