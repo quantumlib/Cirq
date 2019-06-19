@@ -377,20 +377,118 @@ def test_keep_qubits():
     a = np.arange(4) / np.linalg.norm(np.arange(4))
     b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
     c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
-    state = np.kron(np.kron(a, b), c)
-
-    np.testing.assert_almost_equal(np.abs(cirq.keep_qubits(state, [0, 1])), a)
-    np.testing.assert_almost_equal(np.abs(cirq.keep_qubits(state, [2, 3, 4])),
-                                   b)
-    np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [5, 6, 7, 8])), c)
+    state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
 
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [0, 1, 2, 3, 4])), np.kron(a, b))
+        np.abs(cirq.keep_qubits(state, [0, 1])), a.reshape(2,2))
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [0, 1, 5, 6, 7, 8])), np.kron(a, c))
+        np.abs(cirq.keep_qubits(state, [2, 3, 4])), b.reshape(2,2,2))
     np.testing.assert_almost_equal(
-        np.abs(cirq.keep_qubits(state, [2, 3, 4, 5, 6, 7, 8])), np.kron(b, c))
+        np.abs(cirq.keep_qubits(state, [5, 6, 7, 8])), c.reshape(2,2,2,2))
+
+    np.testing.assert_almost_equal(
+        np.abs(cirq.keep_qubits(state, [0, 1, 2, 3, 4])),
+        np.kron(a, b).reshape(2,2,2,2,2))
+    np.testing.assert_almost_equal(
+        np.abs(cirq.keep_qubits(state, [0, 1, 5, 6, 7, 8])),
+        np.kron(a, c).reshape(2,2,2,2,2,2))
+    np.testing.assert_almost_equal(
+        np.abs(cirq.keep_qubits(state, [2, 3, 4, 5, 6, 7, 8])),
+        np.kron(b, c).reshape(2,2,2,2,2,2,2))
+
+
+def test_keep_qubits_bad_subset():
+    a = np.arange(4) / np.linalg.norm(np.arange(4))
+    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
+    state = np.kron(np.kron(a, b), c).reshape(2, 2, 2, 2, 2)
+    for q1 in range(5):
+        with pytest.raises(ValueError, match='pure'):
+            cirq.keep_qubits(state, [q1])
+    for q1 in range(2):
+        for q2 in range(2, 5):
+            with pytest.raises(ValueError, match='pure'):
+                cirq.keep_qubits(state, [q1, q2])
+    for q3 in range(2, 5):
+        with pytest.raises(ValueError, match='pure'):
+            cirq.keep_qubits(state, [0, 1, q3])
+    for q4 in range(2):
+        with pytest.raises(ValueError, match='pure'):
+            cirq.keep_qubits(state, [2, 3, 4, q4])
+
+
+def test_keep_qubits_non_kron():
+    bell00 = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    for q1 in [0, 1]:
+        with pytest.raises(ValueError, match='pure'):
+            cirq.keep_qubits(bell00.reshape(2,2), [q1])
+
+    plus_x = np.array([1, 1]) / np.sqrt(2)
+    state = np.kron(bell00, plus_x)
+    for q1 in [0, 1]:
+        with pytest.raises(ValueError, match='pure'):
+            cirq.keep_qubits(state.reshape(2,2,2), [q1, 2])
+    np.testing.assert_almost_equal(
+        np.abs(cirq.keep_qubits(state.reshape(2,2,2), [2])), plus_x)
+
+
+def test_keep_qubits_invalid_inputs():
+    with pytest.raises(ValueError, match='normalized'):
+        cirq.keep_qubits(np.arange(16).reshape(2,2,2,2), [1, 2])
+    with pytest.raises(ValueError, match='2, 2'):
+        cirq.keep_qubits(
+            np.arange(16).reshape(2,2,2,2) / np.linalg.norm(np.arange(16)),
+            [1, 2, 2])
+    with pytest.raises(ValueError, match='invalid'):
+        cirq.keep_qubits(np.array([1,0,0,0]).reshape(2,2), [5])
+    with pytest.raises(ValueError, match='invalid'):
+        cirq.keep_qubits(np.array([1,0,0,0]).reshape(2,2), [0, 1, 2])
+
+
+def test_wavefunction_partial_trace_invalid_input():
+    # TODO
+    pass
+
+
+def test_wavefunction_partial_trace_pure_result():
+    a = np.arange(4) / np.linalg.norm(np.arange(4))
+    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
+    c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
+    state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
+
+    np.testing.assert_almost_equal(
+        np.abs(cirq.wavefunction_partial_trace(state, [0, 1])),
+        ((1.0, a.reshape(2,2))))
+    np.testing.assert_almost_equal(
+        p.abs(cirq.wavefunction_partial_trace(state, [2, 3, 4])),
+        ((1.0, b.reshape(2,2,2))))
+    np.testing.assert_almost_equal(
+        np.abs(cirq.wavefunction_partial_trace(state, [5, 6, 7, 8])),
+        ((1.0, c.reshape(2,2,2,2))))
+
+    np.testing.assert_almost_equal(
+        np.abs(cirq.wavefunction_partial_trace(state, [0, 1, 2, 3, 4])),
+        ((1.0, np.kron(a, b).reshape(2,2,2,2,2))))
+    np.testing.assert_almost_equal(
+        np.abs(cirq.wavefunction_partial_trace(state, [0, 1, 5, 6, 7, 8])),
+        ((1.0, np.kron(a, c).reshape(2,2,2,2,2,2))))
+    np.testing.assert_almost_equal(
+        np.abs(cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8])),
+        ((1.0, np.kron(b, c).reshape(2,2,2,2,2,2,2))))
+
+
+def test_wavefunction_partial_trace_mixed_result():
+    bell00 = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    truth = ((0.5, np.array([1.0, 0.0])), (0.5, np.array([0.0, 1.0])))
+    for q1 in [0, 1]:
+        mixture = cirq.wavefunction_partial_trace(bell00.reshape(2,2), [q1])
+        for (p1, state1), (p2, state2) in zip(mixture, truth):
+            np.testing.assert_almost_equal(p1, p2)
+            np.testing.assert_array_almost_equal(state1, state2)
+
+
+
+def scratch():
+
 
 
 def test_keep_qubits_non_kron():
@@ -412,17 +510,7 @@ def test_keep_qubits_non_kron():
             np.abs(cirq.keep_qubits(state, [i, (i + 1) % 4])), two_mixed)
 
 
-def test_keep_qubits_invalid_inputs():
-    with pytest.raises(ValueError, match='normalized'):
-        cirq.keep_qubits(np.arange(16), [1, 2])
-    with pytest.raises(ValueError, match='2, 2'):
-        cirq.keep_qubits(
-            np.arange(16) / np.linalg.norm(np.arange(16)), [1, 2, 2])
-    with pytest.raises(ValueError, match='17'):
-        cirq.keep_qubits(np.arange(17) / np.linalg.norm(np.arange(17)), [1])
-    # Invalid inputs passed on to partial trace.
-    with pytest.raises(ValueError, match='4'):
-        cirq.keep_qubits(np.arange(16) / np.linalg.norm(np.arange(16)), [5])
+
 
 
 def test_keep_qubits_partial_entanglement():
@@ -462,4 +550,4 @@ def test_keep_qubits_partial_entanglement():
     traced2 = cirq.keep_qubits(state.reshape(2,2,2), [0,1])
 
 if __name__ == "__main__":
-    test_keep_qubits_partial_entanglement()
+    scratch()

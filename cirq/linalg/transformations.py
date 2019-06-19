@@ -319,6 +319,8 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
     unique mixture can be computed by eigendecomposition on the partial trace
     of the input's density matrix.
 
+    States in the output mixture retain the shape (2,2,...).
+
     Args:
         wavefunction: A wavefunction to express over a qubit subset.
         keep_indices: Which indices to express the wavefunction on.
@@ -335,11 +337,11 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
         return ((1.0, state))
     except ValueError:
         # Fall back to a (non-unique) mixture representation.
-        rho = np.kron(np.conj(state.reshape(state.shape[0], 1)).T,
-                      state).reshape((2, 2) * n_qubits)
+        rho = np.kron(np.conj(wavefunction.reshape(1 << len(wavefunction.shape), 1)).T,
+                      wavefunction).reshape((2, 2) * len(wavefunction.shape))
         keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
         w, v = np.linalg.eig(keep_rho)
-        return tuple(zip(w, [vec.reshape((2,) * len(keep_dims)) for vec in v]))
+        return tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v]))
 
 
 def keep_qubits(wavefunction: np.ndarray,
@@ -385,7 +387,7 @@ def keep_qubits(wavefunction: np.ndarray,
     if n_qubits < len(keep_indices) or \
             any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError(
-            "keep_indices {} are not a valid subset of the input wavefunction.")
+            "keep_indices {} are an invalid subset of the input wavefunction.")
 
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
     candidates = [
