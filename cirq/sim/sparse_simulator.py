@@ -308,11 +308,10 @@ class Simulator(simulator.SimulatesSamples,
             indices: List[int]) -> None:
         """Simulate an op that is a mixtures of unitaries."""
         probs, objects_with_unitaries = zip(*protocols.mixture(op))
-        unitaries = [protocols.unitary(u) for u in objects_with_unitaries]
         # We work around numpy barfing on choosing from a list of
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
-        index = np.random.choice(range(len(unitaries)), p=probs)
+        index = np.random.choice(range(len(objects_with_unitaries)), p=probs)
         result = protocols.apply_unitary(objects_with_unitaries[index],
                                          args=protocols.ApplyUnitaryArgs(
                                              data.state, data.buffer, indices))
