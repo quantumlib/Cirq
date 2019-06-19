@@ -176,7 +176,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u(q)]),
             cirq.Moment(),
-            cirq.Moment([cirq.Y(q)**-1.0]),
+            cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.5)(q)]),
             cirq.Moment(),
             cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.75).on(q)]),
             cirq.Moment([cirq.Z(q)**0.75]),

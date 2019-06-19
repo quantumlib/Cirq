@@ -51,7 +51,6 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return cirq.ops.common_gates.YPowGate(
                 exponent=exponent,
                 global_shift=global_shift)
-
         return super().__new__(cls)
 
     def __init__(self,
