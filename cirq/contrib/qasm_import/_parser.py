@@ -11,17 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import functools
 from typing import Dict, Optional, List, Any, Iterable
 
-from ply import yacc
-
 import cirq
+import numpy as np
 from cirq import Circuit, NamedQubit, CX
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
+from ply import yacc
 
 
 class Qasm:
+    """Qasm stores the final result of the Qasm parsing."""
 
     def __init__(self, supported_format: bool, qelib1_include: bool,
                  qregs: dict, cregs: dict, c: Circuit):
@@ -37,13 +39,28 @@ class Qasm:
 
 
 class QasmGateStatement:
+    """QasmGateStatement specifies how to convert a call to an OpenQASM gate
+        to a list of `cirq.GateOperation`s.
+
+        QasmGateStatement has the responsibility to validate the arguments
+        and parameters of the call and to generate a list of corresponding
+        `cirq.GateOperation`s in the `on` method.
+        """
 
     def __init__(self, qasm_gate: str, cirq_gate: cirq.Gate, num_args: int):
         self.qasm_gate = qasm_gate
         self.cirq_gate = cirq_gate
         self.num_args = num_args
+        """Initializes a Qasm gate statement.
 
-    def validate_args(self, args: List[List[cirq.Qid]], lineno: int):
+                Args:
+                    qasm_gate: the symbol of the QASM gate
+                    cirq_gate: the gate class on the cirq side 
+                    num_args: the number of qubits (used in validation) this
+                                gate takes
+                """
+
+    def _validate_args(self, args: List[List[cirq.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
                 "{} only takes {} arg(s) (qubits and/or registers), "
@@ -52,16 +69,11 @@ class QasmGateStatement:
 
     def on(self, args: List[List[cirq.Qid]],
            lineno: int) -> Iterable[cirq.Operation]:
-        self.validate_args(args, lineno)
-        reg_size = 1
-        for reg in args:
-            if len(reg) > 1 and len(reg) != reg_size:
-                if reg_size == 1:
-                    reg_size = len(reg)
-                else:
-                    raise QasmException(
-                        "Non matching quantum registers of length {} "
-                        "at line {}".format([len(reg) for reg in args], lineno))
+        self._validate_args(args, lineno)
+        reg_sizes = np.unique([len(reg) for reg in args])
+        if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
+            raise QasmException("Non matching quantum registers of length {} "
+                                "at line {}".format(reg_sizes, lineno))
 
         # OpenQASM gates can be applied on single qubits and qubit registers.
         # We represent single qubits as registers of size 1.
@@ -71,21 +83,22 @@ class QasmGateStatement:
         # used as arguments, we generate reg_size GateOperations via iterating
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
-        for i in range(reg_size):
-            qubits = []  # type: List[cirq.Qid]
-            for qreg in args:
-                if len(qreg) == 1:  # single qubits
-                    qubit = qreg[0]
-                else:  # reg_size size register
-                    qubit = qreg[i]
-                if qubit in qubits:
-                    raise QasmException("Overlapping qubits in arguments"
-                                        " at line {}".format(lineno))
-                qubits.append(qubit)
+        for qubits in functools.reduce(np.broadcast, args):
+            if len(np.unique(qubits)) < len(qubits):
+                raise QasmException("Overlapping qubits in arguments"
+                                    " at line {}".format(lineno))
             yield self.cirq_gate.on(*qubits)
 
 
 class QasmParser:
+    """QasmParser is the parser for QASM strings.
+
+        Example:
+
+         >>> qasm = "OPENQASM 2.0; qreg q1[2]; CX q1[0], q1[1];"
+         >>> parsedQasm = QasmParser().parse(qasm)
+         ```
+    """
 
     def __init__(self):
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
