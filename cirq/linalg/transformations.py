@@ -394,7 +394,7 @@ def keep_qubits(wavefunction: np.ndarray,
     keep_dims = 1 << len(keep_indices)
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
     candidates = [
-        wavefunction[predicates.slice_for_qubits_equal_to(other_qubits, k)]
+        wavefunction[predicates.slice_for_qubits_equal_to(other_qubits, k)].reshape(keep_dims)
         for k in range(1 << len(other_qubits))
     ]
     # The coherence measure is computed using unnormalized candidates.
