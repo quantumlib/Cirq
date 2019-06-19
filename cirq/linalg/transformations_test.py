@@ -400,7 +400,7 @@ def test_keep_qubits():
 def test_keep_qubits_bad_subset():
     a = np.arange(4) / np.linalg.norm(np.arange(4))
     b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
-    state = np.kron(np.kron(a, b), c).reshape(2, 2, 2, 2, 2)
+    state = np.kron(a, b).reshape(2, 2, 2, 2, 2)
     for q1 in range(5):
         with pytest.raises(ValueError, match='pure'):
             cirq.keep_qubits(state, [q1])
@@ -477,77 +477,30 @@ def test_wavefunction_partial_trace_pure_result():
 
 
 def test_wavefunction_partial_trace_mixed_result():
-    bell00 = np.array([1, 0, 0, 1]) / np.sqrt(2)
-    truth = ((0.5, np.array([1.0, 0.0])), (0.5, np.array([0.0, 1.0])))
+    state = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
-        mixture = cirq.wavefunction_partial_trace(bell00.reshape(2,2), [q1])
+        mixture = cirq.wavefunction_partial_trace(state.reshape(2,2), [q1])
         for (p1, state1), (p2, state2) in zip(mixture, truth):
             np.testing.assert_almost_equal(p1, p2)
             np.testing.assert_array_almost_equal(state1, state2)
 
+    state = np.array([0,1,1,0,1,0,0,0]).reshape(2,2,2)/np.sqrt(3)
+    truth = ((2 / 3, np.array([1.0, 0.0])), (1 / 3, np.array([0.0, 1.0])))
+    for q1 in [0, 1, 2]:
+        mixture = cirq.wavefunction_partial_trace(state, [q1])
 
-
-def scratch():
-
-
-
-def test_keep_qubits_non_kron():
-    state = np.zeros((2**4))
-    state[0] = np.sqrt(0.5)
-    state[-1] = np.sqrt(0.5)
-
-    single_mixed = 0.5 * np.eye(2)
-    for i in range(4):
-        np.testing.assert_almost_equal(
-            np.abs(cirq.keep_qubits(state, [i])),
-            single_mixed)
-
-    two_mixed = np.zeros((4,4))
-    two_mixed[0, 0] = 0.5
-    two_mixed[3, 3] = 0.5
-    for i in range(4):
-        np.testing.assert_almost_equal(
-            np.abs(cirq.keep_qubits(state, [i, (i + 1) % 4])), two_mixed)
-
-
-
-
-
-def test_keep_qubits_partial_entanglement():
-    """Test wavefunction trace."""
-    def _candidate_sub_wavefunction(kept_qubit_indices, wavefunction):
-        # assumes wavefunction has shape (2,2,2,2,2,...)
-        other_qubits = sorted(set(range(len(wavefunction.shape))) - set(kept_qubit_indices))
-        print("kept", kept_qubit_indices)
-        print("other", other_qubits)
-        # The candidates are remaining states when slicing out |other>.
-        candidates = [
-            wavefunction[cirq.slice_for_qubits_equal_to(other_qubits, k)]
-            for k in range(1 << len(other_qubits))
-        ]
-        print(candidates)
-        norms = [np.linalg.norm(c, 2) for c in candidates]
-        print(norms)
-
-        return max(
-            (
-                wavefunction[cirq.slice_for_qubits_equal_to(other_qubits, k)]
-                for k in range(1 << len(other_qubits))
-            ),
-            key=lambda c: np.linalg.norm(c, 2))
-
-
-    a = np.array([1,0,0,1])/np.sqrt(2)
-    b = np.array([1,1])/np.sqrt(2)
-    state = np.kron(a,b)
-    state = state / np.linalg.norm(state)
-    # print("input state", state)
-    # traced = _candidate_sub_wavefunction([1], state.reshape(2,2,2))
-    # print(traced)
-    traced2 = cirq.keep_qubits(state.reshape(2,2,2), [2])
-    # traced2 = cirq.keep_qubits(state.reshape(2,2,2), [1])
-    # traced2 = cirq.keep_qubits(state.reshape(2,2,2), [1,2])
-    traced2 = cirq.keep_qubits(state.reshape(2,2,2), [0,1])
-
-if __name__ == "__main__":
-    scratch()
+    state = np.array([1,0,0,0,0,0,0,1]).reshape(2,2,2)/np.sqrt(2)
+    truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
+    for q1 in [0, 1, 2]:
+        mixture = cirq.wavefunction_partial_trace(state, [q1])
+        for (p1, state1), (p2, state2) in zip(mixture, truth):
+            np.testing.assert_almost_equal(p1, p2)
+            np.testing.assert_array_almost_equal(state1, state2)
+    truth = ((0.5, np.array([1, 0, 0, 0]).reshape(2,2)),
+             (0.5, np.array([0, 0, 0, 1]).reshape(2,2)))
+    for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
+        mixture = cirq.wavefunction_partial_trace(state, [q1, q2])
+        for (p1, state1), (p2, state2) in zip(mixture, truth):
+            np.testing.assert_almost_equal(p1, p2)
+            np.testing.assert_array_almost_equal(state1, state2)

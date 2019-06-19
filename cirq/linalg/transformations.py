@@ -341,7 +341,8 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
                       wavefunction).reshape((2, 2) * len(wavefunction.shape))
         keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
         w, v = np.linalg.eig(keep_rho)
-        return tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v]))
+        mixture = tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v]))
+        return tuple(filter(lambda p: not approx_eq(p[0], 0.0), mixture))
 
 
 def keep_qubits(wavefunction: np.ndarray,
@@ -394,6 +395,7 @@ def keep_qubits(wavefunction: np.ndarray,
         wavefunction[predicates.slice_for_qubits_equal_to(other_qubits, k)]
         for k in range(1 << len(other_qubits))
     ]
+    # The coherence measure is computed using unnormalized candidates.
     best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
     left = np.conj(best_candidate.reshape((1 << len(keep_indices),))).T
     coherence_measure = sum([
@@ -402,7 +404,7 @@ def keep_qubits(wavefunction: np.ndarray,
     ])
 
     if approx_eq(coherence_measure, 1, atol=atol):
-        return best_candidate
+        return best_candidate / np.linalg.norm(best_candidate, 2)
 
     raise ValueError(
         "Input wavefunction could not be factored into pure state over "
