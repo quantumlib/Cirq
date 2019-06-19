@@ -97,7 +97,7 @@ class QasmParser:
 
          >>> qasm = "OPENQASM 2.0; qreg q1[2]; CX q1[0], q1[1];"
          >>> parsedQasm = QasmParser().parse(qasm)
-         ```
+         
     """
 
     def __init__(self):
