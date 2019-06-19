@@ -330,6 +330,7 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
         A mixture representation of the partial trace of the wavefunction.
     """
 
+    tot_dims = 1 << len(wavefunction.shape)
     keep_dims = 1 << len(keep_indices)
     try:
         # Attempt to do efficient state factoring.
@@ -337,11 +338,11 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
         return ((1.0, state))
     except ValueError:
         # Fall back to a (non-unique) mixture representation.
-        rho = np.kron(np.conj(wavefunction.reshape(1 << len(wavefunction.shape), 1)).T,
-                      wavefunction).reshape((2, 2) * len(wavefunction.shape))
+        rho = np.kron(np.conj(wavefunction.reshape(tot_dims, 1)).T,
+                      wavefunction.reshape(tot_dims, 1)).reshape((2, 2) * len(wavefunction.shape))
         keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
         w, v = np.linalg.eig(keep_rho)
-        mixture = tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v]))
+        mixture = tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v.T]))
         return tuple(filter(lambda p: not approx_eq(p[0], 0.0), mixture))
 
 
@@ -390,6 +391,7 @@ def keep_qubits(wavefunction: np.ndarray,
         raise ValueError(
             "keep_indices {} are an invalid subset of the input wavefunction.")
 
+    keep_dims = 1 << len(keep_indices)
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
     candidates = [
         wavefunction[predicates.slice_for_qubits_equal_to(other_qubits, k)]
@@ -397,12 +399,14 @@ def keep_qubits(wavefunction: np.ndarray,
     ]
     # The coherence measure is computed using unnormalized candidates.
     best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
-    left = np.conj(best_candidate.reshape((1 << len(keep_indices),))).T
+    left = np.conj(best_candidate.reshape((keep_dims,))).T
     coherence_measure = sum([
-        abs(np.dot(left, c.reshape((1 << len(keep_indices),))))
+        abs(np.dot(left, c.reshape((keep_dims,))))
         for c in candidates
     ])
-
+    print(coherence_measure)
+    print(best_candidate)
+    print(candidates)
     if approx_eq(coherence_measure, 1, atol=atol):
         return best_candidate / np.linalg.norm(best_candidate, 2)
 
