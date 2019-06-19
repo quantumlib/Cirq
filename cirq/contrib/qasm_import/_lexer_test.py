@@ -7,6 +7,8 @@
 # limitations under the License.
 
 import pytest
+import sympy
+from sympy import Number
 
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
@@ -57,6 +59,37 @@ def test_valid_ids(identifier: str):
     assert token is not None
     assert token.type == "ID"
     assert token.value == identifier
+
+
+@pytest.mark.parametrize(
+    'number', [
+        '1e2',
+        '1e0',
+        '3.',
+        '4.e10',
+        '.333',
+        '1.0',
+        '0.1',
+        '2.0e-05',
+        '1.2E+05',
+        '123123.2132312',
+    ])
+def test_numbers(number: str):
+    lexer = QasmLexer()
+    lexer.input(number)
+    token = lexer.token()
+
+    assert token is not None
+    assert token.type == "NUMBER"
+    assert token.value == Number(number)
+
+
+def test_pi():
+    lexer = QasmLexer()
+    lexer.input('pi')
+    token = lexer.token()
+    assert token.type == "PI"
+    assert token.value == sympy.pi
 
 
 def test_qreg():

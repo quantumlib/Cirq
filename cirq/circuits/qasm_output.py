@@ -69,6 +69,12 @@ class QasmUGate(ops.SingleQubitGate):
         ]
         return linalg.dot(*map(protocols.unitary, operations))
 
+    def __eq__(self, other):
+        return isinstance(other, QasmUGate) and \
+               other.lmda == self.lmda and \
+               other.theta == self.theta and \
+               other.phi == self.phi
+
 
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):
@@ -229,7 +235,8 @@ class QasmOutput:
         # Register definitions
         # Qubit registers
         output('// Qubits: [{}]\n'.format(', '.join(map(str, self.qubits))))
-        output('qreg q[{}];\n'.format(len(self.qubits)))
+        if len(self.qubits) > 0:
+            output('qreg q[{}];\n'.format(len(self.qubits)))
         # Classical registers
         # Pick an id for the creg that will store each measurement
         already_output_keys = set()  # type: Set[str]
