@@ -101,6 +101,16 @@ class Circuit:
             moments: The initial list of moments defining the circuit.
             device: Hardware that the circuit should be able to run on.
         """
+        # Check that measurement keys don't overlap.
+        seen = set()  # type: Set[str]
+        for moment in moments:
+            for op in moment:
+                if protocols.is_measurement(op):
+                    key = protocols.measurement_key(op)
+                    if key in seen:
+                        raise ValueError(
+                            'Measurement key {} repeated'.format(key))
+                    seen.add(key)
         self._moments = list(moments)
         self._device = device
         self._device.validate_circuit(self)

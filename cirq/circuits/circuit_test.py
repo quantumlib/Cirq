@@ -48,6 +48,19 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+def test_circuit_init():
+    x = cirq.NamedQubit('x')
+    y = cirq.NamedQubit('y')
+
+    moments = [cirq.Moment([cirq.measure(x, key='x')]), cirq.Moment([
+        cirq.measure(y, key='y')])]
+    _ = cirq.Circuit(moments)
+
+    moments = [cirq.Moment([cirq.measure(x, key='x')]), cirq.Moment([
+        cirq.measure(y, key='x')])]
+    with pytest.raises(ValueError):
+        _ = cirq.Circuit(moments)
+
 def test_insert_moment_types():
     x = cirq.NamedQubit('x')
 
