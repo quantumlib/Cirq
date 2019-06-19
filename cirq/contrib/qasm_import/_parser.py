@@ -91,7 +91,7 @@ class QasmGateStatement:
 
 
 class QasmParser:
-    """QasmParser is the parser for QASM strings.
+    """Parser for QASM strings.
 
         Example:
 
