@@ -16,7 +16,7 @@
 
 from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
 
-from cirq.protocols import approx_eq
+from cirq import protocols
 from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
@@ -55,6 +55,15 @@ class Moment:
         if len(affected_qubits) != len(self.qubits):
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
+
+        # Check that measurement keys don't overlap.
+        seen = set()  # type: Set[str]
+        for op in operations:
+            if protocols.is_measurement(op):
+                key = protocols.measurement_key(op)
+                if key in seen:
+                    raise ValueError('Measurement key {} repeated'.format(key))
+                seen.add(key)
 
     def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
         """Determines if the moment has operations touching the given qubit.
@@ -118,7 +127,7 @@ class Moment:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
-        return approx_eq(self.operations, other.operations, atol=atol)
+        return protocols.approx_eq(self.operations, other.operations, atol=atol)
 
     def __ne__(self, other):
         return not self == other

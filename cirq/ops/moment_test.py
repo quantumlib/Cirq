@@ -39,6 +39,12 @@ def test_validation():
     with pytest.raises(ValueError):
         _ = Moment([cirq.CZ(a, c), cirq.CZ(c, d)])
 
+    with pytest.raises(ValueError):
+        _ = Moment([cirq.measure(a, key='a'), cirq.measure(b, key='a')])
+    with pytest.raises(ValueError):
+        _ = Moment([cirq.measure(a, key='a'), cirq.measure(b, key='b'),
+                    cirq.measure(c, key='a')])
+
 
 def test_equality():
     a = cirq.NamedQubit('a')
