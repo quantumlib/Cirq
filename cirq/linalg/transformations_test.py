@@ -449,14 +449,23 @@ def test_wavefunction_partial_trace_invalid_input():
     pass
 
 
+def mixtures_equal(m1, m2):
+    if len(m1) != len(m2):
+        return False
+    for (p1, state1), (p2, state2) in zip(m1, m2):
+        if not (cirq.approx_eq(p1, p2) and cirq.approx_eq(state1, state2)):
+            return False
+    return True
+
+
 def test_wavefunction_partial_trace_pure_result():
     a = np.arange(4) / np.linalg.norm(np.arange(4))
     b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
     c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
     state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
 
-    np.testing.assert_almost_equal(
-        np.abs(cirq.wavefunction_partial_trace(state, [0, 1])),
+    assert mixtures_equal(
+        cirq.wavefunction_partial_trace(state, [0, 1]),
         ((1.0, a.reshape(2,2))))
     np.testing.assert_almost_equal(
         p.abs(cirq.wavefunction_partial_trace(state, [2, 3, 4])),
@@ -481,9 +490,7 @@ def test_wavefunction_partial_trace_mixed_result():
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
         mixture = cirq.wavefunction_partial_trace(state.reshape(2,2), [q1])
-        for (p1, state1), (p2, state2) in zip(mixture, truth):
-            np.testing.assert_almost_equal(p1, p2)
-            np.testing.assert_array_almost_equal(state1, state2)
+        assert mixtures_equal(mixture, truth)
 
     state = np.array([0,1,1,0,1,0,0,0]).reshape(2,2,2)/np.sqrt(3)
     truth = ((2 / 3, np.array([1.0, 0.0])), (1 / 3, np.array([0.0, 1.0])))
@@ -494,13 +501,14 @@ def test_wavefunction_partial_trace_mixed_result():
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1, 2]:
         mixture = cirq.wavefunction_partial_trace(state, [q1])
-        for (p1, state1), (p2, state2) in zip(mixture, truth):
-            np.testing.assert_almost_equal(p1, p2)
-            np.testing.assert_array_almost_equal(state1, state2)
+        assert mixtures_equal(mixture, truth)
+
     truth = ((0.5, np.array([1, 0, 0, 0]).reshape(2,2)),
              (0.5, np.array([0, 0, 0, 1]).reshape(2,2)))
     for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
         mixture = cirq.wavefunction_partial_trace(state, [q1, q2])
-        for (p1, state1), (p2, state2) in zip(mixture, truth):
-            np.testing.assert_almost_equal(p1, p2)
-            np.testing.assert_array_almost_equal(state1, state2)
+        assert mixtures_equal(mixture, truth)
+
+
+if __name__ == "__main__":
+    test_wavefunction_partial_trace_pure_result()
