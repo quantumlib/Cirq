@@ -175,8 +175,10 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
 def test_single_qubit_matrix_to_native_gates_known():
     actual = cirq.single_qubit_matrix_to_phased_x_z(
         np.array([[0, 1], [1, 0]]), atol=0.01)
-    assert cirq.approx_eq(actual, [cirq.PhasedXPowGate(phase_exponent=1.0)],
-                          atol=1e-9)
+    assert cirq.approx_eq(
+        actual,
+        [cirq.PhasedXPowGate(phase_exponent=1.0)],
+        atol=1e-9)
 
     actual = cirq.single_qubit_matrix_to_phased_x_z(
         np.array([[0, -1j], [1j, 0]]), atol=0.01)
