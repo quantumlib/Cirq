@@ -310,41 +310,37 @@ def partial_trace(tensor: np.ndarray,
 
 
 def wavefunction_partial_trace(wavefunction: np.ndarray,
-                               keep_indices: List[int]) -> np.ndarray:
-    """Takes the partial trace of a wavefunction's density matrix.
+                               keep_indices: List[int],
+                               atol: Union[int, float] = 1e-8) -> Tuple:
+    """Computes a mixture representing the partial trace of a wavefunction.
 
+    The input wavfunction must have shape `(2,2,2,...)`. Attempt to factor the
+    wavefunction into a pure state over `keep_indices`. If this fails, a non-
+    unique mixture can be computed by eigendecomposition on the partial trace
+    of the input's density matrix.
 
+    Args:
+        wavefunction: A wavefunction to express over a qubit subset.
+        keep_indices: Which indices to express the wavefunction on.
+        atol: The tolerance for determining that a factored state is pure.
+
+    Returns:
+        A mixture representation of the partial trace of the wavefunction.
     """
 
-    n_qubits = len(wavefunction.shape)
-
-    # Attempt to do efficient state factoring
+    keep_dims = 1 << len(keep_indices)
     try:
-        state = keep_qubits(wavefunction, keep_indices).reshape(1 << len(keep_indices), 1)
-        # TODO: make sure shape is right here.
-        return np.kron(np.conj(state.T), state)
+        # Attempt to do efficient state factoring.
+        state = keep_qubits(wavefunction, keep_indices).reshape(keep_dims, 1)
+        return ((1.0, state))
     except ValueError:
-        pass
-
-
-    rho = np.kron(np.conj(state.reshape(state.shape[0], 1)).T,
-                  state).reshape((2, 2) * n_qubits)
-    new_dim = 2**len(keep_indices)
-    keep_rho = partial_trace(rho, keep_indices).reshape((new_dim,) * 2)
-    if not any(keep_indices):
-        return keep_rho
-
-    # FIXME: reasonable tolerance for purity check?
-    if approx_eq(np.trace(keep_rho @ keep_rho), 1):
+        # Fall back to a (non-unique) mixture representation.
+        rho = np.kron(np.conj(state.reshape(state.shape[0], 1)).T,
+                      state).reshape((2, 2) * n_qubits)
+        keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
         w, v = np.linalg.eig(keep_rho)
-        # FIXME: reasonable tolerance for lone eigenvalue check?
-        return v[:, np.isclose(w, 1)].reshape((new_dim,))
+        return tuple(zip(w, [vec.reshape((2,) * len(keep_dims)) for vec in v]))
 
-    # FIXME: not sure how to deal with warnings
-    print("Removing qubits from an entangled state resulted in mixture.")
-    return keep_rho
-
-    return
 
 def keep_qubits(wavefunction: np.ndarray,
                 keep_indices: List[int],
