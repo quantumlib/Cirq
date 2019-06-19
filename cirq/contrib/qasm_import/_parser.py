@@ -197,7 +197,7 @@ class QasmParser:
             raise QasmException('Unknown gate "{}" at line {}, '
                                 'maybe you forgot to include '
                                 'the standard qelib1.inc?'.format(
-                gate, p.lineno(1)))
+                                    gate, p.lineno(1)))
         p[0] = self.basic_gates[gate].on(args=args, lineno=p.lineno(1))
 
         # args : arg ',' args
@@ -282,4 +282,4 @@ at line {}, column {}""".format(p.value, self.debug_context(p), p.lineno,
                         p.lexpos + 5)
 
         return "..." + self.qasm[debug_start:debug_end] + "\n" + (
-                " " * (3 + p.lexpos - debug_start)) + "^"
+            " " * (3 + p.lexpos - debug_start)) + "^"
