@@ -14,7 +14,7 @@
 
 """Sampling/simulation methods that delegate to appropriate simulators."""
 
-from typing import List, Optional, Type, Union
+from typing import List, Optional, Type, Union, Sequence
 
 import numpy as np
 
@@ -53,18 +53,27 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
                                       repetitions=repetitions)
 
 
-def out_vector(program: Union[ops.Operation, ops.Gate, circuits.Circuit, schedules.Schedule],
-               *,
-               initial_state: Union[int, np.ndarray] = 0,
-               param_resolver: Optional[study.ParamResolver] = None,
-               qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-               dtype: Type[np.number] = np.complex64
-               ) -> 'np.ndarray':
-    """Returns the wavefunction resulting from applying an object.
+def final_wavefunction(
+        program: Union[circuits.Circuit,
+                       ops.Gate,
+                       ops.OP_TREE,
+                       schedules.Schedule],
+        *,
+        initial_state: Union[int,
+                             Sequence[Union[int, float, complex]],
+                             np.ndarray] = 0,
+        param_resolver: study.ParamResolverOrSimilarType = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        dtype: Type[np.number] = np.complex64
+        ) -> 'np.ndarray':
+    """Returns the state vector resulting from acting operations on a state.
+
+    By default the input state is the computational basis zero state, in which
+    case the output is just the first column of the implied unitary matrix.
 
     Args:
-        program: The circuit, schedule, gate, or operation to apply to the
-            initial state in order to produce the result.
+        program: The circuit, schedule, gate, operation, or tree of operations
+            to apply to the initial state in order to produce the result.
         param_resolver: Parameters to run with the program.
         qubit_order: Determines the canonical ordering of the qubits. This
             is often used in specifying the initial state, i.e. the
@@ -76,21 +85,36 @@ def out_vector(program: Union[ops.Operation, ops.Gate, circuits.Circuit, schedul
             be safely castable to an appropriate dtype for the simulator.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
-            Favors speed over precision by default, i.e. uses `numpy.complex64`.
+
+    Returns:
+        The wavefunction resulting from applying the given unitary operations to
+        the desired initial state. Specifically, a numpy array containing the
+        the amplitudes in np.kron order, where the order of arguments to kron
+        is determined by the qubit order argument (which defaults to just
+        sorting the qubits that are present into an ascending order).
     """
 
-    if not protocols.has_unitary(program):
-        raise ValueError(
-            "Given object is not unitary. "
-            "Non-unitary operations don't have "
-            "a single well defined output state vector. "
-            "Maybe you wanted `cirq.sample_wavefunction`?")
+    if not isinstance(initial_state, int):
+        initial_state = np.asarray(initial_state, dtype=dtype)
 
-    if isinstance(program, ops.Gate):
+    if isinstance(program, (schedules.Schedule, circuits.Circuit)):
+        # No change needed.
+        pass
+    elif isinstance(program, ops.Gate):
         program = circuits.Circuit.from_ops(program.on(
             *line.LineQubit.range(program.num_qubits())))
-    elif isinstance(program, ops.Operation):
+    else:
+        # It should be an OP_TREE.
         program = circuits.Circuit.from_ops(program)
+
+    if not protocols.has_unitary(
+            protocols.resolve_parameters(program, param_resolver)):
+        raise ValueError(
+            "Program doesn't have a single well defined final wavefunction "
+            "because it is not unitary. "
+            "Maybe you wanted `cirq.sample_wavefunction`?\n"
+            "\n"
+            "Program: {!r}".format(program))
 
     return sparse_simulator.Simulator(dtype=dtype).simulate(
         program=program,
