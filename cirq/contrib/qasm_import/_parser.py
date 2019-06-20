@@ -40,25 +40,26 @@ class Qasm:
 
 class QasmGateStatement:
     """Specifies how to convert a call to an OpenQASM gate
-        to a list of `cirq.GateOperation`s.
+    to a list of `cirq.GateOperation`s.
 
-        Has the responsibility to validate the arguments
-        and parameters of the call and to generate a list of corresponding
-        `cirq.GateOperation`s in the `on` method.
-        """
+    Has the responsibility to validate the arguments
+    and parameters of the call and to generate a list of corresponding
+    `cirq.GateOperation`s in the `on` method.
+    """
 
     def __init__(self, qasm_gate: str, cirq_gate: cirq.Gate, num_args: int):
+        """Initializes a Qasm gate statement.
+
+       Args:
+           qasm_gate: the symbol of the QASM gate
+           cirq_gate: the gate class on the cirq side
+           num_args: the number of qubits (used in validation) this
+                       gate takes
+       """
         self.qasm_gate = qasm_gate
         self.cirq_gate = cirq_gate
         self.num_args = num_args
-        """Initializes a Qasm gate statement.
 
-                Args:
-                    qasm_gate: the symbol of the QASM gate
-                    cirq_gate: the gate class on the cirq side
-                    num_args: the number of qubits (used in validation) this
-                                gate takes
-                """
 
     def _validate_args(self, args: List[List[cirq.Qid]], lineno: int):
         if len(args) != self.num_args:
@@ -93,11 +94,10 @@ class QasmGateStatement:
 class QasmParser:
     """Parser for QASM strings.
 
-        Example:
+    Example:
 
-         >>> qasm = "OPENQASM 2.0; qreg q1[2]; CX q1[0], q1[1];"
-         >>> parsedQasm = QasmParser().parse(qasm)
-         
+        qasm = "OPENQASM 2.0; qreg q1[2]; CX q1[0], q1[1];"
+        parsedQasm = QasmParser().parse(qasm)
     """
 
     def __init__(self):
@@ -184,8 +184,8 @@ class QasmParser:
             self.cregs[name] = length
         p[0] = (name, length)
 
-        # gate operations
-        # gate_op : ID args
+    # gate operations
+    # gate_op : ID args
 
     def p_gate_op_no_params(self, p):
         """gate_op :  ID args"""
@@ -200,9 +200,8 @@ class QasmParser:
                                     gate, p.lineno(1)))
         p[0] = self.basic_gates[gate].on(args=args, lineno=p.lineno(1))
 
-        # args : arg ',' args
-        #      | arg ';'
-
+    # args : arg ',' args
+    #      | arg ';'
     def p_args_multiple(self, p):
         """args : arg ',' args"""
         p[3].insert(0, p[1])
@@ -212,10 +211,9 @@ class QasmParser:
         """args : arg ';'"""
         p[0] = [p[1]]
 
-        # arg : ID
-        #     | ID '[' NATURAL_NUMBER ']'
-        #
-
+    # arg : ID
+    #     | ID '[' NATURAL_NUMBER ']'
+    #
     def p_arg_register(self, p):
         """arg : ID """
         reg = p[1]
