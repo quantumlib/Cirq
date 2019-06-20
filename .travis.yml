@@ -65,6 +65,9 @@ matrix:
     language: sh
     python: "3.7.3"
     before_install:
+    - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
+    - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
+    - powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
     - choco install python --version 3.7.3
     - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
     - python -m pip install --upgrade pip wheel
