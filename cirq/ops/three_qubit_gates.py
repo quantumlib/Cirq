@@ -14,9 +14,10 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
+import sympy
 
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
@@ -29,6 +30,7 @@ from cirq.ops import (
     op_tree,
     raw_types,
 )
+from cirq.study import ParamResolver
 
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
@@ -144,21 +146,21 @@ class CCZPowGate(eigen_gate.EigenGate,
         return 'CCZ**{}'.format(self._exponent)
 
 
-@value.value_equality
+@value.value_equality()
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     """A gate given by a diagonal 8x8 matrix.
-    
+
     The list of angles passed to the constructor should be in radians.
     """
 
     def __init__(self,
-                 diag_angles_radians: List[Union[float, sympy.Basic]) -> None:
+                 diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
         self._diag_angles_radians = diag_angles_radians  # type: List[float]
 
     def _is_parameterized_(self):
         return any([isinstance(angle, sympy.Basic)
                     for angle in self._diag_angles_radians])
-    
+
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
 
@@ -168,12 +170,11 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return np.diag(
             [np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'cirq.ThreeQubitDiagonalGate':
+    def _resolve_parameters_(self, param_resolver: 'ParamResolver'
+                            ) -> 'ThreeQubitDiagonalGate':
         return ThreeQubitDiagonalGate(
             protocols.resolve_parameters(self._diag_angles_radians,
                                          param_resolver))
-        
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
@@ -203,7 +204,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                     [1, 0, 1, 1, 0, 0, 1][x_4]   [l_5]
                     [1, 1, 0, 0, 0, 1, 1][x_5]   [l_6]
                     [1, 1, 1, 0, 1, 0, 0][x_6]   [l_7]
-        where l_i is self._diag_angles[i].
+        where l_i is self._diag_angles_radians[i].
 
         The above system was created by equating the composition of the gates
         in the circuit diagram to np.diag(self._diag_angles) (shifted by a
@@ -224,8 +225,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                  [1, 1, -1, -1, 1, 1, -1]])
         shifted_angles_tail = [angle - self._diag_angles_radians[0] for angle
                                in self._diag_angles_radians[1:]]
-        phase_solutions = np.matmul(phase_matrix_inverse, shifted_angles_tail)
-        p_gates = [common_gates.Z**(solution / np.pi) for solution
+        phase_solutions = phase_matrix_inverse.dot(shifted_angles_tail)
+        p_gates = [pauli_gates.Z**(solution / np.pi) for solution
                    in phase_solutions]
 
         return [
@@ -243,34 +244,22 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         ]
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
-        if self.is_parameterized():
+        if self._is_parameterized_():
             return NotImplemented
-        if not np.allclose(self._matrix, np.identity(8)):
-            for index, angle in enumerate(self._diag_angles_radians):
-                args.target_tensor[
-                    args.subspace_index('0b' + '{0:b}'.format(index))] *=
-                        np.exp(1j * angle)
+        for index, angle in enumerate(self._diag_angles_radians):
+            slice_index = '0b' + str(index % 2) + str(index % 4 // 2) + str(
+                index // 4)
+            subspace_index = args.subspace_index(int(slice_index, 2))
+            args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
 
     def _value_equality_values_(self):
         return tuple(self._diag_angles_radians)
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return np.allclose([np.exp(1j * angle) for angle
-                            in self._diag_angles_radians],
-                           [np.exp(1j * angle) for angle
-                            in other._diag_angles_radians])
-
-    def __ne__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return not self == other
-
     def __repr__(self) -> str:
         return 'cirq.ThreeQubitDiagonalGate({})'.format(
-            proper_repr(self._diag_angles_radians))
+            '[' + ','.join(proper_repr(angle)
+            for angle in self._diag_angles_radians) + ']')
 
 
 class CCXPowGate(eigen_gate.EigenGate,
