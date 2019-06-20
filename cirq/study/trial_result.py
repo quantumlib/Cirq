@@ -20,6 +20,7 @@ from typing import (
 
 import collections
 import numpy as np
+import pandas as pd
 
 from cirq import value, ops
 from cirq.study import resolver
@@ -32,7 +33,7 @@ T = TypeVar('T')
 TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
-def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
+def _tuple_of_big_endian_int(bit_groups: Iterable[Any]
                              ) -> Tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
@@ -43,10 +44,11 @@ def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
     Returns:
         A tuple containing the integer for each group.
     """
+    # return tuple(ints for ints in bit_groups.apply(_big_endian_int))
     return tuple(_big_endian_int(bits) for bits in bit_groups)
 
 
-def _big_endian_int(bits: np.ndarray) -> int:
+def _big_endian_int(bits: pd.Series) -> int:
     """Returns the big-endian integer specified by the given bits.
 
     For example, [True, False, False, True, False] becomes binary 10010 which
@@ -70,16 +72,31 @@ def _bitstring(vals: Iterable[Any]) -> str:
     return ''.join('1' if v else '0' for v in vals)
 
 
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
-                               ) -> str:
+def _keyed_repeated_bitstrings(measurements: pd.DataFrame) -> str:
+    # return '\n'.join(keyed_bitstrings)
+    # vals.apply()
+    # out = vals.apply(lambda reps : '{}={}'.format(reps.key(), reps), axis=1)
+    # return '\n'.join(['{}={}'.format(tmp[0],tmp[1]) for tmp in out])
     keyed_bitstrings = []
-    for key in sorted(vals.keys()):
-        reps = vals[key]
-        n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join([_bitstring(reps[:, i])
-                              for i in range(n)])
+    for key in sorted(set(measurements['m_key'])):
+        reps = pd.DataFrame(measurements[measurements.m_key==key]['m_vals'].to_list())
+        modified_reps = reps.apply(_bitstring, axis=0)
+        # n = 0 if len(reps) == 0 else len(reps[0])
+        all_bits = ', '.join(modified_reps)
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
+
+
+# def _keyed_repeated_bitstrings(vals: Dict[str, pd.DataFrame]
+#                                ) -> str:
+#     keyed_bitstrings = []
+#     for key in sorted(vals.keys()):
+#         reps = vals[key]
+#         # n = 0 if len(reps) == 0 else len(reps[0])
+#         all_bits = ', '.join([_bitstring(reps[i])
+#                               for i in list(reps)])
+#         keyed_bitstrings.append('{}={}'.format(key, all_bits))
+# return '\n'.join(keyed_bitstrings)
 
 
 def _key_to_str(key: TMeasurementKey) -> str:
@@ -89,6 +106,15 @@ def _key_to_str(key: TMeasurementKey) -> str:
         return str(key)
     return ','.join(str(q) for q in key)
 
+MeasurementDictOrSimilarType = Union[Dict[str, np.ndarray], Dict[str, pd.DataFrame]]
+
+def _df_repr(measurements: pd.DataFrame):
+    # repr_df = measurements
+   #  repr_df['m_vals'] = measurements['m_vals'].apply(lambda x: x.values)
+   #  return repr_df.groupby('mkeys').to_dict()
+    grouped = measurements.groupby(['m_key'])
+    return grouped.apply(lambda x: (x.m_key, x['m_vals'].apply(lambda x: x.values).values)).to_dict()
+    return {key: val.values for key, val in measurements.index()}
 
 @value.value_equality(unhashable=True)
 class TrialResult:
@@ -120,7 +146,20 @@ class TrialResult:
             repetitions: The number of times the circuit was sampled.
         """
         self.params = params
-        self.measurements = measurements
+
+        tuple_list = []
+        for key,val in measurements.items():
+            for i, m_vals in enumerate(val):
+                tuple_list.append((key, i, pd.Series(m_vals)))
+        self.measurements = pd.DataFrame(data=tuple_list, columns=["m_key", "rep", "m_vals"])
+
+        # df_dict = {key: pd.DataFrame(val) for key,val in measurements.items()}
+        #self.measurements = pd.Series(df_dict, index=df_dict.keys())
+        # if isinstance(measurements.values()[0], np.ndarray):
+    #         # self.measurements = [(key, pd.DataFrame(('qubit'+str(i), val[:,i]) for i in range(len(val[0])))) for key,val in measurements.items()]
+    #         self.measurements = [(key, pd.DataFrame(val, columns=['qubit'+str(i) for i in range(val[0])])) for key,val in measurements.items()]
+    #     else:
+    #        self.measurements = measurements
         self.repetitions = repetitions
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
@@ -174,14 +213,23 @@ class TrialResult:
             A counter indicating how often measurements sampled various
             results.
         """
-        fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])  # type: Iterable[Any]
-        if len(fixed_keys) == 0:
-            samples = [()] * self.repetitions
+        fixed_keys = [_key_to_str(key) for key in keys]
+        # print(fixed_keys)
+        samples = self.measurements[self.measurements.m_key.isin(fixed_keys)]
+        # samples = zip(*[self.measurements[sub_key].values
+        #            for sub_key in fixed_keys])  # type: Iterable[Any]
+        # if len(fixed_keys) == 0:
+ #            # samples = samples*self.repetitions
+ #            # samples = pd.Series([pd.DataFrame()]*self.repetitions)
+ #            samples = pd.DataFrame({'m_key': [np.nan]*self.repetitions, 'rep': range(self.repetitions), 'm_vals': [()]*self.repetitions})
+            # samples = pd.DataFrame([], columns=['m_key','rep','m_vals'])
+        print(samples)
         c = collections.Counter()  # type: collections.Counter
-        for sample in samples:
-            c[fold_func(sample)] += 1
+        # for sample in samples:
+        for i in range(self.repetitions):
+            sample = samples[samples.rep==i]
+            print(sample)
+            c[fold_func(sample['m_vals'])] += 1
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
@@ -228,14 +276,14 @@ class TrialResult:
         """
         return self.multi_measurement_histogram(
             keys=[key],
-            fold_func=lambda e: fold_func(e[0]))
+            fold_func=lambda e: fold_func(e.iloc[0]))
 
     def __repr__(self):
         return ('cirq.TrialResult(params={!r}, '
                 'repetitions={!r}, '
                 'measurements={!r})').format(self.params,
                                              self.repetitions,
-                                             self.measurements)
+                                             _df_repr(self.measurements))
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -249,4 +297,4 @@ class TrialResult:
         return _keyed_repeated_bitstrings(self.measurements)
 
     def _value_equality_values_(self):
-        return self.measurements, self.repetitions, self.params
+        return self.measurements.values, self.repetitions, self.params

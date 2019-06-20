@@ -24,10 +24,10 @@ def test_repr():
     v = cirq.TrialResult(
         params=cirq.ParamResolver({'a': 2}),
         repetitions=2,
-        measurements={'m': np.array([[1, 2]])})
+        measurements={'m': np.array([[1, 0]])})
 
     assert repr(v) == ("cirq.TrialResult(params=cirq.ParamResolver({'a': 2}), "
-                       "repetitions=2, measurements={'m': array([[1, 2]])})")
+                       "repetitions=2, measurements={'m': array([[1, 0]])})")
 
 
 def test_str():
@@ -90,7 +90,7 @@ def test_multi_measurement_histogram():
         })
 
     assert result.multi_measurement_histogram(keys=[]) == collections.Counter(
-        {(): 5})
+        {():5})
     assert (result.multi_measurement_histogram(keys=['ab']) ==
             collections.Counter({
                 (1,): 4,
