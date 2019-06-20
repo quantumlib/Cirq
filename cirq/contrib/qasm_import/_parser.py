@@ -60,7 +60,6 @@ class QasmGateStatement:
         self.cirq_gate = cirq_gate
         self.num_args = num_args
 
-
     def _validate_args(self, args: List[List[cirq.Qid]], lineno: int):
         if len(args) != self.num_args:
             raise QasmException(
