@@ -131,8 +131,9 @@ def channel(val: Any,
     mixture_result = (
         NotImplemented if mixture_getter is None else mixture_getter())
     if mixture_result is not NotImplemented:
+        print("x")
         return tuple(
-            np.sqrt(p) * protocols.unitary(u) for p, u in mixture_result)
+            np.sqrt(p) * u for p, u in mixture_result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = (
