@@ -15,7 +15,7 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import Set, Union  # pylint: disable=unused-import
+from typing import Set, NamedTuple, Union  # pylint: disable=unused-import
 from typing import Callable, List, Tuple, TypeVar
 
 import math
@@ -266,7 +266,15 @@ def so4_to_magic_su2s(
 
 @value.value_equality(approximate=True)
 class AxisAngleDecomposition:
-    """Represents a unitary operation as an axis, angle, and global phase."""
+    """Represents a unitary operation as an axis, angle, and global phase.
+
+    The unitary $U$ is decomposed as follows:
+
+        $$U = g e^{-i \theta/2 (xX + yY + zZ)}$$
+
+    where \theta is the rotation angle, (x, y, z) is a unit vector along the
+    rotation axis, and g is the global phase.
+    """
 
     def __init__(self, *, angle: float, axis: Tuple[float, float, float],
                  global_phase: Union[int, float, complex]):
@@ -325,13 +333,6 @@ class AxisAngleDecomposition:
                                     period=math.pi * 2), v.axis, v.global_phase)
 
     def _unitary_(self):
-        """The unitary represented by this axis angle rotation.
-
-        Returns:
-            The unitary $g e^{(i t) (xX + yY + zZ)}$ where t is the angle theta,
-            (x, y, z) is the unit vector along the axis, and g is the global
-            phase.
-        """
         x, y, z = self.axis
         xm = np.array([[0, 1], [1, 0]])
         ym = np.array([[0, -1j], [1j, 0]])
@@ -514,20 +515,22 @@ class KakDecomposition:
             before)
 
 
-def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
+def kak_canonicalize_vector(x: float, y: float, z: float,
+                            atol: float = 1e-9) -> KakDecomposition:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
 
     Args:
         x: The strength of the XX interaction.
         y: The strength of the YY interaction.
         z: The strength of the ZZ interaction.
+        atol: How close x2 must be to π/4 to guarantee z2 >= 0
 
     Returns:
         The canonicalized decomposition, with vector coefficients (x2, y2, z2)
         satisfying:
 
             0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
-            z2 ≠ -π/4
+            if x2 = π/4, z2 >= 0
 
         Guarantees that the implied output matrix:
 
@@ -613,6 +616,11 @@ def kak_canonicalize_vector(x: float, y: float, z: float) -> KakDecomposition:
         negate(1, 2)
     canonical_shift(2)
 
+    # If x = π/4, force z to be positive
+    if v[0] > np.pi / 4 - atol and v[2] < 0:
+        shift(0, -1)
+        negate(0, 2)
+
     return KakDecomposition(
         global_phase=phase[0],
         single_qubit_operations_after=(left[1], left[0]),
@@ -635,8 +643,8 @@ def kak_decomposition(
         A `cirq.KakDecomposition` canonicalized such that the interaction
         coefficients x, y, z satisfy:
 
-            0 ≤ abs(z) ≤ y ≤ x ≤ π/4
-            z ≠ -π/4
+            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
+            if x2 = π/4, z2 >= 0
 
     Raises:
         ValueError: Bad matrix.

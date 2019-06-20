@@ -56,10 +56,10 @@ class GateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'GateOperation':
+    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
         return self.gate.on(*new_qubits)
 
-    def with_gate(self, new_gate: raw_types.Gate) -> 'GateOperation':
+    def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
@@ -159,7 +159,7 @@ class GateOperation(raw_types.Operation):
             return NotImplemented
         return GateOperation(phased_gate, self._qubits)
 
-    def __pow__(self, exponent: Any) -> 'GateOperation':
+    def __pow__(self, exponent: Any) -> 'raw_types.Operation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.

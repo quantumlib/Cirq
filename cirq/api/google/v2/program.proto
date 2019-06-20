@@ -93,14 +93,12 @@ message Operation {
   // Which gate this operation corresponds to.
   Gate gate = 1;
 
-  // Arguments needed to fully specify the gate.
-  repeated Arg args = 2;
+  // Map from the argument name to the Argument needed to fully specify
+  // the gate.
+  map<string, Arg> args = 2;
 
   // Which qubits the operation acts on.
   repeated Qubit qubits = 3;
-
-  // If the operation produces results, these are referenced by these keys.
-  repeated string keys = 4;
 }
 
 // The instruction identifying the action taken on the quantum computer.
@@ -146,8 +144,14 @@ message Arg {
 message ArgValue {
   oneof arg_value {
     float float_value = 1;
-    bytes bytes_value = 2;
+    RepeatedBoolean bool_values = 2;
+    string string_value = 3;
   }
+}
+
+// A repeated boolean value.
+message RepeatedBoolean {
+  repeated bool values = 1;
 }
 
 // A function of arguments. This is an s-expression tree representing

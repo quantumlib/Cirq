@@ -133,6 +133,7 @@ from cirq.ops import (
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
+    LinearCombinationOfOperations,
     measure,
     measure_each,
     MeasurementGate,
@@ -275,6 +276,7 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
     ApplyUnitaryArgs,
@@ -287,6 +289,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    equal_up_to_global_phase,
     has_channel,
     has_mixture,
     has_mixture_channel,
