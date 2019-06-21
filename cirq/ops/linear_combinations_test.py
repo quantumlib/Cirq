@@ -578,8 +578,8 @@ def test_pauli_sum_construction():
 def test_pauli_sum_from_single_pauli():
     q = cirq.LineQubit.range(2)
     psum1 = cirq.X(q[0]) + cirq.Y(q[1])
-    assert psum1 == cirq.PauliSum.from_pauli_strings([
-        cirq.X(q[0]) * 1, cirq.Y(q[1]) * 1])
+    assert psum1 == cirq.PauliSum.from_pauli_strings(
+        [cirq.X(q[0]) * 1, cirq.Y(q[1]) * 1])
 
     psum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Y(q[1])
     assert psum2 == cirq.PauliSum.from_pauli_strings(
@@ -631,8 +631,8 @@ def test_add_number_paulistring():
     q = cirq.LineQubit.range(2)
     pstr1 = cirq.X(q[0]) * cirq.X(q[1])
     psum = pstr1 + 1.3
-    assert psum == cirq.PauliSum.from_pauli_strings([pstr1,
-                                                     cirq.PauliString({}, 1.3)])
+    assert psum == cirq.PauliSum.from_pauli_strings(
+        [pstr1, cirq.PauliString({}, 1.3)])
 
     psum = pstr1 - 1.3
     assert psum == cirq.PauliSum.from_pauli_strings(

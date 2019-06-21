@@ -97,8 +97,7 @@ from cirq.ops.gate_operation import (
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
-    PauliSum,
-)
+    PauliSum)
 
 from cirq.ops.parallel_gate_operation import (
     ParallelGateOperation,)
