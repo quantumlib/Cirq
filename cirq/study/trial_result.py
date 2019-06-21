@@ -113,7 +113,8 @@ def _df_repr(measurements: pd.DataFrame):
    #  repr_df['m_vals'] = measurements['m_vals'].apply(lambda x: x.values)
    #  return repr_df.groupby('mkeys').to_dict()
     grouped = measurements.groupby(['m_key'])
-    return grouped.apply(lambda x: (x.m_key, x['m_vals'].apply(lambda x: x.values).values)).to_dict()
+    return grouped
+    return grouped.apply(lambda x: (x['m_key'], x['m_vals'].apply(lambda x: x.values).values)).to_dict()
     return {key: val.values for key, val in measurements.index()}
 
 @value.value_equality(unhashable=True)
