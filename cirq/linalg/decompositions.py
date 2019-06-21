@@ -455,6 +455,19 @@ class KakDecomposition:
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
 
+    def __str__(self):
+        return ('KAK {{\n'
+                '    xyz*(4/π): {:.3g}, {:.3g}, {:.3g}\n'
+                '    before: ({}) ⊗ ({})\n'
+                '    after: ({}) ⊗ ({})\n'
+                '}}').format(self.interaction_coefficients[0] * 4 / np.pi,
+                             self.interaction_coefficients[1] * 4 / np.pi,
+                             self.interaction_coefficients[2] * 4 / np.pi,
+                             axis_angle(self.single_qubit_operations_before[0]),
+                             axis_angle(self.single_qubit_operations_before[1]),
+                             axis_angle(self.single_qubit_operations_after[0]),
+                             axis_angle(self.single_qubit_operations_after[1]))
+
     def __repr__(self):
         return (
             'cirq.KakDecomposition(\n'
