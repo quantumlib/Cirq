@@ -133,24 +133,16 @@ def Rzz(rads):
     return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
 
 
-def qaoa_max_cut_unitary(
-        qubits,
-        betas,
-        gammas,
-        graph,  # Nodes should be integers
-) -> cirq.OP_TREE:
+def qaoa_max_cut_unitary(qubits, betas, gammas,
+                         graph):  # Nodes should be integers
     for beta, gamma in zip(betas, gammas):
         yield (
             Rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
-        yield cirq.Rx(beta).on_each(*qubits)
+        yield cirq.Rx(2 * beta).on_each(*qubits)
 
 
-def qaoa_max_cut_circuit(
-        qubits,
-        betas,
-        gammas,
-        graph,  # Nodes should be integers
-) -> cirq.Circuit:
+def qaoa_max_cut_circuit(qubits, betas, gammas,
+                         graph):  # Nodes should be integers
     return cirq.Circuit.from_ops(
         # Prepare uniform superposition
         cirq.H.on_each(*qubits),

@@ -49,6 +49,8 @@ from cirq.linalg import (
     all_near_zero_mod,
     allclose_up_to_global_phase,
     apply_matrix_to_slices,
+    axis_angle,
+    AxisAngleDecomposition,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     block_diag,
@@ -131,6 +133,7 @@ from cirq.ops import (
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
+    LinearCombinationOfOperations,
     measure,
     measure_each,
     MeasurementGate,
@@ -273,6 +276,7 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
     ApplyUnitaryArgs,
@@ -285,6 +289,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    equal_up_to_global_phase,
     has_channel,
     has_mixture,
     has_mixture_channel,

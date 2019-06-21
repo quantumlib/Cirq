@@ -39,7 +39,7 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -505,8 +505,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure(*qubits: raw_types.Qid,
             key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()
-            ) -> gate_operation.GateOperation:
+            invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -542,7 +541,7 @@ def measure(*qubits: raw_types.Qid,
 
 def measure_each(*qubits: raw_types.Qid,
                  key_func: Callable[[raw_types.Qid], str] = str
-                 ) -> List[gate_operation.GateOperation]:
+                ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -909,7 +908,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         ).format(proper_repr(self._exponent), self._global_shift)
 
     def on(self, *args: raw_types.Qid,
-           **kwargs: raw_types.Qid) -> gate_operation.GateOperation:
+           **kwargs: raw_types.Qid) -> raw_types.Operation:
         if not kwargs:
             return super().on(*args)
         if not args and set(kwargs.keys()) == {'control', 'target'}:
