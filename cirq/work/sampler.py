@@ -14,6 +14,8 @@
 """Abstract base class for things sampling quantum circuits."""
 
 import abc
+import asyncio
+import threading
 from typing import (List, Union, Awaitable)
 
 from cirq import circuits, schedules, study
@@ -21,19 +23,6 @@ from cirq import circuits, schedules, study
 
 class Sampler(metaclass=abc.ABCMeta):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
-
-    @abc.abstractmethod
-    def async_sample(self, program: Union[circuits.Circuit, schedules.Schedule],
-                     *, repetitions: int) -> Awaitable[study.TrialResult]:
-        """Asynchronously samples from the given Circuit or Schedule.
-
-        Args:
-            program: The circuit or schedule to sample from.
-            repetitions: The number of times to sample.
-
-        Returns:
-            An awaitable TrialResult.
-        """
 
     def run(
             self,
@@ -75,3 +64,32 @@ class Sampler(metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
+
+    async def async_sample(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            *,
+            repetitions: int) -> Awaitable[study.TrialResult]:
+        """Asynchronously samples from the given Circuit or Schedule.
+
+        By default, this method calls `run` on another thread and yields the
+        result via the asyncio event loop. However, child classes are free to
+        override it to use other strategies.
+
+        Args:
+            program: The circuit or schedule to sample from.
+            repetitions: The number of times to sample.
+
+        Returns:
+            An awaitable TrialResult.
+        """
+        done = asyncio.Future()  # type: asyncio.Future
+        loop = asyncio.get_event_loop()
+
+        def run():
+            result = self.run(program, repetitions=repetitions)
+            loop.call_soon_threadsafe(lambda: done.set_result(result))
+
+        t = threading.Thread(target=run)
+        t.start()
+        return await done
