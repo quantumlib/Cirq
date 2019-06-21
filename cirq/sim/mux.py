@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sampling/simulation methods that delegate to appropriate simulators."""
+"""Sampling/simulation methods that delegate to appropriate simulators.
 
-from typing import List, Optional, Type, Union, Sequence
+Filename is a reference to multiplexing.
+"""
+
+from typing import List, Optional, Type, Union, Sequence, cast
 
 import numpy as np
 
@@ -112,11 +115,13 @@ def final_wavefunction(
             "\n"
             "Program: {!r}".format(program))
 
-    return sparse_simulator.Simulator(dtype=dtype).simulate(
+    result = sparse_simulator.Simulator(dtype=dtype).simulate(
         program=program,
         initial_state=initial_state,
         qubit_order=qubit_order,
-        param_resolver=param_resolver).state_vector()
+        param_resolver=param_resolver)
+
+    return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
 def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
