@@ -313,8 +313,6 @@ def test_pytest_and_incremental_coverage_branch_selection():
                        'git commit -q -m test2 --no-gpg-sign\n'
                        'git checkout -q alt\n')
     assert result.exit_code == 0
-    print(result.out)
-    print(result.err)
     assert result.out.startswith(
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py ')
