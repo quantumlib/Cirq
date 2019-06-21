@@ -64,16 +64,17 @@ if [ -z "${rev}" ]; then
         exit 1
     fi
 fi
-echo "Comparing against revision '${rev}'." >&2
+base="$(git merge-base ${rev} HEAD)"
+echo -e "Comparing against \e[32m${rev}\e[0m (merge base ${base})" >&2
 
 # Get the _test version of changed python files.
 needed_changes=0
-changed_files=$(git diff --name-only ${rev} -- | grep "\.py$" | grep -v "_pb2\.py$")
+changed_files=$(git diff --name-only ${base} -- | grep "\.py$" | grep -v "_pb2\.py$")
 esc=$(printf '\033')
 for changed_file in ${changed_files}; do
     # Extract changed line ranges from diff output.
     changed_line_ranges=$( \
-        git diff --unified=0 "${rev}" -- "${changed_file}" \
+        git diff --unified=0 "${base}" -- "${changed_file}" \
         | perl -ne 'chomp(); if (/@@ -\d+(,\d+)? \+(\d+)(,)?(\d+)? @@/) {$end=$2+($4 or 1)-1; print "--lines=$2-$end "}' \
     )
 
