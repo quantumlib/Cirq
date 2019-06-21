@@ -15,14 +15,14 @@
 from typing import TYPE_CHECKING, Iterable, Sequence, Union
 
 from cirq import ops, value
-from cirq.devices import abc_alt
+from cirq.devices.abc_alt import ABCMetaImplementAnyOneOf, alternative
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
 
 
-class NoiseModel(metaclass=abc_alt.ABCMetaAlt):
+class NoiseModel(metaclass=ABCMetaImplementAnyOneOf):
     """Replaces operations and moments with noisy counterparts.
 
     A child class must override *at least one* of the following three methods:
@@ -38,7 +38,24 @@ class NoiseModel(metaclass=abc_alt.ABCMetaAlt):
     dynamically rewrite the program they are simulating.
     """
 
-    @abc_alt.abstractmethod_alternatives('noisy_moment', 'noisy_operation')
+    def _noisy_moments_impl_moment(self, moments: 'Iterable[cirq.Moment]',
+                                   system_qubits: Sequence['cirq.Qid']
+                                  ) -> Sequence['cirq.OP_TREE']:
+        result = []
+        for moment in moments:
+            result.append(self.noisy_moment(moment, system_qubits))
+        return result
+
+    def _noisy_moments_impl_operation(self, moments: 'Iterable[cirq.Moment]',
+                                      system_qubits: Sequence['cirq.Qid']
+                                     ) -> Sequence['cirq.OP_TREE']:
+        result = []
+        for moment in moments:
+            result.append([self.noisy_operation(op) for op in moment])
+        return result
+
+    @alternative('noisy_moment', _noisy_moments_impl_moment)
+    @alternative('noisy_operation', _noisy_moments_impl_operation)
     def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
                       system_qubits: Sequence['cirq.Qid']
                      ) -> Sequence['cirq.OP_TREE']:
@@ -52,21 +69,19 @@ class NoiseModel(metaclass=abc_alt.ABCMetaAlt):
             A sequence of OP_TREEs, with the k'th tree corresponding to the
             noisy operations for the k'th moment.
         """
-        if self._alternative_for('noisy_moments') == 'noisy_moment':
-            result = []
-            for moment in moments:
-                result.append(self.noisy_moment(moment, system_qubits))
-            return result
 
-        if self._alternative_for('noisy_moments') == 'noisy_operation':
-            result = []
-            for moment in moments:
-                result.append([self.noisy_operation(op) for op in moment])
-            return result
+    def _noisy_moment_impl_moments(self, moment: 'cirq.Moment',
+                                   system_qubits: Sequence['cirq.Qid']
+                                  ) -> 'cirq.OP_TREE':
+        return self.noisy_moments([moment], system_qubits)
 
-        assert False, 'Should be unreachable.'
+    def _noisy_moment_impl_operation(self, moment: 'cirq.Moment',
+                                     system_qubits: Sequence['cirq.Qid']
+                                    ) -> 'cirq.OP_TREE':
+        return [self.noisy_operation(op) for op in moment]
 
-    @abc_alt.abstractmethod_alternatives('noisy_moments', 'noisy_operation')
+    @alternative('noisy_moments', _noisy_moment_impl_moments)
+    @alternative('noisy_operation', _noisy_moment_impl_operation)
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Adds noise to the operations from a moment.
@@ -78,15 +93,18 @@ class NoiseModel(metaclass=abc_alt.ABCMetaAlt):
         Returns:
             An OP_TREE corresponding to the noisy operations for the moment.
         """
-        if self._alternative_for('noisy_moment') == 'noisy_moments':
-            return self.noisy_moments([moment], system_qubits)
 
-        if self._alternative_for('noisy_moment') == 'noisy_operation':
-            return [self.noisy_operation(op) for op in moment]
+    def _noisy_operation_impl_moments(self, operation: 'cirq.Operation'
+                                     ) -> 'cirq.OP_TREE':
+        return self.noisy_moments([ops.Moment([operation])],
+                                  operation.qubits)
 
-        assert False, 'Should be unreachable.'
+    def _noisy_operation_impl_moment(self, operation: 'cirq.Operation'
+                                    ) -> 'cirq.OP_TREE':
+        return self.noisy_moment(ops.Moment([operation]), operation.qubits)
 
-    @abc_alt.abstractmethod_alternatives('noisy_moments', 'noisy_moment')
+    @alternative('noisy_moments', _noisy_operation_impl_moments)
+    @alternative('noisy_moment', _noisy_operation_impl_moment)
     def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Adds noise to an individual operation.
 
@@ -97,14 +115,6 @@ class NoiseModel(metaclass=abc_alt.ABCMetaAlt):
             An OP_TREE corresponding to the noisy operations implementing the
             noisy version of the given operation.
         """
-        if self._alternative_for('noisy_operation') == 'noisy_moments':
-            return self.noisy_moments([ops.Moment([operation])],
-                                      operation.qubits)
-
-        if self._alternative_for('noisy_operation') == 'noisy_moment':
-            return self.noisy_moment(ops.Moment([operation]), operation.qubits)
-
-        assert False, 'Should be unreachable.'
 
 
 @value.value_equality
