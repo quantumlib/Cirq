@@ -1,7 +1,7 @@
 import pytest
 
 import cirq
-import cirq.api.google.v2.util as util
+from cirq.google import util
 
 
 @pytest.mark.parametrize('sweep', [

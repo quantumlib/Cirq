@@ -1,17 +1,17 @@
 from typing import Optional
 
-from cirq.api.google.v2 import run_context_pb2
+from cirq.api.google import v2
 from cirq.study import sweeps
 
-SweepFunction = run_context_pb2.SweepFunction
+SweepFunction = v2.run_context_pb2.SweepFunction
 
 
 def sweep_to_proto(
         sweep: sweeps.Sweep,
-        msg: Optional[run_context_pb2.Sweep]=None,
-) -> run_context_pb2.Sweep:
+        msg: Optional[v2.run_context_pb2.Sweep]=None,
+) -> v2.run_context_pb2.Sweep:
     if msg is None:
-        msg = run_context_pb2.Sweep()
+        msg = v2.run_context_pb2.Sweep()
     if sweep is sweeps.UnitSweep:
         pass
     elif isinstance(sweep, sweeps.Product):
@@ -32,11 +32,11 @@ def sweep_to_proto(
         for point in sweep.points:
             msg.single_sweep.points.points.append(point)
     else:
-        raise ValueError(f'cannot convert to v2.Sweep proto: {sweep}')
+        raise ValueError('cannot convert to v2.Sweep proto: {}'.format(sweep))
     return msg
 
 
-def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
+def sweep_from_proto(msg: v2.run_context_pb2.Sweep) -> sweeps.Sweep:
     which = msg.WhichOneof('sweep')
     if which is None:
         return sweeps.UnitSweep
@@ -48,7 +48,7 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
         elif func_type == SweepFunction.ZIP:
             return sweeps.Zip(*factors)
         else:
-            raise ValueError(f'invalid sweep function type: {func_type}')
+            raise ValueError('invalid sweep function type: {}'.format(func_type))
     elif which == 'single_sweep':
         key = msg.single_sweep.parameter_key
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
@@ -60,6 +60,6 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
         elif msg.single_sweep.WhichOneof('sweep') == 'points':
             return sweeps.Points(key=key, points=msg.single_sweep.points.points)
         else:
-            raise ValueError(f'single sweep type not set: {msg}')
+            raise ValueError('single sweep type not set: {}'.format(msg))
     else:
-        raise ValueError(f'sweep type not set: {msg}')
+        raise ValueError('sweep type not set: {}'.format(msg))

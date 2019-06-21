@@ -5,5 +5,4 @@ from cirq.api.google.v2 import (
     program_pb2,
     result_pb2,
     run_context_pb2,
-    util,
 )
