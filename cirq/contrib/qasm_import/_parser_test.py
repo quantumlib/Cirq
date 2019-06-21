@@ -272,8 +272,7 @@ def test_u_gate():
     q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
-    expected_circuit.append(
-        QasmUGate(3 / np.pi, 1.0, 2.3 / np.pi)(q0))
+    expected_circuit.append(QasmUGate(3 / np.pi, 1.0, 2.3 / np.pi)(q0))
 
     expected_circuit.append(
         cirq.Moment([
@@ -303,6 +302,7 @@ def test_u3_angles():
                                                     cirq.unitary(cirq.H),
                                                     atol=1e-7)
 
+
 def test_u_gate_zero_params_error():
     qasm = """OPENQASM 2.0;
      qreg q[2];     
@@ -310,9 +310,8 @@ def test_u_gate_zero_params_error():
 
     parser = QasmParser()
 
-    with pytest.raises(
-            QasmException,
-            match=r"U takes 3 parameter\(s\).*got.*0.*line 3"):
+    with pytest.raises(QasmException,
+                       match=r"U takes 3 parameter\(s\).*got.*0.*line 3"):
         parser.parse(qasm)
 
 
@@ -323,9 +322,8 @@ def test_u_gate_too_much_params_error():
 
     parser = QasmParser()
 
-    with pytest.raises(
-            QasmException,
-            match=r"U takes 3 parameter\(s\).*got.*4.*line 3"):
+    with pytest.raises(QasmException,
+                       match=r"U takes 3 parameter\(s\).*got.*4.*line 3"):
         parser.parse(qasm)
 
 

@@ -71,8 +71,7 @@ qreg q[1];
 
 def test_empty_circuit_no_qubits():
     output = cirq.QasmOutput((), ())
-    assert (str(output) ==
-            """OPENQASM 2.0;
+    assert (str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 

@@ -61,19 +61,18 @@ def test_valid_ids(identifier: str):
     assert token.value == identifier
 
 
-@pytest.mark.parametrize(
-    'number', [
-        '1e2',
-        '1e0',
-        '3.',
-        '4.e10',
-        '.333',
-        '1.0',
-        '0.1',
-        '2.0e-05',
-        '1.2E+05',
-        '123123.2132312',
-    ])
+@pytest.mark.parametrize('number', [
+    '1e2',
+    '1e0',
+    '3.',
+    '4.e10',
+    '.333',
+    '1.0',
+    '0.1',
+    '2.0e-05',
+    '1.2E+05',
+    '123123.2132312',
+])
 def test_numbers(number: str):
     lexer = QasmLexer()
     lexer.input(number)

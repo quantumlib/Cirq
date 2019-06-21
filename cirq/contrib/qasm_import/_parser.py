@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Dict, Optional, List, Any, Iterable, Callable, Tuple
+from typing import Dict, Optional, List, Any, Iterable, Callable, Tuple, Union
 import numpy as np
 import sympy
 from ply import yacc
@@ -50,13 +50,10 @@ class QasmGateStatement:
     """
 
     def __init__(
-            self,
-            qasm_gate: str,
-            cirq_gate: cirq.Gate,
-            num_params: int,
-            num_args: int,
-            params_transformation: Callable[[List[sympy.Number]], List[
-                sympy.Number]] = lambda params: params):
+            self, qasm_gate: str,
+            cirq_gate: Union[cirq.Gate, Callable[[List[sympy.Number]], cirq.
+                                                 Gate]], num_params: int,
+            num_args: int):
         """Initializes a Qasm gate statement.
 
        Args:
@@ -69,7 +66,6 @@ class QasmGateStatement:
         self.cirq_gate = cirq_gate
         self.num_params = num_params
         self.num_args = num_args
-        self.params_transformation = params_transformation
 
     def _validate_args(self, args: List[List[cirq.Qid]], lineno: int):
         if len(args) != self.num_args:
@@ -88,7 +84,7 @@ class QasmGateStatement:
            lineno: int) -> Iterable[cirq.Operation]:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
-        params = self.params_transformation(params)
+
         reg_sizes = np.unique([len(reg) for reg in args])
         if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
             raise QasmException("Non matching quantum registers of length {} "
@@ -97,8 +93,7 @@ class QasmGateStatement:
         # the actual gate we'll apply the arguments to might be a parameterized
         # or non-parametrized gate
         final_gate = (self.cirq_gate if isinstance(self.cirq_gate, cirq.Gate)
-                      else self.cirq_gate(*[float(p) for p in params])
-                     )  # type: cirq.Gate
+                      else self.cirq_gate(params))  # type: cirq.Gate
         # OpenQASM gates can be applied on single qubits and qubit registers.
         # We represent single qubits as registers of size 1.
         # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
@@ -147,14 +142,13 @@ class QasmParser:
         'U':
         QasmGateStatement(
             qasm_gate='U',
-            cirq_gate=QasmUGate,
             num_params=3,
             num_args=1,
-            params_transformation=
             # QasmUGate expects half turns and
             # changes the order of arguments
-            (lambda params: [params[2] / np.pi, params[0] / np.pi,
-                             params[1] / np.pi]))
+            cirq_gate=(lambda params: QasmUGate(float(params[
+                2] / np.pi), float(params[0] / np.pi), float(params[1] / np.pi))
+                      ))
     }  # type: Dict[str, QasmGateStatement]
 
     tokens = QasmLexer.tokens
