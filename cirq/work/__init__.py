@@ -1,5 +1,4 @@
 from cirq.work.collector import (
-    async_collect_samples,
     CircuitSampleJob,
     SampleCollector,
 )

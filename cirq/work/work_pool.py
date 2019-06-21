@@ -24,14 +24,14 @@ class CompletionOrderedAsyncWorkPool:
         self._loop = loop if loop is not None else asyncio.get_event_loop()
         self._allow_anext = asyncio.Semaphore(value=0)
         self._no_more_work_coming = False
-        self._done_event = asyncio.Future()  # type: asyncio.Future
+        self._done_event = self._loop.create_future()  # type: asyncio.Future
         self._work_queue = collections.deque()  # type: collections.deque
         self._out_queue = collections.deque()  # type: collections.deque
 
     def include_work(self, work: Union[Awaitable, asyncio.Future]) -> None:
         """Adds asynchronous work into the pool and begins executing it."""
         assert not self._no_more_work_coming
-        output = asyncio.Future()  # type: asyncio.Future
+        output = self._loop.create_future()  # type: asyncio.Future
         self._out_queue.append(output)
         self._work_queue.append(output)
         asyncio.ensure_future(self._async_handle_work_completion(work),
@@ -64,6 +64,7 @@ class CompletionOrderedAsyncWorkPool:
     def set_all_work_received_flag(self) -> None:
         """Indicates to the work pool that no more work will be added."""
         assert not self._no_more_work_coming
+        self._no_more_work_coming = True
         self._react_to_progress()
 
     async def _anext_helper(self):

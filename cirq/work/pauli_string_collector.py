@@ -66,11 +66,11 @@ class PauliStringSampleCollector(collector.SampleCollector):
             circuit=_circuit_plus_pauli_string_measurements(
                 self._circuit, pauli),
             repetitions=amount_to_request,
-            id=pauli)
+            tag=pauli)
 
     def on_job_result(self, job: collector.CircuitSampleJob,
                       result: study.TrialResult):
-        job_id = cast(ops.PauliString, job.id)
+        job_id = cast(ops.PauliString, job.tag)
         parities = result.histogram(key='out',
                                     fold_func=lambda bits: np.sum(bits) % 2)
         self._zeros[job_id] += parities[0]

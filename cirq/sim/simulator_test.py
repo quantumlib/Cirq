@@ -272,8 +272,8 @@ def test_async_sample():
             return m
 
     q = cirq.LineQubit(0)
-    f = MockSimulator().async_sample(cirq.Circuit.from_ops(cirq.measure(q)),
-                                     repetitions=10)
+    f = MockSimulator().run_async(cirq.Circuit.from_ops(cirq.measure(q)),
+                                  repetitions=10)
     result = cirq.testing.assert_asyncio_will_have_result(f)
     assert result.measurements is m
 

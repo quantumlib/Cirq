@@ -16,9 +16,11 @@
 import abc
 import asyncio
 import threading
-from typing import (List, Union, Awaitable)
+import numpy as np
+from typing import (List, Union, Awaitable, Optional, Iterable, Any)
 
-from cirq import circuits, schedules, study
+from cirq import circuits, schedules, study, value
+from cirq.work import work_pool
 
 
 class Sampler(metaclass=abc.ABCMeta):
@@ -65,7 +67,7 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def async_sample(
+    async def run_async(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
             *,
@@ -83,12 +85,16 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        done = asyncio.Future()  # type: asyncio.Future
         loop = asyncio.get_event_loop()
+        done = loop.create_future()  # type: asyncio.Future
 
         def run():
-            result = self.run(program, repetitions=repetitions)
-            loop.call_soon_threadsafe(lambda: done.set_result(result))
+            try:
+                result = self.run(program, repetitions=repetitions)
+            except Exception as exc:
+                loop.call_soon_threadsafe(done.set_exception, exc)
+            else:
+                loop.call_soon_threadsafe(done.set_result, result)
 
         t = threading.Thread(target=run)
         t.start()

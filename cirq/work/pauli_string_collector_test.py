@@ -28,7 +28,6 @@ def test_pauli_string_sample_collector():
                                             cirq.Z(a) * cirq.Z(b):
                                             4,
                                         }))
-    completion = cirq.async_collect_samples(collector=p,
-                                            sampler=cirq.Simulator())
+    completion = p.collect_async(sampler=cirq.Simulator())
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert p.estimated_energy() == 11

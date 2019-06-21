@@ -21,17 +21,17 @@ def test_circuit_sample_job_equality():
     c2 = cirq.Circuit.from_ops(cirq.measure(cirq.LineQubit(0)))
 
     eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10),
-                          cirq.CircuitSampleJob(c1, repetitions=10, id=None))
+                          cirq.CircuitSampleJob(c1, repetitions=10, tag=None))
     eq.add_equality_group(cirq.CircuitSampleJob(c2, repetitions=10))
     eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=100))
-    eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10, id='test'))
+    eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10, tag='test'))
 
 
 def test_circuit_sample_job_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.CircuitSampleJob(cirq.Circuit.from_ops(cirq.H(cirq.LineQubit(0))),
                               repetitions=10,
-                              id='guess'))
+                              tag='guess'))
 
 
 def test_async_collect():
@@ -44,14 +44,13 @@ def test_async_collect():
             circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
             return cirq.CircuitSampleJob(circuit=circuit,
                                          repetitions=10,
-                                         id='test')
+                                         tag='test')
 
         def on_job_result(self, job, result):
-            received.append(job.id)
+            received.append(job.tag)
 
-    completion = cirq.async_collect_samples(collector=TestCollector(),
-                                            sampler=cirq.Simulator(),
-                                            max_total_samples=100,
-                                            concurrency=5)
+    completion = TestCollector().collect_async(sampler=cirq.Simulator(),
+                                               max_total_samples=100,
+                                               concurrency=5)
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert received == ['test'] * 10
