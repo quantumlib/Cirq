@@ -93,8 +93,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
                 sampler: 'sampler.Sampler',
                 *,
                 concurrency: int = 2,
-                max_total_samples: Optional[int] = None
-                ) -> Any:
+                max_total_samples: Optional[int] = None) -> Any:
         """Collects needed samples.
 
         Examples:
@@ -130,8 +129,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
                             sampler: 'sampler.Sampler',
                             *,
                             concurrency: int = 2,
-                            max_total_samples: Optional[int] = None
-                            ) -> Any:
+                            max_total_samples: Optional[int] = None) -> Any:
         """Asynchronously collects needed samples.
 
         Examples:
@@ -159,9 +157,8 @@ class SampleCollector(metaclass=abc.ABCMeta):
         """
         pool = work_pool.CompletionOrderedAsyncWorkPool()
         queued_jobs = []
-        remaining_samples = (np.infty
-                             if max_total_samples is None
-                             else max_total_samples)
+        remaining_samples = (np.infty if max_total_samples is None else
+                             max_total_samples)
 
         async def _start_async_job(job):
             return job, await sampler.run_async(job.circuit,
@@ -199,7 +196,8 @@ def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]):
     return out
 
 
-def _flatten_jobs_helper(out: List[CircuitSampleJob], given: CIRCUIT_SAMPLE_JOB_TREE):
+def _flatten_jobs_helper(out: List[CircuitSampleJob],
+                         given: CIRCUIT_SAMPLE_JOB_TREE):
     if isinstance(given, CircuitSampleJob):
         out.append(given)
     elif given is not None:

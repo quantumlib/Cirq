@@ -67,11 +67,9 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(
-            self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            *,
-            repetitions: int) -> Awaitable[study.TrialResult]:
+    async def run_async(self,
+                        program: Union[circuits.Circuit, schedules.Schedule], *,
+                        repetitions: int) -> Awaitable[study.TrialResult]:
         """Asynchronously samples from the given Circuit or Schedule.
 
         By default, this method calls `run` on another thread and yields the
