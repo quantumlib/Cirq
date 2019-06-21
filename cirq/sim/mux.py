@@ -54,18 +54,14 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
 
 
 def final_wavefunction(
-        program: Union[circuits.Circuit,
-                       ops.Gate,
-                       ops.OP_TREE,
-                       schedules.Schedule],
+        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
+                       Schedule],
         *,
-        initial_state: Union[int,
-                             Sequence[Union[int, float, complex]],
-                             np.ndarray] = 0,
+        initial_state: Union[int, Sequence[Union[int, float, complex]], np.
+                             ndarray] = 0,
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        dtype: Type[np.number] = np.complex64
-        ) -> 'np.ndarray':
+        dtype: Type[np.number] = np.complex64) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -101,8 +97,8 @@ def final_wavefunction(
         # No change needed.
         pass
     elif isinstance(program, ops.Gate):
-        program = circuits.Circuit.from_ops(program.on(
-            *line.LineQubit.range(program.num_qubits())))
+        program = circuits.Circuit.from_ops(
+            program.on(*line.LineQubit.range(program.num_qubits())))
     else:
         # It should be an OP_TREE.
         program = circuits.Circuit.from_ops(program)
@@ -120,8 +116,7 @@ def final_wavefunction(
         program=program,
         initial_state=initial_state,
         qubit_order=qubit_order,
-        param_resolver=param_resolver
-    ).state_vector()
+        param_resolver=param_resolver).state_vector()
 
 
 def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],

@@ -283,9 +283,10 @@ def test_unitary():
     np.testing.assert_allclose(cirq.unitary(schedule), cirq.unitary(cirq.H))
     assert cirq.has_unitary(schedule)
 
-    schedule2 = cirq.Schedule(
-        device=UnconstrainedDevice,
-        scheduled_operations=[
-            cirq.ScheduledOperation(zero, ps, cirq.depolarize(0.5).on(q))
-        ])
+    schedule2 = cirq.Schedule(device=UnconstrainedDevice,
+                              scheduled_operations=[
+                                  cirq.ScheduledOperation(
+                                      zero, ps,
+                                      cirq.depolarize(0.5).on(q))
+                              ])
     assert not cirq.has_unitary(schedule2)
