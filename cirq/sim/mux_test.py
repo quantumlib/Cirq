@@ -171,7 +171,7 @@ def test_final_wavefunction_dtype_insensitive_to_initial_state():
         initial_state=np.array([np.sqrt(0.5), np.sqrt(0.5)])
     ).dtype == np.complex64
 
-    for t in [np.int32, np.float32, np.float64, np.float128, np.complex64]:
+    for t in [np.int32, np.float32, np.float64, np.complex64]:
         assert cirq.final_wavefunction(
             cirq.X,
             initial_state=np.array([1, 0], dtype=t)
