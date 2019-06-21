@@ -1858,6 +1858,12 @@ def test_circuit_to_unitary_matrix():
         cirq.unitary(cirq.X),
         atol=1e-8)
 
+    # dtype
+    c = cirq.Circuit.from_ops(cirq.X(a))
+    assert c.to_unitary_matrix(dtype=np.complex64).dtype == np.complex64
+    assert c.to_unitary_matrix(dtype=np.complex128).dtype == np.complex128
+    assert c.to_unitary_matrix(dtype=np.float64).dtype == np.float64
+
 
 def test_circuit_unitary():
     q = cirq.NamedQubit('q')
