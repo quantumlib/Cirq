@@ -228,7 +228,7 @@ def _is_linear_dict_of_unit_pauli_string(
 
 
 def _pauli_string_from_unit(unit: UnitPauliStringT,
-                            coefficient: Union[int, float, complex]=1):
+                            coefficient: Union[int, float, complex] = 1):
     return PauliString(dict(unit), coefficient=coefficient)
 
 
