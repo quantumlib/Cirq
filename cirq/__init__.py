@@ -189,7 +189,8 @@ from cirq.ops import (
     Z,
     ZPowGate,
     ZZ,
-    ZZPowGate)
+    ZZPowGate,
+)
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
