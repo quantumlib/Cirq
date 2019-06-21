@@ -135,10 +135,10 @@ def test_pytest_changed_files_branch_selection():
         "Comparing against revision 'HEAD'.\n"
         "Found 0 differing files with associated tests.\n").split()
 
-    result = run(script_file='check/pytest-changed-files', arg='HEAD~9999')
+    result = run(script_file='check/pytest-changed-files', arg='HEAD~999999')
     assert result.exit_code == 1
     assert result.out == ''
-    assert "No revision 'HEAD~9999'." in result.err
+    assert "No revision 'HEAD~999999'." in result.err
 
     result = run(script_file='check/pytest-changed-files')
     assert result.exit_code == 0
@@ -238,10 +238,10 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.err == "Comparing against revision 'HEAD'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
-                 arg='HEAD~9999')
+                 arg='HEAD~999999')
     assert result.exit_code == 1
     assert result.out == ''
-    assert "No revision 'HEAD~9999'." in result.err
+    assert "No revision 'HEAD~999999'." in result.err
 
     result = run(script_file='check/pytest-and-incremental-coverage')
     assert result.exit_code == 0
