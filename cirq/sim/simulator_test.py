@@ -79,7 +79,7 @@ def test_intermediate_simulator():
         yield result
         result = mock.Mock()
         result.measurements = {'b': [True, False]}
-        result.simulator_state.return_value = final_simulator_state
+        result._simulator_state.return_value = final_simulator_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -94,7 +94,8 @@ def test_intermediate_simulator():
     np.testing.assert_equal(result.measurements['b'], [True, False])
     assert set(result.measurements.keys()) == {'a', 'b'}
     assert result.params == param_resolver
-    np.testing.assert_equal(result.final_simulator_state, final_simulator_state)
+    np.testing.assert_equal(result._final_simulator_state,
+                            final_simulator_state)
 
 
 @mock.patch.multiple(cirq.SimulatesIntermediateState,
@@ -107,7 +108,7 @@ def test_intermediate_sweeps():
     def steps(*args, **kwargs):
         result = mock.Mock()
         result.measurements = {'a': np.array([True, True])}
-        result.simulator_state.return_value = final_state
+        result._simulator_state.return_value = final_state
         yield result
 
     simulator._simulator_iterator.side_effect = steps
@@ -137,7 +138,7 @@ class FakeStepResult(cirq.StepResult):
     def __init__(self, ones_qubits):
         self._ones_qubits = set(ones_qubits)
 
-    def simulator_state(self):
+    def _simulator_state(self):
         pass
 
     def state_vector(self):
@@ -275,3 +276,14 @@ def test_async_sample():
                                      repetitions=10)
     result = cirq.testing.assert_asyncio_will_have_result(f)
     assert result.measurements is m
+
+
+def test_simulation_trial_result_qubit_map():
+    q = cirq.LineQubit.range(2)
+    result = cirq.Simulator().simulate(
+        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    assert result.qubit_map == {q[0]: 0, q[1]: 1}
+
+    result = cirq.DensityMatrixSimulator().simulate(
+        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    assert result.qubit_map == {q[0]: 0, q[1]: 1}

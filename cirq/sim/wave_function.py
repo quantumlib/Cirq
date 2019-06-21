@@ -36,7 +36,11 @@ class StateVectorMixin():
     def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None,
         *args, **kwargs):
         super().__init__(*args, **kwargs)  # type: ignore
-        self.qubit_map = qubit_map or {}
+        self._qubit_map = qubit_map or {}
+
+    @property
+    def qubit_map(self):
+        return self._qubit_map
 
     @abc.abstractmethod
     def state_vector(self) -> np.ndarray:

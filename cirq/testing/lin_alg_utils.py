@@ -49,8 +49,7 @@ def random_unitary(dim: int) -> np.ndarray:
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    z = (np.random.randn(dim, dim) +
-         1j * np.random.randn(dim, dim)) * np.sqrt(0.5)
+    z = (np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim))
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
