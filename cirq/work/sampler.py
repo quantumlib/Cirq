@@ -16,11 +16,9 @@
 import abc
 import asyncio
 import threading
-import numpy as np
-from typing import (List, Union, Awaitable, Optional, Iterable, Any)
+from typing import Awaitable, List, Union
 
-from cirq import circuits, schedules, study, value
-from cirq.work import work_pool
+from cirq import circuits, schedules, study
 
 
 class Sampler(metaclass=abc.ABCMeta):

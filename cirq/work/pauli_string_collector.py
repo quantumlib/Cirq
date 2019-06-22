@@ -18,10 +18,10 @@ from typing import Optional, MutableMapping, cast, Union
 import numpy as np
 
 from cirq import circuits, study, ops, value
-from cirq.work import collector
+from cirq.work import sample_collector
 
 
-class PauliStringSampleCollector(collector.SampleCollector):
+class PauliStringSampleCollector(sample_collector.SampleCollector):
     """Estimates the energy of a linear combination of Pauli observables."""
 
     def __init__(self,
@@ -53,7 +53,7 @@ class PauliStringSampleCollector(collector.SampleCollector):
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
-    def next_job(self) -> Optional[collector.CircuitSampleJob]:
+    def next_job(self) -> Optional[sample_collector.CircuitSampleJob]:
         i = self._total_samples_requested // self._samples_per_term
         if i >= len(self._terms):
             return None
@@ -62,13 +62,13 @@ class PauliStringSampleCollector(collector.SampleCollector):
                                               1) - self._total_samples_requested
         amount_to_request = min(remaining, self._samples_per_job)
         self._total_samples_requested += amount_to_request
-        return collector.CircuitSampleJob(
+        return sample_collector.CircuitSampleJob(
             circuit=_circuit_plus_pauli_string_measurements(
                 self._circuit, pauli),
             repetitions=amount_to_request,
             tag=pauli)
 
-    def on_job_result(self, job: collector.CircuitSampleJob,
+    def on_job_result(self, job: sample_collector.CircuitSampleJob,
                       result: study.TrialResult):
         job_id = cast(ops.PauliString, job.tag)
         parities = result.histogram(key='out',

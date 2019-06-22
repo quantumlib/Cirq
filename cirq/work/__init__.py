@@ -1,4 +1,4 @@
-from cirq.work.collector import (
+from cirq.work.sample_collector import (
     CircuitSampleJob,
     SampleCollector,
 )
