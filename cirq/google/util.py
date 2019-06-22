@@ -8,8 +8,18 @@ SweepFunction = v2.run_context_pb2.SweepFunction
 
 def sweep_to_proto(
         sweep: sweeps.Sweep,
-        msg: Optional[v2.run_context_pb2.Sweep]=None,
+        msg: Optional[v2.run_context_pb2.Sweep] = None,
 ) -> v2.run_context_pb2.Sweep:
+    """Converts a Sweep to v2 protobuf message.
+
+    Args:
+        sweep: The sweep to convert.
+        msg: Optional message to be populated. If not given, a new message will
+            be created.
+
+    Returns:
+        Populated sweep protobuf message.
+    """
     if msg is None:
         msg = v2.run_context_pb2.Sweep()
     if sweep is sweeps.UnitSweep:
@@ -37,6 +47,7 @@ def sweep_to_proto(
 
 
 def sweep_from_proto(msg: v2.run_context_pb2.Sweep) -> sweeps.Sweep:
+    """Creates a Sweep from a v2 protobuf message."""
     which = msg.WhichOneof('sweep')
     if which is None:
         return sweeps.UnitSweep
@@ -48,7 +59,8 @@ def sweep_from_proto(msg: v2.run_context_pb2.Sweep) -> sweeps.Sweep:
         elif func_type == SweepFunction.ZIP:
             return sweeps.Zip(*factors)
         else:
-            raise ValueError('invalid sweep function type: {}'.format(func_type))
+            raise ValueError(
+                'invalid sweep function type: {}'.format(func_type))
     elif which == 'single_sweep':
         key = msg.single_sweep.parameter_key
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
@@ -56,7 +68,8 @@ def sweep_from_proto(msg: v2.run_context_pb2.Sweep) -> sweeps.Sweep:
                 key=key,
                 start=msg.single_sweep.linspace.first_point,
                 stop=msg.single_sweep.linspace.last_point,
-                length=msg.single_sweep.linspace.num_points)
+                length=msg.single_sweep.linspace.num_points,
+            )
         elif msg.single_sweep.WhichOneof('sweep') == 'points':
             return sweeps.Points(key=key, points=msg.single_sweep.points.points)
         else:
