@@ -26,6 +26,7 @@ User Documentation
     tutorial
     circuits
     gates
+    noise
     simulation
     schedules
     development

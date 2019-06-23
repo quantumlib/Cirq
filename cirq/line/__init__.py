@@ -13,5 +13,4 @@
 # limitations under the License.
 
 from cirq.line.line_qubit import (
-    LineQubit,
-)
+    LineQubit,)
