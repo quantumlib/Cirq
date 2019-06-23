@@ -15,6 +15,7 @@
 import itertools
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -218,3 +219,19 @@ def test_diagonal_exponent():
     np.testing.assert_allclose(expected_angles,
                                sqrt_diagonal_gate._diag_angles_radians,
                                atol=1e-8)
+
+def test_resolve():
+    diagonal_angles = [np.pi * i  / 4 for i in range(0, 6)]
+    diagonal_gate = cirq.ThreeQubitDiagonalGate(
+        diagonal_angles + [sympy.Symbol('a'), sympy.Symbol('b')])
+    assert cirq.is_parameterized(diagonal_gate)
+
+    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 3 * np.pi / 2})
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(
+            diagonal_angles + [3 * np.pi / 2] + [sympy.Symbol('b')])
+    assert cirq.is_parameterized(diagonal_gate)
+
+    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 7 * np.pi / 4})
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(
+            diagonal_angles + [3 * np.pi / 2] + [7 * np.pi / 4])
+    assert not cirq.is_parameterized(diagonal_gate)

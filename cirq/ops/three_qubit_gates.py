@@ -30,7 +30,6 @@ from cirq.ops import (
     op_tree,
     raw_types,
 )
-from cirq.study import ParamResolver
 
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
@@ -158,8 +157,10 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         self._diag_angles_radians = diag_angles_radians  # type: List[float]
 
     def _is_parameterized_(self):
-        return any([isinstance(angle, sympy.Basic)
-                    for angle in self._diag_angles_radians])
+        return any([
+            isinstance(angle, sympy.Basic)
+            for angle in self._diag_angles_radians
+        ])
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
@@ -172,9 +173,9 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
     def _resolve_parameters_(self, param_resolver: 'ParamResolver'
                             ) -> 'ThreeQubitDiagonalGate':
-        return ThreeQubitDiagonalGate(
-            protocols.resolve_parameters(self._diag_angles_radians,
-                                         param_resolver))
+        return ThreeQubitDiagonalGate([
+            protocols.resolve_parameters(angle, param_resolver)
+            for angle in self._diag_angles_radians])
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
@@ -183,9 +184,10 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
         if not isinstance(exponent, (int, float, sympy.Basic)):
             return NotImplemented
-        return ThreeQubitDiagonalGate(
-            [protocols.mul(angle, exponent, NotImplemented)
-             for angle in self._diag_angles_radians])
+        return ThreeQubitDiagonalGate([
+            protocols.mul(angle, exponent, NotImplemented)
+            for angle in self._diag_angles_radians
+        ])
 
     def _decompose_(self, qubits):
         """An adjacency-respecting decomposition.
@@ -219,15 +221,18 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                 a, b = b, a
         sweep_abc = [common_gates.CNOT(a, b), common_gates.CNOT(b, c)]
         phase_matrix_inverse = .25 * np.array(
-                [[-1, -1, -1, 1, 1, 1, 1], [-1, 1, 1, -1, -1, 1, 1],
-                 [1, -1, 1, -1, 1, -1, 1], [-1, 1, 1, 1, 1, -1, -1],
-                 [1, 1, -1, 1, -1, -1, 1], [1, -1, 1, 1, -1, 1, -1],
-                 [1, 1, -1, -1, 1, 1, -1]])
-        shifted_angles_tail = [angle - self._diag_angles_radians[0] for angle
-                               in self._diag_angles_radians[1:]]
+            [[-1, -1, -1, 1, 1, 1, 1], [-1, 1, 1, -1, -1, 1, 1],
+             [1, -1, 1, -1, 1, -1, 1], [-1, 1, 1, 1, 1, -1, -1],
+             [1, 1, -1, 1, -1, -1, 1], [1, -1, 1, 1, -1, 1, -1],
+             [1, 1, -1, -1, 1, 1, -1]])
+        shifted_angles_tail = [
+            angle - self._diag_angles_radians[0]
+            for angle in self._diag_angles_radians[1:]
+        ]
         phase_solutions = phase_matrix_inverse.dot(shifted_angles_tail)
-        p_gates = [pauli_gates.Z**(solution / np.pi) for solution
-                   in phase_solutions]
+        p_gates = [
+            pauli_gates.Z**(solution / np.pi) for solution in phase_solutions
+        ]
 
         return [
             p_gates[0](a),
@@ -257,9 +262,10 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return tuple(self._diag_angles_radians)
 
     def __repr__(self) -> str:
-        return 'cirq.ThreeQubitDiagonalGate({})'.format(
-            '[' + ','.join(proper_repr(angle)
-            for angle in self._diag_angles_radians) + ']')
+        return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
+            ','.join(proper_repr(angle)
+            for angle in self._diag_angles_radians)
+        )
 
 
 class CCXPowGate(eigen_gate.EigenGate,
