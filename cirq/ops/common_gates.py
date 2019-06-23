@@ -37,9 +37,10 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import protocols, value
+from cirq import protocols
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.value.linear_dict import LinearDict
 from cirq.value.value_equality import value_equality
 
 from cirq.type_workarounds import NotImplementedType
@@ -89,12 +90,12 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict({
+        return LinearDict({
             'I': phase * np.cos(angle),
             'X': -1j * phase * np.sin(angle),
         })
@@ -192,12 +193,12 @@ class YPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict({
+        return LinearDict({
             'I': phase * np.cos(angle),
             'Y': -1j * phase * np.sin(angle),
         })
@@ -306,12 +307,12 @@ class ZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict({
+        return LinearDict({
             'I': phase * np.cos(angle),
             'Z': -1j * phase * np.sin(angle),
         })
@@ -507,8 +508,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
 
 def measure(*qubits: raw_types.Qid,
             key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()
-            ) -> gate_operation.GateOperation:
+            invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
 
     The qubits are measured in the computational basis.
@@ -544,7 +544,7 @@ def measure(*qubits: raw_types.Qid,
 
 def measure_each(*qubits: raw_types.Qid,
                  key_func: Callable[[raw_types.Qid], str] = str
-                 ) -> List[gate_operation.GateOperation]:
+                ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.
 
     The qubits are measured in the computational basis.
@@ -584,8 +584,8 @@ class IdentityGate(raw_types.Gate):
         self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
-        return value.LinearDict({'I' * self.num_qubits(): 1.0})
+    def _pauli_expansion_(self) -> LinearDict[str]:
+        return LinearDict({'I' * self.num_qubits(): 1.0})
 
     def __repr__(self):
         if self.num_qubits() == 1:
@@ -641,12 +641,12 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
         angle = np.pi * self._exponent / 2
-        return value.LinearDict({
+        return LinearDict({
             'I': phase * np.cos(angle),
             'X': -1j * phase * np.sin(angle) / np.sqrt(2),
             'Z': -1j * phase * np.sin(angle) / np.sqrt(2),
@@ -751,13 +751,13 @@ class CZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         z_phase = 1j**self._exponent
         c = -1j * z_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return value.LinearDict({
+        return LinearDict({
             'II': global_phase * (1 - c),
             'IZ': global_phase * c,
             'ZI': global_phase * c,
@@ -874,13 +874,13 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         cnot_phase = 1j**self._exponent
         c = -1j * cnot_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return value.LinearDict({
+        return LinearDict({
             'II': global_phase * (1 - c),
             'IX': global_phase * c,
             'ZI': global_phase * c,
@@ -911,7 +911,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         ).format(proper_repr(self._exponent), self._global_shift)
 
     def on(self, *args: raw_types.Qid,
-           **kwargs: raw_types.Qid) -> gate_operation.GateOperation:
+           **kwargs: raw_types.Qid) -> raw_types.Operation:
         if not kwargs:
             return super().on(*args)
         if not args and set(kwargs.keys()) == {'control', 'target'}:
@@ -978,13 +978,13 @@ class SwapPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         swap_phase = 1j**self._exponent
         c = -1j * swap_phase * np.sin(np.pi * self._exponent / 2) / 2
-        return value.LinearDict({
+        return LinearDict({
             'II': global_phase * (1 - c),
             'XX': global_phase * c,
             'YY': global_phase * c,
@@ -1093,13 +1093,13 @@ class ISwapPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
+    def _pauli_expansion_(self) -> LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
         global_phase = 1j**(2 * self._exponent * self._global_shift)
         angle = np.pi * self._exponent / 4
         c, s = np.cos(angle), np.sin(angle)
-        return value.LinearDict({
+        return LinearDict({
             'II': global_phase * c * c,
             'XX': global_phase * c * s * 1j,
             'YY': global_phase * s * c * 1j,

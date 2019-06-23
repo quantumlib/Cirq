@@ -144,6 +144,9 @@ class PauliString(raw_types.Operation):
     def __iter__(self) -> Iterator[raw_types.Qid]:
         return iter(self._qubit_pauli_map.keys())
 
+    def __bool__(self):
+        return bool(self._qubit_pauli_map)
+
     def __len__(self) -> int:
         return len(self._qubit_pauli_map)
 

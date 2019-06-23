@@ -43,7 +43,13 @@ else
     echo -e "\e[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m" >&2
     exit 1
 fi
-echo "Comparing against revision '${rev}'." >&2
+base="$(git merge-base ${rev} HEAD)"
+if [ "$(git rev-parse ${rev})" == "${base}" ]; then
+    echo -e "Comparing against revision '${rev}'." >&2
+else
+    echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
+    rev="${base}"
+fi
 
 # Run it.
 PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py "${rev}"

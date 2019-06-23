@@ -16,8 +16,8 @@ from typing import Any, Union
 
 import sympy
 
+from cirq import protocols
 from cirq._compat import proper_repr
-import cirq.protocols
 
 
 class PeriodicValue:
@@ -75,12 +75,13 @@ class PeriodicValue:
         if high - low > self.period / 2:
             low += self.period
 
-        return cirq.protocols.approx_eq(low, high, atol=atol)
+        return protocols.approx_eq(low, high, atol=atol)
 
     def __repr__(self):
         return 'cirq.PeriodicValue({}, {})'.format(proper_repr(self.value),
                                                    proper_repr(self.period))
 
     def _is_parameterized_(self):
-        return any(isinstance(val, sympy.Basic)
-                   for val in (self.value, self.period))
+        return any(
+            protocols.is_parameterized(val)
+            for val in (self.value, self.period))
