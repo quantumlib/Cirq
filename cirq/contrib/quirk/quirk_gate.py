@@ -104,6 +104,8 @@ def single_qubit_matrix_gate(matrix: Optional[np.ndarray]) -> Optional[QuirkOp]:
 def known_quirk_op_for_operation(op: ops.Operation) -> Optional[QuirkOp]:
     if isinstance(op, ops.GateOperation):
         return _gate_to_quirk_op(op.gate)
+    if isinstance(op, ops.ControlledOperation):
+        return controlled_unwrap(op)
     return None
 
 
@@ -179,20 +181,17 @@ def ccz_to_known(gate: ops.CCZPowGate) -> Optional[QuirkOp]:
     return QuirkOp('•', '•', 'Z' + e, can_merge=False)
 
 
-def controlled_unwrap(gate: ops.ControlledGate) -> Optional[QuirkOp]:
-    sub = _gate_to_quirk_op(gate.sub_gate)
+def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
+    sub = known_quirk_op_for_operation(op.sub_operation)
     if sub is None:
         return None
-    return QuirkOp(*(('•',)*gate.num_controls() + sub.keys),
-                   can_merge=False)
+    return QuirkOp(*(('•',) * len(op.controls) + sub.keys), can_merge=False)
 
 
 _known_gate_conversions = cast(
-    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]],
-    {
+    Dict[type, Callable[[ops.Gate], Optional[QuirkOp]]], {
         ops.CCXPowGate: ccx_to_known,
         ops.CCZPowGate: ccz_to_known,
-        ops.ControlledGate: controlled_unwrap,
         ops.CSwapGate: cswap_to_known,
         ops.XPowGate: x_to_known,
         ops.YPowGate: y_to_known,
@@ -202,5 +201,4 @@ _known_gate_conversions = cast(
         ops.SwapPowGate: swap_to_known,
         ops.HPowGate: h_to_known,
         ops.MeasurementGate: lambda _: QuirkOp('Measure')
-    }
-)
+    })

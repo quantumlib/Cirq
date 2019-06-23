@@ -88,7 +88,9 @@ def test_controlled_operation_eq():
     eq.make_equality_group(lambda: cirq.ControlledOperation([c1], cirq.X(q1)))
     eq.make_equality_group(lambda: cirq.ControlledOperation([c2], cirq.X(q1)))
     eq.make_equality_group(lambda: cirq.ControlledOperation([c1], cirq.Z(q1)))
-    eq.make_equality_group(lambda: cirq.ControlledOperation([c2], cirq.Z(q1)))
+    eq.add_equality_group(cirq.ControlledOperation([c2], cirq.Z(q1)))
+    eq.add_equality_group(cirq.ControlledOperation([c1, c2], cirq.Z(q1)),
+                          cirq.ControlledOperation([c2, c1], cirq.Z(q1)))
 
 
 def test_str():

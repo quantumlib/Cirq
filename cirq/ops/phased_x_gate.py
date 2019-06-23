@@ -19,14 +19,11 @@ import math
 import numpy as np
 import sympy
 
+import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.common_gates
-
 
 @value.value_equality
 class PhasedXPowGate(gate_features.SingleQubitGate):
@@ -51,17 +48,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 exponent=exponent,
                 global_shift=global_shift)
         if p == 0.5:
-            return cirq.ops.common_gates.YPowGate(
-                exponent=exponent,
-                global_shift=global_shift)
-        if p == 1 and not isinstance(exponent, sympy.Symbol):
-            return cirq.ops.common_gates.XPowGate(
-                exponent=-exponent,
-                global_shift=global_shift)
-        if p == -0.5 and not isinstance(exponent, sympy.Symbol):
-            return cirq.ops.common_gates.YPowGate(
-                exponent=-exponent,
-                global_shift=global_shift)
+            return cirq.ops.common_gates.YPowGate(exponent=exponent,
+                                                  global_shift=global_shift)
         return super().__new__(cls)
 
     def __init__(self,
@@ -159,8 +147,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""
-        return (isinstance(self._exponent, sympy.Symbol) or
-                isinstance(self._phase_exponent, sympy.Symbol))
+        return (protocols.is_parameterized(self._exponent) or
+                protocols.is_parameterized(self._phase_exponent))
 
     def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""

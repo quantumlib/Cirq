@@ -9,6 +9,7 @@ import examples.hello_qubit
 import examples.hhl
 import examples.phase_estimator
 import examples.place_on_bristlecone
+import examples.qaoa
 import examples.quantum_fourier_transform
 import examples.quantum_teleportation
 import examples.qubit_characterizations_example
@@ -61,6 +62,10 @@ def test_example_runs_basic_arithmetic():
 
 def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
+
+
+def test_example_runs_qaoa():
+    examples.qaoa.main()
 
 
 def test_example_runs_quantum_teleportation():

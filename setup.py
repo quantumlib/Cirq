@@ -38,10 +38,13 @@ setup(name='cirq',
       url='http://github.com/quantumlib/cirq',
       author='The Cirq Developers',
       author_email='cirq@googlegroups.com',
-      python_requires=('>=3.5.2'),
+      python_requires=('>=3.6.0'),
       install_requires=requirements,
       license='Apache 2',
       description=description,
       long_description=long_description,
       packages=cirq_packages,
-      package_data={'cirq.api.google.v1': ['*.proto']})
+      package_data={
+          'cirq.api.google.v1': ['*.proto'],
+          'cirq.api.google.v2': ['*.proto'],
+      })

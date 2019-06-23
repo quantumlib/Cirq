@@ -27,6 +27,8 @@ from cirq.linalg.combinators import (
 )
 
 from cirq.linalg.decompositions import (
+    axis_angle,
+    AxisAngleDecomposition,
     deconstruct_single_qubit_matrix_into_angles,
     kak_canonicalize_vector,
     kak_decomposition,
@@ -35,6 +37,9 @@ from cirq.linalg.decompositions import (
     map_eigenvalues,
     so4_to_magic_su2s,
 )
+
+from cirq.linalg.states import (
+    one_hot,)
 
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
