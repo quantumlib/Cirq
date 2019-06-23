@@ -1,3 +1,2 @@
-python3-tk
 texlive-latex-base
 latexmk
