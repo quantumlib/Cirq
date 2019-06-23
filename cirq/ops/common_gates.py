@@ -39,7 +39,7 @@ import sympy
 import cirq
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, raw_types, gate_operation
+from cirq.ops import gate_features, eigen_gate, raw_types
 from cirq.value.linear_dict import LinearDict
 from cirq.value.value_equality import value_equality
 
