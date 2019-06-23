@@ -209,7 +209,7 @@ def test_cx_gate_mismatched_registers():
 
     with pytest.raises(QasmException,
                        match=r"Non matching quantum registers of "
-                       r"length \[2, 3\] at line 4"):
+                       r"length \[2 3\] at line 4"):
         parser.parse(qasm)
 
 
