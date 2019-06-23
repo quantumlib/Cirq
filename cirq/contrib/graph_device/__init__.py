@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.contrib.graph_device.hypergraph import (
-        UndirectedHypergraph)
+from cirq.contrib.graph_device.hypergraph import (UndirectedHypergraph)
 
 from cirq.contrib.graph_device.graph_device import (
-    is_undirected_device_graph, is_crosstalk_graph,
-    UndirectedGraphDevice,
+    is_undirected_device_graph, is_crosstalk_graph, UndirectedGraphDevice,
     UnconstrainedUndirectedGraphDeviceEdge,
     FixedDurationUndirectedGraphDeviceEdge)
