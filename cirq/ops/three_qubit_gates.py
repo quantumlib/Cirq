@@ -30,6 +30,7 @@ from cirq.ops import (
     op_tree,
     raw_types,
 )
+from cirq.study import ParamResolver
 
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
@@ -175,15 +176,14 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                             ) -> 'ThreeQubitDiagonalGate':
         return ThreeQubitDiagonalGate([
             protocols.resolve_parameters(angle, param_resolver)
-            for angle in self._diag_angles_radians])
+            for angle in self._diag_angles_radians
+        ])
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(('diag', '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
-        if not isinstance(exponent, (int, float, sympy.Basic)):
-            return NotImplemented
         return ThreeQubitDiagonalGate([
             protocols.mul(angle, exponent, NotImplemented)
             for angle in self._diag_angles_radians
@@ -262,10 +262,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return tuple(self._diag_angles_radians)
 
     def __repr__(self) -> str:
-        return 'cirq.ThreeQubitDiagonalGate([{}])'.format(
-            ','.join(proper_repr(angle)
-            for angle in self._diag_angles_radians)
-        )
+        return 'cirq.ThreeQubitDiagonalGate([{}])'.format(','.join(
+            proper_repr(angle) for angle in self._diag_angles_radians))
 
 
 class CCXPowGate(eigen_gate.EigenGate,
