@@ -30,7 +30,7 @@ from cirq.ops import (
     op_tree,
     raw_types,
 )
-from cirq.study import ParamResolver
+
 
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
@@ -172,7 +172,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return np.diag(
             [np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _resolve_parameters_(self, param_resolver: 'ParamResolver'
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
                             ) -> 'ThreeQubitDiagonalGate':
         return ThreeQubitDiagonalGate([
             protocols.resolve_parameters(angle, param_resolver)
