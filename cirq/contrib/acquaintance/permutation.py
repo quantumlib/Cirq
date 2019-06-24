@@ -35,7 +35,9 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             qubits (e.g. SWAP or fermionic swap).
     """
 
-    def __init__(self, num_qubits: int, swap_gate: ops.Gate=ops.SWAP) -> None:
+    def __init__(self,
+                 num_qubits: int,
+                 swap_gate: ops.Gate = cast(ops.Gate, ops.SWAP)) -> None:
         self._num_qubits = num_qubits
         self.swap_gate = swap_gate
 
@@ -89,7 +91,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
 class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
-    def __init__(self, swap_gate: ops.Gate=ops.SWAP):
+    def __init__(self, swap_gate: ops.Gate = cast(ops.Gate, ops.SWAP)):
         super().__init__(2, swap_gate)
 
     def permutation(self) -> Dict[int, int]:
@@ -112,8 +114,7 @@ class LinearPermutationGate(PermutationGate):
     def __init__(self,
                  num_qubits: int,
                  permutation: Dict[int, int],
-                 swap_gate: ops.Gate=ops.SWAP
-                 ) -> None:
+                 swap_gate: ops.Gate = cast(ops.Gate, ops.SWAP)) -> None:
         """Initializes a linear permutation gate.
 
         Args:
