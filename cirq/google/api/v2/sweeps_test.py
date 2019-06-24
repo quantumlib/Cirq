@@ -23,6 +23,7 @@ from cirq.study import sweeps
 
 
 class UnknownSweep(sweeps.SingleSweep):
+
     def _tuple(self):
         # coverage: ignore
         return self.key, tuple(range(10))
