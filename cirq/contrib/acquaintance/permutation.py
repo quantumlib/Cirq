@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Sequence, Tuple, TypeVar, Union
+from typing import Dict, Optional, Sequence, Tuple, TypeVar, Union
 
 import abc
 
@@ -35,11 +35,10 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             qubits (e.g. SWAP or fermionic swap).
     """
 
-    def __init__(self,
-                 num_qubits: int,
-                 swap_gate: ops.Gate = cast(ops.Gate, ops.SWAP)) -> None:
+    def __init__(self, num_qubits: int,
+                 swap_gate: Optional[ops.Gate] = None) -> None:
         self._num_qubits = num_qubits
-        self.swap_gate = swap_gate
+        self.swap_gate = ops.SWAP if swap_gate is None else swap_gate
 
     def num_qubits(self) -> int:
         return self._num_qubits
@@ -91,7 +90,8 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
 class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
-    def __init__(self, swap_gate: ops.Gate = cast(ops.Gate, ops.SWAP)):
+    def __init__(self, swap_gate: Optional[ops.Gate] = None):
+        swap_gate = ops.SWAP if swap_gate is None else swap_gate
         super().__init__(2, swap_gate)
 
     def permutation(self) -> Dict[int, int]:
@@ -114,13 +114,14 @@ class LinearPermutationGate(PermutationGate):
     def __init__(self,
                  num_qubits: int,
                  permutation: Dict[int, int],
-                 swap_gate: ops.Gate = cast(ops.Gate, ops.SWAP)) -> None:
+                 swap_gate: Optional[ops.Gate] = None) -> None:
         """Initializes a linear permutation gate.
 
         Args:
             permutation: The permutation effected by the gate.
             swap_gate: The swap gate used in decompositions.
         """
+        swap_gate = ops.SWAP if swap_gate is None else swap_gate
         super().__init__(num_qubits, swap_gate)
         PermutationGate.validate_permutation(permutation, num_qubits)
         self._permutation = permutation
