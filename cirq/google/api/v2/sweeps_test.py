@@ -24,69 +24,77 @@ from cirq.study import sweeps
 
 class UnknownSweep(sweeps.SingleSweep):
     def _tuple(self):
+        # coverage: ignore
         return self.key, tuple(range(10))
 
     def __len__(self) -> int:
+        # coverage: ignore
         return 10
 
     def _values(self) -> Iterator[float]:
+        # coverage: ignore
         return iter(range(10))
 
 
-class TestSweepToProto:
-    @pytest.mark.parametrize('sweep', [
-        cirq.UnitSweep,
-        cirq.Linspace('a', 0, 10, 100),
-        cirq.Points('b', [1, 1.5, 2, 2.5, 3]),
-        cirq.Linspace('a', 0, 1, 5) * cirq.Linspace('b', 0, 1, 5),
-        cirq.Points('a', [1, 2, 3]) + cirq.Linspace('b', 0, 1, 3),
-        (cirq.Linspace('a', 0, 1, 3) *
-         (cirq.Linspace('b', 0, 1, 4) + cirq.Linspace('c', 0, 10, 4)) *
-         (cirq.Linspace('d', 0, 1, 5) + cirq.Linspace('e', 0, 10, 5)) *
-         (cirq.Linspace('f', 0, 1, 6) +
-          (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1])))),
-    ])
-    def test_roundtrip(self, sweep):
-        msg = v2.sweep_to_proto(sweep)
-        deserialized = v2.sweep_from_proto(msg)
-        assert deserialized == sweep
+@pytest.mark.parametrize('sweep', [
+    cirq.UnitSweep,
+    cirq.Linspace('a', 0, 10, 100),
+    cirq.Points('b', [1, 1.5, 2, 2.5, 3]),
+    cirq.Linspace('a', 0, 1, 5) * cirq.Linspace('b', 0, 1, 5),
+    cirq.Points('a', [1, 2, 3]) + cirq.Linspace('b', 0, 1, 3),
+    (cirq.Linspace('a', 0, 1, 3) *
+     (cirq.Linspace('b', 0, 1, 4) + cirq.Linspace('c', 0, 10, 4)) *
+     (cirq.Linspace('d', 0, 1, 5) + cirq.Linspace('e', 0, 10, 5)) *
+     (cirq.Linspace('f', 0, 1, 6) +
+      (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1])))),
+])
+def test_sweep_to_proto_roundtrip(sweep):
+    msg = v2.sweep_to_proto(sweep)
+    deserialized = v2.sweep_from_proto(msg)
+    assert deserialized == sweep
 
-    def test_linspace(self):
-        proto = v2.sweep_to_proto(cirq.Linspace('foo', 0, 1, 20))
-        assert isinstance(proto, run_context_pb2.Sweep)
-        assert proto.HasField('single_sweep')
-        assert proto.single_sweep.parameter_key == 'foo'
-        assert proto.single_sweep.WhichOneof('sweep') == 'linspace'
-        assert proto.single_sweep.linspace.first_point == 0
-        assert proto.single_sweep.linspace.last_point == 1
-        assert proto.single_sweep.linspace.num_points == 20
 
-    def test_points(self):
-        proto = v2.sweep_to_proto(cirq.Points('foo', [-1, 0, 1, 1.5]))
-        assert isinstance(proto, run_context_pb2.Sweep)
-        assert proto.HasField('single_sweep')
-        assert proto.single_sweep.parameter_key == 'foo'
-        assert proto.single_sweep.WhichOneof('sweep') == 'points'
-        assert list(proto.single_sweep.points.points) == [-1, 0, 1, 1.5]
+def test_sweep_to_proto_linspace():
+    proto = v2.sweep_to_proto(cirq.Linspace('foo', 0, 1, 20))
+    assert isinstance(proto, run_context_pb2.Sweep)
+    assert proto.HasField('single_sweep')
+    assert proto.single_sweep.parameter_key == 'foo'
+    assert proto.single_sweep.WhichOneof('sweep') == 'linspace'
+    assert proto.single_sweep.linspace.first_point == 0
+    assert proto.single_sweep.linspace.last_point == 1
+    assert proto.single_sweep.linspace.num_points == 20
 
-    def test_unit_sweep(self):
-        proto = v2.sweep_to_proto(cirq.UnitSweep)
-        assert isinstance(proto, run_context_pb2.Sweep)
-        assert not proto.HasField('single_sweep')
-        assert not proto.HasField('sweep_function')
 
-    def test_unknown_sweep_type(self):
-        with pytest.raises(ValueError, match='cannot convert to v2 Sweep proto'):
-            v2.sweep_to_proto(UnknownSweep('foo'))
+def test_sweep_to_proto_points():
+    proto = v2.sweep_to_proto(cirq.Points('foo', [-1, 0, 1, 1.5]))
+    assert isinstance(proto, run_context_pb2.Sweep)
+    assert proto.HasField('single_sweep')
+    assert proto.single_sweep.parameter_key == 'foo'
+    assert proto.single_sweep.WhichOneof('sweep') == 'points'
+    assert list(proto.single_sweep.points.points) == [-1, 0, 1, 1.5]
 
-    def test_sweep_function_not_set(self):
-        proto = run_context_pb2.Sweep()
-        proto.sweep_function.sweeps.add()
-        with pytest.raises(ValueError, match='invalid sweep function type'):
-            v2.sweep_from_proto(proto)
 
-    def test_sweep_function_not_set(self):
-        proto = run_context_pb2.Sweep()
-        proto.single_sweep.parameter_key = 'foo'
-        with pytest.raises(ValueError, match='single sweep type not set'):
-            v2.sweep_from_proto(proto)
+def test_sweep_to_proto_unit():
+    proto = v2.sweep_to_proto(cirq.UnitSweep)
+    assert isinstance(proto, run_context_pb2.Sweep)
+    assert not proto.HasField('single_sweep')
+    assert not proto.HasField('sweep_function')
+
+
+def test_sweep_from_proto_unknown_sweep_type():
+    with pytest.raises(ValueError, match='cannot convert to v2 Sweep proto'):
+        v2.sweep_to_proto(UnknownSweep('foo'))
+
+
+def test_sweep_from_proto_sweep_function_not_set():
+    proto = run_context_pb2.Sweep()
+    proto.sweep_function.sweeps.add()
+    with pytest.raises(ValueError, match='invalid sweep function type'):
+        v2.sweep_from_proto(proto)
+
+
+def test_sweep_from_proto_single_sweep_type_not_set():
+    proto = run_context_pb2.Sweep()
+    proto.single_sweep.parameter_key = 'foo'
+    with pytest.raises(ValueError, match='single sweep type not set'):
+        v2.sweep_from_proto(proto)
