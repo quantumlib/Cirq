@@ -1665,6 +1665,8 @@ def _draw_moment_in_diagram(
     max_x = x0
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
+        if not indices:
+            continue  # For example, a global phase operation has no qubits.
         y1 = min(indices)
         y2 = max(indices)
 

@@ -29,7 +29,7 @@ from cirq.ops import (
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,
-)
+    global_phase_op)
 
 TDefault = TypeVar('TDefault')
 
@@ -121,7 +121,10 @@ class PauliString(raw_types.Operation):
     def _decompose_(self):
         if not self._has_unitary_():
             return None
-        return [self[q].on(q) for q in self.qubits]
+        return [
+            *([] if self.coefficient == 1 else [global_phase_op.GlobalPhaseOperation(self.coefficient)]),
+            *[self[q].on(q) for q in self.qubits],
+        ]
 
     def keys(self) -> KeysView[raw_types.Qid]:
         return self._qubit_pauli_map.keys()
@@ -241,9 +244,8 @@ class PauliString(raw_types.Operation):
         if isinstance(power, (int, float)):
             r, i = cmath.polar(self.coefficient)
             if abs(r - 1) > 0.0001:
-                raise NotImplementedError(
-                    "Raised a non-unitary PauliString to a power <{!r}**{!r}>. "
-                    "Coefficient must be unit-length.".format(self, power))
+                # Raising non-unitary PauliStrings to a power is not supported.
+                return NotImplemented
 
             if len(self) == 1:
                 q, p = next(iter(self.items()))

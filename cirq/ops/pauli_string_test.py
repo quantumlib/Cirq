@@ -139,7 +139,7 @@ def test_exponentiation_as_base():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliString({a: cirq.X, b: cirq.Y})
 
-    with pytest.raises(NotImplementedError, match='non-unitary'):
+    with pytest.raises(TypeError, match='unsupported'):
         _ = (2 * p)**5
 
     with pytest.raises(TypeError, match='unsupported'):
@@ -618,31 +618,13 @@ def test_with_qubits():
     assert new_pauli_string.coefficient == -1
 
 
-@pytest.mark.parametrize('paulis, coefficient, expected_unitary', (
-    ((cirq.Z,), -3j, np.diag([-3j, 3j])),
-    ((cirq.Z, cirq.X), 2, np.array([[0, 2, 0, 0],
-                                    [2, 0, 0, 0],
-                                    [0, 0, 0, -2],
-                                    [0, 0, -2, 0]])),
-    ((cirq.X, cirq.Y), 0.5, np.array([[0, 0, 0, -0.5j],
-                                      [0, 0, 0.5j, 0],
-                                      [0, -0.5j, 0, 0],
-                                      [0.5j, 0, 0, 0]])),
-    ((cirq.X, cirq.X, cirq.X), 3, np.rot90(np.diag([3] * 8))),
-))  # yapf: disable
-def test_unitary(paulis, coefficient, expected_unitary):
-    qubits = _make_qubits(len(paulis))
-    pauli_string = cirq.PauliString(dict(zip(qubits, paulis)), coefficient)
-    assert np.all(expected_unitary == cirq.unitary(pauli_string))
-
-
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_consistency(qubit_pauli_map):
     pauli_string = cirq.PauliString(qubit_pauli_map)
     cirq.testing.assert_implements_consistent_protocols(pauli_string)
 
 
-def test_non_unitary_consistency():
+def test_scaled_unitary_consistency():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_implements_consistent_protocols(
         2 * cirq.X(a) * cirq.Y(b))

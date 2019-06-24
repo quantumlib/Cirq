@@ -116,11 +116,6 @@ class Gate(metaclass=abc.ABCMeta):
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
-        if len(qubits) == 0:
-            raise ValueError(
-                "Applied a gate to an empty set of qubits. Gate: {}".format(
-                    repr(self)))
-
         if len(qubits) != self.num_qubits():
             raise ValueError(
                 'Wrong number of qubits for <{!r}>. '
