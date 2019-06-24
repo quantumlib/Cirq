@@ -209,7 +209,8 @@ def test_simulate_random_unitary(dtype):
             circuit_unitary.append(result.final_state)
         np.testing.assert_almost_equal(
             np.transpose(circuit_unitary),
-            random_circuit.to_unitary_matrix(qubit_order=[q0, q1]))
+            random_circuit.to_unitary_matrix(qubit_order=[q0, q1]),
+            decimal=6)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -377,7 +378,7 @@ def test_simulate_moment_steps_empty_circuit(dtype):
     step = None
     for step in simulator.simulate_moment_steps(circuit):
         pass
-    assert step.simulator_state() == cirq.WaveFunctionSimulatorState(
+    assert step._simulator_state() == cirq.WaveFunctionSimulatorState(
         state_vector=np.array([1]), qubit_map={})
 
 
@@ -591,3 +592,23 @@ def test_simulate_measurement_inversions():
 
     c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(False,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}
+
+
+def test_works_on_pauli_string_phasor():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
+    sim = cirq.Simulator()
+    result = sim.simulate(c).state_vector()
+    np.testing.assert_allclose(result.reshape(4),
+                               np.array([0, 0, 0, 1j]),
+                               atol=1e-8)
+
+
+def test_works_on_pauli_string():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.X(a) * cirq.X(b))
+    sim = cirq.Simulator()
+    result = sim.simulate(c).state_vector()
+    np.testing.assert_allclose(result.reshape(4),
+                               np.array([0, 0, 0, 1]),
+                               atol=1e-8)

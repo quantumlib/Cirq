@@ -55,68 +55,49 @@ def test_convert_to_ion_gates():
     rx = cirq.ion.ConvertToIonGates().convert_one(OtherX().on(q0))
     rop = cirq.ion.ConvertToIonGates().convert_one(op)
     rcnot = cirq.ion.ConvertToIonGates().convert_one(OtherCNOT().on(q0, q1))
-    assert rx == [(cirq.X**1.0).on(cirq.GridQubit(0, 0))]
+    assert rx == [
+        cirq.PhasedXPowGate(phase_exponent=1).on(cirq.GridQubit(0, 0))
+    ]
     assert rop == [cirq.Ry(np.pi/2).on(op.qubits[0]),
                    cirq.ion.MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
                    cirq.ops.Rx(-1*np.pi/2).on(op.qubits[0]),
                    cirq.ops.Rx(-1*np.pi/2).on(op.qubits[1]),
                    cirq.ops.Ry(-1*np.pi/2).on(op.qubits[0])]
-    assert rcnot == [cirq.PhasedXPowGate(phase_exponent=-0.75, exponent=0.5).
-                         on(cirq.GridQubit(0, 0)),
-                     (cirq.X**-0.25).on(cirq.GridQubit(0, 1)),
-                     cirq.T.on(cirq.GridQubit(0, 0)),
-                     cirq.MS(-0.5*np.pi/2).on(cirq.GridQubit(0, 0),
-                                              cirq.GridQubit(0, 1)),
-                     (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
-                     (cirq.X**-0.25).on(cirq.GridQubit(0, 1)),
-                     (cirq.Z**-0.75).on(cirq.GridQubit(0, 0))]
-
-
-def _operations_to_matrix(operations, qubits):
-    return cirq.Circuit.from_ops(operations).to_unitary_matrix(
-        qubit_order=cirq.QubitOrder.explicit(qubits),
-        qubits_that_should_be_present=qubits)
-
-
-def assert_ops_implement_unitary(q0, q1, operations, intended_effect,
-                                 atol=0.01):
-    actual_effect = _operations_to_matrix(operations, (q0, q1))
-    assert cirq.allclose_up_to_global_phase(actual_effect, intended_effect,
-                                            atol=atol)
+    assert rcnot == [
+        cirq.PhasedXPowGate(phase_exponent=-0.75,
+                            exponent=0.5).on(cirq.GridQubit(0, 0)),
+        cirq.PhasedXPowGate(phase_exponent=1,
+                            exponent=0.25).on(cirq.GridQubit(0, 1)),
+        cirq.T.on(cirq.GridQubit(0, 0)),
+        cirq.MS(-0.5 * np.pi / 2).on(cirq.GridQubit(0, 0), cirq.GridQubit(0,
+                                                                          1)),
+        (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
+        cirq.PhasedXPowGate(phase_exponent=1,
+                            exponent=0.25).on(cirq.GridQubit(0, 1)),
+        (cirq.Z**-0.75).on(cirq.GridQubit(0, 0))
+    ]
 
 
 def test_convert_to_ion_circuit():
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(0, 1)
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    us = cirq.Duration(nanos=1000)
+    ion_device = cirq.IonDevice(us, us, us, [q0, q1])
 
     clifford_circuit_1 = cirq.Circuit()
     clifford_circuit_1.append([cirq.X(q0), cirq.H(q1),
                                cirq.MS(np.pi/4).on(q0, q1)])
-    ion_circuit_1 = cirq.ion.ConvertToIonGates().\
-        convert_circuit(clifford_circuit_1)
+    ion_circuit_1 = cirq.ion.ConvertToIonGates().convert_circuit(
+        clifford_circuit_1)
+
+    ion_device.validate_circuit(ion_circuit_1)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        clifford_circuit_1, ion_circuit_1, atol=1e-6)
     clifford_circuit_2 = cirq.Circuit()
     clifford_circuit_2.append([cirq.X(q0), cirq.CNOT(q1, q0), cirq.MS(
         np.pi/4).on(q0, q1)])
-    ion_circuit_2 = cirq.ion.ConvertToIonGates().\
-        convert_circuit(clifford_circuit_2)
-
-    cirq.testing.assert_has_diagram(ion_circuit_1,
-                                    """
-(0, 0): ───X────────────MS(0.25π)───
-                        │
-(0, 1): ───Y^-0.5───Z───MS(0.25π)───
-    """,
-                                    use_unicode_characters=True)
-
-    cirq.testing.assert_has_diagram(ion_circuit_2,
-                                    """
-(0, 0): ───X───────MS(0.25π)───X^-0.5─────────────────────MS(0.25π)───
-                   │                                      │
-(0, 1): ───Y^0.5───MS(0.25π)───PhasedX(-0.5)^0.5───S^-1───MS(0.25π)───
-        """,
-                                    use_unicode_characters=True)
-
-    assert_ops_implement_unitary(q0, q1, ion_circuit_1,
-                                 cirq.unitary(clifford_circuit_1))
-    assert_ops_implement_unitary(q0, q1, ion_circuit_2,
-                                 cirq.unitary(clifford_circuit_2))
+    ion_circuit_2 = cirq.ion.ConvertToIonGates().convert_circuit(
+        clifford_circuit_2)
+    ion_device.validate_circuit(ion_circuit_2)
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+        clifford_circuit_2, ion_circuit_2, atol=1e-6)

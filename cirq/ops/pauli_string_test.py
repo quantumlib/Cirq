@@ -640,3 +640,9 @@ def test_unitary(paulis, coefficient, expected_unitary):
 def test_consistency(qubit_pauli_map):
     pauli_string = cirq.PauliString(qubit_pauli_map)
     cirq.testing.assert_implements_consistent_protocols(pauli_string)
+
+
+def test_bool():
+    a = cirq.LineQubit(0)
+    assert not bool(cirq.PauliString({}))
+    assert bool(cirq.PauliString({a: cirq.X}))

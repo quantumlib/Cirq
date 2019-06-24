@@ -181,11 +181,40 @@ def test_validate_args():
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(CY, SCY, cirq.ControlledGate(cirq.Y))
-    eq.add_equality_group(CCH, SCSCH)
+    eq.add_equality_group(CY, cirq.ControlledGate(cirq.Y))
+    eq.add_equality_group(SCY)
+    eq.add_equality_group(CCH)
+    eq.add_equality_group(SCSCH)
     eq.add_equality_group(cirq.ControlledGate(cirq.H))
     eq.add_equality_group(cirq.ControlledGate(cirq.X))
     eq.add_equality_group(cirq.X)
+
+
+def test_controlled_by():
+    a, b, c = cirq.LineQubit.range(3)
+
+    g = cirq.SingleQubitGate()
+
+    # Ignores empty.
+    assert g.controlled_by() is g
+
+    # Combined.
+    cg = g.controlled_by(a, b)
+    assert isinstance(cg, cirq.ControlledGate)
+    assert cg.sub_gate == g
+    assert cg.control_qubits == (a, b)
+
+    # Equality ignores ordering but cares about set and quantity.
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(g, g.controlled_by())
+    eq.add_equality_group(g.controlled_by(a, b), g.controlled_by(b, a),
+                          cirq.ControlledGate(g, [a, b]),
+                          g.controlled_by(a).controlled_by(b))
+    eq.add_equality_group(g.controlled_by(a))
+    eq.add_equality_group(g.controlled_by(b))
+    eq.add_equality_group(g.controlled_by(a, c))
+    eq.add_equality_group(cirq.ControlledGate(g, num_controls=1))
+    eq.add_equality_group(cirq.ControlledGate(g, num_controls=2))
 
 
 def test_unitary():
@@ -289,7 +318,6 @@ def test_pow_inverse():
     assert cirq.pow(CRestricted, 1.5, None) is None
     assert cirq.pow(SCRestricted, 1.5, None) is None
     assert cirq.pow(CY, 1.5) == cirq.ControlledGate(cirq.Y**1.5)
-    assert cirq.pow(SCY, 1.5) == cirq.ControlledGate(cirq.Y**1.5)
     assert cirq.inverse(CY) == CY**-1 == CY
     assert cirq.inverse(SCY) == SCY**-1 == SCY
 
@@ -303,9 +331,8 @@ def test_extrapolatable_effect():
     assert (cirq.ControlledGate(cirq.Z).on(a, b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5).on(a, b))
 
-
-    assert (cirq.ControlledGate(cirq.Z)**0.5 ==
-            cirq.ControlledGate(cirq.Z**0.5, [a]))
+    assert (cirq.ControlledGate(cirq.Z)**0.5 == cirq.ControlledGate(
+        cirq.Z**0.5))
 
     assert (cirq.ControlledGate(cirq.Z, [a]).on(b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5, [a]).on(b))
@@ -324,14 +351,13 @@ class UnphaseableGate(cirq.SingleQubitGate):
 
 def test_parameterizable():
     a = sympy.Symbol('a')
-    cz = cirq.ControlledGate(cirq.Y)
-    cza = cirq.ControlledGate(cirq.YPowGate(exponent=a))
-    scza = cirq.ControlledGate(cirq.YPowGate(exponent=a), [q])
-    assert cirq.is_parameterized(cza)
-    assert cirq.is_parameterized(scza)
-    assert not cirq.is_parameterized(cz)
-    assert cirq.resolve_parameters(cza, cirq.ParamResolver({'a': 1})) == cz
-    assert cirq.resolve_parameters(scza, cirq.ParamResolver({'a': 1})) == cz
+    cy = cirq.ControlledGate(cirq.Y)
+    cya = cirq.ControlledGate(cirq.YPowGate(exponent=a))
+    scya = cirq.ControlledGate(cirq.YPowGate(exponent=a), [q])
+    assert cirq.is_parameterized(cya)
+    assert cirq.is_parameterized(scya)
+    assert not cirq.is_parameterized(cy)
+    assert cirq.resolve_parameters(cya, cirq.ParamResolver({'a': 1})) == cy
 
 
 def test_circuit_diagram_info():
@@ -422,12 +448,13 @@ def test_bounded_effect():
 
 
 def test_repr():
-    assert repr(
-        cirq.ControlledGate(cirq.Z)) == 'cirq.ControlledGate(sub_gate=cirq.Z)'
-    assert (repr(cirq.ControlledGate(cirq.Z, [cirq.LineQubit(0)])) ==
-            "cirq.ControlledGate(sub_gate=cirq.Z, "
-            "control_qubits=(cirq.LineQubit(0),), "
-            "num_controls=1)")
+    cirq.testing.assert_equivalent_repr(cirq.ControlledGate(cirq.Z))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ControlledGate(cirq.Z, num_controls=1))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ControlledGate(cirq.Z, num_controls=2))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ControlledGate(cirq.Y, control_qubits=[cirq.LineQubit(1)]))
 
 
 def test_str():
