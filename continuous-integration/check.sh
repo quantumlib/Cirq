@@ -42,11 +42,9 @@
 
 
 set -e
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-cd ${own_directory}
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cirq_dir=$(git rev-parse --show-toplevel)
-cd ${cirq_dir}
+cd "${cirq_dir}"
 export PYTHONPATH=${cirq_dir}
 
 python3 ${cirq_dir}/dev_tools/run_checks.py $@
