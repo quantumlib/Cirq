@@ -15,8 +15,7 @@
 import re
 from typing import Optional
 import ply.lex as lex
-from sympy import Number
-import sympy
+import numpy as np
 
 from cirq.contrib.qasm_import.exception import QasmException
 
@@ -50,7 +49,7 @@ class QasmLexer(object):
 
     def t_PI(self, t):
         r"""pi"""
-        t.value = sympy.pi
+        t.value = np.pi
         return t
 
     # all numbers except NATURAL_NUMBERs:
@@ -68,7 +67,7 @@ class QasmLexer(object):
         (
         ([0-9]+)?\.[0-9]+|
         [0-9]+\.)"""
-        t.value = Number(t.value)
+        t.value = float(t.value)
         return t
 
     def t_NATURAL_NUMBER(self, t):

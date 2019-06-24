@@ -7,9 +7,7 @@
 # limitations under the License.
 
 import pytest
-import sympy
-from sympy import Number
-
+import numpy as np
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._lexer import QasmLexer
 
@@ -80,7 +78,7 @@ def test_numbers(number: str):
 
     assert token is not None
     assert token.type == "NUMBER"
-    assert token.value == Number(number)
+    assert token.value == float(number)
 
 
 def test_pi():
@@ -88,7 +86,7 @@ def test_pi():
     lexer.input('pi')
     token = lexer.token()
     assert token.type == "PI"
-    assert token.value == sympy.pi
+    assert token.value == np.pi
 
 
 def test_qreg():

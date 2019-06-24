@@ -14,7 +14,6 @@
 import functools
 from typing import Dict, Optional, List, Any, Iterable, Callable, Tuple, Union
 import numpy as np
-import sympy
 from ply import yacc
 
 import cirq
@@ -51,9 +50,8 @@ class QasmGateStatement:
 
     def __init__(
             self, qasm_gate: str,
-            cirq_gate: Union[cirq.Gate, Callable[[List[sympy.Number]], cirq.
-                                                 Gate]], num_params: int,
-            num_args: int):
+            cirq_gate: Union[cirq.Gate, Callable[[List[float]], cirq.Gate]],
+            num_params: int, num_args: int):
         """Initializes a Qasm gate statement.
 
        Args:
@@ -74,13 +72,13 @@ class QasmGateStatement:
                 "got: {}, at line {}".format(self.qasm_gate, self.num_args,
                                              len(args), lineno))
 
-    def _validate_params(self, params: List[sympy.Number], lineno: int):
+    def _validate_params(self, params: List[float], lineno: int):
         if len(params) != self.num_params:
             raise QasmException(
                 "{} takes {} parameter(s), got: {}, at line {}".format(
                     self.qasm_gate, self.num_params, len(params), lineno))
 
-    def on(self, params: List[sympy.Number], args: List[List[cirq.Qid]],
+    def on(self, params: List[float], args: List[List[cirq.Qid]],
            lineno: int) -> Iterable[cirq.Operation]:
         self._validate_args(args, lineno)
         self._validate_params(params, lineno)
@@ -146,9 +144,7 @@ class QasmParser:
             num_args=1,
             # QasmUGate expects half turns and
             # changes the order of arguments
-            cirq_gate=(lambda params: QasmUGate(float(params[
-                2] / np.pi), float(params[0] / np.pi), float(params[1] / np.pi))
-                      ))
+            cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
     }  # type: Dict[str, QasmGateStatement]
 
     tokens = QasmLexer.tokens
@@ -241,7 +237,7 @@ class QasmParser:
         self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
     def _resolve_gate_operation(self, args: List[List[cirq.Qid]], gate: str,
-                                p: Any, params: List[sympy.Number]):
+                                p: Any, params: List[float]):
         if gate not in self.basic_gates.keys():
             raise QasmException('Unknown gate "{}" at line {}, '
                                 'maybe you forgot to include '

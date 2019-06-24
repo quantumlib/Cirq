@@ -272,12 +272,12 @@ def test_u_gate():
     q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
-    expected_circuit.append(QasmUGate(3 / np.pi, 1.0, 2.3 / np.pi)(q0))
+    expected_circuit.append(QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0))
 
     expected_circuit.append(
         cirq.Moment([
-            QasmUGate(8 / np.pi, 3.14 / np.pi, -1.0)(q0),
-            QasmUGate(8 / np.pi, 3.14 / np.pi, -1.0)(q1)
+            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0),
+            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1)
         ]))
 
     parsed_qasm = parser.parse(qasm)
