@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import (
-        Any, Callable, Dict, Iterable, List, Optional, TYPE_CHECKING, Union)
+from typing import (Any, Callable, Dict, Iterable, List, Optional,
+                    TYPE_CHECKING, Union)
 
 import numpy as np
 from ply import yacc
