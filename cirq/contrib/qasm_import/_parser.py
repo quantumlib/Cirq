@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Dict, Optional, List, Any, Iterable, Tuple
+from typing import Dict, Optional, List, Any, Iterable, Callable, Tuple, Union
 import numpy as np
 from ply import yacc
 
 import cirq
 from cirq import Circuit, NamedQubit, CX
+from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
 
@@ -47,7 +48,10 @@ class QasmGateStatement:
     `cirq.GateOperation`s in the `on` method.
     """
 
-    def __init__(self, qasm_gate: str, cirq_gate: cirq.Gate, num_args: int):
+    def __init__(
+            self, qasm_gate: str,
+            cirq_gate: Union[cirq.Gate, Callable[[List[float]], cirq.Gate]],
+            num_params: int, num_args: int):
         """Initializes a Qasm gate statement.
 
        Args:
@@ -58,6 +62,7 @@ class QasmGateStatement:
        """
         self.qasm_gate = qasm_gate
         self.cirq_gate = cirq_gate
+        self.num_params = num_params
         self.num_args = num_args
 
     def _validate_args(self, args: List[List[cirq.Qid]], lineno: int):
@@ -67,13 +72,26 @@ class QasmGateStatement:
                 "got: {}, at line {}".format(self.qasm_gate, self.num_args,
                                              len(args), lineno))
 
-    def on(self, args: List[List[cirq.Qid]],
+    def _validate_params(self, params: List[float], lineno: int):
+        if len(params) != self.num_params:
+            raise QasmException(
+                "{} takes {} parameter(s), got: {}, at line {}".format(
+                    self.qasm_gate, self.num_params, len(params), lineno))
+
+    def on(self, params: List[float], args: List[List[cirq.Qid]],
            lineno: int) -> Iterable[cirq.Operation]:
         self._validate_args(args, lineno)
+        self._validate_params(params, lineno)
+
         reg_sizes = np.unique([len(reg) for reg in args])
         if len(reg_sizes) > 2 or (len(reg_sizes) > 1 and reg_sizes[0] != 1):
             raise QasmException("Non matching quantum registers of length {} "
                                 "at line {}".format(reg_sizes, lineno))
+
+        # the actual gate we'll apply the arguments to might be a parameterized
+        # or non-parametrized gate
+        final_gate = (self.cirq_gate if isinstance(self.cirq_gate, cirq.Gate)
+                      else self.cirq_gate(params))  # type: cirq.Gate
         # OpenQASM gates can be applied on single qubits and qubit registers.
         # We represent single qubits as registers of size 1.
         # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
@@ -84,10 +102,13 @@ class QasmGateStatement:
         # qubit from the "single-qubit registers" for each operation.
         op_qubits = functools.reduce(np.broadcast, args)  # type: np.broadcast
         for qubits in op_qubits:  # type: Tuple[cirq.Qid]
-            if len(np.unique(qubits)) < len(qubits):
+            if isinstance(qubits, cirq.Qid):
+                yield final_gate.on(qubits)
+            elif len(np.unique(qubits)) < len(qubits):
                 raise QasmException("Overlapping qubits in arguments"
                                     " at line {}".format(lineno))
-            yield self.cirq_gate.on(*qubits)
+            else:
+                yield final_gate.on(*qubits)
 
 
 class QasmParser:
@@ -111,7 +132,19 @@ class QasmParser:
         self.qubits = {}  # type: Dict[str,cirq.NamedQubit]
 
     basic_gates = {
-        'CX': QasmGateStatement(qasm_gate='CX', cirq_gate=CX, num_args=2)
+        'CX':
+        QasmGateStatement(qasm_gate='CX',
+                          cirq_gate=CX,
+                          num_params=0,
+                          num_args=2),
+        'U':
+        QasmGateStatement(
+            qasm_gate='U',
+            num_params=3,
+            num_args=1,
+            # QasmUGate expects half turns and
+            # changes the order of arguments
+            cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
     }  # type: Dict[str, QasmGateStatement]
 
     tokens = QasmLexer.tokens
@@ -177,6 +210,9 @@ class QasmParser:
         if name in self.qregs.keys() or name in self.cregs.keys():
             raise QasmException("{} is already defined "
                                 "at line {}".format(name, p.lineno(2)))
+        if length == 0:
+            raise QasmException("Illegal, zero-length register '{}' "
+                                "at line {}".format(name, p.lineno(4)))
         if p[1] == "qreg":
             self.qregs[name] = length
         else:
@@ -185,19 +221,68 @@ class QasmParser:
 
     # gate operations
     # gate_op : ID args
+    #         | ID () args
+    #         | ID ( params ) args
 
     def p_gate_op_no_params(self, p):
-        """gate_op :  ID args"""
-        self._resolve_gate_operation(args=p[2], gate=p[1], p=p)
+        """gate_op :  ID args
+                   | ID '(' ')' args"""
+        self._resolve_gate_operation(args=p[4] if p[2] == '(' else p[2],
+                                     gate=p[1],
+                                     p=p,
+                                     params=[])
+
+    def p_gate_op_with_params(self, p):
+        """gate_op :  ID '(' params ')' args"""
+        self._resolve_gate_operation(args=p[5], gate=p[1], p=p, params=p[3])
 
     def _resolve_gate_operation(self, args: List[List[cirq.Qid]], gate: str,
-                                p: Any):
+                                p: Any, params: List[float]):
         if gate not in self.basic_gates.keys():
             raise QasmException('Unknown gate "{}" at line {}, '
                                 'maybe you forgot to include '
                                 'the standard qelib1.inc?'.format(
                                     gate, p.lineno(1)))
-        p[0] = self.basic_gates[gate].on(args=args, lineno=p.lineno(1))
+        p[0] = self.basic_gates[gate].on(args=args,
+                                         params=params,
+                                         lineno=p.lineno(1))
+
+    # params : parameter ',' params
+    #        | parameter
+    def p_params_multiple(self, p):
+        """params : expr ',' params"""
+        p[3].insert(0, p[1])
+        p[0] = p[3]
+
+    def p_params_single(self, p):
+        """params : expr """
+        p[0] = [p[1]]
+
+    # expr : term
+    #            | func '(' expression ')' """
+    #            | binary_op
+    #            | unary_op
+    def p_expr_term(self, p):
+        """expr : term"""
+        p[0] = p[1]
+
+    def p_expr_parens(self, p):
+        """expr : '(' expr ')'"""
+        p[0] = p[2]
+
+    def p_expr_unary(self, p):
+        """expr : '-' expr
+                | '+' expr """
+        if p[1] == '-':
+            p[0] = -p[2]
+        else:
+            p[0] = p[2]
+
+    def p_term(self, p):
+        """term : NUMBER
+                | NATURAL_NUMBER
+                | PI """
+        p[0] = p[1]
 
     # args : arg ',' args
     #      | arg ';'
