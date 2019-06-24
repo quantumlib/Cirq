@@ -14,7 +14,7 @@
 
 import re
 from typing import Optional
-
+import numpy as np
 import ply.lex as lex
 
 from cirq.contrib.qasm_import.exception import QasmException
@@ -34,9 +34,11 @@ class QasmLexer(object):
 
     tokens = [
         'FORMAT_SPEC',
+        'NUMBER',
         'NATURAL_NUMBER',
         'QELIBINC',
         'ID',
+        'PI',
     ] + list(reserved.values())
 
     def t_newline(self, t):
@@ -44,6 +46,29 @@ class QasmLexer(object):
         t.lexer.lineno += len(t.value)
 
     t_ignore = ' \t'
+
+    def t_PI(self, t):
+        r"""pi"""
+        t.value = np.pi
+        return t
+
+    # all numbers except NATURAL_NUMBERs:
+    # it's useful to have this separation to be able to handle indices
+    # separately. In case of the parameter expressions, we are "OR"-ing
+    # them together (see p_term in _parser.py)
+    def t_NUMBER(self, t):
+        r"""(
+        (
+        [0-9]+\.?|
+        [0-9]?\.[0-9]+
+        )
+        [eE][+-]?[0-9]+
+        )|
+        (
+        ([0-9]+)?\.[0-9]+|
+        [0-9]+\.)"""
+        t.value = float(t.value)
+        return t
 
     def t_NATURAL_NUMBER(self, t):
         r"""\d+"""
