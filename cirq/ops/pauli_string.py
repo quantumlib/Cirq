@@ -20,7 +20,7 @@ import math
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols, value, linalg
 from cirq.ops import (
     raw_types,
     gate_operation,
@@ -119,9 +119,9 @@ class PauliString(raw_types.Operation):
         return key in self._qubit_pauli_map
 
     def _decompose_(self):
-        # HACK: Avoid circular dependency.
-        from cirq.ops import pauli_string_phasor
-        return pauli_string_phasor.PauliStringPhasor(self)._decompose_()
+        if not self._has_unitary_():
+            return None
+        return [self[q].on(q) for q in self.qubits]
 
     def keys(self) -> KeysView[raw_types.Qid]:
         return self._qubit_pauli_map.keys()
@@ -187,11 +187,24 @@ class PauliString(raw_types.Operation):
 
         return prefix + '*'.join(factors)
 
-    def _unitary_(self) -> np.ndarray:
-        u = np.array([self.coefficient], dtype=np.complex128)
-        for pauli in self.values():
-            u = np.kron(u, protocols.unitary(pauli))
-        return u
+    def _has_unitary_(self) -> bool:
+        return abs(1 - abs(self.coefficient)) < 1e-6
+
+    def _unitary_(self) -> Optional[np.ndarray]:
+        if not self._has_unitary_():
+            return None
+        return linalg.kron(self.coefficient,
+                           *[protocols.unitary(self[q]) for q in self.qubits])
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs):
+        if not self._has_unitary_():
+            return None
+        if self.coefficient != 1:
+            args.target_tensor *= self.coefficient
+        return protocols.apply_unitaries(
+            [self[q].on(q) for q in self.qubits],
+            self.qubits,
+            args)
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:

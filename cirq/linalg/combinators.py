@@ -20,7 +20,7 @@ from typing import Union, Type
 import numpy as np
 
 
-def kron(*matrices: np.ndarray) -> np.ndarray:
+def kron(*matrices: Union[np.ndarray, complex, float]) -> np.ndarray:
     """Computes the kronecker product of a sequence of matrices.
 
     A *args version of lambda args: functools.reduce(np.kron, args).

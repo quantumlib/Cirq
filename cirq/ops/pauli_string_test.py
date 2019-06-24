@@ -642,7 +642,36 @@ def test_consistency(qubit_pauli_map):
     cirq.testing.assert_implements_consistent_protocols(pauli_string)
 
 
+def test_non_unitary_consistency():
+    a, b = cirq.LineQubit.range(2)
+    cirq.testing.assert_implements_consistent_protocols(
+        2 * cirq.X(a) * cirq.Y(b))
+    cirq.testing.assert_implements_consistent_protocols(
+        1j * cirq.X(a) * cirq.Y(b))
+
+
 def test_bool():
     a = cirq.LineQubit(0)
     assert not bool(cirq.PauliString({}))
     assert bool(cirq.PauliString({a: cirq.X}))
+
+
+def test_unitary_matrix():
+    a, b = cirq.LineQubit.range(2)
+    assert not cirq.has_unitary(2 * cirq.X(a) * cirq.Z(b))
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.X(a) * cirq.Z(b)),
+        np.array([
+            [0, 0, 1, 0],
+            [0, 0, 0, -1],
+            [1, 0, 0, 0],
+            [0, -1, 0, 0],
+        ]))
+    np.testing.assert_allclose(
+        cirq.unitary(1j * cirq.X(a) * cirq.Z(b)),
+        np.array([
+            [0, 0, 1j, 0],
+            [0, 0, 0, -1j],
+            [1j, 0, 0, 0],
+            [0, -1j, 0, 0],
+        ]))
