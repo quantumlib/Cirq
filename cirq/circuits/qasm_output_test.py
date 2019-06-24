@@ -31,6 +31,12 @@ def test_u_gate_repr():
     assert repr(gate) == 'cirq.QasmUGate(0.1, 0.2, 0.3)'
 
 
+def test_u_gate_eq():
+    gate = QasmUGate(0.1, 0.2, 0.3)
+    gate2 = QasmUGate(0.1, 0.2, 0.3)
+    assert gate == gate2
+
+
 def test_qasm_two_qubit_gate_repr():
     cirq.testing.assert_equivalent_repr(QasmTwoQubitGate.from_matrix(
         cirq.testing.random_unitary(4)))
@@ -50,7 +56,7 @@ def test_qasm_two_qubit_gate_unitary():
     np.testing.assert_allclose(cirq.unitary(g), u)
 
 
-def test_empty_circuit():
+def test_empty_circuit_one_qubit():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     assert (str(output) ==
@@ -60,6 +66,16 @@ include "qelib1.inc";
 
 // Qubits: [q0]
 qreg q[1];
+""")
+
+
+def test_empty_circuit_no_qubits():
+    output = cirq.QasmOutput((), ())
+    assert (str(output) == """OPENQASM 2.0;
+include "qelib1.inc";
+
+
+// Qubits: []
 """)
 
 
