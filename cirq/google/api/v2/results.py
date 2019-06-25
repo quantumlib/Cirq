@@ -1,5 +1,5 @@
-from typing import (Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union,
-                    cast)
+from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
+                    Union, cast)
 
 import numpy as np
 
@@ -11,23 +11,33 @@ from cirq import schedules
 from cirq import study
 
 
-class Measurement:
-    """Info about a single measurement within a circuit or schedule."""
+class MeasureInfo(
+        NamedTuple('MeasureInfo', [
+            ('key', str),
+            ('qubits', List[devices.GridQubit]),
+            ('slot', int),
+        ])):
+    """Extra info about a single measurement within a circuit or schedule.
 
-    def __init__(self, key: str, qubits: List[devices.GridQubit], slot: int):
-        self.key = key
-        self.qubits = qubits
-        self.slot = slot
+    Attributes:
+        key: String identifying this measurement.
+        qubits: List of measured qubits, in order.
+        slot: The location of this measurement within the program. For circuits,
+            this is just the moment index; for schedules it is the start time
+            of the measurement. This is used internally when scheduling on
+            hardware so that we can combine measurements that occupy the same
+            slot.
+    """
 
 
 def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
-                     ) -> List[Measurement]:
+                     ) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit or schedule).
 
     Returns:
         List of Measurement objects with named measurements in this program.
     """
-    measurements: List[Measurement] = []
+    measurements: List[MeasureInfo] = []
     keys: Set[str] = set()
 
     if isinstance(program, circuits.Circuit):
@@ -44,23 +54,23 @@ def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
     return measurements
 
 
-def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[Measurement]:
+def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if (isinstance(op, ops.GateOperation) and
                     isinstance(op.gate, ops.MeasurementGate)):
-                yield Measurement(key=op.gate.key,
+                yield MeasureInfo(key=op.gate.key,
                                   qubits=_grid_qubits(op),
                                   slot=i)
 
 
 def _schedule_measurements(schedule: schedules.Schedule
-                          ) -> Iterator[Measurement]:
+                          ) -> Iterator[MeasureInfo]:
     for so in schedule.scheduled_operations:
         op = so.operation
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, ops.MeasurementGate)):
-            yield Measurement(key=op.gate.key,
+            yield MeasureInfo(key=op.gate.key,
                               qubits=_grid_qubits(op),
                               slot=so.time.raw_picos())
 
@@ -94,7 +104,7 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
 
 def results_to_proto(
         trial_sweeps: Iterable[Iterable[study.TrialResult]],
-        measurements: List[Measurement],
+        measurements: List[MeasureInfo],
         msg: Optional[result_pb2.Result] = None,
 ) -> result_pb2.Result:
     """Converts trial results from multiple sweeps to v2 protobuf message.
@@ -130,7 +140,7 @@ def results_to_proto(
 
 def results_from_proto(
         msg: result_pb2.Result,
-        measurements: List[Measurement],
+        measurements: List[MeasureInfo],
 ) -> List[List[study.TrialResult]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -150,7 +160,7 @@ def results_from_proto(
 
 def _trial_sweep_from_proto(
         msg: result_pb2.SweepResult,
-        measurements: Dict[str, Measurement],
+        measurements: Dict[str, MeasureInfo],
 ) -> List[study.TrialResult]:
     trial_sweep: List[study.TrialResult] = []
     for pr in msg.parameterized_results:

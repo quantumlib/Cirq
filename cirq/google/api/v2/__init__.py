@@ -14,7 +14,7 @@
 """Data format v2 for google api."""
 
 from cirq.google.api.v2.results import (
-    Measurement,
+    MeasureInfo,
     find_measurements,
     pack_bits,
     unpack_bits,
