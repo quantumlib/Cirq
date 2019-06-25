@@ -593,6 +593,3 @@ def test_wavefunction_partial_trace_mixed_result():
     for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
         mixture = cirq.wavefunction_partial_trace(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
-
-if __name__ == "__main__":
-    test_subwavefunction_invalid_inputs()
