@@ -396,34 +396,32 @@ def test_partial_trace_invalid_inputs():
 
 
 def test_subwavefunction():
-    # tests below are good.
-    # bell00 = np.array([1, 0, 0, 1]) / np.sqrt(2)
-    # plus_x = np.array([1, 1]) / np.sqrt(2)
-    # state = np.kron(bell00, plus_x).reshape(2,2,2)
-    # np.testing.assert_almost_equal(
-    #     np.abs(cirq.subwavefunction(state, [0, 1])), bell00)
-    # np.testing.assert_almost_equal(
-    #     np.abs(cirq.subwavefunction(state, [2])), plus_x)
-    #
-    # ghz = np.array([1, 0, 0, 0, 0, 0, 0, 1]) / np.sqrt(2)
-    # state = np.kron(ghz, plus_x).reshape(2,2,2,2)
-    # np.testing.assert_almost_equal(
-    #     np.abs(cirq.subwavefunction(state, [0, 1, 2])), ghz)
-    # np.testing.assert_almost_equal(
-    #     np.abs(cirq.subwavefunction(state, [3])), plus_x)
+    bell00 = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    plus_x = np.array([1, 1]) / np.sqrt(2)
+    state = np.kron(bell00, plus_x).reshape(2,2,2)
+    np.testing.assert_almost_equal(
+        np.abs(cirq.subwavefunction(state, [0, 1])), bell00)
+    np.testing.assert_almost_equal(
+        np.abs(cirq.subwavefunction(state, [2])), plus_x)
+
+    ghz = np.array([1, 0, 0, 0, 0, 0, 0, 1]) / np.sqrt(2)
+    state = np.kron(ghz, plus_x).reshape(2,2,2,2)
+    np.testing.assert_almost_equal(
+        np.abs(cirq.subwavefunction(state, [0, 1, 2])), ghz)
+    np.testing.assert_almost_equal(
+        np.abs(cirq.subwavefunction(state, [3])), plus_x)
 
 
-    # test below are good
-    # a = np.arange(1, 5) / np.linalg.norm(np.arange(1, 5))
-    # b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
-    # state = np.kron(a, b)
-    # print(state)
-    # state = state.reshape(2,2,2,2,2)
-    # TODO: consistent output shape...?
-    # np.testing.assert_almost_equal(
-    #     np.abs(cirq.subwavefunction(a.reshape(2,2), [0, 1])), a)
-    # np.testing.assert_almost_equal(
-    #     np.abs(cirq.subwavefunction(b.reshape(2,2,2), [0, 1, 2])), b)
+    a = np.arange(1, 5) / np.linalg.norm(np.arange(1, 5))
+    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
+    state = np.kron(a, b)
+    print(state)
+    state = state.reshape(2,2,2,2,2)
+    TODO: consistent output shape...?
+    np.testing.assert_almost_equal(
+        np.abs(cirq.subwavefunction(a.reshape(2,2), [0, 1])), a)
+    np.testing.assert_almost_equal(
+        np.abs(cirq.subwavefunction(b.reshape(2,2,2), [0, 1, 2])), b)
 
 
 

@@ -70,7 +70,7 @@ from cirq.linalg import (
     kak_canonicalize_vector,
     kak_decomposition,
     KakDecomposition,
-    keep_qubits,
+    subwavefunction,
     kron,
     kron_bases,
     kron_factor_4x4_to_2x2s,
