@@ -148,8 +148,8 @@ def test_to_circuit():
     assert circuit == dag.to_circuit()
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        dag.to_circuit().to_unitary_matrix(),
+        circuit.unitary(),
+        dag.to_circuit().unitary(),
         atol=1e-7)
 
 
@@ -241,6 +241,6 @@ def test_larger_circuit():
     cirq.testing.assert_has_diagram(dag.to_circuit(), desired)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        dag.to_circuit().to_unitary_matrix(),
+        circuit.unitary(),
+        dag.to_circuit().unitary(),
         atol=1e-7)

@@ -30,8 +30,8 @@ def test_convert():
     ConvertToPauliStringPhasors().optimize_circuit(circuit)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
     cirq.testing.assert_has_diagram(circuit, """
 0: ───[X]────────[Z]^(1/8)─────────
@@ -52,8 +52,8 @@ def test_convert_keep_clifford():
     ConvertToPauliStringPhasors(keep_clifford=True).optimize_circuit(circuit)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
     cirq.testing.assert_has_diagram(circuit, """
 0: ───X──────────[Z]^(1/8)───

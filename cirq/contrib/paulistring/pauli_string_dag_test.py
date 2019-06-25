@@ -32,6 +32,6 @@ def test_pauli_string_dag_from_circuit(repetition):
     c_left_reordered = c_left_dag.to_circuit()
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_left.to_unitary_matrix(),
-        c_left_reordered.to_unitary_matrix(),
+        c_left.unitary(),
+        c_left_reordered.unitary(),
         atol=1e-7)

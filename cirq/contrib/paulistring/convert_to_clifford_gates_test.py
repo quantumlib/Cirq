@@ -36,8 +36,8 @@ def test_convert():
                for op in circuit.all_operations())
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
 
     cirq.testing.assert_has_diagram(circuit, """
@@ -94,8 +94,8 @@ def test_convert_composite():
                for op in circuit.all_operations())
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
 
     cirq.testing.assert_has_diagram(circuit, """

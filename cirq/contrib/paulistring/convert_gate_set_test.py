@@ -47,12 +47,12 @@ def test_converts_various_ops(op, expected_ops):
     after = converted_gate_set(before)
     assert after == expected
     cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(qubits_that_should_be_present=op.qubits),
+            before.unitary(),
+            after.unitary(qubits_that_should_be_present=op.qubits),
             atol=1e-7)
     cirq.testing.assert_allclose_up_to_global_phase(
-            after.to_unitary_matrix(qubits_that_should_be_present=op.qubits),
-            expected.to_unitary_matrix(qubits_that_should_be_present=op.qubits),
+            after.unitary(qubits_that_should_be_present=op.qubits),
+            expected.unitary(qubits_that_should_be_present=op.qubits),
             atol=1e-7)
 
 
@@ -71,12 +71,12 @@ def test_degenerate_single_qubit_decompose():
     after = converted_gate_set(before)
     assert after == expected
     cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
+            before.unitary(),
+            after.unitary(),
             atol=1e-7)
     cirq.testing.assert_allclose_up_to_global_phase(
-            after.to_unitary_matrix(),
-            expected.to_unitary_matrix(),
+            after.unitary(),
+            expected.unitary(),
             atol=1e-7)
 
 
@@ -100,8 +100,8 @@ def test_converts_single_qubit_series():
 
     after = converted_gate_set(before)
     cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
+            before.unitary(),
+            after.unitary(),
             atol=1e-7)
 
 
@@ -116,8 +116,8 @@ def test_converts_single_qubit_then_two():
 
     after = converted_gate_set(before)
     cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
+            before.unitary(),
+            after.unitary(),
             atol=1e-7)
 
 
@@ -146,8 +146,8 @@ def test_converts_large_circuit():
     after = converted_gate_set(before)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
+            before.unitary(),
+            after.unitary(),
             atol=1e-7)
 
     cirq.testing.assert_has_diagram(after, '''

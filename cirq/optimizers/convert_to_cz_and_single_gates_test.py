@@ -57,8 +57,8 @@ def test_kak_decomposes_unknown_two_qubit_gate():
                for op in circuit.all_operations()
                if cirq.op_gate_of_type(op, cirq.CZPowGate))
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
 
 
@@ -89,12 +89,12 @@ def test_composite_gates_without_matrix():
     cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        expected.to_unitary_matrix(),
+        circuit.unitary(),
+        expected.unitary(),
         atol=1e-7)
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
 
 
@@ -179,6 +179,6 @@ def test_dont_allow_partial_czs():
                for op in circuit.all_operations()
                if cirq.op_gate_of_type(op, cirq.CZPowGate))
     cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
+        circuit.unitary(),
+        c_orig.unitary(),
         atol=1e-7)
