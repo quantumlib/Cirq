@@ -23,10 +23,9 @@ def test_protocols():
         cirq.testing.assert_implements_consistent_protocols(
             cirq.GlobalPhaseOperation(p))
 
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.GlobalPhaseOperation(1j)),
-        np.array([[1j]]),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.GlobalPhaseOperation(1j)),
+                               np.array([[1j]]),
+                               atol=1e-8)
 
 
 def test_failures():
@@ -38,8 +37,5 @@ def test_failures():
 
 def test_diagram():
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
-            cirq.X(cirq.LineQubit(0)),
-            cirq.GlobalPhaseOperation(-1)
-        ),
-        '0: ───X───')
+        cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)),
+                              cirq.GlobalPhaseOperation(-1)), '0: ───X───')

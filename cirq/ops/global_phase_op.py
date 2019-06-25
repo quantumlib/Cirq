@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A no-qubit global phase operation."""
 
 import numpy as np
@@ -22,10 +21,11 @@ from cirq.ops import raw_types
 
 @value.value_equality(approximate=True)
 class GlobalPhaseOperation(raw_types.Operation):
+
     def __init__(self, coefficient):
         if abs(1 - abs(coefficient)) > 1e-8:
-            raise ValueError('Coefficient is not unitary: {!r}'.format(
-                coefficient))
+            raise ValueError(
+                'Coefficient is not unitary: {!r}'.format(coefficient))
         self.coefficient = coefficient
 
     @property
@@ -47,7 +47,7 @@ class GlobalPhaseOperation(raw_types.Operation):
 
     def __pow__(self, power):
         if isinstance(power, (int, float)):
-            return GlobalPhaseOperation(self.coefficient ** power)
+            return GlobalPhaseOperation(self.coefficient**power)
         return NotImplemented
 
     def _unitary_(self):

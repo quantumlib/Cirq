@@ -42,7 +42,7 @@ CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])  # For kron_with_controls
 
 
 def kron_with_controls(*factors: Union[np.ndarray, complex, float]
-                       ) -> np.ndarray:
+                      ) -> np.ndarray:
     """Computes the kronecker product of a sequence of values and control tags.
 
     Use `cirq.CONTROL_TAG` to represent controls. Any entry of the output

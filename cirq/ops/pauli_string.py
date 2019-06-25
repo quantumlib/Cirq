@@ -21,15 +21,9 @@ import math
 import numpy as np
 
 from cirq import protocols, value, linalg
-from cirq.ops import (
-    raw_types,
-    gate_operation,
-    common_gates,
-    op_tree,
-    pauli_gates,
-    clifford_gate,
-    pauli_interaction_gate,
-    global_phase_op)
+from cirq.ops import (raw_types, gate_operation, common_gates, op_tree,
+                      pauli_gates, clifford_gate, pauli_interaction_gate,
+                      global_phase_op)
 
 TDefault = TypeVar('TDefault')
 
@@ -122,7 +116,8 @@ class PauliString(raw_types.Operation):
         if not self._has_unitary_():
             return None
         return [
-            *([] if self.coefficient == 1 else [global_phase_op.GlobalPhaseOperation(self.coefficient)]),
+            *([] if self.coefficient == 1 else
+              [global_phase_op.GlobalPhaseOperation(self.coefficient)]),
             *[self[q].on(q) for q in self.qubits],
         ]
 
@@ -204,10 +199,8 @@ class PauliString(raw_types.Operation):
             return None
         if self.coefficient != 1:
             args.target_tensor *= self.coefficient
-        return protocols.apply_unitaries(
-            [self[q].on(q) for q in self.qubits],
-            self.qubits,
-            args)
+        return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
+                                         self.qubits, args)
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:

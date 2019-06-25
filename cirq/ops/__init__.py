@@ -95,8 +95,7 @@ from cirq.ops.gate_operation import (
 )
 
 from cirq.ops.global_phase_op import (
-    GlobalPhaseOperation,
-)
+    GlobalPhaseOperation,)
 
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
