@@ -19,7 +19,7 @@ from typing import Any, Sequence, Tuple, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols.unitary import has_unitary
+from cirq.protocols.has_unitary import has_unitary
 
 from cirq.type_workarounds import NotImplementedType
 
