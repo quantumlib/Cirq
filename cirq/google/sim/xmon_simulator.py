@@ -295,8 +295,6 @@ def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
     for _, _, gate in circuit.findall_operations_with_gate_type(
             ops.MeasurementGate):
         key = protocols.measurement_key(gate)
-        if key in keys:
-            raise ValueError('Repeated Measurement key {}'.format(key))
         keys.add(key)
     return keys
 

@@ -143,10 +143,6 @@ class XmonDevice(devices.Device):
                         'Adjacent Exp11 operations: {} vs {}.'.format(
                             scheduled_operation, other))
 
-    def validate_circuit(self, circuit: circuits.Circuit):
-        super().validate_circuit(circuit)
-        _verify_unique_measurement_keys(circuit.all_operations())
-
     def validate_moment(self, moment: ops.Moment):
         super().validate_moment(moment)
         for op in moment.operations:

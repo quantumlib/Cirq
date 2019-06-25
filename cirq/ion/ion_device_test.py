@@ -208,11 +208,9 @@ def test_validate_circuit_repeat_measurement_keys():
     d = ion_device(3)
 
     circuit = cirq.Circuit()
-    circuit.append([cirq.measure(cirq.LineQubit(0), key='a'),
-                    cirq.measure(cirq.LineQubit(1), key='a')])
-
     with pytest.raises(ValueError, message='Measurement key a repeated'):
-        d.validate_circuit(circuit)
+        circuit.append([cirq.measure(cirq.LineQubit(0), key='a'),
+                        cirq.measure(cirq.LineQubit(1), key='a')])
 
 
 def test_validate_schedule_repeat_measurement_keys():

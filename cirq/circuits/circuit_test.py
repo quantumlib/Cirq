@@ -52,12 +52,16 @@ def test_circuit_init():
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
 
-    moments = [cirq.Moment([cirq.measure(x, key='x')]), cirq.Moment([
-        cirq.measure(y, key='y')])]
+    moments = [
+        cirq.Moment([cirq.measure(x, key='x')]),
+        cirq.Moment([cirq.measure(y, key='y')])
+    ]
     _ = cirq.Circuit(moments)
 
-    moments = [cirq.Moment([cirq.measure(x, key='x')]), cirq.Moment([
-        cirq.measure(y, key='x')])]
+    moments = [
+        cirq.Moment([cirq.measure(x, key='x')]),
+        cirq.Moment([cirq.measure(y, key='x')])
+    ]
     with pytest.raises(ValueError):
         _ = cirq.Circuit(moments)
 
@@ -1767,8 +1771,9 @@ def test_has_unitary():
 
     # Terminal measurements are ignored, though.
     assert cirq.has_unitary(cirq.Circuit.from_ops(cirq.measure(q)))
-    assert not cirq.has_unitary(cirq.Circuit.from_ops(cirq.measure(q, key='q0'),
-                                                      cirq.measure(q, key='q1')))
+    assert not cirq.has_unitary(
+        cirq.Circuit.from_ops(cirq.measure(q, key='q0'),
+                              cirq.measure(q, key='q1')))
 
     # Still unitary if operations decompose into unitary operations.
     assert cirq.has_unitary(cirq.Circuit.from_ops(EventualUnitary().on(q)))

@@ -741,16 +741,6 @@ def test_measurement_multiple_measurements_qubit_order(scheduler):
     np.testing.assert_equal(result.measurements['b'], [[False, True]])
 
 
-@pytest.mark.parametrize('scheduler', SCHEDULERS)
-def test_measurement_keys_repeat(scheduler):
-    circuit = cirq.Circuit(device=test_device)
-    circuit.append([cirq.measure(Q1, key='a'), cirq.X.on(Q1), cirq.X.on(Q2),
-                    cirq.measure(Q2, key='a')])
-    simulator = cg.XmonSimulator()
-    with pytest.raises(ValueError, message='Repeated Measurement key a'):
-        run(simulator, circuit, scheduler)
-
-
 def test_handedness_of_xmon_exp_x_gate():
     circuit = cirq.Circuit.from_ops(cirq.X(Q1)**0.5, device=test_device)
     simulator = cg.XmonSimulator()

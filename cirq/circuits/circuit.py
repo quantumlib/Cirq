@@ -102,7 +102,7 @@ class Circuit:
             device: Hardware that the circuit should be able to run on.
         """
         # Check that measurement keys don't overlap.
-        _ = _get_measurement_keys(moments)
+        _ = _get_measurement_keys(list(moments))
         self._moments = list(moments)
         self._device = device
         self._device.validate_circuit(self)
@@ -886,7 +886,9 @@ class Circuit:
                                   preserve_moments=True),
             preserve_moments=True))
 
-        common_keys = _get_measurement_keys(self._moments, validate=False) & _get_measurement_keys(moments_and_operations)
+        common_keys = _get_measurement_keys(
+            self._moments,
+            validate=False) & _get_measurement_keys(moments_and_operations)
 
         if len(common_keys):
             raise ValueError('Measurement keys {} repeated'.format(common_keys))
@@ -1868,8 +1870,7 @@ def _get_measurement_keys(
             if protocols.is_measurement(moment_or_op):
                 key = protocols.measurement_key(moment_or_op)
                 if validate and key in seen:
-                    raise ValueError(
-                        'Measurement key {} repeated'.format(key))
+                    raise ValueError('Measurement key {} repeated'.format(key))
                 seen.add(key)
     return seen
 

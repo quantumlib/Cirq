@@ -42,8 +42,11 @@ def test_validation():
     with pytest.raises(ValueError):
         _ = Moment([cirq.measure(a, key='a'), cirq.measure(b, key='a')])
     with pytest.raises(ValueError):
-        _ = Moment([cirq.measure(a, key='a'), cirq.measure(b, key='b'),
-                    cirq.measure(c, key='a')])
+        _ = Moment([
+            cirq.measure(a, key='a'),
+            cirq.measure(b, key='b'),
+            cirq.measure(c, key='a')
+        ])
 
 
 def test_equality():
@@ -147,7 +150,8 @@ def test_with_operation():
         _ = Moment([cirq.X(a)]).with_operation(cirq.X(a))
 
     with pytest.raises(ValueError):
-        _ = Moment([cirq.measure(a, key='a')]).with_operation(cirq.measure(b, key='a'))
+        _ = Moment([cirq.measure(a, key='a')
+                   ]).with_operation(cirq.measure(b, key='a'))
 
 
 def test_without_operations_touching():

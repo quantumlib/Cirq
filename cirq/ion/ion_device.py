@@ -121,10 +121,6 @@ class IonDevice(devices.Device):
                         'operations on same qubit: {} vs {}.'.format(
                             scheduled_operation, other))
 
-    def validate_circuit(self, circuit: circuits.Circuit):
-        super().validate_circuit(circuit)
-        _verify_unique_measurement_keys(circuit.all_operations())
-
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
                                       moment: ops.Moment) -> bool:

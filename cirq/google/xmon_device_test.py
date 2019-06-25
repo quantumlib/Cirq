@@ -231,11 +231,9 @@ def test_validate_circuit_repeat_measurement_keys():
     d = square_device(3, 3)
 
     circuit = cirq.Circuit()
-    circuit.append([cirq.measure(cirq.GridQubit(0, 0), key='a'),
-                    cirq.measure(cirq.GridQubit(0, 1), key='a')])
-
     with pytest.raises(ValueError, message='Measurement key a repeated'):
-        d.validate_circuit(circuit)
+        circuit.append([cirq.measure(cirq.GridQubit(0, 0), key='a'),
+                        cirq.measure(cirq.GridQubit(0, 1), key='a')])
 
 
 def test_validate_schedule_repeat_measurement_keys():
