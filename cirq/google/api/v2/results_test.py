@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.api.google.v2 import result_pb2
 from cirq.google.api import v2
 
 
@@ -25,10 +26,9 @@ def _check_measurement(m, key, qubits, slot):
     assert m.slot == slot
 
 
-def test_find_measurements_simple_schedule():
+def test_find_measurements_simple_circuit():
     circuit = cirq.Circuit()
     circuit.append(cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k'))
-    # schedule = ct.circuit_to_schedule(device, circuit)
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 1
@@ -36,11 +36,43 @@ def test_find_measurements_simple_schedule():
     _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0)
 
 
+def test_find_measurements_simple_schedule():
+    schedule = cirq.Schedule(
+        device=cirq.UnconstrainedDevice,
+        scheduled_operations=[
+            cirq.ScheduledOperation(
+                time=cirq.Timestamp(picos=10_000),
+                duration=cirq.Duration(nanos=1000),
+                operation=cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k'),
+            ),
+        ],
+    )
+    measurements = v2.find_measurements(schedule)
+
+    assert len(measurements) == 1
+    m = measurements[0]
+    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 10_000)
+
+
+def test_find_measurements_duplicate_keys():
+    circuit = cirq.Circuit()
+    circuit.append(cirq.measure(q(0, 0), q(0, 1), key='k'))
+    circuit.append(cirq.measure(q(0, 1), q(0, 2), key='k'))
+    with pytest.raises(ValueError, match='Duplicate measurement key'):
+        v2.find_measurements(circuit)
+
+
+def test_find_measurements_non_grid_qubits():
+    circuit = cirq.Circuit()
+    circuit.append(cirq.measure(cirq.NamedQubit('a'), key='k'))
+    with pytest.raises(ValueError, match='Expected GridQubits'):
+        v2.find_measurements(circuit)
+
+
 def test_multiple_measurements_different_slots():
     circuit = cirq.Circuit()
     circuit.append(cirq.measure(q(0, 0), q(0, 1), key='k0'))
     circuit.append(cirq.measure(q(0, 2), q(0, 0), key='k1'))
-    # schedule = ct.circuit_to_schedule(device, circuit)
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 2
@@ -59,7 +91,6 @@ def test_multiple_measurements_shared_slots():
         cirq.measure(q(0, 2), q(0, 0), q(0, 1), key='k2'),
         cirq.measure(q(0, 3), q(0, 4), key='k3')
     ])
-    # schedule = ct.circuit_to_schedule(device, circuit)
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 4
@@ -68,3 +99,126 @@ def test_multiple_measurements_shared_slots():
     _check_measurement(m1, 'k1', [q(0, 4), q(0, 3)], 0)
     _check_measurement(m2, 'k2', [q(0, 2), q(0, 0), q(0, 1)], 1)
     _check_measurement(m3, 'k3', [q(0, 3), q(0, 4)], 1)
+
+
+def test_results_to_proto():
+    measurements = [v2.Measurement('foo', [q(0, 0)], slot=0)]
+    trial_results = [
+        [
+            cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
+                             measurements={
+                                 'foo': np.array([[0], [1], [0], [1]],
+                                                 dtype=bool),
+                             },
+                             repetitions=4),
+            cirq.TrialResult(params=cirq.ParamResolver({'i': 1}),
+                             measurements={
+                                 'foo': np.array([[0], [1], [1], [0]],
+                                                 dtype=bool),
+                             },
+                             repetitions=4),
+        ],
+        [
+            cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
+                             measurements={
+                                 'foo': np.array([[0], [1], [0], [1]],
+                                                 dtype=bool),
+                             },
+                             repetitions=4),
+            cirq.TrialResult(params=cirq.ParamResolver({'i': 1}),
+                             measurements={
+                                 'foo': np.array([[0], [1], [1], [0]],
+                                                 dtype=bool),
+                             },
+                             repetitions=4),
+        ],
+    ]
+    proto = v2.results_to_proto(trial_results, measurements)
+    assert isinstance(proto, result_pb2.Result)
+    assert len(proto.sweep_results) == 2
+    deserialized = v2.results_from_proto(proto, measurements)
+    assert len(deserialized) == 2
+    for sweep_results, expected in zip(deserialized, trial_results):
+        assert len(sweep_results) == len(expected)
+        for trial_result, expected_trial_result in zip(sweep_results, expected):
+            assert trial_result.params == expected_trial_result.params
+            assert trial_result.repetitions == expected_trial_result.repetitions
+            np.testing.assert_array_equal(
+                trial_result.measurements['foo'],
+                expected_trial_result.measurements['foo'])
+
+
+def test_results_to_proto_sweep_repetitions():
+    measurements = [v2.Measurement('foo', [q(0, 0)], slot=0)]
+    trial_results = [[
+        cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
+                         measurements={
+                             'foo': np.array([[0]], dtype=bool),
+                         },
+                         repetitions=1),
+        cirq.TrialResult(params=cirq.ParamResolver({'i': 1}),
+                         measurements={
+                             'foo': np.array([[0], [1]], dtype=bool),
+                         },
+                         repetitions=2),
+    ]]
+    with pytest.raises(ValueError, match='different numbers of repetitions'):
+        v2.results_to_proto(trial_results, measurements)
+
+
+def test_results_from_proto_qubit_ordering():
+    measurements = [v2.Measurement('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
+    proto = result_pb2.Result()
+    sr = proto.sweep_results.add()
+    sr.repetitions = 8
+    pr = sr.parameterized_results.add()
+    pr.params.assignments.update({'i': 0})
+    mr = pr.measurement_results.add()
+    mr.key = 'foo'
+    for qubit, results in [
+        (q(0, 1), 0b1100_1100),
+        (q(0, 2), 0b1010_1010),
+        (q(0, 0), 0b1111_0000),
+    ]:
+        qmr = mr.qubit_measurement_results.add()
+        qmr.qubit.id = qubit.proto_id()
+        qmr.results = bytes([results])
+
+    trial_results = v2.results_from_proto(proto, measurements)
+    trial = trial_results[0][0]
+    assert trial.params == cirq.ParamResolver({'i': 0})
+    assert trial.repetitions == 8
+    np.testing.assert_array_equal(
+        trial.measurements['foo'],
+        np.array([
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 0, 1],
+            [1, 1, 0],
+            [1, 1, 1],
+        ],
+                 dtype=bool))
+
+
+def test_results_from_proto_duplicate_qubit():
+    measurements = [v2.Measurement('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
+    proto = result_pb2.Result()
+    sr = proto.sweep_results.add()
+    sr.repetitions = 8
+    pr = sr.parameterized_results.add()
+    pr.params.assignments.update({'i': 0})
+    mr = pr.measurement_results.add()
+    mr.key = 'foo'
+    for qubit, results in [
+        (q(0, 0), 0b1100_1100),
+        (q(0, 1), 0b1010_1010),
+        (q(0, 1), 0b1111_0000),
+    ]:
+        qmr = mr.qubit_measurement_results.add()
+        qmr.qubit.id = qubit.proto_id()
+        qmr.results = bytes([results])
+    with pytest.raises(ValueError, match='qubit already exists'):
+        v2.results_from_proto(proto, measurements)
