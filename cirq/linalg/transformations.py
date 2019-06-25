@@ -354,13 +354,13 @@ def wavefunction_partial_trace(
     # Attempt to do efficient state factoring.]
     state = subwavefunction(wavefunction, keep_indices, default=None, atol=atol)
     if state is not None:
-        return ((1.0, state))
+        return ((1.0, state),)
 
     # Fall back to a (non-unique) mixture representation.
     if wavefunction.shape == (wavefunction.size,):
         return_shape = -1
     elif wavefunction.shape == (2,) * int(np.log2(wavefunction.size)):
-        return_shape = (2,) * keep_indices
+        return_shape = (2,) * len(keep_indices)
 
     keep_dims = 1 << len(keep_indices)
     tot_dims = 1 << len(wavefunction.shape)
@@ -419,12 +419,15 @@ def subwavefunction(wavefunction: np.ndarray,
         raise ValueError("Input wavefunction of size {} does not represent a "
                          "state over qubits.".format(wavefunction.size))
 
+    n_qubits = int(np.log2(wavefunction.size))
     if wavefunction.shape == (wavefunction.size,):
         return_shape = -1
-    elif wavefunction.shape == (2,) * int(np.log2(wavefunction.size)):
-        return_shape = (2,) * keep_indices
-    raise ValueError(
-        "Input wavefunction must be shaped like (2 ** n,) or (2, 2, ...)")
+        wavefunction = wavefunction.reshape((2,) * n_qubits)
+    elif wavefunction.shape == (2,) * n_qubits:
+        return_shape = (2,) * len(keep_indices)
+    else:
+        raise ValueError(
+            "Input wavefunction must be shaped like (2 ** n,) or (2, 2, ...)")
 
     keep_dims = 1 << len(keep_indices)
     if not np.isclose(np.linalg.norm(wavefunction), 1):
@@ -432,7 +435,6 @@ def subwavefunction(wavefunction: np.ndarray,
     if len(set(keep_indices)) != len(keep_indices):
         raise ValueError(
             "keep_indices were {} but must be unique.".format(keep_indices))
-    n_qubits = len(wavefunction.shape)
     if any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError(
             "keep_indices {} are an invalid subset of the input wavefunction.")
