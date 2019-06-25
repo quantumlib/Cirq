@@ -80,23 +80,10 @@ def _keyed_repeated_bitstrings(measurements: pd.DataFrame) -> str:
     keyed_bitstrings = []
     for key in sorted(set(measurements['m_key'])):
         reps = pd.DataFrame(measurements[measurements.m_key==key]['m_vals'].to_list())
-        modified_reps = reps.apply(_bitstring, axis=0)
         # n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join(modified_reps)
+        all_bits = ', '.join(reps.apply(_bitstring, axis=0))
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
-
-
-# def _keyed_repeated_bitstrings(vals: Dict[str, pd.DataFrame]
-#                                ) -> str:
-#     keyed_bitstrings = []
-#     for key in sorted(vals.keys()):
-#         reps = vals[key]
-#         # n = 0 if len(reps) == 0 else len(reps[0])
-#         all_bits = ', '.join([_bitstring(reps[i])
-#                               for i in list(reps)])
-#         keyed_bitstrings.append('{}={}'.format(key, all_bits))
-# return '\n'.join(keyed_bitstrings)
 
 
 def _key_to_str(key: TMeasurementKey) -> str:
@@ -108,14 +95,19 @@ def _key_to_str(key: TMeasurementKey) -> str:
 
 MeasurementDictOrSimilarType = Union[Dict[str, np.ndarray], Dict[str, pd.DataFrame]]
 
-def _df_repr(measurements: pd.DataFrame):
+def _df_repr(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
     # repr_df = measurements
    #  repr_df['m_vals'] = measurements['m_vals'].apply(lambda x: x.values)
    #  return repr_df.groupby('mkeys').to_dict()
-    grouped = measurements.groupby(['m_key'])
-    return grouped
-    return grouped.apply(lambda x: (x['m_key'], x['m_vals'].apply(lambda x: x.values).values)).to_dict()
-    return {key: val.values for key, val in measurements.index()}
+    repr_dict = {}
+    for key in sorted(set(measurements['m_key'])):
+        repr_dict[key] = np.array(measurements[measurements.m_key==key]['m_vals'].to_list())
+        # repr_dict[key] = pd.DataFrame(measurements[measurements.m_key==key]['m_vals'].to_list()).values
+    return repr_dict
+    # grouped = measurements.groupby(['m_key'])
+  #   return grouped
+  #   return grouped.apply(lambda x: (x['m_key'], x['m_vals'].apply(lambda x: x.values).values)).to_dict()
+  #   return {key:val.values for key, val in measurements.index()}
 
 @value.value_equality(unhashable=True)
 class TrialResult:
@@ -161,7 +153,7 @@ class TrialResult:
     #         self.measurements = [(key, pd.DataFrame(val, columns=['qubit'+str(i) for i in range(val[0])])) for key,val in measurements.items()]
     #     else:
     #        self.measurements = measurements
-        self.repetitions = repetitions
+        # self.repetitions = repetitions
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
@@ -224,12 +216,10 @@ class TrialResult:
  #            # samples = pd.Series([pd.DataFrame()]*self.repetitions)
  #            samples = pd.DataFrame({'m_key': [np.nan]*self.repetitions, 'rep': range(self.repetitions), 'm_vals': [()]*self.repetitions})
             # samples = pd.DataFrame([], columns=['m_key','rep','m_vals'])
-        print(samples)
         c = collections.Counter()  # type: collections.Counter
         # for sample in samples:
-        for i in range(self.repetitions):
+        for i in range(self.measurements['rep'].max() + 1):
             sample = samples[samples.rep==i]
-            print(sample)
             c[fold_func(sample['m_vals'])] += 1
         return c
 
@@ -283,7 +273,7 @@ class TrialResult:
         return ('cirq.TrialResult(params={!r}, '
                 'repetitions={!r}, '
                 'measurements={!r})').format(self.params,
-                                             self.repetitions,
+                                             self.measurements.rep.max() + 1,
                                              _df_repr(self.measurements))
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
@@ -298,4 +288,6 @@ class TrialResult:
         return _keyed_repeated_bitstrings(self.measurements)
 
     def _value_equality_values_(self):
-        return self.measurements.values, self.repetitions, self.params
+        df_dict = _df_repr(self.measurements)
+        print(df_dict)
+        return df_dict, self.params
