@@ -102,15 +102,7 @@ class Circuit:
             device: Hardware that the circuit should be able to run on.
         """
         # Check that measurement keys don't overlap.
-        seen = set()  # type: Set[str]
-        for moment in moments:
-            for op in moment:
-                if protocols.is_measurement(op):
-                    key = protocols.measurement_key(op)
-                    if key in seen:
-                        raise ValueError(
-                            'Measurement key {} repeated'.format(key))
-                    seen.add(key)
+        _ = _get_measurement_keys(moments)
         self._moments = list(moments)
         self._device = device
         self._device.validate_circuit(self)
@@ -893,6 +885,11 @@ class Circuit:
                                   self._device.decompose_operation,
                                   preserve_moments=True),
             preserve_moments=True))
+
+        common_keys = _get_measurement_keys(self._moments, validate=False) & _get_measurement_keys(moments_and_operations)
+
+        if len(common_keys):
+            raise ValueError('Measurement keys {} repeated'.format(common_keys))
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
@@ -1851,3 +1848,28 @@ def _group_until_different(items: Iterable[TIn],
         Tuples containing the group key and item values.
     """
     return ((k, [value(i) for i in v]) for (k, v) in groupby(items, key))
+
+def _get_measurement_keys(
+        moment_or_operation_list: Union[ops.Moment, ops.Operation],
+        validate: bool = True):
+    seen = set()  # type: Set[str]
+    for moment_or_op in moment_or_operation_list:
+        if isinstance(moment_or_op, ops.Moment):
+            keys = []
+            for op in moment_or_op:
+                if protocols.is_measurement(op):
+                    key = protocols.measurement_key(op)
+                    if validate and key in seen:
+                        raise ValueError(
+                            'Measurement key {} repeated'.format(key))
+                    keys.append(key)
+            seen.update(keys)
+        else:
+            if protocols.is_measurement(moment_or_op):
+                key = protocols.measurement_key(moment_or_op)
+                if validate and key in seen:
+                    raise ValueError(
+                        'Measurement key {} repeated'.format(key))
+                seen.add(key)
+    return seen
+

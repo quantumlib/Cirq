@@ -78,6 +78,10 @@ def test_insert_moment_types():
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
     circuit.insert(0, moment_or_operation_tree)
 
+    moment_or_operation_tree = [cirq.measure(x), cirq.Moment([cirq.measure(x)])]
+    with pytest.raises(ValueError):
+        circuit.insert(0, moment_or_operation_tree)
+
 
 def test_equality():
     a = cirq.NamedQubit('a')
@@ -174,9 +178,16 @@ def test_append_single():
     c.append(cirq.X(a))
     assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
 
-    c = cirq.Circuit()
-    c.append([cirq.X(a)])
-    assert c == cirq.Circuit([cirq.Moment([cirq.X(a)])])
+    c = cirq.Circuit([cirq.Moment([cirq.measure(a)])])
+    c.append(cirq.measure(a, key='b'))
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.measure(a)]),
+        cirq.Moment([cirq.measure(a, key='b')])
+    ])
+
+    c = cirq.Circuit([cirq.Moment([cirq.measure(a)])])
+    with pytest.raises(ValueError):
+        c.append(cirq.measure(a))
 
 
 def test_append_multiple():
@@ -202,6 +213,18 @@ def test_append_multiple():
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
 
+    c = cirq.Circuit()
+    c.append(cirq.measure(a))
+    c.append(cirq.measure(a, key='b'))
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.measure(a)]),
+        cirq.Moment([cirq.measure(a, key='b')])
+    ])
+
+    c = cirq.Circuit()
+    c.append(cirq.measure(a))
+    with pytest.raises(ValueError):
+        c.append(cirq.measure(a))
 
 def test_append_moments():
     a = cirq.NamedQubit('a')
@@ -222,6 +245,18 @@ def test_append_moments():
         cirq.Moment([cirq.X(a), cirq.X(b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
+
+    c = cirq.Circuit()
+    c.append(cirq.Moment([cirq.measure(a)]))
+    c.append(cirq.Moment([cirq.measure(a, key='b')]))
+    assert c == cirq.Circuit([
+        cirq.Moment([cirq.measure(a)]),
+        cirq.Moment([cirq.measure(a, key='b')])
+    ])
+
+    c = cirq.Circuit([cirq.Moment([cirq.measure(a)])])
+    with pytest.raises(ValueError):
+        c.append([cirq.Moment([cirq.measure(a)])])
 
 
 def test_bool():
@@ -707,11 +742,17 @@ def test_insert_validates_all_operations_before_inserting():
     a, b = cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)
     c = cirq.Circuit(device=cg.Foxtail)
     operations = [cirq.Z(a), cirq.CZ(a, b)]
-
     with pytest.raises(ValueError, match='Non-local interaction'):
         c.insert(0, operations)
-
     assert len(c) == 0
+
+    a = cirq.NamedQubit('alice')
+    b = cirq.NamedQubit('bob')
+    c = cirq.Circuit()
+    operations = [cirq.measure(a, key='m'), cirq.measure(b, key='m')]
+    with pytest.raises(ValueError) as exception:
+        c.insert(0, operations)
+    assert str(exception.value) == 'Measurement key m repeated'
 
 
 def test_insert_inline_near_start():
@@ -1223,9 +1264,6 @@ def test_has_measurements():
     c = cirq.Circuit.from_ops(xa, ma, xb, xa)
     assert c.has_measurements()
 
-    c = cirq.Circuit.from_ops(ma, ma)
-    assert c.has_measurements()
-
     c = cirq.Circuit.from_ops(xa, ma, xa)
     assert c.has_measurements()
 
@@ -1265,9 +1303,6 @@ def test_are_all_measurements_terminal():
     assert not c.are_all_measurements_terminal()
 
     c = cirq.Circuit.from_ops(xa, ma, xb, xa)
-    assert not c.are_all_measurements_terminal()
-
-    c = cirq.Circuit.from_ops(ma, ma)
     assert not c.are_all_measurements_terminal()
 
     c = cirq.Circuit.from_ops(xa, ma, xa)
@@ -1732,8 +1767,8 @@ def test_has_unitary():
 
     # Terminal measurements are ignored, though.
     assert cirq.has_unitary(cirq.Circuit.from_ops(cirq.measure(q)))
-    assert not cirq.has_unitary(cirq.Circuit.from_ops(cirq.measure(q),
-                                                      cirq.measure(q)))
+    assert not cirq.has_unitary(cirq.Circuit.from_ops(cirq.measure(q, key='q0'),
+                                                      cirq.measure(q, key='q1')))
 
     # Still unitary if operations decompose into unitary operations.
     assert cirq.has_unitary(cirq.Circuit.from_ops(EventualUnitary().on(q)))
