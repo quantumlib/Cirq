@@ -391,7 +391,6 @@ def test_measure_individual_bits():
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2}
     assert parsed_qasm.cregs == {'c1': 2}
-    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 def test_measure_registers():
@@ -425,7 +424,6 @@ def test_measure_registers():
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 3}
     assert parsed_qasm.cregs == {'c1': 3}
-    cirq.Simulator().run(parsed_qasm.circuit)
 
 
 def test_measure_mismatched_register_size():
