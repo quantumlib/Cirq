@@ -28,8 +28,12 @@ def test_protocols():
         np.array([[1j]]),
         atol=1e-8)
 
+
+def test_failures():
     with pytest.raises(ValueError, match='not unitary'):
         _ = cirq.GlobalPhaseOperation(2)
+    with pytest.raises(ValueError, match='0 qubits'):
+        _ = cirq.GlobalPhaseOperation(1j).with_qubits(cirq.LineQubit(0))
 
 
 def test_diagram():

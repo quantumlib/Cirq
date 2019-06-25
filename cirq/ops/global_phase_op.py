@@ -33,7 +33,10 @@ class GlobalPhaseOperation(raw_types.Operation):
         return ()
 
     def with_qubits(self, *new_qubits):
-        assert not new_qubits
+        if new_qubits:
+            raise ValueError(
+                '{!r} applies to 0 qubits but new_qubits={!r}.'.format(
+                    self, new_qubits))
         return self
 
     def _value_equality_values_(self):
