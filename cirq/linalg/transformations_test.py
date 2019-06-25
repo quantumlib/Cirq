@@ -397,9 +397,9 @@ def test_partial_trace_invalid_inputs():
 
 
 def test_subwavefunction():
-    a = cirq.testing.random_superposition(4)
-    b = cirq.testing.random_superposition(8)
-    c = cirq.testing.random_superposition(16)
+    a = np.arange(4) / np.linalg.norm(np.arange(4))
+    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
+    c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
     state = np.kron(np.kron(a, b), c).reshape(2, 2, 2, 2, 2, 2, 2, 2, 2)
 
     assert cirq.equal_up_to_global_phase(
@@ -408,19 +408,26 @@ def test_subwavefunction():
         cirq.subwavefunction(b.reshape(2, 2, 2), [0, 1, 2], atol=1e-8), b)
     assert cirq.equal_up_to_global_phase(
         cirq.subwavefunction(c.reshape(2, 2, 2, 2), [0, 1, 2, 3], atol=1e-8), c)
-    assert cirq.equal_up_to_global_phase(cirq.subwavefunction(state, [0, 1]), a)
+
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(state, [2, 3, 4], atol=1e-8), b)
+        cirq.subwavefunction(state, [0, 1], atol=1e-15), a)
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(state, [5, 6, 7, 8], atol=1e-8), c)
+        cirq.subwavefunction(state, [2, 3, 4], atol=1e-15), b)
+    assert cirq.equal_up_to_global_phase(
+        cirq.subwavefunction(state, [5, 6, 7, 8], atol=1e-15), c)
 
     # Reject factoring for very tight tolerance.
     assert cirq.subwavefunction(
-        state, [0, 1], default=None, atol=1e-15) is None
+        state, [0, 1], default=None, atol=1e-16) is None
     assert cirq.subwavefunction(
-        state, [2, 3, 4], default=None, atol=1e-15) is None
+        state, [2, 3, 4], default=None, atol=1e-16) is None
     assert cirq.subwavefunction(
-        state, [5, 6, 7, 8], default=None, atol=1e-15) is None
+        state, [5, 6, 7, 8], default=None, atol=1e-16) is None
+
+    # Permit invalid factoring for loose tolerance.
+    for q1 in range(9):
+        assert cirq.subwavefunction(
+            state, [q1], default=None, atol=1) is not None
 
 
 def test_subwavefunction_bad_subset():
@@ -460,8 +467,24 @@ def test_subwavefunction_non_kron():
 
 
 def test_subwavefunction_invalid_inputs():
+
+    # State cannot be expressed as a qubit wavefunction.
+    with pytest.raises(ValueError, match='7'):
+        cirq.subwavefunction(np.arange(7), [1, 2], atol=1e-8)
+
+    # State shape does not conform to input requirements.
+    with pytest.raises(ValueError, match='shaped'):
+        cirq.subwavefunction(np.arange(16).reshape(2, 4, 2), [1, 2], atol=1e-8)
+    with pytest.raises(ValueError, match='shaped'):
+        cirq.subwavefunction(np.arange(16).reshape((16, 1)), [1, 2], atol=1e-8)
+
     with pytest.raises(ValueError, match='normalized'):
-        cirq.subwavefunction(np.arange(16).reshape(2, 2, 2, 2), [1, 2])
+        cirq.subwavefunction(
+            np.arange(16).reshape(2, 2, 2, 2) / np.linalg.norm(np.arange(16)),
+            [1, 2],
+            atol=1e-8)
+
+    # Bad choice of input indices.
     with pytest.raises(ValueError, match='2, 2'):
         cirq.subwavefunction(
             np.arange(16).reshape(2, 2, 2, 2) / np.linalg.norm(np.arange(16)),
@@ -491,9 +514,9 @@ def mixtures_equal(m1, m2, atol=1e-7):
 
 
 def test_wavefunction_partial_trace_pure_result():
-    a = np.arange(4) / np.linalg.norm(np.arange(4))
-    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
-    c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
+    a = cirq.testing.random_superposition(4)
+    b = cirq.testing.random_superposition(8)
+    c = cirq.testing.random_superposition(16)
     state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
 
     assert mixtures_equal(
@@ -514,6 +537,17 @@ def test_wavefunction_partial_trace_pure_result():
     assert mixtures_equal(
         cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8], atol=1e-8),
         ((1.0, np.kron(b, c)),))
+
+    # Return mixture will defer to numpy.linalg.eig's builtin tolerance
+    assert mixtures_equal(
+        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-20),
+        ((1.0, a),))
+    assert mixtures_equal(
+        cirq.wavefunction_partial_trace(state, [2, 3, 4], atol=1e-20),
+        ((1.0, b),))
+    assert mixtures_equal(
+        cirq.wavefunction_partial_trace(state, [5, 6, 7, 8], atol=1e-20),
+        ((1.0, c),))
 
 
 def test_wavefunction_partial_trace_mixed_result():
@@ -541,6 +575,5 @@ def test_wavefunction_partial_trace_mixed_result():
         mixture = cirq.wavefunction_partial_trace(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
-
 if __name__ == "__main__":
-    test_subwavefunction_atol()
+    test_wavefunction_partial_trace_pure_result()

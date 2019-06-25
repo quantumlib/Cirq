@@ -326,12 +326,15 @@ def wavefunction_partial_trace(
         atol: Union[int, float] = 1e-8) -> Tuple[Tuple[float, np.ndarray]]:
     """Attempts to factor a wavefunction into two parts and return one of them.
 
-    The input wavefunction must have shape `(2,2,2,...)`. Attempts to factor the
+    The input wavefunction must have shape `(2, 2, ..., 2)` or `(2 ** N)` where
+    `wavefunction` is expressed over N qubits. Attempts to factor the
     wavefunction into a pure state over `keep_indices`. If this fails, a non-
-    unique mixture can be computed by eigendecomposition on the partial trace
-    of the input's density matrix.
+    unique mixture can be computed by eigendecomposition on the partial trace of
+    the input's density matrix.
 
-    States in the output mixture retain the shape (2,2,...).
+    States in the output mixture will retain the same type of shape as the input
+    wavefunction, either `(2 ** k)` or `(2, 2, ..., 2)` where k is the number of
+    qubits kept.
 
     Args:
         wavefunction: A wavefunction to express over a qubit subset.
@@ -342,23 +345,32 @@ def wavefunction_partial_trace(
         A single-component mixture in which the factored wavefunction has
         probability '1' if the factored state is pure, or else a mixture of the
         default eigendecomposition of the mixed state's partial trace.
+
+    Raises:
+        ValueError: if the input wavefunction shape is neither `(2 ** N)` nor
+        `(2, 2, ..., 2)`
     """
 
-    # Attempt to do efficient state factoring.
+    # Attempt to do efficient state factoring.]
     state = subwavefunction(wavefunction, keep_indices, default=None, atol=atol)
-    keep_dims = 1 << len(keep_indices)
     if state is not None:
-        return ((1.0, state.reshape(keep_dims, 1)))
+        return ((1.0, state))
 
     # Fall back to a (non-unique) mixture representation.
+    if wavefunction.shape == (wavefunction.size,):
+        return_shape = -1
+    elif wavefunction.shape == (2,) * int(np.log2(wavefunction.size)):
+        return_shape = (2,) * keep_indices
+
+    keep_dims = 1 << len(keep_indices)
     tot_dims = 1 << len(wavefunction.shape)
     rho = np.kron(np.conj(wavefunction.reshape(tot_dims, 1)).T,
                   wavefunction.reshape(tot_dims, 1)).reshape(
                   (2, 2) * len(wavefunction.shape))
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
     eigvals, eigvecs = np.linalg.eig(keep_rho)
-    mixture = tuple(zip(
-        eigvals, [vec.reshape((2,) * len(keep_indices)) for vec in eigvecs.T]))
+    mixture = tuple(
+        zip(eigvals, [vec.reshape(return_shape) for vec in eigvecs.T]))
     return [p for p in mixture if not approx_eq(p[0], 0.0)]
 
 
@@ -369,13 +381,16 @@ def subwavefunction(wavefunction: np.ndarray,
                     atol: Union[int, float] = 1e-8) -> np.ndarray:
     r"""Return a representation of the given state over a subset of its qubits.
 
-    The input wavefunction must have shape `(2,2,2,...)`.
+    The input wavefunction must have shape `(2, 2, ..., 2)` or `(2 ** N)` where
+    `wavefunction` is expressed over N qubits. The returned array will retain
+    the same type of shape as the input wavefunction, either `(2 ** k)` or
+    `(2, 2, ..., 2)` where k is the number of qubits kept.
 
     If a wavefunction |\psi> defined on N qubits is an outer product of kets
     like  |\psi> = |x> \otimes |y>, and |x> is defined over the subset
-    `keep_indices` of  N qubits, then this method will factor |Psi> into |x> and
-    |y> and return |x>.  Global phase of the input state will not necessarily be
-    preserved in the output state.
+    `keep_indices` of  N qubits, then this method will factor |\psi> into |x>
+    and |y> and return |x>.  Global phase of the input state will not
+    necessarily be preserved in the output state.
 
     If the provided wavefunction cannot be factored into a pure state over
     `keep_indices`, the method will fall back to return `default`. If `default`
@@ -400,6 +415,18 @@ def subwavefunction(wavefunction: np.ndarray,
         the result of factoring is not a pure state.
     """
 
+    if not np.log2(wavefunction.size).is_integer():
+        raise ValueError("Input wavefunction of size {} does not represent a "
+                         "state over qubits.".format(wavefunction.size))
+
+    if wavefunction.shape == (wavefunction.size,):
+        return_shape = -1
+    elif wavefunction.shape == (2,) * int(np.log2(wavefunction.size)):
+        return_shape = (2,) * keep_indices
+    raise ValueError(
+        "Input wavefunction must be shaped like (2 ** n,) or (2, 2, ...)")
+
+    keep_dims = 1 << len(keep_indices)
     if not np.isclose(np.linalg.norm(wavefunction), 1):
         raise ValueError("Input state must be normalized.")
     if len(set(keep_indices)) != len(keep_indices):
@@ -428,7 +455,7 @@ def subwavefunction(wavefunction: np.ndarray,
         ])
 
     if approx_eq(coherence_measure, 1, atol=atol):
-        return best_candidate
+        return best_candidate.reshape(return_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
     if default is not RaiseValueErrorIfNotProvided:
