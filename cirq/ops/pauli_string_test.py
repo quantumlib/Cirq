@@ -641,6 +641,7 @@ def test_bool():
 def test_unitary_matrix():
     a, b = cirq.LineQubit.range(2)
     assert not cirq.has_unitary(2 * cirq.X(a) * cirq.Z(b))
+    assert cirq.unitary(2 * cirq.X(a) * cirq.Z(b), default=None) is None
     np.testing.assert_allclose(
         cirq.unitary(cirq.X(a) * cirq.Z(b)),
         np.array([

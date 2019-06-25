@@ -18,6 +18,18 @@ import pytest
 import cirq
 
 
+def test_init():
+    op = cirq.GlobalPhaseOperation(1j)
+    assert op.coefficient == 1j
+    assert op.qubits == ()
+    assert op.with_qubits() is op
+
+    with pytest.raises(ValueError, match='not unitary'):
+        _ = cirq.GlobalPhaseOperation(2)
+    with pytest.raises(ValueError, match='0 qubits'):
+        _ = cirq.GlobalPhaseOperation(1j).with_qubits(cirq.LineQubit(0))
+
+
 def test_protocols():
     for p in [1, 1j, -1]:
         cirq.testing.assert_implements_consistent_protocols(
@@ -28,14 +40,11 @@ def test_protocols():
                                atol=1e-8)
 
 
-def test_failures():
-    with pytest.raises(ValueError, match='not unitary'):
-        _ = cirq.GlobalPhaseOperation(2)
-    with pytest.raises(ValueError, match='0 qubits'):
-        _ = cirq.GlobalPhaseOperation(1j).with_qubits(cirq.LineQubit(0))
-
-
 def test_diagram():
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)),
                               cirq.GlobalPhaseOperation(-1)), '0: ───X───')
+
+
+def test_str():
+    assert str(cirq.GlobalPhaseOperation(1j)) == '1j'

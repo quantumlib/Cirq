@@ -57,9 +57,6 @@ class GlobalPhaseOperation(raw_types.Operation):
         args.target_tensor *= self.coefficient
         return args.target_tensor
 
-    def num_qubits(self):
-        return 0
-
     def __str__(self):
         return str(self.coefficient)
 
