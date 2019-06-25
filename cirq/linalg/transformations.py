@@ -14,13 +14,23 @@
 
 """Utility methods for transforming matrices."""
 
-from typing import Tuple, Optional, Sequence, List, Union
-import itertools
+from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 
 import numpy as np
 
 from cirq.protocols.approximate_equality import approx_eq
 from cirq.linalg import predicates
+
+
+# This is a special indicator value used by the subwavefunction method to determine
+# whether or not the caller provided a 'default' argument. It must be of type
+# np.ndarray to ensure the method has the correct type signature in that case.
+# It is checked for using `is`, so it won't have a false positive if the user
+# provides a different np.array([]) value.
+RaiseValueErrorIfNotProvided = np.array([])  # type: np.ndarray
+
+TDefault = TypeVar('TDefault')
+
 
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     """Raises a matrix with two opposing eigenvalues to a power.
@@ -309,12 +319,14 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-def wavefunction_partial_trace(wavefunction: np.ndarray,
-                               keep_indices: List[int],
-                               atol: Union[int, float] = 1e-8) -> Tuple:
-    """Computes a mixture representing the partial trace of a wavefunction.
+def wavefunction_partial_trace(
+        wavefunction: np.ndarray,
+        keep_indices: List[int],
+        *,
+        atol: Union[int, float] = 1e-8) -> Tuple[Tuple[float, np.ndarray]]:
+    """Attempts to factor a wavefunction into two parts and return one of them.
 
-    The input wavfunction must have shape `(2,2,2,...)`. Attempt to factor the
+    The input wavefunction must have shape `(2,2,2,...)`. Attempts to factor the
     wavefunction into a pure state over `keep_indices`. If this fails, a non-
     unique mixture can be computed by eigendecomposition on the partial trace
     of the input's density matrix.
@@ -327,31 +339,36 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
         atol: The tolerance for determining that a factored state is pure.
 
     Returns:
-        A mixture representation of the partial trace of the wavefunction.
+        A single-component mixture in which the factored wavefunction has
+        probability '1' if the factored state is pure, or else a mixture of the
+        default eigendecomposition of the mixed state's partial trace.
     """
 
     tot_dims = 1 << len(wavefunction.shape)
     keep_dims = 1 << len(keep_indices)
-    try:
-        # Attempt to do efficient state factoring.
-        state = keep_qubits(wavefunction, keep_indices).reshape(keep_dims, 1)
-        return ((1.0, state))
-    except ValueError:
-        # Fall back to a (non-unique) mixture representation.
-        rho = np.kron(np.conj(wavefunction.reshape(tot_dims, 1)).T,
-                      wavefunction.reshape(tot_dims, 1)).reshape((2, 2) * len(wavefunction.shape))
-        keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
-        w, v = np.linalg.eig(keep_rho)
-        mixture = tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v.T]))
-        return tuple(filter(lambda p: not approx_eq(p[0], 0.0), mixture))
+
+    # Attempt to do efficient state factoring.
+    state = subwavefunction(wavefunction, keep_indices, default=None)
+    if state is not None:
+        return ((1.0, state.reshape(keep_dims, 1)))
+
+    # Fall back to a (non-unique) mixture representation.
+    rho = np.kron(np.conj(wavefunction.reshape(tot_dims, 1)).T,
+                  wavefunction.reshape(tot_dims, 1)).reshape((2, 2) * len(wavefunction.shape))
+    keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
+    w, v = np.linalg.eig(keep_rho)
+    mixture = tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v.T]))
+    return [p for p in mixture if not approx_eq(p[0], 0.0)]
 
 
-def keep_qubits(wavefunction: np.ndarray,
-                keep_indices: List[int],
-                atol: Union[int, float] = 1e-8) -> np.ndarray:
+def subwavefunction(wavefunction: np.ndarray,
+                    keep_indices: List[int],
+                    *,
+                    default: TDefault = RaiseValueErrorIfNotProvided,
+                    atol: Union[int, float] = 1e-8) -> np.ndarray:
     """Return a representation of the given state over a subset of its qubits.
 
-    The input wavfunction must have shape `(2,2,2,...)`.
+    The input wavefunction must have shape `(2,2,2,...)`.
 
     A given wavefunction can be efficiently expressed over a subset of its
     qubits by comparing magnitudes of unnormalized wavefunctions that remain
@@ -363,11 +380,16 @@ def keep_qubits(wavefunction: np.ndarray,
     of the input state will not necessariy be preserved in the output state.
 
     If the provided wavefunction cannot be factored into a pure state over
-    `keep_indices`, the method will fail and raise `ValueError`.
+    `keep_indices`, the method will fall back to return `default`. If `default`
+    is not provided, the method will fail and raise `ValueError`.
 
     Args:
         wavefunction: A wavefunction to express over a qubit subset.
         keep_indices: Which indices to express the wavefunction on.
+        default: Determines the fallback behavior when `wavefunction` doesn't
+            have a pure state factorization. If the factored state is not pure
+            and `default` is not set, a ValueError is raised. If default is set
+            to a value, that value is returned.
         atol: The minimum tolerance for comparing the output state's coherence
             measure to 1.
 
@@ -382,12 +404,11 @@ def keep_qubits(wavefunction: np.ndarray,
 
     if not np.isclose(np.linalg.norm(wavefunction), 1):
         raise ValueError("Input state must be normalized.")
-    if not len(set(keep_indices)) == len(keep_indices):
+    if len(set(keep_indices)) != len(keep_indices):
         raise ValueError(
             "keep_indices were {} but must be unique.".format(keep_indices))
     n_qubits = len(wavefunction.shape)
-    if n_qubits < len(keep_indices) or \
-            any([ind >= n_qubits for ind in keep_indices]):
+    if any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError(
             "keep_indices {} are an invalid subset of the input wavefunction.")
 
@@ -409,6 +430,10 @@ def keep_qubits(wavefunction: np.ndarray,
     print(candidates)
     if approx_eq(coherence_measure, 1, atol=atol):
         return best_candidate / np.linalg.norm(best_candidate, 2)
+
+    # Method did not yield a pure state. Fall back to `default` argument.
+    if default is not RaiseValueErrorIfNotProvided:
+        return default
 
     raise ValueError(
         "Input wavefunction could not be factored into pure state over "
