@@ -526,7 +526,6 @@ def test_wavefunction_partial_trace_pure_result():
     c = cirq.testing.random_superposition(16)
     state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
 
-    test = cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8)
     assert mixtures_equal(
         cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8),
         ((1.0, a.reshape(2, 2)),))
@@ -543,7 +542,8 @@ def test_wavefunction_partial_trace_pure_result():
         cirq.wavefunction_partial_trace(state, [0, 1, 5, 6, 7, 8], atol=1e-8),
         ((1.0, np.kron(a, c).reshape(2, 2, 2, 2, 2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8], atol=1e-8),
+        cirq.wavefunction_partial_trace(
+            state, [2, 3, 4, 5, 6, 7, 8], atol=1e-8),
         ((1.0, np.kron(b, c).reshape(2, 2, 2, 2, 2, 2, 2)),))
 
     # Return mixture will defer to numpy.linalg.eig's builtin tolerance.
@@ -568,6 +568,7 @@ def test_wavefunction_partial_trace_pure_result():
     assert mixtures_equal(
         cirq.wavefunction_partial_trace(state, [5, 6, 7, 8], atol=1e-8),
         ((1.0, c),))
+
 
 def test_wavefunction_partial_trace_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
