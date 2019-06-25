@@ -53,7 +53,7 @@ class GlobalPhaseOperation(raw_types.Operation):
     def _unitary_(self):
         return np.array([[self.coefficient]])
 
-    def _apply_unitary(self, args):
+    def _apply_unitary_(self, args):
         args.target_tensor *= self.coefficient
         return args.target_tensor
 

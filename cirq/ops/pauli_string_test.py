@@ -658,3 +658,17 @@ def test_unitary_matrix():
             [1j, 0, 0, 0],
             [0, -1j, 0, 0],
         ]))
+
+
+def test_decompose():
+    a, b = cirq.LineQubit.range(2)
+    assert cirq.decompose_once(2 * cirq.X(a) * cirq.Z(b), default=None) is None
+    assert cirq.decompose_once(1j * cirq.X(a) * cirq.Z(b)) == [
+        cirq.GlobalPhaseOperation(1j),
+        cirq.X(a),
+        cirq.Z(b)
+    ]
+    assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [
+        cirq.Z(a),
+        cirq.Y(b)
+    ]
