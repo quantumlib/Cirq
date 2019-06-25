@@ -408,6 +408,8 @@ def subwavefunction(wavefunction: np.ndarray,
         raise ValueError(
             "keep_indices were {} but must be unique.".format(keep_indices))
     n_qubits = len(wavefunction.shape)
+    print(n_qubits)
+    print(keep_indices)
     if any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError(
             "keep_indices {} are an invalid subset of the input wavefunction.")
@@ -420,14 +422,26 @@ def subwavefunction(wavefunction: np.ndarray,
     ]
     # The coherence measure is computed using unnormalized candidates.
     best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
+    # left = np.conj(best_candidate.reshape((keep_dims,))).T # worked
+    best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
+    #
+    # coherence_measure = sum([
+    #     abs(np.dot(left, c.reshape((keep_dims,))))
+    #     for c in candidates
+    # ])
+
+    # debug
     coherence_measure = sum([
-        abs(np.dot(left, c.reshape((keep_dims,))))
-        for c in candidates
-    ])
-    print(coherence_measure)
+            abs(np.dot(left, c.reshape((keep_dims,)))) ** 2
+            for c in candidates
+        ])
+    # print("lin cm", coherence_measure)
+    print("squared cm", coherence_measure)
     print(best_candidate)
-    print(candidates)
+    print("candidates")
+    for c in candidates:
+        print(c, np.linalg.norm(c, 2))
     if approx_eq(coherence_measure, 1, atol=atol):
         return best_candidate / np.linalg.norm(best_candidate, 2)
 
