@@ -102,7 +102,7 @@ def test_multiple_measurements_shared_slots():
 
 
 def test_results_to_proto():
-    measurements = [v2.Measurement('foo', [q(0, 0)], slot=0)]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0)]
     trial_results = [
         [
             cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
@@ -149,7 +149,7 @@ def test_results_to_proto():
 
 
 def test_results_to_proto_sweep_repetitions():
-    measurements = [v2.Measurement('foo', [q(0, 0)], slot=0)]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0)]
     trial_results = [[
         cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
                          measurements={
@@ -167,7 +167,7 @@ def test_results_to_proto_sweep_repetitions():
 
 
 def test_results_from_proto_qubit_ordering():
-    measurements = [v2.Measurement('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
@@ -204,7 +204,7 @@ def test_results_from_proto_qubit_ordering():
 
 
 def test_results_from_proto_duplicate_qubit():
-    measurements = [v2.Measurement('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
