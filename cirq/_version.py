@@ -12,6 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Define version number here and read it from setup.py automatically"""
+"""Define version number here, read it from setup.py automatically,
+and warn users that the latest version of cirq uses python 3.6+"""
+
+import sys
+
+if sys.version_info < (3, 6, 0):
+    # coverage: ignore
+    raise SystemError(
+        "You installed the latest version of cirq but aren't on python 3.6+.\n"
+        'To fix this error, you need to either:\n'
+        '\n'
+        'A) Update to python 3.6 or later.\n'
+        '- OR -\n'
+        'B) Explicitly install an older deprecated-but-compatible version '
+        'of cirq (e.g. "python -m pip install cirq==0.5.*")')
 
 __version__ = "0.6.0.dev"
