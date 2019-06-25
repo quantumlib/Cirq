@@ -62,7 +62,7 @@ class Circuit:
         are_all_matches_terminal
         are_all_measurements_terminal
         to_unitary_matrix
-        apply_unitary_effect_to_state
+        final_wavefunction
         to_text_diagram
         to_text_diagram_drawer
 
@@ -1306,7 +1306,7 @@ class Circuit:
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((1 << n, 1 << n))
 
-    def apply_unitary_effect_to_state(
+    def final_wavefunction(
             self,
             initial_state: Union[int, np.ndarray] = 0,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
