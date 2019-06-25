@@ -16,8 +16,7 @@ def test_pack_bits(reps):
     np.testing.assert_array_equal(unpacked, data)
 
 
-def q(row: int, col: int) -> cirq.GridQubit:
-    return cirq.GridQubit(row, col)
+q = cirq.GridQubit  # For brevity.
 
 
 def _check_measurement(m, key, qubits, slot):
@@ -85,20 +84,20 @@ def test_multiple_measurements_shared_slots():
     circuit = cirq.Circuit()
     circuit.append([
         cirq.measure(q(0, 0), q(0, 1), key='k0'),
-        cirq.measure(q(0, 4), q(0, 3), key='k1')
+        cirq.measure(q(0, 2), q(1, 1), key='k1')
     ])
     circuit.append([
-        cirq.measure(q(0, 2), q(0, 0), q(0, 1), key='k2'),
-        cirq.measure(q(0, 3), q(0, 4), key='k3')
+        cirq.measure(q(1, 0), q(0, 0), q(0, 1), key='k2'),
+        cirq.measure(q(1, 1), q(0, 2), key='k3')
     ])
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 4
     m0, m1, m2, m3 = measurements
     _check_measurement(m0, 'k0', [q(0, 0), q(0, 1)], 0)
-    _check_measurement(m1, 'k1', [q(0, 4), q(0, 3)], 0)
-    _check_measurement(m2, 'k2', [q(0, 2), q(0, 0), q(0, 1)], 1)
-    _check_measurement(m3, 'k3', [q(0, 3), q(0, 4)], 1)
+    _check_measurement(m1, 'k1', [q(0, 2), q(1, 1)], 0)
+    _check_measurement(m2, 'k2', [q(1, 0), q(0, 0), q(0, 1)], 1)
+    _check_measurement(m3, 'k3', [q(1, 1), q(0, 2)], 1)
 
 
 def test_results_to_proto():
@@ -167,17 +166,17 @@ def test_results_to_proto_sweep_repetitions():
 
 
 def test_results_from_proto_qubit_ordering():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0)]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()
-    pr.params.assignments.update({'i': 0})
+    pr.params.assignments.update({'i': 1})
     mr = pr.measurement_results.add()
     mr.key = 'foo'
     for qubit, results in [
         (q(0, 1), 0b1100_1100),
-        (q(0, 2), 0b1010_1010),
+        (q(1, 1), 0b1010_1010),
         (q(0, 0), 0b1111_0000),
     ]:
         qmr = mr.qubit_measurement_results.add()
@@ -186,7 +185,7 @@ def test_results_from_proto_qubit_ordering():
 
     trial_results = v2.results_from_proto(proto, measurements)
     trial = trial_results[0][0]
-    assert trial.params == cirq.ParamResolver({'i': 0})
+    assert trial.params == cirq.ParamResolver({'i': 1})
     assert trial.repetitions == 8
     np.testing.assert_array_equal(
         trial.measurements['foo'],
@@ -204,7 +203,7 @@ def test_results_from_proto_qubit_ordering():
 
 
 def test_results_from_proto_duplicate_qubit():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(0, 2)], slot=0)]
+    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0)]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8

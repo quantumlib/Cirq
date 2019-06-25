@@ -84,9 +84,9 @@ def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
 def pack_bits(bits: np.ndarray) -> bytes:
     """Pack bits given as a numpy array of bools into bytes."""
     # Pad length to multiple of 8 if needed.
-    remainder = len(bits) % 8
-    if remainder:
-        bits = np.pad(bits, (0, 8 - remainder), 'constant')
+    pad = -len(bits) % 8
+    if pad:
+        bits = np.pad(bits, (0, pad), 'constant')
 
     # Pack in little-endian bit order.
     bits = bits.reshape((-1, 8))[:, ::-1]
@@ -105,7 +105,8 @@ def unpack_bits(data: bytes, repetitions: int) -> np.ndarray:
 def results_to_proto(
         trial_sweeps: Iterable[Iterable[study.TrialResult]],
         measurements: List[MeasureInfo],
-        msg: Optional[result_pb2.Result] = None,
+        *,
+        out: Optional[result_pb2.Result] = None,
 ) -> result_pb2.Result:
     """Converts trial results from multiple sweeps to v2 protobuf message.
 
@@ -113,12 +114,12 @@ def results_to_proto(
         trial_sweeps: Iterable over sweeps and then over trial results within
             each sweep.
         measurements: List of info about measurements in the program.
-        msg: Optional message to populate. If not given, create a new message.
+        out: Optional message to populate. If not given, create a new message.
     """
-    if msg is None:
-        msg = result_pb2.Result()
+    if out is None:
+        out = result_pb2.Result()
     for trial_sweep in trial_sweeps:
-        sweep_result = msg.sweep_results.add()
+        sweep_result = out.sweep_results.add()
         for i, trial_result in enumerate(trial_sweep):
             if i == 0:
                 sweep_result.repetitions = trial_result.repetitions
@@ -135,7 +136,7 @@ def results_to_proto(
                     qmr = mr.qubit_measurement_results.add()
                     qmr.qubit.id = qubit.proto_id()
                     qmr.results = pack_bits(m_data[:, i])
-    return msg
+    return out
 
 
 def results_from_proto(
