@@ -1810,22 +1810,18 @@ def test_circuit_to_unitary_matrix():
 
     # Ignoring terminal measurements.
     c = cirq.Circuit.from_ops(cirq.measure(a))
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c.unitary(),
-        np.eye(2),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(c.unitary(),
+                                                    np.eye(2),
+                                                    atol=1e-8)
 
     # Ignoring terminal measurements with further cirq.
     c = cirq.Circuit.from_ops(cirq.Z(a), cirq.measure(a), cirq.Z(b))
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c.unitary(),
-        np.array([
-            [1, 0, 0, 0],
-            [0, -1, 0, 0],
-            [0, 0, -1, 0],
-            [0, 0, 0, 1]
-        ]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(c.unitary(),
+                                                    np.array([[1, 0, 0, 0],
+                                                              [0, -1, 0, 0],
+                                                              [0, 0, -1, 0],
+                                                              [0, 0, 0, 1]]),
+                                                    atol=1e-8)
 
     # Optionally don't ignoring terminal measurements.
     c = cirq.Circuit.from_ops(cirq.measure(a))
@@ -1851,12 +1847,10 @@ def test_circuit_to_unitary_matrix():
         _ = c.unitary()
 
     # Accounts for measurement bit flipping.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(
-            cirq.measure(a, invert_mask=(True,))
-        ).unitary(),
-        cirq.unitary(cirq.X),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.measure(a, invert_mask=(True,))).unitary(),
+                                                    cirq.unitary(cirq.X),
+                                                    atol=1e-8)
 
     # dtype
     c = cirq.Circuit.from_ops(cirq.X(a))
@@ -2682,10 +2676,9 @@ def test_decomposes_while_appending():
     c.append(cirq.TOFFOLI(cirq.GridQubit(0, 0),
                           cirq.GridQubit(0, 1),
                           cirq.GridQubit(0, 2)))
-    cirq.testing.assert_allclose_up_to_global_phase(
-        c.unitary(),
-        cirq.unitary(cirq.TOFFOLI),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(c.unitary(),
+                                                    cirq.unitary(cirq.TOFFOLI),
+                                                    atol=1e-8)
 
     # But you still have to respect adjacency constraints!
     with pytest.raises(ValueError):

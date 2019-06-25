@@ -147,10 +147,9 @@ def test_to_circuit():
     # Only one possible output circuit for this simple case
     assert circuit == dag.to_circuit()
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.unitary(),
-        dag.to_circuit().unitary(),
-        atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
+                                                    dag.to_circuit().unitary(),
+                                                    atol=1e-7)
 
 
 def test_equality():
@@ -240,7 +239,6 @@ def test_larger_circuit():
     cirq.testing.assert_has_diagram(circuit, desired)
     cirq.testing.assert_has_diagram(dag.to_circuit(), desired)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.unitary(),
-        dag.to_circuit().unitary(),
-        atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
+                                                    dag.to_circuit().unitary(),
+                                                    atol=1e-7)

@@ -357,9 +357,8 @@ def test_default_decompose(paulis, phase_exponent_negative: float, sign: int):
     pauli_string = cirq.PauliString({q: p for q, p in zip(qubits, paulis)},
                                     sign)
     actual = cirq.Circuit.from_ops(
-        cirq.PauliStringPhasor(
-            pauli_string,
-            exponent_neg=phase_exponent_negative)).unitary()
+        cirq.PauliStringPhasor(pauli_string,
+                               exponent_neg=phase_exponent_negative)).unitary()
 
     # Calculate expected matrix
     to_z_mats = {

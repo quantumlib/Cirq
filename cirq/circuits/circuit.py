@@ -1254,12 +1254,11 @@ class Circuit:
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
 
-    def unitary(
-            self,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.Qid] = (),
-            ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+    def unitary(self,
+                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                qubits_that_should_be_present: Iterable[ops.Qid] = (),
+                ignore_terminal_measurements: bool = True,
+                dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Returns the same result as `cirq.unitary`, but provides more options.
