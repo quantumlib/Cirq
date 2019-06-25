@@ -345,7 +345,7 @@ def wavefunction_partial_trace(
     """
 
     # Attempt to do efficient state factoring.
-    state = subwavefunction(wavefunction, keep_indices, default=None)
+    state = subwavefunction(wavefunction, keep_indices, default=None, atol=atol)
     keep_dims = 1 << len(keep_indices)
     if state is not None:
         return ((1.0, state.reshape(keep_dims, 1)))

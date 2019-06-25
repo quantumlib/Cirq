@@ -397,50 +397,66 @@ def test_partial_trace_invalid_inputs():
 
 
 def test_subwavefunction():
-
     a = cirq.testing.random_superposition(4)
     b = cirq.testing.random_superposition(8)
     c = cirq.testing.random_superposition(16)
     state = np.kron(np.kron(a, b), c).reshape(2, 2, 2, 2, 2, 2, 2, 2, 2)
 
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(a.reshape(2, 2), [0, 1]), a)
+        cirq.subwavefunction(a.reshape(2, 2), [0, 1], atol=1e-8), a)
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(b.reshape(2, 2, 2), [0, 1, 2]), b)
+        cirq.subwavefunction(b.reshape(2, 2, 2), [0, 1, 2], atol=1e-8), b)
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(c.reshape(2, 2, 2, 2), [0, 1, 2, 3]), c)
+        cirq.subwavefunction(c.reshape(2, 2, 2, 2), [0, 1, 2, 3], atol=1e-8), c)
     assert cirq.equal_up_to_global_phase(cirq.subwavefunction(state, [0, 1]), a)
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(state, [2, 3, 4]), b)
+        cirq.subwavefunction(state, [2, 3, 4], atol=1e-8), b)
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(state, [5, 6, 7, 8]), c)
+        cirq.subwavefunction(state, [5, 6, 7, 8], atol=1e-8), c)
+
+    # Reject factoring for very tight tolerance.
+    assert cirq.subwavefunction(
+        state, [0, 1], default=None, atol=1e-15) is None
+    assert cirq.subwavefunction(
+        state, [2, 3, 4], default=None, atol=1e-15) is None
+    assert cirq.subwavefunction(
+        state, [5, 6, 7, 8], default=None, atol=1e-15) is None
 
 
 def test_subwavefunction_bad_subset():
-    a = np.arange(4) / np.linalg.norm(np.arange(4))
-    b = (np.arange(8) + 3) / np.linalg.norm(np.arange(8) + 3)
+    a = cirq.testing.random_superposition(4)
+    b = cirq.testing.random_superposition(8)
     state = np.kron(a, b).reshape(2, 2, 2, 2, 2)
+
     for q1 in range(5):
-        assert cirq.subwavefunction(state, [q1], default=None) is None
+        assert cirq.subwavefunction(
+            state, [q1], default=None, atol=1e-8) is None
     for q1 in range(2):
         for q2 in range(2, 5):
-            assert cirq.subwavefunction(state, [q1, q2], default=None) is None
+            assert cirq.subwavefunction(
+                state, [q1, q2], default=None, atol=1e-8) is None
     for q3 in range(2, 5):
-        assert cirq.subwavefunction(state, [0, 1, q3], default=None) is None
+        assert cirq.subwavefunction(
+            state, [0, 1, q3], default=None, atol=1e-8) is None
     for q4 in range(2):
-        assert cirq.subwavefunction(state, [2, 3, 4, q4], default=None) is None
+        assert cirq.subwavefunction(
+            state, [2, 3, 4, q4], default=None, atol=1e-8) is None
 
 
 def test_subwavefunction_non_kron():
     a = np.array([1, 0, 0, 0, 0, 0, 0, 1]) / np.sqrt(2)
     b = np.array([1, 1]) / np.sqrt(2)
     state = np.kron(a, b).reshape(2, 2, 2, 2)
-    for q1 in [0, 1, 2]:
-        cirq.subwavefunction(a.reshape(2, 2, 2), [q1], default=None) is None
-    for q1 in [0, 1, 2]:
-        assert cirq.subwavefunction(state, [q1, 3], default=None) is None
 
-    assert cirq.equal_up_to_global_phase(cirq.subwavefunction(state, [3]), b)
+    for q1 in [0, 1, 2]:
+        assert cirq.subwavefunction(
+            state, [q1], default=None, atol=1e-8) is None
+    for q1 in [0, 1, 2]:
+        assert cirq.subwavefunction(
+            state, [q1, 3], default=None, atol=1e-8) is None
+
+    assert cirq.equal_up_to_global_phase(
+        cirq.subwavefunction(state, [3]), b, atol=1e-8)
 
 
 def test_subwavefunction_invalid_inputs():
@@ -449,11 +465,14 @@ def test_subwavefunction_invalid_inputs():
     with pytest.raises(ValueError, match='2, 2'):
         cirq.subwavefunction(
             np.arange(16).reshape(2, 2, 2, 2) / np.linalg.norm(np.arange(16)),
-            [1, 2, 2])
+            [1, 2, 2],
+            atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.subwavefunction(np.array([1, 0, 0, 0]).reshape(2, 2), [5])
+        cirq.subwavefunction(
+            np.array([1, 0, 0, 0]).reshape(2, 2), [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.subwavefunction(np.array([1, 0, 0, 0]).reshape(2, 2), [0, 1, 2])
+        cirq.subwavefunction(
+            np.array([1, 0, 0, 0]).reshape(2, 2), [0, 1, 2], atol=1e-8)
 
 
 def test_wavefunction_partial_trace_invalid_input():
@@ -477,26 +496,23 @@ def test_wavefunction_partial_trace_pure_result():
     c = (np.arange(16) + 1) / np.linalg.norm(np.arange(16) + 1)
     state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
 
-    print(cirq.wavefunction_partial_trace(state, [0, 1])[1].shape)
-    print(((1.0, a),), a.shape)
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1]),
+        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8),
         ((1.0, a),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4]),
+        cirq.wavefunction_partial_trace(state, [2, 3, 4], atol=1e-8),
         ((1.0, b),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [5, 6, 7, 8]),
+        cirq.wavefunction_partial_trace(state, [5, 6, 7, 8], atol=1e-8),
         ((1.0, c),))
-
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1, 2, 3, 4]),
+        cirq.wavefunction_partial_trace(state, [0, 1, 2, 3, 4], atol=1e-8),
         ((1.0, np.kron(a, b)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1, 5, 6, 7, 8]),
+        cirq.wavefunction_partial_trace(state, [0, 1, 5, 6, 7, 8], atol=1e-8),
         ((1.0, np.kron(a, c)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8]),
+        cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8], atol=1e-8),
         ((1.0, np.kron(b, c)),))
 
 
@@ -504,26 +520,27 @@ def test_wavefunction_partial_trace_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
-        mixture = cirq.wavefunction_partial_trace(state.reshape(2,2), [q1])
+        mixture = cirq.wavefunction_partial_trace(
+            state.reshape(2, 2), [q1], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
-    state = np.array([0,1,1,0,1,0,0,0]).reshape(2,2,2)/np.sqrt(3)
+    state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape(2, 2, 2)/np.sqrt(3)
     truth = ((2 / 3, np.array([1.0, 0.0])), (1 / 3, np.array([0.0, 1.0])))
     for q1 in [0, 1, 2]:
-        mixture = cirq.wavefunction_partial_trace(state, [q1])
+        mixture = cirq.wavefunction_partial_trace(state, [q1], atol=1e-8)
 
-    state = np.array([1,0,0,0,0,0,0,1]).reshape(2,2,2)/np.sqrt(2)
+    state = np.array([1, 0, 0, 0, 0, 0, 0, 1]).reshape(2, 2, 2)/np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1, 2]:
-        mixture = cirq.wavefunction_partial_trace(state, [q1])
+        mixture = cirq.wavefunction_partial_trace(state, [q1], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
-    truth = ((0.5, np.array([1, 0, 0, 0]).reshape(2,2)),
-             (0.5, np.array([0, 0, 0, 1]).reshape(2,2)))
+    truth = ((0.5, np.array([1, 0, 0, 0]).reshape(2, 2)),
+             (0.5, np.array([0, 0, 0, 1]).reshape(2, 2)))
     for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
-        mixture = cirq.wavefunction_partial_trace(state, [q1, q2])
+        mixture = cirq.wavefunction_partial_trace(state, [q1, q2], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
 
 if __name__ == "__main__":
-    test_wavefunction_partial_trace_pure_result()
+    test_subwavefunction_atol()
