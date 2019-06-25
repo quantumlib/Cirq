@@ -344,20 +344,21 @@ def wavefunction_partial_trace(
         default eigendecomposition of the mixed state's partial trace.
     """
 
-    tot_dims = 1 << len(wavefunction.shape)
-    keep_dims = 1 << len(keep_indices)
-
     # Attempt to do efficient state factoring.
     state = subwavefunction(wavefunction, keep_indices, default=None)
+    keep_dims = 1 << len(keep_indices)
     if state is not None:
         return ((1.0, state.reshape(keep_dims, 1)))
 
     # Fall back to a (non-unique) mixture representation.
+    tot_dims = 1 << len(wavefunction.shape)
     rho = np.kron(np.conj(wavefunction.reshape(tot_dims, 1)).T,
-                  wavefunction.reshape(tot_dims, 1)).reshape((2, 2) * len(wavefunction.shape))
+                  wavefunction.reshape(tot_dims, 1)).reshape(
+                  (2, 2) * len(wavefunction.shape))
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
-    w, v = np.linalg.eig(keep_rho)
-    mixture = tuple(zip(w, [vec.reshape((2,) * len(keep_indices)) for vec in v.T]))
+    eigvals, eigvecs = np.linalg.eig(keep_rho)
+    mixture = tuple(zip(
+        eigvals, [vec.reshape((2,) * len(keep_indices)) for vec in eigvecs.T]))
     return [p for p in mixture if not approx_eq(p[0], 0.0)]
 
 
@@ -366,18 +367,15 @@ def subwavefunction(wavefunction: np.ndarray,
                     *,
                     default: TDefault = RaiseValueErrorIfNotProvided,
                     atol: Union[int, float] = 1e-8) -> np.ndarray:
-    """Return a representation of the given state over a subset of its qubits.
+    r"""Return a representation of the given state over a subset of its qubits.
 
     The input wavefunction must have shape `(2,2,2,...)`.
 
-    A given wavefunction can be efficiently expressed over a subset of its
-    qubits by comparing magnitudes of unnormalized wavefunctions that remain
-    after each possible state over the qubits to be removed is sliced out of
-    the total input wavefunction. The input state will be factorizable into
-     `keep_indices` if the sum of the absolute value of inner products between
-    the renormalized largest-magnitude candidate and all candidates ("coherence
-    measure") is 1, indicating the output state is a pure state. Global phase
-    of the input state will not necessariy be preserved in the output state.
+    If a wavefunction |\psi> defined on N qubits is an outer product of kets
+    like  |\psi> = |x> \otimes |y>, and |x> is defined over the subset
+    `keep_indices` of  N qubits, then this method will factor |Psi> into |x> and
+    |y> and return |x>.  Global phase of the input state will not necessarily be
+    preserved in the output state.
 
     If the provided wavefunction cannot be factored into a pure state over
     `keep_indices`, the method will fall back to return `default`. If `default`
@@ -408,21 +406,20 @@ def subwavefunction(wavefunction: np.ndarray,
         raise ValueError(
             "keep_indices were {} but must be unique.".format(keep_indices))
     n_qubits = len(wavefunction.shape)
-    print(n_qubits)
-    print(keep_indices)
     if any([ind >= n_qubits for ind in keep_indices]):
         raise ValueError(
             "keep_indices {} are an invalid subset of the input wavefunction.")
 
     keep_dims = 1 << len(keep_indices)
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
-    candidates = (
-        wavefunction[predicates.slice_for_qubits_equal_to(other_qubits, k)].reshape(keep_dims)
+    candidates = [
+        wavefunction[
+            predicates.slice_for_qubits_equal_to(other_qubits, k)
+        ].reshape(keep_dims)
         for k in range(1 << len(other_qubits))
-    )
+    ]
     # The coherence measure is computed using unnormalized candidates.
     best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
-    # left = np.conj(best_candidate.reshape((keep_dims,))).T # worked
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
     coherence_measure = sum([
@@ -431,7 +428,7 @@ def subwavefunction(wavefunction: np.ndarray,
         ])
 
     if approx_eq(coherence_measure, 1, atol=atol):
-        return best_candidate / np.linalg.norm(best_candidate, 2)
+        return best_candidate
 
     # Method did not yield a pure state. Fall back to `default` argument.
     if default is not RaiseValueErrorIfNotProvided:
