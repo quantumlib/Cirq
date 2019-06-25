@@ -186,14 +186,16 @@ class QasmParser:
 
     # circuit : new_reg circuit
     #         | gate_op circuit
+    #         | measurement circuit
     #         | empty
 
     def p_circuit_reg(self, p):
         """circuit : new_reg circuit"""
         p[0] = self.circuit
 
-    def p_circuit_gate(self, p):
-        """circuit : gate_op circuit"""
+    def p_circuit_gate_or_measurement(self, p):
+        """circuit : gate_op circuit
+                   | measurement circuit"""
         self.circuit.insert(0, p[1])
         p[0] = self.circuit
 
@@ -309,6 +311,12 @@ class QasmParser:
                     self.qubits[arg_name] = NamedQubit(arg_name)
                 qubits.append(self.qubits[arg_name])
             p[0] = qubits
+        elif reg in self.cregs.keys():
+            keys = []
+            for num in range(self.cregs[reg]):
+                arg_name = self.make_name(num, reg)
+                keys.append(arg_name)
+            p[0] = keys
         else:
             raise QasmException('Undefined quantum/classical register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
@@ -331,9 +339,29 @@ class QasmParser:
             if arg_name not in self.qubits.keys():
                 self.qubits[arg_name] = NamedQubit(arg_name)
             p[0] = [self.qubits[arg_name]]
+        elif reg in self.cregs.keys():
+            p[0] = [arg_name]
         else:
             raise QasmException('Undefined quantum register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
+
+    # measurement operations
+    # measurement : MEASURE arg ARROW arg
+    def p_measurement(self, p):
+        """measurement : MEASURE arg ARROW arg ';'"""
+        qreg = p[2]
+        creg = p[4]
+
+        if len(qreg) != len(creg):
+            raise QasmException(
+                'mismatched register sizes {} -> {} for measurement '
+                'at line {}'.format(len(qreg), len(creg), p.lineno(1)))
+
+        measurements = []
+        for i in range(len(qreg)):
+            measurements.append(
+                cirq.MeasurementGate(num_qubits=1, key=creg[i]).on(qreg[i]))
+        p[0] = measurements
 
     def p_error(self, p):
         if p is None:

@@ -46,6 +46,30 @@ def test_qelib_inc():
     assert token.value == 'include "qelib1.inc";'
 
 
+def test_measurment():
+    lexer = QasmLexer()
+    lexer.input("measure q -> c;")
+    token = lexer.token()
+    assert token.type == "MEASURE"
+    assert token.value == 'measure'
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == 'q'
+
+    token = lexer.token()
+    assert token.type == "ARROW"
+    assert token.value == '->'
+
+    token = lexer.token()
+    assert token.type == "ID"
+    assert token.value == 'c'
+
+    token = lexer.token()
+    assert token.type == ";"
+    assert token.value == ';'
+
+
 @pytest.mark.parametrize(
     'identifier',
     ['b', 'CX', 'abc', 'aXY03', 'a_valid_name_with_02_digits_and_underscores'])
