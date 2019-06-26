@@ -62,8 +62,7 @@ matrix:
     python: "3.7.0"
     language: generic
     install:
-      - ./dev_tools/install_macos.sh
-      - source /Users/travis/.pyenv/versions/3.7.0/envs/venv/bin/activate
+      - ./dev_tools/continous_integration_macos.sh
       - pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
