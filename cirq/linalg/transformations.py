@@ -21,7 +21,6 @@ import numpy as np
 from cirq.protocols.approximate_equality import approx_eq
 from cirq.linalg import predicates
 
-
 # This is a special indicator value used by the subwavefunction method to
 # determine whether or not the caller provided a 'default' argument. It must be
 # of type np.ndarray to ensure the method has the correct type signature in that
