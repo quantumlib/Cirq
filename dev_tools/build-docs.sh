@@ -32,7 +32,7 @@ trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 
 docs_conf_dir="docs"
 out_dir="docs/_build"
