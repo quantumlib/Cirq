@@ -97,10 +97,8 @@ def has_unitary(val: Any) -> bool:
         Whether or not `val` has a unitary effect.
     """
     strats = [
-        _strat_has_unitary_from_has_unitary,
-        _strat_has_unitary_from_decompose,
-        _strat_has_unitary_from_apply_unitary,
-        _strat_has_unitary_from_unitary
+        _strat_has_unitary_from_has_unitary, _strat_has_unitary_from_decompose,
+        _strat_has_unitary_from_apply_unitary, _strat_has_unitary_from_unitary
     ]
     for strat in strats:
         result = strat(val)

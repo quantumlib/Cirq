@@ -20,6 +20,7 @@ import cirq
 
 
 def test_avoids_decompose_when_matrix_available():
+
     class OtherXX(cirq.TwoQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
@@ -42,10 +43,7 @@ def test_avoids_decompose_when_matrix_available():
     c = cirq.Circuit.from_ops(OtherXX()(a, b), OtherOtherXX()(a, b))
     c_orig = cirq.Circuit(c)
     cirq.ConvertToCzAndSingleGates().optimize_circuit(c)
-    np.testing.assert_allclose(
-        cirq.unitary(c_orig),
-        cirq.unitary(c),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(c_orig), cirq.unitary(c), atol=1e-8)
 
 
 def test_kak_decomposes_unknown_two_qubit_gate():
