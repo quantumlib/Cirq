@@ -75,7 +75,7 @@ from cirq.testing.random_circuit import (
 )
 
 from cirq.testing.random_dag import (
-    random_circuit_dag, random_topological_sort,
+    random_circuit_dag,
 )
 
 from cirq.testing.sample_circuits import (

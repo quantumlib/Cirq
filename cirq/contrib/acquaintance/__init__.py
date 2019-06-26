@@ -68,5 +68,9 @@ from cirq.contrib.acquaintance.strategies import (
     quartic_paired_acquaintance_strategy,
 )
 
+from cirq.contrib.acquaintance.topological_sort import (
+    is_topologically_sorted, random_topological_sort)
+
 from cirq.contrib.acquaintance import (
     testing,)
+
