@@ -12,7 +12,6 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     export PYENV_VERSION=$PYTHON
     export PATH="/Users/travis/.pyenv/shims:${PATH}"
     pyenv virtualenv venv
-    source /Users/travis/.pyenv/versions/3.7.0/envs/venv/bin/activate
     
     #`import matplotlib` throws a  RuntimeError without this
     mkdir ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
