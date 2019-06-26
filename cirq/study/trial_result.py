@@ -72,9 +72,8 @@ def _bitstring(vals: Iterable[Any]) -> str:
 
 def _keyed_repeated_bitstrings(measurements: pd.DataFrame) -> str:
     keyed_bitstrings = []
-    for key in sorted(set(measurements.m_key)):
-        reps = pd.DataFrame(
-            measurements[measurements.m_key == key].m_vals.to_list())
+    for key in sorted(measurements.columns):
+        reps = pd.DataFrame(measurements[key].to_list())
         all_bits = ', '.join(reps.apply(_bitstring, axis=0))
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
@@ -90,9 +89,8 @@ def _key_to_str(key: TMeasurementKey) -> str:
 
 def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
     repr_dict = {}
-    for key in sorted(set(measurements.m_key)):
-        repr_dict[key] = np.array(
-            measurements[measurements.m_key == key].m_vals.to_list())
+    for key in sorted(measurements.columns):
+        repr_dict[key] = np.array(measurements[key].to_list())
     return repr_dict
 
 
@@ -127,18 +125,19 @@ class TrialResult:
         """
         self.params = params
 
-        tuple_list = []
+        # Convert to a DataFrame with columns as measurement keys, rows as
+        # repetitions and a Series of measurements for a particular key and
+        # repetition as the value.
+        converted_dict = {}
         for key, val in measurements.items():
-            for i, m_vals in enumerate(val):
-                tuple_list.append((key, i, pd.Series(m_vals)))
-        self.data = pd.DataFrame(data=tuple_list,
-                                 columns=["m_key", "rep", "m_vals"])
+            converted_dict[key] = [pd.Series(m_vals) for m_vals in val]
+        self.data = pd.DataFrame(converted_dict)
         # Keep the old instance variables for test compatibility.
         self.measurements = _to_dict(self.data)
-        self.repetitions = self.data.rep.max() + 1
+        self.repetitions = self.data.shape[0]
 
     def _num_repititions(self):
-        return self.data.rep.max() + 1
+        return self.data.shape[0]
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
@@ -192,11 +191,10 @@ class TrialResult:
             results.
         """
         fixed_keys = [_key_to_str(key) for key in keys]
-        samples = self.data[self.data.m_key.isin(fixed_keys)]
+        samples = self.data[fixed_keys]
         c = collections.Counter()  # type: collections.Counter
         for i in range(self._num_repititions()):
-            sample = samples[samples.rep == i]
-            c[fold_func(sample.m_vals)] += 1
+            c[fold_func(samples.iloc[i])] += 1
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273

@@ -160,7 +160,7 @@ def test_qubit_keys_for_histogram():
         cirq.measure(c),
     )
     results = cirq.Simulator().run(program=circuit, repetitions=100)
-    with pytest.raises(IndexError):
+    with pytest.raises(KeyError):
         _ = results.histogram(key=a)
 
     assert results.histogram(key=[a, b]) == collections.Counter({0: 100})
