@@ -58,8 +58,7 @@ matrix:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-<<<<<<< HEAD
-    script: check/pytest --benchmark-only
+    script: check/performance
 
   - os: osx
     env: NAME=pytest (macOS)
@@ -71,9 +70,6 @@ matrix:
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip
-=======
-    script: check/performance
->>>>>>> master
      
   - os: windows
     env: NAME=pytest (Windows)
