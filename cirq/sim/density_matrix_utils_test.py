@@ -25,6 +25,9 @@ def assert_valid_density_matrix(matrix, num_qubits=1):
         cirq.to_valid_density_matrix(matrix, num_qubits=num_qubits,
                                      dtype=matrix.dtype), matrix)
 def test_von_neumann_entropy():
+    with pytest.raises(ValueError, match='zero'):
+        cirq.von_neumann_entropy(np.array([[1, 0], [0, 0]]))
+
     assert np.isclose(cirq.von_neumann_entropy(np.array(
         [[0.5, 0.5j], [-0.5j, 0.5]])), -0.6931471805599453+0j)
 

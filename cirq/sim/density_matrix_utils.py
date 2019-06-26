@@ -269,4 +269,8 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> np.ndarray:
     Returns:
         Sum of the elements on the main diagonal
     """
-    return np.trace(density_matrix * np.log(density_matrix))
+    if 0 in density_matrix:
+        raise ValueError('Cannot calculate von Neumann entroy of a density '
+         'matrix that contains a zero')
+    else:
+         return np.trace(density_matrix * np.log(density_matrix))
