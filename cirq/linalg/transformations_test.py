@@ -591,8 +591,8 @@ def test_wavefunction_partial_trace_as_mixture_pure_result():
                           atol=1e-15)
     assert not mixtures_equal(cirq.wavefunction_partial_trace_as_mixture(
         state, [1], atol=1e-20),
-                          truth,
-                          atol=1e-16)
+                              truth,
+                              atol=1e-16)
 
 
 def test_wavefunction_partial_trace_as_mixture_mixed_result():
