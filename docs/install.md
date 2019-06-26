@@ -21,7 +21,7 @@ That way you have control over when a breaking change affects you.
 
 ### Installing on Linux
 
-0. Make sure you have python 3.5.2 or greater.
+0. Make sure you have python 3.6.0 or greater.
 
     See [Installing Python 3 on Linux](https://docs.python-guide.org/starting/install3/linux/) @ the hitchhiker's guide to python.
 
@@ -37,10 +37,9 @@ That way you have control over when a breaking change affects you.
 3. (Optional) install system dependencies that pip can't handle.
 
     ```bash
-    sudo apt-get install python3-tk texlive-latex-base latexmk
+    sudo apt-get install texlive-latex-base latexmk
     ```
 
-    - Without `python3-tk`, plotting functionality won't work.
     - Without `texlive-latex-base` and `latexmk`, pdf writing functionality will not work.
 
 4. Check that it works!
