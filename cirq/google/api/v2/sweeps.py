@@ -20,42 +20,43 @@ from cirq.study import sweeps
 
 def sweep_to_proto(
         sweep: sweeps.Sweep,
-        msg: Optional[run_context_pb2.Sweep] = None,
+        *,
+        out: Optional[run_context_pb2.Sweep] = None,
 ) -> run_context_pb2.Sweep:
     """Converts a Sweep to v2 protobuf message.
 
     Args:
         sweep: The sweep to convert.
-        msg: Optional message to be populated. If not given, a new message will
+        out: Optional message to be populated. If not given, a new message will
             be created.
 
     Returns:
         Populated sweep protobuf message.
     """
-    if msg is None:
-        msg = run_context_pb2.Sweep()
+    if out is None:
+        out = run_context_pb2.Sweep()
     if sweep is sweeps.UnitSweep:
         pass
     elif isinstance(sweep, sweeps.Product):
-        msg.sweep_function.function_type = run_context_pb2.SweepFunction.PRODUCT
+        out.sweep_function.function_type = run_context_pb2.SweepFunction.PRODUCT
         for factor in sweep.factors:
-            sweep_to_proto(factor, msg=msg.sweep_function.sweeps.add())
+            sweep_to_proto(factor, out=out.sweep_function.sweeps.add())
     elif isinstance(sweep, sweeps.Zip):
-        msg.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
+        out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
         for s in sweep.sweeps:
-            sweep_to_proto(s, msg=msg.sweep_function.sweeps.add())
+            sweep_to_proto(s, out=out.sweep_function.sweeps.add())
     elif isinstance(sweep, sweeps.Linspace):
-        msg.single_sweep.parameter_key = sweep.key
-        msg.single_sweep.linspace.first_point = sweep.start
-        msg.single_sweep.linspace.last_point = sweep.stop
-        msg.single_sweep.linspace.num_points = sweep.length
+        out.single_sweep.parameter_key = sweep.key
+        out.single_sweep.linspace.first_point = sweep.start
+        out.single_sweep.linspace.last_point = sweep.stop
+        out.single_sweep.linspace.num_points = sweep.length
     elif isinstance(sweep, sweeps.Points):
-        msg.single_sweep.parameter_key = sweep.key
+        out.single_sweep.parameter_key = sweep.key
         for point in sweep.points:
-            msg.single_sweep.points.points.append(point)
+            out.single_sweep.points.points.append(point)
     else:
         raise ValueError('cannot convert to v2 Sweep proto: {}'.format(sweep))
-    return msg
+    return out
 
 
 def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
