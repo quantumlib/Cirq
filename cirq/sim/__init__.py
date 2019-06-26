@@ -67,6 +67,5 @@ from cirq.sim.wave_function import (
     validate_normalized_state,
 )
 
-from cirq.sim.density_matrix_utils import(
-    von_neumann_entropy,
-)
+from cirq.sim.density_matrix_utils import (
+    von_neumann_entropy,)

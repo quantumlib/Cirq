@@ -258,8 +258,9 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
 
+
 def von_neumann_entropy(density_matrix: np.ndarray) -> np.ndarray:
-    """Calculates the von Neumann entropy: S = - tr(\rho \ln \rho)
+    r"""Calculates the von Neumann entropy: S = - tr(\rho \ln \rho)
     Args:
         density_matrix: The density matrix to be measured. This matrix is
             assumed to be positive semidefinite and trace one. The matrix is
@@ -270,7 +271,7 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> np.ndarray:
         Sum of the elements on the main diagonal
     """
     if 0 in density_matrix:
-        raise ValueError('Cannot calculate von Neumann entroy of a density '
-         'matrix that contains a zero')
+        raise ValueError('Cannot calculate von Neumann entropy of a density '
+                         'matrix that contains a zero')
     else:
-         return np.trace(density_matrix * np.log(density_matrix))
+        return np.trace(density_matrix * np.log(density_matrix))
