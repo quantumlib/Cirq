@@ -440,3 +440,49 @@ def test_measure_mismatched_register_size():
     with pytest.raises(QasmException,
                        match=r""".*mismatched register sizes 2 -> 3.*line 6"""):
         parser.parse(qasm)
+
+
+def test_measure_to_quantum_register():
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";       
+         qreg q1[3];
+         qreg q2[3];
+         creg c1[3];                        
+         measure q2 -> q1;       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined classical register.*q1.*line 6"""):
+        parser.parse(qasm)
+
+
+def test_measure_from_classical_register():
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";       
+         qreg q1[2];
+         creg c1[3];                        
+         creg c2[3];                        
+         measure c1 -> c2;       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined quantum register.*c1.*line 6"""):
+        parser.parse(qasm)
+
+
+def test_measurement_bounds():
+    qasm = """OPENQASM 2.0;
+     qreg q1[3];
+     creg c1[3];                        
+     measure q1[0] -> c1[4];  
+"""
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"Out of bounds bit index 4"
+                       r" on classical register c1 of size 3 at line 4"):
+        parser.parse(qasm)
