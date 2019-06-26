@@ -174,7 +174,7 @@ print(circuit)
 ```
 One thing to notice here.  First `cirq.X` is a `Gate` object. There
 are many different gates supported by Cirq. A good place to look
-at gates that are defined is in [common_gates.py](/cirq/ops/common_gates.py).
+at gates that are defined is in [common_gates.py](https://github.com/quantumlib/Cirq/blob/master/cirq/ops/common_gates.py).
 One common confusion to avoid is the difference between a gate class 
 and a gate object (which is an instantiation of a class).  The second is that gate
 objects are transformed into `Operation`s (technically `GateOperation`s)
@@ -237,7 +237,7 @@ Here we see that we can iterate over a `Circuit`'s `Moment`s.
 If you look closely at the circuit creation code above you will see that
 we applied the `append` method to both a `generator` and a `list` (recall that
 in Python one can use generator comprehensions in method calls).
-Inspecting the [code](/cirq/circuits/circuit.py) for append one sees that
+Inspecting the [code](https://github.com/quantumlib/Cirq/blob/master/cirq/circuits/circuit.py) for append one sees that
 the append method generally takes an `OP_TREE` (or a `Moment`).  What is
 an `OP_TREE`?  It is not a class but a contract.  Roughly an `OP_TREE`
 is anything that can be flattened, perhaps recursively, into a list
@@ -429,7 +429,7 @@ To run a simulation of the full circuit we simply create a
 simulator, and pass the circuit to the simulator.
 
 ```python
-simulator = cirq.google.XmonSimulator()
+simulator = cirq.Simulator()
 circuit = cirq.Circuit()    
 circuit.append(one_step(h, jr, jc, 0.1, 0.2, 0.3))
 circuit.append(cirq.measure(*qubits, key='x'))

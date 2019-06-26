@@ -14,17 +14,14 @@
 
 import subprocess
 import os
-import sys
 
 import pytest
 
 from dev_tools import shell_tools
 
 
-def only_in_python3_on_posix(func):
+def only_on_posix(func):
     if os.name != 'posix':
-        return None
-    if sys.version_info.major < 3:
         return None
     return func
 
@@ -37,7 +34,7 @@ def run_shell(*args, **kwargs):
     return shell_tools.run_shell(*args, log_run_to_stderr=False, **kwargs)
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_run_cmd_raise_on_fail():
     assert run_cmd('true') == (None, None, 0)
     assert run_cmd('true', raise_on_fail=False) == (None, None, 0)
@@ -47,7 +44,7 @@ def test_run_cmd_raise_on_fail():
     assert run_cmd('false', raise_on_fail=False) == (None, None, 1)
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_run_shell_raise_on_fail():
     assert run_shell('true') == (None, None, 0)
     assert run_shell('true', raise_on_fail=False) == (None, None, 0)
@@ -57,7 +54,7 @@ def test_run_shell_raise_on_fail():
     assert run_shell('false', raise_on_fail=False) == (None, None, 1)
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_run_cmd_capture():
     assert run_cmd(
         'echo', 'test',
@@ -71,7 +68,7 @@ def test_run_cmd_capture():
         err=shell_tools.TeeCapture()) == (None, '', 0)
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_run_shell_capture():
     assert run_shell(
         'echo test 1>&2',
@@ -85,7 +82,7 @@ def test_run_shell_capture():
         out=shell_tools.TeeCapture()) == ('', None, 0)
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_run_shell_does_not_deadlock_on_large_outputs():
     assert run_shell(
         r"""python3 -c "import sys;"""
@@ -96,7 +93,7 @@ def test_run_shell_does_not_deadlock_on_large_outputs():
         err=None) == (None, None, 0)
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_output_of():
     assert shell_tools.output_of('true') == ''
     with pytest.raises(subprocess.CalledProcessError):

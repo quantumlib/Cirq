@@ -45,10 +45,9 @@ class TestAndPrepareCoverageCheck(check.Check):
             target_path,
             None if verbose else '--quiet',
             *([
-                  '--cov',
-                  '--cov-report=annotate',
-                  '--cov-config={}'.format(rc_path)
-              ] if do_coverage else []),
+                '--cov', '--cov-report=annotate',
+                '--cov-config={}'.format(rc_path), '--benchmark-skip'
+            ] if do_coverage else []),
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,
             log_run_to_stderr=verbose)

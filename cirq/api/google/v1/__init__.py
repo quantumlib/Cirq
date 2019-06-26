@@ -14,4 +14,8 @@
 
 """Google's v1 api for running quantum programs remotely."""
 
-from cirq.api.google.v1 import operations_pb2, params_pb2, program_pb2
+from cirq.api.google.v1 import (
+    operations_pb2,
+    params_pb2,
+    program_pb2,
+)

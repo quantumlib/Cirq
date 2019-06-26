@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 import pytest
+import numpy as np
 
 import cirq
 from cirq.devices import UnconstrainedDevice
@@ -38,6 +40,30 @@ def test_equality():
     et.make_equality_group(lambda: simple_schedule(q1))
     et.make_equality_group(lambda: simple_schedule(q0, start_picos=1000))
     et.make_equality_group(lambda: simple_schedule(q0, duration_picos=1000))
+    et.make_equality_group(lambda: simple_schedule(q0, num_ops=3))
+    et.make_equality_group(lambda: simple_schedule(q1, num_ops=3))
+
+
+def test_equality_timedelta():
+    et = cirq.testing.EqualsTester()
+
+    def simple_schedule(q, start_picos=0, duration_micros=1, num_ops=1):
+        time_picos = start_picos
+        scheduled_ops = []
+        for _ in range(num_ops):
+            op = cirq.ScheduledOperation(
+                cirq.Timestamp(picos=time_picos),
+                timedelta(microseconds=duration_micros), cirq.H(q))
+            scheduled_ops.append(op)
+            time_picos += duration_micros * 10**6
+        return cirq.Schedule(device=UnconstrainedDevice,
+                             scheduled_operations=scheduled_ops)
+
+    q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
+    et.make_equality_group(lambda: simple_schedule(q0))
+    et.make_equality_group(lambda: simple_schedule(q1))
+    et.make_equality_group(lambda: simple_schedule(q0, start_picos=1000))
+    et.make_equality_group(lambda: simple_schedule(q0, duration_micros=5))
     et.make_equality_group(lambda: simple_schedule(q0, num_ops=3))
     et.make_equality_group(lambda: simple_schedule(q1, num_ops=3))
 
@@ -153,6 +179,34 @@ def test_query_overlapping_operations_exclusive():
     assert schedule.query(time=zero + 3.5 * ps, duration=ps) == []
 
 
+def test_query_timedelta():
+    q = cirq.NamedQubit('q')
+    zero = cirq.Timestamp(picos=0)
+    ms = timedelta(microseconds=1000)
+    op1 = cirq.ScheduledOperation(zero, 2 * ms, cirq.H(q))
+    op2 = cirq.ScheduledOperation(zero + ms, 2 * ms, cirq.H(q))
+    schedule = cirq.Schedule(device=UnconstrainedDevice,
+                             scheduled_operations=[op2, op1])
+
+    def query(t, d=timedelta(), qubits=None):
+        return schedule.query(time=t,
+                              duration=d,
+                              qubits=qubits,
+                              include_query_end_time=True,
+                              include_op_end_times=True)
+
+    assert query(zero - 0.5 * ms, ms) == [op1]
+    assert query(zero - 0.5 * ms, 2 * ms) == [op1, op2]
+    assert query(zero, ms) == [op1, op2]
+    assert query(zero + 0.5 * ms, ms) == [op1, op2]
+    assert query(zero + ms, ms) == [op1, op2]
+    assert query(zero + 1.5 * ms, ms) == [op1, op2]
+    assert query(zero + 2.0 * ms, ms) == [op1, op2]
+    assert query(zero + 2.5 * ms, ms) == [op2]
+    assert query(zero + 3.0 * ms, ms) == [op2]
+    assert query(zero + 3.5 * ms, ms) == []
+
+
 def test_slice_operations():
     q0 = cirq.NamedQubit('q0')
     q1 = cirq.NamedQubit('q1')
@@ -215,3 +269,24 @@ def test_exclude():
     assert schedule.exclude(cirq.ScheduledOperation(zero, ps, cirq.H(q)))
     assert schedule.query(time=zero, duration=ps * 10) == []
     assert not schedule.exclude(cirq.ScheduledOperation(zero, ps, cirq.H(q)))
+
+
+def test_unitary():
+    q = cirq.NamedQubit('q')
+    zero = cirq.Timestamp(picos=0)
+    ps = cirq.Duration(picos=1)
+    op = cirq.ScheduledOperation(zero, ps, cirq.H(q))
+    schedule = cirq.Schedule(device=UnconstrainedDevice,
+                             scheduled_operations=[op])
+
+    cirq.testing.assert_has_consistent_apply_unitary(schedule, qubit_count=1)
+    np.testing.assert_allclose(cirq.unitary(schedule), cirq.unitary(cirq.H))
+    assert cirq.has_unitary(schedule)
+
+    schedule2 = cirq.Schedule(device=UnconstrainedDevice,
+                              scheduled_operations=[
+                                  cirq.ScheduledOperation(
+                                      zero, ps,
+                                      cirq.depolarize(0.5).on(q))
+                              ])
+    assert not cirq.has_unitary(schedule2)

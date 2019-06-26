@@ -13,19 +13,17 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import Dict, Union, Sequence, Tuple, Optional, cast
+from typing import Union, Sequence, Tuple, Optional, cast
 
+import math
 import numpy as np
 import sympy
 
+import cirq
 from cirq import value, protocols
-from cirq._compat import gcd, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import gate_features, raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
-
-# Note: avoiding 'from/as' because it creates a circular dependency in python 2.
-import cirq.ops.common_gates
-
 
 @value.value_equality
 class PhasedXPowGate(gate_features.SingleQubitGate):
@@ -50,17 +48,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 exponent=exponent,
                 global_shift=global_shift)
         if p == 0.5:
-            return cirq.ops.common_gates.YPowGate(
-                exponent=exponent,
-                global_shift=global_shift)
-        if p == 1 and not isinstance(exponent, sympy.Symbol):
-            return cirq.ops.common_gates.XPowGate(
-                exponent=-exponent,
-                global_shift=global_shift)
-        if p == -0.5 and not isinstance(exponent, sympy.Symbol):
-            return cirq.ops.common_gates.YPowGate(
-                exponent=-exponent,
-                global_shift=global_shift)
+            return cirq.ops.common_gates.YPowGate(exponent=exponent,
+                                                  global_shift=global_shift)
         return super().__new__(cls)
 
     def __init__(self,
@@ -144,22 +133,22 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
         return np.dot(np.dot(z, x), np.conj(z)) * p
 
-    def _pauli_expansion_(self) -> Dict[str, complex]:
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():
             return NotImplemented
         phase_angle = np.pi * self._phase_exponent / 2
         angle = np.pi * self._exponent / 2
         phase = 1j**(2 * self._exponent * (self._global_shift + 0.5))
-        return {
+        return value.LinearDict({
             'I': phase * np.cos(angle),
             'X': -1j * phase * np.sin(angle) * np.cos(2 * phase_angle),
             'Y': -1j * phase * np.sin(angle) * np.sin(2 * phase_angle),
-        }
+        })
 
     def _is_parameterized_(self) -> bool:
         """See `cirq.SupportsParameterization`."""
-        return (isinstance(self._exponent, sympy.Symbol) or
-                isinstance(self._phase_exponent, sympy.Symbol))
+        return (protocols.is_parameterized(self._exponent) or
+                protocols.is_parameterized(self._phase_exponent))
 
     def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""
@@ -212,7 +201,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return None
         if len(int_periods) == 1:
             return int_periods[0]
-        return int_periods[0] * int_periods[1] / gcd(*int_periods)
+        return int_periods[0] * int_periods[1] / math.gcd(*int_periods)
 
     @property
     def _canonical_exponent(self):

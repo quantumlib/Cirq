@@ -17,30 +17,39 @@ import pytest
 import cirq
 
 
-def test_gate_calls_validate():
-    class ValiGate(cirq.Gate):
-        def num_qubits(self):
-            return 2
+class ValiGate(cirq.Gate):
+    def num_qubits(self):
+        return 2
 
-        def validate_args(self, qubits):
-            if len(qubits) == 3:
-                raise ValueError()
+    def validate_args(self, qubits):
+        if len(qubits) == 3:
+            raise ValueError()
+
+
+def test_gate():
+    a, b, c = cirq.LineQubit.range(3)
 
     g = ValiGate()
     assert g.num_qubits() == 2
 
-    q00 = cirq.NamedQubit('q00')
-    q01 = cirq.NamedQubit('q01')
-    q10 = cirq.NamedQubit('q10')
-
-    _ = g.on(q00, q10)
+    _ = g.on(a, c)
     with pytest.raises(ValueError):
-        _ = g.on(q00, q10, q01)
+        _ = g.on(a, c, b)
 
-    _ = g(q00)
-    _ = g(q00, q10)
+    _ = g(a)
+    _ = g(a, c)
     with pytest.raises(ValueError):
-        _ = g(q10, q01, q00)
+        _ = g(c, b, a)
+
+
+def test_op():
+    a, b, c = cirq.LineQubit.range(3)
+    g = ValiGate()
+    op = g(a)
+    assert op.controlled_by() is op
+    controlled_op = op.controlled_by(b, c)
+    assert controlled_op.sub_operation == op
+    assert controlled_op.controls == (b, c)
 
 
 def test_default_validation_and_inverse():
@@ -89,3 +98,16 @@ def test_no_inverse_if_not_unitary():
             return cirq.amplitude_damp(0.5).on(qubits[0])
 
     assert cirq.inverse(TestGate(), None) is None
+
+
+@pytest.mark.parametrize('expression, expected_result', (
+    (cirq.X * 2, 2 * cirq.X),
+    (cirq.Y * 2, cirq.Y + cirq.Y),
+    (cirq.Z - cirq.Z + cirq.Z, cirq.Z.wrap_in_linear_combination()),
+    (1j * cirq.S * 1j, -cirq.S),
+    (cirq.CZ * 1, cirq.CZ / 1),
+    (-cirq.CSWAP * 1j, cirq.CSWAP / 1j),
+    (cirq.TOFFOLI * 0.5, cirq.TOFFOLI / 2),
+))
+def test_gate_algebra(expression, expected_result):
+    assert expression == expected_result

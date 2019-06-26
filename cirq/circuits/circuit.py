@@ -27,7 +27,6 @@ from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
     Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
-import json
 import re
 import numpy as np
 
@@ -58,7 +57,9 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_until_blocked
         findall_operations_with_gate_type
+        are_all_matches_terminal
         are_all_measurements_terminal
         to_unitary_matrix
         apply_unitary_effect_to_state
@@ -146,6 +147,16 @@ class Circuit:
             return NotImplemented
         return self._moments == other._moments and self._device == other._device
 
+    def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
+        """See `cirq.protocols.SupportsApproximateEquality`."""
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return cirq.protocols.approx_eq(
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
+
     def __ne__(self, other):
         return not self == other
 
@@ -170,7 +181,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key])
+            return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
         else:
@@ -205,14 +216,7 @@ class Circuit:
         del self._moments[key]
 
     def __iadd__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        if (other.device != self._device and
-                other.device != devices.UnconstrainedDevice):
-            raise ValueError("Other circuit's device is not compatible.")
-        for moment in other:
-            self._device.validate_moment(moment)
-        self._moments += other._moments
+        self.append(other)
         return self
 
     def __add__(self, other):
@@ -659,6 +663,52 @@ class Circuit:
 
         return list(result)
 
+    def findall_operations_until_blocked(
+            self,
+            start_frontier: Dict[ops.Qid, int],
+            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+    ) -> List[Tuple[int, ops.Operation]]:
+        """
+        Finds all operations until a blocking operation is hit.  This returns
+        a list of all operations from the starting frontier until a blocking
+        operation is encountered.  An operation is part of the list if
+        it is involves a qubit in the start_frontier dictionary, comes after
+        the moment listed in that dictionary, and before any blocking
+        operations that involve that qubit.  Operations are only considered
+        to be blocking the qubits that they operate on, so a blocking operation
+        that does not operate on any qubit in the starting frontier is not
+        actually considered blocking.  See `reachable_frontier_from` for a more
+        in depth example of reachable states.
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
+        """
+        op_list = []
+        max_index = len(self._moments)
+        for qubit in start_frontier:
+            current_index = start_frontier[qubit]
+            if current_index < 0:
+                current_index = 0
+            while current_index < max_index:
+                if self[current_index].operates_on_single_qubit(qubit):
+                    next_op = self.operation_at(qubit, current_index)
+                    if next_op is not None:
+                        if is_blocker(next_op):
+                            break
+                        op_list.append((current_index,next_op))
+                current_index+=1
+        return op_list
+
     def operation_at(self,
                      qubit: ops.Qid,
                      moment_index: int) -> Optional[ops.Operation]:
@@ -716,17 +766,34 @@ class Circuit:
             An iterator (index, operation, gate)'s for operations with the given
             gate type.
         """
-        result = self.findall_operations(
-            lambda operation: (isinstance(operation, ops.GateOperation) and
-                               isinstance(operation.gate, gate_type)))
+        result = self.findall_operations(lambda operation: bool(
+            ops.op_gate_of_type(operation, gate_type)))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
 
+    def has_measurements(self):
+        return any(self.findall_operations(protocols.is_measurement))
+
     def are_all_measurements_terminal(self):
+        """Whether all measurement gates are at the end of the circuit."""
+        return self.are_all_matches_terminal(protocols.is_measurement)
+
+    def are_all_matches_terminal(self,
+            predicate: Callable[[ops.Operation], bool]):
+        """Check whether all of the ops that satisfy a predicate are terminal.
+
+        Args:
+            predicate: A predicate on ops.Operations which is being checked.
+
+        Returns:
+            Whether or not all `Operation` s in a circuit that satisfy the
+            given predicate are terminal.
+        """
         return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None for (i, op)
-            in self.findall_operations(ops.MeasurementGate.is_measurement))
+            self.next_moment_operating_on(op.qubits, i + 1) is None for
+            (i, op) in self.findall_operations(predicate)
+        )
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -1222,7 +1289,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
+                protocols.is_measurement(op)
                 for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
@@ -1233,7 +1300,7 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
         n = len(qs)
 
-        state = np.eye(1 << n, dtype=np.complex128)
+        state = np.eye(1 << n, dtype=dtype)
         state.shape = (2,) * (2 * n)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
@@ -1295,8 +1362,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                ops.MeasurementGate.is_measurement(op)
-                for op in self.all_operations()):
+                protocols.is_measurement(op) for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
         if not self.are_all_measurements_terminal():
@@ -1423,7 +1489,7 @@ class Circuit:
                 param_resolver)
             new_moment = ops.Moment(resolved_operations)
             resolved_moments.append(new_moment)
-        resolved_circuit = Circuit(resolved_moments)
+        resolved_circuit = Circuit(resolved_moments, device=self.device)
         return resolved_circuit
 
     def _qasm_(self) -> str:
@@ -1529,12 +1595,10 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     return protocols.CircuitDiagramInfo(wire_symbols=symbols)
 
-def _is_exposed_formula(text):
-    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text)
 
+def _is_exposed_formula(text: str) -> bool:
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
-def _encode(text):
-    return json.JSONEncoder().encode(text)
 
 def _formatted_exponent(info: protocols.CircuitDiagramInfo,
                         args: protocols.CircuitDiagramInfoArgs
@@ -1542,9 +1606,9 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
-        return (name
+        return ('({})'.format(name)
                 if _is_exposed_formula(name)
-                else '({})'.format(_encode(name)))
+                else name)
 
     if info.exponent == 0:
         return '0'
@@ -1598,6 +1662,7 @@ def _draw_moment_in_diagram(
     if not moment.operations:
         out_diagram.write(x0, 0, '')
 
+    max_x = x0
     for op in moment.operations:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
@@ -1635,10 +1700,12 @@ def _draw_moment_in_diagram(
                 # Add an exponent to every label
                 for index in indices:
                     out_diagram.write(x, index, '^' + exponent)
+        if x > max_x:
+            max_x = x
 
     # Group together columns belonging to the same Moment.
-    if moment.operations and x > x0:
-        moment_groups.append((x0, x))
+    if moment.operations and max_x > x0:
+        moment_groups.append((x0, max_x))
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
@@ -1697,8 +1764,7 @@ def _apply_unitary_circuit(circuit: Circuit,
     Returns:
         The left-multiplied state tensor.
     """
-    qubit_map = {q: i for i, q in enumerate(qubits)}
-    buffer = np.zeros(state.shape, dtype=dtype)
+    buffer = np.empty_like(state)
 
     def on_stuck(bad_op):
         return TypeError(
@@ -1711,24 +1777,15 @@ def _apply_unitary_circuit(circuit: Circuit,
         intercepting_decomposer=_decompose_measurement_inversions,
         on_stuck_raise=on_stuck)
 
-    for op in unitary_ops:
-        indices = [qubit_map[q] for q in op.qubits]
-        result = protocols.apply_unitary(
-            unitary_value=op,
-            args=protocols.ApplyUnitaryArgs(state, buffer, indices))
-        if result is buffer:
-            buffer = state
-        state = result
-    return state
+    return protocols.apply_unitaries(
+        unitary_ops, qubits,
+        protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits))))
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    if ops.MeasurementGate.is_measurement(op):
-        gate = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
-        return [ops.X(q)
-                for q, b in zip(op.qubits, gate.invert_mask)
-                if b]
-
+    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
+    if gate:
+        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
     return NotImplemented
 
 

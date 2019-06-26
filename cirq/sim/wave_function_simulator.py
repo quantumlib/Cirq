@@ -31,7 +31,6 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
     Implementors of this interface should implement the _simulator_iterator
     method."""
 
-
     @abc.abstractmethod
     def _simulator_iterator(
         self,
@@ -195,7 +194,7 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
 class WaveFunctionStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def simulator_state(self) -> 'WaveFunctionSimulatorState':
+    def _simulator_state(self) -> 'WaveFunctionSimulatorState':
         """Returns the simulator_state of the simulator after this step.
 
         The form of the simulator_state depends on the implementation of the
@@ -268,19 +267,33 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
                  6  |   1    |   1    |   0
                  7  |   1    |   1    |   1
         """
-        return self.final_simulator_state.state_vector
+        return self._final_simulator_state.state_vector
 
     def _value_equality_values_(self):
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
-        return (self.params,
-                measurements,
-                self.final_simulator_state)
+        return (self.params, measurements, self._final_simulator_state)
+
+    def __str__(self):
+        samples = super().__str__()
+        final = self.state_vector()
+        if len([1 for e in final if abs(e) > 0.001]) < 16:
+            wave = self.dirac_notation(3)
+        else:
+            wave = str(final)
+
+        return 'measurements: {}\noutput vector: {}'.format(samples, wave)
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('WaveFunctionTrialResult(...)')
+        else:
+            p.text(str(self))
 
     def __repr__(self):
         return ('cirq.WaveFunctionTrialResult(params={!r}, '
                 'measurements={!r}, '
-                'final_simulator_state={!r})'
-                ).format(self.params,
-                         self.measurements,
-                         self.final_simulator_state)
+                'final_simulator_state={!r})').format(
+                    self.params, self.measurements, self._final_simulator_state)
