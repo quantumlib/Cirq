@@ -665,10 +665,6 @@ def test_decompose():
     assert cirq.decompose_once(2 * cirq.X(a) * cirq.Z(b), default=None) is None
     assert cirq.decompose_once(1j * cirq.X(a) * cirq.Z(b)) == [
         cirq.GlobalPhaseOperation(1j),
-        cirq.X(a),
-        cirq.Z(b)
+        cirq.X(a), cirq.Z(b)
     ]
-    assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [
-        cirq.Z(a),
-        cirq.Y(b)
-    ]
+    assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [cirq.Z(a), cirq.Y(b)]
