@@ -496,20 +496,41 @@ def test_subwavefunction_invalid_inputs():
 
     # Bad choice of input indices.
     with pytest.raises(ValueError, match='2, 2'):
-        cirq.subwavefunction(np.arange(16) / np.linalg.norm(np.arange(16)),
-                             [1, 2, 2],
-                             atol=1e-8)
+        cirq.subwavefunction(cirq.one_hot(shape=8), [1, 2, 2], atol=1e-8)
+
+    state = np.array([1, 0, 0, 0]).reshape(2, 2)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.subwavefunction(np.array([1, 0, 0, 0]).reshape(2, 2), [5],
-                             atol=1e-8)
+        cirq.subwavefunction(state, [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.subwavefunction(np.array([1, 0, 0, 0]).reshape(2, 2), [0, 1, 2],
-                                      atol=1e-8)
+        cirq.subwavefunction(state, [0, 1, 2], atol=1e-8)
 
 
-def test_wavefunction_partial_trace_invalid_input():
-    # TODO
-    pass
+def test_wavefunction_partial_trace_as_mixture_invalid_input():
+
+    with pytest.raises(ValueError, match='7'):
+        cirq.wavefunction_partial_trace_as_mixture(np.arange(7), [1, 2],
+                                                   atol=1e-8)
+
+    bad_shape = np.arange(16).reshape(2, 4, 2)
+    with pytest.raises(ValueError, match='shaped'):
+        cirq.wavefunction_partial_trace_as_mixture(bad_shape, [1], atol=1e-8)
+    bad_shape = np.arange(16).reshape((16, 1))
+    with pytest.raises(ValueError, match='shaped'):
+        cirq.wavefunction_partial_trace_as_mixture(bad_shape, [1], atol=1e-8)
+
+    with pytest.raises(ValueError, match='normalized'):
+        cirq.wavefunction_partial_trace_as_mixture(np.arange(8), [1], atol=1e-8)
+
+    with pytest.raises(ValueError, match='2, 2'):
+        cirq.wavefunction_partial_trace_as_mixture(cirq.one_hot(shape=8),
+                                                   [1, 2, 2],
+                                                   atol=1e-8)
+
+    state = np.array([1, 0, 0, 0]).reshape(2, 2)
+    with pytest.raises(ValueError, match='invalid'):
+        cirq.wavefunction_partial_trace_as_mixture(state, [5], atol=1e-8)
+    with pytest.raises(ValueError, match='invalid'):
+        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1, 2], atol=1e-8)
 
 
 def mixtures_equal(m1, m2, atol=1e-7):
@@ -522,76 +543,89 @@ def mixtures_equal(m1, m2, atol=1e-7):
     return True
 
 
-def test_wavefunction_partial_trace_pure_result():
+def test_wavefunction_partial_trace_as_mixture_pure_result():
     a = cirq.testing.random_superposition(4)
     b = cirq.testing.random_superposition(8)
     c = cirq.testing.random_superposition(16)
     state = np.kron(np.kron(a, b), c).reshape((2,) * 9)
 
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1], atol=1e-8),
         ((1.0, a.reshape(2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [2, 3, 4], atol=1e-8),
         ((1.0, b.reshape(2, 2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [5, 6, 7, 8], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [5, 6, 7, 8],
+                                                   atol=1e-8),
         ((1.0, c.reshape(2, 2, 2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1, 2, 3, 4], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1, 2, 3, 4],
+                                                   atol=1e-8),
         ((1.0, np.kron(a, b).reshape(2, 2, 2, 2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1, 5, 6, 7, 8], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1, 5, 6, 7, 8],
+                                                   atol=1e-8),
         ((1.0, np.kron(a, c).reshape(2, 2, 2, 2, 2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8],
-                                        atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [2, 3, 4, 5, 6, 7, 8],
+                                                   atol=1e-8),
         ((1.0, np.kron(b, c).reshape(2, 2, 2, 2, 2, 2, 2)),))
 
-    # Return mixture will defer to numpy.linalg.eig's builtin tolerance.
-    assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-20),
-        ((1.0, a.reshape(2, 2)),))
-    assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4], atol=1e-20),
-        ((1.0, b.reshape(2, 2, 2)),))
-    assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [5, 6, 7, 8], atol=1e-20),
-        ((1.0, c.reshape(2, 2, 2, 2)),))
-
     # Shapes of states in the output mixture conform to the input's shape.
-    state = state.reshape(-1)
+    state = state.reshape(2 ** 9)
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8), ((1.0, a),))
+        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1], atol=1e-8),
+        ((1.0, a),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [2, 3, 4], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [2, 3, 4], atol=1e-8),
         ((1.0, b),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [5, 6, 7, 8], atol=1e-8),
+        cirq.wavefunction_partial_trace_as_mixture(state, [5, 6, 7, 8],
+                                                   atol=1e-8),
         ((1.0, c),))
 
 
-def test_wavefunction_partial_trace_mixed_result():
+    a = np.arange(4) / np.linalg.norm(np.arange(4))
+    b = np.arange(8) / np.linalg.norm(np.arange(8))
+    state = np.kron(a, b)
+    # Return mixture will defer to numpy.linalg.eigh's builtin tolerance.
+    assert mixtures_equal(
+        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1], atol=1e-20),
+        ((1.0, a),), atol=1e-29)
+    assert mixtures_equal(
+        cirq.wavefunction_partial_trace_as_mixture(state, [2, 3, 4],
+                                                   atol=1e-20),
+        ((1.0, b),), atol=1e-4)
+
+
+def test_wavefunction_partial_trace_as_mixture_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
-        mixture = cirq.wavefunction_partial_trace(state.reshape(2, 2), [q1],
-                                                  atol=1e-8)
+        mixture = cirq.wavefunction_partial_trace_as_mixture(
+            state.reshape(2, 2), [q1], atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
     state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape(2, 2, 2) / np.sqrt(3)
     truth = ((2 / 3, np.array([1.0, 0.0])), (1 / 3, np.array([0.0, 1.0])))
     for q1 in [0, 1, 2]:
-        mixture = cirq.wavefunction_partial_trace(state, [q1], atol=1e-8)
+        mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1],
+                                                             atol=1e-8)
 
     state = np.array([1, 0, 0, 0, 0, 0, 0, 1]).reshape(2, 2, 2) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1, 2]:
-        mixture = cirq.wavefunction_partial_trace(state, [q1], atol=1e-8)
+        mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1],
+                                                             atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
     truth = ((0.5, np.array([1, 0, 0, 0]).reshape(2, 2)),
              (0.5, np.array([0, 0, 0, 1]).reshape(2, 2)))
     for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
-        mixture = cirq.wavefunction_partial_trace(state, [q1, q2], atol=1e-8)
+        mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1, q2],
+                                                             atol=1e-8)
         assert mixtures_equal(mixture, truth)
+
+if __name__ == "__main__":
+    test_wavefunction_partial_trace_as_mixture_pure_result()

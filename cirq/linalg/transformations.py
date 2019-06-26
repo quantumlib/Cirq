@@ -319,22 +319,20 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-def wavefunction_partial_trace(wavefunction: np.ndarray,
-                               keep_indices: List[int],
-                               *,
-                               atol: Union[int, float] = 1e-8
-                               ) -> Tuple[Tuple[float, np.ndarray]]:
-    """Attempts to factor a wavefunction into two parts and return one of them.
+def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
+                                          keep_indices: List[int],
+                                          *,
+                                          atol: Union[int, float] = 1e-8
+                                          ) -> Tuple[Tuple[float, np.ndarray]]:
+    """Returns a mixture representing a wavefunction with only some qubits kept.
 
-    The input wavefunction must have shape `(2, 2, ..., 2)` or `(2 ** N)` where
-    `wavefunction` is expressed over N qubits. Attempts to factor the
-    wavefunction into a pure state over `keep_indices`. If this fails, a non-
-    unique mixture can be computed by eigendecomposition on the partial trace of
-    the input's density matrix.
+    The input wavefunction must have shape `(2,) * N` or `(2 ** N)` where
+    `wavefunction` is expressed over N qubits. States in the output mixture will
+    retain the same type of shape as the input wavefunction, either `(2 ** k)`
+    or `(2, ) * k` where k is the number of qubits kept.
 
-    States in the output mixture will retain the same type of shape as the input
-    wavefunction, either `(2 ** k)` or `(2, 2, ..., 2)` where k is the number of
-    qubits kept.
+    If the wavefunction cannot be factored into a pure state over `keep_indices`
+    then eigendecomposition is used and the output mixture will not be unique.
 
     Args:
         wavefunction: A wavefunction to express over a qubit subset.
@@ -347,8 +345,8 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
         default eigendecomposition of the mixed state's partial trace.
 
     Raises:
-        ValueError: if the input wavefunction shape is neither `(2 ** N)` nor
-        `(2, 2, ..., 2)`
+        ValueError: if the input wavefunction is not an array of length
+        `(2 ** N)` or a tensor with a shape of `(2, 2, ..., 2)`
     """
 
     # Attempt to do efficient state factoring.
@@ -359,17 +357,16 @@ def wavefunction_partial_trace(wavefunction: np.ndarray,
     # Fall back to a (non-unique) mixture representation.
     if wavefunction.shape == (wavefunction.size,):
         return_shape = -1
-    elif wavefunction.shape == (2,) * int(np.log2(wavefunction.size)):
+    elif all(e == 2 for e in wavefunction.shape):
         return_shape = (2,) * len(keep_indices)
 
     keep_dims = 1 << len(keep_indices)
-    tot_dims = 1 << len(wavefunction.shape)
     rho = np.kron(
-        np.conj(wavefunction.reshape(tot_dims, 1)).T,
-        wavefunction.reshape(tot_dims, 1)).reshape(
-            (2, 2) * len(wavefunction.shape))
+        np.conj(wavefunction.reshape(-1, 1)).T,
+        wavefunction.reshape(-1, 1)).reshape(
+            (2, 2) * int(np.log2(wavefunction.size)))
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
-    eigvals, eigvecs = np.linalg.eig(keep_rho)
+    eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(
         zip(eigvals, [vec.reshape(return_shape) for vec in eigvecs.T]))
     return tuple(
@@ -381,18 +378,21 @@ def subwavefunction(wavefunction: np.ndarray,
                     *,
                     default: TDefault = RaiseValueErrorIfNotProvided,
                     atol: Union[int, float] = 1e-8) -> np.ndarray:
-    r"""Return a representation of the given state over a subset of its qubits.
+    r"""Attempts to factor a wavefunction into two parts and return one of them.
 
-    The input wavefunction must have shape `(2, 2, ..., 2)` or `(2 ** N)` where
+    The input wavefunction must have shape `(2, ) * N` or `(2 ** N)` where
     `wavefunction` is expressed over N qubits. The returned array will retain
     the same type of shape as the input wavefunction, either `(2 ** k)` or
-    `(2, 2, ..., 2)` where k is the number of qubits kept.
+    `(2,) * k` where k is the number of qubits kept.
 
-    If a wavefunction |\psi> defined on N qubits is an outer product of kets
-    like  |\psi> = |x> \otimes |y>, and |x> is defined over the subset
-    `keep_indices` of  N qubits, then this method will factor |\psi> into |x>
-    and |y> and return |x>.  Global phase of the input state will not
-    necessarily be preserved in the output state.
+    If a wavefunction $|\psi\rangle$ defined on N qubits is an outer product
+    of kets like  $|\psi\rangle$ = $|x\rangle \otimes |y\rangle$, and
+    $|x\rangle$ is defined over the subset `keep_indices` of k qubits, then
+    this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
+    return $|x\rangle$.  Note that $|x\rangle$ is not unique, because $(e^{i
+    \theta} |y\rangle) \otimes (|x\rangle) = (|y\rangle) \otimes (e^{i \theta}
+    |x\rangle)$ . This method randomizes the global phase of $|x\rangle$ in
+    order to avoid accidental reliance on it.
 
     If the provided wavefunction cannot be factored into a pure state over
     `keep_indices`, the method will fall back to return `default`. If `default`
@@ -456,7 +456,8 @@ def subwavefunction(wavefunction: np.ndarray,
         [abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
 
     if approx_eq(coherence_measure, 1, atol=atol):
-        return best_candidate.reshape(return_shape)
+        return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(
+            return_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
     if default is not RaiseValueErrorIfNotProvided:

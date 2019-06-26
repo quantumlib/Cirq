@@ -81,5 +81,5 @@ from cirq.linalg.transformations import (
     reflection_matrix_pow,
     targeted_conjugate_about,
     targeted_left_multiply,
-    wavefunction_partial_trace,
+    wavefunction_partial_trace_as_mixture,
 )

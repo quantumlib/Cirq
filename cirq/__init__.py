@@ -86,7 +86,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
-    wavefunction_partial_trace,
+    wavefunction_partial_trace_as_mixture,
 )
 
 from cirq.line import (
