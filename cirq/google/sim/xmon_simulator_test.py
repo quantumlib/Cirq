@@ -895,7 +895,7 @@ def test_circuit_repetitions_optimized_regression():
     result = sim.run(circuit, repetitions=10000)
     assert result.repetitions == 10000
     end = time.time()
-    assert end - start < 1.0
+    assert end - start < 5.0
 
 
 def test_circuit_parameters():

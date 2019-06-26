@@ -144,8 +144,7 @@ class TrialResult:
     def multi_measurement_histogram(  # type: ignore
             self, *,  # Forces keyword args.
             keys: Iterable[TMeasurementKey],
-            fold_func: Callable[[Tuple[np.ndarray, ...]],
-                                T] = _tuple_of_big_endian_int
+            fold_func: Callable[[pd.Series], T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -203,7 +202,7 @@ class TrialResult:
     def histogram(self,  # type: ignore
                   *,  # Forces keyword args.
                   key: TMeasurementKey,
-                  fold_func: Callable[[np.ndarray], T] = _big_endian_int
+                  fold_func: Callable[[pd.Series], T] = _big_endian_int
                   ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
