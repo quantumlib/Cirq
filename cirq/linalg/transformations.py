@@ -323,7 +323,7 @@ def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
                                           keep_indices: List[int],
                                           *,
                                           atol: Union[int, float] = 1e-8
-                                          ) -> Tuple[Tuple[float, np.ndarray]]:
+                                         ) -> Tuple[Tuple[float, np.ndarray]]:
     """Returns a mixture representing a wavefunction with only some qubits kept.
 
     The input wavefunction must have shape `(2,) * N` or `(2 ** N)` where
@@ -356,9 +356,9 @@ def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
 
     # Fall back to a (non-unique) mixture representation.
     if wavefunction.shape == (wavefunction.size,):
-        return_shape = -1
+        ret_shape = -1
     elif all(e == 2 for e in wavefunction.shape):
-        return_shape = (2,) * len(keep_indices)
+        ret_shape = (2,) * len(keep_indices)
 
     keep_dims = 1 << len(keep_indices)
     rho = np.kron(
@@ -368,9 +368,10 @@ def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(
-        zip(eigvals, [vec.reshape(return_shape) for vec in eigvecs.T]))
-    return tuple(
-        [(float(p[0]), p[1]) for p in mixture if not approx_eq(p[0], 0.0)])
+        zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
+    return tuple([
+        (float(p[0]), p[1]) for p in mixture if not approx_eq(p[0], 0.0)
+    ])
 
 
 def subwavefunction(wavefunction: np.ndarray,
@@ -423,10 +424,10 @@ def subwavefunction(wavefunction: np.ndarray,
 
     n_qubits = int(np.log2(wavefunction.size))
     if wavefunction.shape == (wavefunction.size,):
-        return_shape = -1
+        ret_shape = -1
         wavefunction = wavefunction.reshape((2,) * n_qubits)
     elif wavefunction.shape == (2,) * n_qubits:
-        return_shape = (2,) * len(keep_indices)
+        ret_shape = (2,) * len(keep_indices)
     else:
         raise ValueError(
             "Input wavefunction must be shaped like (2 ** n,) or (2, 2, ...)")
@@ -453,11 +454,11 @@ def subwavefunction(wavefunction: np.ndarray,
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
     coherence_measure = sum(
-        [abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
+        [abs(np.dot(left, c.reshape((keep_dims,))))**2 for c in candidates])
 
     if approx_eq(coherence_measure, 1, atol=atol):
-        return np.exp(2j * np.pi * np.random.random()) * best_candidate.reshape(
-            return_shape)
+        return np.exp(2j * np.pi *
+                      np.random.random()) * best_candidate.reshape(ret_shape)
 
     # Method did not yield a pure state. Fall back to `default` argument.
     if default is not RaiseValueErrorIfNotProvided:
