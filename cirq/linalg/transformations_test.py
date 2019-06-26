@@ -585,17 +585,14 @@ def test_wavefunction_partial_trace_as_mixture_pure_result():
                                                    atol=1e-8),
         ((1.0, c),))
 
-    a = np.arange(4) / np.linalg.norm(np.arange(4))
-    b = np.arange(8) / np.linalg.norm(np.arange(8))
-    state = np.kron(a, b)
     # Return mixture will defer to numpy.linalg.eigh's builtin tolerance.
+    state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace_as_mixture(state, [0, 1], atol=1e-20),
-        ((1.0, a),), atol=1e-20)
-    assert mixtures_equal(
-        cirq.wavefunction_partial_trace_as_mixture(state, [2, 3, 4],
-                                                   atol=1e-20),
-        ((1.0, b),), atol=1e-20)
+        cirq.wavefunction_partial_trace_as_mixture(state, [1], atol=1e-20),
+        ((0.5, np.array([1, 0])), (0.5, np.array([0, 1]))), atol=1e-15)
+    assert not mixtures_equal(
+        cirq.wavefunction_partial_trace_as_mixture(state, [1], atol=1e-20),
+        ((0.5, np.array([1, 0])), (0.5, np.array([0, 1]))), atol=1e-16)
 
 
 def test_wavefunction_partial_trace_as_mixture_mixed_result():
