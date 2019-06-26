@@ -26,12 +26,14 @@ def test_fixed_duration_undirected_graph_device_edge_eq():
     g = ccgd.FixedDurationUndirectedGraphDeviceEdge(cirq.Duration(picos=5))
     assert e == f
     assert e != g
+    assert e != 4
 
 
 def test_unconstrained_undirected_graph_device_edge_eq():
     e = ccgdgd._UnconstrainedUndirectedGraphDeviceEdge()
     f = ccgd.UnconstrainedUndirectedGraphDeviceEdge
     assert e == f
+    assert e != 3
 
 
 def test_is_undirected_device_graph():

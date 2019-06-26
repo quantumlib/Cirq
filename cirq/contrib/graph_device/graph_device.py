@@ -35,6 +35,7 @@ class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
         pass  # pragma: no cover
 
 
+@value.value_equality
 class FixedDurationUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     """An edge of an undirected graph device on which every operation is
     allowed and has the same duration."""
@@ -48,10 +49,8 @@ class FixedDurationUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
 
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self._duration == other._duration
-        return NotImplemented
+    def _value_equality_values_(self):
+        return self._duration
 
 
 class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
