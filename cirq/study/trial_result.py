@@ -46,7 +46,7 @@ def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
     return tuple(_big_endian_int(bits) for bits in bit_groups)
 
 
-def _big_endian_int(bits: pd.Series) -> int:
+def _big_endian_int(bits: Iterable[Any]) -> int:
     """Returns the big-endian integer specified by the given bits.
 
     For example, [True, False, False, True, False] becomes binary 10010 which
@@ -200,8 +200,8 @@ class TrialResult:
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(
-            self,  # type: ignore
+    def histogram(  # type: ignore
+            self,
             *,  # Forces keyword args.
             key: TMeasurementKey,
             fold_func: Callable[[pd.Series], T] = _big_endian_int
