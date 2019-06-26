@@ -458,6 +458,21 @@ def test_measure_to_quantum_register():
         parser.parse(qasm)
 
 
+def test_measure_undefined_classical_bit():
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";       
+         qreg q1[3];    
+         creg c1[3];                        
+         measure q1[1] -> c2[1];       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined classical register.*c2.*line 5"""):
+        parser.parse(qasm)
+
+
 def test_measure_from_classical_register():
     qasm = """OPENQASM 2.0;
          include "qelib1.inc";       
