@@ -15,29 +15,29 @@
 import pytest
 
 import cirq
-import cirq.devices as cd
+import cirq.contrib.graph_device as ccgd
 
 
 def test_empty_uniform_undirected_linear_device():
     n_qubits = 4
     edge_labels = {}
-    device = cd.uniform_undirected_linear_device(n_qubits, edge_labels)
+    device = ccgd.uniform_undirected_linear_device(n_qubits, edge_labels)
     assert device.qubits == tuple()
     assert device.edges == tuple()
 
 
 def test_negative_arity_arg_uniform_undirected_linear_device():
     with pytest.raises(ValueError):
-        cd.uniform_undirected_linear_device(5, {-1: None})
+        ccgd.uniform_undirected_linear_device(5, {-1: None})
     with pytest.raises(ValueError):
-        cd.uniform_undirected_linear_device(5, {0: None})
+        ccgd.uniform_undirected_linear_device(5, {0: None})
 
 
 @pytest.mark.parametrize('arity', range(1, 5))
 def test_regular_uniform_undirected_linear_device(arity):
     n_qubits = 10
     edge_labels = {arity: None}
-    device = cd.uniform_undirected_linear_device(n_qubits, edge_labels)
+    device = ccgd.uniform_undirected_linear_device(n_qubits, edge_labels)
 
     assert device.qubits == tuple(cirq.LineQubit.range(n_qubits))
     assert len(device.edges) == n_qubits - arity + 1

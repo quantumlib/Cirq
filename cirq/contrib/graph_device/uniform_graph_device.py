@@ -14,7 +14,10 @@
 
 from typing import Hashable, Iterable, Mapping, Optional, TYPE_CHECKING
 
-from cirq import devices, line, ops
+from cirq import line, ops
+from cirq.contrib.graph_device.graph_device import (UndirectedGraphDevice,
+                                                    UndirectedGraphDeviceEdge)
+from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -23,8 +26,8 @@ if TYPE_CHECKING:
 
 def uniform_undirected_graph_device(
         edges: Iterable[Iterable[ops.Qid]],
-        edge_label: Optional[devices.UndirectedGraphDeviceEdge]=None
-        ) -> devices.UndirectedGraphDevice:
+        edge_label: Optional[UndirectedGraphDeviceEdge] = None
+) -> UndirectedGraphDevice:
     """An undirected graph device all of whose edges are the same.
 
     Args:
@@ -33,16 +36,15 @@ def uniform_undirected_graph_device(
     """
 
     labelled_edges = {frozenset(edge): edge_label for edge in edges
-            } # type: Dict[Iterable[Hashable], Any]
-    device_graph = devices.UndirectedHypergraph(labelled_edges=labelled_edges)
-    return devices.UndirectedGraphDevice(device_graph=device_graph)
+                     }  # type: Dict[Iterable[Hashable], Any]
+    device_graph = UndirectedHypergraph(labelled_edges=labelled_edges)
+    return UndirectedGraphDevice(device_graph=device_graph)
 
 
 def uniform_undirected_linear_device(
         n_qubits: int,
-        edge_labels: Mapping[int,
-                             Optional[devices.UndirectedGraphDeviceEdge]]
-        ) -> devices.UndirectedGraphDevice:
+        edge_labels: Mapping[int, Optional[UndirectedGraphDeviceEdge]]
+) -> UndirectedGraphDevice:
     """A uniform , undirected graph device whose qubits are arranged
     on a line.
 
@@ -61,7 +63,7 @@ def uniform_undirected_linear_device(
         raise ValueError('edge sizes {} must be at least 1.'.format(
             tuple(edge_labels.keys())))
 
-    device = devices.UndirectedGraphDevice(devices.UndirectedHypergraph())
+    device = UndirectedGraphDevice()
     for arity, label in edge_labels.items():
         edges = (line.LineQubit.range(i, i + arity)
                  for i in range(n_qubits - arity + 1))
