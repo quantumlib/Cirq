@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# This script should only be run by Travis
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
     # Install some custom requirements on macOS
