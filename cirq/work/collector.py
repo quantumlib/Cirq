@@ -14,12 +14,16 @@
 
 import abc
 import asyncio
-from typing import Optional, Any, Iterable, Union, List
+from typing import Optional, Any, Iterable, Union, List, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, study, value
-from cirq.work import sampler, work_pool
+from cirq.work import work_pool
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 
 @value.value_equality(unhashable=True)
@@ -84,13 +88,14 @@ class SampleCollector(metaclass=abc.ABCMeta):
                       result: study.TrialResult) -> None:
         """Incorporates sampled results.
 
-        This method is called by driving code when sample results have become available.
+        This method is called by driving code when sample results have become
+        available.
 
         The results should be incorporated into the collector's state.
         """
 
     def collect(self,
-                sampler: 'sampler.Sampler',
+                sampler: 'cirq.Sampler',
                 *,
                 concurrency: int = 2,
                 max_total_samples: Optional[int] = None) -> Any:
@@ -126,7 +131,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
                                max_total_samples=max_total_samples))
 
     async def collect_async(self,
-                            sampler: 'sampler.Sampler',
+                            sampler: 'cirq.Sampler',
                             *,
                             concurrency: int = 2,
                             max_total_samples: Optional[int] = None) -> Any:
@@ -153,7 +158,8 @@ class SampleCollector(metaclass=abc.ABCMeta):
                 to collect.
 
         Returns:
-            The collector's result after all desired samples have been collected.
+            The collector's result after all desired samples have been
+            collected.
         """
         pool = work_pool.CompletionOrderedAsyncWorkPool()
         queued_jobs = []
