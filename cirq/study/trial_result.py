@@ -142,7 +142,8 @@ class TrialResult:
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
-            self, *,  # Forces keyword args.
+            self,
+            *,  # Forces keyword args.
             keys: Iterable[TMeasurementKey],
             fold_func: Callable[[pd.Series], T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
@@ -199,11 +200,12 @@ class TrialResult:
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(self,  # type: ignore
-                  *,  # Forces keyword args.
-                  key: TMeasurementKey,
-                  fold_func: Callable[[pd.Series], T] = _big_endian_int
-                  ) -> collections.Counter:
+    def histogram(
+            self,  # type: ignore
+            *,  # Forces keyword args.
+            key: TMeasurementKey,
+            fold_func: Callable[[pd.Series], T] = _big_endian_int
+    ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
         For example, suppose that:
