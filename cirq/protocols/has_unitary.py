@@ -129,7 +129,7 @@ def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
 
 def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _decompose_ method."""
-    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    operations, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return None
     has_unitaries = [has_unitary(op) for op in operations]
