@@ -131,14 +131,14 @@ class TrialResult:
         for key, val in measurements.items():
             for i, m_vals in enumerate(val):
                 tuple_list.append((key, i, pd.Series(m_vals)))
-        self.measurements_df = pd.DataFrame(data=tuple_list,
-                                            columns=["m_key", "rep", "m_vals"])
+        self.data = pd.DataFrame(data=tuple_list,
+                                 columns=["m_key", "rep", "m_vals"])
         # Keep the old instance variables for test compatibility.
-        self.measurements = _to_dict(self.measurements_df)
-        self.repetitions = self.measurements_df.rep.max() + 1
+        self.measurements = _to_dict(self.data)
+        self.repetitions = self.data.rep.max() + 1
 
     def _num_repititions(self):
-        return self.measurements_df.rep.max() + 1
+        return self.data.rep.max() + 1
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
@@ -192,8 +192,7 @@ class TrialResult:
             results.
         """
         fixed_keys = [_key_to_str(key) for key in keys]
-        samples = self.measurements_df[self.measurements_df.m_key.isin(
-            fixed_keys)]
+        samples = self.data[self.data.m_key.isin(fixed_keys)]
         c = collections.Counter()  # type: collections.Counter
         for i in range(self._num_repititions()):
             sample = samples[samples.rep == i]
@@ -250,7 +249,7 @@ class TrialResult:
                 'repetitions={!r}, '
                 'measurements={!r})').format(self.params,
                                              self._num_repititions(),
-                                             _to_dict(self.measurements_df))
+                                             _to_dict(self.data))
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -261,7 +260,7 @@ class TrialResult:
             p.text(str(self))
 
     def __str__(self):
-        return _keyed_repeated_bitstrings(self.measurements_df)
+        return _keyed_repeated_bitstrings(self.data)
 
     def _value_equality_values_(self):
-        return repr(_to_dict(self.measurements_df)), self.params
+        return repr(self.data), self.params
