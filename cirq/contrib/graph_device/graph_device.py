@@ -1,3 +1,17 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import abc
 import itertools
 
@@ -34,6 +48,11 @@ class FixedDurationUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     def validate_operation(self, operation: ops.Operation) -> None:
         pass
 
+    def __eq__(self, other):
+        if isinstance(other, type(self)):
+            return self._duration == other._duration
+        return NotImplemented
+
 
 class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
     """A device edge that allows everything."""
@@ -43,6 +62,9 @@ class _UnconstrainedUndirectedGraphDeviceEdge(UndirectedGraphDeviceEdge):
 
     def validate_operation(self, operation: ops.Operation) -> None:
         pass  # pragma: no cover
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
 
 
 UnconstrainedUndirectedGraphDeviceEdge = (
@@ -99,7 +121,7 @@ class UndirectedGraphDevice(devices.Device):
     """
 
     def __init__(self,
-                 device_graph: UndirectedHypergraph,
+                 device_graph: Optional[UndirectedHypergraph] = None,
                  crosstalk_graph: Optional[UndirectedHypergraph] = None
                 ) -> None:
         """
@@ -113,14 +135,14 @@ class UndirectedGraphDevice(devices.Device):
                 thereon.
         """
 
+        if device_graph is None:
+            device_graph = UndirectedHypergraph()
         if not is_undirected_device_graph(device_graph):
-            raise TypeError('not is_undirected_device_graph(' +
-                            str(device_graph) + ')')
+            raise TypeError(f'not is_undirected_device_graph({device_graph})')
         if crosstalk_graph is None:
             crosstalk_graph = UndirectedHypergraph()
         if not is_crosstalk_graph(crosstalk_graph):
-            raise TypeError('not is_crosstalk_graph(' + str(crosstalk_graph) +
-                            ')')
+            raise TypeError(f'not is_crosstalk_graph({crosstalk_graph})')
 
         self.device_graph = device_graph
         self.crosstalk_graph = crosstalk_graph
