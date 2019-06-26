@@ -33,8 +33,7 @@ T = TypeVar('T')
 TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
-def _tuple_of_big_endian_int(bit_groups: Iterable[Any]
-                             ) -> Tuple[int, ...]:
+def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
     Args:
@@ -74,7 +73,8 @@ def _bitstring(vals: Iterable[Any]) -> str:
 def _keyed_repeated_bitstrings(measurements: pd.DataFrame) -> str:
     keyed_bitstrings = []
     for key in sorted(set(measurements.m_key)):
-        reps = pd.DataFrame(measurements[measurements.m_key==key].m_vals.to_list())
+        reps = pd.DataFrame(
+            measurements[measurements.m_key == key].m_vals.to_list())
         all_bits = ', '.join(reps.apply(_bitstring, axis=0))
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
@@ -91,7 +91,8 @@ def _key_to_str(key: TMeasurementKey) -> str:
 def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
     repr_dict = {}
     for key in sorted(set(measurements.m_key)):
-        repr_dict[key] = np.array(measurements[measurements.m_key==key].m_vals.to_list())
+        repr_dict[key] = np.array(
+            measurements[measurements.m_key == key].m_vals.to_list())
     return repr_dict
 
 
@@ -127,10 +128,11 @@ class TrialResult:
         self.params = params
 
         tuple_list = []
-        for key,val in measurements.items():
+        for key, val in measurements.items():
             for i, m_vals in enumerate(val):
                 tuple_list.append((key, i, pd.Series(m_vals)))
-        self.measurements_df = pd.DataFrame(data=tuple_list, columns=["m_key", "rep", "m_vals"])
+        self.measurements_df = pd.DataFrame(data=tuple_list,
+                                            columns=["m_key", "rep", "m_vals"])
         # Keep the old instance variables for test compatibility.
         self.measurements = _to_dict(self.measurements_df)
         self.repetitions = self.measurements_df.rep.max() + 1
@@ -190,10 +192,11 @@ class TrialResult:
             results.
         """
         fixed_keys = [_key_to_str(key) for key in keys]
-        samples = self.measurements_df[self.measurements_df.m_key.isin(fixed_keys)]
+        samples = self.measurements_df[self.measurements_df.m_key.isin(
+            fixed_keys)]
         c = collections.Counter()  # type: collections.Counter
         for i in range(self._num_repititions()):
-            sample = samples[samples.rep==i]
+            sample = samples[samples.rep == i]
             c[fold_func(sample.m_vals)] += 1
         return c
 
@@ -240,8 +243,7 @@ class TrialResult:
             results.
         """
         return self.multi_measurement_histogram(
-            keys=[key],
-            fold_func=lambda e: fold_func(e.iloc[0]))
+            keys=[key], fold_func=lambda e: fold_func(e.iloc[0]))
 
     def __repr__(self):
         return ('cirq.TrialResult(params={!r}, '
