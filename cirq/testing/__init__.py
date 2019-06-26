@@ -71,12 +71,10 @@ from cirq.testing.order_tester import (
     OrderTester,)
 
 from cirq.testing.random_circuit import (
-    random_circuit,
-)
+    random_circuit,)
 
 from cirq.testing.random_dag import (
-    random_circuit_dag,
-)
+    random_circuit_dag,)
 
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,)

@@ -178,11 +178,11 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 
 def get_logical_operations(operations: ops.OP_TREE,
                            initial_mapping: Dict[ops.Qid, ops.Qid]
-                           ) -> Iterable[ops.Operation]:
+                          ) -> Iterable[ops.Operation]:
     mapping = initial_mapping.copy()
     for op in cast(Iterable[ops.Operation], ops.flatten_op_tree(operations)):
         if (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, PermutationGate)):
+                isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(mapping, op.qubits)
         else:
             yield op.transform_qubits(mapping.__getitem__)

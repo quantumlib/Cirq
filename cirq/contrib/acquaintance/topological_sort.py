@@ -20,9 +20,8 @@ import networkx
 from cirq import circuits, ops
 
 
-def is_topologically_sorted(
-        dag: circuits.CircuitDag,
-        operations: ops.OP_TREE) -> bool:
+def is_topologically_sorted(dag: circuits.CircuitDag,
+                            operations: ops.OP_TREE) -> bool:
     """Whether a given order of operations is consistent with the DAG.
 
     For example, suppose the (transitive reduction of the) circuit DAG is
@@ -48,8 +47,9 @@ def is_topologically_sorted(
     """
 
     remaining_dag = dag.copy()
-    frontier = [node for node in remaining_dag.nodes()
-                if not remaining_dag.pred[node]]
+    frontier = [
+        node for node in remaining_dag.nodes() if not remaining_dag.pred[node]
+    ]
     for operation in ops.flatten_op_tree(operations):
         for i, node in enumerate(frontier):
             if node.val == operation:
@@ -66,14 +66,14 @@ def is_topologically_sorted(
 
 def random_topological_sort(dag: networkx.DiGraph) -> Iterable[Any]:
     remaining_dag = dag.copy()
-    frontier = list(node for node in remaining_dag.nodes()
-                   if not remaining_dag.pred[node])
+    frontier = list(
+        node for node in remaining_dag.nodes() if not remaining_dag.pred[node])
     while frontier:
         random.shuffle(frontier)
         node = frontier.pop()
         succ = remaining_dag.succ[node]
         remaining_dag.remove_node(node)
-        frontier.extend(new_node for new_node in succ
-                        if not remaining_dag.pred[new_node])
+        frontier.extend(
+            new_node for new_node in succ if not remaining_dag.pred[new_node])
         yield node
     assert not remaining_dag

@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
 from typing import Any, Iterable
-
-import networkx
 
 from cirq import circuits
 from cirq.testing.random_circuit import random_circuit
+
 
 def random_circuit_dag(*args, **kwargs) -> circuits.Circuit:
     """Generates a random circuit DAG.
