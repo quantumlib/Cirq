@@ -180,7 +180,6 @@ def _try_decompose_into_operations_and_qubits(
 
     result = decompose_once(val, None)
     if result is not None:
-        qubits = sorted({q for op in result for q in op.qubits})
-        return result, qubits
+        return result, sorted({q for op in result for q in op.qubits})
 
     return None, ()
