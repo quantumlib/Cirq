@@ -414,8 +414,8 @@ def test_subwavefunction():
     assert cirq.equal_up_to_global_phase(
         cirq.subwavefunction(state, [2, 3, 4], atol=1e-15), b.reshape(2, 2, 2))
     assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(
-            state, [5, 6, 7, 8], atol=1e-15), c.reshape(2, 2, 2, 2))
+        cirq.subwavefunction(state, [5, 6, 7, 8], atol=1e-15),
+        c.reshape(2, 2, 2, 2))
 
     # Output wavefunction conforms to the shape of the input wavefunction.
     reshaped_state = state.reshape(-1)
@@ -427,17 +427,16 @@ def test_subwavefunction():
         cirq.subwavefunction(reshaped_state, [5, 6, 7, 8], atol=1e-15), c)
 
     # Reject factoring for very tight tolerance.
-    assert cirq.subwavefunction(
-        state, [0, 1], default=None, atol=1e-16) is None
-    assert cirq.subwavefunction(
-        state, [2, 3, 4], default=None, atol=1e-16) is None
-    assert cirq.subwavefunction(
-        state, [5, 6, 7, 8], default=None, atol=1e-16) is None
+    assert cirq.subwavefunction(state, [0, 1], default=None, atol=1e-16) is None
+    assert cirq.subwavefunction(state, [2, 3, 4], default=None,
+                                atol=1e-16) is None
+    assert cirq.subwavefunction(state, [5, 6, 7, 8], default=None,
+                                atol=1e-16) is None
 
     # Permit invalid factoring for loose tolerance.
     for q1 in range(9):
-        assert cirq.subwavefunction(
-            state, [q1], default=None, atol=1) is not None
+        assert cirq.subwavefunction(state, [q1], default=None,
+                                    atol=1) is not None
 
 
 def test_subwavefunction_bad_subset():
@@ -453,8 +452,8 @@ def test_subwavefunction_bad_subset():
             assert cirq.subwavefunction(
                 state, [q1, q2], default=None, atol=1e-8) is None
     for q3 in range(2, 5):
-        assert cirq.subwavefunction(
-            state, [0, 1, q3], default=None, atol=1e-8) is None
+        assert cirq.subwavefunction(state, [0, 1, q3], default=None,
+                                    atol=1e-8) is None
     for q4 in range(2):
         assert cirq.subwavefunction(
             state, [2, 3, 4, q4], default=None, atol=1e-8) is None
@@ -466,14 +465,18 @@ def test_subwavefunction_non_kron():
     state = np.kron(a, b).reshape(2, 2, 2, 2)
 
     for q1 in [0, 1, 2]:
-        assert cirq.subwavefunction(
-            state, [q1], default=None, atol=1e-8) is None
+        assert cirq.subwavefunction(state, [q1], default=None,
+                                    atol=1e-8) is None
     for q1 in [0, 1, 2]:
-        assert cirq.subwavefunction(
-            state, [q1, 3], default=None, atol=1e-8) is None
+        assert cirq.subwavefunction(state, [q1, 3], default=None,
+                                    atol=1e-8) is None
 
-    assert cirq.equal_up_to_global_phase(
-        cirq.subwavefunction(state, [3]), b, atol=1e-8)
+    with pytest.raises(ValueError, match='factored'):
+        _ = cirq.subwavefunction(a, [0], atol=1e-8)
+
+    assert cirq.equal_up_to_global_phase(cirq.subwavefunction(state, [3]),
+                                         b,
+                                         atol=1e-8)
 
 
 def test_subwavefunction_invalid_inputs():
@@ -493,16 +496,15 @@ def test_subwavefunction_invalid_inputs():
 
     # Bad choice of input indices.
     with pytest.raises(ValueError, match='2, 2'):
-        cirq.subwavefunction(
-            np.arange(16) / np.linalg.norm(np.arange(16)),
-            [1, 2, 2],
-            atol=1e-8)
+        cirq.subwavefunction(np.arange(16) / np.linalg.norm(np.arange(16)),
+                             [1, 2, 2],
+                             atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.subwavefunction(
-            np.array([1, 0, 0, 0]).reshape(2, 2), [5], atol=1e-8)
+        cirq.subwavefunction(np.array([1, 0, 0, 0]).reshape(2, 2), [5],
+                             atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
-        cirq.subwavefunction(
-            np.array([1, 0, 0, 0]).reshape(2, 2), [0, 1, 2], atol=1e-8)
+        cirq.subwavefunction(np.array([1, 0, 0, 0]).reshape(2, 2), [0, 1, 2],
+                                      atol=1e-8)
 
 
 def test_wavefunction_partial_trace_invalid_input():
@@ -514,8 +516,8 @@ def mixtures_equal(m1, m2, atol=1e-7):
     if len(m1) != len(m2):
         return False
     for (p1, v1), (p2, v2) in zip(m1, m2):
-        if not (cirq.approx_eq(p1, p2, atol=atol)
-                and cirq.equal_up_to_global_phase(v1, v2, atol=atol)):
+        if not (cirq.approx_eq(p1, p2, atol=atol) and
+                cirq.equal_up_to_global_phase(v1, v2, atol=atol)):
             return False
     return True
 
@@ -542,8 +544,8 @@ def test_wavefunction_partial_trace_pure_result():
         cirq.wavefunction_partial_trace(state, [0, 1, 5, 6, 7, 8], atol=1e-8),
         ((1.0, np.kron(a, c).reshape(2, 2, 2, 2, 2, 2)),))
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(
-            state, [2, 3, 4, 5, 6, 7, 8], atol=1e-8),
+        cirq.wavefunction_partial_trace(state, [2, 3, 4, 5, 6, 7, 8],
+                                        atol=1e-8),
         ((1.0, np.kron(b, c).reshape(2, 2, 2, 2, 2, 2, 2)),))
 
     # Return mixture will defer to numpy.linalg.eig's builtin tolerance.
@@ -560,8 +562,7 @@ def test_wavefunction_partial_trace_pure_result():
     # Shapes of states in the output mixture conform to the input's shape.
     state = state.reshape(-1)
     assert mixtures_equal(
-        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8),
-        ((1.0, a),))
+        cirq.wavefunction_partial_trace(state, [0, 1], atol=1e-8), ((1.0, a),))
     assert mixtures_equal(
         cirq.wavefunction_partial_trace(state, [2, 3, 4], atol=1e-8),
         ((1.0, b),))
@@ -574,8 +575,8 @@ def test_wavefunction_partial_trace_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
-        mixture = cirq.wavefunction_partial_trace(
-            state.reshape(2, 2), [q1], atol=1e-8)
+        mixture = cirq.wavefunction_partial_trace(state.reshape(2, 2), [q1],
+                                                  atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
     state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape(2, 2, 2) / np.sqrt(3)

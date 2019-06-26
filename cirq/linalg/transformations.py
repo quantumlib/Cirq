@@ -22,11 +22,11 @@ from cirq.protocols.approximate_equality import approx_eq
 from cirq.linalg import predicates
 
 
-# This is a special indicator value used by the subwavefunction method to determine
-# whether or not the caller provided a 'default' argument. It must be of type
-# np.ndarray to ensure the method has the correct type signature in that case.
-# It is checked for using `is`, so it won't have a false positive if the user
-# provides a different np.array([]) value.
+# This is a special indicator value used by the subwavefunction method to
+# determine whether or not the caller provided a 'default' argument. It must be
+# of type np.ndarray to ensure the method has the correct type signature in that
+# case. It is checked for using `is`, so it won't have a false positive if the
+# user provides a different np.array([]) value.
 RaiseValueErrorIfNotProvided = np.array([])  # type: np.ndarray
 
 TDefault = TypeVar('TDefault')
@@ -319,11 +319,11 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-def wavefunction_partial_trace(
-        wavefunction: np.ndarray,
-        keep_indices: List[int],
-        *,
-        atol: Union[int, float] = 1e-8) -> Tuple[Tuple[float, np.ndarray]]:
+def wavefunction_partial_trace(wavefunction: np.ndarray,
+                               keep_indices: List[int],
+                               *,
+                               atol: Union[int, float] = 1e-8
+                               ) -> Tuple[Tuple[float, np.ndarray]]:
     """Attempts to factor a wavefunction into two parts and return one of them.
 
     The input wavefunction must have shape `(2, 2, ..., 2)` or `(2 ** N)` where
@@ -351,7 +351,7 @@ def wavefunction_partial_trace(
         `(2, 2, ..., 2)`
     """
 
-    # Attempt to do efficient state factoring.]
+    # Attempt to do efficient state factoring.
     state = subwavefunction(wavefunction, keep_indices, default=None, atol=atol)
     if state is not None:
         return ((1.0, state),)
@@ -364,14 +364,16 @@ def wavefunction_partial_trace(
 
     keep_dims = 1 << len(keep_indices)
     tot_dims = 1 << len(wavefunction.shape)
-    rho = np.kron(np.conj(wavefunction.reshape(tot_dims, 1)).T,
-                  wavefunction.reshape(tot_dims, 1)).reshape(
-                  (2, 2) * len(wavefunction.shape))
+    rho = np.kron(
+        np.conj(wavefunction.reshape(tot_dims, 1)).T,
+        wavefunction.reshape(tot_dims, 1)).reshape(
+            (2, 2) * len(wavefunction.shape))
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
     eigvals, eigvecs = np.linalg.eig(keep_rho)
     mixture = tuple(
         zip(eigvals, [vec.reshape(return_shape) for vec in eigvecs.T]))
-    return [p for p in mixture if not approx_eq(p[0], 0.0)]
+    return tuple(
+        [(float(p[0]), p[1]) for p in mixture if not approx_eq(p[0], 0.0)])
 
 
 def subwavefunction(wavefunction: np.ndarray,
@@ -442,19 +444,16 @@ def subwavefunction(wavefunction: np.ndarray,
     keep_dims = 1 << len(keep_indices)
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
     candidates = [
-        wavefunction[
-            predicates.slice_for_qubits_equal_to(other_qubits, k)
-        ].reshape(keep_dims)
+        wavefunction[predicates.slice_for_qubits_equal_to(other_qubits,
+                                                          k)].reshape(keep_dims)
         for k in range(1 << len(other_qubits))
     ]
     # The coherence measure is computed using unnormalized candidates.
     best_candidate = max(candidates, key=lambda c: np.linalg.norm(c, 2))
     best_candidate = best_candidate / np.linalg.norm(best_candidate)
     left = np.conj(best_candidate.reshape((keep_dims,))).T
-    coherence_measure = sum([
-            abs(np.dot(left, c.reshape((keep_dims,)))) ** 2
-            for c in candidates
-        ])
+    coherence_measure = sum(
+        [abs(np.dot(left, c.reshape((keep_dims,)))) ** 2 for c in candidates])
 
     if approx_eq(coherence_measure, 1, atol=atol):
         return best_candidate.reshape(return_shape)
