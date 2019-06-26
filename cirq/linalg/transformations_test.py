@@ -534,8 +534,6 @@ def test_wavefunction_partial_trace_as_mixture_invalid_input():
 
 
 def mixtures_equal(m1, m2, atol=1e-7):
-    if len(m1) != len(m2):
-        return False
     for (p1, v1), (p2, v2) in zip(m1, m2):
         if not (cirq.approx_eq(p1, p2, atol=atol) and
                 cirq.equal_up_to_global_phase(v1, v2, atol=atol)):
@@ -582,25 +580,25 @@ def test_wavefunction_partial_trace_as_mixture_pure_result():
         ((1.0, b),))
     assert mixtures_equal(
         cirq.wavefunction_partial_trace_as_mixture(state, [5, 6, 7, 8],
-                                                   atol=1e-8),
-        ((1.0, c),))
+                                                   atol=1e-8), ((1.0, c),))
 
     # Return mixture will defer to numpy.linalg.eigh's builtin tolerance.
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     assert mixtures_equal(
         cirq.wavefunction_partial_trace_as_mixture(state, [1], atol=1e-20),
-        ((0.5, np.array([1, 0])), (0.5, np.array([0, 1]))), atol=1e-15)
+        truth, atol=1e-15)
     assert not mixtures_equal(
         cirq.wavefunction_partial_trace_as_mixture(state, [1], atol=1e-20),
-        ((0.5, np.array([1, 0])), (0.5, np.array([0, 1]))), atol=1e-16)
+        truth, atol=1e-16)
 
 
 def test_wavefunction_partial_trace_as_mixture_mixed_result():
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1]:
-        mixture = cirq.wavefunction_partial_trace_as_mixture(
-            state.reshape(2, 2), [q1], atol=1e-8)
+        mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1],
+                                                             atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
     state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape(2, 2, 2) / np.sqrt(3)
