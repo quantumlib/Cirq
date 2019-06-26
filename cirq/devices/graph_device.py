@@ -77,7 +77,7 @@ UnconstrainedUndirectedGraphDeviceEdge = (
 def is_undirected_device_graph(graph: UndirectedHypergraph) -> bool:
     if not isinstance(graph, UndirectedHypergraph):
         return False
-    if not all(isinstance(v, ops.QubitId) for v in graph.vertices):
+    if not all(isinstance(v, ops.Qid) for v in graph.vertices):
         return False
     for _, label in graph.labelled_edges.items():
         if not (label is None or isinstance(label, UndirectedGraphDeviceEdge)):
@@ -90,7 +90,7 @@ def is_crosstalk_graph(graph: UndirectedHypergraph) -> bool:
     for vertex in graph.vertices:
         if not isinstance(vertex, frozenset):
             return False
-        if not all(isinstance(v, ops.QubitId) for v in vertex):
+        if not all(isinstance(v, ops.Qid) for v in vertex):
             return False
     for edge, label in graph.labelled_edges.items():
         if len(edge) < 2:

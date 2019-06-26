@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def uniform_undirected_graph_device(
-        edges: Iterable[Iterable[ops.QubitId]],
+        edges: Iterable[Iterable[ops.Qid]],
         edge_label: Optional[devices.UndirectedGraphDeviceEdge]=None
         ) -> devices.UndirectedGraphDevice:
     """An undirected graph device all of whose edges are the same.
