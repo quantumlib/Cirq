@@ -66,6 +66,11 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return NotImplemented
 
+    class No4:
+
+        def _apply_unitary_(self, args):
+            return NotImplemented
+
     class Yes1(EmptyOp):
 
         def _apply_unitary_(self, args):
@@ -81,6 +86,7 @@ def test_via_apply_unitary():
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
     assert not cirq.has_unitary(No3())
+    assert not cirq.has_unitary(No4())
 
 
 def test_via_decompose():
