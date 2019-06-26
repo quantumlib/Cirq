@@ -61,14 +61,26 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return NotImplemented
 
-    class Yes(EmptyOp):
+    class No3(cirq.SingleQubitGate):
+
+        def _apply_unitary_(self, args):
+            return NotImplemented
+
+    class Yes1(EmptyOp):
 
         def _apply_unitary_(self, args):
             return args.target_tensor
 
-    assert cirq.has_unitary(Yes())
+    class Yes2(cirq.SingleQubitGate):
+
+        def _apply_unitary_(self, args):
+            return args.target_tensor
+
+    assert cirq.has_unitary(Yes1())
+    assert cirq.has_unitary(Yes2())
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
+    assert not cirq.has_unitary(No3())
 
 
 def test_via_decompose():

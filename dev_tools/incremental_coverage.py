@@ -38,7 +38,7 @@ IGNORED_LINE_PATTERNS = [
     # Code explicitly marked as not implemented.
     r'raise NotImplementedError\(.+',
     # Code explicitly marked as unreachable.
-    r'^assert False.+$',
+    r'^assert False.*$',
     # Code testing if libraries are present.
     r'except ImportError',
 ]

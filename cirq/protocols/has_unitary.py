@@ -132,10 +132,7 @@ def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
     operations, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return None
-    has_unitaries = [has_unitary(op) for op in operations]
-    if any(v is None or v is NotImplemented for v in has_unitaries):
-        return None
-    return all(has_unitaries)
+    return all(has_unitary(op) for op in operations)
 
 
 def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
