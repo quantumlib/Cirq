@@ -162,7 +162,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
             collected.
         """
         pool = work_pool.CompletionOrderedAsyncWorkPool()
-        queued_jobs = []
+        queued_jobs: List[CircuitSampleJob] = []
         remaining_samples = (np.infty if max_total_samples is None else
                              max_total_samples)
 
