@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Dict, Optional, List, Any, Iterable, Callable, Tuple, Union
+from typing import (Any, Callable, Dict, Iterable, List, Optional,
+                    TYPE_CHECKING, Union)
 import numpy as np
 from ply import yacc
 
@@ -21,6 +22,10 @@ from cirq import Circuit, NamedQubit, CX
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Tuple
 
 
 class Qasm:
