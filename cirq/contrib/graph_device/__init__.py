@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Package for contributions.
+from cirq.contrib.graph_device.hypergraph import (UndirectedHypergraph)
 
-Any contributions not ready for full production can be put in a subdirectory in
-this package.
-"""
-
-from cirq.contrib import acquaintance
-from cirq.contrib import graph_device
-from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
+from cirq.contrib.graph_device.graph_device import (
+    is_undirected_device_graph, is_crosstalk_graph, UndirectedGraphDevice,
+    UnconstrainedUndirectedGraphDeviceEdge,
+    FixedDurationUndirectedGraphDeviceEdge)
