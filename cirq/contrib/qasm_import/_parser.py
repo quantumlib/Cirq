@@ -251,6 +251,7 @@ class QasmParser:
 
     # params : parameter ',' params
     #        | parameter
+
     def p_params_multiple(self, p):
         """params : expr ',' params"""
         p[3].insert(0, p[1])
@@ -264,6 +265,7 @@ class QasmParser:
     #            | func '(' expression ')' """
     #            | binary_op
     #            | unary_op
+
     def p_expr_term(self, p):
         """expr : term"""
         p[0] = p[1]
@@ -308,8 +310,8 @@ class QasmParser:
             raise QasmException('Undefined quantum register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
         qubits = []
-        for num in range(self.qregs[reg]):
-            arg_name = self.make_name(num, reg)
+        for idx in range(self.qregs[reg]):
+            arg_name = self.make_name(idx, reg)
             if arg_name not in self.qubits.keys():
                 self.qubits[arg_name] = NamedQubit(arg_name)
             qubits.append(self.qubits[arg_name])
@@ -325,24 +327,24 @@ class QasmParser:
             raise QasmException('Undefined classical register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
 
-        p[0] = [self.make_name(num, reg) for num in range(self.cregs[reg])]
+        p[0] = [self.make_name(idx, reg) for idx in range(self.cregs[reg])]
 
-    def make_name(self, num, reg):
-        return str(reg) + "_" + str(num)
+    def make_name(self, idx, reg):
+        return str(reg) + "_" + str(idx)
 
     def p_quantum_arg_bit(self, p):
         """qarg : ID '[' NATURAL_NUMBER ']' """
         reg = p[1]
-        num = p[3]
-        arg_name = self.make_name(num, reg)
+        idx = p[3]
+        arg_name = self.make_name(idx, reg)
         if reg not in self.qregs.keys():
             raise QasmException('Undefined quantum register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
         size = self.qregs[reg]
-        if num > size - 1:
+        if idx >= size:
             raise QasmException('Out of bounds qubit index {} '
                                 'on register {} of size {} '
-                                'at line {}'.format(num, reg, size,
+                                'at line {}'.format(idx, reg, size,
                                                     p.lineno(1)))
         if arg_name not in self.qubits.keys():
             self.qubits[arg_name] = NamedQubit(arg_name)
@@ -351,22 +353,23 @@ class QasmParser:
     def p_classical_arg_bit(self, p):
         """carg : ID '[' NATURAL_NUMBER ']' """
         reg = p[1]
-        num = p[3]
-        arg_name = self.make_name(num, reg)
+        idx = p[3]
+        arg_name = self.make_name(idx, reg)
         if reg not in self.cregs.keys():
             raise QasmException('Undefined classical register "{}" '
                                 'at line {}'.format(reg, p.lineno(1)))
 
         size = self.cregs[reg]
-        if num > size - 1:
+        if idx >= size:
             raise QasmException('Out of bounds bit index {} '
                                 'on classical register {} of size {} '
-                                'at line {}'.format(num, reg, size,
+                                'at line {}'.format(idx, reg, size,
                                                     p.lineno(1)))
         p[0] = [arg_name]
 
     # measurement operations
     # measurement : MEASURE qarg ARROW carg
+
     def p_measurement(self, p):
         """measurement : MEASURE qarg ARROW carg ';'"""
         qreg = p[2]
