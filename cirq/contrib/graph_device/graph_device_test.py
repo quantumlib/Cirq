@@ -1,8 +1,39 @@
+# Copyright 2018 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import pytest
 
 import cirq
 
 import cirq.contrib.graph_device as ccgd
+import cirq.contrib.graph_device.graph_device as ccgdgd
+
+
+def test_fixed_duration_undirected_graph_device_edge_eq():
+    e = ccgd.FixedDurationUndirectedGraphDeviceEdge(cirq.Duration(picos=4))
+    f = ccgd.FixedDurationUndirectedGraphDeviceEdge(cirq.Duration(picos=4))
+    g = ccgd.FixedDurationUndirectedGraphDeviceEdge(cirq.Duration(picos=5))
+    assert e == f
+    assert e != g
+    assert e != 4
+
+
+def test_unconstrained_undirected_graph_device_edge_eq():
+    e = ccgdgd._UnconstrainedUndirectedGraphDeviceEdge()
+    f = ccgd.UnconstrainedUndirectedGraphDeviceEdge
+    assert e == f
+    assert e != 3
 
 
 def test_is_undirected_device_graph():
@@ -58,6 +89,10 @@ def test_graph_device():
         one_qubit_duration)
     two_qubit_edge = ccgd.FixedDurationUndirectedGraphDeviceEdge(
         two_qubit_duration)
+
+    empty_device = ccgd.UndirectedGraphDevice()
+    assert not empty_device.qubits
+    assert not empty_device.edges
 
     n_qubits = 4
     qubits = cirq.LineQubit.range(n_qubits)
