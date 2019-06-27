@@ -32,8 +32,7 @@ class CircuitDiagramInfo:
                  wire_symbols: Tuple[str, ...],
                  exponent: Any = 1,
                  vconnected: bool = True,
-                 hconnected: bool = True
-                 ) -> None:
+                 hconnected: bool = True) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -59,16 +58,15 @@ class CircuitDiagramInfo:
         self.hconnected = hconnected
 
     def _value_equality_values_(self):
-        return (self.wire_symbols, self.exponent,
-                self.vconnected, self.hconnected)
+        return (self.wire_symbols, self.exponent, self.vconnected,
+                self.hconnected)
 
     def __repr__(self):
         return ('cirq.CircuitDiagramInfo(' +
                 'wire_symbols={!r}, '.format(self.wire_symbols) +
                 'exponent={!r}, '.format(self.exponent) +
                 'vconnected={!r}, '.format(self.vconnected) +
-                'hconnected={!r})'.format(self.hconnected)
-                )
+                'hconnected={!r})'.format(self.hconnected))
 
 
 @value.value_equality

@@ -83,6 +83,7 @@ Layers = NamedTuple('Layers', [
 def new_layers(**kwargs: List[ops.Operation]) -> Layers:
     return Layers._make(kwargs.get(field, []) for field in Layers._fields)
 
+
 def acquaint_insides(swap_gate: ops.Gate, acquaintance_gate: ops.Operation,
                      qubits: Sequence[ops.Qid], before: bool, layers: Layers,
                      mapping: Dict[ops.Qid, int]) -> None:

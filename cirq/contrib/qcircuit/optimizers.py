@@ -33,12 +33,11 @@ def PadBetweenOps(
             op_pairs = itertools.product(circuit[i], circuit[i + 1])
             padding = max(
                 itertools.chain(
-                    (0,),
-                    (padding_needed(*op_pair) for op_pair in op_pairs)))
+                    (0,), (padding_needed(*op_pair) for op_pair in op_pairs)))
             circuit.insert(i + 1, (ops.Moment(),) * padding)
         padding = max(
-            itertools.chain(
-                (0,), (padding_needed(op, None) for op in circuit[-1])))
+            itertools.chain((0,),
+                            (padding_needed(op, None) for op in circuit[-1])))
         circuit.append((ops.Moment(),) * padding)
 
     return optimize_circuit
