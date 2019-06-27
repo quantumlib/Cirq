@@ -294,8 +294,7 @@ def test_u3_angles():
     qasm = """
     OPENQASM 2.0;
     qreg q[1];
-    // TODO: rewrite first param to "pi/2" when we have arithmetics 
-    U(1.5707963267948966,0,pi) q[0];
+    U(pi/2,0,pi) q[0];
     """
 
     c = QasmParser().parse(qasm).circuit
