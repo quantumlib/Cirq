@@ -425,7 +425,7 @@ def subwavefunction(wavefunction: np.ndarray,
     keep_dims = 1 << len(keep_indices)
     ret_shape: Union[Tuple[int], Tuple[int, ...]]
     if wavefunction.shape == (wavefunction.size,):
-        ret_shape = (keep_dims, )
+        ret_shape = (keep_dims,)
         wavefunction = wavefunction.reshape((2,) * n_qubits)
     elif wavefunction.shape == (2,) * n_qubits:
         ret_shape = tuple(2 for _ in range(len(keep_indices)))
