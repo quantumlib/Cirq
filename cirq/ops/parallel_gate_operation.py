@@ -17,17 +17,16 @@ from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
-from cirq.value.value_equality import value_equality
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Dict, List
 
 
-@value_equality
+@value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 

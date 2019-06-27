@@ -18,12 +18,11 @@ from typing import Iterable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq.ops import common_gates, pauli_gates, gate_features
-from cirq.value.value_equality import value_equality
 
 
-@value_equality
+@value.value_equality
 class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes asymmetrically along different directions."""
 
@@ -115,7 +114,7 @@ def asymmetric_depolarize(
     return AsymmetricDepolarizingChannel(p_x, p_y, p_z)
 
 
-@value_equality
+@value.value_equality
 class DepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes a qubit."""
 
@@ -195,7 +194,7 @@ def depolarize(p: float) -> DepolarizingChannel:
     return DepolarizingChannel(p)
 
 
-@value_equality
+@value.value_equality
 class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through non ideal dissipation.
 
@@ -344,7 +343,7 @@ def generalized_amplitude_damp(
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
-@value_equality
+@value.value_equality
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
 
@@ -447,7 +446,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
     return AmplitudeDampingChannel(gamma)
 
 
-@value_equality
+@value.value_equality
 class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
 
@@ -549,7 +548,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
     return PhaseDampingChannel(gamma)
 
 
-@value_equality
+@value.value_equality
 class PhaseFlipChannel(gate_features.SingleQubitGate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
@@ -695,7 +694,7 @@ def phase_flip(
     return _phase_flip(p)
 
 
-@value_equality
+@value.value_equality
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 

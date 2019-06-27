@@ -17,13 +17,12 @@ from typing import Any, Union, Sequence, Optional
 import numpy as np
 
 import cirq
-from cirq import linalg, protocols
+from cirq import linalg, protocols, value
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
-from cirq.value.value_equality import value_equality
 
 
-@value_equality
+@value.value_equality
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 

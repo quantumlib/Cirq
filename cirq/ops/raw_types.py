@@ -18,9 +18,8 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
 
-from cirq.value.value_equality import value_equality
-from cirq.protocols.decompose import decompose_once_with_qubits
-from cirq.protocols.inverse import inverse
+from cirq import value
+from cirq.protocols import decompose, inverse
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -193,14 +192,14 @@ class Gate(metaclass=abc.ABCMeta):
             # HACK: break cycle
             from cirq.line import line_qubit
 
-            decomposed = decompose_once_with_qubits(
+            decomposed = decompose.decompose_once_with_qubits(
                 self,
                 qubits=line_qubit.LineQubit.range(self.num_qubits()),
                 default=None)
             if decomposed is None:
                 return NotImplemented
 
-            inverse_decomposed = inverse(decomposed, None)
+            inverse_decomposed = inverse.inverse(decomposed, None)
             if inverse_decomposed is None:
                 return NotImplemented
 
@@ -270,7 +269,7 @@ class Operation(metaclass=abc.ABCMeta):
         return ControlledOperation(control_qubits, self)
 
 
-@value_equality
+@value.value_equality
 class _InverseCompositeGate(Gate):
     """The inverse of a composite gate."""
 
@@ -288,7 +287,8 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return inverse(decompose_once_with_qubits(self._original, qubits))
+        return inverse.inverse(decompose.decompose_once_with_qubits(
+            self._original, qubits))
 
     def _value_equality_values_(self):
         return self._original

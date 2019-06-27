@@ -24,14 +24,13 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
-from cirq.value.value_equality import value_equality
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Dict, List
 
 
-@value_equality(approximate=True)
+@value.value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
 

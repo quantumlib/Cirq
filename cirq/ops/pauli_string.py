@@ -20,6 +20,7 @@ import math
 
 import numpy as np
 
+from cirq import value
 from cirq.ops import (
     raw_types,
     gate_operation,
@@ -29,12 +30,11 @@ from cirq.ops import (
     clifford_gate,
     pauli_interaction_gate,
 )
-from cirq.value.value_equality import value_equality
 
 TDefault = TypeVar('TDefault')
 
 
-@value_equality(approximate=True, manual_cls=True)
+@value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
     def __init__(self,

@@ -27,9 +27,8 @@ import abc
 
 import numpy as np
 
-from cirq import protocols
+from cirq import protocols, value
 from cirq.ops import op_tree, raw_types
-from cirq.value.value_equality import value_equality
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -126,7 +125,7 @@ class DensityMatrixDisplay(WaveFunctionDisplay):
         return self.value_derived_from_density_matrix(density_matrix, qubit_map)
 
 
-@value_equality
+@value.value_equality
 class ApproxPauliStringExpectation(SamplesDisplay):
     """Approximate expectation value of a Pauli string."""
 
@@ -170,7 +169,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string, self._num_samples, self._key
 
 
-@value_equality
+@value.value_equality
 class PauliStringExpectation(DensityMatrixDisplay):
     """Expectation value of a Pauli string."""
 

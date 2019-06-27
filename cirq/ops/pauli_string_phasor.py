@@ -20,10 +20,9 @@ from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
                       op_tree, pauli_string_raw_types)
-from cirq.value.value_equality import value_equality
 
 
-@value_equality(approximate=True)
+@value.value_equality(approximate=True)
 class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     """An operation that phases the eigenstates of a Pauli string.
 

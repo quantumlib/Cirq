@@ -22,7 +22,7 @@ import math
 import cmath
 import numpy as np
 
-from cirq.value.value_equality import value_equality
+from cirq import value
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates
 
@@ -264,7 +264,7 @@ def so4_to_magic_su2s(
     return a, b
 
 
-@value_equality(approximate=True)
+@value.value_equality(approximate=True)
 class AxisAngleDecomposition:
     """Represents a unitary operation as an axis, angle, and global phase.
 
@@ -329,7 +329,8 @@ class AxisAngleDecomposition:
 
     def _value_equality_values_(self):
         v = self.canonicalize(atol=0)
-        return (v.angle % (math.pi * 2), v.axis, v.global_phase)
+        return (value.PeriodicValue(v.angle,
+                                    period=math.pi * 2), v.axis, v.global_phase)
 
     def _unitary_(self):
         x, y, z = self.axis
@@ -402,7 +403,7 @@ def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
                                   global_phase=p).canonicalize()
 
 
-@value_equality
+@value.value_equality
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
 

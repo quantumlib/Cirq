@@ -18,8 +18,6 @@ from typing import Union, Callable, overload, Any
 
 from typing_extensions import Protocol
 
-import cirq.protocols
-
 
 class _SupportsValueEquality(Protocol):
     """An object decorated with the value equality decorator."""
@@ -96,6 +94,8 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(self: _SupportsValueEquality,
                               other: _SupportsValueEquality,
                               atol: float) -> bool:
+    from cirq.protocols import approx_eq # HACK: Avoids circular dependencies.
+
     # Preserve regular equality type-comparison logic.
     cls_self = self._value_equality_values_cls_()
     if not isinstance(other, cls_self):
@@ -105,7 +105,7 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
         return False
 
     # Delegate to cirq.approx_eq for approximate equality comparison.
-    return cirq.protocols.approx_eq(
+    return approx_eq(
         self._value_equality_approximate_values_(),
         other._value_equality_approximate_values_(),
         atol=atol

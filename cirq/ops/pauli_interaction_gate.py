@@ -17,12 +17,11 @@ from typing import List, Sequence, Tuple, Union, cast, Dict
 import numpy as np
 import sympy
 
-from cirq import protocols
+from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
         op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.value.value_equality import value_equality
 
 
 pauli_eigen_map = cast(
@@ -35,7 +34,7 @@ pauli_eigen_map = cast(
     })
 
 
-@value_equality
+@value.value_equality
 class PauliInteractionGate(eigen_gate.EigenGate,
                            gate_features.InterchangeableQubitsGate,
                            gate_features.TwoQubitGate):

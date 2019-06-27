@@ -15,13 +15,12 @@ from typing import Union, Any, Optional, List, Sequence
 
 import numpy as np
 
-from cirq import protocols, linalg
+from cirq import protocols, linalg, value
 from cirq.ops import raw_types, gate_operation
 from cirq.type_workarounds import NotImplementedType
-from cirq.value.value_equality import value_equality
 
 
-@value_equality
+@value.value_equality
 class ControlledOperation(raw_types.Operation):
     def __new__(cls,
                 controls: Sequence[raw_types.Qid],
