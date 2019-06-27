@@ -8,6 +8,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 import cirq.testing as ct
@@ -33,7 +34,7 @@ def test_unsupported_format():
 
     with pytest.raises(QasmException,
                        match="Unsupported OpenQASM version: 2.1, "
-                       "only 2.0 is supported currently by Cirq"):
+                             "only 2.0 is supported currently by Cirq"):
         parser.parse(qasm)
 
 
@@ -227,7 +228,7 @@ def test_cx_gate_mismatched_registers():
 
     with pytest.raises(QasmException,
                        match=r"Non matching quantum registers of "
-                       r"length \[2 3\] at line 4"):
+                             r"length \[2 3\] at line 4"):
         parser.parse(qasm)
 
 
@@ -241,7 +242,7 @@ def test_cx_gate_bounds():
 
     with pytest.raises(QasmException,
                        match=r"Out of bounds qubit index 4"
-                       r" on register q1 of size 2 at line 4"):
+                             r" on register q1 of size 2 at line 4"):
         parser.parse(qasm)
 
 
@@ -255,7 +256,7 @@ def test_cx_gate_arg_overlap():
 
     with pytest.raises(QasmException,
                        match=r"Overlapping qubits in arguments"
-                       r" at line 4"):
+                             r" at line 4"):
         parser.parse(qasm)
 
 
@@ -301,6 +302,69 @@ def test_u3_angles():
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(c),
                                                     cirq.unitary(cirq.H),
                                                     atol=1e-7)
+
+
+@pytest.mark.parametrize('expr', [
+    '.333 + 4',
+    '1.0 * 2',
+    '0.1 ^ pi',
+    '0.1 / pi',
+    '2.0e-05 ^ (1/2)',
+    '1.2E+05 * (3 + 2)',
+    '123123.2132312 * cos(pi)',
+    '123123.2132312 * sin(2 * pi)',
+    '3 - 4 * 2',  # precedence of *
+    '3 * 4 + 2',  # precedence of *
+    '3 * 4 ^ 2',  # precedence of ^
+    '3 - 4 ^ 2',  # precedence of ^
+    '3^2^(-2)',  # right associativity of ^
+    '(-1) * pi',
+    '(+1) * pi',
+    '-3 * 5 + 2',
+    '(+4 * (-3) ^ 5 - 2)',
+    'tan(123123.2132312)',
+    'ln(pi)',
+    'exp(2*pi)',
+    'sqrt(4)',
+    'acos(1)',
+    'atan(0.2)',
+])
+def test_expressions(expr: str):
+    qasm = """OPENQASM 2.0;
+     qreg q[1];
+     U({}, 2 * pi, pi / 2.0) q[0];
+""".format(expr)
+
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(
+        QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is False
+
+    ct.assert_allclose_up_to_global_phase(cirq.unitary(parsed_qasm.circuit),
+                                          cirq.unitary(expected_circuit),
+                                          atol=1e-10)
+    assert parsed_qasm.qregs == {'q': 1}
+
+
+def test_unknown_function():
+    qasm = """OPENQASM 2.0;
+     qreg q[1];
+     U(nonexistent(3), 2 * pi, pi / 3.0) q[0];
+"""
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"Function not recognized:"
+                             r" 'nonexistent' at line 3"):
+        parser.parse(qasm)
 
 
 def test_u_gate_zero_params_error():
@@ -499,5 +563,5 @@ def test_measurement_bounds():
 
     with pytest.raises(QasmException,
                        match=r"Out of bounds bit index 4"
-                       r" on classical register c1 of size 3 at line 4"):
+                             r" on classical register c1 of size 3 at line 4"):
         parser.parse(qasm)
