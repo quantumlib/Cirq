@@ -91,6 +91,9 @@ class TextDiagramDrawer:
                  'horizontal_padding', 'vertical_padding')
         return tuple(getattr(self, attr) for attr in attrs)
 
+    def __bool__(self):
+        return any(self._value_equality_values_())
+
     def write(self,
               x: int,
               y: int,
@@ -345,13 +348,16 @@ class TextDiagramDrawer:
     def shifted(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
         return self.copy().shift(dx, dy)
 
-    def update(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+    def superimpose(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
         self.entries.update(other.entries)
         self.horizontal_lines += other.horizontal_lines
         self.vertical_lines += other.vertical_lines
         self.horizontal_padding.update(other.horizontal_padding)
         self.vertical_padding.update(other.vertical_padding)
         return self
+
+    def superimposed(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+        return self.copy().superimpose(other)
 
     @classmethod
     def vstack(cls,
@@ -381,7 +387,7 @@ class TextDiagramDrawer:
         stacked = cls()
         dy = 0
         for diagram in diagrams:
-            stacked.update(diagram.shifted(dy=dy))
+            stacked.superimpose(diagram.shifted(dy=dy))
             dy += diagram.height()
         for x in stacked.horizontal_padding:
             resolved_padding = padding_resolver(
@@ -420,7 +426,7 @@ class TextDiagramDrawer:
         stacked = cls()
         dx = 0
         for diagram in diagrams:
-            stacked.update(diagram.shifted(dx=dx))
+            stacked.superimpose(diagram.shifted(dx=dx))
             dx += diagram.width()
         for y in stacked.vertical_padding:
             resolved_padding = padding_resolver(

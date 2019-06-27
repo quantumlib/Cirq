@@ -370,3 +370,13 @@ def test_drawer_eq():
     dd.write(1, 1, 'F')
 
     eq.add_equality_group(dd)
+
+def test_drawer_superimposed():
+    empty_drawer = TextDiagramDrawer()
+    assert not empty_drawer
+    drawer_with_something = TextDiagramDrawer()
+    drawer_with_something.write(0, 0, 'A')
+    assert drawer_with_something
+    superimposed_drawer = empty_drawer.superimposed(drawer_with_something)
+    assert superimposed_drawer == drawer_with_something
+    assert not empty_drawer
