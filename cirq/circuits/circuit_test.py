@@ -3107,6 +3107,5 @@ def test_moment_groups():
 
 @deprecated_test
 def test_deprecated_to_unitary_matrix():
-    np.testing.assert_allclose(
-        cirq.Circuit().to_unitary_matrix(),
-        cirq.Circuit().unitary())
+    np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
+                               cirq.Circuit().unitary())
