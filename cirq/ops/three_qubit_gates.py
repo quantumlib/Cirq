@@ -14,12 +14,11 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
 
-import cirq
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import (
@@ -31,6 +30,9 @@ from cirq.ops import (
     op_tree,
     raw_types,
 )
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 
 class CCZPowGate(eigen_gate.EigenGate,
@@ -159,10 +161,10 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         self._diag_angles_radians = diag_angles_radians  # type: List[float]
 
     def _is_parameterized_(self):
-        return any([
+        return any(
             isinstance(angle, sympy.Basic)
             for angle in self._diag_angles_radians
-        ])
+        )
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
@@ -200,14 +202,14 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         2: ───p_2───────X───p_4────────X───p_5────X───p_6────X───
 
         where p_i = T**(4*x_i) and x_i solve the system of equations
-                    [0, 0, 1, 0, 1, 1, 1][x_0]   [l_1]
-                    [0, 1, 0, 1, 1, 0, 1][x_1]   [l_2]
-                    [0, 1, 1, 1, 0, 1, 0][x_2]   [l_3]
-                    [1, 0, 0, 1, 1, 1, 0][x_3] = [l_4]
-                    [1, 0, 1, 1, 0, 0, 1][x_4]   [l_5]
-                    [1, 1, 0, 0, 0, 1, 1][x_5]   [l_6]
-                    [1, 1, 1, 0, 1, 0, 0][x_6]   [l_7]
-        where l_i is self._diag_angles_radians[i].
+                    [0, 0, 1, 0, 1, 1, 1][x_0]   [r_1]
+                    [0, 1, 0, 1, 1, 0, 1][x_1]   [r_2]
+                    [0, 1, 1, 1, 0, 1, 0][x_2]   [r_3]
+                    [1, 0, 0, 1, 1, 1, 0][x_3] = [r_4]
+                    [1, 0, 1, 1, 0, 0, 1][x_4]   [r_5]
+                    [1, 1, 0, 0, 0, 1, 1][x_5]   [r_6]
+                    [1, 1, 1, 0, 1, 0, 0][x_6]   [r_7]
+        where r_i is self._diag_angles_radians[i].
 
         The above system was created by equating the composition of the gates
         in the circuit diagram to np.diag(self._diag_angles) (shifted by a
