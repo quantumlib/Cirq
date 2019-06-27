@@ -55,7 +55,8 @@ class PeriodicValue:
 
     def _approx_eq_(self, other: Any, atol: float) -> bool:
         """Implementation of `SupportsApproximateEquality` protocol."""
-        from cirq.protocols import approx_eq # HACK: Avoids circular dependencies.
+        # HACK: Avoids circular dependencies.
+        from cirq.protocols import approx_eq
         if not isinstance(other, type(self)):
             return NotImplemented
 
@@ -82,7 +83,8 @@ class PeriodicValue:
                                                    proper_repr(self.period))
 
     def _is_parameterized_(self):
-        from cirq.protocols import is_parameterized # HACK: Avoids circular dependencies.
+        # HACK: Avoids circular dependencies.
+        from cirq.protocols import is_parameterized
         return any(
             is_parameterized(val)
             for val in (self.value, self.period))
