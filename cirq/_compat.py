@@ -15,9 +15,10 @@
 """Workarounds for sympy issues"""
 
 from typing import Any
+import sys
+
 import numpy as np
 import sympy
-import sys
 
 
 def proper_repr(value: Any) -> str:
@@ -53,6 +54,7 @@ def deprecated(*, deadline: str, fix: str):
         A decorator that decorates functions with a deprecation warning.
     """
 
+    # coverage: ignore
     def decorator(func):
         used = False
 

@@ -1262,6 +1262,7 @@ class Circuit:
             qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        # coverage: ignore
         return self.unitary(qubit_order, qubits_that_should_be_present,
                             ignore_terminal_measurements, dtype)
 
