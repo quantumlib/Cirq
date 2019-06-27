@@ -316,7 +316,7 @@ def test_output_unitary_same_as_qiskit():
         return
 
     circuit = cirq.Circuit.from_ops(operations)
-    cirq_unitary = circuit.to_unitary_matrix(qubit_order=qubits)
+    cirq_unitary = circuit.unitary(qubit_order=qubits)
 
     result = qiskit.execute(
         qiskit.load_qasm_string(text),

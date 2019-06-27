@@ -31,6 +31,7 @@ import re
 import numpy as np
 
 from cirq import devices, ops, study, protocols
+from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -61,7 +62,7 @@ class Circuit:
         findall_operations_with_gate_type
         are_all_matches_terminal
         are_all_measurements_terminal
-        to_unitary_matrix
+        unitary
         apply_unitary_effect_to_state
         to_text_diagram
         to_text_diagram_drawer
@@ -1252,15 +1253,26 @@ class Circuit:
         """
         if not self._has_unitary_():
             return NotImplemented
-        return self.to_unitary_matrix(ignore_terminal_measurements=True)
+        return self.unitary(ignore_terminal_measurements=True)
 
+    @deprecated(deadline='v0.7.0', fix='Use Circuit.unitary instead.')
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        return self.unitary(qubit_order, qubits_that_should_be_present,
+                            ignore_terminal_measurements, dtype)
+
+    def unitary(self,
+                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                qubits_that_should_be_present: Iterable[ops.Qid] = (),
+                ignore_terminal_measurements: bool = True,
+                dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
+
+        Returns the same result as `cirq.unitary`, but provides more options.
 
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
