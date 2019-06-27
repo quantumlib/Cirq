@@ -13,7 +13,9 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.api.google.v2 protos."""
 
-from typing import cast, Dict, Iterable, Optional, Tuple, Union
+from collections import defaultdict
+
+from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union
 
 from google.protobuf import json_format
 
@@ -31,8 +33,24 @@ class SerializableGateSet:
     def __init__(self, gate_set_name: str,
                  serializers: Iterable[op_serializer.GateOpSerializer],
                  deserializers: Iterable[op_deserializer.GateOpDeserializer]):
+        """Construct the gate set.
+
+        Args:
+            gate_set_name: The name used to identify the gate set.
+            serializers: The GateOpSerializers to use for serialization.
+                Multiple serializers for a given gate type are allowed and
+                will be checked for a given type in the order specified here.
+                This allows for a given gate type to be serialized into
+                different serialized form depending on the parameters of the
+                gate.
+            deserializers: The GateOpDeserializers to convert serialized
+                forms of gates to GateOperations.
+        """
         self.gate_set_name = gate_set_name
-        self.serializers = {s.gate_type: s for s in serializers}
+        self.serializers = defaultdict(
+            list)  # type: Dict[Type, List[op_serializer.GateOpSerializer]]
+        for s in serializers:
+            self.serializers[s.gate_type].append(s)
         self.deserializers = {d.serialized_gate_id: d for d in deserializers}
 
     def supported_gate_types(self) -> Tuple:
@@ -103,7 +121,12 @@ class SerializableGateSet:
         for gate_type_mro in gate_type.mro():
             # Check all super classes in method resolution order.
             if gate_type_mro in self.serializers:
-                return self.serializers[gate_type_mro].to_proto(gate_op, msg)
+                # Check each serializer in turn, if serializer proto returns
+                # None, then skip.
+                for serializer in self.serializers[gate_type_mro]:
+                    proto_msg = serializer.to_proto(gate_op, msg)
+                    if proto_msg is not None:
+                        return proto_msg
         raise ValueError('Cannot serialize op of type {}'.format(gate_type))
 
     def deserialize_dict(self,

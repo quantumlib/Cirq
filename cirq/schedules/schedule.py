@@ -17,6 +17,7 @@ from typing import Iterable, List, TYPE_CHECKING, Union, cast
 
 from sortedcontainers import SortedListWithKey
 
+from cirq import protocols
 from cirq.circuits import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.devices import Device
@@ -206,3 +207,12 @@ class Schedule:
                 circuit.append(so.operation,
                                strategy=InsertStrategy.INLINE)
         return circuit
+
+    def _has_unitary_(self):
+        return protocols.has_unitary(self.to_circuit())
+
+    def _unitary_(self):
+        return protocols.unitary(self.to_circuit())
+
+    def _apply_unitary_(self, args):
+        return protocols.apply_unitary(self.to_circuit(), args)

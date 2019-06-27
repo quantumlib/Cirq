@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.google import api
+
 from cirq.google.engine import (
     engine_from_environment,
     Engine,

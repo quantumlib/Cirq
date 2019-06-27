@@ -239,6 +239,33 @@ def test_serialize_deserialize_op_subclass():
     assert MY_GATE_SET.deserialize_op_dict(proto) == cirq.X(q0)
 
 
+def test_multiple_serializers():
+    serializer1 = cg.GateOpSerializer(
+        gate_type=cirq.XPowGate,
+        serialized_gate_id='x_pow',
+        args=[
+            cg.SerializingArg(serialized_name='half_turns',
+                              serialized_type=float,
+                              gate_getter='exponent')
+        ],
+        can_serialize_predicate=lambda x: x.exponent != 1)
+    serializer2 = cg.GateOpSerializer(
+        gate_type=cirq.XPowGate,
+        serialized_gate_id='x',
+        args=[
+            cg.SerializingArg(serialized_name='half_turns',
+                              serialized_type=float,
+                              gate_getter='exponent')
+        ],
+        can_serialize_predicate=lambda x: x.exponent == 1)
+    gate_set = cg.SerializableGateSet(gate_set_name='my_gate_set',
+                                      serializers=[serializer1, serializer2],
+                                      deserializers=[])
+    q0 = cirq.GridQubit(1, 1)
+    assert gate_set.serialize_op(cirq.X(q0)).gate.id == 'x'
+    assert gate_set.serialize_op(cirq.X(q0)**0.5).gate.id == 'x_pow'
+
+
 def test_deserialize_op_invalid_gate():
     proto = {
         'gate': {},

@@ -26,7 +26,7 @@ trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $(git rev-parse --show-toplevel)
+cd "$(git rev-parse --show-toplevel)"
 
 # Build protos for each protobuf package.
 for package in cirq/api/google/v1 cirq/api/google/v2

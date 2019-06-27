@@ -173,6 +173,21 @@ def test_to_proto_callable(val_type, val, arg_value):
     assert result == expected
 
 
+def test_to_proto_gate_predicate():
+    serializer = cg.GateOpSerializer(
+        gate_type=GateWithAttribute,
+        serialized_gate_id='my_gate',
+        args=[
+            cg.SerializingArg(serialized_name='my_val',
+                              serialized_type=float,
+                              gate_getter='val')
+        ],
+        can_serialize_predicate=lambda x: x.val == 1)
+    q = cirq.GridQubit(1, 2)
+    assert serializer.to_proto_dict(GateWithAttribute(0)(q)) is None
+    assert serializer.to_proto_dict(GateWithAttribute(1)(q)) is not None
+
+
 def test_to_proto_gate_mismatch():
     serializer = cg.GateOpSerializer(gate_type=GateWithProperty,
                                      serialized_gate_id='my_gate',
