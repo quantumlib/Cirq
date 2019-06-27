@@ -73,8 +73,5 @@ from cirq.testing.order_tester import (
 from cirq.testing.random_circuit import (
     random_circuit,)
 
-from cirq.testing.random_dag import (
-    random_circuit_dag,)
-
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,)
