@@ -51,10 +51,9 @@ class QasmGateStatement:
     `cirq.GateOperation`s in the `on` method.
     """
 
-    def __init__(
-            self, qasm_gate: str,
-            cirq_gate: Union[ops.Gate, Callable[[List[float]], ops.Gate]],
-            num_params: int, num_args: int):
+    def __init__(self, qasm_gate: str,
+                 cirq_gate: Union[ops.Gate, Callable[[List[float]], ops.Gate]],
+                 num_params: int, num_args: int):
         """Initializes a Qasm gate statement.
 
        Args:
