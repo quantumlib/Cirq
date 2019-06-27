@@ -318,17 +318,18 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
-def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
-                                          keep_indices: List[int],
-                                          *,
-                                          atol: Union[int, float] = 1e-8
-                                         ) -> Tuple[Tuple[float, np.ndarray]]:
+def wavefunction_partial_trace_as_mixture(
+    wavefunction: np.ndarray,
+    keep_indices: List[int],
+    *,
+    atol: Union[int, float] = 1e-8
+ ) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a wavefunction with only some qubits kept.
 
-    The input wavefunction must have shape `(2,) * N` or `(2 ** N)` where
-    `wavefunction` is expressed over N qubits. States in the output mixture will
+    The input wavefunction must have shape `(2,) * n` or `(2 ** n)` where
+    `wavefunction` is expressed over n qubits. States in the output mixture will
     retain the same type of shape as the input wavefunction, either `(2 ** k)`
-    or `(2, ) * k` where k is the number of qubits kept.
+    or `(2,) * k` where k is the number of qubits kept.
 
     If the wavefunction cannot be factored into a pure state over `keep_indices`
     then eigendecomposition is used and the output mixture will not be unique.
@@ -345,7 +346,7 @@ def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
 
     Raises:
         ValueError: if the input wavefunction is not an array of length
-        `(2 ** N)` or a tensor with a shape of `(2, 2, ..., 2)`
+        `(2 ** n)` or a tensor with a shape of `(2,) * n`
     """
 
     # Attempt to do efficient state factoring.
@@ -354,12 +355,12 @@ def wavefunction_partial_trace_as_mixture(wavefunction: np.ndarray,
         return ((1.0, state),)
 
     # Fall back to a (non-unique) mixture representation.
+    keep_dims = 1 << len(keep_indices)
     if wavefunction.shape == (wavefunction.size,):
-        ret_shape = -1
+        ret_shape = (keep_dims,)
     elif all(e == 2 for e in wavefunction.shape):
         ret_shape = (2,) * len(keep_indices)
 
-    keep_dims = 1 << len(keep_indices)
     rho = np.kron(
         np.conj(wavefunction.reshape(-1, 1)).T,
         wavefunction.reshape(-1, 1)).reshape(
@@ -379,12 +380,12 @@ def subwavefunction(wavefunction: np.ndarray,
                     atol: Union[int, float] = 1e-8) -> np.ndarray:
     r"""Attempts to factor a wavefunction into two parts and return one of them.
 
-    The input wavefunction must have shape `(2, ) * N` or `(2 ** N)` where
-    `wavefunction` is expressed over N qubits. The returned array will retain
+    The input wavefunction must have shape `(2,) * n` or `(2 ** n)` where
+    `wavefunction` is expressed over n qubits. The returned array will retain
     the same type of shape as the input wavefunction, either `(2 ** k)` or
     `(2,) * k` where k is the number of qubits kept.
 
-    If a wavefunction $|\psi\rangle$ defined on N qubits is an outer product
+    If a wavefunction $|\psi\rangle$ defined on n qubits is an outer product
     of kets like  $|\psi\rangle$ = $|x\rangle \otimes |y\rangle$, and
     $|x\rangle$ is defined over the subset `keep_indices` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
@@ -421,14 +422,15 @@ def subwavefunction(wavefunction: np.ndarray,
                          "state over qubits.".format(wavefunction.size))
 
     n_qubits = int(np.log2(wavefunction.size))
+    keep_dims = 1 << len(keep_indices)
     if wavefunction.shape == (wavefunction.size,):
-        ret_shape = -1
+        ret_shape = (keep_dims, )
         wavefunction = wavefunction.reshape((2,) * n_qubits)
     elif wavefunction.shape == (2,) * n_qubits:
         ret_shape = (2,) * len(keep_indices)
     else:
         raise ValueError(
-            "Input wavefunction must be shaped like (2 ** n,) or (2, 2, ...)")
+            "Input wavefunction must be shaped like (2 ** n,) or (2,) * n")
 
     keep_dims = 1 << len(keep_indices)
     if not np.isclose(np.linalg.norm(wavefunction), 1):
@@ -440,7 +442,6 @@ def subwavefunction(wavefunction: np.ndarray,
         raise ValueError(
             "keep_indices {} are an invalid subset of the input wavefunction.")
 
-    keep_dims = 1 << len(keep_indices)
     other_qubits = sorted(set(range(n_qubits)) - set(keep_indices))
     candidates = [
         wavefunction[predicates.slice_for_qubits_equal_to(other_qubits,
