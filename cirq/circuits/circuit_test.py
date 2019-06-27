@@ -23,7 +23,6 @@ import sympy
 
 import cirq
 import cirq.google as cg
-from cirq._compat import deprecated_test
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -3105,7 +3104,6 @@ def test_moment_groups():
 """, use_unicode_characters=True)
 
 
-@deprecated_test
 def test_deprecated_to_unitary_matrix():
     np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
                                cirq.Circuit().unitary())

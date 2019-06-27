@@ -13,11 +13,8 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
-
+import logging
 from typing import Any, Callable
-import contextlib
-import os
-import sys
 
 import numpy as np
 import sympy
@@ -63,26 +60,17 @@ def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
             nonlocal used
             if not used:
                 used = True
-                print(
-                    f'\nThe function "{func.__qualname__}" was used '
-                    f'but is being DEPRECATED.\n'
-                    f'It will be removed in cirq {deadline}.\n'
-                    f'{fix}\n',
-                    file=sys.stderr)
+                logging.warning(
+                    'DEPRECATION\n'
+                    'The function %s was used but is being deprecated.\n'
+                    'It will be removed in cirq %s.\n'
+                    '%s\n',
+                    func.__qualname__,
+                    deadline,
+                    fix)
 
             return func(*args, **kwargs)
 
         return decorated_func
 
     return decorator
-
-
-def deprecated_test(test_func: Callable) -> Callable:
-    """Temporarily redirects stderr to /dev/null during the test."""
-
-    def decorated_test_func():
-        with open(os.devnull, 'w') as devnull:
-            with contextlib.redirect_stderr(devnull):
-                return test_func()
-
-    return decorated_test_func

@@ -359,7 +359,7 @@ def test_y_rotation(gate, trans_y):
     (cirq.SingleQubitCliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_decompose(gate, gate_equiv):
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit.from_ops(gate(q0),).unitary()
+    mat = cirq.Circuit.from_ops(gate(q0)).unitary()
     mat_check = cirq.Circuit.from_ops(gate_equiv(q0),).unitary()
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
