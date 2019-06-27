@@ -28,7 +28,7 @@ def test_update_edge_label():
 
 def test_hypergraph():
     vertices = range(4)
-    graph = ccgd.UndirectedHypergraph(vertices)
+    graph = ccgd.UndirectedHypergraph(vertices=vertices)
     assert graph.vertices == tuple(vertices)
 
     edges = [(0, 1), (2, 3)]
@@ -50,7 +50,8 @@ def test_hypergraph():
     }) for _ in range(10)])
 def test_eq(vertices, edges):
     vertices = set(vertices).union(*edges)
-    graph_initialized = ccgd.UndirectedHypergraph(vertices, edges)
+    graph_initialized = ccgd.UndirectedHypergraph(vertices=vertices,
+                                                  labelled_edges=edges)
     graph_added_parallel = ccgd.UndirectedHypergraph()
     graph_added_parallel.add_vertices(vertices)
     graph_added_parallel.add_edges(edges)
