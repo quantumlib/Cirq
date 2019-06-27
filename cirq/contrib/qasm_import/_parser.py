@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import (Any, Callable, Dict, Iterable, List, Optional,
-                    TYPE_CHECKING, Union)
+from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
+                    Sequence, Union)
+
 import numpy as np
 from ply import yacc
 
@@ -22,10 +23,6 @@ from cirq import Circuit, NamedQubit, CX
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Tuple
 
 
 class Qasm:
@@ -105,8 +102,9 @@ class QasmGateStatement:
         # used as arguments, we generate reg_size GateOperations via iterating
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
-        op_qubits = functools.reduce(np.broadcast, args)  # type: np.broadcast
-        for qubits in op_qubits:  # type: Tuple[cirq.Qid]
+        op_qubits = cast(Sequence[Sequence[cirq.Qid]],
+                         functools.reduce(np.broadcast, args))
+        for qubits in op_qubits:
             if isinstance(qubits, cirq.Qid):
                 yield final_gate.on(qubits)
             elif len(np.unique(qubits)) < len(qubits):
