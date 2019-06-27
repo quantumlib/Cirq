@@ -64,10 +64,7 @@ def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
                     'DEPRECATION\n'
                     'The function %s was used but is being deprecated.\n'
                     'It will be removed in cirq %s.\n'
-                    '%s\n',
-                    func.__qualname__,
-                    deadline,
-                    fix)
+                    '%s\n', func.__qualname__, deadline, fix)
 
             return func(*args, **kwargs)
 
