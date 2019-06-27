@@ -319,11 +319,10 @@ def partial_trace(tensor: np.ndarray,
 
 
 def wavefunction_partial_trace_as_mixture(
-    wavefunction: np.ndarray,
-    keep_indices: List[int],
-    *,
-    atol: Union[int, float] = 1e-8
- ) -> Tuple[Tuple[float, np.ndarray], ...]:
+        wavefunction: np.ndarray,
+        keep_indices: List[int],
+        *,
+        atol: Union[int, float] = 1e-8) -> Tuple[Tuple[float, np.ndarray], ...]:
     """Returns a mixture representing a wavefunction with only some qubits kept.
 
     The input wavefunction must have shape `(2,) * n` or `(2 ** n)` where
@@ -356,6 +355,7 @@ def wavefunction_partial_trace_as_mixture(
 
     # Fall back to a (non-unique) mixture representation.
     keep_dims = 1 << len(keep_indices)
+    ret_shape: Union[Tuple[int], Tuple[int, ...]]
     if wavefunction.shape == (wavefunction.size,):
         ret_shape = (keep_dims,)
     elif all(e == 2 for e in wavefunction.shape):
@@ -423,6 +423,7 @@ def subwavefunction(wavefunction: np.ndarray,
 
     n_qubits = int(np.log2(wavefunction.size))
     keep_dims = 1 << len(keep_indices)
+    ret_shape: Union[Tuple[int], Tuple[int, ...]]
     if wavefunction.shape == (wavefunction.size,):
         ret_shape = (keep_dims, )
         wavefunction = wavefunction.reshape((2,) * n_qubits)
