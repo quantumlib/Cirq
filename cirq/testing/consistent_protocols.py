@@ -27,6 +27,8 @@ from cirq.testing.consistent_qasm import (
         assert_qasm_is_consistent_with_unitary)
 from cirq.testing.consistent_pauli_expansion import (
         assert_pauli_expansion_is_consistent_with_unitary)
+from cirq.testing.consistent_specified_has_unitary import (
+        assert_specifies_has_unitary_if_unitary,)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
@@ -99,6 +101,7 @@ def _assert_meets_standards_helper(
         setup_code: str,
         global_vals: Optional[Dict[str, Any]],
         local_vals: Optional[Dict[str, Any]]) -> None:
+    assert_specifies_has_unitary_if_unitary(val)
     assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
     assert_qasm_is_consistent_with_unitary(val)
     assert_decompose_is_consistent_with_unitary(val,
