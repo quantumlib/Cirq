@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import collections
-from typing import (
-    Any, Callable, TYPE_CHECKING, Optional, Union, Tuple,
-    TypeVar, Dict, overload, Iterable)
+from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple,
+                    TypeVar, Dict, overload, Iterable)
 
 from typing_extensions import Protocol
 
@@ -95,11 +94,11 @@ class CircuitDiagramInfoArgs:
     UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
 
     def __init__(self,
-                 known_qubits: Optional[Iterable['cirq.QubitId']],
+                 known_qubits: Optional[Iterable['cirq.Qid']],
                  known_qubit_count: Optional[int],
                  use_unicode_characters: bool,
                  precision: Optional[int],
-                 qubit_map: Optional[Dict['cirq.QubitId', int]]) -> None:
+                 qubit_map: Optional[Dict['cirq.Qid', int]]) -> None:
         self.known_qubits = (None if known_qubits is None
                              else tuple(known_qubits))
         self.known_qubit_count = known_qubit_count

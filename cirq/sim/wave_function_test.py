@@ -21,8 +21,25 @@ import numpy as np
 import cirq
 
 
-def assert_dirac_notation(vec, expected, decimals=2):
+def assert_dirac_notation_numpy(vec, expected, decimals=2):
     assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
+
+
+def assert_dirac_notation_python(vec, expected, decimals=2):
+    assert cirq.dirac_notation(vec, decimals=decimals) == expected
+
+
+def test_state_mixin():
+    class TestClass(cirq.StateVectorMixin):
+        def state_vector(self) -> np.ndarray:
+            return np.array([0, 0, 1, 0])
+    qubits = cirq.LineQubit.range(2)
+    test = TestClass(qubit_map={qubits[i]: i for i in range(2)})
+    assert test.dirac_notation() == '|10⟩'
+    np.testing.assert_almost_equal(test.bloch_vector_of(qubits[0]),
+                                   np.array([0, 0, -1]))
+    np.testing.assert_almost_equal(test.density_matrix_of(qubits[0:1]),
+                                   np.array([[0, 0], [0, 1]]))
 
 
 def test_bloch_vector_simple_H_zero():
@@ -177,39 +194,42 @@ def test_density_matrix_invalid():
 def test_dirac_notation():
     sqrt = np.sqrt(0.5)
     exp_pi_2 = 0.5 + 0.5j
-    assert_dirac_notation([1], "|⟩")
-    assert_dirac_notation([sqrt, sqrt], "(0.71)|0⟩ + (0.71)|1⟩")
-    assert_dirac_notation([-sqrt, sqrt], "(-0.71)|0⟩ + (0.71)|1⟩")
-    assert_dirac_notation([sqrt, -sqrt], "(0.71)|0⟩ + (-0.71)|1⟩")
-    assert_dirac_notation([-sqrt, -sqrt], "(-0.71)|0⟩ + (-0.71)|1⟩")
-    assert_dirac_notation([sqrt, 1j * sqrt], "(0.71)|0⟩ + (0.71j)|1⟩")
-    assert_dirac_notation([sqrt, exp_pi_2], "(0.71)|0⟩ + (0.5+0.5j)|1⟩")
-    assert_dirac_notation([exp_pi_2, -sqrt], "(0.5+0.5j)|0⟩ + (-0.71)|1⟩")
-    assert_dirac_notation([exp_pi_2, 0.5 - 0.5j],
-                          "(0.5+0.5j)|0⟩ + (0.5-0.5j)|1⟩")
-    assert_dirac_notation([0.5, 0.5, -0.5, -0.5],
-                        "(0.5)|00⟩ + (0.5)|01⟩ + (-0.5)|10⟩ + (-0.5)|11⟩")
+    assert_dirac_notation_numpy([0, 0], "0")
+    assert_dirac_notation_python([1], "|⟩")
+    assert_dirac_notation_numpy([sqrt, sqrt], "0.71|0⟩ + 0.71|1⟩")
+    assert_dirac_notation_python([-sqrt, sqrt], "-0.71|0⟩ + 0.71|1⟩")
+    assert_dirac_notation_numpy([sqrt, -sqrt], "0.71|0⟩ - 0.71|1⟩")
+    assert_dirac_notation_python([-sqrt, -sqrt], "-0.71|0⟩ - 0.71|1⟩")
+    assert_dirac_notation_numpy([sqrt, 1j * sqrt], "0.71|0⟩ + 0.71j|1⟩")
+    assert_dirac_notation_python([sqrt, exp_pi_2], "0.71|0⟩ + (0.5+0.5j)|1⟩")
+    assert_dirac_notation_numpy([exp_pi_2, -sqrt], "(0.5+0.5j)|0⟩ - 0.71|1⟩")
+    assert_dirac_notation_python([exp_pi_2, 0.5 - 0.5j],
+                                 "(0.5+0.5j)|0⟩ + (0.5-0.5j)|1⟩")
+    assert_dirac_notation_numpy([0.5, 0.5, -0.5, -0.5],
+                                "0.5|00⟩ + 0.5|01⟩ - 0.5|10⟩ - 0.5|11⟩")
+    assert_dirac_notation_python([0.71j, 0.71j], "0.71j|0⟩ + 0.71j|1⟩")
 
 
 def test_dirac_notation_partial_state():
     sqrt = np.sqrt(0.5)
     exp_pi_2 = 0.5 + 0.5j
-    assert_dirac_notation([1, 0], "|0⟩")
-    assert_dirac_notation([1j, 0], "(1j)|0⟩")
-    assert_dirac_notation([0, 1], "|1⟩")
-    assert_dirac_notation([0, 1j], "(1j)|1⟩")
-    assert_dirac_notation([sqrt, 0 , 0, sqrt], "(0.71)|00⟩ + (0.71)|11⟩")
-    assert_dirac_notation([sqrt, sqrt , 0, 0], "(0.71)|00⟩ + (0.71)|01⟩")
-    assert_dirac_notation([exp_pi_2, 0, 0, exp_pi_2],
-                        "(0.5+0.5j)|00⟩ + (0.5+0.5j)|11⟩")
-    assert_dirac_notation([0, 0, 0, 1], "|11⟩")
+    assert_dirac_notation_numpy([1, 0], "|0⟩")
+    assert_dirac_notation_python([1j, 0], "1j|0⟩")
+    assert_dirac_notation_numpy([0, 1], "|1⟩")
+    assert_dirac_notation_python([0, 1j], "1j|1⟩")
+    assert_dirac_notation_numpy([sqrt, 0, 0, sqrt], "0.71|00⟩ + 0.71|11⟩")
+    assert_dirac_notation_python([sqrt, sqrt, 0, 0], "0.71|00⟩ + 0.71|01⟩")
+    assert_dirac_notation_numpy([exp_pi_2, 0, 0, exp_pi_2],
+                                "(0.5+0.5j)|00⟩ + (0.5+0.5j)|11⟩")
+    assert_dirac_notation_python([0, 0, 0, 1], "|11⟩")
 
 
 def test_dirac_notation_precision():
     sqrt = np.sqrt(0.5)
-    assert_dirac_notation([sqrt, sqrt], "(0.7)|0⟩ + (0.7)|1⟩", decimals=1)
-    assert_dirac_notation([sqrt, sqrt], "(0.707)|0⟩ + (0.707)|1⟩", decimals=3)
-
+    assert_dirac_notation_numpy([sqrt, sqrt], "0.7|0⟩ + 0.7|1⟩", decimals=1)
+    assert_dirac_notation_python([sqrt, sqrt],
+                                 "0.707|0⟩ + 0.707|1⟩",
+                                 decimals=3)
 
 
 def test_to_valid_state_vector():
@@ -303,12 +323,18 @@ def test_sample_state():
 
 def test_sample_empty_state():
     state = np.array([])
-    assert cirq.sample_state_vector(state, []) == [[]]
+    np.testing.assert_almost_equal(cirq.sample_state_vector(state, []),
+        np.zeros(shape=(1,0)))
 
 
 def test_sample_no_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
-    assert cirq.sample_state_vector(state, [1], repetitions=0) == [[]]
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [1], repetitions=0),
+        np.zeros(shape=(0, 1)))
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [1, 2], repetitions=0),
+        np.zeros(shape=(0, 2)))
 
 
 def test_sample_state_repetitions():
@@ -344,12 +370,15 @@ def test_sample_state_index_out_of_range():
 
 def test_sample_no_indices():
     state = cirq.to_valid_state_vector(0, 3)
-    assert [[]] == cirq.sample_state_vector(state, [])
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, []), np.zeros(shape=(1, 0)))
 
 
 def test_sample_no_indices_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
-    assert [[], []] == cirq.sample_state_vector(state, [], repetitions=2)
+    np.testing.assert_almost_equal(
+        cirq.sample_state_vector(state, [], repetitions=2),
+        np.zeros(shape=(2, 0)))
 
 
 def test_measure_state_computational_basis():
@@ -469,8 +498,88 @@ def test_measure_state_no_indices():
     np.testing.assert_almost_equal(state, initial_state)
 
 
+def test_measure_state_no_indices_out_is_state():
+    initial_state = cirq.to_valid_state_vector(0, 3)
+    bits, state = cirq.measure_state_vector(initial_state, [],
+                                            out=initial_state)
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+    assert state is initial_state
+
+
+def test_measure_state_no_indices_out_is_not_state():
+    initial_state = cirq.to_valid_state_vector(0, 3)
+    out = np.zeros_like(initial_state)
+    bits, state = cirq.measure_state_vector(initial_state, [], out=out)
+    assert [] == bits
+    np.testing.assert_almost_equal(state, initial_state)
+    assert state is out
+    assert out is not initial_state
+
+
 def test_measure_state_empty_state():
     initial_state = np.array([])
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)
+
+
+class BasicStateVector(cirq.StateVectorMixin):
+    def state_vector(self) -> np.ndarray:
+        return np.array([0, 1, 0, 0])
+
+
+def test_step_result_pretty_state():
+    step_result = BasicStateVector()
+    assert step_result.dirac_notation() == '|01⟩'
+
+
+def test_step_result_density_matrix():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    step_result = BasicStateVector({q0: 0, q1: 1})
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+        step_result.density_matrix_of([q0, q1]))
+
+    np.testing.assert_array_almost_equal(rho,
+        step_result.density_matrix_of())
+
+    rho_ind_rev = np.array([[0, 0, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho_ind_rev,
+        step_result.density_matrix_of([q1, q0]))
+
+    single_rho = np.array([[0, 0],
+                           [0, 1]])
+    np.testing.assert_array_almost_equal(single_rho,
+        step_result.density_matrix_of([q1]))
+
+
+def test_step_result_density_matrix_invalid():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    step_result = BasicStateVector({q0: 0})
+
+    with pytest.raises(KeyError):
+        step_result.density_matrix_of([q1])
+    with pytest.raises(KeyError):
+        step_result.density_matrix_of('junk')
+    with pytest.raises(TypeError):
+        step_result.density_matrix_of(0)
+
+
+def test_step_result_bloch_vector():
+    q0, q1 = cirq.LineQubit.range(2)
+    step_result = BasicStateVector({q0: 0, q1: 1})
+    bloch1 = np.array([0, 0, -1])
+    bloch0 = np.array([0, 0, 1])
+    np.testing.assert_array_almost_equal(bloch1,
+        step_result.bloch_vector_of(q1))
+    np.testing.assert_array_almost_equal(bloch0,
+        step_result.bloch_vector_of(q0))

@@ -45,10 +45,9 @@ class TestAndPrepareCoverageCheck(check.Check):
             target_path,
             None if verbose else '--quiet',
             *([
-                  '--cov',
-                  '--cov-report=annotate',
-                  '--cov-config={}'.format(rc_path)
-              ] if do_coverage else []),
+                '--cov', '--cov-report=annotate',
+                '--cov-config={}'.format(rc_path), '--benchmark-skip'
+            ] if do_coverage else []),
             out=shell_tools.TeeCapture(sys.stdout),
             raise_on_fail=False,
             log_run_to_stderr=verbose)
@@ -59,7 +58,7 @@ class TestAndPrepareCoverageCheck(check.Check):
             return True, 'Tests passed!'
 
         last_line = [e for e in output.split('\n') if e.strip()][-1]
-        fail_match = re.match('.+=== (\d+) failed', last_line)
+        fail_match = re.match(r'.+=== (\d+) failed', last_line)
         if fail_match is None:
             return False, 'Tests failed.'
         return False, '{} tests failed.'.format(fail_match.group(1))

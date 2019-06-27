@@ -14,23 +14,55 @@
 
 """Base simulation classes and generic simulators."""
 
+from cirq.sim.density_matrix_utils import (
+    measure_density_matrix,
+    sample_density_matrix,
+    to_valid_density_matrix,
+)
+
+from cirq.sim.density_matrix_simulator import (
+    DensityMatrixSimulator,
+    DensityMatrixSimulatorState,
+    DensityMatrixStepResult,
+    DensityMatrixTrialResult,
+)
+
+from cirq.sim.mux import (
+    final_wavefunction,
+    sample,
+    sample_sweep,
+)
+
+from cirq.sim.sampler import (
+    Sampler,)
+
 from cirq.sim.simulator import (
+    SimulatesFinalState,
+    SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
     StepResult,
-    SimulatesIntermediateWaveFunction,
-    SimulatesFinalWaveFunction,
 )
+
 from cirq.sim.sparse_simulator import (
     Simulator,
-    SimulatorStep,
+    SparseSimulatorStep,
 )
+
+from cirq.sim.wave_function_simulator import (
+    SimulatesIntermediateWaveFunction,
+    WaveFunctionSimulatorState,
+    WaveFunctionStepResult,
+    WaveFunctionTrialResult,
+)
+
 from cirq.sim.wave_function import (
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
+    StateVectorMixin,
     to_valid_state_vector,
     validate_normalized_state,
 )

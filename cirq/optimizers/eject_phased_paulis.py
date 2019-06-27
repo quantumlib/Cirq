@@ -16,6 +16,7 @@
 """
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
+import sympy
 
 from cirq import circuits, ops, value, protocols
 from cirq.optimizers import decompositions
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 class _OptimizerState:
     def __init__(self):
         # The phases of the W gates currently being pushed along each qubit.
-        self.held_w_phases = {}  # type: Dict[ops.QubitId, Optional[float]]
+        self.held_w_phases = {}  # type: Dict[ops.Qid, Optional[float]]
 
         # Accumulated commands to batch-apply to the circuit later.
         self.deletions = []  # type: List[Tuple[int, ops.Operation]]
@@ -36,7 +37,7 @@ class _OptimizerState:
         self.insertions = []  # type: List[Tuple[int, ops.Operation]]
 
 
-class EjectPhasedPaulis(circuits.OptimizationPass):
+class EjectPhasedPaulis():
     """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 
     As the gates get pushed, they may absorb Z gates, cancel against other
@@ -86,7 +87,7 @@ class EjectPhasedPaulis(circuits.OptimizationPass):
                     continue
 
                 # Dump coherent flips into measurement bit flips.
-                if ops.MeasurementGate.is_measurement(op):
+                if ops.op_gate_of_type(op, ops.MeasurementGate):
                     _dump_into_measurement(moment_index, op, state)
 
                 # Cross CZs using kickback.
@@ -132,7 +133,7 @@ def _absorb_z_into_w(moment_index: int,
     state.deletions.append((moment_index, op))
 
 
-def _dump_held(qubits: Iterable[ops.QubitId],
+def _dump_held(qubits: Iterable[ops.Qid],
                moment_index: int,
                state: _OptimizerState):
     # Note: sorting is to avoid non-determinism in the insertion order.
@@ -223,7 +224,7 @@ def _potential_cross_partial_w(moment_index: int,
 
 def _single_cross_over_cz(moment_index: int,
                           op: ops.Operation,
-                          qubit_with_w: ops.QubitId,
+                          qubit_with_w: ops.Qid,
                           state: _OptimizerState) -> None:
     """Crosses exactly one W flip over a partial CZ.
 
@@ -312,7 +313,7 @@ def _try_get_known_cz_half_turns(op: ops.Operation) -> Optional[float]:
             not isinstance(op.gate, ops.CZPowGate)):
         return None
     h = op.gate.exponent
-    if isinstance(h, value.Symbol):
+    if isinstance(h, sympy.Symbol):
         return None
     return h
 
@@ -344,6 +345,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
             not isinstance(op.gate, ops.ZPowGate)):
         return None
     h = op.gate.exponent
-    if isinstance(h, value.Symbol):
+    if isinstance(h, sympy.Symbol):
         return None
     return h

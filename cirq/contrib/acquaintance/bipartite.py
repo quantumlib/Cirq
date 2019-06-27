@@ -14,14 +14,15 @@
 
 import enum
 import itertools
-from typing import Dict, Sequence, Set, Tuple, Union
+from typing import Dict, Sequence, Tuple, Union
 
 from cirq import ops, protocols
 
 
-from cirq.contrib.acquaintance.gates import ACQUAINT
+from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
+
 
 @enum.unique
 class BipartiteGraphType(enum.Enum):
@@ -63,44 +64,39 @@ class BipartiteSwapNetworkGate(PermutationGate):
                  part_size: int,
                  swap_gate: ops.Gate=ops.SWAP
                  ) -> None:
-        super().__init__(swap_gate)
+        super().__init__(2 * part_size, swap_gate)
         self.part_size = part_size
         self.subgraph = (subgraph if isinstance(subgraph, BipartiteGraphType)
                          else BipartiteGraphType[subgraph])
         self.swap_gate = swap_gate
 
 
-    def decompose_complete(self,
-                           qubits: Sequence[ops.QubitId]
-                           ) -> ops.OP_TREE:
+    def decompose_complete(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         swap_gate = SwapPermutationGate(self.swap_gate)
         if self.part_size == 1:
-            yield ACQUAINT(*qubits)
+            yield acquaint(*qubits)
             return
         for k in range(-self.part_size + 1, self.part_size - 1):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
-                yield ACQUAINT(*qubits[x: x + 2])
+                yield acquaint(*qubits[x:x + 2])
                 yield swap_gate(*qubits[x: x + 2])
-        yield ACQUAINT(qubits[self.part_size - 1], qubits[self.part_size])
+        yield acquaint(qubits[self.part_size - 1], qubits[self.part_size])
         for k in reversed(range(-self.part_size + 1, self.part_size - 1)):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
-                yield ACQUAINT(*qubits[x: x + 2])
+                yield acquaint(*qubits[x:x + 2])
                 yield swap_gate(*qubits[x: x + 2])
 
 
-    def decompose_matching(self,
-                           qubits: Sequence[ops.QubitId]
-                           ) -> ops.OP_TREE:
+    def decompose_matching(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         swap_gate = SwapPermutationGate(self.swap_gate)
         for k in range(-self.part_size + 1, self.part_size):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
                 if (x + 1) % self.part_size:
                     yield swap_gate(*qubits[x: x + 2])
                 else:
-                    yield ACQUAINT(*qubits[x: x + 2])
+                    yield acquaint(*qubits[x:x + 2])
 
-
-    def _decompose_(self, qubits: Sequence[ops.QubitId]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         if len(qubits) != 2 * self.part_size:
             raise ValueError('len(qubits) != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.COMPLETE:
@@ -110,8 +106,8 @@ class BipartiteSwapNetworkGate(PermutationGate):
         raise NotImplementedError('No decomposition implemented for ' +
                                   str(self.subgraph))
 
-    def permutation(self, qubit_count: int) -> Dict[int, int]:
-        if qubit_count != 2 * self.part_size:
+    def permutation(self) -> Dict[int, int]:
+        if self.num_qubits() != 2 * self.part_size:
             raise ValueError('qubit_count != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.MATCHING:
             return dict(enumerate(
@@ -128,7 +124,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in '
                              '(None, 2 * self.part_size)')
-        partial_permutation = self.permutation(qubit_count)
+        partial_permutation = self.permutation()
         permutation = {i: partial_permutation.get(i, i)
                        for i in range(qubit_count)}
 
@@ -146,12 +142,15 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 for i, j in permutation.items())
         return wire_symbols
 
-
     def __repr__(self):
+        args = (repr(self.subgraph), repr(self.part_size))
+        if self.swap_gate != ops.SWAP:
+            args += (repr(self.swap_gate),)
         return ('cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate'
-                '({}, {})'.format(repr(self.subgraph), self.part_size))
+                '({})'.format(', '.join(args)))
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.subgraph == other.subgraph and
-                self.part_size == other.part_size)
+                self.part_size == other.part_size and
+                self.swap_gate == other.swap_gate)

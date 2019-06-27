@@ -16,14 +16,20 @@ from typing import Callable, Iterable, Optional
 
 from cirq import circuits, ops, protocols
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
-    get_qcircuit_diagram_info)
-from cirq.contrib.qcircuit.optimizers import (
-    default_optimizers)
+    escape_text_for_latex, get_qcircuit_diagram_info)
+from cirq.contrib.qcircuit.optimizers import (default_optimizers)
 
 
-def qcircuit_qubit_namer(qubit: ops.QubitId):
-    # TODO: If qubit name ends with digits, turn them into subscripts.
-    return '\\lstick{\\text{' + str(qubit) + '}}'
+def qcircuit_qubit_namer(qubit: ops.Qid) -> str:
+    """Returns the latex code for a QCircuit label of given qubit.
+
+        Args:
+            qubit: The qubit which name to represent.
+
+        Returns:
+            Latex code for the label.
+    """
+    return r'\lstick{' + escape_text_for_latex(str(qubit)) + '}'
 
 
 def render(diagram: circuits.TextDiagramDrawer) -> str:
@@ -32,7 +38,7 @@ def render(diagram: circuits.TextDiagramDrawer) -> str:
 
     qwx = {(x, y + 1)
            for x, y1, y2, _ in diagram.vertical_lines
-           for y in range(y1, y2)}
+           for y in range(int(y1), int(y2))}
 
     qw = {(x, y)
           for y, x1, x2, _ in diagram.horizontal_lines
@@ -46,26 +52,28 @@ def render(diagram: circuits.TextDiagramDrawer) -> str:
             diagram_text = diagram.entries.get(key)
             v = '&' + (diagram_text.text if diagram_text else  '') + ' '
             diagram2.write(2*x + 1, y, v)
-            post1 = '\\qw' if key in qw else ''
-            post2 = '\\qwx' if key in qwx else ''
+            post1 = r'\qw' if key in qw else ''
+            post2 = r'\qwx' if key in qwx else ''
             diagram2.write(2*x + 2, y, post1 + post2)
-        diagram2.write(2*w - 1, y, '\\\\')
+        diagram2.write(2 * w - 1, y, '\\\\')
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
-    output = '\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
+    output = '\\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
 
     return output
 
 
 def circuit_to_qcircuit_diagram(
-        circuit: circuits.Circuit, *,
-        optimizers: Iterable[circuits.OptimizationPass]=default_optimizers,
-        get_circuit_diagram_info: Optional[Callable[
-            [ops.Operation, protocols.CircuitDiagramInfoArgs],
-            protocols.CircuitDiagramInfo]] = None,
-        qubit_namer: Optional[Callable[[ops.QubitId], str]] = None,
+        circuit: circuits.Circuit,
+        *,
+        optimizers: Iterable[
+            Callable[[circuits.Circuit], None]] = default_optimizers,
+        get_circuit_diagram_info: Optional[
+            Callable[[ops.Operation, protocols.CircuitDiagramInfoArgs],
+                     protocols.CircuitDiagramInfo]] = None,
+        qubit_namer: Optional[Callable[[ops.Qid], str]] = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
-        ) -> circuits.TextDiagramDrawer:
+) -> circuits.TextDiagramDrawer:
     """Returns a qcircuit-suitable diagram of the given circuit.
 
     Args:
@@ -93,10 +101,7 @@ def circuit_to_qcircuit_diagram(
     return diagram
 
 
-def circuit_to_latex_using_qcircuit(
-        circuit: circuits.Circuit,
-        **kwargs
-        ) -> str:
+def circuit_to_latex_using_qcircuit(circuit: circuits.Circuit, **kwargs) -> str:
     """Returns a QCircuit-based latex diagram of the given circuit.
 
     Args:

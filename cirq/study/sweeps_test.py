@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-
+import sympy
 import cirq
 
 
@@ -43,6 +43,16 @@ def test_linspace_one_point():
     assert params[0] == (('a', 0.34),)
 
 
+def test_linspace_sympy_symbol():
+    a = sympy.Symbol('a')
+    sweep = cirq.Linspace(a, 0.34, 9.16, 7)
+    assert len(sweep) == 7
+    params = list(sweep.param_tuples())
+    assert len(params) == 7
+    assert params[0] == (('a', 0.34),)
+    assert params[-1] == (('a', 9.16),)
+
+
 def test_points():
     sweep = cirq.Points('a', [1, 2, 3, 4])
     assert len(sweep) == 4
@@ -65,7 +75,7 @@ def test_product():
 
 
 def _values(sweep, key):
-    p = cirq.Symbol(key)
+    p = sympy.Symbol(key)
     return [resolver.value_of(p) for resolver in sweep]
 
 

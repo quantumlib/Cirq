@@ -25,7 +25,10 @@ from cirq.linalg.combinators import (
     kron,
     kron_with_controls,
 )
+
 from cirq.linalg.decompositions import (
+    axis_angle,
+    AxisAngleDecomposition,
     deconstruct_single_qubit_matrix_into_angles,
     kak_canonicalize_vector,
     kak_decomposition,
@@ -34,15 +37,27 @@ from cirq.linalg.decompositions import (
     map_eigenvalues,
     so4_to_magic_su2s,
 )
+
+from cirq.linalg.states import (
+    one_hot,)
+
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
 )
+
+from cirq.linalg.operator_spaces import (
+    expand_matrix_in_orthogonal_basis,
+    hilbert_schmidt_inner_product,
+    kron_bases,
+    matrix_from_basis_coefficients,
+    PAULI_BASIS,
+)
+
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
-    slice_for_qubits_equal_to,
     commutes,
     is_diagonal,
     is_hermitian,
@@ -50,13 +65,16 @@ from cirq.linalg.predicates import (
     is_special_orthogonal,
     is_special_unitary,
     is_unitary,
+    slice_for_qubits_equal_to,
 )
-from cirq.linalg.tolerance import (
-    Tolerance,
-)
+
+from cirq.linalg.tolerance import (all_near_zero, all_near_zero_mod)
+
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,
     match_global_phase,
+    partial_trace,
     reflection_matrix_pow,
+    targeted_conjugate_about,
     targeted_left_multiply,
 )

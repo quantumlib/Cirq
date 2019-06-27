@@ -50,7 +50,9 @@ def assert_has_qcircuit_diagram(
 
 
 def test_fallback_diagram():
-    class MagicGate(cirq.Gate):
+
+    class MagicGate(cirq.ThreeQubitGate):
+
         def __str__(self):
             return 'MagicGate'
 
@@ -102,9 +104,9 @@ def test_teleportation_diagram():
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
- &\lstick{\text{alice}}    &                                                                                                            \qw&*+<.6em>{\text{X}^{0.5}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw    &\control \qw    &*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\meter \qw&         \qw    &\control \qw    & \qw\\
- &\lstick{\text{carrier}}  &*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\control                                                                                                          \qw    &\targ    \qw\qwx&                                                                                                            \qw&\meter \qw&\control \qw    &         \qw\qwx& \qw\\
- &\lstick{\text{bob}}      &                                                                                                            \qw&\targ                                                                                                             \qw\qwx&         \qw    &                                                                                                            \qw&       \qw&\targ    \qw\qwx&\control \qw\qwx& \qw\\
+ &\lstick{\text{alice}}    &*+<.6em>{\text{X}^{0.5}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&         \qw    &\control \qw    &*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i" \qw&\meter   \qw    &\control \qw    & \qw\\
+ &\lstick{\text{carrier}}  &*+<.6em>{\text{H}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"       \qw&\control \qw    &\targ    \qw\qwx&\meter                                                                                                      \qw&\control \qw    &         \qw\qwx& \qw\\
+ &\lstick{\text{bob}}      &                                                                                                                  \qw&\targ    \qw\qwx&         \qw    &                                                                                                            \qw&\targ    \qw\qwx&\control \qw\qwx& \qw\\
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram,
@@ -128,6 +130,7 @@ def test_other_diagram():
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
 
 def test_swap_diagram():
     a, b, c = cirq.LineQubit.range(3)
@@ -156,7 +159,8 @@ def test_swap_diagram():
 
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
-            [cirq.Moment([cirq.SWAP(a, b)]), cirq.Moment([cirq.X(c)])])
+        [cirq.Moment([cirq.SWAP(a, b)]),
+         cirq.Moment([cirq.X(c)])])
     expected_diagram = r"""
 \Qcircuit @R=1em @C=0.75em {
  \\
@@ -166,3 +170,16 @@ def test_swap_diagram():
  \\
 }""".strip()
     assert_has_qcircuit_diagram(circuit, expected_diagram)
+
+
+def test_qcircuit_qubit_namer():
+    from cirq.contrib.qcircuit import qcircuit_diagram
+
+    assert (qcircuit_diagram.qcircuit_qubit_namer(
+        cirq.NamedQubit('q')) == r'\lstick{\text{q}}')
+    assert (qcircuit_diagram.qcircuit_qubit_namer(
+        cirq.NamedQubit('q_1')) == r'\lstick{\text{q\_1}}')
+    assert (qcircuit_diagram.qcircuit_qubit_namer(
+        cirq.NamedQubit('q^1')) == r'\lstick{\text{q\textasciicircum{}1}}')
+    assert (qcircuit_diagram.qcircuit_qubit_namer(
+        cirq.NamedQubit('q_{1}')) == r'\lstick{\text{q\_\{1\}}}')

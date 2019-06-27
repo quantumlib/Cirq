@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
 import os
 
 import cirq
 from dev_tools import shell_tools
 
 
-def only_in_python3_on_posix(func):
+def only_on_posix(func):
     if os.name != 'posix':
-        return None
-    if sys.version_info.major < 3:
         return None
     return func
 
@@ -37,11 +33,11 @@ def run(*, script_file: str, arg: str ='', setup: str = ''
 
     intercepted = [
         'python',
-        'python2',
         'python3',
         'pylint',
         'pytest',
         'mypy',
+        'yapf',
     ]
     assert script_lines[0] == '#!/usr/bin/env bash\n'
     for e in intercepted:
@@ -68,7 +64,7 @@ chmod +x ./test-script
             err=shell_tools.TeeCapture())
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_pytest_changed_files_file_selection():
 
     result = run(script_file='check/pytest-changed-files',
@@ -129,7 +125,7 @@ def test_pytest_changed_files_file_selection():
         "Found 1 differing files with associated tests.\n").split()
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_pytest_changed_files_branch_selection():
 
     result = run(script_file='check/pytest-changed-files', arg='HEAD')
@@ -139,10 +135,10 @@ def test_pytest_changed_files_branch_selection():
         "Comparing against revision 'HEAD'.\n"
         "Found 0 differing files with associated tests.\n").split()
 
-    result = run(script_file='check/pytest-changed-files', arg='HEAD~9999')
+    result = run(script_file='check/pytest-changed-files', arg='HEAD~999999')
     assert result.exit_code == 1
     assert result.out == ''
-    assert "No revision 'HEAD~9999'." in result.err
+    assert "No revision 'HEAD~999999'." in result.err
 
     result = run(script_file='check/pytest-changed-files')
     assert result.exit_code == 0
@@ -231,7 +227,7 @@ def test_pytest_changed_files_branch_selection():
         "Found 0 differing files with associated tests.\n").split()
 
 
-@only_in_python3_on_posix
+@only_on_posix
 def test_pytest_and_incremental_coverage_branch_selection():
     result = run(script_file='check/pytest-and-incremental-coverage',
                  arg='HEAD')
@@ -242,10 +238,10 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.err == "Comparing against revision 'HEAD'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
-                 arg='HEAD~9999')
+                 arg='HEAD~999999')
     assert result.exit_code == 1
     assert result.out == ''
-    assert "No revision 'HEAD~9999'." in result.err
+    assert "No revision 'HEAD~999999'." in result.err
 
     result = run(script_file='check/pytest-and-incremental-coverage')
     assert result.exit_code == 0
@@ -306,3 +302,108 @@ def test_pytest_and_incremental_coverage_branch_selection():
         'INTERCEPTED python '
         'dev_tools/run_pytest_and_incremental_coverage.py master\n')
     assert result.err == "Comparing against revision 'master'.\n"
+
+    result = run(script_file='check/pytest-and-incremental-coverage',
+                 setup='touch master\n'
+                 'git add -A\n'
+                 'git commit -q -m test --no-gpg-sign\n'
+                 'git branch alt\n'
+                 'touch master2\n'
+                 'git add -A\n'
+                 'git commit -q -m test2 --no-gpg-sign\n'
+                 'git checkout -q alt\n')
+    assert result.exit_code == 0
+    assert result.out.startswith(
+        'INTERCEPTED python '
+        'dev_tools/run_pytest_and_incremental_coverage.py ')
+    assert result.err.startswith(
+        "Comparing against revision 'master' (merge base ")
+
+
+@only_on_posix
+def test_incremental_format_branch_selection():
+    result = run(script_file='check/format-incremental', arg='HEAD')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'HEAD'.\n"
+
+    result = run(script_file='check/format-incremental', arg='HEAD~9999')
+    assert result.exit_code == 1
+    assert result.out == ''
+    assert "No revision 'HEAD~9999'." in result.err
+
+    result = run(script_file='check/format-incremental')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'master'.\n"
+
+    result = run(script_file='check/format-incremental',
+                 setup='git branch origin/master')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'origin/master'.\n"
+
+    result = run(script_file='check/format-incremental',
+                 setup='git branch upstream/master')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'upstream/master'.\n"
+
+    result = run(script_file='check/format-incremental',
+                 setup='git branch upstream/master; git branch origin/master')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'upstream/master'.\n"
+
+    result = run(script_file='check/format-incremental',
+                 setup='git checkout -b other --quiet\n'
+                 'git branch -D master --quiet\n')
+    assert result.exit_code == 1
+    assert result.out == ''
+    assert 'No default revision found to compare against' in result.err
+
+    # Works when ambiguous between revision and file.
+    result = run(script_file='check/format-incremental',
+                 arg='HEAD',
+                 setup='touch HEAD.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'HEAD'.\n"
+
+    result = run(script_file='check/format-incremental',
+                 setup='touch master.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n')
+    assert result.exit_code == 0
+    assert result.out == (
+        '\x1b[32mNo formatting needed on changed lines\x1b[0m.\n')
+    assert result.err == "Comparing against revision 'master'.\n"
+
+    result = run(script_file='check/format-incremental',
+                 setup='touch master.py\n'
+                 'git add -A\n'
+                 'git commit -q -m test --no-gpg-sign\n'
+                 'git branch alt\n'
+                 'touch master2.py\n'
+                 'git add -A\n'
+                 'git commit -q -m test2 --no-gpg-sign\n'
+                 'git checkout -q alt\n'
+                 'touch alt.py\n'
+                 'git add -A\n'
+                 'git commit -q -m test3 --no-gpg-sign\n')
+    assert result.exit_code == 1
+    assert result.out == (
+        '\n'
+        '\x1b[31mChanges in alt.py require formatting:\x1b[0m\n'
+        'INTERCEPTED yapf --style=google --diff alt.py\n'
+        '\x1b[31mSome formatting needed on changed lines\x1b[0m.\n')
+    assert result.err.startswith(
+        "Comparing against revision 'master' (merge base ")

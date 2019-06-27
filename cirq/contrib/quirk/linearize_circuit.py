@@ -15,12 +15,11 @@
 from typing import Callable
 
 from cirq import ops, circuits, line
-from cirq.circuits import OptimizationPass
 
 
-class QubitMapper(OptimizationPass):
-    def __init__(self, qubit_map: Callable[[ops.QubitId], ops.QubitId]
-                 ) -> None:
+class QubitMapper():
+
+    def __init__(self, qubit_map: Callable[[ops.Qid], ops.Qid]) -> None:
         self.qubit_map = qubit_map
 
     def map_operation(self, operation: ops.Operation) -> ops.Operation:

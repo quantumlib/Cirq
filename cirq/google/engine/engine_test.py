@@ -15,7 +15,7 @@
 """Tests for engine."""
 import base64
 import re
-
+from unittest import mock
 import numpy as np
 import pytest
 
@@ -23,7 +23,6 @@ from apiclient import discovery
 
 import cirq
 import cirq.google as cg
-from cirq.testing.mock import mock
 
 
 _A_RESULT = {
@@ -72,7 +71,7 @@ _RESULTS = {
 }
 
 
-@cirq.testing.only_test_in_python3
+
 def test_repr():
     v = cirq.google.JobConfig(project_id='my-project-id',
                               program_id='my-program-id',
@@ -134,7 +133,8 @@ def test_circuit_device_validation_fails(build):
 
 @mock.patch.object(discovery, 'build')
 def test_schedule_device_validation_fails(build):
-    scheduled_op = cirq.ScheduledOperation(time=None, duration=None,
+    scheduled_op = cirq.ScheduledOperation(time=None,
+                                           duration=cirq.Duration(),
                                            operation=cirq.H.on(
                                                cirq.NamedQubit("dorothy")))
     schedule = cirq.Schedule(device=cg.Foxtail,
@@ -476,7 +476,7 @@ def test_implied_job_config_gcs_prefix(build):
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://better/'
 
 
-@cirq.testing.only_test_in_python3  # uses re.fullmatch
+# uses re.fullmatch
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config(build):
     eng = cg.Engine(api_key="key")

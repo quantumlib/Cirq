@@ -20,21 +20,21 @@ import cirq
 
 
 def test_avoids_infinite_cycle_when_matrix_available():
-    class OtherX(cirq.Gate):
+    class OtherX(cirq.SingleQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])
 
         def _decompose_(self, qubits):
-            return OtherOtherX(*qubits)
+            return OtherOtherX().on(*qubits)
 
-    class OtherOtherX(cirq.Gate):
+    class OtherOtherX(cirq.SingleQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])
 
         def _decompose_(self, qubits):
-            return OtherX(*qubits)
+            return OtherX().on(*qubits)
 
     q0 = cirq.LineQubit(0)
     c = cirq.Circuit.from_ops(OtherX()(q0), OtherOtherX()(q0))
@@ -52,12 +52,10 @@ def test_kak_decomposes_unknown_two_qubit_gate():
     assert sum(1 for op in circuit.all_operations()
                  if len(op.qubits) > 1) == 2
     assert sum(1 for op in circuit.all_operations()
-                 if isinstance(op, cirq.GateOperation) and
-                    isinstance(op.gate, cirq.CZPowGate)) == 2
+               if cirq.op_gate_of_type(op, cirq.CZPowGate)) == 2
     assert all(op.gate.exponent == 1
                for op in circuit.all_operations()
-               if isinstance(op, cirq.GateOperation) and
-                  isinstance(op.gate, cirq.CZPowGate))
+               if cirq.op_gate_of_type(op, cirq.CZPowGate))
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
@@ -90,7 +88,10 @@ def test_composite_gates_without_matrix():
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
 
-    assert circuit == expected
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circuit.to_unitary_matrix(),
+        expected.to_unitary_matrix(),
+        atol=1e-7)
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),
@@ -98,7 +99,7 @@ def test_composite_gates_without_matrix():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.Gate):
+    class UnsupportedDummy(cirq.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
@@ -113,7 +114,7 @@ def test_ignore_unsupported_gate():
 
 
 def test_fail_unsupported_gate():
-    class UnsupportedDummy(cirq.Gate):
+    class UnsupportedDummy(cirq.TwoQubitGate):
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
@@ -127,8 +128,8 @@ def test_fail_unsupported_gate():
 def test_passes_through_measurements():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(
-        cirq.MeasurementGate('m0')(q0),
-        cirq.MeasurementGate('m1', invert_mask=(True, False))(q1, q2),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, q2, key='m1', invert_mask=(True, False)),
     )
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
@@ -173,12 +174,10 @@ def test_dont_allow_partial_czs():
     assert sum(1 for op in circuit.all_operations()
                  if len(op.qubits) > 1) == 2
     assert sum(1 for op in circuit.all_operations()
-                 if isinstance(op, cirq.GateOperation) and
-                    isinstance(op.gate, cirq.CZPowGate)) == 2
+               if cirq.op_gate_of_type(op, cirq.CZPowGate)) == 2
     assert all(op.gate.exponent % 2 == 1
                for op in circuit.all_operations()
-               if isinstance(op, cirq.GateOperation) and
-                  isinstance(op.gate, cirq.CZPowGate))
+               if cirq.op_gate_of_type(op, cirq.CZPowGate))
     cirq.testing.assert_allclose_up_to_global_phase(
         circuit.to_unitary_matrix(),
         c_orig.to_unitary_matrix(),

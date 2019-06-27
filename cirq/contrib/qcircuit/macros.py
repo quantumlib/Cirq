@@ -14,11 +14,11 @@
 
 from typing import Tuple
 
+
 def line_macro(end: Tuple[int, int],
-               start: Tuple[int, int] = (0,0),
+               start: Tuple[int, int] = (0, 0),
                thickness: int = 1,
-               style: str = '-'
-               ) -> str:
+               style: str = '-') -> str:
     """Produces Xy-pic (tex) code for drawing a line.
 
     Args:
@@ -48,15 +48,15 @@ def gate_macro(label: str = '') -> str:
     return ('*+<.6em>{' + str(label) + '} \POS ="i","i"+UR;"i"+UL **\dir{-};'
             '"i"+DL **\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"')
 
-def ghost_macro(label: str='') -> str:
+
+def ghost_macro(label: str = '') -> str:
     r"""Same as qcircuit's '\nghost'."""
     return '*+<1em,.9em>{\hphantom{' + str(label) + '}}'
 
 
-def multigate_macro(n_qubits: int, label: str='') -> str:
+def multigate_macro(n_qubits: int, label: str = '') -> str:
     r"""Same as qcircuit's '\multigate' but without final '\qw'."""
-    return (
-        '*+<1em,.9em>{\hphantom{' + str(label) + '}} \POS [0,0]="i",[0,0].[' +
-        str(n_qubits - 1) + ',0]="e",!C *{' + str(label) +
-        '},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};' +
-        '"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')
+    return ('*+<1em,.9em>{\hphantom{' + str(label) +
+            '}} \POS [0,0]="i",[0,0].[' + str(n_qubits - 1) + ',0]="e",!C *{' +
+            str(label) + '},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};' +
+            '"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')

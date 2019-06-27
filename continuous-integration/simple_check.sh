@@ -20,17 +20,15 @@
 # In particular, this script DOES NOT:
 #
 # 1. Create fresh test environments with updated deps (requires virtualenv).
-# 2. Run python 2 compatibility tests (requires the protobuf compiler).
 #
 # What this script DOES do is run pylint, mypy, pytest, and incremental code
 # coverage against your local python 3 dev copy of cirq.
 
 
 # Get the working directory to the repo root.
-own_directory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${own_directory}
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 repo_dir=$(git rev-parse --show-toplevel)
-cd ${repo_dir}
+cd "${repo_dir}"
 
 # Run the checks.
 export PYTHONPATH=${repo_dir}:${PYTHONPATH}

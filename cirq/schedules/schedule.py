@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import timedelta
 from typing import Iterable, List, TYPE_CHECKING, Union, cast
 
 from sortedcontainers import SortedListWithKey
 
+from cirq import protocols
 from cirq.circuits import Circuit
+from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.devices import Device
-from cirq.ops import QubitId
+from cirq.ops import Qid
 from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.value import Duration, Timestamp
 
@@ -70,12 +73,14 @@ class Schedule:
 
     __hash__ = None  # type: ignore
 
-    def query(self, *,  # Forces keyword args.
-              time: Timestamp,
-              duration: Duration = Duration(),
-              qubits: Iterable[QubitId] = None,
-              include_query_end_time=False,
-              include_op_end_times=False) -> List[ScheduledOperation]:
+    def query(
+            self,
+            *,  # Forces keyword args.
+            time: Timestamp,
+            duration: Union[Duration, timedelta] = Duration(),
+            qubits: Iterable[Qid] = None,
+            include_query_end_time=False,
+            include_op_end_times=False) -> List[ScheduledOperation]:
         """Finds operations by time and qubit.
 
         Args:
@@ -92,6 +97,7 @@ class Schedule:
         Returns:
             A list of scheduled operations meeting the specified conditions.
         """
+        duration = Duration.create(duration)
         earliest_time = time - self._max_duration
         end_time = time + duration
         qubits = None if qubits is None else frozenset(qubits)
@@ -190,15 +196,23 @@ class Schedule:
         This discards most timing information from the schedule, but does place
         operations that are scheduled at the same time in the same Moment.
         """
-        circuit = Circuit()
-        ops = []  # type: List[Operation]
+        circuit = Circuit(device=self.device)
         time = None  # type: Optional[Timestamp]
         for so in self.scheduled_operations:
             if so.time != time:
-                circuit.append(ops)
-                ops = [so.operation]
+                circuit.append(so.operation,
+                               strategy=InsertStrategy.NEW_THEN_INLINE)
                 time = so.time
             else:
-                ops.append(so.operation)
-        circuit.append(ops)
+                circuit.append(so.operation,
+                               strategy=InsertStrategy.INLINE)
         return circuit
+
+    def _has_unitary_(self):
+        return protocols.has_unitary(self.to_circuit())
+
+    def _unitary_(self):
+        return protocols.unitary(self.to_circuit())
+
+    def _apply_unitary_(self, args):
+        return protocols.apply_unitary(self.to_circuit(), args)

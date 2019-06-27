@@ -303,10 +303,8 @@ Highlighted differences:
 
 """
 
-    # Work around an issue when this test is run in python2, where using
-    # match=expected_error causes an UnicodeEncodeError.
     with pytest.raises(AssertionError) as ex_info:
-        cirq.testing.assert_has_diagram(circuit, u"""
+        cirq.testing.assert_has_diagram(circuit, """
 0: ───@───
       │
 1: ───Z───
@@ -423,3 +421,9 @@ def test_assert_has_consistent_apply_unitary():
 
     cirq.testing.assert_has_consistent_apply_unitary(
         cirq.X.on(cirq.NamedQubit('q')))
+
+
+def test_inconsistent_qubit_count():
+    with pytest.raises(AssertionError, match='Inconsistent'):
+        cirq.testing.assert_has_consistent_apply_unitary(
+            cirq.X, qubit_count=2)

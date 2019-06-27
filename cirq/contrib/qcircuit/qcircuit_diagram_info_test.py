@@ -19,14 +19,17 @@ import cirq.contrib.qcircuit as ccq
 def test_get_qcircuit_diagram_info():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
 
-
     class FooGate(cirq.Gate, cirq.InterchangeableQubitsGate):
+
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
-                                   ) -> cirq.CircuitDiagramInfo:
+                                  ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(wire_symbols=('foo', 'foo'))
 
         def __str__(self):
             return 'FOO'
+
+        def num_qubits(self):
+            return 2
 
     gate = FooGate()
     op = gate(*qubits)
@@ -39,8 +42,7 @@ def test_get_qcircuit_diagram_info():
             qubit_map=qubit_map)
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     expected_info = cirq.CircuitDiagramInfo(
-            ('\ghost{\\text{FOO}}', '\multigate{1}{\\text{FOO}}'),
-            vconnected=False)
+        ('\ghost{\\text{FOO}}', '\multigate{1}{\\text{FOO}}'), vconnected=False)
     assert actual_info == expected_info
 
     qubit_map = {q: i for q, i in zip(qubits, (2, 5))}
@@ -51,14 +53,15 @@ def test_get_qcircuit_diagram_info():
             precision=3,
             qubit_map=qubit_map)
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
-    expected_info = cirq.CircuitDiagramInfo((
-        '*+<.6em>{\\text{foo}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL '
-        '**\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"',) * 2)
+    expected_info = cirq.CircuitDiagramInfo(
+        ('*+<.6em>{\\text{foo}} \POS ="i","i"+UR;"i"+UL **\dir{-};"i"+DL '
+         '**\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"',) * 2)
     assert actual_info == expected_info
 
-    actual_info = ccq.get_qcircuit_diagram_info(op,
-            cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
+    actual_info = ccq.get_qcircuit_diagram_info(
+        op, cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT)
     assert actual_info == expected_info
+
 
 def test_swap_qcircuit_diagram_info():
     qubits = cirq.NamedQubit('x'), cirq.NamedQubit('y')
@@ -74,26 +77,24 @@ def test_swap_qcircuit_diagram_info():
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     name = '{\\text{SWAP}^{0.5}}'
     expected_info = cirq.CircuitDiagramInfo(
-            ('\multigate{1}' + name, '\ghost' + name),
-            exponent=0.5,
-            vconnected=False)
+        ('\multigate{1}' + name, '\ghost' + name),
+        exponent=0.5,
+        vconnected=False)
     assert actual_info == expected_info
 
     gate = cirq.SwapPowGate()
     op = gate(*qubits)
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     wire_symbols = (r'\ar @{-} [1, 1]', r'\ar @{-} [-1, 1]')
-    expected_info = cirq.CircuitDiagramInfo(
-            wire_symbols=wire_symbols,
-            vconnected=False,
-            hconnected=False)
+    expected_info = cirq.CircuitDiagramInfo(wire_symbols=wire_symbols,
+                                            vconnected=False,
+                                            hconnected=False)
     assert actual_info == expected_info
 
     args.qubit_map = None
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
     wire_symbols = (
-            '*+<.6em>{\\text{swap}} \\POS ="i","i"+UR;"i"+UL **\\dir{-};"i"+DL '
-            '**\\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"',) * 2
-    expected_info = cirq.CircuitDiagramInfo(
-            wire_symbols=wire_symbols)
+        '*+<.6em>{\\text{swap}} \\POS ="i","i"+UR;"i"+UL **\\dir{-};"i"+DL '
+        '**\\dir{-};"i"+DR **\dir{-};"i"+UR **\dir{-},"i"',) * 2
+    expected_info = cirq.CircuitDiagramInfo(wire_symbols=wire_symbols)
     assert actual_info == expected_info

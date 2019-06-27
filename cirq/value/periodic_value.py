@@ -14,7 +14,10 @@
 
 from typing import Any, Union
 
-import cirq.protocols
+import sympy
+
+from cirq import protocols
+from cirq._compat import proper_repr
 
 
 class PeriodicValue:
@@ -56,6 +59,9 @@ class PeriodicValue:
         if not isinstance(other, type(self)):
             return NotImplemented
 
+        #self.value = value % period in __init__() creates a Mod
+        if isinstance(other.value, sympy.Mod):
+            return self.value == other.value
         # Periods must be exactly equal to avoid drift of normalized value when
         # original value increases.
         if self.period != other.period:
@@ -69,4 +75,13 @@ class PeriodicValue:
         if high - low > self.period / 2:
             low += self.period
 
-        return cirq.protocols.approx_eq(low, high, atol=atol)
+        return protocols.approx_eq(low, high, atol=atol)
+
+    def __repr__(self):
+        return 'cirq.PeriodicValue({}, {})'.format(proper_repr(self.value),
+                                                   proper_repr(self.period))
+
+    def _is_parameterized_(self):
+        return any(
+            protocols.is_parameterized(val)
+            for val in (self.value, self.period))

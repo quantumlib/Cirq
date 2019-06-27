@@ -12,27 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Optional, Tuple
+from typing import cast, Optional, Tuple
 
 from cirq import ops, protocols
 
-from cirq.contrib.qcircuit.macros import (
-    gate_macro, line_macro)
+from cirq.contrib.qcircuit.macros import (gate_macro, line_macro)
 
 
 def escape_text_for_latex(text):
-    escaped = (text
-               .replace('{', '\\{')
-               .replace('}', '\\}')
-               .replace('\\', '\\textbackslash{}')
-               .replace('^', '\\textasciicircum{}')
-               .replace('~', '\\textasciitilde{}')
-               .replace('_', '\\_')
-               .replace('$', '\\$')
-               .replace('%', '\\%')
-               .replace('&', '\\&')
-               .replace('#', '\\#'))
-    return '\\text{' + escaped + '}'
+    escaped = (text.replace('\\', r'\textbackslash{}').replace(
+        '{',
+        r'\{').replace('}', r'\}').replace('^', r'\textasciicircum{}').replace(
+            '~', r'\textasciitilde{}').replace('_', r'\_').replace(
+                '$', r'\$').replace('%',
+                                    r'\%').replace('&',
+                                                   r'\&').replace('#', r'\#'))
+    return r'\text{' + escaped + '}'
 
 
 def get_multigate_parameters(
@@ -56,30 +51,27 @@ def get_lines(dys):
 def swap_qcircuit_diagram_info(
         op: ops.Operation,
         args: protocols.CircuitDiagramInfoArgs,
-        ) -> Optional[protocols.CircuitDiagramInfo]:
+) -> Optional[protocols.CircuitDiagramInfo]:
     if not (isinstance(op, ops.GateOperation) and op.gate == ops.SWAP):
         return None
     if args.qubit_map is None:
         return None
-    dys = (args.qubit_map[j] - args.qubit_map[i] for i, j in
-            zip(op.qubits, reversed(op.qubits)))
+    dys = (args.qubit_map[j] - args.qubit_map[i]
+           for i, j in zip(op.qubits, reversed(op.qubits)))
     wire_symbols = get_lines(dys)
-    return protocols.CircuitDiagramInfo(
-            wire_symbols=wire_symbols,
-            vconnected=False,
-            hconnected=False)
+    return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,
+                                        vconnected=False,
+                                        hconnected=False)
 
 
 def hardcoded_qcircuit_diagram_info(
         op: ops.Operation) -> Optional[protocols.CircuitDiagramInfo]:
     if not isinstance(op, ops.GateOperation):
         return None
-    symbols = (
-        (r'\targ',) if op.gate == ops.X else
-        (r'\control', r'\control') if op.gate == ops.CZ else
-        (r'\control', r'\targ') if op.gate == ops.CNOT else
-        (r'\meter',) if ops.MeasurementGate.is_measurement(op.gate) else
-        ())
+    symbols = ((r'\targ',) if op.gate == ops.X else
+               (r'\control', r'\control') if op.gate == ops.CZ else
+               (r'\control', r'\targ') if op.gate == ops.CNOT else
+               (r'\meter',) if isinstance(op.gate, ops.MeasurementGate) else ())
     return (protocols.CircuitDiagramInfo(cast(Tuple[str, ...], symbols))
             if symbols else None)
 
@@ -114,8 +106,8 @@ def multigate_qcircuit_diagram_info(
             str(op))
     if (info is not None) and (info.exponent != 1):
         name += '^{' + str(info.exponent) + '}'
-    box = '\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
-    ghost = '\ghost{' + name + '}'
+    box = r'\multigate{' + str(n_qubits - 1) + '}{' + name + '}'
+    ghost = r'\ghost{' + name + '}'
     assert args.qubit_map is not None
     assert args.known_qubits is not None
     symbols = tuple(box if (args.qubit_map[q] == min_index) else

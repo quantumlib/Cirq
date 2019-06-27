@@ -33,7 +33,7 @@ def main():
     print('Circuit:')
     print(qft_circuit)
     # Simulate and collect final_state
-    simulator = cirq.google.XmonSimulator()
+    simulator = cirq.Simulator()
     result = simulator.simulate(qft_circuit)
     print()
     print('FinalState')

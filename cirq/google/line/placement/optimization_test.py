@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import math
+from unittest import mock
 import pytest
 
 from cirq.google.line.placement import optimization
-from cirq.testing.mock import mock
 
 
 def test_accept_accepts():

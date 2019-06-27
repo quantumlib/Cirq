@@ -66,8 +66,8 @@ def match_global_phase(a: np.ndarray,
     """
 
     # Not much point when they have different shapes.
-    if a.shape != b.shape:
-        return a, b
+    if a.shape != b.shape or a.size == 0:
+        return np.copy(a), np.copy(b)
 
     # Find the entry with the largest magnitude in one of the matrices.
     k = max(np.ndindex(*a.shape), key=lambda t: abs(b[t]))
@@ -149,6 +149,58 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      **({'out': out} if out is not None else {}))
 
 
+def targeted_conjugate_about(tensor: np.ndarray,
+                             target: np.ndarray,
+                             indices: Sequence[int],
+                             conj_indices: Sequence[int] = None,
+                             buffer: Optional[np.ndarray] = None,
+                             out: Optional[np.ndarray] = None) -> np.ndarray:
+    r"""Conjugates the given tensor about the target tensor.
+
+    This method computes a target tensor conjugated by another tensor.
+    Here conjugate is used in the sense of conjugating by a matrix, i.a.
+    A conjugated about B is $A B A^\dagger$ where $\dagger$ represents the
+    conjugate transpose.
+
+    Abstractly this compute $A \cdot B \cdot A^\dagger$ where A and B are
+    multi-dimensional arrays, and instead of matrix multiplication $\cdot$
+    is a contraction between the given indices (indices for first $\cdot$,
+    conj_indices for second $\cdot$).
+
+    More specifically this computes
+        sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}}
+        * target_{k_0,...,k_{r-1},l_0,...,l_{r-1}
+        * tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*
+    where the sum is over indices where j_s = k_s and s is in `indices`
+    and l_s = m_s and s is in `conj_indices`.
+
+    Args:
+        tensor: The tensor that will be conjugated about the target tensor.
+        target: The tensor that will receive the conjugation.
+        indices: The indices which will be contracted between the tensor and
+            target.
+        conj_indices; The indices which will be contracted between the
+            complex conjugate of the tensor and the target. If this is None,
+            then these will be the values in indices plus half the number
+            of dimensions of the target (`ndim`). This is the most common case
+            and corresponds to the case where the target is an operator on
+            a n-dimensional tensor product space (here `n` would be `ndim`).
+        buffer: A buffer to store partial results in.  If not specified or None,
+            a new buffer is used.
+        out: The buffer to store the results in. If not specified or None, a new
+            buffer is used. Must have the same shape as target.
+
+    Returns:
+        The result the conjugation.
+    """
+    conj_indices = conj_indices or [i + target.ndim // 2 for i in indices]
+    first_multiply = targeted_left_multiply(tensor, target, indices, out=buffer)
+    return targeted_left_multiply(np.conjugate(tensor),
+                                  first_multiply,
+                                  conj_indices,
+                                  out=out)
+
+
 _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
@@ -217,3 +269,37 @@ def apply_matrix_to_slices(
                 out[s_i] += target[s_j] * matrix[i, j]
 
     return out
+
+
+def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
+    """Takes the partial trace of a given tensor.
+
+    The input tensor must have shape `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
+    The trace is done over all indices that are not in keep_indices. The
+    resulting tensor has shape `(d_{i_0}, ..., d_{i_r}, d_{i_0}, ..., d_{i_r})`
+    where `i_j` is the `j`th element of `keep_indices`.
+
+    Args:
+        tensor: The tensor to sum over. This tensor must have a shape
+            `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
+        keep_indices: Which indices to not sum over. These are only the indices
+            of the first half of the tensors indices (i.e. all elements must
+            be between `0` and `tensor.ndims / 2 - 1` inclusive).
+
+    Raises:
+        ValueError: if the tensor is not of the correct shape or the indices
+            are not from the first half of valid indices for the tensor.
+    """
+    ndim = tensor.ndim // 2
+    if not all(tensor.shape[i] == tensor.shape[i + ndim] for i in range(ndim)):
+        raise ValueError('Tensors must have shape (d_0,...,d_{{k-1}},d_0,...,'
+                         'd_{{k-1}}) but had shape ({}).'.format(tensor.shape))
+    if not all(i < ndim for i in keep_indices):
+        raise ValueError('keep_indices were {} but must be in first half, '
+                         'i.e. have index less that {}.'.format(
+                             keep_indices, ndim))
+    keep_set = set(keep_indices)
+    keep_map = dict(zip(keep_indices, sorted(keep_indices)))
+    left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]
+    right_indices = [ndim + i if i in keep_set else i for i in left_indices]
+    return np.einsum(tensor, left_indices + right_indices)

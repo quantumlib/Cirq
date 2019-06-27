@@ -33,18 +33,11 @@ def assert_optimizes(
         cirq.DropEmptyMoments()
     ]
     for post in followup_optimizations:
-        post.optimize_circuit(before)
-        post.optimize_circuit(expected)
+        post(before)  # type: ignore #  error: "object" not callable
+        post(expected)  # type: ignore #  error: "object" not callable
 
-    try:
-        assert before == expected
-    except AssertionError:  # coverage: ignore
-        # coverage: ignore
-        print("BEFORE")
-        print(before)
-        print("EXPECTED")
-        print(expected)
-        raise
+    assert before == expected, 'BEFORE {} : EXPECTED {}'.format(before,
+                                                                expected)
 
 
 def test_leaves_singleton():
@@ -140,7 +133,7 @@ def test_ignores_2qubit_target():
 
 
 def test_ignore_unsupported_gate():
-    class UnsupportedDummy(cirq.Gate):
+    class UnsupportedDummy(cirq.SingleQubitGate):
         pass
 
     q0 = cirq.LineQubit(0)
@@ -178,18 +171,17 @@ def test_rewrite():
 
 def test_merge_single_qubit_gates_into_phased_x_z():
     a, b = cirq.LineQubit.range(2)
-    assert_optimizes(
-        before=cirq.Circuit.from_ops(
-            cirq.X(a),
-            cirq.Y(b)**0.5,
-            cirq.CZ(a, b),
-            cirq.H(a),
-            cirq.Z(a),
-        ),
-        expected=cirq.Circuit.from_ops(
-            cirq.X(a),
-            cirq.Y(b)**0.5,
-            cirq.CZ(a, b),
-            cirq.Y(a)**-0.5,
-        ),
-        optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)
+    assert_optimizes(before=cirq.Circuit.from_ops(
+        cirq.X(a),
+        cirq.Y(b)**0.5,
+        cirq.CZ(a, b),
+        cirq.H(a),
+        cirq.Z(a),
+    ),
+                     expected=cirq.Circuit.from_ops(
+                         cirq.PhasedXPowGate(phase_exponent=1)(a),
+                         cirq.Y(b)**0.5,
+                         cirq.CZ(a, b),
+                         (cirq.PhasedXPowGate(phase_exponent=-0.5)(a))**0.5,
+                     ),
+                     optimizer=cirq.merge_single_qubit_gates_into_phased_x_z)

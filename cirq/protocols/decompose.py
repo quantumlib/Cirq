@@ -103,7 +103,7 @@ class SupportsDecomposeWithQubits(Protocol):
     implements `SupportsDecomposeWithQubits`.
     """
 
-    def _decompose_(self, qubits: Tuple['cirq.QubitId', ...]
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]
                     ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
         pass
 
@@ -252,7 +252,8 @@ def decompose(
             queue[:0] = ops.flatten_op_tree(decomposed)
             continue
 
-        if isinstance(item, collections.Iterable):
+        if (not isinstance(item, ops.Operation) and
+                isinstance(item, collections.Iterable)):
             queue[:0] = ops.flatten_op_tree(item)
             continue
 
@@ -328,14 +329,14 @@ def decompose_once(val: Any,
 
 @overload
 def decompose_once_with_qubits(val: Any,
-                               qubits: Iterable['cirq.QubitId']
+                               qubits: Iterable['cirq.Qid']
                                ) -> List['cirq.Operation']:
     pass
 
 
 @overload
 def decompose_once_with_qubits(val: Any,
-                               qubits: Iterable['cirq.QubitId'],
+                               qubits: Iterable['cirq.Qid'],
                                # NOTE: should be TDefault instead of Any, but
                                # mypy has false positive errors when setting
                                # default to None.
@@ -345,7 +346,7 @@ def decompose_once_with_qubits(val: Any,
 
 
 def decompose_once_with_qubits(val: Any,
-                               qubits: Iterable['cirq.QubitId'],
+                               qubits: Iterable['cirq.Qid'],
                                default=RaiseTypeErrorIfNotProvided):
     """Decomposes a value into operations on the given qubits.
 

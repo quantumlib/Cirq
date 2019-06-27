@@ -1,0 +1,121 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import numpy as np
+
+import cirq
+
+
+def test_wave_function_trial_result_repr():
+    final_simulator_state = cirq.WaveFunctionSimulatorState(
+        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1]))
+    trial_result = cirq.WaveFunctionTrialResult(
+        params=cirq.ParamResolver({'s': 1}),
+        measurements={'m': np.array([[1]])},
+        final_simulator_state=final_simulator_state)
+    assert repr(trial_result) == (
+               "cirq.WaveFunctionTrialResult("
+               "params=cirq.ParamResolver({'s': 1}), "
+               "measurements={'m': array([[1]])}, "
+               "final_simulator_state=cirq.WaveFunctionSimulatorState("
+                   "state_vector=array([0, 1]), "
+                   "qubit_map={cirq.NamedQubit('a'): 0}))")
+
+
+def test_wave_function_trial_result_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.WaveFunctionTrialResult(
+            params=cirq.ParamResolver({}),
+            measurements={},
+            final_simulator_state=cirq.WaveFunctionSimulatorState(np.array([]),
+                                                                  {})),
+        cirq.WaveFunctionTrialResult(
+            params=cirq.ParamResolver({}),
+            measurements={},
+            final_simulator_state=cirq.WaveFunctionSimulatorState(np.array([]),
+                                                                  {})))
+    eq.add_equality_group(
+        cirq.WaveFunctionTrialResult(
+            params=cirq.ParamResolver({'s': 1}),
+            measurements={},
+            final_simulator_state=cirq.WaveFunctionSimulatorState(np.array([]),
+                                                                  {})))
+    eq.add_equality_group(
+        cirq.WaveFunctionTrialResult(
+            params=cirq.ParamResolver({'s': 1}),
+            measurements={'m': np.array([[1]])},
+            final_simulator_state=cirq.WaveFunctionSimulatorState(np.array([]),
+                                                                  {})))
+    eq.add_equality_group(
+        cirq.WaveFunctionTrialResult(
+            params=cirq.ParamResolver({'s': 1}),
+            measurements={'m': np.array([[1]])},
+            final_simulator_state=cirq.WaveFunctionSimulatorState(np.array([1]),
+                                                                  {})))
+
+
+def test_wave_function_trial_result_state_mixin():
+    qubits = cirq.LineQubit.range(2)
+    qubit_map = {qubits[i]: i for i in range(2)}
+    result = cirq.WaveFunctionTrialResult(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'m': np.array([1, 2])},
+        final_simulator_state=cirq.WaveFunctionSimulatorState(
+            qubit_map=qubit_map, state_vector=np.array([0, 1, 0, 0])))
+    rho = np.array([[0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(rho,
+                                         result.density_matrix_of(qubits))
+    bloch = np.array([0,0,-1])
+    np.testing.assert_array_almost_equal(bloch,
+                                         result.bloch_vector_of(qubits[1]))
+    assert result.dirac_notation() == '|01⟩'
+
+
+def test_str_big():
+    qs = cirq.LineQubit.range(20)
+    result = cirq.WaveFunctionTrialResult(
+        cirq.ParamResolver(), {},
+        cirq.WaveFunctionSimulatorState(np.array([1] * 2**10),
+                                        {q: q.x for q in qs}))
+    assert str(result).startswith('measurements: (no measurements)\n'
+                                  'output vector: [1 1 1 ..')
+
+
+def test_pretty_print():
+    q = cirq.NamedQubit('a')
+    result = cirq.WaveFunctionTrialResult(
+        cirq.ParamResolver(), {},
+        cirq.WaveFunctionSimulatorState(np.array([1]), {q: 0}))
+
+    # Test Jupyter console output from
+    class FakePrinter:
+
+        def __init__(self):
+            self.text_pretty = ''
+
+        def text(self, to_print):
+            self.text_pretty += to_print
+
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == 'measurements: (no measurements)\noutput vector: |⟩'
+
+    # Test cycle handling
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'WaveFunctionTrialResult(...)'

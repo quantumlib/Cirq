@@ -24,34 +24,14 @@ from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from cirq.ops import QubitId
+    from cirq.ops import Qid
     from typing import Dict
-
-
-class OptimizationPass:
-    """Rewrites a circuit's operations in place to make them better."""
-
-    @abc.abstractmethod
-    def optimize_circuit(self, circuit: Circuit):
-        """Rewrites the given circuit to make it better.
-
-        Note that this performs an in place optimization.
-
-        Args:
-            circuit: The circuit to improve.
-        """
-        pass
-
-    def __call__(self, circuit: Circuit):
-        return self.optimize_circuit(circuit)
 
 
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
-    def __init__(self,
-                 clear_span: int,
-                 clear_qubits: Iterable[ops.QubitId],
+    def __init__(self, clear_span: int, clear_qubits: Iterable[ops.Qid],
                  new_operations: ops.OP_TREE) -> None:
         """
         Args:
@@ -90,7 +70,7 @@ class PointOptimizationSummary:
             self.new_operations)
 
 
-class PointOptimizer(OptimizationPass):
+class PointOptimizer:
     """Makes circuit improvements focused on a specific location."""
 
     def __init__(self,
@@ -104,6 +84,9 @@ class PointOptimizer(OptimizationPass):
                 old operations.
         """
         self.post_clean_up = post_clean_up
+
+    def __call__(self, circuit: Circuit):
+        return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
     def optimization_at(self,
@@ -129,10 +112,9 @@ class PointOptimizer(OptimizationPass):
             A description of the optimization to perform, or else None if no
             change should be made.
         """
-        pass
 
     def optimize_circuit(self, circuit: Circuit):
-        frontier = defaultdict(lambda: 0)  # type: Dict[QubitId, int]
+        frontier = defaultdict(lambda: 0)  # type: Dict[Qid, int]
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:

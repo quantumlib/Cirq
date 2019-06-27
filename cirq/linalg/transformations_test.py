@@ -66,6 +66,28 @@ def test_match_global_phase():
     np.testing.assert_allclose(d, b * -1j, atol=1e-10)
 
 
+def test_match_global_phase_incompatible_shape():
+    a = np.array([1])
+    b = np.array([1, 2])
+    c, d = cirq.match_global_phase(a, b)
+    assert c.shape == a.shape
+    assert d.shape == b.shape
+    assert c is not a
+    assert d is not b
+    assert np.allclose(c, a)
+    assert np.allclose(d, b)
+
+    a = np.array([])
+    b = np.array([])
+    c, d = cirq.match_global_phase(a, b)
+    assert c.shape == a.shape
+    assert d.shape == b.shape
+    assert c is not a
+    assert d is not b
+    assert np.allclose(c, a)
+    assert np.allclose(d, b)
+
+
 def test_match_global_phase_zeros():
     z = np.array([[0, 0], [0, 0]])
     b = np.array([[1, 1], [1, 1]])
@@ -168,6 +190,74 @@ def test_targeted_left_multiply_out():
         atol=1e-8)
 
 
+def test_targeted_conjugate_simple():
+    a = np.array([[0, 1j], [0, 0]])
+    # yapf: disable
+    b = np.reshape(
+        np.array([1, 2, 3, 4,
+                  5, 6, 7, 8,
+                  9, 10, 11, 12,
+                  13, 14, 15, 16]),
+        (2,) * 4
+    )
+    expected = np.reshape(
+        np.array([11, 12, 0, 0,
+                  15, 16, 0, 0,
+                  0, 0, 0, 0,
+                  0, 0, 0, 0]),
+        (2,) * 4
+    )
+    # yapf: enable
+    result = cirq.targeted_conjugate_about(a, b, [0])
+    # Should move lower right block to upper right.
+    # Conjugation should result in multiplication by 1 (since 1j * -1j == 1).
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate():
+    a = np.reshape([0, 1, 2j, 3j], (2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate_about(a, b, [0])
+    expected = np.einsum('ij,jklm,ln->iknm', a, b,
+                         np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+    result = cirq.targeted_conjugate_about(a, b, [1])
+    expected = np.einsum('ij,kjlm,mn->kiln', a, b,
+                         np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_multiple_indices():
+    a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate_about(a, b, [0, 1])
+    expected = np.einsum('ijkl,klmn,mnop->ijop', a, b,
+                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_multiple_indices_flip_order():
+    a = np.reshape(np.arange(16) + 1j, (2, 2, 2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    result = cirq.targeted_conjugate_about(a, b, [1, 0], [3, 2])
+    expected = np.einsum('ijkl,lknm,mnop->jipo', a, b,
+                         np.transpose(np.conjugate(a), (2, 3, 0, 1)))
+    np.testing.assert_almost_equal(result, expected)
+
+
+def test_targeted_conjugate_out():
+    a = np.reshape([0, 1, 2j, 3j], (2, 2))
+    b = np.reshape(np.arange(16), (2,) * 4)
+    buffer = np.empty((2,) * 4, dtype=a.dtype)
+    out = np.empty((2,) * 4, dtype=a.dtype)
+    result = cirq.targeted_conjugate_about(a, b, [0], buffer=buffer, out=out)
+    assert result is out
+    expected = np.einsum('ij,jklm,ln->iknm', a, b,
+                         np.transpose(np.conjugate(a)))
+    np.testing.assert_almost_equal(result, expected)
+
+
 def test_apply_matrix_to_slices():
     # Output is input.
     with pytest.raises(ValueError, match='out'):
@@ -243,3 +333,57 @@ def test_apply_matrix_to_slices():
     np.testing.assert_allclose(
         actual,
         np.array([1, 13, 31, 4]))
+
+
+def test_partial_trace():
+    a = np.reshape(np.arange(4), (2, 2))
+    b = np.reshape(np.arange(9) + 4, (3, 3))
+    c = np.reshape(np.arange(16) + 13, (4, 4))
+    tr_a = np.trace(a)
+    tr_b = np.trace(b)
+    tr_c = np.trace(c)
+    tensor = np.reshape(np.kron(a, np.kron(b, c)), (2, 3, 4, 2, 3, 4))
+
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, []),
+                                   tr_a * tr_b * tr_c)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [0]),
+                                   a * tr_b * tr_c)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [1]),
+                                   b * tr_a * tr_c)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [2]),
+                                   c * tr_a * tr_b)
+    np.testing.assert_almost_equal(
+        cirq.partial_trace(tensor, [0, 1]),
+        np.reshape(np.kron(a, b), (2, 3, 2, 3)) * tr_c)
+    np.testing.assert_almost_equal(
+        cirq.partial_trace(tensor, [1, 2]),
+        np.reshape(np.kron(b, c), (3, 4, 3, 4)) * tr_a)
+    np.testing.assert_almost_equal(
+        cirq.partial_trace(tensor, [0, 2]),
+        np.reshape(np.kron(a, c), (2, 4, 2, 4)) * tr_b)
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [0, 1, 2]),
+                                   tensor)
+
+    # permutes indices
+    np.testing.assert_almost_equal(
+        cirq.partial_trace(tensor, [1, 0]),
+        np.reshape(np.kron(b, a), (3, 2, 3, 2)) * tr_c)
+    np.testing.assert_almost_equal(
+        cirq.partial_trace(tensor, [2, 0, 1]),
+        np.reshape(np.kron(c, np.kron(a, b)), (4, 2, 3, 4, 2, 3)))
+
+
+def test_partial_trace_non_kron():
+    tensor = np.zeros((2, 2, 2, 2))
+    tensor[0, 0, 0, 0] = 1
+    tensor[1, 1, 1, 1] = 4
+    np.testing.assert_almost_equal(cirq.partial_trace(tensor, [0]),
+                                   np.array([[1, 0], [0, 4]]))
+
+
+def test_partial_trace_invalid_inputs():
+    with pytest.raises(ValueError, match='2, 3, 2, 2'):
+        cirq.partial_trace(np.reshape(np.arange(2 * 3 * 2 * 2), (2, 3, 2, 2)),
+                           [1])
+    with pytest.raises(ValueError, match='2'):
+        cirq.partial_trace(np.reshape(np.arange(2 * 2 * 2 * 2), (2,) * 4), [2])

@@ -19,8 +19,8 @@ def test_line_macro():
     assert ccq.line_macro((1, 2)) == r'\ar @{-} [2, 1]'
     assert ccq.line_macro((1, 0), thickness=2) == r'\ar @{-} @*{[|(2)]} [0, 1]'
     assert ccq.line_macro((1, 1), start=(1, 0)) == r'\ar @{-} [0, 1];[1, 1]'
-    assert (ccq.line_macro((1, 1), start=(1, 0), thickness=3) ==
-            r'\ar @{-} @*{[|(3)]} [0, 1];[1, 1]')
+    assert (ccq.line_macro((1, 1), start=(1, 0),
+                           thickness=3) == r'\ar @{-} @*{[|(3)]} [0, 1];[1, 1]')
 
 
 def test_ghost_macro():
