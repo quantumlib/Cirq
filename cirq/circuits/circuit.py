@@ -43,6 +43,11 @@ if TYPE_CHECKING:
     from typing import Set
 
 
+# This is a special indicator value used by some methods to determine
+# whether or not the caller provided a 'default' argument.
+RaiseTypeErrorIfNotProvided = (np.array([]),)
+
+
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
@@ -780,7 +785,7 @@ class Circuit:
         return self.are_all_matches_terminal(protocols.is_measurement)
 
     def are_all_matches_terminal(self,
-            predicate: Callable[[ops.Operation], bool]):
+                                 predicate: Callable[[ops.Operation], bool]):
         """Check whether all of the ops that satisfy a predicate are terminal.
 
         Args:
@@ -1242,24 +1247,26 @@ class Circuit:
         return all(protocols.has_unitary(e) for e in unitary_ops)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        """Converts the circuit into a unitary matrix, if possible.
+        """Returns the circuit's unitary after eliding terminal measurements."""
+        return self.to_unitary_matrix(ignore_terminal_measurements=True,
+                                      default=NotImplemented)
 
-        If the circuit contains any non-terminal measurements, the conversion
-        into a unitary matrix fails (i.e. returns NotImplemented). Terminal
-        measurements are ignored when computing the unitary matrix. The unitary
-        matrix is the product of the unitary matrix of all operations in the
-        circuit (after expanding them to apply to the whole system).
-        """
-        if not self._has_unitary_():
-            return NotImplemented
-        return self.to_unitary_matrix(ignore_terminal_measurements=True)
+    def _apply_unitary_(self, args) -> Union[np.ndarray, NotImplementedType]:
+        """Returns the circuit's unitary after eliding terminal measurements."""
+        c = _circuit_with_same_distribution_without_terminal_measurements(self)
+        return protocols.apply_unitaries(
+            c.all_operations(),
+            qubits=sorted(self.all_qubits()),
+            args=args,
+            default=None)
 
     def to_unitary_matrix(
             self,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable[ops.Qid] = (),
             ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+            dtype: Type[np.number] = np.complex128,
+            default: Any = RaiseTypeErrorIfNotProvided) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
 
         Args:
@@ -1276,25 +1283,33 @@ class Circuit:
                 cost of precision. `dtype` must be a complex np.dtype, unless
                 all operations in the circuit have unitary matrices with
                 exclusively real coefficients (e.g. an H + TOFFOLI circuit).
+            default: The value to return if the circuit is not unitary (possibly
+                after removing terminal measurements).
 
         Returns:
             A (possibly gigantic) 2d numpy array corresponding to a matrix
             equivalent to the circuit's effect on a quantum state.
 
         Raises:
-            ValueError: The circuit contains measurement gates that are not
-                ignored.
-            TypeError: The circuit contains gates that don't have a known
-                unitary matrix, e.g. gates parameterized by a Symbol.
+            ValueError: The circuit contains non-unitary operations even after
+                removing terminal measurements (if requested), and also a
+                default result was not specified.
         """
 
         if not ignore_terminal_measurements and any(
                 protocols.is_measurement(op)
                 for op in self.all_operations()):
-            raise ValueError('Circuit contains a measurement.')
+            if default is not RaiseTypeErrorIfNotProvided:
+                return default
+            raise ValueError(
+                "Circuit isn't unitary. It contains a measurement.")
 
         if not self.are_all_measurements_terminal():
-            raise ValueError('Circuit contains a non-terminal measurement.')
+            if default is not RaiseTypeErrorIfNotProvided:
+                return default
+            raise ValueError(
+                "Circuit has no unitary effect. "
+                "It contains a non-terminal measurement.")
 
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
@@ -1736,6 +1751,39 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     # (Matters when transposing.)
     out_diagram.force_vertical_padding_after(0, 0.5)
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
+
+
+def _circuit_with_same_distribution_without_terminal_measurements(
+        circuit: Circuit) -> Circuit:
+    """Removes terminal measurements from a circuit while preserving bit flips.
+
+    When a measurement has an inversion mask (indicating certain bits need to be
+    flipped before being reported), these bit flips are translated into X gates
+    left behind by the removal of the measurement.
+    """
+    out = circuit.copy()
+    non_terminal_qubits = set()
+    for i in range(len(out))[::-1]:
+        operations = out[i].operations
+        for j, op in enumerate(operations):
+            # Determine whether operation is a terminal measurement.
+            terminal = True
+            for q in op.qubits:
+                if q in non_terminal_qubits:
+                    terminal = False
+                non_terminal_qubits.add(q)
+            if not terminal:
+                continue
+            measurement = ops.op_gate_of_type(op, ops.MeasurementGate)
+            if measurement is None:
+                continue
+
+            # Replace terminal measurement with its bit flips.
+            bit_flips = [ops.X(q)
+                         for q, b in zip(op.qubits, measurement.invert_mask)
+                         if b]
+            out[i] = ops.Moment(operations[:j] + bit_flips + operations[j+1:])
+    return out
 
 
 def _apply_unitary_circuit(circuit: Circuit,
