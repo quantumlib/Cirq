@@ -81,6 +81,14 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
+    def in_su2(self) -> 'XPowGate':
+        """Returns an equal-up-global-phase gate from the group SU2."""
+        return XPowGate(exponent=self._exponent, global_shift=-0.5)
+
+    def with_canonical_global_phase(self) -> 'XPowGate':
+        """Returns an equal-up-global-phase standardized form of the gate."""
+        return XPowGate(exponent=self._exponent)
+
     def _eigen_components(self):
         return [
             (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
@@ -183,6 +191,14 @@ class YPowGate(eigen_gate.EigenGate,
 
     `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
     """
+
+    def in_su2(self) -> 'YPowGate':
+        """Returns an equal-up-global-phase gate from the group SU2."""
+        return YPowGate(exponent=self._exponent, global_shift=-0.5)
+
+    def with_canonical_global_phase(self) -> 'YPowGate':
+        """Returns an equal-up-global-phase standardized form of the gate."""
+        return YPowGate(exponent=self._exponent)
 
     def _eigen_components(self):
         return [
@@ -297,6 +313,14 @@ class ZPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def in_su2(self) -> 'ZPowGate':
+        """Returns an equal-up-global-phase gate from the group SU2."""
+        return ZPowGate(exponent=self._exponent, global_shift=-0.5)
+
+    def with_canonical_global_phase(self) -> 'ZPowGate':
+        """Returns an equal-up-global-phase standardized form of the gate."""
+        return ZPowGate(exponent=self._exponent)
 
     def _eigen_components(self):
         return [
