@@ -257,3 +257,12 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
     if any(index >= num_qubits for index in indices):
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
+
+
+def von_neumann_entropy(density_matrix: np.ndarray) -> np.ndarray:
+    """Calculates von Neumann entropy of density matrix"""
+    if 0 in density_matrix:
+        raise ValueError('Cannot calculate von Neumann entropy of a density '
+                         'matrix that contains a zero')
+    else:
+        return np.trace(density_matrix * np.log(density_matrix))
