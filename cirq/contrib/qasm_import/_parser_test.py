@@ -6,11 +6,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 
 import cirq
 import cirq.testing as ct
 from cirq import Circuit
+from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import import QasmException
 from cirq.contrib.qasm_import._parser import QasmParser
 
@@ -108,6 +110,22 @@ def test_already_defined_error(qasm: str):
     parser = QasmParser()
 
     with pytest.raises(QasmException, match=r"q.*already defined.* line 3"):
+        parser.parse(qasm)
+
+
+@pytest.mark.parametrize('qasm', [
+    """OPENQASM 2.0;
+           qreg q[0];
+               """,
+    """OPENQASM 2.0;
+           creg q[0];
+               """,
+])
+def test_zero_length_register(qasm: str):
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match="Illegal, zero-length register 'q' at line 2"):
         parser.parse(qasm)
 
 
@@ -241,6 +259,74 @@ def test_cx_gate_arg_overlap():
         parser.parse(qasm)
 
 
+def test_u_gate():
+    qasm = """
+     OPENQASM 2.0;
+     qreg q[2];
+     U(pi, 2.3, 3) q[0];
+     U(+3.14, -pi, (8)) q;
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+    q1 = cirq.NamedQubit('q_1')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0))
+
+    expected_circuit.append(
+        cirq.Moment([
+            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0),
+            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1)
+        ]))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is False
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 2}
+
+
+def test_u3_angles():
+    qasm = """
+    OPENQASM 2.0;
+    qreg q[1];
+    // TODO: rewrite first param to "pi/2" when we have arithmetics 
+    U(1.5707963267948966,0,pi) q[0];
+    """
+
+    c = QasmParser().parse(qasm).circuit
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(c),
+                                                    cirq.unitary(cirq.H),
+                                                    atol=1e-7)
+
+
+def test_u_gate_zero_params_error():
+    qasm = """OPENQASM 2.0;
+     qreg q[2];     
+     U() q[1];"""
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"U takes 3 parameter\(s\).*got.*0.*line 3"):
+        parser.parse(qasm)
+
+
+def test_u_gate_too_much_params_error():
+    qasm = """OPENQASM 2.0;
+     qreg q[2];     
+     U(pi, pi, pi, pi) q[1];"""
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"U takes 3 parameter\(s\).*got.*4.*line 3"):
+        parser.parse(qasm)
+
+
 def test_unknown_basic_gate():
     qasm = """OPENQASM 2.0;
          qreg q[2];
@@ -273,4 +359,145 @@ def test_undefined_register_from_register_arg():
     parser = QasmParser()
 
     with pytest.raises(QasmException, match=r"""Undefined.*register.*q.*"""):
+        parser.parse(qasm)
+
+
+def test_measure_individual_bits():
+    qasm = """
+         OPENQASM 2.0;   
+         include "qelib1.inc";       
+         qreg q1[2];
+         creg c1[2];                        
+         measure q1[0] -> c1[0];
+         measure q1[1] -> c1[1];
+    """
+    parser = QasmParser()
+
+    q1_0 = cirq.NamedQubit('q1_0')
+    q1_1 = cirq.NamedQubit('q1_1')
+
+    expected_circuit = Circuit()
+
+    expected_circuit.append(
+        cirq.MeasurementGate(num_qubits=1, key='c1_1').on(q1_1))
+    expected_circuit.append(
+        cirq.MeasurementGate(num_qubits=1, key='c1_0').on(q1_0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q1': 2}
+    assert parsed_qasm.cregs == {'c1': 2}
+
+
+def test_measure_registers():
+    qasm = """
+         OPENQASM 2.0;   
+         include "qelib1.inc";       
+         qreg q1[3];
+         creg c1[3];                        
+         measure q1 -> c1;       
+    """
+    parser = QasmParser()
+
+    q1_0 = cirq.NamedQubit('q1_0')
+    q1_1 = cirq.NamedQubit('q1_1')
+    q1_2 = cirq.NamedQubit('q1_2')
+
+    expected_circuit = Circuit()
+
+    expected_circuit.append(
+        cirq.MeasurementGate(num_qubits=1, key='c1_0').on(q1_0))
+    expected_circuit.append(
+        cirq.MeasurementGate(num_qubits=1, key='c1_1').on(q1_1))
+    expected_circuit.append(
+        cirq.MeasurementGate(num_qubits=1, key='c1_2').on(q1_2))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.qelib1Include is True
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q1': 3}
+    assert parsed_qasm.cregs == {'c1': 3}
+
+
+def test_measure_mismatched_register_size():
+    qasm = """
+         OPENQASM 2.0;   
+         include "qelib1.inc";       
+         qreg q1[2];
+         creg c1[3];                        
+         measure q1 -> c1;       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r""".*mismatched register sizes 2 -> 3.*line 6"""):
+        parser.parse(qasm)
+
+
+def test_measure_to_quantum_register():
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";       
+         qreg q1[3];
+         qreg q2[3];
+         creg c1[3];                        
+         measure q2 -> q1;       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined classical register.*q1.*line 6"""):
+        parser.parse(qasm)
+
+
+def test_measure_undefined_classical_bit():
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";       
+         qreg q1[3];    
+         creg c1[3];                        
+         measure q1[1] -> c2[1];       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined classical register.*c2.*line 5"""):
+        parser.parse(qasm)
+
+
+def test_measure_from_classical_register():
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";       
+         qreg q1[2];
+         creg c1[3];                        
+         creg c2[3];                        
+         measure c1 -> c2;       
+    """
+
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"""Undefined quantum register.*c1.*line 6"""):
+        parser.parse(qasm)
+
+
+def test_measurement_bounds():
+    qasm = """OPENQASM 2.0;
+     qreg q1[3];
+     creg c1[3];                        
+     measure q1[0] -> c1[4];  
+"""
+    parser = QasmParser()
+
+    with pytest.raises(QasmException,
+                       match=r"Out of bounds bit index 4"
+                       r" on classical register c1 of size 3 at line 4"):
         parser.parse(qasm)

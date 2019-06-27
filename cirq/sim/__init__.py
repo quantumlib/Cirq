@@ -28,6 +28,7 @@ from cirq.sim.density_matrix_simulator import (
 )
 
 from cirq.sim.mux import (
+    final_wavefunction,
     sample,
     sample_sweep,
 )
