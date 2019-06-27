@@ -19,8 +19,7 @@ from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
 import numpy as np
 from ply import yacc
 
-from cirq import ops
-from cirq import Circuit, NamedQubit, CX
+from cirq import ops, Circuit, NamedQubit, CX
 from cirq.circuits.qasm_output import QasmUGate
 from cirq.contrib.qasm_import._lexer import QasmLexer
 from cirq.contrib.qasm_import.exception import QasmException
@@ -132,7 +131,7 @@ class QasmParser:
         self.lexer = QasmLexer()
         self.supported_format = False
         self.parsedQasm = None  # type: Optional[Qasm]
-        self.qubits = {}  # type: Dict[str,ops.NamedQubit]
+        self.qubits = {}  # type: Dict[str,ops.Qid]
         self.functions = {
             'sin': np.sin,
             'cos': np.cos,

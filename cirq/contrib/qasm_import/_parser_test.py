@@ -23,7 +23,7 @@ def test_format_header_circuit():
 
     parsed_qasm = parser.parse("OPENQASM 2.0;")
 
-    assert parsed_qasm.supportedFormat is True
+    assert parsed_qasm.supportedFormat
     assert not parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
@@ -46,8 +46,8 @@ include "qelib1.inc";
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
 
@@ -76,8 +76,8 @@ def test_comments():
     // multiline 
     """)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
 
 
@@ -91,8 +91,8 @@ def test_multiple_qreg_declaration():
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
     assert parsed_qasm.qregs == {'a_quantum_register': 1337, 'q': 42}
 
@@ -152,8 +152,8 @@ def test_multiple_creg_declaration():
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
     ct.assert_same_circuits(parsed_qasm.circuit, Circuit())
     assert parsed_qasm.qregs == {'a_quantum_register': 1337}
     assert parsed_qasm.cregs == {'a_classical_register': 1337, 'c': 42}
@@ -197,8 +197,8 @@ def test_CX_gate():
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is False
+    assert parsed_qasm.supportedFormat
+    assert not parsed_qasm.qelib1Include
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2, 'q2': 2}
@@ -283,8 +283,8 @@ def test_u_gate():
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is False
+    assert parsed_qasm.supportedFormat
+    assert not parsed_qasm.qelib1Include
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q': 2}
@@ -346,8 +346,8 @@ def test_expressions(expr: str):
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is False
+    assert parsed_qasm.supportedFormat
+    assert not parsed_qasm.qelib1Include
 
     ct.assert_allclose_up_to_global_phase(cirq.unitary(parsed_qasm.circuit),
                                           cirq.unitary(expected_circuit),
@@ -450,8 +450,8 @@ def test_measure_individual_bits():
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 2}
@@ -483,8 +483,8 @@ def test_measure_registers():
 
     parsed_qasm = parser.parse(qasm)
 
-    assert parsed_qasm.supportedFormat is True
-    assert parsed_qasm.qelib1Include is True
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
 
     ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
     assert parsed_qasm.qregs == {'q1': 3}
