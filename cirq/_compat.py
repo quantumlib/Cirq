@@ -17,6 +17,7 @@
 from typing import Any
 import numpy as np
 import sympy
+import sys
 
 
 def proper_repr(value: Any) -> str:
@@ -38,3 +39,36 @@ def proper_repr(value: Any) -> str:
     if isinstance(value, np.ndarray):
         return 'np.array({!r})'.format(value.tolist())
     return repr(value)
+
+
+def deprecated(*, deadline: str, fix: str):
+    """Marks a function as deprecated.
+
+    Args:
+        deadline: The version where the function will be deleted (e.g. "v0.7").
+        fix: A complete sentence describing what the user should be using
+            instead of this particular function (e.g. "Use cos instead.")
+
+    Returns:
+        A decorator that decorates functions with a deprecation warning.
+    """
+
+    def decorator(func):
+        used = False
+
+        def decorated_func(*args, **kwargs):
+            nonlocal used
+            if not used:
+                used = True
+                print(
+                    f'\nThe function "{func.__qualname__}" was used '
+                    f'but is being DEPRECATED.\n'
+                    f'It will be removed in cirq {deadline}.\n'
+                    f'{fix}\n',
+                    file=sys.stderr)
+
+            return func(*args, **kwargs)
+
+        return decorated_func
+
+    return decorator

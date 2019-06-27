@@ -31,6 +31,7 @@ import re
 import numpy as np
 
 from cirq import devices, ops, study, protocols
+from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -1253,6 +1254,16 @@ class Circuit:
         if not self._has_unitary_():
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
+
+    @deprecated(deadline='v0.7.0', fix='Use Circuit.unitary instead.')
+    def to_unitary_matrix(
+            self,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable[ops.Qid] = (),
+            ignore_terminal_measurements: bool = True,
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        return self.unitary(qubit_order, qubits_that_should_be_present,
+                            ignore_terminal_measurements, dtype)
 
     def unitary(self,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
