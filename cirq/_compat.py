@@ -80,6 +80,7 @@ def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
 def deprecated_test(test_func: Callable) -> Callable:
     """Temporarily redirects stderr to /dev/null during the test."""
     def decorated_test_func():
-        with contextlib.redirect_stderr(open(os.devnull, 'w')):
-            return test_func()
+        with open(os.devnull, 'w') as devnull:
+            with contextlib.redirect_stderr(devnull):
+                return test_func()
     return decorated_test_func
