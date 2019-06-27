@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import functools
-from typing import Dict, Optional, List, Any, Iterable, Callable, Tuple, Union
+from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
+                    Sequence, Union)
+
 import numpy as np
 from ply import yacc
 
@@ -100,8 +102,9 @@ class QasmGateStatement:
         # used as arguments, we generate reg_size GateOperations via iterating
         # through each qubit of the registers 0 to n-1 and use the same one
         # qubit from the "single-qubit registers" for each operation.
-        op_qubits = functools.reduce(np.broadcast, args)  # type: np.broadcast
-        for qubits in op_qubits:  # type: Tuple[cirq.Qid]
+        op_qubits = cast(Sequence[Sequence[cirq.Qid]],
+                         functools.reduce(np.broadcast, args))
+        for qubits in op_qubits:
             if isinstance(qubits, cirq.Qid):
                 yield final_gate.on(qubits)
             elif len(np.unique(qubits)) < len(qubits):
