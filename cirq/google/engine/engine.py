@@ -24,29 +24,41 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+import enum
 import random
 import re
 import string
 import time
 import urllib.parse
 from collections import Iterable
-from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
+
+import google.protobuf as gp
 from apiclient import discovery
 
 from cirq import optimizers, circuits
+from cirq.api.google import v1, v2
+from cirq.google.api import v2 as api_v2
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto_dict
 from cirq.google.programs import schedule_to_proto_dicts, unpack_results
+from cirq.google.serializable_gate_set import SerializableGateSet
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 from cirq.study.sweeps import Points, UnitSweep, Zip
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any
-
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
+
+
+class ProtoVersion(enum.Enum):
+    """Protocol buffer version to use for requests to the quantum engine."""
+    V1 = 1
+    V2 = 2
+
+
+# Quantum programs to run can be specified as circuits or schedules.
+Program = Union[circuits.Circuit, Schedule]
 
 
 class JobConfig:
@@ -149,8 +161,9 @@ class Engine:
                  default_project_id: Optional[str] = None,
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
-                 **kwargs
-                 ) -> None:
+                 proto_version: ProtoVersion = ProtoVersion.V1,
+                 gate_set: Optional[SerializableGateSet] = None,
+                 **kwargs) -> None:
         """Engine service client.
 
         Args:
@@ -174,6 +187,8 @@ class Engine:
                                                '$discovery/rest'
                                                '?version={apiVersion}')
         self.default_gcs_prefix = default_gcs_prefix
+        self.proto_version = proto_version
+        self.gate_set = gate_set
 
         discovery_service_url = (
             self.discovery_url if self.api_key is None else (
@@ -188,7 +203,7 @@ class Engine:
     def run(
             self,
             *,  # Force keyword args.
-            program: Union[circuits.Circuit, Schedule],
+            program: Program,
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
@@ -298,9 +313,7 @@ class Engine:
 
         return implied_job_config
 
-    def program_as_schedule(self,
-                            program: Union[circuits.Circuit,
-                                           Schedule]) -> Schedule:
+    def program_as_schedule(self, program: Program) -> Schedule:
         if isinstance(program, circuits.Circuit):
             device = program.device
             circuit_copy = program.copy()
@@ -318,7 +331,7 @@ class Engine:
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: Union[circuits.Circuit, Schedule],
+            program: Program,
             job_config: Optional[JobConfig] = None,
             params: Sweepable = None,
             repetitions: int = 1,
@@ -344,26 +357,23 @@ class Engine:
         """
 
         job_config = self.implied_job_config(job_config)
-        schedule = self.program_as_schedule(program)
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
-        schedule.device.validate_schedule(schedule)
+        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        if self.proto_version == ProtoVersion.V1:
+            code, run_context = self._serialize_program_v1(
+                program, sweeps, repetitions)
+        elif self.proto_version == ProtoVersion.V2:
+            code, run_context = self._serialize_program_v2(
+                program, sweeps, repetitions)
+        else:
+            raise ValueError('invalid proto version: {}'.format(
+                self.proto_version))
 
         # Create program.
-        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
-        program_dict = {}  # type: Dict[str, Any]
-
-        program_dict['parameter_sweeps'] = [
-            sweep_to_proto_dict(sweep, repetitions) for
-            sweep in sweeps]
-        program_dict['operations'] = [op for op in
-                                      schedule_to_proto_dicts(schedule)]
-        code = {
-            '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
-        code.update(program_dict)
         request = {
             'name': 'projects/%s/programs/%s' % (job_config.project_id,
                                                  job_config.program_id,),
@@ -393,10 +403,51 @@ class Engine:
                 }
             },
         }
+        if run_context is not None:
+            request['run_context'] = run_context
         response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()
 
         return EngineJob(job_config, response, self)
+
+    def _serialize_program_v1(
+            self, program: Program, sweeps: List[Sweep], repetitions: int
+    ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+        schedule = self.program_as_schedule(program)
+        schedule.device.validate_schedule(schedule)
+
+        descriptor = v1.program_pb2.Program.DESCRIPTOR
+
+        program_dict = {}  # type: Dict[str, Any]
+        program_dict['@type'] = 'type.googleapis.com/' + descriptor.full_name
+        program_dict['parameter_sweeps'] = [
+            sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+        ]
+        program_dict['operations'] = [
+            op for op in schedule_to_proto_dicts(schedule)
+        ]
+        return program_dict, None  # run context included in program
+
+    def _serialize_program_v2(
+            self, program: Program, sweeps: List[Sweep], repetitions: int
+    ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+        if isinstance(program, Schedule):
+            program.device.validate_schedule(program)
+
+        program = self.gate_set.serialize(program)
+
+        run_context = v2.run_context_pb2.RunContext()
+        for sweep in sweeps:
+            sweep_proto = run_context.parameter_sweeps.add()
+            sweep_proto.repetitions = repetitions
+            api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+
+        def any_dict(message: gp.message.Message) -> Dict[str, Any]:
+            any_message = gp.any_pb2.Any()
+            any_message.Pack(message)
+            return gp.json_format.MessageToDict(any_message)
+
+        return any_dict(program), any_dict(run_context)
 
     def get_program(self, program_resource_name: str) -> Dict:
         """Returns the previously created quantum program.
@@ -440,8 +491,17 @@ class Engine:
         """
         response = self.service.projects().programs().jobs().getResult(
             parent=job_resource_name).execute()
+        if self.proto_version == ProtoVersion.V1:
+            return self._get_job_results_v1(response['result'])
+        elif self.proto_version == ProtoVersion.V2:
+            return self._get_job_results_v2(response['result'])
+        else:
+            raise ValueError('invalid proto version: {}'.format(
+                self.proto_version))
+
+    def _get_job_results_v1(self, result: Dict[str, Any]) -> List[TrialResult]:
         trial_results = []
-        for sweep_result in response['result']['sweepResults']:
+        for sweep_result in result['sweepResults']:
             sweep_repetitions = sweep_result['repetitions']
             key_sizes = [(m['key'], len(m['qubits']))
                          for m in sweep_result['measurementKeys']]
@@ -450,12 +510,25 @@ class Engine:
                 measurements = unpack_results(data, sweep_repetitions,
                                               key_sizes)
 
-                trial_results.append(TrialResult(
-                    params=ParamResolver(
+                trial_results.append(
+                    TrialResult(params=ParamResolver(
                         result.get('params', {}).get('assignments', {})),
-                    repetitions=sweep_repetitions,
-                    measurements=measurements))
+                                repetitions=sweep_repetitions,
+                                measurements=measurements))
         return trial_results
+
+    def _get_job_results_v2(self,
+                            result_dict: Dict[str, Any]) -> List[TrialResult]:
+        result_any = gp.any_pb2.Any()
+        gp.json_format.ParseDict(result_dict, result_any)
+        result = v2.result_pb2.Result()
+        result_any.Unpack(result)
+        sweep_results = api_v2.results_from_proto(result)
+        # Flatten to single list to match to sampler api.
+        return [
+            trial_result for sweep_result in sweep_results
+            for trial_result in sweep_result
+        ]
 
     def cancel_job(self, job_resource_name: str):
         """Cancels the given job.
