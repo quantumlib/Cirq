@@ -371,6 +371,7 @@ def test_drawer_eq():
 
     eq.add_equality_group(dd)
 
+
 def test_drawer_superimposed():
     empty_drawer = TextDiagramDrawer()
     assert not empty_drawer
