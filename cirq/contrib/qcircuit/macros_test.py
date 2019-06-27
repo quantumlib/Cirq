@@ -24,16 +24,16 @@ def test_line_macro():
 
 
 def test_ghost_macro():
-    assert ccq.ghost_macro('foo') == '*+<1em,.9em>{\hphantom{foo}}'
-    assert ccq.ghost_macro() == '*+<1em,.9em>{\hphantom{}}'
+    assert ccq.ghost_macro('foo') == r'*+<1em,.9em>{\hphantom{foo}}'
+    assert ccq.ghost_macro() == r'*+<1em,.9em>{\hphantom{}}'
 
 
 def test_multigate_macro():
     assert ccq.multigate_macro(3) == (
-        '*+<1em,.9em>{\hphantom{}} \POS [0,0]="i",[0,0].[2,0]="e",'
-        '!C *{},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};'
-        '"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')
+        r'*+<1em,.9em>{\hphantom{}} \POS [0,0]="i",[0,0].[2,0]="e",'
+        r'!C *{},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};'
+        r'"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')
     assert ccq.multigate_macro(5, 'foo') == (
-        '*+<1em,.9em>{\hphantom{foo}} \POS [0,0]="i",[0,0].[4,0]="e",'
-        '!C *{foo},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};'
-        '"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')
+        r'*+<1em,.9em>{\hphantom{foo}} \POS [0,0]="i",[0,0].[4,0]="e",'
+        r'!C *{foo},"e"+UR;"e"+UL **\dir{-};"e"+DL **\dir{-};'
+        r'"e"+DR **\dir{-};"e"+UR **\dir{-},"i"')
