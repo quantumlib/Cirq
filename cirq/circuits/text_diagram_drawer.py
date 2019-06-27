@@ -293,7 +293,7 @@ class TextDiagramDrawer:
 
             # Span.
             for x in range(x1 + 1, x2):
-                if (x, y) in self.horizontal_occlusions:
+                if _Point(x // 2, y // 2) in self.horizontal_occlusions:
                     continue
                 block_diagram.mutable_block(x, y).draw_curve(
                     charset, left=True, right=True, crossing_char=crossing_char)

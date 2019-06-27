@@ -108,6 +108,27 @@ def test_draw_entries_and_lines_with_emphasize():
           │
     """.strip())
 
+def test_draw_horizontal_lines_with_occlusions():
+    d = TextDiagramDrawer()
+    d.write(0, 0, 'o')
+    occlusion_xs = (3, 6)
+    for x in occlusion_xs:
+        d.write(x, 2, 'b')
+        d.horizontal_occlusion(x, 2)
+    for x in range(11):
+        d.vertical_line(x=x, y1=0, y2=1 + (x in occlusion_xs))
+    d.horizontal_line(y=2, x1=1, x2=8)
+
+    expected_diagram = """
+o ╷ ╷ ╷ ╷ ╷ ╷ ╷ ╷ ╷ ╷
+│ │ │ │ │ │ │ │ │ │ │
+╵ ╵ ╵ │ ╵ ╵ │ ╵ ╵ ╵ ╵
+      │     │
+  ╶───b ────b ──╴
+""".strip()
+
+    _assert_same_diagram(d.render().strip(), expected_diagram)
+
 
 def test_line_detects_horizontal():
     d = TextDiagramDrawer()
