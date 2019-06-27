@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Tuple
 
 from collections import defaultdict
@@ -22,6 +23,7 @@ import sympy
 
 import cirq
 import cirq.google as cg
+from cirq._compat import deprecated_test
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -3069,6 +3071,7 @@ def test_device_propagates():
     c = cirq.Circuit(device=moment_and_op_type_validating_device)
     assert c[:].device is moment_and_op_type_validating_device
 
+
 def test_moment_groups():
     qubits = [cirq.GridQubit(x, y) for x in range(8) for y in range(8)]
     c0 = cirq.H(qubits[0])
@@ -3100,3 +3103,10 @@ def test_moment_groups():
 (0, 7): ────H──────H─────────────────────
            └──┘   └───┘   └───┘   └──┘
 """, use_unicode_characters=True)
+
+
+@deprecated_test
+def test_deprecated_to_unitary_matrix():
+    np.testing.assert_allclose(
+        cirq.Circuit().to_unitary_matrix(),
+        cirq.Circuit().unitary())

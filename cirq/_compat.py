@@ -13,8 +13,9 @@
 # limitations under the License.
 
 """Workarounds for sympy issues"""
-
-from typing import Any
+from typing import Any, Callable
+import contextlib
+import os
 import sys
 
 import numpy as np
@@ -42,7 +43,7 @@ def proper_repr(value: Any) -> str:
     return repr(value)
 
 
-def deprecated(*, deadline: str, fix: str):
+def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
@@ -54,11 +55,10 @@ def deprecated(*, deadline: str, fix: str):
         A decorator that decorates functions with a deprecation warning.
     """
 
-    # coverage: ignore
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         used = False
 
-        def decorated_func(*args, **kwargs):
+        def decorated_func(*args, **kwargs) -> Any:
             nonlocal used
             if not used:
                 used = True
@@ -74,3 +74,11 @@ def deprecated(*, deadline: str, fix: str):
         return decorated_func
 
     return decorator
+
+
+def deprecated_test(test_func: Callable) -> Callable:
+    """Temporarily redirects stderr to /dev/null during the test."""
+    def decorated_test_func():
+        with contextlib.redirect_stderr(open(os.devnull, 'w')):
+            return test_func()
+    return decorated_test_func
