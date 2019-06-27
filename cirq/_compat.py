@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Workarounds for sympy issues"""
+"""Workarounds for compatibility issues between versions and libraries."""
+
 from typing import Any, Callable
 import contextlib
 import os
