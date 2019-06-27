@@ -71,7 +71,6 @@ def test_append():
     dag = cirq.CircuitDag()
     dag.append(cirq.X(q0))
     dag.append(cirq.Y(q0))
-    print(dag.edges())
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert len(dag.nodes()) == 2
     assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
@@ -113,6 +112,7 @@ def test_from_circuit():
     assert len(dag.nodes()) == 2
     assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
+    assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
 def test_from_circuit_with_device():
@@ -127,6 +127,7 @@ def test_from_circuit_with_device():
     assert len(dag.nodes()) == 2
     assert ([(n1.val, n2.val) for n1, n2 in dag.edges()] ==
             [(cirq.X(q0), cirq.Y(q0))])
+    assert sorted(circuit.all_qubits()) == sorted(dag.all_qubits())
 
 
 def test_to_empty_circuit():
