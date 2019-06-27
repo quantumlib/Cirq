@@ -359,7 +359,7 @@ def wavefunction_partial_trace_as_mixture(
     if wavefunction.shape == (wavefunction.size,):
         ret_shape = (keep_dims,)
     elif all(e == 2 for e in wavefunction.shape):
-        ret_shape = (2,) * len(keep_indices)
+        ret_shape = tuple(2 for i in range(len(keep_indices)))
 
     rho = np.kron(
         np.conj(wavefunction.reshape(-1, 1)).T,
@@ -427,7 +427,7 @@ def subwavefunction(wavefunction: np.ndarray,
         ret_shape = (keep_dims, )
         wavefunction = wavefunction.reshape((2,) * n_qubits)
     elif wavefunction.shape == (2,) * n_qubits:
-        ret_shape = (2,) * len(keep_indices)
+        ret_shape = tuple(2 for i in range(len(keep_indices)))
     else:
         raise ValueError(
             "Input wavefunction must be shaped like (2 ** n,) or (2,) * n")
