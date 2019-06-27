@@ -94,7 +94,7 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(self: _SupportsValueEquality,
                               other: _SupportsValueEquality,
                               atol: float) -> bool:
-    from cirq.protocols import approx_eq # HACK: Avoids circular dependencies.
+    from cirq.protocols import approx_eq  # HACK: Avoids circular dependencies.
 
     # Preserve regular equality type-comparison logic.
     cls_self = self._value_equality_values_cls_()
@@ -105,11 +105,9 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
         return False
 
     # Delegate to cirq.approx_eq for approximate equality comparison.
-    return approx_eq(
-        self._value_equality_approximate_values_(),
-        other._value_equality_approximate_values_(),
-        atol=atol
-    )
+    return approx_eq(self._value_equality_approximate_values_(),
+                     other._value_equality_approximate_values_(),
+                     atol=atol)
 
 
 # pylint: disable=function-redefined

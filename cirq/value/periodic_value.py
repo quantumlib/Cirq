@@ -85,6 +85,4 @@ class PeriodicValue:
     def _is_parameterized_(self):
         # HACK: Avoids circular dependencies.
         from cirq.protocols import is_parameterized
-        return any(
-            is_parameterized(val)
-            for val in (self.value, self.period))
+        return any(is_parameterized(val) for val in (self.value, self.period))
