@@ -71,30 +71,35 @@ class BipartiteSwapNetworkGate(PermutationGate):
         self.swap_gate = swap_gate
 
 
-    def decompose_complete(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def decompose_complete(self,
+                           qubits: Sequence[ops.Qid]
+                           ) -> ops.OP_TREE:
         swap_gate = SwapPermutationGate(self.swap_gate)
         if self.part_size == 1:
             yield acquaint(*qubits)
             return
         for k in range(-self.part_size + 1, self.part_size - 1):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
-                yield acquaint(*qubits[x:x + 2])
+                yield acquaint(*qubits[x: x + 2])
                 yield swap_gate(*qubits[x: x + 2])
         yield acquaint(qubits[self.part_size - 1], qubits[self.part_size])
         for k in reversed(range(-self.part_size + 1, self.part_size - 1)):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
-                yield acquaint(*qubits[x:x + 2])
+                yield acquaint(*qubits[x: x + 2])
                 yield swap_gate(*qubits[x: x + 2])
 
 
-    def decompose_matching(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def decompose_matching(self,
+                           qubits: Sequence[ops.Qid]
+                           ) -> ops.OP_TREE:
         swap_gate = SwapPermutationGate(self.swap_gate)
         for k in range(-self.part_size + 1, self.part_size):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
                 if (x + 1) % self.part_size:
                     yield swap_gate(*qubits[x: x + 2])
                 else:
-                    yield acquaint(*qubits[x:x + 2])
+                    yield acquaint(*qubits[x: x + 2])
+
 
     def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
         if len(qubits) != 2 * self.part_size:
@@ -154,3 +159,4 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 self.subgraph == other.subgraph and
                 self.part_size == other.part_size and
                 self.swap_gate == other.swap_gate)
+

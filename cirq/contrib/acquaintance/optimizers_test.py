@@ -18,7 +18,6 @@ import cirq
 import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
 
-
 def test_remove_redundant_acquaintance_opportunities():
     device = cca.UnconstrainedAcquaintanceDevice
     a, b, c, d, e = cirq.LineQubit.range(5)
@@ -46,13 +45,10 @@ def test_remove_redundant_acquaintance_opportunities():
     """
     ct.assert_has_diagram(strategy, diagram_after)
 
+
     ops = [
-        cca.acquaint(a, b),
-        cca.acquaint(c, d),
-        swap(d, e),
-        swap(c, d),
-        cca.acquaint(d, e)
-    ]
+            cca.acquaint(a, b), cca.acquaint(c, d),
+            swap(d, e), swap(c, d), cca.acquaint(d, e)]
     strategy = cirq.Circuit.from_ops(ops, device=device)
     diagram_before = """
 0: ───█───────────────────

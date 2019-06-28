@@ -149,7 +149,8 @@ class Engine:
                  default_project_id: Optional[str] = None,
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
-                 **kwargs) -> None:
+                 **kwargs
+                 ) -> None:
         """Engine service client.
 
         Args:
@@ -175,9 +176,9 @@ class Engine:
         self.default_gcs_prefix = default_gcs_prefix
 
         discovery_service_url = (
-            self.discovery_url if self.api_key is None else
-            ("%s&key=%s" %
-             (self.discovery_url, urllib.parse.quote_plus(self.api_key))))
+            self.discovery_url if self.api_key is None else (
+                "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
+                               self.api_key))))
         self.service = discovery.build(
             self.api,
             self.version,

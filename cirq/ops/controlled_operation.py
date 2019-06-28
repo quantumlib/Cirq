@@ -22,8 +22,8 @@ from cirq.type_workarounds import NotImplementedType
 
 @value.value_equality
 class ControlledOperation(raw_types.Operation):
-
-    def __new__(cls, controls: Sequence[raw_types.Qid],
+    def __new__(cls,
+                controls: Sequence[raw_types.Qid],
                 sub_operation: raw_types.Operation):
         """Auto-flatten nested controlled operations."""
         if isinstance(sub_operation, ControlledOperation):
@@ -32,7 +32,8 @@ class ControlledOperation(raw_types.Operation):
                 sub_operation.sub_operation)
         return super().__new__(cls)
 
-    def __init__(self, controls: Sequence[raw_types.Qid],
+    def __init__(self,
+                 controls: Sequence[raw_types.Qid],
                  sub_operation: raw_types.Operation):
         self.controls = tuple(controls)
         self.sub_operation = sub_operation
@@ -44,7 +45,8 @@ class ControlledOperation(raw_types.Operation):
     def with_qubits(self, *new_qubits):
         n = len(self.controls)
         return ControlledOperation(
-            new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]))
+            new_qubits[:n],
+            self.sub_operation.with_qubits(*new_qubits[n:]))
 
     def _decompose_(self):
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
@@ -61,15 +63,18 @@ class ControlledOperation(raw_types.Operation):
         control_axes = args.axes[:n]
         sub_axes = args.axes[n:]
         active = linalg.slice_for_qubits_equal_to(control_axes, -1)
-        view_axes = _positions_after_removals_at(initial_positions=sub_axes,
-                                                 removals=control_axes)
+        view_axes = _positions_after_removals_at(
+            initial_positions=sub_axes,
+            removals=control_axes)
         target_view = args.target_tensor[active]
         buffer_view = args.available_buffer[active]
-        result = protocols.apply_unitary(self.sub_operation,
-                                         protocols.ApplyUnitaryArgs(
-                                             target_view, buffer_view,
-                                             view_axes),
-                                         default=NotImplemented)
+        result = protocols.apply_unitary(
+            self.sub_operation,
+            protocols.ApplyUnitaryArgs(
+                target_view,
+                buffer_view,
+                view_axes),
+            default=NotImplemented)
 
         if result is NotImplemented:
             return NotImplemented
@@ -90,19 +95,22 @@ class ControlledOperation(raw_types.Operation):
         if sub_matrix is None:
             return NotImplemented
         return linalg.block_diag(
-            np.eye(pow(2, len(self.qubits)) - sub_matrix.shape[0]), sub_matrix)
+                    np.eye(pow(2, len(self.qubits))-sub_matrix.shape[0]),
+                    sub_matrix)
 
     def __str__(self):
         if isinstance(self.sub_operation, gate_operation.GateOperation):
-            return '{}{}({})'.format('C' * len(self.controls),
-                                     self.sub_operation.gate,
-                                     ', '.join(map(str, self.qubits)))
+            return '{}{}({})'.format(
+                'C' * len(self.controls),
+                self.sub_operation.gate,
+                ', '.join(map(str, self.qubits)))
         return 'C({}, {})'.format(', '.join(str(q) for q in self.controls),
                                   str(self.sub_operation))
 
     def __repr__(self):
         return ('cirq.ControlledOperation(controls={!r}, '
-                'sub_operation={!r})'.format(self.controls, self.sub_operation))
+                'sub_operation={!r})'.format(self.controls,
+                                             self.sub_operation))
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
@@ -115,13 +123,16 @@ class ControlledOperation(raw_types.Operation):
         return protocols.trace_distance_bound(self.sub_operation)
 
     def __pow__(self, exponent: Any) -> 'ControlledOperation':
-        new_sub_op = protocols.pow(self.sub_operation, exponent, NotImplemented)
+        new_sub_op = protocols.pow(self.sub_operation,
+                                   exponent,
+                                   NotImplemented)
         if new_sub_op is NotImplemented:
             return NotImplemented
         return ControlledOperation(self.controls, new_sub_op)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> Optional[protocols.CircuitDiagramInfo]:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> Optional[protocols.CircuitDiagramInfo]:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(
@@ -132,7 +143,8 @@ class ControlledOperation(raw_types.Operation):
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
             qubit_map=args.qubit_map)
-        sub_info = protocols.circuit_diagram_info(self.sub_operation, sub_args,
+        sub_info = protocols.circuit_diagram_info(self.sub_operation,
+                                                  sub_args,
                                                   None)
         if sub_info is None:
             return NotImplemented

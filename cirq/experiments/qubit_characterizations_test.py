@@ -19,7 +19,7 @@ def test_rabi_oscillations():
     angles = data[:, 0]
     actual_pops = data[:, 1]
     target_pops = 0.5 - 0.5 * np.cos(angles)
-    rms_err = np.sqrt(np.mean((target_pops - actual_pops)**2))
+    rms_err = np.sqrt(np.mean((target_pops - actual_pops) ** 2))
     assert rms_err < 0.1
 
 
@@ -59,8 +59,8 @@ def test_single_qubit_state_tomography():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
 
-    circuit_1 = circuits.Circuit.from_ops(ops.X(qubit)**0.5)
-    circuit_2 = circuits.Circuit.from_ops(ops.Y(qubit)**0.5)
+    circuit_1 = circuits.Circuit.from_ops(ops.X(qubit) ** 0.5)
+    circuit_2 = circuits.Circuit.from_ops(ops.Y(qubit) ** 0.5)
     circuit_3 = circuits.Circuit.from_ops(ops.H(qubit), ops.Y(qubit))
 
     act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1,

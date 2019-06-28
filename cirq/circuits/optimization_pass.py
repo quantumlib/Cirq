@@ -31,7 +31,9 @@ if TYPE_CHECKING:
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
-    def __init__(self, clear_span: int, clear_qubits: Iterable[ops.Qid],
+    def __init__(self,
+                 clear_span: int,
+                 clear_qubits: Iterable[ops.Qid],
                  new_operations: ops.OP_TREE) -> None:
         """
         Args:

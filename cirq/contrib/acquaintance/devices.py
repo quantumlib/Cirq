@@ -21,7 +21,8 @@ from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)
 from cirq.contrib.acquaintance.bipartite import (
     BipartiteSwapNetworkGate)
-from cirq.contrib.acquaintance.shift_swap_network import (ShiftSwapNetworkGate)
+from cirq.contrib.acquaintance.shift_swap_network import (
+    ShiftSwapNetworkGate)
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
@@ -38,9 +39,10 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     def validate_operation(self, operation: ops.Operation) -> None:
         if not (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, self.gate_types)):
-            raise ValueError('not (isinstance({0!r}, {1!r}) and '
-                             'ininstance({0!r}.gate, {2!r})'.format(
-                                 operation, ops.Operation, self.gate_types))
+            raise ValueError(
+                    'not (isinstance({0!r}, {1!r}) and '
+                          'ininstance({0!r}.gate, {2!r})'.format(
+                        operation, ops.Operation, self.gate_types))
 
     def duration_of(self, operation):
         raise NotImplementedError()
@@ -83,7 +85,6 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
             return obj.gate.acquaintance_size
     sizer = getattr(obj.gate, '_acquaintance_size_', None)
     return 0 if sizer is None else sizer(len(obj.qubits))
-
 
 class _UnconstrainedAcquaintanceDevice(AcquaintanceDevice):
     "An acquaintance device with no constraints other than of the gate types."

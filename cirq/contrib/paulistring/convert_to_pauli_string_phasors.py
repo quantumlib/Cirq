@@ -56,14 +56,15 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self.keep_clifford = keep_clifford
         self.atol = atol
 
-    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray,
+    def _matrix_to_pauli_string_phasors(self,
+                                        mat: np.ndarray,
                                         qubit: ops.Qid) -> ops.OP_TREE:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)
         out_ops = []  # type: List[ops.Operation]
         for pauli, half_turns in rotations:
-            if (self.keep_clifford and
-                    linalg.all_near_zero_mod(half_turns, 0.5)):
+            if (self.keep_clifford
+                    and linalg.all_near_zero_mod(half_turns, 0.5)):
                 cliff_gate = ops.SingleQubitCliffordGate.from_quarter_turns(
                     pauli, round(half_turns * 2))
                 if out_ops and not isinstance(out_ops[-1],

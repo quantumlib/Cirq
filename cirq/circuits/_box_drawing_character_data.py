@@ -11,31 +11,38 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Exposes structured data about unicode/ascii box drawing characters."""
 
 from typing import List, NamedTuple, Optional
 
-_BoxDrawCharacterSet = NamedTuple('_BoxDrawCharacterSet', [
-    ('top', str),
-    ('bottom', str),
-    ('left', str),
-    ('right', str),
-    ('top_bottom', str),
-    ('top_left', str),
-    ('top_right', str),
-    ('bottom_left', str),
-    ('bottom_right', str),
-    ('left_right', str),
-    ('top_bottom_left', str),
-    ('top_bottom_right', str),
-    ('top_left_right', str),
-    ('bottom_left_right', str),
-    ('top_bottom_left_right', str),
-])
+
+_BoxDrawCharacterSet = NamedTuple(
+    '_BoxDrawCharacterSet',
+    [
+        ('top', str),
+        ('bottom', str),
+        ('left', str),
+        ('right', str),
+
+        ('top_bottom', str),
+        ('top_left', str),
+        ('top_right', str),
+        ('bottom_left', str),
+        ('bottom_right', str),
+        ('left_right', str),
+
+        ('top_bottom_left', str),
+        ('top_bottom_right', str),
+        ('top_left_right', str),
+        ('bottom_left_right', str),
+
+        ('top_bottom_left_right', str),
+    ]
+)
 
 
 class BoxDrawCharacterSet(_BoxDrawCharacterSet):
-
     def char(self,
              top: bool = False,
              bottom: bool = False,
@@ -55,64 +62,77 @@ class BoxDrawCharacterSet(_BoxDrawCharacterSet):
         return getattr(self, '_'.join(parts))
 
 
-_MixedBoxDrawCharacterSet = NamedTuple('_MixedBoxDrawCharacterSet', [
-    ('first_char_set', BoxDrawCharacterSet),
-    ('second_char_set', BoxDrawCharacterSet),
-    ('top_then_bottom', str),
-    ('top_then_left', str),
-    ('top_then_right', str),
-    ('top_then_bottom_left', str),
-    ('top_then_bottom_right', str),
-    ('top_then_left_right', str),
-    ('top_then_bottom_left_right', str),
-    ('bottom_then_top', str),
-    ('bottom_then_left', str),
-    ('bottom_then_right', str),
-    ('bottom_then_top_left', str),
-    ('bottom_then_top_right', str),
-    ('bottom_then_left_right', str),
-    ('bottom_then_top_left_right', str),
-    ('left_then_top', str),
-    ('left_then_bottom', str),
-    ('left_then_right', str),
-    ('left_then_top_bottom', str),
-    ('left_then_bottom_right', str),
-    ('left_then_top_right', str),
-    ('left_then_top_bottom_right', str),
-    ('right_then_top', str),
-    ('right_then_bottom', str),
-    ('right_then_left', str),
-    ('right_then_top_bottom', str),
-    ('right_then_top_left', str),
-    ('right_then_bottom_left', str),
-    ('right_then_top_bottom_left', str),
-    ('top_bottom_then_left', str),
-    ('top_bottom_then_right', str),
-    ('top_bottom_then_left_right', str),
-    ('top_left_then_bottom', str),
-    ('top_left_then_right', str),
-    ('top_left_then_bottom_right', str),
-    ('top_right_then_bottom', str),
-    ('top_right_then_left', str),
-    ('top_right_then_bottom_left', str),
-    ('bottom_left_then_top', str),
-    ('bottom_left_then_right', str),
-    ('bottom_left_then_top_right', str),
-    ('bottom_right_then_top', str),
-    ('bottom_right_then_left', str),
-    ('bottom_right_then_top_left', str),
-    ('left_right_then_top', str),
-    ('left_right_then_bottom', str),
-    ('left_right_then_top_bottom', str),
-    ('top_bottom_left_then_right', str),
-    ('top_bottom_right_then_left', str),
-    ('top_left_right_then_bottom', str),
-    ('bottom_left_right_then_top', str),
-])
+_MixedBoxDrawCharacterSet = NamedTuple(
+    '_MixedBoxDrawCharacterSet',
+    [
+        ('first_char_set', BoxDrawCharacterSet),
+        ('second_char_set', BoxDrawCharacterSet),
+
+        ('top_then_bottom', str),
+        ('top_then_left', str),
+        ('top_then_right', str),
+        ('top_then_bottom_left', str),
+        ('top_then_bottom_right', str),
+        ('top_then_left_right', str),
+        ('top_then_bottom_left_right', str),
+
+        ('bottom_then_top', str),
+        ('bottom_then_left', str),
+        ('bottom_then_right', str),
+        ('bottom_then_top_left', str),
+        ('bottom_then_top_right', str),
+        ('bottom_then_left_right', str),
+        ('bottom_then_top_left_right', str),
+
+        ('left_then_top', str),
+        ('left_then_bottom', str),
+        ('left_then_right', str),
+        ('left_then_top_bottom', str),
+        ('left_then_bottom_right', str),
+        ('left_then_top_right', str),
+        ('left_then_top_bottom_right', str),
+
+        ('right_then_top', str),
+        ('right_then_bottom', str),
+        ('right_then_left', str),
+        ('right_then_top_bottom', str),
+        ('right_then_top_left', str),
+        ('right_then_bottom_left', str),
+        ('right_then_top_bottom_left', str),
+
+        ('top_bottom_then_left', str),
+        ('top_bottom_then_right', str),
+        ('top_bottom_then_left_right', str),
+
+        ('top_left_then_bottom', str),
+        ('top_left_then_right', str),
+        ('top_left_then_bottom_right', str),
+
+        ('top_right_then_bottom', str),
+        ('top_right_then_left', str),
+        ('top_right_then_bottom_left', str),
+
+        ('bottom_left_then_top', str),
+        ('bottom_left_then_right', str),
+        ('bottom_left_then_top_right', str),
+
+        ('bottom_right_then_top', str),
+        ('bottom_right_then_left', str),
+        ('bottom_right_then_top_left', str),
+
+        ('left_right_then_top', str),
+        ('left_right_then_bottom', str),
+        ('left_right_then_top_bottom', str),
+
+        ('top_bottom_left_then_right', str),
+        ('top_bottom_right_then_left', str),
+        ('top_left_right_then_bottom', str),
+        ('bottom_left_right_then_top', str),
+    ]
+)
 
 
 class MixedBoxDrawCharacterSet(_MixedBoxDrawCharacterSet):
-
     def char(self,
              *,
              top: int = 0,
@@ -149,36 +169,44 @@ NORMAL_BOX_CHARS = BoxDrawCharacterSet(
     bottom='╷',
     left='╴',
     right='╶',
+
     top_bottom='│',
     top_left='┘',
     top_right='└',
     bottom_left='┐',
     bottom_right='┌',
     left_right='─',
+
     top_bottom_left='┤',
     top_bottom_right='├',
     top_left_right='┴',
     bottom_left_right='┬',
+
     top_bottom_left_right='┼',
 )
+
 
 BOLD_BOX_CHARS = BoxDrawCharacterSet(
     top='╹',
     bottom='╻',
     left='╸',
     right='╺',
+
     top_bottom='┃',
     top_left='┛',
     top_right='┗',
     bottom_left='┓',
     bottom_right='┏',
     left_right='━',
+
     top_bottom_left='┫',
     top_bottom_right='┣',
     top_left_right='┻',
     bottom_left_right='┳',
+
     top_bottom_left_right='╋',
 )
+
 
 DOUBLED_BOX_CHARS = BoxDrawCharacterSet(
     # No special end caps for these ones :(.
@@ -186,18 +214,22 @@ DOUBLED_BOX_CHARS = BoxDrawCharacterSet(
     bottom='║',
     left='═',
     right='═',
+
     top_bottom='║',
     top_left='╝',
     top_right='╚',
     bottom_left='╗',
     bottom_right='╔',
     left_right='═',
+
     top_bottom_left='╣',
     top_bottom_right='╠',
     top_left_right='╩',
     bottom_left_right='╦',
+
     top_bottom_left_right='╬',
 )
+
 
 ASCII_BOX_CHARS = BoxDrawCharacterSet(
     # We can round the half-caps up to full or down to nothing.
@@ -205,22 +237,27 @@ ASCII_BOX_CHARS = BoxDrawCharacterSet(
     bottom=' ',
     left=' ',
     right=' ',
+
     top_bottom='|',
     top_left='/',
     top_right='\\',
     bottom_left='\\',
     bottom_right='/',
     left_right='-',
+
     top_bottom_left='+',
     top_bottom_right='+',
     top_left_right='+',
     bottom_left_right='+',
+
     top_bottom_left_right='+',
 )
+
 
 NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     first_char_set=NORMAL_BOX_CHARS,
     second_char_set=BOLD_BOX_CHARS,
+
     top_then_bottom='╽',
     top_then_left='┙',
     top_then_right='┕',
@@ -228,6 +265,7 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     top_then_bottom_right='┢',
     top_then_left_right='┷',
     top_then_bottom_left_right='╈',
+
     bottom_then_top='╿',
     bottom_then_left='┑',
     bottom_then_right='┍',
@@ -235,6 +273,7 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     bottom_then_top_right='┡',
     bottom_then_left_right='┯',
     bottom_then_top_left_right='╇',
+
     left_then_top='┚',
     left_then_bottom='┒',
     left_then_right='╼',
@@ -242,6 +281,7 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     left_then_bottom_right='┲',
     left_then_top_right='┺',
     left_then_top_bottom_right='╊',
+
     right_then_top='┖',
     right_then_bottom='┎',
     right_then_left='╾',
@@ -249,24 +289,31 @@ NORMAL_THEN_BOLD_MIXED_BOX_CHARS = MixedBoxDrawCharacterSet(
     right_then_top_left='┹',
     right_then_bottom_left='┱',
     right_then_top_bottom_left='╉',
+
     top_bottom_then_left='┥',
     top_bottom_then_right='┝',
     top_bottom_then_left_right='┿',
+
     top_left_then_bottom='┧',
     top_left_then_right='┶',
     top_left_then_bottom_right='╆',
+
     top_right_then_bottom='┟',
     top_right_then_left='┵',
     top_right_then_bottom_left='╅',
+
     bottom_left_then_top='┦',
     bottom_left_then_right='┮',
     bottom_left_then_top_right='╄',
+
     bottom_right_then_top='┞',
     bottom_right_then_left='┭',
     bottom_right_then_top_left='╃',
+
     left_right_then_top='┸',
     left_right_then_bottom='┰',
     left_right_then_top_bottom='╂',
+
     top_bottom_left_then_right='┾',
     top_bottom_right_then_left='┽',
     top_left_right_then_bottom='╁',

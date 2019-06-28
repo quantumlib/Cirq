@@ -15,19 +15,21 @@
 from typing import cast, Sequence
 
 from cirq import line, ops, protocols
-from cirq.contrib.acquaintance.permutation import (PermutationGate,
-                                                   update_mapping)
+from cirq.contrib.acquaintance.permutation import (
+    PermutationGate, update_mapping)
 
 
-def assert_permutation_decomposition_equivalence(gate: PermutationGate,
-                                                 n_qubits: int) -> None:
+def assert_permutation_decomposition_equivalence(
+        gate: PermutationGate,
+        n_qubits: int) -> None:
     qubits = line.LineQubit.range(n_qubits)
     operations = protocols.decompose_once_with_qubits(gate, qubits)
     operations = list(
-        cast(Sequence[ops.Operation], ops.flatten_op_tree(operations)))
+            cast(Sequence[ops.Operation], ops.flatten_op_tree(operations)))
     mapping = {cast(ops.Qid, q): i for i, q in enumerate(qubits)}
     update_mapping(mapping, operations)
-    expected_mapping = {qubits[j]: i for i, j in gate.permutation().items()}
+    expected_mapping = {qubits[j]: i
+            for i, j in gate.permutation().items()}
     assert mapping == expected_mapping, (
         "{!r}.permutation({}) doesn't match decomposition.\n"
         '\n'
@@ -35,5 +37,7 @@ def assert_permutation_decomposition_equivalence(gate: PermutationGate,
         '{}\n'
         '\n'
         'Expected mapping:\n'
-        '{}\n'.format(gate, n_qubits, [mapping[q] for q in qubits],
-                      [expected_mapping[q] for q in qubits]))
+        '{}\n'.format(gate, n_qubits,
+            [mapping[q] for q in qubits],
+            [expected_mapping[q] for q in qubits])
+    )

@@ -27,7 +27,6 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         [0  0  i  0]
         [0  0  0 -i]
     """
-
     def __init__(self, quarter_turns: Union[sympy.Basic, float]) -> None:
         super().__init__(exponent=quarter_turns)
 
@@ -128,14 +127,21 @@ def test_approx_eq():
         atol=0.1
     )
     assert not cirq.approx_eq(
-        ZGateDef(exponent=1.5), ZGateDef(exponent=sympy.Symbol('a')), atol=0.1)
+        ZGateDef(exponent=1.5),
+        ZGateDef(exponent=sympy.Symbol('a')),
+        atol=0.1
+    )
 
-    assert cirq.approx_eq(CExpZinGate(sympy.Symbol('a')),
-                          CExpZinGate(sympy.Symbol('a')),
-                          atol=0.1)
-    assert not cirq.approx_eq(CExpZinGate(sympy.Symbol('a')),
-                              CExpZinGate(sympy.Symbol('b')),
-                              atol=0.1)
+    assert cirq.approx_eq(
+        CExpZinGate(sympy.Symbol('a')),
+        CExpZinGate(sympy.Symbol('a')),
+        atol=0.1
+    )
+    assert not cirq.approx_eq(
+        CExpZinGate(sympy.Symbol('a')),
+        CExpZinGate(sympy.Symbol('b')),
+        atol=0.1
+    )
 
 
 def test_approx_eq_periodic():
@@ -150,9 +156,7 @@ def test_approx_eq_periodic():
 
 
 def test_period():
-
     class Components(cirq.EigenGate, cirq.TwoQubitGate):
-
         def __init__(self, a, b, c, d):
             super().__init__()
             self.a = a
@@ -190,7 +194,7 @@ def test_pow():
     assert CExpZinGate(0.25)**-1 == CExpZinGate(-0.25)
     assert CExpZinGate(0.25)**0 == CExpZinGate(0)
     assert CExpZinGate(sympy.Symbol('a'))**1.5 == CExpZinGate(
-        sympy.Symbol('a') * 1.5)
+        sympy.Symbol('a')*1.5)
     assert ZGateDef(exponent=0.25)**2 == ZGateDef(exponent=0.5)
     assert ZGateDef(exponent=0.25,
                     global_shift=0.5)**2 == ZGateDef(
@@ -200,8 +204,8 @@ def test_pow():
 
 def test_inverse():
     assert cirq.inverse(CExpZinGate(0.25)) == CExpZinGate(-0.25)
-    assert cirq.inverse(CExpZinGate(
-        sympy.Symbol('a'))) == CExpZinGate(-sympy.Symbol('a'))
+    assert cirq.inverse(CExpZinGate(sympy.Symbol('a'))) == CExpZinGate(
+        -sympy.Symbol('a'))
 
 
 def test_trace_distance_bound():
@@ -307,8 +311,7 @@ def test_is_parameterized():
 
 def test_resolve_parameters():
     assert cirq.resolve_parameters(CExpZinGate(sympy.Symbol('a')),
-                                   cirq.ParamResolver({'a': 0.5
-                                                      })) == CExpZinGate(0.5)
+        cirq.ParamResolver({'a': 0.5})) == CExpZinGate(0.5)
 
     assert cirq.resolve_parameters(CExpZinGate(0.25),
         cirq.ParamResolver({})) == CExpZinGate(0.25)
@@ -317,7 +320,6 @@ def test_resolve_parameters():
 def test_diagram_period():
 
     class ShiftyGate(cirq.EigenGate, cirq.SingleQubitGate):
-
         def _eigen_components(self):
             raise NotImplementedError()
 

@@ -62,16 +62,17 @@ class ControlledGate(raw_types.Gate):
         return self.sub_gate.num_qubits() + self.num_controls()
 
     def _decompose_(self, qubits):
-        result = protocols.decompose_once_with_qubits(
-            self.sub_gate, qubits[self.num_controls():], NotImplemented)
+        result = protocols.decompose_once_with_qubits(self.sub_gate,
+                                            qubits[self.num_controls():],
+                                            NotImplemented)
 
         if result is NotImplemented:
             return NotImplemented
 
         decomposed = []
         for op in result:
-            decomposed.append(
-                cop.ControlledOperation(qubits[:self.num_controls()], op))
+            decomposed.append(cop.ControlledOperation(
+                qubits[:self.num_controls()], op))
         return decomposed
 
     def validate_args(self, qubits) -> None:
@@ -121,7 +122,8 @@ class ControlledGate(raw_types.Gate):
         if sub_matrix is None:
             return NotImplemented
         return linalg.block_diag(
-            np.eye(pow(2, self.num_qubits()) - sub_matrix.shape[0]), sub_matrix)
+                    np.eye(pow(2, self.num_qubits())-sub_matrix.shape[0]),
+                    sub_matrix)
 
     def __pow__(self, exponent: Any) -> 'ControlledGate':
         new_sub_gate = protocols.pow(self.sub_gate,
@@ -152,16 +154,19 @@ class ControlledGate(raw_types.Gate):
                           if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map)
-        sub_info = protocols.circuit_diagram_info(self.sub_gate, sub_args, None)
+            qubit_map=args.qubit_map
+        )
+        sub_info = protocols.circuit_diagram_info(self.sub_gate,
+                                                  sub_args,
+                                                  None)
         if sub_info is None:
             return NotImplemented
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('@',) * self.num_controls() + sub_info.wire_symbols,
+            wire_symbols=('@',)*self.num_controls() + sub_info.wire_symbols,
             exponent=sub_info.exponent)
 
     def __str__(self):
-        return 'C' * self.num_controls() + str(self.sub_gate)
+        return 'C'*self.num_controls() + str(self.sub_gate)
 
     def __repr__(self):
         if self.control_qubits == (None,):

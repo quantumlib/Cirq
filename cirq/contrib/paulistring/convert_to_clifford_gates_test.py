@@ -76,9 +76,7 @@ def test_already_converted():
 
 
 def test_convert_composite():
-
     class CompositeDummy(cirq.TwoQubitGate):
-
         def _decompose_(self, qubits):
             q0, q1 = qubits
             yield cirq.X(q0)
@@ -108,7 +106,6 @@ def test_convert_composite():
 
 
 def test_ignore_unsupported_gate():
-
     class UnsupportedDummy(cirq.TwoQubitGate):
         pass
 
@@ -124,7 +121,6 @@ def test_ignore_unsupported_gate():
 
 
 def test_fail_unsupported_gate():
-
     class UnsupportedDummy(cirq.TwoQubitGate):
         pass
 
@@ -139,11 +135,11 @@ def test_fail_unsupported_gate():
 def test_rotation_to_clifford_gate():
     conv = ConvertToSingleQubitCliffordGates()
 
-    assert (conv._rotation_to_clifford_gate(
-        cirq.X, 0.0) == cirq.SingleQubitCliffordGate.I)
-    assert (conv._rotation_to_clifford_gate(
-        cirq.X, 0.5) == cirq.SingleQubitCliffordGate.X_sqrt)
-    assert (conv._rotation_to_clifford_gate(
-        cirq.X, 1.0) == cirq.SingleQubitCliffordGate.X)
-    assert (conv._rotation_to_clifford_gate(
-        cirq.X, -0.5) == cirq.SingleQubitCliffordGate.X_nsqrt)
+    assert (conv._rotation_to_clifford_gate(cirq.X, 0.0)
+            == cirq.SingleQubitCliffordGate.I)
+    assert (conv._rotation_to_clifford_gate(cirq.X, 0.5)
+            == cirq.SingleQubitCliffordGate.X_sqrt)
+    assert (conv._rotation_to_clifford_gate(cirq.X, 1.0)
+            == cirq.SingleQubitCliffordGate.X)
+    assert (conv._rotation_to_clifford_gate(cirq.X, -0.5)
+            == cirq.SingleQubitCliffordGate.X_nsqrt)

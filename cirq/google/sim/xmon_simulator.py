@@ -158,7 +158,8 @@ class XmonSimulator(sim.SimulatesSamples,
         else:
             return self._run_sweep_repeat(circuit, repetitions)
 
-    def _run_sweep_repeat(self, circuit: circuits.Circuit,
+    def _run_sweep_repeat(self,
+                          circuit: circuits.Circuit,
                           repetitions: int) -> Dict[str, np.ndarray]:
         keys = find_measurement_keys(circuit)
         measurements = {k: [] for k in
@@ -202,7 +203,9 @@ class XmonSimulator(sim.SimulatesSamples,
         circuit = protocols.resolve_parameters(circuit, param_resolver)
         _verify_xmon_circuit(circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(circuit, qubit_order, actual_initial_state,
+        return self._base_iterator(circuit,
+                                   qubit_order,
+                                   actual_initial_state,
                                    perform_measurements)
 
     def _base_iterator(
@@ -365,7 +368,7 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
         """
         self._stepper.reset_state(state)
 
-    def sample(self, qubits: List[ops.Qid], repetitions: int = 1):
+    def sample(self, qubits: List[ops.Qid], repetitions: int=1):
         """Samples from the wave function at this point in the computation.
 
         Note that this does not collapse the wave function.

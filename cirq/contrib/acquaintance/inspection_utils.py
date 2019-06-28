@@ -44,8 +44,10 @@ class LogicalAnnotator(ExecutionStrategy):
     def device(self) -> devices.Device:
         return devices.UnconstrainedDevice
 
-    def get_operations(self, indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def get_operations(self,
+                       indices: Sequence[LogicalIndex],
+                       qubits: Sequence[ops.Qid]
+                       ) -> ops.OP_TREE:
         yield AcquaintanceOperation(qubits, indices)
 
 

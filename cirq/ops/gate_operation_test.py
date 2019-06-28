@@ -69,7 +69,6 @@ def test_gate_operation_eq():
 
     def p(*q):
         return PairGate(len(q)).on(*q)
-
     a0, a1, b0, b1, c0 = cirq.LineQubit.range(5)
     eq.add_equality_group(p(a0, a1, b0, b1), p(a1, a0, b1, b0))
     eq.add_equality_group(p(b0, b1, a0, a1))
@@ -90,9 +89,9 @@ def test_gate_operation_approx_eq():
 
     assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
                           cirq.GateOperation(cirq.XPowGate(exponent=1e-9), a))
-    assert not cirq.approx_eq(
-        cirq.GateOperation(cirq.XPowGate(exponent=0), a),
-        cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a))
+    assert not cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
+                              cirq.GateOperation(cirq.XPowGate(exponent=1e-7),
+                                                 a))
     assert cirq.approx_eq(cirq.GateOperation(cirq.XPowGate(exponent=0), a),
                           cirq.GateOperation(cirq.XPowGate(exponent=1e-7), a),
                           atol=1e-6)
@@ -242,7 +241,6 @@ def test_repr():
                 ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
 
     class Inconsistent(cirq.SingleQubitGate):
-
         def __repr__(self):
             return 'Inconsistent'
 
@@ -260,8 +258,7 @@ def test_op_gate_of_type():
     assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
 
     class NonGateOperation(cirq.Operation):
-
-        def qubits(self):
+        def qubits(self) :
             pass
 
         def with_qubits(self, *new_qubits):

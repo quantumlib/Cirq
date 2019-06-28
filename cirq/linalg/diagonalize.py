@@ -21,10 +21,11 @@ import numpy as np
 from cirq.linalg import combinators, predicates, tolerance
 
 
-def diagonalize_real_symmetric_matrix(matrix: np.ndarray,
-                                      *,
-                                      rtol: float = 1e-5,
-                                      atol: float = 1e-8) -> np.ndarray:
+def diagonalize_real_symmetric_matrix(
+        matrix: np.ndarray,
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes the given matrix.
 
     Args:
@@ -105,22 +106,25 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
 
     # Verify preconditions.
     if check_preconditions:
-        if (np.any(np.imag(symmetric_matrix)) or not predicates.is_hermitian(
-                symmetric_matrix, rtol=rtol, atol=atol)):
+        if (np.any(np.imag(symmetric_matrix)) or
+                not predicates.is_hermitian(symmetric_matrix,
+                                            rtol=rtol,
+                                            atol=atol)):
             raise ValueError('symmetric_matrix must be real symmetric.')
         if (not predicates.is_diagonal(diagonal_matrix, atol=atol) or
                 np.any(np.imag(diagonal_matrix)) or
                 np.any(diagonal_matrix[:-1, :-1] < diagonal_matrix[1:, 1:])):
             raise ValueError(
                 'diagonal_matrix must be real diagonal descending.')
-        if not predicates.commutes(
-                diagonal_matrix, symmetric_matrix, rtol=rtol, atol=atol):
+        if not predicates.commutes(diagonal_matrix,
+                                   symmetric_matrix,
+                                   rtol=rtol,
+                                   atol=atol):
             raise ValueError('Given matrices must commute.')
 
     def similar_singular(i, j):
         return np.allclose(diagonal_matrix[i, i],
-                           diagonal_matrix[j, j],
-                           rtol=rtol)
+                            diagonal_matrix[j, j], rtol=rtol)
 
     # Because the symmetric matrix commutes with the diagonal singulars matrix,
     # the symmetric matrix should be block-diagonal with a block boundary
@@ -132,9 +136,8 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
     p = np.zeros(symmetric_matrix.shape, dtype=np.float64)
     for start, end in ranges:
         block = symmetric_matrix[start:end, start:end]
-        p[start:end, start:end] = diagonalize_real_symmetric_matrix(block,
-                                                                    rtol=rtol,
-                                                                    atol=atol)
+        p[start:end, start:end] = diagonalize_real_symmetric_matrix(
+            block, rtol=rtol, atol=atol)
 
     return p
 
@@ -219,7 +222,8 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
 
     # Merge the fixup factors into the initial diagonalization.
     left_adjust = combinators.block_diag(overlap_adjust, extra_left_adjust)
-    right_adjust = combinators.block_diag(overlap_adjust.T, extra_right_adjust)
+    right_adjust = combinators.block_diag(overlap_adjust.T,
+                                          extra_right_adjust)
     left = left_adjust.T.dot(base_left.T)
     right = base_right.T.dot(right_adjust.T)
 

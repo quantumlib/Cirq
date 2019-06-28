@@ -20,12 +20,14 @@ from cirq.contrib.paulistring.pauli_string_dag import (
 from cirq.ops import PauliStringGateOperation
 from cirq.contrib.paulistring.recombine import (
     move_pauli_strings_into_circuit)
-from cirq.contrib.paulistring.separate import (convert_and_separate_circuit)
+from cirq.contrib.paulistring.separate import (
+    convert_and_separate_circuit)
 
 
 def pauli_string_optimized_circuit(circuit: circuits.Circuit,
                                    move_cliffords: bool = True,
-                                   atol: float = 1e-8) -> circuits.Circuit:
+                                   atol: float = 1e-8
+                                   ) -> circuits.Circuit:
     cl, cr = convert_and_separate_circuit(circuit,
                                           leave_cliffords=not move_cliffords,
                                           atol=atol)
@@ -64,7 +66,7 @@ def merge_equal_strings(string_dag: circuits.CircuitDag) -> None:
                            - set([node]))
         for other_node in commuting_nodes:
             if node.val.pauli_string.equal_up_to_coefficient(
-                    other_node.val.pauli_string):
+                                        other_node.val.pauli_string):
                 string_dag.remove_node(other_node)
                 node.val = node.val.merged_with(other_node.val)
 

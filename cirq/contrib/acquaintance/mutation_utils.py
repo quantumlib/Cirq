@@ -67,11 +67,12 @@ def rectify_acquaintance_strategy(
     circuit._moments = rectified_moments
 
 
-def replace_acquaintance_with_swap_network(circuit: circuits.Circuit,
-                                           qubit_order: Sequence[ops.Qid],
-                                           acquaintance_size: Optional[int] = 0,
-                                           swap_gate: ops.Gate = ops.SWAP
-                                          ) -> bool:
+def replace_acquaintance_with_swap_network(
+        circuit: circuits.Circuit,
+        qubit_order: Sequence[ops.Qid],
+        acquaintance_size: Optional[int] = 0,
+        swap_gate: ops.Gate = ops.SWAP
+        ) -> bool:
     """
     Replace every moment containing acquaintance gates (after
     rectification) with a generalized swap network, with the partition
@@ -105,7 +106,8 @@ def replace_acquaintance_with_swap_network(circuit: circuits.Circuit,
         if all(isinstance(op.gate, AcquaintanceOpportunityGate)
                 for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
-                qubit_order, moment.operations, acquaintance_size, swap_gate)
+                    qubit_order, moment.operations,
+                    acquaintance_size, swap_gate)
             swap_network_op = swap_network_gate(*qubit_order)
             moment = ops.Moment([swap_network_op])
             reflected = not reflected

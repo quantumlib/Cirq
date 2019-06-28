@@ -14,8 +14,10 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar,
-                    TYPE_CHECKING, Union)
+from typing import (
+    Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar, TYPE_CHECKING,
+    Union
+)
 
 import numpy as np
 
@@ -32,7 +34,8 @@ if TYPE_CHECKING:
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
 
-    def __init__(self, gate: raw_types.Gate,
+    def __init__(self,
+                 gate: raw_types.Gate,
                  qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
@@ -74,9 +77,10 @@ class GateOperation(raw_types.Operation):
         return '{}({})'.format(self.gate,
                                ', '.join(str(e) for e in self.qubits))
 
-    def _group_interchangeable_qubits(
-            self
-    ) -> Tuple[Union[raw_types.Qid, Tuple[int, FrozenSet[raw_types.Qid]]], ...]:
+    def _group_interchangeable_qubits(self) -> Tuple[
+            Union[raw_types.Qid,
+                  Tuple[int, FrozenSet[raw_types.Qid]]],
+            ...]:
 
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits

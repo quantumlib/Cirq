@@ -25,7 +25,8 @@ from cirq.google.programs import (
 from cirq.schedules import moment_by_moment_schedule
 
 
-def assert_proto_dict_convert(gate: cirq.Gate, proto_dict: Dict,
+def assert_proto_dict_convert(gate: cirq.Gate,
+                              proto_dict: Dict,
                               *qubits: cirq.Qid):
     assert cg.gate_to_proto_dict(gate, qubits) == proto_dict
     assert cg.xmon_op_from_proto_dict(proto_dict) == gate(*qubits)
@@ -88,17 +89,16 @@ def test_pack_results():
              [0, 1, 1],
              [1, 0, 0],
              [1, 0, 1],
-             [1, 1, 0],
-         ])),
-        ('b', np.array([
-            [0, 0],
-            [0, 1],
-            [1, 0],
-            [1, 1],
-            [0, 0],
-            [0, 1],
-            [1, 0],
-        ])),
+             [1, 1, 0], ])),
+        ('b',
+         np.array([
+             [0, 0],
+             [0, 1],
+             [1, 0],
+             [1, 1],
+             [0, 0],
+             [0, 1],
+             [1, 0], ])),
     ]
     data = cg.pack_results(measurements)
     expected = make_bytes("""
@@ -145,28 +145,28 @@ def test_unpack_results():
     assert 'a' in results
     assert results['a'].shape == (7, 3)
     assert results['a'].dtype == bool
-    np.testing.assert_array_equal(results['a'], [
-        [0, 0, 0],
-        [0, 0, 1],
-        [0, 1, 0],
-        [0, 1, 1],
-        [1, 0, 0],
-        [1, 0, 1],
-        [1, 1, 0],
-    ])
+    np.testing.assert_array_equal(
+        results['a'],
+        [[0, 0, 0],
+         [0, 0, 1],
+         [0, 1, 0],
+         [0, 1, 1],
+         [1, 0, 0],
+         [1, 0, 1],
+         [1, 1, 0], ])
 
     assert 'b' in results
     assert results['b'].shape == (7, 2)
     assert results['b'].dtype == bool
-    np.testing.assert_array_equal(results['b'], [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-        [0, 0],
-        [0, 1],
-        [1, 0],
-    ])
+    np.testing.assert_array_equal(
+        results['b'],
+        [[0, 0],
+         [0, 1],
+         [1, 0],
+         [1, 1],
+         [0, 0],
+         [0, 1],
+         [1, 0], ])
 
 
 def test_single_qubit_measurement_proto_dict_convert():
@@ -208,13 +208,16 @@ def test_single_qubit_measurement_to_proto_dict_pad_invert_mask():
     gate = cirq.MeasurementGate(2, 'test', invert_mask=(True,))
     proto_dict = {
         'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }, {
-                'row': 2,
-                'col': 4
-            }],
+            'targets': [
+                {
+                    'row': 2,
+                    'col': 3
+                },
+                {
+                    'row': 2,
+                    'col': 4
+                }
+            ],
             'key': 'test',
             'invert_mask': ['true', 'false']
         }
@@ -258,7 +261,8 @@ def test_z_proto_dict_convert():
         }
     }
 
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    assert_proto_dict_convert(gate, proto_dict,
+                              cirq.GridQubit(2, 3))
     gate = cirq.Z**0.5
     proto_dict = {
         'exp_z': {
@@ -379,7 +383,8 @@ def test_w_to_proto_dict():
     assert_proto_dict_convert(gate, proto_dict,
                               cirq.GridQubit(2, 3))
 
-    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=sympy.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5,
+                               phase_exponent=sympy.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -431,7 +436,8 @@ def test_w_to_proto_dict():
     }
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
-    gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=sympy.Symbol('j'))
+    gate = cirq.PhasedXPowGate(exponent=0.5,
+                               phase_exponent=sympy.Symbol('j'))
     proto_dict = {
         'exp_w': {
             'target': {
@@ -569,7 +575,8 @@ def test_invalid_measurement_gate():
             cirq.MeasurementGate(3, 'test', invert_mask=(True,)),
             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
     with pytest.raises(ValueError, match='no qubits'):
-        _ = cg.gate_to_proto_dict(cirq.MeasurementGate(1, 'test'), ())
+        _ = cg.gate_to_proto_dict(
+            cirq.MeasurementGate(1, 'test'), ())
 
 
 def test_z_invalid_dict():

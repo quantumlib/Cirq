@@ -73,7 +73,6 @@ def test_already_converted():
 
 
 def test_ignore_unsupported_gate():
-
     class UnsupportedDummy(cirq.TwoQubitGate):
         pass
 
@@ -89,7 +88,6 @@ def test_ignore_unsupported_gate():
 
 
 def test_fail_unsupported_gate():
-
     class UnsupportedDummy(cirq.TwoQubitGate):
         pass
 

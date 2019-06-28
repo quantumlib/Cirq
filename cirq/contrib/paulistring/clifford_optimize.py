@@ -20,10 +20,12 @@ from cirq.contrib.paulistring.convert_gate_set import (
 
 
 def clifford_optimized_circuit(circuit: circuits.Circuit,
-                               atol: float = 1e-8) -> circuits.Circuit:
+                               atol: float = 1e-8
+                               ) -> circuits.Circuit:
     # Convert to a circuit with SingleQubitCliffordGates,
     # CZs and other ignored gates
-    c_cliff = converted_gate_set(circuit, no_clifford_gates=False, atol=atol)
+    c_cliff = converted_gate_set(circuit, no_clifford_gates=False,
+                                 atol=atol)
 
     all_ops = list(c_cliff.all_operations())
 

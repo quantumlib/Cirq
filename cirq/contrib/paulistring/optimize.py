@@ -24,7 +24,8 @@ from cirq.contrib.paulistring.clifford_optimize import (
 def optimized_circuit(circuit: circuits.Circuit,
                       atol: float = 1e-8,
                       repeat: int = 10,
-                      merge_interactions: bool = True) -> circuits.Circuit:
+                      merge_interactions: bool = True
+                      ) -> circuits.Circuit:
     circuit = circuits.Circuit(circuit)  # Make a copy
     for _ in range(repeat):
         start_len = len(circuit)
@@ -33,10 +34,13 @@ def optimized_circuit(circuit: circuits.Circuit,
             optimizers.MergeInteractions(allow_partial_czs=False,
                                          post_clean_up=_optimized_ops,
                                          ).optimize_circuit(circuit)
-        circuit2 = pauli_string_optimized_circuit(circuit,
-                                                  move_cliffords=False,
-                                                  atol=atol)
-        circuit3 = clifford_optimized_circuit(circuit2, atol=atol)
+        circuit2 = pauli_string_optimized_circuit(
+                        circuit,
+                        move_cliffords=False,
+                        atol=atol)
+        circuit3 = clifford_optimized_circuit(
+                        circuit2,
+                        atol=atol)
         if (len(circuit3) == start_len
             and _cz_count(circuit3) == start_cz_count):
             return circuit3

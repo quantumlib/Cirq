@@ -238,7 +238,8 @@ def test_circuit_diagrams(part_size, subgraph):
 
 
 def test_bad_args():
-    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 2)
+    gate = cca.BipartiteSwapNetworkGate(
+            cca.BipartiteGraphType.COMPLETE, 2)
     qubits = cirq.LineQubit.range(4)
     gate.subgraph = 'not a subgraph'
     args = cirq.CircuitDiagramInfoArgs(
@@ -268,7 +269,8 @@ def test_bad_args():
 
 def test_bipartite_swap_network_acquaintance_size():
     qubits = cirq.LineQubit.range(4)
-    gate = cca.BipartiteSwapNetworkGate(cca.BipartiteGraphType.COMPLETE, 2)
+    gate = cca.BipartiteSwapNetworkGate(
+            cca.BipartiteGraphType.COMPLETE, 2)
     assert cca.get_acquaintance_size(gate(*qubits)) == 2
 
 

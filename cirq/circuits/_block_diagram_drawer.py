@@ -16,13 +16,14 @@ from typing import List, Optional
 
 import collections
 
-from cirq.circuits._box_drawing_character_data import (box_draw_character,
-                                                       BoxDrawCharacterSet)
+from cirq.circuits._box_drawing_character_data import (
+    box_draw_character,
+    BoxDrawCharacterSet
+)
 
 
 class Block:
     """The mutable building block that block diagrams are made of."""
-
     def __init__(self):
         self.left = ''
         self.right = ''
@@ -38,14 +39,16 @@ class Block:
         return max(
             max(len(e) for e in self.content.split('\n')),
             # Only horizontal lines can cross 0 width blocks.
-            int(any([self.top, self.bottom])))
+            int(any([self.top, self.bottom]))
+        )
 
     def min_height(self) -> int:
         """Minimum height necessary to render the block's contents."""
         return max(
             len(self.content.split('\n')) if self.content else 0,
             # Only vertical lines can cross 0 height blocks.
-            int(any([self.left, self.right])))
+            int(any([self.left, self.right]))
+        )
 
     def draw_curve(self,
                    grid_characters: BoxDrawCharacterSet,
@@ -90,14 +93,15 @@ class Block:
             self.right = grid_characters.left_right
 
         # Fill center.
-        if not all(
-            [crossing_char, self.top, self.bottom, self.left, self.right]):
-            crossing_char = box_draw_character(self._prev_curve_grid_chars,
-                                               grid_characters,
-                                               top=sign_top,
-                                               bottom=sign_bottom,
-                                               left=sign_left,
-                                               right=sign_right)
+        if not all([crossing_char,
+                    self.top, self.bottom, self.left, self.right]):
+            crossing_char = box_draw_character(
+                self._prev_curve_grid_chars,
+                grid_characters,
+                top=sign_top,
+                bottom=sign_bottom,
+                left=sign_left,
+                right=sign_right)
         self.center = crossing_char or ''
 
         self._prev_curve_grid_chars = grid_characters
@@ -156,10 +160,10 @@ class BlockDiagramDrawer:
     def __init__(self):
         self._blocks = collections.defaultdict(
             Block)  # type: Dict[Tuple[int, int], Block]
-        self._min_widths = collections.defaultdict(lambda: 0
-                                                  )  # type: Dict[int, int]
-        self._min_heights = collections.defaultdict(lambda: 0
-                                                   )  # type: Dict[int, int]
+        self._min_widths = collections.defaultdict(
+            lambda: 0)  # type: Dict[int, int]
+        self._min_heights = collections.defaultdict(
+            lambda: 0)  # type: Dict[int, int]
 
         # Populate the origin.
         _ = self._blocks[(0, 0)]
@@ -220,7 +224,6 @@ class BlockDiagramDrawer:
 
         # Method for accessing blocks without creating new entries.
         empty = Block()
-
         def block(x: int, y: int) -> Block:
             return self._blocks.get((x, y), empty)
 
@@ -230,20 +233,24 @@ class BlockDiagramDrawer:
                 max(block(x, y).min_width() for y in range(block_span_y)),
                 self._min_widths.get(x, 0),
                 min_block_width,
-            ) for x in range(block_span_x)
+            )
+            for x in range(block_span_x)
         }
         heights = {
             y: max(
                 max(block(x, y).min_height() for x in range(block_span_x)),
                 self._min_heights.get(y, 0),
                 min_block_height,
-            ) for y in range(block_span_y)
+            )
+            for y in range(block_span_y)
         }
 
         # Get the individually rendered blocks.
-        block_renders = {(x, y): block(x, y).render(widths[x], heights[y])
-                         for x in range(block_span_x)
-                         for y in range(block_span_y)}
+        block_renders = {
+            (x, y): block(x, y).render(widths[x], heights[y])
+            for x in range(block_span_x)
+            for y in range(block_span_y)
+        }
 
         # Paste together all of the rows of rendered block content.
         out_lines = []  # type: List[str]

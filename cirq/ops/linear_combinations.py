@@ -43,7 +43,6 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
 
         2 * cirq.X - 2 * cirq.Z
     """
-
     def __init__(self, terms: Mapping[raw_types.Gate, value.Scalar]) -> None:
         """Initializes linear combination from a collection of terms.
 
@@ -64,26 +63,30 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return (self.num_qubits() is None or
                 self.num_qubits() == gate.num_qubits())
 
-    def __add__(self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-               ) -> 'LinearCombinationOfGates':
+    def __add__(self,
+                other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                ) -> 'LinearCombinationOfGates':
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__add__(other)
 
-    def __iadd__(self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-                ) -> 'LinearCombinationOfGates':
+    def __iadd__(self,
+                 other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                 ) -> 'LinearCombinationOfGates':
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__iadd__(other)
 
-    def __sub__(self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-               ) -> 'LinearCombinationOfGates':
+    def __sub__(self,
+                other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                ) -> 'LinearCombinationOfGates':
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__sub__(other)
 
-    def __isub__(self, other: Union[raw_types.Gate, 'LinearCombinationOfGates']
-                ) -> 'LinearCombinationOfGates':
+    def __isub__(self,
+                 other: Union[raw_types.Gate, 'LinearCombinationOfGates']
+                 ) -> 'LinearCombinationOfGates':
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__isub__(other)
@@ -97,7 +100,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         num_qubits = self.num_qubits()
         if num_qubits is None:
             raise ValueError('Unknown number of qubits')
-        num_dim = 2**num_qubits
+        num_dim = 2 ** num_qubits
         result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for gate, coefficient in self.items():
             result += protocols.unitary(gate) * coefficient

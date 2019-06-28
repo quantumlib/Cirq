@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    Union)
+from typing import (
+    Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, Union
+)
 import numpy as np
 import sympy
 
@@ -27,7 +28,8 @@ if TYPE_CHECKING:
     from cirq.google import xmon_device
 
 
-def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
+def gate_to_proto_dict(gate: ops.Gate,
+                       qubits: Tuple[ops.Qid, ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
 
@@ -86,7 +88,8 @@ def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
+def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate,
+                            q: ops.Qid) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
@@ -107,7 +110,9 @@ def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
     return {'exp_z': exp_z}
 
 
-def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
+def _cz_to_proto_dict(gate: ops.CZPowGate,
+                      p: ops.Qid,
+                      q: ops.Qid) -> Dict:
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
@@ -124,8 +129,8 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
 
     invert_mask = None
     if gate.invert_mask:
-        invert_mask = gate.invert_mask + (False,) * (gate.num_qubits() -
-                                                     len(gate.invert_mask))
+        invert_mask = gate.invert_mask + (False,) * (
+            gate.num_qubits() - len(gate.invert_mask))
 
     if invert_mask and len(invert_mask) != len(qubits):
         raise ValueError('Measurement gate had invert mask of length '
@@ -345,13 +350,14 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         return ops.MeasurementGate(
             num_qubits=len(meas['targets']),
             key=meas['key'],
-            invert_mask=invert_mask).on(*[qubit(q) for q in meas['targets']])
+            invert_mask=invert_mask
+        ).on(*[qubit(q) for q in meas['targets']])
     else:
         raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
 def _parameterized_value_from_proto_dict(message: Dict
-                                        ) -> Union[sympy.Basic, float]:
+                                         ) -> Union[sympy.Basic, float]:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -363,7 +369,7 @@ def _parameterized_value_from_proto_dict(message: Dict
 
 
 def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
-                                      ) -> Dict:
+                                       ) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())

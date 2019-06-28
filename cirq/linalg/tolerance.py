@@ -46,10 +46,15 @@ def all_near_zero_mod(a: Union[float, complex, Iterable[float], np.ndarray],
     return np.all(np.less_equal(np.abs(b), atol))
 
 
-def near_zero(a: float, *, atol: float = 1e-8) -> bool:
+def near_zero(a: float,
+              *,
+              atol: float = 1e-8) -> bool:
     return abs(a) <= atol
 
 
-def near_zero_mod(a: float, period: float, *, atol: float = 1e-8) -> bool:
+def near_zero_mod(a: float,
+                  period: float,
+                  *,
+                  atol: float = 1e-8) -> bool:
     half_period = period / 2
     return near_zero((a + half_period) % period - half_period, atol=atol)

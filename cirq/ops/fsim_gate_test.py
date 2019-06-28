@@ -154,13 +154,13 @@ def test_fsim_unitary():
         ]),
         atol=1e-8,
     )
-    np.testing.assert_allclose(cirq.unitary(
-        cirq.FSimGate(theta=2 * np.pi, phi=0)),
-                               cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
-                               atol=1e-8)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.FSimGate(theta=-np.pi / 2, phi=0)),
-        cirq.unitary(cirq.FSimGate(theta=3 / 2 * np.pi, phi=0)),
+        cirq.unitary(cirq.FSimGate(theta=2*np.pi, phi=0)),
+        cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
+        atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.FSimGate(theta=-np.pi/2, phi=0)),
+        cirq.unitary(cirq.FSimGate(theta=3/2*np.pi, phi=0)),
         atol=1e-8)
 
     # Phi
@@ -194,13 +194,13 @@ def test_fsim_unitary():
         ]),
         atol=1e-8,
     )
-    np.testing.assert_allclose(cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
-                               cirq.unitary(
-                                   cirq.FSimGate(theta=0, phi=2 * np.pi)),
-                               atol=1e-8)
     np.testing.assert_allclose(
-        cirq.unitary(cirq.FSimGate(theta=0, phi=-np.pi / 2)),
-        cirq.unitary(cirq.FSimGate(theta=0, phi=3 / 2 * np.pi)),
+        cirq.unitary(cirq.FSimGate(theta=0, phi=0)),
+        cirq.unitary(cirq.FSimGate(theta=0, phi=2*np.pi)),
+        atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.FSimGate(theta=0, phi=-np.pi/2)),
+        cirq.unitary(cirq.FSimGate(theta=0, phi=3/2*np.pi)),
         atol=1e-8)
 
     # Both.

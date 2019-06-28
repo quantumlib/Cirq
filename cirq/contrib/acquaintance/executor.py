@@ -19,7 +19,8 @@ from collections import defaultdict
 
 from cirq import circuits, devices, ops, protocols
 
-from cirq.contrib.acquaintance.gates import (AcquaintanceOpportunityGate)
+from cirq.contrib.acquaintance.gates import (
+        AcquaintanceOpportunityGate)
 from cirq.contrib.acquaintance.devices import (
         is_acquaintance_strategy)
 from cirq.contrib.acquaintance.permutation import (
@@ -57,8 +58,10 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
 
     @abc.abstractmethod
-    def get_operations(self, indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def get_operations(self,
+                       indices: Sequence[LogicalIndex],
+                       qubits: Sequence[ops.Qid]
+                       ) -> ops.OP_TREE:
         """Gets the logical operations to apply to qubits."""
 
     def __call__(self, *args, **kwargs):
@@ -112,8 +115,8 @@ class AcquaintanceOperation(ops.GateOperation):
     """Represents an a acquaintance opportunity between a particular set of
     logical indices on a particular set of physical qubits.
     """
-
-    def __init__(self, qubits: Sequence[ops.raw_types.Qid],
+    def __init__(self,
+                 qubits: Sequence[ops.raw_types.Qid],
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')
@@ -121,8 +124,9 @@ class AcquaintanceOperation(ops.GateOperation):
                          qubits)
         self.logical_indices = logical_indices # type: LogicalIndexSequence
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self,
+            args: protocols.CircuitDiagramInfoArgs
+            ) -> protocols.CircuitDiagramInfo:
         wire_symbols = tuple('({})'.format(i) for i in self.logical_indices)
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 
@@ -164,8 +168,10 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         return self._device
 
 
-    def get_operations(self, indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def get_operations(self,
+                       indices: Sequence[LogicalIndex],
+                       qubits: Sequence[ops.Qid]
+                       ) -> ops.OP_TREE:
         index_set = frozenset(indices)
         if index_set in self.index_set_to_gates:
             gates = self.index_set_to_gates.pop(index_set)

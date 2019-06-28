@@ -22,10 +22,9 @@ from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
 
 
-def complete_acquaintance_strategy(
-        qubit_order: Sequence[ops.Qid],
-        acquaintance_size: int = 0,
-) -> circuits.Circuit:
+def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
+                                   acquaintance_size: int=0,
+                                   ) -> circuits.Circuit:
     """
     Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.
@@ -47,11 +46,12 @@ def complete_acquaintance_strategy(
     if acquaintance_size > len(qubit_order):
         return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
     if acquaintance_size == len(qubit_order):
-        return circuits.Circuit.from_ops(acquaint(*qubit_order),
-                                         device=UnconstrainedAcquaintanceDevice)
+        return circuits.Circuit.from_ops(
+                acquaint(*qubit_order), device=UnconstrainedAcquaintanceDevice)
 
-    strategy = circuits.Circuit.from_ops((acquaint(q) for q in qubit_order),
-                                         device=UnconstrainedAcquaintanceDevice)
+    strategy = circuits.Circuit.from_ops(
+            (acquaint(q) for q in qubit_order),
+            device=UnconstrainedAcquaintanceDevice)
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)
         replace_acquaintance_with_swap_network(

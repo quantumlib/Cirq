@@ -15,7 +15,9 @@
 """Utility classes for representing QASM."""
 
 from typing import Set  # pylint: disable=unused-import
-from typing import (Callable, Dict, Optional, Sequence, Tuple, Union)
+from typing import (
+    Callable, Dict, Optional, Sequence, Tuple, Union
+)
 
 import re
 import numpy as np
@@ -50,7 +52,8 @@ class QasmUGate(ops.SingleQubitGate):
             pre_phase / np.pi,
         )
 
-    def _qasm_(self, qubits: Tuple[ops.Qid, ...],
+    def _qasm_(self,
+               qubits: Tuple[ops.Qid, ...],
                args: protocols.QasmArgs) -> str:
         args.validate_version('2.0')
         return args.format(
@@ -163,8 +166,9 @@ class QasmOutput:
             qubit_id_map=qubit_id_map,
             meas_key_id_map=meas_key_id_map)
 
-    def _generate_measurement_ids(
-            self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
+    def _generate_measurement_ids(self
+                                  ) -> Tuple[Dict[str, str],
+                                             Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map = {}  # type: Dict[str, str]
         meas_comments = {}  # type: Dict[str, Optional[str]]

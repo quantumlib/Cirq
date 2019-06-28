@@ -22,7 +22,6 @@ def test_single_qubit_gate_validate_args():
     class Dummy(cirq.SingleQubitGate):
         def matrix(self):
             pass
-
     g = Dummy()
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
@@ -37,12 +36,9 @@ def test_single_qubit_gate_validate_args():
 
 
 def test_single_qubit_gate_validates_on_each():
-
     class Dummy(cirq.SingleQubitGate):
-
         def matrix(self):
             pass
-
     g = Dummy()
     assert g.num_qubits() == 1
 
@@ -59,12 +55,9 @@ def test_single_qubit_gate_validates_on_each():
 
 
 def test_single_qubit_validates_on():
-
     class Dummy(cirq.SingleQubitGate):
-
         def matrix(self):
             pass
-
     g = Dummy()
     assert g.num_qubits() == 1
 
@@ -209,7 +202,6 @@ def test_qasm_output_args_format():
 
 
 def test_multi_qubit_gate_validate():
-
     class Dummy(cirq.Gate):
 
         def num_qubits(self) -> int:

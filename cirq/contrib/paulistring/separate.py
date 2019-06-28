@@ -19,11 +19,10 @@ from cirq import ops, circuits
 from cirq.contrib.paulistring.convert_gate_set import converted_gate_set
 
 
-def convert_and_separate_circuit(
-        circuit: circuits.Circuit,
-        leave_cliffords: bool = True,
-        atol: float = 1e-8,
-) -> Tuple[circuits.Circuit, circuits.Circuit]:
+def convert_and_separate_circuit(circuit: circuits.Circuit,
+                                 leave_cliffords: bool = True,
+                                 atol: float = 1e-8,
+                                 ) -> Tuple[circuits.Circuit, circuits.Circuit]:
     """Converts any circuit into two circuits where (circuit_left+circuit_right)
     is equivalent to the given circuit.
 

@@ -42,7 +42,10 @@ def test_asymmetric_depolarizing_channel():
 def test_asymmetric_depolarizing_mixture():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
     assert_mixtures_equal(cirq.mixture(d),
-                          ((0.4, np.eye(2)), (0.1, X), (0.2, Y), (0.3, Z)))
+                          ((0.4, np.eye(2)),
+                           (0.1, X),
+                           (0.2, Y),
+                           (0.3, Z)))
     assert cirq.has_mixture_channel(d)
 
 
@@ -105,11 +108,13 @@ def test_depolarizing_channel():
                                     np.sqrt(0.1) * Z))
     assert cirq.has_channel(d)
 
-
 def test_depolarizing_mixture():
     d = cirq.depolarize(0.3)
     assert_mixtures_equal(cirq.mixture(d),
-                          ((0.7, np.eye(2)), (0.1, X), (0.1, Y), (0.1, Z)))
+                          ((0.7, np.eye(2)),
+                           (0.1, X),
+                           (0.1, Y),
+                           (0.1, Z)))
     assert cirq.has_mixture_channel(d)
 
 
@@ -151,7 +156,6 @@ def test_generalized_amplitude_damping_channel():
                np.sqrt(0.9) * np.array([[0., 0.], [np.sqrt(0.3), 0.]])))
     assert cirq.has_channel(d)
     assert not cirq.has_mixture_channel(d)
-
 
 def test_generalized_amplitude_damping_repr():
     cirq.testing.assert_equivalent_repr(
@@ -379,6 +383,5 @@ def test_bit_flip_channel_invalid_probability():
 
 
 def test_bit_flip_channel_text_diagram():
-    assert (cirq.circuit_diagram_info(
-        cirq.bit_flip(0.3)) == cirq.CircuitDiagramInfo(
-            wire_symbols=('BF(0.3)',)))
+    assert (cirq.circuit_diagram_info(cirq.bit_flip(0.3))
+            == cirq.CircuitDiagramInfo(wire_symbols=('BF(0.3)',)))

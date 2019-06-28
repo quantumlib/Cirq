@@ -240,32 +240,41 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurments=True):
 
     return (
         cirq.Z(q0),
-        cirq.Z(q0)**.625,
+        cirq.Z(q0) ** .625,
         cirq.Y(q0),
-        cirq.Y(q0)**.375,
+        cirq.Y(q0) ** .375,
         cirq.X(q0),
-        cirq.X(q0)**.875,
+        cirq.X(q0) ** .875,
         cirq.H(q1),
         cirq.CZ(q0, q1),
-        cirq.CZ(q0, q1)**0.25,  # Requires 2-qubit decomposition
+        cirq.CZ(q0, q1) ** 0.25,  # Requires 2-qubit decomposition
         cirq.CNOT(q0, q1),
-        cirq.CNOT(q0, q1)**0.5,  # Requires 2-qubit decomposition
+        cirq.CNOT(q0, q1) ** 0.5,  # Requires 2-qubit decomposition
         cirq.SWAP(q0, q1),
-        cirq.SWAP(q0, q1)**0.75,  # Requires 2-qubit decomposition
+        cirq.SWAP(q0, q1) ** 0.75,  # Requires 2-qubit decomposition
+
         cirq.CCZ(q0, q1, q2),
         cirq.CCX(q0, q1, q2),
         cirq.CCZ(q0, q1, q2)**0.5,
         cirq.CCX(q0, q1, q2)**0.5,
         cirq.CSWAP(q0, q1, q2),
+
         cirq.ISWAP(q2, q0),  # Requires 2-qubit decomposition
+
         cirq.PhasedXPowGate(phase_exponent=0.111, exponent=0.25).on(q1),
         cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
         cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
-        (cirq.measure(q0, key='xX'), cirq.measure(q2, key='x_a'),
-         cirq.measure(q1, key='x?'), cirq.measure(q3, key='X'),
-         cirq.measure(q4, key='_x'), cirq.measure(q2, key='x_a'),
-         cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True)))
-        if include_measurments else (),
+
+        (
+            cirq.measure(q0, key='xX'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, key='x?'),
+            cirq.measure(q3, key='X'),
+            cirq.measure(q4, key='_x'),
+            cirq.measure(q2, key='x_a'),
+            cirq.measure(q1, q2, q3, key='multi', invert_mask=(False, True))
+        ) if include_measurments else (),
+
         DummyOperation(),
         DummyCompositeOperation(),
     )
@@ -322,7 +331,6 @@ def test_output_unitary_same_as_qiskit():
 
 
 def test_fails_on_big_unknowns():
-
     class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
     c = cirq.Circuit.from_ops(

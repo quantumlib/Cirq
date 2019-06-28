@@ -652,7 +652,7 @@ def test_large_circuit_unitary(num_prefix_qubits, use_processes):
                               initial_state=0,
                               min_qubits_before_shard=0,
                               use_processes=use_processes) as s:
-        for initial_state in range(2**4):
+        for initial_state in range(2 ** 4):
             s.reset_state(initial_state)
             for moment in moments:
                 phase_map = {}
@@ -666,9 +666,8 @@ def test_large_circuit_unitary(num_prefix_qubits, use_processes):
                 s.simulate_phases(phase_map)
             columns.append(s.current_state)
     unitary = np.array(columns).transpose()
-    np.testing.assert_almost_equal(np.dot(unitary, np.conj(unitary.T)),
-                                   np.eye(2**4),
-                                   decimal=6)
+    np.testing.assert_almost_equal(
+        np.dot(unitary, np.conj(unitary.T)), np.eye(2 ** 4), decimal=6)
 
 
 def random_moments(num_qubits, num_ops):

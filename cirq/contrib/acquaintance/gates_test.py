@@ -158,8 +158,7 @@ def test_swap_network_gate_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
     swap_network_gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
     cca.testing.assert_permutation_decomposition_equivalence(
-        swap_network_gate, n_qubits)
-
+            swap_network_gate, n_qubits)
 
 def test_swap_network_gate_from_ops():
     n_qubits = 10
@@ -200,7 +199,6 @@ def test_swap_network_decomposition():
     """.strip()
     ct.assert_has_diagram(circuit, expected_text_diagram)
 
-
 def test_swap_network_init_error():
     with pytest.raises(ValueError):
         cca.SwapNetworkGate(())
@@ -208,13 +206,13 @@ def test_swap_network_init_error():
         cca.SwapNetworkGate((3,))
 
 
-part_lens_and_acquaintance_sizes = [[[
-    l + 1 for l in poisson(size=n_parts, lam=lam)
-], poisson(4)] for n_parts, lam in product(range(2, 20, 3), range(1, 4))]
-
+part_lens_and_acquaintance_sizes = [
+    [[l + 1 for l in poisson(size=n_parts, lam=lam)], poisson(4)]
+    for n_parts, lam in product(range(2, 20, 3), range(1, 4))
+]
 
 @pytest.mark.parametrize('part_lens, acquaintance_size',
-                         part_lens_and_acquaintance_sizes)
+        part_lens_and_acquaintance_sizes)
 def test_swap_network_permutation(part_lens, acquaintance_size):
     n_qubits = sum(part_lens)
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
@@ -225,14 +223,13 @@ def test_swap_network_permutation(part_lens, acquaintance_size):
 
 
 @pytest.mark.parametrize('part_lens, acquaintance_size',
-                         part_lens_and_acquaintance_sizes)
+        part_lens_and_acquaintance_sizes)
 def test_swap_network_repr(part_lens, acquaintance_size):
     gate = cca.SwapNetworkGate(part_lens, acquaintance_size)
     ct.assert_equivalent_repr(gate)
 
 
 class OtherOperation(cirq.Operation):
-
     def __init__(self, qubits: Sequence[cirq.Qid]) -> None:
         self._qubits = tuple(qubits)
 
@@ -298,9 +295,9 @@ def test_operations_to_part_lens():
         cca.gates.operations_to_part_lens(qubits, ops)
 
 
-@pytest.mark.parametrize(
-    'part_len_sets',
-    [set(tuple(randint(1, 5) for _ in range(randint(2, 7))) for _ in range(5))])
+@pytest.mark.parametrize('part_len_sets', [
+    set(tuple(randint(1, 5) for _ in range(randint(2, 7))) for _ in range(5))
+    ])
 def test_swap_network_gate_equality(part_len_sets):
     acquaintance_sizes = [None, 0, 1, 2, 3]
     swap_gates = [cirq.SWAP, cirq.CNOT]

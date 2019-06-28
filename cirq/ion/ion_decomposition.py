@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Utility methods related to optimizing quantum circuits
 using native iontrap operations.
@@ -32,7 +33,7 @@ def two_qubit_matrix_to_ion_operations(q0: ops.Qid,
                                        q1: ops.Qid,
                                        mat: np.ndarray,
                                        atol: float = 1e-8
-                                      ) -> List[ops.Operation]:
+                                       ) -> List[ops.Operation]:
     """Decomposes a two-qubit operation into MS/single-qubit rotation gates.
 
     Args:
@@ -46,7 +47,8 @@ def two_qubit_matrix_to_ion_operations(q0: ops.Qid,
         A list of operations implementing the matrix.
     """
     kak = linalg.kak_decomposition(mat, atol=atol)
-    operations = _kak_decomposition_to_operations(q0, q1, kak, atol)
+    operations = _kak_decomposition_to_operations(q0,
+        q1, kak, atol)
     return _cleanup_operations(operations)
 
 
@@ -57,28 +59,30 @@ def _cleanup_operations(operations: List[ops.Operation]):
     optimizers.eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
     optimizers.eject_z.EjectZ().optimize_circuit(circuit)
     circuit = circuits.Circuit.from_ops(
-        circuit.all_operations(), strategy=circuits.InsertStrategy.EARLIEST)
+        circuit.all_operations(),
+        strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 
 
 def _kak_decomposition_to_operations(q0: ops.Qid,
                                      q1: ops.Qid,
                                      kak: linalg.KakDecomposition,
-                                     atol: float = 1e-8) -> List[ops.Operation]:
+                                     atol: float = 1e-8
+                                     ) -> List[ops.Operation]:
     """Assumes that the decomposition is canonical."""
     b0, b1 = kak.single_qubit_operations_before
     pre = [_do_single_on(b0, q0, atol), _do_single_on(b1, q1, atol)]
     a0, a1 = kak.single_qubit_operations_after
     post = [_do_single_on(a0, q0, atol), _do_single_on(a1, q1, atol)]
 
-    return list(
-        cast(
-            Iterable[ops.Operation],
-            ops.flatten_op_tree([
-                pre,
-                _non_local_part(q0, q1, kak.interaction_coefficients, atol),
-                post,
-            ])))
+    return list(cast(Iterable[ops.Operation], ops.flatten_op_tree([
+        pre,
+        _non_local_part(q0,
+                        q1,
+                        kak.interaction_coefficients,
+                        atol),
+        post,
+    ])))
 
 
 def _do_single_on(u: np.ndarray, q: ops.Qid, atol: float = 1e-8):
@@ -117,6 +121,5 @@ def _non_local_part(q0: ops.Qid,
 
     return [
         _parity_interaction(q0, q1, x, atol),
-        _parity_interaction(q0, q1, y, atol, ops.Z**-0.5),
-        _parity_interaction(q0, q1, z, atol, ops.Y**0.5)
-    ]
+        _parity_interaction(q0, q1, y, atol, ops.Z ** -0.5),
+        _parity_interaction(q0, q1, z, atol, ops.Y ** 0.5)]

@@ -88,9 +88,10 @@ class WaveFunctionDisplay(raw_types.Operation):
         pass
 
     @abc.abstractmethod
-    def value_derived_from_wavefunction(self, state: np.ndarray,
+    def value_derived_from_wavefunction(self,
+                                        state: np.ndarray,
                                         qubit_map: Dict[raw_types.Qid, int]
-                                       ) -> Any:
+                                        ) -> Any:
         """The value of the display, derived from the full wavefunction.
 
         Args:
@@ -104,9 +105,10 @@ class DensityMatrixDisplay(WaveFunctionDisplay):
     """A display whose value is computed from the density matrix."""
 
     @abc.abstractmethod
-    def value_derived_from_density_matrix(self, state: np.ndarray,
+    def value_derived_from_density_matrix(self,
+                                          state: np.ndarray,
                                           qubit_map: Dict[raw_types.Qid, int]
-                                         ) -> Any:
+                                          ) -> Any:
         """The value of the display, derived from the density matrix.
 
         Args:
@@ -115,9 +117,10 @@ class DensityMatrixDisplay(WaveFunctionDisplay):
                 ordering used to define the wavefunction.
         """
 
-    def value_derived_from_wavefunction(self, state: np.ndarray,
+    def value_derived_from_wavefunction(self,
+                                        state: np.ndarray,
                                         qubit_map: Dict[raw_types.Qid, int]
-                                       ) -> Any:
+                                        ) -> Any:
         density_matrix = np.outer(state, np.conj(state))
         return self.value_derived_from_density_matrix(density_matrix, qubit_map)
 
@@ -138,8 +141,9 @@ class ApproxPauliStringExpectation(SamplesDisplay):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return self._pauli_string.qubits
 
-    def with_qubits(self, *new_qubits: raw_types.Qid
-                   ) -> 'ApproxPauliStringExpectation':
+    def with_qubits(self,
+                    *new_qubits: raw_types.Qid
+                    ) -> 'ApproxPauliStringExpectation':
         return ApproxPauliStringExpectation(
                 self._pauli_string.with_qubits(*new_qubits),
                 self._num_samples,
@@ -180,7 +184,8 @@ class PauliStringExpectation(DensityMatrixDisplay):
         return self._pauli_string.qubits
 
     def with_qubits(self,
-                    *new_qubits: raw_types.Qid) -> 'PauliStringExpectation':
+                    *new_qubits: raw_types.Qid
+                    ) -> 'PauliStringExpectation':
         return PauliStringExpectation(
                 self._pauli_string.with_qubits(*new_qubits),
                 self._key
@@ -190,9 +195,10 @@ class PauliStringExpectation(DensityMatrixDisplay):
     def key(self) -> Hashable:
         return self._key
 
-    def value_derived_from_wavefunction(self, state: np.ndarray,
+    def value_derived_from_wavefunction(self,
+                                        state: np.ndarray,
                                         qubit_map: Dict[raw_types.Qid, int]
-                                       ) -> float:
+                                        ) -> float:
         num_qubits = state.shape[0].bit_length() - 1
         ket = np.reshape(np.copy(state), (2,) * num_qubits)
         for qubit, pauli in self._pauli_string.items():
@@ -206,16 +212,19 @@ class PauliStringExpectation(DensityMatrixDisplay):
         ket = np.reshape(ket, state.shape)
         return np.dot(state.conj(), ket)
 
-    def value_derived_from_density_matrix(self, state: np.ndarray,
+    def value_derived_from_density_matrix(self,
+                                          state: np.ndarray,
                                           qubit_map: Dict[raw_types.Qid, int]
-                                         ) -> float:
+                                          ) -> float:
         num_qubits = state.shape[0].bit_length() - 1
         result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
         for qubit, pauli in self._pauli_string.items():
             buffer = np.empty(result.shape, dtype=state.dtype)
-            args = protocols.ApplyUnitaryArgs(target_tensor=result,
-                                              available_buffer=buffer,
-                                              axes=(qubit_map[qubit],))
+            args = protocols.ApplyUnitaryArgs(
+                    target_tensor=result,
+                    available_buffer=buffer,
+                    axes=(qubit_map[qubit],)
+                    )
             result = protocols.apply_unitary(pauli, args)
         result = np.reshape(result, state.shape)
         return np.trace(result)

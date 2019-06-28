@@ -21,7 +21,7 @@ def test_circular_shift_gate_init():
     assert g.num_qubits() == 4
     assert g.shift == 2
 
-    g = cca.CircularShiftGate(4, 1, swap_gate=cirq.CZ)
+    g = cca.CircularShiftGate(4, 1, swap_gate = cirq.CZ)
     assert g.swap_gate == cirq.CZ
 
 
@@ -38,21 +38,13 @@ def test_circular_shift_gate_eq():
 
 
 def test_circular_shift_gate_permutation():
-    assert (cca.CircularShiftGate(3, 4).permutation() == {0: 2, 1: 0, 2: 1})
-    assert (cca.CircularShiftGate(4, 0).permutation() == {
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 3
-    })
+    assert (cca.CircularShiftGate(3, 4).permutation() ==
+            {0: 2, 1: 0, 2: 1})
+    assert (cca.CircularShiftGate(4, 0).permutation() ==
+            {0: 0, 1: 1, 2: 2, 3: 3})
 
-    assert (cca.CircularShiftGate(5, 2).permutation() == {
-        0: 3,
-        1: 4,
-        2: 0,
-        3: 1,
-        4: 2
-    })
+    assert (cca.CircularShiftGate(5, 2).permutation() ==
+            {0:3, 1: 4, 2: 0, 3: 1, 4: 2})
 
 
 def test_circular_shift_gate_repr():
@@ -136,3 +128,5 @@ y: ---\1/---
 z: ---/2\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram
+
+

@@ -79,6 +79,7 @@ def test_init_timedelta():
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * microsecond
 
 
+
 def test_repr():
     d = square_device(2, 2, holes=[])
 
@@ -130,9 +131,8 @@ def test_validate_operation_adjacent_qubits():
 def test_validate_measurement_non_adjacent_qubits_ok():
     d = square_device(3, 3)
 
-    d.validate_operation(
-        cirq.GateOperation(cirq.MeasurementGate(2),
-                           (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
+    d.validate_operation(cirq.GateOperation(
+        cirq.MeasurementGate(2), (cirq.GridQubit(0, 0), cirq.GridQubit(2, 0))))
 
 
 def test_validate_operation_existing_qubits():
@@ -165,8 +165,8 @@ def test_validate_operation_supported_gate():
 
     assert MyGate().num_qubits() == 1
     with pytest.raises(ValueError):
-        d.validate_operation(
-            cirq.GateOperation(MyGate(), [cirq.GridQubit(0, 0)]))
+        d.validate_operation(cirq.GateOperation(
+            MyGate(), [cirq.GridQubit(0, 0)]))
     with pytest.raises(ValueError):
         d.validate_operation(NotImplementedOperation())
 
@@ -205,8 +205,10 @@ def test_validate_scheduled_operation_adjacent_exp_11_measure():
     q1 = cirq.GridQubit(1, 0)
     q2 = cirq.GridQubit(2, 0)
     s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(cirq.measure(q0), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q1, q2), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cirq.measure(q0), cirq.Timestamp(), d),
+        cirq.ScheduledOperation.op_at_on(
+            cirq.CZ(q1, q2), cirq.Timestamp(), d),
     ])
     d.validate_schedule(s)
 
@@ -229,10 +231,8 @@ def test_validate_circuit_repeat_measurement_keys():
     d = square_device(3, 3)
 
     circuit = cirq.Circuit()
-    circuit.append([
-        cirq.measure(cirq.GridQubit(0, 0), key='a'),
-        cirq.measure(cirq.GridQubit(0, 1), key='a')
-    ])
+    circuit.append([cirq.measure(cirq.GridQubit(0, 0), key='a'),
+                    cirq.measure(cirq.GridQubit(0, 1), key='a')])
 
     with pytest.raises(ValueError, message='Measurement key a repeated'):
         d.validate_circuit(circuit)

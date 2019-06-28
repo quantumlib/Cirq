@@ -48,14 +48,11 @@ def test_coverage():
 
 
 def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
-
     class OtherX(cirq.SingleQubitGate):
-
         def _unitary_(self) -> np.ndarray:
             return np.array([[0, 1], [1, 0]])
 
     class OtherOtherX(cirq.SingleQubitGate):
-
         def _decompose_(self, qubits):
             return OtherX().on(*qubits)
 
@@ -67,15 +64,14 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
 
 
 def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
-
     class OtherCZ(cirq.TwoQubitGate):
-
         def _unitary_(self) -> np.ndarray:
-            return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
+            return np.array([[1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0],
                              [0, 0, 0, -1]])
 
     class OtherOtherCZ(cirq.TwoQubitGate):
-
         def _decompose_(self, qubits):
             return OtherCZ().on(*qubits)
 
@@ -84,6 +80,5 @@ def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
     c = cirq.Circuit.from_ops(OtherCZ().on(q00, q01),
                               OtherOtherCZ().on(q00, q01))
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-    cirq.testing.assert_has_diagram(
-        c, "(0, 0): ───@───@───\n"
-        "           │   │\n(0, 1): ───@───@───")
+    cirq.testing.assert_has_diagram(c, "(0, 0): ───@───@───\n"
+                                       "           │   │\n(0, 1): ───@───@───")

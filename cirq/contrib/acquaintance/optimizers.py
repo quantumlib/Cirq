@@ -16,7 +16,8 @@ from typing import cast, Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops
 
-from cirq.contrib.acquaintance.devices import (is_acquaintance_strategy)
+from cirq.contrib.acquaintance.devices import (
+    is_acquaintance_strategy)
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
     from typing import FrozenSet, List, Set
 
 
-def remove_redundant_acquaintance_opportunities(strategy: circuits.Circuit
-                                               ) -> int:
+def remove_redundant_acquaintance_opportunities(
+        strategy: circuits.Circuit) -> int:
     """Removes redundant acquaintance opportunities."""
     if not is_acquaintance_strategy(strategy):
         raise TypeError('not is_acquaintance_strategy(circuit)')
@@ -40,11 +41,11 @@ def remove_redundant_acquaintance_opportunities(strategy: circuits.Circuit
     annotated_strategy = strategy.copy()
     LogicalAnnotator(mapping)(annotated_strategy)
 
-    new_moments = []  # type: List[ops.Moment]
-    acquaintance_opps = set()  # type: Set[FrozenSet[int]]
+    new_moments = [] # type: List[ops.Moment]
+    acquaintance_opps = set() # type: Set[FrozenSet[int]]
     n_removed = 0
     for moment in annotated_strategy:
-        new_moment = []  # type: List[ops.Operation]
+        new_moment = [] # type: List[ops.Operation]
         for op in moment:
             if isinstance(op, AcquaintanceOperation):
                 opp = frozenset(cast(Sequence[int], op.logical_indices))

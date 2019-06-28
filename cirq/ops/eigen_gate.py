@@ -60,11 +60,9 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
-    def __init__(
-            self,
-            *,  # Forces keyword args.
-            exponent: Union[sympy.Basic, float] = 1.0,
-            global_shift: float = 0.0) -> None:
+    def __init__(self, *,  # Forces keyword args.
+                 exponent: Union[sympy.Basic, float] = 1.0,
+                 global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of each eigenspace of a gate is computed by

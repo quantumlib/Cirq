@@ -45,8 +45,8 @@ def assert_kronecker_factorization_within_tolerance(matrix, g, f1, f2):
 
 def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
     restored = g * cirq.linalg.combinators.kron(f1, f2)
-    assert (np.any(np.isnan(restored) or not np.allclose(restored, matrix)))
-
+    assert (np.any(np.isnan(restored) or
+                   not np.allclose(restored, matrix)))
 
 def assert_magic_su2_within_tolerance(mat, a, b):
     M = cirq.linalg.decompositions.MAGIC
@@ -56,7 +56,6 @@ def assert_magic_su2_within_tolerance(mat, a, b):
         cirq.linalg.combinators.kron(a, b),
         M)
     assert np.allclose(recon, mat), "Failed to decompose within tolerance."
-
 
 @pytest.mark.parametrize('matrix', [
     X,

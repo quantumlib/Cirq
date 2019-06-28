@@ -18,8 +18,10 @@ from typing import Dict, Iterable, Optional, Sequence, Tuple
 
 from cirq import ops, protocols
 from cirq.contrib.acquaintance.gates import acquaint
-from cirq.contrib.acquaintance.permutation import (PermutationGate)
-from cirq.contrib.acquaintance.shift import (CircularShiftGate)
+from cirq.contrib.acquaintance.permutation import (
+        PermutationGate)
+from cirq.contrib.acquaintance.shift import (
+        CircularShiftGate)
 
 
 class ShiftSwapNetworkGate(PermutationGate):
@@ -47,12 +49,12 @@ class ShiftSwapNetworkGate(PermutationGate):
     def __init__(self,
                  left_part_lens: Iterable[int],
                  right_part_lens: Iterable[int],
-                 swap_gate: ops.Gate = ops.SWAP) -> None:
+                 swap_gate: ops.Gate=ops.SWAP
+                 ) -> None:
 
         self.part_lens = {
-            'left': tuple(left_part_lens),
-            'right': tuple(right_part_lens)
-        }
+                'left': tuple(left_part_lens),
+                'right': tuple(right_part_lens)}
 
         for part_lens in self.part_lens.values():
             if min(part_lens) < 1:
@@ -64,14 +66,13 @@ class ShiftSwapNetworkGate(PermutationGate):
         return sum(max(self.part_lens[side]) for side in ('left', 'right'))
 
     def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
-        part_lens = list(
-            itertools.chain(*(self.part_lens[side]
-                              for side in ('left', 'right'))))
+        part_lens = list(itertools.chain(*(
+            self.part_lens[side] for side in ('left', 'right'))))
 
         n_qubits = 0
         parts = []
         for part_len in part_lens:
-            parts.append(list(qubits[n_qubits:n_qubits + part_len]))
+            parts.append(list(qubits[n_qubits: n_qubits + part_len]))
             n_qubits += part_len
 
         n_parts = len(part_lens)
@@ -86,7 +87,7 @@ class ShiftSwapNetworkGate(PermutationGate):
 
         for i, j in zip(mins, maxs):
             for k in range(i, j, 2):
-                left_part, right_part = parts[k:k + 2]
+                left_part, right_part = parts[k: k + 2]
                 parts_qubits = left_part + right_part
                 yield acquaint(*parts_qubits)
                 yield SHIFT(len(parts_qubits), len(left_part))(*parts_qubits)
@@ -102,15 +103,15 @@ class ShiftSwapNetworkGate(PermutationGate):
         return self.qubit_count()
 
     def permutation(self) -> Dict[int, int]:
-        return dict(
-            zip(
-                range(self.num_qubits()),
-                itertools.chain(
+        return dict(zip(
+            range(self.num_qubits()),
+            itertools.chain(
                     range(self.qubit_count('right'), self.num_qubits()),
-                    range(self.qubit_count('right')))))
+                    range(self.qubit_count('right'))
+            )))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> Tuple[str, ...]:
+                               ) -> Tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)
 
@@ -121,7 +122,7 @@ class ShiftSwapNetworkGate(PermutationGate):
             for j, part_len in enumerate(self.part_lens[side]):
                 for k in range(part_len):
                     wire_symbols.append(
-                        str((i, j, k)) + arrow + str((int(not (i)), j, k)))
+                            str((i, j, k)) + arrow + str((int(not(i)), j, k)))
         return tuple(wire_symbols)
 
     def __repr__(self):
@@ -129,7 +130,8 @@ class ShiftSwapNetworkGate(PermutationGate):
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
         return ('cirq.contrib.acquaintance.shift_swap_network.'
-                'ShiftSwapNetworkGate' + '({})'.format(', '.join(args)))
+                'ShiftSwapNetworkGate' +
+                '({})'.format(', '.join(args)))
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and

@@ -98,11 +98,10 @@ def _group_similar(items: List[T],
     return groups
 
 
-def _perp_eigendecompose(
-        matrix: np.ndarray,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-) -> Tuple[np.array, List[np.ndarray]]:
+def _perp_eigendecompose(matrix: np.ndarray,
+                         rtol: float = 1e-5,
+                         atol: float = 1e-8,
+                         ) -> Tuple[np.array, List[np.ndarray]]:
     """An eigendecomposition that ensures eigenvectors are perpendicular.
 
     numpy.linalg.eig doesn't guarantee that eigenvectors from the same
@@ -134,8 +133,8 @@ def _perp_eigendecompose(
     # Group by similar eigenvalue.
     n = len(vecs)
     groups = _group_similar(
-        list(range(
-            n)), lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol))
+        list(range(n)),
+        lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol))
 
     # Remove overlap between eigenvectors with the same eigenvalue.
     for g in groups:
@@ -146,11 +145,12 @@ def _perp_eigendecompose(
     return vals, vecs
 
 
-def map_eigenvalues(matrix: np.ndarray,
-                    func: Callable[[complex], complex],
-                    *,
-                    rtol: float = 1e-5,
-                    atol: float = 1e-8) -> np.ndarray:
+def map_eigenvalues(
+        matrix: np.ndarray,
+        func: Callable[[complex], complex],
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -164,7 +164,9 @@ def map_eigenvalues(matrix: np.ndarray,
     Returns:
         The transformed matrix.
     """
-    vals, vecs = _perp_eigendecompose(matrix, rtol=rtol, atol=atol)
+    vals, vecs = _perp_eigendecompose(matrix,
+                                      rtol=rtol,
+                                      atol=atol)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
@@ -174,8 +176,9 @@ def map_eigenvalues(matrix: np.ndarray,
     return total
 
 
-def kron_factor_4x4_to_2x2s(matrix: np.ndarray,
-                           ) -> Tuple[complex, np.ndarray, np.ndarray]:
+def kron_factor_4x4_to_2x2s(
+        matrix: np.ndarray,
+) -> Tuple[complex, np.ndarray, np.ndarray]:
     """Splits a 4x4 matrix U = kron(A, B) into A, B, and a global factor.
 
     Requires the matrix to be the kronecker product of two 2x2 unitaries.
@@ -220,12 +223,13 @@ def kron_factor_4x4_to_2x2s(matrix: np.ndarray,
     return g, f1, f2
 
 
-def so4_to_magic_su2s(mat: np.ndarray,
-                      *,
-                      rtol: float = 1e-5,
-                      atol: float = 1e-8,
-                      check_preconditions: bool = True
-                     ) -> Tuple[np.ndarray, np.ndarray]:
+def so4_to_magic_su2s(
+        mat: np.ndarray,
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8,
+        check_preconditions: bool = True
+) -> Tuple[np.ndarray, np.ndarray]:
     """Finds 2x2 special-unitaries A, B where mat = Mag.H @ kron(A, B) @ Mag.
 
     Mag is the magic basis matrix:
@@ -465,24 +469,26 @@ class KakDecomposition:
                              axis_angle(self.single_qubit_operations_after[1]))
 
     def __repr__(self):
-        return ('cirq.KakDecomposition(\n'
-                '    interaction_coefficients={!r},\n'
-                '    single_qubit_operations_before=(\n'
-                '        {},\n'
-                '        {},\n'
-                '    ),\n'
-                '    single_qubit_operations_after=(\n'
-                '        {},\n'
-                '        {},\n'
-                '    ),\n'
-                '    global_phase={!r})').format(
-                    self.interaction_coefficients,
-                    proper_repr(self.single_qubit_operations_before[0]),
-                    proper_repr(self.single_qubit_operations_before[1]),
-                    proper_repr(self.single_qubit_operations_after[0]),
-                    proper_repr(self.single_qubit_operations_after[1]),
-                    self.global_phase,
-                )
+        return (
+            'cirq.KakDecomposition(\n'
+            '    interaction_coefficients={!r},\n'
+            '    single_qubit_operations_before=(\n'
+            '        {},\n'
+            '        {},\n'
+            '    ),\n'
+            '    single_qubit_operations_after=(\n'
+            '        {},\n'
+            '        {},\n'
+            '    ),\n'
+            '    global_phase={!r})'
+        ).format(
+            self.interaction_coefficients,
+            proper_repr(self.single_qubit_operations_before[0]),
+            proper_repr(self.single_qubit_operations_before[1]),
+            proper_repr(self.single_qubit_operations_after[0]),
+            proper_repr(self.single_qubit_operations_after[1]),
+            self.global_phase,
+        )
 
     def _unitary_(self):
         """Returns the decomposition's two-qubit unitary matrix.
@@ -559,9 +565,9 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
     # Shifting strength by ½π is equivalent to local ops (e.g. exp(i½π XX)∝XX).
     def shift(k, step):
         v[k] += step * np.pi / 2
-        phase[0] *= 1j**step
-        right[0] = combinators.dot(flippers[k]**(step % 4), right[0])
-        right[1] = combinators.dot(flippers[k]**(step % 4), right[1])
+        phase[0] *= 1j ** step
+        right[0] = combinators.dot(flippers[k] ** (step % 4), right[0])
+        right[1] = combinators.dot(flippers[k] ** (step % 4), right[1])
 
     # Two negations is equivalent to temporarily flipping along the other axis.
     def negate(k1, k2):
@@ -622,8 +628,10 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
         single_qubit_operations_before=(right[1], right[0]))
 
 
-def kak_decomposition(mat: np.ndarray, rtol: float = 1e-5,
-                      atol: float = 1e-8) -> KakDecomposition:
+def kak_decomposition(
+        mat: np.ndarray,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:

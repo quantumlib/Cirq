@@ -36,7 +36,9 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
     Second, attempts to `cirq.decompose` to the operation.
     """
 
-    def __init__(self, ignore_failures: bool = False, atol: float = 0) -> None:
+    def __init__(self,
+                 ignore_failures: bool = False,
+                 atol: float = 0) -> None:
         """
         Args:
             ignore_failures: If set, gates that fail to convert are forwarded
@@ -61,8 +63,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         else:
             return ops.SingleQubitCliffordGate.I
 
-    def _matrix_to_clifford_op(self, mat: np.ndarray,
-                               qubit: ops.Qid) -> Optional[ops.Operation]:
+    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.Qid
+                               ) -> Optional[ops.Operation]:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I

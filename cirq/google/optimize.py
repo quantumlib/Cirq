@@ -55,8 +55,8 @@ _OPTIMIZERS_PART_CZ = [
 def optimized_for_xmon(
         circuit: circuits.Circuit,
         new_device: Optional[xmon_device.XmonDevice] = None,
-        qubit_map: Callable[[ops.Qid], devices.GridQubit] = lambda e: cast(
-            devices.GridQubit, e),
+        qubit_map: Callable[[ops.Qid], devices.GridQubit] =
+            lambda e: cast(devices.GridQubit, e),
         allow_partial_czs: bool = False,
 ) -> circuits.Circuit:
     """Optimizes a circuit with XmonDevice in mind.
