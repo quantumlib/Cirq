@@ -431,7 +431,7 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
     qasm = """
-     OPENQASM 2.0;    
+     OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
      {}(pi) q[0], q[1];     
@@ -447,7 +447,7 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_zero_params_error(qasm_gate: str):
-    qasm = """OPENQASM 2.0;    
+    qasm = """OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
      {}() q[1];     
@@ -464,7 +464,7 @@ def test_rotation_gates_zero_params_error(qasm_gate: str):
 
 @pytest.mark.parametrize('qasm_gate', [g[0] for g in rotation_gates])
 def test_rotation_gates_too_many_params_error(qasm_gate: str):
-    qasm = """OPENQASM 2.0;    
+    qasm = """OPENQASM 2.0;
      include "qelib1.inc";             
      qreg q[2];     
      {}(pi, 2*pi) q[1];     
@@ -477,7 +477,6 @@ def test_rotation_gates_too_many_params_error(qasm_gate: str):
             match=r".*{}.* takes 1 parameter\(s\).*got.*2.*line 4".format(
                 qasm_gate)):
         parser.parse(qasm)
-
 
 
 def test_qelib_gate_without_include_statement():
@@ -517,8 +516,8 @@ def test_undefined_register_from_register_arg():
 
 def test_measure_individual_bits():
     qasm = """
-         OPENQASM 2.0;   
-         include "qelib1.inc";       
+         OPENQASM 2.0;
+         include "qelib1.inc";
          qreg q1[2];
          creg c1[2];                        
          measure q1[0] -> c1[0];
@@ -547,8 +546,8 @@ def test_measure_individual_bits():
 
 
 def test_measure_registers():
-    qasm = """OPENQASM 2.0;   
-         include "qelib1.inc";       
+    qasm = """OPENQASM 2.0;
+         include "qelib1.inc";
          qreg q1[3];
          creg c1[3];                        
          measure q1 -> c1;       
@@ -579,8 +578,7 @@ def test_measure_registers():
 
 
 def test_measure_mismatched_register_size():
-    qasm = """
-         OPENQASM 2.0;   
+    qasm = """OPENQASM 2.0;
          include "qelib1.inc";       
          qreg q1[2];
          creg c1[3];                        
@@ -590,7 +588,7 @@ def test_measure_mismatched_register_size():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r""".*mismatched register sizes 2 -> 3.*line 6"""):
+                       match=r""".*mismatched register sizes 2 -> 3.*line 5"""):
         parser.parse(qasm)
 
 
