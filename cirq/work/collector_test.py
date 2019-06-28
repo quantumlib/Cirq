@@ -110,3 +110,31 @@ def test_collect_with_reaction():
     assert [e for e in events if e > 0] == list(range(1, 11))
     # Every receive comes after the corresponding send.
     assert all(events.index(-k) > events.index(k) for k in range(1, 11))
+
+
+def test_flatten_jobs_terminate_from_collector():
+    sent = False
+    received = []
+
+    class TestCollector(cirq.Collector):
+
+        def next_job(self):
+            nonlocal sent
+            if sent:
+                return
+            sent = True
+            q = cirq.LineQubit(0)
+            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            a = cirq.CircuitSampleJob(circuit=circuit,
+                                      repetitions=10,
+                                      tag='test')
+            b = cirq.CircuitSampleJob(circuit=circuit,
+                                      repetitions=10,
+                                      tag='test')
+            return [[a, None], [[[None]]], [[[]]], b]
+
+        def on_job_result(self, job, result):
+            received.append(job.tag)
+
+    TestCollector().collect(sampler=cirq.Simulator(), concurrency=5)
+    assert received == ['test'] * 2
