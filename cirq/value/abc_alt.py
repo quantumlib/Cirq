@@ -40,14 +40,13 @@ def alternative(requires: str, implementation: T) -> Callable[[T], T]:
             @alternative('do_c', _default_do_a_using_c)
             def do_a(self, ...):
                 '''Method docstring.'''
-                raise NotImplementedError
 
             # Abstract or concrete methods `do_b` and `do_c`:
             ...
 
         class Child(Parent):
             def do_b(self):
-                return 5
+                ...
 
         child = Child()
         child.do_a(...)
@@ -70,13 +69,13 @@ def alternative(requires: str, implementation: T) -> Callable[[T], T]:
 
 
 class ABCMetaImplementAnyOneOf(abc.ABCMeta):
-    """A metaclass extending abc.ABCMeta for defining abstract base classes
+    """A metaclass extending `abc.ABCMeta` for defining abstract base classes
     (ABCs) with more flexibility in which methods must be overridden.
 
-    Use this metaclass in the same way as abc.ABCMeta to create an ABC.
+    Use this metaclass in the same way as `abc.ABCMeta` to create an ABC.
 
-    In addition to the decorators in the abc module, the decorator
-    @alternative(...) can be used.
+    In addition to the decorators in the` abc` module, the decorator
+    `@alternative(...)` may be used.
     """
 
     def __new__(mcls, name, bases, namespace, **kwargs):
