@@ -57,7 +57,7 @@ def test_single_alternative():
             return 'override'
 
         def alt(self):
-            return 'alt'
+            """Unneeded alternative method."""
 
     with pytest.raises(TypeError, match='abstract'):
         SingleAlternative()
@@ -74,7 +74,7 @@ def test_doc_string():
     class SingleAlternative(metaclass=ABCMetaImplementAnyOneOf):
 
         def _default_impl(self, arg, kw=99):
-            return f'default({arg}, {kw}) ' + self.alt()
+            """Default implementation."""
 
         @alternative('alt', _default_impl)
         def my_method(self, arg, kw=99):
@@ -87,16 +87,15 @@ def test_doc_string():
     class SingleAlternativeChild(SingleAlternative):
 
         def alt(self):
-            return 'alt'
+            """Alternative method."""
 
     class SingleAlternativeOverride(SingleAlternative):
 
         def my_method(self, arg, kw=99):
             """my_method override."""
-            return 'override'
 
         def alt(self):
-            return 'alt'
+            """Unneeded alternative method."""
 
     assert SingleAlternative.my_method.__doc__ == 'my_method doc.'
     assert SingleAlternativeChild.my_method.__doc__ == 'my_method doc.'
@@ -104,6 +103,16 @@ def test_doc_string():
     assert SingleAlternativeOverride.my_method.__doc__ == 'my_method override.'
     assert (
         SingleAlternativeOverride().my_method.__doc__ == 'my_method override.')
+
+
+def test_bad_alternative():
+    with pytest.raises(TypeError, match='not exist'):
+
+        class BadAlternative(metaclass=ABCMetaImplementAnyOneOf):
+
+            @alternative('missing_alt', lambda self: None)
+            def my_method(self, arg, kw=99):
+                """my_method doc."""
 
 
 def test_two_alternatives():
@@ -135,7 +144,7 @@ def test_two_alternatives():
             return 'alt1'
 
         def alt2(self):
-            return 'alt2'
+            raise RuntimeError  # coverage: ignore
 
     class TwoAlternativesOverride(TwoAlternatives):
 
@@ -143,7 +152,19 @@ def test_two_alternatives():
             return 'override'
 
         def alt1(self):
-            return 'alt1'
+            raise RuntimeError  # coverage: ignore
+
+        def alt2(self):
+            raise RuntimeError  # coverage: ignore
+
+    class TwoAlternativesForceSecond(TwoAlternatives):
+
+        def _do_alt1_with_my_method(self):
+            return 'reverse ' + self.my_method(0, kw=0)
+
+        @alternative('my_method', _do_alt1_with_my_method)
+        def alt1(self):
+            """alt1 doc."""
 
         def alt2(self):
             return 'alt2'
@@ -153,6 +174,9 @@ def test_two_alternatives():
     assert TwoAlternativesChild().my_method(1) == 'default1(1, 99) alt1'
     assert TwoAlternativesChild().my_method(2, kw=3) == 'default1(2, 3) alt1'
     assert TwoAlternativesOverride().my_method(4, kw=5) == 'override'
+    assert (TwoAlternativesForceSecond().my_method(
+        6, kw=7) == 'default2(6, 7) alt2')
+    assert TwoAlternativesForceSecond().alt1() == 'reverse default2(0, 0) alt2'
 
 
 def test_implement_any_one():
