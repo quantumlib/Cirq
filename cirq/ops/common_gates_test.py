@@ -67,6 +67,28 @@ def test_cz_init():
     assert (cirq.CZ**0.5).exponent == 0.5
 
 
+def test_transformations():
+    pi = np.pi
+    initialRx = cirq.Rx(0.4)
+    expectedPowx = cirq.X**(0.4 / pi)
+    receivedPowx = initialRx.with_canonical_global_phase()
+    backToRx = receivedPowx.in_su2()
+    assert receivedPowx == expectedPowx
+    assert backToRx == initialRx
+    initialRy = cirq.Ry(0.123)
+    expectedPowy = cirq.Y**(0.123 / pi)
+    receivedPowy = initialRy.with_canonical_global_phase()
+    backToRy = receivedPowy.in_su2()
+    assert receivedPowy == expectedPowy
+    assert backToRy == initialRy
+    initialRz = cirq.Rz(-1.53)
+    expectedPowz = cirq.Z**(-1.53 / pi)
+    receivedPowz = initialRz.with_canonical_global_phase()
+    backToRz = receivedPowz.in_su2()
+    assert receivedPowz == expectedPowz
+    assert backToRz == initialRz
+
+
 def test_cz_str():
     assert str(cirq.CZ) == 'CZ'
     assert str(cirq.CZ**0.5) == 'CZ**0.5'
