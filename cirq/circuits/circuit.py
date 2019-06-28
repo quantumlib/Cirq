@@ -232,13 +232,9 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        for moment in self:
-            device.validate_moment(moment)
-        for moment in other:
-            device.validate_moment(moment)
-
-        return Circuit(self._moments + other._moments,
-                       device=device)
+        result = Circuit(moments=self._moments, device=device)
+        other.device = device
+        return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
