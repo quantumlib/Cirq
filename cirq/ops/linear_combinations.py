@@ -11,13 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Mapping, Optional, Tuple, Union
+from collections import defaultdict
+from typing import Mapping, Optional, Tuple, Union, List, FrozenSet, DefaultDict
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types
+from cirq.ops import raw_types, pauli_gates
+from cirq.ops.pauli_string import PauliString
+from cirq.value import linear_dict
+
+UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -205,3 +209,147 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
             extended_expansion = extend(expansion, op.qubits, self.qubits)
             result += extended_expansion * coefficient
         return result
+
+
+def _is_linear_dict_of_unit_pauli_string(
+        linear_dict: value.LinearDict[UnitPauliStringT]) -> bool:
+    if not isinstance(linear_dict, value.LinearDict):
+        return False
+    for k in linear_dict.keys():
+        if not isinstance(k, frozenset):
+            return False
+        for qid, pauli in k:
+            if not isinstance(qid, raw_types.Qid):
+                return False
+            if not isinstance(pauli, pauli_gates.Pauli):
+                return False
+
+    return True
+
+
+def _pauli_string_from_unit(unit: UnitPauliStringT,
+                            coefficient: Union[int, float, complex] = 1):
+    return PauliString(dict(unit), coefficient=coefficient)
+
+
+@value.value_equality(approximate=True)
+class PauliSum:
+    """Represents operator defined by linear combination of PauliStrings.
+
+    Since PauliStrings store their own coefficients, this class
+    does not implement the LinearDict interface. Instead, you can
+    add and subtract terms and then iterate over the resulting
+    (simplified) expression.
+
+    Under the hood, this class is backed by a LinearDict with coefficient-less
+    PauliStrings as keys. PauliStrings are reconstructed on-the-fly during
+    iteration.
+    """
+
+    def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT]):
+        if not _is_linear_dict_of_unit_pauli_string(linear_dict):
+            raise ValueError(
+                "PauliSum constructor takes a LinearDict[UnitPauliStringT]. "
+                "Consider using PauliSum.from_pauli_strings() or adding and "
+                "subtracting PauliStrings")
+        self._linear_dict = linear_dict
+
+    def _value_equality_values_(self):
+        return self._linear_dict
+
+    @classmethod
+    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) \
+            -> 'PauliSum':
+        if isinstance(terms, PauliString):
+            terms = [terms]
+        termdict = defaultdict(
+            lambda: 0)  # type: DefaultDict[UnitPauliStringT, value.Scalar]
+        for pstring in terms:
+            key = frozenset(pstring._qubit_pauli_map.items())
+            termdict[key] += pstring.coefficient
+        return cls(linear_dict=value.LinearDict(termdict))
+
+    def copy(self) -> 'PauliSum':
+        factory = type(self)
+        return factory(self._linear_dict.copy())
+
+    def __iter__(self):
+        for vec, coeff in self._linear_dict.items():
+            yield _pauli_string_from_unit(vec, coeff)
+
+    def __len__(self) -> int:
+        return len(self._linear_dict)
+
+    def __iadd__(self, other):
+        if isinstance(other, (float, int, complex)):
+            other = PauliSum.from_pauli_strings(
+                [PauliString(coefficient=other)])
+        elif isinstance(other, PauliString):
+            other = PauliSum.from_pauli_strings([other])
+
+        if not isinstance(other, PauliSum):
+            return NotImplemented
+
+        self._linear_dict += other._linear_dict
+        return self
+
+    def __add__(self, other):
+        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+            return NotImplemented
+        result = self.copy()
+        result += other
+        return result
+
+    def __isub__(self, other):
+        if isinstance(other, (float, int, complex)):
+            other = PauliSum.from_pauli_strings(
+                [PauliString(coefficient=other)])
+        if isinstance(other, PauliString):
+            other = PauliSum.from_pauli_strings([other])
+
+        if not isinstance(other, PauliSum):
+            return NotImplemented
+
+        self._linear_dict -= other._linear_dict
+        return self
+
+    def __sub__(self, other):
+        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+            return NotImplemented
+        result = self.copy()
+        result -= other
+        return result
+
+    def __neg__(self):
+        factory = type(self)
+        return factory(-self._linear_dict)
+
+    def __imul__(self, a: value.Scalar):
+        self._linear_dict *= a
+        return self
+
+    def __mul__(self, a: value.Scalar):
+        result = self.copy()
+        result *= a
+        return result
+
+    def __rmul__(self, a: value.Scalar):
+        return self.__mul__(a)
+
+    def __truediv__(self, a: value.Scalar):
+        return self.__mul__(1 / a)
+
+    def __bool__(self) -> bool:
+        return bool(self._linear_dict)
+
+    def __repr__(self) -> str:
+        class_name = self.__class__.__name__
+        return 'cirq.{}({!r})'.format(class_name, self._linear_dict)
+
+    def __format__(self, format_spec: str) -> str:
+        terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
+                 for v in self._linear_dict.keys()]
+        return linear_dict._format_terms(terms=terms, format_spec=format_spec)
+
+    def __str__(self):
+        return self.__format__('.3f')
