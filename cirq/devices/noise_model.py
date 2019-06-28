@@ -30,7 +30,7 @@ class NoiseModel:
         noisy_moment
         noisy_operation
 
-    The methods that are not overriden will be implemented in terms of the ones
+    The methods that are not overridden will be implemented in terms of the ones
     that are.
 
     Simulators told to use a noise model will use these methods in order to
