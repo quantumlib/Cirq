@@ -32,6 +32,8 @@ class PauliStringSampleCollector(sample_collector.SampleCollector):
         """
         Args:
             circuit: Produces the state to be tested.
+            samples_per_term: The number of samples to collect for each
+                PauliString term in order to estimate its expectation.
             terms: The pauli product observables to measure. Their sampled
                 expectations will be scaled by their coefficients and their
                 dictionary weights, and then added up to produce the final

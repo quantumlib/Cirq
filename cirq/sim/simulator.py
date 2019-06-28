@@ -23,8 +23,7 @@ Simulator types include:
     SimulatesIntermediateState: allows for access to the state of the simulation
         as the simulation iterates through the moments of a cirq.
 """
-import asyncio
-import threading
+
 from typing import (
     Any,
     Dict,

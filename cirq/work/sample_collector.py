@@ -14,7 +14,7 @@
 
 import abc
 import asyncio
-from typing import Optional, Any, Iterable, Union, List
+from typing import Optional, Any, Iterable, Union, List, Iterator
 
 import numpy as np
 
@@ -75,8 +75,10 @@ class SampleCollector(metaclass=abc.ABCMeta):
 
             Can also return a nested iterable of such jobs.
 
-            Returning None or an empty list indicates that there will be no more
-            jobs until more results are processed.
+            Returning None, an empty list, or any other result which flattens
+            into an empty list of work, indicates that the driving code should
+            await more results (and pass them into on_job_results) before
+            bothering to ask for more jobs again.
         """
 
     @abc.abstractmethod
@@ -156,7 +158,7 @@ class SampleCollector(metaclass=abc.ABCMeta):
             The collector's result after all desired samples have been collected.
         """
         pool = work_pool.CompletionOrderedAsyncWorkPool()
-        queued_jobs = []
+        queued_jobs: List[CircuitSampleJob] = []
         remaining_samples = (np.infty if max_total_samples is None else
                              max_total_samples)
 
@@ -189,17 +191,19 @@ class SampleCollector(metaclass=abc.ABCMeta):
             self.on_job_result(done_job, done_val)
 
 
-def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]):
-    out = []  # type: List[CircuitSampleJob]
+def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]
+                  ) -> List[CircuitSampleJob]:
+    out: List[CircuitSampleJob] = []
     if given is not None:
-        _flatten_jobs_helper(out, given)
+        _flatten_jobs_helper(given, out=out)
     return out
 
 
-def _flatten_jobs_helper(out: List[CircuitSampleJob],
-                         given: CIRCUIT_SAMPLE_JOB_TREE):
+def _flatten_jobs_helper(given: CIRCUIT_SAMPLE_JOB_TREE,
+                         *,
+                         out: List[CircuitSampleJob]) -> None:
     if isinstance(given, CircuitSampleJob):
         out.append(given)
     elif given is not None:
         for item in given:
-            _flatten_jobs_helper(out, item)
+            _flatten_jobs_helper(item, out=out)

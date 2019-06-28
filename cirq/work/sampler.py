@@ -32,6 +32,9 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> study.TrialResult:
         """Samples from the given Circuit or Schedule.
 
+        By default, the `run_async` method invokes this method on another
+        thread. So this method is supposed to be thread safe.
+
         Args:
             program: The circuit or schedule to sample from.
             param_resolver: Parameters to run with the program.

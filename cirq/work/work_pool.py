@@ -50,9 +50,10 @@ class CompletionOrderedAsyncWorkPool:
     async def _async_handle_work_completion(self, work: Awaitable):
         try:
             result = await work
-            self._work_queue.popleft().set_result(result)
         except BaseException as ex:
             self._work_queue.popleft().set_exception(ex)
+        else:
+            self._work_queue.popleft().set_result(result)
         self._react_to_progress()
 
     def _react_to_progress(self) -> None:
@@ -72,11 +73,13 @@ class CompletionOrderedAsyncWorkPool:
         if self._out_queue:
             return await self._out_queue.popleft()
         else:
+            assert self._no_more_work_coming  # Due to awaiting _allow_anext.
             self._allow_anext.release()
             raise StopAsyncIteration('no_more_work')
 
     def __anext__(self) -> Awaitable:
-        return asyncio.ensure_future(self._anext_helper())
+        return asyncio.ensure_future(self._anext_helper(),
+                                     loop=self._loop)
 
     async def async_all_done(self) -> None:
         """An awaitable that completes once all work is completed.

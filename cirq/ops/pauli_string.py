@@ -17,6 +17,7 @@ from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
 
 import cmath
 import math
+import numbers
 
 import numpy as np
 
@@ -93,8 +94,9 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient * complex(other))
         if isinstance(other, PauliString):
             s1 = set(self.keys())
             s2 = set(other.keys())
@@ -114,13 +116,15 @@ class PauliString(raw_types.Operation):
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient * complex(other))
         return NotImplemented
 
     def __truediv__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient / other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient / complex(other))
         return NotImplemented
 
     def __contains__(self, key: raw_types.Qid) -> bool:
