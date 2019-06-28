@@ -11,18 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for cirq.Sampler."""
 
 import cirq
 
 
 def test_sampler_fail():
+
     class FailingSampler(cirq.Sampler):
+
         def run_sweep(self, program, params, repetitions: int = 1):
             raise ValueError('test')
 
-    cirq.testing.assert_asyncio_will_raise(
-        FailingSampler().run_async(cirq.Circuit(), repetitions=1),
-        ValueError,
-        match='test')
+    cirq.testing.assert_asyncio_will_raise(FailingSampler().run_async(
+        cirq.Circuit(), repetitions=1),
+                                           ValueError,
+                                           match='test')

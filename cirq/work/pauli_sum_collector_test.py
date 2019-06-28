@@ -18,10 +18,10 @@ import cirq
 def test_pauli_string_sample_collector():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
-        circuit=cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
-        hamiltonian=cirq.X(a) * cirq.X(b) -
-                    16 * cirq.Y(a) * cirq.Y(b) +
-                    4 * cirq.Z(a) * cirq.Z(b),
+        circuit=cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b), cirq.X(a),
+                                      cirq.Z(b)),
+        hamiltonian=cirq.X(a) * cirq.X(b) - 16 * cirq.Y(a) * cirq.Y(b) +
+        4 * cirq.Z(a) * cirq.Z(b),
         samples_per_term=100)
     completion = p.collect_async(sampler=cirq.Simulator())
     cirq.testing.assert_asyncio_will_have_result(completion, None)

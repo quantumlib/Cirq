@@ -105,7 +105,7 @@ def test_collect_with_reaction():
                             max_total_samples=100,
                             concurrency=5)
     # Expected sends and receives are present.
-    assert sorted(events) == list(range(-10, 1+10))
+    assert sorted(events) == list(range(-10, 1 + 10))
     # Sends are in order.
     assert [e for e in events if e > 0] == list(range(1, 11))
     # Every receive comes after the corresponding send.

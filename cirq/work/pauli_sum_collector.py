@@ -44,8 +44,7 @@ class PauliSumCollector(collector.Collector):
         self._circuit = circuit
         self._samples_per_job = max_samples_per_job
         self._pauli_coef_terms = [
-            (p / p.coefficient, p.coefficient)
-            for p in hamiltonian
+            (p / p.coefficient, p.coefficient) for p in hamiltonian
         ]
         self._zeros = collections.defaultdict(
             lambda: 0)  # type: MutableMapping[ops.PauliString, int]
