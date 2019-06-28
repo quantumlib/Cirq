@@ -17,36 +17,35 @@ from typing import Optional, MutableMapping, cast, Union
 
 import numpy as np
 
-from cirq import circuits, study, ops, value
+from cirq import circuits, study, ops
 from cirq.work import collector
 
 
-class PauliStringCollector(collector.Collector):
+class PauliSumCollector(collector.Collector):
     """Estimates the energy of a linear combination of Pauli observables."""
 
     def __init__(self,
                  circuit: circuits.Circuit,
+                 hamiltonian: ops.PauliSum,
+                 *,
                  samples_per_term: int,
-                 terms: value.LinearDict[ops.PauliString],
                  max_samples_per_job: int = 1000000):
         """
         Args:
             circuit: Produces the state to be tested.
-            samples_per_term: The number of samples to collect for each
-                PauliString term in order to estimate its expectation.
-            terms: The pauli product observables to measure. Their sampled
+            hamiltonian: The pauli product observables to measure. Their sampled
                 expectations will be scaled by their coefficients and their
                 dictionary weights, and then added up to produce the final
                 result.
+            samples_per_term: The number of samples to collect for each
+                PauliString term in order to estimate its expectation.
             max_samples_per_job: How many samples to request at a time.
         """
         self._circuit = circuit
         self._samples_per_job = max_samples_per_job
-        self._terms = [
-            # Merge coefficients.
-            (pauli_string / pauli_string.coefficient,
-             coef * pauli_string.coefficient)
-            for pauli_string, coef in terms.items()
+        self._pauli_coef_terms = [
+            (p / p.coefficient, p.coefficient)
+            for p in hamiltonian
         ]
         self._zeros = collections.defaultdict(
             lambda: 0)  # type: MutableMapping[ops.PauliString, int]
@@ -57,9 +56,9 @@ class PauliStringCollector(collector.Collector):
 
     def next_job(self) -> Optional[collector.CircuitSampleJob]:
         i = self._total_samples_requested // self._samples_per_term
-        if i >= len(self._terms):
+        if i >= len(self._pauli_coef_terms):
             return None
-        pauli, _ = self._terms[i]
+        pauli, _ = self._pauli_coef_terms[i]
         remaining = self._samples_per_term * (i +
                                               1) - self._total_samples_requested
         amount_to_request = min(remaining, self._samples_per_job)
@@ -81,7 +80,7 @@ class PauliStringCollector(collector.Collector):
     def estimated_energy(self) -> Union[float, complex]:
         """Sums up the sampled expectations, weighted by their coefficients."""
         energy = 0j
-        for pauli_string, coef in self._terms:
+        for pauli_string, coef in self._pauli_coef_terms:
             a = self._zeros[pauli_string]
             b = self._ones[pauli_string]
             if a + b:

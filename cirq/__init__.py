@@ -347,7 +347,7 @@ from cirq.neutral_atoms import (
 
 from cirq.work import (
     CircuitSampleJob,
-    PauliStringCollector,
+    PauliSumCollector,
     Sampler,
     Collector,
 )
