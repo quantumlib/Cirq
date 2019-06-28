@@ -15,7 +15,7 @@
 import abc
 import pytest
 
-from cirq.devices.abc_alt import ABCMetaImplementAnyOneOf, alternative
+from cirq import ABCMetaImplementAnyOneOf, alternative
 
 
 def test_regular_abstract():

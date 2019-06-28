@@ -102,7 +102,7 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
             next_implemented_by = {}
             for name in all_names:
                 if has_some_implementation(name):
-                    continueformatter
+                    continue
                 value = getattr(cls, name, None)
                 if not hasattr(value, '_abstract_alternatives_'):
                     continue

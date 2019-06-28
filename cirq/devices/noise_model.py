@@ -15,14 +15,13 @@
 from typing import TYPE_CHECKING, Iterable, Sequence, Union
 
 from cirq import ops, value
-from cirq.devices.abc_alt import ABCMetaImplementAnyOneOf, alternative
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
 
 
-class NoiseModel(metaclass=ABCMetaImplementAnyOneOf):
+class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     """Replaces operations and moments with noisy counterparts.
 
     A child class must override *at least one* of the following three methods:
@@ -54,8 +53,8 @@ class NoiseModel(metaclass=ABCMetaImplementAnyOneOf):
             result.append([self.noisy_operation(op) for op in moment])
         return result
 
-    @alternative('noisy_moment', _noisy_moments_impl_moment)
-    @alternative('noisy_operation', _noisy_moments_impl_operation)
+    @value.alternative('noisy_moment', _noisy_moments_impl_moment)
+    @value.alternative('noisy_operation', _noisy_moments_impl_operation)
     def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
                       system_qubits: Sequence['cirq.Qid']
                      ) -> Sequence['cirq.OP_TREE']:
@@ -80,8 +79,8 @@ class NoiseModel(metaclass=ABCMetaImplementAnyOneOf):
                                     ) -> 'cirq.OP_TREE':
         return [self.noisy_operation(op) for op in moment]
 
-    @alternative('noisy_moments', _noisy_moment_impl_moments)
-    @alternative('noisy_operation', _noisy_moment_impl_operation)
+    @value.alternative('noisy_moments', _noisy_moment_impl_moments)
+    @value.alternative('noisy_operation', _noisy_moment_impl_operation)
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Adds noise to the operations from a moment.
@@ -102,8 +101,8 @@ class NoiseModel(metaclass=ABCMetaImplementAnyOneOf):
                                     ) -> 'cirq.OP_TREE':
         return self.noisy_moment(ops.Moment([operation]), operation.qubits)
 
-    @alternative('noisy_moments', _noisy_operation_impl_moments)
-    @alternative('noisy_moment', _noisy_operation_impl_moment)
+    @value.alternative('noisy_moments', _noisy_operation_impl_moments)
+    @value.alternative('noisy_moment', _noisy_operation_impl_moment)
     def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Adds noise to an individual operation.
 
