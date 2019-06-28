@@ -59,14 +59,29 @@ def test_single_alternative():
         def alt(self):
             """Unneeded alternative method."""
 
+    class SingleAlternativeGrandchild(SingleAlternativeChild):
+
+        def alt(self):
+            return 'alt2'
+
+    class SingleAlternativeGrandchildOverride(SingleAlternativeChild):
+
+        def my_method(self, arg, kw=99):
+            """my_method override."""
+            return 'override2'
+
+        def alt(self):
+            """Unneeded alternative method."""
+
     with pytest.raises(TypeError, match='abstract'):
         SingleAlternative()
     assert SingleAlternativeChild().my_method(1) == 'default(1, 99) alt'
     assert SingleAlternativeChild().my_method(2, kw=3) == 'default(2, 3) alt'
     assert SingleAlternativeOverride().my_method(4, kw=5) == 'override'
-    assert SingleAlternative.my_method.__doc__ == 'my_method doc.'
-    assert SingleAlternativeChild.my_method.__doc__ == 'my_method doc.'
-    assert SingleAlternativeOverride.my_method.__doc__ == 'my_method override.'
+    assert (SingleAlternativeGrandchild().my_method(
+        6, kw=7) == 'default(6, 7) alt2')
+    assert (SingleAlternativeGrandchildOverride().my_method(
+        8, kw=9) == 'override2')
 
 
 def test_doc_string():
@@ -128,6 +143,18 @@ def test_unrelated_attribute():
 
         def alt(self):
             """alt doc."""
+
+
+def test_classcell_in_namespace():
+    """Tests a historical issue where super() triggers python to add
+    `__classcell__` to the namespace passed to the metaclass __new__.
+    """
+
+    class _(metaclass=ABCMetaImplementAnyOneOf):
+
+        def other_method(self):
+            # Triggers __classcell__ to be added to the class namespace
+            super()  # coverage: ignore
 
 
 def test_two_alternatives():

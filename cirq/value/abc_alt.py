@@ -86,9 +86,9 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
         def has_some_implementation(name: str) -> bool:
             if name in implemented_by:
                 return True
-            FLAG = object()
-            value = getattr(cls, name, FLAG)
-            if value is FLAG:
+            try:
+                value = getattr(cls, name)
+            except AttributeError:
                 raise TypeError(
                     'A method named \'{}\' was listed as a possible '
                     'implementation alternative but it does not exist in the '
@@ -116,7 +116,8 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
 
         # Find all abstract methods (methods that haven't been implemented or
         # don't have an implemented alternative).
-        all_names = set(namespace.keys())
+        all_names = set(
+            alt_name for alt_name in namespace.keys() if hasattr(cls, alt_name))
         for base in bases:
             all_names.update(getattr(base, '__abstractmethods__', set()))
             all_names.update(alt_name for alt_name, _ in getattr(
