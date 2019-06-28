@@ -159,19 +159,6 @@ def test_classcell_in_namespace():
             super()  # coverage: ignore
 
 
-def test_force_keyword_arguments():
-    with pytest.raises(TypeError, match='0 positional arguments'):
-        alternative('a', lambda: None)
-
-    with pytest.raises(TypeError, match='0 positional arguments'):
-
-        class _(metaclass=ABCMetaImplementAnyOneOf):
-
-            @alternative('do_b', lambda: None)
-            def do_a(self):
-                """do_a doc."""
-
-
 def test_two_alternatives():
 
     class TwoAlternatives(metaclass=ABCMetaImplementAnyOneOf):
