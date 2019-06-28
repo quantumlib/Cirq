@@ -108,7 +108,7 @@ def test_doc_string():
 def test_bad_alternative():
     with pytest.raises(TypeError, match='not exist'):
 
-        class BadAlternative(metaclass=ABCMetaImplementAnyOneOf):
+        class _(metaclass=ABCMetaImplementAnyOneOf):
 
             @alternative('missing_alt', lambda self: None)
             def my_method(self, arg, kw=99):
