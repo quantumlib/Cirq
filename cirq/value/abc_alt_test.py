@@ -115,6 +115,21 @@ def test_bad_alternative():
                 """my_method doc."""
 
 
+def test_unrelated_attribute():
+
+    class _(metaclass=ABCMetaImplementAnyOneOf):
+        _none_attribute = None
+        _false_attribute = False
+        _true_attribute = True
+
+        @alternative('alt', lambda self: None)
+        def my_method(self):
+            """my_method doc."""
+
+        def alt(self):
+            """alt doc."""
+
+
 def test_two_alternatives():
 
     class TwoAlternatives(metaclass=ABCMetaImplementAnyOneOf):

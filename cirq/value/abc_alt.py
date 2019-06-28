@@ -86,8 +86,9 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
         def has_some_implementation(name: str) -> bool:
             if name in implemented_by:
                 return True
-            value = getattr(cls, name, None)
-            if value is None:
+            FLAG = object()
+            value = getattr(cls, name, FLAG)
+            if value is FLAG:
                 raise TypeError(
                     'A method named \'{}\' was listed as a possible '
                     'implementation alternative but it does not exist in the '
