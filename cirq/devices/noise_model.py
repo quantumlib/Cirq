@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class NoiseModel:
+class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     """Replaces operations and moments with noisy counterparts.
 
     A child class must override *at least one* of the following three methods:
@@ -37,14 +37,26 @@ class NoiseModel:
     dynamically rewrite the program they are simulating.
     """
 
-    def __new__(cls, *args, **kwargs):
-        assert not all([
-            hasattr(cls.noisy_moments, '_not_overridden'),
-            hasattr(cls.noisy_moment, '_not_overridden'),
-            hasattr(cls.noisy_operation, '_not_overridden')
-        ]), 'Must override noisy_moments, noisy_moment, or noisy_operation.'
-        return super().__new__(cls)
+    def _noisy_moments_impl_moment(self, moments: 'Iterable[cirq.Moment]',
+                                   system_qubits: Sequence['cirq.Qid']
+                                  ) -> Sequence['cirq.OP_TREE']:
+        result = []
+        for moment in moments:
+            result.append(self.noisy_moment(moment, system_qubits))
+        return result
 
+    def _noisy_moments_impl_operation(self, moments: 'Iterable[cirq.Moment]',
+                                      system_qubits: Sequence['cirq.Qid']
+                                     ) -> Sequence['cirq.OP_TREE']:
+        result = []
+        for moment in moments:
+            result.append([self.noisy_operation(op) for op in moment])
+        return result
+
+    @value.alternative(requires='noisy_moment',
+                       implementation=_noisy_moments_impl_moment)
+    @value.alternative(requires='noisy_operation',
+                       implementation=_noisy_moments_impl_operation)
     def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
                       system_qubits: Sequence['cirq.Qid']
                      ) -> Sequence['cirq.OP_TREE']:
@@ -58,20 +70,21 @@ class NoiseModel:
             A sequence of OP_TREEs, with the k'th tree corresponding to the
             noisy operations for the k'th moment.
         """
-        if not hasattr(self.noisy_moment, '_not_overridden'):
-            result = []
-            for moment in moments:
-                result.append(self.noisy_moment(moment, system_qubits))
-            return result
 
-        if not hasattr(self.noisy_operation, '_not_overridden'):
-            result = []
-            for moment in moments:
-                result.append([self.noisy_operation(op) for op in moment])
-            return result
+    def _noisy_moment_impl_moments(self, moment: 'cirq.Moment',
+                                   system_qubits: Sequence['cirq.Qid']
+                                  ) -> 'cirq.OP_TREE':
+        return self.noisy_moments([moment], system_qubits)
 
-        assert False, 'Should be unreachable.'
+    def _noisy_moment_impl_operation(self, moment: 'cirq.Moment',
+                                     system_qubits: Sequence['cirq.Qid']
+                                    ) -> 'cirq.OP_TREE':
+        return [self.noisy_operation(op) for op in moment]
 
+    @value.alternative(requires='noisy_moments',
+                       implementation=_noisy_moment_impl_moments)
+    @value.alternative(requires='noisy_operation',
+                       implementation=_noisy_moment_impl_operation)
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Adds noise to the operations from a moment.
@@ -83,14 +96,19 @@ class NoiseModel:
         Returns:
             An OP_TREE corresponding to the noisy operations for the moment.
         """
-        if not hasattr(self.noisy_moments, '_not_overridden'):
-            return self.noisy_moments([moment], system_qubits)
 
-        if not hasattr(self.noisy_operation, '_not_overridden'):
-            return [self.noisy_operation(op) for op in moment]
+    def _noisy_operation_impl_moments(self, operation: 'cirq.Operation'
+                                     ) -> 'cirq.OP_TREE':
+        return self.noisy_moments([ops.Moment([operation])], operation.qubits)
 
-        assert False, 'Should be unreachable.'
+    def _noisy_operation_impl_moment(self, operation: 'cirq.Operation'
+                                    ) -> 'cirq.OP_TREE':
+        return self.noisy_moment(ops.Moment([operation]), operation.qubits)
 
+    @value.alternative(requires='noisy_moments',
+                       implementation=_noisy_operation_impl_moments)
+    @value.alternative(requires='noisy_moment',
+                       implementation=_noisy_operation_impl_moment)
     def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Adds noise to an individual operation.
 
@@ -101,18 +119,6 @@ class NoiseModel:
             An OP_TREE corresponding to the noisy operations implementing the
             noisy version of the given operation.
         """
-        if not hasattr(self.noisy_moments, '_not_overridden'):
-            return self.noisy_moments([ops.Moment([operation])],
-                                      operation.qubits)
-
-        if not hasattr(self.noisy_moment, '_not_overridden'):
-            return self.noisy_moment(ops.Moment([operation]), operation.qubits)
-
-        assert False, 'Should be unreachable.'
-
-    noisy_moments._not_overridden = True  # type: ignore
-    noisy_moment._not_overridden = True  # type: ignore
-    noisy_operation._not_overridden = True  # type: ignore
 
 
 @value.value_equality
