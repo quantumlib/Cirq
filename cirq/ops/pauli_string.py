@@ -73,10 +73,6 @@ class PauliString(raw_types.Operation):
     def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
-    def unit(self) -> 'PauliString':
-        """The same PauliString, but with coefficient equal to 1."""
-        return PauliString(self._qubit_pauli_map)
-
     def __getitem__(self, key: raw_types.Qid) -> pauli_gates.Pauli:
         return self._qubit_pauli_map[key]
 

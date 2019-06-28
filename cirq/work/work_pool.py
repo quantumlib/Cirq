@@ -58,8 +58,8 @@ class CompletionOrderedAsyncWorkPool:
 
     def _react_to_progress(self) -> None:
         """Common cleanup after something interesting happens."""
-        if self._no_more_work_coming and not self._out_queue:
-            self._done_event.set_result(True)
+        if self._no_more_work_coming and not self._work_queue:
+            self._done_event.set_result(None)
         self._allow_anext.release()
 
     def set_all_work_received_flag(self) -> None:
@@ -80,13 +80,13 @@ class CompletionOrderedAsyncWorkPool:
     def __anext__(self) -> Awaitable:
         return asyncio.ensure_future(self._anext_helper(), loop=self._loop)
 
-    async def async_all_done(self) -> None:
+    def async_all_done(self) -> Awaitable[None]:
         """An awaitable that completes once all work is completed.
 
         Note: all work is completed only after the `set_all_work_received_flag`
         method is called, and then all work still in the pool completes.
         """
-        await self._done_event
+        return asyncio.ensure_future(self._done_event)
 
     def __aiter__(self):
         return self

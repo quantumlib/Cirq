@@ -37,7 +37,7 @@ def test_circuit_sample_job_repr():
 def test_async_collect():
     received = []
 
-    class TestCollector(cirq.SampleCollector):
+    class TestCollector(cirq.Collector):
 
         def next_job(self):
             q = cirq.LineQubit(0)
@@ -54,3 +54,59 @@ def test_async_collect():
                                                concurrency=5)
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert received == ['test'] * 10
+
+
+def test_collect():
+    received = []
+
+    class TestCollector(cirq.Collector):
+
+        def next_job(self):
+            q = cirq.LineQubit(0)
+            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            return cirq.CircuitSampleJob(circuit=circuit,
+                                         repetitions=10,
+                                         tag='test')
+
+        def on_job_result(self, job, result):
+            received.append(job.tag)
+
+    TestCollector().collect(sampler=cirq.Simulator(),
+                            max_total_samples=100,
+                            concurrency=5)
+    assert received == ['test'] * 10
+
+
+def test_collect_with_reaction():
+    events = [0]
+    sent = 0
+    received = 0
+
+    class TestCollector(cirq.Collector):
+
+        def next_job(self):
+            nonlocal sent
+            if sent >= received + 3:
+                return None
+            sent += 1
+            events.append(sent)
+            q = cirq.LineQubit(0)
+            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            return cirq.CircuitSampleJob(circuit=circuit,
+                                         repetitions=10,
+                                         tag=sent)
+
+        def on_job_result(self, job, result):
+            nonlocal received
+            received += 1
+            events.append(-job.tag)
+
+    TestCollector().collect(sampler=cirq.Simulator(),
+                            max_total_samples=100,
+                            concurrency=5)
+    # Expected sends and receives are present.
+    assert sorted(events) == list(range(-10, 1+10))
+    # Sends are in order.
+    assert [e for e in events if e > 0] == list(range(1, 11))
+    # Every receive comes after the corresponding send.
+    assert all(events.index(-k) > events.index(k) for k in range(1, 11))

@@ -347,9 +347,9 @@ from cirq.neutral_atoms import (
 
 from cirq.work import (
     CircuitSampleJob,
-    PauliStringSampleCollector,
+    PauliStringCollector,
     Sampler,
-    SampleCollector,
+    Collector,
 )
 
 # pylint: enable=redefined-builtin

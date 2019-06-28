@@ -62,8 +62,15 @@ class CircuitSampleJob:
 CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, Iterable[Any]]
 
 
-class SampleCollector(metaclass=abc.ABCMeta):
-    """An interface for concurrently collecting sample data."""
+class Collector(metaclass=abc.ABCMeta):
+    """Collects data from a sampler, in parallel, towards some purpose.
+
+    Child classes must override the `next_job` and `on_job_result` methods,
+    which respectively determine what to sample and how to process the results.
+    Utility methods on the base class such as `collect` and `collect_async` can
+    then be given a sampler to collect from, and will request samples with some
+    specified amount of parallelism.
+    """
 
     @abc.abstractmethod
     def next_job(self) -> Optional[CIRCUIT_SAMPLE_JOB_TREE]:
@@ -100,8 +107,8 @@ class SampleCollector(metaclass=abc.ABCMeta):
                 sampler: 'cirq.Sampler',
                 *,
                 concurrency: int = 2,
-                max_total_samples: Optional[int] = None) -> Any:
-        """Collects needed samples.
+                max_total_samples: Optional[int] = None) -> None:
+        """Collects needed samples from a sampler.
 
         Examples:
 
@@ -136,8 +143,8 @@ class SampleCollector(metaclass=abc.ABCMeta):
                             sampler: 'cirq.Sampler',
                             *,
                             concurrency: int = 2,
-                            max_total_samples: Optional[int] = None) -> Any:
-        """Asynchronously collects needed samples.
+                            max_total_samples: Optional[int] = None) -> None:
+        """Asynchronously collects needed samples from a sampler.
 
         Examples:
 

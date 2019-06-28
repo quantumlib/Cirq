@@ -17,7 +17,7 @@ import cirq
 
 def test_pauli_string_sample_collector():
     a, b = cirq.LineQubit.range(2)
-    p = cirq.PauliStringSampleCollector(cirq.Circuit.from_ops(
+    p = cirq.PauliStringCollector(cirq.Circuit.from_ops(
         cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
                                         samples_per_term=100,
                                         terms=cirq.LinearDict({
