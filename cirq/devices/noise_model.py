@@ -96,8 +96,7 @@ class NoiseModel(metaclass=ABCMetaImplementAnyOneOf):
 
     def _noisy_operation_impl_moments(self, operation: 'cirq.Operation'
                                      ) -> 'cirq.OP_TREE':
-        return self.noisy_moments([ops.Moment([operation])],
-                                  operation.qubits)
+        return self.noisy_moments([ops.Moment([operation])], operation.qubits)
 
     def _noisy_operation_impl_moment(self, operation: 'cirq.Operation'
                                     ) -> 'cirq.OP_TREE':

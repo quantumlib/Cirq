@@ -11,15 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A more flexible abstract base class metaclass ABCMetaImplementAnyOneOf."""
 
 import abc
 import functools
 from typing import cast, Callable, Set, TypeVar
 
-
 T = TypeVar('T')
+
 
 def alternative(requires: str, implementation: T) -> Callable[[T], T]:
     """A decorator indicating an abstract method with an alternative default
@@ -60,11 +59,13 @@ def alternative(requires: str, implementation: T) -> Callable[[T], T]:
             implement the default behavior of the wrapped abstract method.  This
             function must have the same signature as the decorated function.
     """
+
     def decorator(func: T) -> T:
         alternatives = getattr(func, '_abstract_alternatives_', [])
         alternatives.insert(0, (requires, implementation))
         setattr(func, '_abstract_alternatives_', alternatives)
         return func
+
     return decorator
 
 
@@ -77,9 +78,11 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
     In addition to the decorators in the abc module, the decorator
     @alternative(...) can be used.
     """
+
     def __new__(mcls, name, bases, namespace, **kwargs):
         cls = super().__new__(mcls, name, bases, namespace, **kwargs)
         implemented_by = {}
+
         def has_some_implementation(name: str) -> bool:
             if name in implemented_by:
                 return True
@@ -88,18 +91,18 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                 raise TypeError(
                     'A method named \'{}\' was listed as a possible '
                     'implementation alternative but it does not exist in the '
-                    'definition of {!r}.'.format(
-                        name, cls))
+                    'definition of {!r}.'.format(name, cls))
             if getattr(value, '__isabstractmethod__', False):
                 return False
             if hasattr(value, '_abstract_alternatives_'):
                 return False
             return True
+
         def find_next_implementations(all_names: Set[str]) -> bool:
             next_implemented_by = {}
             for name in all_names:
                 if has_some_implementation(name):
-                    continue
+                    continueformatter
                 value = getattr(cls, name, None)
                 if not hasattr(value, '_abstract_alternatives_'):
                     continue
@@ -109,28 +112,30 @@ class ABCMetaImplementAnyOneOf(abc.ABCMeta):
                         break
             implemented_by.update(next_implemented_by)
             return bool(next_implemented_by)
+
         # Find all abstract methods (methods that haven't been implemented or
         # don't have an implemented alternative).
         all_names = set(namespace.keys())
         for base in bases:
             all_names.update(getattr(base, '__abstractmethods__', set()))
-            all_names.update(
-                alt_name
-                for alt_name, _ in getattr(base, '_implemented_by_', {}
-                                          ).items())
+            all_names.update(alt_name for alt_name, _ in getattr(
+                base, '_implemented_by_', {}).items())
         while find_next_implementations(all_names):
             pass
-        abstracts = frozenset(name
-                              for name in all_names
-                              if not has_some_implementation(name))
+        abstracts = frozenset(
+            name for name in all_names if not has_some_implementation(name))
         # Replace the abstract methods with their default implementations.
         for name, default_impl in implemented_by.items():
             abstract_method = getattr(cls, name)
+
             def wrap_scope(impl: T) -> T:
+
                 def impl_of_abstract(*args, **kwargs):
                     return impl(*args, **kwargs)
+
                 functools.update_wrapper(impl_of_abstract, abstract_method)
                 return cast(T, impl_of_abstract)
+
             impl_of_abstract = wrap_scope(default_impl)
             impl_of_abstract._abstract_alternatives_ = (
                 abstract_method._abstract_alternatives_)
