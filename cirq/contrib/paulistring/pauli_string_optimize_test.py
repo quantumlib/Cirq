@@ -43,8 +43,8 @@ def test_optimize():
     c_opt = pauli_string_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(),
+        c_orig.unitary(),
+        c_opt.unitary(),
         atol=1e-7,
     )
 
@@ -71,8 +71,8 @@ def test_handles_measurement_gate():
     c_opt = pauli_string_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(),
+        c_orig.unitary(),
+        c_opt.unitary(),
         atol=1e-7,
     )
 
@@ -90,7 +90,7 @@ def test_optimize_large_circuit():
     c_opt = pauli_string_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(),
+        c_orig.unitary(),
+        c_opt.unitary(),
         atol=1e-7,
     )

@@ -152,6 +152,7 @@ from cirq.ops import (
     PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
+    PauliSum,
     PauliTransform,
     phase_damp,
     phase_flip,
@@ -264,6 +265,8 @@ from cirq.study import (
 )
 
 from cirq.value import (
+    ABCMetaImplementAnyOneOf,
+    alternative,
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
