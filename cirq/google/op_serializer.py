@@ -28,12 +28,12 @@ Gate = TypeVar('Gate', bound=ops.Gate)
 
 
 class SerializingArg(
-        NamedTuple('SerializingArg',
-                   [('serialized_name', str),
-                    ('serialized_type', Type[arg_func_langs.ArgValue]),
-                    ('gate_getter',
-                     Union[str, Callable[[ops.Gate], arg_func_langs.ArgValue]]),
-                    ('required', bool)])):
+    NamedTuple('SerializingArg',
+               [('serialized_name', str),
+                ('serialized_type', Type[arg_func_langs.ArgValue]),
+                ('gate_getter',
+                 Union[str, Callable[[ops.Gate], arg_func_langs.ArgValue]]),
+                ('required', bool)])):
     """Specification of the arguments for a Gate and its serialization.
 
     Attributes:
@@ -49,10 +49,10 @@ class SerializingArg(
     """
 
     def __new__(cls,
-                serialized_name,
-                serialized_type,
-                gate_getter,
-                required=True):
+        serialized_name,
+        serialized_type,
+        gate_getter,
+        required=True):
         return super(SerializingArg,
                      cls).__new__(cls, serialized_name, serialized_type,
                                   gate_getter, required)
@@ -67,12 +67,12 @@ class GateOpSerializer:
     """
 
     def __init__(
-            self,
-            *,
-            gate_type: Type[Gate],
-            serialized_gate_id: str,
-            args: List[SerializingArg],
-            can_serialize_predicate: Callable[[ops.Gate], bool] = lambda x: True
+        self,
+        *,
+        gate_type: Type[Gate],
+        serialized_gate_id: str,
+        args: List[SerializingArg],
+        can_serialize_predicate: Callable[[ops.Gate], bool] = lambda x: True
     ):
         """Construct the serializer.
 
@@ -103,9 +103,9 @@ class GateOpSerializer:
                                          use_integers_for_enums=True)
 
     def to_proto(self,
-                 op: ops.GateOperation,
-                 msg: Optional[v2.program_pb2.Operation] = None
-                ) -> Optional[v2.program_pb2.Operation]:
+        op: ops.GateOperation,
+        msg: Optional[v2.program_pb2.Operation] = None
+    ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.api.google.v2.Operation message as a proto dict."""
         if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
             raise ValueError('All qubits must be GridQubits')
@@ -131,7 +131,7 @@ class GateOpSerializer:
         return msg
 
     def _value_from_gate(self, gate: ops.Gate,
-                         arg: SerializingArg) -> arg_func_langs.ArgValue:
+        arg: SerializingArg) -> arg_func_langs.ArgValue:
         value = None
         gate_getter = arg.gate_getter
 
@@ -147,7 +147,7 @@ class GateOpSerializer:
         if arg.required and value is None:
             raise ValueError(
                 'Argument {} is required, but could not get from gate {!r}'.
-                format(arg.serialized_name, gate))
+                    format(arg.serialized_name, gate))
 
         if isinstance(value, sympy.Symbol):
             return value
@@ -158,10 +158,10 @@ class GateOpSerializer:
         return value
 
     def _check_type(self, value: arg_func_langs.ArgValue,
-                    arg: SerializingArg) -> None:
+        arg: SerializingArg) -> None:
         if arg.serialized_type == List[bool]:
             if (not isinstance(value, (list, tuple, np.ndarray)) or
-                    not all(isinstance(x, (bool, np.bool_)) for x in value)):
+                not all(isinstance(x, (bool, np.bool_)) for x in value)):
                 raise ValueError('Expected type List[bool] but was {}'.format(
                     type(value)))
         elif arg.serialized_type == float:
@@ -175,7 +175,7 @@ class GateOpSerializer:
                     arg.serialized_name, arg.serialized_type, type(value)))
 
     def _arg_value_to_proto(self, value: arg_func_langs.ArgValue,
-                            msg: v2.program_pb2.Arg) -> None:
+        msg: v2.program_pb2.Arg) -> None:
         if isinstance(value, (float, int)):
             msg.arg_value.float_value = float(value)
         elif isinstance(value, str):
@@ -188,3 +188,9 @@ class GateOpSerializer:
         else:
             raise ValueError('Unsupported type of arg value: {}'.format(
                 type(value)))
+
+    def __eq__(self, other):
+        return (self.gate_type == other.gate_type
+                and self.serialized_gate_id == other.serialized_gate_id
+                and self.args == other.args
+                and self.can_serialize_predicate == other.can_serialize_predicate)

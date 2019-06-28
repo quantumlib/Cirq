@@ -23,12 +23,12 @@ from cirq.google import arg_func_langs
 
 
 class DeserializingArg(
-        NamedTuple('DeserializingArg', [
-            ('serialized_name', str),
-            ('constructor_arg_name', str),
-            ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
-            ('required', bool),
-        ])):
+    NamedTuple('DeserializingArg', [
+        ('serialized_name', str),
+        ('constructor_arg_name', str),
+        ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
+        ('required', bool),
+    ])):
     """Specification of the arguments to deserialize an argument to a gate.
 
     Attributes:
@@ -45,10 +45,10 @@ class DeserializingArg(
     """
 
     def __new__(cls,
-                serialized_name,
-                constructor_arg_name,
-                value_func=None,
-                required=True):
+        serialized_name,
+        constructor_arg_name,
+        value_func=None,
+        required=True):
         return super(DeserializingArg,
                      cls).__new__(cls, serialized_name, constructor_arg_name,
                                   value_func, required)
@@ -62,10 +62,10 @@ class GateOpDeserializer:
     """
 
     def __init__(self,
-                 serialized_gate_id: str,
-                 gate_constructor: type,
-                 args: Sequence[DeserializingArg],
-                 num_qubits_param: Optional[str] = None):
+        serialized_gate_id: str,
+        gate_constructor: type,
+        args: Sequence[DeserializingArg],
+        num_qubits_param: Optional[str] = None):
         """Constructs a deserializer.
 
         Args:
@@ -101,13 +101,13 @@ class GateOpDeserializer:
         return gate.on(*qubits)
 
     def _args_from_proto(self, proto: v2.program_pb2.Operation
-                        ) -> Dict[str, arg_func_langs.ArgValue]:
+    ) -> Dict[str, arg_func_langs.ArgValue]:
         return_args = {}
         for arg in self.args:
             if arg.serialized_name not in proto.args and arg.required:
                 raise ValueError(
                     'Argument {} not in deserializing args, but is required.'.
-                    format(arg.serialized_name))
+                        format(arg.serialized_name))
 
             value = None  # type: Optional[arg_func_langs.ArgValue]
             if arg.serialized_name in proto.args:
@@ -136,3 +136,9 @@ class GateOpDeserializer:
             if value is not None:
                 return_args[arg.constructor_arg_name] = value
         return return_args
+
+    def __eq__(self, other):
+        return (self.serialized_gate_id == other.serialized_gate_id and
+                self.gate_constructor == other.gate_constructor and
+                self.args == other.args and
+                self.num_qubits_param == other.num_qubits_param)

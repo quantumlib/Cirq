@@ -83,8 +83,7 @@ message Language {
   // The language supported by ArgFunctions. These specifies what allowed
   // ArgFunction types there are.
   //
-  // Valid names for the arg function language can be found in
-  // cirq/google/arg_func_langs.py
+  // Leave blank.  No arg function languages are currently supported.
   string arg_function_language = 2;
 }
 
