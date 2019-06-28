@@ -296,7 +296,7 @@ def test_manual_default_decompose():
     mat = cirq.Circuit.from_ops(
         cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Z}))**0.25,
         cirq.Z(q0)**-0.25,
-    ).to_unitary_matrix()
+    ).unitary()
     cirq.testing.assert_allclose_up_to_global_phase(mat,
                                                     np.eye(2),
                                                     rtol=1e-7,
@@ -305,7 +305,7 @@ def test_manual_default_decompose():
     mat = cirq.Circuit.from_ops(
         cirq.PauliStringPhasor(cirq.PauliString({q0: cirq.Y}))**0.25,
         cirq.Y(q0)**-0.25,
-    ).to_unitary_matrix()
+    ).unitary()
     cirq.testing.assert_allclose_up_to_global_phase(mat,
                                                     np.eye(2),
                                                     rtol=1e-7,
@@ -317,7 +317,7 @@ def test_manual_default_decompose():
                 q0: cirq.Z,
                 q1: cirq.Z,
                 q2: cirq.Z
-            }))).to_unitary_matrix()
+            }))).unitary()
     cirq.testing.assert_allclose_up_to_global_phase(
         mat, np.diag([1, -1, -1, 1, -1, 1, 1, -1]), rtol=1e-7, atol=1e-7)
 
@@ -327,7 +327,7 @@ def test_manual_default_decompose():
                 q0: cirq.Z,
                 q1: cirq.Y,
                 q2: cirq.X
-            }))**0.5).to_unitary_matrix()
+            }))**0.5).unitary()
     cirq.testing.assert_allclose_up_to_global_phase(
         mat,
         np.array([
@@ -357,9 +357,8 @@ def test_default_decompose(paulis, phase_exponent_negative: float, sign: int):
     pauli_string = cirq.PauliString({q: p for q, p in zip(qubits, paulis)},
                                     sign)
     actual = cirq.Circuit.from_ops(
-        cirq.PauliStringPhasor(
-            pauli_string,
-            exponent_neg=phase_exponent_negative)).to_unitary_matrix()
+        cirq.PauliStringPhasor(pauli_string,
+                               exponent_neg=phase_exponent_negative)).unitary()
 
     # Calculate expected matrix
     to_z_mats = {

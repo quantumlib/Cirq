@@ -70,6 +70,7 @@ from cirq.linalg import (
     kak_canonicalize_vector,
     kak_decomposition,
     KakDecomposition,
+    subwavefunction,
     kron,
     kron_bases,
     kron_factor_4x4_to_2x2s,
@@ -85,6 +86,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    wavefunction_partial_trace_as_mixture,
 )
 
 from cirq.line import (
@@ -226,6 +228,7 @@ from cirq.sim import (
     dirac_notation,
     measure_density_matrix,
     measure_state_vector,
+    final_wavefunction,
     sample,
     sample_density_matrix,
     sample_state_vector,

@@ -127,10 +127,9 @@ class Simulator(simulator.SimulatesSamples,
             dtype: The `numpy.dtype` used by the simulation. One of
             `numpy.complex64` or `numpy.complex128`
         """
-        if dtype not in {np.complex64, np.complex128}:
+        if np.dtype(dtype).kind != 'c':
             raise ValueError(
-                'dtype must be complex64 or complex128 but was {}'.format(
-                    dtype))
+                'dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
 
     def _run(
