@@ -618,6 +618,25 @@ def test_paulisum_validation():
         cirq.PauliSum([pstr1, pstr2])
     assert e.match("Consider using")
 
+    with pytest.raises(ValueError):
+        ld = cirq.LinearDict({pstr1: 2.0})
+        cirq.PauliSum(ld)
+
+    with pytest.raises(ValueError):
+        key = frozenset([('q0', cirq.X)])
+        ld = cirq.LinearDict({key: 2.0})
+        cirq.PauliSum(ld)
+
+    with pytest.raises(ValueError):
+        key = frozenset([(q[0], cirq.H)])
+        ld = cirq.LinearDict({key: 2.0})
+        cirq.PauliSum(ld)
+
+    key = frozenset([(q[0], cirq.X)])
+    ld = cirq.LinearDict({key: 2.0})
+    assert (cirq.PauliSum(ld)
+            == cirq.PauliSum.from_pauli_strings([2 * cirq.X(q[0])]))
+
 
 def test_add_number_paulisum():
     q = cirq.LineQubit.range(2)
