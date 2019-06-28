@@ -192,15 +192,14 @@ class SampleCollector(metaclass=abc.ABCMeta):
 
 
 def _flatten_jobs(given: Optional[CIRCUIT_SAMPLE_JOB_TREE]
-                  ) -> List[CircuitSampleJob]:
+                 ) -> List[CircuitSampleJob]:
     out: List[CircuitSampleJob] = []
     if given is not None:
         _flatten_jobs_helper(given, out=out)
     return out
 
 
-def _flatten_jobs_helper(given: CIRCUIT_SAMPLE_JOB_TREE,
-                         *,
+def _flatten_jobs_helper(given: CIRCUIT_SAMPLE_JOB_TREE, *,
                          out: List[CircuitSampleJob]) -> None:
     if isinstance(given, CircuitSampleJob):
         out.append(given)

@@ -78,8 +78,7 @@ class CompletionOrderedAsyncWorkPool:
             raise StopAsyncIteration('no_more_work')
 
     def __anext__(self) -> Awaitable:
-        return asyncio.ensure_future(self._anext_helper(),
-                                     loop=self._loop)
+        return asyncio.ensure_future(self._anext_helper(), loop=self._loop)
 
     async def async_all_done(self) -> None:
         """An awaitable that completes once all work is completed.
