@@ -37,7 +37,7 @@ def test_single_alternative():
         def _default_impl(self, arg, kw=99):
             return f'default({arg}, {kw}) ' + self.alt()
 
-        @alternative('alt', _default_impl)
+        @alternative(requires='alt', implementation=_default_impl)
         def my_method(self, arg, kw=99):
             """my_method doc."""
 
@@ -91,7 +91,7 @@ def test_doc_string():
         def _default_impl(self, arg, kw=99):
             """Default implementation."""
 
-        @alternative('alt', _default_impl)
+        @alternative(requires='alt', implementation=_default_impl)
         def my_method(self, arg, kw=99):
             """my_method doc."""
 
@@ -125,19 +125,20 @@ def test_bad_alternative():
 
         class _(metaclass=ABCMetaImplementAnyOneOf):
 
-            @alternative('missing_alt', lambda self: None)
+            @alternative(requires='missing_alt',
+                         implementation=lambda self: None)
             def my_method(self, arg, kw=99):
                 """my_method doc."""
 
 
 def test_unrelated_attribute():
-
+    # Test that the class is created without wrongly raising a TypeError
     class _(metaclass=ABCMetaImplementAnyOneOf):
         _none_attribute = None
         _false_attribute = False
         _true_attribute = True
 
-        @alternative('alt', lambda self: None)
+        @alternative(requires='alt', implementation=lambda self: None)
         def my_method(self):
             """my_method doc."""
 
@@ -150,11 +151,25 @@ def test_classcell_in_namespace():
     `__classcell__` to the namespace passed to the metaclass __new__.
     """
 
+    # Test that the class is created without wrongly raising a TypeError
     class _(metaclass=ABCMetaImplementAnyOneOf):
 
         def other_method(self):
             # Triggers __classcell__ to be added to the class namespace
             super()  # coverage: ignore
+
+
+def test_force_keyword_arguments():
+    with pytest.raises(TypeError, match='0 positional arguments'):
+        alternative('a', lambda: None)
+
+    with pytest.raises(TypeError, match='0 positional arguments'):
+
+        class _(metaclass=ABCMetaImplementAnyOneOf):
+
+            @alternative('do_b', lambda: None)
+            def do_a(self):
+                """do_a doc."""
 
 
 def test_two_alternatives():
@@ -167,8 +182,8 @@ def test_two_alternatives():
         def _default_impl2(self, arg, kw=99):
             return f'default2({arg}, {kw}) ' + self.alt2()
 
-        @alternative('alt1', _default_impl1)
-        @alternative('alt2', _default_impl2)
+        @alternative(requires='alt1', implementation=_default_impl1)
+        @alternative(requires='alt2', implementation=_default_impl2)
         def my_method(self, arg, kw=99):
             """Docstring."""
 
@@ -204,7 +219,8 @@ def test_two_alternatives():
         def _do_alt1_with_my_method(self):
             return 'reverse ' + self.my_method(0, kw=0)
 
-        @alternative('my_method', _do_alt1_with_my_method)
+        @alternative(requires='my_method',
+                     implementation=_do_alt1_with_my_method)
         def alt1(self):
             """alt1 doc."""
 
@@ -243,18 +259,18 @@ def test_implement_any_one():
         def _method3_with_2(self):
             return '3-2 ' + self.method2()
 
-        @alternative('method2', _method1_with_2)
-        @alternative('method3', _method1_with_3)
+        @alternative(requires='method2', implementation=_method1_with_2)
+        @alternative(requires='method3', implementation=_method1_with_3)
         def method1(self):
             """Method1."""
 
-        @alternative('method1', _method2_with_1)
-        @alternative('method3', _method2_with_3)
+        @alternative(requires='method1', implementation=_method2_with_1)
+        @alternative(requires='method3', implementation=_method2_with_3)
         def method2(self):
             """Method2."""
 
-        @alternative('method1', _method3_with_1)
-        @alternative('method2', _method3_with_2)
+        @alternative(requires='method1', implementation=_method3_with_1)
+        @alternative(requires='method2', implementation=_method3_with_2)
         def method3(self):
             """Method3."""
 

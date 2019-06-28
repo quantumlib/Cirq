@@ -20,7 +20,7 @@ from typing import cast, Callable, Set, TypeVar
 T = TypeVar('T')
 
 
-def alternative(requires: str, implementation: T) -> Callable[[T], T]:
+def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
     """A decorator indicating an abstract method with an alternative default
     implementation.
 
@@ -36,8 +36,8 @@ def alternative(requires: str, implementation: T) -> Callable[[T], T]:
                 ...
 
             # Abstract method with alternatives
-            @alternative('do_b', _default_do_a_using_b)
-            @alternative('do_c', _default_do_a_using_c)
+            @alternative(requires='do_b', implementation=_default_do_a_using_b)
+            @alternative(requires='do_c', implementation=_default_do_a_using_c)
             def do_a(self, ...):
                 '''Method docstring.'''
 
