@@ -43,7 +43,6 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
-
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -118,7 +117,8 @@ class XPowGate(eigen_gate.EigenGate,
             wire_symbols=('X',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -155,14 +155,16 @@ class XPowGate(eigen_gate.EigenGate,
                 return 'cirq.Rx({})'.format(
                     proper_repr(sympy.pi * self._exponent))
             else:
-                return 'cirq.Rx(np.pi*{})'.format(proper_repr(self._exponent))
+                return 'cirq.Rx(np.pi*{})'.format(
+                    proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
             return '(cirq.X**{})'.format(proper_repr(self._exponent))
-        return ('cirq.XPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.XPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 @value.value_equality
@@ -226,7 +228,8 @@ class YPowGate(eigen_gate.EigenGate,
             wire_symbols=('Y',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -263,14 +266,16 @@ class YPowGate(eigen_gate.EigenGate,
                 return 'cirq.Ry({})'.format(
                     proper_repr(sympy.pi * self._exponent))
             else:
-                return 'cirq.Ry(np.pi*{})'.format(proper_repr(self._exponent))
+                return 'cirq.Ry(np.pi*{})'.format(
+                    proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
             return '(cirq.Y**{})'.format(proper_repr(self._exponent))
-        return ('cirq.YPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.YPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 @value.value_equality
@@ -359,7 +364,8 @@ class ZPowGate(eigen_gate.EigenGate,
             wire_symbols=('Z',),
             exponent=e)
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -391,8 +397,8 @@ class ZPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.Rz({})'.format(
-                    proper_repr(sympy.pi * self._exponent))
+                return 'cirq.Rz({})'.format(proper_repr(
+                    sympy.pi * self._exponent))
             else:
                 return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
@@ -407,9 +413,10 @@ class ZPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.Z'
             return '(cirq.Z**{})'.format(proper_repr(self._exponent))
-        return ('cirq.ZPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.ZPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 @value.value_equality
@@ -443,7 +450,7 @@ class MeasurementGate(raw_types.Gate):
         self.key = key
         self.invert_mask = invert_mask or ()
         if (self.invert_mask is not None and
-                len(self.invert_mask) > self.num_qubits()):
+            len(self.invert_mask) > self.num_qubits()):
             raise ValueError('len(invert_mask) > num_qubits')
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
@@ -453,8 +460,7 @@ class MeasurementGate(raw_types.Gate):
         new_mask = [k < len(old_mask) and old_mask[k] for k in range(n)]
         for b in bit_positions:
             new_mask[b] = not new_mask[b]
-        return MeasurementGate(self.num_qubits(),
-                               key=self.key,
+        return MeasurementGate(self.num_qubits(), key=self.key,
                                invert_mask=tuple(new_mask))
 
     def _measurement_key_(self):
@@ -484,13 +490,14 @@ class MeasurementGate(raw_types.Gate):
                     symbols[i] = '!M'
 
         # Mention the measurement key.
-        if (not args.known_qubits or
-                self.key != _default_measurement_key(args.known_qubits)):
+        if (not args.known_qubits or self.key != _default_measurement_key(
+            args.known_qubits)):
             symbols[0] += "('{}')".format(self.key)
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         invert_mask = self.invert_mask
@@ -508,7 +515,9 @@ class MeasurementGate(raw_types.Gate):
 
     def __repr__(self):
         return 'cirq.MeasurementGate({}, {}, {})'.format(
-            repr(self.num_qubits()), repr(self.key), repr(self.invert_mask))
+            repr(self.num_qubits()),
+            repr(self.key),
+            repr(self.invert_mask))
 
     def _value_equality_values_(self):
         return self.num_qubits(), self.key, self.invert_mask
@@ -547,7 +556,7 @@ def measure(*qubits: raw_types.Qid,
             )
         elif not isinstance(qubit, raw_types.Qid):
             raise ValueError(
-                'measure() was called with type different than Qid.')
+                    'measure() was called with type different than Qid.')
 
     if key is None:
         key = _default_measurement_key(qubits)
@@ -572,6 +581,7 @@ def measure_each(*qubits: raw_types.Qid,
     return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
 
 
+
 @value.value_equality
 class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
@@ -589,10 +599,10 @@ class IdentityGate(raw_types.Gate):
         return self._num_qubits
 
     def _unitary_(self):
-        return np.identity(2**self.num_qubits())
+        return np.identity(2 ** self.num_qubits())
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                       ) -> Optional[np.ndarray]:
+    def _apply_unitary_(
+        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -609,11 +619,10 @@ class IdentityGate(raw_types.Gate):
         else:
             return 'I({})'.format(self.num_qubits())
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
-                                            self.num_qubits(),
-                                            vconnected=True)
+    def _circuit_diagram_info_(self,
+        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=('I',) * self.num_qubits(), vconnected=True)
 
     def _value_equality_values_(self):
         return self.num_qubits(),
@@ -693,9 +702,11 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('H',), exponent=self._diagram_exponent(args))
+            wire_symbols=('H',),
+            exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -716,9 +727,10 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             if self._exponent == 1:
                 return 'cirq.H'
             return '(cirq.H**{})'.format(proper_repr(self._exponent))
-        return ('cirq.HPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.HPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 class CZPowGate(eigen_gate.EigenGate,
@@ -782,8 +794,9 @@ class CZPowGate(eigen_gate.EigenGate,
                 wire_symbols=('@', '@'),
                 exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self,
+            args: protocols.QasmArgs,
+            qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -799,12 +812,14 @@ class CZPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.CZ'
             return '(cirq.CZ**{})'.format(proper_repr(self._exponent))
-        return ('cirq.CZPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.CZPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
-def _rads_func_symbol(func_name: str, args: protocols.CircuitDiagramInfoArgs,
+def _rads_func_symbol(func_name: str,
+                      args: protocols.CircuitDiagramInfoArgs,
                       half_turns: Any) -> str:
     if protocols.is_parameterized(half_turns):
         return '{}({})'.format(func_name, sympy.pi * half_turns)
@@ -893,7 +908,8 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZX': global_phase * -c,
         })
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
@@ -910,9 +926,10 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.CNOT'
             return '(cirq.CNOT**{})'.format(proper_repr(self._exponent))
-        return ('cirq.CNotPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.CNotPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -1005,7 +1022,8 @@ class SwapPowGate(eigen_gate.EigenGate,
             wire_symbols=('×', '×'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self,
+               args: protocols.QasmArgs,
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
@@ -1022,9 +1040,10 @@ class SwapPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.SWAP'
             return '(cirq.SWAP**{})'.format(proper_repr(self._exponent))
-        return ('cirq.SwapPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.SwapPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
@@ -1124,9 +1143,10 @@ class ISwapPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.ISWAP'
             return '(cirq.ISWAP**{})'.format(proper_repr(self._exponent))
-        return ('cirq.ISwapPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+        return (
+            'cirq.ISwapPowGate(exponent={}, '
+            'global_shift={!r})'
+        ).format(proper_repr(self._exponent), self._global_shift)
 
 
 def Rx(rads: Union[float, sympy.Basic]) -> XPowGate:
