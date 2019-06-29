@@ -283,7 +283,8 @@ def apply_matrix_to_slices(
     return out
 
 
-def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
+def partial_trace(tensor: np.ndarray,
+                  keep_indices: List[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
 
     The input tensor must have shape `(d_0, ..., d_{k-1}, d_0, ..., d_{k-1})`.
@@ -308,8 +309,8 @@ def partial_trace(tensor: np.ndarray, keep_indices: List[int]) -> np.ndarray:
                          'd_{{k-1}}) but had shape ({}).'.format(tensor.shape))
     if not all(i < ndim for i in keep_indices):
         raise ValueError('keep_indices were {} but must be in first half, '
-                         'i.e. have index less that {}.'.format(
-                             keep_indices, ndim))
+                         'i.e. have index less that {}.'.format(keep_indices,
+                                                                ndim))
     keep_set = set(keep_indices)
     keep_map = dict(zip(keep_indices, sorted(keep_indices)))
     left_indices = [keep_map[i] if i in keep_set else i for i in range(ndim)]

@@ -68,7 +68,10 @@ from cirq.linalg.predicates import (
     slice_for_qubits_equal_to,
 )
 
-from cirq.linalg.tolerance import (all_near_zero, all_near_zero_mod)
+from cirq.linalg.tolerance import (
+    all_near_zero,
+    all_near_zero_mod
+)
 
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,
