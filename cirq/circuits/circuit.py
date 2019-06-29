@@ -119,7 +119,7 @@ class Circuit:
     def from_ops(*operations: ops.OP_TREE,
                  strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UnconstrainedDevice
-                ) -> 'Circuit':
+                 ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
 
         Args:
@@ -153,8 +153,10 @@ class Circuit:
         if not isinstance(other, type(self)):
             return NotImplemented
         return cirq.protocols.approx_eq(
-            self._moments, other._moments,
-            atol=atol) and self._device == other._device
+            self._moments,
+            other._moments,
+            atol=atol
+        ) and self._device == other._device
 
     def __ne__(self, other):
         return not self == other
@@ -334,7 +336,8 @@ class Circuit:
                 + self.to_text_diagram()
                 + '</pre>')
 
-    def _first_moment_operating_on(self, qubits: Iterable[ops.Qid],
+    def _first_moment_operating_on(self,
+                                   qubits: Iterable[ops.Qid],
                                    indices: Iterable[int]) -> Optional[int]:
         qubits = frozenset(qubits)
         for m in indices:
@@ -376,7 +379,7 @@ class Circuit:
     def next_moments_operating_on(self,
                                   qubits: Iterable[ops.Qid],
                                   start_moment_index: int = 0
-                                 ) -> Dict[ops.Qid, int]:
+                                  ) -> Dict[ops.Qid, int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -398,11 +401,11 @@ class Circuit:
                                next_moment)
         return next_moments
 
-    def prev_moment_operating_on(self,
-                                 qubits: Sequence[ops.Qid],
-                                 end_moment_index: Optional[int] = None,
-                                 max_distance: Optional[int] = None
-                                ) -> Optional[int]:
+    def prev_moment_operating_on(
+            self,
+            qubits: Sequence[ops.Qid],
+            end_moment_index: Optional[int] = None,
+            max_distance: Optional[int] = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
 
         Args:
@@ -615,7 +618,7 @@ class Circuit:
                                    start_frontier: Dict[ops.Qid, int],
                                    end_frontier: Dict[ops.Qid, int],
                                    omit_crossing_operations: bool = False
-                                  ) -> List[Tuple[int, ops.Operation]]:
+                                   ) -> List[Tuple[int, ops.Operation]]:
         """Finds operations between the two given frontiers.
 
         If a qubit is in `start_frontier` but not `end_frontier`, its end index
@@ -703,11 +706,12 @@ class Circuit:
                     if next_op is not None:
                         if is_blocker(next_op):
                             break
-                        op_list.append((current_index, next_op))
-                current_index += 1
+                        op_list.append((current_index,next_op))
+                current_index+=1
         return op_list
 
-    def operation_at(self, qubit: ops.Qid,
+    def operation_at(self,
+                     qubit: ops.Qid,
                      moment_index: int) -> Optional[ops.Operation]:
         """Finds the operation on a qubit within a moment, if any.
 
@@ -777,7 +781,7 @@ class Circuit:
         return self.are_all_matches_terminal(protocols.is_measurement)
 
     def are_all_matches_terminal(self,
-                                 predicate: Callable[[ops.Operation], bool]):
+            predicate: Callable[[ops.Operation], bool]):
         """Check whether all of the ops that satisfy a predicate are terminal.
 
         Args:
@@ -788,8 +792,9 @@ class Circuit:
             given predicate are terminal.
         """
         return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None
-            for (i, op) in self.findall_operations(predicate))
+            self.next_moment_operating_on(op.qubits, i + 1) is None for
+            (i, op) in self.findall_operations(predicate)
+        )
 
     def _pick_or_create_inserted_op_moment_index(
             self, splitter_index: int, op: ops.Operation,
@@ -832,7 +837,9 @@ class Circuit:
 
         raise ValueError('Unrecognized append strategy: {}'.format(strategy))
 
-    def _has_op_at(self, moment_index: int, qubits: Iterable[ops.Qid]) -> bool:
+    def _has_op_at(self,
+                   moment_index: int,
+                   qubits: Iterable[ops.Qid]) -> bool:
         return (0 <= moment_index < len(self._moments) and
                 self._moments[moment_index].operates_on(qubits))
 
@@ -850,10 +857,11 @@ class Circuit:
                           operation: ops.Operation) -> bool:
         return not self._moments[moment_index].operates_on(operation.qubits)
 
-    def insert(self,
-               index: int,
-               moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-               strategy: InsertStrategy = InsertStrategy.EARLIEST) -> int:
+    def insert(
+            self,
+            index: int,
+            moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
+            strategy: InsertStrategy = InsertStrategy.EARLIEST) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
             'InsertStrategy'.
@@ -871,12 +879,11 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(
-            ops.flatten_op_tree(ops.transform_op_tree(
-                moment_or_operation_tree,
-                self._device.decompose_operation,
-                preserve_moments=True),
-                                preserve_moments=True))
+        moments_and_operations = list(ops.flatten_op_tree(
+            ops.transform_op_tree(moment_or_operation_tree,
+                                  self._device.decompose_operation,
+                                  preserve_moments=True),
+            preserve_moments=True))
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
@@ -951,11 +958,12 @@ class Circuit:
         return self.insert(end, operations[op_index:])
 
     @staticmethod
-    def _pick_inserted_ops_moment_indices(
-            operations: Sequence[ops.Operation],
-            start: int = 0,
-            frontier: Dict[ops.Qid, int] = None
-    ) -> Tuple[Sequence[int], Dict[ops.Qid, int]]:
+    def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
+                                          start: int = 0,
+                                          frontier: Dict[ops.Qid,
+                                                         int] = None
+                                          ) -> Tuple[Sequence[int],
+                                                     Dict[ops.Qid, int]]:
         """Greedily assigns operations to moments.
 
         Args:
@@ -984,7 +992,7 @@ class Circuit:
                        early_frontier: Dict[ops.Qid, int],
                        late_frontier: Dict[ops.Qid, int],
                        update_qubits: Iterable[ops.Qid] = None
-                      ) -> Tuple[int, int]:
+                       ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
@@ -1058,7 +1066,7 @@ class Circuit:
                            operations: ops.OP_TREE,
                            start: int,
                            frontier: Dict[ops.Qid, int] = None
-                          ) -> Dict[ops.Qid, int]:
+                           ) -> Dict[ops.Qid, int]:
         """Inserts operations inline at frontier.
 
         Args:
@@ -1180,9 +1188,10 @@ class Circuit:
                 shift += next_index - insert_index
         self._moments = copy._moments
 
-    def append(self,
-               moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-               strategy: InsertStrategy = InsertStrategy.EARLIEST):
+    def append(
+            self,
+            moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
+            strategy: InsertStrategy = InsertStrategy.EARLIEST):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.
@@ -1193,7 +1202,8 @@ class Circuit:
         """
         self.insert(len(self._moments), moment_or_operation_tree, strategy)
 
-    def clear_operations_touching(self, qubits: Iterable[ops.Qid],
+    def clear_operations_touching(self,
+                                  qubits: Iterable[ops.Qid],
                                   moment_indices: Iterable[int]):
         """Clears operations that are touching given qubits at given moments.
 
@@ -1291,7 +1301,8 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                protocols.is_measurement(op) for op in self.all_operations()):
+                protocols.is_measurement(op)
+                for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
         if not self.are_all_measurements_terminal():
@@ -1423,9 +1434,10 @@ class Circuit:
             transpose: bool = False,
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            get_circuit_diagram_info: Optional[
-                Callable[[ops.Operation, protocols.CircuitDiagramInfoArgs],
-                         protocols.CircuitDiagramInfo]] = None
+            get_circuit_diagram_info:
+                Optional[Callable[[ops.Operation,
+                                   protocols.CircuitDiagramInfoArgs],
+                                  protocols.CircuitDiagramInfo]]=None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1470,7 +1482,8 @@ class Circuit:
 
         if moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
-                                           use_unicode_characters, diagram)
+                                           use_unicode_characters,
+                                           diagram)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1607,7 +1620,9 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
-        return ('({})'.format(name) if _is_exposed_formula(name) else name)
+        return ('({})'.format(name)
+                if _is_exposed_formula(name)
+                else name)
 
     if info.exponent == 0:
         return '0'
@@ -1648,9 +1663,11 @@ def _draw_moment_in_diagram(
         out_diagram: TextDiagramDrawer,
         precision: Optional[int],
         moment_groups: List[Tuple[int, int]],
-        get_circuit_diagram_info: Optional[
-            Callable[[ops.Operation, protocols.CircuitDiagramInfoArgs],
-                     protocols.CircuitDiagramInfo]] = None):
+        get_circuit_diagram_info:
+            Optional[Callable[[ops.Operation,
+                               protocols.CircuitDiagramInfoArgs],
+                              protocols.CircuitDiagramInfo]]=None
+        ):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
                 _get_operation_circuit_diagram_info_with_fallback)
@@ -1731,8 +1748,8 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
             out_diagram.horizontal_line(y, x1, x2)
         out_diagram.vertical_line(x1, 0, 0.5)
         out_diagram.vertical_line(x2, 0, 0.5)
-        out_diagram.vertical_line(x1, h, h - 0.5)
-        out_diagram.vertical_line(x2, h, h - 0.5)
+        out_diagram.vertical_line(x1, h, h-0.5)
+        out_diagram.vertical_line(x2, h, h-0.5)
 
     # Rounds up to 1 when horizontal, down to 0 when vertical.
     # (Matters when transposing.)
@@ -1740,7 +1757,8 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
+def _apply_unitary_circuit(circuit: Circuit,
+                           state: np.ndarray,
                            qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
