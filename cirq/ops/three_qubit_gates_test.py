@@ -19,6 +19,7 @@ import sympy
 
 import cirq
 
+FIRST_EIGHT_PRIMES = list(sympy.primerange(0, 20))
 
 @pytest.mark.parametrize('eigen_gate_type', [
     cirq.CCXPowGate,
@@ -33,9 +34,9 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
 
-    diag_angles = [np.pi * i / 4 for i in range(0, 8)]
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ThreeQubitDiagonalGate(diag_angles), ignoring_global_phase=True)
+        cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES),
+        ignoring_global_phase=True)
 
 
 def test_init():
@@ -92,11 +93,10 @@ def test_unitary():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
-    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
-    assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles))
+    assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES))
     np.testing.assert_allclose(
-        cirq.unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles)),
-        np.diag([np.exp(1j * angle) for angle in diagonal_angles]),
+        cirq.unitary(cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)),
+        np.diag([np.exp(1j * angle) for angle in FIRST_EIGHT_PRIMES]),
         atol=1e-8)
 
 
@@ -149,7 +149,7 @@ def test_eq():
     (cirq.CSWAP(*cirq.LineQubit.range(3)), 9),
     (cirq.CSWAP(*reversed(cirq.LineQubit.range(3))), 9),
     (cirq.CSWAP(cirq.LineQubit(1), cirq.LineQubit(0), cirq.LineQubit(2)), 12),
-    (cirq.ThreeQubitDiagonalGate([np.pi * i / 4 for i in range(0, 8)])(
+    (cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)(
         cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3)), 8),
 ])
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
@@ -165,7 +165,7 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     cirq.CCX,
     cirq.CSWAP,
     cirq.CCZ,
-    cirq.ThreeQubitDiagonalGate([np.pi * i / 4 for i in range(0, 8)]),
+    cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES),
 ])
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
@@ -180,12 +180,12 @@ def test_decomposition_respects_locality(gate):
 
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
-    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
+    diagonal_angles = list(sympy.primerange(0, 20))
     circuit = cirq.Circuit.from_ops(
         cirq.TOFFOLI(a, b, c),
         cirq.TOFFOLI(a, b, c)**0.5, cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
         cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d), cirq.FREDKIN(a, b, c),
-        cirq.ThreeQubitDiagonalGate(diagonal_angles)(a, b, c))
+        cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)(a, b, c))
     cirq.testing.assert_has_diagram(
         circuit, """
 0: ───@───@───────@───@───@───────@───@───diag───
@@ -210,32 +210,27 @@ def test_diagram():
 
 
 def test_diagonal_exponent():
-    diagonal_angles = [np.pi * i / 4 for i in range(0, 8)]
-    diagonal_gate = cirq.ThreeQubitDiagonalGate(diagonal_angles)
+    diagonal_gate = cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)
 
     sqrt_diagonal_gate = diagonal_gate**.5
 
-    expected_angles = [np.pi * i / 8 for i in range(0, 8)]
+    expected_angles = [prime / 2 for prime in FIRST_EIGHT_PRIMES]
     np.testing.assert_allclose(expected_angles,
                                sqrt_diagonal_gate._diag_angles_radians,
                                atol=1e-8)
 
 
 def test_resolve():
-    diagonal_angles = [np.pi * i / 4 for i in range(0, 6)]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(
-        diagonal_angles +
+            FIRST_EIGHT_PRIMES[:6] +
         [sympy.Symbol('a'), sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
-    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 3 * np.pi / 2})
-    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles +
-                                                        [3 * np.pi / 2] +
+    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 17})
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES[:7] +
                                                         [sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
-    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 7 * np.pi / 4})
-    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles +
-                                                        [3 * np.pi / 2] +
-                                                        [7 * np.pi / 4])
+    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 19})
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)
     assert not cirq.is_parameterized(diagonal_gate)
