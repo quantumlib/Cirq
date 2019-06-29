@@ -219,6 +219,10 @@ def test_diagonal_exponent():
                                sqrt_diagonal_gate._diag_angles_radians,
                                atol=1e-8)
 
+    assert cirq.pow(
+              cirq.ThreeQubitDiagonalGate(
+                  FIRST_EIGHT_PRIMES), "test", None) is None
+
 
 def test_resolve():
     diagonal_gate = cirq.ThreeQubitDiagonalGate(
