@@ -287,12 +287,12 @@ class QasmParser:
 
     def _resolve_gate_operation(self, args: List[List[ops.Qid]], gate: str,
                                 p: Any, params: List[float]):
-        helper_text = (", did you forget to include qelib1.inc?"
-                       if not self.qelibinc else "")
         gate_set = (self.basic_gates if not self.qelibinc else self.qelib_gates)
         if gate not in gate_set.keys():
-            raise QasmException('Unknown gate "{}" at line {}{}'.format(
-                gate, p.lineno(1), helper_text))
+            msg = 'Unknown gate "{}" at line {}{}'.format(
+                gate, p.lineno(1), ", did you forget to include qelib1.inc?"
+                if not self.qelibinc else "")
+            raise QasmException(msg)
         p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
     # params : parameter ',' params
