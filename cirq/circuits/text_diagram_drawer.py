@@ -23,6 +23,7 @@ from cirq.circuits._box_drawing_character_data import (
     ASCII_BOX_CHARS,
 )
 
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Tuple, Dict, Optional
@@ -84,8 +85,9 @@ class TextDiagramDrawer:
         """
         entry = self.entries.get((x, y), _DiagramText('', ''))
         self.entries[(x, y)] = _DiagramText(
-            entry.text + text, entry.transposed_text +
-            (transposed_text if transposed_text else text))
+            entry.text + text,
+            entry.transposed_text + (transposed_text if transposed_text
+                                     else text))
 
     def content_present(self, x: int, y: int) -> bool:
         """Determines if a line or printed text is at the given location."""
@@ -126,7 +128,8 @@ class TextDiagramDrawer:
                       x: Union[int, float],
                       y1: Union[int, float],
                       y2: Union[int, float],
-                      emphasize: bool = False) -> None:
+                      emphasize: bool = False
+                      ) -> None:
         """Adds a line from (x, y1) to (x, y2)."""
         y1, y2 = sorted([y1, y2])
         self.vertical_lines.append(_VerticalLine(x, y1, y2, emphasize))
@@ -135,7 +138,8 @@ class TextDiagramDrawer:
                         y: Union[int, float],
                         x1: Union[int, float],
                         x2: Union[int, float],
-                        emphasize: bool = False) -> None:
+                        emphasize: bool = False
+                        ) -> None:
         """Adds a line from (x1, y) to (x2, y)."""
         x1, x2 = sorted([x1, x2])
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
@@ -178,19 +182,20 @@ class TextDiagramDrawer:
             max_y = max(max_y, v.y1, v.y2)
         return 1 + int(max_y)
 
-    def force_horizontal_padding_after(self, index: int,
-                                       padding: Union[int, float]) -> None:
+    def force_horizontal_padding_after(
+            self, index: int, padding: Union[int, float]) -> None:
         """Change the padding after the given column."""
         self.horizontal_padding[index] = padding
 
-    def force_vertical_padding_after(self, index: int,
-                                     padding: Union[int, float]) -> None:
+    def force_vertical_padding_after(
+            self, index: int, padding: Union[int, float]) -> None:
         """Change the padding after the given row."""
         self.vertical_padding[index] = padding
 
     def _transform_coordinates(
-            self, func: Callable[[Union[int, float], Union[int, float]],
-                                 Tuple[Union[int, float], Union[int, float]]]
+            self,
+            func: Callable[[Union[int, float], Union[int, float]],
+                           Tuple[Union[int, float], Union[int, float]]]
     ) -> None:
         """Helper method to transformer either row or column coordinates."""
 
@@ -224,17 +229,19 @@ class TextDiagramDrawer:
 
     def insert_empty_columns(self, x: int, amount: int = 1) -> None:
         """Insert a number of columns after the given column."""
-
-        def transform_columns(column: Union[int, float], row: Union[int, float]
-                             ) -> Tuple[Union[int, float], Union[int, float]]:
+        def transform_columns(
+                column: Union[int, float],
+                row: Union[int, float]
+        ) -> Tuple[Union[int, float], Union[int, float]]:
             return column + (amount if column >= x else 0), row
         self._transform_coordinates(transform_columns)
 
     def insert_empty_rows(self, y: int, amount: int = 1) -> None:
         """Insert a number of rows after the given row."""
-
-        def transform_rows(column: Union[int, float], row: Union[int, float]
-                          ) -> Tuple[Union[int, float], Union[int, float]]:
+        def transform_rows(
+                column: Union[int, float],
+                row: Union[int, float]
+        ) -> Tuple[Union[int, float], Union[int, float]]:
             return column, row + (amount if row >= y else 0)
         self._transform_coordinates(transform_rows)
 
@@ -253,17 +260,18 @@ class TextDiagramDrawer:
         # Communicate padding into block diagram.
         for x in range(0, w - 1):
             block_diagram.set_col_min_width(
-                x * 2 + 1,
+                x*2 + 1,
                 # Horizontal separation looks narrow, so partials round up.
-                int(np.ceil(self.horizontal_padding.get(x,
-                                                        horizontal_spacing))))
-            block_diagram.set_col_min_width(x * 2, 1)
+                int(np.ceil(self.horizontal_padding.get(x, horizontal_spacing)))
+            )
+            block_diagram.set_col_min_width(x*2, 1)
         for y in range(0, h - 1):
             block_diagram.set_row_min_height(
-                y * 2 + 1,
+                y*2 + 1,
                 # Vertical separation looks wide, so partials round down.
-                int(np.floor(self.vertical_padding.get(y, vertical_spacing))))
-            block_diagram.set_row_min_height(y * 2, 1)
+                int(np.floor(self.vertical_padding.get(y, vertical_spacing)))
+            )
+            block_diagram.set_row_min_height(y*2, 1)
 
         # Draw vertical lines.
         for x_b, y1_b, y2_b, emphasize in self.vertical_lines:
@@ -272,14 +280,15 @@ class TextDiagramDrawer:
             charset = pick_charset(use_unicode_characters, emphasize)
 
             # Caps.
-            block_diagram.mutable_block(x, y1).draw_curve(charset, bottom=True)
-            block_diagram.mutable_block(x, y2).draw_curve(charset, top=True)
+            block_diagram.mutable_block(x, y1).draw_curve(
+                charset, bottom=True)
+            block_diagram.mutable_block(x, y2).draw_curve(
+                charset, top=True)
 
             # Span.
             for y in range(y1 + 1, y2):
-                block_diagram.mutable_block(x, y).draw_curve(charset,
-                                                             top=True,
-                                                             bottom=True)
+                block_diagram.mutable_block(x, y).draw_curve(
+                    charset, top=True, bottom=True)
 
         # Draw horizontal lines.
         for y_b, x1_b, x2_b, emphasize in self.horizontal_lines:
@@ -288,8 +297,10 @@ class TextDiagramDrawer:
             charset = pick_charset(use_unicode_characters, emphasize)
 
             # Caps.
-            block_diagram.mutable_block(x1, y).draw_curve(charset, right=True)
-            block_diagram.mutable_block(x2, y).draw_curve(charset, left=True)
+            block_diagram.mutable_block(x1, y).draw_curve(
+                charset, right=True)
+            block_diagram.mutable_block(x2, y).draw_curve(
+                charset, left=True)
 
             # Span.
             for x in range(x1 + 1, x2):

@@ -25,8 +25,7 @@ def test_draw_entries_and_lines_with_options():
     d.write(6, 2, 'span')
     d.horizontal_line(y=3, x1=2, x2=8)
     d.vertical_line(x=7, y1=1, y2=4)
-    _assert_same_diagram(
-        d.render().strip(), """
+    _assert_same_diagram(d.render().strip(), """
 !
 
                  ╷
@@ -37,8 +36,7 @@ def test_draw_entries_and_lines_with_options():
                  │
     """.strip())
 
-    _assert_same_diagram(
-        d.render(use_unicode_characters=False).strip(), """
+    _assert_same_diagram(d.render(use_unicode_characters=False).strip(), """
 !
 
 
@@ -49,8 +47,7 @@ def test_draw_entries_and_lines_with_options():
                  |
     """.strip())
 
-    _assert_same_diagram(
-        d.render(crossing_char='@').strip(), """
+    _assert_same_diagram(d.render(crossing_char='@').strip() , """
 !
 
                  ╷
@@ -61,8 +58,7 @@ def test_draw_entries_and_lines_with_options():
                  │
     """.strip())
 
-    _assert_same_diagram(
-        d.render(horizontal_spacing=0).strip(), """
+    _assert_same_diagram(d.render(horizontal_spacing=0).strip() , """
 !
 
           ╷
@@ -73,8 +69,7 @@ def test_draw_entries_and_lines_with_options():
           │
     """.strip())
 
-    _assert_same_diagram(
-        d.render(vertical_spacing=0).strip(), """
+    _assert_same_diagram(d.render(vertical_spacing=0).strip() , """
 !
                  ╷
             span │
@@ -90,8 +85,7 @@ def test_draw_entries_and_lines_with_emphasize():
     d.horizontal_line(y=5, x1=2, x2=9, emphasize=False)
     d.vertical_line(x=7, y1=1, y2=6, emphasize=True)
     d.vertical_line(x=5, y1=1, y2=7, emphasize=False)
-    _assert_same_diagram(
-        d.render().strip(), """
+    _assert_same_diagram(d.render().strip() , """
 !
 
           ╷      ╻
@@ -107,6 +101,7 @@ def test_draw_entries_and_lines_with_emphasize():
           │      ╹
           │
     """.strip())
+
 
 def test_draw_horizontal_lines_with_occlusions():
     d = TextDiagramDrawer()
@@ -158,8 +153,7 @@ def test_multiline_entries():
     d.write(5, 2, '4n')
     d.vertical_line(x=5, y1=1, y2=2)
     d.horizontal_line(y=1, x1=0, x2=8)
-    _assert_same_diagram(
-        d.render().strip(), """
+    _assert_same_diagram(d.render().strip() , """
 hello
 there
 
@@ -177,8 +171,7 @@ next──────────2──────
     d.vertical_line(x=3, y1=0, y2=3)
     d.write(0, 0, 'long line\nshort')
     d.write(2, 2, 'short\nlong line')
-    _assert_same_diagram(
-        d.render().strip(), """
+    _assert_same_diagram(d.render().strip() , """
 long line ╷ ╷         ╷
 short     │ │         │
 │         │ │         │
