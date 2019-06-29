@@ -33,8 +33,7 @@ def test_unsupported_format():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match="Unsupported OpenQASM version: 2.1, "
-                       "only 2.0 is supported currently by Cirq"):
+                       match="Unsupported.*2.1.*2.0.*supported.*"):
         parser.parse(qasm)
 
 
@@ -126,7 +125,7 @@ def test_zero_length_register(qasm: str):
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match="Illegal, zero-length register 'q' at line 2"):
+                       match=".* zero-length.*'q'.*line 2"):
         parser.parse(qasm)
 
 
@@ -212,9 +211,7 @@ def test_CX_gate_not_enough_args():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=(r"CX only takes 2 arg\(s\) "
-                              r"\(qubits and/or registers\)"
-                              r", got: 1, at line 3")):
+                       match=r"CX.*takes.*got.*1.*line 3"):
         parser.parse(qasm)
 
 
@@ -227,8 +224,7 @@ def test_CX_gate_mismatched_registers():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"Non matching quantum registers of "
-                       r"length \[2 3\] at line 4"):
+                       match=r"Non matching.*length \[2 3\].*line 4"):
         parser.parse(qasm)
 
 
@@ -241,8 +237,7 @@ def test_CX_gate_bounds():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"Out of bounds qubit index 4"
-                       r" on register q1 of size 2 at line 4"):
+                       match=r"Out of bounds.*4.*q1.*2.*line 4"):
         parser.parse(qasm)
 
 
@@ -255,8 +250,7 @@ def test_CX_gate_arg_overlap():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"Overlapping qubits in arguments"
-                       r" at line 4"):
+                       match=r"Overlapping.*at line 4"):
         parser.parse(qasm)
 
 
@@ -311,7 +305,7 @@ def test_U_gate_zero_params_error():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"U takes 3 parameter\(s\).*got.*0.*line 3"):
+                       match=r"U takes 3.*got.*0.*line 3"):
         parser.parse(qasm)
 
 
@@ -323,7 +317,7 @@ def test_U_gate_too_much_params_error():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"U takes 3 parameter\(s\).*got.*4.*line 3"):
+                       match=r"U takes 3.*got.*4.*line 3"):
         parser.parse(qasm)
 
 
@@ -387,8 +381,7 @@ def test_unknown_function():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"Function not recognized:"
-                       r" 'nonexistent' at line 3"):
+                       match=r".*not recognized.*'nonexistent'.*line 3"):
         parser.parse(qasm)
 
 
@@ -441,7 +434,7 @@ def test_rotation_gates_wrong_number_of_args(qasm_gate: str):
 
     with pytest.raises(
             QasmException,
-            match=r".*{}.* takes 1 arg\(s\).*got.*2.*line 5".format(qasm_gate)):
+            match=r".*{}.* takes 1.*got.*2.*line 5".format(qasm_gate)):
         parser.parse(qasm)
 
 
@@ -457,7 +450,7 @@ def test_rotation_gates_zero_params_error(qasm_gate: str):
 
     with pytest.raises(
             QasmException,
-            match=r".*{}.* takes 1 parameter\(s\).*got.*0.*line 4".format(
+            match=r".*{}.* takes 1.*got.*0.*line 4".format(
                 qasm_gate)):
         parser.parse(qasm)
 
@@ -474,7 +467,7 @@ def test_rotation_gates_too_many_params_error(qasm_gate: str):
 
     with pytest.raises(
             QasmException,
-            match=r".*{}.* takes 1 parameter\(s\).*got.*2.*line 4".format(
+            match=r".*{}.* takes 1.*got.*2.*line 4".format(
                 qasm_gate)):
         parser.parse(qasm)
 
@@ -588,7 +581,7 @@ def test_measure_mismatched_register_size():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r""".*mismatched register sizes 2 -> 3.*line 5"""):
+                       match=r""".*mismatched .* 2 -> 3.*line 5"""):
         parser.parse(qasm)
 
 
@@ -648,6 +641,5 @@ def test_measurement_bounds():
     parser = QasmParser()
 
     with pytest.raises(QasmException,
-                       match=r"Out of bounds bit index 4"
-                       r" on classical register c1 of size 3 at line 4"):
+                       match=r"Out of bounds bit.*4.*c1.*size 3.*line 4"):
         parser.parse(qasm)
