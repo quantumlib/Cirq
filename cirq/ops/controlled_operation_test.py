@@ -23,15 +23,15 @@ from cirq.type_workarounds import NotImplementedType
 
 
 class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
-
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
-                       ) -> Union[np.ndarray, NotImplementedType]:
+                        ) -> Union[np.ndarray, NotImplementedType]:
         args.available_buffer[...] = args.target_tensor
         args.target_tensor[...] = 0
         return args.available_buffer
 
     def _unitary_(self):
         return np.eye(2)
+
 
     def __eq__(self, other):
         return isinstance(other, type(self))
@@ -42,18 +42,17 @@ class GateUsingWorkspaceForApplyUnitary(cirq.SingleQubitGate):
 
 
 class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
-
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs
-                       ) -> Union[np.ndarray, NotImplementedType]:
+                        ) -> Union[np.ndarray, NotImplementedType]:
         assert len(args.axes) == 1
         a = args.axes[0]
-        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...], (slice(None),))
-        zero = seed * a + (0, Ellipsis)
-        one = seed * a + (1, Ellipsis)
+        seed = cast(Tuple[Union[int, slice, 'ellipsis'], ...],
+                    (slice(None),))
+        zero = seed*a + (0, Ellipsis)
+        one = seed*a + (1, Ellipsis)
         result = np.zeros(args.target_tensor.shape, args.target_tensor.dtype)
-        result[
-            zero] = args.target_tensor[zero] * 2 + args.target_tensor[one] * 3
-        result[one] = args.target_tensor[zero] * 5 + args.target_tensor[one] * 7
+        result[zero] = args.target_tensor[zero]*2 + args.target_tensor[one]*3
+        result[one] = args.target_tensor[zero]*5 + args.target_tensor[one]*7
         return result
 
     def _unitary_(self):
@@ -99,31 +98,26 @@ def test_str():
     c2 = cirq.NamedQubit('c2')
     q2 = cirq.NamedQubit('q2')
 
-    assert (str(cirq.ControlledOperation([c1],
-                                         cirq.CZ(c2, q2))) == "CCZ(c1, c2, q2)")
-
+    assert (str(cirq.ControlledOperation([c1], cirq.CZ(c2, q2))) ==
+            "CCZ(c1, c2, q2)")
     class SingleQubitOp(cirq.Operation):
-
         def qubits(self) -> Tuple[cirq.Qid, ...]:
             pass
-
         def with_qubits(self, *new_qubits: cirq.Qid):
             pass
-
         def __str__(self):
             return "Op(q2)"
-
-    assert (str(cirq.ControlledOperation(
-        [c1, c2], SingleQubitOp())) == "C(c1, c2, Op(q2))")
+    assert (str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) ==
+            "C(c1, c2, Op(q2))")
 
 
 def test_repr():
     c0, c1, t = cirq.LineQubit.range(3)
 
     ccz = cirq.ControlledOperation([c0], cirq.CZ(c1, t))
-    assert (
-        repr(ccz) == "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
-        "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
+    assert (repr(ccz) ==
+            "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
+            "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
     cirq.testing.assert_equivalent_repr(ccz)
 
 
@@ -138,14 +132,16 @@ class MultiH(cirq.Gate):
     def num_qubits(self) -> int:
         return self._num_qubits
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         assert args.known_qubit_count is not None
         assert args.known_qubits is not None
 
-        return protocols.CircuitDiagramInfo(wire_symbols=tuple(
-            'H({})'.format(q) for q in args.known_qubits),
-                                            vconnected=True)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits),
+            vconnected=True
+        )
 
 
 def test_circuit_diagram():
@@ -177,23 +173,25 @@ def test_circuit_diagram():
 
 class MockGate(cirq.TwoQubitGate):
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs
+                               ) -> protocols.CircuitDiagramInfo:
         self.captured_diagram_args = args
-        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']),
-                                       exponent=1,
+        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1,
                                        vconnected=True)
 
 
 def test_uninformed_circuit_diagram_info():
     qbits = cirq.LineQubit.range(3)
     mock_gate = MockGate()
-    c_op = cirq.ControlledOperation(qbits[:1], mock_gate(*qbits[1:]))
+    c_op = cirq.ControlledOperation(qbits[:1],
+                                    mock_gate(*qbits[1:]))
 
     args = protocols.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
 
-    assert (cirq.circuit_diagram_info(c_op, args) == cirq.CircuitDiagramInfo(
-        wire_symbols=('@', 'MOCK'), exponent=1, vconnected=True))
+    assert (cirq.circuit_diagram_info(c_op, args) ==
+            cirq.CircuitDiagramInfo(wire_symbols=('@', 'MOCK'), exponent=1,
+                                    vconnected=True))
     assert mock_gate.captured_diagram_args == args
 
 
@@ -206,12 +204,13 @@ def test_non_diagrammable_subop():
     undiagrammable_op = UndiagrammableGate()(qbits[1])
 
     c_op = cirq.ControlledOperation(qbits[:1], undiagrammable_op)
-    assert cirq.circuit_diagram_info(c_op, default=None) is None
+    assert cirq.circuit_diagram_info(c_op,
+                                     default=None) is None
 
 
 @pytest.mark.parametrize('gate', [
     cirq.X(cirq.NamedQubit('q1')),
-    cirq.X(cirq.NamedQubit('q1'))**0.5,
+    cirq.X(cirq.NamedQubit('q1')) ** 0.5,
     cirq.Rx(np.pi)(cirq.NamedQubit('q1')),
     cirq.Rx(np.pi / 2)(cirq.NamedQubit('q1')),
     cirq.Z(cirq.NamedQubit('q1')),
@@ -220,8 +219,8 @@ def test_non_diagrammable_subop():
     cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
              cirq.NamedQubit('q3')),
-    cirq.ControlledGate(cirq.ControlledGate(
-        cirq.CCZ))(*cirq.LineQubit.range(5)),
+    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(
+        *cirq.LineQubit.range(5)),
     GateUsingWorkspaceForApplyUnitary()(cirq.NamedQubit('q1')),
     GateAllocatingNewSpaceForResult()(cirq.NamedQubit('q1')),
 ])
@@ -246,4 +245,4 @@ def test_parameterizable():
 def test_bounded_effect():
     qubits = cirq.LineQubit.range(2)
     cy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]))
-    assert cirq.trace_distance_bound(cy**0.001) < 0.01
+    assert cirq.trace_distance_bound(cy ** 0.001) < 0.01
