@@ -124,8 +124,7 @@ def test_already_defined_error(qasm: str):
 def test_zero_length_register(qasm: str):
     parser = QasmParser()
 
-    with pytest.raises(QasmException,
-                       match=".* zero-length.*'q'.*line 2"):
+    with pytest.raises(QasmException, match=".* zero-length.*'q'.*line 2"):
         parser.parse(qasm)
 
 
@@ -210,8 +209,7 @@ def test_CX_gate_not_enough_args():
 """
     parser = QasmParser()
 
-    with pytest.raises(QasmException,
-                       match=r"CX.*takes.*got.*1.*line 3"):
+    with pytest.raises(QasmException, match=r"CX.*takes.*got.*1.*line 3"):
         parser.parse(qasm)
 
 
@@ -236,8 +234,7 @@ def test_CX_gate_bounds():
 """
     parser = QasmParser()
 
-    with pytest.raises(QasmException,
-                       match=r"Out of bounds.*4.*q1.*2.*line 4"):
+    with pytest.raises(QasmException, match=r"Out of bounds.*4.*q1.*2.*line 4"):
         parser.parse(qasm)
 
 
@@ -249,8 +246,7 @@ def test_CX_gate_arg_overlap():
 """
     parser = QasmParser()
 
-    with pytest.raises(QasmException,
-                       match=r"Overlapping.*at line 4"):
+    with pytest.raises(QasmException, match=r"Overlapping.*at line 4"):
         parser.parse(qasm)
 
 
@@ -304,8 +300,7 @@ def test_U_gate_zero_params_error():
 
     parser = QasmParser()
 
-    with pytest.raises(QasmException,
-                       match=r"U takes 3.*got.*0.*line 3"):
+    with pytest.raises(QasmException, match=r"U takes 3.*got.*0.*line 3"):
         parser.parse(qasm)
 
 
@@ -316,8 +311,7 @@ def test_U_gate_too_much_params_error():
 
     parser = QasmParser()
 
-    with pytest.raises(QasmException,
-                       match=r"U takes 3.*got.*4.*line 3"):
+    with pytest.raises(QasmException, match=r"U takes 3.*got.*4.*line 3"):
         parser.parse(qasm)
 
 
@@ -450,8 +444,7 @@ def test_rotation_gates_zero_params_error(qasm_gate: str):
 
     with pytest.raises(
             QasmException,
-            match=r".*{}.* takes 1.*got.*0.*line 4".format(
-                qasm_gate)):
+            match=r".*{}.* takes 1.*got.*0.*line 4".format(qasm_gate)):
         parser.parse(qasm)
 
 
@@ -467,8 +460,7 @@ def test_rotation_gates_too_many_params_error(qasm_gate: str):
 
     with pytest.raises(
             QasmException,
-            match=r".*{}.* takes 1.*got.*2.*line 4".format(
-                qasm_gate)):
+            match=r".*{}.* takes 1.*got.*2.*line 4".format(qasm_gate)):
         parser.parse(qasm)
 
 
