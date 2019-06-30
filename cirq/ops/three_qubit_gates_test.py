@@ -21,6 +21,7 @@ import cirq
 
 FIRST_EIGHT_PRIMES = list(sympy.primerange(0, 20))
 
+
 @pytest.mark.parametrize('eigen_gate_type', [
     cirq.CCXPowGate,
     cirq.CCZPowGate,
