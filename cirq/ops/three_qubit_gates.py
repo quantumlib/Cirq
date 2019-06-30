@@ -184,7 +184,12 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(('diag', '#2', '#3'))
+        rounded_angles = np.array(self._diag_angles_radians)
+        if args.precision is not None:
+            rounded_angles = rounded_angles.round(args.precision)
+        diag_str = 'diag({})'.format(
+            ', '.join(proper_repr(angle) for angle in rounded_angles))
+        return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
         if not isinstance(exponent, (int, float, sympy.Basic)):

@@ -180,31 +180,49 @@ def test_decomposition_respects_locality(gate):
 
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
-    diagonal_angles = list(sympy.primerange(0, 20))
     circuit = cirq.Circuit.from_ops(
         cirq.TOFFOLI(a, b, c),
         cirq.TOFFOLI(a, b, c)**0.5, cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
-        cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d), cirq.FREDKIN(a, b, c),
-        cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)(a, b, c))
+        cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d), cirq.FREDKIN(a, b, c))
     cirq.testing.assert_has_diagram(
         circuit, """
-0: ───@───@───────@───@───@───────@───@───diag───
-      │   │       │   │   │       │   │   │
-1: ───@───@───────X───@───@───────┼───×───#2─────
-      │   │       │   │   │       │   │   │
-2: ───X───X^0.5───@───┼───┼───────×───×───#3─────
+0: ───@───@───────@───@───@───────@───@───
+      │   │       │   │   │       │   │
+1: ───@───@───────X───@───@───────┼───×───
+      │   │       │   │   │       │   │
+2: ───X───X^0.5───@───┼───┼───────×───×───
                       │   │       │
-3: ───────────────────@───@^0.5───×──────────────
+3: ───────────────────@───@^0.5───×───────
 """)
     cirq.testing.assert_has_diagram(circuit,
                                     """
-0: ---@---@-------@---@---@-------@------@------diag---
-      |   |       |   |   |       |      |      |
-1: ---@---@-------X---@---@-------|------swap---#2-----
-      |   |       |   |   |       |      |      |
-2: ---X---X^0.5---@---|---|-------swap---swap---#3-----
+0: ---@---@-------@---@---@-------@------@------
+      |   |       |   |   |       |      |
+1: ---@---@-------X---@---@-------|------swap---
+      |   |       |   |   |       |      |
+2: ---X---X^0.5---@---|---|-------swap---swap---
                       |   |       |
-3: -------------------@---@^0.5---swap-----------------
+3: -------------------@---@^0.5---swap----------
+""",
+                                    use_unicode_characters=False)
+
+    diagonal_circuit = cirq.Circuit.from_ops(
+        cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)(a, b, c))
+    cirq.testing.assert_has_diagram(
+        diagonal_circuit, """
+0: ───diag(2, 3, 5, 7, 11, 13, 17, 19)───
+      │
+1: ───#2─────────────────────────────────
+      │
+2: ───#3─────────────────────────────────
+""")
+    cirq.testing.assert_has_diagram(diagonal_circuit,
+                                    """
+0: ---diag(2, 3, 5, 7, 11, 13, 17, 19)---
+      |
+1: ---#2---------------------------------
+      |
+2: ---#3---------------------------------
 """,
                                     use_unicode_characters=False)
 
