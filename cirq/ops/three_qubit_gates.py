@@ -163,8 +163,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     def _is_parameterized_(self):
         return any(
             isinstance(angle, sympy.Basic)
-            for angle in self._diag_angles_radians
-        )
+            for angle in self._diag_angles_radians)
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
@@ -187,8 +186,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
-        diag_str = 'diag({})'.format(
-            ', '.join(proper_repr(angle) for angle in rounded_angles))
+        diag_str = 'diag({})'.format(', '.join(
+            proper_repr(angle) for angle in rounded_angles))
         return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':

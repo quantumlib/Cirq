@@ -180,10 +180,11 @@ def test_decomposition_respects_locality(gate):
 
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(
-        cirq.TOFFOLI(a, b, c),
-        cirq.TOFFOLI(a, b, c)**0.5, cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
-        cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d), cirq.FREDKIN(a, b, c))
+    circuit = cirq.Circuit.from_ops(cirq.TOFFOLI(a, b, c),
+                                    cirq.TOFFOLI(a, b, c)**0.5,
+                                    cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
+                                    cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d),
+                                    cirq.FREDKIN(a, b, c))
     cirq.testing.assert_has_diagram(
         circuit, """
 0: ───@───@───────@───@───@───────@───@───
@@ -237,14 +238,13 @@ def test_diagonal_exponent():
                                sqrt_diagonal_gate._diag_angles_radians,
                                atol=1e-8)
 
-    assert cirq.pow(
-              cirq.ThreeQubitDiagonalGate(
-                  FIRST_EIGHT_PRIMES), "test", None) is None
+    assert cirq.pow(cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES), "test",
+                    None) is None
 
 
 def test_resolve():
     diagonal_gate = cirq.ThreeQubitDiagonalGate(
-            FIRST_EIGHT_PRIMES[:6] +
+        FIRST_EIGHT_PRIMES[:6] +
         [sympy.Symbol('a'), sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
