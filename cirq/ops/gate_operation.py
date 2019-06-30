@@ -186,6 +186,19 @@ class GateOperation(raw_types.Operation):
                               qubits=self.qubits,
                               default=None)
 
+    def __mul__(self, other):
+        from cirq.ops.pauli_string import (SingleQubitPauliStringGateOperation,
+                                           PauliString)
+        from cirq.ops.common_gates import IdentityGate
+        if isinstance(other, (SingleQubitPauliStringGateOperation,
+                              PauliString)) and \
+            isinstance(self.gate, IdentityGate):
+            return other
+        return NotImplemented
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
 
 TV = TypeVar('TV', bound=raw_types.Gate)
 
