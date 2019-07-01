@@ -947,7 +947,7 @@ def test_circuit_param_and_reps():
 
 def assert_simulated_states_match_circuit_matrix_by_basis(circuit):
     basis = [Q1, Q2]
-    matrix = circuit.to_unitary_matrix(qubit_order=basis)
+    matrix = circuit.unitary(qubit_order=basis)
     simulator = cg.XmonSimulator()
     for i in range(matrix.shape[0]):
         col = matrix[:, i]
