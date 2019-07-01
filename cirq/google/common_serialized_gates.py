@@ -26,7 +26,7 @@ from cirq.google import op_serializer, op_deserializer
 
 def serialize(gate_type: Type[ops.Gate], gate_name: str,
     arg_dict: dict) -> op_serializer.GateOpSerializer:
-    """Short hand macro to initialize a gate serializer
+    """Initialize a gate serializer
       with a string name and dict of float arguments"""
     arg_array = []
     for key in arg_dict:
@@ -42,7 +42,7 @@ def serialize(gate_type: Type[ops.Gate], gate_name: str,
 
 def deserialize(gate_type: Type[ops.Gate], gate_name: str,
     arg_dict: dict) -> op_deserializer.GateOpDeserializer:
-    """Short hand macro to initialize a gate deserializer
+    """Initialize a gate deserializer
       with a string name and dict of float arguments"""
     arg_array = []
     for key in arg_dict:
