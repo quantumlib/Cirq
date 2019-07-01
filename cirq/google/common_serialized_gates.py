@@ -18,17 +18,14 @@ in order to standardize the serialization format across multiple
 gate sets.
 """
 
-from typing import Type, cast, List, TypeVar
+from typing import Type, cast, List
 
 from cirq import ops, protocols
 from cirq.google import op_serializer, op_deserializer
 
-Gate = TypeVar('Gate', bound=ops.Gate)
 
-LAMBDA_ZERO = lambda x: 0.0
-LAMBDA_HALF = lambda x: 0.5
-
-def serialize(gate_type: Type[Gate], gate_name: str, arg_dict: dict):
+def serialize(gate_type: Type[ops.Gate], gate_name: str,
+    arg_dict: dict) -> op_serializer.GateOpSerializer:
     """Short hand macro to initialize a gate serializer
       with a string name and dict of float arguments"""
     arg_array = []
@@ -43,7 +40,8 @@ def serialize(gate_type: Type[Gate], gate_name: str, arg_dict: dict):
         args=arg_array)
 
 
-def deserialize(gate_type: Type[Gate], gate_name: str, arg_dict: dict):
+def deserialize(gate_type: Type[ops.Gate], gate_name: str,
+    arg_dict: dict) -> op_deserializer.GateOpDeserializer:
     """Short hand macro to initialize a gate deserializer
       with a string name and dict of float arguments"""
     arg_array = []
@@ -64,10 +62,10 @@ GATE_SERIALIZER = {
                                   dict(axis_half_turns='phase_exponent',
                                        half_turns='exponent')),
     ops.XPowGate: serialize(ops.XPowGate, 'exp_w',
-                            dict(axis_half_turns=LAMBDA_ZERO,
+                            dict(axis_half_turns=lambda x: 0.0,
                                  half_turns='exponent')),
     ops.YPowGate: serialize(ops.YPowGate, 'exp_w',
-                            dict(axis_half_turns=LAMBDA_HALF,
+                            dict(axis_half_turns=lambda x: 0.5,
                                  half_turns='exponent')),
     ops.ZPowGate: serialize(ops.ZPowGate, 'exp_z',
                             dict(half_turns='exponent')),

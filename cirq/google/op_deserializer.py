@@ -136,9 +136,3 @@ class GateOpDeserializer:
             if value is not None:
                 return_args[arg.constructor_arg_name] = value
         return return_args
-
-    def __eq__(self, other):
-        return (self.serialized_gate_id == other.serialized_gate_id and
-                self.gate_constructor == other.gate_constructor and
-                self.args == other.args and
-                self.num_qubits_param == other.num_qubits_param)

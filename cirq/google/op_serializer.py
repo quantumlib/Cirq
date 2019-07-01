@@ -188,9 +188,3 @@ class GateOpSerializer:
         else:
             raise ValueError('Unsupported type of arg value: {}'.format(
                 type(value)))
-
-    def __eq__(self, other):
-        return (self.gate_type == other.gate_type
-                and self.serialized_gate_id == other.serialized_gate_id
-                and self.args == other.args
-                and self.can_serialize_predicate == other.can_serialize_predicate)
