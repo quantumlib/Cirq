@@ -132,11 +132,14 @@ class TrialResult:
         for key, val in measurements.items():
             converted_dict[key] = [pd.Series(m_vals) for m_vals in val]
         self.data = pd.DataFrame(converted_dict)
-        # Keep the old instance variables for test compatibility.
-        self.measurements = _to_dict(self.data)
-        self.repetitions = self.data.shape[0]
 
-    def _num_repititions(self):
+    # Keep the old instance variables for test compatibility.
+    @property
+    def measurements(self):
+        return _to_dict(self.data)
+
+    @property
+    def repetitions(self):
         return self.data.shape[0]
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
@@ -193,7 +196,7 @@ class TrialResult:
         fixed_keys = [_key_to_str(key) for key in keys]
         samples = self.data[fixed_keys]
         c = collections.Counter()  # type: collections.Counter
-        for i in range(self._num_repititions()):
+        for i in range(self.repetitions):
             c[fold_func(samples.iloc[i])] += 1
         return c
 
@@ -247,8 +250,8 @@ class TrialResult:
         return ('cirq.TrialResult(params={!r}, '
                 'repetitions={!r}, '
                 'measurements={!r})').format(self.params,
-                                             self._num_repititions(),
-                                             _to_dict(self.data))
+                                             self.repetitions,
+                                             self.measurements)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
