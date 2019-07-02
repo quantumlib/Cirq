@@ -30,7 +30,6 @@ def test_consistency_with_qasm_output():
 
     qasm1 = cirq.qasm(circuit1)
 
-    print(qasm1)
     circuit2 = cirq.contrib.qasm_import.qasm.QasmCircuitParser().parse(qasm1)
     ct.assert_allclose_up_to_global_phase(cirq.unitary(circuit1),
                                           cirq.unitary(circuit2),
