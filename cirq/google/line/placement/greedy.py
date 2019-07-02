@@ -181,6 +181,7 @@ class GreedySequenceSearch:
 
 
 
+
         visited = {p: set(), q: set()}  # type: Dict[GridQubit, Set[GridQubit]]
 
         queue = collections.deque([(p, p), (q, q)])
