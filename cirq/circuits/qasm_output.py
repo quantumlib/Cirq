@@ -79,6 +79,9 @@ class QasmUGate(ops.SingleQubitGate):
                other.theta == self.theta and \
                other.phi == self.phi
 
+    def __hash__(self):
+        return hash((self.lmda, self.theta, self.phi))
+
 
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):

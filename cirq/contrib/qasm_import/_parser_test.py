@@ -263,13 +263,14 @@ def test_U_gate():
     q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
-    expected_circuit.append(QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0))
-
     expected_circuit.append(
         cirq.Moment([
-            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0),
+            QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0),
             QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1)
         ]))
+
+    expected_circuit.append(
+        cirq.Moment([QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0)]))
 
     parsed_qasm = parser.parse(qasm)
 
@@ -401,10 +402,12 @@ def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
-    expected_circuit.append(cirq_gate(np.pi / 2).on(q0))
     expected_circuit.append(
-        cirq.Moment([cirq_gate(np.pi).on(q0),
+        cirq.Moment([cirq_gate(np.pi / 2).on(q0),
                      cirq_gate(np.pi).on(q1)]))
+    expected_circuit.append(cirq.Moment([
+        cirq_gate(np.pi).on(q0),
+    ]))
 
     parsed_qasm = parser.parse(qasm)
 
@@ -500,9 +503,9 @@ def test_measure_individual_bits():
     expected_circuit = Circuit()
 
     expected_circuit.append(
-        cirq.MeasurementGate(num_qubits=1, key='c1_1').on(q1_1))
-    expected_circuit.append(
         cirq.MeasurementGate(num_qubits=1, key='c1_0').on(q1_0))
+    expected_circuit.append(
+        cirq.MeasurementGate(num_qubits=1, key='c1_1').on(q1_1))
 
     parsed_qasm = parser.parse(qasm)
 
@@ -683,13 +686,14 @@ def test_u3_gate():
     q1 = cirq.NamedQubit('q_1')
 
     expected_circuit = Circuit()
-    expected_circuit.append(QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0))
-
     expected_circuit.append(
         cirq.Moment([
-            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0),
-            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1)
+            QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0),
+            QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1),
         ]))
+
+    expected_circuit.append(
+        cirq.Moment([QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0)]))
 
     parsed_qasm = parser.parse(qasm)
 

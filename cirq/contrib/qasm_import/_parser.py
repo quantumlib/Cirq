@@ -258,9 +258,9 @@ class QasmParser:
         p[0] = self.circuit
 
     def p_circuit_gate_or_measurement(self, p):
-        """circuit : gate_op circuit
-                   | measurement circuit"""
-        self.circuit.insert(0, p[1])
+        """circuit :  circuit gate_op
+                   |  circuit measurement"""
+        self.circuit.append(p[2])
         p[0] = self.circuit
 
     def p_circuit_empty(self, p):
