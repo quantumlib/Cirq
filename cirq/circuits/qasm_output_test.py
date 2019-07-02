@@ -37,7 +37,7 @@ def test_u_gate_eq():
     gate = QasmUGate(0.1, 0.2, 0.3)
     gate2 = QasmUGate(0.1, 0.2, 0.3)
     gate3 = QasmUGate(0.1, 0.2, 0.4)
-    gate4 = QasmUGate(0.1, 0.2, 0.4)
+    gate4 = QasmUGate(0.1, 0.2, 2.4)
     eq.add_equality_group(gate, gate2)
     eq.add_equality_group(gate3, gate4)
 

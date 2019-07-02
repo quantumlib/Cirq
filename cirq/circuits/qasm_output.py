@@ -79,10 +79,6 @@ class QasmUGate(ops.SingleQubitGate):
                np.isclose(other.theta, self.theta) and \
                np.isclose(other.phi, self.phi)
 
-    def __hash__(self):
-        return hash((self.lmda, self.theta, self.phi))
-
-
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):
     def __init__(self, kak: linalg.KakDecomposition) -> None:
