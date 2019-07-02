@@ -75,9 +75,9 @@ class QasmUGate(ops.SingleQubitGate):
 
     def __eq__(self, other):
         return isinstance(other, QasmUGate) and \
-               other.lmda == self.lmda and \
-               other.theta == self.theta and \
-               other.phi == self.phi
+               np.isclose(other.lmda, self.lmda) and \
+               np.isclose(other.theta, self.theta) and \
+               np.isclose(other.phi, self.phi)
 
     def __hash__(self):
         return hash((self.lmda, self.theta, self.phi))
