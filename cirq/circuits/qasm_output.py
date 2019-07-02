@@ -14,7 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Set  # pylint: disable=unused-import
+from typing import Set, Any  # pylint: disable=unused-import
 from typing import (
     Callable, Dict, Optional, Sequence, Tuple, Union
 )
@@ -25,6 +25,7 @@ import numpy as np
 from cirq import ops, linalg, protocols, value
 
 
+@value.value_equality(unhashable=True, approximate=True)
 class QasmUGate(ops.SingleQubitGate):
 
     def __init__(self, theta, phi, lmda) -> None:
@@ -73,11 +74,9 @@ class QasmUGate(ops.SingleQubitGate):
         ]
         return linalg.dot(*map(protocols.unitary, operations))
 
-    def __eq__(self, other):
-        return isinstance(other, QasmUGate) and \
-               np.isclose(other.lmda, self.lmda) and \
-               np.isclose(other.theta, self.theta) and \
-               np.isclose(other.phi, self.phi)
+    def _value_equality_values_(self):
+        return self.lmda, self.theta, self.phi
+
 
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):

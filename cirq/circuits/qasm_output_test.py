@@ -32,14 +32,12 @@ def test_u_gate_repr():
 
 
 def test_u_gate_eq():
-    eq = cirq.testing.EqualsTester()
-
     gate = QasmUGate(0.1, 0.2, 0.3)
     gate2 = QasmUGate(0.1, 0.2, 0.3)
+    cirq.approx_eq(gate, gate2, atol=1e-16)
     gate3 = QasmUGate(0.1, 0.2, 0.4)
     gate4 = QasmUGate(0.1, 0.2, 2.4)
-    eq.add_equality_group(gate, gate2)
-    eq.add_equality_group(gate3, gate4)
+    cirq.approx_eq(gate4, gate3, atol=1e-16)
 
 
 def test_qasm_two_qubit_gate_repr():
