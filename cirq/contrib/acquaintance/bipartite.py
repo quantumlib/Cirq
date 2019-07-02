@@ -106,7 +106,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
             raise ValueError('len(qubits) != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.COMPLETE:
             return self.decompose_complete(qubits)
-        elif self.subgraph == BipartiteGraphType.MATCHING:
+        if self.subgraph == BipartiteGraphType.MATCHING:
             return self.decompose_matching(qubits)
         raise NotImplementedError('No decomposition implemented for ' +
                                   str(self.subgraph))
@@ -119,7 +119,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 itertools.chain(*(
                     range(self.part_size + offset - 1, offset - 1, -1)
                     for offset in (0, self.part_size)))))
-        elif self.subgraph == BipartiteGraphType.COMPLETE:
+        if self.subgraph == BipartiteGraphType.COMPLETE:
             return dict(enumerate(range(2 * self.part_size)))
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
@@ -159,4 +159,3 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 self.subgraph == other.subgraph and
                 self.part_size == other.part_size and
                 self.swap_gate == other.swap_gate)
-
