@@ -87,5 +87,5 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
 
         raise ValueError('single sweep type not set: {}'.format(msg))
 
-        # coverage: ignore
+    # coverage: ignore
     raise ValueError('sweep type not set: {}'.format(msg))
