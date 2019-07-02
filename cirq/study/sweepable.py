@@ -30,9 +30,9 @@ def to_resolvers(sweepable: Sweepable) -> List[ParamResolver]:
     """Convert a Sweepable to a list of ParamResolvers."""
     if isinstance(sweepable, ParamResolver):
         return [sweepable]
-    elif isinstance(sweepable, Sweep):
+    if isinstance(sweepable, Sweep):
         return list(sweepable)
-    elif isinstance(sweepable, collections.Iterable):
+    if isinstance(sweepable, collections.Iterable):
         iterable = cast(collections.Iterable, sweepable)
         return list(iterable) if isinstance(next(iter(iterable)),
                                             ParamResolver) else sum(
