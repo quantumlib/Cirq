@@ -158,7 +158,7 @@ class CircuitDag(networkx.DiGraph):
                           ) -> Unique[ops.Operation]:
             if succ:
                 return get_root_node(next(iter(succ)))
-           
+
             return get_first_node()
 
         node = get_first_node()

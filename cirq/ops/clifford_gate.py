@@ -223,7 +223,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if isinstance(gate_or_pauli, SingleQubitCliffordGate):
             gate = gate_or_pauli
             return self.commutes_with_single_qubit_gate(gate)
-        
+
         pauli = gate_or_pauli
         return self.commutes_with_pauli(pauli)
 
@@ -296,7 +296,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             if num_flip == 0:
                 # Gate is identity
                 return []
-        
+
             # 180 rotation about some axis
             pauli = Pauli.by_index(flip_arr.index(False))
             return [(pauli, 2)]
@@ -322,7 +322,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             if x_rot.to == pauli_gates.Y:
                 return [(pauli_gates.X, -1 if y_rot.flip else 1),
                         (pauli_gates.Z, -1 if x_rot.flip else 1)]
-            
+
             return [(pauli_gates.Z, 1 if y_rot.flip else -1),
                     (pauli_gates.X, 1 if z_rot.flip else -1)]
         # coverage: ignore

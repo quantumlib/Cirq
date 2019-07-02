@@ -613,7 +613,7 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         if isinstance(next(iter(iterable)), Sweep):
             sweeps = iterable
             return list(sweeps)
-        
+
         resolvers = iterable
         return [_resolver_to_sweep(p) for p in resolvers]
     else:
