@@ -63,9 +63,10 @@ matrix:
   - os: osx
     env: NAME=pytest (macOS)
     python: "3.7.0"
-    language: generic      
-    script: ./dev_tools/continous_integration_macos.sh
-     
+    language: generic
+    install: ./dev_tools/continous_integration_macos.sh
+    script: check/pytest-and-incremental-coverage master
+
   - os: windows
     env: NAME=pytest (Windows)
     language: sh
@@ -82,4 +83,3 @@ matrix:
     - python -m pip install -r cirq/contrib/contrib-requirements.txt
     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip
-    
