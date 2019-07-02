@@ -212,6 +212,16 @@ def test_append_moments():
     ])
 
 
+def test_add_op_tree():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = cirq.Circuit()
+    assert c + [cirq.X(a), cirq.Y(b)] == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
+
+
 def test_bool():
     assert not cirq.Circuit()
     assert cirq.Circuit.from_ops(cirq.X(cirq.NamedQubit('a')))
