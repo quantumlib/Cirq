@@ -19,8 +19,6 @@ import sympy
 
 import cirq
 
-FIRST_EIGHT_PRIMES = list(sympy.primerange(0, 20))
-
 
 @pytest.mark.parametrize('eigen_gate_type', [
     cirq.CCXPowGate,
@@ -36,7 +34,7 @@ def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
 
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES),
+        cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
         ignoring_global_phase=True)
 
 
@@ -94,10 +92,11 @@ def test_unitary():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
-    assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES))
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
+    assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles))
     np.testing.assert_allclose(
-        cirq.unitary(cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)),
-        np.diag([np.exp(1j * angle) for angle in FIRST_EIGHT_PRIMES]),
+        cirq.unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles)),
+        np.diag([np.exp(1j * angle) for angle in diagonal_angles]),
         atol=1e-8)
 
 
@@ -150,7 +149,7 @@ def test_eq():
     (cirq.CSWAP(*cirq.LineQubit.range(3)), 9),
     (cirq.CSWAP(*reversed(cirq.LineQubit.range(3))), 9),
     (cirq.CSWAP(cirq.LineQubit(1), cirq.LineQubit(0), cirq.LineQubit(2)), 12),
-    (cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)(
+    (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])(
         cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3)), 8),
 ])
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
@@ -166,7 +165,7 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     cirq.CCX,
     cirq.CSWAP,
     cirq.CCZ,
-    cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES),
+    cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
 ])
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
@@ -209,7 +208,7 @@ def test_diagram():
                                     use_unicode_characters=False)
 
     diagonal_circuit = cirq.Circuit.from_ops(
-        cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)(a, b, c))
+        cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])(a, b, c))
     cirq.testing.assert_has_diagram(
         diagonal_circuit, """
 0: ───diag(2, 3, 5, 7, 11, 13, 17, 19)───
@@ -230,30 +229,32 @@ def test_diagram():
 
 
 def test_diagonal_exponent():
-    diagonal_gate = cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
+    diagonal_gate = cirq.ThreeQubitDiagonalGate(diagonal_angles)
 
     sqrt_diagonal_gate = diagonal_gate**.5
 
-    expected_angles = [prime / 2 for prime in FIRST_EIGHT_PRIMES]
+    expected_angles = [prime / 2 for prime in diagonal_angles]
     np.testing.assert_allclose(expected_angles,
                                sqrt_diagonal_gate._diag_angles_radians,
                                atol=1e-8)
 
-    assert cirq.pow(cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES), "test",
+    assert cirq.pow(cirq.ThreeQubitDiagonalGate(diagonal_angles), "test",
                     None) is None
 
 
 def test_resolve():
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
     diagonal_gate = cirq.ThreeQubitDiagonalGate(
-        FIRST_EIGHT_PRIMES[:6] +
+        diagonal_angles[:6] +
         [sympy.Symbol('a'), sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 17})
-    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES[:7] +
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles[:7] +
                                                         [sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 19})
-    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(FIRST_EIGHT_PRIMES)
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
     assert not cirq.is_parameterized(diagonal_gate)
