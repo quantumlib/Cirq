@@ -176,12 +176,10 @@ class GreedySequenceSearch:
             return path
 
         other = {p: q, q: p}
-        parents = {p: dict(), q: dict()} \
-            # type: Dict[GridQubit, Dict[GridQubit, GridQubit]]
-
-
-
-
+        parents = {
+            p: dict(),
+            q: dict()
+        }  # type: Dict[GridQubit, Dict[GridQubit, GridQubit]]
         visited = {p: set(), q: set()}  # type: Dict[GridQubit, Set[GridQubit]]
 
         queue = collections.deque([(p, p), (q, q)])
