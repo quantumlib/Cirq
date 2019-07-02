@@ -185,8 +185,8 @@ class Circuit:
             return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
-        else:
-            raise TypeError(
+       
+        raise TypeError(
                 '__getitem__ called with key not of type slice or int.')
 
     @overload

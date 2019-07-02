@@ -71,8 +71,8 @@ class ConvertToIonGates:
         else:
             if self.ignore_failures:
                 return [op]
-            else:
-                raise TypeError(
+            
+            raise TypeError(
                     "Don't know how to work with {!r}. "
                     "It isn't a native Ion Trap operation, "
                     "a 1 or 2 qubit gate with a known unitary, "
