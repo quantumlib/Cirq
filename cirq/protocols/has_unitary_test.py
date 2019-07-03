@@ -66,7 +66,7 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return NotImplemented
 
-    class No4:
+    class No4(EmptyOp):
 
         def _apply_unitary_(self, args):
             return NotImplemented

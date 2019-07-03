@@ -111,11 +111,12 @@ def has_unitary(val: Any) -> bool:
 
 def _strat_has_unitary_from_has_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _has_unitary_ method."""
-    getter = getattr(val, '_has_unitary_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is NotImplemented:
-        return None
-    return result
+    if hasattr(val, '_has_unitary_'):
+        result = val._has_unitary_()
+        if result is NotImplemented:
+            return None
+        return result
+    return None
 
 
 def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
