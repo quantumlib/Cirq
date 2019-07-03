@@ -309,11 +309,10 @@ class Engine:
             device.validate_circuit(circuit_copy)
             return moment_by_moment_schedule(device, circuit_copy)
 
-        elif isinstance(program, Schedule):
+        if isinstance(program, Schedule):
             return program
 
-        else:
-            raise TypeError('Unexpected program type.')
+        raise TypeError('Unexpected program type.')
 
     def run_sweep(
             self,
@@ -606,9 +605,9 @@ class EngineJob:
 def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, ParamResolver):
         return [_resolver_to_sweep(sweepable)]
-    elif isinstance(sweepable, Sweep):
+    if isinstance(sweepable, Sweep):
         return [sweepable]
-    elif isinstance(sweepable, Iterable):
+    if isinstance(sweepable, Iterable):
         iterable = cast(Iterable, sweepable)
         if isinstance(next(iter(iterable)), Sweep):
             sweeps = iterable
@@ -616,8 +615,8 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         else:
             resolvers = iterable
             return [_resolver_to_sweep(p) for p in resolvers]
-    else:
-        raise TypeError('Unexpected Sweepable.')  # coverage: ignore
+
+    raise TypeError('Unexpected Sweepable.')  # coverage: ignore
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
