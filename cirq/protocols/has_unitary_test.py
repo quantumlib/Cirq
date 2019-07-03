@@ -18,23 +18,29 @@ import cirq
 
 
 def test_inconclusive():
+
     class No:
         pass
+
     assert not cirq.has_unitary(object())
     assert not cirq.has_unitary('boo')
     assert not cirq.has_unitary(No())
 
 
 def test_via_unitary():
+
     class No1:
+
         def _unitary_(self):
             return NotImplemented
 
     class No2:
+
         def _unitary_(self):
             return None
 
     class Yes:
+
         def _unitary_(self):
             return np.array([[1]])
 
@@ -44,41 +50,69 @@ def test_via_unitary():
 
 
 def test_via_apply_unitary():
+
     class No1(EmptyOp):
+
         def _apply_unitary_(self, args):
             return None
 
     class No2(EmptyOp):
+
         def _apply_unitary_(self, args):
             return NotImplemented
 
-    class Yes(EmptyOp):
+    class No3(cirq.SingleQubitGate):
+
+        def _apply_unitary_(self, args):
+            return NotImplemented
+
+    class No4:
+
+        def _apply_unitary_(self, args):
+            return NotImplemented
+
+    class Yes1(EmptyOp):
+
         def _apply_unitary_(self, args):
             return args.target_tensor
 
-    assert cirq.has_unitary(Yes())
+    class Yes2(cirq.SingleQubitGate):
+
+        def _apply_unitary_(self, args):
+            return args.target_tensor
+
+    assert cirq.has_unitary(Yes1())
+    assert cirq.has_unitary(Yes2())
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
+    assert not cirq.has_unitary(No3())
+    assert not cirq.has_unitary(No4())
 
 
 def test_via_decompose():
+
     class Yes1:
+
         def _decompose_(self):
             return []
 
     class Yes2:
+
         def _decompose_(self):
             return [cirq.X(cirq.LineQubit(0))]
 
     class No1:
+
         def _decompose_(self):
             return [cirq.depolarize(0.5).on(cirq.LineQubit(0))]
 
     class No2:
+
         def _decompose_(self):
             return None
 
     class No3:
+
         def _decompose_(self):
             return NotImplemented
 
@@ -90,15 +124,19 @@ def test_via_decompose():
 
 
 def test_via_has_unitary():
+
     class No1:
+
         def _has_unitary_(self):
             return NotImplemented
 
     class No2:
+
         def _has_unitary_(self):
             return False
 
     class Yes:
+
         def _has_unitary_(self):
             return True
 
@@ -108,7 +146,9 @@ def test_via_has_unitary():
 
 
 def test_order():
+
     class Yes1(EmptyOp):
+
         def _has_unitary_(self):
             return True
 
@@ -122,6 +162,7 @@ def test_order():
             assert False
 
     class Yes2(EmptyOp):
+
         def _has_unitary_(self):
             return NotImplemented
 
@@ -135,6 +176,7 @@ def test_order():
             assert False
 
     class Yes3(EmptyOp):
+
         def _has_unitary_(self):
             return NotImplemented
 
@@ -148,6 +190,7 @@ def test_order():
             assert False
 
     class Yes4(EmptyOp):
+
         def _has_unitary_(self):
             return NotImplemented
 
@@ -168,6 +211,7 @@ def test_order():
 
 class EmptyOp(cirq.Operation):
     """A trivial operation that will be recognized as `_apply_unitary_`-able."""
+
     @property
     def qubits(self):
         # coverage: ignore

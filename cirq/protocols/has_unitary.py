@@ -97,10 +97,8 @@ def has_unitary(val: Any) -> bool:
         Whether or not `val` has a unitary effect.
     """
     strats = [
-        _strat_has_unitary_from_has_unitary,
-        _strat_has_unitary_from_decompose,
-        _strat_has_unitary_from_apply_unitary,
-        _strat_has_unitary_from_unitary
+        _strat_has_unitary_from_has_unitary, _strat_has_unitary_from_decompose,
+        _strat_has_unitary_from_apply_unitary, _strat_has_unitary_from_unitary
     ]
     for strat in strats:
         result = strat(val)
@@ -131,13 +129,10 @@ def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
 
 def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _decompose_ method."""
-    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    operations, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return None
-    has_unitaries = [has_unitary(op) for op in operations]
-    if any(v is None or v is NotImplemented for v in has_unitaries):
-        return None
-    return all(has_unitaries)
+    return all(has_unitary(op) for op in operations)
 
 
 def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
@@ -182,7 +177,6 @@ def _try_decompose_into_operations_and_qubits(
 
     result = decompose_once(val, None)
     if result is not None:
-        qubits = sorted({q for op in result for q in op.qubits})
-        return result, qubits
+        return result, sorted({q for op in result for q in op.qubits})
 
     return None, ()

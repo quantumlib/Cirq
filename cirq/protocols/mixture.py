@@ -208,4 +208,3 @@ def validate_mixture(supports_mixture: SupportsMixture):
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError('Sum of probabilities of a mixture was not 1.0')
-
