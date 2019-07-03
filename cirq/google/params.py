@@ -93,9 +93,9 @@ def _sweep_from_single_param_sweep_proto_dict(
     if 'points' in single_param_sweep:
         points = single_param_sweep['points']
         return Points(key, list(points['points']))
-    elif 'linspace' in single_param_sweep:
+    if 'linspace' in single_param_sweep:
         sl = single_param_sweep['linspace']
         return Linspace(key, sl['first_point'], sl['last_point'],
                         sl['num_points'])
-    else:
-        raise ValueError('Single param sweep type undefined')
+
+    raise ValueError('Single param sweep type undefined')
