@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 import cirq
 from dev_tools import shell_tools
@@ -20,6 +21,12 @@ from dev_tools import shell_tools
 
 def only_on_posix(func):
     if os.name != 'posix':
+        return None
+    return func
+
+
+def not_on_darwin(func):
+    if sys.platform == 'darwin':
         return None
     return func
 
@@ -320,7 +327,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
         "Comparing against revision 'master' (merge base ")
 
 
-@only_on_posix
+@not_on_darwin
 def test_incremental_format_branch_selection():
     result = run(script_file='check/format-incremental', arg='HEAD')
     assert result.exit_code == 0
