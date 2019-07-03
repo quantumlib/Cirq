@@ -326,7 +326,7 @@ def test_pytest_and_incremental_coverage_branch_selection():
     assert result.err.startswith(
         "Comparing against revision 'master' (merge base ")
 
-
+@only_on_posix
 @not_on_darwin
 def test_incremental_format_branch_selection():
     result = run(script_file='check/format-incremental', arg='HEAD')
