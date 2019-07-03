@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.value.abc_alt import (
+    ABCMetaImplementAnyOneOf,
+    alternative,
+)
+
 from cirq.value.angle import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,

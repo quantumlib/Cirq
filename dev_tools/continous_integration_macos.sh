@@ -16,8 +16,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     pip install -r requirements.txt
     pip install -r cirq/contrib/contrib-requirements.txt
     pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    
+    check/pytest-and-incremental-coverage master
     #`import matplotlib` throws a  RuntimeError without this
-    mkdir ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
+    mkdir -p ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
 fi
 
