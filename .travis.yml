@@ -64,8 +64,7 @@ matrix:
     env: NAME=pytest (macOS)
     python: "3.7.0"
     language: generic
-    install: ./dev_tools/continous_integration_macos.sh
-    script: check/pytest-and-incremental-coverage master
+    script: ./dev_tools/continous_integration_macos.sh
 
   - os: windows
     env: NAME=pytest (Windows)
