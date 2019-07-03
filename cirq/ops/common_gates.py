@@ -627,6 +627,16 @@ class IdentityGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.num_qubits(),
 
+    def on(self, *qubits: raw_types.Qid) -> 'Operation':
+        """Returns an application of this gate to the given qubits.
+
+        Args:
+            *qubits: The collection of qubits to potentially apply the gate to.
+        """
+        # Avoids circular import.
+        from cirq.ops import gate_operation
+        return gate_operation.IdentityOperation(self, list(qubits))
+
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.

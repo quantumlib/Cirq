@@ -186,13 +186,19 @@ class GateOperation(raw_types.Operation):
                               qubits=self.qubits,
                               default=None)
 
+
+class IdentityOperation(GateOperation):
+    """An application of the identity gate to a sequence of qubits."""
+
+    def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
+        return ValueError("IdentityOperation only works with IdentityGate")
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                       ) -> Optional[np.ndarray]:
+        return args.target_tensor
+
     def __mul__(self, other):
-        from cirq.ops.pauli_string import (SingleQubitPauliStringGateOperation,
-                                           PauliString)
-        from cirq.ops.common_gates import IdentityGate
-        if isinstance(other, (SingleQubitPauliStringGateOperation,
-                              PauliString)) and \
-            isinstance(self.gate, IdentityGate):
+        if isinstance(other, raw_types.Operation):
             return other
         return NotImplemented
 
