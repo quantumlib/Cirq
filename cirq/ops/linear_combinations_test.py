@@ -562,3 +562,170 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
 ))
 def test_operation_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
+
+
+def test_pauli_sum_construction():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum = pstr1 + pstr2
+    assert psum  # should be truthy
+    assert list(psum) == [pstr1, pstr2]
+
+    psum2 = cirq.PauliSum.from_pauli_strings([pstr1, pstr2])
+    assert psum == psum2
+
+
+def test_pauli_sum_from_single_pauli():
+    q = cirq.LineQubit.range(2)
+    psum1 = cirq.X(q[0]) + cirq.Y(q[1])
+    assert psum1 == cirq.PauliSum.from_pauli_strings(
+        [cirq.X(q[0]) * 1, cirq.Y(q[1]) * 1])
+
+    psum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Y(q[1])
+    assert psum2 == cirq.PauliSum.from_pauli_strings(
+        [cirq.X(q[0]) * cirq.X(q[1]),
+         cirq.Y(q[1]) * 1])
+
+    psum3 = cirq.Y(q[1]) + cirq.X(q[0]) * cirq.X(q[1])
+    assert psum3 == psum2
+
+
+def test_pauli_sub():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum = pstr1 - pstr2
+
+    psum2 = cirq.PauliSum.from_pauli_strings([pstr1, -1 * pstr2])
+    assert psum == psum2
+
+
+def test_pauli_sub_simplify():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.X(q[0]) * cirq.X(q[1])
+    psum = pstr1 - pstr2
+
+    psum2 = cirq.PauliSum.from_pauli_strings([])
+    assert psum == psum2
+
+
+def test_pauli_sum_neg():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum1 = pstr1 + pstr2
+    psum2 = -1 * pstr1 - pstr2
+
+    assert -psum1 == psum2
+    psum1 *= -1
+    assert psum1 == psum2
+
+    psum2 = psum1 * -1
+    assert psum1 == -psum2
+
+
+def test_paulisum_validation():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    with pytest.raises(ValueError) as e:
+        cirq.PauliSum([pstr1, pstr2])
+    assert e.match("Consider using")
+
+    with pytest.raises(ValueError):
+        ld = cirq.LinearDict({pstr1: 2.0})
+        cirq.PauliSum(ld)
+
+    with pytest.raises(ValueError):
+        key = frozenset([('q0', cirq.X)])
+        ld = cirq.LinearDict({key: 2.0})
+        cirq.PauliSum(ld)
+
+    with pytest.raises(ValueError):
+        key = frozenset([(q[0], cirq.H)])
+        ld = cirq.LinearDict({key: 2.0})
+        cirq.PauliSum(ld)
+
+    key = frozenset([(q[0], cirq.X)])
+    ld = cirq.LinearDict({key: 2.0})
+    assert (cirq.PauliSum(ld) == cirq.PauliSum.from_pauli_strings(
+        [2 * cirq.X(q[0])]))
+
+
+def test_add_number_paulisum():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    psum = cirq.PauliSum.from_pauli_strings([pstr1]) + 1.3
+    assert psum == cirq.PauliSum.from_pauli_strings(
+        [pstr1, cirq.PauliString({}, 1.3)])
+
+
+def test_add_number_paulistring():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    psum = pstr1 + 1.3
+    assert psum == cirq.PauliSum.from_pauli_strings(
+        [pstr1, cirq.PauliString({}, 1.3)])
+
+    psum = pstr1 - 1.3
+    assert psum == cirq.PauliSum.from_pauli_strings(
+        [pstr1, cirq.PauliString({}, -1.3)])
+
+
+def test_pauli_sum_formatting():
+    q = cirq.LineQubit.range(2)
+    pauli = cirq.X(q[0])
+    assert str(pauli) == 'X(0)'
+    paulistr = cirq.X(q[0]) * cirq.X(q[1])
+    assert str(paulistr) == 'X(0)*X(1)'
+    paulisum1 = cirq.X(q[0]) * cirq.X(q[1]) + 4
+    assert str(paulisum1) == '1.000*X(0)*X(1)+4.000*I'
+    paulisum2 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0])
+    assert str(paulisum2) == '1.000*X(0)*X(1)+1.000*Z(0)'
+    paulisum3 = cirq.X(q[0]) * cirq.X(q[1]) + cirq.Z(q[0]) * cirq.Z(q[1])
+    assert str(paulisum3) == '1.000*X(0)*X(1)+1.000*Z(0)*Z(1)'
+    assert "{:.0f}".format(paulisum3) == '1*X(0)*X(1)+1*Z(0)*Z(1)'
+
+    empty = cirq.PauliSum.from_pauli_strings([])
+    assert str(empty) == "0.000"
+
+
+def test_pauli_sum_repr():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum = pstr1 + 2 * pstr2 + 1
+    cirq.testing.assert_equivalent_repr(psum)
+
+
+def test_bad_arithmetic():
+    q = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    pstr2 = cirq.Y(q[0]) * cirq.Y(q[1])
+    psum = pstr1 + 2 * pstr2 + 1
+
+    with pytest.raises(TypeError):
+        psum += 'hi mom'
+
+    with pytest.raises(TypeError):
+        _ = psum + 'hi mom'
+
+    with pytest.raises(TypeError):
+        psum -= 'hi mom'
+
+    with pytest.raises(TypeError):
+        _ = psum - 'hi mom'
+
+    with pytest.raises(TypeError):
+        psum *= [1, 2, 3]
+
+    with pytest.raises(TypeError):
+        _ = psum * [1, 2, 3]
+
+    with pytest.raises(TypeError):
+        _ = [1, 2, 3] * psum
+
+    with pytest.raises(TypeError):
+        _ = psum / [1, 2, 3]

@@ -64,17 +64,16 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
     which = msg.WhichOneof('sweep')
     if which is None:
         return sweeps.UnitSweep
-    elif which == 'sweep_function':
+    if which == 'sweep_function':
         factors = [sweep_from_proto(m) for m in msg.sweep_function.sweeps]
         func_type = msg.sweep_function.function_type
         if func_type == run_context_pb2.SweepFunction.PRODUCT:
             return sweeps.Product(*factors)
-        elif func_type == run_context_pb2.SweepFunction.ZIP:
+        if func_type == run_context_pb2.SweepFunction.ZIP:
             return sweeps.Zip(*factors)
-        else:
-            raise ValueError(
-                'invalid sweep function type: {}'.format(func_type))
-    elif which == 'single_sweep':
+
+        raise ValueError('invalid sweep function type: {}'.format(func_type))
+    if which == 'single_sweep':
         key = msg.single_sweep.parameter_key
         if msg.single_sweep.WhichOneof('sweep') == 'linspace':
             return sweeps.Linspace(
@@ -83,10 +82,10 @@ def sweep_from_proto(msg: run_context_pb2.Sweep) -> sweeps.Sweep:
                 stop=msg.single_sweep.linspace.last_point,
                 length=msg.single_sweep.linspace.num_points,
             )
-        elif msg.single_sweep.WhichOneof('sweep') == 'points':
+        if msg.single_sweep.WhichOneof('sweep') == 'points':
             return sweeps.Points(key=key, points=msg.single_sweep.points.points)
-        else:
-            raise ValueError('single sweep type not set: {}'.format(msg))
-    else:
-        # coverage: ignore
-        raise ValueError('sweep type not set: {}'.format(msg))
+
+        raise ValueError('single sweep type not set: {}'.format(msg))
+
+    # coverage: ignore
+    raise ValueError('sweep type not set: {}'.format(msg))

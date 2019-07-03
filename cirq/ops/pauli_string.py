@@ -61,6 +61,7 @@ class PauliString(raw_types.Operation):
             q, p = list(self._qubit_pauli_map.items())[0]
             return gate_operation.GateOperation(p,
                                                 [q])._value_equality_values_()
+
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
@@ -114,6 +115,14 @@ class PauliString(raw_types.Operation):
         if isinstance(other, (int, float, complex)):
             return PauliString(self._qubit_pauli_map, self._coefficient * other)
         return NotImplemented
+
+    def __add__(self, other):
+        from cirq.ops.linear_combinations import PauliSum
+        return PauliSum.from_pauli_strings(self).__add__(other)
+
+    def __sub__(self, other):
+        from cirq.ops.linear_combinations import PauliSum
+        return PauliSum.from_pauli_strings(self).__sub__(other)
 
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
@@ -376,15 +385,15 @@ class PauliString(raw_types.Operation):
                 pauli_map[qubit] = cast(pauli_gates.Pauli,
                                         pauli_left or pauli_right)
                 return 0
-            elif pauli_left == pauli_right:
+            if pauli_left == pauli_right:
                 del pauli_map[qubit]
                 return 0
-            else:
-                pauli_map[qubit] = pauli_left.third(pauli_right)
-                if (pauli_left < pauli_right) ^ after_to_before:
-                    return int(inv) * 2 + 1
-                else:
-                    return int(inv) * 2 - 1
+
+            pauli_map[qubit] = pauli_left.third(pauli_right)
+            if (pauli_left < pauli_right) ^ after_to_before:
+                return int(inv) * 2 + 1
+
+            return int(inv) * 2 - 1
 
         quarter_kickback = 0
         if (qubit0 in pauli_map and
