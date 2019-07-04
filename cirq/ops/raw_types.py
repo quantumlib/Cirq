@@ -19,7 +19,8 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 import abc
 
 from cirq import value
-from cirq.protocols import decompose, inverse
+from cirq.protocols import decompose, inverse, qid_shape_protocol
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -87,7 +88,7 @@ class Qid(metaclass=abc.ABCMeta):
         return self._cmp_tuple() >= other._cmp_tuple()
 
 
-class Gate(metaclass=abc.ABCMeta):
+class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     """An operation type that can be applied to a collection of qubits.
 
     Gates can be applied to qubits by calling their on() method with
@@ -121,12 +122,12 @@ class Gate(metaclass=abc.ABCMeta):
                 "Applied a gate to an empty set of qubits. Gate: {}".format(
                     repr(self)))
 
-        if len(qubits) != self.num_qubits():
+        if len(qubits) != qid_shape_protocol.num_qubits(self):
             raise ValueError(
                 'Wrong number of qubits for <{!r}>. '
                 'Expected {} qubits but got <{!r}>.'.format(
                     self,
-                    self.num_qubits(),
+                    qid_shape_protocol.num_qubits(self),
                     qubits))
 
         if any([not isinstance(qubit, Qid)
@@ -194,7 +195,8 @@ class Gate(metaclass=abc.ABCMeta):
 
             decomposed = decompose.decompose_once_with_qubits(
                 self,
-                qubits=line_qubit.LineQubit.range(self.num_qubits()),
+                qubits=line_qubit.LineQubit.range(
+                            qid_shape_protocol.num_qubits(self)),
                 default=None)
             if decomposed is None:
                 return NotImplemented
@@ -222,10 +224,50 @@ class Gate(metaclass=abc.ABCMeta):
             return self
         return ControlledGate(self, control_qubits, len(control_qubits))
 
-    @abc.abstractmethod
+    # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
+    # to keep backwards compatibility with versions of cirq where num_qubits
+    # is an abstract method.
+    @deprecated(deadline='v0.???', func_name='num_qubits',
+                fix='Use cirq.num_qubits(gate) instead.')
+    def _deprecated_num_qubits(self) -> int:
+        return qid_shape_protocol.num_qubits(self)
+
+    @value.alternative(requires='_num_qubits_',
+                       implementation=_deprecated_num_qubits)
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
-        raise NotImplementedError()
+
+    def _num_qubits_from_shape(self) -> int:
+        shape = self._qid_shape_()
+        if shape is NotImplemented:
+            return NotImplemented
+        return len(shape)
+
+    @deprecated(deadline='v0.???', func_name='num_qubits', fix=(
+        'Implement protocol method _num_qubits_ instead of num_qubits on '
+        'subclasses of cirq.Gate.'))
+    def _num_qubits_proto_from_num_qubits(self) -> int:
+        return self.num_qubits()
+
+    @value.alternative(requires='num_qubits',
+                       implementation=_num_qubits_proto_from_num_qubits)
+    @value.alternative(requires='_qid_shape_',
+                       implementation=_num_qubits_from_shape)
+    def _num_qubits_(self) -> int:
+        """The number of qubits this gate acts on."""
+
+    def _default_shape_from_num_qubits(self) -> Tuple[int, ...]:
+        num_qubits = self._num_qubits_()
+        if num_qubits is NotImplemented:
+            return NotImplemented
+        return (2,) * num_qubits
+
+    @value.alternative(requires='_num_qubits_',
+                       implementation=_default_shape_from_num_qubits)
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        """Returns a Tuple containing the dimension of each qid the gate acts
+        on.  E.g. the size of the qid Hilbert space.
+        """
 
 
 class Operation(metaclass=abc.ABCMeta):
@@ -238,6 +280,13 @@ class Operation(metaclass=abc.ABCMeta):
     @abc.abstractproperty
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()
+
+    def _num_qubits_(self) -> int:
+        """The number of qubits this operation acts on.
+
+        By default, returns the length of `qubits`.
+        """
+        return len(self.qubits)
 
     @abc.abstractmethod
     def with_qubits(self, *new_qubits: Qid) -> 'Operation':
@@ -276,8 +325,8 @@ class _InverseCompositeGate(Gate):
     def __init__(self, original: Gate) -> None:
         self._original = original
 
-    def num_qubits(self):
-        return self._original.num_qubits()
+    def _num_qubits_(self):
+        return qid_shape_protocol.num_qubits(self._original)
 
     def __pow__(self, power):
         if power == 1:
