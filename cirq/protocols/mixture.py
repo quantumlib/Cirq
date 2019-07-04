@@ -19,7 +19,7 @@ from typing import Any, Sequence, Tuple, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols.unitary import has_unitary
+from cirq.protocols.has_unitary import has_unitary
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -208,4 +208,3 @@ def validate_mixture(supports_mixture: SupportsMixture):
         total += p
     if not np.isclose(total, 1.0):
         raise ValueError('Sum of probabilities of a mixture was not 1.0')
-
