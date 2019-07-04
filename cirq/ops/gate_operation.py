@@ -22,7 +22,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features, op_tree
+from cirq.ops import raw_types, common_gates, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -187,15 +187,56 @@ class GateOperation(raw_types.Operation):
                               default=None)
 
 
-class IdentityOperation(GateOperation):
+class IdentityOperation(raw_types.Operation):
     """An application of the identity gate to a sequence of qubits."""
 
-    def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
-        return ValueError("IdentityOperation only works with IdentityGate")
+    def __init__(self, gate: common_gates.IdentityGate,
+                 qubits: Sequence[raw_types.Qid]) -> None:
+        """
+        Args:
+            gate: The gate to apply. Only really accepts the IdentityGate
+            qubits: The qubits to operate on.
+        """
+        gate.validate_args(qubits)
+        self._gate = gate
+        self._qubits = tuple(qubits)
+
+    @property
+    def gate(self) -> raw_types.Gate:
+        """The gate applied by the operation."""
+        return self._gate
+
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        """The qubits targeted by the operation."""
+        return self._qubits
+
+    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
+        return self.gate.on(*new_qubits)
+
+    def __repr__(self):
+        # Abbreviate when possible.
+        if self == self.gate.on(*self.qubits):
+            return '{!r}.on({})'.format(self.gate,
+                                        ', '.join(repr(q) for q in self.qubits))
+
+        return 'cirq.IdentityOperation(gate={!r}, qubits={!r})'.format(
+            self.gate, list(self.qubits))
+
+    def __str__(self):
+        return '{}({})'.format(self.gate,
+                               ', '.join(str(e) for e in self.qubits))
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return protocols.pauli_expansion(self.gate)
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                        ) -> Optional[np.ndarray]:
         return args.target_tensor
+
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
+        return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
 
     def __mul__(self, other):
         if isinstance(other, raw_types.Operation):
