@@ -66,10 +66,10 @@ def test_via_apply_unitary():
         def _apply_unitary_(self, args):
             return NotImplemented
 
-    class No4(EmptyOp):
+    class No4:  # A non-operation non-gate.
 
         def _apply_unitary_(self, args):
-            return NotImplemented
+            assert False  # Because has_unitary doesn't understand how to call.
 
     class Yes1(EmptyOp):
 
