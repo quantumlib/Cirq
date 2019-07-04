@@ -131,6 +131,7 @@ from cirq.ops import (
     HPowGate,
     I,
     IdentityGate,
+    IdentityOperation,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,

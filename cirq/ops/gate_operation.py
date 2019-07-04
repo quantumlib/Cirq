@@ -215,11 +215,6 @@ class IdentityOperation(raw_types.Operation):
         return self.gate.on(*new_qubits)
 
     def __repr__(self):
-        # Abbreviate when possible.
-        if self == self.gate.on(*self.qubits):
-            return '{!r}.on({})'.format(self.gate,
-                                        ', '.join(repr(q) for q in self.qubits))
-
         return 'cirq.IdentityOperation(gate={!r}, qubits={!r})'.format(
             self.gate, list(self.qubits))
 

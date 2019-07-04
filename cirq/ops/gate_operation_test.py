@@ -240,6 +240,11 @@ def test_repr():
     assert repr(cirq.GateOperation(cirq.CZ, (a, b))
                 ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
 
+    assert repr(cirq.IdentityOperation(
+        cirq.IdentityGate(2),
+        (a, b))) == ('cirq.IdentityOperation(gate=cirq.IdentityGate(2), '
+                     'qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])')
+
     class Inconsistent(cirq.SingleQubitGate):
         def __repr__(self):
             return 'Inconsistent'

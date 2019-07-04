@@ -627,7 +627,7 @@ class IdentityGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.num_qubits(),
 
-    def on(self, *qubits: raw_types.Qid) -> 'Operation':
+    def on(self, *qubits: raw_types.Qid) -> raw_types.Operation:
         """Returns an application of this gate to the given qubits.
 
         Args:
