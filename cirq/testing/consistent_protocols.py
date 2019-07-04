@@ -17,9 +17,8 @@ from typing import Any, Dict, Optional, Sequence, Type, Union
 import sympy
 
 from cirq import ops, protocols
-from cirq.testing.circuit_compare import (
-        assert_has_consistent_apply_unitary,
-        assert_has_consistent_qid_shape)
+from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
+                                          assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
         assert_decompose_is_consistent_with_unitary)
 from cirq.testing.consistent_phase_by import (

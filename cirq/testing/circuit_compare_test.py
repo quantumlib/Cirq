@@ -430,7 +430,9 @@ def test_inconsistent_qubit_count():
 
 
 def test_assert_has_consistent_qid_shape():
+
     class ConsistentGate(cirq.Gate):
+
         def _num_qubits_(self):
             return 4
 
@@ -438,6 +440,7 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 3, 4)
 
     class InconsistentGate(cirq.Gate):
+
         def _num_qubits_(self):
             return 2
 
@@ -445,6 +448,7 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 3, 4)
 
     class BadShapeGate(cirq.Gate):
+
         def _num_qubits_(self):
             return 4
 
@@ -452,6 +456,7 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 0, 4)
 
     class ConsistentOp(cirq.Operation):
+
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -469,6 +474,7 @@ def test_assert_has_consistent_qid_shape():
     # because test_assert_has_consistent_qid_shape may only need to check two of
     # the three methods before finding an inconsistency and throwing an error.
     class InconsistentOp1(cirq.Operation):
+
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -483,6 +489,7 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 3, 4)  # coverage: ignore
 
     class InconsistentOp2(cirq.Operation):
+
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 
@@ -497,6 +504,7 @@ def test_assert_has_consistent_qid_shape():
             return (1, 2, 3, 4)  # coverage: ignore
 
     class InconsistentOp3(cirq.Operation):
+
         def with_qubits(self, *qubits):
             raise NotImplementedError  # coverage: ignore
 

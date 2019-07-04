@@ -18,6 +18,7 @@ import cirq
 
 
 class ValiGate(cirq.Gate):
+
     def _num_qubits_(self):
         return 2
 
@@ -54,6 +55,7 @@ def test_op():
 
 def test_default_validation_and_inverse():
     class TestGate(cirq.Gate):
+
         def _num_qubits_(self):
             return 2
 
@@ -100,14 +102,14 @@ def test_default_inverse():
             return (cirq.X**0.1).on_each(*qubits)
 
     assert cirq.inverse(TestGate(), None) is not None
-    cirq.testing.assert_has_consistent_qid_shape(
-        cirq.inverse(TestGate()))
+    cirq.testing.assert_has_consistent_qid_shape(cirq.inverse(TestGate()))
     cirq.testing.assert_has_consistent_qid_shape(
         cirq.inverse(TestGate().on(*cirq.LineQubit.range(3))))
 
 
 def test_no_inverse_if_not_unitary():
     class TestGate(cirq.Gate):
+
         def _num_qubits_(self):
             return 1
 

@@ -34,6 +34,7 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
+
     def _num_qubits_(self) -> int:
         return 1
 
@@ -66,11 +67,13 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly two qubits."""
+
     def _num_qubits_(self) -> int:
         return 2
 
 
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
+
     def _num_qubits_(self) -> int:
         return 3

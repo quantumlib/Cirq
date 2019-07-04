@@ -123,12 +123,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                     repr(self)))
 
         if len(qubits) != qid_shape_protocol.num_qubits(self):
-            raise ValueError(
-                'Wrong number of qubits for <{!r}>. '
-                'Expected {} qubits but got <{!r}>.'.format(
-                    self,
-                    qid_shape_protocol.num_qubits(self),
-                    qubits))
+            raise ValueError('Wrong number of qubits for <{!r}>. '
+                             'Expected {} qubits but got <{!r}>.'.format(
+                                 self, qid_shape_protocol.num_qubits(self),
+                                 qubits))
 
         if any([not isinstance(qubit, Qid)
                 for qubit in qubits]):
@@ -196,7 +194,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             decomposed = decompose.decompose_once_with_qubits(
                 self,
                 qubits=line_qubit.LineQubit.range(
-                            qid_shape_protocol.num_qubits(self)),
+                    qid_shape_protocol.num_qubits(self)),
                 default=None)
             if decomposed is None:
                 return NotImplemented
@@ -227,7 +225,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
     # to keep backwards compatibility with versions of cirq where num_qubits
     # is an abstract method.
-    @deprecated(deadline='v0.???', func_name='num_qubits',
+    @deprecated(deadline='v0.???',
+                func_name='num_qubits',
                 fix='Use cirq.num_qubits(gate) instead.')
     def _deprecated_num_qubits(self) -> int:
         return qid_shape_protocol.num_qubits(self)
@@ -243,9 +242,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return NotImplemented
         return len(shape)
 
-    @deprecated(deadline='v0.???', func_name='num_qubits', fix=(
-        'Implement protocol method _num_qubits_ instead of num_qubits on '
-        'subclasses of cirq.Gate.'))
+    @deprecated(
+        deadline='v0.???',
+        func_name='num_qubits',
+        fix=('Implement protocol method _num_qubits_ instead of num_qubits on '
+             'subclasses of cirq.Gate.'))
     def _num_qubits_proto_from_num_qubits(self) -> int:
         return self.num_qubits()
 

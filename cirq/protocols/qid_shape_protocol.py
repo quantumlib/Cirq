@@ -74,7 +74,7 @@ class SupportsQidShape(Protocol):
 
 
 def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
-              ) -> Union[Tuple[int, ...], TDefault]:
+             ) -> Union[Tuple[int, ...], TDefault]:
     """Returns a tuple describing the dimensions of each qubit/qudit/qid `val`
     operates on.
 
@@ -122,7 +122,7 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
 
 
 def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
-               ) -> Union[int, TDefault]:
+              ) -> Union[int, TDefault]:
     """Returns the number of qubits `val` operates on.
 
     Args:

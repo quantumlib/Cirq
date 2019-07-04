@@ -43,7 +43,7 @@ def proper_repr(value: Any) -> str:
 
 
 def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
-               ) -> Callable[[Callable], Callable]:
+              ) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
@@ -63,8 +63,8 @@ def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
             nonlocal used
             if not used:
                 used = True
-                qualname = (func.__qualname__ if func_name is None
-                            else func_name)
+                qualname = (func.__qualname__
+                            if func_name is None else func_name)
                 logging.warning(
                     'DEPRECATION\n'
                     'The function %s was used but is deprecated.\n'

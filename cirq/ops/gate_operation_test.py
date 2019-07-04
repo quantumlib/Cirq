@@ -100,6 +100,7 @@ def test_gate_operation_approx_eq():
 def test_gate_operation_qid_shape():
 
     class ShapeGate(cirq.Gate):
+
         def _qid_shape_(self):
             return (1, 2, 3, 4)
 
@@ -111,6 +112,7 @@ def test_gate_operation_qid_shape():
 def test_gate_operation_num_qubits():
 
     class NumQubitsGate(cirq.Gate):
+
         def _num_qubits_(self):
             return 4
 
