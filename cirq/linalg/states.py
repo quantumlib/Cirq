@@ -13,7 +13,9 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from typing import Sequence, Union, Type
+from functools import reduce
+import operator
+from typing import Sequence, Union, Tuple, Type
 
 import numpy as np
 
@@ -38,3 +40,11 @@ def one_hot(*,
     result = np.zeros(shape=shape, dtype=dtype)
     result[index] = 1
     return result
+
+def state_size(*, qid_shape: Tuple[int, ...]) -> int:
+    return reduce(operator.mul, qid_shape, 1)
+
+def identity_unitary(*, qid_shape: Tuple[int, ...]) -> np.array:
+    state = np.eye(state_size(qid_shape=qid_shape), dtype=np.complex128)
+    state.shape = qid_shape * 2
+    return state

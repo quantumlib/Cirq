@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import Sequence, Union, Tuple, TYPE_CHECKING
+from typing import Optional, Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -211,8 +211,10 @@ def allclose_up_to_global_phase(
 
 
 def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
-                              little_endian_qureg_value: int,
+                              little_endian_qureg_value: Optional[int] = None,
                               *,  # Forces keyword args.
+                              qureg_value_tuple:
+                                Optional[Tuple[Union[int, slice], ...]] = None,
                               num_qubits: int = None
                               ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
@@ -241,11 +243,14 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         target_qubit_axes: The qubits that are specified by the index bits. All
             other axes of the slice are unconstrained.
         little_endian_qureg_value: An integer whose bits specify what value is
-            desired for of the target qubits. The integer is little endian
-            w.r.t. the target quit axes, meaning the low bit of the integer
+            desired for each of the target qubits. The integer is little endian
+            w.r.t. the target qubit axes, meaning the low bit of the integer
             determines the desired value of the first targeted qubit, and so
             forth with the k'th targeted qubit's value set to
             bool(qureg_value & (1 << k)).
+        qureg_value_tuple: A tuple whose items specify what value is desired for
+            each of the target qids.  Specify either `little_endian_qureg_value`
+            or `qureg_value_tuple`.
         num_qubits: If specified the slices will extend all the way up to
             this number of qubits, otherwise if it is None, the final element
             return will be Ellipsis. Optional and defaults to using Ellipsis.
@@ -254,12 +259,22 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
     """
+    if (little_endian_qureg_value is None) == (qureg_value_tuple is None):
+        raise TypeError(
+            'Specify exactly one of the arguments little_endian_qureg_value '
+            'and qureg_value_tuple.')
     n = num_qubits if num_qubits is not None else (
         max(target_qubit_axes) if target_qubit_axes else -1)
     result = [slice(None)] * (n + 2 * (
             num_qubits is None))  # type: List[Union[slice, int, ellipsis]]
-    for k, axis in enumerate(target_qubit_axes):
-        result[axis] = (little_endian_qureg_value >> k) & 1
+    if little_endian_qureg_value is not None:
+        for k, axis in enumerate(target_qubit_axes):
+            result[axis] = (little_endian_qureg_value >> k) & 1
+    else:
+        # Satisfy mypy
+        assert qureg_value_tuple is not None, "Can't be None here"
+        for k, axis in enumerate(target_qubit_axes):
+            result[axis] = qureg_value_tuple[k]
     if num_qubits is None:
         result[-1] = Ellipsis
     return tuple(result)

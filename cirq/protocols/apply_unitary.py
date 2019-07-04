@@ -30,6 +30,8 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq.protocols.unitary import unitary
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -67,12 +69,15 @@ class ApplyUnitaryArgs:
             dtype as the target tensor.
         axes: Which axes the unitary effect is being applied to (e.g. the
             qubits that the gate is operating on).
+        qid_shape: A tuple of the dimensions of each qid in the state
+            `target_tensor`.
     """
 
     def __init__(self,
                  target_tensor: np.ndarray,
                  available_buffer: np.ndarray,
-                 axes: Iterable[int]):
+                 axes: Iterable[int],
+                 qid_shape: Optional[Tuple[int, ...]] = None):
         """
 
         Args:
@@ -85,20 +90,49 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
+            qid_shape: A tuple of the dimensions of each qid in the state
+                `target_tensor`.
         """
+        self.axes = tuple(axes)
+        if qid_shape is None:
+            # Guess what the qid_shape would be for qubits.
+            min_num_qubits = max(self.axes) + 1
+            qid_shape = (2,)*min_num_qubits  # Might be too short
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
-        self.axes = tuple(axes)
+        self.qid_shape = qid_shape
 
     @staticmethod
-    def default(num_qubits: int) -> 'ApplyUnitaryArgs':
-        """A default instance starting in state |0⟩."""
-        state = linalg.one_hot(index=(0,) * num_qubits,
-                               shape=(2,) * num_qubits,
-                               dtype=np.complex128)
-        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
+    def default(num_qubits: Optional[int] = None,
+                *,
+                qid_shape: Optional[Tuple[int, ...]] = None
+                ) -> 'ApplyUnitaryArgs':
+        """A default instance starting in state |0⟩.
 
-    def subspace_index(self, little_endian_bits_int: int
+        Specify exactly one argument.
+
+        Args:
+            num_qubits: The number of qubits to make space for in the state.
+            qid_shape: The shape of the state, specifying the dimension of each
+                qid."""
+        if (num_qubits is None) == (qid_shape is None):
+            raise TypeError(
+                'Specify either the num_qubits or qid_shape argument.')
+        if num_qubits is not None:
+            qid_shape = (2,) * num_qubits
+        assert qid_shape is not None, "Can't be None here"  # Satisfy mypy
+        num_qubits = len(qid_shape)
+        state = linalg.one_hot(index=(0,) * num_qubits,
+                               shape=qid_shape,
+                               dtype=np.complex128)
+        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits),
+                                qid_shape)
+
+    def subspace_index(self,
+                       little_endian_bits_int: Optional[int] = None,
+                       *,  # Forces keyword args.
+                       value_tuple:
+                            Optional[Tuple[Union[int, slice], ...]] = None,
                        ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
@@ -107,6 +141,9 @@ class ApplyUnitaryArgs:
                 targeted `axes`, packed into an integer. The least significant
                 bit of the integer is the desired bit for the first axis, and
                 so forth in increasing order.
+            value_tuple: The desired value of the qids at the targeted `axes`,
+                packed into a tuple.  Specify either `little_endian_bits_int` or
+                `value_tuple`.
 
         Returns:
             A value that can be used to index into `target_tensor` and
@@ -127,7 +164,8 @@ class ApplyUnitaryArgs:
                 args.target_tensor[:, 0, :, 1] += 1
         """
         return linalg.slice_for_qubits_equal_to(self.axes,
-                                                little_endian_bits_int)
+                                                little_endian_bits_int,
+                                                qureg_value_tuple=value_tuple)
 
 
 class SupportsConsistentApplyUnitary(Protocol):
@@ -376,17 +414,27 @@ def apply_unitaries(unitary_values: Iterable[Any],
             and `default` wasn't specified.
     """
     if args is None:
-        args = ApplyUnitaryArgs.default(len(qubits))
+        # Default to 2 for backwards compatibility
+        max_shape_dict = {qubit: 2 for qubit in qubits}
+        unitary_values = tuple(unitary_values)
+        # Iterate over all unitary values to find the maximum qid_shape
+        for op in unitary_values:
+            for d, qubit in zip(qid_shape_protocol.qid_shape(op), op.qubits):
+                max_shape_dict[qubit] = max(d, max_shape_dict[qubit])
+        max_shape = tuple(max_shape_dict.values())
+        args = ApplyUnitaryArgs.default(qid_shape=max_shape)
     if len(qubits) != len(args.axes):
         raise ValueError('len(qubits) != len(args.axes)')
     qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
     state = args.target_tensor
     buffer = args.available_buffer
+    qid_shape = args.qid_shape
 
     for op in unitary_values:
         indices = [qubit_map[q] for q in op.qubits]
         result = apply_unitary(unitary_value=op,
-                               args=ApplyUnitaryArgs(state, buffer, indices),
+                               args=ApplyUnitaryArgs(state, buffer, indices,
+                                                     qid_shape),
                                default=None)
 
         # Handle failure.

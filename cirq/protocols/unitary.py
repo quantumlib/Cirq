@@ -23,6 +23,8 @@ from typing import (
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq import linalg
+from cirq.protocols.qid_shape_protocol import qid_shape
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:

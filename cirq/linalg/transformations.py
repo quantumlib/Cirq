@@ -220,7 +220,7 @@ _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 def apply_matrix_to_slices(
         target: np.ndarray,
         matrix: np.ndarray,
-        slices: List[_TSlice],
+        slices: Sequence[_TSlice],
         *,
         out: Optional[np.ndarray] = None) -> np.ndarray:
     """Left-multiplies an NxN matrix onto N slices of a numpy array.

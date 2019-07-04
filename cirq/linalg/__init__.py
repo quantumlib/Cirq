@@ -39,7 +39,10 @@ from cirq.linalg.decompositions import (
 )
 
 from cirq.linalg.states import (
-    one_hot,)
+    one_hot,
+    state_size,
+    identity_unitary,
+)
 
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,

@@ -31,3 +31,38 @@ def test_one_hot():
 
     np.testing.assert_array_equal(
         cirq.one_hot(shape=5, dtype=np.complex128, index=3), [0, 0, 0, 1, 0])
+
+
+def test_state_size():
+    assert cirq.state_size(qid_shape=(2, 2, 2)) == 8
+    assert cirq.state_size(qid_shape=(1, 2, 3, 4)) == 24
+    assert cirq.state_size(qid_shape=(1,)) == 1
+    assert cirq.state_size(qid_shape=()) == 1
+
+
+def test_identity_unitary():
+    assert np.all(cirq.identity_unitary(qid_shape=()) == np.array(1))
+    assert np.all(cirq.identity_unitary(qid_shape=(1,)) == np.array([
+        [1]]))
+    assert np.all(cirq.identity_unitary(qid_shape=(2,)) == np.array([
+        [1, 0],
+        [0, 1]]))
+    assert np.all(cirq.identity_unitary(qid_shape=(2, 2)) == np.array([
+        [[[1, 0], [0, 0]],
+         [[0, 1], [0, 0]]],
+        [[[0, 0], [1, 0]],
+         [[0, 0], [0, 1]]]]))
+    assert np.all(cirq.identity_unitary(qid_shape=(2, 3)) == np.array([
+        [[[1, 0, 0], [0, 0, 0]],
+         [[0, 1, 0], [0, 0, 0]],
+         [[0, 0, 1], [0, 0, 0]]],
+        [[[0, 0, 0], [1, 0, 0]],
+         [[0, 0, 0], [0, 1, 0]],
+         [[0, 0, 0], [0, 0, 1]]]]))
+    assert np.all(cirq.identity_unitary(qid_shape=(3, 2)) == np.array([
+        [[[1, 0], [0, 0], [0, 0]],
+         [[0, 1], [0, 0], [0, 0]]],
+        [[[0, 0], [1, 0], [0, 0]],
+         [[0, 0], [0, 1], [0, 0]]],
+        [[[0, 0], [0, 0], [1, 0]],
+         [[0, 0], [0, 0], [0, 1]]]]))
