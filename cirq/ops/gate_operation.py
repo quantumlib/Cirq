@@ -187,6 +187,7 @@ class GateOperation(raw_types.Operation):
                               default=None)
 
 
+@value.value_equality(approximate=True)
 class IdentityOperation(raw_types.Operation):
     """An application of the identity gate to a sequence of qubits."""
 
@@ -215,12 +216,35 @@ class IdentityOperation(raw_types.Operation):
         return self.gate.on(*new_qubits)
 
     def __repr__(self):
+        # Abbreviate when possible.
+        if self == self.gate.on(*self.qubits):
+            return '{!r}.on({})'.format(self.gate,
+                                        ', '.join(repr(q) for q in self.qubits))
+
         return 'cirq.IdentityOperation(gate={!r}, qubits={!r})'.format(
             self.gate, list(self.qubits))
 
     def __str__(self):
         return '{}({})'.format(self.gate,
                                ', '.join(str(e) for e in self.qubits))
+
+    def _group_interchangeable_qubits(
+            self
+    ) -> Tuple[Union[raw_types.Qid, Tuple[int, FrozenSet[raw_types.Qid]]], ...]:
+
+        if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
+            return self.qubits
+
+        groups = {}  # type: Dict[int, List[raw_types.Qid]]
+        for i, q in enumerate(self.qubits):
+            k = self.gate.qubit_index_to_equivalence_group_key(i)
+            if k not in groups:
+                groups[k] = []
+            groups[k].append(q)
+        return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
+
+    def _value_equality_values_(self):
+        return self.gate, self._group_interchangeable_qubits()
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self.gate)
