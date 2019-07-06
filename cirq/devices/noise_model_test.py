@@ -113,3 +113,13 @@ def test_constant_qubit_noise():
 
     with pytest.raises(ValueError, match='num_qubits'):
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
+
+
+class NonMarkovianPulseTrainNoise(cirq.NoiseModel):
+    pass
+
+class MarkovianSpatiallyCorrelatedNoise(cirq.NoiseModel):
+    pass
+
+class OperationSpecificNoise(cirq.NoiseModel):
+    pass

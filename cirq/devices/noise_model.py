@@ -15,6 +15,7 @@
 from typing import TYPE_CHECKING, Iterable, Sequence, Union
 
 from cirq import ops, value
+from cirq.circuits import circuit
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -119,6 +120,24 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             An OP_TREE corresponding to the noisy operations implementing the
             noisy version of the given operation.
         """
+
+    def apply_noise(self, circuit: 'cirq.Circuit') -> 'cirq.Circuit':
+        """Compose a circuit augmenting the input with defined noise methods.
+
+        If multiple noise methods are defined, they will be inserted in order
+        of finest granularity i.e. `noisy_operation` operations before
+        `noisy_moment` operations before `noisy_moments` operations.
+
+        TODO
+        """
+
+        # Append to front of op trees within a queue to avoid in place changes
+        op_tree = self.noisy_moments(circuit)
+        for i, moment in enumerate(circuit):
+            op_tree[i] = self.noisy_moment(moment) + op_tree[i]
+            for op in moment:
+                op_tree[i].insert(0, self.noisy_operation(op))
+        return circuit.Circuit.from_ops(op_tree)
 
 
 @value.value_equality
