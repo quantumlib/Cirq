@@ -410,6 +410,47 @@ def test_run_sweep_v2(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_bad_result_proto(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'}
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'READY'}}
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'SUCCESS'}}
+    jobs.getResult().execute.return_value = {
+        'result': _RESULTS_V2}
+
+    engine = cg.Engine(
+        api_key="key",
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+        gate_set=cirq.google.gate_sets.XMON)
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        params=cirq.Points('a', [1, 2]))
+    engine.proto_version = cg.engine.engine.ProtoVersion.UNDEFINED
+    with pytest.raises(ValueError, match='invalid proto version'):
+        results = job.results()
+
+
+@mock.patch.object(discovery, 'build')
+def test_bad_sweep_proto(build):
+    eng = cg.Engine(api_key="key",
+                    proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
+    with pytest.raises(ValueError, match='invalid proto version'):
+        eng.run(program=cirq.Circuit(),
+                job_config=cg.JobConfig('project-id',
+                                        gcs_prefix='gs://bucket/folder'))
+
+
+@mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
     eng = cg.Engine(api_key="key")
     with pytest.raises(ValueError, match='priority must be'):

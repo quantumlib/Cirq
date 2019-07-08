@@ -54,6 +54,7 @@ TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 
 class ProtoVersion(enum.Enum):
     """Protocol buffer version to use for requests to the quantum engine."""
+    UNDEFINED = 0
     V1 = 1
     V2 = 2
 
