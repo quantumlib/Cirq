@@ -196,7 +196,7 @@ def test_apply_unitaries_mixed_qid_shapes():
         def _unitary_(self):
             return np.array([[0, 0, 1],
                              [1, 0, 0],
-                             [0, 1, 0]])
+                             [0, 1, 0]])  # yapf: disable
 
     class PlusOneMod4Gate(cirq.SingleQubitGate):
 
@@ -207,7 +207,7 @@ def test_apply_unitaries_mixed_qid_shapes():
             return np.array([[0, 0, 0, 1],
                              [1, 0, 0, 0],
                              [0, 1, 0, 0],
-                             [0, 0, 1, 0]])
+                             [0, 0, 1, 0]])  # yapf: disable
 
     a, b = cirq.LineQubit.range(2)
 

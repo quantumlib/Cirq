@@ -42,27 +42,26 @@ def test_state_size():
 
 def test_identity_unitary():
     assert np.all(cirq.identity_unitary(qid_shape=()) == np.array(1))
-    assert np.all(cirq.identity_unitary(qid_shape=(1,)) == np.array([
-        [1]]))
+    assert np.all(cirq.identity_unitary(qid_shape=(1,)) == np.array([[1]]))
     assert np.all(cirq.identity_unitary(qid_shape=(2,)) == np.array([
         [1, 0],
-        [0, 1]]))
+        [0, 1]]))  # yapf: disable
     assert np.all(cirq.identity_unitary(qid_shape=(2, 2)) == np.array([
         [[[1, 0], [0, 0]],
          [[0, 1], [0, 0]]],
         [[[0, 0], [1, 0]],
-         [[0, 0], [0, 1]]]]))
+         [[0, 0], [0, 1]]]]))  # yapf: disable
     assert np.all(cirq.identity_unitary(qid_shape=(2, 3)) == np.array([
         [[[1, 0, 0], [0, 0, 0]],
          [[0, 1, 0], [0, 0, 0]],
          [[0, 0, 1], [0, 0, 0]]],
         [[[0, 0, 0], [1, 0, 0]],
          [[0, 0, 0], [0, 1, 0]],
-         [[0, 0, 0], [0, 0, 1]]]]))
+         [[0, 0, 0], [0, 0, 1]]]]))  # yapf: disable
     assert np.all(cirq.identity_unitary(qid_shape=(3, 2)) == np.array([
         [[[1, 0], [0, 0], [0, 0]],
          [[0, 1], [0, 0], [0, 0]]],
         [[[0, 0], [1, 0], [0, 0]],
          [[0, 0], [0, 1], [0, 0]]],
         [[[0, 0], [0, 0], [1, 0]],
-         [[0, 0], [0, 0], [0, 1]]]]))
+         [[0, 0], [0, 0], [0, 1]]]]))  # yapf: disable
