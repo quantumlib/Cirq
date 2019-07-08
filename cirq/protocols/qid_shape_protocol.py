@@ -36,11 +36,11 @@ TDefault = TypeVar('TDefault')
 
 class SupportsQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
-    number qubits/qudits/qids, each with a specific dimension."""
+    number qubits/qudits/qids, each with a specific number of quantum levels."""
 
     def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
-        """A tuple specifying the dimension of each qid that this object
-        operates on, e.g. (2, 2) for a two-qubit gate.
+        """A tuple specifying the number of quantum levels of each qid this
+        object operates on, e.g. (2, 2, 2) for a three-qubit gate.
 
         This method is used by the global `cirq.qid_shape` method (and by
         `cirq.num_qubits` if `_num_qubits_` is not defined). If this
@@ -60,7 +60,7 @@ class SupportsQidShape(Protocol):
             shape is unknown.
         """
 
-    def _num_qubits_(self) -> Union[bool, NotImplementedType]:
+    def _num_qubits_(self) -> Union[int, NotImplementedType]:
         """The number of qubits this object operates on.
 
         This method is used by the global `cirq.num_qubits` method (and by
@@ -75,8 +75,8 @@ class SupportsQidShape(Protocol):
 
 def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
              ) -> Union[Tuple[int, ...], TDefault]:
-    """Returns a tuple describing the dimensions of each qubit/qudit/qid `val`
-    operates on.
+    """Returns a tuple describing the number of quantum levels of each
+    qubit/qudit/qid `val` operates on.
 
     Args:
         val: The value to get the shape of.

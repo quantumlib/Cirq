@@ -20,7 +20,6 @@ import abc
 
 from cirq import value
 from cirq.protocols import decompose, inverse, qid_shape_protocol
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -225,14 +224,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
     # to keep backwards compatibility with versions of cirq where num_qubits
     # is an abstract method.
-    @deprecated(deadline='v0.???',
-                func_name='num_qubits',
-                fix='Use cirq.num_qubits(gate) instead.')
-    def _deprecated_num_qubits(self) -> int:
+    def _backwards_compatibility_num_qubits(self) -> int:
         return qid_shape_protocol.num_qubits(self)
 
     @value.alternative(requires='_num_qubits_',
-                       implementation=_deprecated_num_qubits)
+                       implementation=_backwards_compatibility_num_qubits)
     def num_qubits(self) -> int:
         """The number of qubits this gate acts on."""
 
@@ -242,11 +238,6 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             return NotImplemented
         return len(shape)
 
-    @deprecated(
-        deadline='v0.???',
-        func_name='num_qubits',
-        fix=('Implement protocol method _num_qubits_ instead of num_qubits on '
-             'subclasses of cirq.Gate.'))
     def _num_qubits_proto_from_num_qubits(self) -> int:
         return self.num_qubits()
 
@@ -266,8 +257,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     @value.alternative(requires='_num_qubits_',
                        implementation=_default_shape_from_num_qubits)
     def _qid_shape_(self) -> Tuple[int, ...]:
-        """Returns a Tuple containing the dimension of each qid the gate acts
-        on.  E.g. the size of the qid Hilbert space.
+        """Returns a Tuple containing the number of quantum levels of each qid
+        the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
+        (3, 3) for a 2-qutrit ternary gate.
         """
 
 
@@ -285,7 +277,7 @@ class Operation(metaclass=abc.ABCMeta):
     def _num_qubits_(self) -> int:
         """The number of qubits this operation acts on.
 
-        By default, returns the length of `qubits`.
+        By definition, returns the length of `qubits`.
         """
         return len(self.qubits)
 
