@@ -1228,12 +1228,13 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
-    def max_qid_shape(self,
-                      qid_order: Optional[Sequence[ops.Qid]] = None,
-                      initial: Optional[Dict[ops.Qid, int]] = None,
-                      qid_min: int = 1,
-                      ) -> Tuple[int, ...]:
-        shape_dict = defaultdict(lambda:qid_min,
+    def max_qid_shape(
+            self,
+            qid_order: Optional[Sequence[ops.Qid]] = None,
+            initial: Optional[Dict[ops.Qid, int]] = None,
+            qid_min: int = 1,
+    ) -> Tuple[int, ...]:
+        shape_dict = defaultdict(lambda: qid_min,
                                  {} if initial is None else initial)
         for op in self.all_operations():
             for d, qid in zip(protocols.qid_shape(op), op.qubits):
@@ -1799,10 +1800,8 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit,
-                           qid_shape: Tuple[int, ...],
-                           state: np.ndarray,
-                           qubits: Tuple[ops.Qid, ...],
+def _apply_unitary_circuit(circuit: Circuit, qid_shape: Tuple[int, ...],
+                           state: np.ndarray, qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 

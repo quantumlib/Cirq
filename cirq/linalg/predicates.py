@@ -210,13 +210,12 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
-                              little_endian_qureg_value: Optional[int] = None,
-                              *,  # Forces keyword args.
-                              qureg_value_tuple:
-                                Optional[Tuple[Union[int, slice], ...]] = None,
-                              num_qubits: int = None
-                              ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+def slice_for_qubits_equal_to(
+        target_qubit_axes: Sequence[int],
+        little_endian_qureg_value: Optional[int] = None,
+        *,  # Forces keyword args.
+        qureg_value_tuple: Optional[Tuple[Union[int, slice], ...]] = None,
+        num_qubits: int = None) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).

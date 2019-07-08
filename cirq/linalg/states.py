@@ -41,8 +41,10 @@ def one_hot(*,
     result[index] = 1
     return result
 
+
 def state_size(*, qid_shape: Tuple[int, ...]) -> int:
     return reduce(operator.mul, qid_shape, 1)
+
 
 def identity_unitary(*, qid_shape: Tuple[int, ...]) -> np.array:
     state = np.eye(state_size(qid_shape=qid_shape), dtype=np.complex128)

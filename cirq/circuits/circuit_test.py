@@ -1465,14 +1465,17 @@ def test_qid_shape_qubit():
 def test_qid_shape_qudit():
 
     class PlusOneMod3Gate(cirq.SingleQubitGate):
+
         def _qid_shape_(self):
             return (3,)
 
     class C2NotGate(cirq.Gate):
+
         def _qid_shape_(self):
             return (3, 2)
 
     class IdentityGate(cirq.SingleQubitGate):
+
         def _qid_shape_(self):
             return (1,)
 
@@ -1490,8 +1493,8 @@ def test_qid_shape_qudit():
     assert cirq.num_qubits(circ) == 6
     assert circ.max_qid_shape() == (1, 2, 3, 3, 2, 3)
     assert circ.max_qid_shape(qid_min=2) == (2, 2, 3, 3, 2, 3)
-    assert (circ.max_qid_shape(qid_order=[f, e, d, c, b, a]) == (
-        3, 2, 3, 3, 2, 1))
+    assert (circ.max_qid_shape(qid_order=[f, e, d, c, b, a]) == (3, 2, 3, 3, 2,
+                                                                 1))
     assert circ.max_qid_shape(qid_order=[g, a, b, c]) == (1, 1, 2, 3)
     assert circ.max_qid_shape(qid_order=[g, a, b, c], qid_min=1) == (1, 1, 2, 3)
     assert circ.max_qid_shape(qid_order=[g, a, b, c], qid_min=2) == (2, 2, 2, 3)

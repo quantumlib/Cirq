@@ -97,7 +97,7 @@ class ApplyUnitaryArgs:
         if qid_shape is None:
             # Guess what the qid_shape would be for qubits.
             min_num_qubits = max(self.axes, default=-1) + 1
-            qid_shape = (2,)*min_num_qubits  # Might be too short
+            qid_shape = (2,) * min_num_qubits  # Might be too short
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.qid_shape = qid_shape
@@ -106,7 +106,7 @@ class ApplyUnitaryArgs:
     def default(num_qubits: Optional[int] = None,
                 *,
                 qid_shape: Optional[Tuple[int, ...]] = None
-                ) -> 'ApplyUnitaryArgs':
+               ) -> 'ApplyUnitaryArgs':
         """A default instance starting in state |0⟩.
 
         Specify exactly one argument.
@@ -128,12 +128,12 @@ class ApplyUnitaryArgs:
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits),
                                 qid_shape)
 
-    def subspace_index(self,
-                       little_endian_bits_int: Optional[int] = None,
-                       *,  # Forces keyword args.
-                       value_tuple:
-                            Optional[Tuple[Union[int, slice], ...]] = None,
-                       ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    def subspace_index(
+            self,
+            little_endian_bits_int: Optional[int] = None,
+            *,  # Forces keyword args.
+            value_tuple: Optional[Tuple[Union[int, slice], ...]] = None,
+    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
