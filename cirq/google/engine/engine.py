@@ -34,8 +34,8 @@ from collections import Iterable
 from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
 
 import google.protobuf as gp
-import google.protobuf.any_pb2
 from apiclient import discovery
+from google.protobuf import any_pb2
 
 from cirq import optimizers, circuits
 from cirq.api.google import v1, v2
@@ -124,11 +124,11 @@ class JobConfig:
                 'gcs_prefix={!r}, '
                 'gcs_program={!r}, '
                 'gcs_results={!r})').format(self.project_id,
-                                             self.program_id,
-                                             self.job_id,
-                                             self.gcs_prefix,
-                                             self.gcs_program,
-                                             self.gcs_results)
+                                            self.program_id,
+                                            self.job_id,
+                                            self.gcs_prefix,
+                                            self.gcs_program,
+                                            self.gcs_results)
 
 
 class Engine:
@@ -194,7 +194,7 @@ class Engine:
         discovery_service_url = (
             self.discovery_url if self.api_key is None else (
                 "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
-                               self.api_key))))
+                    self.api_key))))
         self.service = discovery.build(
             self.api,
             self.version,
@@ -323,11 +323,10 @@ class Engine:
             device.validate_circuit(circuit_copy)
             return moment_by_moment_schedule(device, circuit_copy)
 
-        elif isinstance(program, Schedule):
+        if isinstance(program, Schedule):
             return program
 
-        else:
-            raise TypeError('Unexpected program type.')
+        raise TypeError('Unexpected program type.')
 
     def run_sweep(
             self,
@@ -444,7 +443,7 @@ class Engine:
             api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
         def any_dict(message: gp.message.Message) -> Dict[str, Any]:
-            any_message = gp.any_pb2.Any()
+            any_message = any_pb2.Any()
             any_message.Pack(message)
             return gp.json_format.MessageToDict(any_message)
 
@@ -479,18 +478,12 @@ class Engine:
         return self.service.projects().programs().jobs().get(
             name=job_resource_name).execute()
 
-    def get_job_results(
-        self,
-        job_resource_name: str,
-        measurement_config: List[api_v2.MeasureInfo] = []) -> List[TrialResult]:
+    def get_job_results(self, job_resource_name: str) -> List[TrialResult]:
         """Returns the actual results (not metadata) of a completed job.
 
         Params:
             job_resource_name: A string of the form
                 `projects/project_id/programs/program_id/jobs/job_id`.
-            measurement_config: info about measurements, used to structure the
-                result data. This is required for the ProtoVersion.V2 and does
-                nothing ProtoVersion.V1.
 
         Returns:
             An iterable over the TrialResult, one per parameter in the
@@ -500,11 +493,10 @@ class Engine:
             parent=job_resource_name).execute()
         if self.proto_version == ProtoVersion.V1:
             return self._get_job_results_v1(response['result'])
-        elif self.proto_version == ProtoVersion.V2:
-            return self._get_job_results_v2(response['result'], measurement_config)
-        else:
-            raise ValueError('invalid proto version: {}'.format(
-                self.proto_version))
+        if self.proto_version == ProtoVersion.V2:
+            return self._get_job_results_v2(response['result'])
+        raise ValueError('invalid proto version: {}'.format(
+            self.proto_version))
 
     def _get_job_results_v1(self, result: Dict[str, Any]) -> List[TrialResult]:
         trial_results = []
@@ -525,14 +517,13 @@ class Engine:
         return trial_results
 
     def _get_job_results_v2(self,
-                            result_dict: Dict[str, Any],
-                            measurement_config: List[api_v2.MeasureInfo]) -> List[TrialResult]:
-        result_any = gp.any_pb2.Any()
+                            result_dict: Dict[str, Any]) -> List[TrialResult]:
+        result_any = any_pb2.Any()
         gp.json_format.ParseDict(result_dict, result_any)
         result = v2.result_pb2.Result()
         result_any.Unpack(result)
 
-        sweep_results = api_v2.results_from_proto(result, measurement_config)
+        sweep_results = api_v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
             trial_result for sweep_result in sweep_results
@@ -664,13 +655,8 @@ class EngineJob:
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
 
-    def results(self, measurement_config: List[api_v2.MeasureInfo] = []) -> List[TrialResult]:
+    def results(self)-> List[TrialResult]:
         """Returns the job results, blocking until the job is complete.
-
-        Params:
-            measurement_config: info about measurements, used to structure the
-                result data. This is required for the ProtoVersion.V2 and does
-                nothing ProtoVersion.V1.
         """
         if not self._results:
             job = self._update_job()
@@ -684,7 +670,7 @@ class EngineJob:
                     'Job %s did not succeed. It is in state %s.' % (
                         job['name'], job['executionStatus']['state']))
             self._results = self._engine.get_job_results(
-                self.job_resource_name, measurement_config)
+                self.job_resource_name)
         return self._results
 
     def __iter__(self):
@@ -694,21 +680,19 @@ class EngineJob:
 def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, ParamResolver):
         return [_resolver_to_sweep(sweepable)]
-    elif isinstance(sweepable, Sweep):
+    if isinstance(sweepable, Sweep):
         return [sweepable]
-    elif isinstance(sweepable, Iterable):
+    if isinstance(sweepable, Iterable):
         iterable = cast(Iterable, sweepable)
         if isinstance(next(iter(iterable)), Sweep):
             sweeps = iterable
             return list(sweeps)
-        else:
-            resolvers = iterable
-            return [_resolver_to_sweep(p) for p in resolvers]
-    else:
-        raise TypeError('Unexpected Sweepable.')  # coverage: ignore
+        resolvers = iterable
+        return [_resolver_to_sweep(p) for p in resolvers]
+    raise TypeError('Unexpected Sweepable.')  # coverage: ignore
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     return Zip(*[Points(key, [value]) for key, value in
                  resolver.param_dict.items()]) if len(
-        resolver.param_dict) else UnitSweep
+                     resolver.param_dict) else UnitSweep

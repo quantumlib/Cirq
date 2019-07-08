@@ -70,6 +70,45 @@ _RESULTS = {
     ]
 }
 
+_RESULTS_V2 = {
+    '@type': 'type.googleapis.com/cirq.api.google.v2.Result',
+    'sweepResults': [
+        {
+            'repetitions': 1,
+            'parameterizedResults': [
+                {
+                    'params': {'assignments': {'a': 1}},
+                    'measurementResults': [
+                        {
+                            'key': 'q',
+                            'qubitMeasurementResults': [
+                                {
+                                    'qubit': {'id': '1_1'},
+                                    'results': base64.b64encode(b'01'),
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    'params': {'assignments': {'a': 2}},
+                    'measurementResults': [
+                        {
+                            'key': 'q',
+                            'qubitMeasurementResults': [
+                                {
+                                    'qubit': {'id': '1_1'},
+                                    'results': base64.b64encode(b'01'),
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}
+
 
 
 def test_repr():
@@ -276,9 +315,8 @@ def test_run_sweep_params(build):
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
-
 @mock.patch.object(discovery, 'build')
-def test_run_sweep_sweeps(build):
+def test_run_sweep_v1(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
@@ -294,12 +332,14 @@ def test_run_sweep_sweeps(build):
     jobs.getResult().execute.return_value = {
         'result': _RESULTS}
 
-    job = cg.Engine(api_key="key").run_sweep(
+    engine = cg.Engine(api_key="key")
+    job = engine.run_sweep(
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
                                                cirq.Circuit()),
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=cirq.Points('a', [1, 2]))
     results = job.results()
+    assert engine.proto_version == cg.engine.engine.ProtoVersion.V1
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
@@ -315,6 +355,54 @@ def test_run_sweep_sweeps(build):
     assert sweeps[0]['repetitions'] == 1
     assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['points'][
         'points'] == [1, 2]
+    assert jobs.create.call_args[1][
+        'parent'] == 'projects/project-id/programs/test'
+    assert jobs.get().execute.call_count == 1
+    assert jobs.getResult().execute.call_count == 1
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_sweep_v2(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'}
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'READY'}}
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {'state': 'SUCCESS'}}
+    jobs.getResult().execute.return_value = {
+        'result': _RESULTS_V2}
+
+    engine = cg.Engine(
+        api_key="key",
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+        gate_set=cirq.google.gate_sets.XMON)
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        params=cirq.Points('a', [1, 2]))
+    results = job.results()
+    assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    build.assert_called_with('quantum', 'v1alpha1',
+                             discoveryServiceUrl=('https://{api}.googleapis.com'
+                                                  '/$discovery/rest?version='
+                                                  '{apiVersion}&key=key'))
+    assert programs.create.call_args[1]['parent'] == 'projects/project-id'
+    sweeps = jobs.create.call_args[1]['body']['run_context']['parameterSweeps']
+    assert len(sweeps) == 1
+    assert sweeps[0]['repetitions'] == 1
+    assert sweeps[0]['sweep']['singleSweep']['points']['points'] == [1, 2]
     assert jobs.create.call_args[1][
         'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1

@@ -1,6 +1,7 @@
 from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
                     Union, cast)
 
+from collections import OrderedDict
 import numpy as np
 
 from cirq.api.google.v2 import result_pb2
@@ -138,10 +139,9 @@ def results_to_proto(
                     qmr.results = pack_bits(m_data[:, i])
     return out
 
-
 def results_from_proto(
         msg: result_pb2.Result,
-        measurements: List[MeasureInfo],
+        measurements: List[MeasureInfo] = None,
 ) -> List[List[study.TrialResult]]:
     """Converts a v2 result proto into List of list of trial results.
 
@@ -152,7 +152,8 @@ def results_from_proto(
     Returns:
         A list containing a list of trial results for each sweep.
     """
-    measure_map = {m.key: m for m in measurements}
+
+    measure_map = {m.key: m for m in measurements} if measurements else None
     return [
         _trial_sweep_from_proto(sweep_result, measure_map)
         for sweep_result in msg.sweep_results
@@ -161,20 +162,23 @@ def results_from_proto(
 
 def _trial_sweep_from_proto(
         msg: result_pb2.SweepResult,
-        measurements: Dict[str, MeasureInfo],
+        measurements: Dict[str, MeasureInfo] = None,
 ) -> List[study.TrialResult]:
     trial_sweep: List[study.TrialResult] = []
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
-            m = measurements[mr.key]
-            qubit_results: Dict[devices.GridQubit, np.ndarray] = {}
+            qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = {}
             for qmr in mr.qubit_measurement_results:
                 qubit = devices.GridQubit.from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
                     raise ValueError('qubit already exists: {}'.format(qubit))
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
-            ordered_results = [qubit_results[qubit] for qubit in m.qubits]
+            if measurements:
+                ordered_results = [qubit_results[qubit]
+                                   for qubit in measurements[mr.key].qubits]
+            else:
+                ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
             study.TrialResult(
