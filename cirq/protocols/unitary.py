@@ -119,50 +119,6 @@ def unitary(val: Any,
                     "but it returned NotImplemented.".format(type(val)))
 
 
-def has_unitary(val: Any) -> bool:
-    """Returns whether the value has a unitary matrix representation.
-
-    Returns:
-        If `val` has a _has_unitary_ method and its result is not
-        NotImplemented, that result is returned. Otherwise, if `val` is a
-        cirq.Gate or cirq.Operation, a decomposition is attempted and the
-        resulting unitary is returned if has_unitary is True for all operations
-        of the decompostion. Otherwise, if the value has a _unitary_ method
-        return if that has a non-default value. Returns False if neither
-        function exists.
-    """
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
-    # HACK: Avoids circular dependencies.
-    from cirq import Gate, Operation, LineQubit
-
-    getter = getattr(val, '_has_unitary_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
-        return result
-
-    # Fallback to explicit _unitary_
-    unitary_getter = getattr(val, '_unitary_', None)
-    if unitary_getter is not None and unitary_getter() is not NotImplemented:
-        return True
-
-    # Fallback to decomposition for gates and operations
-    if isinstance(val, Gate):
-        # Since gates don't know about qubits, we need to create some
-        decomposed_val = decompose_once_with_qubits(val,
-            LineQubit.range(val.num_qubits()),
-            default=None)
-        if decomposed_val is not None:
-            return all(has_unitary(v) for v in decomposed_val)
-    elif isinstance(val, Operation):
-        decomposed_val = decompose_once(val, default=None)
-        if decomposed_val is not None:
-            return all(has_unitary(v) for v in decomposed_val)
-
-    # Finally, fallback to full unitary method, including decomposition
-    return unitary(val, None) is not None
-
-
 def _decompose_and_get_unitary(val: Union['cirq.Operation', 'cirq.Gate']
                                ) -> np.ndarray:
     """Try to decompose a cirq.Operation or cirq.Gate, and return its unitary
