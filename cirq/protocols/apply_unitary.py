@@ -96,7 +96,7 @@ class ApplyUnitaryArgs:
         self.axes = tuple(axes)
         if qid_shape is None:
             # Guess what the qid_shape would be for qubits.
-            min_num_qubits = max(self.axes) + 1
+            min_num_qubits = max(self.axes, default=-1) + 1
             qid_shape = (2,)*min_num_qubits  # Might be too short
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
