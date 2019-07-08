@@ -113,10 +113,9 @@ def test_with_qubits_and_transform_qubits():
                                                            cirq.LineQubit(-1),
                                                            cirq.LineQubit(-2)])
 
-    I = cirq.IdentityGate(3)
-    op = cirq.IdentityOperation(I, cirq.LineQubit.range(3))
+    op = cirq.IdentityOperation(cirq.LineQubit.range(3))
     assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) \
-           == cirq.IdentityOperation(I, cirq.LineQubit.range(3, 0, -1))
+           == cirq.IdentityOperation(cirq.LineQubit.range(3, 0, -1))
 
     # The gate's constraints should be applied when changing the qubits.
     with pytest.raises(ValueError):
@@ -245,8 +244,9 @@ def test_repr():
     assert repr(cirq.GateOperation(cirq.CZ, (a, b))
                 ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
 
-    assert repr(cirq.IdentityOperation(cirq.IdentityGate(2), (a, b))) == (
-        'cirq.IdentityGate(2).on(cirq.LineQubit(0), cirq.LineQubit(1))')
+    assert repr(cirq.IdentityOperation((a,))) == ('cirq.I.on(0)')
+    assert repr(cirq.IdentityOperation((a, b))) == (
+        'cirq.IdentityOperation(qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])')
 
     class Inconsistent(cirq.SingleQubitGate):
         def __repr__(self):

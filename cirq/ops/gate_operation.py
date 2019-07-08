@@ -22,7 +22,7 @@ from typing import (
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, common_gates, gate_features, op_tree
+from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -191,21 +191,18 @@ class GateOperation(raw_types.Operation):
 class IdentityOperation(raw_types.Operation):
     """An application of the identity gate to a sequence of qubits."""
 
-    def __init__(self, gate: common_gates.IdentityGate,
-                 qubits: Sequence[raw_types.Qid]) -> None:
+    def __init__(self, qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
-            gate: The gate to apply. Only really accepts the IdentityGate
             qubits: The qubits to operate on.
         """
-        gate.validate_args(qubits)
-        self._gate = gate
-        self._qubits = tuple(qubits)
+        if len(qubits) == 0:
+            raise ValueError(
+                'Applied an identity gate to an empty set of qubits.')
 
-    @property
-    def gate(self) -> raw_types.Gate:
-        """The gate applied by the operation."""
-        return self._gate
+        if any([not isinstance(qubit, raw_types.Qid) for qubit in qubits]):
+            raise ValueError('Gate was called with type different than Qid.')
+        self._qubits = tuple(qubits)
 
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
@@ -213,41 +210,23 @@ class IdentityOperation(raw_types.Operation):
         return self._qubits
 
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
-        return self.gate.on(*new_qubits)
+        return IdentityOperation(new_qubits)
 
     def __repr__(self):
         # Abbreviate when possible.
-        if self == self.gate.on(*self.qubits):
-            return '{!r}.on({})'.format(self.gate,
-                                        ', '.join(repr(q) for q in self.qubits))
+        if len(self.qubits) == 1:
+            return f'cirq.I.on({self._qubits[0]})'
 
-        return 'cirq.IdentityOperation(gate={!r}, qubits={!r})'.format(
-            self.gate, list(self.qubits))
+        return 'cirq.IdentityOperation(qubits={!r})'.format(list(self._qubits))
 
     def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
-
-    def _group_interchangeable_qubits(
-            self
-    ) -> Tuple[Union[raw_types.Qid, Tuple[int, FrozenSet[raw_types.Qid]]], ...]:
-
-        if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
-            return self.qubits
-
-        groups = {}  # type: Dict[int, List[raw_types.Qid]]
-        for i, q in enumerate(self.qubits):
-            k = self.gate.qubit_index_to_equivalence_group_key(i)
-            if k not in groups:
-                groups[k] = []
-            groups[k].append(q)
-        return tuple(sorted((k, frozenset(v)) for k, v in groups.items()))
+        return 'I({})'.format(', '.join(str(e) for e in self._qubits))
 
     def _value_equality_values_(self):
-        return self.gate, self._group_interchangeable_qubits()
+        return frozenset(self._qubits)
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        return protocols.pauli_expansion(self.gate)
+        return value.LinearDict({'I' * len(self._qubits): 1.0})
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                        ) -> Optional[np.ndarray]:
@@ -255,7 +234,7 @@ class IdentityOperation(raw_types.Operation):
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
-        return protocols.circuit_diagram_info(self.gate, args, NotImplemented)
+        return ('I',) * len(self._qubits)
 
     def __mul__(self, other):
         if isinstance(other, raw_types.Operation):

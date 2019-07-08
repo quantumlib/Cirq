@@ -635,7 +635,7 @@ class IdentityGate(raw_types.Gate):
         """
         # Avoids circular import.
         from cirq.ops import gate_operation
-        return gate_operation.IdentityOperation(self, list(qubits))
+        return gate_operation.IdentityOperation(list(qubits))
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
