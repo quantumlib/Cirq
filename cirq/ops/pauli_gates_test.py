@@ -205,3 +205,5 @@ def test_identity_multiplication():
         _ = cirq.H(c) * cirq.X(a) * cirq.Y(b)
     with pytest.raises(TypeError):
         _ = cirq.X(a) * cirq.Y(b) * cirq.H(c)
+    with pytest.raises(TypeError):
+        _ = cirq.I(a) * str(cirq.Y(b))

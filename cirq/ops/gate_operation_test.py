@@ -32,6 +32,11 @@ def test_invalid_gate_operation():
     with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
 
+    with pytest.raises(ValueError, match="empty set of qubits"):
+        cirq.IdentityOperation([])
+    with pytest.raises(ValueError, match="type different than Qid"):
+        cirq.IdentityOperation([three_qubit_gate])
+
 
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
@@ -247,6 +252,7 @@ def test_repr():
     assert repr(cirq.IdentityOperation((a,))) == ('cirq.I.on(0)')
     assert repr(cirq.IdentityOperation((a, b))) == (
         'cirq.IdentityOperation(qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])')
+    assert str(cirq.IdentityOperation((a, b))) == ('I(0, 1)')
 
     class Inconsistent(cirq.SingleQubitGate):
         def __repr__(self):

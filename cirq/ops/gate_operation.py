@@ -234,8 +234,9 @@ class IdentityOperation(raw_types.Operation):
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                               ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('I',) * len(self._qubits), connected=True)
+        return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
+                                            len(self._qubits),
+                                            connected=True)
 
     def __mul__(self, other):
         if isinstance(other, raw_types.Operation):
