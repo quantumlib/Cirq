@@ -168,15 +168,18 @@ def _trial_sweep_from_proto(
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
-            qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = OrderedDict()
+            qubit_results: OrderedDict[devices.GridQubit, np.
+                                       ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
                 qubit = devices.GridQubit.from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
                     raise ValueError('qubit already exists: {}'.format(qubit))
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
             if measurements:
-                ordered_results = [qubit_results[qubit]
-                                   for qubit in measurements[mr.key].qubits]
+                ordered_results = [
+                    qubit_results[qubit]
+                    for qubit in measurements[mr.key].qubits
+                ]
             else:
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()

@@ -125,12 +125,9 @@ class JobConfig:
                 'job_id={!r}, '
                 'gcs_prefix={!r}, '
                 'gcs_program={!r}, '
-                'gcs_results={!r})').format(self.project_id,
-                                            self.program_id,
-                                            self.job_id,
-                                            self.gcs_prefix,
-                                            self.gcs_program,
-                                            self.gcs_results)
+                'gcs_results={!r})').format(self.project_id, self.program_id,
+                                            self.job_id, self.gcs_prefix,
+                                            self.gcs_program, self.gcs_results)
 
 
 class Engine:
@@ -192,9 +189,9 @@ class Engine:
         self.proto_version = proto_version
 
         discovery_service_url = (
-            self.discovery_url if self.api_key is None else (
-                "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
-                    self.api_key))))
+            self.discovery_url if self.api_key is None else
+            ("%s&key=%s" %
+             (self.discovery_url, urllib.parse.quote_plus(self.api_key))))
         self.service = discovery.build(
             self.api,
             self.version,
@@ -436,10 +433,7 @@ class Engine:
         return program_dict, None  # run context included in program
 
     def _serialize_program_v2(
-            self,
-            program: Program,
-            sweeps: List[Sweep],
-            repetitions: int,
+            self, program: Program, sweeps: List[Sweep], repetitions: int,
             gate_set: SerializableGateSet
     ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
         if isinstance(program, Schedule):
@@ -506,8 +500,7 @@ class Engine:
             return self._get_job_results_v1(response['result'])
         if self.proto_version == ProtoVersion.V2:
             return self._get_job_results_v2(response['result'])
-        raise ValueError('invalid proto version: {}'.format(
-            self.proto_version))
+        raise ValueError('invalid proto version: {}'.format(self.proto_version))
 
     def _get_job_results_v1(self, result: Dict[str, Any]) -> List[TrialResult]:
         trial_results = []
@@ -666,7 +659,7 @@ class EngineJob:
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
 
-    def results(self)-> List[TrialResult]:
+    def results(self) -> List[TrialResult]:
         """Returns the job results, blocking until the job is complete.
         """
         if not self._results:
@@ -704,6 +697,7 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
-    return Zip(*[Points(key, [value]) for key, value in
-                 resolver.param_dict.items()]) if len(
-                     resolver.param_dict) else UnitSweep
+    return Zip(
+        *[Points(key, [value])
+          for key, value in resolver.param_dict.items()]) if len(
+              resolver.param_dict) else UnitSweep

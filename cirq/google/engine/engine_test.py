@@ -71,19 +71,28 @@ _RESULTS = {
 }
 
 _RESULTS_V2 = {
-    '@type': 'type.googleapis.com/cirq.api.google.v2.Result',
+    '@type':
+    'type.googleapis.com/cirq.api.google.v2.Result',
     'sweepResults': [
         {
-            'repetitions': 1,
+            'repetitions':
+            1,
             'parameterizedResults': [
                 {
-                    'params': {'assignments': {'a': 1}},
+                    'params': {
+                        'assignments': {
+                            'a': 1
+                        }
+                    },
                     'measurementResults': [
                         {
-                            'key': 'q',
+                            'key':
+                            'q',
                             'qubitMeasurementResults': [
                                 {
-                                    'qubit': {'id': '1_1'},
+                                    'qubit': {
+                                        'id': '1_1'
+                                    },
                                     'results': base64.b64encode(b'01'),
                                 },
                             ],
@@ -91,13 +100,20 @@ _RESULTS_V2 = {
                     ],
                 },
                 {
-                    'params': {'assignments': {'a': 2}},
+                    'params': {
+                        'assignments': {
+                            'a': 2
+                        }
+                    },
                     'measurementResults': [
                         {
-                            'key': 'q',
+                            'key':
+                            'q',
                             'qubitMeasurementResults': [
                                 {
-                                    'qubit': {'id': '1_1'},
+                                    'qubit': {
+                                        'id': '1_1'
+                                    },
                                     'results': base64.b64encode(b'01'),
                                 },
                             ],
@@ -108,7 +124,6 @@ _RESULTS_V2 = {
         },
     ],
 }
-
 
 
 def test_repr():
@@ -368,25 +383,30 @@ def test_run_sweep_v2(build):
     programs = service.projects().programs()
     jobs = programs.jobs()
     programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'}
+        'name': 'projects/project-id/programs/test'
+    }
     jobs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'READY'}}
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
     jobs.get().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'SUCCESS'}}
-    jobs.getResult().execute.return_value = {
-        'result': _RESULTS_V2}
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    jobs.getResult().execute.return_value = {'result': _RESULTS_V2}
 
     engine = cg.Engine(
         api_key="key",
         proto_version=cg.engine.engine.ProtoVersion.V2,
-        )
+    )
     job = engine.run_sweep(
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
                                                cirq.Circuit()),
-        job_config=cg.JobConfig('project-id',
-                                gcs_prefix='gs://bucket/folder'),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
@@ -395,7 +415,8 @@ def test_run_sweep_v2(build):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1',
+    build.assert_called_with('quantum',
+                             'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
@@ -417,24 +438,28 @@ def test_bad_result_proto(build):
     programs = service.projects().programs()
     jobs = programs.jobs()
     programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'}
+        'name': 'projects/project-id/programs/test'
+    }
     jobs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'READY'}}
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
     jobs.get().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'SUCCESS'}}
-    jobs.getResult().execute.return_value = {
-        'result': _RESULTS_V2}
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    jobs.getResult().execute.return_value = {'result': _RESULTS_V2}
 
-    engine = cg.Engine(
-        api_key="key",
-        proto_version=cg.engine.engine.ProtoVersion.V2)
+    engine = cg.Engine(api_key="key",
+                       proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_sweep(
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
                                                cirq.Circuit()),
-        job_config=cg.JobConfig('project-id',
-                                gcs_prefix='gs://bucket/folder'),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=cirq.Points('a', [1, 2]))
     engine.proto_version = cg.engine.engine.ProtoVersion.UNDEFINED
     with pytest.raises(ValueError, match='invalid proto version'):
@@ -454,7 +479,7 @@ def test_bad_sweep_proto(build):
 @mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
     eng = cg.Engine(api_key="key",
-        proto_version=cg.engine.engine.ProtoVersion.V2)
+                    proto_version=cg.engine.engine.ProtoVersion.V2)
     with pytest.raises(ValueError, match='priority must be'):
         eng.run(program=cirq.Circuit(),
                 job_config=cg.JobConfig('project-id',
