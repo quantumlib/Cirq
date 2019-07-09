@@ -197,6 +197,7 @@ from cirq.ops import (
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
     DropEmptyMoments,
+    DropIdentities,
     DropNegligible,
     EjectPhasedPaulis,
     EjectZ,

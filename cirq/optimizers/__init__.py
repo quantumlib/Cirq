@@ -17,6 +17,9 @@
 from cirq.optimizers.drop_empty_moments import (
     DropEmptyMoments,)
 
+from cirq.optimizers.drop_identities import (
+    DropIdentities,)
+
 from cirq.optimizers.drop_negligible import (
     DropNegligible,)
 

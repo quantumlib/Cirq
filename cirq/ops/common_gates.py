@@ -608,6 +608,10 @@ class IdentityGate(raw_types.Gate):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return value.LinearDict({'I' * self.num_qubits(): 1.0})
 
+    def _phase_by_(self, phase_turns, qubit_index):
+        """See `cirq.SupportsPhase`."""
+        return IdentityGate(num_qubits=self.num_qubits())
+
     def __repr__(self):
         if self.num_qubits() == 1:
             return 'cirq.I'
