@@ -100,7 +100,8 @@ from cirq.protocols.phase import (
 from cirq.protocols.qid_shape_protocol import (
     num_qubits,
     qid_shape,
-    SupportsQidShape,
+    SupportsExplicitQidShape,
+    SupportsExplicitNumQubits,
 )
 from cirq.protocols.unitary import (
     SupportsUnitary,

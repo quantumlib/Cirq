@@ -34,7 +34,7 @@ RaiseTypeErrorIfNotProvidedInt = -2**512  # type: Any
 TDefault = TypeVar('TDefault')
 
 
-class SupportsQidShape(Protocol):
+class SupportsExplicitQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number qubits/qudits/qids, each with a specific number of quantum levels."""
 
@@ -59,6 +59,11 @@ class SupportsQidShape(Protocol):
             A unitary matrix describing this value, or NotImplemented if the
             shape is unknown.
         """
+
+
+class SupportsExplicitNumQubits(Protocol):
+    """A unitary, channel, mixture or other object that operates on a known
+    number of qubits."""
 
     def _num_qubits_(self) -> Union[int, NotImplementedType]:
         """The number of qubits this object operates on.
