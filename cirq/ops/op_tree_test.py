@@ -113,10 +113,10 @@ def test_transform_leaves():
     ]
 
     def move_left(op: cirq.GateOperation):
-        return cirq.GateOperation(
-            op.gate,
-            [cirq.NamedQubit(cast(cirq.NamedQubit, q)._name + 'a')
-             for q in op.qubits])
+        return cirq.GateOperation(op.gate, [
+            cirq.NamedQubit(cast(cirq.NamedQubit, q)._name + 'a')
+            for q in op.qubits
+        ])
 
     def move_tree_left_freeze(root):
         return cirq.freeze_op_tree(
