@@ -608,7 +608,7 @@ def test_measure_each():
     assert cirq.measure_each(a) == [cirq.measure(a)]
     assert cirq.measure_each(a, b) == [cirq.measure(a), cirq.measure(b)]
 
-    assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [
+    assert cirq.measure_each(a, b, key_func=lambda e: e._name + '!') == [
         cirq.measure(a, key='a!'),
         cirq.measure(b, key='b!')
     ]

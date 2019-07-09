@@ -89,8 +89,8 @@ def test_sorted_by():
 def test_map():
     b = cirq.NamedQubit('b!')
     q = cirq.QubitOrder.explicit([cirq.NamedQubit('b')]).map(
-        internalize=lambda e: cirq.NamedQubit(e.name[:-1]),
-        externalize=lambda e: cirq.NamedQubit(e.name + '!'))
+        internalize=lambda e: cirq.NamedQubit(e._name[:-1]),
+        externalize=lambda e: cirq.NamedQubit(e._name + '!'))
 
     assert q.order_for([]) == (b,)
     assert q.order_for([b]) == (b,)
@@ -103,7 +103,7 @@ def test_qubit_order_or_list():
     assert implied_by_list.order_for([]) == (b,)
 
     implied_by_generator = cirq.QubitOrder.as_qubit_order(
-        cirq.NamedQubit(e.name + '!') for e in [b])
+        cirq.NamedQubit(e._name + '!') for e in [b])
     assert implied_by_generator.order_for([]) == (cirq.NamedQubit('b!'),)
     assert implied_by_generator.order_for([]) == (cirq.NamedQubit('b!'),)
 
