@@ -160,12 +160,12 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         quarter_turns = quarter_turns % 4
         if quarter_turns == 0:
             return SingleQubitCliffordGate.I
-        elif quarter_turns == 1:
+        if quarter_turns == 1:
             return SingleQubitCliffordGate.from_pauli(pauli, True)
-        elif quarter_turns == 2:
+        if quarter_turns == 2:
             return SingleQubitCliffordGate.from_pauli(pauli)
-        else:
-            return SingleQubitCliffordGate.from_pauli(pauli, True)**-1
+
+        return SingleQubitCliffordGate.from_pauli(pauli, True)**-1
 
     @staticmethod
     def _validate_map_input(required_transform_count: int,
@@ -211,7 +211,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
         if exponent == 0.5 or exponent == -0.5:
             return SQRT_EXP_MAP[exponent][self]
-        elif exponent != -1:
+        if exponent != -1:
             return NotImplemented
 
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
