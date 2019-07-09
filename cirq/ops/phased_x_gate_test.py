@@ -49,9 +49,7 @@ def test_new_init():
     assert g._global_shift == 0.1
 
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=0), cirq.XPowGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1), cirq.XPowGate)
     assert isinstance(cirq.PhasedXPowGate(phase_exponent=0.5), cirq.YPowGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=1.5), cirq.YPowGate)
 
     x = cirq.PhasedXPowGate(phase_exponent=0,
                             exponent=0.1,
@@ -91,10 +89,8 @@ def test_extrapolate():
 def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0),
-                          cirq.PhasedXPowGate(phase_exponent=0,
-                                              exponent=1),
+                          cirq.PhasedXPowGate(phase_exponent=0, exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=0),
-                          cirq.PhasedXPowGate(exponent=1, phase_exponent=1),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=2),
                           cirq.PhasedXPowGate(exponent=1, phase_exponent=-2),
                           cirq.X)
@@ -102,13 +98,11 @@ def test_eq():
                                               phase_exponent=2,
                                               global_shift=0.1))
 
-    eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
-                                              exponent=1),
-                          cirq.PhasedXPowGate(phase_exponent=2.5,
-                                              exponent=3),
-                          cirq.Y,
-                          cirq.PhasedXPowGate(phase_exponent=-0.5,
-                                              exponent=1))
+    eq.add_equality_group(
+        cirq.PhasedXPowGate(phase_exponent=0.5, exponent=1),
+        cirq.PhasedXPowGate(phase_exponent=2.5, exponent=3),
+        cirq.Y,
+    )
     eq.add_equality_group(cirq.PhasedXPowGate(phase_exponent=0.5,
                                               exponent=0.25),
                           cirq.Y**0.25)
@@ -170,10 +164,15 @@ def test_parameterize():
     ) is NotImplemented
     assert cirq.unitary(parameterized_gate, default=None) is None
     assert cirq.is_parameterized(parameterized_gate)
+
     resolver = cirq.ParamResolver({'a': 0.1, 'b': 0.2})
     resolved_gate = cirq.resolve_parameters(parameterized_gate, resolver)
     assert resolved_gate == cirq.PhasedXPowGate(exponent=0.1,
                                                 phase_exponent=0.2)
+
+    unparameterized_gate = cirq.PhasedXPowGate(exponent=0.1, phase_exponent=0.2)
+    assert not cirq.is_parameterized(unparameterized_gate)
+    assert cirq.is_parameterized(unparameterized_gate**sympy.Symbol('a'))
 
 
 def test_trace_bound():
