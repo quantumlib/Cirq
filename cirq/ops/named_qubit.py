@@ -34,6 +34,10 @@ class NamedQubit(raw_types.Qid):
     def __str__(self):
         return self._name
 
+    @property
+    def name(self):
+        return self._name
+
     def __repr__(self):
         return 'cirq.NamedQubit({})'.format(repr(self._name))
 
