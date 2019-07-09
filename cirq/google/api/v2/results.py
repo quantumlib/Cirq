@@ -168,7 +168,7 @@ def _trial_sweep_from_proto(
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
         for mr in pr.measurement_results:
-            qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = {}
+            qubit_results: OrderedDict[devices.GridQubit, np.ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
                 qubit = devices.GridQubit.from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:

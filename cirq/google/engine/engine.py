@@ -38,6 +38,7 @@ from apiclient import discovery
 from google.protobuf import any_pb2
 
 from cirq import optimizers, circuits
+from cirq.google import gate_sets
 from cirq.api.google import v1, v2
 from cirq.google.api import v2 as api_v2
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
@@ -164,7 +165,6 @@ class Engine:
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
-                 gate_set: Optional[SerializableGateSet] = None,
                  **kwargs) -> None:
         """Engine service client.
 
@@ -190,7 +190,6 @@ class Engine:
                                                '?version={apiVersion}')
         self.default_gcs_prefix = default_gcs_prefix
         self.proto_version = proto_version
-        self.gate_set = gate_set
 
         discovery_service_url = (
             self.discovery_url if self.api_key is None else (
@@ -210,7 +209,8 @@ class Engine:
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: SerializableGateSet = gate_sets.XMON) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -221,6 +221,8 @@ class Engine:
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
             processor_ids: The engine processors to run against.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor
 
         Returns:
             A single TrialResult for this run.
@@ -231,7 +233,8 @@ class Engine:
                            params=[param_resolver],
                            repetitions=repetitions,
                            priority=priority,
-                           processor_ids=processor_ids))[0]
+                           processor_ids=processor_ids,
+                           gate_set=gate_set))[0]
 
     def _infer_project_id(self, job_config) -> None:
         if job_config.project_id is not None:
@@ -337,7 +340,8 @@ class Engine:
             params: Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -351,6 +355,8 @@ class Engine:
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
             processor_ids: The engine processors to run against.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -369,7 +375,7 @@ class Engine:
                 program, sweeps, repetitions)
         elif self.proto_version == ProtoVersion.V2:
             code, run_context = self._serialize_program_v2(
-                program, sweeps, repetitions)
+                program, sweeps, repetitions, gate_set)
         else:
             raise ValueError('invalid proto version: {}'.format(
                 self.proto_version))
@@ -430,12 +436,16 @@ class Engine:
         return program_dict, None  # run context included in program
 
     def _serialize_program_v2(
-            self, program: Program, sweeps: List[Sweep], repetitions: int
+            self,
+            program: Program,
+            sweeps: List[Sweep],
+            repetitions: int,
+            gate_set: SerializableGateSet
     ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
         if isinstance(program, Schedule):
             program.device.validate_schedule(program)
 
-        program = self.gate_set.serialize(program)
+        program = gate_set.serialize(program)
 
         run_context = v2.run_context_pb2.RunContext()
         for sweep in sweeps:
