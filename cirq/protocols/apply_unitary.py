@@ -131,8 +131,7 @@ class ApplyUnitaryArgs:
                                                 little_endian_bits_int)
 
 
-
-class SupportsApplyUnitary(Protocol):
+class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
 
     def _apply_unitary_(self, args: ApplyUnitaryArgs
@@ -186,9 +185,9 @@ def apply_unitary(unitary_value: Any,
     """High performance left-multiplication of a unitary effect onto a tensor.
 
     Applies the unitary effect of `unitary_value` to the tensor specified in
-    `args` by using the following strategies in order:
+    `args` by using the following strategies:
 
-    1. Try to use `unitary_value._apply_unitary_(args)`.
+    A. Try to use `unitary_value._apply_unitary_(args)`.
         Case a) Method not present or returns `NotImplemented`.
             Continue to next strategy.
         Case b) Method returns `None`.
@@ -196,7 +195,7 @@ def apply_unitary(unitary_value: Any,
         Case c) Method returns a numpy array.
             Forward the successful result to the caller.
 
-    2. Try to use `unitary_value._unitary_()`.
+    B. Try to use `unitary_value._unitary_()`.
         Case a) Method not present or returns `NotImplemented`.
             Continue to next strategy.
         Case b) Method returns `None`.
@@ -204,13 +203,18 @@ def apply_unitary(unitary_value: Any,
         Case c) Method returns a numpy array.
             Multiply the matrix onto the target tensor and return to the caller.
 
-    3. Try to use `unitary_value._decompose_()`.
+    C. Try to use `unitary_value._decompose_()`.
         Case a) Method not present or returns `NotImplemented` or `None`.
             Continue to next strategy.
         Case b) Method returns an OP_TREE.
             Delegate to `cirq.apply_unitaries`.
 
-    4. Conclude that `unitary_value` has no unitary effect.
+    D. Conclude that `unitary_value` has no unitary effect.
+
+    The order that the strategies are tried depends on the number of qubits
+    being operated on. For small numbers of qubits (4 or less) the order is
+    ABCD. For larger numbers of qubits the order is ACBD (because it is expected
+    that decomposing will outperform generating the raw matrix).
 
     Args:
         unitary_value: The value with a unitary effect to apply to the target.
@@ -238,7 +242,7 @@ def apply_unitary(unitary_value: Any,
     """
 
     # Decide on order to attempt application strategies.
-    if len(args.axes) <= 3:
+    if len(args.axes) <= 4:
         strats = [
             _strat_apply_unitary_from_apply_unitary,
             _strat_apply_unitary_from_unitary,
