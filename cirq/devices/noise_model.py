@@ -38,26 +38,6 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     dynamically rewrite the program they are simulating.
     """
 
-    def _noisy_moments_impl_moment(self, moments: 'Iterable[cirq.Moment]',
-                                   system_qubits: Sequence['cirq.Qid']
-                                  ) -> Sequence['cirq.OP_TREE']:
-        result = []
-        for moment in moments:
-            result.append(self.noisy_moment(moment, system_qubits))
-        return result
-
-    def _noisy_moments_impl_operation(self, moments: 'Iterable[cirq.Moment]',
-                                      system_qubits: Sequence['cirq.Qid']
-                                     ) -> Sequence['cirq.OP_TREE']:
-        result = []
-        for moment in moments:
-            result.append([self.noisy_operation(op) for op in moment])
-        return result
-
-    @value.alternative(requires='noisy_moment',
-                       implementation=_noisy_moments_impl_moment)
-    @value.alternative(requires='noisy_operation',
-                       implementation=_noisy_moments_impl_operation)
     def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
                       system_qubits: Sequence['cirq.Qid']
                      ) -> Sequence['cirq.OP_TREE']:
@@ -71,21 +51,8 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             A sequence of OP_TREEs, with the k'th tree corresponding to the
             noisy operations for the k'th moment.
         """
+        return list(moments)
 
-    def _noisy_moment_impl_moments(self, moment: 'cirq.Moment',
-                                   system_qubits: Sequence['cirq.Qid']
-                                  ) -> 'cirq.OP_TREE':
-        return self.noisy_moments([moment], system_qubits)
-
-    def _noisy_moment_impl_operation(self, moment: 'cirq.Moment',
-                                     system_qubits: Sequence['cirq.Qid']
-                                    ) -> 'cirq.OP_TREE':
-        return [self.noisy_operation(op) for op in moment]
-
-    @value.alternative(requires='noisy_moments',
-                       implementation=_noisy_moment_impl_moments)
-    @value.alternative(requires='noisy_operation',
-                       implementation=_noisy_moment_impl_operation)
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         """Adds noise to the operations from a moment.
@@ -97,19 +64,8 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns:
             An OP_TREE corresponding to the noisy operations for the moment.
         """
+        return list(moment)
 
-    def _noisy_operation_impl_moments(self, operation: 'cirq.Operation'
-                                     ) -> 'cirq.OP_TREE':
-        return self.noisy_moments([ops.Moment([operation])], operation.qubits)
-
-    def _noisy_operation_impl_moment(self, operation: 'cirq.Operation'
-                                    ) -> 'cirq.OP_TREE':
-        return self.noisy_moment(ops.Moment([operation]), operation.qubits)
-
-    @value.alternative(requires='noisy_moments',
-                       implementation=_noisy_operation_impl_moments)
-    @value.alternative(requires='noisy_moment',
-                       implementation=_noisy_operation_impl_moment)
     def noisy_operation(self, operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         """Adds noise to an individual operation.
 
@@ -120,8 +76,9 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             An OP_TREE corresponding to the noisy operations implementing the
             noisy version of the given operation.
         """
+        return operation
 
-    def apply_noise(self, circuit: 'cirq.Circuit') -> 'cirq.Circuit':
+    def apply_noise(self, input_circuit: 'cirq.Circuit') -> 'cirq.Circuit':
         """Compose a circuit applying defined noise methods to the input.
 
         If multiple noise methods are defined, they will be inserted in order
@@ -130,11 +87,11 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
 
         TODO
         """
-
+        qubits = list(input_circuit.all_qubits())
         # Append to front of op trees within a queue to avoid in place changes
-        op_tree = self.noisy_moments(circuit)
-        for i, moment in enumerate(circuit):
-            op_tree[i] = self.noisy_moment(moment) + op_tree[i]
+        op_tree = self.noisy_moments(input_circuit, qubits)
+        for i, moment in enumerate(input_circuit):
+            op_tree.insert(i, self.noisy_moment(moment, qubits))
             for op in moment:
                 op_tree[i].insert(0, self.noisy_operation(op))
         return circuit.Circuit.from_ops(op_tree)

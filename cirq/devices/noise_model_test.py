@@ -131,10 +131,12 @@ class NonMarkovianPulseTrainNoise(cirq.NoiseModel):
                     to each qubit in the moment.
                 epsilon: Order of magnitude of noise strength to apply.
         """
-        if qubit_noise_gate.num_qubits() != 1:
-            raise ValueError('noise.num_qubits() != 1')
-        if not cirq.protocols.is_parameterized(qubit_noise_gate):
-            raise ValueError('Gate is not parametrized.')
+        # FIXME: Can't check num qubits on uninstantiated XPowGate
+        # if qubit_noise_gate.num_qubits() != 1:
+        #     raise ValueError('noise.num_qubits() != 1')
+        # FIXME: How to check parametrization on XPowGate
+        # if not cirq.protocols.is_parameterized(qubit_noise_gate):
+        #     raise ValueError('Noise operation is not parametrized.')
         self.qubit_noise_gate = qubit_noise_gate
         self.epsilon = epsilon
 
@@ -148,7 +150,7 @@ class NonMarkovianPulseTrainNoise(cirq.NoiseModel):
             result.append([self.qubit_noise_gate(x)(q) for q in system_qubits])
         # each sublist in `result` corresponds to a moment parametrized
         # by a single timestep in `pulse_train`
-        return result
+        return [list(moment) for moment in moments] + result
 
 
 class MarkovianPairwiseCorrelatedNoise(cirq.NoiseModel):
@@ -158,7 +160,7 @@ class MarkovianPairwiseCorrelatedNoise(cirq.NoiseModel):
     pairs of qubits with no interdependence between moments.
     """
     def __init__(self,
-                 pairwise_mask: Sequence['cirq.Qid'],
+                 correlated_pairs: Sequence['cirq.Qid'],
                  epsilon: float,
                  qubit_noise_gate: 'cirq.Gate'):
         """
@@ -167,29 +169,29 @@ class MarkovianPairwiseCorrelatedNoise(cirq.NoiseModel):
                     to each qubit in the moment.
                 epsilon: Order of magnitude of noise strength to apply.
         """
-        if qubit_noise_gate.num_qubits() != 1:
-            raise ValueError('noise.num_qubits() != 1')
-        if not cirq.protocols.is_parameterized(qubit_noise_gate):
-            raise ValueError('Gate is not parametrized.')
+        # FIXME: Can't check num qubits on uninstantiated XPowGate
+        # if qubit_noise_gate.num_qubits() != 1:
+        #     raise ValueError('noise.num_qubits() != 1')
+        # FIXME: How to check parametrization on XPowGate
+        # if not cirq.protocols.is_parameterized(qubit_noise_gate):
+        #     raise ValueError('Noise operation is not parametrized.')
         self.qubit_noise_gate = qubit_noise_gate
         self.epsilon = epsilon
 
         # Persistent mask describing which qubits share noise at each moment.
-        self.pairwise_mask = pairwise_mask
-
-        # np.asarray(
-        #    np.random.shuffle(np.arange(len(system_qubits))), np.int)
+        self.correlated_pairs = correlated_pairs
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
 
         result = []
-        for index in self.pairwise_mask:
-            shared_param = self.epsilon * np.random.randn()
-            for i in range(2):
-                result.append(
-                    self.qubit_noise_gate(shared_param)(system_qubits[index]))
-        return result
+        for (i, j) in self.correlated_pairs:
+            # This pair will share a single noise parameter.
+            shared_x = self.epsilon * np.random.randn()
+            for _ in range(2):
+                result += [self.qubit_noise_gate(shared_x)(system_qubits[i]),
+                           self.qubit_noise_gate(shared_x)(system_qubits[i])]
+        return list(moment) + result
 
 
 class OperationSpecificNoise(cirq.NoiseModel):
@@ -201,12 +203,16 @@ class OperationSpecificNoise(cirq.NoiseModel):
     """
 
     def noisy_operation(self, operation: 'cirq.Operation'):
-        if str(operation)[:1] == "Rx":
+        # FIXME: better way to get around inheritance to check what gate
+        # I'm looking at..?
+        if str(operation)[:1] == "X":
             return cirq.depolarize(0.031)(*operation.qubits)
-        if str(operation)[:1] == "Ry":
+        if str(operation)[:1] == "Y":
             return cirq.depolarize(0.0294)(*operation.qubits)
+        if str(operation)[:1] == "Z":
+            return cirq.depolarize(0.0299)(*operation.qubits)
         # etc...
-
+        return cirq.I(*operation.qubits) # no modification for other gates...
 
 class CombinationOfNoiseModels(cirq.NoiseModel):
     """Apply a combination of the above noise models.
@@ -217,33 +223,62 @@ class CombinationOfNoiseModels(cirq.NoiseModel):
     operations or Moments added by another  overriden abc function). In general,
     the behavior of
 
-        `noisy_circuit = CombinationOfNoiseModels.apply_noise(circuit)`
+        `noisy_circuit = CombinationOfNoiseModels().apply_noise(circuit)`
 
     differs from the behavior of
 
-        `noisy_circuit = FirstNoiseModel.apply_noise(
-            SecondNoiseModel.apply_noise(circuit))`
-
+        `noisy_circuit = FirstNoiseModel().apply_noise(
+            SecondNoiseModel().apply_noise(circuit))`
     """
 
     def __init__(self,
-                 pairwise_mask: Sequence['cirq.Qid'],
+                 correlated_pairs: Sequence['cirq.Qid'],
                  epsilon: float,
                  qubit_noise_gate: 'cirq.Gate'):
 
         self._noisy_operation_delegate = OperationSpecificNoise()
         self._noisy_moment_delegate = MarkovianPairwiseCorrelatedNoise(
-            pairwise_mask, epsilon, qubit_noise_gate)
+            correlated_pairs, epsilon, qubit_noise_gate)
         self._noisy_moments_delegate = NonMarkovianPulseTrainNoise(
             epsilon, qubit_noise_gate)
 
     def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
                       system_qubits: Sequence['cirq.Qid']):
-        return self._noisy_moments_delegate(moments, system_qubits)
+        return self._noisy_moments_delegate.noisy_moments(moments, system_qubits)
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        return self._noisy_moment_delegate(moment, system_qubits)
+        return self._noisy_moment_delegate.noisy_moment(moment, system_qubits)
 
     def noisy_operation(self, operation: 'cirq.Operation'):
         return self._noisy_operation_delegate.noisy_operation(operation)
+
+
+def test_composition_of_noise_models():
+    qubits = cirq.LineQubit.range(4)
+    epsilon = 0.001
+    noise_gate = cirq.Rx
+    # This mask randomly pairs qubits for "spatially correlated" noise
+    rand_order = np.arange(4, dtype=int)
+    np.random.shuffle(rand_order)
+    pairs = [rand_order[:2], rand_order[2:4]]
+
+
+    test_circuit = cirq.Circuit.from_ops([cirq.X(q) for q in qubits]
+                                         + [cirq.Y(q) for q in qubits]
+                                         + [cirq.Z(q) for q in qubits])
+    first_model = NonMarkovianPulseTrainNoise(epsilon, noise_gate)
+    second_model = MarkovianPairwiseCorrelatedNoise(pairs, epsilon, noise_gate)
+    third_model = OperationSpecificNoise()
+
+    stacked_noise = test_circuit.copy()
+    for noise_model in [first_model, second_model, third_model]:
+        stacked_noise = noise_model.apply_noise(stacked_noise)
+
+    composite_model = CombinationOfNoiseModels(pairs, epsilon, noise_gate)
+    composite_noise = composite_model.apply_noise(test_circuit)
+
+    assert stacked_noise != composite_noise
+
+if __name__ == "__main__":
+    test_composition_of_noise_models()
