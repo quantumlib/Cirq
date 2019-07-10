@@ -26,7 +26,7 @@ class PauliSumCollector(collector.Collector):
 
     def __init__(self,
                  circuit: circuits.Circuit,
-                 observable: ops.PauliSum,
+                 observable: ops.PauliSumLike,
                  *,
                  samples_per_term: int,
                  max_samples_per_job: int = 1000000):
@@ -41,6 +41,8 @@ class PauliSumCollector(collector.Collector):
                 PauliString term in order to estimate its expectation.
             max_samples_per_job: How many samples to request at a time.
         """
+        observable = ops.PauliSum.wrap(observable)
+
         self._circuit = circuit
         self._samples_per_job = max_samples_per_job
         self._pauli_coef_terms = [

@@ -153,6 +153,7 @@ from cirq.ops import (
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
+    PauliSumLike,
     PauliTransform,
     phase_damp,
     phase_flip,

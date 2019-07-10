@@ -17,10 +17,16 @@ from typing import Mapping, Optional, Tuple, Union, List, FrozenSet, DefaultDict
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, pauli_gates
+from cirq.ops import raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
+PauliSumLike = Union[int,
+                     float,
+                     complex,
+                     PauliString,
+                     'PauliSum',
+                     pauli_string.SingleQubitPauliStringGateOperation]
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -259,6 +265,12 @@ class PauliSum:
 
     def _value_equality_values_(self):
         return self._linear_dict
+
+    @staticmethod
+    def wrap(val: PauliSumLike) -> 'PauliSum':
+        if isinstance(val, PauliSum):
+            return val
+        return PauliSum() + val
 
     @classmethod
     def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) \
