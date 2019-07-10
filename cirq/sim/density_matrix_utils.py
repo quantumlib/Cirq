@@ -259,13 +259,13 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
                          'qubits but was {}'.format(indices))
 
 
-def von_neumann_entropy(density_matrix: np.ndarray)-> float:
+def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     """Calculates von Neumann entropy of density matrix in bits.
     Args:
         density_matrix: The density matrix.
     Returns:
         The calculated von Neumann entropy.
-        """
+    """
     eigenvalues = np.linalg.eigvals(density_matrix)
     if 0 in eigenvalues:
         return 0
