@@ -87,10 +87,8 @@ class MergeInteractions(circuits.PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=new_operations)
 
-    def _op_to_matrix(self,
-                      op: Optional[ops.Operation],
-                      qubits: Tuple[ops.Qid, ...]
-                      ) -> Optional[np.ndarray]:
+    def _op_to_matrix(self, op: ops.Operation,
+                      qubits: Tuple[ops.Qid, ...]) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
         If the operation is a 1-qubit operation on one of the given qubits,
