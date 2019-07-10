@@ -21,12 +21,8 @@ from cirq.ops import raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
-PauliSumLike = Union[int,
-                     float,
-                     complex,
-                     PauliString,
-                     'PauliSum',
-                     pauli_string.SingleQubitPauliStringGateOperation]
+PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
+                     SingleQubitPauliStringGateOperation]
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -370,8 +366,8 @@ class PauliSum:
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
-        return value.linear_dict._format_terms(
-            terms=terms, format_spec=format_spec)
+        return value.linear_dict._format_terms(terms=terms,
+                                               format_spec=format_spec)
 
     def __str__(self):
         return self.__format__('.3f')

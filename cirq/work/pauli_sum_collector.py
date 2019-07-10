@@ -46,9 +46,7 @@ class PauliSumCollector(collector.Collector):
         self._circuit = circuit
         self._samples_per_job = max_samples_per_job
         self._pauli_coef_terms = [
-            (p / p.coefficient, p.coefficient)
-            for p in observable
-            if p
+            (p / p.coefficient, p.coefficient) for p in observable if p
         ]
 
         self._identity_offset = 0
