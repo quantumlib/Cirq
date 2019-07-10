@@ -577,8 +577,7 @@ class MultiHTestGate(cirq.TwoQubitGate):
 def test_simulates_composite():
     c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
     expected = np.array([0.5] * 4)
-    np.testing.assert_allclose(c.apply_unitary_effect_to_state(),
-                               expected)
+    np.testing.assert_allclose(c.final_wavefunction(), expected)
     np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(),
                                expected)
 

@@ -1251,15 +1251,6 @@ class Circuit:
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
 
-    @deprecated(deadline='v0.7.0', fix='Use Circuit.unitary instead.')
-    def to_unitary_matrix(
-            self,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.Qid] = (),
-            ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
-        return self.unitary(qubit_order, qubits_that_should_be_present,
-                            ignore_terminal_measurements, dtype)
 
     def unitary(self,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -1314,7 +1305,7 @@ class Circuit:
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((1 << n, 1 << n))
 
-    def apply_unitary_effect_to_state(
+    def final_wavefunction(
             self,
             initial_state: Union[int, np.ndarray] = 0,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -1389,6 +1380,14 @@ class Circuit:
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((1 << n,))
+
+    to_unitary_matrix = deprecated(
+        deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
+
+    apply_unitary_effect_to_state = deprecated(
+        deadline='v0.7.0',
+        fix="Use `cirq.final_wavefunction(circuit)` or "
+        "`Circuit.final_wavefunction()` instead")(final_wavefunction)
 
     def to_text_diagram(
             self,

@@ -622,6 +622,11 @@ class IdentityGate(raw_types.Gate):
         return protocols.CircuitDiagramInfo(
             wire_symbols=('I',) * self.num_qubits(), connected=True)
 
+    def _qasm_(self, args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
+
     def _value_equality_values_(self):
         return self.num_qubits(),
 
