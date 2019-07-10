@@ -317,7 +317,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 # Positive 90 degree rotation
                 output.append((pauli, 1))
             return output
-        elif num_whole == 0:
+        if num_whole == 0:
             # Gate is a 120 degree rotation
             if x_rot.to == pauli_gates.Y:
                 return [(pauli_gates.X, -1 if y_rot.flip else 1),
