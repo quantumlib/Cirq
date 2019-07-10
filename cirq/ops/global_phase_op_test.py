@@ -40,11 +40,154 @@ def test_protocols():
                                atol=1e-8)
 
 
-def test_diagram():
-    cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)),
-                              cirq.GlobalPhaseOperation(-1)), '0: ───X───')
-
-
 def test_str():
     assert str(cirq.GlobalPhaseOperation(1j)) == '1j'
+
+
+def test_diagram():
+    a, b = cirq.LineQubit.range(2)
+    x, y = cirq.LineQubit.range(10, 12)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.CNOT(a, x),
+                cirq.CNOT(b, y),
+                cirq.GlobalPhaseOperation(-1),
+            ])
+        ]),
+        """
+                ┌──┐
+0: ──────────────@─────
+                 │
+1: ──────────────┼@────
+                 ││
+10: ─────────────X┼────
+                  │
+11: ──────────────X────
+
+global phase:    π
+                └──┘
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.CNOT(a, x),
+                cirq.CNOT(b, y),
+                cirq.GlobalPhaseOperation(-1),
+                cirq.GlobalPhaseOperation(-1),
+            ]),
+        ]),
+        """
+                ┌──┐
+0: ──────────────@─────
+                 │
+1: ──────────────┼@────
+                 ││
+10: ─────────────X┼────
+                  │
+11: ──────────────X────
+
+global phase:
+                └──┘
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.CNOT(a, x),
+                cirq.CNOT(b, y),
+                cirq.GlobalPhaseOperation(-1),
+                cirq.GlobalPhaseOperation(-1),
+            ]),
+            cirq.Moment([
+                cirq.GlobalPhaseOperation(1j),
+            ]),
+            cirq.Moment([
+                cirq.X(a),
+            ]),
+        ]),
+        """
+                ┌──┐
+0: ──────────────@────────────X───
+                 │
+1: ──────────────┼@───────────────
+                 ││
+10: ─────────────X┼───────────────
+                  │
+11: ──────────────X───────────────
+
+global phase:          0.5π
+                └──┘
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.X(a),
+            ]),
+            cirq.Moment([
+                cirq.GlobalPhaseOperation(-1j),
+            ]),
+        ]),
+        """
+0: ─────────────X───────────
+
+global phase:       -0.5π
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.X(a),
+                cirq.GlobalPhaseOperation(np.exp(1j)),
+            ]),
+        ]),
+        """
+0: ─────────────X────────
+
+global phase:   0.318π
+        """)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.X(a),
+                cirq.GlobalPhaseOperation(np.exp(1j)),
+            ]),
+        ]),
+        """
+0: ─────────────X──────────
+
+global phase:   0.31831π
+        """,
+        precision=5)
+
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.X(a),
+                cirq.GlobalPhaseOperation(1j),
+            ]),
+            cirq.Moment([
+                cirq.GlobalPhaseOperation(-1j),
+            ]),
+        ]),
+        """
+0: -------------X----------------
+
+global phase:   0.5pi   -0.5pi
+        """,
+        use_unicode_characters=False)
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit([
+            cirq.Moment([
+                cirq.GlobalPhaseOperation(-1j),
+            ]),
+        ]),
+        """
+global phase:   -0.5π
+        """)
