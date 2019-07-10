@@ -55,8 +55,7 @@ class JobConfig:
     Quantum engine has two resources: programs and jobs. Programs live
     under cloud projects. Every program may have many jobs, which represent
     scheduled or terminated programs executions. Program and job resources have
-    string names. This object contains the information necessary to create a
-    program and then create a job on Quantum Engine, hence running the program.
+    string names. This object contains the information necessary to create a program and then create a job on Quantum Engine, hence running the program.
     Program ids are of the form
         `projects/project_id/programs/program_id`
     while job ids are of the form
@@ -536,6 +535,46 @@ class Engine:
         if new_labels != old_labels:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
+
+    def list_processors(self, project_id: str) -> List[Dict]:
+        parent = 'projects/%s' % (project_id)
+        response = self.service.projects().processors().list(parent=parent).execute()
+        return response['processors']
+
+
+    def get_latest_calibration(self, processor_name: str) -> Dict:
+        """Returns metadata about a the latest known calibration run for a processor.
+
+        Params:
+            processor_name: A string of the form
+                `projects/project_id/processors/processor_id`.
+
+        Returns:
+            A dictionary containing the metadata.
+        """
+        response = self.service.projects().processors().calibrations().list(
+            parent=processor_name).execute()
+        #type: cirq.api.google.v2.metrics_pb2
+        return response['calibrations'][0] if response['calibrations'] else []
+
+
+    def get_calibration(self, calibration_name: str) -> Dict:
+        """Returns metadata about a specific calibration run for a processor.
+
+        A Job created on the engine will provide the calibration_name as part of
+        its ExecutionStatus when there exists a known calibration run for the time
+        when the job was run.
+
+        Params:
+            calibration_name: A string of the form
+                `projects/project_id/processors/processor_id/calibrations/timestamp`,
+                where timestamp is the number of seconds since the epoch.
+
+        Returns:
+            A dictionary containing the metadata.
+        """
+        return self.service.projects().processors().calibrations().get(
+            name=calibration_name).execute()
 
 
 class EngineJob:
