@@ -257,16 +257,17 @@ def test_simulate(dtype):
     assert len(result.measurements) == 0
 
 
-@pytest.mark.parametrize('dtype,circuit', itertools.product(
-    [np.complex64, np.complex128],
-    [cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9) for _ in range(20)]))
+@pytest.mark.parametrize(
+    'dtype,circuit',
+    itertools.product([np.complex64, np.complex128], [
+        cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9)
+        for _ in range(20)
+    ]))
 def test_simulate_compare_to_wave_function_simulator(dtype, circuit):
-    pure_result = (cirq.Simulator(dtype=dtype)
-                   .simulate(circuit)
-                   .density_matrix_of())
-    mixed_result = (cirq.DensityMatrixSimulator(dtype=dtype)
-                    .simulate(circuit)
-                    .final_density_matrix)
+    pure_result = (cirq.Simulator(
+        dtype=dtype).simulate(circuit).density_matrix_of())
+    mixed_result = (cirq.DensityMatrixSimulator(
+        dtype=dtype).simulate(circuit).final_density_matrix)
     assert mixed_result.shape == (16, 16)
     np.testing.assert_almost_equal(mixed_result, pure_result)
 
