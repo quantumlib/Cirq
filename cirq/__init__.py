@@ -153,6 +153,7 @@ from cirq.ops import (
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
+    PauliSumLike,
     PauliTransform,
     phase_damp,
     phase_flip,
@@ -233,7 +234,6 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
-    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -314,7 +314,7 @@ from cirq.protocols import (
     QasmArgs,
     resolve_parameters,
     SupportsApplyChannel,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
@@ -345,6 +345,14 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.work import (
+    CircuitSampleJob,
+    PauliSumCollector,
+    Sampler,
+    Collector,
+)
+
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.
