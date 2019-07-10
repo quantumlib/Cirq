@@ -1742,8 +1742,6 @@ def _formatted_phase(coefficient: complex, unicode: bool,
     unit = 'π' if unicode else 'pi'
     if h == 1:
         return unit
-    if h == -1:
-        return f'-{unit}'
     return '{{:.{}}}'.format(precision).format(h) + unit
 
 
