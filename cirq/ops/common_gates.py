@@ -619,8 +619,9 @@ class IdentityGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('I',) * self.num_qubits(), vconnected=True)
+        return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
+                                            self.num_qubits(),
+                                            vconnected=True)
 
     def _value_equality_values_(self):
         return self.num_qubits(),

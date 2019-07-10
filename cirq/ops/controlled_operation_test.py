@@ -138,10 +138,9 @@ class MultiH(cirq.Gate):
         assert args.known_qubit_count is not None
         assert args.known_qubits is not None
 
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=tuple('H({})'.format(q) for q in args.known_qubits),
-            vconnected=True
-        )
+        return protocols.CircuitDiagramInfo(wire_symbols=tuple(
+            'H({})'.format(q) for q in args.known_qubits),
+                                            vconnected=True)
 
 
 def test_circuit_diagram():
@@ -177,7 +176,8 @@ class MockGate(cirq.TwoQubitGate):
                                args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         self.captured_diagram_args = args
-        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']), exponent=1,
+        return cirq.CircuitDiagramInfo(wire_symbols=tuple(['MOCK']),
+                                       exponent=1,
                                        vconnected=True)
 
 
@@ -189,9 +189,8 @@ def test_uninformed_circuit_diagram_info():
 
     args = protocols.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
 
-    assert (cirq.circuit_diagram_info(c_op, args) ==
-            cirq.CircuitDiagramInfo(wire_symbols=('@', 'MOCK'), exponent=1,
-                                    vconnected=True))
+    assert (cirq.circuit_diagram_info(c_op, args) == cirq.CircuitDiagramInfo(
+        wire_symbols=('@', 'MOCK'), exponent=1, vconnected=True))
     assert mock_gate.captured_diagram_args == args
 
 

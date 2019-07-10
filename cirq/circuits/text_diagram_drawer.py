@@ -145,6 +145,8 @@ class TextDiagramDrawer:
         self.horizontal_lines.append(_HorizontalLine(y, x1, x2, emphasize))
 
     def horizontal_occlusion(self, x: int, y: int):
+        """Indicates that no horizontal line is to be drawn from (x, y) to
+        (x + 1, y)."""
         self.horizontal_occlusions.append(_Point(x, y))
 
     def transpose(self) -> 'TextDiagramDrawer':

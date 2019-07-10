@@ -68,7 +68,7 @@ def circuit_to_qcircuit_diagram(
         *,
         optimizers: Iterable[
             Callable[[circuits.Circuit], None]] = default_optimizers,
-        get_circuit_diagram_info: Optional[
+        intercepting_circuit_diagram_info_getter: Optional[
             Callable[[ops.Operation, protocols.CircuitDiagramInfoArgs],
                      protocols.CircuitDiagramInfo]] = None,
         qubit_namer: Optional[Callable[[ops.Qid], str]] = None,
@@ -89,15 +89,15 @@ def circuit_to_qcircuit_diagram(
     for optimizer in optimizers:
         optimizer(circuit)
 
-    if get_circuit_diagram_info is None:
-        get_circuit_diagram_info = get_qcircuit_diagram_info
+    if intercepting_circuit_diagram_info_getter is None:
+        intercepting_circuit_diagram_info_getter = get_qcircuit_diagram_info
     if qubit_namer is None:
         qubit_namer = qcircuit_qubit_namer
 
     diagram = circuit.to_text_diagram_drawer(
         qubit_namer=qubit_namer,
         qubit_order=qubit_order,
-        get_circuit_diagram_info=get_circuit_diagram_info)
+        get_circuit_diagram_info=intercepting_circuit_diagram_info_getter)
     return diagram
 
 

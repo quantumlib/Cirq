@@ -19,14 +19,16 @@ from typing import Callable, Optional
 from cirq import circuits, ops
 
 
-def EnsureFinalMomentEmpty(circuit: circuits.Circuit) -> None:
+def ensure_final_moment_empty(circuit: circuits.Circuit) -> None:
+    """Ensures that the final moment is empty, by added an empty one if not."""
     if circuit[-1]:
         circuit.append(ops.Moment())
 
 
-def PadBetweenOps(
+def pad_between_ops(
         padding_needed: Callable[[ops.Operation, Optional[ops.Operation]], int]
 ) -> Callable[[circuits.Circuit], None]:
+    """Inserts padding where needed as indicated by the specified function."""
 
     def optimize_circuit(circuit):
         for i in reversed(range(len(circuit) - 1)):
@@ -45,6 +47,17 @@ def PadBetweenOps(
 
 def swap_followed_by_non_swap(first_op: ops.Operation,
                               second_op: Optional[ops.Operation]) -> int:
+    """Returns the amount of padding needed between two operations in a
+    qcircuit diagram.
+
+    If a swap is followed by a non-swap gate (on an overlapping set of qubits),
+    1 layer of padding is needed.
+
+    If a swap is followed by nothing (i.e., it's the end of the circuit), 2
+    layers are needed.
+
+    Otherwise, no padding is needed."""
+
     if not (isinstance(first_op, ops.GateOperation) and
             first_op.gate == ops.SWAP):
         return 0
@@ -58,6 +71,6 @@ def swap_followed_by_non_swap(first_op: ops.Operation,
     return 1
 
 
-PadAfterSwapGates = PadBetweenOps(swap_followed_by_non_swap)
+pad_after_swap_gates = pad_between_ops(swap_followed_by_non_swap)
 
-default_optimizers = (PadAfterSwapGates, EnsureFinalMomentEmpty)
+default_optimizers = (pad_after_swap_gates, ensure_final_moment_empty)
