@@ -370,6 +370,19 @@ def test_mul_scalar():
         _ = 'test' * p
 
 
+def test_div_scalar():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert -p == p / -1 == p / -1.0 == p / (-1 + 0j)
+    assert -p != p / 1j
+    assert +p == p / 1
+    assert p * 2 == p / 0.5
+    with pytest.raises(TypeError):
+        _ = p / 'test'
+    with pytest.raises(TypeError):
+        _ = 'test' / p
+
+
 def test_mul_strings():
     a, b, c, d = cirq.LineQubit.range(4)
     p1 = cirq.PauliString({a: cirq.X, b: cirq.Y, c: cirq.Z})
@@ -488,7 +501,7 @@ def test_to_z_basis_ops():
                     pauli_string.to_z_basis_ops())
 
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1)
-    z_basis_state = circuit.apply_unitary_effect_to_state(initial_state)
+    z_basis_state = circuit.final_wavefunction(initial_state)
 
     expected_state = np.zeros(2 ** 6)
     expected_state[0b010101] = 1

@@ -181,7 +181,7 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     qubit_map: Dict[ops.Qid, int]):
     basis_change_circuit = circuits.Circuit.from_ops(
         display.measurement_basis_change())
-    modified_state = basis_change_circuit.apply_unitary_effect_to_state(
+    modified_state = basis_change_circuit.final_wavefunction(
         state,
         qubit_order=qubit_order,
         qubits_that_should_be_present=qubit_map.keys())
