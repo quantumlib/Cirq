@@ -31,6 +31,7 @@ import re
 import numpy as np
 
 from cirq import devices, ops, study, protocols
+from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -61,8 +62,8 @@ class Circuit:
         findall_operations_with_gate_type
         are_all_matches_terminal
         are_all_measurements_terminal
-        to_unitary_matrix
-        final_wavefunction
+        unitary
+        apply_unitary_effect_to_state
         to_text_diagram
         to_text_diagram_drawer
 
@@ -220,6 +221,8 @@ class Circuit:
         return self
 
     def __add__(self, other):
+        if isinstance(other, list):
+            other = self.from_ops(other)
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device
@@ -231,13 +234,8 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        for moment in self:
-            device.validate_moment(moment)
-        for moment in other:
-            device.validate_moment(moment)
-
-        return Circuit(self._moments + other._moments,
-                       device=device)
+        result = Circuit(moments=self._moments, device=device)
+        return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -1252,15 +1250,17 @@ class Circuit:
         """
         if not self._has_unitary_():
             return NotImplemented
-        return self.to_unitary_matrix(ignore_terminal_measurements=True)
+        return self.unitary(ignore_terminal_measurements=True)
 
-    def to_unitary_matrix(
-            self,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.Qid] = (),
-            ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+
+    def unitary(self,
+                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                qubits_that_should_be_present: Iterable[ops.Qid] = (),
+                ignore_terminal_measurements: bool = True,
+                dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
+
+        Returns the same result as `cirq.unitary`, but provides more options.
 
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
@@ -1381,6 +1381,17 @@ class Circuit:
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((1 << n,))
+
+    to_unitary_matrix = deprecated(
+        deadline='v0.7.0',
+        fix='Use `Circuit.unitary()` instead.'
+    )(unitary)
+
+    apply_unitary_effect_to_state = deprecated(
+        deadline='v0.7.0',
+        fix="Use `cirq.final_wavefunction(circuit)` or "
+            "`Circuit.final_wavefunction()` instead"
+    )(final_wavefunction)
 
     def to_text_diagram(
             self,
