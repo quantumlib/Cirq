@@ -148,6 +148,9 @@ def results_from_proto(
     Args:
         msg: v2 Result message to convert.
         measurements: List of info about expected measurements in the program.
+            This may be used for custom ordering of the result. If no
+            measurement config is provided, then all results will be returned
+            in the order specified within the result.
 
     Returns:
         A list containing a list of trial results for each sweep.
@@ -162,8 +165,21 @@ def results_from_proto(
 
 def _trial_sweep_from_proto(
         msg: result_pb2.SweepResult,
-        measurements: Dict[str, MeasureInfo] = None,
+        measure_map: Dict[str, MeasureInfo] = None,
 ) -> List[study.TrialResult]:
+    """Converts a SweepResult proto into List of list of trial results.
+
+    Args:
+        msg: v2 Result message to convert.
+        measure_map: A mapping of measurement keys to a mesurement configuration
+            containing qubit ordering. If no measurement config is provided,
+            then all results will be returned in the order specified within the
+            result.
+
+    Returns:
+        A list containing a list of trial results for the sweep.
+    """
+
     trial_sweep: List[study.TrialResult] = []
     for pr in msg.parameterized_results:
         m_data: Dict[str, np.ndarray] = {}
@@ -175,10 +191,9 @@ def _trial_sweep_from_proto(
                 if qubit in qubit_results:
                     raise ValueError('qubit already exists: {}'.format(qubit))
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
-            if measurements:
+            if measure_map:
                 ordered_results = [
-                    qubit_results[qubit]
-                    for qubit in measurements[mr.key].qubits
+                    qubit_results[qubit] for qubit in measure_map[mr.key].qubits
                 ]
             else:
                 ordered_results = list(qubit_results.values())

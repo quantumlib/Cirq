@@ -29,12 +29,11 @@ import random
 import re
 import string
 import time
-import urllib.parse
 from collections import Iterable
 from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
 
-import google.protobuf as gp
 from apiclient import discovery
+import google.protobuf as gp
 from google.protobuf import any_pb2
 
 from cirq import optimizers, circuits
@@ -189,10 +188,9 @@ class Engine:
         self.default_gcs_prefix = default_gcs_prefix
         self.proto_version = proto_version
 
-        discovery_service_url = (
-            self.discovery_url if self.api_key is None else
-            ("%s&key=%s" %
-             (self.discovery_url, urllib.parse.quote_plus(self.api_key))))
+        discovery_service_url = self.discovery_url
+        if self.api_key is not None:
+            discovery_service_url += '&key={}'.format(self.api_key)
         self.service = discovery.build(
             self.api,
             self.version,
@@ -220,7 +218,7 @@ class Engine:
             priority: The priority to run at, 0-100.
             processor_ids: The engine processors to run against.
             gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor
+                must be supported by the selected processor.
 
         Returns:
             A single TrialResult for this run.
@@ -702,7 +700,7 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
-    return Zip(
-        *[Points(key, [value])
-          for key, value in resolver.param_dict.items()]) if len(
-              resolver.param_dict) else UnitSweep
+    params = resolver.param_dict
+    if not params:
+        return UnitSweep
+    return Zip(*[Points(key, [value]) for key, value in params.items()])
