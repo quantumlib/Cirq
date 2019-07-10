@@ -32,23 +32,25 @@ if TYPE_CHECKING:
 TDefault = TypeVar('TDefault')
 
 
-class SupportsExplicitHasUnitary(Protocol):
-    """An object that explicitly specifies whether it has a unitary effect."""
+class SupportsExplicitHasMixture(Protocol):
+    """An object that explicitly specifies whether it has a mixture effect.
 
-    def _has_unitary_(self) -> bool:
-        """Determines whether the receiver has a unitary effect.
+    A mixture effect is a unitary sampled from a probability distribution.
+    """
 
-        This method is used preferentially by the global `cirq.has_unitary`
-        method, because this method is much cheaper than the fallback strategies
-        such as checking `value._unitary_` (which causes a large matrix to be
-        computed).
+    def _has_mixture_(self) -> bool:
+        """Whether this value has a mixture representation.
+
+        This method is the first thing checked by the global `cirq.has_mixture`
+        method. If this method is not present, fallback strategies are used
+        such as checking for `_has_unitary_`, `_mixture_`, etc.
 
         Returns:
-            Whether or not the receiving object (`self`) has a unitary effect.
+            True if the value has a mixture representation, False otherwise.
         """
 
 
-def has_unitary(val: Any) -> bool:
+def has_mixture(val: Any) -> bool:
     """Determines whether the value has a unitary effect.
 
     Determines whether `val` has a unitary effect by attempting the following
@@ -94,57 +96,55 @@ def has_unitary(val: Any) -> bool:
         The value that may or may not have a unitary effect.
 
     Returns:
-        Whether or not `val` has a unitary effect.
+        Whether or not `val` has a mixture effect.
     """
     strats = [
-        _strat_has_unitary_from_has_unitary, _strat_has_unitary_from_decompose,
-        _strat_has_unitary_from_apply_unitary, _strat_has_unitary_from_unitary
+        _strat_has_mixture_from_has_mixture,
+        _strat_has_mixture_from_decompose,
+        _strat_has_mixture_from_has_unitary,
+        _strat_has_mixture_from_apply_mixture,
+        _strat_has_mixture_from_mixture,
     ]
     for strat in strats:
         result = strat(val)
         if result is not None:
             return result
 
-    # If you can't tell that it's unitary, it's not unitary.
+    # If you can't tell that it's a mixture, it's not a mixture.
     return False
 
 
-def _strat_has_unitary_from_has_unitary(val: Any) -> Optional[bool]:
-    """Attempts to infer a value's unitary-ness via its _has_unitary_ method."""
-    if hasattr(val, '_has_unitary_'):
-        result = val._has_unitary_()
+def _strat_has_mixture_from_has_mixture(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's mixture-ness via its _has_mixture_ method."""
+    if hasattr(val, '_has_mixture_'):
+        result = val._has_mixture_()
         if result is not NotImplemented:
             return result
     return None
 
 
-def _strat_has_unitary_from_unitary(val: Any) -> Optional[bool]:
-    """Attempts to infer a value's unitary-ness via its _unitary_ method."""
-    getter = getattr(val, '_unitary_', None)
-    if getter is None:
-        return None
-    result = getter()
-    if result is NotImplemented:
-        return None
-    return result is not None
-
-
-def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
+def _strat_has_mixture_from_decompose(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _decompose_ method."""
     from cirq.protocols._util import _try_decompose_into_operations_and_qubits
     operations, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return None
-    return all(has_unitary(op) for op in operations)
+    return all(has_mixture(op) for op in operations)
 
 
-def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
+def _strat_has_mixture_from_has_unitary(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's mixture-ness via its unitary-ness."""
+    import cirq.protocols
+    return True if cirq.protocols.has_unitary(val) else None
+
+
+def _strat_has_mixture_from_apply_mixture(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
     """
     from cirq.protocols.apply_unitary import ApplyUnitaryArgs
     from cirq import linalg, line, ops
 
-    method = getattr(val, '_apply_unitary_', None)
+    method = getattr(val, '_apply_mixture_', None)
     if method is None:
         return None
     if isinstance(val, ops.Gate):
@@ -156,6 +156,17 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     state = linalg.one_hot(shape=(2,) * n, dtype=np.complex64)
     buffer = np.empty_like(state)
     result = method(ApplyUnitaryArgs(state, buffer, range(n)))
+    if result is NotImplemented:
+        return None
+    return result is not None
+
+
+def _strat_has_mixture_from_mixture(val: Any) -> Optional[bool]:
+    """Attempts to infer a value's unitary-ness via its _mixture_ method."""
+    getter = getattr(val, '_mixture_', None)
+    if getter is None:
+        return None
+    result = getter()
     if result is NotImplemented:
         return None
     return result is not None

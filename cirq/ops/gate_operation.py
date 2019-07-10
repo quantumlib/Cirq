@@ -121,7 +121,10 @@ class GateOperation(raw_types.Operation):
         return protocols.has_mixture(self.gate)
 
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
-        return protocols.mixture(self.gate, NotImplemented)
+        return protocols.mixture(self.gate, default=None)
+
+    def _apply_mixture_(self, args) -> Sequence[Tuple[float, Any]]:
+        return protocols.apply_mixture(self.gate, args, default=None)
 
     def _has_channel_(self) -> bool:
         return protocols.has_channel(self.gate)
