@@ -78,9 +78,7 @@ def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
             f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
             f'{fix}\n\n'
             f'------\n\n'
-            f'{func.__doc__ or ""}')
-        decorated_func.__name__ = func.__name__
-        decorated_func.__qualname__ = func.__qualname__
+            f'{decorated_func.__doc__ or ""}')
 
         return decorated_func
 
