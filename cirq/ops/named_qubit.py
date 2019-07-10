@@ -25,16 +25,21 @@ class NamedQubit(raw_types.Qid):
     """
 
     def __init__(self, name: str) -> None:
-        self.name = name
+        self._name = name
+        self._comp_key = _pad_digits(name)
 
     def _comparison_key(self):
-        return _pad_digits(self.name)
+        return self._comp_key
 
     def __str__(self):
-        return self.name
+        return self._name
+
+    @property
+    def name(self):
+        return self._name
 
     def __repr__(self):
-        return 'cirq.NamedQubit({})'.format(repr(self.name))
+        return 'cirq.NamedQubit({})'.format(repr(self._name))
 
     @staticmethod
     def range(*args, prefix: str):

@@ -98,7 +98,10 @@ from cirq.protocols.phase import (
     SupportsPhase,
 )
 from cirq.protocols.unitary import (
-    has_unitary,
     SupportsUnitary,
     unitary,
+)
+from cirq.protocols.has_unitary import (
+    has_unitary,
+    SupportsExplicitHasUnitary,
 )

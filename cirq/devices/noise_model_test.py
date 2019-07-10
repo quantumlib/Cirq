@@ -37,7 +37,7 @@ def test_requires_one_override():
     class C(cirq.NoiseModel):
         pass
 
-    with pytest.raises(AssertionError, match='override'):
+    with pytest.raises(TypeError, match='abstract'):
         _ = C()
 
 
