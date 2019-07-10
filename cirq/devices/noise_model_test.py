@@ -193,7 +193,57 @@ class MarkovianPairwiseCorrelatedNoise(cirq.NoiseModel):
 
 
 class OperationSpecificNoise(cirq.NoiseModel):
-    pass
+    """Apply operation-specific noise.
 
-class AllNoiseModelMethodsExist(cirq.NoiseModel):
-    pass
+    In this implementation, specific channels are applied to gates to
+    empirically model some hypothetical (fake!) experimental results
+    (e.g. process tomography).
+    """
+
+    def noisy_operation(self, operation: 'cirq.Operation'):
+        if str(operation)[:1] == "Rx":
+            return cirq.depolarize(0.031)(*operation.qubits)
+        if str(operation)[:1] == "Ry":
+            return cirq.depolarize(0.0294)(*operation.qubits)
+        # etc...
+
+
+class CombinationOfNoiseModels(cirq.NoiseModel):
+    """Apply a combination of the above noise models.
+
+    In general, noise methods in a cirq.NoiseModel implementation that override
+    the abstract methods will be applied in such a way that noise operations are
+    applied only to the original operations and Moments in a circuit (and not to
+    operations or Moments added by another  overriden abc function). In general,
+    the behavior of
+
+        `noisy_circuit = CombinationOfNoiseModels.apply_noise(circuit)`
+
+    differs from the behavior of
+
+        `noisy_circuit = FirstNoiseModel.apply_noise(
+            SecondNoiseModel.apply_noise(circuit))`
+
+    """
+
+    def __init__(self,
+                 pairwise_mask: Sequence['cirq.Qid'],
+                 epsilon: float,
+                 qubit_noise_gate: 'cirq.Gate'):
+
+        self._noisy_operation_delegate = OperationSpecificNoise()
+        self._noisy_moment_delegate = MarkovianPairwiseCorrelatedNoise(
+            pairwise_mask, epsilon, qubit_noise_gate)
+        self._noisy_moments_delegate = NonMarkovianPulseTrainNoise(
+            epsilon, qubit_noise_gate)
+
+    def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
+                      system_qubits: Sequence['cirq.Qid']):
+        return self._noisy_moments_delegate(moments, system_qubits)
+
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
+        return self._noisy_moment_delegate(moment, system_qubits)
+
+    def noisy_operation(self, operation: 'cirq.Operation'):
+        return self._noisy_operation_delegate.noisy_operation(operation)
