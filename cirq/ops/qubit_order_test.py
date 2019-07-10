@@ -110,3 +110,13 @@ def test_qubit_order_or_list():
     ordered = cirq.QubitOrder.sorted_by(repr)
     passed_through = cirq.QubitOrder.as_qubit_order(ordered)
     assert ordered is passed_through
+
+
+def test_qubit_order_iterator():
+    generator = (q for q in cirq.LineQubit.range(5))
+    assert cirq.QubitOrder.explicit(generator).order_for(
+        (cirq.LineQubit(3),)) == tuple(cirq.LineQubit.range(5))
+
+    generator = (q for q in cirq.LineQubit.range(5))
+    assert cirq.QubitOrder.as_qubit_order(generator).order_for(
+        (cirq.LineQubit(3),)) == tuple(cirq.LineQubit.range(5))
