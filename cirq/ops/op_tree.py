@@ -16,9 +16,8 @@
 """
 
 import collections
-import itertools
 
-from typing import Any, Iterable, Union, Callable, Tuple
+from typing import Any, Dict, Callable, Iterable, Tuple, Union
 
 from cirq.ops.moment import Moment
 from cirq.ops.qubit_order import QubitOrder
@@ -138,10 +137,11 @@ def max_qid_shape(op_tree: OP_TREE,
                   qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
                   qubits_that_should_be_present: Iterable[Qid] = (),
                   default_level: int = 1) -> Tuple[int, ...]:
-    shape_dict = collections.defaultdict(lambda: default_level)
+    shape_dict = collections.defaultdict(lambda: default_level
+                                        )  # type: Dict[Qid, int]
     for op in flatten_op_tree(op_tree):
         for level, qubit in zip(protocols.qid_shape(op), op.qubits):
             shape_dict[qubit] = max(shape_dict[qubit], level)
     qubits = QubitOrder.as_qubit_order(qubit_order).order_for(
-        itertools.chain(shape_dict.keys(), qubits_that_should_be_present))
+        set(shape_dict.keys()) | set(qubits_that_should_be_present))
     return tuple(shape_dict[qubit] for qubit in qubits)
