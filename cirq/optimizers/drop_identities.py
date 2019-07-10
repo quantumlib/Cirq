@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """An optimization pass that removes operations with tiny effects."""
 
 from typing import TYPE_CHECKING
@@ -32,7 +31,7 @@ class DropIdentities:
     pass with DropEmptyMoments
     """
 
-    def __init__(self, tolerance: float = 1e-8) -> None:
+    def __init__(self, tolerance: float=1e-8) -> None:
         self.tolerance = tolerance
 
     def __call__(self, circuit: _circuit.Circuit):

@@ -50,15 +50,14 @@ def test_remove_and_drop():
     circuit = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.Y(b),
-        cirq.Z(a) ** 0.2,
+        cirq.Z(a)**0.2,
         cirq.I(a),
         cirq.Z(a),
-        cirq.I(a),
-    )
+        cirq.I(a),)
     expected = cirq.Circuit.from_ops(
         cirq.X(a),
         cirq.Y(b),
-        cirq.Z(a) ** 0.2,
+        cirq.Z(a)**0.2,
         # cirq.I(a),
         cirq.Z(a),
         # cirq.I(a),
