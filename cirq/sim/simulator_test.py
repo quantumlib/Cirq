@@ -263,6 +263,21 @@ def test_pretty_print():
     assert p.text_pretty == 'SimulationTrialResult(...)'
 
 
+def test_async_sample():
+    m = {'mock': np.array([[0], [1]])}
+
+    class MockSimulator(cirq.SimulatesSamples):
+
+        def _run(self, circuit, param_resolver, repetitions):
+            return m
+
+    q = cirq.LineQubit(0)
+    f = MockSimulator().run_async(cirq.Circuit.from_ops(cirq.measure(q)),
+                                  repetitions=10)
+    result = cirq.testing.assert_asyncio_will_have_result(f)
+    assert result.measurements is m
+
+
 def test_simulation_trial_result_qubit_map():
     q = cirq.LineQubit.range(2)
     result = cirq.Simulator().simulate(

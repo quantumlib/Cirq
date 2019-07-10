@@ -100,6 +100,8 @@ from cirq.ops.global_phase_op import (
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    PauliSum,
+    PauliSumLike,
 )
 
 from cirq.ops.parallel_gate_operation import (

@@ -370,6 +370,19 @@ def test_mul_scalar():
         _ = 'test' * p
 
 
+def test_div_scalar():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert -p == p / -1 == p / -1.0 == p / (-1 + 0j)
+    assert -p != p / 1j
+    assert +p == p / 1
+    assert p * 2 == p / 0.5
+    with pytest.raises(TypeError):
+        _ = p / 'test'
+    with pytest.raises(TypeError):
+        _ = 'test' / p
+
+
 def test_mul_strings():
     a, b, c, d = cirq.LineQubit.range(4)
     p1 = cirq.PauliString({a: cirq.X, b: cirq.Y, c: cirq.Z})

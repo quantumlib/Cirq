@@ -17,13 +17,20 @@ from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
 
 import cmath
 import math
+import numbers
 
 import numpy as np
 
-from cirq import protocols, value, linalg
-from cirq.ops import (raw_types, gate_operation, common_gates, op_tree,
-                      pauli_gates, clifford_gate, pauli_interaction_gate,
-                      global_phase_op)
+from cirq import value, protocols, linalg
+from cirq.ops import (
+    global_phase_op,
+    raw_types,
+    gate_operation,
+    common_gates,
+    pauli_gates,
+    clifford_gate,
+    pauli_interaction_gate,
+)
 
 TDefault = TypeVar('TDefault')
 
@@ -55,6 +62,7 @@ class PauliString(raw_types.Operation):
             q, p = list(self._qubit_pauli_map.items())[0]
             return gate_operation.GateOperation(p,
                                                 [q])._value_equality_values_()
+
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
@@ -84,8 +92,9 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient * complex(other))
         if isinstance(other, PauliString):
             s1 = set(self.keys())
             s2 = set(other.keys())
@@ -105,9 +114,30 @@ class PauliString(raw_types.Operation):
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient * complex(other))
         return NotImplemented
+
+    def __truediv__(self, other):
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient / complex(other))
+        return NotImplemented
+
+    def __add__(self, other):
+        from cirq.ops.linear_combinations import PauliSum
+        return PauliSum.from_pauli_strings(self).__add__(other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        from cirq.ops.linear_combinations import PauliSum
+        return PauliSum.from_pauli_strings(self).__sub__(other)
+
+    def __rsub__(self, other):
+        return -self.__sub__(other)
 
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
@@ -291,7 +321,7 @@ class PauliString(raw_types.Operation):
                                for qubit, pauli in self.items()}
         return PauliString(new_qubit_pauli_map, self._coefficient)
 
-    def to_z_basis_ops(self) -> op_tree.OP_TREE:
+    def to_z_basis_ops(self) -> Iterator[raw_types.Operation]:
         """Returns operations to convert the qubits to the computational basis.
         """
         for qubit, pauli in self.items():
@@ -390,15 +420,15 @@ class PauliString(raw_types.Operation):
                 pauli_map[qubit] = cast(pauli_gates.Pauli,
                                         pauli_left or pauli_right)
                 return 0
-            elif pauli_left == pauli_right:
+            if pauli_left == pauli_right:
                 del pauli_map[qubit]
                 return 0
-            else:
-                pauli_map[qubit] = pauli_left.third(pauli_right)
-                if (pauli_left < pauli_right) ^ after_to_before:
-                    return int(inv) * 2 + 1
-                else:
-                    return int(inv) * 2 - 1
+
+            pauli_map[qubit] = pauli_left.third(pauli_right)
+            if (pauli_left < pauli_right) ^ after_to_before:
+                return int(inv) * 2 + 1
+
+            return int(inv) * 2 - 1
 
         quarter_kickback = 0
         if (qubit0 in pauli_map and

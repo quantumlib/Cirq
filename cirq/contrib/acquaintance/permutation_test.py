@@ -82,6 +82,23 @@ def test_update_mapping():
     assert mapping == {a: 1, b: 2, c: 0}
 
 
+def test_get_logical_operations():
+    a, b, c, d = qubits = cirq.LineQubit.range(4)
+    mapping = dict(zip(qubits, qubits))
+    operations = [
+        cirq.ZZ(a, b),
+        cca.SwapPermutationGate()(b, c),
+        cirq.SWAP(a, b),
+        cca.SwapPermutationGate()(c, d),
+        cca.SwapPermutationGate()(b, c),
+        cirq.ZZ(a, b)
+    ]
+    assert list(cca.get_logical_operations(operations, mapping)) == [
+        cirq.ZZ(a, b), cirq.SWAP(a, c),
+        cirq.ZZ(a, d)
+    ]
+
+
 @pytest.mark.parametrize('n_elements,n_permuted',
     ((n_elements, random.randint(0, n_elements)) for
      n_elements in (random.randint(5, 20) for _ in range(20))))

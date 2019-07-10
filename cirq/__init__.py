@@ -70,6 +70,7 @@ from cirq.linalg import (
     kak_canonicalize_vector,
     kak_decomposition,
     KakDecomposition,
+    subwavefunction,
     kron,
     kron_bases,
     kron_factor_4x4_to_2x2s,
@@ -85,6 +86,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    wavefunction_partial_trace_as_mixture,
 )
 
 from cirq.line import (
@@ -151,6 +153,8 @@ from cirq.ops import (
     PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
+    PauliSum,
+    PauliSumLike,
     PauliTransform,
     phase_damp,
     phase_flip,
@@ -231,7 +235,6 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
-    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -264,6 +267,8 @@ from cirq.study import (
 )
 
 from cirq.value import (
+    ABCMetaImplementAnyOneOf,
+    alternative,
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
@@ -341,6 +346,14 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.work import (
+    CircuitSampleJob,
+    PauliSumCollector,
+    Sampler,
+    Collector,
+)
+
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.

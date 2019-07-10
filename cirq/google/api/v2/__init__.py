@@ -13,6 +13,15 @@
 # limitations under the License.
 """Data format v2 for google api."""
 
+from cirq.google.api.v2.results import (
+    MeasureInfo,
+    find_measurements,
+    pack_bits,
+    unpack_bits,
+    results_from_proto,
+    results_to_proto,
+)
+
 from cirq.google.api.v2.sweeps import (
     sweep_from_proto,
     sweep_to_proto,

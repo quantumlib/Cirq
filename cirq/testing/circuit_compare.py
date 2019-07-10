@@ -129,10 +129,9 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
 
     all_qubits = actual.all_qubits().union(reference.all_qubits())
 
-    matrix_actual = actual.to_unitary_matrix(
-            qubits_that_should_be_present=all_qubits)
-    matrix_reference = reference.to_unitary_matrix(
-            qubits_that_should_be_present=all_qubits)
+    matrix_actual = actual.unitary(qubits_that_should_be_present=all_qubits)
+    matrix_reference = reference.unitary(
+        qubits_that_should_be_present=all_qubits)
 
     n_qubits = len(all_qubits)
     n = matrix_actual.shape[0]
