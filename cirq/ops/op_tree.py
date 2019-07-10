@@ -16,11 +16,15 @@
 """
 
 import collections
+import itertools
 
-from typing import Any, Iterable, Union, Callable
+from typing import Any, Iterable, Union, Callable, Tuple
 
 from cirq.ops.moment import Moment
-from cirq.ops.raw_types import Operation
+from cirq.ops.qubit_order import QubitOrder
+from cirq.ops.qubit_order_or_list import QubitOrderOrList
+from cirq.ops.raw_types import Operation, Qid
+from cirq import protocols
 
 
 OP_TREE = Union[Operation, Iterable[Any]]
@@ -128,3 +132,16 @@ def freeze_op_tree(root: OP_TREE) -> OP_TREE:
         all internal nodes are tuples instead of arbitrary iterables.
     """
     return transform_op_tree(root, iter_transformation=tuple)
+
+
+def max_qid_shape(op_tree: OP_TREE,
+                  qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+                  qubits_that_should_be_present: Iterable[Qid] = (),
+                  default_level: int = 1) -> Tuple[int, ...]:
+    shape_dict = collections.defaultdict(lambda: default_level)
+    for op in flatten_op_tree(op_tree):
+        for level, qubit in zip(protocols.qid_shape(op), op.qubits):
+            shape_dict[qubit] = max(shape_dict[qubit], level)
+    qubits = QubitOrder.as_qubit_order(qubit_order).order_for(
+        itertools.chain(shape_dict.keys(), qubits_that_should_be_present))
+    return tuple(shape_dict[qubit] for qubit in qubits)
