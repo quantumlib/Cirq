@@ -208,8 +208,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         period = self._period()
         if not period or isinstance(self._exponent, sympy.Symbol):
             return self._exponent
-        else:
-            return self._exponent % period
+
+        return self._exponent % period
 
     def _value_equality_values_(self):
         return self.phase_exponent, self._canonical_exponent, self._global_shift
