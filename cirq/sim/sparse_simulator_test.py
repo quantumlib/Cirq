@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from unittest import mock
 import numpy as np
 import pytest
@@ -209,7 +208,7 @@ def test_simulate_random_unitary(dtype):
             circuit_unitary.append(result.final_state)
         np.testing.assert_almost_equal(
             np.transpose(circuit_unitary),
-            random_circuit.to_unitary_matrix(qubit_order=[q0, q1]),
+            random_circuit.unitary(qubit_order=[q0, q1]),
             decimal=6)
 
 
@@ -578,8 +577,7 @@ class MultiHTestGate(cirq.TwoQubitGate):
 def test_simulates_composite():
     c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
     expected = np.array([0.5] * 4)
-    np.testing.assert_allclose(c.apply_unitary_effect_to_state(),
-                               expected)
+    np.testing.assert_allclose(c.final_wavefunction(), expected)
     np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(),
                                expected)
 

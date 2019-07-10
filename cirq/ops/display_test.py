@@ -57,7 +57,7 @@ def test_pauli_string_expectation_value_pure_state():
             cirq.X(qubits[3]),
             cirq.H(qubits[3]),
     )
-    wavefunction = circuit.apply_unitary_effect_to_state(qubit_order=qubits)
+    wavefunction = circuit.final_wavefunction(qubit_order=qubits)
     density_matrix = np.outer(wavefunction, np.conj(wavefunction))
 
     z0z1 = cirq.pauli_string_expectation(
@@ -168,7 +168,7 @@ def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
     matrix = np.kron(cirq.unitary(paulis[0]), cirq.unitary(paulis[1]))
 
     circuit = cirq.Circuit.from_ops(display.measurement_basis_change())
-    unitary = circuit.to_unitary_matrix(qubit_order=qubits)
+    unitary = circuit.unitary(qubit_order=qubits)
 
     ZZ = np.diag([1, -1, -1, 1])
     np.testing.assert_allclose(

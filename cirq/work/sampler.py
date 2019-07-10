@@ -13,8 +13,10 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
+from typing import Awaitable, List, Union
 import abc
-from typing import (List, Union)
+import asyncio
+import threading
 
 from cirq import circuits, schedules, study
 
@@ -30,10 +32,13 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> study.TrialResult:
         """Samples from the given Circuit or Schedule.
 
+        By default, the `run_async` method invokes this method on another
+        thread. So this method is supposed to be thread safe.
+
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit or schedule to sample from.
             param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
+            repetitions: The number of times to sample.
 
         Returns:
             TrialResult for a run.
@@ -54,11 +59,42 @@ class Sampler(metaclass=abc.ABCMeta):
         values.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit or schedule to sample from.
             params: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
+            repetitions: The number of times to sample.
 
         Returns:
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
+
+    async def run_async(self,
+                        program: Union[circuits.Circuit, schedules.Schedule], *,
+                        repetitions: int) -> Awaitable[study.TrialResult]:
+        """Asynchronously samples from the given Circuit or Schedule.
+
+        By default, this method calls `run` on another thread and yields the
+        result via the asyncio event loop. However, child classes are free to
+        override it to use other strategies.
+
+        Args:
+            program: The circuit or schedule to sample from.
+            repetitions: The number of times to sample.
+
+        Returns:
+            An awaitable TrialResult.
+        """
+        loop = asyncio.get_event_loop()
+        done = loop.create_future()  # type: asyncio.Future
+
+        def run():
+            try:
+                result = self.run(program, repetitions=repetitions)
+            except Exception as exc:
+                loop.call_soon_threadsafe(done.set_exception, exc)
+            else:
+                loop.call_soon_threadsafe(done.set_result, result)
+
+        t = threading.Thread(target=run)
+        t.start()
+        return await done

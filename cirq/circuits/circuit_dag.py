@@ -158,8 +158,8 @@ class CircuitDag(networkx.DiGraph):
                           ) -> Unique[ops.Operation]:
             if succ:
                 return get_root_node(next(iter(succ)))
-            else:
-                return get_first_node()
+
+            return get_first_node()
 
         node = get_first_node()
         while True:
@@ -174,6 +174,9 @@ class CircuitDag(networkx.DiGraph):
 
     def all_operations(self) -> Iterator[ops.Operation]:
         return (node.val for node in self.ordered_nodes())
+
+    def all_qubits(self):
+        return frozenset(q for node in self.nodes for q in node.val.qubits)
 
     def to_circuit(self) -> circuit.Circuit:
         return circuit.Circuit.from_ops(
