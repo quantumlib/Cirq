@@ -191,7 +191,7 @@ def test_max_qid_shape():
     assert cirq.max_qid_shape(make_op_tree()) == (2, 3, 3, 3, 2, 1)
     assert cirq.max_qid_shape(c) == (2, 3, 3, 3, 2, 1)
     assert cirq.max_qid_shape(make_op_tree(),
-                              default_level=2) == (2, 3, 3, 3, 2, 2)
+                              default_level=2) == (2, 3, 3, 3, 2, 1)
     assert cirq.max_qid_shape(
         make_op_tree(),
         qubits_that_should_be_present=(qubits[1],)) == (2, 3, 3, 3, 2, 1)
@@ -212,4 +212,4 @@ def test_max_qid_shape():
                                                             2)
     assert cirq.max_qid_shape(make_op_tree(),
                               qubit_order=qubits[::-1],
-                              default_level=2) == (2, 2, 2, 2, 3, 3, 3, 2)
+                              default_level=2) == (2, 2, 1, 2, 3, 3, 3, 2)

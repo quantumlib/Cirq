@@ -159,7 +159,7 @@ def max_qid_shape(*operations: OP_TREE,
                                         )  # type: Dict[Qid, int]
     for op in flatten_op_tree(operations):
         for level, qubit in zip(protocols.qid_shape(op), op.qubits):
-            shape_dict[qubit] = max(shape_dict[qubit], level)
+            shape_dict[qubit] = max(shape_dict.get(qubit, level), level)
     qubits = QubitOrder.as_qubit_order(qubit_order).order_for(
         set(shape_dict.keys()) | set(qubits_that_should_be_present))
     return tuple(shape_dict[qubit] for qubit in qubits)
