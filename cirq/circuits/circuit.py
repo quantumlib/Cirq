@@ -1460,8 +1460,9 @@ class Circuit:
         diagram.write(0, 0, '')
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
-        if any(isinstance(op, cirq.GlobalPhaseOperation)
-               for op in self.all_operations()):
+        if any(
+                isinstance(op, cirq.GlobalPhaseOperation)
+                for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
                           'global phase:')
@@ -1722,9 +1723,7 @@ def _draw_moment_in_diagram(
         if isinstance(e, ops.GlobalPhaseOperation)
     ])
     if global_phase != 1:
-        desc = _formatted_phase(global_phase,
-                                use_unicode_characters,
-                                precision)
+        desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(qubit_map.values(), default=0) + 1
             out_diagram.write(x0, y, desc)
@@ -1737,8 +1736,7 @@ def _draw_moment_in_diagram(
         moment_groups.append((x0, max_x))
 
 
-def _formatted_phase(coefficient: complex,
-                     unicode: bool,
+def _formatted_phase(coefficient: complex, unicode: bool,
                      precision: Optional[int]) -> str:
     h = math.atan2(coefficient.imag, coefficient.real) / math.pi
     unit = 'π' if unicode else 'pi'
