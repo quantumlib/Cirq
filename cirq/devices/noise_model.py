@@ -122,7 +122,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """
 
     def apply_noise(self, circuit: 'cirq.Circuit') -> 'cirq.Circuit':
-        """Compose a circuit augmenting the input with defined noise methods.
+        """Compose a circuit applying defined noise methods to the input.
 
         If multiple noise methods are defined, they will be inserted in order
         of finest granularity i.e. `noisy_operation` operations before
