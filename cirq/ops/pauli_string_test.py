@@ -501,7 +501,7 @@ def test_to_z_basis_ops():
                     pauli_string.to_z_basis_ops())
 
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1)
-    z_basis_state = circuit.apply_unitary_effect_to_state(initial_state)
+    z_basis_state = circuit.final_wavefunction(initial_state)
 
     expected_state = np.zeros(2 ** 6)
     expected_state[0b010101] = 1
