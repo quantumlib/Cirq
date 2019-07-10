@@ -612,9 +612,9 @@ def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         if isinstance(next(iter(iterable)), Sweep):
             sweeps = iterable
             return list(sweeps)
-        else:
-            resolvers = iterable
-            return [_resolver_to_sweep(p) for p in resolvers]
+
+        resolvers = iterable
+        return [_resolver_to_sweep(p) for p in resolvers]
 
     raise TypeError('Unexpected Sweepable.')  # coverage: ignore
 

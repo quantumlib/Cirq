@@ -144,8 +144,7 @@ class Simulator(simulator.SimulatesSamples,
             return protocols.is_measurement(op) or protocols.has_mixture(op)
         if circuit.are_all_matches_terminal(measure_or_mixture):
             return self._run_sweep_sample(resolved_circuit, repetitions)
-        else:
-            return self._run_sweep_repeat(resolved_circuit, repetitions)
+        return self._run_sweep_repeat(resolved_circuit, repetitions)
 
     def _run_sweep_sample(
         self,
