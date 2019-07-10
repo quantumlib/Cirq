@@ -30,7 +30,6 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.unitary import unitary
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
