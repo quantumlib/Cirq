@@ -123,9 +123,9 @@ class XPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('x {0};\n', qubits[0])
-        else:
-            return args.format('rx({0:half_turns}) {1};\n',
-                               self._exponent, qubits[0])
+
+        return args.format('rx({0:half_turns}) {1};\n', self._exponent,
+                           qubits[0])
 
     @property
     def phase_exponent(self):
@@ -154,9 +154,8 @@ class XPowGate(eigen_gate.EigenGate,
             if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rx({})'.format(
                     proper_repr(sympy.pi * self._exponent))
-            else:
-                return 'cirq.Rx(np.pi*{})'.format(
-                    proper_repr(self._exponent))
+
+            return 'cirq.Rx(np.pi*{})'.format(proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
@@ -234,9 +233,9 @@ class YPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('y {0};\n', qubits[0])
-        else:
-            return args.format('ry({0:half_turns}) {1};\n',
-                               self._exponent, qubits[0])
+
+        return args.format('ry({0:half_turns}) {1};\n', self._exponent,
+                           qubits[0])
 
     @property
     def phase_exponent(self):
@@ -265,9 +264,8 @@ class YPowGate(eigen_gate.EigenGate,
             if protocols.is_parameterized(self._exponent):
                 return 'cirq.Ry({})'.format(
                     proper_repr(sympy.pi * self._exponent))
-            else:
-                return 'cirq.Ry(np.pi*{})'.format(
-                    proper_repr(self._exponent))
+
+            return 'cirq.Ry(np.pi*{})'.format(proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
@@ -370,9 +368,9 @@ class ZPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('z {0};\n', qubits[0])
-        else:
-            return args.format('rz({0:half_turns}) {1};\n',
-                               self._exponent, qubits[0])
+
+        return args.format('rz({0:half_turns}) {1};\n', self._exponent,
+                           qubits[0])
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -399,8 +397,8 @@ class ZPowGate(eigen_gate.EigenGate,
             if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rz({})'.format(proper_repr(
                     sympy.pi * self._exponent))
-            else:
-                return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
+
+            return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'cirq.T'
@@ -616,8 +614,8 @@ class IdentityGate(raw_types.Gate):
     def __str__(self):
         if (self.num_qubits() == 1):
             return 'I'
-        else:
-            return 'I({})'.format(self.num_qubits())
+
+        return 'I({})'.format(self.num_qubits())
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
@@ -711,11 +709,11 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('h {0};\n', qubits[0])
-        else:
-            return args.format('ry({0:half_turns}) {3};\n'
-                               'rx({1:half_turns}) {3};\n'
-                               'ry({2:half_turns}) {3};\n',
-                               0.25,  self._exponent, -0.25, qubits[0])
+
+        return args.format(
+            'ry({0:half_turns}) {3};\n'
+            'rx({1:half_turns}) {3};\n'
+            'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
     def __str__(self):
         if self._exponent == 1:

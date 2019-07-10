@@ -64,6 +64,9 @@ class QasmGateStatement:
         self.qasm_gate = qasm_gate
         self.cirq_gate = cirq_gate
         self.num_params = num_params
+
+        # at least one quantum argument is mandatory for gates to act on
+        assert num_args >= 1
         self.num_args = num_args
 
     def _validate_args(self, args: List[List[ops.Qid]], lineno: int):
@@ -163,10 +166,27 @@ class QasmParser:
             qasm_gate='U',
             num_params=3,
             num_args=1,
-            # QasmUGate expects half turns and
-            # changes the order of arguments
+            # QasmUGate expects half turns
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
     }  # type: Dict[str, QasmGateStatement]
+
+    qelib_gates = {
+        'rx':
+        QasmGateStatement(qasm_gate='rx',
+                          cirq_gate=(lambda params: ops.Rx(params[0])),
+                          num_params=1,
+                          num_args=1),
+        'ry':
+        QasmGateStatement(qasm_gate='ry',
+                          cirq_gate=(lambda params: ops.Ry(params[0])),
+                          num_params=1,
+                          num_args=1),
+        'rz':
+        QasmGateStatement(qasm_gate='rz',
+                          cirq_gate=(lambda params: ops.Rz(params[0])),
+                          num_params=1,
+                          num_args=1),
+    }
 
     tokens = QasmLexer.tokens
     start = 'start'
@@ -267,14 +287,13 @@ class QasmParser:
 
     def _resolve_gate_operation(self, args: List[List[ops.Qid]], gate: str,
                                 p: Any, params: List[float]):
-        if gate not in self.basic_gates.keys():
-            raise QasmException('Unknown gate "{}" at line {}, '
-                                'maybe you forgot to include '
-                                'the standard qelib1.inc?'.format(
-                                    gate, p.lineno(1)))
-        p[0] = self.basic_gates[gate].on(args=args,
-                                         params=params,
-                                         lineno=p.lineno(1))
+        gate_set = (self.basic_gates if not self.qelibinc else self.qelib_gates)
+        if gate not in gate_set.keys():
+            msg = 'Unknown gate "{}" at line {}{}'.format(
+                gate, p.lineno(1), ", did you forget to include qelib1.inc?"
+                if not self.qelibinc else "")
+            raise QasmException(msg)
+        p[0] = gate_set[gate].on(args=args, params=params, lineno=p.lineno(1))
 
     # params : parameter ',' params
     #        | parameter

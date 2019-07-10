@@ -74,7 +74,7 @@ class QubitOrder:
                 'Qubits appear in fixed_order twice: {}.'.format(result))
 
         def func(qubits):
-            remaining = set(qubits) - set(fixed_qubits)
+            remaining = set(qubits) - set(result)
             if not remaining:
                 return result
             if not fallback:
