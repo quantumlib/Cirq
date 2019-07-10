@@ -51,6 +51,7 @@ from cirq.study.sweeps import Points, UnitSweep, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
+TYPE_PREFIX = 'type.googleapis.com/'
 
 
 class ProtoVersion(enum.Enum):
@@ -423,7 +424,7 @@ class Engine:
         descriptor = v1.program_pb2.Program.DESCRIPTOR
 
         program_dict = {}  # type: Dict[str, Any]
-        program_dict['@type'] = 'type.googleapis.com/' + descriptor.full_name
+        program_dict['@type'] = TYPE_PREFIX + descriptor.full_name
         program_dict['parameter_sweeps'] = [
             sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
         ]
@@ -496,11 +497,15 @@ class Engine:
         """
         response = self.service.projects().programs().jobs().getResult(
             parent=job_resource_name).execute()
-        if self.proto_version == ProtoVersion.V1:
+        result = response['result']
+        result_type = result['@type'][len(TYPE_PREFIX):]
+
+        if result_type == 'cirq.api.google.v1.Result':
             return self._get_job_results_v1(response['result'])
-        if self.proto_version == ProtoVersion.V2:
+        if result_type == 'cirq.api.google.v2.Result':
             return self._get_job_results_v2(response['result'])
-        raise ValueError('invalid proto version: {}'.format(self.proto_version))
+        raise ValueError('invalid result proto version: {}'.format(
+            self.proto_version))
 
     def _get_job_results_v1(self, result: Dict[str, Any]) -> List[TrialResult]:
         trial_results = []

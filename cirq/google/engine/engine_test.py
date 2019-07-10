@@ -26,48 +26,58 @@ import cirq.google as cg
 
 
 _A_RESULT = {
-    'sweepResults': [
-        {
-            'repetitions': 1,
-            'measurementKeys': [
-                {
-                    'key': 'q',
-                    'qubits': [{'row': 1, 'col': 1}]
+    '@type':
+    'type.googleapis.com/cirq.api.google.v1.Result',
+    'sweepResults': [{
+        'repetitions':
+        1,
+        'measurementKeys': [{
+            'key': 'q',
+            'qubits': [{
+                'row': 1,
+                'col': 1
+            }]
+        }],
+        'parameterizedResults': [{
+            'params': {
+                'assignments': {
+                    'a': 1
                 }
-            ],
-            'parameterizedResults': [
-                {
-                    'params': {'assignments': {'a': 1}},
-                    'measurementResults': base64.b64encode(b'01')
-                }
-            ]
-        }
-    ]
+            },
+            'measurementResults': base64.b64encode(b'01')
+        }]
+    }]
 }
 
-
 _RESULTS = {
-    'sweepResults': [
-        {
-            'repetitions': 1,
-            'measurementKeys': [
-                {
-                    'key': 'q',
-                    'qubits': [{'row': 1, 'col': 1}]
+    '@type':
+    'type.googleapis.com/cirq.api.google.v1.Result',
+    'sweepResults': [{
+        'repetitions':
+        1,
+        'measurementKeys': [{
+            'key': 'q',
+            'qubits': [{
+                'row': 1,
+                'col': 1
+            }]
+        }],
+        'parameterizedResults': [{
+            'params': {
+                'assignments': {
+                    'a': 1
                 }
-            ],
-            'parameterizedResults': [
-                {
-                    'params': {'assignments': {'a': 1}},
-                    'measurementResults': base64.b64encode(b'01')
-                },
-                {
-                    'params': {'assignments': {'a': 2}},
-                    'measurementResults': base64.b64encode(b'01')
+            },
+            'measurementResults': base64.b64encode(b'01')
+        }, {
+            'params': {
+                'assignments': {
+                    'a': 2
                 }
-            ]
-        }
-    ]
+            },
+            'measurementResults': base64.b64encode(b'01')
+        }]
+    }]
 }
 
 _RESULTS_V2 = {
@@ -452,7 +462,9 @@ def test_bad_result_proto(build):
             'state': 'SUCCESS'
         }
     }
-    jobs.getResult().execute.return_value = {'result': _RESULTS_V2}
+    result = _RESULTS_V2.copy()
+    result['@type'] = 'type.googleapis.com/unknown'
+    jobs.getResult().execute.return_value = {'result': result}
 
     engine = cg.Engine(api_key="key",
                        proto_version=cg.engine.engine.ProtoVersion.V2)
@@ -461,8 +473,7 @@ def test_bad_result_proto(build):
                                                cirq.Circuit()),
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=cirq.Points('a', [1, 2]))
-    engine.proto_version = cg.engine.engine.ProtoVersion.UNDEFINED
-    with pytest.raises(ValueError, match='invalid proto version'):
+    with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
 
 
