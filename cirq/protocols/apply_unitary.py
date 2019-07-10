@@ -290,13 +290,7 @@ def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
     func = getattr(unitary_value, '_apply_unitary_', None)
     if func is None:
         return NotImplemented
-
-    result = func(args)
-
-    # Package result.
-    if result is NotImplemented:
-        return None
-    return result
+    return func(args)
 
 
 def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
@@ -309,7 +303,7 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
     # Attempt to get the unitary matrix.
     matrix = method()
     if matrix is NotImplemented or matrix is None:
-        return None
+        return matrix
 
     # Special case for single-qubit operations.
     if matrix.shape == (2, 2):
@@ -329,7 +323,8 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
 
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
                                        ) -> Optional[np.ndarray]:
-    from cirq.protocols.unitary import _try_decompose_into_operations_and_qubits
+    from cirq.protocols.has_unitary import (
+        _try_decompose_into_operations_and_qubits)
     operations, qubits = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
