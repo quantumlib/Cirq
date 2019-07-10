@@ -42,7 +42,7 @@ def test_remove_identities():
         cirq.Moment([]),
         cirq.Moment([]),
     ])
-    assert_optimizes(cirq.DropIdentities().optimize_circuit, circuit, expected)
+    assert_optimizes(cirq.DropIdentities(), circuit, expected)
 
 
 def test_remove_and_drop():

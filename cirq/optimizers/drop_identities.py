@@ -31,9 +31,6 @@ class DropIdentities:
     pass with DropEmptyMoments
     """
 
-    def __init__(self, tolerance: float=1e-8) -> None:
-        self.tolerance = tolerance
-
     def __call__(self, circuit: _circuit.Circuit):
         self.optimize_circuit(circuit)
 
