@@ -25,7 +25,12 @@ if TYPE_CHECKING:
 
 
 class DropIdentities:
-    """An optimization pass that removes operations with tiny effects."""
+    """An optimization pass that removes IdentityGate operations,
+    which have no effect.
+
+    This will not remove empty moments. You may wish to follow this
+    pass with DropEmptyMoments
+    """
 
     def __init__(self, tolerance: float = 1e-8) -> None:
         self.tolerance = tolerance
