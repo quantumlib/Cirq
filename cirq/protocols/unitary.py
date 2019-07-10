@@ -147,10 +147,7 @@ def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
     getter = getattr(val, '_unitary_', None)
     if getter is None:
         return NotImplemented
-    result = getter()
-    if result is NotImplemented:
-        return None
-    return result
+    return getter()
 
 
 def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
@@ -177,9 +174,8 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     buffer = np.empty_like(state)
     result = method(ApplyUnitaryArgs(state, buffer, range(n)))
 
-    # Package result.
     if result is NotImplemented or result is None:
-        return None
+        return result
     return result.reshape((1 << n, 1 << n))
 
 

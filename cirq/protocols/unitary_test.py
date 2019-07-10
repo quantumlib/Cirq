@@ -162,6 +162,7 @@ def test_unitary():
     assert cirq.unitary(ReturnsNotImplemented(), m0) is m0
     assert cirq.unitary(ReturnsMatrix(), m0) is m1
     assert cirq.unitary(FullyImplemented(True), m0) is m1
+    assert cirq.unitary(FullyImplemented(False), default=None) is None
 
 
 def test_has_unitary():
@@ -231,6 +232,19 @@ def test_unitary_from_apply_unitary():
         def _apply_unitary_(self, args):
             return cirq.apply_unitary(cirq.X(cirq.LineQubit(0)), args)
 
+    class UnknownType():
+
+        def _apply_unitary_(self, args):
+            assert False
+
+    class ApplyGateNotUnitary(cirq.Gate):
+
+        def num_qubits(self):
+            return 1
+
+        def _apply_unitary_(self, args):
+            return None
+
     class ApplyOp(cirq.Operation):
 
         def __init__(self, q):
@@ -249,8 +263,12 @@ def test_unitary_from_apply_unitary():
 
     assert cirq.has_unitary(ApplyGate())
     assert cirq.has_unitary(ApplyOp(cirq.LineQubit(0)))
+    assert not cirq.has_unitary(ApplyGateNotUnitary())
+    assert not cirq.has_unitary(UnknownType())
 
     np.testing.assert_allclose(cirq.unitary(ApplyGate()),
                                np.array([[0, 1], [1, 0]]))
     np.testing.assert_allclose(cirq.unitary(ApplyOp(cirq.LineQubit(0))),
                                np.array([[0, 1], [1, 0]]))
+    assert cirq.unitary(ApplyGateNotUnitary(), default=None) is None
+    assert cirq.unitary(UnknownType(), default=None) is None
