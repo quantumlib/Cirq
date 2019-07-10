@@ -328,19 +328,19 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
             exponent=param(exp_w['half_turns']),
             phase_exponent=param(exp_w['axis_half_turns']),
         ).on(qubit(exp_w['target']))
-    elif 'exp_z' in proto_dict:
+    if 'exp_z' in proto_dict:
         exp_z = proto_dict['exp_z']
         if 'half_turns' not in exp_z or 'target' not in exp_z:
             raise_missing_fields('ExpZ')
         return ops.Z(qubit(exp_z['target']))**param(exp_z['half_turns'])
-    elif 'exp_11' in proto_dict:
+    if 'exp_11' in proto_dict:
         exp_11 = proto_dict['exp_11']
         if ('half_turns' not in exp_11 or 'target1' not in exp_11
                 or 'target2' not in exp_11):
             raise_missing_fields('Exp11')
         return ops.CZ(qubit(exp_11['target1']),
                       qubit(exp_11['target2']))**param(exp_11['half_turns'])
-    elif 'measurement' in proto_dict:
+    if 'measurement' in proto_dict:
         meas = proto_dict['measurement']
         invert_mask = cast(Tuple[Any, ...], ())
         if 'invert_mask' in meas:
