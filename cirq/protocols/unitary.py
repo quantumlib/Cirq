@@ -18,9 +18,6 @@ from typing import (
     TypeVar,
     Union,
     Optional,
-    Tuple,
-    List,
-    Sequence,
 )
 
 import numpy as np
@@ -190,9 +187,9 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _decompose_ method."""
     from cirq.protocols.apply_unitary import ApplyUnitaryArgs, apply_unitaries
 
-    # Check for the magic method.
+    # Check if there's a decomposition.
     from cirq.protocols.has_unitary import (
-        _try_decompose_into_operations_and_qubits,)
+        _try_decompose_into_operations_and_qubits)
     operations, qubits = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
