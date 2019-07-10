@@ -106,10 +106,7 @@ class GateOperation(raw_types.Operation):
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Union[np.ndarray, None, NotImplementedType]:
-        return protocols.apply_unitary(
-            self.gate,
-            args,
-            default=None)
+        return protocols.apply_unitary(self.gate, args, default=None)
 
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.gate)
