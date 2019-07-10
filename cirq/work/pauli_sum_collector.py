@@ -26,14 +26,14 @@ class PauliSumCollector(collector.Collector):
 
     def __init__(self,
                  circuit: circuits.Circuit,
-                 hamiltonian: ops.PauliSum,
+                 observable: ops.PauliSum,
                  *,
                  samples_per_term: int,
                  max_samples_per_job: int = 1000000):
         """
         Args:
             circuit: Produces the state to be tested.
-            hamiltonian: The pauli product observables to measure. Their sampled
+            observable: The pauli product observables to measure. Their sampled
                 expectations will be scaled by their coefficients and their
                 dictionary weights, and then added up to produce the final
                 result.
@@ -44,8 +44,16 @@ class PauliSumCollector(collector.Collector):
         self._circuit = circuit
         self._samples_per_job = max_samples_per_job
         self._pauli_coef_terms = [
-            (p / p.coefficient, p.coefficient) for p in hamiltonian
+            (p / p.coefficient, p.coefficient)
+            for p in observable
+            if p
         ]
+
+        self._identity_offset = 0
+        for p in observable:
+            if not p:
+                self._identity_offset += p.coefficient
+
         self._zeros = collections.defaultdict(
             lambda: 0)  # type: MutableMapping[ops.PauliString, int]
         self._ones = collections.defaultdict(
@@ -87,6 +95,7 @@ class PauliSumCollector(collector.Collector):
         energy = complex(energy)
         if energy.imag == 0:
             energy = energy.real
+        energy += self._identity_offset
         return energy
 
 

@@ -19,7 +19,6 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import raw_types, pauli_gates
 from cirq.ops.pauli_string import PauliString
-from cirq.value import linear_dict
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 
@@ -246,7 +245,11 @@ class PauliSum:
     iteration.
     """
 
-    def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT]):
+    def __init__(
+            self,
+            linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):
+        if linear_dict is None:
+            linear_dict = value.LinearDict()
         if not _is_linear_dict_of_unit_pauli_string(linear_dict):
             raise ValueError(
                 "PauliSum constructor takes a LinearDict[UnitPauliStringT]. "
@@ -300,6 +303,12 @@ class PauliSum:
         result += other
         return result
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        return -self.__sub__(other)
+
     def __isub__(self, other):
         if isinstance(other, (float, int, complex)):
             other = PauliSum.from_pauli_strings(
@@ -349,7 +358,8 @@ class PauliSum:
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
-        return linear_dict._format_terms(terms=terms, format_spec=format_spec)
+        return value.linear_dict._format_terms(
+            terms=terms, format_spec=format_spec)
 
     def __str__(self):
         return self.__format__('.3f')

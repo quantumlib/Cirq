@@ -128,9 +128,15 @@ class PauliString(raw_types.Operation):
         from cirq.ops.linear_combinations import PauliSum
         return PauliSum.from_pauli_strings(self).__add__(other)
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __sub__(self, other):
         from cirq.ops.linear_combinations import PauliSum
         return PauliSum.from_pauli_strings(self).__sub__(other)
+
+    def __rsub__(self, other):
+        return -self.__sub__(other)
 
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
