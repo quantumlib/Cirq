@@ -352,8 +352,8 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
             key=meas['key'],
             invert_mask=invert_mask
         ).on(*[qubit(q) for q in meas['targets']])
-    else:
-        raise ValueError('invalid operation: {}'.format(proto_dict))
+
+    raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
 def _parameterized_value_from_proto_dict(message: Dict

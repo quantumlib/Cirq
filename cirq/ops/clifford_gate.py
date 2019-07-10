@@ -300,7 +300,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             # 180 rotation about some axis
             pauli = Pauli.by_index(flip_arr.index(False))
             return [(pauli, 2)]
-        elif num_whole == 1:
+        if num_whole == 1:
             index = whole_arr.index(True)
             pauli = Pauli.by_index(index)
             next_pauli = Pauli.by_index(index + 1)
