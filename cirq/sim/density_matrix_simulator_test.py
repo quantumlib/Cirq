@@ -265,10 +265,10 @@ def test_simulate(dtype):
     ]))
 def test_simulate_compare_to_wave_function_simulator(dtype, circuit):
     qubits = cirq.LineQubit.range(4)
-    pure_result = (cirq.Simulator(
-        dtype=dtype).simulate(circuit, qubit_order=qubits).density_matrix_of())
-    mixed_result = (cirq.DensityMatrixSimulator(
-        dtype=dtype).simulate(circuit, qubit_order=qubits).final_density_matrix)
+    pure_result = (cirq.Simulator(dtype=dtype).simulate(
+        circuit, qubit_order=qubits).density_matrix_of())
+    mixed_result = (cirq.DensityMatrixSimulator(dtype=dtype).simulate(
+        circuit, qubit_order=qubits).final_density_matrix)
     assert mixed_result.shape == (16, 16)
     np.testing.assert_almost_equal(mixed_result, pure_result)
 
