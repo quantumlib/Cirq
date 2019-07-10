@@ -106,6 +106,9 @@ class MergeInteractions(circuits.PointOptimizer):
         Returns:
             None, or else a matrix equivalent to the effect of the operation.
         """
+        if any(q not in qubits for q in op.qubits):
+            return None
+
         q1, q2 = qubits
 
         matrix = protocols.unitary(op, None)
