@@ -133,13 +133,31 @@ def freeze_op_tree(root: OP_TREE) -> OP_TREE:
     return transform_op_tree(root, iter_transformation=tuple)
 
 
-def max_qid_shape(op_tree: OP_TREE,
+def max_qid_shape(*operations: OP_TREE,
                   qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
                   qubits_that_should_be_present: Iterable[Qid] = (),
                   default_level: int = 1) -> Tuple[int, ...]:
+    """Computes the highest quantum level needed for each qubit by taking the
+    maximum of the levels specified by the qid_shape of each operation in
+    `operations`.
+
+    Args:
+        operations: The operations to compute the maximum over.
+        qubit_order: If specified, determines the order of the entries of the
+            returned `qid_shape`.  If this is a list, the entries of the
+            shape will correspond directly to the entries of `qubit_order`.
+        qubits_that_should_be_present: Qubits that may or may not appear
+            in `operations` but should be included in the returned
+            `qid_shape`.
+        default_level: The default quantum level of a qubit if none of the
+            operations operate on it.
+
+    Returns:
+        A tuple of the quantum levels of each qubit sorted by `qubit_order`.
+    """
     shape_dict = collections.defaultdict(lambda: default_level
                                         )  # type: Dict[Qid, int]
-    for op in flatten_op_tree(op_tree):
+    for op in flatten_op_tree(operations):
         for level, qubit in zip(protocols.qid_shape(op), op.qubits):
             shape_dict[qubit] = max(shape_dict[qubit], level)
     qubits = QubitOrder.as_qubit_order(qubit_order).order_for(

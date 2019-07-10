@@ -66,7 +66,7 @@ class SupportsExplicitNumQubits(Protocol):
     number of qubits."""
 
     def _num_qubits_(self) -> Union[int, NotImplementedType]:
-        """The number of qubits this object operates on.
+        """The number of qubits, qudits, or qids this object operates on.
 
         This method is used by the global `cirq.num_qubits` method (and by
         `cirq.qid_shape` if `_qid_shape_` is not defined.  If this
@@ -74,7 +74,7 @@ class SupportsExplicitNumQubits(Protocol):
         to using the length of `_qid_shape_`.
 
         Returns:
-            An integer specifying the number of qubits.
+            An integer specifying the number of qubits, qudits or qids.
         """
 
 
@@ -128,7 +128,7 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
 
 def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
               ) -> Union[int, TDefault]:
-    """Returns the number of qubits `val` operates on.
+    """Returns the number of qubits, qudits, or qids `val` operates on.
 
     Args:
         val: The value to get the number of qubits from.

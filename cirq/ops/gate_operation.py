@@ -100,7 +100,7 @@ class GateOperation(raw_types.Operation):
         return protocols.qid_shape(self.gate)
 
     def _num_qubits_(self):
-        return protocols.num_qubits(self.gate)
+        return len(self._qubits)
 
     def _decompose_(self) -> op_tree.OP_TREE:
         return protocols.decompose_once_with_qubits(self.gate,
