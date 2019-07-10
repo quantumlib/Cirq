@@ -117,7 +117,7 @@ def test_constant_qubit_noise():
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
 
 
-class NonMarkovianPulseTrainNoise(cirq.NoiseModel):
+class NonMarkovianTimeSeriesNoise(cirq.NoiseModel):
     """Apply noise to moments sequentially according to a time series.
 
     In this implementation, apply an DFT to a known noise spectrum ("1/f" noise
@@ -144,8 +144,8 @@ class NonMarkovianPulseTrainNoise(cirq.NoiseModel):
                       system_qubits: Sequence['cirq.Qid']):
         result = []
         # FT of 1/f spectrum approximates discretized non-Markovian time series.
-        times = np.arange(1, len(moments) + 1)
-        pulse_train = self.epsilon * np.fft.fft(1 / times)
+        frequencies = np.arange(1, len(moments) + 1)
+        pulse_train = self.epsilon * np.fft.fft(1 / frequencies)
         for x, moment in zip(pulse_train, moments):
             result.append([self.qubit_noise_gate(x)(q) for q in system_qubits])
         # each sublist in `result` corresponds to a moment parametrized
@@ -239,7 +239,7 @@ class CombinationOfNoiseModels(cirq.NoiseModel):
         self._noisy_operation_delegate = OperationSpecificNoise()
         self._noisy_moment_delegate = MarkovianPairwiseCorrelatedNoise(
             correlated_pairs, epsilon, qubit_noise_gate)
-        self._noisy_moments_delegate = NonMarkovianPulseTrainNoise(
+        self._noisy_moments_delegate = NonMarkovianTimeSeriesNoise(
             epsilon, qubit_noise_gate)
 
     def noisy_moments(self, moments: 'Iterable[cirq.Moment]',
@@ -267,7 +267,7 @@ def test_composition_of_noise_models():
     test_circuit = cirq.Circuit.from_ops([cirq.X(q) for q in qubits]
                                          + [cirq.Y(q) for q in qubits]
                                          + [cirq.Z(q) for q in qubits])
-    first_model = NonMarkovianPulseTrainNoise(epsilon, noise_gate)
+    first_model = NonMarkovianTimeSeriesNoise(epsilon, noise_gate)
     second_model = MarkovianPairwiseCorrelatedNoise(pairs, epsilon, noise_gate)
     third_model = OperationSpecificNoise()
 
