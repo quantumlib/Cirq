@@ -200,11 +200,9 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         if self.phase_exponent == 0:
             return common_gates.XPowGate(
                 exponent=self._exponent,
-                global_shift=self._global_shift
-            )._value_equality_values_()
+                global_shift=self._global_shift)._value_equality_values_()
         if self.phase_exponent == 0.5:
             return common_gates.YPowGate(
                 exponent=self._exponent,
-                global_shift=self._global_shift
-            )._value_equality_values_()
+                global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
