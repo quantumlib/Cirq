@@ -245,6 +245,11 @@ def test_identity_eq():
     equals_tester.add_equality_group(cirq.IdentityGate(4))
 
 
+@pytest.mark.parametrize('phase', [0, 0.123, 0.25, 0.5, 1])
+def test_identity_phase_by(phase):
+    assert cirq.phase_by(cirq.I, phase, 0) == cirq.I
+
+
 def test_h_unitary():
     sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
