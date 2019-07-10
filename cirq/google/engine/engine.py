@@ -405,36 +405,37 @@ class Engine:
                     ]
                 }
             },
+            'run_context': run_context
         }
-        if run_context is not None:
-            request['run_context'] = run_context
         response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()
 
         return EngineJob(job_config, response, self)
 
-    def _serialize_program_v1(
-            self, program: Program, sweeps: List[Sweep], repetitions: int
-    ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+    def _serialize_program_v1(self, program: Program, sweeps: List[Sweep],
+                              repetitions: int
+                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         schedule = self.program_as_schedule(program)
         schedule.device.validate_schedule(schedule)
 
-        descriptor = v1.program_pb2.Program.DESCRIPTOR
-
+        program_descriptor = v1.program_pb2.Program.DESCRIPTOR
         program_dict = {}  # type: Dict[str, Any]
-        program_dict['@type'] = TYPE_PREFIX + descriptor.full_name
-        program_dict['parameter_sweeps'] = [
-            sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
-        ]
+        program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
         program_dict['operations'] = [
             op for op in schedule_to_proto_dicts(schedule)
         ]
-        return program_dict, None  # run context included in program
 
-    def _serialize_program_v2(
-            self, program: Program, sweeps: List[Sweep], repetitions: int,
-            gate_set: SerializableGateSet
-    ) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+        context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
+        context_dict = {}  # type: Dict[str, Any]
+        context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
+        context_dict['parameter_sweeps'] = [
+            sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+        ]
+        return program_dict, context_dict
+
+    def _serialize_program_v2(self, program: Program, sweeps: List[Sweep],
+                              repetitions: int, gate_set: SerializableGateSet
+                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         if isinstance(program, Schedule):
             program.device.validate_schedule(program)
 
