@@ -33,9 +33,6 @@ from cirq.sim.mux import (
     sample_sweep,
 )
 
-from cirq.sim.sampler import (
-    Sampler,)
-
 from cirq.sim.simulator import (
     SimulatesFinalState,
     SimulatesIntermediateState,
