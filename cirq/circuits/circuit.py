@@ -1383,15 +1383,12 @@ class Circuit:
         return result.reshape((1 << n,))
 
     to_unitary_matrix = deprecated(
-        deadline='v0.7.0',
-        fix='Use `Circuit.unitary()` instead.'
-    )(unitary)
+        deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
 
     apply_unitary_effect_to_state = deprecated(
         deadline='v0.7.0',
         fix="Use `cirq.final_wavefunction(circuit)` or "
-            "`Circuit.final_wavefunction()` instead"
-    )(final_wavefunction)
+        "`Circuit.final_wavefunction()` instead")(final_wavefunction)
 
     def to_text_diagram(
             self,

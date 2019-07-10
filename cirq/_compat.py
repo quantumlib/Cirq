@@ -41,8 +41,7 @@ def proper_repr(value: Any) -> str:
     return repr(value)
 
 
-def deprecated(*, deadline: str, fix: str
-               ) -> Callable[[Callable], Callable]:
+def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
