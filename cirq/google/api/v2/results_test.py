@@ -221,3 +221,39 @@ def test_results_from_proto_duplicate_qubit():
         qmr.results = bytes([results])
     with pytest.raises(ValueError, match='qubit already exists'):
         v2.results_from_proto(proto, measurements)
+
+
+def test_results_from_proto_default_ordering():
+    proto = result_pb2.Result()
+    sr = proto.sweep_results.add()
+    sr.repetitions = 8
+    pr = sr.parameterized_results.add()
+    pr.params.assignments.update({'i': 1})
+    mr = pr.measurement_results.add()
+    mr.key = 'foo'
+    for qubit, results in [
+        (q(0, 1), 0b1100_1100),
+        (q(1, 1), 0b1010_1010),
+        (q(0, 0), 0b1111_0000),
+    ]:
+        qmr = mr.qubit_measurement_results.add()
+        qmr.qubit.id = qubit.proto_id()
+        qmr.results = bytes([results])
+
+    trial_results = v2.results_from_proto(proto)
+    trial = trial_results[0][0]
+    assert trial.params == cirq.ParamResolver({'i': 1})
+    assert trial.repetitions == 8
+    np.testing.assert_array_equal(
+        trial.measurements['foo'],
+        np.array([
+            [0, 0, 0],
+            [0, 1, 0],
+            [1, 0, 0],
+            [1, 1, 0],
+            [0, 0, 1],
+            [0, 1, 1],
+            [1, 0, 1],
+            [1, 1, 1],
+        ],
+                 dtype=bool))
