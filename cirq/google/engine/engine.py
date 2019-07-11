@@ -449,11 +449,10 @@ class Engine:
                 measurements = unpack_results(data, sweep_repetitions,
                                               key_sizes)
 
-                trial_results.append(TrialResult(
-                    params=ParamResolver(
+                trial_results.append(
+                    TrialResult(params=ParamResolver(
                         result.get('params', {}).get('assignments', {})),
-                    repetitions=sweep_repetitions,
-                    measurements=measurements))
+                                measurements=measurements))
         return trial_results
 
     def cancel_job(self, job_resource_name: str):

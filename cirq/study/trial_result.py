@@ -109,16 +109,13 @@ class TrialResult:
             numpy array, the first dimension corresponding to the repetition
             and the second to the actual boolean measurement results (ordered
             by the qubits being measured.)
-        repetitions: The number of times a circuit was sampled to get these
-            results.
     """
 
     def __init__(
             self,
             *,  # Forces keyword args.
             params: resolver.ParamResolver,
-            measurements: Dict[str, np.ndarray],
-            repetitions: int = 0) -> None:
+            measurements: Dict[str, np.ndarray]) -> None:
         """
         Args:
             params: A ParamResolver of settings used for this result.
@@ -127,7 +124,6 @@ class TrialResult:
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
-            repetitions: UNUSED. Please do not use this anymore.
         """
         self.params = params
 
