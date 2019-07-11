@@ -139,11 +139,13 @@ class DummyOperation(cirq.Operation):
 
 
 class DummyComposite:
+
     def _decompose_(self):
         return ()
 
 
 class OtherComposite:
+
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
         yield cirq.X(cirq.LineQubit(3))
@@ -198,10 +200,10 @@ def test_decompose_and_get_unitary():
         _strat_unitary_from_decompose(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(
         _strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(DummyComposite()), np.eye(1))
-    np.testing.assert_allclose(
-        _strat_unitary_from_decompose(OtherComposite()), m2)
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()),
+                               np.eye(1))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()),
+                               m2)
 
 
 def test_decomposed_has_unitary():

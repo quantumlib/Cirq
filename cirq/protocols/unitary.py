@@ -192,10 +192,9 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     # Apply sub-operations' unitary effects to an identity matrix.
     state = linalg.eye_tensor(qid_shape=val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
-    result = apply_unitaries(operations, qubits,
-                             ApplyUnitaryArgs(state, buffer,
-                                              range(len(val_qid_shape))),
-                             None)
+    result = apply_unitaries(
+        operations, qubits,
+        ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None)
 
     # Package result.
     if result is None:

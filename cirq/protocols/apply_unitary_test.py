@@ -236,7 +236,8 @@ def test_apply_unitaries_mixed_qid_shapes():
         qubits=[a, b],
         args=cirq.ApplyUnitaryArgs(
             target_tensor=cirq.eye_tensor(qid_shape=(3, 2), dtype=np.complex64),
-            available_buffer=cirq.eye_tensor(qid_shape=(3, 2), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor(qid_shape=(3, 2),
+                                             dtype=np.complex64),
             axes=(0, 1)))
     np.testing.assert_allclose(result.reshape(6, 6), np.eye(6), atol=1e-8)
 
@@ -260,7 +261,8 @@ def test_apply_unitaries_mixed_qid_shapes():
         qubits=[a, b],
         args=cirq.ApplyUnitaryArgs(
             target_tensor=cirq.eye_tensor(qid_shape=(3, 4), dtype=np.complex64),
-            available_buffer=cirq.eye_tensor(qid_shape=(3, 4), dtype=np.complex64),
+            available_buffer=cirq.eye_tensor(qid_shape=(3, 4),
+                                             dtype=np.complex64),
             axes=(0, 1)))
     np.testing.assert_allclose(result.reshape(12, 12),
                                np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

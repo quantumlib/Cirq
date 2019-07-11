@@ -1229,7 +1229,10 @@ class Circuit:
         return (op for moment in self for op in moment.operations)
 
     def _qid_shape_(self):
-        return ops.max_qid_shape(self._moments, qubits_that_should_be_present=self.all_qubits(), default_level=1)
+        return ops.max_qid_shape(
+            self._moments,
+            qubits_that_should_be_present=self.all_qubits(),
+            default_level=1)
 
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
@@ -1783,8 +1786,8 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit,
-                           state: np.ndarray, qubits: Tuple[ops.Qid, ...],
+def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
+                           qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 

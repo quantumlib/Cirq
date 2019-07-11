@@ -333,9 +333,9 @@ def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
             axis_level = args.target_tensor.shape[axis]
             subspace = linalg.slice_for_qubits_equal_to(
                 (axis,), qureg_value_tuple=(slice(op_level, axis_level),))
-            result[subspace] = args.target_tensor[subspace]  # TODO: Make more efficient
+            result[subspace] = args.target_tensor[
+                subspace]  # TODO: Make more efficient
     return result
-
 
 
 def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
@@ -351,7 +351,7 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
         return matrix
 
     val_qid_shape = qid_shape_protocol.qid_shape(unitary_value,
-                                                 default=(2,)*len(args.axes))
+                                                 default=(2,) * len(args.axes))
 
     # Special case for single-qubit, 2x2 or 1x1 operations.
     if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
@@ -360,15 +360,16 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
             for i in range(val_qid_shape[0])
         ]
         return linalg.apply_matrix_to_slices(args.target_tensor,
-                                             matrix, subspaces,
+                                             matrix,
+                                             subspaces,
                                              out=args.available_buffer)
 
     # General case via np.einsum.
-    return linalg.targeted_left_multiply(matrix.astype(
-        args.target_tensor.dtype).reshape(val_qid_shape * 2),
-                                         args.target_tensor,  # TODO: Slice tensor
-                                         args.axes,
-                                         out=args.available_buffer)
+    return linalg.targeted_left_multiply(
+        matrix.astype(args.target_tensor.dtype).reshape(val_qid_shape * 2),
+        args.target_tensor,  # TODO: Slice tensor
+        args.axes,
+        out=args.available_buffer)
 
 
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
@@ -430,8 +431,9 @@ def apply_unitaries(unitary_values: Iterable[Any],
     if args is None:
         unitary_values = tuple(unitary_values)
         # Default to 2 for backwards compatibility
-        max_qid_shape = ops.max_qid_shape(unitary_values, qubit_order=qubits,
-                                      default_level=2)
+        max_qid_shape = ops.max_qid_shape(unitary_values,
+                                          qubit_order=qubits,
+                                          default_level=2)
         args = ApplyUnitaryArgs.default(qid_shape=max_qid_shape)
     if len(qubits) != len(args.axes):
         raise ValueError('len(qubits) != len(args.axes)')

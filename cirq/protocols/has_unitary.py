@@ -163,10 +163,8 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     return result is not None
 
 
-def _try_decompose_into_operations_and_qubits(
-        val: Any
-) -> Tuple[Optional[List['cirq.Operation']], Sequence['cirq.Qid'],
-           Tuple[int, ...]]:
+def _try_decompose_into_operations_and_qubits(val: Any) -> Tuple[Optional[
+        List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to.
     """
     from cirq.protocols.decompose import (decompose_once,
@@ -186,7 +184,7 @@ def _try_decompose_into_operations_and_qubits(
     result = decompose_once(val, None)
     if result is not None:
         qubit_set = set()
-        qid_shape_dict = defaultdict(lambda:1)  # type: Dict[cirq.Qid, int]
+        qid_shape_dict = defaultdict(lambda: 1)  # type: Dict[cirq.Qid, int]
         for op in result:
             for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
                 qubit_set.add(q)
