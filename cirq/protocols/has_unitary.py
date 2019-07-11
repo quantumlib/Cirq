@@ -27,6 +27,8 @@ from collections import defaultdict
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq.protocols import qid_shape_protocol
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
@@ -152,10 +154,11 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     if not isinstance(val, ops.Operation):
         return None
 
-    n = len(val.qubits)
-    state = linalg.one_hot(shape=(2,) * n, dtype=np.complex64)
+    val_qid_shape = qid_shape_protocol.qid_shape(val)
+    state = linalg.one_hot(shape=val_qid_shape, dtype=np.complex64)
     buffer = np.empty_like(state)
-    result = method(ApplyUnitaryArgs(state, buffer, range(n)))
+    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape)),
+                                     val_qid_shape))
     if result is NotImplemented:
         return None
     return result is not None
@@ -169,7 +172,6 @@ def _try_decompose_into_operations_and_qubits(
     """
     from cirq.protocols.decompose import (decompose_once,
                                           decompose_once_with_qubits)
-    from cirq.protocols import qid_shape_protocol
     from cirq import LineQubit, Gate, Operation
 
     if isinstance(val, Gate):
