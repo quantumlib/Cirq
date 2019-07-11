@@ -327,7 +327,27 @@ def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
     func = getattr(unitary_value, '_apply_unitary_', None)
     if func is None:
         return NotImplemented
-    return func(args)
+    result = func(args)
+    if result is NotImplemented or result is None:
+        return result
+    if result is args.target_tensor:
+        return result
+    # If any entries of unitary_value's shape are less than the corresponding
+    # entries of args.qid_shape, don't rely on func to copy the untouched
+    # entries from args.target_tensor into result.
+    op_shape = qid_shape_protocol.qid_shape(unitary_value,
+                                            (2,) * len(args.axes))
+    if any(op_shape[i] < args.qid_shape[axis]
+           for i, axis in enumerate(args.axes)):
+        # Copy extra entries from args.target_tensor into result.
+        for i, axis in enumerate(args.axes):
+            op_level = op_shape[i]
+            axis_level = args.qid_shape[axis]
+            subspace = linalg.slice_for_qubits_equal_to(
+                (axis,), qureg_value_tuple=(slice(op_level, axis_level),))
+            result[subspace] = args.target_tensor[subspace]  # TODO: Make more efficient
+    return result
+
 
 
 def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
@@ -342,17 +362,22 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
     if matrix is NotImplemented or matrix is None:
         return matrix
 
-    # Special case for single-qubit operations.
-    if matrix.shape == (2, 2):
-        zero = args.subspace_index(0)
-        one = args.subspace_index(1)
+    # Special case for single-qubit, 2x2 operations.
+    if len(args.axes) == 1 and matrix.shape == (2, 2):
+        val_qid_shape = qid_shape_protocol.qid_shape(unitary_value,
+                                                     default=(2,))
+        subspaces = [
+            args.subspace_index(value_tuple=(i,))
+            for i in range(val_qid_shape[0])
+        ]
         return linalg.apply_matrix_to_slices(args.target_tensor,
-                                             matrix, [zero, one],
+                                             matrix, subspaces,
                                              out=args.available_buffer)
 
     # General case via np.einsum.
+    axes_qid_shape = tuple(args.qid_shape[axis] for axis in args.axes)
     return linalg.targeted_left_multiply(matrix.astype(
-        args.target_tensor.dtype).reshape((2,) * (2 * len(args.axes))),
+        args.target_tensor.dtype).reshape(axes_qid_shape * 2),
                                          args.target_tensor,
                                          args.axes,
                                          out=args.available_buffer)

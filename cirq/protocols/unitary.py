@@ -24,7 +24,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.qid_shape_protocol import qid_shape
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -162,23 +162,21 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     if method is None:
         return NotImplemented
 
-    # Infer number of qubits.
-    if isinstance(val, ops.Gate):
-        n = val.num_qubits()
-    elif isinstance(val, ops.Operation):
-        n = len(val.qubits)
-    else:
+    # Get the qid_shape.
+    val_qid_shape = qid_shape_protocol.qid_shape(val, None)
+    if val_qid_shape is None:
         return NotImplemented
 
     # Apply unitary effect to an identity matrix.
-    state = np.eye(1 << n, dtype=np.complex128)
-    state.shape = (2,) * (2 * n)
+    state = linalg.eye_tensor(qid_shape=qid_shape)
     buffer = np.empty_like(state)
-    result = method(ApplyUnitaryArgs(state, buffer, range(n)))
+    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape)),
+                                     val_qid_shape))
 
     if result is NotImplemented or result is None:
         return result
-    return result.reshape((1 << n, 1 << n))
+    state_len = np.prod(val_qid_shape, dtype=int)
+    return result.reshape((state_len, state_len))
 
 
 def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
@@ -192,13 +190,20 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     if operations is None:
         return NotImplemented
 
+    # Get the qid_shape.
+    val_qid_shape = qid_shape_protocol.qid_shape(val, None)
+    if val_qid_shape is None:
+        return NotImplemented
+
     # Apply sub-operations' unitary effects to an identity matrix.
     n = len(qubits)
-    state = np.eye(1 << n, dtype=np.complex128)
-    state.shape = (2,) * (2 * n)
+    state = linalg.eye_tensor(qid_shape=qid_shape)
     buffer = np.empty_like(state)
     result = apply_unitaries(operations, qubits,
-                             ApplyUnitaryArgs(state, buffer, range(n)), None)
+                             ApplyUnitaryArgs(state, buffer,
+                                              range(len(val_qid_shape)),
+                                              val_qid_shape),
+                             None)
 
     # Package result.
     if result is None:
