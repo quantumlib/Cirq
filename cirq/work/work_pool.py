@@ -72,10 +72,10 @@ class CompletionOrderedAsyncWorkPool:
         await self._allow_anext.acquire()
         if self._out_queue:
             return await self._out_queue.popleft()
-        else:
-            assert self._no_more_work_coming  # Due to awaiting _allow_anext.
-            self._allow_anext.release()
-            raise StopAsyncIteration('no_more_work')
+
+        assert self._no_more_work_coming  # Due to awaiting _allow_anext.
+        self._allow_anext.release()
+        raise StopAsyncIteration('no_more_work')
 
     def __anext__(self) -> Awaitable:
         return asyncio.ensure_future(self._anext_helper(), loop=self._loop)

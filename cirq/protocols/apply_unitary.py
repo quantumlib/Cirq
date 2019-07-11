@@ -30,7 +30,6 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.unitary import unitary
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -131,7 +130,7 @@ class ApplyUnitaryArgs:
                                                 little_endian_bits_int)
 
 
-class SupportsApplyUnitary(Protocol):
+class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
 
     def _apply_unitary_(self, args: ApplyUnitaryArgs
@@ -184,12 +183,37 @@ def apply_unitary(unitary_value: Any,
                   ) -> Union[np.ndarray, TDefault]:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
-    If `unitary_value` defines an `_apply_unitary_` method, that method will be
-    used to apply `unitary_value`'s unitary effect to the target tensor.
-    Otherwise, if `unitary_value` defines a `_unitary_` method, its unitary
-    matrix will be retrieved and applied using a generic method. Otherwise the
-    application fails, and either an exception is raised or the specified
-    default value is returned.
+    Applies the unitary effect of `unitary_value` to the tensor specified in
+    `args` by using the following strategies:
+
+    A. Try to use `unitary_value._apply_unitary_(args)`.
+        Case a) Method not present or returns `NotImplemented`.
+            Continue to next strategy.
+        Case b) Method returns `None`.
+            Conclude `unitary_value` has no unitary effect.
+        Case c) Method returns a numpy array.
+            Forward the successful result to the caller.
+
+    B. Try to use `unitary_value._unitary_()`.
+        Case a) Method not present or returns `NotImplemented`.
+            Continue to next strategy.
+        Case b) Method returns `None`.
+            Conclude `unitary_value` has no unitary effect.
+        Case c) Method returns a numpy array.
+            Multiply the matrix onto the target tensor and return to the caller.
+
+    C. Try to use `unitary_value._decompose_()`.
+        Case a) Method not present or returns `NotImplemented` or `None`.
+            Continue to next strategy.
+        Case b) Method returns an OP_TREE.
+            Delegate to `cirq.apply_unitaries`.
+
+    D. Conclude that `unitary_value` has no unitary effect.
+
+    The order that the strategies are tried depends on the number of qubits
+    being operated on. For small numbers of qubits (4 or less) the order is
+    ABCD. For larger numbers of qubits the order is ACBD (because it is expected
+    that decomposing will outperform generating the raw matrix).
 
     Args:
         unitary_value: The value with a unitary effect to apply to the target.
@@ -201,61 +225,109 @@ def apply_unitary(unitary_value: Any,
             returning a default value.
 
     Returns:
-        If the receiving object is not able to apply its unitary effect,
-        the specified default value is returned (or a TypeError is raised). If
+        If the receiving object does not have a unitary effect, then the
+        specified default value is returned (or a TypeError is raised). If
         this occurs, then `target_tensor` should not have been mutated.
 
-        If the receiving object was able to work inline, directly
-        mutating target_tensor it will return target_tensor. The caller is
-        responsible for checking if the result is target_tensor.
-
-        If the receiving object wrote its output over available_buffer, the
-        result will be available_buffer. The caller is responsible for
-        checking if the result is available_buffer (and e.g. swapping
-        the buffer for the target tensor before the next call).
-
-        The receiving object may also write its output over a new buffer
-        that it created, in which case that new array is returned.
+        Otherwise the result is the `np.ndarray` instance storing the result.
+        This may be `args.target_tensor`, `args.available_workspace`, or some
+        other numpy array. It is the caller's responsibility to correctly handle
+        all three of these cases. In all cases `args.target_tensor` and
+        `args.available_buffer` may have been mutated.
 
     Raises:
         TypeError: `unitary_value` doesn't have a unitary effect and `default`
             wasn't specified.
     """
 
-    # Check if the specialized method is present.
-    func = getattr(unitary_value, '_apply_unitary_', None)
-    if func is not None:
-        result = func(args)
-        if result is not NotImplemented and result is not None:
+    # Decide on order to attempt application strategies.
+    if len(args.axes) <= 4:
+        strats = [
+            _strat_apply_unitary_from_apply_unitary,
+            _strat_apply_unitary_from_unitary,
+            _strat_apply_unitary_from_decompose
+        ]
+    else:
+        strats = [
+            _strat_apply_unitary_from_apply_unitary,
+            _strat_apply_unitary_from_decompose,
+            _strat_apply_unitary_from_unitary
+        ]
+
+    # Try each strategy, stopping if one works.
+    for strat in strats:
+        result = strat(unitary_value, args)
+        if result is None:
+            break
+        if result is not NotImplemented:
             return result
-
-    # Fallback to using the object's _unitary_ matrix.
-    matrix = unitary(unitary_value, None)
-    if matrix is not None:
-        # Special case for single-qubit operations.
-        if matrix.shape == (2, 2):
-            zero = args.subspace_index(0)
-            one = args.subspace_index(1)
-            return linalg.apply_matrix_to_slices(args.target_tensor,
-                                                 matrix,
-                                                 [zero, one],
-                                                 out=args.available_buffer)
-
-        # Fallback to np.einsum for the general case.
-        return linalg.targeted_left_multiply(
-            matrix.astype(args.target_tensor.dtype).reshape(
-                (2,) * (2 * len(args.axes))),
-            args.target_tensor,
-            args.axes,
-            out=args.available_buffer)
 
     # Don't know how to apply. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
-        "object of type '{}' has no _apply_unitary_ or _unitary_ methods "
-        "(or they returned None or NotImplemented).".format(
-            type(unitary_value)))
+        "cirq.apply_unitary failed. "
+        "Value doesn't have a (non-parameterized) unitary effect.\n"
+        "\n"
+        "type: {}\n"
+        "value: {!r}\n"
+        "\n"
+        "The value failed to satisfy any of the following criteria:\n"
+        "- An `_apply_unitary_(self, args) method that returned a value "
+        "besides None or NotImplemented."
+        "- A `_unitary_(self)` method that returned a value "
+        "besides None or NotImplemented.\n"
+        "- A `_decompose_(self)` method that returned a "
+        "list of unitary operations.\n"
+        "".format(type(unitary_value), unitary_value))
+
+
+def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
+                                            args: ApplyUnitaryArgs
+                                           ) -> Optional[np.ndarray]:
+    # Check for magic method.
+    func = getattr(unitary_value, '_apply_unitary_', None)
+    if func is None:
+        return NotImplemented
+    return func(args)
+
+
+def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
+                                     ) -> Optional[np.ndarray]:
+    # Check for magic method.
+    method = getattr(unitary_value, '_unitary_', None)
+    if method is None:
+        return NotImplemented
+
+    # Attempt to get the unitary matrix.
+    matrix = method()
+    if matrix is NotImplemented or matrix is None:
+        return matrix
+
+    # Special case for single-qubit operations.
+    if matrix.shape == (2, 2):
+        zero = args.subspace_index(0)
+        one = args.subspace_index(1)
+        return linalg.apply_matrix_to_slices(args.target_tensor,
+                                             matrix, [zero, one],
+                                             out=args.available_buffer)
+
+    # General case via np.einsum.
+    return linalg.targeted_left_multiply(matrix.astype(
+        args.target_tensor.dtype).reshape((2,) * (2 * len(args.axes))),
+                                         args.target_tensor,
+                                         args.axes,
+                                         out=args.available_buffer)
+
+
+def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
+                                       ) -> Optional[np.ndarray]:
+    from cirq.protocols.has_unitary import (
+        _try_decompose_into_operations_and_qubits)
+    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    if operations is None:
+        return NotImplemented
+    return apply_unitaries(operations, qubits, args, None)
 
 
 def apply_unitaries(unitary_values: Iterable[Any],

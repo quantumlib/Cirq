@@ -43,6 +43,7 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
+
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -71,7 +72,7 @@ class XPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
         args.available_buffer[zero] = args.target_tensor[one]
@@ -123,9 +124,9 @@ class XPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('x {0};\n', qubits[0])
-        else:
-            return args.format('rx({0:half_turns}) {1};\n',
-                               self._exponent, qubits[0])
+
+        return args.format('rx({0:half_turns}) {1};\n', self._exponent,
+                           qubits[0])
 
     @property
     def phase_exponent(self):
@@ -154,9 +155,8 @@ class XPowGate(eigen_gate.EigenGate,
             if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rx({})'.format(
                     proper_repr(sympy.pi * self._exponent))
-            else:
-                return 'cirq.Rx(np.pi*{})'.format(
-                    proper_repr(self._exponent))
+
+            return 'cirq.Rx(np.pi*{})'.format(proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
@@ -234,9 +234,9 @@ class YPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('y {0};\n', qubits[0])
-        else:
-            return args.format('ry({0:half_turns}) {1};\n',
-                               self._exponent, qubits[0])
+
+        return args.format('ry({0:half_turns}) {1};\n', self._exponent,
+                           qubits[0])
 
     @property
     def phase_exponent(self):
@@ -265,9 +265,8 @@ class YPowGate(eigen_gate.EigenGate,
             if protocols.is_parameterized(self._exponent):
                 return 'cirq.Ry({})'.format(
                     proper_repr(sympy.pi * self._exponent))
-            else:
-                return 'cirq.Ry(np.pi*{})'.format(
-                    proper_repr(self._exponent))
+
+            return 'cirq.Ry(np.pi*{})'.format(proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
@@ -370,9 +369,9 @@ class ZPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('z {0};\n', qubits[0])
-        else:
-            return args.format('rz({0:half_turns}) {1};\n',
-                               self._exponent, qubits[0])
+
+        return args.format('rz({0:half_turns}) {1};\n', self._exponent,
+                           qubits[0])
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -399,8 +398,8 @@ class ZPowGate(eigen_gate.EigenGate,
             if protocols.is_parameterized(self._exponent):
                 return 'cirq.Rz({})'.format(proper_repr(
                     sympy.pi * self._exponent))
-            else:
-                return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
+
+            return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'cirq.T'
@@ -616,13 +615,18 @@ class IdentityGate(raw_types.Gate):
     def __str__(self):
         if (self.num_qubits() == 1):
             return 'I'
-        else:
-            return 'I({})'.format(self.num_qubits())
+
+        return 'I({})'.format(self.num_qubits())
 
     def _circuit_diagram_info_(self,
         args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
             wire_symbols=('I',) * self.num_qubits(), connected=True)
+
+    def _qasm_(self, args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 
     def _value_equality_values_(self):
         return self.num_qubits(),
@@ -676,7 +680,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
@@ -711,11 +715,11 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('h {0};\n', qubits[0])
-        else:
-            return args.format('ry({0:half_turns}) {3};\n'
-                               'rx({1:half_turns}) {3};\n'
-                               'ry({2:half_turns}) {3};\n',
-                               0.25,  self._exponent, -0.25, qubits[0])
+
+        return args.format(
+            'ry({0:half_turns}) {3};\n'
+            'rx({1:half_turns}) {3};\n'
+            'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
     def __str__(self):
         if self._exponent == 1:
@@ -883,7 +887,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         oo = args.subspace_index(0b11)
         zo = args.subspace_index(0b01)
@@ -987,7 +991,7 @@ class SwapPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
@@ -1100,7 +1104,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)

@@ -127,7 +127,8 @@ class SerializableGateSet:
                     proto_msg = serializer.to_proto(gate_op, msg)
                     if proto_msg is not None:
                         return proto_msg
-        raise ValueError('Cannot serialize op of type {}'.format(gate_type))
+        raise ValueError('Cannot serialize op {!r} of type {}'.format(
+            gate_op, gate_type))
 
     def deserialize_dict(self,
                          proto: Dict,
