@@ -126,6 +126,42 @@ def test_pauli_string_expectation_value_pure_state():
             density_matrix, qubit_index_map), -1)
 
 
+def test_pauli_string_expectation_value_pure_state_with_coef():
+    qs = cirq.LineQubit.range(4)
+    qubit_index_map = {q: i for i, q in enumerate(qs)}
+
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qs[1]),
+        cirq.H(qs[2]),
+        cirq.X(qs[3]),
+        cirq.H(qs[3]),
+    )
+    wavefunction = circuit.apply_unitary_effect_to_state(qubit_order=qs)
+    density_matrix = np.outer(wavefunction, np.conj(wavefunction))
+
+    z0z1 = cirq.pauli_string_expectation(cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123)
+    z0z2 = cirq.pauli_string_expectation(cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1)
+    z1x2 = cirq.pauli_string_expectation(-cirq.Z(qs[1]) * cirq.X(qs[2]))
+
+    np.testing.assert_allclose(
+        z0z1.value_derived_from_wavefunction(wavefunction, qubit_index_map),
+        -0.123)
+    np.testing.assert_allclose(
+        z0z2.value_derived_from_wavefunction(wavefunction, qubit_index_map), 0)
+    np.testing.assert_allclose(
+        z1x2.value_derived_from_wavefunction(wavefunction, qubit_index_map), 1)
+
+    np.testing.assert_allclose(
+        z0z1.value_derived_from_density_matrix(density_matrix, qubit_index_map),
+        -0.123)
+    np.testing.assert_allclose(
+        z0z2.value_derived_from_density_matrix(density_matrix, qubit_index_map),
+        0)
+    np.testing.assert_allclose(
+        z1x2.value_derived_from_density_matrix(density_matrix, qubit_index_map),
+        1)
+
+
 def test_pauli_string_expectation_value_mixed_state_linearity():
     n_qubits = 10
 
@@ -197,6 +233,21 @@ def test_approx_pauli_string_expectation_value(measurements, value):
         num_samples=1
     )
     assert display.value_derived_from_samples(measurements) == value
+
+
+@pytest.mark.parametrize('measurements, value, coefficient', [
+    (np.array([[0, 0, 0], [0, 0, 0]]), 1, 0.123),
+    (np.array([[0, 0, 0], [0, 0, 1]]), 0, 999),
+    (np.array([[0, 1, 0], [1, 0, 0]]), -1, -1),
+    (np.array([[0, 1, 0], [1, 1, 1]]), -1, 1),
+])
+def test_approx_pauli_string_expectation_value_with_coef(
+        measurements, value, coefficient):
+    display = cirq.pauli_string_expectation(cirq.PauliString(
+        {}, coefficient=coefficient),
+                                            num_samples=1)
+    assert display.value_derived_from_samples(
+        measurements) == value * coefficient
 
 
 def test_properties():

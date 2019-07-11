@@ -163,7 +163,7 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
     def value_derived_from_samples(self,
                                    measurements: np.ndarray) -> float:
-        val =  np.mean([(-1)**np.sum(bitstring) for bitstring in measurements])
+        val = np.mean([(-1)**np.sum(bitstring) for bitstring in measurements])
         return val * self._pauli_string.coefficient
 
     def _value_equality_values_(self):
