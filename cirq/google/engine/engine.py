@@ -520,7 +520,6 @@ class Engine:
                 trial_results.append(
                     TrialResult(params=ParamResolver(
                         result.get('params', {}).get('assignments', {})),
-                                repetitions=sweep_repetitions,
                                 measurements=measurements))
         return trial_results
 

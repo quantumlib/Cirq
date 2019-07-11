@@ -80,9 +80,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
-            trial_results.append(study.TrialResult(params=param_resolver,
-                                                   repetitions=repetitions,
-                                                   measurements=measurements))
+            trial_results.append(
+                study.TrialResult(params=param_resolver,
+                                  measurements=measurements))
         return trial_results
 
     @abc.abstractmethod
