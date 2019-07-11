@@ -204,21 +204,45 @@ class QasmParser:
             num_args=1,
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
         'x':
-            QasmGateStatement('x', num_params=0, num_args=1, cirq_gate=ops.X),
+        QasmGateStatement(qasm_gate='x',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.X),
         'y':
-            QasmGateStatement('y', num_params=0, num_args=1, cirq_gate=ops.Y),
+        QasmGateStatement(qasm_gate='y',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.Y),
         'z':
-            QasmGateStatement('z', num_params=0, num_args=1, cirq_gate=ops.Z),
+        QasmGateStatement(qasm_gate='z',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.Z),
         'h':
-            QasmGateStatement('h', num_params=0, num_args=1, cirq_gate=ops.H),
+        QasmGateStatement(qasm_gate='h',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.H),
         's':
-            QasmGateStatement('s', num_params=0, num_args=1, cirq_gate=ops.S),
+        QasmGateStatement(qasm_gate='s',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.S),
         't':
-            QasmGateStatement('t', num_params=0, num_args=1, cirq_gate=ops.T),
+        QasmGateStatement(qasm_gate='t',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.T),
         'sdg':
-            QasmGateStatement('sdg', num_params=0, num_args=1, cirq_gate=ops.S**-1),
+        QasmGateStatement(qasm_gate='sdg',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.S**-1),
         'tdg':
-            QasmGateStatement('tdg', num_params=0, num_args=1, cirq_gate=ops.T**-1),
+        QasmGateStatement(qasm_gate='tdg',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.T**-1),
     }
 
     tokens = QasmLexer.tokens

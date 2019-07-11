@@ -399,7 +399,6 @@ one_qubit_gates = [
 ]
 
 
-
 @pytest.mark.parametrize('qasm_gate,cirq_gate', rotation_gates)
 def test_rotation_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     qasm = """OPENQASM 2.0;
@@ -721,8 +720,7 @@ def test_u3_gate():
     'id',
     'u2',
     'u3',
-] + [g[0] for g in rotation_gates]
-  + [g[0] for g in one_qubit_gates])
+] + [g[0] for g in rotation_gates] + [g[0] for g in one_qubit_gates])
 def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
     qasm = """
      OPENQASM 2.0;
@@ -744,7 +742,7 @@ def test_standard_single_qubit_gates_wrong_number_of_args(qasm_gate):
     ['rx', 1],
     ['ry', 1],
     ['rz', 1],
-]+[[g[0], 0] for g in one_qubit_gates])
+] + [[g[0], 0] for g in one_qubit_gates])
 def test_standard_gates_wrong_params_error(qasm_gate: str, num_params: int):
     qasm = """OPENQASM 2.0;
      include "qelib1.inc";             
@@ -792,14 +790,15 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     q0 = cirq.NamedQubit('q_0')
     q1 = cirq.NamedQubit('q_1')
 
-    expected_circuit = Circuit.from_ops([cirq_gate.on(q0),
-                                         cirq_gate.on(q0),
-                                         cirq_gate.on(q1),
-                                         cirq_gate.on(q0),
-                                         cirq_gate.on(q1),
-                                         cirq_gate.on(q0),
-                                         cirq_gate.on(q1)
-                                         ])
+    expected_circuit = Circuit.from_ops([
+        cirq_gate.on(q0),
+        cirq_gate.on(q0),
+        cirq_gate.on(q1),
+        cirq_gate.on(q0),
+        cirq_gate.on(q1),
+        cirq_gate.on(q0),
+        cirq_gate.on(q1)
+    ])
 
     parsed_qasm = parser.parse(qasm)
 
