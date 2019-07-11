@@ -17,7 +17,7 @@ from cirq.protocols.apply_unitary import (
     apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
 )
 from cirq.protocols.apply_channel import (
     apply_channel,
