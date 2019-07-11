@@ -135,6 +135,23 @@ class TrialResult:
             converted_dict[key] = [pd.Series(m_vals) for m_vals in val]
         self.data = pd.DataFrame(converted_dict)
 
+    @staticmethod
+    def from_single_parameter_set_reps(
+            *,  # Forces keyword args.
+            params: resolver.ParamResolver,
+            measurements: Dict[str, np.ndarray]) -> None:
+        """Packages runs of a single parameterized circuit into a TrialResult.
+
+        Args:
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. The value for each key is a 2-D array of booleans,
+                with the first index running over the repetitions, and the
+                second index running over the qubits for the corresponding
+                measurements.
+        """
+        return TrialResult(params=params, measurements=measurements)
+
     # Keep the old instance variables for test compatibility.
     @property
     def measurements(self) -> Dict[str, np.ndarray]:
