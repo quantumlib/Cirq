@@ -13,8 +13,9 @@
 # limitations under the License.
 
 """Workarounds for compatibility issues between versions and libraries."""
+import functools
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import numpy as np
 import sympy
@@ -41,7 +42,8 @@ def proper_repr(value: Any) -> str:
     return repr(value)
 
 
-def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
+def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
+              ) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
@@ -56,15 +58,18 @@ def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
     def decorator(func: Callable) -> Callable:
         used = False
 
+        @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
             nonlocal used
             if not used:
                 used = True
+                qualname = (func.__qualname__
+                            if func_name is None else func_name)
                 logging.warning(
                     'DEPRECATION\n'
                     'The function %s was used but is deprecated.\n'
                     'It will be removed in cirq %s.\n'
-                    '%s\n', func.__qualname__, deadline, fix)
+                    '%s\n', qualname, deadline, fix)
 
             return func(*args, **kwargs)
 
@@ -73,9 +78,7 @@ def deprecated(*, deadline: str, fix: str) -> Callable[[Callable], Callable]:
             f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
             f'{fix}\n\n'
             f'------\n\n'
-            f'{func.__doc__ or ""}')
-        decorated_func.__name__ = func.__name__
-        decorated_func.__qualname__ = func.__qualname__
+            f'{decorated_func.__doc__ or ""}')
 
         return decorated_func
 
