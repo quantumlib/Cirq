@@ -167,10 +167,9 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
         return NotImplemented
 
     # Apply unitary effect to an identity matrix.
-    state = linalg.eye_tensor(qid_shape=val_qid_shape)
+    state = linalg.eye_tensor(qid_shape=val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
-    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape)),
-                                     val_qid_shape))
+    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
 
     if result is NotImplemented or result is None:
         return result
@@ -191,12 +190,11 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
         return NotImplemented
 
     # Apply sub-operations' unitary effects to an identity matrix.
-    state = linalg.eye_tensor(qid_shape=val_qid_shape)
+    state = linalg.eye_tensor(qid_shape=val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
     result = apply_unitaries(operations, qubits,
                              ApplyUnitaryArgs(state, buffer,
-                                              range(len(val_qid_shape)),
-                                              val_qid_shape),
+                                              range(len(val_qid_shape))),
                              None)
 
     # Package result.

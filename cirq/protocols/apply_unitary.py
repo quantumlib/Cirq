@@ -68,15 +68,12 @@ class ApplyUnitaryArgs:
             dtype as the target tensor.
         axes: Which axes the unitary effect is being applied to (e.g. the
             qubits that the gate is operating on).
-        qid_shape: A tuple of the dimensions of each qid in the state
-            `target_tensor`.
     """
 
     def __init__(self,
                  target_tensor: np.ndarray,
                  available_buffer: np.ndarray,
-                 axes: Iterable[int],
-                 qid_shape: Optional[Tuple[int, ...]] = None):
+                 axes: Iterable[int]):
         """
 
         Args:
@@ -89,17 +86,10 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
-            qid_shape: A tuple of the dimensions of each qid in the state
-                `target_tensor`.
         """
         self.axes = tuple(axes)
-        if qid_shape is None:
-            # Guess what the qid_shape would be for qubits.
-            min_num_qubits = max(self.axes, default=-1) + 1
-            qid_shape = (2,) * min_num_qubits  # Might be too short
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
-        self.qid_shape = qid_shape
 
     @staticmethod
     def default(num_qubits: Optional[int] = None,
@@ -124,8 +114,7 @@ class ApplyUnitaryArgs:
         state = linalg.one_hot(index=(0,) * num_qubits,
                                shape=qid_shape,
                                dtype=np.complex128)
-        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits),
-                                qid_shape)
+        return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     def subspace_index(
             self,
@@ -332,16 +321,16 @@ def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
     if result is args.target_tensor:
         return result
     # If any entries of unitary_value's shape are less than the corresponding
-    # entries of args.qid_shape, don't rely on func to copy the untouched
-    # entries from args.target_tensor into result.
-    op_shape = qid_shape_protocol.qid_shape(unitary_value,
-                                            (2,) * len(args.axes))
-    if any(op_shape[i] < args.qid_shape[axis]
+    # entries of args.target_tensor.shape, don't rely on func to copy the
+    # untouched entries from args.target_tensor into result.
+    op_qid_shape = qid_shape_protocol.qid_shape(unitary_value,
+                                                (2,) * len(args.axes))
+    if any(op_qid_shape[i] < args.target_tensor.shape[axis]
            for i, axis in enumerate(args.axes)):
         # Copy extra entries from args.target_tensor into result.
         for i, axis in enumerate(args.axes):
-            op_level = op_shape[i]
-            axis_level = args.qid_shape[axis]
+            op_level = op_qid_shape[i]
+            axis_level = args.target_tensor.shape[axis]
             subspace = linalg.slice_for_qubits_equal_to(
                 (axis,), qureg_value_tuple=(slice(op_level, axis_level),))
             result[subspace] = args.target_tensor[subspace]  # TODO: Make more efficient
@@ -361,10 +350,11 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
     if matrix is NotImplemented or matrix is None:
         return matrix
 
-    # Special case for single-qubit, 2x2 operations.
-    if len(args.axes) == 1 and matrix.shape == (2, 2):
-        val_qid_shape = qid_shape_protocol.qid_shape(unitary_value,
-                                                     default=(2,))
+    val_qid_shape = qid_shape_protocol.qid_shape(unitary_value,
+                                                 default=(2,)*len(args.axes))
+
+    # Special case for single-qubit, 2x2 or 1x1 operations.
+    if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
         subspaces = [
             args.subspace_index(value_tuple=(i,))
             for i in range(val_qid_shape[0])
@@ -374,10 +364,9 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
                                              out=args.available_buffer)
 
     # General case via np.einsum.
-    axes_qid_shape = tuple(args.qid_shape[axis] for axis in args.axes)
     return linalg.targeted_left_multiply(matrix.astype(
-        args.target_tensor.dtype).reshape(axes_qid_shape * 2),
-                                         args.target_tensor,
+        args.target_tensor.dtype).reshape(val_qid_shape * 2),
+                                         args.target_tensor,  # TODO: Slice tensor
                                          args.axes,
                                          out=args.available_buffer)
 
@@ -437,28 +426,23 @@ def apply_unitaries(unitary_values: Iterable[Any],
         TypeError: An item from `unitary_values` doesn't have a unitary effect
             and `default` wasn't specified.
     """
+    from cirq import ops
     if args is None:
-        # Default to 2 for backwards compatibility
-        max_shape_dict = {qubit: 2 for qubit in qubits}
         unitary_values = tuple(unitary_values)
-        # Iterate over all unitary values to find the maximum qid_shape
-        for op in unitary_values:
-            for d, qubit in zip(qid_shape_protocol.qid_shape(op), op.qubits):
-                max_shape_dict[qubit] = max(d, max_shape_dict[qubit])
-        max_shape = tuple(max_shape_dict.values())
-        args = ApplyUnitaryArgs.default(qid_shape=max_shape)
+        # Default to 2 for backwards compatibility
+        max_qid_shape = ops.max_qid_shape(unitary_values, qubit_order=qubits,
+                                      default_level=2)
+        args = ApplyUnitaryArgs.default(qid_shape=max_qid_shape)
     if len(qubits) != len(args.axes):
         raise ValueError('len(qubits) != len(args.axes)')
     qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
     state = args.target_tensor
     buffer = args.available_buffer
-    qid_shape = args.qid_shape
 
     for op in unitary_values:
         indices = [qubit_map[q] for q in op.qubits]
         result = apply_unitary(unitary_value=op,
-                               args=ApplyUnitaryArgs(state, buffer, indices,
-                                                     qid_shape),
+                               args=ApplyUnitaryArgs(state, buffer, indices),
                                default=None)
 
         # Handle failure.

@@ -157,8 +157,7 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     val_qid_shape = qid_shape_protocol.qid_shape(val)
     state = linalg.one_hot(shape=val_qid_shape, dtype=np.complex64)
     buffer = np.empty_like(state)
-    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape)),
-                                     val_qid_shape))
+    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
     if result is NotImplemented:
         return None
     return result is not None

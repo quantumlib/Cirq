@@ -13,7 +13,7 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from typing import Sequence, Union, Tuple, Type
+from typing import Optional, Sequence, Union, Tuple, Type
 
 import numpy as np
 
@@ -40,7 +40,8 @@ def one_hot(*,
     return result
 
 
-def eye_tensor(*, qid_shape: Tuple[int, ...]) -> np.array:
+def eye_tensor(*, qid_shape: Tuple[int, ...], dtype: Optional[type] = None
+              ) -> np.array:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:
@@ -51,6 +52,6 @@ def eye_tensor(*, qid_shape: Tuple[int, ...]) -> np.array:
     Returns:
         The created numpy array with shape `qid_shape + qid_shape`.
     """
-    state = np.eye(np.prod(qid_shape, dtype=int), dtype=np.complex128)
+    state = np.eye(np.prod(qid_shape, dtype=int), dtype=dtype)
     state.shape = qid_shape * 2
     return state

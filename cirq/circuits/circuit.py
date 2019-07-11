@@ -31,7 +31,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import devices, ops, study, protocols
+from cirq import devices, linalg, ops, study, protocols
 from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -1306,10 +1306,9 @@ class Circuit:
         qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
         side_len = np.product(qid_shape, dtype=int)
 
-        state = np.eye(side_len, dtype=dtype)
-        state.shape = qid_shape * 2
+        state = linalg.eye_tensor(qid_shape=qid_shape, dtype=dtype)
 
-        result = _apply_unitary_circuit(self, qid_shape, state, qs, dtype)
+        result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
 
     def final_wavefunction(
@@ -1388,7 +1387,7 @@ class Circuit:
             state = initial_state.astype(dtype)
         state.shape = qid_shape
 
-        result = _apply_unitary_circuit(self, qid_shape, state, qs, dtype)
+        result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
 
     to_unitary_matrix = deprecated(
@@ -1784,7 +1783,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit, qid_shape: Tuple[int, ...],
+def _apply_unitary_circuit(circuit: Circuit,
                            state: np.ndarray, qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
@@ -1795,8 +1794,6 @@ def _apply_unitary_circuit(circuit: Circuit, qid_shape: Tuple[int, ...],
         circuit: The circuit to simulate. All operations must have a known
             matrix or decompositions leading to known matrices. Measurements
             are allowed to be in the circuit, but they will be ignored.
-        qid_shape: The qid_shape of the circuit specifying the dimensions of
-            each qid in the circuit.
         state: The initial state tensor (i.e. superposition or unitary matrix).
             This is what will be left-multiplied by the circuit's effective
             unitary. If this is a state vector, it must have shape
@@ -1826,8 +1823,7 @@ def _apply_unitary_circuit(circuit: Circuit, qid_shape: Tuple[int, ...],
 
     return protocols.apply_unitaries(
         unitary_ops, qubits,
-        protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits)),
-                                   qid_shape))
+        protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits))))
 
 
 def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
