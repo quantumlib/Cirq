@@ -186,6 +186,23 @@ class QasmParser:
                           cirq_gate=(lambda params: ops.Rz(params[0])),
                           num_params=1,
                           num_args=1),
+        'id':
+        QasmGateStatement(qasm_gate='id',
+                          cirq_gate=ops.IdentityGate(1),
+                          num_params=0,
+                          num_args=1),
+        'u2':
+        QasmGateStatement(qasm_gate='u2',
+                          cirq_gate=(lambda params: QasmUGate(
+                              0.5, params[0] / np.pi, params[1] / np.pi)),
+                          num_params=2,
+                          num_args=1),
+        'u3':
+        QasmGateStatement(
+            qasm_gate='u3',
+            num_params=3,
+            num_args=1,
+            cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
     }
 
     tokens = QasmLexer.tokens
@@ -241,9 +258,9 @@ class QasmParser:
         p[0] = self.circuit
 
     def p_circuit_gate_or_measurement(self, p):
-        """circuit : gate_op circuit
-                   | measurement circuit"""
-        self.circuit.insert(0, p[1])
+        """circuit :  circuit gate_op
+                   |  circuit measurement"""
+        self.circuit.append(p[2])
         p[0] = self.circuit
 
     def p_circuit_empty(self, p):

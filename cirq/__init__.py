@@ -314,7 +314,7 @@ from cirq.protocols import (
     QasmArgs,
     resolve_parameters,
     SupportsApplyChannel,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,

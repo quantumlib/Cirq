@@ -22,35 +22,13 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, raw_types, op_tree
+from cirq.ops import gate_features, raw_types, op_tree, common_gates
 from cirq.type_workarounds import NotImplementedType
 
-@value.value_equality
+
+@value.value_equality(manual_cls=True)
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
-
-    def __new__(cls,
-                *,
-                phase_exponent: Union[float, sympy.Symbol],
-                exponent: Union[float, sympy.Symbol] = 1.0,
-                global_shift: float = 0.0):
-        """Substitutes a raw X or raw Y if possible.
-
-        Args:
-            phase_exponent: The exponent on the Z gates conjugating the X gate.
-            exponent: The exponent on the X gate conjugated by Zs.
-            global_shift: How much to shift the operation's eigenvalues at
-                exponent=1.
-        """
-        p = value.canonicalize_half_turns(phase_exponent)
-        if p == 0:
-            return cirq.ops.common_gates.XPowGate(
-                exponent=exponent,
-                global_shift=global_shift)
-        if p == 0.5:
-            return cirq.ops.common_gates.YPowGate(exponent=exponent,
-                                                  global_shift=global_shift)
-        return super().__new__(cls)
 
     def __init__(self,
                  *,
@@ -211,5 +189,20 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
         return self._exponent % period
 
+    def _value_equality_values_cls_(self):
+        if self.phase_exponent == 0:
+            return common_gates.XPowGate
+        if self.phase_exponent == 0.5:
+            return common_gates.YPowGate
+        return PhasedXPowGate
+
     def _value_equality_values_(self):
+        if self.phase_exponent == 0:
+            return common_gates.XPowGate(
+                exponent=self._exponent,
+                global_shift=self._global_shift)._value_equality_values_()
+        if self.phase_exponent == 0.5:
+            return common_gates.YPowGate(
+                exponent=self._exponent,
+                global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
