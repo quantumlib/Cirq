@@ -30,8 +30,7 @@ def test_run_simulator_run():
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
-    expected_result = cirq.TrialResult(repetitions=10,
-                                       measurements=expected_measurements,
+    expected_result = cirq.TrialResult(measurements=expected_measurements,
                                        params=param_resolver)
     assert expected_result == simulator.run(program=circuit,
                                             repetitions=10,
@@ -51,12 +50,12 @@ def test_run_simulator_sweeps():
     circuit = mock.Mock(cirq.Circuit)
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
-    expected_results = [cirq.TrialResult(repetitions=10,
-                                         measurements=expected_measurements,
-                                         params=param_resolvers[0]),
-                        cirq.TrialResult(repetitions=10,
-                                         measurements=expected_measurements,
-                                         params=param_resolvers[1])]
+    expected_results = [
+        cirq.TrialResult(measurements=expected_measurements,
+                         params=param_resolvers[0]),
+        cirq.TrialResult(measurements=expected_measurements,
+                         params=param_resolvers[1])
+    ]
     assert expected_results == simulator.run_sweep(program=circuit,
                                                    repetitions=10,
                                                    params=param_resolvers)
@@ -275,7 +274,7 @@ def test_async_sample():
     f = MockSimulator().run_async(cirq.Circuit.from_ops(cirq.measure(q)),
                                   repetitions=10)
     result = cirq.testing.assert_asyncio_will_have_result(f)
-    assert result.measurements is m
+    np.testing.assert_equal(result.measurements, m)
 
 
 def test_simulation_trial_result_qubit_map():
