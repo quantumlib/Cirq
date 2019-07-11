@@ -20,7 +20,7 @@ proto_library(
 
 proto_library(
     name = "run_context_proto",
-    srcs = ["run_contex.proto"],
+    srcs = ["run_context.proto"],
     deps = [
         "program_proto",
     ],

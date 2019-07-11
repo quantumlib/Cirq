@@ -72,7 +72,7 @@ class XPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
         args.available_buffer[zero] = args.target_tensor[one]
@@ -625,6 +625,11 @@ class IdentityGate(raw_types.Gate):
         return protocols.CircuitDiagramInfo(
             wire_symbols=('I',) * self.num_qubits(), connected=True)
 
+    def _qasm_(self, args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
+
     def _value_equality_values_(self):
         return self.num_qubits(),
 
@@ -677,7 +682,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
@@ -884,7 +889,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         oo = args.subspace_index(0b11)
         zo = args.subspace_index(0b01)
@@ -988,7 +993,7 @@ class SwapPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
@@ -1101,7 +1106,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
