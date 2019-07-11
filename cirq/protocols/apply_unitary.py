@@ -30,7 +30,6 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.unitary import unitary
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -387,7 +386,7 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
                                        ) -> Optional[np.ndarray]:
     from cirq.protocols.has_unitary import (
         _try_decompose_into_operations_and_qubits)
-    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
     return apply_unitaries(operations, qubits, args, None)

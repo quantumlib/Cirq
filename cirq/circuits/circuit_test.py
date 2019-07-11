@@ -1456,10 +1456,10 @@ def test_qid_shape_qubit():
 
     assert cirq.qid_shape(circ) == (2, 2)
     assert cirq.num_qubits(circ) == 2
-    assert circ.max_qid_shape() == (2, 2)
-    assert circ.max_qid_shape(qid_order=[a]) == (2,)
-    assert circ.max_qid_shape(qid_order=[c, b], qid_min=2) == (2, 2)
-    assert circ.max_qid_shape(qid_order=[c, a, b], qid_min=2) == (2, 2, 2)
+    assert cirq.max_qid_shape(circ) == (2, 2)
+    assert cirq.max_qid_shape(circ, qubit_order=[c, a, b], default_level=2) == (2, 2, 2)
+    with pytest.raises(ValueError, match='extra qubits'):
+        _ = cirq.max_qid_shape(circ, qubit_order=[a])
 
 
 def test_qid_shape_qudit():
@@ -1491,13 +1491,13 @@ def test_qid_shape_qudit():
 
     assert cirq.qid_shape(circ) == (1, 2, 3, 3, 2, 3)
     assert cirq.num_qubits(circ) == 6
-    assert circ.max_qid_shape() == (1, 2, 3, 3, 2, 3)
-    assert circ.max_qid_shape(qid_min=2) == (2, 2, 3, 3, 2, 3)
-    assert (circ.max_qid_shape(qid_order=[f, e, d, c, b, a]) == (3, 2, 3, 3, 2,
-                                                                 1))
-    assert circ.max_qid_shape(qid_order=[g, a, b, c]) == (1, 1, 2, 3)
-    assert circ.max_qid_shape(qid_order=[g, a, b, c], qid_min=1) == (1, 1, 2, 3)
-    assert circ.max_qid_shape(qid_order=[g, a, b, c], qid_min=2) == (2, 2, 2, 3)
+    assert cirq.max_qid_shape(circ) == (1, 2, 3, 3, 2, 3)
+    assert cirq.max_qid_shape(circ, default_level=2) == (1, 2, 3, 3, 2, 3)
+    assert (cirq.max_qid_shape(circ, qubit_order=[f, e, d, c, b, a]) == (3, 2, 3, 3, 2, 1))
+    assert (cirq.max_qid_shape(circ, qubit_order=[g, f, e, d, c, b, a]) == (1, 3, 2, 3, 3, 2, 1))
+    assert (cirq.max_qid_shape(circ, qubit_order=[g, f, e, d, c, b, a], default_level=2) == (2, 3, 2, 3, 3, 2, 1))
+    with pytest.raises(ValueError, match='extra qubits'):
+        _ = cirq.max_qid_shape(circ, qubit_order=[g, a, b, c])
 
 
 def test_from_ops():

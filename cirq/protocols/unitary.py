@@ -155,7 +155,6 @@ def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
 def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _apply_unitary_ method."""
     from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-    from cirq import ops
 
     # Check for the magic method.
     method = getattr(val, '_apply_unitary_', None)
@@ -168,7 +167,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
         return NotImplemented
 
     # Apply unitary effect to an identity matrix.
-    state = linalg.eye_tensor(qid_shape=qid_shape)
+    state = linalg.eye_tensor(qid_shape=val_qid_shape)
     buffer = np.empty_like(state)
     result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape)),
                                      val_qid_shape))
@@ -186,18 +185,13 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     # Check if there's a decomposition.
     from cirq.protocols.has_unitary import (
         _try_decompose_into_operations_and_qubits)
-    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    operations, qubits, val_qid_shape = (
+        _try_decompose_into_operations_and_qubits(val))
     if operations is None:
         return NotImplemented
 
-    # Get the qid_shape.
-    val_qid_shape = qid_shape_protocol.qid_shape(val, None)
-    if val_qid_shape is None:
-        return NotImplemented
-
     # Apply sub-operations' unitary effects to an identity matrix.
-    n = len(qubits)
-    state = linalg.eye_tensor(qid_shape=qid_shape)
+    state = linalg.eye_tensor(qid_shape=val_qid_shape)
     buffer = np.empty_like(state)
     result = apply_unitaries(operations, qubits,
                              ApplyUnitaryArgs(state, buffer,
@@ -208,4 +202,5 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     # Package result.
     if result is None:
         return None
-    return result.reshape((1 << n, 1 << n))
+    state_len = np.prod(val_qid_shape, dtype=int)
+    return result.reshape((state_len, state_len))

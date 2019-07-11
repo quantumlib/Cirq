@@ -31,7 +31,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import devices, linalg, ops, study, protocols
+from cirq import devices, ops, study, protocols
 from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -1228,24 +1228,8 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
-    def max_qid_shape(
-            self,
-            qid_order: Optional[Sequence[ops.Qid]] = None,
-            initial: Optional[Dict[ops.Qid, int]] = None,
-            qid_min: int = 1,
-    ) -> Tuple[int, ...]:
-        shape_dict = defaultdict(lambda: qid_min,
-                                 {} if initial is None else initial)
-        for op in self.all_operations():
-            for d, qid in zip(protocols.qid_shape(op), op.qubits):
-                shape_dict[qid] = max(shape_dict[qid], d)
-        if qid_order is None:
-            return tuple(d for _, d in sorted(shape_dict.items()))
-        else:
-            return tuple(shape_dict[qid] for qid in qid_order)
-
     def _qid_shape_(self):
-        return self.max_qid_shape()
+        return ops.max_qid_shape(self._moments, qubits_that_should_be_present=self.all_qubits(), default_level=1)
 
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
@@ -1319,8 +1303,8 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = self.max_qid_shape(qs, qid_min=2)
-        side_len = linalg.state_size(qid_shape=qid_shape)
+        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        side_len = np.product(qid_shape, dtype=int)
 
         state = np.eye(side_len, dtype=dtype)
         state.shape = qid_shape * 2
@@ -1394,8 +1378,8 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = self.max_qid_shape(qs, qid_min=2)
-        state_len = linalg.state_size(qid_shape=qid_shape)
+        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        state_len = np.product(qid_shape, dtype=int)
 
         if isinstance(initial_state, int):
             state = np.zeros(state_len, dtype=dtype)

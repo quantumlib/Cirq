@@ -13,8 +13,6 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from functools import reduce
-import operator
 from typing import Sequence, Union, Tuple, Type
 
 import numpy as np
@@ -42,11 +40,17 @@ def one_hot(*,
     return result
 
 
-def state_size(*, qid_shape: Tuple[int, ...]) -> int:
-    return reduce(operator.mul, qid_shape, 1)
+def eye_tensor(*, qid_shape: Tuple[int, ...]) -> np.array:
+    """Returns an identity matrix reshaped into a tensor.
 
+    Args:
+        qid_shape: A tuple representing the number of quantum levels of each
+            qubit the returned matrix applies to.  `qid_shape` is (2, 2, 2) for
+            a three-qubit identity operation tensor.
 
-def identity_unitary(*, qid_shape: Tuple[int, ...]) -> np.array:
-    state = np.eye(state_size(qid_shape=qid_shape), dtype=np.complex128)
+    Returns:
+        The created numpy array with shape `qid_shape + qid_shape`.
+    """
+    state = np.eye(np.prod(qid_shape, dtype=int), dtype=np.complex128)
     state.shape = qid_shape * 2
     return state

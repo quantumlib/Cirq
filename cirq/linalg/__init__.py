@@ -40,8 +40,7 @@ from cirq.linalg.decompositions import (
 
 from cirq.linalg.states import (
     one_hot,
-    state_size,
-    identity_unitary,
+    eye_tensor,
 )
 
 from cirq.linalg.diagonalize import (
