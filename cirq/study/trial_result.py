@@ -97,6 +97,10 @@ def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
 @value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
+    Stored as a Pandas DataFrame that can be accessed through the "data"
+    attribute. The repitition number is the row index and measurement keys
+    are the columns of the DataFrame. Each element is a Pandas Series of
+    measurement outcomes per bit for the measurement key in that repitition.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
@@ -109,10 +113,12 @@ class TrialResult:
             results.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 params: resolver.ParamResolver,
-                 measurements: Dict[str, np.ndarray],
-                 repetitions: int) -> None:
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            params: resolver.ParamResolver,
+            measurements: Dict[str, np.ndarray],
+            repetitions: int = 0) -> None:
         """
         Args:
             params: A ParamResolver of settings used for this result.
@@ -121,7 +127,7 @@ class TrialResult:
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
-            repetitions: The number of times the circuit was sampled.
+            repetitions: UNUSED. Please do not use this anymore.
         """
         self.params = params
 
@@ -135,11 +141,11 @@ class TrialResult:
 
     # Keep the old instance variables for test compatibility.
     @property
-    def measurements(self):
+    def measurements(self) -> Dict[str, np.ndarray]:
         return _to_dict(self.data)
 
     @property
-    def repetitions(self):
+    def repetitions(self) -> int:
         return self.data.shape[0]
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273

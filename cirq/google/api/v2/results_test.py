@@ -108,28 +108,25 @@ def test_results_to_proto():
                              measurements={
                                  'foo': np.array([[0], [1], [0], [1]],
                                                  dtype=bool),
-                             },
-                             repetitions=4),
+                             }),
             cirq.TrialResult(params=cirq.ParamResolver({'i': 1}),
                              measurements={
                                  'foo': np.array([[0], [1], [1], [0]],
                                                  dtype=bool),
-                             },
-                             repetitions=4),
+                             }),
         ],
         [
-            cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
-                             measurements={
-                                 'foo': np.array([[0], [1], [0], [1]],
-                                                 dtype=bool),
-                             },
-                             repetitions=4),
+            cirq.TrialResult(
+                params=cirq.ParamResolver({'i': 0}),
+                measurements={
+                    'foo': np.array([[0], [1], [0], [1]], dtype=bool),
+                },
+            ),
             cirq.TrialResult(params=cirq.ParamResolver({'i': 1}),
                              measurements={
                                  'foo': np.array([[0], [1], [1], [0]],
                                                  dtype=bool),
-                             },
-                             repetitions=4),
+                             }),
         ],
     ]
     proto = v2.results_to_proto(trial_results, measurements)
@@ -153,13 +150,11 @@ def test_results_to_proto_sweep_repetitions():
         cirq.TrialResult(params=cirq.ParamResolver({'i': 0}),
                          measurements={
                              'foo': np.array([[0]], dtype=bool),
-                         },
-                         repetitions=1),
+                         }),
         cirq.TrialResult(params=cirq.ParamResolver({'i': 1}),
                          measurements={
                              'foo': np.array([[0], [1]], dtype=bool),
-                         },
-                         repetitions=2),
+                         }),
     ]]
     with pytest.raises(ValueError, match='different numbers of repetitions'):
         v2.results_to_proto(trial_results, measurements)
