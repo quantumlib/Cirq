@@ -2,7 +2,7 @@ import cirq
 
 
 def main():
-    # The device to run the experiment.
+    # The sampler to run the experiment.
     simulator = cirq.Simulator()
 
     # Specify 4 qubits on a 2 by 2 grid for the experiment.
