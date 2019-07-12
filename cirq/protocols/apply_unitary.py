@@ -73,7 +73,9 @@ class ApplyUnitaryArgs:
     def __init__(self,
                  target_tensor: np.ndarray,
                  available_buffer: np.ndarray,
-                 axes: Iterable[int]):
+                 axes: Iterable[int],
+                 *,  # Force keyword args
+                 _is_subspace: bool = False):
         """
 
         Args:
@@ -86,10 +88,12 @@ class ApplyUnitaryArgs:
                 dtype as the target tensor.
             axes: Which axes the unitary effect is being applied to (e.g. the
                 qubits that the gate is operating on).
+
         """
-        self.axes = tuple(axes)
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
+        self.axes = tuple(axes)
+        self._is_subspace = _is_subspace
 
     @staticmethod
     def default(num_qubits: Optional[int] = None,
@@ -116,11 +120,45 @@ class ApplyUnitaryArgs:
                                dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
+    def with_transposed_and_sliced_tensors(
+            self, indices: Iterable[int],
+            slices: Iterable[Union[int, slice, Sequence[int]]]
+    ) -> 'ApplyUnitaryArgs':
+        """
+        """
+        sub_axes = [self.axes[i] for i in indices]
+        axis_set = set(sub_axes)
+        other_axes = [axis for axis in range(len(self.target_tensor.shape))
+                      if axis not in axis_set]
+        ordered_axes = (*other_axes, *sub_args)
+        subspace_slices = [slice(0, size) for size in slices]
+        # Transpose sub_axes to the end of the shape and slice them
+        target_tensor = self.target_tensor.transpose(*ordered_axes)
+        transposed_shape = target_tensor.shape
+        target_tensor = target_tensor[(
+            ..., *subspace_slices)]
+        available_buffer = self.buffer.transpose(*ordered_axes)[(
+            ..., *subspace_slices)]
+        new_axes = range(len(other_axes), len(ordered_axes))
+        is_subspace = (len(transposed_shape) != len(target_tensor.shape)
+                       or any(size != sliced_size
+                              for size, sliced_size in zip(transposed_shape,
+                                                        target_tensor.shape)))
+        return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes,
+                                _is_subspace=is_subspace)
+
+    def for_operation_with_qid_shape(
+            self, indices: Iterable[int],
+            qid_shape: Tuple[int, ...]) -> 'ApplyUnitaryArgs':
+        """
+        """
+        slices = [slice(0, size) for size in qid_shape]
+        return self.transposed_subspace_with_slices(indices, slices)
+
+    # TODO: Deprecate
     def subspace_index(
             self,
             little_endian_bits_int: Optional[int] = None,
-            *,  # Forces keyword args.
-            value_tuple: Optional[Tuple[Union[int, slice], ...]] = None,
     ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
@@ -152,8 +190,7 @@ class ApplyUnitaryArgs:
                 args.target_tensor[:, 0, :, 1] += 1
         """
         return linalg.slice_for_qubits_equal_to(self.axes,
-                                                little_endian_bits_int,
-                                                qureg_value_tuple=value_tuple)
+                                                little_endian_bits_int)
 
 
 class SupportsConsistentApplyUnitary(Protocol):
@@ -315,27 +352,14 @@ def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
     func = getattr(unitary_value, '_apply_unitary_', None)
     if func is None:
         return NotImplemented
-    result = func(args)
-    if result is NotImplemented or result is None:
-        return result
-    if result is args.target_tensor:
-        return result
-    # If any entries of unitary_value's shape are less than the corresponding
-    # entries of args.target_tensor.shape, don't rely on func to copy the
-    # untouched entries from args.target_tensor into result.
     op_qid_shape = qid_shape_protocol.qid_shape(unitary_value,
                                                 (2,) * len(args.axes))
-    if any(op_qid_shape[i] < args.target_tensor.shape[axis]
-           for i, axis in enumerate(args.axes)):
-        # Copy extra entries from args.target_tensor into result.
-        for i, axis in enumerate(args.axes):
-            op_level = op_qid_shape[i]
-            axis_level = args.target_tensor.shape[axis]
-            subspace = linalg.slice_for_qubits_equal_to(
-                (axis,), qureg_value_tuple=(slice(op_level, axis_level),))
-            result[subspace] = args.target_tensor[
-                subspace]  # TODO: Make more efficient
-    return result
+    sub_args = args.for_operation_with_qid_shape(range(len(op_qid_shape)),
+                                                      op_qid_shape)
+    result = func(sub_args)
+    if result is NotImplemented or result is None:
+        return result
+    return _recover_result_from_sub_result(args, sub_args, result)
 
 
 def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
@@ -465,3 +489,21 @@ def apply_unitaries(unitary_values: Iterable[Any],
         state = result
 
     return state
+
+def _recover_result_from_sub_result(args, sub_args, sub_result):
+    if result is sub_args.target_tensor:
+        return args.target_tensor
+    if sub_args._is_subspace:
+        # The subspace that unitary_value modified is likely much smaller than
+        # the whole tensor so copy result back into target_tensor.
+        sub_args.target_tensor[...] = result
+        return args.target_tensor
+    if result is sub_args.available_buffer:
+        # unitary_value knew about the entire tensor so return the un-transposed
+        # view.
+        return args.available_buffer
+    # unitary_value returned a newly created tensor so copy it into
+    # target_tensor for simplicity.
+    # It would be more efficient to reverse transpose it and return it.
+    sub_args.target_tensor[...] = result
+    return args.target_tensor
