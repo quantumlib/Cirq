@@ -14,9 +14,8 @@
 
 """Defines trial results."""
 
-from typing import (
-    Iterable, Callable, Tuple, TypeVar, Dict, Any, TYPE_CHECKING, Union,
-    List, Optional)
+from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
+                    TYPE_CHECKING, Union, List, Optional)
 
 import collections
 import numpy as np
@@ -86,14 +85,12 @@ def _bitstring(vals: Iterable[Any]) -> str:
     return ''.join('1' if v else '0' for v in vals)
 
 
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
-                               ) -> str:
+def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
     keyed_bitstrings = []
     for key in sorted(vals.keys()):
         reps = vals[key]
         n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join([_bitstring(reps[:, i])
-                              for i in range(n)])
+        all_bits = ', '.join([_bitstring(reps[:, i]) for i in range(n)])
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
 
@@ -148,8 +145,9 @@ class TrialResult:
             # repetitions and a big endian integer for individual measurements.
             converted_dict = {}
             for key, val in self._measurements.items():
-                converted_dict[key] = [_big_endian_int(m_vals) for m_vals in
-                                       val]
+                converted_dict[key] = [
+                    _big_endian_int(m_vals) for m_vals in val
+                ]
             self._data = pd.DataFrame(converted_dict)
         return self._data
 
@@ -213,8 +211,8 @@ class TrialResult:
             results.
         """
         fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])  # type: Iterable[Any]
+        samples = zip(*[self.measurements[sub_key] for sub_key in fixed_keys
+                       ])  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter

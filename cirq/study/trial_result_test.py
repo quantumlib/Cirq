@@ -53,12 +53,11 @@ def test_df():
                                   np.array([[0], [0], [1], [0], [1]],
                                            dtype=np.bool)
                               })
-    remove_end_measurements = pd.DataFrame(
-        data={
-            'ab': [1, 1, 2],
-            'c': [0, 1, 0]
-        },
-        index=[1, 2, 3])
+    remove_end_measurements = pd.DataFrame(data={
+        'ab': [1, 1, 2],
+        'c': [0, 1, 0]
+    },
+                                           index=[1, 2, 3])
 
     pd.testing.assert_frame_equal(result.data.iloc[1:-1],
                                   remove_end_measurements)
