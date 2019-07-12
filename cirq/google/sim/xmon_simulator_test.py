@@ -890,12 +890,12 @@ def test_circuit_repetitions_optimized_regression():
     circuit = bit_flip_circuit(1, 1)
 
     # When not optimized this takes around 20 seconds to run, otherwise it
-    # runs in less than a second.
+    # runs in less than 5 seconds.
     start = time.time()
     result = sim.run(circuit, repetitions=10000)
     assert result.repetitions == 10000
     end = time.time()
-    assert end - start < 1.0
+    assert end - start < 5.0
 
 
 def test_circuit_parameters():
@@ -947,7 +947,7 @@ def test_circuit_param_and_reps():
 
 def assert_simulated_states_match_circuit_matrix_by_basis(circuit):
     basis = [Q1, Q2]
-    matrix = circuit.to_unitary_matrix(qubit_order=basis)
+    matrix = circuit.unitary(qubit_order=basis)
     simulator = cg.XmonSimulator()
     for i in range(matrix.shape[0]):
         col = matrix[:, i]

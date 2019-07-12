@@ -160,12 +160,12 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         quarter_turns = quarter_turns % 4
         if quarter_turns == 0:
             return SingleQubitCliffordGate.I
-        elif quarter_turns == 1:
+        if quarter_turns == 1:
             return SingleQubitCliffordGate.from_pauli(pauli, True)
-        elif quarter_turns == 2:
+        if quarter_turns == 2:
             return SingleQubitCliffordGate.from_pauli(pauli)
-        else:
-            return SingleQubitCliffordGate.from_pauli(pauli, True)**-1
+
+        return SingleQubitCliffordGate.from_pauli(pauli, True)**-1
 
     @staticmethod
     def _validate_map_input(required_transform_count: int,
@@ -211,7 +211,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     def __pow__(self, exponent) -> 'SingleQubitCliffordGate':
         if exponent == 0.5 or exponent == -0.5:
             return SQRT_EXP_MAP[exponent][self]
-        elif exponent != -1:
+        if exponent != -1:
             return NotImplemented
 
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
@@ -223,9 +223,9 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if isinstance(gate_or_pauli, SingleQubitCliffordGate):
             gate = gate_or_pauli
             return self.commutes_with_single_qubit_gate(gate)
-        else:
-            pauli = gate_or_pauli
-            return self.commutes_with_pauli(pauli)
+
+        pauli = gate_or_pauli
+        return self.commutes_with_pauli(pauli)
 
     def commutes_with_single_qubit_gate(self,
                                         gate: 'SingleQubitCliffordGate') \
@@ -296,11 +296,11 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             if num_flip == 0:
                 # Gate is identity
                 return []
-            else:
-                # 180 rotation about some axis
-                pauli = Pauli.by_index(flip_arr.index(False))
-                return [(pauli, 2)]
-        elif num_whole == 1:
+
+            # 180 rotation about some axis
+            pauli = Pauli.by_index(flip_arr.index(False))
+            return [(pauli, 2)]
+        if num_whole == 1:
             index = whole_arr.index(True)
             pauli = Pauli.by_index(index)
             next_pauli = Pauli.by_index(index + 1)
@@ -322,9 +322,9 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             if x_rot.to == pauli_gates.Y:
                 return [(pauli_gates.X, -1 if y_rot.flip else 1),
                         (pauli_gates.Z, -1 if x_rot.flip else 1)]
-            else:
-                return [(pauli_gates.Z, 1 if y_rot.flip else -1),
-                        (pauli_gates.X, 1 if z_rot.flip else -1)]
+
+            return [(pauli_gates.Z, 1 if y_rot.flip else -1),
+                    (pauli_gates.X, 1 if z_rot.flip else -1)]
         # coverage: ignore
         assert False, ('Impossible condition where this gate only rotates one'
                        ' Pauli to a different Pauli.')

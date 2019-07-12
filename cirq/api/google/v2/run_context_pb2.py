@@ -354,53 +354,53 @@ DESCRIPTOR.message_types_by_name['Points'] = _POINTS
 DESCRIPTOR.message_types_by_name['Linspace'] = _LINSPACE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), dict(
-  DESCRIPTOR = _RUNCONTEXT,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), {
+  'DESCRIPTOR' : _RUNCONTEXT,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.RunContext)
-  ))
+  })
 _sym_db.RegisterMessage(RunContext)
 
-ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERSWEEP,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMETERSWEEP,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ParameterSweep)
-  ))
+  })
 _sym_db.RegisterMessage(ParameterSweep)
 
-Sweep = _reflection.GeneratedProtocolMessageType('Sweep', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEP,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+Sweep = _reflection.GeneratedProtocolMessageType('Sweep', (_message.Message,), {
+  'DESCRIPTOR' : _SWEEP,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Sweep)
-  ))
+  })
 _sym_db.RegisterMessage(Sweep)
 
-SweepFunction = _reflection.GeneratedProtocolMessageType('SweepFunction', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEPFUNCTION,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+SweepFunction = _reflection.GeneratedProtocolMessageType('SweepFunction', (_message.Message,), {
+  'DESCRIPTOR' : _SWEEPFUNCTION,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.SweepFunction)
-  ))
+  })
 _sym_db.RegisterMessage(SweepFunction)
 
-SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), dict(
-  DESCRIPTOR = _SINGLESWEEP,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), {
+  'DESCRIPTOR' : _SINGLESWEEP,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.SingleSweep)
-  ))
+  })
 _sym_db.RegisterMessage(SingleSweep)
 
-Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), dict(
-  DESCRIPTOR = _POINTS,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), {
+  'DESCRIPTOR' : _POINTS,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Points)
-  ))
+  })
 _sym_db.RegisterMessage(Points)
 
-Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), dict(
-  DESCRIPTOR = _LINSPACE,
-  __module__ = 'cirq.api.google.v2.run_context_pb2'
+Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), {
+  'DESCRIPTOR' : _LINSPACE,
+  '__module__' : 'cirq.api.google.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Linspace)
-  ))
+  })
 _sym_db.RegisterMessage(Linspace)
 
 

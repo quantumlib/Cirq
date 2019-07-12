@@ -20,6 +20,7 @@ from typing import (
 
 import collections
 import numpy as np
+import pandas as pd
 
 from cirq import value, ops
 from cirq.study import resolver
@@ -32,8 +33,7 @@ T = TypeVar('T')
 TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
-def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
-                             ) -> Tuple[int, ...]:
+def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
     Args:
@@ -46,7 +46,7 @@ def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
     return tuple(_big_endian_int(bits) for bits in bit_groups)
 
 
-def _big_endian_int(bits: np.ndarray) -> int:
+def _big_endian_int(bits: Iterable[Any]) -> int:
     """Returns the big-endian integer specified by the given bits.
 
     For example, [True, False, False, True, False] becomes binary 10010 which
@@ -70,14 +70,11 @@ def _bitstring(vals: Iterable[Any]) -> str:
     return ''.join('1' if v else '0' for v in vals)
 
 
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
-                               ) -> str:
+def _keyed_repeated_bitstrings(measurements: pd.DataFrame) -> str:
     keyed_bitstrings = []
-    for key in sorted(vals.keys()):
-        reps = vals[key]
-        n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join([_bitstring(reps[:, i])
-                              for i in range(n)])
+    for key in sorted(measurements.columns):
+        reps = pd.DataFrame(measurements[key].to_list())
+        all_bits = ', '.join(reps.apply(_bitstring, axis=0))
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
 
@@ -90,9 +87,20 @@ def _key_to_str(key: TMeasurementKey) -> str:
     return ','.join(str(q) for q in key)
 
 
+def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
+    repr_dict = {}
+    for key in sorted(measurements.columns):
+        repr_dict[key] = np.array(measurements[key].to_list())
+    return repr_dict
+
+
 @value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
+    Stored as a Pandas DataFrame that can be accessed through the "data"
+    attribute. The repitition number is the row index and measurement keys
+    are the columns of the DataFrame. Each element is a Pandas Series of
+    measurement outcomes per bit for the measurement key in that repitition.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
@@ -101,14 +109,13 @@ class TrialResult:
             numpy array, the first dimension corresponding to the repetition
             and the second to the actual boolean measurement results (ordered
             by the qubits being measured.)
-        repetitions: The number of times a circuit was sampled to get these
-            results.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 params: resolver.ParamResolver,
-                 measurements: Dict[str, np.ndarray],
-                 repetitions: int) -> None:
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            params: resolver.ParamResolver,
+            measurements: Dict[str, np.ndarray]) -> None:
         """
         Args:
             params: A ParamResolver of settings used for this result.
@@ -117,18 +124,32 @@ class TrialResult:
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
-            repetitions: The number of times the circuit was sampled.
         """
         self.params = params
-        self.measurements = measurements
-        self.repetitions = repetitions
+
+        # Convert to a DataFrame with columns as measurement keys, rows as
+        # repetitions and a Series of measurements for a particular key and
+        # repetition as the value.
+        converted_dict = {}
+        for key, val in measurements.items():
+            converted_dict[key] = [pd.Series(m_vals) for m_vals in val]
+        self.data = pd.DataFrame(converted_dict)
+
+    # Keep the old instance variables for test compatibility.
+    @property
+    def measurements(self) -> Dict[str, np.ndarray]:
+        return _to_dict(self.data)
+
+    @property
+    def repetitions(self) -> int:
+        return self.data.shape[0]
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
-            self, *,  # Forces keyword args.
+            self,
+            *,  # Forces keyword args.
             keys: Iterable[TMeasurementKey],
-            fold_func: Callable[[Tuple[np.ndarray, ...]],
-                                T] = _tuple_of_big_endian_int
+            fold_func: Callable[[pd.Series], T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -174,22 +195,20 @@ class TrialResult:
             A counter indicating how often measurements sampled various
             results.
         """
-        fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])  # type: Iterable[Any]
-        if len(fixed_keys) == 0:
-            samples = [()] * self.repetitions
+        fixed_keys = [_key_to_str(key) for key in keys]
+        samples = self.data[fixed_keys]
         c = collections.Counter()  # type: collections.Counter
-        for sample in samples:
-            c[fold_func(sample)] += 1
+        for i in range(self.repetitions):
+            c[fold_func(samples.iloc[i])] += 1
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(self,  # type: ignore
-                  *,  # Forces keyword args.
-                  key: TMeasurementKey,
-                  fold_func: Callable[[np.ndarray], T] = _big_endian_int
-                  ) -> collections.Counter:
+    def histogram(  # type: ignore
+            self,
+            *,  # Forces keyword args.
+            key: TMeasurementKey,
+            fold_func: Callable[[pd.Series], T] = _big_endian_int
+    ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
         For example, suppose that:
@@ -227,8 +246,7 @@ class TrialResult:
             results.
         """
         return self.multi_measurement_histogram(
-            keys=[key],
-            fold_func=lambda e: fold_func(e[0]))
+            keys=[key], fold_func=lambda e: fold_func(e.iloc[0]))
 
     def __repr__(self):
         return ('cirq.TrialResult(params={!r}, '
@@ -246,7 +264,7 @@ class TrialResult:
             p.text(str(self))
 
     def __str__(self):
-        return _keyed_repeated_bitstrings(self.measurements)
+        return _keyed_repeated_bitstrings(self.data)
 
     def _value_equality_values_(self):
-        return self.measurements, self.repetitions, self.params
+        return repr(self.data), self.params

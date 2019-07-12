@@ -94,9 +94,14 @@ from cirq.ops.gate_operation import (
     op_gate_of_type
 )
 
+from cirq.ops.global_phase_op import (
+    GlobalPhaseOperation,)
+
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    PauliSum,
+    PauliSumLike,
 )
 
 from cirq.ops.parallel_gate_operation import (
@@ -125,6 +130,7 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
+    max_qid_shape,
     OP_TREE,
     transform_op_tree,
 )
