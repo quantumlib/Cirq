@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cmath
-import pytest
 
 import numpy as np
 
@@ -413,74 +412,3 @@ def test_binary_sub_tensor_slice():
     assert cirq.slice_for_qubits_equal_to([1], 0b0, num_qubits=2) == (a, 0)
     assert cirq.slice_for_qubits_equal_to([1], 0b0, num_qubits=3) == (a, 0, a)
     assert cirq.slice_for_qubits_equal_to([2], 0b0, num_qubits=3) == (a, a, 0)
-
-
-def test_tuple_sub_tensor_slice():
-    a = slice(None)
-    e = Ellipsis
-
-    assert cirq.slice_for_qubits_equal_to([], qureg_value_tuple=()) == (e,)
-    assert cirq.slice_for_qubits_equal_to([0], qureg_value_tuple=(0,)) == (0, e)
-    assert cirq.slice_for_qubits_equal_to([0], qureg_value_tuple=(1,)) == (1, e)
-    assert cirq.slice_for_qubits_equal_to([1],
-                                          qureg_value_tuple=(0,)) == (a, 0, e)
-    assert cirq.slice_for_qubits_equal_to([1],
-                                          qureg_value_tuple=(1,)) == (a, 1, e)
-    assert cirq.slice_for_qubits_equal_to([2], qureg_value_tuple=(0,)) == (a, a,
-                                                                           0, e)
-    assert cirq.slice_for_qubits_equal_to([2], qureg_value_tuple=(1,)) == (a, a,
-                                                                           1, e)
-
-    assert cirq.slice_for_qubits_equal_to([0, 1],
-                                          qureg_value_tuple=(0, 0)) == (0, 0, e)
-    assert cirq.slice_for_qubits_equal_to([1, 2],
-                                          qureg_value_tuple=(0, 0)) == (a, 0, 0,
-                                                                        e)
-    assert cirq.slice_for_qubits_equal_to([1, 3],
-                                          qureg_value_tuple=(0, 0)) == (a, 0, a,
-                                                                        0, e)
-    assert cirq.slice_for_qubits_equal_to([1, 3],
-                                          qureg_value_tuple=(0, 1)) == (a, 0, a,
-                                                                        1, e)
-    assert cirq.slice_for_qubits_equal_to([3, 1],
-                                          qureg_value_tuple=(0, 1)) == (a, 1, a,
-                                                                        0, e)
-
-    assert cirq.slice_for_qubits_equal_to([2, 1, 0],
-                                          qureg_value_tuple=(1, 0, 0)) == (0, 0,
-                                                                           1, e)
-    assert cirq.slice_for_qubits_equal_to([2, 1, 0],
-                                          qureg_value_tuple=(0, 1, 0)) == (0, 1,
-                                                                           0, e)
-    assert cirq.slice_for_qubits_equal_to([2, 1, 0],
-                                          qureg_value_tuple=(0, 0, 1)) == (1, 0,
-                                                                           0, e)
-    assert cirq.slice_for_qubits_equal_to([0, 1, 2],
-                                          qureg_value_tuple=(1, 0, 1)) == (1, 0,
-                                                                           1, e)
-    assert cirq.slice_for_qubits_equal_to([0, 2, 1],
-                                          qureg_value_tuple=(1, 0, 1)) == (1, 1,
-                                                                           0, e)
-
-    m = np.array([0] * 16).reshape((2, 2, 2, 2))
-    for k in range(16):
-        m[cirq.slice_for_qubits_equal_to([3, 2, 1, 0], k)] = k
-    assert list(m.reshape(16)) == list(range(16))
-
-    assert cirq.slice_for_qubits_equal_to([0],
-                                          qureg_value_tuple=(1,),
-                                          num_qubits=1) == (1,)
-    assert cirq.slice_for_qubits_equal_to([1],
-                                          qureg_value_tuple=(0,),
-                                          num_qubits=2) == (a, 0)
-    assert cirq.slice_for_qubits_equal_to([1],
-                                          qureg_value_tuple=(0,),
-                                          num_qubits=3) == (a, 0, a)
-    assert cirq.slice_for_qubits_equal_to([2],
-                                          qureg_value_tuple=(0,),
-                                          num_qubits=3) == (a, a, 0)
-
-
-def test_slice_for_qubits_equal_to_invalid_arguments():
-    with pytest.raises(TypeError, match='argument'):
-        cirq.slice_for_qubits_equal_to([], 0, qureg_value_tuple=(0,))

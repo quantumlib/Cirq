@@ -212,7 +212,7 @@ def allclose_up_to_global_phase(
 
 def slice_for_qubits_equal_to(
         target_qubit_axes: Sequence[int],
-        little_endian_qureg_value: Optional[int] = None,
+        little_endian_qureg_value: int,
         *,  # Forces keyword args.
         num_qubits: int = None) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
