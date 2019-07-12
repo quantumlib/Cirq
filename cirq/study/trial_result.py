@@ -268,4 +268,4 @@ class TrialResult:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.data.equals(other.data)
+        return self.data.equals(other.data) and self.params == other.params
