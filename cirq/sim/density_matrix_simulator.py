@@ -147,8 +147,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
-        else:
-            return self._run_sweep_repeat(resolved_circuit, repetitions)
+        return self._run_sweep_repeat(resolved_circuit, repetitions)
 
     def _run_sweep_sample(self,
                           circuit: circuits.Circuit,
