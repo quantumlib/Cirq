@@ -22,7 +22,7 @@ import collections
 import numpy as np
 import pandas as pd
 
-from cirq import value, ops
+from cirq import ops
 from cirq.study import resolver
 
 if TYPE_CHECKING:
