@@ -94,7 +94,6 @@ def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
     return repr_dict
 
 
-@value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
     Stored as a Pandas DataFrame that can be accessed through the "data"
@@ -266,5 +265,7 @@ class TrialResult:
     def __str__(self):
         return _keyed_repeated_bitstrings(self.data)
 
-    def _value_equality_values_(self):
-        return repr(self.data), self.params
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.data.equals(other.data)
