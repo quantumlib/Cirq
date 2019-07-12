@@ -1,9 +1,8 @@
 import numpy as np
-from typing import List, Set, Tuple, Sequence, Dict, Any, NamedTuple, Union, \
-    Iterable
-
+from typing import List, Set, Tuple, Sequence, Dict, Any, NamedTuple, Union
+from typing import Iterable
 from matplotlib import pyplot as plt
-from cirq import devices, ops, circuits, sim
+from cirq import devices, ops, circuits, sim, work
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
@@ -49,7 +48,7 @@ class CrossEntropyResult:
 
 
 def cross_entropy_benchmarking(
-        sampler: sim.Sampler,
+        sampler: work.Sampler,
         qubits: Sequence[ops.Qid],
         *,
         benchmark_ops: Sequence[ops.Moment] = None,
@@ -272,7 +271,7 @@ def _build_xeb_circuits(qubits: Sequence[ops.Qid],
     return all_circuits
 
 
-def _measure_prob_distribution(sampler: sim.Sampler, repetitions: int,
+def _measure_prob_distribution(sampler: work.Sampler, repetitions: int,
                                qubits: Sequence[ops.Qid],
                                circuit_list: List[circuits.Circuit]
                                ) -> List[np.ndarray]:
