@@ -94,6 +94,9 @@ from cirq.ops.gate_operation import (
     op_gate_of_type
 )
 
+from cirq.ops.global_phase_op import (
+    GlobalPhaseOperation,)
+
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,

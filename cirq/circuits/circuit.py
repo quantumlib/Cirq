@@ -22,6 +22,7 @@ Moment the Operations must all act on distinct Qubits.
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
+import math
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -1456,8 +1457,15 @@ class Circuit:
         if qubit_namer is None:
             qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
         diagram = TextDiagramDrawer()
+        diagram.write(0, 0, '')
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
+        if any(
+                isinstance(op, cirq.GlobalPhaseOperation)
+                for op in self.all_operations()):
+            diagram.write(0,
+                          max(qubit_map.values(), default=0) + 1,
+                          'global phase:')
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
@@ -1666,11 +1674,10 @@ def _draw_moment_in_diagram(
                 _get_operation_circuit_diagram_info_with_fallback)
     x0 = out_diagram.width()
 
-    if not moment.operations:
-        out_diagram.write(x0, 0, '')
+    non_global_ops = [op for op in moment.operations if op.qubits]
 
     max_x = x0
-    for op in moment.operations:
+    for op in non_global_ops:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
         y2 = max(indices)
@@ -1710,9 +1717,32 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
+    global_phase = np.product([
+        complex(e.coefficient)
+        for e in moment
+        if isinstance(e, ops.GlobalPhaseOperation)
+    ])
+    if global_phase != 1:
+        desc = _formatted_phase(global_phase, use_unicode_characters, precision)
+        if desc:
+            y = max(qubit_map.values(), default=0) + 1
+            out_diagram.write(x0, y, desc)
+
+    if not non_global_ops:
+        out_diagram.write(x0, 0, '')
+
     # Group together columns belonging to the same Moment.
     if moment.operations and max_x > x0:
         moment_groups.append((x0, max_x))
+
+
+def _formatted_phase(coefficient: complex, unicode: bool,
+                     precision: Optional[int]) -> str:
+    h = math.atan2(coefficient.imag, coefficient.real) / math.pi
+    unit = 'π' if unicode else 'pi'
+    if h == 1:
+        return unit
+    return '{{:.{}}}'.format(precision).format(h) + unit
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
