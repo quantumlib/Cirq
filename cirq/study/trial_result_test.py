@@ -15,48 +15,78 @@
 import collections
 import numpy as np
 import pytest
+import pandas as pd
 
 import cirq
 
 
 
 def test_repr():
-    v = cirq.TrialResult(
-        params=cirq.ParamResolver({'a': 2}),
-        repetitions=2,
-        measurements={'m': np.array([[1, 2]])})
+    v = cirq.TrialResult(params=cirq.ParamResolver({'a': 2}),
+                         measurements={'xy': np.array([[1, 0], [0, 1]])})
 
     assert repr(v) == ("cirq.TrialResult(params=cirq.ParamResolver({'a': 2}), "
-                       "repetitions=2, measurements={'m': array([[1, 2]])})")
+                       "repetitions=2, measurements={'xy': array([[1, 0],\n"
+                       "       [0, 1]])})")
 
 
 def test_str():
-    result = cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=5,
-        measurements={
-            'ab': np.array([[0, 1],
-                            [0, 1],
-                            [0, 1],
-                            [1, 0],
-                            [0, 1]]),
-            'c': np.array([[0], [0], [1], [0], [1]])
-        })
+    result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                              measurements={
+                                  'ab':
+                                  np.array([[0, 1], [0, 1], [0, 1], [1, 0],
+                                            [0, 1]]),
+                                  'c':
+                                  np.array([[0], [0], [1], [0], [1]])
+                              })
     assert str(result) == 'ab=00010, 11101\nc=00101'
 
 
+def test_df():
+    result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                              measurements={
+                                  'ab':
+                                  np.array(
+                                      [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                                      dtype=np.bool),
+                                  'c':
+                                  np.array([[0], [0], [1], [0], [1]],
+                                           dtype=np.bool)
+                              })
+    remove_end_measurements = pd.DataFrame(data={
+        'ab': [
+            pd.Series([False, True]),
+            pd.Series([False, True]),
+            pd.Series([True, False])
+        ],
+        'c': [pd.Series([False]),
+              pd.Series([True]),
+              pd.Series([False])]
+    },
+                                           index=[1, 2, 3])
+
+    pd.testing.assert_frame_equal(result.data.iloc[1:-1],
+                                  remove_end_measurements)
+
+    ab = result.data['ab']
+    c = result.data['c']
+    # Count number of ab repitiions with measurements [False, True]
+    assert ab.apply(lambda x: x.equals(pd.Series([False, True]))).sum() == 4
+    # Count number of c repitiions with measurements [False]
+    assert c.apply(lambda x: x.equals(pd.Series([False]))).sum() == 3
+
+
 def test_histogram():
-    result = cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=5,
-        measurements={
-            'ab': np.array([[0, 1],
-                            [0, 1],
-                            [0, 1],
-                            [1, 0],
-                            [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
-        })
+    result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                              measurements={
+                                  'ab':
+                                  np.array(
+                                      [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                                      dtype=np.bool),
+                                  'c':
+                                  np.array([[0], [0], [1], [0], [1]],
+                                           dtype=np.bool)
+                              })
 
     assert result.histogram(key='ab') == collections.Counter({
         1: 4,
@@ -77,20 +107,21 @@ def test_histogram():
 
 
 def test_multi_measurement_histogram():
-    result = cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=5,
-        measurements={
-            'ab': np.array([[0, 1],
-                            [0, 1],
-                            [0, 1],
-                            [1, 0],
-                            [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
-        })
+    result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                              measurements={
+                                  'ab':
+                                  np.array(
+                                      [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                                      dtype=np.bool),
+                                  'c':
+                                  np.array([[0], [0], [1], [0], [1]],
+                                           dtype=np.bool)
+                              })
 
-    assert result.multi_measurement_histogram(keys=[]) == collections.Counter(
-        {(): 5})
+    assert result.multi_measurement_histogram(keys=[]) == collections.Counter({
+        ():
+        5
+    })
     assert (result.multi_measurement_histogram(keys=['ab']) ==
             collections.Counter({
                 (1,): 4,
@@ -136,18 +167,15 @@ def test_multi_measurement_histogram():
 
 def test_trial_result_equality():
     et = cirq.testing.EqualsTester()
-    et.add_equality_group(cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=5,
-        measurements={'a': np.array([[0]])}))
-    et.add_equality_group(cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=6,
-        measurements={'a': np.array([[0]])}))
-    et.add_equality_group(cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=5,
-        measurements={'a': np.array([[1]])}))
+    et.add_equality_group(
+        cirq.TrialResult(params=cirq.ParamResolver({}),
+                         measurements={'a': np.array([[0]] * 5)}))
+    et.add_equality_group(
+        cirq.TrialResult(params=cirq.ParamResolver({}),
+                         measurements={'a': np.array([[0]] * 6)}))
+    et.add_equality_group(
+        cirq.TrialResult(params=cirq.ParamResolver({}),
+                         measurements={'a': np.array([[1]] * 5)}))
 
 
 def test_qubit_keys_for_histogram():
@@ -167,17 +195,16 @@ def test_qubit_keys_for_histogram():
 
 
 def test_text_diagram_jupyter():
-    result = cirq.TrialResult(
-        params=cirq.ParamResolver({}),
-        repetitions=5,
-        measurements={
-            'ab': np.array([[0, 1],
-                            [0, 1],
-                            [0, 1],
-                            [1, 0],
-                            [0, 1]], dtype=np.bool),
-            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
-        })
+    result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                              measurements={
+                                  'ab':
+                                  np.array(
+                                      [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                                      dtype=np.bool),
+                                  'c':
+                                  np.array([[0], [0], [1], [0], [1]],
+                                           dtype=np.bool)
+                              })
 
     # Test Jupyter console output from
     class FakePrinter:

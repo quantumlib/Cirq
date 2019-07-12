@@ -202,6 +202,5 @@ def _trial_sweep_from_proto(
             study.TrialResult(
                 params=study.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
-                repetitions=msg.repetitions,
             ))
     return trial_sweep
