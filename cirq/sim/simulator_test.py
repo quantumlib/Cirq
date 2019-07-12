@@ -31,8 +31,7 @@ def test_run_simulator_run():
     circuit = mock.Mock(cirq.Circuit)
     param_resolver = mock.Mock(cirq.ParamResolver)
     expected_result = cirq.TrialResult.from_single_parameter_set(
-        measurements=expected_measurements,
-        params=param_resolver)
+        measurements=expected_measurements, params=param_resolver)
     assert expected_result == simulator.run(program=circuit,
                                             repetitions=10,
                                             param_resolver=param_resolver)
@@ -53,11 +52,9 @@ def test_run_simulator_sweeps():
                        mock.Mock(cirq.ParamResolver)]
     expected_results = [
         cirq.TrialResult.from_single_parameter_set(
-            measurements=expected_measurements,
-            params=param_resolvers[0]),
+            measurements=expected_measurements, params=param_resolvers[0]),
         cirq.TrialResult.from_single_parameter_set(
-            measurements=expected_measurements,
-            params=param_resolvers[1])
+            measurements=expected_measurements, params=param_resolvers[1])
     ]
     assert expected_results == simulator.run_sweep(program=circuit,
                                                    repetitions=10,

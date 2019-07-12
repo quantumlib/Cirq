@@ -82,8 +82,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                                      repetitions=repetitions)
             trial_results.append(
                 study.TrialResult.from_single_parameter_set(
-                    params=param_resolver,
-                    measurements=measurements))
+                    params=param_resolver, measurements=measurements))
         return trial_results
 
     @abc.abstractmethod

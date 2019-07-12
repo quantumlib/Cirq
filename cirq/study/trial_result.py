@@ -267,14 +267,14 @@ class TrialResult:
             keys=[key], fold_func=lambda e: fold_func(e.iloc[0]))
 
     def __repr__(self):
+
         def item_repr(entry):
             key, val = entry
             return '{!r}: {}'.format(key, proper_repr(val))
 
         measurement_dict_repr = (
-                '{' +
-                ', '.join([item_repr(e) for e in self.measurements.items()]) +
-                '}')
+            '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) +
+            '}')
 
         return 'cirq.TrialResult(params={!r}, measurements={})'.format(
             self.params, measurement_dict_repr)

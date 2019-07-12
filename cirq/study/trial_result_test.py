@@ -31,11 +31,8 @@ def test_str():
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab':
-            np.array([[0, 1], [0, 1], [0, 1], [1, 0],
-                      [0, 1]]),
-            'c':
-            np.array([[0], [0], [1], [0], [1]])
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]]),
+            'c': np.array([[0], [0], [1], [0], [1]])
         })
     assert str(result) == 'ab=00010, 11101\nc=00101'
 
@@ -44,13 +41,9 @@ def test_df():
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab':
-            np.array(
-                [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
-                dtype=np.bool),
-            'c':
-            np.array([[0], [0], [1], [0], [1]],
-                     dtype=np.bool)
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                           dtype=np.bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
     remove_end_measurements = pd.DataFrame(data={
         'ab': [
@@ -79,13 +72,9 @@ def test_histogram():
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab':
-            np.array(
-                [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
-                dtype=np.bool),
-            'c':
-            np.array([[0], [0], [1], [0], [1]],
-                     dtype=np.bool)
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                           dtype=np.bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
 
     assert result.histogram(key='ab') == collections.Counter({
@@ -110,13 +99,9 @@ def test_multi_measurement_histogram():
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab':
-            np.array(
-                [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
-                dtype=np.bool),
-            'c':
-            np.array([[0], [0], [1], [0], [1]],
-                     dtype=np.bool)
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                           dtype=np.bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
 
     assert result.multi_measurement_histogram(keys=[]) == collections.Counter({
@@ -202,13 +187,9 @@ def test_text_diagram_jupyter():
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            'ab':
-            np.array(
-                [[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
-                dtype=np.bool),
-            'c':
-            np.array([[0], [0], [1], [0], [1]],
-                     dtype=np.bool)
+            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]],
+                           dtype=np.bool),
+            'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
 
     # Test Jupyter console output from
