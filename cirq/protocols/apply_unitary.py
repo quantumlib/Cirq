@@ -381,9 +381,11 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
 
     if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
         # Special case for single-qubit, 2x2 or 1x1 operations.
-        np.matmul(matrix, sub_args.target_tensor[..., None],
-                  out=sub_args.available_buffer[..., None])
-        sub_result = sub_args.available_buffer
+        # np.einsum is faster for larger cases.
+        subspaces = [(..., level) for level in range(val_qid_shape[0])]
+        sub_result = linalg.apply_matrix_to_slices(sub_args.target_tensor,
+                                                   matrix, subspaces,
+                                                   out=sub_args.available_buffer)
     else:
         # General case via np.einsum.
         sub_result = linalg.targeted_left_multiply(
@@ -500,21 +502,27 @@ def _recover_result_from_sub_result(args, sub_args, sub_result):
         sub_result: The result of calling an object's `_apply_unitary_` method
             on `sub_args`.  A transposed subspace of the desired result.
 
-    Returns: The full result tensor after applying the unitary stored in either
+    Returns: The full result tensor after applying the unitary.  Either
         `args.target_tensor` or `args.available_buffer`.
     """
     if sub_result is sub_args.target_tensor:
         return args.target_tensor
-    if sub_args._is_subspace:
-        # The subspace that unitary_value modified is likely much smaller than
-        # the whole tensor so copy sub_result back into target_tensor.
-        sub_args.target_tensor[...] = sub_result
-        return args.target_tensor
     if sub_result is sub_args.available_buffer:
-        # unitary_value knew about the entire tensor so return the un-transposed
-        # view.
+        if sub_args._is_subspace:
+            # The subspace that was modified is likely much smaller than
+            # the whole tensor so copy sub_result back into target_tensor.
+            sub_args.target_tensor[...] = sub_args.available_buffer
+            return args.target_tensor
         return args.available_buffer
-    # sub_result is a newly created tensor so copy everything back into
-    # target_tensor for simplicity.
+    # The subspace that was modified is likely much smaller than
+    # the whole tensor so copy sub_result back into target_tensor.
+    # It's an uncommon case where sub_result is a new array.
+    if np.may_share_memory(sub_args.target_tensor, sub_result):
+        # Someone did something clever.  E.g. implementing SWAP with a reshape.
+        # Copy to available_buffer instead.
+        if sub_args._is_subspace:
+            args.available_buffer[...] = args.target_tensor
+        sub_args.available_buffer[...] = sub_result
+        return sub_args.available_buffer
     sub_args.target_tensor[...] = sub_result
     return args.target_tensor
