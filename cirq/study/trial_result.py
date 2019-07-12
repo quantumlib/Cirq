@@ -15,8 +15,8 @@
 """Defines trial results."""
 
 from typing import (
-    Iterable, Callable, Tuple, TypeVar, Dict, Any, TYPE_CHECKING, Union
-)
+    Iterable, Callable, Tuple, TypeVar, Dict, Any, TYPE_CHECKING, Union,
+    List, Optional)
 
 import collections
 import numpy as np
@@ -66,15 +66,34 @@ def _big_endian_int(bits: Iterable[Any]) -> int:
     return result
 
 
+def _big_endian_bits(val: int, bit_count: int) -> List[bool]:
+    """Returns the big-endian bits of an integer.
+
+    For example, 18 becomes [True, False, False, True, False] when `bit_count`
+    is five.
+
+    Args:
+        val: The integer to get bits from.
+        bit_count: The number of desired bits in the result.
+
+    Returns:
+        The bits.
+    """
+    return [bool(val & (1 << i)) for i in range(bit_count)[::-1]]
+
+
 def _bitstring(vals: Iterable[Any]) -> str:
     return ''.join('1' if v else '0' for v in vals)
 
 
-def _keyed_repeated_bitstrings(measurements: pd.DataFrame) -> str:
+def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
+                               ) -> str:
     keyed_bitstrings = []
-    for key in sorted(measurements.columns):
-        reps = pd.DataFrame(measurements[key].to_list())
-        all_bits = ', '.join(reps.apply(_bitstring, axis=0))
+    for key in sorted(vals.keys()):
+        reps = vals[key]
+        n = 0 if len(reps) == 0 else len(reps[0])
+        all_bits = ', '.join([_bitstring(reps[:, i])
+                              for i in range(n)])
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
 
@@ -85,13 +104,6 @@ def _key_to_str(key: TMeasurementKey) -> str:
     if isinstance(key, ops.Qid):
         return str(key)
     return ','.join(str(q) for q in key)
-
-
-def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
-    repr_dict = {}
-    for key in sorted(measurements.columns):
-        repr_dict[key] = np.array(measurements[key].to_list())
-    return repr_dict
 
 
 @value.value_equality(unhashable=True)
@@ -126,19 +138,24 @@ class TrialResult:
                 measurements.
         """
         self.params = params
+        self._data: Optional[pd.DataFrame] = None
+        self._measurements = measurements
 
-        # Convert to a DataFrame with columns as measurement keys, rows as
-        # repetitions and a Series of measurements for a particular key and
-        # repetition as the value.
-        converted_dict = {}
-        for key, val in measurements.items():
-            converted_dict[key] = [pd.Series(m_vals) for m_vals in val]
-        self.data = pd.DataFrame(converted_dict)
+    @property
+    def data(self):
+        if self._data is None:
+            # Convert to a DataFrame with columns as measurement keys, rows as
+            # repetitions and a big endian integer for individual measurements.
+            converted_dict = {}
+            for key, val in self._measurements.items():
+                converted_dict[key] = [_big_endian_int(m_vals) for m_vals in
+                                       val]
+            self._data = pd.DataFrame(converted_dict)
+        return self._data
 
-    # Keep the old instance variables for test compatibility.
     @property
     def measurements(self) -> Dict[str, np.ndarray]:
-        return _to_dict(self.data)
+        return self._measurements
 
     @property
     def repetitions(self) -> int:
@@ -195,11 +212,14 @@ class TrialResult:
             A counter indicating how often measurements sampled various
             results.
         """
-        fixed_keys = [_key_to_str(key) for key in keys]
-        samples = self.data[fixed_keys]
+        fixed_keys = tuple(_key_to_str(key) for key in keys)
+        samples = zip(*[self.measurements[sub_key]
+                        for sub_key in fixed_keys])  # type: Iterable[Any]
+        if len(fixed_keys) == 0:
+            samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
-        for i in range(self.repetitions):
-            c[fold_func(samples.iloc[i])] += 1
+        for sample in samples:
+            c[fold_func(sample)] += 1
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
@@ -246,7 +266,7 @@ class TrialResult:
             results.
         """
         return self.multi_measurement_histogram(
-            keys=[key], fold_func=lambda e: fold_func(e.iloc[0]))
+            keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __repr__(self):
         return ('cirq.TrialResult(params={!r}, '
@@ -264,7 +284,7 @@ class TrialResult:
             p.text(str(self))
 
     def __str__(self):
-        return _keyed_repeated_bitstrings(self.data)
+        return _keyed_repeated_bitstrings(self.measurements)
 
     def _value_equality_values_(self):
         return repr(self.data), self.params
