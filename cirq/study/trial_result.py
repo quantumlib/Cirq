@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
+from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -136,10 +137,10 @@ class TrialResult:
         self.data = pd.DataFrame(converted_dict)
 
     @staticmethod
-    def from_single_parameter_set_reps(
+    def from_single_parameter_set(
             *,  # Forces keyword args.
             params: resolver.ParamResolver,
-            measurements: Dict[str, np.ndarray]) -> None:
+            measurements: Dict[str, np.ndarray]) -> 'TrialResult':
         """Packages runs of a single parameterized circuit into a TrialResult.
 
         Args:
@@ -266,11 +267,17 @@ class TrialResult:
             keys=[key], fold_func=lambda e: fold_func(e.iloc[0]))
 
     def __repr__(self):
-        return ('cirq.TrialResult(params={!r}, '
-                'repetitions={!r}, '
-                'measurements={!r})').format(self.params,
-                                             self.repetitions,
-                                             self.measurements)
+        def item_repr(entry):
+            key, val = entry
+            return '{!r}: {}'.format(key, proper_repr(val))
+
+        measurement_dict_repr = (
+                '{' +
+                ', '.join([item_repr(e) for e in self.measurements.items()]) +
+                '}')
+
+        return 'cirq.TrialResult(params={!r}, measurements={})'.format(
+            self.params, measurement_dict_repr)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""

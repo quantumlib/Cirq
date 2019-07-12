@@ -518,7 +518,7 @@ class Engine:
                                               key_sizes)
 
                 trial_results.append(
-                    TrialResult.from_single_parameter_set_reps(
+                    TrialResult.from_single_parameter_set(
                         params=ParamResolver(
                             result.get('params', {}).get('assignments', {})),
                         measurements=measurements))

@@ -104,13 +104,13 @@ def test_results_to_proto():
     measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0)]
     trial_results = [
         [
-            cirq.TrialResult.from_single_parameter_set_reps(
+            cirq.TrialResult.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]],
                                     dtype=bool),
                 }),
-            cirq.TrialResult.from_single_parameter_set_reps(
+            cirq.TrialResult.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]],
@@ -118,13 +118,13 @@ def test_results_to_proto():
                 }),
         ],
         [
-            cirq.TrialResult.from_single_parameter_set_reps(
+            cirq.TrialResult.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]], dtype=bool),
                 },
             ),
-            cirq.TrialResult.from_single_parameter_set_reps(
+            cirq.TrialResult.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]],
@@ -150,12 +150,12 @@ def test_results_to_proto():
 def test_results_to_proto_sweep_repetitions():
     measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0)]
     trial_results = [[
-        cirq.TrialResult.from_single_parameter_set_reps(
+        cirq.TrialResult.from_single_parameter_set(
             params=cirq.ParamResolver({'i': 0}),
             measurements={
                 'foo': np.array([[0]], dtype=bool),
             }),
-        cirq.TrialResult.from_single_parameter_set_reps(
+        cirq.TrialResult.from_single_parameter_set(
             params=cirq.ParamResolver({'i': 1}),
             measurements={
                 'foo': np.array([[0], [1]], dtype=bool),

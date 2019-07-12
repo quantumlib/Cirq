@@ -21,14 +21,14 @@ import cirq
 
 
 def test_repr():
-    v = cirq.TrialResult.from_single_parameter_set_reps(
+    v = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({'a': 2}),
         measurements={'xy': np.array([[1, 0], [0, 1]])})
     cirq.testing.assert_equivalent_repr(v)
 
 
 def test_str():
-    result = cirq.TrialResult.from_single_parameter_set_reps(
+    result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
             'ab':
@@ -41,7 +41,7 @@ def test_str():
 
 
 def test_df():
-    result = cirq.TrialResult.from_single_parameter_set_reps(
+    result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
             'ab':
@@ -76,7 +76,7 @@ def test_df():
 
 
 def test_histogram():
-    result = cirq.TrialResult.from_single_parameter_set_reps(
+    result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
             'ab':
@@ -107,7 +107,7 @@ def test_histogram():
 
 
 def test_multi_measurement_histogram():
-    result = cirq.TrialResult.from_single_parameter_set_reps(
+    result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
             'ab':
@@ -169,15 +169,15 @@ def test_multi_measurement_histogram():
 def test_trial_result_equality():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(
-        cirq.TrialResult.from_single_parameter_set_reps(
+        cirq.TrialResult.from_single_parameter_set(
             params=cirq.ParamResolver({}),
             measurements={'a': np.array([[0]] * 5)}))
     et.add_equality_group(
-        cirq.TrialResult.from_single_parameter_set_reps(
+        cirq.TrialResult.from_single_parameter_set(
             params=cirq.ParamResolver({}),
             measurements={'a': np.array([[0]] * 6)}))
     et.add_equality_group(
-        cirq.TrialResult.from_single_parameter_set_reps(
+        cirq.TrialResult.from_single_parameter_set(
             params=cirq.ParamResolver({}),
             measurements={'a': np.array([[1]] * 5)}))
 
@@ -199,7 +199,7 @@ def test_qubit_keys_for_histogram():
 
 
 def test_text_diagram_jupyter():
-    result = cirq.TrialResult.from_single_parameter_set_reps(
+    result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
             'ab':
