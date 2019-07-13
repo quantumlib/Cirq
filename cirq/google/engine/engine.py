@@ -518,9 +518,10 @@ class Engine:
                                               key_sizes)
 
                 trial_results.append(
-                    TrialResult(params=ParamResolver(
-                        result.get('params', {}).get('assignments', {})),
-                                measurements=measurements))
+                    TrialResult.from_single_parameter_set(
+                        params=ParamResolver(
+                            result.get('params', {}).get('assignments', {})),
+                        measurements=measurements))
         return trial_results
 
     def _get_job_results_v2(self,
