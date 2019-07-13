@@ -125,9 +125,24 @@ class ApplyUnitaryArgs:
             self, indices: Iterable[int],
             slices: Iterable[Union[int, slice, Sequence[int]]]
     ) -> 'ApplyUnitaryArgs':
+        """Creates a transposed and sliced view of `self`.  Useful to pass the
+        result of this method as an argument to methods that expect tensors
+        with smaller shapes.
+
+        For most use cases, use `for_operation_with_qid_shape` instead.
+
+        Args:
+            indices: Integer indices into `self.axes` specifying which qubits
+                to include in `sub_args.axes`.  These axes will be transposed to
+                the right of the shape.
+            slices: A list of slices to apply to each axis listed in `indices`.
+                Any integer entries are interpreted as slices of size 1.
+
+        Returns: A new `ApplyUnitaryArgs` where `sub_args.target_tensor` and
+            `sub_args.available_buffer` are sliced and transposed views of
+            `self.target_tensor` and `self.available_buffer` respectively.
         """
-        """
-        slices = tuple(slices)
+        slices = tuple((s,) if isinstance(s, int) else s for s in slices)
         sub_axes = [self.axes[i] for i in indices]
         axis_set = set(sub_axes)
         other_axes = [
@@ -154,7 +169,23 @@ class ApplyUnitaryArgs:
     def for_operation_with_qid_shape(self, indices: Iterable[int],
                                      qid_shape: Tuple[int, ...]
                                     ) -> 'ApplyUnitaryArgs':
-        """
+        """Creates a sliced and transposed view of `self` appropriate for an
+        operation with shape `qid_shape` on qubits with the given indices.
+
+        Example:
+            sub_args = args.for_operation_with_qid_shape(indices, (2, 2, 2))
+            # Slice where the first qubit is |1>.
+            sub_args.target_tensor[..., 1, :, :]
+
+        Args:
+            indices: Integer indices into `self.axes` specifying which qubits
+                the operation applies to.
+            qid_shape: The qid shape of the operation, the expected number of
+                quantum levels in each qubit the operation applies to.
+
+        Returns: A new `ApplyUnitaryArgs` where `sub_args.target_tensor` and
+            `sub_args.available_buffer` are sliced and transposed views of
+            `self.target_tensor` and `self.available_buffer` respectively.
         """
         slices = [slice(0, size) for size in qid_shape]
         return self.with_transposed_and_sliced_tensors(indices, slices)
