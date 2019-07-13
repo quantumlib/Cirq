@@ -331,10 +331,7 @@ class QasmParser:
 
     def p_gate_op_no_params(self, p):
         """gate_op :  ID qargs"""
-        self._resolve_gate_operation(p[2],
-                                     gate=p[1],
-                                     p=p,
-                                     params=[])
+        self._resolve_gate_operation(p[2], gate=p[1], p=p, params=[])
 
     def p_gate_op_with_params(self, p):
         """gate_op :  ID '(' params ')' qargs"""
