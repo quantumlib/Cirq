@@ -43,6 +43,7 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
+
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -71,7 +72,7 @@ class XPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
         args.available_buffer[zero] = args.target_tensor[one]
@@ -444,6 +445,8 @@ class MeasurementGate(raw_types.Gate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
+        if num_qubits == 0:
+            raise ValueError('Measuring an empty set of qubits.')
         self._num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
@@ -679,7 +682,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zero = args.subspace_index(0)
         one = args.subspace_index(1)
@@ -886,7 +889,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         oo = args.subspace_index(0b11)
         zo = args.subspace_index(0b01)
@@ -990,7 +993,7 @@ class SwapPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
@@ -1103,7 +1106,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
-            return None
+            return NotImplemented
 
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
