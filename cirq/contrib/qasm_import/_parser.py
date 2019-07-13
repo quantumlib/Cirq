@@ -327,13 +327,11 @@ class QasmParser:
 
     # gate operations
     # gate_op : ID qargs
-    #         | ID () qargs
     #         | ID ( params ) qargs
 
     def p_gate_op_no_params(self, p):
-        """gate_op :  ID qargs
-                   | ID '(' ')' qargs"""
-        self._resolve_gate_operation(args=p[4] if p[2] == '(' else p[2],
+        """gate_op :  ID qargs"""
+        self._resolve_gate_operation(p[2],
                                      gate=p[1],
                                      p=p,
                                      params=[])
