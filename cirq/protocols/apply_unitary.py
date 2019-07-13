@@ -70,12 +70,13 @@ class ApplyUnitaryArgs:
             qubits that the gate is operating on).
     """
 
-    def __init__(self,
-                 target_tensor: np.ndarray,
-                 available_buffer: np.ndarray,
-                 axes: Iterable[int],
-                 *,  # Force keyword args
-                 _is_subspace: bool = False):
+    def __init__(
+            self,
+            target_tensor: np.ndarray,
+            available_buffer: np.ndarray,
+            axes: Iterable[int],
+            *,  # Force keyword args
+            _is_subspace: bool = False):
         """
 
         Args:
@@ -129,8 +130,10 @@ class ApplyUnitaryArgs:
         slices = tuple(slices)
         sub_axes = [self.axes[i] for i in indices]
         axis_set = set(sub_axes)
-        other_axes = [axis for axis in range(len(self.target_tensor.shape))
-                      if axis not in axis_set]
+        other_axes = [
+            axis for axis in range(len(self.target_tensor.shape))
+            if axis not in axis_set
+        ]
         ordered_axes = (*other_axes, *sub_axes)
         # Transpose sub_axes to the end of the shape and slice them
         target_tensor = self.target_tensor.transpose(*ordered_axes)
@@ -139,16 +142,18 @@ class ApplyUnitaryArgs:
         available_buffer = self.available_buffer.transpose(*ordered_axes)[(
             ..., *slices)]
         new_axes = range(len(other_axes), len(ordered_axes))
-        is_subspace = (len(transposed_shape) != len(target_tensor.shape)
-                       or any(size != sliced_size
-                              for size, sliced_size in zip(transposed_shape,
-                                                        target_tensor.shape)))
-        return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes,
+        is_subspace = (len(transposed_shape) != len(target_tensor.shape) or any(
+            size != sliced_size
+            for size, sliced_size in zip(transposed_shape, target_tensor.shape))
+                      )
+        return ApplyUnitaryArgs(target_tensor,
+                                available_buffer,
+                                new_axes,
                                 _is_subspace=is_subspace)
 
-    def for_operation_with_qid_shape(
-            self, indices: Iterable[int],
-            qid_shape: Tuple[int, ...]) -> 'ApplyUnitaryArgs':
+    def for_operation_with_qid_shape(self, indices: Iterable[int],
+                                     qid_shape: Tuple[int, ...]
+                                    ) -> 'ApplyUnitaryArgs':
         """
         """
         slices = [slice(0, size) for size in qid_shape]
@@ -383,9 +388,11 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
         # Special case for single-qubit, 2x2 or 1x1 operations.
         # np.einsum is faster for larger cases.
         subspaces = [(..., level) for level in range(val_qid_shape[0])]
-        sub_result = linalg.apply_matrix_to_slices(sub_args.target_tensor,
-                                                   matrix, subspaces,
-                                                   out=sub_args.available_buffer)
+        sub_result = linalg.apply_matrix_to_slices(
+            sub_args.target_tensor,
+            matrix,
+            subspaces,
+            out=sub_args.available_buffer)
     else:
         # General case via np.einsum.
         sub_result = linalg.targeted_left_multiply(
@@ -489,6 +496,7 @@ def apply_unitaries(unitary_values: Iterable[Any],
         state = result
 
     return state
+
 
 def _recover_result_from_sub_result(args, sub_args, sub_result):
     """Takes the result of calling `_apply_unitary_` on `sub_args` and copies
