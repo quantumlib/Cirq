@@ -97,6 +97,30 @@ def test_gate_operation_approx_eq():
                           atol=1e-6)
 
 
+def test_gate_operation_qid_shape():
+
+    class ShapeGate(cirq.Gate):
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 4)
+
+    op = ShapeGate().on(*cirq.LineQubit.range(4))
+    assert cirq.qid_shape(op) == (1, 2, 3, 4)
+    assert cirq.num_qubits(op) == 4
+
+
+def test_gate_operation_num_qubits():
+
+    class NumQubitsGate(cirq.Gate):
+
+        def _num_qubits_(self):
+            return 4
+
+    op = NumQubitsGate().on(*cirq.LineQubit.range(4))
+    assert cirq.qid_shape(op) == (2, 2, 2, 2)
+    assert cirq.num_qubits(op) == 4
+
+
 def test_gate_operation_pow():
     Y = cirq.Y
     q = cirq.NamedQubit('q')

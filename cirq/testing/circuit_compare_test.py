@@ -427,3 +427,110 @@ def test_inconsistent_qubit_count():
     with pytest.raises(AssertionError, match='Inconsistent'):
         cirq.testing.assert_has_consistent_apply_unitary(
             cirq.X, qubit_count=2)
+
+
+def test_assert_has_consistent_qid_shape():
+
+    class ConsistentGate(cirq.Gate):
+
+        def _num_qubits_(self):
+            return 4
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 4)
+
+    class InconsistentGate(cirq.Gate):
+
+        def _num_qubits_(self):
+            return 2
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 4)
+
+    class BadShapeGate(cirq.Gate):
+
+        def _num_qubits_(self):
+            return 4
+
+        def _qid_shape_(self):
+            return (1, 2, 0, 4)
+
+    class ConsistentOp(cirq.Operation):
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError  # coverage: ignore
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(4)
+
+        def _num_qubits_(self):
+            return 4
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 4)
+
+    # The 'coverage: ignore' comments in the InconsistentOp classes is needed
+    # because test_assert_has_consistent_qid_shape may only need to check two of
+    # the three methods before finding an inconsistency and throwing an error.
+    class InconsistentOp1(cirq.Operation):
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError  # coverage: ignore
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(2)
+
+        def _num_qubits_(self):
+            return 4  # coverage: ignore
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 4)  # coverage: ignore
+
+    class InconsistentOp2(cirq.Operation):
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError  # coverage: ignore
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(4)  # coverage: ignore
+
+        def _num_qubits_(self):
+            return 2
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 4)  # coverage: ignore
+
+    class InconsistentOp3(cirq.Operation):
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError  # coverage: ignore
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(4)  # coverage: ignore
+
+        def _num_qubits_(self):
+            return 4  # coverage: ignore
+
+        def _qid_shape_(self):
+            return (1, 2)
+
+    class NoProtocol:
+        pass
+
+    cirq.testing.assert_has_consistent_qid_shape(ConsistentGate())
+    with pytest.raises(AssertionError, match='disagree'):
+        cirq.testing.assert_has_consistent_qid_shape(InconsistentGate())
+    with pytest.raises(AssertionError, match='positive'):
+        cirq.testing.assert_has_consistent_qid_shape(BadShapeGate())
+    cirq.testing.assert_has_consistent_qid_shape(ConsistentOp())
+    with pytest.raises(AssertionError, match='disagree'):
+        cirq.testing.assert_has_consistent_qid_shape(InconsistentOp1())
+    with pytest.raises(AssertionError, match='disagree'):
+        cirq.testing.assert_has_consistent_qid_shape(InconsistentOp2())
+    with pytest.raises(AssertionError, match='disagree'):
+        cirq.testing.assert_has_consistent_qid_shape(InconsistentOp3())
+    cirq.testing.assert_has_consistent_qid_shape(NoProtocol())

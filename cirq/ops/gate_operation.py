@@ -96,6 +96,12 @@ class GateOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return self.gate, self._group_interchangeable_qubits()
 
+    def _qid_shape_(self):
+        return protocols.qid_shape(self.gate)
+
+    def _num_qubits_(self):
+        return len(self._qubits)
+
     def _decompose_(self) -> op_tree.OP_TREE:
         return protocols.decompose_once_with_qubits(self.gate,
                                                     self.qubits,
