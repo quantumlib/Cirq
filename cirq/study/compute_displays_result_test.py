@@ -29,8 +29,9 @@ def test_compute_displays_result_eq():
     w = cirq.ComputeDisplaysResult(
         params=cirq.ParamResolver({'b': 2}),
         display_values={'k': 1.0})
-    x = cirq.TrialResult(params=cirq.ParamResolver({'a': 2}),
-                         measurements={'k': np.array([[1]])})
+    x = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'a': 2}),
+        measurements={'k': np.array([[1]])})
 
     eq.add_equality_group(u, v)
     eq.add_equality_group(w)
