@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import Optional, Sequence, Union, Tuple, TYPE_CHECKING
+from typing import Sequence, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -210,11 +210,11 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def slice_for_qubits_equal_to(
-        target_qubit_axes: Sequence[int],
-        little_endian_qureg_value: int,
-        *,  # Forces keyword args.
-        num_qubits: int = None) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
+                              little_endian_qureg_value: int,
+                              *,  # Forces keyword args.
+                              num_qubits: int = None
+                              ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -241,8 +241,8 @@ def slice_for_qubits_equal_to(
         target_qubit_axes: The qubits that are specified by the index bits. All
             other axes of the slice are unconstrained.
         little_endian_qureg_value: An integer whose bits specify what value is
-            desired for each of the target qubits. The integer is little endian
-            w.r.t. the target qubit axes, meaning the low bit of the integer
+            desired for of the target qubits. The integer is little endian
+            w.r.t. the target quit axes, meaning the low bit of the integer
             determines the desired value of the first targeted qubit, and so
             forth with the k'th targeted qubit's value set to
             bool(qureg_value & (1 << k)).
