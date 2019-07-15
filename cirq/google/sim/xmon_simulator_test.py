@@ -747,7 +747,7 @@ def test_measurement_keys_repeat(scheduler):
     circuit.append([cirq.measure(Q1, key='a'), cirq.X.on(Q1), cirq.X.on(Q2),
                     cirq.measure(Q2, key='a')])
     simulator = cg.XmonSimulator()
-    with pytest.raises(ValueError, message='Repeated Measurement key a'):
+    with pytest.raises(ValueError, match=r'Measurement key.*repeated'):
         run(simulator, circuit, scheduler)
 
 
