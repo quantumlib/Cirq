@@ -75,9 +75,7 @@ class ApplyUnitaryArgs:
             self,
             target_tensor: np.ndarray,
             available_buffer: np.ndarray,
-            axes: Iterable[int],
-            *,  # Force keyword args
-            _is_subspace: bool = False):
+            axes: Iterable[int]):
         """
 
         Args:
@@ -95,7 +93,6 @@ class ApplyUnitaryArgs:
         self.target_tensor = target_tensor
         self.available_buffer = available_buffer
         self.axes = tuple(axes)
-        self._is_subspace = _is_subspace
 
     @staticmethod
     def default(num_qubits: Optional[int] = None,
@@ -152,22 +149,16 @@ class ApplyUnitaryArgs:
         ]
         ordered_axes = (*other_axes, *sub_axes)
         # Transpose sub_axes to the end of the shape and slice them
-        target_tensor = self.target_tensor.transpose(*ordered_axes)
-        transposed_shape = target_tensor.shape
-        target_tensor = target_tensor[(..., *slices)]
+        target_tensor = self.target_tensor.transpose(*ordered_axes)[(
+            ..., *slices)]
         available_buffer = self.available_buffer.transpose(*ordered_axes)[(
             ..., *slices)]
         new_axes = range(len(other_axes), len(ordered_axes))
-        is_subspace = (len(transposed_shape) != len(target_tensor.shape) or any(
-            size != sliced_size
-            for size, sliced_size in zip(transposed_shape, target_tensor.shape))
-                      )
-        return ApplyUnitaryArgs(target_tensor,
-                                available_buffer,
-                                new_axes,
-                                _is_subspace=is_subspace)
+        return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes)
 
-    def recover_result_from_sub_result(self, sub_args, sub_result):
+    def recover_result_from_sub_result(self, sub_args: 'ApplyUnitaryArgs',
+                                       sub_result: np.ndarray,
+                                       assume_full_space: bool = False):
         """Takes the result of calling `_apply_unitary_` on `sub_args` and
         copies it back into `self.target_tensor` or `self.available_buffer` as
         necessary to return the result of applying the unitary to the full args.
@@ -178,14 +169,24 @@ class ApplyUnitaryArgs:
             sub_result: The result of calling an object's `_apply_unitary_`
                 method on `sub_args`.  A transposed subspace of the desired
                 result.
+            assume_full_space: If True, less copying is done and the output is
+                only correct if
+                `sub_args.target_tensor.size == self.target_tensor.size`.
 
         Returns: The full result tensor after applying the unitary.  Either
             `self.target_tensor` or `self.available_buffer`.
         """
+        if not (np.may_share_memory(self.target_tensor, sub_args.target_tensor)
+                and np.may_share_memory(self.available_buffer,
+                    sub_args.available_buffer)):
+            raise ValueError(
+                'sub_args.target_tensor and .available_buffer must be views of'
+                'self.target_tensor and .available_buffer respectively.')
+        is_subspace = sub_args.target_tensor.size < self.target_tensor.size
         if sub_result is sub_args.target_tensor:
             return self.target_tensor
         if sub_result is sub_args.available_buffer:
-            if sub_args._is_subspace:
+            if is_subspace:
                 # The subspace that was modified is likely much smaller than
                 # the whole tensor so copy sub_result back into target_tensor.
                 sub_args.target_tensor[...] = sub_args.available_buffer
@@ -198,7 +199,7 @@ class ApplyUnitaryArgs:
             # Someone did something clever.  E.g. implementing SWAP with a
             # reshape.
             # Copy to available_buffer instead.
-            if sub_args._is_subspace:
+            if is_subspace:
                 self.available_buffer[...] = self.target_tensor
             sub_args.available_buffer[...] = sub_result
             return self.available_buffer

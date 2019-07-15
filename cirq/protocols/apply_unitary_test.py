@@ -444,6 +444,16 @@ def test_apply_unitaries_mixed_qid_shapes():
                                atol=1e-8)
 
 
+def test_recover_result_not_view():
+    tensor = np.zeros((2, 2))
+    tensor2 = np.zeros((2, 2))
+    buffer = np.empty_like(tensor)
+    args = cirq.ApplyUnitaryArgs(tensor, buffer, [0])
+    not_sub_args = cirq.ApplyUnitaryArgs(tensor2, buffer, [0])
+    with pytest.raises(ValueError, match='view'):
+        args.recover_result_from_sub_result(not_sub_args, tensor2)
+
+
 def test_default_method_arguments():
     with pytest.raises(TypeError, match='exactly one of'):
         cirq.ApplyUnitaryArgs.default(1, qid_shape=(2,))
