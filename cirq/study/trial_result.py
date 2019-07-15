@@ -91,7 +91,7 @@ def _key_to_str(key: TMeasurementKey) -> str:
 def _to_dict(measurements: pd.DataFrame) -> Dict[str, np.ndarray]:
     repr_dict = {}
     for key in sorted(measurements.columns):
-        repr_dict[key] = np.array(measurements[key].to_list())
+        repr_dict[key] = np.array(measurements[key].tolist())
     return repr_dict
 
 
