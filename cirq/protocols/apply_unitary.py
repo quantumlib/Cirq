@@ -122,51 +122,6 @@ class ApplyUnitaryArgs:
                                dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
-    def with_transposed_and_sliced_tensors(
-            self, indices: Iterable[int],
-            slices: Iterable[Union[int, slice, Sequence[int]]]
-    ) -> 'ApplyUnitaryArgs':
-        """Creates a transposed and sliced view of `self`.  Useful to pass the
-        result of this method as an argument to methods that expect tensors
-        with smaller shapes.
-
-        For most use cases, use `for_operation_with_qid_shape` instead.
-
-        Args:
-            indices: Integer indices into `self.axes` specifying which qubits
-                to include in `sub_args.axes`.  These axes will be transposed to
-                the right of the shape.
-            slices: A list of slices to apply to each axis listed in `indices`.
-                Any integer entries are interpreted as slices of size 1.
-
-        Returns: A new `ApplyUnitaryArgs` where `sub_args.target_tensor` and
-            `sub_args.available_buffer` are sliced and transposed views of
-            `self.target_tensor` and `self.available_buffer` respectively.
-        """
-        slices = tuple((s,) if isinstance(s, int) else s for s in slices)
-        sub_axes = [self.axes[i] for i in indices]
-        axis_set = set(sub_axes)
-        other_axes = [
-            axis for axis in range(len(self.target_tensor.shape))
-            if axis not in axis_set
-        ]
-        ordered_axes = (*other_axes, *sub_axes)
-        # Transpose sub_axes to the end of the shape and slice them
-        target_tensor = self.target_tensor.transpose(*ordered_axes)
-        transposed_shape = target_tensor.shape
-        target_tensor = target_tensor[(..., *slices)]
-        available_buffer = self.available_buffer.transpose(*ordered_axes)[(
-            ..., *slices)]
-        new_axes = range(len(other_axes), len(ordered_axes))
-        is_subspace = (len(transposed_shape) != len(target_tensor.shape) or any(
-            size != sliced_size
-            for size, sliced_size in zip(transposed_shape, target_tensor.shape))
-                      )
-        return ApplyUnitaryArgs(target_tensor,
-                                available_buffer,
-                                new_axes,
-                                _is_subspace=is_subspace)
-
     def for_operation_with_qid_shape(self, indices: Iterable[int],
                                      qid_shape: Tuple[int, ...]
                                     ) -> 'ApplyUnitaryArgs':
@@ -189,7 +144,28 @@ class ApplyUnitaryArgs:
             `self.target_tensor` and `self.available_buffer` respectively.
         """
         slices = [slice(0, size) for size in qid_shape]
-        return self.with_transposed_and_sliced_tensors(indices, slices)
+        sub_axes = [self.axes[i] for i in indices]
+        axis_set = set(sub_axes)
+        other_axes = [
+            axis for axis in range(len(self.target_tensor.shape))
+            if axis not in axis_set
+        ]
+        ordered_axes = (*other_axes, *sub_axes)
+        # Transpose sub_axes to the end of the shape and slice them
+        target_tensor = self.target_tensor.transpose(*ordered_axes)
+        transposed_shape = target_tensor.shape
+        target_tensor = target_tensor[(..., *slices)]
+        available_buffer = self.available_buffer.transpose(*ordered_axes)[(
+            ..., *slices)]
+        new_axes = range(len(other_axes), len(ordered_axes))
+        is_subspace = (len(transposed_shape) != len(target_tensor.shape) or any(
+            size != sliced_size
+            for size, sliced_size in zip(transposed_shape, target_tensor.shape))
+                      )
+        return ApplyUnitaryArgs(target_tensor,
+                                available_buffer,
+                                new_axes,
+                                _is_subspace=is_subspace)
 
     def recover_result_from_sub_result(self, sub_args, sub_result):
         """Takes the result of calling `_apply_unitary_` on `sub_args` and
