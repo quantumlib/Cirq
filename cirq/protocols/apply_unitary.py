@@ -190,7 +190,44 @@ class ApplyUnitaryArgs:
         slices = [slice(0, size) for size in qid_shape]
         return self.with_transposed_and_sliced_tensors(indices, slices)
 
-    # TODO: Deprecate
+    def recover_result_from_sub_result(self, sub_args, sub_result):
+        """Takes the result of calling `_apply_unitary_` on `sub_args` and
+        copies it back into `self.target_tensor` or `self.available_buffer` as
+        necessary to return the result of applying the unitary to the full args.
+
+        Args:
+            sub_args: A version of `self` with transposed and sliced views of
+                it's tensors.
+            sub_result: The result of calling an object's `_apply_unitary_`
+                method on `sub_args`.  A transposed subspace of the desired
+                result.
+
+        Returns: The full result tensor after applying the unitary.  Either
+            `self.target_tensor` or `self.available_buffer`.
+        """
+        if sub_result is sub_args.target_tensor:
+            return self.target_tensor
+        if sub_result is sub_args.available_buffer:
+            if sub_args._is_subspace:
+                # The subspace that was modified is likely much smaller than
+                # the whole tensor so copy sub_result back into target_tensor.
+                sub_args.target_tensor[...] = sub_args.available_buffer
+                return self.target_tensor
+            return self.available_buffer
+        # The subspace that was modified is likely much smaller than
+        # the whole tensor so copy sub_result back into target_tensor.
+        # It's an uncommon case where sub_result is a new array.
+        if np.may_share_memory(sub_args.target_tensor, sub_result):
+            # Someone did something clever.  E.g. implementing SWAP with a
+            # reshape.
+            # Copy to available_buffer instead.
+            if sub_args._is_subspace:
+                self.available_buffer[...] = self.target_tensor
+            sub_args.available_buffer[...] = sub_result
+            return self.available_buffer
+        sub_args.target_tensor[...] = sub_result
+        return self.target_tensor
+
     def subspace_index(
             self,
             little_endian_bits_int: int,
@@ -372,7 +409,7 @@ def apply_unitary(unitary_value: Any,
         "\n"
         "The value failed to satisfy any of the following criteria:\n"
         "- An `_apply_unitary_(self, args) method that returned a value "
-        "besides None or NotImplemented."
+        "besides None or NotImplemented.\n"
         "- A `_unitary_(self)` method that returned a value "
         "besides None or NotImplemented.\n"
         "- A `_decompose_(self)` method that returned a "
@@ -394,7 +431,7 @@ def _strat_apply_unitary_from_apply_unitary(unitary_value: Any,
     sub_result = func(sub_args)
     if sub_result is NotImplemented or sub_result is None:
         return sub_result
-    return _recover_result_from_sub_result(args, sub_args, sub_result)
+    return args.recover_result_from_sub_result(sub_args, sub_result)
 
 
 def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
@@ -431,7 +468,7 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
             sub_args.target_tensor,
             sub_args.axes,
             out=sub_args.available_buffer)
-    return _recover_result_from_sub_result(args, sub_args, sub_result)
+    return args.recover_result_from_sub_result(sub_args, sub_result)
 
 
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
@@ -527,41 +564,3 @@ def apply_unitaries(unitary_values: Iterable[Any],
         state = result
 
     return state
-
-
-def _recover_result_from_sub_result(args, sub_args, sub_result):
-    """Takes the result of calling `_apply_unitary_` on `sub_args` and copies
-    it back into `args.target_tensor` or `args.available_buffer` as appropriate
-    to return the result of applying the unitary to the full args.
-
-    Args:
-        args: The original apply unitary arguments.
-        sub_args: A version of `args` with transposed and sliced views of it's
-            tensors.
-        sub_result: The result of calling an object's `_apply_unitary_` method
-            on `sub_args`.  A transposed subspace of the desired result.
-
-    Returns: The full result tensor after applying the unitary.  Either
-        `args.target_tensor` or `args.available_buffer`.
-    """
-    if sub_result is sub_args.target_tensor:
-        return args.target_tensor
-    if sub_result is sub_args.available_buffer:
-        if sub_args._is_subspace:
-            # The subspace that was modified is likely much smaller than
-            # the whole tensor so copy sub_result back into target_tensor.
-            sub_args.target_tensor[...] = sub_args.available_buffer
-            return args.target_tensor
-        return args.available_buffer
-    # The subspace that was modified is likely much smaller than
-    # the whole tensor so copy sub_result back into target_tensor.
-    # It's an uncommon case where sub_result is a new array.
-    if np.may_share_memory(sub_args.target_tensor, sub_result):
-        # Someone did something clever.  E.g. implementing SWAP with a reshape.
-        # Copy to available_buffer instead.
-        if sub_args._is_subspace:
-            args.available_buffer[...] = args.target_tensor
-        sub_args.available_buffer[...] = sub_result
-        return sub_args.available_buffer
-    sub_args.target_tensor[...] = sub_result
-    return args.target_tensor
