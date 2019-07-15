@@ -17,6 +17,7 @@
 
 from typing import (
     Any,
+    cast,
     Iterable,
     Optional,
     Sequence,
@@ -111,10 +112,10 @@ class ApplyUnitaryArgs:
                 qid."""
         if (num_qubits is None) == (qid_shape is None):
             raise TypeError(
-                'Specify either the num_qubits or qid_shape argument.')
+                'Specify exactly one of num_qubits or qid_shape.')
         if num_qubits is not None:
             qid_shape = (2,) * num_qubits
-        assert qid_shape is not None, "Can't be None here"  # Satisfy mypy
+        qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
         num_qubits = len(qid_shape)
         state = linalg.one_hot(index=(0,) * num_qubits,
                                shape=qid_shape,

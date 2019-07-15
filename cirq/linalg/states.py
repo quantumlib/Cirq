@@ -40,18 +40,20 @@ def one_hot(*,
     return result
 
 
-def eye_tensor(*, qid_shape: Tuple[int, ...],
+def eye_tensor(half_shape: Tuple[int, ...],
+               *,  # Force keyword args
                dtype: Type[np.number]) -> np.array:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:
-        qid_shape: A tuple representing the number of quantum levels of each
-            qubit the returned matrix applies to.  `qid_shape` is (2, 2, 2) for
+        half_shape: A tuple representing the number of quantum levels of each
+            qubit the returned matrix applies to.  `half_shape` is (2, 2, 2) for
             a three-qubit identity operation tensor.
+        dtype: The numpy dtype of the new array.
 
     Returns:
-        The created numpy array with shape `qid_shape + qid_shape`.
+        The created numpy array with shape `half_shape + half_shape`.
     """
-    state = np.eye(np.prod(qid_shape, dtype=int), dtype=dtype)
-    state.shape = qid_shape * 2
+    state = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
+    state.shape = half_shape * 2
     return state

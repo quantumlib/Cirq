@@ -1309,7 +1309,7 @@ class Circuit:
         qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
         side_len = np.product(qid_shape, dtype=int)
 
-        state = linalg.eye_tensor(qid_shape=qid_shape, dtype=dtype)
+        state = linalg.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))

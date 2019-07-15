@@ -34,24 +34,24 @@ def test_one_hot():
 
 
 def test_eye_tensor():
-    assert np.all(cirq.eye_tensor(qid_shape=(), dtype=int) == np.array(1))
-    assert np.all(cirq.eye_tensor(qid_shape=(1,), dtype=int) == np.array([[1]]))
-    assert np.all(cirq.eye_tensor(qid_shape=(2,), dtype=int) == np.array([
+    assert np.all(cirq.eye_tensor((), dtype=int) == np.array(1))
+    assert np.all(cirq.eye_tensor((1,), dtype=int) == np.array([[1]]))
+    assert np.all(cirq.eye_tensor((2,), dtype=int) == np.array([
         [1, 0],
         [0, 1]]))  # yapf: disable
-    assert np.all(cirq.eye_tensor(qid_shape=(2, 2), dtype=int) == np.array([
+    assert np.all(cirq.eye_tensor((2, 2), dtype=int) == np.array([
         [[[1, 0], [0, 0]],
          [[0, 1], [0, 0]]],
         [[[0, 0], [1, 0]],
          [[0, 0], [0, 1]]]]))  # yapf: disable
-    assert np.all(cirq.eye_tensor(qid_shape=(2, 3), dtype=int) == np.array([
+    assert np.all(cirq.eye_tensor((2, 3), dtype=int) == np.array([
         [[[1, 0, 0], [0, 0, 0]],
          [[0, 1, 0], [0, 0, 0]],
          [[0, 0, 1], [0, 0, 0]]],
         [[[0, 0, 0], [1, 0, 0]],
          [[0, 0, 0], [0, 1, 0]],
          [[0, 0, 0], [0, 0, 1]]]]))  # yapf: disable
-    assert np.all(cirq.eye_tensor(qid_shape=(3, 2), dtype=int) == np.array([
+    assert np.all(cirq.eye_tensor((3, 2), dtype=int) == np.array([
         [[[1, 0], [0, 0], [0, 0]],
          [[0, 1], [0, 0], [0, 0]]],
         [[[0, 0], [1, 0], [0, 0]],
