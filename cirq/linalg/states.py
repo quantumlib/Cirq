@@ -40,9 +40,10 @@ def one_hot(*,
     return result
 
 
-def eye_tensor(half_shape: Tuple[int, ...],
-               *,  # Force keyword args
-               dtype: Type[np.number]) -> np.array:
+def eye_tensor(
+        half_shape: Tuple[int, ...],
+        *,  # Force keyword args
+        dtype: Type[np.number]) -> np.array:
     """Returns an identity matrix reshaped into a tensor.
 
     Args:

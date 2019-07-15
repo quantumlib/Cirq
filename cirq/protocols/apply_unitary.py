@@ -71,11 +71,8 @@ class ApplyUnitaryArgs:
             qubits that the gate is operating on).
     """
 
-    def __init__(
-            self,
-            target_tensor: np.ndarray,
-            available_buffer: np.ndarray,
-            axes: Iterable[int]):
+    def __init__(self, target_tensor: np.ndarray, available_buffer: np.ndarray,
+                 axes: Iterable[int]):
         """
 
         Args:
@@ -108,8 +105,7 @@ class ApplyUnitaryArgs:
             qid_shape: The shape of the state, specifying the dimension of each
                 qid."""
         if (num_qubits is None) == (qid_shape is None):
-            raise TypeError(
-                'Specify exactly one of num_qubits or qid_shape.')
+            raise TypeError('Specify exactly one of num_qubits or qid_shape.')
         if num_qubits is not None:
             qid_shape = (2,) * num_qubits
         qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
@@ -149,14 +145,15 @@ class ApplyUnitaryArgs:
         ]
         ordered_axes = (*other_axes, *sub_axes)
         # Transpose sub_axes to the end of the shape and slice them
-        target_tensor = self.target_tensor.transpose(*ordered_axes)[(
-            ..., *slices)]
+        target_tensor = self.target_tensor.transpose(*ordered_axes)[(...,
+                                                                     *slices)]
         available_buffer = self.available_buffer.transpose(*ordered_axes)[(
             ..., *slices)]
         new_axes = range(len(other_axes), len(ordered_axes))
         return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes)
 
-    def recover_result_from_sub_result(self, sub_args: 'ApplyUnitaryArgs',
+    def recover_result_from_sub_result(self,
+                                       sub_args: 'ApplyUnitaryArgs',
                                        sub_result: np.ndarray,
                                        assume_full_space: bool = False):
         """Takes the result of calling `_apply_unitary_` on `sub_args` and
@@ -178,7 +175,7 @@ class ApplyUnitaryArgs:
         """
         if not (np.may_share_memory(self.target_tensor, sub_args.target_tensor)
                 and np.may_share_memory(self.available_buffer,
-                    sub_args.available_buffer)):
+                                        sub_args.available_buffer)):
             raise ValueError(
                 'sub_args.target_tensor and .available_buffer must be views of'
                 'self.target_tensor and .available_buffer respectively.')
