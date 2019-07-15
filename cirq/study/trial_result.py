@@ -15,7 +15,7 @@
 """Defines trial results."""
 
 from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
-                    TYPE_CHECKING, Union, List, Optional)
+                    TYPE_CHECKING, Union, Optional)
 
 import collections
 import numpy as np
@@ -43,43 +43,7 @@ def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
     Returns:
         A tuple containing the integer for each group.
     """
-    return tuple(_big_endian_int(bits) for bits in bit_groups)
-
-
-def _big_endian_int(bits: Iterable[Any]) -> int:
-    """Returns the big-endian integer specified by the given bits.
-
-    For example, [True, False, False, True, False] becomes binary 10010 which
-    is 18 in decimal.
-
-    Args:
-        bits: Descending bits of the integer, with the 1s bit at the end.
-
-    Returns:
-        The integer.
-    """
-    result = 0
-    for e in bits:
-        result <<= 1
-        if e:
-            result |= 1
-    return result
-
-
-def _big_endian_bits(val: int, bit_count: int) -> List[bool]:
-    """Returns the big-endian bits of an integer.
-
-    For example, 18 becomes [True, False, False, True, False] when `bit_count`
-    is five.
-
-    Args:
-        val: The integer to get bits from.
-        bit_count: The number of desired bits in the result.
-
-    Returns:
-        The bits.
-    """
-    return [bool(val & (1 << i)) for i in range(bit_count)[::-1]]
+    return tuple(value.big_endian_bits_to_int(bits) for bits in bit_groups)
 
 
 def _bitstring(vals: Iterable[Any]) -> str:
@@ -147,7 +111,7 @@ class TrialResult:
             converted_dict = {}
             for key, val in self._measurements.items():
                 converted_dict[key] = [
-                    _big_endian_int(m_vals) for m_vals in val
+                    value.big_endian_bits_to_int(m_vals) for m_vals in val
                 ]
             self._data = pd.DataFrame(converted_dict)
         return self._data
@@ -243,7 +207,7 @@ class TrialResult:
             self,
             *,  # Forces keyword args.
             key: TMeasurementKey,
-            fold_func: Callable[[pd.Series], T] = _big_endian_int
+            fold_func: Callable[[pd.Series], T] = value.big_endian_bits_to_int
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
