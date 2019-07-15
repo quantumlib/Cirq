@@ -104,7 +104,7 @@ class TrialResult:
         self._measurements = measurements
 
     @property
-    def data(self):
+    def data(self) -> pd.DataFrame:
         if self._data is None:
             # Convert to a DataFrame with columns as measurement keys, rows as
             # repetitions and a big endian integer for individual measurements.
@@ -193,8 +193,8 @@ class TrialResult:
             results.
         """
         fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(*[self.measurements[sub_key] for sub_key in fixed_keys
-                       ])  # type: Iterable[Any]
+        samples = zip(*(self.measurements[sub_key]
+                        for sub_key in fixed_keys))  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
