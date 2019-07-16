@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union
+from typing import cast, Dict, Iterable, Sequence, Tuple, Type, TypeVar, Union
 
 import abc
 
@@ -262,7 +262,7 @@ def return_to_initial_mapping(circuit: circuits.Circuit,
 def uses_consistent_swap_gate(circuit: circuits.Circuit,
                               swap_gate: ops.Gate) -> bool:
     for op in circuit.all_operations():
-        gate = ops.op_gate_of_type(op, PermutationGate)
+        gate = ops.op_gate_of_type(op, Type[PermutationGate])
         if gate is not None and gate.swap_gate != swap_gate:
             return False
     return True
