@@ -87,6 +87,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
 
 
 class MappingDisplayGate(ops.Gate):
+    """Displays the indices mapped to a set of wires."""
 
     def __init__(self, indices):
         self.indices = tuple(indices)
@@ -261,8 +262,7 @@ def return_to_initial_mapping(circuit: circuits.Circuit,
 def uses_consistent_swap_gate(circuit: circuits.Circuit,
                               swap_gate: ops.Gate) -> bool:
     for op in circuit.all_operations():
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, PermutationGate)):
-            if op.gate.swap_gate != swap_gate:
-                return False
+        gate = ops.op_gate_of_type(op, PermutationGate)
+        if gate is not None and gate.swap_gate != swap_gate:
+            return False
     return True
