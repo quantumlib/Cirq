@@ -166,7 +166,7 @@ def big_endian_int_to_digits(val: int,
         raise ValueError('Inconsistent digit count. len(base) != digit_count')
 
     result = []
-    for b in base[::-1]:
+    for b in reversed(base):
         result.append(val % b)
         val //= b
 
