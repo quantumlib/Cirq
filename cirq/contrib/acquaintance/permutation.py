@@ -93,7 +93,7 @@ class MappingDisplayGate(ops.Gate):
         self.indices = tuple(indices)
         self._num_qubits = len(self.indices)
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self._num_qubits
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
