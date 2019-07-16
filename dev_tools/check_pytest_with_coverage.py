@@ -44,7 +44,7 @@ class TestAndPrepareCoverageCheck(check.Check):
         result = shell_tools.run_cmd(
             pytest_path,
             target_path,
-            None if verbose else '--actually_quiet',
+            None if verbose else '--actually-quiet',
             *([
                 '--cov', '--cov-report=annotate',
                 '--cov-config={}'.format(rc_path), '--benchmark-skip'
