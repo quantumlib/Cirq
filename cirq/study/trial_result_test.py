@@ -46,26 +46,18 @@ def test_df():
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
     remove_end_measurements = pd.DataFrame(data={
-        'ab': [
-            pd.Series([False, True]),
-            pd.Series([False, True]),
-            pd.Series([True, False])
-        ],
-        'c': [pd.Series([False]),
-              pd.Series([True]),
-              pd.Series([False])]
+        'ab': [1, 1, 2],
+        'c': [0, 1, 0]
     },
                                            index=[1, 2, 3])
 
     pd.testing.assert_frame_equal(result.data.iloc[1:-1],
                                   remove_end_measurements)
 
-    ab = result.data['ab']
-    c = result.data['c']
-    # Count number of ab repitiions with measurements [False, True]
-    assert ab.apply(lambda x: x.equals(pd.Series([False, True]))).sum() == 4
-    # Count number of c repitiions with measurements [False]
-    assert c.apply(lambda x: x.equals(pd.Series([False]))).sum() == 3
+    # Frequency counting.
+    df = result.data
+    assert len(df[df['ab'] == 1]) == 4
+    assert df.c.value_counts().to_dict() == {0: 3, 1: 2}
 
 
 def test_histogram():
