@@ -4,6 +4,7 @@ import pytest
 import cirq
 
 
+# yapf: disable
 SWAP = np.array([[1, 0, 0, 0],
                  [0, 0, 1, 0],
                  [0, 1, 0, 0],
