@@ -68,3 +68,10 @@ matrix:
     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip
 
+  - os: linux
+    env: NAME=doctest
+    python: "3.6"
+    install:
+      - pip install -r requirements.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
+    script: check/doctest
