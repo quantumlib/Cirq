@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package cirq.api.google.v1;
+package cirq.api.google.v2;
 
 option java_package = "com.google.cirq.api.google.v2";
 option java_outer_classname = "CalibrationProto";
