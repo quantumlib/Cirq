@@ -25,6 +25,11 @@ def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
 
     A *args version of lambda args: functools.reduce(np.kron, args).
 
+    Examples:
+
+        >>> 1
+        2
+
     Args:
         *factors: The matrices, tensors, and/or scalars to combine together
             using np.kron.
