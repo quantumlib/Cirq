@@ -58,8 +58,7 @@ def is_parameterized(val: Any) -> bool:
 
     if result is not NotImplemented:
         return result
-    else:
-        return False
+    return False
 
 
 def resolve_parameters(
@@ -95,5 +94,4 @@ def resolve_parameters(
 
     if result is not NotImplemented:
         return result
-    else:
-        return val
+    return val

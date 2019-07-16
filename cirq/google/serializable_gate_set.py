@@ -127,7 +127,8 @@ class SerializableGateSet:
                     proto_msg = serializer.to_proto(gate_op, msg)
                     if proto_msg is not None:
                         return proto_msg
-        raise ValueError('Cannot serialize op of type {}'.format(gate_type))
+        raise ValueError('Cannot serialize op {!r} of type {}'.format(
+            gate_op, gate_type))
 
     def deserialize_dict(self,
                          proto: Dict,
@@ -172,15 +173,15 @@ class SerializableGateSet:
         if which == 'circuit':
             circuit = self._deserialize_circuit(proto.circuit)
             return circuit if device is None else circuit.with_device(device)
-        elif which == 'schedule':
+        if which == 'schedule':
             if device is None:
                 raise ValueError(
                     'Deserializing schedule requires a device but None was '
                     'given.')
             return self._deserialize_schedule(proto.schedule, device)
-        else:
-            raise ValueError(
-                'Program proto does not contain a circuit or schedule.')
+
+        raise ValueError(
+            'Program proto does not contain a circuit or schedule.')
 
     def deserialize_op_dict(self, operation_proto: Dict) -> ops.Operation:
         """Deserialize an Operation from a cirq.api.google.v2.Operation.

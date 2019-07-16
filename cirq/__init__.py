@@ -127,6 +127,7 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    GlobalPhaseOperation,
     H,
     HPowGate,
     I,
@@ -136,6 +137,7 @@ from cirq.ops import (
     ISwapPowGate,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    max_qid_shape,
     measure,
     measure_each,
     MeasurementGate,
@@ -153,6 +155,7 @@ from cirq.ops import (
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
+    PauliSumLike,
     PauliTransform,
     phase_damp,
     phase_flip,
@@ -234,7 +237,6 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
-    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -269,6 +271,10 @@ from cirq.study import (
 from cirq.value import (
     ABCMetaImplementAnyOneOf,
     alternative,
+    big_endian_bits_to_int,
+    big_endian_digits_to_int,
+    big_endian_int_to_bits,
+    big_endian_int_to_digits,
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
@@ -308,19 +314,23 @@ from cirq.protocols import (
     mixture,
     mixture_channel,
     mul,
+    num_qubits,
     pauli_expansion,
     phase_by,
     pow,
     qasm,
     QasmArgs,
+    qid_shape,
     resolve_parameters,
     SupportsApplyChannel,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitQidShape,
+    SupportsExplicitNumQubits,
     SupportsMixture,
     SupportsParameterization,
     SupportsPhase,
@@ -346,6 +356,14 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.work import (
+    CircuitSampleJob,
+    PauliSumCollector,
+    Sampler,
+    Collector,
+)
+
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.

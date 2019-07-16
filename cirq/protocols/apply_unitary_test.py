@@ -80,7 +80,7 @@ def test_apply_unitary_presence_absence():
     buf = np.empty(shape=(2, 2), dtype=np.complex128)
 
     for f in fails:
-        with pytest.raises(TypeError, match='no _apply_unitary_'):
+        with pytest.raises(TypeError, match='failed to satisfy'):
             _ = cirq.apply_unitary(
                 f,
                 cirq.ApplyUnitaryArgs(make_input(), buf, [0]))
