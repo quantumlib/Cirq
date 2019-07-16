@@ -52,7 +52,10 @@ from cirq.contrib.acquaintance.permutation import (LinearPermutationGate,
                                                    PermutationGate,
                                                    SwapPermutationGate,
                                                    update_mapping,
-                                                   get_logical_operations)
+                                                   get_logical_operations,
+                                                   display_mapping,
+                                                   return_to_initial_mapping,
+                                                   uses_consistent_swap_gate)
 
 from cirq.contrib.acquaintance.shift import (
     CircularShiftGate,)
