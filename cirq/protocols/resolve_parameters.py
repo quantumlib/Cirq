@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import Any, Sequence, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
 
 import sympy
@@ -58,7 +58,8 @@ def is_parameterized(val: Any) -> bool:
 
     if result is not NotImplemented:
         return result
-    return False
+    else:
+        return False
 
 
 def resolve_parameters(
@@ -88,10 +89,13 @@ def resolve_parameters(
     param_resolver = ParamResolver(param_resolver)
     if isinstance(val, sympy.Basic):
         return param_resolver.value_of(val)
+    if isinstance(val, Sequence):
+        return type(val)(resolve_parameters(e, param_resolver) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)
 
     if result is not NotImplemented:
         return result
-    return val
+    else:
+        return val
