@@ -143,6 +143,7 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     NamedQubit,
+    op_gate_isinstance,
     op_gate_of_type,
     OP_TREE,
     Operation,

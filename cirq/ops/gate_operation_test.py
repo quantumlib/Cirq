@@ -288,4 +288,21 @@ def test_op_gate_of_type():
         def with_qubits(self, *new_qubits):
             pass
 
-    assert cirq.op_gate_of_type(NonGateOperation(), cirq.X) is None
+    assert cirq.op_gate_of_type(NonGateOperation(), cirq.XPowGate) is None
+
+
+def test_op_gate_isinstance():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_gate_isinstance(op, cirq.XPowGate)
+    assert not cirq.op_gate_isinstance(op, cirq.YPowGate)
+
+    class NonGateOperation(cirq.Operation):
+        def qubits(self) :
+            pass
+
+        def with_qubits(self, *new_qubits):
+            pass
+
+    assert not cirq.op_gate_isinstance(NonGateOperation(), cirq.XPowGate)
+    assert not cirq.op_gate_isinstance(NonGateOperation(), NonGateOperation)
