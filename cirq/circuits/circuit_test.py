@@ -1444,6 +1444,67 @@ def test_all_operations():
     ]
 
 
+def test_qid_shape_qubit():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+
+    circ = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.X(b)]),
+    ])
+
+    assert cirq.qid_shape(circ) == (2, 2)
+    assert cirq.num_qubits(circ) == 2
+    assert cirq.max_qid_shape(circ) == (2, 2)
+    assert cirq.max_qid_shape(circ, qubit_order=[c, a, b],
+                              default_level=2) == (2, 2, 2)
+    with pytest.raises(ValueError, match='extra qubits'):
+        _ = cirq.max_qid_shape(circ, qubit_order=[a])
+
+
+def test_qid_shape_qudit():
+
+    class PlusOneMod3Gate(cirq.SingleQubitGate):
+
+        def _qid_shape_(self):
+            return (3,)
+
+    class C2NotGate(cirq.Gate):
+
+        def _qid_shape_(self):
+            return (3, 2)
+
+    class IdentityGate(cirq.SingleQubitGate):
+
+        def _qid_shape_(self):
+            return (1,)
+
+    a, b, c, d, e, f, g = cirq.LineQubit.range(7)
+
+    circ = cirq.Circuit.from_ops(
+        IdentityGate().on_each(a, b, c),  # a->1, b->1, c->1
+        PlusOneMod3Gate().on_each(c, d),  # c->3, d->3
+        C2NotGate().on(d, e),  # d:3->3, e->2
+        C2NotGate().on(f, b),  # f->3, b:1->2
+        IdentityGate().on_each(e, f),  # e:2, f:3
+    )
+
+    assert cirq.qid_shape(circ) == (1, 2, 3, 3, 2, 3)
+    assert cirq.num_qubits(circ) == 6
+    assert cirq.max_qid_shape(circ) == (1, 2, 3, 3, 2, 3)
+    assert cirq.max_qid_shape(circ, default_level=2) == (1, 2, 3, 3, 2, 3)
+    assert (cirq.max_qid_shape(circ, qubit_order=[f, e, d, c, b,
+                                                  a]) == (3, 2, 3, 3, 2, 1))
+    assert (cirq.max_qid_shape(circ, qubit_order=[g, f, e, d, c, b,
+                                                  a]) == (1, 3, 2, 3, 3, 2, 1))
+    assert (cirq.max_qid_shape(circ,
+                               qubit_order=[g, f, e, d, c, b, a],
+                               default_level=2) == (2, 3, 2, 3, 3, 2, 1))
+    with pytest.raises(ValueError, match='extra qubits'):
+        _ = cirq.max_qid_shape(circ, qubit_order=[g, a, b, c])
+
+
 def test_from_ops():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
