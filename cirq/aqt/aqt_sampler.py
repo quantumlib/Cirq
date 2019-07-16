@@ -8,25 +8,11 @@ import numpy as np
 from requests import put
 from cirq import circuits, schedules, study, Sampler, ops, resolve_parameters
 from cirq.study.sweeps import Sweep
-from cirq.aqt.aqt_device import AQTSimulator
+from cirq.aqt.aqt_device import AQTSimulator, get_op_string
 
 Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
                   Iterable[Sweep]]
 
-
-def get_op_string(op_obj: ops.EigenGate):
-    """Find the string representation for a given gate
-    Params:
-        op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
-    if isinstance(op_obj, ops.XXPowGate):
-        op_str = 'MS'
-    elif isinstance(op_obj, ops.XPowGate):
-        op_str = 'X'
-    elif isinstance(op_obj, ops.YPowGate):
-        op_str = 'Y'
-    else:
-        raise ValueError('Got unknown gate:', op_obj)
-    return op_str
 
 
 class AQTSampler(Sampler):

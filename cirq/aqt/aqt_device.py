@@ -12,22 +12,51 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 """
 import json
 from typing import Union, Tuple, List, Sequence
-from cirq import Circuit, Simulator, LineQubit, study, IonDevice, DensityMatrixSimulator, NoiseModel
+from cirq import Circuit, ops, LineQubit, study, IonDevice, DensityMatrixSimulator, NoiseModel
 from cirq import measure, X, Y, XX, Duration, depolarize
 
 
 gate_dict = {'X': X, 'Y': Y, 'MS': XX}
 
 
+def get_op_string(op_obj: ops.EigenGate):
+    """Find the string representation for a given gate
+    Params:
+        op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
+    if op_obj._name == 'XX':
+        op_str = 'MS'
+    elif op_obj._name == 'X':
+        op_str = 'X'
+    elif op_obj._name == 'Y':
+        op_str = 'Y'
+    else:
+        raise ValueError('Got unknown gate:', op_obj)
+    return op_str
+
+
+
 class AQTNoiseModel(NoiseModel):
-    def __init__(self, qubit_noise_gate: 'cirq.Gate'):
-        if qubit_noise_gate.num_qubits() != 1:
-            raise ValueError('noise.num_qubits() != 1')
-        self.qubit_noise_gate = qubit_noise_gate
+    def __init__(self, single_qubit_p=0.01, ms_p=0.03):
+        self.single_qubit_p = single_qubit_p
+        self.ms_p = ms_p
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        return list(moment) + [self.qubit_noise_gate(q) for q in system_qubits]
+        noise_list = []
+        #TODO: check whether this works with multiple operations in a single moment.
+        for op in moment.operations:
+            ob_str = get_op_string(op)
+            if ob_str in ['X','Y']:
+                noise_op = depolarize(self.single_qubit_p)
+            elif ob_str == 'MS':
+                noise_op = depolarize(self.ms_p)
+            for qubit in system_qubits:
+                if qubit in op.qubits:
+                    noise_list.append(noise_op)
+                else:
+                    noise_list.append(depolarize(0))
+
+        return list(moment) + noise_list #[self.qubit_noise_gate(q) for q in system_qubits]
 
 
 class AQTSimulator:
@@ -79,10 +108,9 @@ class AQTSimulator:
         Returns:
             TrialResult from Cirq.Simulator
         """
-        noise_gate = depolarize(0.01)
         if self.circuit == Circuit():
             raise RuntimeError('simulate ideal called without a valid circuit')
-        sim = DensityMatrixSimulator(noise=AQTNoiseModel(qubit_noise_gate=noise_gate))
+        sim = DensityMatrixSimulator(noise=AQTNoiseModel())
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 
