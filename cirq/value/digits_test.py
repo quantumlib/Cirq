@@ -34,8 +34,7 @@ def test_big_endian_digits_to_int():
 
     # Use-once digit and base iterators.
     assert cirq.big_endian_digits_to_int((e for e in [1, 2, 3, 4]),
-                                         base=(e for e in [2, 3, 5, 7])
-                                         ) == 200
+                                         base=(e for e in [2, 3, 5, 7])) == 200
 
 
 def test_big_endian_int_to_bits():
@@ -68,7 +67,8 @@ def test_big_endian_int_to_digits():
                                          digit_count=3) == [0, 2, 3]
 
     # Use-once base iterators.
-    assert cirq.big_endian_int_to_digits(11, base=(e for e in [2, 3, 4]),
+    assert cirq.big_endian_int_to_digits(11,
+                                         base=(e for e in [2, 3, 4]),
                                          digit_count=3) == [0, 2, 3]
-    assert cirq.big_endian_int_to_digits(11, base=(e for e in [2, 3, 4])
-                                         ) == [0, 2, 3]
+    assert cirq.big_endian_int_to_digits(
+        11, base=(e for e in [2, 3, 4])) == [0, 2, 3]

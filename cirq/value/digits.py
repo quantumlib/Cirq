@@ -176,4 +176,6 @@ def big_endian_int_to_digits(val: int,
                          'left behind {!r} instead of 0.'.format(result, val))
 
     return result[::-1]
+
+
 # pylint: enable=function-redefined
