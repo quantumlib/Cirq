@@ -30,3 +30,4 @@ CZ = np.diag([1, 1, 1, -1])
 def test_kak_decomposition_perf(target, benchmark):
     kak = benchmark(cirq.kak_decomposition, target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
+# yapf: enable
