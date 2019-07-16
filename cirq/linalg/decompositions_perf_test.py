@@ -2,7 +2,18 @@ import numpy as np
 import pytest
 
 import cirq
-from .decompositions_test import SWAP, CNOT, CZ
+
+
+SWAP = np.array([[1, 0, 0, 0],
+                 [0, 0, 1, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1]])
+CNOT = np.array([[1, 0, 0, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1],
+                 [0, 0, 1, 0]])
+CZ = np.diag([1, 1, 1, -1])
+
 
 @pytest.mark.parametrize('target', [
     np.eye(4),
