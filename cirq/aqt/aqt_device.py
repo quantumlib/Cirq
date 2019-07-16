@@ -32,6 +32,8 @@ def get_op_string(op_obj: ops.EigenGate):
         op_str = 'X'
     elif isinstance(op_obj, ops.YPowGate):
         op_str = 'Y'
+    elif isinstance(op_obj, ops.MeasurementGate):
+        op_str = 'Meas'
     else:
         raise ValueError('Got unknown gate:', op_obj)
     return op_str
@@ -48,17 +50,16 @@ class AQTNoiseModel(NoiseModel):
         noise_list = []
         #TODO: check whether this works with multiple operations in a single moment.
         for op in moment.operations:
-            ob_str = get_op_string(op)
-            if ob_str in ['X','Y']:
+            op_str = get_op_string(op)
+            if op_str not in ['X','Y','MS']:
+                break
+            if op_str in ['X','Y']:
                 noise_op = depolarize(self.single_qubit_p)
-            elif ob_str == 'MS':
+            elif op_str == 'MS':
                 noise_op = depolarize(self.ms_p)
             for qubit in system_qubits:
                 if qubit in op.qubits:
-                    noise_list.append(noise_op)
-                else:
-                    noise_list.append(depolarize(0))
-
+                    noise_list.append(noise_op.on(qubit))
         return list(moment) + noise_list #[self.qubit_noise_gate(q) for q in system_qubits]
 
 
