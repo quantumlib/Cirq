@@ -4,7 +4,7 @@ import pytest
 import sympy
 
 from cirq import X, Y, Z, XX, Circuit, study
-from cirq.aqt import AQTSampler, AQTSamplerSim
+from cirq.aqt import AQTSampler, AQTRemoteSimulator
 from cirq.aqt.aqt_device import get_aqt_device
 
 
@@ -71,7 +71,7 @@ def test_aqt_sampler_sim():
     repetitions = 100
     num_qubits = 4
     _device, qubits = get_aqt_device(num_qubits)
-    sampler = AQTSamplerSim()
+    sampler = AQTRemoteSimulator()
     sampler.simulate_ideal = True
     circuit = Circuit.from_ops(X(qubits[3])**theta)
     sweep = study.Linspace(key='theta',
@@ -96,7 +96,7 @@ def test_aqt_sampler_sim_xtalk():
     repetitions = 100
     num_qubits = 4
     _device, qubits = get_aqt_device(num_qubits)
-    sampler = AQTSamplerSim()
+    sampler = AQTRemoteSimulator()
     sampler.simulate_ideal = False
     circuit = Circuit.from_ops(X(qubits[0]), X(qubits[3]), X(qubits[2]))
     sweep = study.Linspace(key='theta',
@@ -110,10 +110,10 @@ def test_aqt_sampler_sim_xtalk():
 
 
 def test_aqt_sampler_ms():
-    repetitions = 100
+    repetitions = 1000
     num_qubits = 4
     device, qubits = get_aqt_device(num_qubits)
-    sampler = AQTSamplerSim()
+    sampler = AQTRemoteSimulator()
     circuit = Circuit(device=device)
     for _dummy in range(9):
         circuit.append(XX(qubits[0], qubits[1])**0.5)
@@ -130,7 +130,7 @@ def test_aqt_sampler_wrong_gate():
     repetitions = 100
     num_qubits = 4
     device, qubits = get_aqt_device(num_qubits)
-    sampler = AQTSamplerSim()
+    sampler = AQTRemoteSimulator()
     circuit = Circuit(device=device)
     circuit.append(Y(qubits[0])**0.5)
     circuit.append(Z(qubits[0])**0.5)

@@ -1,7 +1,3 @@
-import json
-from typing import Union, Tuple, List
-from cirq import Circuit, Simulator, LineQubit, study, IonDevice
-from cirq import measure, X, Y, XX, Duration, depolarize
 """Current device parameters for the AQT/UIBK ion trap device
 
 The device is based on a linear calcium ion string with
@@ -11,11 +7,27 @@ https://quantumoptics.at/en/publications/journal-articles.html
 
 https://iopscience.iop.org/article/10.1088/1367-2630/15/12/123012/meta
 
-The native gate set is local gates: X,Y, and XX entangling gates
+The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
+import json
+from typing import Union, Tuple, List, Sequence
+from cirq import Circuit, Simulator, LineQubit, study, IonDevice, DensityMatrixSimulator, NoiseModel
+from cirq import measure, X, Y, XX, Duration, depolarize
+
 
 gate_dict = {'X': X, 'Y': Y, 'MS': XX}
+
+
+class AQTNoiseModel(NoiseModel):
+    def __init__(self, qubit_noise_gate: 'cirq.Gate'):
+        if qubit_noise_gate.num_qubits() != 1:
+            raise ValueError('noise.num_qubits() != 1')
+        self.qubit_noise_gate = qubit_noise_gate
+
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
+        return list(moment) + [self.qubit_noise_gate(q) for q in system_qubits]
 
 
 class AQTSimulator:
@@ -41,31 +53,6 @@ class AQTSimulator:
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
-    def add_noise(self, gate: str, qubits: list, angle: float):
-        """Adds a noise operation after a gate including specified crosstalk
-        Args:
-            gate: Operation where noise should be added
-            qubits: List of integers, specifying the qubits
-            angle: rotation angle of the operation.
-                   Required for crosstalk simulation
-        """
-        if self.simulate_ideal:
-            return None
-        for qubit_idx in qubits:
-            self.circuit.append(self.noise_dict[gate].on(  # type: ignore
-                self.qubit_list[qubit_idx]))
-            crosstalk_list = [qubit_idx + 1, qubit_idx - 1]
-            for crosstalk_qubit in crosstalk_list:
-                try:
-                    if crosstalk_qubit >= 0 and gate != 'MS':
-                        # TODO: Add MS gate crosstalk
-                        xtalk_amp = self.noise_dict['crosstalk']
-                        xtalk_op = gate_dict[gate].on(
-                            self.qubit_list[crosstalk_qubit]) ** \
-                                   (angle * xtalk_amp)  # type: ignore
-                        self.circuit.append(xtalk_op)
-                except IndexError:
-                    pass
 
     def generate_circuit_from_list(self, json_string: str):
         """Generates a list of cirq operations from a json string
@@ -80,7 +67,7 @@ class AQTSimulator:
             angle = gate_list[1]
             qubits = [self.qubit_list[i] for i in gate_list[2]]
             self.circuit.append(gate_dict[gate].on(*qubits)**angle)
-            self.add_noise(gate, gate_list[2], angle)
+            #self.add_noise(gate, gate_list[2], angle)
         # TODO: Better solution for measurement at the end
         self.circuit.append(
             measure(*[qubit for qubit in self.qubit_list], key='m'))
@@ -92,9 +79,10 @@ class AQTSimulator:
         Returns:
             TrialResult from Cirq.Simulator
         """
+        noise_gate = depolarize(0.01)
         if self.circuit == Circuit():
             raise RuntimeError('simulate ideal called without a valid circuit')
-        sim = Simulator()
+        sim = DensityMatrixSimulator(noise=AQTNoiseModel(qubit_noise_gate=noise_gate))
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 

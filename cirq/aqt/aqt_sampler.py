@@ -1,3 +1,4 @@
+"""Samplers for the AQT ion trap device"""
 import json
 import time
 import uuid
@@ -11,7 +12,6 @@ from cirq.aqt.aqt_device import AQTSimulator
 
 Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
                   Iterable[Sweep]]
-"""Samplers for the AQT ion trap device"""
 
 
 def get_op_string(op_obj: ops.EigenGate):
@@ -44,7 +44,7 @@ class AQTSampler(Sampler):
         self.remote_host = remote_host
         self.access_token = access_token
 
-    def _run_api(
+    def _generate_json(
             self,
             circuit: circuits.Circuit,
             param_resolver: Sweepable,
@@ -56,6 +56,16 @@ class AQTSampler(Sampler):
 
         Returns:
             json formatted string of the sequence
+
+        The json format is defined as follows:
+
+        [[op_string,gate_exponent,qubits]]
+
+        which is a list of sequential quantum operations, each operation definde by:
+
+        op_string: str that specifies the operation type, either "X","Y","MS"
+        gate_exponent: float that specifies the gate_exponent of the operation
+        qubits: list of qubits where the operation acts on.
         """
 
         #seq_list: List[Tuple[str, float, List[int]]] = []
@@ -66,8 +76,8 @@ class AQTSampler(Sampler):
             qubits = [obj.x for obj in op.qubits]  # type: ignore
             op_str = get_op_string(op.gate)  # type: ignore
             seq_list.append((op_str, op.gate.exponent, qubits))  # type: ignore
-        json_list = json.dumps(seq_list)
-        return json_list
+        json_str = json.dumps(seq_list)
+        return json_str
 
     def _send_json(self,
                    *,
@@ -84,6 +94,15 @@ class AQTSampler(Sampler):
 
         Returns:
             Measurement results as an array of boolean.
+
+        The interface is given by PUT requests to a single endpoint URL.
+
+        The first PUT will insert the circuit into the remote queue, given a valid access key.
+
+        Every subsequent PUT will retturn a dictionary, where the key "status" is either
+        'queued', if the circuit has not been processed yet or 'finished' if the circuit has been processed.
+
+        The experimental data is returned via the key 'data'
         """
         while True:
             time.sleep(1.0)
@@ -136,9 +155,9 @@ class AQTSampler(Sampler):
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
             id_str = uuid.uuid1()
-            json_list = self._run_api(circuit=circuit,
-                                      param_resolver=param_resolver)
-            results = self._send_json(json_str=json_list,
+            json_str = self._generate_json(circuit=circuit,
+                                           param_resolver=param_resolver)
+            results = self._send_json(json_str=json_str,
                                       id_str=id_str,
                                       repetitions=repetitions,
                                       num_qubits=num_qubits)
@@ -173,7 +192,7 @@ class AQTSampler(Sampler):
                               num_qubits=num_qubits)[0]
 
 
-class AQTSamplerSim(AQTSampler):
+class AQTRemoteSimulator(AQTSampler):
     """Sampler using the AQT simulator
     When the attribute simulate_ideal is set to True,0
     an ideal circuit is sampled
