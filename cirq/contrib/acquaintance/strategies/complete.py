@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Optional, Sequence, Tuple
+from typing import Sequence
 
 from cirq import circuits, ops
 
@@ -20,8 +20,6 @@ from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
-from cirq.contrib.acquaintance.optimizers import (
-    remove_redundant_acquaintance_opportunities)
 
 
 def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
@@ -40,11 +38,11 @@ def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
 
     Returns:
         A circuit capable of implementing any set of k-local
-        operation.
+        operations.
     """
     if acquaintance_size < 0:
         raise ValueError('acquaintance_size must be non-negative.')
-    elif acquaintance_size == 0:
+    if acquaintance_size == 0:
         return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
 
     if acquaintance_size > len(qubit_order):
