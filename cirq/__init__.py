@@ -270,6 +270,10 @@ from cirq.study import (
 from cirq.value import (
     ABCMetaImplementAnyOneOf,
     alternative,
+    big_endian_bits_to_int,
+    big_endian_digits_to_int,
+    big_endian_int_to_bits,
+    big_endian_int_to_digits,
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
