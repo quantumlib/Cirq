@@ -1,7 +1,5 @@
 from typing import List, Iterable, Any, Union, Optional, overload
 
-import numpy as np
-
 
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     """Returns the big-endian integer specified by the given bits.
@@ -111,21 +109,22 @@ def big_endian_digits_to_int(digits: Iterable[int], *,
     return result
 
 
+# pylint: disable=function-redefined
 @overload
 def big_endian_int_to_digits(val: int, *, digit_count: int,
-                             base: int) -> List[bool]:
+                             base: int) -> List[int]:
     pass
 
 
 @overload
-def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[bool]:
+def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[int]:
     pass
 
 
 def big_endian_int_to_digits(val: int,
                              *,
                              digit_count: Optional[int] = None,
-                             base: Union[int, Iterable[int]]) -> List[bool]:
+                             base: Union[int, Iterable[int]]) -> List[int]:
     """Separates an integer into big-endian digits.
 
     Examples:
@@ -176,8 +175,10 @@ def big_endian_int_to_digits(val: int,
             raise ValueError(
                 'No digit count. Provide `digit_count` when base is an int.')
         base = (base,) * digit_count
-    elif digit_count is None:
-        digit_count = len(base)
+    else:
+        base = tuple(base)
+        if digit_count is None:
+            digit_count = len(base)
 
     if len(base) != digit_count:
         raise ValueError('Inconsistent digit count. len(base) != digit_count')
@@ -193,3 +194,4 @@ def big_endian_int_to_digits(val: int,
                          'left behind {!r} instead of 0.'.format(result, val))
 
     return result[::-1]
+# pylint: enable=function-redefined
