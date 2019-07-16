@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Dict, Optional, Sequence, Tuple
 
 from cirq import circuits, ops
 
@@ -20,11 +20,14 @@ from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
+from cirq.contrib.acquaintance.optimizers import (
+    remove_redundant_acquaintance_opportunities)
 
 
 def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
-                                   acquaintance_size: int=0,
-                                   ) -> circuits.Circuit:
+                                   acquaintance_size: int = 0,
+                                   swap_gate: ops.Gate = ops.SWAP
+                                  ) -> circuits.Circuit:
     """
     Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.
@@ -33,9 +36,10 @@ def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
         qubit_order: The qubits on which the strategy should be defined.
         acquaintance_size: The maximum number of qubits to be acted on by
         an operation.
+        swap_gate: The gate used to swap logical indices.
 
     Returns:
-        An circuit capable of implementing any set of k-local
+        A circuit capable of implementing any set of k-local
         operation.
     """
     if acquaintance_size < 0:
@@ -54,6 +58,6 @@ def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
             device=UnconstrainedAcquaintanceDevice)
     for size_to_acquaint in range(2, acquaintance_size + 1):
         expose_acquaintance_gates(strategy)
-        replace_acquaintance_with_swap_network(
-                strategy, qubit_order, size_to_acquaint)
+        replace_acquaintance_with_swap_network(strategy, qubit_order,
+                                               size_to_acquaint, swap_gate)
     return strategy
