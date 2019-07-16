@@ -68,7 +68,7 @@ def test_aqt_sampler_sim():
     theta = sympy.Symbol('theta')
     num_points = 10
     max_angle = np.pi
-    repetitions = 100
+    repetitions = 1000
     num_qubits = 4
     _device, qubits = get_aqt_device(num_qubits)
     sampler = AQTRemoteSimulator()
@@ -86,7 +86,6 @@ def test_aqt_sampler_sim():
     # print(results)
     for i in range(num_points):
         excited_state_probs[i] = np.mean(results[i].measurements['m'])
-    print(excited_state_probs[-1])
     assert excited_state_probs[-1] == 0.25
 
 

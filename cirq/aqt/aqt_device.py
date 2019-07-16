@@ -12,9 +12,9 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 """
 import json
 from typing import Union, Tuple, List, Sequence
-from cirq import Circuit, ops, LineQubit, study, IonDevice, DensityMatrixSimulator, NoiseModel
+from cirq import Circuit, ops, LineQubit, study, IonDevice, DensityMatrixSimulator, NoiseModel, NO_NOISE
 from cirq import measure, X, Y, XX, Duration, depolarize
-
+import cirq
 
 gate_dict = {'X': X, 'Y': Y, 'MS': XX}
 
@@ -23,7 +23,8 @@ def get_op_string(op_obj: ops.EigenGate):
     """Find the string representation for a given gate
     Params:
         op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
-    try: op_obj = op_obj._gate
+    try:
+        op_obj = op_obj._gate
     except AttributeError:
         pass
     if isinstance(op_obj,ops.XXPowGate):
@@ -112,9 +113,13 @@ class AQTSimulator:
         Returns:
             TrialResult from Cirq.Simulator
         """
+        if self.simulate_ideal is True:
+            noise_model = NO_NOISE
+        else:
+            noise_model = AQTNoiseModel()
         if self.circuit == Circuit():
             raise RuntimeError('simulate ideal called without a valid circuit')
-        sim = DensityMatrixSimulator(noise=AQTNoiseModel())
+        sim = DensityMatrixSimulator(noise=noise_model)
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 
