@@ -87,6 +87,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
 
 
 class MappingDisplayGate(ops.Gate):
+
     def __init__(self, indices):
         self.indices = tuple(indices)
         self._num_qubits = len(self.indices)
@@ -95,13 +96,13 @@ class MappingDisplayGate(ops.Gate):
         return self._num_qubits
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                              ) -> protocols.CircuitDiagramInfo:
         wire_symbols = tuple('' if i is None else str(i) for i in self.indices)
         return protocols.CircuitDiagramInfo(wire_symbols, connected=False)
 
 
-def display_mapping(
-        circuit: circuits.Circuit, initial_mapping: LogicalMapping) -> None:
+def display_mapping(circuit: circuits.Circuit,
+                    initial_mapping: LogicalMapping) -> None:
     """Inserts display gates between moments to indicate the mapping throughout
     the circuit."""
     qubits = sorted(circuit.all_qubits())
@@ -220,11 +221,11 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 
 def get_logical_operations(operations: ops.OP_TREE,
                            initial_mapping: Dict[ops.Qid, ops.Qid]
-                           ) -> Iterable[ops.Operation]:
+                          ) -> Iterable[ops.Operation]:
     mapping = initial_mapping.copy()
     for op in cast(Iterable[ops.Operation], ops.flatten_op_tree(operations)):
         if (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, PermutationGate)):
+                isinstance(op.gate, PermutationGate)):
             op.gate.update_mapping(mapping, op.qubits)
         else:
             yield op.transform_qubits(mapping.__getitem__)
@@ -242,9 +243,9 @@ class ExpandPermutationGates(optimizers.ExpandComposite):
 
 expand_permutation_gates = ExpandPermutationGates()
 
-def return_to_initial_mapping(
-        circuit: circuits.Circuit,
-        swap_gate: ops.Gate = ops.SWAP) -> None:
+
+def return_to_initial_mapping(circuit: circuits.Circuit,
+                              swap_gate: ops.Gate = ops.SWAP) -> None:
     qubits = sorted(circuit.all_qubits())
     n_qubits = len(qubits)
 
@@ -252,15 +253,16 @@ def return_to_initial_mapping(
     update_mapping(mapping, circuit.all_operations())
 
     permutation = {i: mapping[q] for i, q in enumerate(qubits)}
-    returning_permutation_op = LinearPermutationGate(
-        n_qubits, permutation, swap_gate)(*qubits)
+    returning_permutation_op = LinearPermutationGate(n_qubits, permutation,
+                                                     swap_gate)(*qubits)
     circuit.append(returning_permutation_op)
 
-def uses_consistent_swap_gate(
-        circuit: circuits.Circuit, swap_gate: ops.Gate) -> bool:
+
+def uses_consistent_swap_gate(circuit: circuits.Circuit,
+                              swap_gate: ops.Gate) -> bool:
     for op in circuit.all_operations():
         if (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, PermutationGate)):
+                isinstance(op.gate, PermutationGate)):
             if op.gate.swap_gate != swap_gate:
                 return False
     return True
