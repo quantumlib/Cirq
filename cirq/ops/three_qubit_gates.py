@@ -158,7 +158,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
     def __init__(self,
                  diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
-        self._diag_angles_radians = diag_angles_radians  # type: List[float]
+        self._diag_angles_radians = diag_angles_radians  # type: List[Union[float. sympy.Basic]]
 
     def _is_parameterized_(self):
         return any(
@@ -261,9 +261,9 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
-            slice_index = '0b' + str(index % 2) + str(index % 4 // 2) + str(
-                index // 4)
-            subspace_index = args.subspace_index(int(slice_index, 2))
+            little_endian_index = 4 * (index & 1) + 2 * ((index >> 1) & 1) + (
+                (index >> 2) & 1)
+            subspace_index = args.subspace_index(little_endian_index)
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
 
