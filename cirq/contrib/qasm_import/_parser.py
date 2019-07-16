@@ -202,7 +202,47 @@ class QasmParser:
             qasm_gate='u3',
             num_params=3,
             num_args=1,
-            cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+            cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+        'x':
+        QasmGateStatement(qasm_gate='x',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.X),
+        'y':
+        QasmGateStatement(qasm_gate='y',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.Y),
+        'z':
+        QasmGateStatement(qasm_gate='z',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.Z),
+        'h':
+        QasmGateStatement(qasm_gate='h',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.H),
+        's':
+        QasmGateStatement(qasm_gate='s',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.S),
+        't':
+        QasmGateStatement(qasm_gate='t',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.T),
+        'sdg':
+        QasmGateStatement(qasm_gate='sdg',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.S**-1),
+        'tdg':
+        QasmGateStatement(qasm_gate='tdg',
+                          num_params=0,
+                          num_args=1,
+                          cirq_gate=ops.T**-1),
     }
 
     tokens = QasmLexer.tokens
@@ -287,16 +327,11 @@ class QasmParser:
 
     # gate operations
     # gate_op : ID qargs
-    #         | ID () qargs
     #         | ID ( params ) qargs
 
     def p_gate_op_no_params(self, p):
-        """gate_op :  ID qargs
-                   | ID '(' ')' qargs"""
-        self._resolve_gate_operation(args=p[4] if p[2] == '(' else p[2],
-                                     gate=p[1],
-                                     p=p,
-                                     params=[])
+        """gate_op :  ID qargs"""
+        self._resolve_gate_operation(p[2], gate=p[1], p=p, params=[])
 
     def p_gate_op_with_params(self, p):
         """gate_op :  ID '(' params ')' qargs"""

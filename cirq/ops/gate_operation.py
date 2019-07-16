@@ -199,3 +199,10 @@ def op_gate_of_type(op: raw_types.Operation,
     if isinstance(op, GateOperation) and isinstance(op.gate, gate_type):
         return op.gate
     return None
+
+
+def op_gate_isinstance(op: raw_types.Operation, gate_type: Type[TV]) -> bool:
+    """Returns True if op has that gate type otherwise False."""
+    if isinstance(op, GateOperation):
+        return isinstance(op.gate, gate_type)
+    return False
