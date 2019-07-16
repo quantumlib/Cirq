@@ -55,7 +55,7 @@ def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
     for key in sorted(vals.keys()):
         reps = vals[key]
         n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join([_bitstring(reps[:, i]) for i in range(n)])
+        all_bits = ', '.join(_bitstring(reps[:, i]) for i in range(n))
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
 
