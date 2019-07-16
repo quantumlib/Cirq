@@ -32,18 +32,15 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     return result
 
 
-def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[bool]:
+def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     """Returns the big-endian bits of an integer.
 
     Examples:
-        >>> big_endian_int_to_bits(2, bit_count=4)
-        [0, 0, 1, 0]
+        >>> big_endian_int_to_bits(19, bit_count=8)
+        [0, 0, 0, 1, 0, 0, 1, 1]
 
-        >>> big_endian_int_to_bits(18, bit_count=8)
-        [0, 0, 0, 1, 0, 0, 1, 0]
-
-        >>> big_endian_int_to_bits(18, bit_count=4)
-        [0, 0, 1, 0]
+        >>> big_endian_int_to_bits(19, bit_count=4)
+        [0, 0, 1, 1]
 
         >>> big_endian_int_to_bits(-3, bit_count=4)
         [1, 1, 0, 1]
@@ -58,7 +55,7 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[bool]:
     Returns:
         The bits.
     """
-    return [bool(val & (1 << i)) for i in range(bit_count)[::-1]]
+    return [(val >> i) & 1 for i in range(bit_count)[::-1]]
 
 
 def big_endian_digits_to_int(digits: Iterable[int], *,
@@ -131,23 +128,8 @@ def big_endian_int_to_digits(val: int,
         >>> big_endian_int_to_digits(11, digit_count=4, base=10)
         [0, 0, 1, 1]
 
-        >>> big_endian_int_to_digits(11, digit_count=4, base=[2, 3, 4])
-        [0, 0, 1, 1]
-
-        >>> big_endian_int_to_digits(11, digit_count=4, base=3)
-        [0, 1, 0, 2]
-
         >>> big_endian_int_to_digits(11, base=[2, 3, 4])
-        [0, 1, 0, 2]
-
-        >>> big_endian_int_to_digits(18, bit_count=8)
-        [0, 0, 0, 1, 0, 0, 1, 0]
-
-        >>> big_endian_int_to_digits(18, bit_count=4)
-        [0, 0, 1, 0]
-
-        >>> big_endian_int_to_digits(-3, bit_count=4)
-        [1, 1, 0, 1]
+        [0, 2, 3]
 
     Args:
         val: The integer to get digits from. Must be non-negative and less than
