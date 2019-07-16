@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.protocols.apply_unitary import _incorporate_result_into_target
 
 
 def test_apply_unitary_presence_absence():
@@ -240,10 +241,10 @@ def test_apply_unitary_args_tensor_manipulation():
         expected[..., :2, :2] *= 1j
 
         args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [1, 2])
-        sub_args = args.for_operation_with_qid_shape(
+        sub_args = args._for_operation_with_qid_shape(
             op_indices, tuple(qid_shape[i] for i in op_indices))
         sub_result = val._apply_unitary_(sub_args)
-        result = args.recover_result_from_sub_result(sub_args, sub_result)
+        result = _incorporate_result_into_target(args, sub_args, sub_result)
         np.testing.assert_allclose(result, expected, atol=1e-8)
 
     def assert_is_swap(val: cirq.SupportsConsistentApplyUnitary) -> None:
@@ -258,10 +259,10 @@ def test_apply_unitary_args_tensor_manipulation():
         expected[..., :2, :2, :, :] *= 1j
 
         args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [5, 4, 6, 3])
-        sub_args = args.for_operation_with_qid_shape(
+        sub_args = args._for_operation_with_qid_shape(
             op_indices, tuple(qid_shape[i] for i in op_indices))
         sub_result = val._apply_unitary_(sub_args)
-        result = args.recover_result_from_sub_result(sub_args, sub_result)
+        result = _incorporate_result_into_target(args, sub_args, sub_result)
         np.testing.assert_allclose(result, expected, atol=1e-8, verbose=True)
 
     for op in operations:
@@ -445,14 +446,14 @@ def test_apply_unitaries_mixed_qid_shapes():
                                atol=1e-8)
 
 
-def test_recover_result_not_view():
+def test_incorporate_result_not_view():
     tensor = np.zeros((2, 2))
     tensor2 = np.zeros((2, 2))
     buffer = np.empty_like(tensor)
     args = cirq.ApplyUnitaryArgs(tensor, buffer, [0])
     not_sub_args = cirq.ApplyUnitaryArgs(tensor2, buffer, [0])
     with pytest.raises(ValueError, match='view'):
-        args.recover_result_from_sub_result(not_sub_args, tensor2)
+        _incorporate_result_into_target(args, not_sub_args, tensor2)
 
 
 def test_default_method_arguments():
