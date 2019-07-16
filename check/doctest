@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs python doctest on all python source files in the cirq directory.
+#
+# See also:
+#     https://docs.python.org/3/library/doctest.html
+#
+# Usage:
+#     check/doctest
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+find cirq -type f -iname '*.py' | xargs python -m doctest
