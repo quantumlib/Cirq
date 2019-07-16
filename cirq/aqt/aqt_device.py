@@ -23,11 +23,14 @@ def get_op_string(op_obj: ops.EigenGate):
     """Find the string representation for a given gate
     Params:
         op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
-    if op_obj._name == 'XX':
+    try: op_obj = op_obj._gate
+    except AttributeError:
+        pass
+    if isinstance(op_obj,ops.XXPowGate):
         op_str = 'MS'
-    elif op_obj._name == 'X':
+    elif isinstance(op_obj,ops.XPowGate):
         op_str = 'X'
-    elif op_obj._name == 'Y':
+    elif isinstance(op_obj, ops.YPowGate):
         op_str = 'Y'
     else:
         raise ValueError('Got unknown gate:', op_obj)
