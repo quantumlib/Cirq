@@ -638,103 +638,103 @@ DESCRIPTOR.message_types_by_name['RepeatedBoolean'] = _REPEATEDBOOLEAN
 DESCRIPTOR.message_types_by_name['ArgFunction'] = _ARGFUNCTION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), dict(
-  DESCRIPTOR = _PROGRAM,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), {
+  'DESCRIPTOR' : _PROGRAM,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Program)
-  ))
+  })
 _sym_db.RegisterMessage(Program)
 
-Circuit = _reflection.GeneratedProtocolMessageType('Circuit', (_message.Message,), dict(
-  DESCRIPTOR = _CIRCUIT,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Circuit = _reflection.GeneratedProtocolMessageType('Circuit', (_message.Message,), {
+  'DESCRIPTOR' : _CIRCUIT,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Circuit)
-  ))
+  })
 _sym_db.RegisterMessage(Circuit)
 
-Moment = _reflection.GeneratedProtocolMessageType('Moment', (_message.Message,), dict(
-  DESCRIPTOR = _MOMENT,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Moment = _reflection.GeneratedProtocolMessageType('Moment', (_message.Message,), {
+  'DESCRIPTOR' : _MOMENT,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Moment)
-  ))
+  })
 _sym_db.RegisterMessage(Moment)
 
-Schedule = _reflection.GeneratedProtocolMessageType('Schedule', (_message.Message,), dict(
-  DESCRIPTOR = _SCHEDULE,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Schedule = _reflection.GeneratedProtocolMessageType('Schedule', (_message.Message,), {
+  'DESCRIPTOR' : _SCHEDULE,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Schedule)
-  ))
+  })
 _sym_db.RegisterMessage(Schedule)
 
-ScheduledOperation = _reflection.GeneratedProtocolMessageType('ScheduledOperation', (_message.Message,), dict(
-  DESCRIPTOR = _SCHEDULEDOPERATION,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+ScheduledOperation = _reflection.GeneratedProtocolMessageType('ScheduledOperation', (_message.Message,), {
+  'DESCRIPTOR' : _SCHEDULEDOPERATION,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ScheduledOperation)
-  ))
+  })
 _sym_db.RegisterMessage(ScheduledOperation)
 
-Language = _reflection.GeneratedProtocolMessageType('Language', (_message.Message,), dict(
-  DESCRIPTOR = _LANGUAGE,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Language = _reflection.GeneratedProtocolMessageType('Language', (_message.Message,), {
+  'DESCRIPTOR' : _LANGUAGE,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Language)
-  ))
+  })
 _sym_db.RegisterMessage(Language)
 
-Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), dict(
+Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), {
 
-  ArgsEntry = _reflection.GeneratedProtocolMessageType('ArgsEntry', (_message.Message,), dict(
-    DESCRIPTOR = _OPERATION_ARGSENTRY,
-    __module__ = 'cirq.api.google.v2.program_pb2'
+  'ArgsEntry' : _reflection.GeneratedProtocolMessageType('ArgsEntry', (_message.Message,), {
+    'DESCRIPTOR' : _OPERATION_ARGSENTRY,
+    '__module__' : 'cirq.api.google.v2.program_pb2'
     # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Operation.ArgsEntry)
-    ))
+    })
   ,
-  DESCRIPTOR = _OPERATION,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+  'DESCRIPTOR' : _OPERATION,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Operation)
-  ))
+  })
 _sym_db.RegisterMessage(Operation)
 _sym_db.RegisterMessage(Operation.ArgsEntry)
 
-Gate = _reflection.GeneratedProtocolMessageType('Gate', (_message.Message,), dict(
-  DESCRIPTOR = _GATE,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Gate = _reflection.GeneratedProtocolMessageType('Gate', (_message.Message,), {
+  'DESCRIPTOR' : _GATE,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Gate)
-  ))
+  })
 _sym_db.RegisterMessage(Gate)
 
-Qubit = _reflection.GeneratedProtocolMessageType('Qubit', (_message.Message,), dict(
-  DESCRIPTOR = _QUBIT,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Qubit = _reflection.GeneratedProtocolMessageType('Qubit', (_message.Message,), {
+  'DESCRIPTOR' : _QUBIT,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Qubit)
-  ))
+  })
 _sym_db.RegisterMessage(Qubit)
 
-Arg = _reflection.GeneratedProtocolMessageType('Arg', (_message.Message,), dict(
-  DESCRIPTOR = _ARG,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+Arg = _reflection.GeneratedProtocolMessageType('Arg', (_message.Message,), {
+  'DESCRIPTOR' : _ARG,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Arg)
-  ))
+  })
 _sym_db.RegisterMessage(Arg)
 
-ArgValue = _reflection.GeneratedProtocolMessageType('ArgValue', (_message.Message,), dict(
-  DESCRIPTOR = _ARGVALUE,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+ArgValue = _reflection.GeneratedProtocolMessageType('ArgValue', (_message.Message,), {
+  'DESCRIPTOR' : _ARGVALUE,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ArgValue)
-  ))
+  })
 _sym_db.RegisterMessage(ArgValue)
 
-RepeatedBoolean = _reflection.GeneratedProtocolMessageType('RepeatedBoolean', (_message.Message,), dict(
-  DESCRIPTOR = _REPEATEDBOOLEAN,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+RepeatedBoolean = _reflection.GeneratedProtocolMessageType('RepeatedBoolean', (_message.Message,), {
+  'DESCRIPTOR' : _REPEATEDBOOLEAN,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.RepeatedBoolean)
-  ))
+  })
 _sym_db.RegisterMessage(RepeatedBoolean)
 
-ArgFunction = _reflection.GeneratedProtocolMessageType('ArgFunction', (_message.Message,), dict(
-  DESCRIPTOR = _ARGFUNCTION,
-  __module__ = 'cirq.api.google.v2.program_pb2'
+ArgFunction = _reflection.GeneratedProtocolMessageType('ArgFunction', (_message.Message,), {
+  'DESCRIPTOR' : _ARGFUNCTION,
+  '__module__' : 'cirq.api.google.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ArgFunction)
-  ))
+  })
 _sym_db.RegisterMessage(ArgFunction)
 
 

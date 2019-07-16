@@ -17,7 +17,7 @@ from cirq.protocols.apply_unitary import (
     apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
 )
 from cirq.protocols.apply_channel import (
     apply_channel,
@@ -96,6 +96,12 @@ from cirq.protocols.resolve_parameters import (
 from cirq.protocols.phase import (
     phase_by,
     SupportsPhase,
+)
+from cirq.protocols.qid_shape_protocol import (
+    num_qubits,
+    qid_shape,
+    SupportsExplicitQidShape,
+    SupportsExplicitNumQubits,
 )
 from cirq.protocols.unitary import (
     SupportsUnitary,
