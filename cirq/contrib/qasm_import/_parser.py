@@ -233,6 +233,41 @@ class QasmParser:
                           num_params=0,
                           num_args=1,
                           cirq_gate=ops.T),
+        'cx':
+        QasmGateStatement(qasm_gate='cx',
+                          cirq_gate=CX,
+                          num_params=0,
+                          num_args=2),
+        'cy':
+        QasmGateStatement(qasm_gate='cy',
+                          cirq_gate=ops.ControlledGate(ops.Y),
+                          num_params=0,
+                          num_args=2),
+        'cz':
+        QasmGateStatement(qasm_gate='cz',
+                          cirq_gate=ops.CZ,
+                          num_params=0,
+                          num_args=2),
+        'ch':
+        QasmGateStatement(qasm_gate='ch',
+                          cirq_gate=ops.ControlledGate(ops.H),
+                          num_params=0,
+                          num_args=2),
+        'swap':
+        QasmGateStatement(qasm_gate='swap',
+                          cirq_gate=ops.SWAP,
+                          num_params=0,
+                          num_args=2),
+        'cswap':
+        QasmGateStatement(qasm_gate='cswap',
+                          num_params=0,
+                          num_args=3,
+                          cirq_gate=ops.CSWAP),
+        'ccx':
+        QasmGateStatement(qasm_gate='ccx',
+                          num_params=0,
+                          num_args=3,
+                          cirq_gate=ops.CCX),
         'sdg':
         QasmGateStatement(qasm_gate='sdg',
                           num_params=0,
@@ -243,6 +278,7 @@ class QasmParser:
                           num_params=0,
                           num_args=1,
                           cirq_gate=ops.T**-1),
+        **basic_gates
     }
 
     tokens = QasmLexer.tokens
