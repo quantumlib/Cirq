@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.protocols.apply_unitary import _incorporate_result_into_target
 
 
 def test_apply_unitary_presence_absence():
@@ -105,6 +106,171 @@ def test_apply_unitary_presence_absence():
             default=None) is not None
 
 
+def test_apply_unitary_args_tensor_manipulation():
+    # All below are qubit swap operations with 1j global phase
+
+    class ModifyTargetTensor:
+
+        def _apply_unitary_(self, args):
+            zo = args.subspace_index(0b01)
+            oz = args.subspace_index(0b10)
+            args.available_buffer[zo] = args.target_tensor[zo]
+            args.target_tensor[zo] = args.target_tensor[oz]
+            args.target_tensor[oz] = args.available_buffer[zo]
+            args.target_tensor[...] *= 1j
+            args.available_buffer[...] = 99  # Destroy buffer data just in case
+            return args.target_tensor
+
+    class TransposeTargetTensor:
+
+        def _apply_unitary_(self, args):
+            indices = list(range(len(args.target_tensor.shape)))
+            indices[args.axes[0]], indices[args.axes[1]] = (
+                indices[args.axes[1]], indices[args.axes[0]])
+            target = args.target_tensor.transpose(*indices)
+            target[...] *= 1j
+            args.available_buffer[...] = 99  # Destroy buffer data just in case
+            return target
+
+    class ReshapeTargetTensor:
+
+        def _apply_unitary_(self, args):
+            zz = args.subspace_index(0b00)
+            zo = args.subspace_index(0b01)
+            oz = args.subspace_index(0b10)
+            oo = args.subspace_index(0b11)
+            args.available_buffer[zz] = args.target_tensor[zz]
+            args.available_buffer[zo] = args.target_tensor[zo]
+            args.available_buffer[oz] = args.target_tensor[oz]
+            args.available_buffer[oo] = args.target_tensor[oo]
+            # Do a pointless reshape and transpose
+            target = args.target_tensor.transpose(
+                *range(1, len(args.target_tensor.shape)),
+                0).reshape(args.target_tensor.shape)
+            target[zz] = args.available_buffer[zz]
+            target[zo] = args.available_buffer[oz]
+            target[oz] = args.available_buffer[zo]
+            target[oo] = args.available_buffer[oo]
+            target[...] *= 1j
+            args.available_buffer[...] = 99  # Destroy buffer data just in case
+            return target
+
+    class ModifyAvailableBuffer:
+
+        def _apply_unitary_(self, args):
+            zz = args.subspace_index(0b00)
+            zo = args.subspace_index(0b01)
+            oz = args.subspace_index(0b10)
+            oo = args.subspace_index(0b11)
+            args.available_buffer[zz] = args.target_tensor[zz]
+            args.available_buffer[zo] = args.target_tensor[oz]
+            args.available_buffer[oz] = args.target_tensor[zo]
+            args.available_buffer[oo] = args.target_tensor[oo]
+            args.available_buffer[...] *= 1j
+            args.target_tensor[...] = 99  # Destroy buffer data just in case
+            return args.available_buffer
+
+    class TransposeAvailableBuffer:
+
+        def _apply_unitary_(self, args):
+            indices = list(range(len(args.target_tensor.shape)))
+            indices[args.axes[0]], indices[args.axes[1]] = (
+                indices[args.axes[1]], indices[args.axes[0]])
+            output = args.available_buffer.transpose(*indices)
+            args.available_buffer[...] = args.target_tensor
+            output *= 1j
+            args.target_tensor[...] = 99  # Destroy buffer data just in case
+            return output
+
+    class ReshapeAvailableBuffer:
+
+        def _apply_unitary_(self, args):
+            zz = args.subspace_index(0b00)
+            zo = args.subspace_index(0b01)
+            oz = args.subspace_index(0b10)
+            oo = args.subspace_index(0b11)
+            # Do a pointless reshape and transpose
+            output = args.available_buffer.transpose(
+                *range(1, len(args.available_buffer.shape)),
+                0).reshape(args.available_buffer.shape)
+            output[zz] = args.target_tensor[zz]
+            output[zo] = args.target_tensor[oz]
+            output[oz] = args.target_tensor[zo]
+            output[oo] = args.target_tensor[oo]
+            output[...] *= 1j
+            args.target_tensor[...] = 99  # Destroy buffer data just in case
+            return output
+
+    class CreateNewBuffer:
+
+        def _apply_unitary_(self, args):
+            u = np.array(
+                [[1, 0, 0, 0],
+                 [0, 0, 1, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1]],
+                dtype=args.target_tensor.dtype) * 1j  # yapf: disable
+            # Flatten last two axes and add a dummy index to the end of
+            # target_tensor so np.matmul treats it like an array of two-qubit
+            # column vectors.
+            new_shape = args.target_tensor.shape[:-2] + (4, 1)
+            ret = np.matmul(u, args.target_tensor.reshape(new_shape)).reshape(
+                args.target_tensor.shape)
+            args.target_tensor[...] = 99  # Destroy buffer data just in case
+            args.available_buffer[...] = 98
+            return ret
+
+    operations = [
+        ModifyTargetTensor(),
+        TransposeTargetTensor(),
+        ReshapeTargetTensor(),
+        ModifyAvailableBuffer(),
+        TransposeAvailableBuffer(),
+        ReshapeAvailableBuffer(),
+        CreateNewBuffer(),
+    ]
+
+    def assert_is_swap_simple(val: cirq.SupportsConsistentApplyUnitary) -> None:
+        qid_shape = (2, 2)
+        op_indices = [0, 1]
+        state = np.arange(3 * 3, dtype=np.complex64).reshape((1, 3, 3))
+        expected = state.copy()
+        buf = expected[..., 0, 1].copy()
+        expected[..., 0, 1] = expected[..., 1, 0]
+        expected[..., 1, 0] = buf
+        expected[..., :2, :2] *= 1j
+
+        args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [1, 2])
+        sub_args = args._for_operation_with_qid_shape(
+            op_indices, tuple(qid_shape[i] for i in op_indices))
+        sub_result = val._apply_unitary_(sub_args)
+        result = _incorporate_result_into_target(args, sub_args, sub_result)
+        np.testing.assert_allclose(result, expected, atol=1e-8)
+
+    def assert_is_swap(val: cirq.SupportsConsistentApplyUnitary) -> None:
+        qid_shape = (1, 2, 4, 2)
+        op_indices = [1, 3]
+        state = np.arange(2 * (1 * 3 * 4 * 5), dtype=np.complex64).reshape(
+            (1, 2, 1, 5, 3, 1, 4))
+        expected = state.copy()
+        buf = expected[..., 0, 1, :, :].copy()
+        expected[..., 0, 1, :, :] = expected[..., 1, 0, :, :]
+        expected[..., 1, 0, :, :] = buf
+        expected[..., :2, :2, :, :] *= 1j
+
+        args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [5, 4, 6, 3])
+        sub_args = args._for_operation_with_qid_shape(
+            op_indices, tuple(qid_shape[i] for i in op_indices))
+        sub_result = val._apply_unitary_(sub_args)
+        result = _incorporate_result_into_target(args, sub_args, sub_result)
+        np.testing.assert_allclose(result, expected, atol=1e-8, verbose=True)
+
+    for op in operations:
+        print('Testing', type(op).__name__)
+        assert_is_swap_simple(op)
+        assert_is_swap(op)
+
+
 def test_apply_unitaries():
     a, b, c = cirq.LineQubit.range(3)
 
@@ -184,3 +350,112 @@ def test_apply_unitaries():
         _ = cirq.apply_unitaries(unitary_values=[],
                                  qubits=[],
                                  args=cirq.ApplyUnitaryArgs.default(1))
+
+
+def test_apply_unitaries_mixed_qid_shapes():
+
+    class PlusOneMod3Gate(cirq.SingleQubitGate):
+
+        def _qid_shape_(self):
+            return (3,)
+
+        def _unitary_(self):
+            return np.array([[0, 0, 1],
+                             [1, 0, 0],
+                             [0, 1, 0]])  # yapf: disable
+
+    class PlusOneMod4Gate(cirq.SingleQubitGate):
+
+        def _qid_shape_(self):
+            return (4,)
+
+        def _unitary_(self):
+            return np.array([[0, 0, 0, 1],
+                             [1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0]])  # yapf: disable
+
+    a, b = cirq.LineQubit.range(2)
+
+    result = cirq.apply_unitaries(unitary_values=[
+        PlusOneMod3Gate().on(a),
+        cirq.X(a),
+        cirq.CNOT(a, b),
+        cirq.CNOT(a, b),
+        cirq.X(a),
+        PlusOneMod3Gate().on(a),
+        PlusOneMod3Gate().on(a),
+    ],
+                                  qubits=[a, b])
+    np.testing.assert_allclose(result.reshape(6), [1] + [0] * 5, atol=1e-8)
+
+    result = cirq.apply_unitaries(unitary_values=[
+        PlusOneMod3Gate().on(a),
+        cirq.X(a),
+        cirq.CNOT(a, b),
+        cirq.CNOT(a, b),
+        cirq.X(a),
+        PlusOneMod3Gate().on(a),
+        PlusOneMod3Gate().on(a),
+    ],
+                                  qubits=[a, b],
+                                  args=cirq.ApplyUnitaryArgs(
+                                      target_tensor=cirq.eye_tensor(
+                                          (3, 2), dtype=np.complex64),
+                                      available_buffer=cirq.eye_tensor(
+                                          (3, 2), dtype=np.complex64),
+                                      axes=(0, 1)))
+    np.testing.assert_allclose(result.reshape(6, 6), np.eye(6), atol=1e-8)
+
+    result = cirq.apply_unitaries(unitary_values=[
+        PlusOneMod3Gate().on(a),
+        cirq.X(a),
+        PlusOneMod4Gate().on(b),
+        PlusOneMod4Gate().on(b),
+        cirq.X(b),
+        PlusOneMod4Gate().on(b),
+        PlusOneMod4Gate().on(b),
+        cirq.CNOT(a, b),
+        PlusOneMod4Gate().on(b),
+        cirq.X(b),
+        cirq.CNOT(a, b),
+        cirq.X(a),
+        PlusOneMod3Gate().on(a),
+        PlusOneMod3Gate().on(a),
+    ],
+                                  qubits=[a, b],
+                                  args=cirq.ApplyUnitaryArgs(
+                                      target_tensor=cirq.eye_tensor(
+                                          (3, 4), dtype=np.complex64),
+                                      available_buffer=cirq.eye_tensor(
+                                          (3, 4), dtype=np.complex64),
+                                      axes=(0, 1)))
+    np.testing.assert_allclose(result.reshape(12, 12),
+                               np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                         [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                                         [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                                         [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                                         [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]]),
+                               atol=1e-8)
+
+
+def test_incorporate_result_not_view():
+    tensor = np.zeros((2, 2))
+    tensor2 = np.zeros((2, 2))
+    buffer = np.empty_like(tensor)
+    args = cirq.ApplyUnitaryArgs(tensor, buffer, [0])
+    not_sub_args = cirq.ApplyUnitaryArgs(tensor2, buffer, [0])
+    with pytest.raises(ValueError, match='view'):
+        _incorporate_result_into_target(args, not_sub_args, tensor2)
+
+
+def test_default_method_arguments():
+    with pytest.raises(TypeError, match='exactly one of'):
+        cirq.ApplyUnitaryArgs.default(1, qid_shape=(2,))
