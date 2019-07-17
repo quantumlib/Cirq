@@ -63,7 +63,7 @@ class AQTSampler(Sampler):
             op = cast(ops.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
             op_str = get_op_string(op)
-            gate = cast(ops.EigenGate,op.gate)
+            gate = cast(ops.EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
         json_str = json.dumps(seq_list)
         return json_str
@@ -156,7 +156,6 @@ class AQTSampler(Sampler):
             res_dict = {meas_name: results}
             trial_results.append(
                 study.TrialResult(params=param_resolver,
-                                  repetitions=repetitions,
                                   measurements=res_dict))
         return trial_results
 

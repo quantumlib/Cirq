@@ -16,7 +16,6 @@ from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
 from cirq import DensityMatrixSimulator, Qid, Moment
 
-
 gate_dict = {'X': ops.X, 'Y': ops.Y, 'MS': ops.XX}
 
 
@@ -46,10 +45,10 @@ class AQTNoiseModel(devices.NoiseModel):
         self.single_qubit_p = single_qubit_p
         self.ms_p = ms_p
 
-    def noisy_moment(self, moment: 'Moment',
-                     system_qubits: Sequence['Qid']):
+    def noisy_moment(self, moment: 'Moment', system_qubits: Sequence['Qid']):
         noise_list = []
-        #TODO: check whether this works with multiple operations in a single moment.
+        #TODO: check whether this works with multiple
+        # operations in a single moment.
         for op in moment.operations:
             op_str = get_op_string(op)
             if op_str in ['X', 'Y']:
