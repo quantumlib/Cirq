@@ -278,7 +278,11 @@ class QasmParser:
                           num_params=0,
                           num_args=1,
                           cirq_gate=ops.T**-1),
-        **basic_gates
+    }
+
+    all_gates = {
+        **basic_gates,
+        **qelib_gates
     }
 
     tokens = QasmLexer.tokens
@@ -375,7 +379,7 @@ class QasmParser:
 
     def _resolve_gate_operation(self, args: List[List[ops.Qid]], gate: str,
                                 p: Any, params: List[float]):
-        gate_set = (self.basic_gates if not self.qelibinc else self.qelib_gates)
+        gate_set = (self.basic_gates if not self.qelibinc else self.all_gates)
         if gate not in gate_set.keys():
             msg = 'Unknown gate "{}" at line {}{}'.format(
                 gate, p.lineno(1), ", did you forget to include qelib1.inc?"
