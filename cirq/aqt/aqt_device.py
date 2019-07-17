@@ -41,6 +41,7 @@ def get_op_string(op_obj: ops.Operation):
 
 
 class AQTNoiseModel(devices.NoiseModel):
+
     def __init__(self, single_qubit_p=0.01, ms_p=0.03):
         self.single_qubit_p = single_qubit_p
         self.ms_p = ms_p
