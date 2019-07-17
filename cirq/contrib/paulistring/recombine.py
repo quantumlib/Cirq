@@ -86,10 +86,10 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
             # the Clifford circuit
             best_string_op, best_index, best_node = placements.pop()
 
-            assert (best_index <= last_index,
-                    "Unexpected insertion index order,"
-                    " {} >= {}, len: {}".format(best_index, last_index,
-                                                len(output_ops)))
+            assert best_index <= last_index, (
+                "Unexpected insertion index order,"
+                " {} >= {}, len: {}".format(best_index, last_index,
+                                            len(output_ops)))
 
             last_index = best_index
             output_ops.insert(best_index, best_string_op)
