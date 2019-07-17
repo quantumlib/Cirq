@@ -19,7 +19,7 @@ from typing import (
     Optional, Tuple, Union, IO, Any, cast, TYPE_CHECKING, NamedTuple,
 )
 
-import collections
+from collections.abc import AsyncIterable
 
 CommandOutput = NamedTuple(
     "CommandOutput",
@@ -69,9 +69,9 @@ class TeeCapture:
         self.out_pipe = out_pipe
 
 
-async def _async_forward(async_chunks: collections.AsyncIterable,
+async def _async_forward(async_chunks: AsyncIterable,
                          out: Optional[Union[TeeCapture, IO[str]]]
-                         ) -> Optional[str]:
+                        ) -> Optional[str]:
     """Prints/captures output from the given asynchronous iterable.
 
     Args:
