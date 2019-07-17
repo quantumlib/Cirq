@@ -28,7 +28,7 @@ from cirq.testing.consistent_qasm import (
 from cirq.testing.consistent_pauli_expansion import (
         assert_pauli_expansion_is_consistent_with_unitary)
 from cirq.testing.consistent_specified_has_unitary import (
-        assert_specifies_has_unitary_if_unitary,)
+    assert_specifies_has_unitary_if_unitary,)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
