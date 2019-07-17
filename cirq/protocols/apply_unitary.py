@@ -537,8 +537,7 @@ def _incorporate_result_into_target(args: 'ApplyUnitaryArgs',
                                            sub_result)
 
 
-def _incorporate_result_into_buffer(target: np.ndarray,
-                                    other: np.ndarray,
+def _incorporate_result_into_buffer(target: np.ndarray, other: np.ndarray,
                                     sub_target: np.ndarray,
                                     sub_other: np.ndarray,
                                     sub_result: np.ndarray) -> np.ndarray:

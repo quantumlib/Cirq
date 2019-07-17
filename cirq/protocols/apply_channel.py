@@ -20,8 +20,8 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.apply_unitary import (
-    apply_unitary, ApplyUnitaryArgs, _incorporate_result_into_buffer)
+from cirq.protocols.apply_unitary import (apply_unitary, ApplyUnitaryArgs,
+                                          _incorporate_result_into_buffer)
 from cirq.protocols.channel import channel
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
@@ -193,18 +193,19 @@ class ApplyChannelArgs:
         ordered_axes = (*other_axes, *sub_left_axes, *sub_right_axes)
         # Transpose sub_left_axes+sub_right_axes to the end of the shape and
         # slice them.
-        target_tensor = self.target_tensor.transpose(*ordered_axes)[(
-            ..., *slices, *slices)]
-        out_buffer = self.out_buffer.transpose(*ordered_axes)[(
-            ..., *slices, *slices)]
-        aux0 = self.auxiliary_buffer0.transpose(*ordered_axes)[(
-            ..., *slices, *slices)]
-        aux1 = self.auxiliary_buffer1.transpose(*ordered_axes)[(
-            ..., *slices, *slices)]
+        target_tensor = self.target_tensor.transpose(*ordered_axes)[(...,
+                                                                     *slices,
+                                                                     *slices)]
+        out_buffer = self.out_buffer.transpose(*ordered_axes)[(..., *slices,
+                                                               *slices)]
+        aux0 = self.auxiliary_buffer0.transpose(*ordered_axes)[(..., *slices,
+                                                                *slices)]
+        aux1 = self.auxiliary_buffer1.transpose(*ordered_axes)[(..., *slices,
+                                                                *slices)]
         new_left_axes = range(len(other_axes),
-                              len(other_axes)+len(sub_left_axes))
-        new_right_axes = range(len(other_axes)+len(sub_left_axes),
-                               len(ordered_axes))
+                              len(other_axes) + len(sub_left_axes))
+        new_right_axes = range(
+            len(other_axes) + len(sub_left_axes), len(ordered_axes))
         return ApplyChannelArgs(target_tensor, out_buffer, aux0, aux1,
                                 new_left_axes, new_right_axes)
 
@@ -326,25 +327,24 @@ def apply_channel(val: Any,
             "NotImplemented).".format(type(val)))
 
 
-def _strat_apply_channel_from_apply_channel(val: Any,
-                                            args: ApplyChannelArgs
+def _strat_apply_channel_from_apply_channel(val: Any, args: ApplyChannelArgs
                                            ) -> Optional[np.ndarray]:
     func = getattr(val, '_apply_channel_', None)
     if func is None:
         return NotImplemented
-    op_qid_shape = qid_shape_protocol.qid_shape(val,
-                                                (2,) * len(args.left_axes))
+    op_qid_shape = qid_shape_protocol.qid_shape(val, (2,) * len(args.left_axes))
     sub_args = args._for_channel_with_qid_shape(range(len(op_qid_shape)),
                                                 op_qid_shape)
     sub_result = func(sub_args)
     if sub_result is NotImplemented or sub_result is None:
         return sub_result
+
     def err_str(buf_num_str):
-        return (
-            "Object of type '{}' returned a result object equal to "
-            "auxiliary_buffer{}. This type violates the contract "
-            "that appears in apply_channel's documentation.".format(
-                type(val), buf_num_str))
+        return ("Object of type '{}' returned a result object equal to "
+                "auxiliary_buffer{}. This type violates the contract "
+                "that appears in apply_channel's documentation.".format(
+                    type(val), buf_num_str))
+
     assert sub_result is not sub_args.auxiliary_buffer0, err_str('0')
     assert sub_result is not sub_args.auxiliary_buffer1, err_str('1')
     return _incorporate_result_into_target(args, sub_args, sub_result)
@@ -453,8 +453,6 @@ def _incorporate_result_into_target(args: 'ApplyChannelArgs',
     Returns: The full result tensor after applying the channel.  Either
         `args.target_tensor` or `args.out_buffer`.
     """
-    return _incorporate_result_into_buffer(args.target_tensor,
-                                           args.out_buffer,
+    return _incorporate_result_into_buffer(args.target_tensor, args.out_buffer,
                                            sub_args.target_tensor,
-                                           sub_args.out_buffer,
-                                           sub_result)
+                                           sub_args.out_buffer, sub_result)

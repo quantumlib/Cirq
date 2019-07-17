@@ -95,20 +95,21 @@ def test_apply_channel_inline():
 
 
 def test_apply_channel_not_implemented():
+
     class NotImplementedChannel():
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
             return NotImplemented
 
-    result = cirq.apply_channel(
-            NotImplementedChannel(),
-            args=cirq.ApplyChannelArgs(target_tensor=np.zeros(()),
-                                       left_axes=[],
-                                       right_axes=[],
-                                       out_buffer=np.zeros(()),
-                                       auxiliary_buffer0=np.zeros(()),
-                                       auxiliary_buffer1=np.zeros(())),
-            default=None)
+    result = cirq.apply_channel(NotImplementedChannel(),
+                                args=cirq.ApplyChannelArgs(
+                                    target_tensor=np.zeros(()),
+                                    left_axes=[],
+                                    right_axes=[],
+                                    out_buffer=np.zeros(()),
+                                    auxiliary_buffer0=np.zeros(()),
+                                    auxiliary_buffer1=np.zeros(())),
+                                default=None)
     assert result is None
 
 
@@ -330,4 +331,3 @@ def test_assign_args_properties():
         args.auxiliary_buffer0 = np.zeros(())
     with pytest.raises(AttributeError, match="can't set attribute"):
         args.auxiliary_buffer1 = np.zeros(())
-
