@@ -77,13 +77,15 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
                        - set(before for before, _ in string_dag.edges()))
 
     while rightmost_nodes:
-        # Pick the Pauli string that can be moved furthest through the Clifford
-        # circuit
+        # Sort the pauli string placements based on paulistring length and
+        # furthest possible distance in circuit_right
         placements = _sorted_best_string_placements(rightmost_nodes, output_ops)
         last_index = len(output_ops)
         while placements:
+            # Pick the Pauli string that can be moved furthest through
+            # the Clifford circuit
             best_string_op, best_index, best_node = placements.pop()
-            # Place the best one into the output circuit
+
             assert (best_index <= last_index,
                     "Unexpected insertion index order,"
                     " {} >= {}, len: {}".format(best_index, last_index,
