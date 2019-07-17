@@ -23,6 +23,8 @@ from typing import (
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq import linalg
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -153,30 +155,26 @@ def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
 def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _apply_unitary_ method."""
     from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-    from cirq import ops
 
     # Check for the magic method.
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
         return NotImplemented
 
-    # Infer number of qubits.
-    if isinstance(val, ops.Gate):
-        n = val.num_qubits()
-    elif isinstance(val, ops.Operation):
-        n = len(val.qubits)
-    else:
+    # Get the qid_shape.
+    val_qid_shape = qid_shape_protocol.qid_shape(val, None)
+    if val_qid_shape is None:
         return NotImplemented
 
     # Apply unitary effect to an identity matrix.
-    state = np.eye(1 << n, dtype=np.complex128)
-    state.shape = (2,) * (2 * n)
+    state = linalg.eye_tensor(val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
-    result = method(ApplyUnitaryArgs(state, buffer, range(n)))
+    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
 
     if result is NotImplemented or result is None:
         return result
-    return result.reshape((1 << n, 1 << n))
+    state_len = np.prod(val_qid_shape, dtype=int)
+    return result.reshape((state_len, state_len))
 
 
 def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
@@ -186,19 +184,20 @@ def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     # Check if there's a decomposition.
     from cirq.protocols.has_unitary import (
         _try_decompose_into_operations_and_qubits)
-    operations, qubits = _try_decompose_into_operations_and_qubits(val)
+    operations, qubits, val_qid_shape = (
+        _try_decompose_into_operations_and_qubits(val))
     if operations is None:
         return NotImplemented
 
     # Apply sub-operations' unitary effects to an identity matrix.
-    n = len(qubits)
-    state = np.eye(1 << n, dtype=np.complex128)
-    state.shape = (2,) * (2 * n)
+    state = linalg.eye_tensor(val_qid_shape, dtype=np.complex128)
     buffer = np.empty_like(state)
-    result = apply_unitaries(operations, qubits,
-                             ApplyUnitaryArgs(state, buffer, range(n)), None)
+    result = apply_unitaries(
+        operations, qubits,
+        ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None)
 
     # Package result.
     if result is None:
         return None
-    return result.reshape((1 << n, 1 << n))
+    state_len = np.prod(val_qid_shape, dtype=int)
+    return result.reshape((state_len, state_len))
