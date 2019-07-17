@@ -80,10 +80,10 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
     while rightmost_nodes:
         # Pick the Pauli string that can be moved furthest through the Clifford
         # circuit
-        frontier = _sorted_best_string_placements(rightmost_nodes, output_ops)
+        placements = _sorted_best_string_placements(rightmost_nodes, output_ops)
         last_index = len(output_ops)
-        while frontier:
-            best_string_op, best_index, best_node = frontier.pop()
+        while placements:
+            best_string_op, best_index, best_node = placements.pop()
             # Place the best one into the output circuit
             assert best_index <= last_index, "{} >= {}, len: {}".format(
                 best_index, last_index, len(output_ops))
