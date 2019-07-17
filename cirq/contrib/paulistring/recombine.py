@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Callable, Iterable, Sequence, Tuple, Union,
-                    cast, List)
+from typing import (Any, Callable, Iterable, Sequence, Tuple, Union, cast, List)
 
 from cirq import ops, circuits
 
@@ -85,8 +84,10 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
         while placements:
             best_string_op, best_index, best_node = placements.pop()
             # Place the best one into the output circuit
-            assert best_index <= last_index, "{} >= {}, len: {}".format(
-                best_index, last_index, len(output_ops))
+            assert (best_index <= last_index,
+                    "Unexpected insertion index order,"
+                    " {} >= {}, len: {}".format(best_index, last_index,
+                                                len(output_ops)))
 
             last_index = best_index
             output_ops.insert(best_index, best_string_op)
