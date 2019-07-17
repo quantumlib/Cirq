@@ -18,7 +18,7 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
 
-from cirq import value
+from cirq import value, protocols
 from cirq.protocols import decompose, inverse, qid_shape_protocol
 
 if TYPE_CHECKING:
@@ -326,6 +326,14 @@ class _InverseCompositeGate(Gate):
     def _decompose_(self, qubits):
         return inverse.inverse(decompose.decompose_once_with_qubits(
             self._original, qubits))
+
+    def _has_unitary_(self):
+        from cirq import line
+        qubits = line.LineQubit.range(self._num_qubits_())
+        return all(
+            protocols.has_unitary(e)
+            for e in decompose.decompose_once_with_qubits(
+                self._original, qubits))
 
     def _value_equality_values_(self):
         return self._original

@@ -599,11 +599,14 @@ class IdentityGate(raw_types.Gate):
     def num_qubits(self) -> int:
         return self._num_qubits
 
+    def _has_unitary_(self):
+        return True
+
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
 
     def _apply_unitary_(
-        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+            self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:

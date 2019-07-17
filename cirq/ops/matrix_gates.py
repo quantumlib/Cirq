@@ -150,6 +150,9 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
             return NotImplemented
         return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
 
+    def _has_unitary_(self):
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)
 

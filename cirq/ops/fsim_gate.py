@@ -66,6 +66,9 @@ class FSimGate(gate_features.TwoQubitGate,
         return cirq.is_parameterized(self.theta) or cirq.is_parameterized(
             self.phi)
 
+    def _has_unitary_(self):
+        return not self._is_parameterized_()
+
     def _unitary_(self) -> Optional[np.ndarray]:
         if cirq.is_parameterized(self):
             return None

@@ -33,6 +33,9 @@ class GoodGate(cirq.SingleQubitGate):
         self.phase_exponent = cirq.canonicalize_half_turns(phase_exponent)
         self.exponent = exponent
 
+    def _has_unitary_(self):
+        return not cirq.is_parameterized(self)
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if cirq.is_parameterized(self):
             return NotImplemented
