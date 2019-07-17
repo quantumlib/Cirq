@@ -16,6 +16,7 @@
 from typing import List, Tuple, Type, Union
 
 import numpy as np
+from scipy.stats import entropy
 
 from cirq import linalg
 from cirq.sim import wave_function
@@ -266,7 +267,7 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     Returns:
         The calculated von Neumann entropy.
     """
+    import math
     eigenvalues = np.linalg.eigvals(density_matrix)
-    if 0 in eigenvalues:
-        return 0
-    return abs(np.sum(eigenvalues * np.log2(eigenvalues)))
+    print(abs(eigenvalues))
+    return entropy(abs(eigenvalues), base=2)
