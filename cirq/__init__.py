@@ -61,6 +61,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    eye_tensor,
     is_diagonal,
     is_hermitian,
     is_orthogonal,
@@ -70,6 +71,7 @@ from cirq.linalg import (
     kak_canonicalize_vector,
     kak_decomposition,
     KakDecomposition,
+    subwavefunction,
     kron,
     kron_bases,
     kron_factor_4x4_to_2x2s,
@@ -85,6 +87,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    wavefunction_partial_trace_as_mixture,
 )
 
 from cirq.line import (
@@ -125,6 +128,7 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    GlobalPhaseOperation,
     H,
     HPowGate,
     I,
@@ -134,11 +138,13 @@ from cirq.ops import (
     ISwapPowGate,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    max_qid_shape,
     measure,
     measure_each,
     MeasurementGate,
     Moment,
     NamedQubit,
+    op_gate_isinstance,
     op_gate_of_type,
     OP_TREE,
     Operation,
@@ -150,6 +156,8 @@ from cirq.ops import (
     PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
+    PauliSum,
+    PauliSumLike,
     PauliTransform,
     phase_damp,
     phase_flip,
@@ -230,7 +238,6 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
-    Sampler,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -263,6 +270,12 @@ from cirq.study import (
 )
 
 from cirq.value import (
+    ABCMetaImplementAnyOneOf,
+    alternative,
+    big_endian_bits_to_int,
+    big_endian_digits_to_int,
+    big_endian_int_to_bits,
+    big_endian_int_to_digits,
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
@@ -302,19 +315,23 @@ from cirq.protocols import (
     mixture,
     mixture_channel,
     mul,
+    num_qubits,
     pauli_expansion,
     phase_by,
     pow,
     qasm,
     QasmArgs,
+    qid_shape,
     resolve_parameters,
     SupportsApplyChannel,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitQidShape,
+    SupportsExplicitNumQubits,
     SupportsMixture,
     SupportsParameterization,
     SupportsPhase,
@@ -340,6 +357,14 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.work import (
+    CircuitSampleJob,
+    PauliSumCollector,
+    Sampler,
+    Collector,
+)
+
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.

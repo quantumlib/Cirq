@@ -28,6 +28,7 @@ from cirq.testing.circuit_compare import (
     assert_has_diagram,
     assert_same_circuits,
     highlight_text_differences,
+    assert_has_consistent_qid_shape,
 )
 
 from cirq.testing.consistent_phase_by import (

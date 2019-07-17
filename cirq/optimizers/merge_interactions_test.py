@@ -48,9 +48,9 @@ def assert_optimization_not_broken(circuit):
     """Check that the unitary matrix for the input circuit is the same (up to
     global phase and rounding error) as the unitary matrix of the optimized
     circuit."""
-    u_before = circuit.to_unitary_matrix()
+    u_before = circuit.unitary()
     cirq.MergeInteractions().optimize_circuit(circuit)
-    u_after = circuit.to_unitary_matrix()
+    u_after = circuit.unitary()
 
     cirq.testing.assert_allclose_up_to_global_phase(
         u_before, u_after, atol=1e-8)
@@ -213,7 +213,7 @@ def test_post_clean_up():
     assert isinstance(circuit[0].operations[0].gate, Marker)
     assert isinstance(circuit[-1].operations[0].gate, Marker)
 
-    u_before = c_orig.to_unitary_matrix()
-    u_after = circuit[1:-1].to_unitary_matrix()
+    u_before = c_orig.unitary()
+    u_after = circuit[1:-1].unitary()
     cirq.testing.assert_allclose_up_to_global_phase(
         u_before, u_after, atol=1e-8)

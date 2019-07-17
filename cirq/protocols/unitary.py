@@ -12,11 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    TypeVar,
+    Union,
+    Optional,
+)
 
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq import linalg
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -78,133 +86,118 @@ def unitary(val: Any,
             ) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
+    The matrix is determined by any one of the following techniques:
+
+    - The value has a `_unitary_` method that returns something besides None or
+        NotImplemented. The matrix is whatever the method returned.
+    - The value has a `_decompose_` method that returns a list of operations,
+        and each operation in the list has a unitary effect. The matrix is
+        created by aggregating the sub-operations' unitary effects.
+    - The value has an `_apply_unitary_` method, and it returns something
+        besides None or NotImplemented. The matrix is created by applying
+        `_apply_unitary_` to an identity matrix.
+
+    If none of these techniques succeeds, it is assumed that `val` doesn't have
+    a unitary effect. The order in which techniques are attempted is
+    unspecified.
+
     Args:
         val: The value to describe with a unitary matrix.
         default: Determines the fallback behavior when `val` doesn't have
-            a unitary matrix. If `default` is not set, a TypeError is raised. If
-            default is set to a value, that value is returned.
+            a unitary effect. If `default` is not set, a TypeError is raised. If
+            `default` is set to a value, that value is returned.
 
     Returns:
-        If `val` has a _unitary_ method and its result is not NotImplemented,
-        that result is returned. Otherwise, if `val` is a cirq.Gate or
-        cirq.Operation, decomposition will be attempted and the resulting
-        unitary is returned if unitaries exist for all operations of the
-        decompostion. If the result is still NotImplemented and a default value
-        was specified, the default value is returned.
+        If `val` has a unitary effect, the corresponding unitary matrix.
+        Otherwise, if `default` is specified, it is returned.
 
     Raises:
-        TypeError: `val` doesn't have a _unitary_ method (or that method
-            returned NotImplemented) and also no default value was specified.
+        TypeError: `val` doesn't have a unitary effect and no default value was
+            specified.
     """
-    from cirq import Gate, Operation  # HACK: Avoids circular dependencies.
-
-    getter = getattr(val, '_unitary_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
-        return result
-
-    # Fallback to decomposition for gates and operations
-    if isinstance(val, (Gate, Operation)):
-        decomposed_unitary = _decompose_and_get_unitary(val)
-        if decomposed_unitary is not None:
-            return decomposed_unitary
+    strats = [
+        _strat_unitary_from_unitary, _strat_unitary_from_apply_unitary,
+        _strat_unitary_from_decompose
+    ]
+    for strat in strats:
+        result = strat(val)
+        if result is None:
+            break
+        if result is not NotImplemented:
+            return result
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
+    raise TypeError(
+        "cirq.unitary failed. "
+        "Value doesn't have a (non-parameterized) unitary effect.\n"
+        "\n"
+        "type: {}\n"
+        "value: {!r}\n"
+        "\n"
+        "The value failed to satisfy any of the following criteria:\n"
+        "- A `_unitary_(self)` method that returned a value "
+        "besides None or NotImplemented.\n"
+        "- A `_decompose_(self)` method that returned a "
+        "list of unitary operations.\n"
+        "- An `_apply_unitary_(self, args) method that returned a value "
+        "besides None or NotImplemented.".format(type(val), val))
 
+
+def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
+    """Attempts to compute a value's unitary via its _unitary_ method."""
+    getter = getattr(val, '_unitary_', None)
     if getter is None:
-        raise TypeError("object of type '{}' "
-                        "has no _unitary_ method.".format(type(val)))
-    raise TypeError("object of type '{}' does have a _unitary_ method, "
-                    "but it returned NotImplemented.".format(type(val)))
+        return NotImplemented
+    return getter()
 
 
-def has_unitary(val: Any) -> bool:
-    """Returns whether the value has a unitary matrix representation.
+def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
+    """Attempts to compute a value's unitary via its _apply_unitary_ method."""
+    from cirq.protocols.apply_unitary import ApplyUnitaryArgs
 
-    Returns:
-        If `val` has a _has_unitary_ method and its result is not
-        NotImplemented, that result is returned. Otherwise, if `val` is a
-        cirq.Gate or cirq.Operation, a decomposition is attempted and the
-        resulting unitary is returned if has_unitary is True for all operations
-        of the decompostion. Otherwise, if the value has a _unitary_ method
-        return if that has a non-default value. Returns False if neither
-        function exists.
-    """
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
-    # HACK: Avoids circular dependencies.
-    from cirq import Gate, Operation, LineQubit
+    # Check for the magic method.
+    method = getattr(val, '_apply_unitary_', None)
+    if method is None:
+        return NotImplemented
 
-    getter = getattr(val, '_has_unitary_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
+    # Get the qid_shape.
+    val_qid_shape = qid_shape_protocol.qid_shape(val, None)
+    if val_qid_shape is None:
+        return NotImplemented
+
+    # Apply unitary effect to an identity matrix.
+    state = linalg.eye_tensor(val_qid_shape, dtype=np.complex128)
+    buffer = np.empty_like(state)
+    result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
+
+    if result is NotImplemented or result is None:
         return result
-
-    # Fallback to explicit _unitary_
-    unitary_getter = getattr(val, '_unitary_', None)
-    if unitary_getter is not None and unitary_getter() is not NotImplemented:
-        return True
-
-    # Fallback to decomposition for gates and operations
-    if isinstance(val, Gate):
-        # Since gates don't know about qubits, we need to create some
-        decomposed_val = decompose_once_with_qubits(val,
-            LineQubit.range(val.num_qubits()),
-            default=None)
-        if decomposed_val is not None:
-            return all(has_unitary(v) for v in decomposed_val)
-    elif isinstance(val, Operation):
-        decomposed_val = decompose_once(val, default=None)
-        if decomposed_val is not None:
-            return all(has_unitary(v) for v in decomposed_val)
-
-    # Finally, fallback to full unitary method, including decomposition
-    return unitary(val, None) is not None
+    state_len = np.prod(val_qid_shape, dtype=int)
+    return result.reshape((state_len, state_len))
 
 
-def _decompose_and_get_unitary(val: Union['cirq.Operation', 'cirq.Gate']
-                               ) -> np.ndarray:
-    """Try to decompose a cirq.Operation or cirq.Gate, and return its unitary
-    if it exists.
+def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
+    """Attempts to compute a value's unitary via its _decompose_ method."""
+    from cirq.protocols.apply_unitary import ApplyUnitaryArgs, apply_unitaries
 
-    Returns:
-        If `val` can be decomposed into unitaries, calculate the resulting
-        unitary and return it. If it doesn't exist, None is returned.
-    """
-    from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
-    from cirq import Gate, LineQubit, Operation
+    # Check if there's a decomposition.
+    from cirq.protocols.has_unitary import (
+        _try_decompose_into_operations_and_qubits)
+    operations, qubits, val_qid_shape = (
+        _try_decompose_into_operations_and_qubits(val))
+    if operations is None:
+        return NotImplemented
 
-    if isinstance(val, Operation):
-        qubits = val.qubits
-        decomposed_val = decompose_once(val, default=None)
-    elif isinstance(val, Gate):
-        # Since gates don't know about qubits, we need to create some
-        qubits = tuple(LineQubit.range(val.num_qubits()))
-        decomposed_val = decompose_once_with_qubits(val,
-                                                    qubits,
-                                                    default=None)
+    # Apply sub-operations' unitary effects to an identity matrix.
+    state = linalg.eye_tensor(val_qid_shape, dtype=np.complex128)
+    buffer = np.empty_like(state)
+    result = apply_unitaries(
+        operations, qubits,
+        ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))), None)
 
-    if decomposed_val is not None:
-        # Calculate the resulting unitary (if it exists)
-        n = len(qubits)
-        state = np.eye(1 << n, dtype=np.complex128)
-        state.shape = (2,) * (2 * n)
-        buffer = np.zeros(state.shape, dtype=np.complex128)
-        qubit_map = {q: i for i, q in enumerate(qubits)}
-        result = state
-        for op in decomposed_val:
-            indices = [qubit_map[q] for q in op.qubits]
-            result = apply_unitary(
-                unitary_value=op,
-                args=ApplyUnitaryArgs(state, buffer, indices),
-                default=None)
-            if result is None:
-                return None
-            if result is buffer:
-                buffer = state
-            state = result
-        if result is not None:
-            return result.reshape((1 << n, 1 << n))
+    # Package result.
+    if result is None:
+        return None
+    state_len = np.prod(val_qid_shape, dtype=int)
+    return result.reshape((state_len, state_len))

@@ -6,7 +6,7 @@ import sympy
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
-from cirq import circuits, devices, ops, protocols, sim, study
+from cirq import circuits, devices, ops, protocols, study, work
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
@@ -124,7 +124,7 @@ class TomographyResult:
         fig.show()
 
 
-def rabi_oscillations(sampler: sim.Sampler,
+def rabi_oscillations(sampler: work.Sampler,
                       qubit: devices.GridQubit,
                       max_angle: float = 2 * np.pi,
                       *,
@@ -163,7 +163,7 @@ def rabi_oscillations(sampler: sim.Sampler,
 
 
 def single_qubit_randomized_benchmarking(
-        sampler: sim.Sampler,
+        sampler: work.Sampler,
         qubit: devices.GridQubit,
         use_xy_basis: bool = True,
         *,
@@ -221,7 +221,7 @@ def single_qubit_randomized_benchmarking(
 
 
 def two_qubit_randomized_benchmarking(
-        sampler: sim.Sampler,
+        sampler: work.Sampler,
         first_qubit: devices.GridQubit,
         second_qubit: devices.GridQubit,
         *,
@@ -278,7 +278,7 @@ def two_qubit_randomized_benchmarking(
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def single_qubit_state_tomography(sampler: sim.Sampler,
+def single_qubit_state_tomography(sampler: work.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
                                   repetitions: int = 1000) -> TomographyResult:
@@ -324,7 +324,7 @@ def single_qubit_state_tomography(sampler: sim.Sampler,
     return TomographyResult(rho)
 
 
-def two_qubit_state_tomography(sampler: sim.Sampler,
+def two_qubit_state_tomography(sampler: work.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,

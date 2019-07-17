@@ -71,7 +71,7 @@ def simulate(sim_type: str,
                                  use_processes=use_processes)
         cg.XmonSimulator(options).run(circuit)
     elif sim_type == _UNITARY:
-        circuit.apply_unitary_effect_to_state(initial_state=0)
+        circuit.final_wavefunction(initial_state=0)
     elif sim_type == _DENSITY:
         cirq.DensityMatrixSimulator().run(circuit)
 

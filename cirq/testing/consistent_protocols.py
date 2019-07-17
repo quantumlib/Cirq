@@ -17,8 +17,8 @@ from typing import Any, Dict, Optional, Sequence, Type, Union
 import sympy
 
 from cirq import ops, protocols
-from cirq.testing.circuit_compare import (
-        assert_has_consistent_apply_unitary)
+from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
+                                          assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
         assert_decompose_is_consistent_with_unitary)
 from cirq.testing.consistent_phase_by import (
@@ -102,6 +102,7 @@ def _assert_meets_standards_helper(
         global_vals: Optional[Dict[str, Any]],
         local_vals: Optional[Dict[str, Any]]) -> None:
     assert_specifies_has_unitary_if_unitary(val)
+    assert_has_consistent_qid_shape(val, qubit_count=qubit_count)
     assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
     assert_qasm_is_consistent_with_unitary(val)
     assert_decompose_is_consistent_with_unitary(val,

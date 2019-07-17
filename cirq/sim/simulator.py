@@ -25,18 +25,25 @@ Simulator types include:
 """
 
 from typing import (
-    Any, Dict, Hashable, Iterator, List, Tuple, Union, Optional)
+    Any,
+    Dict,
+    Hashable,
+    Iterator,
+    List,
+    Tuple,
+    Union,
+    Optional,
+)
 
 import abc
 import collections
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, schedules, study, value
-from cirq.sim import sampler
+from cirq import circuits, ops, protocols, schedules, study, value, work
 
 
-class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
+class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
     Implementors of this interface should implement the _run method.
@@ -73,9 +80,9 @@ class SimulatesSamples(sampler.Sampler, metaclass=abc.ABCMeta):
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
-            trial_results.append(study.TrialResult(params=param_resolver,
-                                                   repetitions=repetitions,
-                                                   measurements=measurements))
+            trial_results.append(
+                study.TrialResult.from_single_parameter_set(
+                    params=param_resolver, measurements=measurements))
         return trial_results
 
     @abc.abstractmethod
