@@ -899,9 +899,7 @@ def pick_head_pr(active_prs: List[PullRequestDetails]
             return pr
 
     promoted = max(active_prs, key=merge_desirability)
-    log('Front of queue: PR#{} ({!r})'.format(
-        promoted.pull_id,
-        promoted.title))
+    log('Front of queue: PR#{} ({!r})'.format(promoted.pull_id, promoted.title))
     add_labels_to_pr(promoted.repo, promoted.pull_id, HEAD_AUTO_MERGE_LABEL)
     return promoted
 
