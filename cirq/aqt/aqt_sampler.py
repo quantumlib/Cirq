@@ -2,17 +2,17 @@
 import json
 import time
 import uuid
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Tuple, cast
 
 import numpy as np
 from requests import put
-from cirq import circuits, schedules, study, Sampler, ops, resolve_parameters
+from cirq import circuits, schedules, Sampler, resolve_parameters, LineQubit
 from cirq.study.sweeps import Sweep
 from cirq.aqt.aqt_device import AQTSimulator, get_op_string
+from cirq import study, ops
 
 Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
                   Iterable[Sweep]]
-
 
 
 class AQTSampler(Sampler):
@@ -33,7 +33,7 @@ class AQTSampler(Sampler):
     def _generate_json(
             self,
             circuit: circuits.Circuit,
-            param_resolver: Sweepable,
+            param_resolver: study.ParamResolverOrSimilarType,
     ) -> str:
         """
         Args:
@@ -54,14 +54,16 @@ class AQTSampler(Sampler):
         qubits: list of qubits where the operation acts on.
         """
 
-        #seq_list: List[Tuple[str, float, List[int]]] = []
-        seq_list = []
-        circuit = resolve_parameters(circuit, param_resolver)  # type: ignore
+        seq_list: List[Tuple[str, float, List[int]]] = []
+        circuit = resolve_parameters(circuit, param_resolver)
         # TODO: Check if circuit is empty
         for op in circuit.all_operations():
-            qubits = [obj.x for obj in op.qubits]  # type: ignore
-            op_str = get_op_string(op.gate)  # type: ignore
-            seq_list.append((op_str, op.gate.exponent, qubits))  # type: ignore
+            line_qubit = cast(Tuple[LineQubit], op.qubits)
+            op = cast(ops.GateOperation, op)
+            qubit_idx = [obj.x for obj in line_qubit]
+            op_str = get_op_string(op)
+            gate = cast(ops.EigenGate,op.gate)
+            seq_list.append((op_str, gate.exponent, qubit_idx))
         json_str = json.dumps(seq_list)
         return json_str
 
@@ -91,7 +93,6 @@ class AQTSampler(Sampler):
         The experimental data is returned via the key 'data'
         """
         while True:
-            time.sleep(1.0)
             data = put(self.remote_host,
                        data={
                            'data': json_str,
@@ -102,6 +103,7 @@ class AQTSampler(Sampler):
                        }).json()
             if data['status'] == 'finished':
                 break
+            time.sleep(1.0)
         measurements_int = data['samples']
         measurements = np.zeros((len(measurements_int), num_qubits))
         for i, result_int in enumerate(measurements_int):
