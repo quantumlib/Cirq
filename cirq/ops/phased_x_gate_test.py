@@ -40,7 +40,7 @@ def test_phased_x_consistent_protocols(phase_exponent):
     )
 
 
-def test_new_init():
+def test_init():
     g = cirq.PhasedXPowGate(phase_exponent=0.75,
                             exponent=0.25,
                             global_shift=0.1)
@@ -48,20 +48,17 @@ def test_new_init():
     assert g.exponent == 0.25
     assert g._global_shift == 0.1
 
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=0), cirq.XPowGate)
-    assert isinstance(cirq.PhasedXPowGate(phase_exponent=0.5), cirq.YPowGate)
-
     x = cirq.PhasedXPowGate(phase_exponent=0,
                             exponent=0.1,
                             global_shift=0.2)
-    assert isinstance(x, cirq.XPowGate)
+    assert x.phase_exponent == 0
     assert x.exponent == 0.1
     assert x._global_shift == 0.2
 
     y = cirq.PhasedXPowGate(phase_exponent=0.5,
                             exponent=0.1,
                             global_shift=0.2)
-    assert isinstance(y, cirq.YPowGate)
+    assert y.phase_exponent == 0.5
     assert y.exponent == 0.1
     assert y._global_shift == 0.2
 

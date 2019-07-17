@@ -139,7 +139,7 @@ def test_exponentiation_as_base():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliString({a: cirq.X, b: cirq.Y})
 
-    with pytest.raises(NotImplementedError, match='non-unitary'):
+    with pytest.raises(TypeError, match='unsupported'):
         _ = (2 * p)**5
 
     with pytest.raises(TypeError, match='unsupported'):
@@ -370,6 +370,19 @@ def test_mul_scalar():
         _ = 'test' * p
 
 
+def test_div_scalar():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString({a: cirq.X, b: cirq.Y})
+    assert -p == p / -1 == p / -1.0 == p / (-1 + 0j)
+    assert -p != p / 1j
+    assert +p == p / 1
+    assert p * 2 == p / 0.5
+    with pytest.raises(TypeError):
+        _ = p / 'test'
+    with pytest.raises(TypeError):
+        _ = 'test' / p
+
+
 def test_mul_strings():
     a, b, c, d = cirq.LineQubit.range(4)
     p1 = cirq.PauliString({a: cirq.X, b: cirq.Y, c: cirq.Z})
@@ -488,7 +501,7 @@ def test_to_z_basis_ops():
                     pauli_string.to_z_basis_ops())
 
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1)
-    z_basis_state = circuit.apply_unitary_effect_to_state(initial_state)
+    z_basis_state = circuit.final_wavefunction(initial_state)
 
     expected_state = np.zeros(2 ** 6)
     expected_state[0b010101] = 1
@@ -618,7 +631,53 @@ def test_with_qubits():
     assert new_pauli_string.coefficient == -1
 
 
+@pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
+def test_consistency(qubit_pauli_map):
+    pauli_string = cirq.PauliString(qubit_pauli_map)
+    cirq.testing.assert_implements_consistent_protocols(pauli_string)
+
+
+def test_scaled_unitary_consistency():
+    a, b = cirq.LineQubit.range(2)
+    cirq.testing.assert_implements_consistent_protocols(2 * cirq.X(a) *
+                                                        cirq.Y(b))
+    cirq.testing.assert_implements_consistent_protocols(1j * cirq.X(a) *
+                                                        cirq.Y(b))
+
+
 def test_bool():
     a = cirq.LineQubit(0)
     assert not bool(cirq.PauliString({}))
     assert bool(cirq.PauliString({a: cirq.X}))
+
+
+def test_unitary_matrix():
+    a, b = cirq.LineQubit.range(2)
+    assert not cirq.has_unitary(2 * cirq.X(a) * cirq.Z(b))
+    assert cirq.unitary(2 * cirq.X(a) * cirq.Z(b), default=None) is None
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.X(a) * cirq.Z(b)),
+        np.array([
+            [0, 0, 1, 0],
+            [0, 0, 0, -1],
+            [1, 0, 0, 0],
+            [0, -1, 0, 0],
+        ]))
+    np.testing.assert_allclose(
+        cirq.unitary(1j * cirq.X(a) * cirq.Z(b)),
+        np.array([
+            [0, 0, 1j, 0],
+            [0, 0, 0, -1j],
+            [1j, 0, 0, 0],
+            [0, -1j, 0, 0],
+        ]))
+
+
+def test_decompose():
+    a, b = cirq.LineQubit.range(2)
+    assert cirq.decompose_once(2 * cirq.X(a) * cirq.Z(b), default=None) is None
+    assert cirq.decompose_once(1j * cirq.X(a) * cirq.Z(b)) == [
+        cirq.GlobalPhaseOperation(1j),
+        cirq.X(a), cirq.Z(b)
+    ]
+    assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [cirq.Z(a), cirq.Y(b)]
