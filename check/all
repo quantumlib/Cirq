@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs multiple checks.
+#
+# The default set of checks most closely matches the tests run during
+# a continuous integration test, however these do not match perfectly
+# since those tests run on different architectures and environments.
+#
+# Defaults to the following tests:
+#   pylint
+#   mypy
+#   format-incremental
+#   pytest-and-incremental-coverage
+#   doctest
+#
+# Usage:
+#     check/all [--only-changed-files] [--apply-format]
+#
+# If --only-change-files is specified, pytest-changed-files will be run
+# instead of pytest-and-incremental-coverage.
+#
+# If --apply-format-changes is specified the --apply flag will be passed
+# to format-incremental to apply the format changes suggested by the
+# formatter.
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# Parse arguments.
+apply=0
+only_changed=0
+for arg in $@; do
+    if [[ "${arg}" == "--only-changed-files" ]]; then
+        only_change=1
+    elif [[ "${arg}" == "--apply-format-changes" ]]; then
+        apply=1
+    else
+        echo -e "\e[31mInvalid arguments. Expected [--only-change-files] [--apply-format].\e[0m" >&2
+        exit 1
+    fi
+done
+
+echo "Running pylint"
+check/pylint
+
+echo "Running mypy"
+check/mypy
+
+echo "Running incremental format"
+if [ -z "${apply}" ]; then
+    check/format-incremental --apply
+else
+    check/format-incremental
+fi
+
+if [ -z "${only_changed}" ]; then
+    echo "Running pytest on changed files"
+    check/pytest-changed-files
+else
+    echo "Running pytest and incremental coverage"
+    check/pytest-and-incremental-coverage
+fi
+
+echo "Running doctest"
+check/doctest
