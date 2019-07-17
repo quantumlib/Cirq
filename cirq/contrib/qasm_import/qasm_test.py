@@ -38,10 +38,10 @@ def test_consistency_with_qasm_output_and_qiskit():
         cirq.TOFFOLI.on(a, b, c),
         cirq.CSWAP.on(d, a, b),
         cirq.SWAP.on(c, d),
-        cirq.CX.on(a,b),
-        cirq.ControlledGate(cirq.Y).on(c,d),
-        cirq.CZ.on(a,b),
-        cirq.ControlledGate(cirq.H).on(b,c),
+        cirq.CX.on(a, b),
+        cirq.ControlledGate(cirq.Y).on(c, d),
+        cirq.CZ.on(a, b),
+        cirq.ControlledGate(cirq.H).on(b, c),
         cirq.IdentityGate(1).on(c),
         cirq.circuits.qasm_output.QasmUGate(1.0, 2.0, 3.0).on(d),
     )
@@ -52,7 +52,8 @@ def test_consistency_with_qasm_output_and_qiskit():
 
     cirq_unitary = cirq.unitary(circuit2)
     ct.assert_allclose_up_to_global_phase(cirq_unitary,
-                                          cirq.unitary(circuit1), atol=1e-8)
+                                          cirq.unitary(circuit1),
+                                          atol=1e-8)
 
     # coverage: ignore
     try:
@@ -62,28 +63,25 @@ def test_consistency_with_qasm_output_and_qiskit():
     except ImportError:
         return
 
-    result = qiskit.execute(
-        qiskit.load_qasm_string(qasm),
-        backend=qiskit.Aer.get_backend('unitary_simulator'))
+    result = qiskit.execute(qiskit.load_qasm_string(qasm),
+                            backend=qiskit.Aer.get_backend('unitary_simulator'))
     qiskit_unitary = result.result().get_unitary()
     qiskit_unitary = _reorder_indices_of_matrix(
-        qiskit_unitary,
-        list(reversed(range(len(qubits)))))
+        qiskit_unitary, list(reversed(range(len(qubits)))))
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq_unitary,
+                                                    qiskit_unitary,
+                                                    rtol=1e-8,
+                                                    atol=1e-8)
 
 
 def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
     num_qubits = matrix.shape[0].bit_length() - 1
     matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
-    all_indices = range(2*num_qubits)
+    all_indices = range(2 * num_qubits)
     new_input_indices = new_order
     new_output_indices = [i + num_qubits for i in new_input_indices]
-    matrix = np.moveaxis(
-            matrix,
-            all_indices,
-            new_input_indices + new_output_indices
-    )
+    matrix = np.moveaxis(matrix, all_indices,
+                         new_input_indices + new_output_indices)
     matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
     return matrix

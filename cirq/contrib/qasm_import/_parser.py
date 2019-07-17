@@ -280,10 +280,7 @@ class QasmParser:
                           cirq_gate=ops.T**-1),
     }
 
-    all_gates = {
-        **basic_gates,
-        **qelib_gates
-    }
+    all_gates = {**basic_gates, **qelib_gates}
 
     tokens = QasmLexer.tokens
     start = 'start'
