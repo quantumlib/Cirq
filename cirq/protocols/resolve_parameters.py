@@ -52,6 +52,8 @@ def is_parameterized(val: Any) -> bool:
     """
     if isinstance(val, sympy.Basic):
         return True
+    if isinstance(val, (list, tuple)):
+        return any(is_parameterized(e) for e in val)
 
     getter = getattr(val, '_is_parameterized_', None)
     result = NotImplemented if getter is None else getter()

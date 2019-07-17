@@ -63,6 +63,12 @@ def test_resolve_parameters():
     resolver = {a: x, b: y, c: z}
     assert cirq.resolve_parameters((a, b, c), resolver) == (x, y, z)
     assert cirq.resolve_parameters([a, b, c], resolver) == [x, y, z]
+    assert not cirq.is_parameterized((x, y))
+    assert not cirq.is_parameterized([x, y])
+    assert cirq.is_parameterized([a, b])
+    assert cirq.is_parameterized([a, x])
+    assert cirq.is_parameterized((a, b))
+    assert cirq.is_parameterized((a, x))
 
 
 def test_skips_empty_resolution():
