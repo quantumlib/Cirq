@@ -108,7 +108,7 @@ def channel(val: Any,
     Returns:
         If `val` has a `_channel_` method and its result is not NotImplemented,
         that result is returned. Otherwise, if `val` has a `_mixture_` method
-        and its results is not NotImplement a tuple made up of channel
+        and its results is not NotImplemented a tuple made up of channels
         corresponding to that mixture being a probabilistic mixture of unitaries
         is returned.  Otherwise, if `val` has a `_unitary_` method and
         its result is not NotImplemented a tuple made up of that result is

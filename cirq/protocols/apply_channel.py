@@ -20,8 +20,10 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
+from cirq.protocols.apply_unitary import (
+    apply_unitary, ApplyUnitaryArgs, _incorporate_result_into_buffer)
 from cirq.protocols.channel import channel
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -106,12 +108,105 @@ class ApplyChannelArgs:
             right_axes: Which axes to multiply the right action of the channel
                 upon.
         """
-        self.target_tensor = target_tensor
-        self.out_buffer = out_buffer
-        self.auxiliary_buffer0 = auxiliary_buffer0
-        self.auxiliary_buffer1 = auxiliary_buffer1
-        self.left_axes = tuple(left_axes)
-        self.right_axes = tuple(right_axes)
+        self._target_tensor = target_tensor
+        self._out_buffer = out_buffer
+        self._auxiliary_buffer0 = auxiliary_buffer0
+        self._auxiliary_buffer1 = auxiliary_buffer1
+        self._left_axes = tuple(left_axes)
+        self._right_axes = tuple(right_axes)
+
+    @property
+    def target_tensor(self) -> np.ndarray:
+        return self._target_tensor
+
+    @target_tensor.setter
+    def target_tensor(self, other):
+        if other is not self._target_tensor:
+            raise AttributeError("can't set attribute")
+
+    @property
+    def out_buffer(self) -> np.ndarray:
+        return self._out_buffer
+
+    @out_buffer.setter
+    def out_buffer(self, other):
+        if other is not self._out_buffer:
+            raise AttributeError("can't set attribute")
+
+    @property
+    def auxiliary_buffer0(self) -> np.ndarray:
+        return self._auxiliary_buffer0
+
+    @auxiliary_buffer0.setter
+    def auxiliary_buffer0(self, other):
+        if other is not self._auxiliary_buffer0:
+            raise AttributeError("can't set attribute")
+
+    @property
+    def auxiliary_buffer1(self) -> np.ndarray:
+        return self._auxiliary_buffer1
+
+    @auxiliary_buffer1.setter
+    def auxiliary_buffer1(self, other):
+        if other is not self._auxiliary_buffer1:
+            raise AttributeError("can't set attribute")
+
+    @property
+    def left_axes(self) -> np.ndarray:
+        return self._left_axes
+
+    @property
+    def right_axes(self) -> np.ndarray:
+        return self._right_axes
+
+    def _for_channel_with_qid_shape(self, indices: Iterable[int],
+                                    qid_shape: Tuple[int, ...]
+                                   ) -> 'ApplyChannelArgs':
+        """Creates a sliced and transposed view of `self` appropriate for a
+        channel with shape `qid_shape` on qubits with the given indices.
+
+        Example:
+            sub_args = args._for_channel_with_qid_shape(indices, (2, 2, 2))
+            # Slice where the first qubit is |1>.
+            #                           (left axes) (right axes)
+            sub_args.target_tensor[..., 1, :, :,    1, :, :     ]
+
+        Args:
+            indices: Integer indices into `self.left_axes` and `self.right_axes`
+                specifying which qubits the channel applies to.
+            qid_shape: The qid shape of the channel, the expected number of
+                quantum levels in each qubit the channel applies to.
+
+        Returns: A new `ApplyChannelArgs` where `sub_args.target_tensor` and
+            `sub_args.out_buffer` are sliced and transposed views of
+            `self.target_tensor` and `self.out_buffer` respectively.
+        """
+        slices = [slice(0, size) for size in qid_shape]
+        sub_left_axes = [self.left_axes[i] for i in indices]
+        sub_right_axes = [self.right_axes[i] for i in indices]
+        axis_set = set(sub_left_axes)
+        axis_set.update(sub_right_axes)
+        other_axes = [
+            axis for axis in range(len(self.target_tensor.shape))
+            if axis not in axis_set
+        ]
+        ordered_axes = (*other_axes, *sub_left_axes, *sub_right_axes)
+        # Transpose sub_left_axes+sub_right_axes to the end of the shape and
+        # slice them.
+        target_tensor = self.target_tensor.transpose(*ordered_axes)[(
+            ..., *slices, *slices)]
+        out_buffer = self.out_buffer.transpose(*ordered_axes)[(
+            ..., *slices, *slices)]
+        aux0 = self.auxiliary_buffer0.transpose(*ordered_axes)[(
+            ..., *slices, *slices)]
+        aux1 = self.auxiliary_buffer1.transpose(*ordered_axes)[(
+            ..., *slices, *slices)]
+        new_left_axes = range(len(other_axes),
+                              len(other_axes)+len(sub_left_axes))
+        new_right_axes = range(len(other_axes)+len(sub_left_axes),
+                               len(ordered_axes))
+        return ApplyChannelArgs(target_tensor, out_buffer, aux0, aux1,
+                                new_left_axes, new_right_axes)
 
 
 class SupportsApplyChannel(Protocol):
@@ -207,20 +302,10 @@ def apply_channel(val: Any,
         TypeError: `val` doesn't have a channel and `default` wasn't specified.
         AssertionError: if the
     """
-    # Check if the specialized method is present.
-    func = getattr(val, '_apply_channel_', None)
-    if func is not None:
-        result = func(args)
-        if result is not NotImplemented and result is not None:
-            def err_str(buf_num_str):
-                return (
-                    "Object of type '{}' returned a result object equal to "
-                    "auxiliary_buffer{}. This type violates the contract "
-                    "that appears in apply_unitary's documentation.".format(
-                        type(val), buf_num_str))
-            assert result is not args.auxiliary_buffer0, err_str('0')
-            assert result is not args.auxiliary_buffer1, err_str('1')
-            return result
+    # Possibly use specialized method `_apply_channel_`.
+    result = _strat_apply_channel_from_apply_channel(val, args)
+    if result is not None and result is not NotImplemented:
+        return result
 
     # Possibly use `apply_unitary`.
     result = _apply_unitary(val, args)
@@ -239,6 +324,30 @@ def apply_channel(val: Any,
             "object of type '{}' has no _apply_channel_, _apply_unitary_, "
             "_unitary_, or _channel_ methods (or they returned None or "
             "NotImplemented).".format(type(val)))
+
+
+def _strat_apply_channel_from_apply_channel(val: Any,
+                                            args: ApplyChannelArgs
+                                           ) -> Optional[np.ndarray]:
+    func = getattr(val, '_apply_channel_', None)
+    if func is None:
+        return NotImplemented
+    op_qid_shape = qid_shape_protocol.qid_shape(val,
+                                                (2,) * len(args.left_axes))
+    sub_args = args._for_channel_with_qid_shape(range(len(op_qid_shape)),
+                                                op_qid_shape)
+    sub_result = func(sub_args)
+    if sub_result is NotImplemented or sub_result is None:
+        return sub_result
+    def err_str(buf_num_str):
+        return (
+            "Object of type '{}' returned a result object equal to "
+            "auxiliary_buffer{}. This type violates the contract "
+            "that appears in apply_channel's documentation.".format(
+                type(val), buf_num_str))
+    assert sub_result is not sub_args.auxiliary_buffer0, err_str('0')
+    assert sub_result is not sub_args.auxiliary_buffer1, err_str('1')
+    return _incorporate_result_into_target(args, sub_args, sub_result)
 
 
 def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
@@ -324,3 +433,28 @@ def _apply_krauss_multi_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
                 out=args.target_tensor)
         args.out_buffer += args.target_tensor
     return args.out_buffer
+
+
+def _incorporate_result_into_target(args: 'ApplyChannelArgs',
+                                    sub_args: 'ApplyChannelArgs',
+                                    sub_result: np.ndarray):
+    """Takes the result of calling `_apply_channel_` on `sub_args` and
+    copies it back into `args.target_tensor` or `args.out_buffer` as
+    necessary to return the result of applying the channel to the full args.
+
+    Args:
+        args: The original args.
+        sub_args: A version of `args` with transposed and sliced views of
+            it's tensors.
+        sub_result: The result of calling an object's `_apply_channel_`
+            method on `sub_args`.  A transposed subspace of the desired
+            result.
+
+    Returns: The full result tensor after applying the channel.  Either
+        `args.target_tensor` or `args.out_buffer`.
+    """
+    return _incorporate_result_into_buffer(args.target_tensor,
+                                           args.out_buffer,
+                                           sub_args.target_tensor,
+                                           sub_args.out_buffer,
+                                           sub_result)
