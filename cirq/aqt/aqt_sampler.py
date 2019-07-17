@@ -155,8 +155,7 @@ class AQTSampler(Sampler):
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
-                study.TrialResult(params=param_resolver,
-                                  measurements=res_dict))
+                study.TrialResult(params=param_resolver, measurements=res_dict))
         return trial_results
 
     def run(self,

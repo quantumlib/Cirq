@@ -14,7 +14,7 @@ import json
 from typing import Union, Tuple, List, Sequence
 from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
-from cirq import DensityMatrixSimulator, Qid, Moment
+from cirq import DensityMatrixSimulator
 
 gate_dict = {'X': ops.X, 'Y': ops.Y, 'MS': ops.XX}
 
@@ -45,7 +45,7 @@ class AQTNoiseModel(devices.NoiseModel):
         self.single_qubit_p = single_qubit_p
         self.ms_p = ms_p
 
-    def noisy_moment(self, moment: 'Moment', system_qubits: Sequence['Qid']):
+    def noisy_moment(self, moment: ops.Moment, system_qubits: Sequence[ops.Qid]):
         noise_list = []
         #TODO: check whether this works with multiple
         # operations in a single moment.
