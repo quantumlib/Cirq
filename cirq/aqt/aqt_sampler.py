@@ -47,7 +47,8 @@ class AQTSampler(Sampler):
 
         [[op_string,gate_exponent,qubits]]
 
-        which is a list of sequential quantum operations, each operation definde by:
+        which is a list of sequential quantum operations,
+        each operation defined by:
 
         op_string: str that specifies the operation type, either "X","Y","MS"
         gate_exponent: float that specifies the gate_exponent of the operation
@@ -85,10 +86,12 @@ class AQTSampler(Sampler):
 
         The interface is given by PUT requests to a single endpoint URL.
 
-        The first PUT will insert the circuit into the remote queue, given a valid access key.
+        The first PUT will insert the circuit into the remote queue,
+        given a valid access key.
 
-        Every subsequent PUT will retturn a dictionary, where the key "status" is either
-        'queued', if the circuit has not been processed yet or 'finished' if the circuit has been processed.
+        Every subsequent PUT will retturn a dictionary, where the key "status"
+        is either 'queued', if the circuit has not been processed yet or
+        'finished' if the circuit has been processed.
 
         The experimental data is returned via the key 'data'
         """
