@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
-
-import collections
+from typing import Any, overload, TYPE_CHECKING, TypeVar, Union, Iterable
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -115,8 +113,8 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
 
     # Maybe it's an iterable of invertible items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
-    if (isinstance(val, collections.Iterable) and
-            not isinstance(val, (str, ops.Operation))):
+    if (isinstance(val, Iterable) and not isinstance(val,
+                                                     (str, ops.Operation))):
         unique_indicator = []  # type: List[Any]
         results = tuple(inverse(e, unique_indicator) for e in val)
         if all(e is not unique_indicator for e in results):
