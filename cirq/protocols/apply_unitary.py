@@ -87,9 +87,31 @@ class ApplyUnitaryArgs:
                 qubits that the gate is operating on).
 
         """
-        self.target_tensor = target_tensor
-        self.available_buffer = available_buffer
-        self.axes = tuple(axes)
+        self._target_tensor = target_tensor
+        self._available_buffer = available_buffer
+        self._axes = tuple(axes)
+
+    @property
+    def target_tensor(self) -> np.ndarray:
+        return self._target_tensor
+
+    @target_tensor.setter
+    def target_tensor(self, other):
+        if other is not self._target_tensor:
+            raise AttributeError("can't set attribute")
+
+    @property
+    def available_buffer(self) -> np.ndarray:
+        return self._available_buffer
+
+    @available_buffer.setter
+    def available_buffer(self, other):
+        if other is not self._available_buffer:
+            raise AttributeError("can't set attribute")
+
+    @property
+    def axes(self) -> np.ndarray:
+        return self._axes
 
     @staticmethod
     def default(num_qubits: Optional[int] = None,
@@ -496,7 +518,6 @@ def _incorporate_result_into_target(args: 'ApplyUnitaryArgs',
     """Takes the result of calling `_apply_unitary_` on `sub_args` and
     copies it back into `args.target_tensor` or `args.available_buffer` as
     necessary to return the result of applying the unitary to the full args.
-    Also swaps the buffers so the result is always in `args.target_tensor`.
 
     Args:
         args: The original args.
@@ -506,35 +527,46 @@ def _incorporate_result_into_target(args: 'ApplyUnitaryArgs',
             method on `sub_args`.  A transposed subspace of the desired
             result.
 
-    Returns: The full result tensor after applying the unitary.  Always
-        `args.target_tensor`.
+    Returns: The full result tensor after applying the unitary.  Either
+        `args.target_tensor` or `args.available_buffer`.
     """
-    if not (np.may_share_memory(args.target_tensor, sub_args.target_tensor) and
-            np.may_share_memory(args.available_buffer,
-                                sub_args.available_buffer)):
+    return _incorporate_result_into_buffer(args.target_tensor,
+                                           args.available_buffer,
+                                           sub_args.target_tensor,
+                                           sub_args.available_buffer,
+                                           sub_result)
+
+
+def _incorporate_result_into_buffer(target: np.ndarray,
+                                    other: np.ndarray,
+                                    sub_target: np.ndarray,
+                                    sub_other: np.ndarray,
+                                    sub_result: np.ndarray) -> np.ndarray:
+    if not (np.may_share_memory(target, sub_target) and
+            np.may_share_memory(other, sub_other)):
         raise ValueError(
-            'sub_args.target_tensor and .available_buffer must be views of '
-            'args.target_tensor and .available_buffer respectively.')
-    is_subspace = sub_args.target_tensor.size < args.target_tensor.size
-    if sub_result is sub_args.target_tensor:
-        return args.target_tensor
-    if sub_result is sub_args.available_buffer:
+            'The target and buffer arrays in sub_args must be views of the '
+            'corresponding arrays in args.')
+    is_subspace = sub_target.size < target.size
+    if sub_result is sub_target:
+        return target
+    if sub_result is sub_other:
         if is_subspace:
             # The subspace that was modified is likely much smaller than
             # the whole tensor so copy sub_result back into target_tensor.
-            sub_args.target_tensor[...] = sub_result
-            return args.target_tensor
-        return args.available_buffer
+            sub_target[...] = sub_result
+            return target
+        return other
     # The subspace that was modified is likely much smaller than
     # the whole tensor so copy sub_result back into target_tensor.
     # It's an uncommon case where sub_result is a new array.
-    if np.may_share_memory(sub_args.target_tensor, sub_result):
+    if np.may_share_memory(sub_target, sub_result):
         # Someone did something clever.  E.g. implementing SWAP with a
         # reshape.
         # Copy to available_buffer instead.
         if is_subspace:
-            args.available_buffer[...] = args.target_tensor
-        sub_args.available_buffer[...] = sub_result
-        return args.available_buffer
-    sub_args.target_tensor[...] = sub_result
-    return args.target_tensor
+            other[...] = target
+        sub_other[...] = sub_result
+        return other
+    sub_target[...] = sub_result
+    return target
