@@ -18,7 +18,6 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
-import collections
 from typing import Union, Iterable, Any, List
 
 from cirq.ops import raw_types
@@ -53,8 +52,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         operations = []  # type: List[raw_types.Operation]
         for target in targets:
-            if isinstance(target,
-                          collections.Iterable) and not isinstance(target, str):
+            if isinstance(target, Iterable) and not isinstance(target, str):
                 operations.extend(self.on_each(*target))
             elif isinstance(target, raw_types.Qid):
                 operations.append(self.on(target))
