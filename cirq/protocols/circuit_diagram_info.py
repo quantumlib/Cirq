@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import collections
+
 from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple,
                     TypeVar, Dict, overload, Iterable)
 
@@ -232,7 +232,7 @@ def circuit_diagram_info(val: Any,
     # Success?
     if isinstance(result, str):
         return CircuitDiagramInfo(wire_symbols=(result,))
-    if isinstance(result, collections.Iterable):
+    if isinstance(result, Iterable):
         return CircuitDiagramInfo(wire_symbols=tuple(result))
     if result is not NotImplemented:
         return result
