@@ -59,7 +59,7 @@ class GridQubit(ops.Qid):
 
     @staticmethod
     def rect(rows: int, cols: int, top: int = 0,
-        left: int = 0) -> List['GridQubit']:
+             left: int = 0) -> List['GridQubit']:
         """Returns a rectangle of GridQubits.
 
         Args:
@@ -139,20 +139,22 @@ class GridQubit(ops.Qid):
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
         assert isinstance(other, tuple) and len(other) == 2 and all(
             isinstance(x, int) for x in other), (
-            'Can only add tuple of length 2 to GridQubit. Was {}'.format(other))
+                'Can only add tuple of length 2 to GridQubit. Was {}'.format(
+                    other))
         return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
         assert isinstance(other, tuple) and len(other) == 2 and all(
             isinstance(x, int) for x in other), (
-            'Can only add tuple of length 2 to GridQubit. Was {}'.format(other))
+                'Can only add tuple of length 2 to GridQubit. Was {}'.format(
+                    other))
         return GridQubit(row=self.row - other[0], col=self.col - other[1])
 
     def __radd__(self, other: Tuple[int, int]) -> 'GridQubit':
         return self + other
 
     def __rsub__(self, other: Tuple[int, int]) -> 'GridQubit':
-        return - self + other
+        return -self + other
 
     def __neg__(self) -> 'GridQubit':
         return GridQubit(row=-self.row, col=-self.col)

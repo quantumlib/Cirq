@@ -19,7 +19,17 @@ from cirq import ops
 
 @functools.total_ordering
 class LineQubit(ops.Qid):
-    """A qubit on a 1d lattice with nearest-neighbor connectivity."""
+    """A qubit on a 1d lattice with nearest-neighbor connectivity.
+
+    LineQubits have a single attribute, and integer coordinate 'x', which
+    identifies the qubits location on the line. LineQubits are ordered by
+    this integer.
+
+    One can construct new LineQubits by adding or subtracting integers:
+
+        LineQubit(1) + 3 is LineQubit(4)
+        LineQubit(2) - 1 is LineQubit(1)
+    """
 
     def __init__(self, x: int) -> None:
         """Initializes a line qubit at the given x coordinate."""
@@ -49,3 +59,23 @@ class LineQubit(ops.Qid):
 
     def __str__(self):
         return '{}'.format(self.x)
+
+    def __add__(self, other: int) -> 'LineQubit':
+        assert isinstance(other, int), (
+            'Can only add ints to LineQubits. Instead was {}'.format(other))
+        return LineQubit(self.x + other)
+
+    def __sub__(self, other: int) -> 'LineQubit':
+        assert isinstance(other, int), (
+            'Can only subtract ints to LineQubits. Instead was {}'.format(other)
+        )
+        return LineQubit(self.x - other)
+
+    def __radd__(self, other: int) -> 'LineQubit':
+        return self + other
+
+    def __rsub__(self, other: int) -> 'LineQubit':
+        return -self + other
+
+    def __neg__(self) -> 'LineQubit':
+        return LineQubit(-self.x)

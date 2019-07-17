@@ -83,3 +83,14 @@ def test_range():
     assert LineQubit.range(3, 1, -1) == [LineQubit(3), LineQubit(2)]
     assert LineQubit.range(3, 5, -1) == []
     assert LineQubit.range(1, 5, 2) == [LineQubit(1), LineQubit(3)]
+
+
+def test_addition_subtraction():
+    assert LineQubit(1) + 2 == LineQubit(3)
+    assert LineQubit(3) - 1 == LineQubit(2)
+    assert 1 + LineQubit(4) == LineQubit(5)
+    assert 5 - LineQubit(3) == LineQubit(2)
+
+
+def test_neg():
+    assert -LineQubit(1) == LineQubit(-1)
