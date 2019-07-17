@@ -84,9 +84,6 @@ def test_assert_specifies_has_unitary_if_unitary_pass():
 
     class Good:
 
-        def _unitary_(self):
-            return np.array([[1]])
-
         def _has_unitary_(self):
             return True
 
