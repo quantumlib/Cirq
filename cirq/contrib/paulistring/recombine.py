@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Callable, Iterable, Iterator, Sequence, Tuple, Union,
+from typing import (Any, Callable, Iterable, Sequence, Tuple, Union,
                     cast, List)
 
 from cirq import ops, circuits
