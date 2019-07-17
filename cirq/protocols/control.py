@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING, TypeVar, Union, Sequence
-
-import collections
+from typing import Any, TYPE_CHECKING, TypeVar, Union, Sequence, Iterable
 
 from cirq.ops import op_tree
 
@@ -64,7 +62,7 @@ def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
     if result is not NotImplemented:
         return result
 
-    if isinstance(controllee, collections.Iterable):
+    if isinstance(controllee, Iterable):
         return op_tree.transform_op_tree(
             controllee,
             op_transformation=lambda op: control(op, control_qubits))
