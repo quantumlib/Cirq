@@ -113,8 +113,8 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
 
     # Maybe it's an iterable of invertible items?
     # Note: we avoid str because 'a'[0] == 'a', which creates an infinite loop.
-    if (isinstance(val, Iterable) and
-            not isinstance(val, (str, ops.Operation))):
+    if (isinstance(val, Iterable) and not isinstance(val,
+                                                     (str, ops.Operation))):
         unique_indicator = []  # type: List[Any]
         results = tuple(inverse(e, unique_indicator) for e in val)
         if all(e is not unique_indicator for e in results):

@@ -116,8 +116,7 @@ def transform_op_tree(
                               preserve_moments)
             for subtree in root)
 
-    raise TypeError(
-        'Not an Iterable or an Operation: {}'.format(root))
+    raise TypeError('Not an Iterable or an Operation: {}'.format(root))
 
 
 def freeze_op_tree(root: OP_TREE) -> OP_TREE:

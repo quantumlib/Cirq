@@ -251,8 +251,7 @@ def decompose(
             queue[:0] = ops.flatten_op_tree(decomposed)
             continue
 
-        if (not isinstance(item, ops.Operation) and
-                isinstance(item, Iterable)):
+        if (not isinstance(item, ops.Operation) and isinstance(item, Iterable)):
             queue[:0] = ops.flatten_op_tree(item)
             continue
 
