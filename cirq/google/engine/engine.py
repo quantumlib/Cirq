@@ -29,7 +29,7 @@ import random
 import re
 import string
 import time
-from collections import Iterable
+from collections.abc import Iterable
 from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
 
 from apiclient import discovery
