@@ -25,7 +25,7 @@ import numpy as np
 from cirq import ops, linalg, protocols, value
 
 
-@value.value_equality(unhashable=True, approximate=True)
+@value.value_equality(approximate=True)
 class QasmUGate(ops.SingleQubitGate):
 
     def __init__(self, theta, phi, lmda) -> None:

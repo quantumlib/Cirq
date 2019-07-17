@@ -31,7 +31,7 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import devices, ops, study, protocols
+from cirq import devices, linalg, ops, study, protocols
 from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -1228,6 +1228,12 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
+    def _qid_shape_(self):
+        return ops.max_qid_shape(
+            self._moments,
+            qubits_that_should_be_present=self.all_qubits(),
+            default_level=1)
+
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
             return False
@@ -1298,13 +1304,15 @@ class Circuit:
 
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
-        n = len(qs)
 
-        state = np.eye(1 << n, dtype=dtype)
-        state.shape = (2,) * (2 * n)
+        # Force qubits to have dimension at least 2 for backwards compatibility.
+        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        side_len = np.product(qid_shape, dtype=int)
+
+        state = linalg.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((1 << n, 1 << n))
+        return result.reshape((side_len, side_len))
 
     def final_wavefunction(
             self,
@@ -1370,17 +1378,20 @@ class Circuit:
 
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
-        n = len(qs)
+
+        # Force qubits to have dimension at least 2 for backwards compatibility.
+        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        state_len = np.product(qid_shape, dtype=int)
 
         if isinstance(initial_state, int):
-            state = np.zeros(1 << n, dtype=dtype)
+            state = np.zeros(state_len, dtype=dtype)
             state[initial_state] = 1
         else:
             state = initial_state.astype(dtype)
-        state.shape = (2,) * n
+        state.shape = qid_shape
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((1 << n,))
+        return result.reshape((state_len,))
 
     to_unitary_matrix = deprecated(
         deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
@@ -1775,8 +1786,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit,
-                           state: np.ndarray,
+def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
                            qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.

@@ -199,7 +199,7 @@ def _trial_sweep_from_proto(
                 ordered_results = list(qubit_results.values())
             m_data[mr.key] = np.array(ordered_results).transpose()
         trial_sweep.append(
-            study.TrialResult(
+            study.TrialResult.from_single_parameter_set(
                 params=study.ParamResolver(dict(pr.params.assignments)),
                 measurements=m_data,
             ))
