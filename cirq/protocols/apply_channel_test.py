@@ -94,6 +94,24 @@ def test_apply_channel_inline():
     np.testing.assert_almost_equal(result, x)
 
 
+def test_apply_channel_not_implemented():
+    class NotImplementedChannel():
+
+        def _apply_channel_(self, args: cirq.ApplyChannelArgs):
+            return NotImplemented
+
+    result = cirq.apply_channel(
+            NotImplementedChannel(),
+            args=cirq.ApplyChannelArgs(target_tensor=np.zeros(()),
+                                       left_axes=[],
+                                       right_axes=[],
+                                       out_buffer=np.zeros(()),
+                                       auxiliary_buffer0=np.zeros(()),
+                                       auxiliary_buffer1=np.zeros(())),
+            default=None)
+    assert result is None
+
+
 def test_apply_channel_returns_aux_buffer():
     rho = np.array([[1, 0], [0, 0]], dtype=np.complex128)
 
@@ -299,3 +317,17 @@ def test_apply_channel_apply_unitary_not_implemented():
                                            out_buffer=out_buf,
                                            auxiliary_buffer0=aux_buf0,
                                            auxiliary_buffer1=aux_buf1))
+
+
+def test_assign_args_properties():
+    args = cirq.ApplyChannelArgs(np.zeros(()), np.zeros(()), np.zeros(()),
+                                 np.zeros(()), [], [])
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        args.target_tensor = np.zeros(())
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        args.out_buffer = np.zeros(())
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        args.auxiliary_buffer0 = np.zeros(())
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        args.auxiliary_buffer1 = np.zeros(())
+

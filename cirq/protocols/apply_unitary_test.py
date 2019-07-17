@@ -459,3 +459,11 @@ def test_incorporate_result_not_view():
 def test_default_method_arguments():
     with pytest.raises(TypeError, match='exactly one of'):
         cirq.ApplyUnitaryArgs.default(1, qid_shape=(2,))
+
+
+def test_assign_args_properties():
+    args = cirq.ApplyUnitaryArgs(np.zeros(()), np.zeros(()), [])
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        args.target_tensor = np.zeros(())
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        args.available_buffer = np.zeros(())
