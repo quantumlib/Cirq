@@ -79,7 +79,7 @@ ABCDEFGHIJKL
         cirq.GridQubit.from_diagram('@')
 
 
-def test_xmon_qubit_ordering():
+def test_grid_qubit_ordering():
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(0, 1)
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(1, 0)
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(1, 1)

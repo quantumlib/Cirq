@@ -27,8 +27,11 @@ class LineQubit(ops.Qid):
 
     One can construct new LineQubits by adding or subtracting integers:
 
-        LineQubit(1) + 3 is LineQubit(4)
-        LineQubit(2) - 1 is LineQubit(1)
+        >>> LineQubit(1) + 3
+        cirq.LineQubit(4)
+
+        >>> LineQubit(2) - 1
+        cirq.LineQubit(1)
     """
 
     def __init__(self, x: int) -> None:
@@ -62,13 +65,13 @@ class LineQubit(ops.Qid):
 
     def __add__(self, other: int) -> 'LineQubit':
         assert isinstance(other, int), (
-            'Can only add ints to LineQubits. Instead was {}'.format(other))
+            'Can only add ints and LineQubits. Instead was {}'.format(other))
         return LineQubit(self.x + other)
 
     def __sub__(self, other: int) -> 'LineQubit':
-        assert isinstance(other, int), (
-            'Can only subtract ints to LineQubits. Instead was {}'.format(other)
-        )
+        assert isinstance(
+            other, int), ('Can only subtract ints and LineQubits. Instead was'
+                          '{}'.format(other))
         return LineQubit(self.x - other)
 
     def __radd__(self, other: int) -> 'LineQubit':

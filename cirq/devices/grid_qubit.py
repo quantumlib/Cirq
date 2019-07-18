@@ -27,8 +27,11 @@ class GridQubit(ops.Qid):
 
     New GridQubits can be constructed by adding or subtracting tuples
 
-        GridQubit(2, 3) + (3, 1) produces GridQubit(5, 4)
-        GridQubit(2, 3) - (1, 2) produces GridQubit(1, 1)
+        >>> GridQubit(2, 3) + (3, 1)
+        cirq.GridQubit(5, 4)
+
+        >>> GridQubit(2, 3) - (1, 2)
+        cirq.GridQubit(1, 1)
     """
 
     def __init__(self, row: int, col: int):
@@ -139,15 +142,15 @@ class GridQubit(ops.Qid):
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
         assert isinstance(other, tuple) and len(other) == 2 and all(
             isinstance(x, int) for x in other), (
-                'Can only add tuple of length 2 to GridQubit. Was {}'.format(
+                'Can only add tuples of length 2 to GridQubits. Was {}'.format(
                     other))
         return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
         assert isinstance(other, tuple) and len(other) == 2 and all(
             isinstance(x, int) for x in other), (
-                'Can only add tuple of length 2 to GridQubit. Was {}'.format(
-                    other))
+                'Can only subtract tuples of length 2 to GridQubits. Was {}'.
+                format(other))
         return GridQubit(row=self.row - other[0], col=self.col - other[1])
 
     def __radd__(self, other: Tuple[int, int]) -> 'GridQubit':
