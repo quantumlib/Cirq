@@ -17,15 +17,16 @@ from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
 
 import cmath
 import math
+import numbers
 
 import numpy as np
 
-from cirq import value
+from cirq import value, protocols, linalg
 from cirq.ops import (
+    global_phase_op,
     raw_types,
     gate_operation,
     common_gates,
-    op_tree,
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,
@@ -92,8 +93,9 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient * complex(other))
         if isinstance(other, PauliString):
             s1 = set(self.keys())
             s2 = set(other.keys())
@@ -113,25 +115,42 @@ class PauliString(raw_types.Operation):
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (int, float, complex)):
-            return PauliString(self._qubit_pauli_map, self._coefficient * other)
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient * complex(other))
+        return NotImplemented
+
+    def __truediv__(self, other):
+        if isinstance(other, numbers.Number):
+            return PauliString(self._qubit_pauli_map,
+                               self._coefficient / complex(other))
         return NotImplemented
 
     def __add__(self, other):
         from cirq.ops.linear_combinations import PauliSum
         return PauliSum.from_pauli_strings(self).__add__(other)
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __sub__(self, other):
         from cirq.ops.linear_combinations import PauliSum
         return PauliSum.from_pauli_strings(self).__sub__(other)
+
+    def __rsub__(self, other):
+        return -self.__sub__(other)
 
     def __contains__(self, key: raw_types.Qid) -> bool:
         return key in self._qubit_pauli_map
 
     def _decompose_(self):
-        # HACK: Avoid circular dependency.
-        from cirq.ops import pauli_string_phasor
-        return pauli_string_phasor.PauliStringPhasor(self)._decompose_()
+        if not self._has_unitary_():
+            return None
+        return [
+            *([] if self.coefficient == 1 else
+              [global_phase_op.GlobalPhaseOperation(self.coefficient)]),
+            *[self[q].on(q) for q in self.qubits],
+        ]
 
     def keys(self) -> KeysView[raw_types.Qid]:
         return self._qubit_pauli_map.keys()
@@ -197,6 +216,23 @@ class PauliString(raw_types.Operation):
 
         return prefix + '*'.join(factors)
 
+    def _has_unitary_(self) -> bool:
+        return abs(1 - abs(self.coefficient)) < 1e-6
+
+    def _unitary_(self) -> Optional[np.ndarray]:
+        if not self._has_unitary_():
+            return None
+        return linalg.kron(self.coefficient,
+                           *[protocols.unitary(self[q]) for q in self.qubits])
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs):
+        if not self._has_unitary_():
+            return None
+        if self.coefficient != 1:
+            args.target_tensor *= self.coefficient
+        return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
+                                         self.qubits, args)
+
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
         for qubit, pauli0 in self.items():
@@ -232,9 +268,8 @@ class PauliString(raw_types.Operation):
         if isinstance(power, (int, float)):
             r, i = cmath.polar(self.coefficient)
             if abs(r - 1) > 0.0001:
-                raise NotImplementedError(
-                    "Raised a non-unitary PauliString to a power <{!r}**{!r}>. "
-                    "Coefficient must be unit-length.".format(self, power))
+                # Raising non-unitary PauliStrings to a power is not supported.
+                return NotImplemented
 
             if len(self) == 1:
                 q, p = next(iter(self.items()))
@@ -287,7 +322,7 @@ class PauliString(raw_types.Operation):
                                for qubit, pauli in self.items()}
         return PauliString(new_qubit_pauli_map, self._coefficient)
 
-    def to_z_basis_ops(self) -> op_tree.OP_TREE:
+    def to_z_basis_ops(self) -> Iterator[raw_types.Operation]:
         """Returns operations to convert the qubits to the computational basis.
         """
         for qubit, pauli in self.items():

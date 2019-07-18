@@ -26,7 +26,7 @@ import cirq
 def _assert_evaluates_correctly(circuit: cirq.Circuit,
                                 up_to_global_phase: bool = False):
     r = circuit_to_tensorflow_runnable(circuit)
-    v1 = circuit.apply_unitary_effect_to_state(dtype=np.complex64)
+    v1 = circuit.final_wavefunction(dtype=np.complex64)
     with tf.Session() as session:
         v2 = session.run(r.compute(), feed_dict=r.feed_dict)
     assert v1.shape == v2.shape

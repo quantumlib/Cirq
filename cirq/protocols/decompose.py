@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
 from typing import TYPE_CHECKING, Callable, Union, Any, Tuple, Iterable, \
     TypeVar, List, Optional, overload
 
@@ -252,8 +251,7 @@ def decompose(
             queue[:0] = ops.flatten_op_tree(decomposed)
             continue
 
-        if (not isinstance(item, ops.Operation) and
-                isinstance(item, collections.Iterable)):
+        if (not isinstance(item, ops.Operation) and isinstance(item, Iterable)):
             queue[:0] = ops.flatten_op_tree(item)
             continue
 

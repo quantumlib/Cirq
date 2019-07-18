@@ -1444,6 +1444,67 @@ def test_all_operations():
     ]
 
 
+def test_qid_shape_qubit():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+
+    circ = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.X(b)]),
+    ])
+
+    assert cirq.qid_shape(circ) == (2, 2)
+    assert cirq.num_qubits(circ) == 2
+    assert cirq.max_qid_shape(circ) == (2, 2)
+    assert cirq.max_qid_shape(circ, qubit_order=[c, a, b],
+                              default_level=2) == (2, 2, 2)
+    with pytest.raises(ValueError, match='extra qubits'):
+        _ = cirq.max_qid_shape(circ, qubit_order=[a])
+
+
+def test_qid_shape_qudit():
+
+    class PlusOneMod3Gate(cirq.SingleQubitGate):
+
+        def _qid_shape_(self):
+            return (3,)
+
+    class C2NotGate(cirq.Gate):
+
+        def _qid_shape_(self):
+            return (3, 2)
+
+    class IdentityGate(cirq.SingleQubitGate):
+
+        def _qid_shape_(self):
+            return (1,)
+
+    a, b, c, d, e, f, g = cirq.LineQubit.range(7)
+
+    circ = cirq.Circuit.from_ops(
+        IdentityGate().on_each(a, b, c),  # a->1, b->1, c->1
+        PlusOneMod3Gate().on_each(c, d),  # c->3, d->3
+        C2NotGate().on(d, e),  # d:3->3, e->2
+        C2NotGate().on(f, b),  # f->3, b:1->2
+        IdentityGate().on_each(e, f),  # e:2, f:3
+    )
+
+    assert cirq.qid_shape(circ) == (1, 2, 3, 3, 2, 3)
+    assert cirq.num_qubits(circ) == 6
+    assert cirq.max_qid_shape(circ) == (1, 2, 3, 3, 2, 3)
+    assert cirq.max_qid_shape(circ, default_level=2) == (1, 2, 3, 3, 2, 3)
+    assert (cirq.max_qid_shape(circ, qubit_order=[f, e, d, c, b,
+                                                  a]) == (3, 2, 3, 3, 2, 1))
+    assert (cirq.max_qid_shape(circ, qubit_order=[g, f, e, d, c, b,
+                                                  a]) == (1, 3, 2, 3, 3, 2, 1))
+    assert (cirq.max_qid_shape(circ,
+                               qubit_order=[g, f, e, d, c, b, a],
+                               default_level=2) == (2, 3, 2, 3, 3, 2, 1))
+    with pytest.raises(ValueError, match='extra qubits'):
+        _ = cirq.max_qid_shape(circ, qubit_order=[g, a, b, c])
+
+
 def test_from_ops():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -2029,113 +2090,100 @@ def test_apply_unitary_effect_to_state():
 
     # State ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(),
+        cirq.Circuit.from_ops(cirq.X(a)**0.5).final_wavefunction(),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
-            initial_state=0),
-        np.array([1j, 1]) * np.sqrt(0.5),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
-            initial_state=1),
-        np.array([1, 1j]) * np.sqrt(0.5),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.X(a)**0.5).final_wavefunction(initial_state=0),
+                                                    np.array([1j, 1]) *
+                                                    np.sqrt(0.5),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.X(a)**0.5).final_wavefunction(initial_state=1),
+                                                    np.array([1, 1j]) *
+                                                    np.sqrt(0.5),
+                                                    atol=1e-8)
 
     # Vector state.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
-            initial_state=np.array([1j, 1]) * np.sqrt(0.5)),
-        np.array([0, 1]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.X(a)**0.5).final_wavefunction(initial_state=np.array([1j, 1]) *
+                                           np.sqrt(0.5)),
+                                                    np.array([0, 1]),
+                                                    atol=1e-8)
 
     # Qubit ordering.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
-            initial_state=0),
-        np.array([1, 0, 0, 0]),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
-            initial_state=1),
-        np.array([0, 1, 0, 0]),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
-            initial_state=2),
-        np.array([0, 0, 0, 1]),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.CNOT(a, b)).apply_unitary_effect_to_state(
-            initial_state=3),
-        np.array([0, 0, 1, 0]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.CNOT(a, b)).final_wavefunction(initial_state=0),
+                                                    np.array([1, 0, 0, 0]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.CNOT(a, b)).final_wavefunction(initial_state=1),
+                                                    np.array([0, 1, 0, 0]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.CNOT(a, b)).final_wavefunction(initial_state=2),
+                                                    np.array([0, 0, 0, 1]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.CNOT(a, b)).final_wavefunction(initial_state=3),
+                                                    np.array([0, 0, 1, 0]),
+                                                    atol=1e-8)
 
     # Measurements.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.measure(a)).apply_unitary_effect_to_state(),
-        np.array([1, 0]),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(a), cirq.measure(a)
-                              ).apply_unitary_effect_to_state(),
-        np.array([0, 1]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.measure(a)).final_wavefunction(),
+                                                    np.array([1, 0]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.X(a), cirq.measure(a)).final_wavefunction(),
+                                                    np.array([0, 1]),
+                                                    atol=1e-8)
     with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(cirq.measure(a), cirq.X(a)
-                                  ).apply_unitary_effect_to_state(),
-            np.array([1, 0]),
-            atol=1e-8)
+        cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+            cirq.measure(a), cirq.X(a)).final_wavefunction(),
+                                                        np.array([1, 0]),
+                                                        atol=1e-8)
     with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(
-                cirq.measure(a)).apply_unitary_effect_to_state(
-                    ignore_terminal_measurements=False),
-            np.array([1, 0]),
-            atol=1e-8)
+        cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+            cirq.measure(a)).final_wavefunction(
+                ignore_terminal_measurements=False),
+                                                        np.array([1, 0]),
+                                                        atol=1e-8)
 
     # Extra qubits.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops().apply_unitary_effect_to_state(),
-        np.array([1]),
-        atol=1e-8)
+        cirq.Circuit.from_ops().final_wavefunction(), np.array([1]), atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops().apply_unitary_effect_to_state(
+        cirq.Circuit.from_ops().final_wavefunction(
             qubits_that_should_be_present=[a]),
         np.array([1, 0]),
         atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(cirq.X(b)).apply_unitary_effect_to_state(
-            qubits_that_should_be_present=[a]),
-        np.array([0, 1, 0, 0]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.X(b)).final_wavefunction(qubits_that_should_be_present=[a]),
+                                                    np.array([0, 1, 0, 0]),
+                                                    atol=1e-8)
 
     # Qubit order.
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(
-            cirq.Z(a), cirq.X(b)).apply_unitary_effect_to_state(
-                qubit_order=[a, b]),
-        np.array([0, 1, 0, 0]),
-        atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit.from_ops(
-            cirq.Z(a), cirq.X(b)).apply_unitary_effect_to_state(
-                qubit_order=[b, a]),
-        np.array([0, 0, 1, 0]),
-        atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.Z(a), cirq.X(b)).final_wavefunction(qubit_order=[a, b]),
+                                                    np.array([0, 1, 0, 0]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+        cirq.Z(a), cirq.X(b)).final_wavefunction(qubit_order=[b, a]),
+                                                    np.array([0, 0, 1, 0]),
+                                                    atol=1e-8)
 
     # Dtypes.
     dtypes = [np.complex64, np.complex128]
     if hasattr(np, 'complex256'):  # Some systems don't support 128 bit floats.
         dtypes.append(np.complex256)
     for dt in dtypes:
-        cirq.testing.assert_allclose_up_to_global_phase(
-            cirq.Circuit.from_ops(cirq.X(a)**0.5).apply_unitary_effect_to_state(
-                initial_state=np.array([1j, 1]) * np.sqrt(0.5), dtype=dt),
-            np.array([0, 1]),
-            atol=1e-8)
+        cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit.from_ops(
+            cirq.X(a)**0.5).final_wavefunction(initial_state=np.array([1j, 1]) *
+                                               np.sqrt(0.5),
+                                               dtype=dt),
+                                                        np.array([0, 1]),
+                                                        atol=1e-8)
 
 
 def test_is_parameterized():
@@ -3117,3 +3165,8 @@ def test_moment_groups():
 def test_deprecated_to_unitary_matrix():
     np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
                                cirq.Circuit().unitary())
+
+
+def test_deprecated_apply_unitary_effect_to_state():
+    np.testing.assert_allclose(cirq.Circuit().apply_unitary_effect_to_state(),
+                               cirq.Circuit().final_wavefunction())
