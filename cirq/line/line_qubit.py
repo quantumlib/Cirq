@@ -64,14 +64,16 @@ class LineQubit(ops.Qid):
         return '{}'.format(self.x)
 
     def __add__(self, other: int) -> 'LineQubit':
-        assert isinstance(other, int), (
-            'Can only add ints and LineQubits. Instead was {}'.format(other))
+        if not isinstance(other, int):
+            raise TypeError(
+                'Can only add ints and LineQubits. Instead was {}'.format(
+                    other))
         return LineQubit(self.x + other)
 
     def __sub__(self, other: int) -> 'LineQubit':
-        assert isinstance(
-            other, int), ('Can only subtract ints and LineQubits. Instead was'
-                          '{}'.format(other))
+        if not isinstance(other, int):
+            raise TypeError('Can only subtract ints and LineQubits. Instead was'
+                            '{}'.format(other))
         return LineQubit(self.x - other)
 
     def __radd__(self, other: int) -> 'LineQubit':

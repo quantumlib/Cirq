@@ -140,15 +140,17 @@ class GridQubit(ops.Qid):
         return '({}, {})'.format(self.row, self.col)
 
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
-        assert isinstance(other, tuple) and len(other) == 2 and all(
-            isinstance(x, int) for x in other), (
+        if not (isinstance(other, tuple) and len(other) == 2 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
                 'Can only add tuples of length 2 to GridQubits. Was {}'.format(
                     other))
         return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
-        assert isinstance(other, tuple) and len(other) == 2 and all(
-            isinstance(x, int) for x in other), (
+        if not (isinstance(other, tuple) and len(other) == 2 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
                 'Can only subtract tuples of length 2 to GridQubits. Was {}'.
                 format(other))
         return GridQubit(row=self.row - other[0], col=self.col - other[1])

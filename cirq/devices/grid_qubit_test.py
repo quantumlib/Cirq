@@ -131,16 +131,16 @@ def test_grid_qubit_neg():
 
 
 def test_grid_qubit_unsupported_add():
-    with pytest.raises(AssertionError, match='1'):
+    with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) + 1
-    with pytest.raises(AssertionError, match='(1,)'):
+    with pytest.raises(TypeError, match='(1,)'):
         _ = cirq.GridQubit(1, 1) + (1,)
-    with pytest.raises(AssertionError, match='(1, 2, 3)'):
+    with pytest.raises(TypeError, match='(1, 2, 3)'):
         _ = cirq.GridQubit(1, 1) + (1, 2, 3)
-    with pytest.raises(AssertionError, match='(1, 2.0)'):
+    with pytest.raises(TypeError, match='(1, 2.0)'):
         _ = cirq.GridQubit(1, 1) + (1, 2.0)
 
-    with pytest.raises(AssertionError, match='1'):
+    with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) - 1
 
 
