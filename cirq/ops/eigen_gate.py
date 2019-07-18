@@ -319,6 +319,26 @@ class EigenGate(raw_types.Gate):
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
 
+    def _equal_up_to_global_phase_(self, other, atol):
+        if not isinstance(other, EigenGate):
+            return NotImplemented
+
+        exponents = (self._exponent, other._exponent)
+        exponents_is_parameterized = tuple(
+                protocols.is_parameterized(e) for e in exponents)
+        if (all(exponents_is_parameterized) and 
+                exponents[0] != exponents[1]):
+            return False
+        if (any(exponents_is_parameterized) or
+            not np.isclose(exponents[0], exponents[1], atol=atol)):
+            return False
+
+        self_without_exp_or_phase = self._with_exponent(0)
+        self_without_exp_or_phase._global_shift = 0
+        other_without_exp_or_phase = other._with_exponent(0)
+        other_without_exp_or_phase._global_shift = 0
+        return self_without_exp_or_phase == other_without_exp_or_phase
+
 
 def _lcm(vals: Iterable[int]) -> int:
     t = 1
