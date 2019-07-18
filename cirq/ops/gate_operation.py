@@ -187,66 +187,6 @@ class GateOperation(raw_types.Operation):
                               default=None)
 
 
-@value.value_equality(approximate=True)
-class IdentityOperation(raw_types.Operation):
-    """An application of the identity gate to a sequence of qubits."""
-
-    def __init__(self, qubits: Sequence[raw_types.Qid]) -> None:
-        """
-        Args:
-            qubits: The qubits to operate on.
-        """
-        if len(qubits) == 0:
-            raise ValueError(
-                'Applied an identity gate to an empty set of qubits.')
-
-        if any([not isinstance(qubit, raw_types.Qid) for qubit in qubits]):
-            raise ValueError('Gate was called with type different than Qid.')
-        self._qubits = tuple(qubits)
-
-    @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
-        """The qubits targeted by the operation."""
-        return self._qubits
-
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
-        return IdentityOperation(new_qubits)
-
-    def __repr__(self):
-        # Abbreviate when possible.
-        if len(self.qubits) == 1:
-            return f'cirq.I.on({self._qubits[0]})'
-
-        return 'cirq.IdentityOperation(qubits={!r})'.format(list(self._qubits))
-
-    def __str__(self):
-        return 'I({})'.format(', '.join(str(e) for e in self._qubits))
-
-    def _value_equality_values_(self):
-        return frozenset(self._qubits)
-
-    def _pauli_expansion_(self) -> value.LinearDict[str]:
-        return value.LinearDict({'I' * len(self._qubits): 1.0})
-
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                       ) -> Optional[np.ndarray]:
-        return args.target_tensor
-
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
-                                            len(self._qubits),
-                                            connected=True)
-
-    def __mul__(self, other):
-        if isinstance(other, raw_types.Operation):
-            return other
-        return NotImplemented
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 

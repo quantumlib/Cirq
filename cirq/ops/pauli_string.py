@@ -29,6 +29,7 @@ from cirq.ops import (
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,
+    identity,
 )
 
 TDefault = TypeVar('TDefault')
@@ -105,7 +106,7 @@ class PauliString(raw_types.Operation):
             for c in s1 & s2:
                 f, p = self[c].phased_pauli_product(other[c])
                 extra_phase *= f
-                if p != common_gates.I:
+                if p != identity.I:
                     terms[c] = p
             return PauliString(
                 terms, self.coefficient * other.coefficient * extra_phase)

@@ -32,11 +32,6 @@ def test_invalid_gate_operation():
     with pytest.raises(ValueError, match="number of qubits"):
         cirq.GateOperation(three_qubit_gate, single_qubit)
 
-    with pytest.raises(ValueError, match="empty set of qubits"):
-        cirq.IdentityOperation([])
-    with pytest.raises(ValueError, match="type different than Qid"):
-        cirq.IdentityOperation([three_qubit_gate])
-
 
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
@@ -117,15 +112,6 @@ def test_with_qubits_and_transform_qubits():
                                ) == cirq.GateOperation(g, [cirq.LineQubit(0),
                                                            cirq.LineQubit(-1),
                                                            cirq.LineQubit(-2)])
-
-    op = cirq.IdentityOperation(cirq.LineQubit.range(3))
-    assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) \
-           == cirq.IdentityOperation(cirq.LineQubit.range(3, 0, -1))
-
-    # The gate's constraints should be applied when changing the qubits.
-    with pytest.raises(ValueError):
-        _ = cirq.H(cirq.LineQubit(0)).with_qubits(cirq.LineQubit(0),
-                                                  cirq.LineQubit(1))
 
 
 def test_extrapolate():
@@ -248,11 +234,6 @@ def test_repr():
     a, b = cirq.LineQubit.range(2)
     assert repr(cirq.GateOperation(cirq.CZ, (a, b))
                 ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
-
-    assert repr(cirq.IdentityOperation((a,))) == ('cirq.I.on(0)')
-    assert repr(cirq.IdentityOperation((a, b))) == (
-        'cirq.IdentityOperation(qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])')
-    assert str(cirq.IdentityOperation((a, b))) == ('I(0, 1)')
 
     class Inconsistent(cirq.SingleQubitGate):
         def __repr__(self):

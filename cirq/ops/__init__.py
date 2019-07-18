@@ -45,8 +45,6 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    I,
-    IdentityGate,
     ISWAP,
     ISwapPowGate,
     measure,
@@ -89,8 +87,16 @@ from cirq.ops.gate_features import (
     TwoQubitGate,
 )
 
-from cirq.ops.gate_operation import (GateOperation, IdentityOperation,
-                                     op_gate_of_type)
+from cirq.ops.gate_operation import (
+    GateOperation,
+    op_gate_of_type
+)
+
+from cirq.ops.identity import (
+    I,
+    IdentityGate,
+    IdentityOperation,
+)
 
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,

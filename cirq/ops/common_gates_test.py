@@ -51,10 +51,8 @@ def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
             eigen_gate_type, ignoring_global_phase=True)
 
 @pytest.mark.parametrize('gate_type, num_qubits',
-    itertools.product(
-        (cirq.MeasurementGate, cirq.IdentityGate),
-        range(1, 5))
-)
+                         itertools.product((cirq.MeasurementGate,), range(1,
+                                                                          5)))
 def test_consistent_protocols(gate_type, num_qubits):
     gate = gate_type(num_qubits=num_qubits)
     cirq.testing.assert_implements_consistent_protocols(
@@ -209,40 +207,6 @@ def test_x_unitary():
 
     assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
-
-
-@pytest.mark.parametrize('num_qubits', [1, 2, 4])
-def test_identity_init(num_qubits):
-    assert cirq.IdentityGate(num_qubits).num_qubits() == num_qubits
-
-
-@pytest.mark.parametrize('num_qubits', [1, 2, 4])
-def test_identity_unitary(num_qubits):
-    i = cirq.IdentityGate(num_qubits)
-    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
-
-
-def test_identity_str():
-    assert str(cirq.IdentityGate(1)) == 'I'
-    assert str(cirq.IdentityGate(2)) == 'I(2)'
-
-
-def test_identity_repr():
-    assert repr(cirq.IdentityGate(2)) == 'cirq.IdentityGate(2)'
-
-
-def test_identity_apply_unitary():
-    v = np.array([1, 0])
-    result = cirq.apply_unitary(
-        cirq.I, cirq.ApplyUnitaryArgs(v, np.array([0, 1]), (0,)))
-    assert result is v
-
-
-def test_identity_eq():
-    equals_tester = cirq.testing.EqualsTester()
-    equals_tester.add_equality_group(cirq.I, cirq.IdentityGate(1))
-    equals_tester.add_equality_group(cirq.IdentityGate(2))
-    equals_tester.add_equality_group(cirq.IdentityGate(4))
 
 
 def test_h_unitary():
@@ -426,8 +390,6 @@ def test_repr():
 
     assert repr(cirq.Y) == 'cirq.Y'
     assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
-
-    assert repr(cirq.I) == 'cirq.I'
 
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
