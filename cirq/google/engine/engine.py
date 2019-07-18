@@ -633,8 +633,8 @@ class Engine:
             parent=parent).execute()
         return response['processors']
 
-    def get_latest_calibration(self, processor_name: str
-    ) -> Optional['Calibration']:
+    def get_latest_calibration(self,
+                               processor_name: str) -> Optional['Calibration']:
         """ Returns metadata about a the latest known calibration run for a
         processor, or None if there is no calibration available.
 
@@ -647,8 +647,9 @@ class Engine:
         """
         response = self.service.projects().processors().calibrations().list(
             parent=processor_name).execute()
-        if (not 'calibrations' in response
-            or len(response['calibrations']) < 1): return None;
+        if (not 'calibrations' in response or
+                len(response['calibrations']) < 1):
+            return None
         return Calibration(response['calibrations'][0]['data'])
 
     def get_calibration(self, calibration_name: str) -> 'Calibration':
@@ -693,14 +694,20 @@ class Calibration:
             names can be found with the get_metric_names() method.
         """
         return list({
-            'targets': metric['targets'],
-            'values': self._values_from_metric(metric)
-        } for metric in self._metrics if metric['name'] == name)
+            'targets':
+            metric['targets'],
+            # Flatten the values a list, removing keys containing type names
+            # (e.g. proto version of each value is {<type>: value}).
+            'values':
+            list(value
+                 for values in metric['values']
+                 for value in list(values.values()))
+        }
+                    for metric in self._metrics
+                    if metric['name'] == name)
 
     def _values_from_metric(self, metric: Dict) -> List:
         """ Returns a flattened list of values for a single metric proto. """
-        return list(value for values in metric['values']
-                    for value in list(values.values()))
 
 
 class EngineJob:

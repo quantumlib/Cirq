@@ -838,7 +838,6 @@ def test_calibration_from_job_with_no_calibration(build):
     programs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test'
     }
-    calibrationName = '/project/p/processor/x/calibrationsi/123'
     jobs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {
