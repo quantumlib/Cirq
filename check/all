@@ -15,7 +15,11 @@
 #   doctest
 #
 # Usage:
-#     check/all [--only-changed-files] [--apply-format]
+#     check/all revision [BASE_REVISION] [--only-changed-files] [--apply-format]
+#
+# BASE_REVISION is forwarded to format-incremental and to the pytest checks
+# (pytest-and-incremental-coverage or pytest-changed-files). See those
+# checks for how to specify this value.
 #
 # If --only-change-files is specified, pytest-changed-files will be run
 # instead of pytest-and-incremental-coverage.
@@ -30,15 +34,22 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Parse arguments.
-apply=0
+apply_arg=""
 only_changed=0
+rev=""
 for arg in $@; do
     if [[ "${arg}" == "--only-changed-files" ]]; then
         only_change=1
     elif [[ "${arg}" == "--apply-format-changes" ]]; then
-        apply=1
+        apply_arg="--apply"
+    elif [ -z "${rev}" ]; then
+        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+            echo -e "\e[31mNo revision '${arg}'.\e[0m" >&2
+            exit 1
+        fi
+        rev="${arg}"
     else
-        echo -e "\e[31mInvalid arguments. Expected [--only-change-files] [--apply-format].\e[0m" >&2
+        echo -e "\e[31mInvalid arguments. Expected [BASE_REVISION] [--only-changed-files] [--apply-format].\e[0m" >&2
         exit 1
     fi
 done
@@ -50,18 +61,14 @@ echo "Running mypy"
 check/mypy
 
 echo "Running incremental format"
-if [ -z "${apply}" ]; then
-    check/format-incremental --apply
-else
-    check/format-incremental
-fi
+check/format-incremental ${rev} "${apply_arg}"
 
 if [ -z "${only_changed}" ]; then
-    echo "Running pytest on changed files"
-    check/pytest-changed-files
+    echo "Running pytest on changed files without incremental coverage"
+    check/pytest-changed-files ${rev}
 else
     echo "Running pytest and incremental coverage"
-    check/pytest-and-incremental-coverage
+    check/pytest-and-incremental-coverage ${rev}
 fi
 
 echo "Running doctest"
