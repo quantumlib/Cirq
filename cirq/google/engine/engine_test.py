@@ -814,6 +814,35 @@ def test_calibration_from_job(build):
     assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
 
+@mock.patch.object(discovery, 'build')
+def test_calibration_from_job_with_no_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    calibrationName = '/project/p/processor/x/calibrationsi/123'
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS',
+        },
+    }
+
+    calibrations = service.projects().processors().calibrations()
+    engine = cg.Engine(api_key="key")
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+
+    calibration = job.get_calibration()
+    assert not calibration
+    assert not calibrations.get.called
+
 
 @mock.patch.object(discovery, 'build')
 def test_calibration_metrics(build):

@@ -742,8 +742,9 @@ class EngineJob:
     def get_calibration(self) -> Optional[Calibration]:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
-        name = self._job['executionStatus']['calibrationName']
-        return self._engine.get_calibration(name) if name else None
+        status = self._job['executionStatus']
+        if (not 'calibrationName' in status): return None
+        return self._engine.get_calibration(status['calibrationName'])
 
     def cancel(self):
         """Cancel the job."""
