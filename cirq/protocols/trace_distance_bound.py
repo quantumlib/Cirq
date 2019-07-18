@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar
+import numpy as np
+from typing import Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
 from cirq.protocols import unitary, has_unitary
-import numpy as np
+
 
 TDefault = TypeVar('TDefault')
 
+if TYPE_CHECKING:
+    import cirq
 
 class SupportsTraceDistanceBound(Protocol):
     """An effect with known bounds on how easy it is to detect.
