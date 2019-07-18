@@ -42,26 +42,23 @@ def get_op_string(op_obj: ops.Operation):
 
 class AQTNoiseModel(devices.NoiseModel):
 
-    def __init__(self, single_qubit_p=0.01, ms_p=0.03):
-        self.single_qubit_p = single_qubit_p
-        self.ms_p = ms_p
+    def __init__(self):
+        self.noise_op_dict = get_default_noise_dict()
 
     def noisy_moment(self, moment: ops.Moment,
                      system_qubits: Sequence[ops.Qid]):
         noise_list = []
-        #TODO: check whether this works with multiple
-        # operations in a single moment.
+        #TODO: Add crosstalk
         for op in moment.operations:
             op_str = get_op_string(op)
-            if op_str in ['X', 'Y']:
-                noise_op = ops.depolarize(self.single_qubit_p)
-            elif op_str == 'MS':
-                noise_op = ops.depolarize(self.ms_p)
-            else:
+            try:
+                noise_op = self.noise_op_dict[op_str]
+            except KeyError:
                 break
             for qubit in system_qubits:
                 if qubit in op.qubits:
                     noise_list.append(noise_op.on(qubit))
+
         return list(moment) + noise_list
 
 
@@ -101,7 +98,6 @@ class AQTSimulator:
             angle = gate_list[1]
             qubits = [self.qubit_list[i] for i in gate_list[2]]
             self.circuit.append(gate_dict[gate].on(*qubits)**angle)
-            #self.add_noise(gate, gate_list[2], angle)
         # TODO: Better solution for measurement at the end
         self.circuit.append(
             ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
@@ -141,6 +137,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
 
 
 def get_default_noise_dict():
+    """Returns the current noise parameters"""
     default_noise_dict = {
         'X': ops.depolarize(1e-3),
         'Y': ops.depolarize(1e-3),
