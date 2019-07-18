@@ -155,8 +155,8 @@ class XmonSimulator(sim.SimulatesSamples,
         # Delegate to appropriate method based on contents.
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(circuit, repetitions)
-        else:
-            return self._run_sweep_repeat(circuit, repetitions)
+
+        return self._run_sweep_repeat(circuit, repetitions)
 
     def _run_sweep_repeat(self,
                           circuit: circuits.Circuit,

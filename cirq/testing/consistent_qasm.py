@@ -57,13 +57,13 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     qasm = protocols.qasm(op, args=args, default=None)
     if qasm is None:
         return
-    else:
-        header = """
+
+    header = """
 OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[{}];
 """.format(len(qubits))
-        qasm = header + qasm
+    qasm = header + qasm
 
     qasm_unitary = None
     try:

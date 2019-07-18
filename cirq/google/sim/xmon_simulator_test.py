@@ -747,7 +747,7 @@ def test_measurement_keys_repeat(scheduler):
     circuit.append([cirq.measure(Q1, key='a'), cirq.X.on(Q1), cirq.X.on(Q2),
                     cirq.measure(Q2, key='a')])
     simulator = cg.XmonSimulator()
-    with pytest.raises(ValueError, message='Repeated Measurement key a'):
+    with pytest.raises(ValueError, match=r'Measurement key.*repeated'):
         run(simulator, circuit, scheduler)
 
 
@@ -890,12 +890,12 @@ def test_circuit_repetitions_optimized_regression():
     circuit = bit_flip_circuit(1, 1)
 
     # When not optimized this takes around 20 seconds to run, otherwise it
-    # runs in less than a second.
+    # runs in less than 5 seconds.
     start = time.time()
     result = sim.run(circuit, repetitions=10000)
     assert result.repetitions == 10000
     end = time.time()
-    assert end - start < 1.0
+    assert end - start < 5.0
 
 
 def test_circuit_parameters():

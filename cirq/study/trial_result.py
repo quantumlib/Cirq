@@ -14,14 +14,15 @@
 
 """Defines trial results."""
 
-from typing import (
-    Iterable, Callable, Tuple, TypeVar, Dict, Any, TYPE_CHECKING, Union
-)
+from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
+                    TYPE_CHECKING, Union, Optional)
 
 import collections
 import numpy as np
+import pandas as pd
 
 from cirq import value, ops
+from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -32,8 +33,7 @@ T = TypeVar('T')
 TMeasurementKey = Union[str, 'cirq.Qid', Iterable['cirq.Qid']]
 
 
-def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
-                             ) -> Tuple[int, ...]:
+def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
     """Returns the big-endian integers specified by groups of bits.
 
     Args:
@@ -43,41 +43,19 @@ def _tuple_of_big_endian_int(bit_groups: Tuple[np.ndarray, ...]
     Returns:
         A tuple containing the integer for each group.
     """
-    return tuple(_big_endian_int(bits) for bits in bit_groups)
-
-
-def _big_endian_int(bits: np.ndarray) -> int:
-    """Returns the big-endian integer specified by the given bits.
-
-    For example, [True, False, False, True, False] becomes binary 10010 which
-    is 18 in decimal.
-
-    Args:
-        bits: Descending bits of the integer, with the 1s bit at the end.
-
-    Returns:
-        The integer.
-    """
-    result = 0
-    for e in bits:
-        result <<= 1
-        if e:
-            result |= 1
-    return result
+    return tuple(value.big_endian_bits_to_int(bits) for bits in bit_groups)
 
 
 def _bitstring(vals: Iterable[Any]) -> str:
     return ''.join('1' if v else '0' for v in vals)
 
 
-def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]
-                               ) -> str:
+def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
     keyed_bitstrings = []
     for key in sorted(vals.keys()):
         reps = vals[key]
         n = 0 if len(reps) == 0 else len(reps[0])
-        all_bits = ', '.join([_bitstring(reps[:, i])
-                              for i in range(n)])
+        all_bits = ', '.join(_bitstring(reps[:, i]) for i in range(n))
         keyed_bitstrings.append('{}={}'.format(key, all_bits))
     return '\n'.join(keyed_bitstrings)
 
@@ -90,9 +68,12 @@ def _key_to_str(key: TMeasurementKey) -> str:
     return ','.join(str(q) for q in key)
 
 
-@value.value_equality(unhashable=True)
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
+    Stored as a Pandas DataFrame that can be accessed through the "data"
+    attribute. The repitition number is the row index and measurement keys
+    are the columns of the DataFrame. Each element is a Pandas Series of
+    measurement outcomes per bit for the measurement key in that repitition.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
@@ -101,14 +82,13 @@ class TrialResult:
             numpy array, the first dimension corresponding to the repetition
             and the second to the actual boolean measurement results (ordered
             by the qubits being measured.)
-        repetitions: The number of times a circuit was sampled to get these
-            results.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 params: resolver.ParamResolver,
-                 measurements: Dict[str, np.ndarray],
-                 repetitions: int) -> None:
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            params: resolver.ParamResolver,
+            measurements: Dict[str, np.ndarray]) -> None:
         """
         Args:
             params: A ParamResolver of settings used for this result.
@@ -117,18 +97,55 @@ class TrialResult:
                 with the first index running over the repetitions, and the
                 second index running over the qubits for the corresponding
                 measurements.
-            repetitions: The number of times the circuit was sampled.
         """
         self.params = params
-        self.measurements = measurements
-        self.repetitions = repetitions
+        self._data: Optional[pd.DataFrame] = None
+        self._measurements = measurements
+
+    @property
+    def data(self) -> pd.DataFrame:
+        if self._data is None:
+            # Convert to a DataFrame with columns as measurement keys, rows as
+            # repetitions and a big endian integer for individual measurements.
+            converted_dict = {}
+            for key, val in self._measurements.items():
+                converted_dict[key] = [
+                    value.big_endian_bits_to_int(m_vals) for m_vals in val
+                ]
+            self._data = pd.DataFrame(converted_dict)
+        return self._data
+
+    @staticmethod
+    def from_single_parameter_set(
+            *,  # Forces keyword args.
+            params: resolver.ParamResolver,
+            measurements: Dict[str, np.ndarray]) -> 'TrialResult':
+        """Packages runs of a single parameterized circuit into a TrialResult.
+
+        Args:
+            params: A ParamResolver of settings used for this result.
+            measurements: A dictionary from measurement gate key to measurement
+                results. The value for each key is a 2-D array of booleans,
+                with the first index running over the repetitions, and the
+                second index running over the qubits for the corresponding
+                measurements.
+        """
+        return TrialResult(params=params, measurements=measurements)
+
+    @property
+    def measurements(self) -> Dict[str, np.ndarray]:
+        return self._measurements
+
+    @property
+    def repetitions(self) -> int:
+        return self.data.shape[0]
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
-            self, *,  # Forces keyword args.
+            self,
+            *,  # Forces keyword args.
             keys: Iterable[TMeasurementKey],
-            fold_func: Callable[[Tuple[np.ndarray, ...]],
-                                T] = _tuple_of_big_endian_int
+            fold_func: Callable[[pd.Series], T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -175,8 +192,8 @@ class TrialResult:
             results.
         """
         fixed_keys = tuple(_key_to_str(key) for key in keys)
-        samples = zip(*[self.measurements[sub_key]
-                        for sub_key in fixed_keys])  # type: Iterable[Any]
+        samples = zip(*(self.measurements[sub_key]
+                        for sub_key in fixed_keys))  # type: Iterable[Any]
         if len(fixed_keys) == 0:
             samples = [()] * self.repetitions
         c = collections.Counter()  # type: collections.Counter
@@ -185,11 +202,12 @@ class TrialResult:
         return c
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
-    def histogram(self,  # type: ignore
-                  *,  # Forces keyword args.
-                  key: TMeasurementKey,
-                  fold_func: Callable[[np.ndarray], T] = _big_endian_int
-                  ) -> collections.Counter:
+    def histogram(  # type: ignore
+            self,
+            *,  # Forces keyword args.
+            key: TMeasurementKey,
+            fold_func: Callable[[pd.Series], T] = value.big_endian_bits_to_int
+    ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
         For example, suppose that:
@@ -227,15 +245,20 @@ class TrialResult:
             results.
         """
         return self.multi_measurement_histogram(
-            keys=[key],
-            fold_func=lambda e: fold_func(e[0]))
+            keys=[key], fold_func=lambda e: fold_func(e[0]))
 
     def __repr__(self):
-        return ('cirq.TrialResult(params={!r}, '
-                'repetitions={!r}, '
-                'measurements={!r})').format(self.params,
-                                             self.repetitions,
-                                             self.measurements)
+
+        def item_repr(entry):
+            key, val = entry
+            return '{!r}: {}'.format(key, proper_repr(val))
+
+        measurement_dict_repr = (
+            '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) +
+            '}')
+
+        return 'cirq.TrialResult(params={!r}, measurements={})'.format(
+            self.params, measurement_dict_repr)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -248,5 +271,7 @@ class TrialResult:
     def __str__(self):
         return _keyed_repeated_bitstrings(self.measurements)
 
-    def _value_equality_values_(self):
-        return self.measurements, self.repetitions, self.params
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.data.equals(other.data) and self.params == other.params
