@@ -15,13 +15,13 @@
 #   doctest
 #
 # Usage:
-#     check/all revision [BASE_REVISION] [--only-changed-files] [--apply-format]
+#     check/all revision [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
 #
 # BASE_REVISION is forwarded to format-incremental and to the pytest checks
 # (pytest-and-incremental-coverage or pytest-changed-files). See those
 # checks for how to specify this value.
 #
-# If --only-change-files is specified, pytest-changed-files will be run
+# If --only-changed-files is specified, pytest-changed-files will be run
 # instead of pytest-and-incremental-coverage.
 #
 # If --apply-format-changes is specified the --apply flag will be passed
