@@ -55,7 +55,8 @@ class JobConfig:
     Quantum engine has two resources: programs and jobs. Programs live
     under cloud projects. Every program may have many jobs, which represent
     scheduled or terminated programs executions. Program and job resources have
-    string names. This object contains the information necessary to create a program and then create a job on Quantum Engine, hence running the program.
+    string names. This object contains the information necessary to create a
+    program and then create a job on Quantum Engine, hence running the program.
     Program ids are of the form
         `projects/project_id/programs/program_id`
     while job ids are of the form
@@ -538,12 +539,13 @@ class Engine:
 
     def list_processors(self, project_id: str) -> List[Dict]:
         parent = 'projects/%s' % (project_id)
-        response = self.service.projects().processors().list(parent=parent).execute()
+        response = self.service.projects().processors().list(
+            parent=parent).execute()
         return response['processors']
 
-
-    def get_latest_calibration(self, processor_name: str) -> Dict:
-        """Returns metadata about a the latest known calibration run for a processor.
+    def get_latest_calibration(self, processor_name: str) -> 'Calibration':
+        """Returns metadata about a the latest known calibration run for a
+        processor.
 
         Params:
             processor_name: A string of the form
@@ -554,27 +556,58 @@ class Engine:
         """
         response = self.service.projects().processors().calibrations().list(
             parent=processor_name).execute()
-        #type: cirq.api.google.v2.metrics_pb2
-        return response['calibrations'][0] if response['calibrations'] else []
+        return Calibration(response['calibrations'][0]['data']['data'])
 
-
-    def get_calibration(self, calibration_name: str) -> Dict:
+    def get_calibration(self, calibration_name: str) -> 'Calibration':
         """Returns metadata about a specific calibration run for a processor.
-
-        A Job created on the engine will provide the calibration_name as part of
-        its ExecutionStatus when there exists a known calibration run for the time
-        when the job was run.
 
         Params:
             calibration_name: A string of the form
-                `projects/project_id/processors/processor_id/calibrations/timestamp`,
-                where timestamp is the number of seconds since the epoch.
+                `<processor name>/calibrations/<ms since epoch>`
 
         Returns:
             A dictionary containing the metadata.
         """
-        return self.service.projects().processors().calibrations().get(
+        response = self.service.projects().processors().calibrations().get(
             name=calibration_name).execute()
+        return response['data']['data']
+
+
+class Calibration:
+    """A convenience wrapper for calibrations"""
+
+    def __init__(self, calibration: Dict) -> None:
+        self._time = int(calibration['timestampMs'])
+        self._metrics = calibration['metrics']
+
+    def get_timestamp(self):
+        """ Returns the time of this calibration in milliseconds since
+            the epoch.
+        """
+        return self._time
+
+    def get_metric_names(self) -> List[str]:
+        """ Returns a list of known metrics in this calibration. """
+        return list(set(m['name'] for m in self._metrics))
+
+    def get_metrics_by_name(self, name: str) -> List[Dict]:
+        """ Returns a filtered list of metrics matching the provided name.
+
+        Values are grouped into a flat list, grouped by target.
+
+        Params:
+            name: the name of a metric referred to in the calibration. Valid
+            names can be found with the get_metric_names() method.
+        """
+        return list({
+            'targets': metric['targets'],
+            'values': self._values_from_metric(metric)
+        } for metric in self._metrics if metric['name'] == name)
+
+    def _values_from_metric(self, metric: Dict) -> List:
+        """ Returns a flattened list of values for a single metric proto. """
+        return list(value for values in metric['values']
+                    for value in list(values.values()))
 
 
 class EngineJob:
@@ -615,6 +648,12 @@ class EngineJob:
     def status(self):
         """Return the execution status of the job."""
         return self._update_job()['executionStatus']['state']
+
+    def get_calibration(self) -> Optional[Calibration]:
+        """Returns the recorded calibration at the time when the job was run, if
+        one was captured, else None."""
+        name = self._job['executionStatus']['calibrationName']
+        return self._engine.get_calibration(name) if name else None
 
     def cancel(self):
         """Cancel the job."""

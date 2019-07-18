@@ -71,6 +71,41 @@ _RESULTS = {
 }
 
 
+_CALIBRATION = {
+    'name': 'projects/cirqv2/processors/xmonsim/calibrations/1562715599',
+    'timestamp': '2019-07-09T23:39:59Z',
+    'data': {
+        '@type': 'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
+        'timestampMs': '1562544000021',
+        'metrics': [
+            {
+                'name': 'xeb',
+                'targets': ['q0_0', 'q0_1'],
+                'values': [{'doubleVal': 123}]
+            },
+            {
+                'name': 'xeb',
+                'targets': ['q0_0', 'q1_0'],
+                'values': [{'doubleVal': 303}]
+            },
+            {
+                'name': 't1',
+                'targets': ['q0_0'],
+                'values': [{'doubleVal': 321}]
+            },
+            {
+                'name': 't1',
+                'targets': ['q0_1'],
+                'values': [{'doubleVal': 911}]
+            },
+            {
+                'name': 't1',
+                'targets': ['q1_0'],
+                'values': [{'doubleVal': 505}]
+            }
+        ]
+    }
+}
 
 def test_repr():
     v = cirq.google.JobConfig(project_id='my-project-id',
@@ -538,3 +573,35 @@ def test_bad_job_config_inference_order(build):
 
     eng._infer_gcs_results(config)
     eng._infer_gcs_program(config)
+
+@mock.patch.object(discovery, 'build')
+def test_latest_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+    calibrations = service.projects().processors().calibrations()
+    calibrations.list().execute.return_value = (
+        {'calibrations': [{'data': _CALIBRATION}]})
+    processor_name = 'projects/p/processors/x'
+    calibration = cg.Engine(api_key="key").get_latest_calibration(processor_name)
+    assert calibrations.list.call_args[1]['parent'] == processor_name
+    assert calibration.get_timestamp() == 1562544000021
+    assert calibration.get_metric_names() == ['xeb', 't1']
+
+#@mock.patch.object(discovery, 'build')
+#def test_calibration_from_job(build):
+#    service = mock.Mock()
+#    build.return_value = service
+#    jobs = service.projects().programs().jobs()
+#    jobs.get().execute.return_value = {
+#        'name': 'projects/project-id/programs/test/jobs/test',
+#        'executionStatus': {
+#            'calibrationName': '/project/p/processor/x/calibrationsi/123'}}
+#    engine = cg.Engine(api_key="key")
+#    job = EngineJob({}, engine.get_job(
+#    calibrations = service.projects().processors().calibrations()
+#    calibrations.get().execute.return_value = CALIBRATION
+#    calibration = cg.Engine(api_key="key").get_latest_calibration('foo')
+#    assert calibration.get_timestamp == 12345678
+#    assert calibration.get_metric_names == ['t1','xeb']
+#    # assert getCalibration called with job's timestamp
+#
