@@ -620,9 +620,9 @@ class Engine:
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
     def list_processors(self, project_id: str) -> List[Dict]:
-        """ Returns a list of Processors that the user has visibility to in the
-            provided project. The names of these processors are used to identify
-            devices when scheduling jobs and gathering calibration metrics.
+        """Returns a list of Processors that the user has visibility to in the
+        provided project. The names of these processors are used to identify
+        devices when scheduling jobs and gathering calibration metrics.
 
         Params:
             project_id: The ID of the Google Cloud project to check, e.g.
@@ -630,6 +630,11 @@ class Engine:
 
         Returns:
             A list of dictionaries containing the metadata of each processor.
+            Each dict contains:
+               `name`: The fully-qualified name of the processor
+               `health`: Availability as `OK`, `DOWN`, or `UNAVAILABLE
+               `supportedLanguages`: A list of proto type URLs that can be used
+                   to encode a Program on the processor.
         """
         parent = 'projects/%s' % (project_id)
         response = self.service.projects().processors().list(
@@ -638,7 +643,7 @@ class Engine:
 
     def get_latest_calibration(self,
                                processor_name: str) -> Optional['Calibration']:
-        """ Returns metadata about a the latest known calibration run for a
+        """ Returns metadata about the latest known calibration run for a
         processor, or None if there is no calibration available.
 
         Params:
@@ -646,7 +651,7 @@ class Engine:
                 `projects/project_id/processors/processor_id`.
 
         Returns:
-            A dictionary containing the metadata.
+            A dictionary containing the calibration data.
         """
         response = self.service.projects().processors().calibrations().list(
             parent=processor_name).execute()
@@ -671,17 +676,16 @@ class Engine:
 
 
 class Calibration:
-    """A convenience wrapper for calibrations"""
+    """A convenience wrapper for calibrations
+
+    Attributes:
+        timestamp: The time that this calibration was run, in milliseconds since
+            the epoch.
+    """
 
     def __init__(self, calibration: Dict) -> None:
-        self._time = int(calibration['timestampMs'])
+        self.timestamp = int(calibration['timestampMs'])
         self._metrics = calibration['metrics']
-
-    def get_timestamp(self) -> int:
-        """ Returns the time of this calibration in milliseconds since
-            the epoch.
-        """
-        return self._time
 
     def get_metric_names(self) -> List[str]:
         """ Returns a list of known metrics in this calibration. """
@@ -700,21 +704,16 @@ class Calibration:
             A list of dictionaries containing pairs of targets and values for
             the requested metric.
         """
-        return list({
-            'targets':
-            metric['targets'],
+        result = []
+        matching_metrics = [m for m in self._metrics if m['name'] == name]
+        for metric in matching_metrics:
+            flat_values: List = []
             # Flatten the values a list, removing keys containing type names
             # (e.g. proto version of each value is {<type>: value}).
-            'values':
-            list(value
-                 for values in metric['values']
-                 for value in list(values.values()))
-        }
-                    for metric in self._metrics
-                    if metric['name'] == name)
-
-    def _values_from_metric(self, metric: Dict) -> List:
-        """ Returns a flattened list of values for a single metric proto. """
+            for value in metric['values']:
+                flat_values += [value[type] for type in value]
+            result.append({'targets': metric['targets'], 'values': flat_values})
+        return result
 
 
 class EngineJob:

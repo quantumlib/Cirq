@@ -778,7 +778,7 @@ def test_latest_calibration(build):
     calibration = cg.Engine(
         api_key="key").get_latest_calibration(processor_name)
     assert calibrations.list.call_args[1]['parent'] == processor_name
-    assert calibration.get_timestamp() == 1562544000021
+    assert calibration.timestamp == 1562544000021
     assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
 
 
@@ -823,7 +823,7 @@ def test_calibration_from_job(build):
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
 
     calibration = job.get_calibration()
-    assert calibration.get_timestamp() == 1562544000021
+    assert calibration.timestamp == 1562544000021
     assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
 
