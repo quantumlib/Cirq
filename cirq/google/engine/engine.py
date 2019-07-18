@@ -626,7 +626,10 @@ class Engine:
 
         Params:
             project_id: The ID of the Google Cloud project to check, e.g.
-                "my-project-123"
+                `my-project-123`
+
+        Returns:
+            A list of dictionaries containing the metadata of each processor.
         """
         parent = 'projects/%s' % (project_id)
         response = self.service.projects().processors().list(
@@ -653,7 +656,7 @@ class Engine:
         return Calibration(response['calibrations'][0]['data'])
 
     def get_calibration(self, calibration_name: str) -> 'Calibration':
-        """Returns metadata about a specific calibration run for a processor.
+        """Retrieve metadata about a specific calibration run.
 
         Params:
             calibration_name: A string of the form
@@ -674,7 +677,7 @@ class Calibration:
         self._time = int(calibration['timestampMs'])
         self._metrics = calibration['metrics']
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> int:
         """ Returns the time of this calibration in milliseconds since
             the epoch.
         """
@@ -685,13 +688,17 @@ class Calibration:
         return list(set(m['name'] for m in self._metrics))
 
     def get_metrics_by_name(self, name: str) -> List[Dict]:
-        """ Returns a filtered list of metrics matching the provided name.
+        """ Get a filtered list of metrics matching the provided name.
 
         Values are grouped into a flat list, grouped by target.
 
         Params:
             name: the name of a metric referred to in the calibration. Valid
             names can be found with the get_metric_names() method.
+
+        Returns:
+            A list of dictionaries containing pairs of targets and values for
+            the requested metric.
         """
         return list({
             'targets':
