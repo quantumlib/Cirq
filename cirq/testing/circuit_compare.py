@@ -365,9 +365,44 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
                 qubit_count=qubit_count)
 
 
+def assert_has_consistent_qid_shape(val: Any,
+                                    qubit_count: Optional[int] = None) -> None:
+    """Tests whether a value's `_qid_shape_` and `_num_qubits_` are correct and
+    consistent.
+
+    Verifies that the entries in the shape are all positive integers and the
+    length of shape equals `_num_qubits_` (and also equals `len(qubits)` if
+    `val` has `qubits`.
+
+    Args:
+        val: The value under test. Should have `_qid_shape_` and/or
+            `num_qubits_` methods. Can optionally have a `qubits` property.
+        qubit_count: The expected number of qubits val should use.
+    """
+    default = (-1,)
+    qid_shape = protocols.qid_shape(val, default)
+    num_qubits = protocols.num_qubits(val, default)
+    if qid_shape is default or num_qubits is default:
+        return  # Nothing to check
+    assert all(d >= 1 for d in qid_shape), (
+        f'Not all entries in qid_shape are positive: {qid_shape}')
+    assert len(qid_shape) == num_qubits, (
+        f'Length of qid_shape and num_qubits disagree: {qid_shape}, '
+        f'{num_qubits}')
+    if qubit_count is not None:
+        assert qubit_count == num_qubits, (
+            f'Expected qubits and num_qubits disagree: {qubit_count}, '
+            f'{num_qubits}')
+    infer_qubit_count = _infer_qubit_count(val)
+    if infer_qubit_count is not None:
+        assert infer_qubit_count == num_qubits, (
+            f'Length of qubits and num_qubits disagree: {infer_qubit_count}, '
+            f'{num_qubits}')
+
+
 def _infer_qubit_count(val: Any) -> Optional[int]:
     if isinstance(val, ops.Operation):
         return len(val.qubits)
     if isinstance(val, ops.Gate):
-        return val.num_qubits()
+        return protocols.num_qubits(val)
     return None

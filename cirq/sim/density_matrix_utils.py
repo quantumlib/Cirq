@@ -16,6 +16,7 @@
 from typing import List, Tuple, Type, Union
 
 import numpy as np
+from scipy.stats import entropy
 
 from cirq import linalg
 from cirq.sim import wave_function
@@ -257,3 +258,14 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
     if any(index >= num_qubits for index in indices):
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
+
+
+def von_neumann_entropy(density_matrix: np.ndarray) -> float:
+    """Calculates von Neumann entropy of density matrix in bits.
+    Args:
+        density_matrix: The density matrix.
+    Returns:
+        The calculated von Neumann entropy.
+    """
+    eigenvalues = np.linalg.eigvals(density_matrix)
+    return entropy(abs(eigenvalues), base=2)

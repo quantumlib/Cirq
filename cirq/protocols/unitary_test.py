@@ -138,6 +138,19 @@ class DummyOperation(cirq.Operation):
         return ()
 
 
+class DummyComposite:
+
+    def _decompose_(self):
+        return ()
+
+
+class OtherComposite:
+
+    def _decompose_(self):
+        yield cirq.X(cirq.LineQubit(0))
+        yield cirq.X(cirq.LineQubit(3))
+
+
 def test_unitary():
     with pytest.raises(TypeError, match='unitary effect'):
         _ = cirq.unitary(NoMethod())
@@ -187,6 +200,10 @@ def test_decompose_and_get_unitary():
         _strat_unitary_from_decompose(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(
         _strat_unitary_from_decompose(DummyOperation((a, b))), np.eye(4))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(DummyComposite()),
+                               np.eye(1))
+    np.testing.assert_allclose(_strat_unitary_from_decompose(OtherComposite()),
+                               m2)
 
 
 def test_decomposed_has_unitary():
@@ -202,6 +219,10 @@ def test_decomposed_has_unitary():
     assert cirq.has_unitary(DecomposableOperation((a, b), True))
     assert cirq.has_unitary(DummyOperation((a,)))
     assert cirq.has_unitary(DummyOperation((a, b)))
+
+    # No qid shape
+    assert cirq.has_unitary(DummyComposite())
+    assert cirq.has_unitary(OtherComposite())
 
 
 def test_decomposed_unitary():
@@ -220,6 +241,10 @@ def test_decomposed_unitary():
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))
     assert cirq.unitary(DecomposableNoUnitary((a,)), None) is None
+
+    # No qid shape
+    np.testing.assert_allclose(cirq.unitary(DummyComposite()), np.eye(1))
+    np.testing.assert_allclose(cirq.unitary(OtherComposite()), m2)
 
 
 def test_unitary_from_apply_unitary():

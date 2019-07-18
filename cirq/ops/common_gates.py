@@ -445,6 +445,8 @@ class MeasurementGate(raw_types.Gate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
+        if num_qubits == 0:
+            raise ValueError('Measuring an empty set of qubits.')
         self._num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
