@@ -325,12 +325,11 @@ class EigenGate(raw_types.Gate):
 
         exponents = (self._exponent, other._exponent)
         exponents_is_parameterized = tuple(
-                protocols.is_parameterized(e) for e in exponents)
-        if (all(exponents_is_parameterized) and 
-                exponents[0] != exponents[1]):
+            protocols.is_parameterized(e) for e in exponents)
+        if (all(exponents_is_parameterized) and exponents[0] != exponents[1]):
             return False
         if (any(exponents_is_parameterized) or
-            not np.isclose(exponents[0], exponents[1], atol=atol)):
+                not np.isclose(exponents[0], exponents[1], atol=atol)):
             return False
 
         self_without_exp_or_phase = self._with_exponent(0)
