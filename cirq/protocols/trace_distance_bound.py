@@ -13,15 +13,14 @@
 # limitations under the License.
 
 import numpy as np
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import Any, TypeVar
 from typing_extensions import Protocol
-from cirq.protocols import unitary, has_unitary
+from cirq.protocols import unitary as unitary_protocol
+from cirq.protocols import has_unitary as has_unitary_protocol
 
 
 TDefault = TypeVar('TDefault')
 
-if TYPE_CHECKING:
-    import cirq
 
 class SupportsTraceDistanceBound(Protocol):
     """An effect with known bounds on how easy it is to detect.
@@ -41,6 +40,7 @@ class SupportsTraceDistanceBound(Protocol):
         exceeds 1, this function will return 1.  Underestimates are not
         permitted.
         """
+
 
 def trace_distance_bound(val: Any) -> float:
     """Returns a maximum on the trace distance between this effect's input
@@ -64,8 +64,8 @@ def trace_distance_bound(val: Any) -> float:
     if result is not NotImplemented:
         return min(1.0, result)
 
-    if has_unitary.has_unitary(val):
-        u = unitary.unitary(val)
+    if has_unitary_protocol.has_unitary(val):
+        u = unitary_protocol.unitary(val)
         if u.shape[0] == 2:
             return (1 - (0.5 * abs(u[0][0] + u[1][1]))**2)**0.5
         angles = np.sort(np.angle(np.linalg.eigvals(u)))
