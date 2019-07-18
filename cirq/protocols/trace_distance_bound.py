@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 from typing import Any, TypeVar
+import numpy as np
 from typing_extensions import Protocol
-from cirq.protocols import unitary as unitary_protocol
-from cirq.protocols import has_unitary as has_unitary_protocol
+from cirq.protocols.unitary import unitary
+from cirq.protocols.has_unitary import has_unitary
 
 
 TDefault = TypeVar('TDefault')
@@ -64,8 +64,8 @@ def trace_distance_bound(val: Any) -> float:
     if result is not NotImplemented:
         return min(1.0, result)
 
-    if has_unitary_protocol.has_unitary(val):
-        u = unitary_protocol.unitary(val)
+    if has_unitary(val):
+        u = unitary(val)
         if u.shape[0] == 2:
             return (1 - (0.5 * abs(u[0][0] + u[1][1]))**2)**0.5
         angles = np.sort(np.angle(np.linalg.eigvals(u)))
