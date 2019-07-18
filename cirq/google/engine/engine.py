@@ -538,13 +538,21 @@ class Engine:
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
     def list_processors(self, project_id: str) -> List[Dict]:
+        """ Returns a list of Processors that the user has visibility to in the
+            provided project. The names of these processors are used to identify
+            devices when scheduling jobs and gathering calibration metrics.
+
+        Params:
+            project_id: The ID of the Google Cloud project to check, e.g.
+                "my-project-123"
+        """
         parent = 'projects/%s' % (project_id)
         response = self.service.projects().processors().list(
             parent=parent).execute()
         return response['processors']
 
     def get_latest_calibration(self, processor_name: str) -> 'Calibration':
-        """Returns metadata about a the latest known calibration run for a
+        """ Returns metadata about a the latest known calibration run for a
         processor.
 
         Params:
@@ -556,7 +564,7 @@ class Engine:
         """
         response = self.service.projects().processors().calibrations().list(
             parent=processor_name).execute()
-        return Calibration(response['calibrations'][0]['data']['data'])
+        return Calibration(response['calibrations'][0]['data'])
 
     def get_calibration(self, calibration_name: str) -> 'Calibration':
         """Returns metadata about a specific calibration run for a processor.
@@ -570,7 +578,7 @@ class Engine:
         """
         response = self.service.projects().processors().calibrations().get(
             name=calibration_name).execute()
-        return response['data']['data']
+        return Calibration(response['data']['data'])
 
 
 class Calibration:

@@ -75,37 +75,44 @@ _CALIBRATION = {
     'name': 'projects/cirqv2/processors/xmonsim/calibrations/1562715599',
     'timestamp': '2019-07-09T23:39:59Z',
     'data': {
-        '@type': 'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
-        'timestampMs': '1562544000021',
-        'metrics': [
-            {
-                'name': 'xeb',
-                'targets': ['q0_0', 'q0_1'],
-                'values': [{'doubleVal': 123}]
-            },
-            {
-                'name': 'xeb',
-                'targets': ['q0_0', 'q1_0'],
-                'values': [{'doubleVal': 303}]
-            },
-            {
-                'name': 't1',
-                'targets': ['q0_0'],
-                'values': [{'doubleVal': 321}]
-            },
-            {
-                'name': 't1',
-                'targets': ['q0_1'],
-                'values': [{'doubleVal': 911}]
-            },
-            {
-                'name': 't1',
-                'targets': ['q1_0'],
-                'values': [{'doubleVal': 505}]
-            }
-        ]
+        '@type':
+        'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
+        'timestampMs':
+        '1562544000021',
+        'metrics': [{
+            'name': 'xeb',
+            'targets': ['q0_0', 'q0_1'],
+            'values': [{
+                'doubleVal': 123
+            }]
+        }, {
+            'name': 'xeb',
+            'targets': ['q0_0', 'q1_0'],
+            'values': [{
+                'doubleVal': 303
+            }]
+        }, {
+            'name': 't1',
+            'targets': ['q0_0'],
+            'values': [{
+                'doubleVal': 321
+            }]
+        }, {
+            'name': 't1',
+            'targets': ['q0_1'],
+            'values': [{
+                'doubleVal': 911
+            }]
+        }, {
+            'name': 't1',
+            'targets': ['q1_0'],
+            'values': [{
+                'doubleVal': 505
+            }]
+        }]
     }
 }
+
 
 def test_repr():
     v = cirq.google.JobConfig(project_id='my-project-id',
@@ -574,34 +581,100 @@ def test_bad_job_config_inference_order(build):
     eng._infer_gcs_results(config)
     eng._infer_gcs_program(config)
 
+
+@mock.patch.object(discovery, 'build')
+def test_list_processors(build):
+    service = mock.Mock()
+    build.return_value = service
+    PROCESSOR1 = {'name': 'projects/myproject/processors/xmonsim'},
+    PROCESSOR2 = {'name': 'projects/myproject/processors/gmonsin'},
+    processors = service.projects().processors()
+    processors.list().execute.return_value = ({
+        'processors': [PROCESSOR1, PROCESSOR2],
+    })
+
+    result = cg.Engine(api_key="key").list_processors('myproject')
+    assert processors.list.call_args[1]['parent'] == 'projects/myproject'
+    assert result == [PROCESSOR1, PROCESSOR2]
+
+
 @mock.patch.object(discovery, 'build')
 def test_latest_calibration(build):
     service = mock.Mock()
     build.return_value = service
     calibrations = service.projects().processors().calibrations()
-    calibrations.list().execute.return_value = (
-        {'calibrations': [{'data': _CALIBRATION}]})
+    calibrations.list().execute.return_value = ({
+        'calibrations': [_CALIBRATION]
+    })
     processor_name = 'projects/p/processors/x'
-    calibration = cg.Engine(api_key="key").get_latest_calibration(processor_name)
+    calibration = cg.Engine(
+        api_key="key").get_latest_calibration(processor_name)
     assert calibrations.list.call_args[1]['parent'] == processor_name
     assert calibration.get_timestamp() == 1562544000021
-    assert calibration.get_metric_names() == ['xeb', 't1']
+    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
 
-#@mock.patch.object(discovery, 'build')
-#def test_calibration_from_job(build):
-#    service = mock.Mock()
-#    build.return_value = service
-#    jobs = service.projects().programs().jobs()
-#    jobs.get().execute.return_value = {
-#        'name': 'projects/project-id/programs/test/jobs/test',
-#        'executionStatus': {
-#            'calibrationName': '/project/p/processor/x/calibrationsi/123'}}
-#    engine = cg.Engine(api_key="key")
-#    job = EngineJob({}, engine.get_job(
-#    calibrations = service.projects().processors().calibrations()
-#    calibrations.get().execute.return_value = CALIBRATION
-#    calibration = cg.Engine(api_key="key").get_latest_calibration('foo')
-#    assert calibration.get_timestamp == 12345678
-#    assert calibration.get_metric_names == ['t1','xeb']
-#    # assert getCalibration called with job's timestamp
-#
+
+@mock.patch.object(discovery, 'build')
+def test_calibration_from_job(build):
+    service = mock.Mock()
+    build.return_value = service
+
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    calibrationName = '/project/p/processor/x/calibrationsi/123'
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS',
+            'calibrationName': calibrationName,
+        },
+    }
+    calibrations = service.projects().processors().calibrations()
+    calibrations.get().execute.return_value = {'data': _CALIBRATION}
+
+    engine = cg.Engine(api_key="key")
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+
+    calibration = job.get_calibration()
+    assert calibration.get_timestamp() == 1562544000021
+    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+    assert calibrations.get.call_args[1]['name'] == calibrationName
+
+
+@mock.patch.object(discovery, 'build')
+def test_calibration_metrics(build):
+    calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
+    t1s = calibration.get_metrics_by_name('t1')
+    xebs = calibration.get_metrics_by_name('xeb')
+
+    assert t1s == [
+        {
+            'targets': ['q0_0'],
+            'values': [321]
+        },
+        {
+            'targets': ['q0_1'],
+            'values': [911]
+        },
+        {
+            'targets': ['q1_0'],
+            'values': [505]
+        },
+    ]
+
+    assert xebs == [
+        {
+            'targets': ['q0_0', 'q0_1'],
+            'values': [123]
+        },
+        {
+            'targets': ['q0_0', 'q1_0'],
+            'values': [303]
+        },
+    ]
