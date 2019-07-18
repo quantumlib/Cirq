@@ -12,12 +12,12 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 """
 import json
 from typing import Union, Tuple, List, Sequence
+import numpy as np
 from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
 from cirq import DensityMatrixSimulator
 
 gate_dict = {'X': ops.X, 'Y': ops.Y, 'MS': ops.XX}
-
 
 def get_op_string(op_obj: ops.Operation):
     """Find the string representation for a given gate
@@ -41,7 +41,6 @@ def get_op_string(op_obj: ops.Operation):
 
 
 class AQTNoiseModel(devices.NoiseModel):
-
     def __init__(self):
         self.noise_op_dict = get_default_noise_dict()
 
@@ -55,11 +54,37 @@ class AQTNoiseModel(devices.NoiseModel):
                 noise_op = self.noise_op_dict[op_str]
             except KeyError:
                 break
-            for qubit in system_qubits:
-                if qubit in op.qubits:
-                    noise_list.append(noise_op.on(qubit))
-
+            for qubit in op.qubits:
+                noise_list.append(noise_op.on(qubit))
+            noise_list += self.get_crosstalk_operation(op, system_qubits)
         return list(moment) + noise_list
+
+    def get_crosstalk_operation(self, operation: ops.Operation,
+                                system_qubits: Tuple[LineQubit]):
+        """
+        Returns operation on
+        Args:
+            operation: Ideal operation
+            system_qubits: Tuple of line qubits
+        """
+        num_qubits = len(system_qubits)
+        xtlk_arr = np.zeros(num_qubits)
+        for qubit in operation.qubits:
+            idx = system_qubits.index(qubit)
+            neighbors = [idx - 1, idx + 1]
+            #xtlk_arr[idx] = 1.0
+            for neigh_idx in neighbors:
+                if neigh_idx >= 0 and neigh_idx < num_qubits:
+                    xtlk_arr[neigh_idx] = self.noise_op_dict['crosstalk']
+        xtlk_op_list = []
+        op_str = get_op_string(operation)
+        if len(operation.qubits) == 1:
+            for idx in xtlk_arr.nonzero()[0]:
+                exponent = operation.gate.exponent * xtlk_arr[idx]
+                xtlk_op = gate_dict[op_str].on(system_qubits[idx])**exponent
+                xtlk_op_list.append(xtlk_op)
+        #TODO: Add xtalk for 2 qubit operations
+        return xtlk_op_list
 
 
 class AQTSimulator:
