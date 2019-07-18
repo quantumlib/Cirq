@@ -293,11 +293,14 @@ class EigenGate(raw_types.Gate):
     def _trace_distance_bound_(self):
         if protocols.is_parameterized(self._exponent):
             return 1
-
-        angles = [half_turns for half_turns, _ in self._eigen_components()]
-        min_angle = min(angles)
-        max_angle = max(angles)
-        return abs((max_angle - min_angle) * self._exponent * 3.5)
+        angles = np.sort(self._eigen_shifts())
+        maxim = 2 + angles[0] - angles[-1]
+        for i in range(1, len(angles)):
+            maxim = max(maxim, angles[i] - angles[i - 1])
+        angle = (2 - maxim) * abs(self._exponent)
+        if angle >= 1:
+            return 1
+        return abs(np.sin(0.5 * angle * np.pi))
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()

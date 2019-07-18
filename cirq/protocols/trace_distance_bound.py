@@ -14,7 +14,8 @@
 
 from typing import Any, TypeVar
 from typing_extensions import Protocol
-
+from cirq.protocols import unitary, has_unitary
+import numpy as np
 
 TDefault = TypeVar('TDefault')
 
@@ -57,6 +58,19 @@ def trace_distance_bound(val: Any) -> float:
     getter = getattr(val, '_trace_distance_bound_', None)
     result = NotImplemented if getter is None else getter()
 
-    if result is not NotImplemented and result < 1.0:
-        return result
+    if result is not NotImplemented:
+        return min(1.0, result)
+
+    if has_unitary.has_unitary(val):
+        u = unitary.unitary(val)
+        if u.shape[0] == 2:
+            return (1 - (0.5 * abs(u[0][0] + u[1][1]))**2)**0.5
+        angles = np.sort(np.angle(np.linalg.eigvals(u)))
+        maxim = 2 * np.pi + angles[0] - angles[-1]
+        for i in range(1, len(angles)):
+            maxim = max(maxim, angles[i] - angles[i - 1])
+        if maxim <= np.pi:
+            return 1
+        return np.sin(0.5 * maxim)
+
     return 1.0

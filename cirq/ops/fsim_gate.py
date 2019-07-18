@@ -79,6 +79,18 @@ class FSimGate(gate_features.TwoQubitGate,
             [0, 0, 0, c],
         ])
 
+    def _trace_distance_bound_(self):
+        if self._is_parameterized_():
+            return 1
+        angles = np.sort((np.array([-self.theta, self.theta, 0, -self.phi]) +
+                          0.5 * np.pi) % np.pi - 0.5 * np.pi)
+        maxim = 2 * np.pi + angles[0] - angles[-1]
+        for i in range(1, len(angles)):
+            maxim = max(maxim, angles[i] - angles[i - 1])
+        if maxim < np.pi:
+            return 1
+        return np.sin(0.5 * maxim)
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
