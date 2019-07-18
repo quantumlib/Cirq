@@ -633,9 +633,10 @@ class Engine:
             parent=parent).execute()
         return response['processors']
 
-    def get_latest_calibration(self, processor_name: str) -> 'Calibration':
+    def get_latest_calibration(self, processor_name: str
+    ) -> Optional['Calibration']:
         """ Returns metadata about a the latest known calibration run for a
-        processor.
+        processor, or None if there is no calibration available.
 
         Params:
             processor_name: A string of the form
@@ -646,6 +647,8 @@ class Engine:
         """
         response = self.service.projects().processors().calibrations().list(
             parent=processor_name).execute()
+        if (not 'calibrations' in response
+            or len(response['calibrations']) < 1): return None;
         return Calibration(response['calibrations'][0]['data'])
 
     def get_calibration(self, calibration_name: str) -> 'Calibration':

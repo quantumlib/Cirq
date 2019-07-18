@@ -783,6 +783,19 @@ def test_latest_calibration(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_missing_latest_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+    calibrations = service.projects().processors().calibrations()
+    calibrations.list().execute.return_value = {}
+    processor_name = 'projects/p/processors/x'
+    calibration = cg.Engine(
+        api_key="key").get_latest_calibration(processor_name)
+    assert calibrations.list.call_args[1]['parent'] == processor_name
+    assert not calibration
+
+
+@mock.patch.object(discovery, 'build')
 def test_calibration_from_job(build):
     service = mock.Mock()
     build.return_value = service
@@ -813,6 +826,7 @@ def test_calibration_from_job(build):
     assert calibration.get_timestamp() == 1562544000021
     assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
+
 
 @mock.patch.object(discovery, 'build')
 def test_calibration_from_job_with_no_calibration(build):
