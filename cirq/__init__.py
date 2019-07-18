@@ -250,6 +250,7 @@ from cirq.sim import (
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_normalized_state,
+    von_neumann_entropy,
     WaveFunctionSimulatorState,
     WaveFunctionStepResult,
     WaveFunctionTrialResult,
