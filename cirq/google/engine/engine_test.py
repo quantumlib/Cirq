@@ -148,13 +148,13 @@ _CALIBRATION = {
             'name': 'xeb',
             'targets': ['q0_0', 'q0_1'],
             'values': [{
-                'doubleVal': 123
+                'doubleVal': .9999
             }]
         }, {
             'name': 'xeb',
             'targets': ['q0_0', 'q1_0'],
             'values': [{
-                'doubleVal': 303
+                'doubleVal': .9998
             }]
         }, {
             'name': 't1',
@@ -882,10 +882,10 @@ def test_calibration_metrics(build):
     assert xebs == [
         {
             'targets': ['q0_0', 'q0_1'],
-            'values': [123]
+            'values': [.9999]
         },
         {
             'targets': ['q0_0', 'q1_0'],
-            'values': [303]
+            'values': [.9998]
         },
     ]
