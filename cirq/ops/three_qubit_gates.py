@@ -151,14 +151,18 @@ class CCZPowGate(eigen_gate.EigenGate,
 
 @value.value_equality()
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
-    """A gate given by a diagonal 8x8 matrix.
-
-    The list of angles passed to the constructor should be in radians.
-    """
+    """A gate given by a diagonal 8x8 matrix."""
 
     def __init__(self,
                  diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
-        self._diag_angles_radians = diag_angles_radians  # type: List[Union[float. sympy.Basic]]
+        """
+        
+        Args:
+            diag_angles_radians: The list of angles on the diagonal in radians.
+        
+        """
+        self._diag_angles_radians = diag_angles_radians \
+        # type: List[Union[float, sympy.Basic]]
 
     def _is_parameterized_(self):
         return any(
