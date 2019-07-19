@@ -19,7 +19,6 @@ from typing import Any, Dict, Iterable, List, Tuple
 import sys
 import os
 import glob
-import io
 import importlib.util
 import doctest
 
@@ -157,7 +156,7 @@ def import_file(file_path: str) -> ModuleType:
     spec = importlib.util.spec_from_file_location(mod_name, file_path)
     mod = importlib.util.module_from_spec(spec)
     # Run the code in the module (but not with __name__ == '__main__')
-    spec.loader.exec_module(mod)
+    spec.loader.exec_module(mod)  # type: ignore
     return mod
 
 
