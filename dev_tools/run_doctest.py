@@ -25,12 +25,12 @@ import doctest
 from dev_tools import shell_tools
 from dev_tools.output_capture import OutputCapture
 
-
 # Bug workaround: https://github.com/python/mypy/issues/1498
 ModuleType = Any
 
 
 class Doctest:
+
     def __init__(self, file_name: str, mod: ModuleType,
                  test_globals: Dict[str, Any]):
         self.file_name = file_name
@@ -38,11 +38,14 @@ class Doctest:
         self.test_globals = test_globals
 
     def run(self) -> doctest.TestResults:
-        return doctest.testmod(self.mod, globs=self.test_globals, report=False,
+        return doctest.testmod(self.mod,
+                               globs=self.test_globals,
+                               report=False,
                                verbose=False)
 
 
-def run_tests(file_paths: Iterable[str], include_cirq: bool = True,
+def run_tests(file_paths: Iterable[str],
+              include_cirq: bool = True,
               include_local: bool = True) -> doctest.TestResults:
     """Runs code snippets from docstrings found in each file.
 
@@ -56,7 +59,8 @@ def run_tests(file_paths: Iterable[str], include_cirq: bool = True,
 
     Returns: A tuple with the results: (# tests failed, # tests attempted)
     """
-    tests = load_tests(file_paths, include_cirq=include_cirq,
+    tests = load_tests(file_paths,
+                       include_cirq=include_cirq,
                        include_local=include_local)
     print()
     results, error_messages = exec_tests(tests)
@@ -65,7 +69,9 @@ def run_tests(file_paths: Iterable[str], include_cirq: bool = True,
         print(error)
     return results
 
-def load_tests(file_paths: Iterable[str], include_cirq: bool = True,
+
+def load_tests(file_paths: Iterable[str],
+               include_cirq: bool = True,
                include_local: bool = True) -> List[Doctest]:
     """Prepares tests for code snippets from docstrings found in each file.
 
@@ -86,11 +92,13 @@ def load_tests(file_paths: Iterable[str], include_cirq: bool = True,
         base_globals = {}
 
     print('Loading tests   ', end='')
+
     def make_test(file_path: str) -> Doctest:
         print('.', end='')
         mod = import_file(file_path)
         glob = make_globals(mod)
         return Doctest(file_path, mod, glob)
+
     def make_globals(mod: ModuleType) -> Dict[str, Any]:
         sys.stdout.flush()
         if include_local:
@@ -99,12 +107,14 @@ def load_tests(file_paths: Iterable[str], include_cirq: bool = True,
             return glob
         else:
             return dict(base_globals)
+
     tests = [make_test(file_path) for file_path in file_paths]
     print()
     return tests
 
-def exec_tests(tests: Iterable[Doctest]) -> Tuple[doctest.TestResults,
-                                                  List[str]]:
+
+def exec_tests(tests: Iterable[Doctest]
+              ) -> Tuple[doctest.TestResults, List[str]]:
     """Runs a list of `Doctest`s and collects and returns any error messages.
 
     Args:
@@ -127,9 +137,8 @@ def exec_tests(tests: Iterable[Doctest]) -> Tuple[doctest.TestResults,
             print('F', end='')
             error = shell_tools.highlight(
                 '{}\n{} failed, {} passed, {} total\n'.format(
-                    test.file_name, r.failed, r.attempted-r.failed,
-                    r.attempted),
-                shell_tools.RED)
+                    test.file_name, r.failed, r.attempted - r.failed,
+                    r.attempted), shell_tools.RED)
             error += out.content()
             error_messages.append(error)
         else:
@@ -137,8 +146,9 @@ def exec_tests(tests: Iterable[Doctest]) -> Tuple[doctest.TestResults,
         sys.stdout.flush()
     print()
 
-    return (doctest.TestResults(failed=failed, attempted=attempted),
-            error_messages)
+    return doctest.TestResults(failed=failed,
+                               attempted=attempted), error_messages
+
 
 def import_file(file_path: str) -> ModuleType:
     """Finds and runs a python file as if were imported with an `import`
@@ -162,20 +172,22 @@ def import_file(file_path: str) -> ModuleType:
 
 def main():
     file_names = glob.glob('cirq/**/*.py', recursive=True)
-    failed, attempted = run_tests(file_names, include_cirq=True,
+    failed, attempted = run_tests(file_names,
+                                  include_cirq=True,
                                   include_local=True)
 
     if failed != 0:
-        print(shell_tools.highlight(
-            'Failed: {} failed, {} passed, {} total'.format(
-                failed, attempted-failed, attempted),
-            shell_tools.RED))
+        print(
+            shell_tools.highlight(
+                'Failed: {} failed, {} passed, {} total'.format(
+                    failed, attempted - failed, attempted), shell_tools.RED))
         sys.exit(1)
     else:
-        print(shell_tools.highlight(
-            'Passed: {}'.format(attempted),
-            shell_tools.GREEN))
+        print(
+            shell_tools.highlight('Passed: {}'.format(attempted),
+                                  shell_tools.GREEN))
         sys.exit(0)
+
 
 if __name__ == '__main__':
     main()

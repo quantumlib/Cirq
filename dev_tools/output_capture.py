@@ -18,6 +18,7 @@ import io
 
 class OutputCapture:
     """A context manager that captures stdout and stderr."""
+
     def __init__(self):
         self.buffer = io.StringIO()
         self._cache = None
