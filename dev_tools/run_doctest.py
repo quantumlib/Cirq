@@ -106,10 +106,7 @@ def load_tests(file_paths: Iterable[str],
         import numpy
         import sympy
         import pandas
-        base_globals = {'cirq': cirq,
-                        'np': numpy,
-                        'sympy': sympy,
-                        'pd': pandas}
+        base_globals = {'cirq': cirq, 'np': numpy, 'sympy': sympy, 'pd': pandas}
     else:
         base_globals = {}
 
@@ -135,8 +132,7 @@ def load_tests(file_paths: Iterable[str],
 
 
 def exec_tests(tests: Iterable[Doctest],
-               quiet: bool = True
-              ) -> Tuple[doctest.TestResults, List[str]]:
+               quiet: bool = True) -> Tuple[doctest.TestResults, List[str]]:
     """Runs a list of `Doctest`s and collects and returns any error messages.
 
     Args:
