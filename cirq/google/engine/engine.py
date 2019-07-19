@@ -619,6 +619,97 @@ class Engine:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
+    def list_processors(self, project_id: str) -> List[Dict]:
+        """Returns a list of Processors that the user has visibility to in the
+        provided project. The names of these processors are used to identify
+        devices when scheduling jobs and gathering calibration metrics.
+
+        Params:
+            project_id: The ID of the Google Cloud project to check, e.g.
+                `my-project-123`
+
+        Returns:
+            A list of dictionaries containing the metadata of each processor.
+        """
+        parent = 'projects/%s' % (project_id)
+        response = self.service.projects().processors().list(
+            parent=parent).execute()
+        return response['processors']
+
+    def get_latest_calibration(self,
+                               processor_name: str) -> Optional['Calibration']:
+        """ Returns metadata about the latest known calibration run for a
+        processor, or None if there is no calibration available.
+
+        Params:
+            processor_name: A string of the form
+                `projects/project_id/processors/processor_id`.
+
+        Returns:
+            A dictionary containing the calibration data.
+        """
+        response = self.service.projects().processors().calibrations().list(
+            parent=processor_name).execute()
+        if (not 'calibrations' in response or
+                len(response['calibrations']) < 1):
+            return None
+        return Calibration(response['calibrations'][0]['data'])
+
+    def get_calibration(self, calibration_name: str) -> 'Calibration':
+        """Retrieve metadata about a specific calibration run.
+
+        Params:
+            calibration_name: A string of the form
+                `<processor name>/calibrations/<ms since epoch>`
+
+        Returns:
+            A dictionary containing the metadata.
+        """
+        response = self.service.projects().processors().calibrations().get(
+            name=calibration_name).execute()
+        return Calibration(response['data']['data'])
+
+
+class Calibration:
+    """A convenience wrapper for calibrations
+
+    Attributes:
+        timestamp: The time that this calibration was run, in milliseconds since
+            the epoch.
+    """
+
+    def __init__(self, calibration: Dict) -> None:
+        self.timestamp = int(calibration['timestampMs'])
+        self._metrics = calibration['metrics']
+
+    def get_metric_names(self) -> List[str]:
+        """ Returns a list of known metrics in this calibration. """
+        return list(set(m['name'] for m in self._metrics))
+
+    def get_metrics_by_name(self, name: str) -> List[Dict]:
+        """ Get a filtered list of metrics matching the provided name.
+
+        Values are grouped into a flat list, grouped by target.
+
+        Params:
+            name: the name of a metric referred to in the calibration. Valid
+            names can be found with the get_metric_names() method.
+
+        Returns:
+            A list of dictionaries containing pairs of targets and values for
+            the requested metric.
+        """
+        result = []
+        matching_metrics = [m for m in self._metrics if m['name'] == name]
+        for metric in matching_metrics:
+            flat_values: List = []
+            # Flatten the values a list, removing keys containing type names
+            # (e.g. proto version of each value is {<type>: value}).
+            for value in metric['values']:
+                flat_values += [value[type] for type in value]
+            result.append({'targets': metric['targets'], 'values': flat_values})
+        return result
+
 
 class EngineJob:
     """A job created via the Quantum Engine API.
@@ -658,6 +749,13 @@ class EngineJob:
     def status(self):
         """Return the execution status of the job."""
         return self._update_job()['executionStatus']['state']
+
+    def get_calibration(self) -> Optional[Calibration]:
+        """Returns the recorded calibration at the time when the job was run, if
+        one was captured, else None."""
+        status = self._job['executionStatus']
+        if (not 'calibrationName' in status): return None
+        return self._engine.get_calibration(status['calibrationName'])
 
     def cancel(self):
         """Cancel the job."""
