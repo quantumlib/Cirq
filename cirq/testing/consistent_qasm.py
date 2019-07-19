@@ -73,8 +73,7 @@ qreg q[{}];
             backend=qiskit.Aer.get_backend('unitary_simulator'))
         qasm_unitary = result.result().get_unitary()
         qasm_unitary = _reorder_indices_of_matrix(
-                qasm_unitary,
-                list(reversed(range(num_qubits))))
+            qasm_unitary, list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
             qasm_unitary,
