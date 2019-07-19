@@ -13,7 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import Awaitable, List, Union
+from typing import List, Union
 import abc
 import asyncio
 import threading
