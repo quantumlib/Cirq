@@ -13,6 +13,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Runs python doctest on all python source files in the cirq directory.
+
+See also:
+    https://docs.python.org/3/library/doctest.html
+
+Usage:
+    python run_doctest.py [-q]
+"""
 
 from typing import Any, Dict, Iterable, List, Tuple
 
@@ -46,7 +55,8 @@ class Doctest:
 
 def run_tests(file_paths: Iterable[str],
               include_modules: bool = True,
-              include_local: bool = True) -> doctest.TestResults:
+              include_local: bool = True,
+              quiet: bool = True) -> doctest.TestResults:
     """Runs code snippets from docstrings found in each file.
 
     Args:
@@ -61,10 +71,13 @@ def run_tests(file_paths: Iterable[str],
     """
     tests = load_tests(file_paths,
                        include_modules=include_modules,
-                       include_local=include_local)
-    print()
-    results, error_messages = exec_tests(tests)
-    print()
+                       include_local=include_local,
+                       quiet=quiet)
+    if not quiet:
+        print()
+    results, error_messages = exec_tests(tests, quiet=quiet)
+    if not quiet:
+        print()
     for error in error_messages:
         print(error)
     return results
@@ -72,7 +85,8 @@ def run_tests(file_paths: Iterable[str],
 
 def load_tests(file_paths: Iterable[str],
                include_modules: bool = True,
-               include_local: bool = True) -> List[Doctest]:
+               include_local: bool = True,
+               quiet: bool = True) -> List[Doctest]:
     """Prepares tests for code snippets from docstrings found in each file.
 
     Args:
@@ -85,6 +99,8 @@ def load_tests(file_paths: Iterable[str],
 
     Returns: A list of `Doctest` objects.
     """
+    if quiet:
+        print = lambda *args, **kwargs: None
     if include_modules:
         import cirq
         import numpy
@@ -100,13 +116,12 @@ def load_tests(file_paths: Iterable[str],
     print('Loading tests   ', end='')
 
     def make_test(file_path: str) -> Doctest:
-        print('.', end='')
+        print('.', end='', flush=True)
         mod = import_file(file_path)
         glob = make_globals(mod)
         return Doctest(file_path, mod, glob)
 
     def make_globals(mod: ModuleType) -> Dict[str, Any]:
-        sys.stdout.flush()
         if include_local:
             glob = dict(mod.__dict__)
             glob.update(base_globals)
@@ -119,7 +134,8 @@ def load_tests(file_paths: Iterable[str],
     return tests
 
 
-def exec_tests(tests: Iterable[Doctest]
+def exec_tests(tests: Iterable[Doctest],
+               quiet: bool = True
               ) -> Tuple[doctest.TestResults, List[str]]:
     """Runs a list of `Doctest`s and collects and returns any error messages.
 
@@ -129,6 +145,8 @@ def exec_tests(tests: Iterable[Doctest]
     Returns: A tuple containing the results (# failures, # attempts) and a list
         of the error outputs from each failing test.
     """
+    if quiet:
+        print = lambda *args, **kwargs: None
     print('Executing tests ', end='')
 
     failed, attempted = 0, 0
@@ -140,7 +158,7 @@ def exec_tests(tests: Iterable[Doctest]
         failed += r.failed
         attempted += r.attempted
         if r.failed != 0:
-            print('F', end='')
+            print('F', end='', flush=True)
             error = shell_tools.highlight(
                 '{}\n{} failed, {} passed, {} total\n'.format(
                     test.file_name, r.failed, r.attempted - r.failed,
@@ -148,8 +166,8 @@ def exec_tests(tests: Iterable[Doctest]
             error += out.content()
             error_messages.append(error)
         else:
-            print('.', end='')
-        sys.stdout.flush()
+            print('.', end='', flush=True)
+
     print()
 
     return doctest.TestResults(failed=failed,
@@ -177,10 +195,13 @@ def import_file(file_path: str) -> ModuleType:
 
 
 def main():
+    quiet = len(sys.argv) >= 2 and sys.argv[1] == '-q'
+
     file_names = glob.glob('cirq/**/*.py', recursive=True)
     failed, attempted = run_tests(file_names,
                                   include_modules=True,
-                                  include_local=False)
+                                  include_local=False,
+                                  quiet=quiet)
 
     if failed != 0:
         print(
