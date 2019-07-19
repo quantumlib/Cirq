@@ -177,8 +177,9 @@ def test_swap_network_gate_from_ops():
     acquaintance_size = 2
     operations = []
     qubits = qubits[:5]
-    swap_network = cca.SwapNetworkGate.from_operations(
-        qubits, operations, acquaintance_size, cirq.ZZ)
+    swap_network = cca.SwapNetworkGate.from_operations(qubits, operations,
+                                                       acquaintance_size,
+                                                       cirq.ZZ)
     circuit = cirq.Circuit.from_ops(swap_network(*qubits))
     cca.decompose_permutation_gates(circuit)
 

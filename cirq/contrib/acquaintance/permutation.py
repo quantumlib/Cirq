@@ -239,14 +239,16 @@ class ExpandPermutationGates(optimizers.ExpandComposite):
         circuits.PointOptimizer.__init__(self)
 
         if keep_swap_permutations:
-            self.no_decomp = lambda op: (not all(
-                    [isinstance(op, ops.GateOperation),
-                     isinstance(op.gate, PermutationGate),
-                     not isinstance(op.gate, SwapPermutationGate)]))
+            self.no_decomp = lambda op: (not all([
+                isinstance(op, ops.GateOperation),
+                isinstance(op.gate, PermutationGate), not isinstance(
+                    op.gate, SwapPermutationGate)
+            ]))
         else:
-            self.no_decomp = lambda op: (not all(
-                    [isinstance(op, ops.GateOperation),
-                     isinstance(op.gate, PermutationGate)]))
+            self.no_decomp = lambda op: (not all([
+                isinstance(op, ops.GateOperation),
+                isinstance(op.gate, PermutationGate)
+            ]))
 
 
 expand_permutation_gates = ExpandPermutationGates(keep_swap_permutations=True)
