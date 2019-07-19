@@ -29,9 +29,11 @@ from cirq.study.sweepable import (
 
 from cirq.study.sweeps import (
     Linspace,
+    Product,
     Points,
     Sweep,
     UnitSweep,
+    Zip,
 )
 
 from cirq.study.trial_result import (
