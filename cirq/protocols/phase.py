@@ -32,8 +32,8 @@ class SupportsPhase(Protocol):
 
         Specifically, returns an object with matrix P U P^-1 (up to global
         phase) where U is the given object's matrix and
-        P = Z(qubit_index)**(phase_turns/2). For example, an X gate phased by 90
-        degrees would be a Y gate.
+        P = Z(qubit_index)**(2 * phase_turns). For example, an X gate phased
+        by 90 degrees would be a Y gate.
 
         Args:
             phase_turns: The amount to phase the gate, in fractions of a whole
