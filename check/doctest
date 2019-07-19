@@ -7,11 +7,11 @@
 #     https://docs.python.org/3/library/doctest.html
 #
 # Usage:
-#     check/doctest
+#     check/doctest [-q]
 ################################################################################
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-python dev_tools/run_doctest.py -q
+python dev_tools/run_doctest.py $@
