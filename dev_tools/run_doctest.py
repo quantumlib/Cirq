@@ -45,13 +45,13 @@ class Doctest:
 
 
 def run_tests(file_paths: Iterable[str],
-              include_cirq: bool = True,
+              include_modules: bool = True,
               include_local: bool = True) -> doctest.TestResults:
     """Runs code snippets from docstrings found in each file.
 
     Args:
         file_paths: The list of files to test.
-        include_cirq: If True, the snippets can use `cirq` without explicitly
+        include_modules: If True, the snippets can use `cirq` without explicitly
             importing it.  E.g. `>>> cirq.LineQubit(0)`
         include_local: If True, the file under test is imported as a python
             module (only if the file extension is .py) and all globals defined
@@ -60,7 +60,7 @@ def run_tests(file_paths: Iterable[str],
     Returns: A tuple with the results: (# tests failed, # tests attempted)
     """
     tests = load_tests(file_paths,
-                       include_cirq=include_cirq,
+                       include_modules=include_modules,
                        include_local=include_local)
     print()
     results, error_messages = exec_tests(tests)
@@ -71,13 +71,13 @@ def run_tests(file_paths: Iterable[str],
 
 
 def load_tests(file_paths: Iterable[str],
-               include_cirq: bool = True,
+               include_modules: bool = True,
                include_local: bool = True) -> List[Doctest]:
     """Prepares tests for code snippets from docstrings found in each file.
 
     Args:
         file_paths: The list of files to test.
-        include_cirq: If True, the snippets can use `cirq` without explicitly
+        include_modules: If True, the snippets can use `cirq` without explicitly
             importing it.  E.g. `>>> cirq.LineQubit(0)`
         include_local: If True, the file under test is imported as a python
             module (only if the file extension is .py) and all globals defined
@@ -85,9 +85,15 @@ def load_tests(file_paths: Iterable[str],
 
     Returns: A list of `Doctest` objects.
     """
-    if include_cirq:
+    if include_modules:
         import cirq
-        base_globals = {'cirq': cirq}
+        import numpy
+        import sympy
+        import pandas
+        base_globals = {'cirq': cirq,
+                        'np': numpy,
+                        'sympy': sympy,
+                        'pd': pandas}
     else:
         base_globals = {}
 
@@ -173,8 +179,8 @@ def import_file(file_path: str) -> ModuleType:
 def main():
     file_names = glob.glob('cirq/**/*.py', recursive=True)
     failed, attempted = run_tests(file_names,
-                                  include_cirq=True,
-                                  include_local=True)
+                                  include_modules=True,
+                                  include_local=False)
 
     if failed != 0:
         print(
