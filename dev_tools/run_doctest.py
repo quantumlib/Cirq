@@ -99,8 +99,10 @@ def load_tests(file_paths: Iterable[str],
 
     Returns: A list of `Doctest` objects.
     """
-    if quiet:
-        print = lambda *args, **kwargs: None
+    if not quiet:
+        try_print = print
+    else:
+        try_print = lambda *args, **kwargs: None
     if include_modules:
         import cirq
         import numpy
@@ -110,10 +112,10 @@ def load_tests(file_paths: Iterable[str],
     else:
         base_globals = {}
 
-    print('Loading tests   ', end='')
+    try_print('Loading tests   ', end='')
 
     def make_test(file_path: str) -> Doctest:
-        print('.', end='', flush=True)
+        try_print('.', end='', flush=True)
         mod = import_file(file_path)
         glob = make_globals(mod)
         return Doctest(file_path, mod, glob)
@@ -127,7 +129,7 @@ def load_tests(file_paths: Iterable[str],
             return dict(base_globals)
 
     tests = [make_test(file_path) for file_path in file_paths]
-    print()
+    try_print()
     return tests
 
 
@@ -141,9 +143,11 @@ def exec_tests(tests: Iterable[Doctest],
     Returns: A tuple containing the results (# failures, # attempts) and a list
         of the error outputs from each failing test.
     """
-    if quiet:
-        print = lambda *args, **kwargs: None
-    print('Executing tests ', end='')
+    if not quiet:
+        try_print = print
+    else:
+        try_print = lambda *args, **kwargs: None
+    try_print('Executing tests ', end='')
 
     failed, attempted = 0, 0
     error_messages = []
@@ -154,7 +158,7 @@ def exec_tests(tests: Iterable[Doctest],
         failed += r.failed
         attempted += r.attempted
         if r.failed != 0:
-            print('F', end='', flush=True)
+            try_print('F', end='', flush=True)
             error = shell_tools.highlight(
                 '{}\n{} failed, {} passed, {} total\n'.format(
                     test.file_name, r.failed, r.attempted - r.failed,
@@ -162,9 +166,9 @@ def exec_tests(tests: Iterable[Doctest],
             error += out.content()
             error_messages.append(error)
         else:
-            print('.', end='', flush=True)
+            try_print('.', end='', flush=True)
 
-    print()
+    try_print()
 
     return doctest.TestResults(failed=failed,
                                attempted=attempted), error_messages
