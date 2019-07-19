@@ -630,11 +630,6 @@ class Engine:
 
         Returns:
             A list of dictionaries containing the metadata of each processor.
-            Each dict contains:
-               `name`: The fully-qualified name of the processor
-               `health`: Availability as `OK`, `DOWN`, or `UNAVAILABLE
-               `supportedLanguages`: A list of proto type URLs that can be used
-                   to encode a Program on the processor.
         """
         parent = 'projects/%s' % (project_id)
         response = self.service.projects().processors().list(
