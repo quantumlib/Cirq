@@ -51,7 +51,8 @@ from cirq.contrib.acquaintance.optimizers import (
 from cirq.contrib.acquaintance.permutation import (
     LinearPermutationGate, PermutationGate, SwapPermutationGate, update_mapping,
     get_logical_operations, display_mapping, return_to_initial_mapping,
-    uses_consistent_swap_gate)
+    uses_consistent_swap_gate, expand_permutation_gates,
+    decompose_permutation_gates)
 
 from cirq.contrib.acquaintance.shift import (
     CircularShiftGate,)

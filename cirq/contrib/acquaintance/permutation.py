@@ -234,15 +234,24 @@ def get_logical_operations(operations: ops.OP_TREE,
 
 class ExpandPermutationGates(optimizers.ExpandComposite):
     """Decomposes any permutation gates other SwapPermutationGate."""
-    def __init__(self):
+
+    def __init__(self, keep_swap_permutations: bool = True):
         circuits.PointOptimizer.__init__(self)
 
-        self.no_decomp = lambda op: (not all(
-                [isinstance(op, ops.GateOperation),
-                 isinstance(op.gate, PermutationGate),
-                 not isinstance(op.gate, SwapPermutationGate)]))
+        if keep_swap_permutations:
+            self.no_decomp = lambda op: (not all(
+                    [isinstance(op, ops.GateOperation),
+                     isinstance(op.gate, PermutationGate),
+                     not isinstance(op.gate, SwapPermutationGate)]))
+        else:
+            self.no_decomp = lambda op: (not all(
+                    [isinstance(op, ops.GateOperation),
+                     isinstance(op.gate, PermutationGate)]))
 
-expand_permutation_gates = ExpandPermutationGates()
+
+expand_permutation_gates = ExpandPermutationGates(keep_swap_permutations=True)
+decompose_permutation_gates = ExpandPermutationGates(
+    keep_swap_permutations=False)
 
 
 def return_to_initial_mapping(circuit: circuits.Circuit,
