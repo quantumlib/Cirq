@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from cirq import ops
 
@@ -24,6 +24,14 @@ class GridQubit(ops.Qid):
     GridQubits use row-major ordering:
 
         GridQubit(0, 0) < GridQubit(0, 1) < GridQubit(1, 0) < GridQubit(1, 1)
+
+    New GridQubits can be constructed by adding or subtracting tuples
+
+        >>> GridQubit(2, 3) + (3, 1)
+        cirq.GridQubit(5, 4)
+
+        >>> GridQubit(2, 3) - (1, 2)
+        cirq.GridQubit(1, 1)
     """
 
     def __init__(self, row: int, col: int):
@@ -131,6 +139,31 @@ class GridQubit(ops.Qid):
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
+    def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if not (isinstance(other, tuple) and len(other) == 2 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
+                'Can only add tuples of length 2 to GridQubits. Was {}'.format(
+                    other))
+        return GridQubit(row=self.row + other[0], col=self.col + other[1])
+
+    def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if not (isinstance(other, tuple) and len(other) == 2 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
+                'Can only subtract tuples of length 2 to GridQubits. Was {}'.
+                format(other))
+        return GridQubit(row=self.row - other[0], col=self.col - other[1])
+
+    def __radd__(self, other: Tuple[int, int]) -> 'GridQubit':
+        return self + other
+
+    def __rsub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        return -self + other
+
+    def __neg__(self) -> 'GridQubit':
+        return GridQubit(row=-self.row, col=-self.col)
+
     def to_proto_dict(self, v2_proto=False) -> Dict:
         """Return the proto in dictionary form."""
         # TODO: Deprecate v1 proto method.
@@ -139,7 +172,7 @@ class GridQubit(ops.Qid):
             'col': self.col,
         }
 
-    def proto_id(self):
+    def proto_id(self) -> str:
         return '{}_{}'.format(self.row, self.col)
 
     @staticmethod

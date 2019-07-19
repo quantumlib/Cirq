@@ -4,9 +4,11 @@
 # Runs pytest on the repository.
 #
 # Usage:
-#     check/pytest [--flags] [file-paths-relative-to-repo-root]
+#     check/pytest [--actually-quiet] [--flags for pytest] [file-paths-relative-to-repo-root]
 #
-# You may specify additional flags or specific files to test. The file paths
+# The --actually-quiet argument filters out any progress output from pytest.
+#
+# You may specify pytest flags and specific files to test. The file paths
 # must be relative to the repository root. If no files are specified, everything
 # is tested.
 ################################################################################
@@ -15,4 +17,20 @@
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-pytest $@
+PYTEST_ARGS=()
+ACTUALLY_QUIET=""
+for arg in $@; do
+    if [[ "${arg}" == "--actually-quiet" ]]; then
+        ACTUALLY_QUIET=1
+    else
+        PYTEST_ARGS+=("${arg}")
+    fi
+done
+
+if [ -z "${ACTUALLY_QUIET}" ]; then
+    pytest "${PYTEST_ARGS[@]}"
+else
+    # Filter out lines like "...F....x...      [ 42%]", with coloring.
+    pytest -q --color=yes "${PYTEST_ARGS[@]}" |
+        grep -Pv '^(.\[0m)?[\.FEsx]+(.\[36m)?\s+\[\s*\d+%\](.\[0m)?$'
+fi

@@ -222,7 +222,7 @@ def test_apply_channel_no_protocols_implemented_default():
     class NoProtocols:
         pass
 
-    args = cirq.ApplyChannelArgs(target_tensor=None,
+    args = cirq.ApplyChannelArgs(target_tensor=np.eye(2),
                                  left_axes=[0],
                                  right_axes=[1],
                                  out_buffer=None,
