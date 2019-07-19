@@ -74,4 +74,4 @@ matrix:
     install:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
-    script: check/doctest
+    script: check/doctest -q
