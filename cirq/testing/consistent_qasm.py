@@ -58,11 +58,12 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     if qasm is None:
         return
 
+    num_qubits = len(qubits)
     header = """
 OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[{}];
-""".format(len(qubits))
+""".format(num_qubits)
     qasm = header + qasm
 
     qasm_unitary = None
@@ -73,7 +74,7 @@ qreg q[{}];
         qasm_unitary = result.result().get_unitary()
         qasm_unitary = _reorder_indices_of_matrix(
                 qasm_unitary,
-                list(reversed(range(len(qubits)))))
+                list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
             qasm_unitary,
