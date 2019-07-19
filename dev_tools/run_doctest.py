@@ -21,6 +21,9 @@ See also:
 
 Usage:
     python run_doctest.py [-q]
+
+The -q argument suppresses all output except the final result line and any error
+messages.
 """
 
 from typing import Any, Dict, Iterable, List, Tuple

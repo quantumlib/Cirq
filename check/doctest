@@ -8,6 +8,9 @@
 #
 # Usage:
 #     check/doctest [-q]
+#
+# The -q argument suppresses all output except the final result line and any
+# error messages.
 ################################################################################
 
 # Get the working directory to the repo root.
