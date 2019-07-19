@@ -17,6 +17,7 @@
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 from collections import defaultdict
 import sympy
+import numpy as np
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
@@ -24,6 +25,14 @@ from cirq.optimizers import decompositions
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Dict, List, Tuple
+
+
+def _is_swaplike(op: ops.Operation):
+    if ops.op_gate_of_type(op, ops.SwapPowGate):
+        return op.gate.exponent == 1
+
+    if ops.op_gate_of_type(op, ops.FSimGate):
+        return np.isclose(op.gate.theta, np.pi / 2)
 
 
 class EjectZ():
@@ -79,6 +88,12 @@ class EjectZ():
                 if all(decompositions.is_negligible_turn(p, self.tolerance)
                        for p in phases):
                     continue
+
+                if _is_swaplike(op):
+                    a, b = op.qubits
+                    qubit_phase[a], qubit_phase[b] = qubit_phase[b], qubit_phase[a]
+                    continue
+
 
                 # Try to move the tracked phasing over the operation.
                 phased_op = op
