@@ -23,8 +23,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import collections
-
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -124,7 +122,7 @@ class QubitOrder:
         Returns:
             The basis implied by the value.
         """
-        if isinstance(val, collections.Iterable):
+        if isinstance(val, Iterable):
             return QubitOrder.explicit(val)
         if isinstance(val, QubitOrder):
             return val
