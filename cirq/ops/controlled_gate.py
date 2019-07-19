@@ -144,18 +144,17 @@ class ControlledGate(raw_types.Gate):
     def _trace_distance_bound_(self):
         if self._is_parameterized_():
             return 1
-        sub_gate = self.sub_gate
-        while isinstance(sub_gate, ControlledGate):
-            sub_gate = sub_gate.sub_gate
-        angles = np.sort(
-            np.append(np.angle(np.linalg.eigvals(protocols.unitary(sub_gate))),
-                      0))
-        maxim = 2 * np.pi + angles[0] - angles[-1]
-        for i in range(1, len(angles)):
-            maxim = max(maxim, angles[i] - angles[i - 1])
-        if maxim <= np.pi:
-            return 1
-        return np.sin(0.5 * maxim)
+        if cirq.has_unitary(self.sub_gate):
+            angles = np.sort(
+                np.append(np.angle(np.linalg.eigvals(protocols.unitary(self.sub_gate))),
+                          0))
+            maxim = 2 * np.pi + angles[0] - angles[-1]
+            for i in range(1, len(angles)):
+                maxim = max(maxim, angles[i] - angles[i - 1])
+            if maxim <= np.pi:
+                return 1
+            return np.sin(0.5 * maxim)
+        return 1
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs

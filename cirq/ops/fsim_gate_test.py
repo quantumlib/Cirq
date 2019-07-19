@@ -215,3 +215,9 @@ def test_fsim_unitary():
         ]),
         atol=1e-8,
     )
+
+def test_trace_distance():
+    foo = sympy.Symbol('foo')
+    assert cirq.trace_distance_bound(cirq.FSimGate(foo, foo)) == 1
+    assert cirq.trace_distance_bound(cirq.FSimGate(np.pi+0.01,0)) == 1
+    assert np.isclose(cirq.trace_distance_bound(cirq.FSimGate(0, np.pi/2)) , np.sin(np.pi/4))

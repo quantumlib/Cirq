@@ -159,3 +159,13 @@ def test_equivalent_circuit():
 def test_parallel_gate_operation_is_consistent(gate, qubits):
     op = cirq.ParallelGateOperation(gate, qubits)
     cirq.testing.assert_implements_consistent_protocols(op)
+
+def test_trace_distance():
+    s = cirq.X**0.25
+    twoop = cirq.ParallelGateOperation(s, cirq.LineQubit.range(2))
+    threeop = cirq.ParallelGateOperation(s, cirq.LineQubit.range(3))
+    fourop = cirq.ParallelGateOperation(s, cirq.LineQubit.range(4))
+    assert cirq.trace_distance_bound(twoop) == np.sin(np.pi/4)
+    assert cirq.trace_distance_bound(threeop) == np.sin(3 * np.pi/8)
+    assert cirq.trace_distance_bound(fourop) == 1
+

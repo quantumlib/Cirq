@@ -210,7 +210,8 @@ def test_inverse():
 
 def test_trace_distance_bound():
     assert cirq.trace_distance_bound(CExpZinGate(0.001)) < 0.01
-    assert cirq.trace_distance_bound(CExpZinGate(sympy.Symbol('a'))) >= 1
+    assert cirq.trace_distance_bound(CExpZinGate(sympy.Symbol('a'))) == 1
+    assert cirq.trace_distance_bound(CExpZinGate(2)) == 1
 
 
 def test_extrapolate():

@@ -67,7 +67,10 @@ def trace_distance_bound(val: Any) -> float:
     if has_unitary(val):
         u = unitary(val)
         if u.shape[0] == 2:
-            return (1 - (0.5 * abs(u[0][0] + u[1][1]))**2)**0.5
+            squared = 1 - (0.5 * abs(u[0][0] + u[1][1]))**2
+            if squared <= 0:
+                return 0
+            return squared**0.5
         angles = np.sort(np.angle(np.linalg.eigvals(u)))
         maxim = 2 * np.pi + angles[0] - angles[-1]
         for i in range(1, len(angles)):
