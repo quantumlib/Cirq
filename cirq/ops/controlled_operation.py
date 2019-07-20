@@ -124,8 +124,10 @@ class ControlledOperation(raw_types.Operation):
             return 1
         if protocols.has_unitary(self.sub_operation):
             angles = np.sort(
-                np.append(np.angle(np.linalg.eigvals(protocols.unitary(self.sub_operation))),
-                          0))
+                np.append(
+                    np.angle(
+                        np.linalg.eigvals(protocols.unitary(
+                            self.sub_operation))), 0))
             maxim = 2 * np.pi + angles[0] - angles[-1]
             for i in range(1, len(angles)):
                 maxim = max(maxim, angles[i] - angles[i - 1])

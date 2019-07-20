@@ -819,6 +819,7 @@ q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
 q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(0.5π)───
     """)
 
+
 def test_trace_distance():
     foo = sympy.Symbol('foo')
     sx = cirq.X**foo
@@ -839,14 +840,10 @@ def test_trace_distance():
     assert cirq.trace_distance_bound(sh) == 1
     assert cirq.trace_distance_bound(cirq.X) == 1
     assert cirq.trace_distance_bound(cirq.Y**-1) == 1
-    assert cirq.trace_distance_bound(cirq.Z**0.5) == np.sin(np.pi/4)
-    assert cirq.trace_distance_bound(cirq.H**0.25) == np.sin(np.pi/8)
+    assert cirq.trace_distance_bound(cirq.Z**0.5) == np.sin(np.pi / 4)
+    assert cirq.trace_distance_bound(cirq.H**0.25) == np.sin(np.pi / 8)
     assert cirq.trace_distance_bound(cirq.CX**2) < 1.e-15
-    assert cirq.trace_distance_bound(cirq.CZ**(1/9)) == np.sin(np.pi/18)
-    assert cirq.trace_distance_bound(cirq.SWAP**0.3) == np.sin(3*np.pi/20)
+    assert cirq.trace_distance_bound(cirq.CZ**(1 / 9)) == np.sin(np.pi / 18)
+    assert cirq.trace_distance_bound(cirq.SWAP**0.3) == np.sin(3 * np.pi / 20)
     assert cirq.trace_distance_bound(cirq.ISWAP**0) < 1.e-15
     assert cirq.trace_distance_bound(cirq.I) == 0
-
-
-
-

@@ -252,4 +252,3 @@ def test_bounded_effect():
     assert cirq.trace_distance_bound(cy) == 1
     mock = cirq.ControlledOperation(qubits[:1], MockGate().on(*qubits[1:]))
     assert cirq.trace_distance_bound(mock) == 1
-
