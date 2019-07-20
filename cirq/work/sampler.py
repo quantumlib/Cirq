@@ -13,7 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import Awaitable, List, Union
+from typing import List, Union
 import abc
 import asyncio
 import threading
@@ -70,7 +70,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
     async def run_async(self,
                         program: Union[circuits.Circuit, schedules.Schedule], *,
-                        repetitions: int) -> Awaitable[study.TrialResult]:
+                        repetitions: int) -> study.TrialResult:
         """Asynchronously samples from the given Circuit or Schedule.
 
         By default, this method calls `run` on another thread and yields the
@@ -85,7 +85,7 @@ class Sampler(metaclass=abc.ABCMeta):
             An awaitable TrialResult.
         """
         loop = asyncio.get_event_loop()
-        done = loop.create_future()  # type: asyncio.Future
+        done = loop.create_future()  # type: asyncio.Future[study.TrialResult]
 
         def run():
             try:
