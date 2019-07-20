@@ -1190,7 +1190,7 @@ def test_findall_operations_until_blocked():
     start = {a: 0, b: 0}
     is_blocker = lambda next_op: sorted(next_op.qubits) != [a, b]
     assert (circuit.findall_operations_until_blocked(start, is_blocker) == [
-        (i, cirq.CZ(a, b)) for i in (0, 1)
+        (0, cirq.CZ(a, b)), (1, cirq.CZ(a, b))
     ])
 
 
