@@ -43,6 +43,12 @@ def test_supported_gate_types():
     assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate,)
 
 
+def test_is_supported_gate():
+    assert MY_GATE_SET.is_supported_gate(cirq.XPowGate())
+    assert MY_GATE_SET.is_supported_gate(cirq.X)
+    assert not MY_GATE_SET.is_supported_gate(cirq.ZPowGate())
+
+
 def test_serialize_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)

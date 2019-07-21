@@ -233,6 +233,41 @@ class QasmParser:
                           num_params=0,
                           num_args=1,
                           cirq_gate=ops.T),
+        'cx':
+        QasmGateStatement(qasm_gate='cx',
+                          cirq_gate=CX,
+                          num_params=0,
+                          num_args=2),
+        'cy':
+        QasmGateStatement(qasm_gate='cy',
+                          cirq_gate=ops.ControlledGate(ops.Y),
+                          num_params=0,
+                          num_args=2),
+        'cz':
+        QasmGateStatement(qasm_gate='cz',
+                          cirq_gate=ops.CZ,
+                          num_params=0,
+                          num_args=2),
+        'ch':
+        QasmGateStatement(qasm_gate='ch',
+                          cirq_gate=ops.ControlledGate(ops.H),
+                          num_params=0,
+                          num_args=2),
+        'swap':
+        QasmGateStatement(qasm_gate='swap',
+                          cirq_gate=ops.SWAP,
+                          num_params=0,
+                          num_args=2),
+        'cswap':
+        QasmGateStatement(qasm_gate='cswap',
+                          num_params=0,
+                          num_args=3,
+                          cirq_gate=ops.CSWAP),
+        'ccx':
+        QasmGateStatement(qasm_gate='ccx',
+                          num_params=0,
+                          num_args=3,
+                          cirq_gate=ops.CCX),
         'sdg':
         QasmGateStatement(qasm_gate='sdg',
                           num_params=0,
@@ -244,6 +279,8 @@ class QasmParser:
                           num_args=1,
                           cirq_gate=ops.T**-1),
     }
+
+    all_gates = {**basic_gates, **qelib_gates}
 
     tokens = QasmLexer.tokens
     start = 'start'
@@ -339,7 +376,7 @@ class QasmParser:
 
     def _resolve_gate_operation(self, args: List[List[ops.Qid]], gate: str,
                                 p: Any, params: List[float]):
-        gate_set = (self.basic_gates if not self.qelibinc else self.qelib_gates)
+        gate_set = (self.basic_gates if not self.qelibinc else self.all_gates)
         if gate not in gate_set.keys():
             msg = 'Unknown gate "{}" at line {}{}'.format(
                 gate, p.lineno(1), ", did you forget to include qelib1.inc?"
