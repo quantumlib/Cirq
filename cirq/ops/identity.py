@@ -11,19 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """IdentityGate and IdentityOperation."""
 
-from typing import (
-    FrozenSet, Optional, Sequence, Tuple
-)
+from typing import (FrozenSet, Optional, Sequence, Tuple)
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq.ops import raw_types, gate_features
-from cirq.type_workarounds import NotImplementedType
+from cirq.ops import raw_types
 
 
 @value.value_equality
@@ -43,10 +39,10 @@ class IdentityGate(raw_types.Gate):
         return self._num_qubits
 
     def _unitary_(self):
-        return np.identity(2 ** self.num_qubits())
+        return np.identity(2**self.num_qubits())
 
-    def _apply_unitary_(
-        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+                       ) -> Optional[np.ndarray]:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -63,13 +59,22 @@ class IdentityGate(raw_types.Gate):
         else:
             return 'I({})'.format(self.num_qubits())
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('I',) * self.num_qubits(), connected=True)
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                              ) -> protocols.CircuitDiagramInfo:
+        return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
+                                            self.num_qubits(),
+                                            connected=True)
+
+    def _qasm_(self, args: protocols.QasmArgs,
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+        args.validate_version('2.0')
+        return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 
     def _value_equality_values_(self):
         return self.num_qubits(),
+
+    def _trace_distance_bound_(self):
+        return 0
 
     def on(self, *qubits: raw_types.Qid) -> raw_types.Operation:
         """Returns an application of this gate to the given qubits.
@@ -78,11 +83,6 @@ class IdentityGate(raw_types.Gate):
             *qubits: The collection of qubits to potentially apply the gate to.
         """
         return IdentityOperation(list(qubits))
-
-    def __pow__(self, power):
-        if isinstance(power, (int, float, complex, sympy.Basic)):
-            return IdentityOperation
-        return NotImplemented
 
 
 @value.value_equality(approximate=True)
@@ -102,7 +102,8 @@ class IdentityOperation(raw_types.Operation):
 
         if any(not isinstance(qubit, raw_types.Qid) for qubit in qubits):
             raise ValueError(
-                'Gave non-Qid objects to IdentityOperation: {!r}'.format(qubits))
+                'Gave non-Qid objects to IdentityOperation: {!r}'.format(
+                    qubits))
         self._qubits = tuple(qubits)
 
     @property
@@ -130,7 +131,7 @@ class IdentityOperation(raw_types.Operation):
         return value.LinearDict({'I' * len(self._qubits): 1.0})
 
     def _unitary_(self):
-        return np.identity(2 ** len(self._qubits))
+        return np.identity(2**len(self._qubits))
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                        ) -> Optional[np.ndarray]:
@@ -142,8 +143,13 @@ class IdentityOperation(raw_types.Operation):
                                             len(self._qubits),
                                             connected=True)
 
-    def _trace_distance_bound_(self): 
+    def _trace_distance_bound_(self):
         return 0
+
+    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
+        args.validate_version('2.0')
+        return ''.join(
+            [args.format('id {0};\n', qubit) for qubit in self._qubits])
 
     def __mul__(self, other):
         if isinstance(other, raw_types.Operation):

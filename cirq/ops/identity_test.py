@@ -27,7 +27,7 @@ def test_identity_init(num_qubits):
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
 def test_identity_unitary(num_qubits):
     i = cirq.IdentityGate(num_qubits)
-    assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
+    assert np.allclose(cirq.unitary(i), np.identity(2**num_qubits))
 
 
 def test_identity_str():
@@ -65,26 +65,24 @@ def test_invalid_identity_operation():
 
     with pytest.raises(ValueError, match="empty set of qubits"):
         cirq.IdentityOperation([])
-    with pytest.raises(ValueError, match="Gave non-Qid objects to IdentityOperation"):
+    with pytest.raises(ValueError,
+                       match="Gave non-Qid objects to IdentityOperation"):
         cirq.IdentityOperation([three_qubit_gate])
 
 
 def test_identity_pow():
     I = cirq.I
     q = cirq.NamedQubit('q')
-    assert (I ** 0.5)(q) == I(q)
-    assert (I ** 2)(q) == I(q)
-    assert (I ** (1+1j))(q) == I(q)
-    assert (I ** sympy.Symbol('x'))(q) == I(q)
 
-    assert I(q) ** 0.5 == I(q)
-    assert I(q) ** 2 == I(q)
-    assert I(q) ** (1+1j) == I(q)
-    assert I(q) ** sympy.Symbol('x') == I(q)
+    assert I(q)**0.5 == I(q)
+    assert I(q)**2 == I(q)
+    assert I(q)**(1 + 1j) == I(q)
+    assert I(q)**sympy.Symbol('x') == I(q)
     with pytest.raises(TypeError):
-        (I ** q)(q)
+        _ = (I**q)(q)
     with pytest.raises(TypeError):
-        I(q) ** q
+        _ = I(q)**q
+
 
 def test_with_qubits_and_transform_qubits():
     op = cirq.IdentityOperation(cirq.LineQubit.range(3))
@@ -95,7 +93,8 @@ def test_with_qubits_and_transform_qubits():
 def test_identity_operation_repr():
     a, b = cirq.LineQubit.range(2)
 
-    assert repr(cirq.IdentityOperation((a,))) == ('cirq.I.on(cirq.LineQubit(0))')
+    assert repr(cirq.IdentityOperation(
+        (a,))) == ('cirq.I.on(cirq.LineQubit(0))')
     assert repr(cirq.IdentityOperation((a, b))) == (
         'cirq.IdentityOperation(qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])')
 
@@ -107,11 +106,8 @@ def test_identity_operation_str():
 
 
 @pytest.mark.parametrize('gate_type, num_qubits',
-    itertools.product(
-        (cirq.IdentityGate,),
-        range(1, 5))
-)
+                         itertools.product((cirq.IdentityGate,), range(1, 5)))
 def test_consistent_protocols(gate_type, num_qubits):
     gate = gate_type(num_qubits=num_qubits)
-    cirq.testing.assert_implements_consistent_protocols(
-        gate, qubit_count=num_qubits)
+    cirq.testing.assert_implements_consistent_protocols(gate,
+                                                        qubit_count=num_qubits)
