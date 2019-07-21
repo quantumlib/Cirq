@@ -1022,7 +1022,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
         c = cos(π·t/2)
         s = sin(π·t/2)
 
-    `cirq.ISWAP`, the swap gate that applies -i to the |01> and |10> states,
+    `cirq.ISWAP`, the swap gate that applies i to the |01> and |10> states,
     is an instance of this gate at exponent=1.
     """
 
