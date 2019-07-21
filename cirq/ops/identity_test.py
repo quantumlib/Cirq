@@ -54,9 +54,17 @@ def test_identity_eq():
     equals_tester.add_equality_group(cirq.IdentityGate(4))
 
 
+def test_identity_trace_distance_bound():
+    assert cirq.I._trace_distance_bound_() == 0
+    assert cirq.IdentityGate(num_qubits=2)._trace_distance_bound_() == 0
+
+
 def test_identity_operation_init():
     q = cirq.NamedQubit('q')
     I = cirq.IdentityOperation([q])
+    assert I.qubits == (q,)
+
+    I = cirq.IdentityOperation(q)
     assert I.qubits == (q,)
 
 

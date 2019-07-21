@@ -59,17 +59,6 @@ class IdentityGate(raw_types.Gate):
         else:
             return 'I({})'.format(self.num_qubits())
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
-        return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
-                                            self.num_qubits(),
-                                            connected=True)
-
-    def _qasm_(self, args: protocols.QasmArgs,
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
-        args.validate_version('2.0')
-        return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
-
     def _value_equality_values_(self):
         return self.num_qubits(),
 
@@ -130,9 +119,6 @@ class IdentityOperation(raw_types.Operation):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return value.LinearDict({'I' * len(self._qubits): 1.0})
 
-    def _unitary_(self):
-        return np.identity(2**len(self._qubits))
-
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                        ) -> Optional[np.ndarray]:
         return args.target_tensor
@@ -142,9 +128,6 @@ class IdentityOperation(raw_types.Operation):
         return protocols.CircuitDiagramInfo(wire_symbols=('I',) *
                                             len(self._qubits),
                                             connected=True)
-
-    def _trace_distance_bound_(self):
-        return 0
 
     def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
         args.validate_version('2.0')
