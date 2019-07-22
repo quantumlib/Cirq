@@ -8,10 +8,10 @@ def noisyCircuitDemo(amplitude_damp):
     """
     q = cirq.NamedQubit('q')
     noisy_circuit = cirq.Circuit.from_ops(
-                                cirq.measure(q, key='initial_state'),
-                                cirq.X(q),
-                                cirq.measure(q, key='after_not_gate'),
-                            )
+        cirq.measure(q, key='initial_state'),
+        cirq.X(q),
+        cirq.measure(q, key='after_not_gate'),
+    )
     results = cirq.sample(program=noisy_circuit,
                           noise=cirq.ConstantQubitNoiseModel(
                               cirq.amplitude_damp(amplitude_damp)),

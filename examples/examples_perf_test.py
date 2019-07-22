@@ -55,3 +55,6 @@ def test_example_runs_quantum_teleportation(benchmark):
 
 def test_example_runs_superdense_coding(benchmark):
     benchmark(examples.superdense_coding.main)
+
+def test_example_noisy_simulation(benchmark):
+    benchmark(examples.noisy_simulation_example.main)
