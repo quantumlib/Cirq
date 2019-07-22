@@ -657,6 +657,7 @@ def test_works_on_pauli_string():
                                np.diag([0, 0, 0, 1]),
                                atol=1e-8)
 
+
 def test_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.DensityMatrixSimulatorState(
