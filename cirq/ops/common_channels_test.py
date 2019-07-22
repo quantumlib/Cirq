@@ -32,10 +32,10 @@ def assert_mixtures_equal(actual, expected):
 def test_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(0.1, 0.2, 0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
-                                   (np.sqrt(0.4) * cirq.I,
-                                    np.sqrt(0.1) * cirq.X,
-                                    np.sqrt(0.2) * cirq.Y,
-                                    np.sqrt(0.3) * cirq.Z))
+                                   (np.sqrt(0.4) * np.eye(2),
+                                    np.sqrt(0.1) * X,
+                                    np.sqrt(0.2) * Y,
+                                    np.sqrt(0.3) * Z))
     assert cirq.has_channel(d)
 
 
@@ -99,10 +99,10 @@ def test_asymmetric_depolarizing_channel_text_diagram():
 def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
-                                   (np.sqrt(0.7) * cirq.I,
-                                    np.sqrt(0.1) * cirq.X,
-                                    np.sqrt(0.1) * cirq.Y,
-                                    np.sqrt(0.1) * cirq.Z))
+                                   (np.sqrt(0.7) * np.eye(2),
+                                    np.sqrt(0.1) * X,
+                                    np.sqrt(0.1) * Y,
+                                    np.sqrt(0.1) * Z))
     assert cirq.has_channel(d)
 
 
@@ -282,7 +282,7 @@ def test_phase_damping_channel_text_diagram():
 def test_phase_flip_channel():
     d = cirq.phase_flip(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(1. - 0.3) * cirq.I, np.sqrt(0.3) * cirq.Z))
+        cirq.channel(d), (np.sqrt(1. - 0.3) * np.eye(2), np.sqrt(0.3) * Z))
     assert cirq.has_channel(d)
 
 
@@ -334,7 +334,7 @@ def test_phase_flip_channel_text_diagram():
 def test_bit_flip_channel():
     d = cirq.bit_flip(0.3)
     np.testing.assert_almost_equal(
-        cirq.channel(d), (np.sqrt(1.0 - 0.3) * cirq.I, np.sqrt(.3) * cirq.X))
+        cirq.channel(d), (np.sqrt(1.0 - 0.3) * np.eye(2), np.sqrt(.3) * X))
     assert cirq.has_channel(d)
 
 

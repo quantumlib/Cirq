@@ -21,7 +21,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq.protocols.mixture import has_mixture_channel
-from cirq import protocols
+from cirq.protocols.unitary import unitary
 
 
 from cirq.type_workarounds import NotImplementedType
@@ -132,7 +132,7 @@ def channel(val: Any,
         NotImplemented if mixture_getter is None else mixture_getter())
 
     if mixture_result is not NotImplemented and mixture_result is not None:
-        return tuple(np.sqrt(p) * u for p, u in mixture_result)
+        return tuple(np.sqrt(p) * unitary(u) for p, u in mixture_result)
 
     unitary_getter = getattr(val, '_unitary_', None)
     unitary_result = (
