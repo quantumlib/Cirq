@@ -141,9 +141,9 @@ _CALIBRATION = {
     'timestamp': '2019-07-09T23:39:59Z',
     'data': {
         '@type':
-            'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
+        'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
         'timestampMs':
-            '1562544000021',
+        '1562544000021',
         'metrics': [{
             'name': 'xeb',
             'targets': ['q0_0', 'q0_1'],
