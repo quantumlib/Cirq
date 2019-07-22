@@ -49,11 +49,9 @@ from cirq.contrib.acquaintance.optimizers import (
     remove_redundant_acquaintance_opportunities,)
 
 from cirq.contrib.acquaintance.permutation import (
-    LinearPermutationGate,
-    PermutationGate,
-    SwapPermutationGate,
-    update_mapping,
-)
+    LinearPermutationGate, PermutationGate, SwapPermutationGate, update_mapping,
+    get_logical_operations, display_mapping, return_to_initial_mapping,
+    uses_consistent_swap_gate)
 
 from cirq.contrib.acquaintance.shift import (
     CircularShiftGate,)
@@ -66,6 +64,9 @@ from cirq.contrib.acquaintance.strategies import (
     cubic_acquaintance_strategy,
     quartic_paired_acquaintance_strategy,
 )
+
+from cirq.contrib.acquaintance.topological_sort import (is_topologically_sorted,
+                                                        random_topological_sort)
 
 from cirq.contrib.acquaintance import (
     testing,)

@@ -18,6 +18,7 @@ from cirq.sim.density_matrix_utils import (
     measure_density_matrix,
     sample_density_matrix,
     to_valid_density_matrix,
+    von_neumann_entropy,
 )
 
 from cirq.sim.density_matrix_simulator import (
@@ -28,12 +29,10 @@ from cirq.sim.density_matrix_simulator import (
 )
 
 from cirq.sim.mux import (
+    final_wavefunction,
     sample,
     sample_sweep,
 )
-
-from cirq.sim.sampler import (
-    Sampler,)
 
 from cirq.sim.simulator import (
     SimulatesFinalState,

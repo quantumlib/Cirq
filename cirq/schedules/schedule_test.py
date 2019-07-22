@@ -14,6 +14,7 @@
 
 from datetime import timedelta
 import pytest
+import numpy as np
 
 import cirq
 from cirq.devices import UnconstrainedDevice
@@ -268,3 +269,24 @@ def test_exclude():
     assert schedule.exclude(cirq.ScheduledOperation(zero, ps, cirq.H(q)))
     assert schedule.query(time=zero, duration=ps * 10) == []
     assert not schedule.exclude(cirq.ScheduledOperation(zero, ps, cirq.H(q)))
+
+
+def test_unitary():
+    q = cirq.NamedQubit('q')
+    zero = cirq.Timestamp(picos=0)
+    ps = cirq.Duration(picos=1)
+    op = cirq.ScheduledOperation(zero, ps, cirq.H(q))
+    schedule = cirq.Schedule(device=UnconstrainedDevice,
+                             scheduled_operations=[op])
+
+    cirq.testing.assert_has_consistent_apply_unitary(schedule, qubit_count=1)
+    np.testing.assert_allclose(cirq.unitary(schedule), cirq.unitary(cirq.H))
+    assert cirq.has_unitary(schedule)
+
+    schedule2 = cirq.Schedule(device=UnconstrainedDevice,
+                              scheduled_operations=[
+                                  cirq.ScheduledOperation(
+                                      zero, ps,
+                                      cirq.depolarize(0.5).on(q))
+                              ])
+    assert not cirq.has_unitary(schedule2)

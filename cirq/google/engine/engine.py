@@ -24,29 +24,44 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+import enum
 import random
 import re
 import string
 import time
-import urllib.parse
-from collections import Iterable
-from typing import cast, Dict, List, Optional, Sequence, TYPE_CHECKING, Union
+from collections.abc import Iterable
+from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
+
 from apiclient import discovery
+import google.protobuf as gp
+from google.protobuf import any_pb2
 
 from cirq import optimizers, circuits
+from cirq.google import gate_sets
+from cirq.api.google import v1, v2
+from cirq.google.api import v2 as api_v2
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
 from cirq.google.params import sweep_to_proto_dict
 from cirq.google.programs import schedule_to_proto_dicts, unpack_results
+from cirq.google.serializable_gate_set import SerializableGateSet
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
 from cirq.study.sweeps import Points, UnitSweep, Zip
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any
-
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
+TYPE_PREFIX = 'type.googleapis.com/'
+
+
+class ProtoVersion(enum.Enum):
+    """Protocol buffer version to use for requests to the quantum engine."""
+    UNDEFINED = 0
+    V1 = 1
+    V2 = 2
+
+
+# Quantum programs to run can be specified as circuits or schedules.
+Program = Union[circuits.Circuit, Schedule]
 
 
 class JobConfig:
@@ -110,12 +125,9 @@ class JobConfig:
                 'job_id={!r}, '
                 'gcs_prefix={!r}, '
                 'gcs_program={!r}, '
-                'gcs_results={!r})').format(self.project_id,
-                                             self.program_id,
-                                             self.job_id,
-                                             self.gcs_prefix,
-                                             self.gcs_program,
-                                             self.gcs_results)
+                'gcs_results={!r})').format(self.project_id, self.program_id,
+                                            self.job_id, self.gcs_prefix,
+                                            self.gcs_program, self.gcs_results)
 
 
 class Engine:
@@ -149,8 +161,8 @@ class Engine:
                  default_project_id: Optional[str] = None,
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
-                 **kwargs
-                 ) -> None:
+                 proto_version: ProtoVersion = ProtoVersion.V1,
+                 **kwargs) -> None:
         """Engine service client.
 
         Args:
@@ -174,11 +186,11 @@ class Engine:
                                                '$discovery/rest'
                                                '?version={apiVersion}')
         self.default_gcs_prefix = default_gcs_prefix
+        self.proto_version = proto_version
 
-        discovery_service_url = (
-            self.discovery_url if self.api_key is None else (
-                "%s&key=%s" % (self.discovery_url, urllib.parse.quote_plus(
-                               self.api_key))))
+        discovery_service_url = self.discovery_url
+        if self.api_key is not None:
+            discovery_service_url += '&key={}'.format(self.api_key)
         self.service = discovery.build(
             self.api,
             self.version,
@@ -188,12 +200,13 @@ class Engine:
     def run(
             self,
             *,  # Force keyword args.
-            program: Union[circuits.Circuit, Schedule],
+            program: Program,
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: SerializableGateSet = gate_sets.XMON) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -204,6 +217,8 @@ class Engine:
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
             processor_ids: The engine processors to run against.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor.
 
         Returns:
             A single TrialResult for this run.
@@ -214,7 +229,8 @@ class Engine:
                            params=[param_resolver],
                            repetitions=repetitions,
                            priority=priority,
-                           processor_ids=processor_ids))[0]
+                           processor_ids=processor_ids,
+                           gate_set=gate_set))[0]
 
     def _infer_project_id(self, job_config) -> None:
         if job_config.project_id is not None:
@@ -298,9 +314,7 @@ class Engine:
 
         return implied_job_config
 
-    def program_as_schedule(self,
-                            program: Union[circuits.Circuit,
-                                           Schedule]) -> Schedule:
+    def program_as_schedule(self, program: Program) -> Schedule:
         if isinstance(program, circuits.Circuit):
             device = program.device
             circuit_copy = program.copy()
@@ -309,21 +323,21 @@ class Engine:
             device.validate_circuit(circuit_copy)
             return moment_by_moment_schedule(device, circuit_copy)
 
-        elif isinstance(program, Schedule):
+        if isinstance(program, Schedule):
             return program
 
-        else:
-            raise TypeError('Unexpected program type.')
+        raise TypeError('Unexpected program type.')
 
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: Union[circuits.Circuit, Schedule],
+            program: Program,
             job_config: Optional[JobConfig] = None,
             params: Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -337,6 +351,8 @@ class Engine:
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
             processor_ids: The engine processors to run against.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -344,26 +360,23 @@ class Engine:
         """
 
         job_config = self.implied_job_config(job_config)
-        schedule = self.program_as_schedule(program)
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
-        schedule.device.validate_schedule(schedule)
+        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        if self.proto_version == ProtoVersion.V1:
+            code, run_context = self._serialize_program_v1(
+                program, sweeps, repetitions)
+        elif self.proto_version == ProtoVersion.V2:
+            code, run_context = self._serialize_program_v2(
+                program, sweeps, repetitions, gate_set)
+        else:
+            raise ValueError('invalid proto version: {}'.format(
+                self.proto_version))
 
         # Create program.
-        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
-        program_dict = {}  # type: Dict[str, Any]
-
-        program_dict['parameter_sweeps'] = [
-            sweep_to_proto_dict(sweep, repetitions) for
-            sweep in sweeps]
-        program_dict['operations'] = [op for op in
-                                      schedule_to_proto_dicts(schedule)]
-        code = {
-            '@type': 'type.googleapis.com/cirq.api.google.v1.Program'}
-        code.update(program_dict)
         request = {
             'name': 'projects/%s/programs/%s' % (job_config.project_id,
                                                  job_config.program_id,),
@@ -392,11 +405,54 @@ class Engine:
                     ]
                 }
             },
+            'run_context': run_context
         }
         response = self.service.projects().programs().jobs().create(
             parent=response['name'], body=request).execute()
 
         return EngineJob(job_config, response, self)
+
+    def _serialize_program_v1(self, program: Program, sweeps: List[Sweep],
+                              repetitions: int
+                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        schedule = self.program_as_schedule(program)
+        schedule.device.validate_schedule(schedule)
+
+        program_descriptor = v1.program_pb2.Program.DESCRIPTOR
+        program_dict = {}  # type: Dict[str, Any]
+        program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
+        program_dict['operations'] = [
+            op for op in schedule_to_proto_dicts(schedule)
+        ]
+
+        context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
+        context_dict = {}  # type: Dict[str, Any]
+        context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
+        context_dict['parameter_sweeps'] = [
+            sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+        ]
+        return program_dict, context_dict
+
+    def _serialize_program_v2(self, program: Program, sweeps: List[Sweep],
+                              repetitions: int, gate_set: SerializableGateSet
+                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        if isinstance(program, Schedule):
+            program.device.validate_schedule(program)
+
+        program = gate_set.serialize(program)
+
+        run_context = v2.run_context_pb2.RunContext()
+        for sweep in sweeps:
+            sweep_proto = run_context.parameter_sweeps.add()
+            sweep_proto.repetitions = repetitions
+            api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+
+        def any_dict(message: gp.message.Message) -> Dict[str, Any]:
+            any_message = any_pb2.Any()
+            any_message.Pack(message)
+            return gp.json_format.MessageToDict(any_message)
+
+        return any_dict(program), any_dict(run_context)
 
     def get_program(self, program_resource_name: str) -> Dict:
         """Returns the previously created quantum program.
@@ -440,8 +496,19 @@ class Engine:
         """
         response = self.service.projects().programs().jobs().getResult(
             parent=job_resource_name).execute()
+        result = response['result']
+        result_type = result['@type'][len(TYPE_PREFIX):]
+
+        if result_type == 'cirq.api.google.v1.Result':
+            return self._get_job_results_v1(response['result'])
+        if result_type == 'cirq.api.google.v2.Result':
+            return self._get_job_results_v2(response['result'])
+        raise ValueError('invalid result proto version: {}'.format(
+            self.proto_version))
+
+    def _get_job_results_v1(self, result: Dict[str, Any]) -> List[TrialResult]:
         trial_results = []
-        for sweep_result in response['result']['sweepResults']:
+        for sweep_result in result['sweepResults']:
             sweep_repetitions = sweep_result['repetitions']
             key_sizes = [(m['key'], len(m['qubits']))
                          for m in sweep_result['measurementKeys']]
@@ -450,12 +517,26 @@ class Engine:
                 measurements = unpack_results(data, sweep_repetitions,
                                               key_sizes)
 
-                trial_results.append(TrialResult(
-                    params=ParamResolver(
-                        result.get('params', {}).get('assignments', {})),
-                    repetitions=sweep_repetitions,
-                    measurements=measurements))
+                trial_results.append(
+                    TrialResult.from_single_parameter_set(
+                        params=ParamResolver(
+                            result.get('params', {}).get('assignments', {})),
+                        measurements=measurements))
         return trial_results
+
+    def _get_job_results_v2(self,
+                            result_dict: Dict[str, Any]) -> List[TrialResult]:
+        result_any = any_pb2.Any()
+        gp.json_format.ParseDict(result_dict, result_any)
+        result = v2.result_pb2.Result()
+        result_any.Unpack(result)
+
+        sweep_results = api_v2.results_from_proto(result)
+        # Flatten to single list to match to sampler api.
+        return [
+            trial_result for sweep_result in sweep_results
+            for trial_result in sweep_result
+        ]
 
     def cancel_job(self, job_resource_name: str):
         """Cancels the given job.
@@ -538,6 +619,97 @@ class Engine:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
+    def list_processors(self, project_id: str) -> List[Dict]:
+        """Returns a list of Processors that the user has visibility to in the
+        provided project. The names of these processors are used to identify
+        devices when scheduling jobs and gathering calibration metrics.
+
+        Params:
+            project_id: The ID of the Google Cloud project to check, e.g.
+                `my-project-123`
+
+        Returns:
+            A list of dictionaries containing the metadata of each processor.
+        """
+        parent = 'projects/%s' % (project_id)
+        response = self.service.projects().processors().list(
+            parent=parent).execute()
+        return response['processors']
+
+    def get_latest_calibration(self,
+                               processor_name: str) -> Optional['Calibration']:
+        """ Returns metadata about the latest known calibration run for a
+        processor, or None if there is no calibration available.
+
+        Params:
+            processor_name: A string of the form
+                `projects/project_id/processors/processor_id`.
+
+        Returns:
+            A dictionary containing the calibration data.
+        """
+        response = self.service.projects().processors().calibrations().list(
+            parent=processor_name).execute()
+        if (not 'calibrations' in response or
+                len(response['calibrations']) < 1):
+            return None
+        return Calibration(response['calibrations'][0]['data'])
+
+    def get_calibration(self, calibration_name: str) -> 'Calibration':
+        """Retrieve metadata about a specific calibration run.
+
+        Params:
+            calibration_name: A string of the form
+                `<processor name>/calibrations/<ms since epoch>`
+
+        Returns:
+            A dictionary containing the metadata.
+        """
+        response = self.service.projects().processors().calibrations().get(
+            name=calibration_name).execute()
+        return Calibration(response['data']['data'])
+
+
+class Calibration:
+    """A convenience wrapper for calibrations
+
+    Attributes:
+        timestamp: The time that this calibration was run, in milliseconds since
+            the epoch.
+    """
+
+    def __init__(self, calibration: Dict) -> None:
+        self.timestamp = int(calibration['timestampMs'])
+        self._metrics = calibration['metrics']
+
+    def get_metric_names(self) -> List[str]:
+        """ Returns a list of known metrics in this calibration. """
+        return list(set(m['name'] for m in self._metrics))
+
+    def get_metrics_by_name(self, name: str) -> List[Dict]:
+        """ Get a filtered list of metrics matching the provided name.
+
+        Values are grouped into a flat list, grouped by target.
+
+        Params:
+            name: the name of a metric referred to in the calibration. Valid
+            names can be found with the get_metric_names() method.
+
+        Returns:
+            A list of dictionaries containing pairs of targets and values for
+            the requested metric.
+        """
+        result = []
+        matching_metrics = [m for m in self._metrics if m['name'] == name]
+        for metric in matching_metrics:
+            flat_values: List = []
+            # Flatten the values a list, removing keys containing type names
+            # (e.g. proto version of each value is {<type>: value}).
+            for value in metric['values']:
+                flat_values += [value[type] for type in value]
+            result.append({'targets': metric['targets'], 'values': flat_values})
+        return result
+
 
 class EngineJob:
     """A job created via the Quantum Engine API.
@@ -578,12 +750,20 @@ class EngineJob:
         """Return the execution status of the job."""
         return self._update_job()['executionStatus']['state']
 
+    def get_calibration(self) -> Optional[Calibration]:
+        """Returns the recorded calibration at the time when the job was run, if
+        one was captured, else None."""
+        status = self._job['executionStatus']
+        if (not 'calibrationName' in status): return None
+        return self._engine.get_calibration(status['calibrationName'])
+
     def cancel(self):
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
 
     def results(self) -> List[TrialResult]:
-        """Returns the job results, blocking until the job is complete."""
+        """Returns the job results, blocking until the job is complete.
+        """
         if not self._results:
             job = self._update_job()
             for _ in range(1000):
@@ -606,21 +786,22 @@ class EngineJob:
 def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, ParamResolver):
         return [_resolver_to_sweep(sweepable)]
-    elif isinstance(sweepable, Sweep):
+    if isinstance(sweepable, Sweep):
         return [sweepable]
-    elif isinstance(sweepable, Iterable):
+    if isinstance(sweepable, Iterable):
         iterable = cast(Iterable, sweepable)
         if isinstance(next(iter(iterable)), Sweep):
             sweeps = iterable
             return list(sweeps)
-        else:
-            resolvers = iterable
-            return [_resolver_to_sweep(p) for p in resolvers]
-    else:
-        raise TypeError('Unexpected Sweepable.')  # coverage: ignore
+
+        resolvers = iterable
+        return [_resolver_to_sweep(p) for p in resolvers]
+
+    raise TypeError('Unexpected Sweepable.')  # coverage: ignore
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
-    return Zip(*[Points(key, [value]) for key, value in
-                 resolver.param_dict.items()]) if len(
-        resolver.param_dict) else UnitSweep
+    params = resolver.param_dict
+    if not params:
+        return UnitSweep
+    return Zip(*[Points(key, [value]) for key, value in params.items()])

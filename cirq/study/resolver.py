@@ -73,7 +73,12 @@ class ParamResolver(object):
             return self.param_dict.get(value, sympy.Symbol(value))
         if isinstance(value, sympy.Basic):
             v = value.subs(self.param_dict)
-            return v if v.free_symbols else float(v)
+            if v.free_symbols:
+                return v
+            elif sympy.im(v):
+                return complex(v)
+            else:
+                return float(v)
         return value
 
     def __bool__(self):

@@ -22,6 +22,7 @@ Moment the Operations must all act on distinct Qubits.
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
+import math
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
@@ -30,7 +31,8 @@ from typing import (
 import re
 import numpy as np
 
-from cirq import devices, ops, study, protocols
+from cirq import devices, linalg, ops, study, protocols
+from cirq._compat import deprecated
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -61,7 +63,7 @@ class Circuit:
         findall_operations_with_gate_type
         are_all_matches_terminal
         are_all_measurements_terminal
-        to_unitary_matrix
+        unitary
         apply_unitary_effect_to_state
         to_text_diagram
         to_text_diagram_drawer
@@ -184,9 +186,8 @@ class Circuit:
             return Circuit(self._moments[key], self.device)
         if isinstance(key, int):
             return self._moments[key]
-        else:
-            raise TypeError(
-                '__getitem__ called with key not of type slice or int.')
+
+        raise TypeError('__getitem__ called with key not of type slice or int.')
 
     @overload
     def __setitem__(self, key: int, value: ops.Moment):
@@ -220,6 +221,8 @@ class Circuit:
         return self
 
     def __add__(self, other):
+        if isinstance(other, list):
+            other = self.from_ops(other)
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device
@@ -231,13 +234,8 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        for moment in self:
-            device.validate_moment(moment)
-        for moment in other:
-            device.validate_moment(moment)
-
-        return Circuit(self._moments + other._moments,
-                       device=device)
+        result = Circuit(moments=self._moments, device=device)
+        return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -693,20 +691,21 @@ class Circuit:
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
         """
-        op_list = []
-        max_index = len(self._moments)
-        for qubit in start_frontier:
-            current_index = start_frontier[qubit]
-            if current_index < 0:
-                current_index = 0
-            while current_index < max_index:
-                if self[current_index].operates_on_single_qubit(qubit):
-                    next_op = self.operation_at(qubit, current_index)
-                    if next_op is not None:
-                        if is_blocker(next_op):
-                            break
-                        op_list.append((current_index,next_op))
-                current_index+=1
+        op_list = []  # type: List[Tuple[int, ops.Operation]]
+        frontier = dict(start_frontier)
+        if not frontier:
+            return op_list
+        start_index = min(frontier.values())
+        for index, moment in enumerate(self[start_index:], start_index):
+            active_qubits = set(q for q, s in frontier.items() if s <= index)
+            for op in moment.operations:
+                active_op_qubits = active_qubits.intersection(op.qubits)
+                if active_op_qubits:
+                    if is_blocker(op):
+                        for q in active_op_qubits:
+                            del frontier[q]
+                    else:
+                        op_list.append((index, op))
         return op_list
 
     def operation_at(self,
@@ -1230,6 +1229,12 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
+    def _qid_shape_(self):
+        return ops.max_qid_shape(
+            self._moments,
+            qubits_that_should_be_present=self.all_qubits(),
+            default_level=1)
+
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
             return False
@@ -1252,15 +1257,17 @@ class Circuit:
         """
         if not self._has_unitary_():
             return NotImplemented
-        return self.to_unitary_matrix(ignore_terminal_measurements=True)
+        return self.unitary(ignore_terminal_measurements=True)
 
-    def to_unitary_matrix(
-            self,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.Qid] = (),
-            ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+
+    def unitary(self,
+                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+                qubits_that_should_be_present: Iterable[ops.Qid] = (),
+                ignore_terminal_measurements: bool = True,
+                dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
+
+        Returns the same result as `cirq.unitary`, but provides more options.
 
         Args:
             qubit_order: Determines how qubits are ordered when passing matrices
@@ -1298,15 +1305,17 @@ class Circuit:
 
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
-        n = len(qs)
 
-        state = np.eye(1 << n, dtype=dtype)
-        state.shape = (2,) * (2 * n)
+        # Force qubits to have dimension at least 2 for backwards compatibility.
+        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        side_len = np.product(qid_shape, dtype=int)
+
+        state = linalg.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((1 << n, 1 << n))
+        return result.reshape((side_len, side_len))
 
-    def apply_unitary_effect_to_state(
+    def final_wavefunction(
             self,
             initial_state: Union[int, np.ndarray] = 0,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -1370,17 +1379,28 @@ class Circuit:
 
         qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits().union(qubits_that_should_be_present))
-        n = len(qs)
+
+        # Force qubits to have dimension at least 2 for backwards compatibility.
+        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        state_len = np.product(qid_shape, dtype=int)
 
         if isinstance(initial_state, int):
-            state = np.zeros(1 << n, dtype=dtype)
+            state = np.zeros(state_len, dtype=dtype)
             state[initial_state] = 1
         else:
             state = initial_state.astype(dtype)
-        state.shape = (2,) * n
+        state.shape = qid_shape
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((1 << n,))
+        return result.reshape((state_len,))
+
+    to_unitary_matrix = deprecated(
+        deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
+
+    apply_unitary_effect_to_state = deprecated(
+        deadline='v0.7.0',
+        fix="Use `cirq.final_wavefunction(circuit)` or "
+        "`Circuit.final_wavefunction()` instead")(final_wavefunction)
 
     def to_text_diagram(
             self,
@@ -1449,8 +1469,15 @@ class Circuit:
         if qubit_namer is None:
             qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
         diagram = TextDiagramDrawer()
+        diagram.write(0, 0, '')
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
+        if any(
+                isinstance(op, cirq.GlobalPhaseOperation)
+                for op in self.all_operations()):
+            diagram.write(0,
+                          max(qubit_map.values(), default=0) + 1,
+                          'global phase:')
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
@@ -1659,11 +1686,10 @@ def _draw_moment_in_diagram(
                 _get_operation_circuit_diagram_info_with_fallback)
     x0 = out_diagram.width()
 
-    if not moment.operations:
-        out_diagram.write(x0, 0, '')
+    non_global_ops = [op for op in moment.operations if op.qubits]
 
     max_x = x0
-    for op in moment.operations:
+    for op in non_global_ops:
         indices = [qubit_map[q] for q in op.qubits]
         y1 = min(indices)
         y2 = max(indices)
@@ -1703,9 +1729,32 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
+    global_phase = np.product([
+        complex(e.coefficient)
+        for e in moment
+        if isinstance(e, ops.GlobalPhaseOperation)
+    ])
+    if global_phase != 1:
+        desc = _formatted_phase(global_phase, use_unicode_characters, precision)
+        if desc:
+            y = max(qubit_map.values(), default=0) + 1
+            out_diagram.write(x0, y, desc)
+
+    if not non_global_ops:
+        out_diagram.write(x0, 0, '')
+
     # Group together columns belonging to the same Moment.
     if moment.operations and max_x > x0:
         moment_groups.append((x0, max_x))
+
+
+def _formatted_phase(coefficient: complex, unicode: bool,
+                     precision: Optional[int]) -> str:
+    h = math.atan2(coefficient.imag, coefficient.real) / math.pi
+    unit = 'π' if unicode else 'pi'
+    if h == 1:
+        return unit
+    return '{{:.{}}}'.format(precision).format(h) + unit
 
 
 def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
@@ -1738,8 +1787,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit,
-                           state: np.ndarray,
+def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
                            qubits: Tuple[ops.Qid, ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.

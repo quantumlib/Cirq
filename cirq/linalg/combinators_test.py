@@ -36,6 +36,7 @@ def test_dot():
 
 
 def test_kron_multiplies_sizes():
+    assert np.allclose(cirq.kron(1j, np.array([2, 3])), np.array([2j, 3j]))
     assert np.allclose(cirq.kron(), np.eye(1))
     assert np.allclose(cirq.kron(np.eye(1)), np.eye(1))
     assert np.allclose(cirq.kron(np.eye(2)), np.eye(2))

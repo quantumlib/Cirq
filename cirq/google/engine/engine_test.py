@@ -26,50 +26,157 @@ import cirq.google as cg
 
 
 _A_RESULT = {
-    'sweepResults': [
-        {
-            'repetitions': 1,
-            'measurementKeys': [
-                {
-                    'key': 'q',
-                    'qubits': [{'row': 1, 'col': 1}]
+    '@type':
+    'type.googleapis.com/cirq.api.google.v1.Result',
+    'sweepResults': [{
+        'repetitions':
+        1,
+        'measurementKeys': [{
+            'key': 'q',
+            'qubits': [{
+                'row': 1,
+                'col': 1
+            }]
+        }],
+        'parameterizedResults': [{
+            'params': {
+                'assignments': {
+                    'a': 1
                 }
-            ],
-            'parameterizedResults': [
-                {
-                    'params': {'assignments': {'a': 1}},
-                    'measurementResults': base64.b64encode(b'01')
-                }
-            ]
-        }
-    ]
+            },
+            'measurementResults': base64.b64encode(b'01')
+        }]
+    }]
 }
-
 
 _RESULTS = {
-    'sweepResults': [
-        {
-            'repetitions': 1,
-            'measurementKeys': [
-                {
-                    'key': 'q',
-                    'qubits': [{'row': 1, 'col': 1}]
+    '@type':
+    'type.googleapis.com/cirq.api.google.v1.Result',
+    'sweepResults': [{
+        'repetitions':
+        1,
+        'measurementKeys': [{
+            'key': 'q',
+            'qubits': [{
+                'row': 1,
+                'col': 1
+            }]
+        }],
+        'parameterizedResults': [{
+            'params': {
+                'assignments': {
+                    'a': 1
                 }
-            ],
-            'parameterizedResults': [
-                {
-                    'params': {'assignments': {'a': 1}},
-                    'measurementResults': base64.b64encode(b'01')
-                },
-                {
-                    'params': {'assignments': {'a': 2}},
-                    'measurementResults': base64.b64encode(b'01')
+            },
+            'measurementResults': base64.b64encode(b'01')
+        }, {
+            'params': {
+                'assignments': {
+                    'a': 2
                 }
-            ]
-        }
-    ]
+            },
+            'measurementResults': base64.b64encode(b'01')
+        }]
+    }]
 }
 
+_RESULTS_V2 = {
+    '@type':
+    'type.googleapis.com/cirq.api.google.v2.Result',
+    'sweepResults': [
+        {
+            'repetitions':
+            1,
+            'parameterizedResults': [
+                {
+                    'params': {
+                        'assignments': {
+                            'a': 1
+                        }
+                    },
+                    'measurementResults': [
+                        {
+                            'key':
+                            'q',
+                            'qubitMeasurementResults': [
+                                {
+                                    'qubit': {
+                                        'id': '1_1'
+                                    },
+                                    'results': base64.b64encode(b'01'),
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    'params': {
+                        'assignments': {
+                            'a': 2
+                        }
+                    },
+                    'measurementResults': [
+                        {
+                            'key':
+                            'q',
+                            'qubitMeasurementResults': [
+                                {
+                                    'qubit': {
+                                        'id': '1_1'
+                                    },
+                                    'results': base64.b64encode(b'01'),
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}
+
+
+_CALIBRATION = {
+    'name': 'projects/cirqv2/processors/xmonsim/calibrations/1562715599',
+    'timestamp': '2019-07-09T23:39:59Z',
+    'data': {
+        '@type':
+        'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
+        'timestampMs':
+        '1562544000021',
+        'metrics': [{
+            'name': 'xeb',
+            'targets': ['q0_0', 'q0_1'],
+            'values': [{
+                'doubleVal': .9999
+            }]
+        }, {
+            'name': 'xeb',
+            'targets': ['q0_0', 'q1_0'],
+            'values': [{
+                'doubleVal': .9998
+            }]
+        }, {
+            'name': 't1',
+            'targets': ['q0_0'],
+            'values': [{
+                'doubleVal': 321
+            }]
+        }, {
+            'name': 't1',
+            'targets': ['q0_1'],
+            'values': [{
+                'doubleVal': 911
+            }]
+        }, {
+            'name': 't1',
+            'targets': ['q1_0'],
+            'values': [{
+                'doubleVal': 505
+            }]
+        }]
+    }
+}
 
 
 def test_repr():
@@ -265,7 +372,7 @@ def test_run_sweep_params(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    sweeps = programs.create.call_args[1]['body']['code']['parameter_sweeps']
+    sweeps = jobs.create.call_args[1]['body']['run_context']['parameter_sweeps']
     assert len(sweeps) == 2
     for i, v in enumerate([1, 2]):
         assert sweeps[i]['repetitions'] == 1
@@ -276,9 +383,8 @@ def test_run_sweep_params(build):
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
-
 @mock.patch.object(discovery, 'build')
-def test_run_sweep_sweeps(build):
+def test_run_sweep_v1(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
@@ -294,12 +400,14 @@ def test_run_sweep_sweeps(build):
     jobs.getResult().execute.return_value = {
         'result': _RESULTS}
 
-    job = cg.Engine(api_key="key").run_sweep(
+    engine = cg.Engine(api_key="key")
+    job = engine.run_sweep(
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
                                                cirq.Circuit()),
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=cirq.Points('a', [1, 2]))
     results = job.results()
+    assert engine.proto_version == cg.engine.engine.ProtoVersion.V1
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
@@ -310,7 +418,7 @@ def test_run_sweep_sweeps(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}&key=key'))
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    sweeps = programs.create.call_args[1]['body']['code']['parameter_sweeps']
+    sweeps = jobs.create.call_args[1]['body']['run_context']['parameter_sweeps']
     assert len(sweeps) == 1
     assert sweeps[0]['repetitions'] == 1
     assert sweeps[0]['sweep']['factors'][0]['sweeps'][0]['points'][
@@ -322,8 +430,110 @@ def test_run_sweep_sweeps(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_run_sweep_v2(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    jobs.getResult().execute.return_value = {'result': _RESULTS_V2}
+
+    engine = cg.Engine(
+        api_key="key",
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+    )
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        params=cirq.Points('a', [1, 2]))
+    results = job.results()
+    assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    build.assert_called_with('quantum',
+                             'v1alpha1',
+                             discoveryServiceUrl=('https://{api}.googleapis.com'
+                                                  '/$discovery/rest?version='
+                                                  '{apiVersion}&key=key'))
+    assert programs.create.call_args[1]['parent'] == 'projects/project-id'
+    sweeps = jobs.create.call_args[1]['body']['run_context']['parameterSweeps']
+    assert len(sweeps) == 1
+    assert sweeps[0]['repetitions'] == 1
+    assert sweeps[0]['sweep']['singleSweep']['points']['points'] == [1, 2]
+    assert jobs.create.call_args[1][
+        'parent'] == 'projects/project-id/programs/test'
+    assert jobs.get().execute.call_count == 1
+    assert jobs.getResult().execute.call_count == 1
+
+
+@mock.patch.object(discovery, 'build')
+def test_bad_result_proto(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    result = _RESULTS_V2.copy()
+    result['@type'] = 'type.googleapis.com/unknown'
+    jobs.getResult().execute.return_value = {'result': result}
+
+    engine = cg.Engine(api_key="key",
+                       proto_version=cg.engine.engine.ProtoVersion.V2)
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        params=cirq.Points('a', [1, 2]))
+    with pytest.raises(ValueError, match='invalid result proto version'):
+        job.results()
+
+
+@mock.patch.object(discovery, 'build')
+def test_bad_sweep_proto(build):
+    eng = cg.Engine(api_key="key",
+                    proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
+    with pytest.raises(ValueError, match='invalid proto version'):
+        eng.run(program=cirq.Circuit(),
+                job_config=cg.JobConfig('project-id',
+                                        gcs_prefix='gs://bucket/folder'))
+
+
+@mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
-    eng = cg.Engine(api_key="key")
+    eng = cg.Engine(api_key="key",
+                    proto_version=cg.engine.engine.ProtoVersion.V2)
     with pytest.raises(ValueError, match='priority must be'):
         eng.run(program=cirq.Circuit(),
                 job_config=cg.JobConfig('project-id',
@@ -538,3 +748,143 @@ def test_bad_job_config_inference_order(build):
 
     eng._infer_gcs_results(config)
     eng._infer_gcs_program(config)
+
+
+@mock.patch.object(discovery, 'build')
+def test_list_processors(build):
+    service = mock.Mock()
+    build.return_value = service
+    PROCESSOR1 = {'name': 'projects/myproject/processors/xmonsim'},
+    PROCESSOR2 = {'name': 'projects/myproject/processors/gmonsin'},
+    processors = service.projects().processors()
+    processors.list().execute.return_value = ({
+        'processors': [PROCESSOR1, PROCESSOR2],
+    })
+
+    result = cg.Engine(api_key="key").list_processors('myproject')
+    assert processors.list.call_args[1]['parent'] == 'projects/myproject'
+    assert result == [PROCESSOR1, PROCESSOR2]
+
+
+@mock.patch.object(discovery, 'build')
+def test_latest_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+    calibrations = service.projects().processors().calibrations()
+    calibrations.list().execute.return_value = ({
+        'calibrations': [_CALIBRATION]
+    })
+    processor_name = 'projects/p/processors/x'
+    calibration = cg.Engine(
+        api_key="key").get_latest_calibration(processor_name)
+    assert calibrations.list.call_args[1]['parent'] == processor_name
+    assert calibration.timestamp == 1562544000021
+    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+
+
+@mock.patch.object(discovery, 'build')
+def test_missing_latest_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+    calibrations = service.projects().processors().calibrations()
+    calibrations.list().execute.return_value = {}
+    processor_name = 'projects/p/processors/x'
+    calibration = cg.Engine(
+        api_key="key").get_latest_calibration(processor_name)
+    assert calibrations.list.call_args[1]['parent'] == processor_name
+    assert not calibration
+
+
+@mock.patch.object(discovery, 'build')
+def test_calibration_from_job(build):
+    service = mock.Mock()
+    build.return_value = service
+
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    calibrationName = '/project/p/processor/x/calibrationsi/123'
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS',
+            'calibrationName': calibrationName,
+        },
+    }
+    calibrations = service.projects().processors().calibrations()
+    calibrations.get().execute.return_value = {'data': _CALIBRATION}
+
+    engine = cg.Engine(api_key="key")
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+
+    calibration = job.get_calibration()
+    assert calibration.timestamp == 1562544000021
+    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+    assert calibrations.get.call_args[1]['name'] == calibrationName
+
+
+@mock.patch.object(discovery, 'build')
+def test_calibration_from_job_with_no_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS',
+        },
+    }
+
+    calibrations = service.projects().processors().calibrations()
+    engine = cg.Engine(api_key="key")
+    job = engine.run_sweep(
+        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+                                               cirq.Circuit()),
+        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+
+    calibration = job.get_calibration()
+    assert not calibration
+    assert not calibrations.get.called
+
+
+@mock.patch.object(discovery, 'build')
+def test_calibration_metrics(build):
+    calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
+    t1s = calibration.get_metrics_by_name('t1')
+    xebs = calibration.get_metrics_by_name('xeb')
+
+    assert t1s == [
+        {
+            'targets': ['q0_0'],
+            'values': [321]
+        },
+        {
+            'targets': ['q0_1'],
+            'values': [911]
+        },
+        {
+            'targets': ['q1_0'],
+            'values': [505]
+        },
+    ]
+
+    assert xebs == [
+        {
+            'targets': ['q0_0', 'q0_1'],
+            'values': [.9999]
+        },
+        {
+            'targets': ['q0_0', 'q1_0'],
+            'values': [.9998]
+        },
+    ]

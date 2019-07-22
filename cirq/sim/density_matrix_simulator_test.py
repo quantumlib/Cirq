@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from unittest import mock
+import itertools
 import numpy as np
 import pytest
 import sympy
@@ -256,19 +257,20 @@ def test_simulate(dtype):
     assert len(result.measurements) == 0
 
 
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_simulate_compare_to_wave_function_simulator(dtype):
-    for _ in range(20):
-        qubits = cirq.LineQubit.range(4)
-        circuit = cirq.testing.random_circuit(qubits, 5, 0.9)
-        pure_result = (cirq.Simulator(dtype=dtype)
-                       .simulate(circuit,qubit_order=qubits)
-                       .density_matrix_of())
-        mixed_result = (cirq.DensityMatrixSimulator(dtype=dtype)
-                        .simulate(circuit,qubit_order=qubits)
-                        .final_density_matrix)
-        assert mixed_result.shape == (16, 16)
-        np.testing.assert_almost_equal(mixed_result, pure_result)
+@pytest.mark.parametrize(
+    'dtype,circuit',
+    itertools.product([np.complex64, np.complex128], [
+        cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9)
+        for _ in range(20)
+    ]))
+def test_simulate_compare_to_wave_function_simulator(dtype, circuit):
+    qubits = cirq.LineQubit.range(4)
+    pure_result = (cirq.Simulator(dtype=dtype).simulate(
+        circuit, qubit_order=qubits).density_matrix_of())
+    mixed_result = (cirq.DensityMatrixSimulator(dtype=dtype).simulate(
+        circuit, qubit_order=qubits).final_density_matrix)
+    assert mixed_result.shape == (16, 16)
+    np.testing.assert_almost_equal(mixed_result, pure_result)
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
