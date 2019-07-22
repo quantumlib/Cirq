@@ -1172,7 +1172,8 @@ def test_findall_operations_until_blocked():
                 a: idx,
                 b: idx,
                 c: idx,
-                d: idx},
+                d: idx
+            },
             is_blocker=stop_if_op) == []
 
     # Cases where nothing is blocked, it goes to the end
