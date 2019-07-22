@@ -660,8 +660,7 @@ def test_works_on_pauli_string():
 def test_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.DensityMatrixSimulatorState(
-        density_matrix=np.ones((2, 2)) * 0.5,
-        qubit_map={q0: 0})
+        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0})
     result = cirq.DensityMatrixTrialResult(
         params=cirq.ParamResolver({}),
         measurements={},
