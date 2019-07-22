@@ -3,6 +3,7 @@ Creates and simulate a noisy circuit using cirq.ConstantQubitNoiseModel class.
 """
 import cirq
 
+
 def noisyCircuitDemo(amplitude_damp):
     """Demonstrates a noisy circuit simulation.
     """
@@ -22,6 +23,7 @@ def noisyCircuitDemo(amplitude_damp):
     print(results.histogram(key='initial_state'))
     print('Sampling of qubit "q" after application of X gate:')
     print(results.histogram(key='after_not_gate'))
+
 
 def main():
     print("Iteration 1:")

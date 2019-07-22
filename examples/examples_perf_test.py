@@ -50,11 +50,14 @@ def test_example_runs_grover_perf(benchmark):
 def test_example_runs_phase_estimator_perf(benchmark):
     benchmark(examples.phase_estimator.main, qnums=(2,), repetitions=2)
 
+
 def test_example_runs_quantum_teleportation(benchmark):
     benchmark(examples.quantum_teleportation.main)
 
+
 def test_example_runs_superdense_coding(benchmark):
     benchmark(examples.superdense_coding.main)
+
 
 def test_example_noisy_simulation(benchmark):
     benchmark(examples.noisy_simulation_example.main)

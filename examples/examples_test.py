@@ -87,5 +87,6 @@ def test_example_runs_qubit_characterizations():
 def test_example_swap_networks():
     examples.swap_networks.main()
 
+
 def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
