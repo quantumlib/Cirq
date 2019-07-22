@@ -58,7 +58,7 @@ def _sorted_best_string_placements(
 
         node_maxes.append(node_max)
 
-    return sorted(node_maxes, key=sort_key)
+    return sorted(node_maxes, key=sort_key, reverse=True)
 
 
 def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
@@ -81,10 +81,10 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
         # furthest possible distance in circuit_right
         placements = _sorted_best_string_placements(rightmost_nodes, output_ops)
         last_index = len(output_ops)
-        while placements:
-            # Pick the Pauli string that can be moved furthest through
-            # the Clifford circuit
-            best_string_op, best_index, best_node = placements.pop()
+
+        # Pick the Pauli string that can be moved furthest through
+        # the Clifford circuit
+        for best_string_op, best_index, best_node in placements:
 
             assert best_index <= last_index, (
                 "Unexpected insertion index order,"
