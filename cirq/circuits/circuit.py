@@ -26,7 +26,7 @@ import math
 
 from typing import (
     List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
+    Sequence, Union, Set, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
 
 import re
 import numpy as np
@@ -691,20 +691,23 @@ class Circuit:
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
         """
-        op_list = []
-        max_index = len(self._moments)
-        for qubit in start_frontier:
-            current_index = start_frontier[qubit]
-            if current_index < 0:
-                current_index = 0
-            while current_index < max_index:
-                if self[current_index].operates_on_single_qubit(qubit):
-                    next_op = self.operation_at(qubit, current_index)
-                    if next_op is not None:
-                        if is_blocker(next_op):
-                            break
-                        op_list.append((current_index,next_op))
-                current_index+=1
+        op_list = []  # type: List[Tuple[int, ops.Operation]]
+        if not start_frontier:
+            return op_list
+        start_index = min(start_frontier.values())
+        blocked_qubits = set() # Set[cirq.Qid]
+        for index, moment in enumerate(self[start_index:], start_index):
+            active_qubits = set(
+                q for q, s in start_frontier.items() if s <= index)
+            for op in moment.operations:
+                if active_qubits.isdisjoint(op.qubits):
+                    continue
+                if is_blocker(op) or blocked_qubits.intersection(op.qubits):
+                    blocked_qubits.update(op.qubits)
+                else:
+                    op_list.append((index, op))
+            if blocked_qubits.issuperset(start_frontier):
+                break
         return op_list
 
     def operation_at(self,
