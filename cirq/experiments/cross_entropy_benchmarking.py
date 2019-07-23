@@ -30,13 +30,13 @@ class CrossEntropyResult:
         """
         return self._data
 
+    # coverage: ignore
     def plot(self, **plot_kwargs: Any) -> None:
         """Plots the average XEB fidelity vs the number of cycles.
 
         Args:
             **plot_kwargs: Arguments to be passed to 'matplotlib.pyplot.plot'.
         """
-        # coverage: ignore
         num_cycles = [d.num_cycle for d in self._data]
         fidelities = [d.xeb_fidelity for d in self._data]
         fig = plt.figure()

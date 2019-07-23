@@ -1,7 +1,7 @@
+# coverage: ignore
 import cirq
 
 
-# coverage: ignore
 def main():
     # The sampler to run the experiment.
     simulator = cirq.Simulator()
