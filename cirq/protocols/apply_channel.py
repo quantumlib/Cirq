@@ -274,21 +274,21 @@ def _strat_mixture(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
     """
     mixture_getter = getattr(val, '_mixture_', None)
     mixture = NotImplemented if mixture_getter is None else mixture_getter()
-    if mixture is not NotImplemented:
-        args.out_buffer[:] = 0
-        for prob, unitary in mixture:
-            newargs = ApplyChannelArgs(target_tensor=prob*args.target_tensor,
-                                       out_buffer=args.out_buffer,
-                                       auxiliary_buffer0=args.auxiliary_buffer0,
-                                       auxiliary_buffer1=args.auxiliary_buffer1,
-                                       left_axes=args.left_axes,
-                                       right_axes=args.right_axes)
-            intermediate_result = _apply_unitary(unitary, newargs)
-            if intermediate_result is None:
-                raise (ValueError("Element of mixture does not have a unitary"
-                                  " effect: {}".format(unitary)))
-            args.out_buffer += intermediate_result
-    return None
+    if mixture is NotImplemented:
+        return None
+    args.out_buffer[:] = 0
+    for prob, unitary in mixture:
+        left_args = ApplyUnitaryArgs(target_tensor=args.target_tensor,
+                                     available_buffer=args.auxiliary_buffer0,
+                                     axes=args.left_axes)
+        left_result = apply_unitary(unitary, left_args, None)
+        right_args = ApplyUnitaryArgs(target_tensor=np.conjugate(left_result),
+                                      available_buffer=args.auxiliary_buffer1,
+                                      axes=args.right_axes)
+        right_result = apply_unitary(unitary, right_args)
+        np.conjugate(right_result, out=right_result)
+        args.out_buffer += prob * right_result
+    return args.out_buffer
 
 
 def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
