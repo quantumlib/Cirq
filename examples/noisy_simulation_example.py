@@ -4,7 +4,7 @@ Creates and simulate a noisy circuit using cirq.ConstantQubitNoiseModel class.
 import cirq
 
 
-def noisyCircuitDemo(amplitude_damp):
+def noisy_circuit_demo(amplitude_damp):
     """Demonstrates a noisy circuit simulation.
     """
     q = cirq.NamedQubit('q')
@@ -27,16 +27,16 @@ def noisyCircuitDemo(amplitude_damp):
 
 def main():
     print("Iteration 1:")
-    noisyCircuitDemo(0)
+    noisy_circuit_demo(0)
     print()
     print("Iteration 2:")
-    noisyCircuitDemo(0.4)
+    noisy_circuit_demo(0.4)
     print()
     print("Iteration 3:")
-    noisyCircuitDemo(0.5)
+    noisy_circuit_demo(0.5)
     print()
     print("Iteration 4:")
-    noisyCircuitDemo(1.0)
+    noisy_circuit_demo(1.0)
 
 
 if __name__ == '__main__':

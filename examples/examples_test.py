@@ -15,6 +15,7 @@ import examples.quantum_teleportation
 import examples.qubit_characterizations_example
 import examples.superdense_coding
 import examples.swap_networks
+import examples.noisy_simulation_example
 
 
 def test_example_runs_bernstein_vazirani():
