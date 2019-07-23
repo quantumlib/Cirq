@@ -100,10 +100,12 @@ class AQTSampler(Sampler):
                        data={
                            'data': json_str,
                            'id': id_str,
-                           'acccess_token': self.access_token,
+                           'access_token': self.access_token,
                            'repetitions': repetitions,
                            'num_qubits': num_qubits
                        }).json()
+            if 'status' not in data.keys():
+                raise RuntimeError('Got unexpected return data from AQT server: \n'+str(data))
             if data['status'] == 'finished':
                 break
             time.sleep(1.0)
