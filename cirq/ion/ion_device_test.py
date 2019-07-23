@@ -204,31 +204,6 @@ def test_ion_device_eq():
         lambda: ion_device(4))
 
 
-def test_validate_circuit_repeat_measurement_keys():
-    d = ion_device(3)
-
-    circuit = cirq.Circuit()
-    circuit.append([cirq.measure(cirq.LineQubit(0), key='a'),
-                    cirq.measure(cirq.LineQubit(1), key='a')])
-
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
-        d.validate_circuit(circuit)
-
-
-def test_validate_schedule_repeat_measurement_keys():
-    d = ion_device(3)
-
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(
-            cirq.measure(cirq.LineQubit(0), key='a'), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(
-            cirq.measure(cirq.LineQubit(1), key='a'), cirq.Timestamp(), d),
-    ])
-
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
-        d.validate_schedule(s)
-
-
 def test_ion_device_str():
     assert str(ion_device(3)).strip() == """
 0───1───2

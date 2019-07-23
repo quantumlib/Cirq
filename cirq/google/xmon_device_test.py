@@ -227,31 +227,6 @@ def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
     d.validate_schedule(s)
 
 
-def test_validate_circuit_repeat_measurement_keys():
-    d = square_device(3, 3)
-
-    circuit = cirq.Circuit()
-    circuit.append([cirq.measure(cirq.GridQubit(0, 0), key='a'),
-                    cirq.measure(cirq.GridQubit(0, 1), key='a')])
-
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
-        d.validate_circuit(circuit)
-
-
-def test_validate_schedule_repeat_measurement_keys():
-    d = square_device(3, 3)
-
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(
-            cirq.measure(cirq.GridQubit(0, 0), key='a'), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(
-            cirq.measure(cirq.GridQubit(0, 1), key='a'), cirq.Timestamp(), d),
-    ])
-
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
-        d.validate_schedule(s)
-
-
 def test_xmon_device_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: square_device(3, 3))

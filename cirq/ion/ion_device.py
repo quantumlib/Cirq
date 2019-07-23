@@ -123,7 +123,6 @@ class IonDevice(devices.Device):
 
     def validate_circuit(self, circuit: circuits.Circuit):
         super().validate_circuit(circuit)
-        _verify_unique_measurement_keys(circuit.all_operations())
 
     def can_add_operation_into_moment(self,
                                       operation: ops.Operation,
@@ -138,8 +137,6 @@ class IonDevice(devices.Device):
         return True
 
     def validate_schedule(self, schedule):
-        _verify_unique_measurement_keys(
-            s.operation for s in schedule.scheduled_operations)
         for scheduled_operation in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, scheduled_operation)
 
@@ -185,13 +182,3 @@ class IonDevice(devices.Device):
                 self._oneq_gates_duration,
                 self.qubits)
 
-
-def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
-    seen = set()  # type: Set[str]
-    for op in operations:
-        meas = ops.op_gate_of_type(op, ops.MeasurementGate)
-        if meas:
-            key = protocols.measurement_key(meas)
-            if key in seen:
-                raise ValueError('Measurement key {} repeated'.format(key))
-            seen.add(key)

@@ -73,6 +73,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                    else program.to_circuit())
         if not circuit.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
+        _verify_unique_measurement_keys(circuit)
         param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
@@ -290,6 +291,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
+        _verify_unique_measurement_keys(circuit)
         param_resolvers = study.to_resolvers(params)
 
         trial_results = []
@@ -336,6 +338,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             Iterator that steps through the simulation, simulating each
             moment and returning a StepResult for each moment.
         """
+        _verify_unique_measurement_keys(circuit)
         return self._simulator_iterator(
             circuit,
             study.ParamResolver(param_resolver),
@@ -546,3 +549,17 @@ class SimulationTrialResult:
         the result.
         """
         return self._final_simulator_state.qubit_map
+
+
+def _verify_unique_measurement_keys(circuit: circuits.Circuit):
+    result = collections.Counter(
+        protocols.measurement_key(op, default=None)
+        for op in ops.flatten_op_tree(iter(circuit))
+    )
+    result[None] = 0
+    duplicates = [k for k, v in result.most_common() if v > 1]
+    if duplicates:
+        raise ValueError(
+            'Measurement key {} repeated'.format(duplicates))
+
+
