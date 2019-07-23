@@ -272,22 +272,21 @@ def _strat_mixture(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
     Returns 'None' if 'val' does not have a '_mixture_' method or '_mixture_'
     returns 'NotImplemented'.
     """
-    print("in")
     mixture_getter = getattr(val, '_mixture_', None)
     mixture = NotImplemented if mixture_getter is None else mixture_getter()
     if mixture is not NotImplemented:
         args.out_buffer[:] = 0
         for prob, unitary in mixture:
             newargs = ApplyChannelArgs(target_tensor=prob*args.target_tensor,
-                                     out_buffer=args.out_buffer,
-                                     auxiliary_buffer0=args.auxiliary_buffer0,
-                                     auxiliary_buffer1=args.auxiliary_buffer1,
-                                     left_axes=args.left_axes,
-                                     right_axes=args.right_axes)
+                                       out_buffer=args.out_buffer,
+                                       auxiliary_buffer0=args.auxiliary_buffer0,
+                                       auxiliary_buffer1=args.auxiliary_buffer1,
+                                       left_axes=args.left_axes,
+                                       right_axes=args.right_axes)
             intermediate_result = _apply_unitary(unitary, newargs)
             if intermediate_result is None:
-                raise(ValueError("Element of mixture does not have a unitary"
-                                 " effect: {}".format(unitary)))
+                raise (ValueError("Element of mixture does not have a unitary"
+                                  " effect: {}".format(unitary)))
             args.out_buffer += intermediate_result
     return None
 
