@@ -19,7 +19,7 @@ import os
 from cirq.google.engine.engine import Engine
 
 ENV_API_KEY = 'CIRQ_QUANTUM_ENGINE_API_KEY'
-ENV_DEFAULT_PROJECT_ID = 'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'
+ENV_PROJECT_ID = 'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'
 
 
 def engine_from_environment() -> Engine:
@@ -42,6 +42,6 @@ def engine_from_environment() -> Engine:
         raise EnvironmentError(
             'Environment variable {} is not set.'.format(ENV_API_KEY))
 
-    default_project_id = os.environ.get(ENV_DEFAULT_PROJECT_ID)
+    project_id = os.environ.get(ENV_PROJECT_ID)
 
-    return Engine(api_key=api_key, default_project_id=default_project_id)
+    return Engine(api_key=api_key, project_id=project_id)

@@ -27,7 +27,7 @@ def test_engine_from_environment(build):
                          {'CIRQ_QUANTUM_ENGINE_API_KEY': 'key!'},
                          clear=True):
         eng = cirq.google.engine_from_environment()
-        assert eng.default_project_id is None
+        assert eng.project_id is None
         assert eng.api_key == 'key!'
 
     # Nothing present.
@@ -50,5 +50,5 @@ def test_engine_from_environment(build):
         'CIRQ_QUANTUM_ENGINE_API_KEY': 'key!',
     }, clear=True):
         eng = cirq.google.engine_from_environment()
-        assert eng.default_project_id == 'project!'
+        assert eng.project_id == 'project!'
         assert eng.api_key == 'key!'
