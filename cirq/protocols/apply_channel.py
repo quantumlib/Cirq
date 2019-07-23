@@ -267,7 +267,7 @@ def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
 
 
 def _strat_mixture(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
-    """Attempt to use the values '_mixture_' method to apply a mixture.
+    """Attempt to use the value's '_mixture_' method to apply a mixture.
 
     Returns 'None' if 'val' does not have a '_mixture_' method or '_mixture_'
     returns 'NotImplemented'.
