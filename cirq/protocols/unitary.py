@@ -87,7 +87,9 @@ def unitary(val: Any,
             ) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
-    The matrix is determined by any one of the following techniques:
+    If the given value is a unitary matrix, the given value is returned.
+
+    Otherwise, the matrix is determined by any one of the following techniques:
 
     - The value has a `_unitary_` method that returns something besides None or
         NotImplemented. The matrix is whatever the method returned.
