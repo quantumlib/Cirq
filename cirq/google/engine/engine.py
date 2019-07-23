@@ -29,14 +29,13 @@ import random
 import re
 import string
 import time
-from collections.abc import Iterable
 from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
 
 from apiclient import discovery
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import optimizers, circuits
+from cirq import circuits, optimizers, study
 from cirq.google import gate_sets
 from cirq.api.google import v1, v2
 from cirq.google.api import v2 as api_v2
@@ -46,7 +45,6 @@ from cirq.google.programs import schedule_to_proto_dicts, unpack_results
 from cirq.google.serializable_gate_set import SerializableGateSet
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
-from cirq.study.sweeps import Points, UnitSweep, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
@@ -365,7 +363,7 @@ class Engine:
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
-        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        sweeps = study.to_sweeps(params or ParamResolver({}))
         if self.proto_version == ProtoVersion.V1:
             code, run_context = self._serialize_program_v1(
                 program, sweeps, repetitions)
@@ -781,27 +779,3 @@ class EngineJob:
 
     def __iter__(self):
         return self.results().__iter__()
-
-
-def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
-    if isinstance(sweepable, ParamResolver):
-        return [_resolver_to_sweep(sweepable)]
-    if isinstance(sweepable, Sweep):
-        return [sweepable]
-    if isinstance(sweepable, Iterable):
-        iterable = cast(Iterable, sweepable)
-        if isinstance(next(iter(iterable)), Sweep):
-            sweeps = iterable
-            return list(sweeps)
-
-        resolvers = iterable
-        return [_resolver_to_sweep(p) for p in resolvers]
-
-    raise TypeError('Unexpected Sweepable.')  # coverage: ignore
-
-
-def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
-    params = resolver.param_dict
-    if not params:
-        return UnitSweep
-    return Zip(*[Points(key, [value]) for key, value in params.items()])
