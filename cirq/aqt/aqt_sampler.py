@@ -95,19 +95,29 @@ class AQTSampler(Sampler):
 
         The experimental data is returned via the key 'data'
         """
+        data = put(self.remote_host,
+                   data={
+                       'data': json_str,
+                       'access_token': self.access_token,
+                       'repetitions': repetitions,
+                       'no_qubits': num_qubits
+                   }).json()
+
+        if 'id' not in data.keys():
+            raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
+        id_str = data['id']
+
         while True:
             data = put(self.remote_host,
-                       data={
-                           'data': json_str,
-                           'id': id_str,
-                           'access_token': self.access_token,
-                           'repetitions': repetitions,
-                           'num_qubits': num_qubits
+                       data={'id': id_str,
+                           'access_token': self.access_token
                        }).json()
             if 'status' not in data.keys():
                 raise RuntimeError('Got unexpected return data from AQT server: \n'+str(data))
             if data['status'] == 'finished':
                 break
+            elif data['status'] == 'error':
+                raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
             time.sleep(1.0)
         measurements_int = data['samples']
         measurements = np.zeros((len(measurements_int), num_qubits))
@@ -165,7 +175,7 @@ class AQTSampler(Sampler):
             program: Union[circuits.Circuit, schedules.Schedule],
             param_resolver: 'study.ParamResolverOrSimilarType' = None,
             repetitions: int = 1,
-            num_qubits: int = 4) -> study.TrialResult:
+            num_qubits: int = 1) -> study.TrialResult:
         """Samples from the given Circuit or Schedule.
 
         Args:
