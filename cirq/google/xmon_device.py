@@ -15,7 +15,7 @@
 from datetime import timedelta
 from typing import Iterable, cast, Optional, List, Union, TYPE_CHECKING
 
-from cirq import circuits, devices, ops, protocols, value
+from cirq import circuits, devices, ops, value
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 
@@ -212,9 +212,5 @@ class XmonDevice(devices.Device):
             use_unicode_characters=True)
 
     def _value_equality_values_(self):
-        return (self._measurement_duration,
-                self._exp_w_duration,
-                self._exp_z_duration,
-                self.qubits)
-
-
+        return (self._measurement_duration, self._exp_w_duration,
+                self._exp_z_duration, self.qubits)

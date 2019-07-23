@@ -554,12 +554,8 @@ class SimulationTrialResult:
 def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     result = collections.Counter(
         protocols.measurement_key(op, default=None)
-        for op in ops.flatten_op_tree(iter(circuit))
-    )
+        for op in ops.flatten_op_tree(iter(circuit)))
     result[None] = 0
     duplicates = [k for k, v in result.most_common() if v > 1]
     if duplicates:
-        raise ValueError(
-            'Measurement key {} repeated'.format(duplicates))
-
-
+        raise ValueError('Measurement key {} repeated'.format(duplicates))

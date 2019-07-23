@@ -15,7 +15,7 @@
 from datetime import timedelta
 from typing import cast, Iterable, Optional, Union, TYPE_CHECKING
 
-from cirq import circuits, value, devices, ops, protocols
+from cirq import circuits, value, devices, ops
 from cirq.line import LineQubit
 from cirq.ion import convert_to_ion_gates
 
@@ -177,8 +177,5 @@ class IonDevice(devices.Device):
             use_unicode_characters=True)
 
     def _value_equality_values_(self):
-        return (self._measurement_duration,
-                self._twoq_gates_duration,
-                self._oneq_gates_duration,
-                self.qubits)
-
+        return (self._measurement_duration, self._twoq_gates_duration,
+                self._oneq_gates_duration, self.qubits)
