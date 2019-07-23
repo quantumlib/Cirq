@@ -42,7 +42,7 @@ setup(name='cirq',
       author_email='cirq@googlegroups.com',
       python_requires=('>=3.6.0'),
       install_requires=requirements,
-      extras_require = {
+      extras_require={
           'contrib': contrib_requirements,
       },
       license='Apache 2',
