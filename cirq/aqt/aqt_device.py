@@ -11,13 +11,14 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
 import json
-from typing import Union, Tuple, List, Sequence
+from typing import Union, Tuple, List, Sequence, cast
 import numpy as np
 from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
 from cirq import DensityMatrixSimulator
 
 gate_dict = {'X': ops.X, 'Y': ops.Y, 'MS': ops.XX}
+
 
 def get_op_string(op_obj: ops.Operation):
     """Find the string representation for a given gate
@@ -47,7 +48,6 @@ class AQTNoiseModel(devices.NoiseModel):
     def noisy_moment(self, moment: ops.Moment,
                      system_qubits: Sequence[ops.Qid]):
         noise_list = []
-        #TODO: Add crosstalk
         for op in moment.operations:
             op_str = get_op_string(op)
             try:
@@ -56,6 +56,7 @@ class AQTNoiseModel(devices.NoiseModel):
                 break
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
+            cast(Tuple[LineQubit], system_qubits)
             noise_list += self.get_crosstalk_operation(op, system_qubits)
         return list(moment) + noise_list
 

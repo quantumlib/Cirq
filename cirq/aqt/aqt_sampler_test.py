@@ -14,6 +14,7 @@ class EngineReturn:
     def __init__(self):
         self.test_dict = {
             'status': 'queued',
+            'id': '2131da',
             'samples': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         }
         self.counter = 0
@@ -29,12 +30,19 @@ class EngineReturn:
 
 
 def test_aqt_sampler():
-    put_call_args = {
-        'data': '[["X", 0.1, [0]]]',
-        'acccess_token': 'testkey',
-        'repetitions': 10,
-        'num_qubits': 1
+
+    put_call_args0 = {
+        'access_token': 'testkey',
+        'id': '2131da',
     }
+    # put_call_args = {
+    #     'data': '[["X", 0.1, [0]]]',
+    #     'access_token': 'testkey',
+    #     'repetitions': 10,
+    #     'id': '2131da',
+    #     'num_qubits': 1
+# }x
+
     e_return = EngineReturn()
     with mock.patch('cirq.aqt.aqt_sampler.put',
                     return_value=e_return,
@@ -45,22 +53,21 @@ def test_aqt_sampler():
         repetitions = 10
         sampler = AQTSampler(remote_host="http://localhost:5000",
                              access_token='testkey')
-        _device, qubits = get_aqt_device(4)
-        circuit = Circuit.from_ops(X(qubits[0])**theta)
+        device, qubits = get_aqt_device(1)
+        circuit = Circuit.from_ops(X(qubits[0])**theta, device=device)
         sweep = study.Linspace(key='theta',
                                start=0.1,
                                stop=max_angle / np.pi,
                                length=num_points)
         results = sampler.run_sweep(circuit,
                                     params=sweep,
-                                    repetitions=repetitions,
-                                    num_qubits=1)
+                                    repetitions=repetitions)
         excited_state_probs = np.zeros(num_points)
         for i in range(num_points):
             excited_state_probs[i] = np.mean(results[i].measurements['m'])
     callargs = mock_method.call_args[1]['data']
-    for keys in put_call_args:
-        assert callargs[keys] == put_call_args[keys]
+    for keys in put_call_args0:
+        assert callargs[keys] == put_call_args0[keys]
     assert mock_method.call_count == 2
 
 
@@ -70,18 +77,15 @@ def test_aqt_sampler_sim():
     max_angle = np.pi
     repetitions = 1000
     num_qubits = 4
-    _device, qubits = get_aqt_device(num_qubits)
+    device, qubits = get_aqt_device(num_qubits)
     sampler = AQTRemoteSimulator()
     sampler.simulate_ideal = True
-    circuit = Circuit.from_ops(X(qubits[3])**theta)
+    circuit = Circuit.from_ops(X(qubits[3])**theta, device=device)
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,
                            length=num_points)
-    results = sampler.run_sweep(circuit,
-                                params=sweep,
-                                repetitions=repetitions,
-                                num_qubits=num_qubits)
+    results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
     excited_state_probs = np.zeros(num_points)
     # print(results)
     for i in range(num_points):
@@ -94,18 +98,20 @@ def test_aqt_sampler_sim_xtalk():
     max_angle = np.pi
     repetitions = 100
     num_qubits = 4
-    _device, qubits = get_aqt_device(num_qubits)
+    device, qubits = get_aqt_device(num_qubits)
     sampler = AQTRemoteSimulator()
     sampler.simulate_ideal = False
-    circuit = Circuit.from_ops(X(qubits[0]), X(qubits[3]), X(qubits[2]))
+    circuit = Circuit.from_ops(X(qubits[0]),
+                               X(qubits[3]),
+                               X(qubits[2]),
+                               device=device)
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,
                            length=num_points)
     _results = sampler.run_sweep(circuit,
                                  params=sweep,
-                                 repetitions=repetitions,
-                                 num_qubits=num_qubits)
+                                 repetitions=repetitions)
 
 
 def test_aqt_sampler_ms():
@@ -116,9 +122,7 @@ def test_aqt_sampler_ms():
     circuit = Circuit(device=device)
     for _dummy in range(9):
         circuit.append(XX(qubits[0], qubits[1])**0.5)
-    results = sampler.run(circuit,
-                          repetitions=repetitions,
-                          num_qubits=num_qubits)
+    results = sampler.run(circuit, repetitions=repetitions)
     hist = (results.histogram(key='m'))
     print(hist)
     assert hist[12] > repetitions / 3
@@ -134,6 +138,4 @@ def test_aqt_sampler_wrong_gate():
     circuit.append(Y(qubits[0])**0.5)
     circuit.append(Z(qubits[0])**0.5)
     with pytest.raises(ValueError):
-        _results = sampler.run(circuit,
-                               repetitions=repetitions,
-                               num_qubits=num_qubits)
+        _results = sampler.run(circuit, repetitions=repetitions)

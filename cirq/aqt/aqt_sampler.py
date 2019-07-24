@@ -6,10 +6,10 @@ from typing import Iterable, List, Union, Tuple, cast
 
 import numpy as np
 from requests import put
-from cirq import circuits, schedules, Sampler, resolve_parameters, LineQubit
+from cirq import circuits, Sampler, resolve_parameters, LineQubit
 from cirq.study.sweeps import Sweep
 from cirq.aqt.aqt_device import AQTSimulator, get_op_string
-from cirq import study, ops
+from cirq import study, ops, schedules, IonDevice
 
 Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
                   Iterable[Sweep]]
@@ -102,22 +102,29 @@ class AQTSampler(Sampler):
                        'repetitions': repetitions,
                        'no_qubits': num_qubits
                    }).json()
-
+        print(data)
         if 'id' not in data.keys():
-            raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
+            raise RuntimeError(
+                'Got unexpected return data from AQT server: \n' + str(data))
         id_str = data['id']
 
         while True:
             data = put(self.remote_host,
-                       data={'id': id_str,
+                       data={
+                           'id': id_str,
                            'access_token': self.access_token
                        }).json()
+            print(data)
             if 'status' not in data.keys():
-                raise RuntimeError('Got unexpected return data from AQT server: \n'+str(data))
+                raise RuntimeError(
+                    'Got unexpected return data from AQT server: \n' +
+                    str(data))
             if data['status'] == 'finished':
                 break
             elif data['status'] == 'error':
-                raise RuntimeError('Got unexpected return data from AQT server: \n' + str(data))
+                raise RuntimeError(
+                    'Got unexpected return data from AQT server: \n' +
+                    str(data))
             time.sleep(1.0)
         measurements_int = data['samples']
         measurements = np.zeros((len(measurements_int), num_qubits))
@@ -129,8 +136,7 @@ class AQTSampler(Sampler):
     def run_sweep(self,
                   program: Union[circuits.Circuit, schedules.Schedule],
                   params: study.Sweepable,
-                  repetitions: int = 1,
-                  num_qubits: int = 1) -> List[study.TrialResult]:
+                  repetitions: int = 1) -> List[study.TrialResult]:
         """Samples from the given Circuit or Schedule.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -141,7 +147,6 @@ class AQTSampler(Sampler):
             Should be generated using AQTSampler.generate_circuit_from_list
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            num_qubits: The number of qubits in the system.
 
         The parameters remote_host and access_token are not used.
 
@@ -149,15 +154,15 @@ class AQTSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        # TODO: Where should we get the num_qubits??
-        # TODO: Probably from the measurement in the circuit!
         meas_name = 'm'  # TODO: Get measurement name from circuit
         circuit = (program if isinstance(program, circuits.Circuit) else
                    program.to_circuit())
+        assert isinstance(circuit.device, IonDevice)
         param_resolvers = study.to_resolvers(params)
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in param_resolvers:
             id_str = uuid.uuid1()
+            num_qubits = len(circuit.device.qubits)
             json_str = self._generate_json(circuit=circuit,
                                            param_resolver=param_resolver)
             results = self._send_json(json_str=json_str,
@@ -170,28 +175,6 @@ class AQTSampler(Sampler):
                 study.TrialResult(params=param_resolver,
                                   measurements=res_dict))
         return trial_results
-
-    def run(self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: 'study.ParamResolverOrSimilarType' = None,
-            repetitions: int = 1,
-            num_qubits: int = 1) -> study.TrialResult:
-        """Samples from the given Circuit or Schedule.
-
-        Args:
-            program: The circuit or schedule to simulate.
-            Should be generated using AQTSampler.generate_circuit_from_list
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-            num_qubits: The number of qubits.
-
-        Returns:
-            TrialResult for a run.
-        """
-        return self.run_sweep(program,
-                              study.ParamResolver(param_resolver),
-                              repetitions=repetitions,
-                              num_qubits=num_qubits)[0]
 
 
 class AQTRemoteSimulator(AQTSampler):
