@@ -411,20 +411,20 @@ q_2: ───H───M('meas_2')───
 
 | Statement|Cirq support|Description|Example|
 |----| --------| --------| --------|
-| `OPENQASM 2.0;`| supported| Denotes a file in Open QASM format| OPENQASM 2.0;|
-| `qreg name[size];`| supported (see mapping qubits)| Declare a named register of qubits| `qreg q[5]; `|
-| `creg name[size];`|supported (see mapping classical register to measurement keys)|  Declare a named register of bits| `creg c[5];`|
-| `include “filename”; `| supported ONLY to include the standard “qelib1.inc” lib for compatibility| Open and parse another source file| `include “qelib1.inc”;`|
-| `gate name(params) qargs;`|NOT supported| Declare a unitary gate||
+|`OPENQASM 2.0;`| supported| Denotes a file in Open QASM format| OPENQASM 2.0;|
+|`qreg name[size];`| supported (see mapping qubits)| Declare a named register of qubits|`qreg q[5];`|
+|`creg name[size];`|supported (see mapping classical register to measurement keys)|  Declare a named register of bits|`creg c[5];`|
+|`include "filename";`| supported ONLY to include the standard "qelib1.inc" lib for compatibility| Open and parse another source file|`include "qelib1.inc";`|
+|`gate name(params) qargs;`|NOT supported| Declare a unitary gate||
 |`opaque name(params) qargs;`| NOT supported| Declare an opaque gate||
-|  `// comment text`| supported|Comment a line of text| `// supported!`|
-|`U(theta,phi,lambda) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)| `U(pi/2,2\*pi/3,0) q[0];`|
-|  `CX qubit/qreg,qubit\qreg;`| supported|Apply built-in CNOT gate(s)| `CX q[0],q[1];`|
-| ` measure qubit\qreg -> bit/creg;`| supported|Make measurement(s) in `Z` basis| `measure q -> c;`|
-|  `reset qubit/qreg;`| NOT supported|Prepare qubit(s) in`|0>`| `reset q[0]; `| 
-| `gatename(params) qargs;`|  supported for ONLY the supported subset of standard gates defined in "qelib1.inc"|Apply a user-defined unitary gate| `rz(pi/2) q[0];`|
-| `if(creg==int) qop;`| NOT supported| Conditionally apply quantum operation| `if(c==5) CX q[0],q[1];`|
-|  `barrier qargs;`| NOT supported| Prevent transformations across this source line| `barrier q[0],q[1];`|
+|`// comment text`| supported|Comment a line of text|`// supported!`|
+|`U(theta,phi,lambda) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)|`U(pi/2,2*pi/3,0) q[0];`|
+|`CX qubit/qreg,qubit/qreg;`| supported|Apply built-in CNOT gate(s)|`CX q[0],q[1];`|
+|` measure qubit/qreg -> bit/creg;`| supported|Make measurement(s) in`Z` basis|`measure q -> c;`|
+|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in`|0>`|`reset q[0];`| 
+|`gatename(params) qargs;`|  supported for ONLY the supported subset of standard gates defined in "qelib1.inc"|Apply a user-defined unitary gate|`rz(pi/2) q[0];`|
+|`if(creg==int) qop;`| NOT supported| Conditionally apply quantum operation|`if(c==5) CX q[0],q[1];`|
+|`barrier qargs;`| NOT supported| Prevent transformations across this source line|`barrier q[0],q[1];`|
 
 
 #### Gate conversion rules 
@@ -434,28 +434,30 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 
 | QE gates| Cirq translation| Notes|
 | --------| --------| --------|
-| u3(θ,φ,λ)| `QasmUGate (λ,θ,φ)`| `QasmUGate` constructor takes angles reverse order, to cater for the rotation intuition RZ(λ) first, RY(θ), RZ(φ) last|
-|u2(φ,λ) = u3(π/2,φ,λ)| `QasmUGate (λ,π/2,φ)`|| 
-|u1 (φ) = u3(0,0,λ)| NOT supported || 
-| cx| `cirq.CX`|| 
-| id| `cirq.Identity`| one single-qubit Identity gate is created for each qubit if applied on a register|  
+| u3(θ,φ,λ)|`QasmUGate (λ,θ,φ)`|`QasmUGate` constructor takes angles reverse order, to cater for the rotation intuition RZ(λ) first, RY(θ), RZ(φ) last|
+|u2(φ,λ) = u3(π/2,φ,λ)|`QasmUGate (λ,π/2,φ)`|| 
+|u1 (λ) = u3(0,0,λ)| NOT supported || 
+|`CX` |`cirq.CX`|| 
+| cx|`cirq.CX`|| 
+| id|`cirq.Identity`| one single-qubit Identity gate is created for each qubit if applied on a register|  
 | u0(γ)| NOT supported| this is the "WAIT gate" for length γ in QE| 
-| x| `cirq.X`|| 
-| y| `cirq.Y`|| 
-| z| `cirq.Z`|| 
-| h| `cirq.H`|| 
-| s| `cirq.S`|| 
-| sdg| `cirq.S**-1`|| 
-| t| `cirq.T`|| 
-| tdg| `cirq.T**-1`||
-| rx(theta)| `cirq.RX`|| 
-| ry(theta)| `cirq.RY`|| 
-| rz(phi)|`cirq.RZ`|| 
-| cz| `cirq.CZ`|| 
-| swap| `cirq.SWAP`|| 
-| ch| `cirq.CH`|| 
-| ccx| `cirq.CCX`|| 
-| cswap| `cirq.CSWAP`|| 
+| x|`cirq.X`|| 
+| y|`cirq.Y`|| 
+| z|`cirq.Z`|| 
+| h|`cirq.H`|| 
+| s|`cirq.S`|| 
+| sdg|`cirq.S**-1`|| 
+| t|`cirq.T`|| 
+| tdg|`cirq.T**-1`||
+| rx(theta)|`cirq.Rx(theta)`|| 
+| ry(theta)|`cirq.Ry(theta)`|| 
+| rz(phi)|`cirq.Rz(phi)`|| 
+| cz|`cirq.CZ`|| 
+| cy|`cirq.ControlledGate(cirq.Y)`|| 
+| swap|`cirq.SWAP`|| 
+| ch|`cirq.ControlledGate(cirq.H)`|| 
+| ccx|`cirq.CCX`|| 
+| cswap|`cirq.CSWAP`|| 
 | crz| NOT supported || 
 | cu1| NOT supported|| 
 | cu3| NOT supported|| 
