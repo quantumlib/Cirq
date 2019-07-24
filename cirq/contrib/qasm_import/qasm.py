@@ -17,7 +17,7 @@ from cirq.contrib.qasm_import._parser import QasmParser
 
 
 class QasmCircuitParser:
-    """Provides parsing of OpenQASM files."""
+    """Parses an OpenQASM string to cirq.Circuit."""
 
     def __init__(self):
         pass
