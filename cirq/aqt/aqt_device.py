@@ -83,8 +83,8 @@ class AQTNoiseModel(devices.NoiseModel):
         op_str = get_op_string(operation)
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
-                exponent = operation.gate.exponent * xtlk_arr[
-                    idx]  #type:ignore
+                exponent = operation.gate.exponent #type:ignore
+                exponent = exponent * xtlk_arr[idx]
                 xtlk_op = gate_dict[op_str].on(system_qubits[idx])**exponent
                 xtlk_op_list.append(xtlk_op)
         #TODO: Add xtalk for 2 qubit operations
