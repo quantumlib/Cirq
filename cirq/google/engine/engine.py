@@ -29,14 +29,13 @@ import random
 import re
 import string
 import time
-from collections.abc import Iterable
 from typing import Any, cast, Dict, List, Optional, Sequence, Tuple, Union
 
 from apiclient import discovery
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import optimizers, circuits
+from cirq import circuits, optimizers, study
 from cirq.google import gate_sets
 from cirq.api.google import v1, v2
 from cirq.google.api import v2 as api_v2
@@ -46,7 +45,6 @@ from cirq.google.programs import schedule_to_proto_dicts, unpack_results
 from cirq.google.serializable_gate_set import SerializableGateSet
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
-from cirq.study.sweeps import Points, UnitSweep, Zip
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
@@ -365,7 +363,7 @@ class Engine:
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
-        sweeps = _sweepable_to_sweeps(params or ParamResolver({}))
+        sweeps = study.to_sweeps(params or ParamResolver({}))
         if self.proto_version == ProtoVersion.V1:
             code, run_context = self._serialize_program_v1(
                 program, sweeps, repetitions)
@@ -619,6 +617,97 @@ class Engine:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
+    def list_processors(self, project_id: str) -> List[Dict]:
+        """Returns a list of Processors that the user has visibility to in the
+        provided project. The names of these processors are used to identify
+        devices when scheduling jobs and gathering calibration metrics.
+
+        Params:
+            project_id: The ID of the Google Cloud project to check, e.g.
+                `my-project-123`
+
+        Returns:
+            A list of dictionaries containing the metadata of each processor.
+        """
+        parent = 'projects/%s' % (project_id)
+        response = self.service.projects().processors().list(
+            parent=parent).execute()
+        return response['processors']
+
+    def get_latest_calibration(self,
+                               processor_name: str) -> Optional['Calibration']:
+        """ Returns metadata about the latest known calibration run for a
+        processor, or None if there is no calibration available.
+
+        Params:
+            processor_name: A string of the form
+                `projects/project_id/processors/processor_id`.
+
+        Returns:
+            A dictionary containing the calibration data.
+        """
+        response = self.service.projects().processors().calibrations().list(
+            parent=processor_name).execute()
+        if (not 'calibrations' in response or
+                len(response['calibrations']) < 1):
+            return None
+        return Calibration(response['calibrations'][0]['data'])
+
+    def get_calibration(self, calibration_name: str) -> 'Calibration':
+        """Retrieve metadata about a specific calibration run.
+
+        Params:
+            calibration_name: A string of the form
+                `<processor name>/calibrations/<ms since epoch>`
+
+        Returns:
+            A dictionary containing the metadata.
+        """
+        response = self.service.projects().processors().calibrations().get(
+            name=calibration_name).execute()
+        return Calibration(response['data']['data'])
+
+
+class Calibration:
+    """A convenience wrapper for calibrations
+
+    Attributes:
+        timestamp: The time that this calibration was run, in milliseconds since
+            the epoch.
+    """
+
+    def __init__(self, calibration: Dict) -> None:
+        self.timestamp = int(calibration['timestampMs'])
+        self._metrics = calibration['metrics']
+
+    def get_metric_names(self) -> List[str]:
+        """ Returns a list of known metrics in this calibration. """
+        return list(set(m['name'] for m in self._metrics))
+
+    def get_metrics_by_name(self, name: str) -> List[Dict]:
+        """ Get a filtered list of metrics matching the provided name.
+
+        Values are grouped into a flat list, grouped by target.
+
+        Params:
+            name: the name of a metric referred to in the calibration. Valid
+            names can be found with the get_metric_names() method.
+
+        Returns:
+            A list of dictionaries containing pairs of targets and values for
+            the requested metric.
+        """
+        result = []
+        matching_metrics = [m for m in self._metrics if m['name'] == name]
+        for metric in matching_metrics:
+            flat_values: List = []
+            # Flatten the values a list, removing keys containing type names
+            # (e.g. proto version of each value is {<type>: value}).
+            for value in metric['values']:
+                flat_values += [value[type] for type in value]
+            result.append({'targets': metric['targets'], 'values': flat_values})
+        return result
+
 
 class EngineJob:
     """A job created via the Quantum Engine API.
@@ -659,6 +748,13 @@ class EngineJob:
         """Return the execution status of the job."""
         return self._update_job()['executionStatus']['state']
 
+    def get_calibration(self) -> Optional[Calibration]:
+        """Returns the recorded calibration at the time when the job was run, if
+        one was captured, else None."""
+        status = self._job['executionStatus']
+        if (not 'calibrationName' in status): return None
+        return self._engine.get_calibration(status['calibrationName'])
+
     def cancel(self):
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
@@ -683,27 +779,3 @@ class EngineJob:
 
     def __iter__(self):
         return self.results().__iter__()
-
-
-def _sweepable_to_sweeps(sweepable: Sweepable) -> List[Sweep]:
-    if isinstance(sweepable, ParamResolver):
-        return [_resolver_to_sweep(sweepable)]
-    if isinstance(sweepable, Sweep):
-        return [sweepable]
-    if isinstance(sweepable, Iterable):
-        iterable = cast(Iterable, sweepable)
-        if isinstance(next(iter(iterable)), Sweep):
-            sweeps = iterable
-            return list(sweeps)
-
-        resolvers = iterable
-        return [_resolver_to_sweep(p) for p in resolvers]
-
-    raise TypeError('Unexpected Sweepable.')  # coverage: ignore
-
-
-def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
-    params = resolver.param_dict
-    if not params:
-        return UnitSweep
-    return Zip(*[Points(key, [value]) for key, value in params.items()])
