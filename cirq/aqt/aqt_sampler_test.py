@@ -24,24 +24,78 @@ class EngineReturn:
         return self.test_dict
 
     def update(self, *args, **kwargs):
-        if self.counter >= 1:
+        if self.counter >= 2:
             self.test_dict['status'] = 'finished'
         return self
 
+class EngineError(EngineReturn):
+    """A put mock class for testing error responses"""
+
+    def __init__(self):
+        self.test_dict = {
+            'status': 'error',
+            'id': '2131da',
+            'samples': "Error message"
+        }
+        self.counter = 0
+
+class EngineNoid(EngineReturn):
+    """A put mock class for testing error responses
+    This will not return an id at the first call"""
+
+    def __init__(self):
+        self.test_dict = {
+            'status': 'queued'
+        }
+        self.counter = 0
+
+
+class EngineNoStatus(EngineReturn):
+    """A put mock class for testing error responses
+    This will not return a status in the second call"""
+    def update(self, *args, **kwargs):
+        if self.counter >= 1:
+            del(self.test_dict['status'])
+        return self
+
+class EngineErrorSecond(EngineReturn):
+    """A put mock class for testing error responses
+    This will return an error on the second put call"""
+
+    def update(self, *args, **kwargs):
+        if self.counter >= 1:
+            self.test_dict['status'] = 'error'
+        return self
+
+
+def test_aqt_sampler_error_handling():
+    for e_return in [EngineError(),EngineErrorSecond(),
+                     EngineNoStatus(),EngineNoid()]:
+        with mock.patch('cirq.aqt.aqt_sampler.put',
+                        return_value=e_return,
+                        side_effect=e_return.update) as _mock_method:
+            theta = sympy.Symbol('theta')
+            num_points = 1
+            max_angle = np.pi
+            repetitions = 10
+            sampler = AQTSampler(remote_host="http://localhost:5000",
+                                 access_token='testkey')
+            device, qubits = get_aqt_device(1)
+            circuit = Circuit.from_ops(X(qubits[0]) ** theta, device=device)
+            sweep = study.Linspace(key='theta',
+                                   start=0.1,
+                                   stop=max_angle / np.pi,
+                                   length=num_points)
+            with pytest.raises(RuntimeError):
+                _results = sampler.run_sweep(circuit,
+                                            params=sweep,
+                                            repetitions=repetitions)
 
 def test_aqt_sampler():
-
     put_call_args0 = {
         'access_token': 'testkey',
         'id': '2131da',
     }
-    # put_call_args = {
-    #     'data': '[["X", 0.1, [0]]]',
-    #     'access_token': 'testkey',
-    #     'repetitions': 10,
-    #     'id': '2131da',
-    #     'num_qubits': 1
-# }x
 
     e_return = EngineReturn()
     with mock.patch('cirq.aqt.aqt_sampler.put',
@@ -68,7 +122,7 @@ def test_aqt_sampler():
     callargs = mock_method.call_args[1]['data']
     for keys in put_call_args0:
         assert callargs[keys] == put_call_args0[keys]
-    assert mock_method.call_count == 2
+    assert mock_method.call_count == 3
 
 
 def test_aqt_sampler_sim():
@@ -109,9 +163,7 @@ def test_aqt_sampler_sim_xtalk():
                            start=0.1,
                            stop=max_angle / np.pi,
                            length=num_points)
-    _results = sampler.run_sweep(circuit,
-                                 params=sweep,
-                                 repetitions=repetitions)
+    _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 
 def test_aqt_sampler_ms():

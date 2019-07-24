@@ -42,6 +42,8 @@ def get_op_string(op_obj: ops.Operation):
 
 
 class AQTNoiseModel(devices.NoiseModel):
+    """A noise model for the AQT ion trap """
+
     def __init__(self):
         self.noise_op_dict = get_default_noise_dict()
 

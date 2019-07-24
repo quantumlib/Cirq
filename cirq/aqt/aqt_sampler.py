@@ -102,7 +102,10 @@ class AQTSampler(Sampler):
                        'repetitions': repetitions,
                        'no_qubits': num_qubits
                    }).json()
-        print(data)
+        if data['status'] == 'error':
+            raise RuntimeError(
+                'AQT server reported error: \n' + str(data))
+
         if 'id' not in data.keys():
             raise RuntimeError(
                 'Got unexpected return data from AQT server: \n' + str(data))
@@ -172,8 +175,7 @@ class AQTSampler(Sampler):
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
-                study.TrialResult(params=param_resolver,
-                                  measurements=res_dict))
+                study.TrialResult(params=param_resolver, measurements=res_dict))
         return trial_results
 
 
