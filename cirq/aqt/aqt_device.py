@@ -58,18 +58,18 @@ class AQTNoiseModel(devices.NoiseModel):
                 break
             for qubit in op.qubits:
                 noise_list.append(noise_op.on(qubit))
-            cast(Tuple[LineQubit], system_qubits)
             noise_list += self.get_crosstalk_operation(op, system_qubits)
         return list(moment) + noise_list
 
     def get_crosstalk_operation(self, operation: ops.Operation,
-                                system_qubits: Tuple[LineQubit]):
+                                system_qubits: Sequence[ops.Qid]):
         """
         Returns operation on
         Args:
             operation: Ideal operation
             system_qubits: Tuple of line qubits
         """
+        cast(Tuple[LineQubit], system_qubits)
         num_qubits = len(system_qubits)
         xtlk_arr = np.zeros(num_qubits)
         for qubit in operation.qubits:
@@ -83,7 +83,8 @@ class AQTNoiseModel(devices.NoiseModel):
         op_str = get_op_string(operation)
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
-                exponent = operation.gate.exponent * xtlk_arr[idx]
+                exponent = operation.gate.exponent * xtlk_arr[
+                    idx]  #type:ignore
                 xtlk_op = gate_dict[op_str].on(system_qubits[idx])**exponent
                 xtlk_op_list.append(xtlk_op)
         #TODO: Add xtalk for 2 qubit operations

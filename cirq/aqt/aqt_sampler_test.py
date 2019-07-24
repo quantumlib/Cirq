@@ -28,6 +28,7 @@ class EngineReturn:
             self.test_dict['status'] = 'finished'
         return self
 
+
 class EngineError(EngineReturn):
     """A put mock class for testing error responses"""
 
@@ -39,24 +40,25 @@ class EngineError(EngineReturn):
         }
         self.counter = 0
 
+
 class EngineNoid(EngineReturn):
     """A put mock class for testing error responses
     This will not return an id at the first call"""
 
     def __init__(self):
-        self.test_dict = {
-            'status': 'queued'
-        }
+        self.test_dict = {'status': 'queued'}
         self.counter = 0
 
 
 class EngineNoStatus(EngineReturn):
     """A put mock class for testing error responses
     This will not return a status in the second call"""
+
     def update(self, *args, **kwargs):
         if self.counter >= 1:
-            del(self.test_dict['status'])
+            del (self.test_dict['status'])
         return self
+
 
 class EngineErrorSecond(EngineReturn):
     """A put mock class for testing error responses
@@ -69,8 +71,12 @@ class EngineErrorSecond(EngineReturn):
 
 
 def test_aqt_sampler_error_handling():
-    for e_return in [EngineError(),EngineErrorSecond(),
-                     EngineNoStatus(),EngineNoid()]:
+    for e_return in [
+            EngineError(),
+            EngineErrorSecond(),
+            EngineNoStatus(),
+            EngineNoid()
+    ]:
         with mock.patch('cirq.aqt.aqt_sampler.put',
                         return_value=e_return,
                         side_effect=e_return.update) as _mock_method:
@@ -81,15 +87,16 @@ def test_aqt_sampler_error_handling():
             sampler = AQTSampler(remote_host="http://localhost:5000",
                                  access_token='testkey')
             device, qubits = get_aqt_device(1)
-            circuit = Circuit.from_ops(X(qubits[0]) ** theta, device=device)
+            circuit = Circuit.from_ops(X(qubits[0])**theta, device=device)
             sweep = study.Linspace(key='theta',
                                    start=0.1,
                                    stop=max_angle / np.pi,
                                    length=num_points)
             with pytest.raises(RuntimeError):
                 _results = sampler.run_sweep(circuit,
-                                            params=sweep,
-                                            repetitions=repetitions)
+                                             params=sweep,
+                                             repetitions=repetitions)
+
 
 def test_aqt_sampler():
     put_call_args0 = {
@@ -163,7 +170,9 @@ def test_aqt_sampler_sim_xtalk():
                            start=0.1,
                            stop=max_angle / np.pi,
                            length=num_points)
-    _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
+    _results = sampler.run_sweep(circuit,
+                                 params=sweep,
+                                 repetitions=repetitions)
 
 
 def test_aqt_sampler_ms():
