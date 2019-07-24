@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Runs multiple checks.
+#
+# The default set of checks most closely matches the tests run during
+# a continuous integration test, however these do not match perfectly
+# since those tests run on different architectures and environments.
+#
+# Defaults to the following tests:
+#   pylint
+#   mypy
+#   format-incremental
+#   pytest-and-incremental-coverage
+#   doctest
+#
+# Usage:
+#     check/all revision [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
+#
+# BASE_REVISION is forwarded to format-incremental and to the pytest checks
+# (pytest-and-incremental-coverage or pytest-changed-files). See those
+# checks for how to specify this value.
+#
+# If --only-changed-files is specified, pytest-changed-files will be run
+# instead of pytest-and-incremental-coverage.
+#
+# If --apply-format-changes is specified the --apply flag will be passed
+# to format-incremental to apply the format changes suggested by the
+# formatter.
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# Parse arguments.
+apply_arg=""
+only_changed=0
+rev=""
+for arg in $@; do
+    if [[ "${arg}" == "--only-changed-files" ]]; then
+        only_change=1
+    elif [[ "${arg}" == "--apply-format-changes" ]]; then
+        apply_arg="--apply"
+    elif [ -z "${rev}" ]; then
+        if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
+            echo -e "\e[31mNo revision '${arg}'.\e[0m" >&2
+            exit 1
+        fi
+        rev="${arg}"
+    else
+        echo -e "\e[31mInvalid arguments. Expected [BASE_REVISION] [--only-changed-files] [--apply-format].\e[0m" >&2
+        exit 1
+    fi
+done
+
+echo "Running pylint"
+check/pylint
+
+echo "Running mypy"
+check/mypy
+
+echo "Running incremental format"
+check/format-incremental ${rev} "${apply_arg}"
+
+if [ -z "${only_changed}" ]; then
+    echo "Running pytest on changed files without incremental coverage"
+    check/pytest-changed-files ${rev}
+else
+    echo "Running pytest and incremental coverage"
+    check/pytest-and-incremental-coverage ${rev}
+fi
+
+echo "Running doctest"
+check/doctest
