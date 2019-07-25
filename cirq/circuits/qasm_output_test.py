@@ -11,15 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
-
 import re
-import pytest
 
 import numpy as np
+import pytest
 
 import cirq
-from cirq.circuits.qasm_output import QasmUGate, QasmTwoQubitGate
+from cirq.circuits.qasm_output import QasmTwoQubitGate, QasmUGate
+from cirq.testing import consistent_qasm as cq
 
 
 def _make_qubits(n):
@@ -277,25 +276,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
     )
 
 
-def test_output_parseable_by_qiskit():
-    qubits = tuple(_make_qubits(5))
-    operations = _all_operations(*qubits)
-    output = cirq.QasmOutput(operations, qubits,
-                             header='Generated from Cirq',
-                             precision=10)
-    text = str(output)
-
-    # coverage: ignore
-    try:
-        # We don't want to require qiskit as a dependency but
-        # if Qiskit is installed, test QASM output against it.
-        import qiskit  # type: ignore
-    except ImportError:
-        return
-
-    assert qiskit.qasm.Qasm(data=text).parse().qasm() is not None
-
-
 def test_output_unitary_same_as_qiskit():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
@@ -304,27 +284,9 @@ def test_output_unitary_same_as_qiskit():
                              precision=10)
     text = str(output)
 
-    # coverage: ignore
-    try:
-        # We don't want to require qiskit as a dependency but
-        # if Qiskit is installed, test QASM output against it.
-        import qiskit  # type: ignore
-    except ImportError:
-        return
-
     circuit = cirq.Circuit.from_ops(operations)
     cirq_unitary = circuit.unitary(qubit_order=qubits)
-
-    result = qiskit.execute(
-        qiskit.load_qasm_string(text),
-        backend=qiskit.Aer.get_backend('unitary_simulator'))
-    qiskit_unitary = result.result().get_unitary()
-    qiskit_unitary = _reorder_indices_of_matrix(
-            qiskit_unitary,
-            list(reversed(range(len(qubits)))))
-
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(text, cirq_unitary)
 
 
 def test_fails_on_big_unknowns():
@@ -498,18 +460,3 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
-
-
-def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
-    num_qubits = matrix.shape[0].bit_length() - 1
-    matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
-    all_indices = range(2*num_qubits)
-    new_input_indices = new_order
-    new_output_indices = [i + num_qubits for i in new_input_indices]
-    matrix = np.moveaxis(
-            matrix,
-            all_indices,
-            new_input_indices + new_output_indices
-    )
-    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
-    return matrix

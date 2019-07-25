@@ -25,12 +25,14 @@ from cirq.study.resolver import (
 from cirq.study.sweepable import (
     Sweepable,
     to_resolvers,
+    to_sweeps,
 )
 
 from cirq.study.sweeps import (
     Linspace,
     Product,
     Points,
+    Product,
     Sweep,
     UnitSweep,
     Zip,
