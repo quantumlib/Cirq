@@ -179,8 +179,6 @@ class Engine:
                 See JobConfig for more information on gcs_prefix.
         """
         self.project_id = project_id
-        disco_api = '' if discovery_url else 'quantum'
-        disco_version = '' if discovery_url else version
         self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
         self.default_gcs_prefix = default_gcs_prefix
         self.proto_version = proto_version
@@ -191,8 +189,8 @@ class Engine:
         }
         service_args.update(kwargs)
 
-        self.service = discovery.build(disco_api,
-                                       disco_version,
+        self.service = discovery.build('' if discovery_url else 'quantum',
+                                       '' if discovery_url else version,
                                        discoveryServiceUrl=self.discovery_url,
                                        **service_args)
 
