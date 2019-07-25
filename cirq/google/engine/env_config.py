@@ -35,5 +35,8 @@ def engine_from_environment() -> Engine:
         EnvironmentError: The environment variables are not set.
     """
     project_id = os.environ.get(ENV_PROJECT_ID)
+    if not project_id:
+        raise EnvironmentError(
+            'Environment variable {} is not set.'.format(ENV_PROJECT_ID))
 
     return Engine(project_id=project_id)

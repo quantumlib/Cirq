@@ -19,7 +19,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from apiclient import discovery
+from apiclient import discovery, http
 
 import cirq
 import cirq.google as cg
@@ -874,3 +874,15 @@ def test_alternative_api_and_key(build):
                              mock.ANY,
                              discoveryServiceUrl=disco,
                              requestBuilder=mock.ANY)
+
+class MockRequestBuilder:
+  def __init__(self):
+    self.headers = {}
+
+@mock.patch.object(discovery, 'build')
+@mock.patch.object(http, 'HttpRequest')
+def test_request_builder(HttpRequest, build):
+    HttpRequest.return_value = MockRequestBuilder()
+    cg.Engine(project_id='project-id')
+    builtRequest = build.call_args[1]['requestBuilder']()
+    assert builtRequest.headers['X-Goog-User-Project'] == 'project-id'

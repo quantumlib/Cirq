@@ -14,6 +14,7 @@
 
 import os
 from unittest import mock
+import pytest
 from apiclient import discovery
 
 import cirq
@@ -28,3 +29,10 @@ def test_engine_from_environment(build):
                          clear=True):
         eng = cirq.google.engine_from_environment()
         assert eng.project_id == 'project!'
+
+    # Nothing present.
+    with mock.patch.dict(os.environ, {}, clear=True):
+        with pytest.raises(EnvironmentError,
+                           match='CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'):
+            _ = cirq.google.engine_from_environment()
+
