@@ -108,6 +108,10 @@ class EigenGate(raw_types.Gate):
     def exponent(self) -> Union[sympy.Basic, float]:
         return self._exponent
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     # virtual method
     def _with_exponent(self: TSelf,
                        exponent: Union[sympy.Basic, float]) -> TSelf:
@@ -318,6 +322,9 @@ class EigenGate(raw_types.Gate):
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['exponent', 'global_shift'])
 
 
 def _lcm(vals: Iterable[int]) -> int:
