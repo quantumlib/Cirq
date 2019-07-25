@@ -421,7 +421,7 @@ q_2: ───H───M('meas_2')───
 |`U(θ,φ,λ) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)|`U(pi/2,2*pi/3,0) q[0];`|
 |`CX qubit/qreg,qubit/qreg;`| supported|Apply built-in CNOT gate(s)|`CX q[0],q[1];`|
 |` measure qubit/qreg -> bit/creg;`| supported|Make measurement(s) in`Z` basis|`measure q -> c;`|
-|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in`\|0>`|`reset q[0];`| 
+|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in  <code>&#124;0></code>|`reset q[0];`| 
 |`gatename(params) qargs;`|  supported for ONLY the supported subset of standard gates defined in "qelib1.inc"|Apply a user-defined unitary gate|`rz(pi/2) q[0];`|
 |`if(creg==int) qop;`| NOT supported| Conditionally apply quantum operation|`if(c==5) CX q[0],q[1];`|
 |`barrier qargs;`| NOT supported| Prevent transformations across this source line|`barrier q[0],q[1];`|
