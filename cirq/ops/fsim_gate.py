@@ -56,6 +56,13 @@ class FSimGate(gate_features.TwoQubitGate,
     """
 
     def __init__(self, theta: float, phi: float):
+        """
+        Args:
+            theta: Rotation angle, in radians, for the exchange interaction. Controls the inner 2x2 block of the
+                operation's unitary (the middle 2x2 block will equal `cirq.unitary(cirq.Rx(theta))`).
+            phi: Phase angle, in radians, for the 11 state. Controls the bottom 1x1 cell of the operation's unitary
+                (the bottom 1x1 cell will equal `exp(1j * phi)`).
+        """
         self.theta = theta
         self.phi = phi
 
