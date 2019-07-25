@@ -14,14 +14,16 @@
 
 """Tests for parameter resolvers."""
 
+import numpy as np
 import sympy
+
 import cirq
 
 
 def test_value_of():
     assert not bool(cirq.ParamResolver())
 
-    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
+    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1, 'c': 1 + 1j})
     assert bool(r)
 
     assert r.value_of('x') == sympy.Symbol('x')
@@ -32,6 +34,11 @@ def test_value_of():
     assert r.value_of(0.3) == 0.3
     assert r.value_of(sympy.Symbol('a') * 3) == 1.5
     assert r.value_of(sympy.Symbol('b') / 0.1 - sympy.Symbol('a')) == 0.5
+
+    assert r.value_of(sympy.pi) == np.pi
+    assert r.value_of(2 * sympy.pi) == 2 * np.pi
+    assert r.value_of('c') == 1 + 1j
+    assert r.value_of(sympy.I * sympy.pi) == np.pi * 1j
 
 
 def test_param_dict():

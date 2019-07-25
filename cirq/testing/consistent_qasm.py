@@ -58,11 +58,12 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     if qasm is None:
         return
 
+    num_qubits = len(qubits)
     header = """
 OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[{}];
-""".format(len(qubits))
+""".format(num_qubits)
     qasm = header + qasm
 
     qasm_unitary = None
@@ -72,8 +73,7 @@ qreg q[{}];
             backend=qiskit.Aer.get_backend('unitary_simulator'))
         qasm_unitary = result.result().get_unitary()
         qasm_unitary = _reorder_indices_of_matrix(
-                qasm_unitary,
-                list(reversed(range(len(qubits)))))
+            qasm_unitary, list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
             qasm_unitary,
@@ -103,6 +103,28 @@ qreg q[{}];
                 _indent(repr(p_unitary)),
                 _indent(repr(p_qasm_unitary)),
                 _indent(str(ex))))
+
+
+def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
+    # coverage: ignore
+    try:
+        # We don't want to require qiskit as a dependency but
+        # if Qiskit is installed, test QASM output against it.
+        import qiskit  # type: ignore
+    except ImportError:
+        return
+
+    num_qubits = int(np.log2(len(unitary)))
+    result = qiskit.execute(qiskit.load_qasm_string(qasm),
+                            backend=qiskit.Aer.get_backend('unitary_simulator'))
+    qiskit_unitary = result.result().get_unitary()
+    qiskit_unitary = _reorder_indices_of_matrix(
+        qiskit_unitary, list(reversed(range(num_qubits))))
+
+    lin_alg_utils.assert_allclose_up_to_global_phase(unitary,
+                                                     qiskit_unitary,
+                                                     rtol=1e-8,
+                                                     atol=1e-8)
 
 
 def _indent(*content: str) -> str:
