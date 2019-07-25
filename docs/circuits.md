@@ -383,8 +383,8 @@ pip install ply==3.4
 The following call will create a circuit defined by the input QASM string:
 
 ```python
-from cirq.contrib.qasm_import.qasm import QasmCircuitParser
-circuit = QasmCircuitParser().parse("""
+from cirq.contrib.qasm_import import circuit_from_qasm
+circuit = circuit_from_qasm("""
     OPENQASM 2.0;
     include "qelib1.inc";
     qreg q[3];
@@ -421,7 +421,7 @@ q_2: ───H───M('meas_2')───
 |`U(θ,φ,λ) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)|`U(pi/2,2*pi/3,0) q[0];`|
 |`CX qubit/qreg,qubit/qreg;`| supported|Apply built-in CNOT gate(s)|`CX q[0],q[1];`|
 |` measure qubit/qreg -> bit/creg;`| supported|Make measurement(s) in`Z` basis|`measure q -> c;`|
-|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in  <code>&#124;0></code>|`reset q[0];`| 
+|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in <code>&#124;0></code>|`reset q[0];`| 
 |`gatename(params) qargs;`|  supported for ONLY the supported subset of standard gates defined in "qelib1.inc"|Apply a user-defined unitary gate|`rz(pi/2) q[0];`|
 |`if(creg==int) qop;`| NOT supported| Conditionally apply quantum operation|`if(c==5) CX q[0],q[1];`|
 |`barrier qargs;`| NOT supported| Prevent transformations across this source line|`barrier q[0],q[1];`|
@@ -435,7 +435,7 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 | QE gates| Cirq translation| Notes|
 | --------| --------| --------|
 |`u3(θ,φ,λ)`|`QasmUGate (θ,φ,λ)`||
-|`u2(φ,λ) = u3(π/2,φ,λ)`|`QasmUGate (λ,π/2,φ)`|| 
+|`u2(φ,λ) = u3(π/2,φ,λ)`|`QasmUGate (π/2,φ,λ)`|| 
 |`u1 (λ) = u3(0,0,λ)`| NOT supported || 
 |`CX` |`cirq.CX`|| 
 |`cx`|`cirq.CX`|| 
