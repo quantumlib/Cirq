@@ -434,11 +434,11 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 
 | QE gates| Cirq translation| Notes|
 | --------| --------| --------|
-|`u3(θ,φ,λ)`|`QasmUGate (θ,φ,λ)`||
-|`u2(φ,λ) = u3(π/2,φ,λ)`|`QasmUGate (π/2,φ,λ)`|| 
-|`u1 (λ) = u3(0,0,λ)`| NOT supported || 
+|`U(θ,φ,λ)` |`QasmUGate(θ,φ,λ)`|| 
 |`CX` |`cirq.CX`|| 
-|`cx`|`cirq.CX`|| 
+|`u3(θ,φ,λ)`|`QasmUGate(θ,φ,λ)`||
+|`u2(φ,λ) = u3(π/2,φ,λ)`|`QasmUGate(π/2,φ,λ)`|| 
+|`u1 (λ) = u3(0,0,λ)`| NOT supported || 
 |`id`|`cirq.Identity`| one single-qubit Identity gate is created for each qubit if applied on a register|  
 |`u0(γ)`| NOT supported| this is the "WAIT gate" for length γ in QE| 
 |`x`|`cirq.X`|| 
@@ -451,11 +451,12 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 |`tdg`|`cirq.T**-1`||
 |`rx(θ)`|`cirq.Rx(θ)`|| 
 |`ry(θ)`|`cirq.Ry(θ)`|| 
-|`rz(λ)`|`cirq.Rz(λ)`|| 
-|`cz`|`cirq.CZ`|| 
+|`rz(θ)`|`cirq.Rz(θ)`|| 
+|`cx`|`cirq.CX`|| 
 |`cy`|`cirq.ControlledGate(cirq.Y)`|| 
-|`swap`|`cirq.SWAP`|| 
+|`cz`|`cirq.CZ`|| 
 |`ch`|`cirq.ControlledGate(cirq.H)`|| 
+|`swap`|`cirq.SWAP`|| 
 |`ccx`|`cirq.CCX`|| 
 |`cswap`|`cirq.CSWAP`|| 
 |`crz`| NOT supported || 
