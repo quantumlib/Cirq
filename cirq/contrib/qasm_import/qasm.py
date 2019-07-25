@@ -17,12 +17,13 @@ from cirq.contrib.qasm_import._parser import QasmParser
 
 
 def circuit_from_qasm(qasm: str) -> circuits.Circuit:
-    """Parses an OpenQASM string to cirq.Circuit.
+    """Parses an OpenQASM string to :obj:`cirq.Circuit`.
+
     Args:
-        qasm: the OpenQASM string
+        qasm: The OpenQASM string
 
     Returns:
-        parsed circuit
+        cirq.Circuit: The parsed circuit
     """
 
     return QasmParser().parse(qasm).circuit
