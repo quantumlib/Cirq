@@ -17,4 +17,6 @@ from cirq.contrib.qasm_import._parser import QasmParser
 
 
 def circuit_from_qasm(qasm: str) -> circuits.Circuit:
+    """Parses an OpenQASM string to cirq.Circuit."""
+
     return QasmParser().parse(qasm).circuit
