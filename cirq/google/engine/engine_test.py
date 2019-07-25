@@ -137,7 +137,7 @@ _RESULTS_V2 = {
 
 
 _CALIBRATION = {
-    'name': 'projects/cirqv2/processors/xmonsim/calibrations/1562715599',
+    'name': 'projects/foo/processors/xmonsim/calibrations/1562715599',
     'timestamp': '2019-07-09T23:39:59Z',
     'data': {
         '@type':
@@ -180,8 +180,7 @@ _CALIBRATION = {
 
 
 def test_repr():
-    v = cirq.google.JobConfig(program_id='my-program-id',
-                              job_id='my-job-id')
+    v = cirq.google.JobConfig(program_id='my-program-id', job_id='my-job-id')
 
     assert repr(v) == ("JobConfig("
                        "program_id='my-program-id', "
@@ -212,7 +211,8 @@ def test_run_circuit(build):
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1',
+    build.assert_called_with('quantum',
+                             'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}'),
@@ -234,8 +234,8 @@ def test_circuit_device_validation_fails(build):
         cirq.Z(cirq.NamedQubit("dorothy"))]))
 
     with pytest.raises(ValueError, match='Unsupported qubit type'):
-        cg.Engine(project_id='project-id').run(program=circuit,
-                                     job_config=cg.JobConfig('project-id'))
+        cg.Engine(project_id='project-id').run(
+            program=circuit, job_config=cg.JobConfig('project-id'))
 
 
 @mock.patch.object(discovery, 'build')
@@ -271,8 +271,7 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
     circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
                                     device=cg.Foxtail)
     result = cg.Engine(project_id='project-id').run(
-        program=circuit,
-        job_config=cg.JobConfig('project-id'))
+        program=circuit, job_config=cg.JobConfig('project-id'))
     assert result.repetitions == 1
 
 
@@ -324,12 +323,12 @@ def test_default_prefix(build):
         'result': _A_RESULT}
 
     result = cg.Engine(project_id='project-id').run(
-        program=cirq.Circuit(),
-        job_config=cg.JobConfig('org.com:project-id'))
+        program=cirq.Circuit(), job_config=cg.JobConfig('org.com:project-id'))
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1',
+    build.assert_called_with('quantum',
+                             'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}'),
@@ -359,14 +358,16 @@ def test_run_sweep_params(build):
         program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
                                                cirq.Circuit()),
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
-        params=[cirq.ParamResolver({'a': 1}), cirq.ParamResolver({'a': 2})])
+        params=[cirq.ParamResolver({'a': 1}),
+                cirq.ParamResolver({'a': 2})])
     results = job.results()
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1',
+    build.assert_called_with('quantum',
+                             'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}'),
@@ -413,7 +414,8 @@ def test_run_sweep_v1(build):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum', 'v1alpha1',
+    build.assert_called_with('quantum',
+                             'v1alpha1',
                              discoveryServiceUrl=('https://{api}.googleapis.com'
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}'),
@@ -638,16 +640,19 @@ def test_implied_job_config_gcs_prefix(build):
     assert eng.implied_job_config(config).gcs_prefix == 'gs://gqe-project_id/'
 
     # Bad default.
-    eng_with_bad = cg.Engine(project_id='project-id', default_gcs_prefix='bad_prefix')
+    eng_with_bad = cg.Engine(project_id='project-id',
+                             default_gcs_prefix='bad_prefix')
     with pytest.raises(ValueError, match='gcs_prefix must be of the form'):
         _ = eng_with_bad.implied_job_config(config)
 
     # Good default without slash.
-    eng_with = cg.Engine(project_id='project-id', default_gcs_prefix='gs://good')
+    eng_with = cg.Engine(project_id='project-id',
+                         default_gcs_prefix='gs://good')
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://good/'
 
     # Good default with slash.
-    eng_with = cg.Engine(project_id='project-id', default_gcs_prefix='gs://good/')
+    eng_with = cg.Engine(project_id='project-id',
+                         default_gcs_prefix='gs://good/')
     assert eng_with.implied_job_config(config).gcs_prefix == 'gs://good/'
 
     # Bad override.
@@ -694,12 +699,12 @@ def test_implied_job_config(build):
     assert implied.gcs_results == 'gs://gqe-project_id/programs/j/jobs/job-0'
 
     # Force all.
-    implied = eng.implied_job_config(cg.JobConfig(
-        program_id='b',
-        job_id='c',
-        gcs_prefix='gs://d',
-        gcs_program='e',
-        gcs_results='f'))
+    implied = eng.implied_job_config(
+        cg.JobConfig(program_id='b',
+                     job_id='c',
+                     gcs_prefix='gs://d',
+                     gcs_program='e',
+                     gcs_results='f'))
     assert implied.program_id == 'b'
     assert implied.job_id == 'c'
     assert implied.gcs_prefix == 'gs://d/'
@@ -746,9 +751,9 @@ def test_latest_calibration(build):
     calibrations.list().execute.return_value = ({
         'calibrations': [_CALIBRATION]
     })
-    calibration = cg.Engine(project_id='myproject'
-                            ).get_latest_calibration('x')
-    assert calibrations.list.call_args[1]['parent'] == 'projects/myproject/processors/x'
+    calibration = cg.Engine(project_id='myproject').get_latest_calibration('x')
+    assert calibrations.list.call_args[1][
+        'parent'] == 'projects/myproject/processors/x'
     assert calibration.timestamp == 1562544000021
     assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
 
@@ -759,9 +764,9 @@ def test_missing_latest_calibration(build):
     build.return_value = service
     calibrations = service.projects().processors().calibrations()
     calibrations.list().execute.return_value = {}
-    calibration = cg.Engine(
-        project_id='myproject').get_latest_calibration('x')
-    assert calibrations.list.call_args[1]['parent'] == 'projects/myproject/processors/x'
+    calibration = cg.Engine(project_id='myproject').get_latest_calibration('x')
+    assert calibrations.list.call_args[1][
+        'parent'] == 'projects/myproject/processors/x'
     assert not calibration
 
 
@@ -858,3 +863,14 @@ def test_calibration_metrics(build):
             'values': [.9998]
         },
     ]
+
+
+@mock.patch.object(discovery, 'build')
+def test_alternative_api_and_key(build):
+    disco = ('https://secret.googleapis.com/$discovery/rest?version=vfooo'
+             '&key=my-key')
+    cg.Engine(project_id='project-id', discovery_url=disco)
+    build.assert_called_with(mock.ANY,
+                             mock.ANY,
+                             discoveryServiceUrl=disco,
+                             requestBuilder=mock.ANY)

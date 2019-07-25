@@ -65,16 +65,20 @@ class ProtoVersion(enum.Enum):
 # Quantum programs to run can be specified as circuits or schedules.
 Program = Union[circuits.Circuit, Schedule]
 
+
 def user_project_header_request_builder(project_id):
-  """Provides a request builder that sets a user project header on engine
-  requests to allow using standard OAuth credentials.
-  """
-  def request_builder(*args, **kwargs):
-    from apiclient import http as apiclient_http
-    request = apiclient_http.HttpRequest(*args, **kwargs)
-    request.headers['X-Goog-User-Project'] = project_id
-    return request
-  return request_builder
+    """Provides a request builder that sets a user project header on engine
+    requests to allow using standard OAuth credentials.
+    """
+
+    def request_builder(*args, **kwargs):
+        from apiclient import http as apiclient_http
+        request = apiclient_http.HttpRequest(*args, **kwargs)
+        request.headers['X-Goog-User-Project'] = project_id
+        return request
+
+    return request_builder
+
 
 class JobConfig:
     """Configuration for a program and job to run on the Quantum Engine API.
@@ -115,12 +119,11 @@ class JobConfig:
         self.gcs_results = gcs_results
 
     def copy(self):
-        return JobConfig(
-            program_id=self.program_id,
-            job_id=self.job_id,
-            gcs_prefix=self.gcs_prefix,
-            gcs_program=self.gcs_program,
-            gcs_results=self.gcs_results)
+        return JobConfig(program_id=self.program_id,
+                         job_id=self.job_id,
+                         gcs_prefix=self.gcs_prefix,
+                         gcs_program=self.gcs_program,
+                         gcs_results=self.gcs_results)
 
     def __repr__(self):
         return ('JobConfig(program_id={!r}, '
@@ -158,8 +161,6 @@ class Engine:
 
     def __init__(self,
                  project_id: str,
-                 api_key: Optional[str] = None,
-                 api: str = 'quantum',
                  version: str = 'v1alpha1',
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
@@ -173,22 +174,18 @@ class Engine:
             project_id: A project_id string of the Google Cloud Project to use.
                 API interactions will be attributed to this project and any
                 resources created will be owned by the project.
-            api_key: API key to use to retrieve discovery doc.
-            api: API name.
             version: API version.
-            discovery_url: Discovery url for the API. If not supplied, uses
-                Google's default api.googleapis.com endpoint.
+            discovery_url: Discovery url for the API to select a non-default
+                backend for the Engine. If supplied, the `version` argument will
+                by ignored.
             default_gcs_prefix: A fallback gcs_prefix to use when one isn't
                 specified in the JobConfig given to 'run' methods.
                 See JobConfig for more information on gcs_prefix.
         """
-        self.api_key = api_key
-        self.api = api
         self.project_id = project_id
-        self.version = version
-        self.discovery_url = discovery_url or ('https://{api}.googleapis.com/'
-                                               '$discovery/rest'
-                                               '?version={apiVersion}')
+        disco_api = '' if discovery_url else 'quantum'
+        disco_version = '' if discovery_url else version
+        self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
         self.default_gcs_prefix = default_gcs_prefix
         self.proto_version = proto_version
 
@@ -198,14 +195,10 @@ class Engine:
         }
         service_args.update(kwargs)
 
-        discovery_service_url = self.discovery_url
-        if self.api_key is not None:
-            discovery_service_url += '&key={}'.format(self.api_key)
-        self.service = discovery.build(
-            self.api,
-            self.version,
-            discoveryServiceUrl=discovery_service_url,
-            **service_args)
+        self.service = discovery.build(disco_api,
+                                       disco_version,
+                                       discoveryServiceUrl=self.discovery_url,
+                                       **service_args)
 
     def run(
             self,
@@ -243,11 +236,9 @@ class Engine:
                            gate_set=gate_set))[0]
 
     def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
-        gcs_prefix = (
-            job_config.gcs_prefix or
-            self.default_gcs_prefix or
-            'gs://gqe-' + self.project_id[self.project_id.rfind(':') + 1:]
-        )
+        gcs_prefix = (job_config.gcs_prefix or self.default_gcs_prefix or
+                      'gs://gqe-' +
+                      self.project_id[self.project_id.rfind(':') + 1:])
         if gcs_prefix and not gcs_prefix.endswith('/'):
             gcs_prefix += '/'
 
@@ -369,14 +360,19 @@ class Engine:
 
         # Create program.
         request = {
-            'name': 'projects/%s/programs/%s' % (self.project_id,
-                                                 job_config.program_id,),
-            'gcs_code_location': {'uri': job_config.gcs_program},
-            'code': code,
+            'name':
+            'projects/%s/programs/%s' % (
+                self.project_id,
+                job_config.program_id,
+            ),
+            'gcs_code_location': {
+                'uri': job_config.gcs_program
+            },
+            'code':
+            code,
         }
         response = self.service.projects().programs().create(
-            parent='projects/%s' % self.project_id,
-            body=request).execute()
+            parent='projects/%s' % self.project_id, body=request).execute()
 
         # Create job.
         request = {
@@ -639,7 +635,8 @@ class Engine:
         Returns:
             A dictionary containing the calibration data.
         """
-        processor_name = 'projects/{}/processors/{}'.format(self.project_id, processor_id)
+        processor_name = 'projects/{}/processors/{}'.format(
+            self.project_id, processor_id)
         response = self.service.projects().processors().calibrations().list(
             parent=processor_name).execute()
         if (not 'calibrations' in response or
