@@ -35,4 +35,3 @@ def test_engine_from_environment(build):
         with pytest.raises(EnvironmentError,
                            match='CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'):
             _ = cirq.google.engine_from_environment()
-

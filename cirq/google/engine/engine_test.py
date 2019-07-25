@@ -875,9 +875,12 @@ def test_alternative_api_and_key(build):
                              discoveryServiceUrl=disco,
                              requestBuilder=mock.ANY)
 
+
 class MockRequestBuilder:
-  def __init__(self):
-    self.headers = {}
+
+    def __init__(self):
+        self.headers = {}
+
 
 @mock.patch.object(discovery, 'build')
 @mock.patch.object(http, 'HttpRequest')
