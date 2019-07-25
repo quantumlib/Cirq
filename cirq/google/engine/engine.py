@@ -38,10 +38,9 @@ from google.protobuf import any_pb2
 from cirq import circuits, optimizers, study
 from cirq.google import gate_sets
 from cirq.api.google import v1, v2
+from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
 from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
-from cirq.google.params import sweep_to_proto_dict
-from cirq.google.programs import schedule_to_proto_dicts, unpack_results
 from cirq.google.serializable_gate_set import SerializableGateSet
 from cirq.schedules import Schedule, moment_by_moment_schedule
 from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
@@ -420,14 +419,14 @@ class Engine:
         program_dict = {}  # type: Dict[str, Any]
         program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
         program_dict['operations'] = [
-            op for op in schedule_to_proto_dicts(schedule)
+            op for op in api_v1.schedule_to_proto_dicts(schedule)
         ]
 
         context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
         context_dict = {}  # type: Dict[str, Any]
         context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
         context_dict['parameter_sweeps'] = [
-            sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+            api_v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
         ]
         return program_dict, context_dict
 
@@ -512,8 +511,8 @@ class Engine:
                          for m in sweep_result['measurementKeys']]
             for result in sweep_result['parameterizedResults']:
                 data = base64.standard_b64decode(result['measurementResults'])
-                measurements = unpack_results(data, sweep_repetitions,
-                                              key_sizes)
+                measurements = api_v1.unpack_results(data, sweep_repetitions,
+                                                     key_sizes)
 
                 trial_results.append(
                     TrialResult.from_single_parameter_set(
