@@ -23,7 +23,7 @@ def circuit_from_qasm(qasm: str) -> circuits.Circuit:
         qasm: The OpenQASM string
 
     Returns:
-        cirq.Circuit: The parsed circuit
+        The parsed circuit
     """
 
     return QasmParser().parse(qasm).circuit
