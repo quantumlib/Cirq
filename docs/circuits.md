@@ -418,10 +418,10 @@ q_2: ───H───M('meas_2')───
 |`gate name(params) qargs;`|NOT supported| Declare a unitary gate||
 |`opaque name(params) qargs;`| NOT supported| Declare an opaque gate||
 |`// comment text`| supported|Comment a line of text|`// supported!`|
-|`U(theta,phi,lambda) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)|`U(pi/2,2*pi/3,0) q[0];`|
+|`U(θ,φ,λ) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)|`U(pi/2,2*pi/3,0) q[0];`|
 |`CX qubit/qreg,qubit/qreg;`| supported|Apply built-in CNOT gate(s)|`CX q[0],q[1];`|
 |` measure qubit/qreg -> bit/creg;`| supported|Make measurement(s) in`Z` basis|`measure q -> c;`|
-|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in`|0>`|`reset q[0];`| 
+|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in`\|0>`|`reset q[0];`| 
 |`gatename(params) qargs;`|  supported for ONLY the supported subset of standard gates defined in "qelib1.inc"|Apply a user-defined unitary gate|`rz(pi/2) q[0];`|
 |`if(creg==int) qop;`| NOT supported| Conditionally apply quantum operation|`if(c==5) CX q[0],q[1];`|
 |`barrier qargs;`| NOT supported| Prevent transformations across this source line|`barrier q[0],q[1];`|
@@ -434,34 +434,34 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 
 | QE gates| Cirq translation| Notes|
 | --------| --------| --------|
-| u3(θ,φ,λ)|`QasmUGate (λ,θ,φ)`|`QasmUGate` constructor takes angles reverse order, to cater for the rotation intuition RZ(λ) first, RY(θ), RZ(φ) last|
-|u2(φ,λ) = u3(π/2,φ,λ)|`QasmUGate (λ,π/2,φ)`|| 
-|u1 (λ) = u3(0,0,λ)| NOT supported || 
+|`u3(θ,φ,λ)`|`QasmUGate (θ,φ,λ)`||
+|`u2(φ,λ) = u3(π/2,φ,λ)`|`QasmUGate (λ,π/2,φ)`|| 
+|`u1 (λ) = u3(0,0,λ)`| NOT supported || 
 |`CX` |`cirq.CX`|| 
-| cx|`cirq.CX`|| 
-| id|`cirq.Identity`| one single-qubit Identity gate is created for each qubit if applied on a register|  
-| u0(γ)| NOT supported| this is the "WAIT gate" for length γ in QE| 
-| x|`cirq.X`|| 
-| y|`cirq.Y`|| 
-| z|`cirq.Z`|| 
-| h|`cirq.H`|| 
-| s|`cirq.S`|| 
-| sdg|`cirq.S**-1`|| 
-| t|`cirq.T`|| 
-| tdg|`cirq.T**-1`||
-| rx(theta)|`cirq.Rx(theta)`|| 
-| ry(theta)|`cirq.Ry(theta)`|| 
-| rz(phi)|`cirq.Rz(phi)`|| 
-| cz|`cirq.CZ`|| 
-| cy|`cirq.ControlledGate(cirq.Y)`|| 
-| swap|`cirq.SWAP`|| 
-| ch|`cirq.ControlledGate(cirq.H)`|| 
-| ccx|`cirq.CCX`|| 
-| cswap|`cirq.CSWAP`|| 
-| crz| NOT supported || 
-| cu1| NOT supported|| 
-| cu3| NOT supported|| 
-| rzz| NOT supported|| 
+|`cx`|`cirq.CX`|| 
+|`id`|`cirq.Identity`| one single-qubit Identity gate is created for each qubit if applied on a register|  
+|`u0(γ)`| NOT supported| this is the "WAIT gate" for length γ in QE| 
+|`x`|`cirq.X`|| 
+|`y`|`cirq.Y`|| 
+|`z`|`cirq.Z`|| 
+|`h`|`cirq.H`|| 
+|`s`|`cirq.S`|| 
+|`sdg`|`cirq.S**-1`|| 
+|`t`|`cirq.T`|| 
+|`tdg`|`cirq.T**-1`||
+|`rx(θ)`|`cirq.Rx(θ)`|| 
+|`ry(θ)`|`cirq.Ry(θ)`|| 
+|`rz(λ)`|`cirq.Rz(λ)`|| 
+|`cz`|`cirq.CZ`|| 
+|`cy`|`cirq.ControlledGate(cirq.Y)`|| 
+|`swap`|`cirq.SWAP`|| 
+|`ch`|`cirq.ControlledGate(cirq.H)`|| 
+|`ccx`|`cirq.CCX`|| 
+|`cswap`|`cirq.CSWAP`|| 
+|`crz`| NOT supported || 
+|`cu1`| NOT supported|| 
+|`cu3`| NOT supported|| 
+|`rzz`| NOT supported|| 
 
 #### Mapping quantum registers to qubits 
 
