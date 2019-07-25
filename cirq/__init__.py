@@ -263,11 +263,13 @@ from cirq.study import (
     ParamResolverOrSimilarType,
     plot_state_histogram,
     Points,
+    Product,
     Sweep,
     Sweepable,
     to_resolvers,
     TrialResult,
     UnitSweep,
+    Zip,
 )
 
 from cirq.value import (

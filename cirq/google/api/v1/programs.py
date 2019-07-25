@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import (
-    Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, Union
-)
+from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
+                    Union)
 import numpy as np
 import sympy
 
@@ -28,8 +27,7 @@ if TYPE_CHECKING:
     from cirq.google import xmon_device
 
 
-def gate_to_proto_dict(gate: ops.Gate,
-                       qubits: Tuple[ops.Qid, ...]) -> Dict:
+def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
 
@@ -69,10 +67,8 @@ def gate_to_proto_dict(gate: ops.Gate,
 def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
-        'axis_half_turns':
-            _parameterized_value_to_proto_dict(0),
-        'half_turns': _parameterized_value_to_proto_dict(
-            gate.exponent)
+        'axis_half_turns': _parameterized_value_to_proto_dict(0),
+        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_w': exp_w}
 
@@ -80,23 +76,18 @@ def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
 def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
-        'axis_half_turns':
-            _parameterized_value_to_proto_dict(0.5),
-        'half_turns': _parameterized_value_to_proto_dict(
-            gate.exponent)
+        'axis_half_turns': _parameterized_value_to_proto_dict(0.5),
+        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate,
-                            q: ops.Qid) -> Dict:
+def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
-            _parameterized_value_to_proto_dict(
-                gate.phase_exponent),
-        'half_turns': _parameterized_value_to_proto_dict(
-            gate.exponent)
+        _parameterized_value_to_proto_dict(gate.phase_exponent),
+        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_w': exp_w}
 
@@ -104,20 +95,16 @@ def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate,
 def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
     exp_z = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
-        'half_turns': _parameterized_value_to_proto_dict(
-            gate.exponent),
+        'half_turns': _parameterized_value_to_proto_dict(gate.exponent),
     }
     return {'exp_z': exp_z}
 
 
-def _cz_to_proto_dict(gate: ops.CZPowGate,
-                      p: ops.Qid,
-                      q: ops.Qid) -> Dict:
+def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
-        'half_turns': _parameterized_value_to_proto_dict(
-            gate.exponent)
+        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_11': exp_11}
 
@@ -129,8 +116,8 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
 
     invert_mask = None
     if gate.invert_mask:
-        invert_mask = gate.invert_mask + (False,) * (
-            gate.num_qubits() - len(gate.invert_mask))
+        invert_mask = gate.invert_mask + (False,) * (gate.num_qubits() -
+                                                     len(gate.invert_mask))
 
     if invert_mask and len(invert_mask) != len(qubits):
         raise ValueError('Measurement gate had invert mask of length '
@@ -157,8 +144,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     last_time_picos = None  # type: Optional[int]
     for so in schedule.scheduled_operations:
         op = gate_to_proto_dict(
-            cast(ops.GateOperation, so.operation).gate,
-            so.operation.qubits)
+            cast(ops.GateOperation, so.operation).gate, so.operation.qubits)
         time_picos = so.time.raw_picos()
         if last_time_picos is None:
             op['incremental_delay_picoseconds'] = time_picos
@@ -182,11 +168,12 @@ def schedule_from_proto_dicts(
         time_picos = last_time_picos + delay_picos
         last_time_picos = time_picos
         xmon_op = xmon_op_from_proto_dict(op)
-        scheduled_ops.append(ScheduledOperation.op_at_on(
-            operation=xmon_op,
-            time=Timestamp(picos=time_picos),
-            device=device,
-        ))
+        scheduled_ops.append(
+            ScheduledOperation.op_at_on(
+                operation=xmon_op,
+                time=Timestamp(picos=time_picos),
+                device=device,
+            ))
     return Schedule(device, scheduled_ops)
 
 
@@ -232,11 +219,9 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
     return byte_arr.tobytes()
 
 
-def unpack_results(
-        data: bytes,
-        repetitions: int,
-        key_sizes: Sequence[Tuple[str, int]]
-) -> Dict[str, np.ndarray]:
+def unpack_results(data: bytes, repetitions: int,
+                   key_sizes: Sequence[Tuple[str, int]]
+                  ) -> Dict[str, np.ndarray]:
     """Unpack data from a bitstring into individual measurement results.
 
     Args:
@@ -275,8 +260,7 @@ def is_native_xmon_op(op: ops.Operation) -> bool:
     Returns:
         True if the operation is native to the xmon, false otherwise.
     """
-    return (isinstance(op, ops.GateOperation) and
-            is_native_xmon_gate(op.gate))
+    return (isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate))
 
 
 def is_native_xmon_gate(gate: ops.Gate) -> bool:
@@ -288,12 +272,9 @@ def is_native_xmon_gate(gate: ops.Gate) -> bool:
     Returns:
         True if the gate is native to the xmon, false otherwise.
     """
-    return isinstance(gate, (ops.CZPowGate,
-                             ops.MeasurementGate,
-                             ops.PhasedXPowGate,
-                             ops.XPowGate,
-                             ops.YPowGate,
-                             ops.ZPowGate))
+    return isinstance(gate,
+                      (ops.CZPowGate, ops.MeasurementGate, ops.PhasedXPowGate,
+                       ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
 def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
@@ -315,14 +296,15 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
     """
 
     def raise_missing_fields(gate_name: str):
-        raise ValueError(
-            '{} missing required fields: {}'.format(gate_name, proto_dict))
+        raise ValueError('{} missing required fields: {}'.format(
+            gate_name, proto_dict))
+
     param = _parameterized_value_from_proto_dict
     qubit = devices.GridQubit.from_proto_dict
     if 'exp_w' in proto_dict:
         exp_w = proto_dict['exp_w']
-        if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w
-                or 'target' not in exp_w):
+        if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w or
+                'target' not in exp_w):
             raise_missing_fields('ExpW')
         return ops.PhasedXPowGate(
             exponent=param(exp_w['half_turns']),
@@ -335,8 +317,8 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         return ops.Z(qubit(exp_z['target']))**param(exp_z['half_turns'])
     if 'exp_11' in proto_dict:
         exp_11 = proto_dict['exp_11']
-        if ('half_turns' not in exp_11 or 'target1' not in exp_11
-                or 'target2' not in exp_11):
+        if ('half_turns' not in exp_11 or 'target1' not in exp_11 or
+                'target2' not in exp_11):
             raise_missing_fields('Exp11')
         return ops.CZ(qubit(exp_11['target1']),
                       qubit(exp_11['target2']))**param(exp_11['half_turns'])
@@ -350,14 +332,13 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         return ops.MeasurementGate(
             num_qubits=len(meas['targets']),
             key=meas['key'],
-            invert_mask=invert_mask
-        ).on(*[qubit(q) for q in meas['targets']])
+            invert_mask=invert_mask).on(*[qubit(q) for q in meas['targets']])
 
     raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
 def _parameterized_value_from_proto_dict(message: Dict
-                                         ) -> Union[sympy.Basic, float]:
+                                        ) -> Union[sympy.Basic, float]:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -369,7 +350,7 @@ def _parameterized_value_from_proto_dict(message: Dict
 
 
 def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
-                                       ) -> Dict:
+                                      ) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())

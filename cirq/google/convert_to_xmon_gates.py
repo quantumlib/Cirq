@@ -18,7 +18,7 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.google import programs
+from cirq.google.api.v1 import programs
 from cirq import optimizers
 
 
