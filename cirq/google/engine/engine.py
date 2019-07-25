@@ -602,12 +602,8 @@ class Engine:
 
     def list_processors(self) -> List[Dict]:
         """Returns a list of Processors that the user has visibility to in the
-        provided project. The names of these processors are used to identify
-        devices when scheduling jobs and gathering calibration metrics.
-
-        Params:
-            project_id: The ID of the Google Cloud project to check, e.g.
-                `my-project-123`
+        current Engine project. The names of these processors are used to
+        identify devices when scheduling jobs and gathering calibration metrics.
 
         Returns:
             A list of dictionaries containing the metadata of each processor.
@@ -623,8 +619,9 @@ class Engine:
         processor, or None if there is no calibration available.
 
         Params:
-            processor_id: A string of the form
-                `projects/project_id/processors/processor_id`.
+            processor_id: The processor identifier within the resource name,
+                where name has the format:
+                `projects/<project_id>/processors/<processor_id>`.
 
         Returns:
             A dictionary containing the calibration data.
