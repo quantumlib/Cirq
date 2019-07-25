@@ -16,7 +16,6 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(
-        api_key='mysecretapikey',
         project-id='my-project-id')
     options = cirq.google.JobConfig(program_id='hello-world')
     result = engine.run(options, circuit, repetitions=10)
