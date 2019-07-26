@@ -195,7 +195,7 @@ class Engine:
         self.proto_version = proto_version
 
         if not service_args:
-            service_args = {} 
+            service_args = {}
         if not 'requestBuilder' in service_args:
             request_builder = _user_project_header_request_builder(project_id)
             service_args['requestBuilder'] = request_builder
