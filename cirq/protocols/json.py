@@ -39,6 +39,7 @@ class SupportsJSON(Protocol):
     def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
         pass
 
+
 def to_json_dict(obj, attribute_names):
     d = {'cirq_type': obj.__class__.__name__}
     for attr_name in attribute_names:
@@ -71,25 +72,17 @@ def cirq_object_hook(d):
     return d
 
 
-def _to_json(obj: Any, file, *, indent):
-    json.dump(obj, file, indent=indent, cls=CirqEncoder)
-
-
-def to_json(obj: Any, file, *, indent=2):
+def to_json(obj: Any, file, *, indent=2, cls=CirqEncoder):
     if isinstance(file, str):
         with open(file, 'w') as actually_a_file:
-            return _to_json(obj, actually_a_file, indent=indent)
+            return json.dump(obj, actually_a_file, indent=indent, cls=cls)
 
-    return _to_json(obj, file, indent=indent)
-
-
-def _read_json(file):
-    return json.load(file, object_hook=cirq_object_hook)
+    return json.dump(obj, file, indent=indent, cls=cls)
 
 
-def read_json(file_or_fn):
+def read_json(file_or_fn, object_hook=cirq_object_hook):
     if isinstance(file_or_fn, str):
         with open(file_or_fn, 'r') as file:
-            return _read_json(file)
+            return json.load(file, object_hook=object_hook)
 
-    return _read_json(file_or_fn)
+    return json.load(file_or_fn, object_hook=object_hook)
