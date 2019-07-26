@@ -174,8 +174,8 @@ class YPowGate(eigen_gate.EigenGate,
 
     The unitary matrix of ``YPowGate(exponent=t)`` is:
 
-        [[g·c, g·s],
-         [-g·s, g·c]]
+        [[g·c, -g·s],
+         [g·s, g·c]]
 
     where:
 
