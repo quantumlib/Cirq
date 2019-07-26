@@ -15,8 +15,7 @@
 """Classes for running against Google's Quantum Cloud Service.
 
 As an example, to run a circuit against the xmon simulator on the cloud,
-    engine = cirq.google.Engine(
-        project-id='my-project-id')
+    engine = cirq.google.Engine(project_id='my-project-id')
     options = cirq.google.JobConfig(program_id='hello-world')
     result = engine.run(options, circuit, repetitions=10)
 
@@ -32,11 +31,11 @@ import string
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
-from apiclient import discovery
+from apiclient import discovery, http as apiclient_http
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, optimizers, study
+from cirq import circuits, optimizers, study, value
 from cirq.google import gate_sets
 from cirq.api.google import v1, v2
 from cirq.google.api import v1 as api_v1
@@ -62,13 +61,12 @@ class ProtoVersion(enum.Enum):
 Program = Union[circuits.Circuit, Schedule]
 
 
-def user_project_header_request_builder(project_id):
+def _user_project_header_request_builder(project_id: str):
     """Provides a request builder that sets a user project header on engine
     requests to allow using standard OAuth credentials.
     """
 
     def request_builder(*args, **kwargs):
-        from apiclient import http as apiclient_http
         request = apiclient_http.HttpRequest(*args, **kwargs)
         request.headers['X-Goog-User-Project'] = project_id
         return request
@@ -76,6 +74,7 @@ def user_project_header_request_builder(project_id):
     return request_builder
 
 
+@value.value_equality
 class JobConfig:
     """Configuration for a program and job to run on the Quantum Engine API.
 
@@ -121,8 +120,12 @@ class JobConfig:
                          gcs_program=self.gcs_program,
                          gcs_results=self.gcs_results)
 
+    def _value_equality_values_(self):
+        return (self.program_id, self.job_id, self.gcs_prefix, self.gcs_program,
+                self.gcs_results)
+
     def __repr__(self):
-        return ('JobConfig(program_id={!r}, '
+        return ('cirq.google.JobConfig(program_id={!r}, '
                 'job_id={!r}, '
                 'gcs_prefix={!r}, '
                 'gcs_program={!r}, '
@@ -157,33 +160,39 @@ class Engine:
 
     def __init__(self,
                  project_id: str,
-                 version: str = 'v1alpha1',
+                 version: Optional[str] = None,
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
                  **kwargs) -> None:
         """Engine service client.
 
-        Requires project_id.
-
         Args:
             project_id: A project_id string of the Google Cloud Project to use.
                 API interactions will be attributed to this project and any
-                resources created will be owned by the project.
+                resources created will be owned by the project. See
+                https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects
             version: API version.
             discovery_url: Discovery url for the API to select a non-default
-                backend for the Engine. If supplied, the `version` argument will
+                backend for the Engine. Incompatible with `version` argument
                 by ignored.
             default_gcs_prefix: A fallback gcs_prefix to use when one isn't
                 specified in the JobConfig given to 'run' methods.
                 See JobConfig for more information on gcs_prefix.
         """
+        if discovery_url and version:
+            raise ValueError("`version` and `discovery_url` are both "
+                             "specified, but are incompatible. Please use "
+                             "only one of these arguments")
+        if not (discovery_url or version):
+            version = 'v1alpha1'
+
         self.project_id = project_id
         self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
         self.default_gcs_prefix = default_gcs_prefix
         self.proto_version = proto_version
 
-        request_builder = user_project_header_request_builder(project_id)
+        request_builder = _user_project_header_request_builder(project_id)
         service_args = {
             'requestBuilder': request_builder,
         }

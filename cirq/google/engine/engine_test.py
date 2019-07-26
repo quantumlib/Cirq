@@ -181,11 +181,7 @@ _CALIBRATION = {
 
 def test_repr():
     v = cirq.google.JobConfig(program_id='my-program-id', job_id='my-job-id')
-
-    assert repr(v) == ("JobConfig("
-                       "program_id='my-program-id', "
-                       "job_id='my-job-id', gcs_prefix=None, "
-                       "gcs_program=None, gcs_results=None)")
+    cirq.testing.assert_equivalent_repr(v)
 
 
 @mock.patch.object(discovery, 'build')
@@ -889,3 +885,11 @@ def test_request_builder(HttpRequest, build):
     cg.Engine(project_id='project-id')
     builtRequest = build.call_args[1]['requestBuilder']()
     assert builtRequest.headers['X-Goog-User-Project'] == 'project-id'
+
+
+@mock.patch.object(discovery, 'build')
+def test_not_both_version_and_discovery(build):
+    with pytest.raises(ValueError, match='both specified'):
+        cg.Engine(project_id='project-id',
+                  version='vNo',
+                  discovery_url='funkyDisco')
