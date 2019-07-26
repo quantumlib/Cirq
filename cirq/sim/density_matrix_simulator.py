@@ -623,7 +623,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
     def __str__(self):
         samples = super().__str__()
         return 'measurements: {}\nfinal density matrix:\n{}'.format(
-            samples, str(self.final_density_matrix))
+            samples, self.final_density_matrix)
 
     def __repr__(self):
         return ("cirq.DensityMatrixTrialResult(params={!r}, measurements={!r}, "

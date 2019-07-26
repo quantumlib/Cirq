@@ -658,7 +658,7 @@ def test_works_on_pauli_string():
                                atol=1e-8)
 
 
-def test_str():
+def test_density_matrix_trial_result_str():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.DensityMatrixSimulatorState(
         density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0})
@@ -667,6 +667,6 @@ def test_str():
         measurements={},
         final_simulator_state=final_simulator_state)
 
-    assert str(result).startswith('measurements: (no measurements)\n'
-                                  'final density matrix:\n'
-                                  '[[0.5 0.5]\n [0.5 0.5]]')
+    assert str(result) == ('measurements: (no measurements)\n'
+                           'final density matrix:\n'
+                           '[[0.5 0.5]\n [0.5 0.5]]')
