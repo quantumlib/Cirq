@@ -18,6 +18,24 @@ import cirq.protocols
 import io
 
 
+def assert_roundtrip(obj, text_should_be=None):
+    buffer = io.StringIO()
+    cirq.protocols.to_json(obj, buffer)
+
+    if text_should_be is not None:
+        buffer.seek(0)
+        text = buffer.read()
+
+        print()
+        print(text)
+
+        assert text == text_should_be
+
+    buffer.seek(0)
+    obj2 = cirq.protocols.read_json(buffer)
+    assert obj == obj2
+
+
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
 
@@ -70,3 +88,12 @@ def test_op_roundtrip():
     buffer.seek(0)
     op2 = cirq.protocols.read_json(buffer)
     assert op1 == op2
+
+
+def test_gridqubit_roundtrip():
+    q = cirq.GridQubit(15, 18)
+    assert_roundtrip(q, text_should_be="""{
+  "cirq_type": "GridQubit",
+  "row": 15,
+  "col": 18
+}""")
