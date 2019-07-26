@@ -1060,19 +1060,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
 
-        ISWAP**t ≡ exp(+i π t (X⊗X + Y⊗Y) / 4)
+        ISWAP**t ≡ exp(-i π t (X⊗X + Y⊗Y) / 4)
 
     which is given by the matrix:
 
         [[1, 0, 0, 0],
-         [0, c, i·s, 0],
-         [0, i·s, c, 0],
+         [0, c, s, 0],
+         [0, s, c, 0],
          [0, 0, 0, 1]]
 
     where:
 
         c = cos(π·t/2)
-        s = sin(π·t/2)
+        s = -i·sin(π·t/2)
 
     `cirq.ISWAP`, the swap gate that applies i to the |01> and |10> states,
     is an instance of this gate at exponent=1.
@@ -1081,11 +1081,11 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _eigen_components(self):
         return [
             (0, np.diag([1, 0, 0, 1])),
-            (+0.5, np.array([[0, 0, 0, 0],
+            (-0.5, np.array([[0, 0, 0, 0],
                              [0, 0.5, 0.5, 0],
                              [0, 0.5, 0.5, 0],
                              [0, 0, 0, 0]])),
-            (-0.5, np.array([[0, 0, 0, 0],
+            (+0.5, np.array([[0, 0, 0, 0],
                              [0, 0.5, -0.5, 0],
                              [0, -0.5, 0.5, 0],
                              [0, 0, 0, 0]])),
@@ -1097,9 +1097,9 @@ class ISwapPowGate(eigen_gate.EigenGate,
         yield CNOT(a, b)
         yield H(a)
         yield CNOT(b, a)
-        yield S(a)**self._exponent
-        yield CNOT(b, a)
         yield S(a)**-self._exponent
+        yield CNOT(b, a)
+        yield S(a)**self._exponent
         yield H(a)
         yield CNOT(a, b)
 
@@ -1113,8 +1113,8 @@ class ISwapPowGate(eigen_gate.EigenGate,
         args.available_buffer[zo] = args.target_tensor[zo]
         args.target_tensor[zo] = args.target_tensor[oz]
         args.target_tensor[oz] = args.available_buffer[zo]
-        args.target_tensor[zo] *= 1j
-        args.target_tensor[oz] *= 1j
+        args.target_tensor[zo] *= -1j
+        args.target_tensor[oz] *= -1j
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
@@ -1128,8 +1128,8 @@ class ISwapPowGate(eigen_gate.EigenGate,
         c, s = np.cos(angle), np.sin(angle)
         return value.LinearDict({
             'II': global_phase * c * c,
-            'XX': global_phase * c * s * 1j,
-            'YY': global_phase * s * c * 1j,
+            'XX': global_phase * c * s * -1j,
+            'YY': global_phase * s * c * -1j,
             'ZZ': global_phase * s * s,
         })
 

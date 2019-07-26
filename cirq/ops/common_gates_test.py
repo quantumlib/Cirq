@@ -623,8 +623,8 @@ def test_iswap_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
         np.array([[1, 0, 0, 0],
-                  [0, 0, 1j, 0],
-                  [0, 1j, 0, 0],
+                  [0, 0, -1j, 0],
+                  [0, -1j, 0, 0],
                   [0, 0, 0, 1]]),
         atol=1e-8)
 
@@ -636,9 +636,9 @@ def test_iswap_decompose_diagram():
     decomposed = cirq.Circuit.from_ops(
         cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
     cirq.testing.assert_has_diagram(decomposed, """
-a: ───@───H───X───T───X───T^-1───H───@───
-      │       │       │              │
-b: ───X───────@───────@──────────────X───
+a: ───@───H───X───T^-1───X───T───H───@───
+      │       │          │           │
+b: ───X───────@──────────@───────────X───
 """)
 
 

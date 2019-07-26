@@ -175,8 +175,8 @@ def test_nonrecursive_expansion():
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
-x: ───@───H───X───S───X───S^-1───H───@───
-      │       │       │              │
-y: ───X───────@───────@──────────────X───
+x: ───@───H───X───S^-1───X───S───H───@───
+      │       │          │           │
+y: ───X───────@──────────@───────────X───
     """.strip()
     assert actual_text_diagram == expected_text_diagram
