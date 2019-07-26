@@ -155,8 +155,8 @@ def assert_linear_combinations_are_equal(
     (-1j * cirq.Y, cirq.Ry(np.pi)),
     (np.sqrt(-1j) * cirq.S, cirq.Rz(np.pi / 2)),
     (0.5 * (cirq.IdentityGate(2) + cirq.XX + cirq.YY + cirq.ZZ), cirq.SWAP),
-    ((cirq.IdentityGate(2) - 1j * (cirq.XX + cirq.YY) + cirq.ZZ) / 2,
-        cirq.ISWAP),
+    ((cirq.IdentityGate(2) - 1j *
+      (cirq.XX + cirq.YY) + cirq.ZZ) / 2, cirq.ISWAP),
     (cirq.CNOT + 0 * cirq.SWAP, cirq.CNOT),
     (0.5 * cirq.FREDKIN, cirq.FREDKIN / 2),
     (cirq.FREDKIN * 0.5, cirq.FREDKIN / 2),
