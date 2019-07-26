@@ -174,8 +174,7 @@ class Engine:
                 https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects
             version: API version.
             discovery_url: Discovery url for the API to select a non-default
-                backend for the Engine. Incompatible with `version` argument
-                by ignored.
+                backend for the Engine. Incompatible with `version` argument.
             default_gcs_prefix: A fallback gcs_prefix to use when one isn't
                 specified in the JobConfig given to 'run' methods.
                 See JobConfig for more information on gcs_prefix.
