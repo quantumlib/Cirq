@@ -164,7 +164,7 @@ class Engine:
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
-                 **kwargs) -> None:
+                 service_args: Optional[Dict] = {}) -> None:
         """Engine service client.
 
         Args:
@@ -178,6 +178,9 @@ class Engine:
             default_gcs_prefix: A fallback gcs_prefix to use when one isn't
                 specified in the JobConfig given to 'run' methods.
                 See JobConfig for more information on gcs_prefix.
+            service_args: A dictionary of arguments that can be used to
+                configure options on the underlying apiclient. See
+                https://github.com/googleapis/google-api-python-client
         """
         if discovery_url and version:
             raise ValueError("`version` and `discovery_url` are both "
@@ -191,11 +194,9 @@ class Engine:
         self.default_gcs_prefix = default_gcs_prefix
         self.proto_version = proto_version
 
-        request_builder = _user_project_header_request_builder(project_id)
-        service_args = {
-            'requestBuilder': request_builder,
-        }
-        service_args.update(kwargs)
+        if not 'requestBuilder' in service_args:
+            request_builder = _user_project_header_request_builder(project_id)
+            service_args['requestBuilder'] = request_builder
 
         self.service = discovery.build('' if discovery_url else 'quantum',
                                        '' if discovery_url else version,
