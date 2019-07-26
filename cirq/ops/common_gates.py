@@ -1079,15 +1079,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
     """
 
     def _eigen_components(self):
+        # yapf: disable
         return [
             (0, np.diag([1, 0, 0, 1])),
-            (-0.5,
-             np.array([[0, 0, 0, 0], [0, 0.5, 0.5, 0], [0, 0.5, 0.5, 0],
-                       [0, 0, 0, 0]])),
-            (+0.5,
-             np.array([[0, 0, 0, 0], [0, 0.5, -0.5, 0], [0, -0.5, 0.5, 0],
-                       [0, 0, 0, 0]])),
+            (-0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0.5, 0.5, 0],
+                             [0, 0, 0, 0]])),
+            (+0.5, np.array([[0, 0, 0, 0],
+                             [0, 0.5, -0.5, 0],
+                             [0, -0.5, 0.5, 0],
+                             [0, 0, 0, 0]])),
         ]
+        # yapf: enable
 
     def _decompose_(self, qubits):
         a, b = qubits
