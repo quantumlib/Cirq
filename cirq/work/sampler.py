@@ -105,8 +105,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
         Args:
             program: The circuit or schedule to sample from.
-            params: A dictionary, list of dictionaries, sweep, or etc specifying
-                one or more mappings from parameter keys to parameter values to
+            params: One or more mappings from parameter keys to parameter values to
                 use. For each parameter assignment, `repetitions` samples will
                 be taken.
             repetitions: The number of times to sample.
