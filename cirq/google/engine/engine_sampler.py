@@ -1,7 +1,6 @@
 from typing import Union, List, TYPE_CHECKING
 
 from cirq import work
-from cirq.google.engine import engine
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -9,11 +8,13 @@ if TYPE_CHECKING:
 
 
 class QuantumEngineSampler(work.Sampler):
-    """A sampler that samples from real hardware on the quantum engine."""
+    """A sampler that samples from real hardware on the quantum engine.
+
+    Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`."""
 
     def __init__(self,
                  *,
-                 engine: engine.Engine,
+                 engine: 'cirq.google.Engine',
                  processor_id: Union[str, List[str]],
                  gate_set: 'cirq.google.SerializableGateSet'):
         """
@@ -30,12 +31,6 @@ class QuantumEngineSampler(work.Sampler):
         self._gate_set = gate_set
         self._engine = engine
 
-    def _request_builder(self, *args, **kwargs):
-        from apiclient import http as apiclient_http
-        request = apiclient_http.HttpRequest(*args, **kwargs)
-        request.headers['X-Goog-User-Project'] = self._engine.default_project_id
-        return request
-
     def run_sweep(
             self,
             program: Union['cirq.Circuit', 'cirq.Schedule'],
@@ -47,7 +42,7 @@ class QuantumEngineSampler(work.Sampler):
             program=program,
             params=params,
             repetitions=repetitions,
-            processor_ids=self.processor_ids,
-            gate_set=self.gate_set)
+            processor_ids=self._processor_ids,
+            gate_set=self._gate_set)
 
         return job.results()
