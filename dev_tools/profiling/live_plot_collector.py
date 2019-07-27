@@ -1,11 +1,11 @@
 from typing import List, Mapping, Sequence
 
 import collections
-
-import matplotlib.pyplot as plt
-import numpy as np
-import sympy
 import time
+
+import numpy as np
+import matplotlib.pyplot as plt
+import sympy
 
 import cirq
 
