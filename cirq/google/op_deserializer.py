@@ -51,8 +51,11 @@ class DeserializingArg(
                 value_func: Optional[Callable[[Any], Any]] = None,
                 required: bool = True):
         return super(DeserializingArg,
-                     cls).__new__(cls, serialized_name, constructor_arg_name,
-                                  value_func, required)
+                     cls).__new__(cls,
+                                  serialized_name=serialized_name,
+                                  constructor_arg_name=constructor_arg_name,
+                                  value_func=value_func,
+                                  required=required)
 
 
 class GateOpDeserializer:
