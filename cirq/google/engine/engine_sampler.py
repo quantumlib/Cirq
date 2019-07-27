@@ -12,9 +12,7 @@ class QuantumEngineSampler(work.Sampler):
 
     Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`."""
 
-    def __init__(self,
-                 *,
-                 engine: 'cirq.google.Engine',
+    def __init__(self, *, engine: 'cirq.google.Engine',
                  processor_id: Union[str, List[str]],
                  gate_set: 'cirq.google.SerializableGateSet'):
         """
@@ -25,9 +23,8 @@ class QuantumEngineSampler(work.Sampler):
             gate_set: Determines how to serialize circuits when requesting
                 samples.
         """
-        self._processor_ids = (
-            [processor_id] if isinstance(processor_id, str) else processor_id
-        )
+        self._processor_ids = ([processor_id] if isinstance(processor_id, str)
+                               else processor_id)
         self._gate_set = gate_set
         self._engine = engine
 
@@ -38,11 +35,10 @@ class QuantumEngineSampler(work.Sampler):
             repetitions: int = 1,
     ) -> List['cirq.TrialResult']:
 
-        job = self._engine.run_sweep(
-            program=program,
-            params=params,
-            repetitions=repetitions,
-            processor_ids=self._processor_ids,
-            gate_set=self._gate_set)
+        job = self._engine.run_sweep(program=program,
+                                     params=params,
+                                     repetitions=repetitions,
+                                     processor_ids=self._processor_ids,
+                                     gate_set=self._gate_set)
 
         return job.results()

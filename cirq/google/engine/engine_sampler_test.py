@@ -20,16 +20,14 @@ import cirq.google as cg
 
 def test_run_circuit():
     engine = mock.Mock()
-    sampler = cg.QuantumEngineSampler(
-        engine=engine,
-        processor_id='tmp',
-        gate_set=cg.XMON)
+    sampler = cg.QuantumEngineSampler(engine=engine,
+                                      processor_id='tmp',
+                                      gate_set=cg.XMON)
     c = cirq.Circuit()
     params = [cirq.ParamResolver({'a': 1})]
     sampler.run_sweep(c, params, 5)
-    engine.run_sweep.assert_called_with(
-        gate_set=cg.XMON,
-        params=params,
-        processor_ids=['tmp'],
-        program=c,
-        repetitions=5)
+    engine.run_sweep.assert_called_with(gate_set=cg.XMON,
+                                        params=params,
+                                        processor_ids=['tmp'],
+                                        program=c,
+                                        repetitions=5)
