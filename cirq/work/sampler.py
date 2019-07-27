@@ -13,12 +13,16 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Union
+from typing import List, Union, TYPE_CHECKING
 import abc
 import asyncio
 import threading
 
-from cirq import circuits, schedules, study
+from cirq import study
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    import cirq
 
 
 class Sampler(metaclass=abc.ABCMeta):
@@ -26,10 +30,10 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def run(
             self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: 'study.ParamResolverOrSimilarType' = None,
+            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
             repetitions: int = 1,
-    ) -> study.TrialResult:
+    ) -> 'cirq.TrialResult':
         """Samples from the given Circuit or Schedule.
 
         By default, the `run_async` method invokes this method on another
@@ -49,10 +53,10 @@ class Sampler(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def run_sweep(
             self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            params: study.Sweepable,
+            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            params: 'cirq.Sweepable',
             repetitions: int = 1,
-    ) -> List[study.TrialResult]:
+    ) -> List['cirq.TrialResult']:
         """Samples from the given Circuit or Schedule.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -68,9 +72,8 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self,
-                        program: Union[circuits.Circuit, schedules.Schedule], *,
-                        repetitions: int) -> study.TrialResult:
+    async def run_async(self, program: Union['cirq.Circuit', 'cirq.Schedule'],
+                        *, repetitions: int) -> 'cirq.TrialResult':
         """Asynchronously samples from the given Circuit or Schedule.
 
         By default, this method calls `run` on another thread and yields the
@@ -84,17 +87,48 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        loop = asyncio.get_event_loop()
-        done = loop.create_future()  # type: asyncio.Future[study.TrialResult]
+        results = await self.run_sweep_async(program, study.UnitSweep,
+                                             repetitions)
+        return results[0]
 
-        def run():
-            try:
-                result = self.run(program, repetitions=repetitions)
-            except Exception as exc:
-                loop.call_soon_threadsafe(done.set_exception, exc)
-            else:
-                loop.call_soon_threadsafe(done.set_result, result)
+    async def run_sweep_async(
+            self,
+            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            params: 'cirq.Sweepable',
+            repetitions: int = 1,
+    ) -> List['cirq.TrialResult']:
+        """Asynchronously sweeps and samples from the given Circuit or Schedule.
 
-        t = threading.Thread(target=run)
-        t.start()
-        return await done
+        By default, this method calls `run_sweep` on another thread and yields
+        the result via the asyncio event loop. However, child classes are free
+        to override it to use other strategies.
+
+        Args:
+            program: The circuit or schedule to sample from.
+            params: One or more mappings from parameter keys to parameter values
+                to use. For each parameter assignment, `repetitions` samples
+                will be taken.
+            repetitions: The number of times to sample.
+
+        Returns:
+            An awaitable TrialResult.
+        """
+        return await run_on_thread_async(lambda: self.run_sweep(
+            program, params=params, repetitions=repetitions))
+
+
+async def run_on_thread_async(func):
+    loop = asyncio.get_event_loop()
+    done = loop.create_future()  # type: asyncio.Future['cirq.TrialResult']
+
+    def run():
+        try:
+            result = func()
+        except Exception as exc:
+            loop.call_soon_threadsafe(done.set_exception, exc)
+        else:
+            loop.call_soon_threadsafe(done.set_result, result)
+
+    t = threading.Thread(target=run)
+    t.start()
+    return await done
