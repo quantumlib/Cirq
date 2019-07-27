@@ -72,9 +72,8 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self,
-                        program: Union['cirq.Circuit', 'cirq.Schedule'], *,
-                        repetitions: int) -> 'cirq.TrialResult':
+    async def run_async(self, program: Union['cirq.Circuit', 'cirq.Schedule'],
+                        *, repetitions: int) -> 'cirq.TrialResult':
         """Asynchronously samples from the given Circuit or Schedule.
 
         By default, this method calls `run` on another thread and yields the
@@ -88,10 +87,8 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        results = await self.run_sweep_async(
-            program,
-            study.UnitSweep,
-            repetitions)
+        results = await self.run_sweep_async(program, study.UnitSweep,
+                                             repetitions)
         return results[0]
 
     async def run_sweep_async(
@@ -99,7 +96,7 @@ class Sampler(metaclass=abc.ABCMeta):
             program: Union['cirq.Circuit', 'cirq.Schedule'],
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-        ) -> List['cirq.TrialResult']:
+    ) -> List['cirq.TrialResult']:
         """Asynchronously sweeps and samples from the given Circuit or Schedule.
 
         By default, this method calls `run_sweep` on another thread and yields
@@ -118,9 +115,7 @@ class Sampler(metaclass=abc.ABCMeta):
             An awaitable TrialResult.
         """
         return await run_on_thread_async(lambda: self.run_sweep(
-            program,
-            params=params,
-            repetitions=repetitions))
+            program, params=params, repetitions=repetitions))
 
 
 async def run_on_thread_async(func):
