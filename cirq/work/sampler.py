@@ -105,9 +105,9 @@ class Sampler(metaclass=abc.ABCMeta):
 
         Args:
             program: The circuit or schedule to sample from.
-            params: One or more mappings from parameter keys to parameter values to
-                use. For each parameter assignment, `repetitions` samples will
-                be taken.
+            params: One or more mappings from parameter keys to parameter values
+                to use. For each parameter assignment, `repetitions` samples
+                will be taken.
             repetitions: The number of times to sample.
 
         Returns:
