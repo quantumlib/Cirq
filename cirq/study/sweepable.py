@@ -14,14 +14,18 @@
 
 """Defines which types are Sweepable."""
 
-from typing import cast, Iterable, List, Union
+from typing import Iterable, List, Union, Mapping
 
 from cirq.study.resolver import ParamResolver
 from cirq.study.sweeps import Points, Sweep, UnitSweep, Zip
 
 
 Sweepable = Union[
-    ParamResolver, Iterable[ParamResolver], Sweep, Iterable[Sweep]]
+    Mapping[str, float],
+    ParamResolver,
+    Sweep,
+    Iterable[Union[Mapping[str, float], ParamResolver, Sweep]]
+]
 
 
 def to_resolvers(sweepable: Sweepable) -> List[ParamResolver]:
@@ -30,12 +34,17 @@ def to_resolvers(sweepable: Sweepable) -> List[ParamResolver]:
         return [sweepable]
     if isinstance(sweepable, Sweep):
         return list(sweepable)
-    if isinstance(sweepable, Iterable):
-        iterable = cast(Iterable, sweepable)
-        return list(iterable) if isinstance(next(iter(iterable)),
-                                            ParamResolver) else sum(
-            [list(s) for s in iterable], [])
-    raise TypeError('Unexpected Sweepable type.')
+    if isinstance(sweepable, Mapping):
+        return [ParamResolver(sweepable)]
+    if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
+        return [
+            resolver
+            for item in sweepable
+            for resolver in to_resolvers(item)
+        ]
+    raise TypeError(
+        'Unrecognized sweepable type: {type(sweepable)}.\n'
+        'sweepable: {sweepable}')
 
 
 def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
@@ -44,13 +53,17 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         return [_resolver_to_sweep(sweepable)]
     if isinstance(sweepable, Sweep):
         return [sweepable]
-    if isinstance(sweepable, Iterable):
-        items = list(sweepable)
-        if all(isinstance(item, Sweep) for item in items):
-            return cast(List[Sweep], items)
-        elif all(isinstance(item, ParamResolver) for item in items):
-            return [_resolver_to_sweep(cast(ParamResolver, p)) for p in items]
-    raise TypeError('Unexpected Sweepable: {}'.format(sweepable))
+    if isinstance(sweepable, Mapping):
+        return [_resolver_to_sweep(ParamResolver(sweepable))]
+    if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
+        return [
+            sweep
+            for item in sweepable
+            for sweep in to_sweeps(item)
+        ]
+    raise TypeError(
+        'Unrecognized sweepable type: {type(sweepable)}.\n'
+        'sweepable: {sweepable}')
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
