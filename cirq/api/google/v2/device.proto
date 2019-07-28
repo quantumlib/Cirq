@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package cirq.api.google.v2;
+
+option java_package = "com.google.cirq.api.google.v2";
+option java_outer_classname = "CalibrationProto";
+option java_multiple_files = true;
+
+// This contains information about a device that includes the
+// qubits on the device, supported gates, connections, and timing.
+// This message specifies information that is needed when sending a
+// Program message to the device.
+message DeviceSpecification {
+      // A list of allowed gatesets for programs submitted to this processor
+      // Language.gate_set should be one of these values to be valid.
+      repeated GateSet allowed_gate_sets = 1;
+
+      // A list of allowed ids for qubits within the Program.
+      // Any programs with ids not in this list will be rejected.
+      // If empty, all qubit values are allowed (e.g. in a simulator)
+      repeated string allowed_qubits = 2;
+
+      // For each qubit id, information about the qubit,
+      // including a list of qubits in its neighborhood
+      // (i.e. a two-qubit operation between these qubits is legal)
+      map<string, QubitInformation> qubit_information = 3;
+
+      // Additional recommendations, caveats, and soft requirements that
+      // are advice to users of the device, specified in English text
+      // For instance, "All Z gates are converted to VirtualZ gates".
+      string developer_recommendations = 4;
+}
+
+message GateSet {
+      // A list of allowed gatesets for programs submitted to this processor
+      // Language.gate_set should be one of these values to be valid.
+   string gate_set_name = 1;
+
+   repeated GateDefinition allowed_gates = 2;
+}
+
+message GateDefinition {
+
+    // A list of allowed ids for gates within the Program.
+    // Any programs with ids not in this list will be rejected.
+    string gate_name = 1;
+
+    // The number of qubits (targets) that can be specified for this gate.
+    // If unset or set to zero, any number of qubits is allowed.
+    int32 number_of_qubits = 2;
+
+    // The name of the arguments that should be specified for the gate
+    repeated GateArgument allowed_gate_args = 3;
+
+    // This defines the approximate amount of time for each gate,
+    // specified as an integer number of picoseconds.
+    int64 gate_duration_picos = 4;
+}
+
+message GateArgument {
+    enum ArgumentType {
+       UNSPECIFIED = 0;
+       FLOAT = 1;
+       BOOLEAN = 2;
+       STRING = 3;
+    }
+    string name = 1;
+    ArgumentType type = 2;
+    repeated ArgumentRange allowed_ranges =3;
+}
+
+message ArgumentRange {
+   float minimum_value = 1;
+   float maximum_value = 2;
+}
+
+message QubitInformation {
+   // A list of qubit ids to which a 2-qubit operation is legal
+   repeated string neighbor_ids = 1;
+}
+
