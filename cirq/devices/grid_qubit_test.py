@@ -18,13 +18,13 @@ import pytest
 import cirq
 
 
-def test_xmon_qubit_init():
+def test_grid_qubit_init():
     q = cirq.GridQubit(3, 4)
     assert q.row == 3
     assert q.col == 4
 
 
-def test_xmon_qubit_eq():
+def test_grid_qubit_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cirq.GridQubit(0, 0))
     eq.make_equality_group(lambda: cirq.GridQubit(1, 0))
@@ -79,7 +79,7 @@ ABCDEFGHIJKL
         cirq.GridQubit.from_diagram('@')
 
 
-def test_xmon_qubit_ordering():
+def test_grid_qubit_ordering():
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(0, 1)
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(1, 0)
     assert cirq.GridQubit(0, 0) < cirq.GridQubit(1, 1)
@@ -97,7 +97,7 @@ def test_xmon_qubit_ordering():
     assert cirq.GridQubit(1, 1) >= cirq.GridQubit(0, 0)
 
 
-def test_xmon_qubit_is_adjacent():
+def test_grid_qubit_is_adjacent():
     assert cirq.GridQubit(0, 0).is_adjacent(cirq.GridQubit(0, 1))
     assert cirq.GridQubit(0, 0).is_adjacent(cirq.GridQubit(0, -1))
     assert cirq.GridQubit(0, 0).is_adjacent(cirq.GridQubit(1, 0))
@@ -112,6 +112,36 @@ def test_xmon_qubit_is_adjacent():
 
     assert cirq.GridQubit(500, 999).is_adjacent(cirq.GridQubit(501, 999))
     assert not cirq.GridQubit(500, 999).is_adjacent(cirq.GridQubit(5034, 999))
+
+
+def test_grid_qubit_add_subtract():
+    assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
+    assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
+    assert cirq.GridQubit(1, 2) + (-1, 0) == cirq.GridQubit(0, 2)
+    assert cirq.GridQubit(1, 2) - (2, 5) == cirq.GridQubit(-1, -3)
+    assert cirq.GridQubit(1, 2) - (0, 0) == cirq.GridQubit(1, 2)
+    assert cirq.GridQubit(1, 2) - (-1, 0) == cirq.GridQubit(2, 2)
+
+    assert (2, 5) + cirq.GridQubit(1, 2) == cirq.GridQubit(3, 7)
+    assert (2, 5) - cirq.GridQubit(1, 2) == cirq.GridQubit(1, 3)
+
+
+def test_grid_qubit_neg():
+    assert -cirq.GridQubit(1, 2) == cirq.GridQubit(-1, -2)
+
+
+def test_grid_qubit_unsupported_add():
+    with pytest.raises(TypeError, match='1'):
+        _ = cirq.GridQubit(1, 1) + 1
+    with pytest.raises(TypeError, match='(1,)'):
+        _ = cirq.GridQubit(1, 1) + (1,)
+    with pytest.raises(TypeError, match='(1, 2, 3)'):
+        _ = cirq.GridQubit(1, 1) + (1, 2, 3)
+    with pytest.raises(TypeError, match='(1, 2.0)'):
+        _ = cirq.GridQubit(1, 1) + (1, 2.0)
+
+    with pytest.raises(TypeError, match='1'):
+        _ = cirq.GridQubit(1, 1) - 1
 
 
 def test_to_proto():

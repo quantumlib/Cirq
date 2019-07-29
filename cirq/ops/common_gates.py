@@ -174,8 +174,8 @@ class YPowGate(eigen_gate.EigenGate,
 
     The unitary matrix of ``YPowGate(exponent=t)`` is:
 
-        [[g·c, g·s],
-         [-g·s, g·c]]
+        [[g·c, -g·s],
+         [g·s, g·c]]
 
     where:
 
@@ -445,6 +445,8 @@ class MeasurementGate(raw_types.Gate):
         Raises:
             ValueError if the length of invert_mask is greater than num_qubits.
         """
+        if num_qubits == 0:
+            raise ValueError('Measuring an empty set of qubits.')
         self._num_qubits = num_qubits
         self.key = key
         self.invert_mask = invert_mask or ()
@@ -1072,7 +1074,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
         c = cos(π·t/2)
         s = sin(π·t/2)
 
-    `cirq.ISWAP`, the swap gate that applies -i to the |01> and |10> states,
+    `cirq.ISWAP`, the swap gate that applies i to the |01> and |10> states,
     is an instance of this gate at exponent=1.
     """
 

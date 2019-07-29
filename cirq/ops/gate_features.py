@@ -18,7 +18,6 @@ For example: some gates are reversible, some have known matrices, etc.
 """
 
 import abc
-import collections
 from typing import Union, Iterable, Any, List
 
 from cirq.ops import raw_types
@@ -34,7 +33,8 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
 
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
-    def num_qubits(self) -> int:
+
+    def _num_qubits_(self) -> int:
         return 1
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
@@ -52,8 +52,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         operations = []  # type: List[raw_types.Operation]
         for target in targets:
-            if isinstance(target,
-                          collections.Iterable) and not isinstance(target, str):
+            if isinstance(target, Iterable) and not isinstance(target, str):
                 operations.extend(self.on_each(*target))
             elif isinstance(target, raw_types.Qid):
                 operations.append(self.on(target))
@@ -66,11 +65,13 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly two qubits."""
-    def num_qubits(self) -> int:
+
+    def _num_qubits_(self) -> int:
         return 2
 
 
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
-    def num_qubits(self) -> int:
+
+    def _num_qubits_(self) -> int:
         return 3

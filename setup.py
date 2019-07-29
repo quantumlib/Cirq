@@ -28,6 +28,10 @@ long_description = io.open('README.rst', encoding='utf-8').read()
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+contrib_requirements = open('cirq/contrib/contrib-requirements.txt').readlines()
+contrib_requirements = [r.strip() for r in contrib_requirements]
+dev_requirements = open('dev_tools/conf/pip-list-dev-tools.txt').readlines()
+dev_requirements = [r.strip() for r in dev_requirements]
 
 cirq_packages = ['cirq'] + [
     'cirq.' + package for package in find_packages(where='cirq')
@@ -40,6 +44,10 @@ setup(name='cirq',
       author_email='cirq@googlegroups.com',
       python_requires=('>=3.6.0'),
       install_requires=requirements,
+      extras_require={
+          'contrib': contrib_requirements,
+          'dev': dev_requirements,
+      },
       license='Apache 2',
       description=description,
       long_description=long_description,

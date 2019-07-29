@@ -87,10 +87,8 @@ class MergeInteractions(circuits.PointOptimizer):
             clear_qubits=op.qubits,
             new_operations=new_operations)
 
-    def _op_to_matrix(self,
-                      op: Optional[ops.Operation],
-                      qubits: Tuple[ops.Qid, ...]
-                      ) -> Optional[np.ndarray]:
+    def _op_to_matrix(self, op: ops.Operation,
+                      qubits: Tuple[ops.Qid, ...]) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
         If the operation is a 1-qubit operation on one of the given qubits,
@@ -106,6 +104,9 @@ class MergeInteractions(circuits.PointOptimizer):
         Returns:
             None, or else a matrix equivalent to the effect of the operation.
         """
+        if any(q not in qubits for q in op.qubits):
+            return None
+
         q1, q2 = qubits
 
         matrix = protocols.unitary(op, None)
