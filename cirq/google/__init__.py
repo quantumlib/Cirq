@@ -14,48 +14,12 @@
 
 from cirq.google import api
 
-from cirq.google.engine import (
-    engine_from_environment,
-    Engine,
-    JobConfig,
+from cirq.google.api.v1.params import (
+    sweep_to_proto_dict,
+    sweep_from_proto_dict,
 )
 
-from cirq.google.line import (
-    AnnealSequenceSearchStrategy,
-    GreedySequenceSearchStrategy,
-    line_on_device,
-    LinePlacementStrategy,
-)
-
-from cirq.google.sim import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
-)
-
-
-from cirq.google.convert_to_xmon_gates import (
-    ConvertToXmonGates,)
-
-from cirq.google.gate_sets import (
-    XMON,)
-
-from cirq.google.known_devices import (
-    Bristlecone,
-    Foxtail,
-)
-
-from cirq.google.op_deserializer import (
-    DeserializingArg,
-    GateOpDeserializer,
-)
-
-from cirq.google.op_serializer import (GateOpSerializer, SerializingArg)
-
-from cirq.google.optimize import (
-    optimized_for_xmon,)
-
-from cirq.google.programs import (
+from cirq.google.api.v1.programs import (
     gate_to_proto_dict,
     is_native_xmon_gate,
     is_native_xmon_op,
@@ -66,8 +30,51 @@ from cirq.google.programs import (
     xmon_op_from_proto_dict,
 )
 
+from cirq.google.convert_to_xmon_gates import (
+    ConvertToXmonGates,)
+
+from cirq.google.engine import (
+    engine_from_environment,
+    Engine,
+    JobConfig,
+)
+
+from cirq.google.gate_sets import (
+    XMON,)
+
+from cirq.google.known_devices import (
+    Bristlecone,
+    Foxtail,
+)
+
+from cirq.google.line import (
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    line_on_device,
+    LinePlacementStrategy,
+)
+
+from cirq.google.optimize import (
+    optimized_for_xmon,)
+
+from cirq.google.op_deserializer import (
+    DeserializingArg,
+    GateOpDeserializer,
+)
+
+from cirq.google.op_serializer import (
+    GateOpSerializer,
+    SerializingArg,
+)
+
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
+
+from cirq.google.sim import (
+    XmonOptions,
+    XmonSimulator,
+    XmonStepResult,
+)
 
 from cirq.google.xmon_device import (
     XmonDevice,)

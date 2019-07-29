@@ -174,8 +174,8 @@ class YPowGate(eigen_gate.EigenGate,
 
     The unitary matrix of ``YPowGate(exponent=t)`` is:
 
-        [[g·c, g·s],
-         [-g·s, g·c]]
+        [[g·c, -g·s],
+         [g·s, g·c]]
 
     where:
 
@@ -1075,7 +1075,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
         c = cos(π·t/2)
         s = sin(π·t/2)
 
-    `cirq.ISWAP`, the swap gate that applies -i to the |01> and |10> states,
+    `cirq.ISWAP`, the swap gate that applies i to the |01> and |10> states,
     is an instance of this gate at exponent=1.
     """
 

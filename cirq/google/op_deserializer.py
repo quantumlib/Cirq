@@ -45,13 +45,17 @@ class DeserializingArg(
     """
 
     def __new__(cls,
-                serialized_name,
-                constructor_arg_name,
-                value_func=None,
-                required=True):
+                *,
+                serialized_name: str,
+                constructor_arg_name: str,
+                value_func: Optional[Callable[[Any], Any]] = None,
+                required: bool = True):
         return super(DeserializingArg,
-                     cls).__new__(cls, serialized_name, constructor_arg_name,
-                                  value_func, required)
+                     cls).__new__(cls,
+                                  serialized_name=serialized_name,
+                                  constructor_arg_name=constructor_arg_name,
+                                  value_func=value_func,
+                                  required=required)
 
 
 class GateOpDeserializer:
@@ -63,7 +67,7 @@ class GateOpDeserializer:
 
     def __init__(self,
                  serialized_gate_id: str,
-                 gate_constructor: type,
+                 gate_constructor: Callable,
                  args: Sequence[DeserializingArg],
                  num_qubits_param: Optional[str] = None):
         """Constructs a deserializer.
@@ -71,7 +75,8 @@ class GateOpDeserializer:
         Args:
             serialized_gate_id: The serialized id of the gate that is being
                 deserialized.
-            gate_constructor: The constructor for the deserialized gate.
+            gate_constructor: A function that produces the deserialized gate
+                given arguments from args.
             args: A list of the arguments to be read from the serialized
                 gate and the information required to use this to construct
                 the gate using the gate_constructor above.

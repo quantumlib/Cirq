@@ -691,20 +691,21 @@ class Circuit:
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
         """
-        op_list = []
-        max_index = len(self._moments)
-        for qubit in start_frontier:
-            current_index = start_frontier[qubit]
-            if current_index < 0:
-                current_index = 0
-            while current_index < max_index:
-                if self[current_index].operates_on_single_qubit(qubit):
-                    next_op = self.operation_at(qubit, current_index)
-                    if next_op is not None:
-                        if is_blocker(next_op):
-                            break
-                        op_list.append((current_index,next_op))
-                current_index+=1
+        op_list = []  # type: List[Tuple[int, ops.Operation]]
+        frontier = dict(start_frontier)
+        if not frontier:
+            return op_list
+        start_index = min(frontier.values())
+        for index, moment in enumerate(self[start_index:], start_index):
+            active_qubits = set(q for q, s in frontier.items() if s <= index)
+            for op in moment.operations:
+                active_op_qubits = active_qubits.intersection(op.qubits)
+                if active_op_qubits:
+                    if is_blocker(op):
+                        for q in active_op_qubits:
+                            del frontier[q]
+                    else:
+                        op_list.append((index, op))
         return op_list
 
     def operation_at(self,
