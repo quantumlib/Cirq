@@ -620,6 +620,11 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
                         sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
 
+    def __str__(self):
+        samples = super().__str__()
+        return 'measurements: {}\nfinal density matrix:\n{}'.format(
+            samples, self.final_density_matrix)
+
     def __repr__(self):
         return ("cirq.DensityMatrixTrialResult(params={!r}, measurements={!r}, "
                 "final_simulator_state={!r})".format(

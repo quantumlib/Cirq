@@ -38,13 +38,13 @@ docs_conf_dir="docs"
 out_dir="docs/_build"
 
 # Cleanup pre-existing temporary generated files.
-rm "${docs_conf_dir}/generated" -rf
+rm -rf "${docs_conf_dir}/generated"
 
 # Cleanup previous output.
-rm "${out_dir}" -rf
+rm -rf "${out_dir}"
 
 # Regenerate docs.
 sphinx-build -M html "${docs_conf_dir}" "${out_dir}"
 
 # Cleanup newly generated temporary files.
-rm "${docs_conf_dir}/generated" -rf
+rm -rf "${docs_conf_dir}/generated"
