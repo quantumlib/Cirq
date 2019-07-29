@@ -37,7 +37,7 @@ class SupportsPhase(Protocol):
 
         Args:
             phase_turns: The amount to phase the gate, in fractions of a whole
-                turn.  Divide by 2pi to get radians.
+                turn. Multiply by 2π to get radians.
             qubit_index: The index of the target qubit the phasing applies to.
         Returns:
             The phased gate or operation.
@@ -55,7 +55,7 @@ def phase_by(val: Any, phase_turns: float, qubit_index: int,
     Args:
         val: The value to describe with a unitary matrix.
         phase_turns: The amount to phase the gate, in fractions of a whole
-            turn.  Divide by 2pi to get radians.
+            turn. Multiply by 2π to get radians.
         qubit_index: The index of the target qubit the phasing applies to. For
             operations this is the index of the qubit within the operation's
             qubit list. For gates it's the index of the qubit within the tuple
