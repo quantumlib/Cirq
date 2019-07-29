@@ -96,6 +96,7 @@ class ControlledGate(raw_types.Gate):
             else:
                 merged_controls.append(control)
 
+        super().validate_args(merged_controls + remaining_qubits)
         return cop.ControlledOperation(merged_controls,
                                        self.sub_gate.on(*remaining_qubits))
 
