@@ -67,7 +67,7 @@ class FSimGate(gate_features.TwoQubitGate,
                 the strength and duration of the XX+YY interaction. Note: uses
                 opposite sign convention to the iSWAP gate.
             phi: Controlled phase angle, in radians. Determines how much the
-                |11⟩ state is phased. Note: uses oppositesign convention to the
+                |11⟩ state is phased. Note: uses opposite sign convention to the
                 CZPowGate.
         """
         self.theta = theta
