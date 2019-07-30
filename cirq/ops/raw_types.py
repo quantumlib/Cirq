@@ -162,7 +162,7 @@ class _WrappedQid(Qid):
         return '{!r}.with_levels({})'.format(self.qid, self.levels)
 
     def __str__(self):
-        return '{!s} (levels={})'.format(self.qid, self.levels)
+        return '{!s} (d={})'.format(self.qid, self.levels)
 
     def _json_dict_(self):
         return protocols.to_json_dict(self, ['qid', 'levels'])
@@ -202,18 +202,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
-        if any(not isinstance(qid, Qid) for qid in qubits):
-            raise ValueError('Gate was called with type different than Qid.')
-        qid_shape = protocols.qid_shape(self)
-        if len(qubits) != len(qid_shape):
-            raise ValueError('Wrong number of qubits for <{!r}>. '
-                             'Expected {} qubits but got <{!r}>.'.format(
-                                self, len(qid_shape), qubits))
-        if any(qid.levels != levels for qid, levels in zip(qubits, qid_shape)):
-            raise ValueError('Wrong shape of qids for <{!r}>. '
-                             'Expected {} but got {} <{!r}>.'.format(
-                                self, qid_shape,
-                                tuple(qid.levels for qid in qubits), qubits))
+        _validate_qid_shape(self, qubits)
 
     def on(self, *qubits: Qid) -> 'Operation':
         """Returns an application of this gate to the given qubits.
@@ -396,6 +385,28 @@ class Operation(metaclass=abc.ABCMeta):
             return self
         return ControlledOperation(control_qubits, self)
 
+    def validate_args(self, qubits: Sequence[Qid]):
+        """Raises an exception if the `qubits` don't match this operation's qid
+        shape.
+
+        Args:
+            qubits: The new qids for the operation.
+
+        Raises:
+            ValueError: The operation had qids that don't match it's qid shape.
+        """
+        _validate_qid_shape(self, qubits)
+
+    def validate_qubits(self):
+        """Raises an exception if this operation has qubits that don't match its
+        qid shape.
+
+        Raises:
+            ValueError: The operation had qubits that don't match it's qid
+            shape.
+        """
+        _validate_qid_shape(self, self.qubits)
+
 
 @value.value_equality
 class _InverseCompositeGate(Gate):
@@ -423,3 +434,23 @@ class _InverseCompositeGate(Gate):
 
     def __repr__(self):
         return '({!r}**-1)'.format(self._original)
+
+
+def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
+        """Helper function to validate qubits for gates and operations.
+
+        Raises:
+            ValueError: The operation had qids that don't match it's qid shape.
+        """
+        if any(not isinstance(qid, Qid) for qid in qubits):
+            raise ValueError('Gate was called with type different than Qid.')
+        qid_shape = protocol.qid_shape(val)
+        if len(qubits) != len(qid_shape):
+            raise ValueError('Wrong number of qubits for <{!r}>. '
+                             'Expected {} qubits but got <{!r}>.'.format(
+                                val, len(qid_shape), qubits))
+        if any(qid.levels != levels for qid, levels in zip(qubits, qid_shape)):
+            raise ValueError('Wrong shape of qids for <{!r}>. '
+                             'Expected {} but got {} <{!r}>.'.format(
+                                val, qid_shape,
+                                tuple(qid.levels for qid in qubits), qubits))
