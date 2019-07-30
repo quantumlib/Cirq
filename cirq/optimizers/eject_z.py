@@ -28,11 +28,15 @@ if TYPE_CHECKING:
 
 
 def _is_swaplike(op: ops.Operation):
-    if ops.op_gate_of_type(op, ops.SwapPowGate):
-        return op.gate.exponent == 1
+    gate = ops.op_gate_of_type(op, ops.SwapPowGate)
+    if gate:
+        return gate.exponent == 1
 
-    if ops.op_gate_of_type(op, ops.FSimGate):
-        return np.isclose(op.gate.theta, np.pi / 2)
+    gate = ops.op_gate_of_type(op, ops.FSimGate)
+    if gate:
+        return np.isclose(gate.theta, np.pi / 2)
+
+    return False
 
 
 class EjectZ():
