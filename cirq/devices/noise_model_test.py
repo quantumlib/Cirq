@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Sequence
+from cirq.devices.two_qubit_noise_model import TwoQubitNoiseModel, two_qubit_depolarize
 
 import pytest
 
@@ -113,3 +114,13 @@ def test_constant_qubit_noise():
 
     with pytest.raises(ValueError, match='num_qubits'):
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
+
+
+def test_two_qubit_noise():
+    a, b, c = cirq.LineQubit.range(3)
+    depol_single = cirq.depolarize(0.5)
+    depol_two = two_qubit_depolarize(0.5)
+    depol_all = TwoQubitNoiseModel(depol_single, depol_two)
+    assert depol_all.noisy_moments(
+        [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.CNOT(a,b)]), cirq.Moment()],
+        [a, b, c]) == [[(cirq.X(a), depol_single(a))], [(cirq.CNOT(a, b), depol_two(a, b))], []]
