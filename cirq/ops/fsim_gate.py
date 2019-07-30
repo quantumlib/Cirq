@@ -56,6 +56,12 @@ class FSimGate(gate_features.TwoQubitGate,
     """
 
     def __init__(self, theta: float, phi: float):
+        """
+        Args:
+            theta: The strength of the XX+YY interaction, in radians.
+            phi: CPhase angle in radians. Determines how much the |11⟩ state is
+                phased.
+        """
         self.theta = theta
         self.phi = phi
 
