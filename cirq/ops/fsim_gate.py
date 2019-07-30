@@ -63,12 +63,13 @@ class FSimGate(gate_features.TwoQubitGate,
     def __init__(self, theta: float, phi: float):
         """
         Args:
-            theta: Swap angle on the odd 1s subspace, in radians. Determined by
-                the strength and duration of the XX+YY interaction. Note: uses
-                opposite sign convention to the iSWAP gate.
+            theta: Swap angle on the span(|01⟩, |10⟩) subspace, in radians.
+                Determined by the strength and duration of the XX+YY
+                interaction. Note: uses opposite sign convention to the
+                iSWAP gate.
             phi: Controlled phase angle, in radians. Determines how much the
-                |11⟩ state is phased. Note: uses opposite sign convention to the
-                CZPowGate.
+                |11⟩ state is phased. Note: uses opposite sign convention to
+                the CZPowGate.
         """
         self.theta = theta
         self.phi = phi
