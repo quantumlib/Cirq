@@ -66,8 +66,8 @@ class FSimGate(gate_features.TwoQubitGate,
             theta: Swap angle on the odd 1s subspace, in radians. Determined by
                 the strength and duration of the XX+YY interaction. Note: uses
                 opposite sign convention to the iSWAP gate.
-            phi: Conrolled phase angle, in radians. Determines how much the |11⟩
-                state is phased. Note: uses oppositesign convention to the
+            phi: Controlled phase angle, in radians. Determines how much the
+                |11⟩ state is phased. Note: uses oppositesign convention to the
                 CZPowGate.
         """
         self.theta = theta
