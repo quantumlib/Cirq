@@ -188,24 +188,32 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def validate_args(self, qubits: Sequence[Qid]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
-        By default checks if input is of type Qid and qubit count.
-        Child classes can override.
+        By default checks that:
+        - inputs are of type `Qid`
+        - len(qubits) == num_qubits()
+        - qubit_i.levels == qid_shape[i] for all qubits
+
+        Child classes can override.  The child implementation should call
+        `super().validate_args(qubits)` then do custom checks.
 
         Args:
-            qubits: The collection of qubits to potentially apply the gate to.
+            qubits: The sequence of qubits to potentially apply the gate to.
 
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
-        if len(qubits) != protocols.num_qubits(self):
+        if any(not isinstance(qid, Qid) for qid in qubits):
+            raise ValueError('Gate was called with type different than Qid.')
+        qid_shape = protocols.qid_shape(self)
+        if len(qubits) != len(qid_shape):
             raise ValueError('Wrong number of qubits for <{!r}>. '
                              'Expected {} qubits but got <{!r}>.'.format(
-                                 self, protocols.num_qubits(self), qubits))
-
-        if any([not isinstance(qubit, Qid)
-                for qubit in qubits]):
-            raise ValueError(
-                    'Gate was called with type different than Qid.')
+                                self, len(qid_shape), qubits))
+        if any(qid.levels != levels for qid, levels in zip(qubits, qid_shape)):
+            raise ValueError('Wrong shape of qids for <{!r}>. '
+                             'Expected {} but got {} <{!r}>.'.format(
+                                self, qid_shape,
+                                tuple(qid.levels for qid in qubits), qubits))
 
     def on(self, *qubits: Qid) -> 'Operation':
         """Returns an application of this gate to the given qubits.
