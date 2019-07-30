@@ -91,7 +91,8 @@ class EjectZ():
 
                 if _is_swaplike(op):
                     a, b = op.qubits
-                    qubit_phase[a], qubit_phase[b] = qubit_phase[b], qubit_phase[a]
+                    qubit_phase[a], qubit_phase[b] = qubit_phase[
+                        b], qubit_phase[a]
                     continue
 
 
