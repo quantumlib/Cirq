@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import sympy
 import numpy as np
 
@@ -56,10 +57,10 @@ def test_single_z_stays():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
         ]))
 
 
@@ -68,18 +69,18 @@ def test_ignores_xz_and_cz():
     b = cirq.NamedQubit('b')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.X(a)**0.5]),
-            cirq.Moment([cirq.Y(b)**0.5]),
-            cirq.Moment([cirq.CZ(a, b)**0.25]),
-            cirq.Moment([cirq.Y(a)**0.5]),
-            cirq.Moment([cirq.X(b)**0.5]),
+            cirq.Moment([cirq.X(a) ** 0.5]),
+            cirq.Moment([cirq.Y(b) ** 0.5]),
+            cirq.Moment([cirq.CZ(a, b) ** 0.25]),
+            cirq.Moment([cirq.Y(a) ** 0.5]),
+            cirq.Moment([cirq.X(b) ** 0.5]),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cirq.X(a)**0.5]),
-            cirq.Moment([cirq.Y(b)**0.5]),
-            cirq.Moment([cirq.CZ(a, b)**0.25]),
-            cirq.Moment([cirq.Y(a)**0.5]),
-            cirq.Moment([cirq.X(b)**0.5]),
+            cirq.Moment([cirq.X(a) ** 0.5]),
+            cirq.Moment([cirq.Y(b) ** 0.5]),
+            cirq.Moment([cirq.CZ(a, b) ** 0.25]),
+            cirq.Moment([cirq.Y(a) ** 0.5]),
+            cirq.Moment([cirq.X(b) ** 0.5]),
         ]))
 
 
@@ -87,12 +88,12 @@ def test_early_z():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
             cirq.Moment(),
             cirq.Moment(),
         ]),
         expected=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
             cirq.Moment(),
             cirq.Moment(),
         ]))
@@ -102,12 +103,12 @@ def test_multi_z_merges():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
-            cirq.Moment([cirq.Z(q)**0.25]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.25]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment(),
-            cirq.Moment([cirq.Z(q)**0.75]),
+            cirq.Moment([cirq.Z(q) ** 0.75]),
         ]))
 
 
@@ -115,13 +116,13 @@ def test_z_pushes_past_xy_and_phases_it():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
-            cirq.Moment([cirq.Y(q)**0.25]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
+            cirq.Moment([cirq.Y(q) ** 0.25]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment(),
-            cirq.Moment([cirq.X(q)**0.25]),
-            cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment([cirq.X(q) ** 0.25]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
         ]))
 
 
@@ -130,13 +131,13 @@ def test_z_pushes_past_cz():
     b = cirq.NamedQubit('b')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.Z(a)**0.5]),
-            cirq.Moment([cirq.CZ(a, b)**0.25]),
+            cirq.Moment([cirq.Z(a) ** 0.5]),
+            cirq.Moment([cirq.CZ(a, b) ** 0.25]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment(),
-            cirq.Moment([cirq.CZ(a, b)**0.25]),
-            cirq.Moment([cirq.Z(a)**0.5]),
+            cirq.Moment([cirq.CZ(a, b) ** 0.25]),
+            cirq.Moment([cirq.Z(a) ** 0.5]),
         ]))
 
 
@@ -144,8 +145,8 @@ def test_measurement_consumes_zs():
     q = cirq.NamedQubit('q')
     assert_optimizes(
         before=cirq.Circuit([
-            cirq.Moment([cirq.Z(q)**0.5]),
-            cirq.Moment([cirq.Z(q)**0.25]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.25]),
             cirq.Moment([cirq.measure(q)]),
         ]),
         expected=cirq.Circuit([
@@ -167,9 +168,9 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         before=cirq.Circuit([
             cirq.Moment([cirq.Z(q)]),
             cirq.Moment([u(q)]),
-            cirq.Moment([cirq.Z(q)**0.5]),
+            cirq.Moment([cirq.Z(q) ** 0.5]),
             cirq.Moment([cirq.X(q)]),
-            cirq.Moment([cirq.Z(q)**0.25]),
+            cirq.Moment([cirq.Z(q) ** 0.25]),
             cirq.Moment([cirq.X(q)]),
             cirq.Moment([u(q)]),
         ]),
@@ -180,7 +181,7 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
             cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.5)(q)]),
             cirq.Moment(),
             cirq.Moment([cirq.PhasedXPowGate(phase_exponent=-0.75).on(q)]),
-            cirq.Moment([cirq.Z(q)**0.75]),
+            cirq.Moment([cirq.Z(q) ** 0.75]),
             cirq.Moment([u(q)]),
         ]))
 
@@ -190,13 +191,13 @@ def test_symbols_block():
     assert_optimizes(
         before=cirq.Circuit([
             cirq.Moment([cirq.Z(q)]),
-            cirq.Moment([cirq.Z(q)**sympy.Symbol('a')]),
-            cirq.Moment([cirq.Z(q)**0.25]),
+            cirq.Moment([cirq.Z(q) ** sympy.Symbol('a')]),
+            cirq.Moment([cirq.Z(q) ** 0.25]),
         ]),
         expected=cirq.Circuit([
             cirq.Moment(),
-            cirq.Moment([cirq.Z(q)**sympy.Symbol('a')]),
-            cirq.Moment([cirq.Z(q)**1.25]),
+            cirq.Moment([cirq.Z(q) ** sympy.Symbol('a')]),
+            cirq.Moment([cirq.Z(q) ** 1.25]),
         ]))
 
 
@@ -273,26 +274,45 @@ def test_swap():
     cirq.DropEmptyMoments().optimize_circuit(optimized)
 
     assert optimized[0].operations == (cirq.SWAP(a, b),)
-    assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
+    assert optimized[1].operations == (cirq.Z(b) ** (.123 / np.pi),)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
                                                     atol=1e-8)
 
 
-def test_swap_fsim():
+@pytest.mark.parametrize('theta', (np.pi / 2, -np.pi / 2))
+def test_swap_fsim(theta):
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit.from_ops([
         cirq.Rz(.123).on(a),
-        cirq.FSimGate(theta=np.pi / 2, phi=.123).on(a, b)
+        cirq.FSimGate(theta=theta, phi=.123).on(a, b)
     ])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)
     cirq.DropEmptyMoments().optimize_circuit(optimized)
 
-    assert optimized[0].operations == (cirq.FSimGate(theta=np.pi / 2,
+    assert optimized[0].operations == (cirq.FSimGate(theta=theta,
                                                      phi=.123).on(a, b),)
-    assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
+    assert optimized[1].operations == (cirq.Z(b) ** (.123 / np.pi),)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
+                                                    cirq.unitary(optimized),
+                                                    atol=1e-8)
+
+@pytest.mark.parametrize('exponent', (1, -1))
+def test_swap_iswap(exponent):
+    a, b = cirq.LineQubit.range(2)
+    original = cirq.Circuit.from_ops([
+        cirq.Rz(.123).on(a),
+        cirq.ISWAP(a, b)**exponent
+    ])
+    optimized = original.copy()
+
+    cirq.EjectZ().optimize_circuit(optimized)
+    cirq.DropEmptyMoments().optimize_circuit(optimized)
+
+    assert optimized[0].operations == (cirq.ISWAP(a, b)**exponent,)
+    assert optimized[1].operations == (cirq.Z(b) ** (.123 / np.pi),)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
                                                     atol=1e-8)

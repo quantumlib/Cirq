@@ -32,9 +32,14 @@ def _is_swaplike(op: ops.Operation):
     if gate1:
         return gate1.exponent == 1
 
-    gate2 = ops.op_gate_of_type(op, ops.FSimGate)
+    gate2 = ops.op_gate_of_type(op, ops.ISwapPowGate)
     if gate2:
-        return np.isclose(gate2.theta, np.pi / 2)
+        return abs(gate2.exponent) == 1
+
+    gate3 = ops.op_gate_of_type(op, ops.FSimGate)
+    if gate3:
+        return np.isclose(np.abs(gate2.theta), np.pi / 2)
+
 
     return False
 
