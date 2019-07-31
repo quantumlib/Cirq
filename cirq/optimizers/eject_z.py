@@ -38,7 +38,7 @@ def _is_swaplike(op: ops.Operation):
 
     gate3 = ops.op_gate_of_type(op, ops.FSimGate)
     if gate3:
-        return np.isclose(np.abs(gate2.theta), np.pi / 2)
+        return np.isclose(np.abs(gate3.theta), np.pi / 2)
 
     return False
 
