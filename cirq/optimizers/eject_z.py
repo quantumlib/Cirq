@@ -16,8 +16,8 @@
 
 from typing import Optional, cast, TYPE_CHECKING, Iterable
 from collections import defaultdict
-import sympy
 import numpy as np
+import sympy
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
