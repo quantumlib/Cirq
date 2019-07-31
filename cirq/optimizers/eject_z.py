@@ -27,18 +27,22 @@ if TYPE_CHECKING:
     from typing import Dict, List, Tuple
 
 
+def _is_integer(n):
+    return np.isclose(n, np.round(n))
+
+
 def _is_swaplike(op: ops.Operation):
     gate1 = ops.op_gate_of_type(op, ops.SwapPowGate)
     if gate1:
-        return gate1.exponent == 1
+        return _is_integer((gate1.exponent - 1) / 2)
 
     gate2 = ops.op_gate_of_type(op, ops.ISwapPowGate)
     if gate2:
-        return abs(gate2.exponent) == 1
+        return _is_integer((gate2.exponent - 1) / 2)
 
     gate3 = ops.op_gate_of_type(op, ops.FSimGate)
     if gate3:
-        return np.isclose(np.abs(gate3.theta), np.pi / 2)
+        return _is_integer((gate3.theta - (np.pi / 2)) / np.pi)
 
     return False
 

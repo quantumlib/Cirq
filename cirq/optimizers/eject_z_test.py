@@ -257,22 +257,31 @@ def test_unknown_operation_blocks():
         ]))
 
 
-def test_swap():
+@pytest.mark.parametrize('exponent', (1, -1, 3, -5))
+def test_swap(exponent):
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit.from_ops([cirq.Rz(.123).on(a), cirq.SWAP(a, b)])
+    original = cirq.Circuit.from_ops(
+        [cirq.Rz(.123).on(a), cirq.SWAP(a, b)**exponent])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)
     cirq.DropEmptyMoments().optimize_circuit(optimized)
 
-    assert optimized[0].operations == (cirq.SWAP(a, b),)
-    assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
+    assert optimized[0].operations == cirq.SWAP(a, b)**exponent
+    assert optimized[1].operations == cirq.Z(b)**(.123 / np.pi)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
                                                     atol=1e-8)
 
 
-@pytest.mark.parametrize('theta', (np.pi / 2, -np.pi / 2))
+@pytest.mark.parametrize('exponent', (0, 2, 1.1, -2, -1.6))
+def test_not_a_swap(exponent):
+    a, b = cirq.LineQubit.range(2)
+    assert not cirq.optimizers.eject_z._is_swaplike(cirq.SWAP(a, b)**exponent)
+
+
+@pytest.mark.parametrize('theta',
+                         (np.pi / 2, -np.pi / 2, np.pi / 2 + 5 * np.pi))
 def test_swap_fsim(theta):
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit.from_ops(
@@ -289,6 +298,13 @@ def test_swap_fsim(theta):
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
                                                     atol=1e-8)
+
+
+@pytest.mark.parametrize('theta', (0, 5 * np.pi, -np.pi))
+def test_not_a_swap_fsim(theta):
+    a, b = cirq.LineQubit.range(2)
+    assert not cirq.optimizers.eject_z._is_swaplike(
+        cirq.FSimGate(theta=theta, phi=.456).on(a, b))
 
 
 @pytest.mark.parametrize('exponent', (1, -1))
