@@ -49,7 +49,7 @@ class PauliString(raw_types.Operation):
             for q, p in qubit_pauli_map.items()
             if not isinstance(p, common_gates.IdentityGate)
         }
-        for q, p in qubit_pauli_map.items():
+        for p in qubit_pauli_map.values():
             if not isinstance(p, pauli_gates.Pauli):
                 raise TypeError(f'{p} is not a Pauli')
         self._qubit_pauli_map = dict(qubit_pauli_map)
