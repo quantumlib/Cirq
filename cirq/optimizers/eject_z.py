@@ -40,7 +40,6 @@ def _is_swaplike(op: ops.Operation):
     if gate3:
         return np.isclose(np.abs(gate2.theta), np.pi / 2)
 
-
     return False
 
 
