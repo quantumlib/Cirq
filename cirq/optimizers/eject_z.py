@@ -34,7 +34,7 @@ def _is_integer(n):
 def _is_swaplike(op: ops.Operation):
     gate1 = ops.op_gate_of_type(op, ops.SwapPowGate)
     if gate1:
-        return _is_integer((gate1.exponent - 1) / 2)
+        return gate1.exponent == 1
 
     gate2 = ops.op_gate_of_type(op, ops.ISwapPowGate)
     if gate2:

@@ -257,18 +257,16 @@ def test_unknown_operation_blocks():
         ]))
 
 
-@pytest.mark.parametrize('exponent', (1, -1, 3, -5))
-def test_swap(exponent):
+def test_swap():
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit.from_ops(
-        [cirq.Rz(.123).on(a), cirq.SWAP(a, b)**exponent])
+    original = cirq.Circuit.from_ops([cirq.Rz(.123).on(a), cirq.SWAP(a, b)])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)
     cirq.DropEmptyMoments().optimize_circuit(optimized)
 
-    assert optimized[0].operations == cirq.SWAP(a, b)**exponent
-    assert optimized[1].operations == cirq.Z(b)**(.123 / np.pi)
+    assert optimized[0].operations == (cirq.SWAP(a, b),)
+    assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
                                                     atol=1e-8)
