@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-import sympy
 import numpy as np
+import sympy
 
 import cirq
 from cirq.optimizers.eject_z import _try_get_known_z_half_turns
