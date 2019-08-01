@@ -389,9 +389,10 @@ class Engine:
 
         return EngineJob(job_config, response, self)
 
-    def create_program(self, program_id: str, program: Program,
+    def create_program(self,
+                       program_id: str,
+                       program: Program,
                        gate_set: SerializableGateSet = gate_sets.XMON) -> Dict:
-
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
         Args:
@@ -408,11 +409,12 @@ class Engine:
             'code': self._serialize_program(program, gate_set),
         }
         return self.service.projects().programs().create(
-             parent=parent_name, body=request).execute()
+            parent=parent_name, body=request).execute()
 
-    def _serialize_program(self, program: Program,
-                            gate_set: SerializableGateSet = gate_sets.XMON
-                           ) -> Dict[str, Any]:
+    def _serialize_program(self,
+                           program: Program,
+                           gate_set: SerializableGateSet = gate_sets.XMON
+                          ) -> Dict[str, Any]:
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
             schedule.device.validate_schedule(schedule)
@@ -433,15 +435,18 @@ class Engine:
             raise ValueError('Invalid program proto version: {}'.format(
                 self.proto_version))
 
-
-    def _serialize_run_context(self, sweeps: List[Sweep], repetitions: int,
-                                  ) -> Dict[str, Any]:
+    def _serialize_run_context(
+            self,
+            sweeps: List[Sweep],
+            repetitions: int,
+    ) -> Dict[str, Any]:
         if self.proto_version == ProtoVersion.V1:
             context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
             context_dict = {}  # type: Dict[str, Any]
             context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
             context_dict['parameter_sweeps'] = [
-                api_v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+                api_v1.sweep_to_proto_dict(sweep, repetitions)
+                for sweep in sweeps
             ]
             return context_dict
         elif self.proto_version == ProtoVersion.V2:
@@ -460,7 +465,6 @@ class Engine:
         else:
             raise ValueError('Invalid run context proto version: {}'.format(
                 self.proto_version))
-
 
     def get_program(self, program_id: str) -> Dict:
         """Returns the previously created quantum program.
@@ -562,9 +566,9 @@ class Engine:
 
     def _program_name_from_id(self, program_id: str) -> str:
         return 'projects/%s/programs/%s' % (
-                self.project_id,
-                program_id,
-            )
+            self.project_id,
+            program_id,
+        )
 
     def _program_id_from_name(self, program_name: str) -> str:
         parent = 'projects/%s' % self.project_id
@@ -575,8 +579,8 @@ class Engine:
                              "name: '%s'" % program_name)
         return match.group(1)
 
-    def _set_program_labels(self, program_id: str,
-                            labels: Dict[str, str], fingerprint: str):
+    def _set_program_labels(self, program_id: str, labels: Dict[str, str],
+                            fingerprint: str):
         program_resource_name = self._program_name_from_id(program_id)
         self.service.projects().programs().patch(
             name=program_resource_name,
@@ -584,25 +588,21 @@ class Engine:
                   'labelFingerprint': fingerprint},
             updateMask='labels').execute()
 
-    def set_program_labels(self, program_id: str,
-                           labels: Dict[str, str]):
+    def set_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
         self._set_program_labels(program_id, labels,
                                  program.get('labelFingerprint', ''))
 
-    def add_program_labels(self, program_id: str,
-                           labels: Dict[str, str]):
+    def add_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
         old_labels = job.get('labels', {})
         new_labels = old_labels.copy()
         new_labels.update(labels)
         if new_labels != old_labels:
             fingerprint = job.get('labelFingerprint', '')
-            self._set_program_labels(program_id, new_labels,
-                                     fingerprint)
+            self._set_program_labels(program_id, new_labels, fingerprint)
 
-    def remove_program_labels(self, program_id: str,
-                              label_keys: List[str]):
+    def remove_program_labels(self, program_id: str, label_keys: List[str]):
         job = self.get_program(program_id)
         old_labels = job.get('labels', {})
         new_labels = old_labels.copy()
@@ -610,8 +610,7 @@ class Engine:
             new_labels.pop(key, None)
         if new_labels != old_labels:
             fingerprint = job.get('labelFingerprint', '')
-            self._set_program_labels(program_id, new_labels,
-                                     fingerprint)
+            self._set_program_labels(program_id, new_labels, fingerprint)
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
                         fingerprint: str):
