@@ -59,13 +59,11 @@ class Heatmap:
         # Fail fast if float() fails.
         # Keep the original value object for annotation.
         self.value_map = {
-            key: (float(value), value)
-            for key, value in value_map.items()
+            key: (float(value), value) for key, value in value_map.items()
         }
         return self
 
-    def set_annotation_map(self,
-                           annot_map: Mapping[QubitCoordinate, str],
+    def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
                            **kws: str) -> 'Heatmap':
         """Sets the annotation text for each qubit.
 
@@ -110,9 +108,9 @@ class Heatmap:
         return self
 
     def set_colorbar(self,
-                     position: str='right',
-                     size: str='5%',
-                     pad: str='2%',
+                     position: str = 'right',
+                     size: str = '5%',
+                     pad: str = '2%',
                      **kws: Any) -> 'Heatmap':
         """Sets location and style of colorbar.
 
@@ -138,9 +136,9 @@ class Heatmap:
         return self
 
     def set_colormap(self,
-                     colormap: Union[str, mpl.colors.Colormap]='viridis',
-                     vmin: Optional[float]=None,
-                     vmax: Optional[float]=None) -> 'Heatmap':
+                     colormap: Union[str, mpl.colors.Colormap] = 'viridis',
+                     vmin: Optional[float] = None,
+                     vmax: Optional[float] = None) -> 'Heatmap':
         """Sets the colormap.
 
         Args:
@@ -176,10 +174,9 @@ class Heatmap:
         height, width = max_row - min_row + 1, max_col - min_col + 1
         # Construct the (height x width) table of values. Cells with no values
         # are filled with np.nan.
-        value_table = pd.DataFrame(
-            np.nan,
-            index=range(min_row, max_row + 1),
-            columns=range(min_col, max_col + 1))
+        value_table = pd.DataFrame(np.nan,
+                                   index=range(min_row, max_row + 1),
+                                   columns=range(min_col, max_col + 1))
         for (row, col), (float_value, _) in self.value_map.items():
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
@@ -197,15 +194,14 @@ class Heatmap:
             ]
 
         # Plot the heatmap.
-        mesh = ax.pcolor(
-            x_table,
-            y_table,
-            value_table,
-            vmin=self.vmin,
-            vmax=self.vmax,
-            cmap=self.colormap,
-            urls=url_array,
-            **kws)
+        mesh = ax.pcolor(x_table,
+                         y_table,
+                         value_table,
+                         vmin=self.vmin,
+                         vmax=self.vmax,
+                         cmap=self.colormap,
+                         urls=url_array,
+                         **kws)
         mesh.update_scalarmappable()
         ax.set(xlabel='column', ylabel='row')
         ax.invert_yaxis()
@@ -227,12 +223,11 @@ class Heatmap:
             **self.colorbar_location_options)
         position = self.colorbar_location_options.get('position', 'right')
         orien = 'vertical' if position in ('left', 'right') else 'horizontal'
-        colorbar = ax.figure.colorbar(
-            mappable,
-            colorbar_ax,
-            ax,
-            orientation=orien,
-            **self.colorbar_options)
+        colorbar = ax.figure.colorbar(mappable,
+                                      colorbar_ax,
+                                      ax,
+                                      orientation=orien,
+                                      **self.colorbar_options)
         colorbar_ax.tick_params(axis='y', direction='out')
         return colorbar
 

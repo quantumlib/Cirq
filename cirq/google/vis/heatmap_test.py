@@ -30,9 +30,9 @@ class TestHeatmap:
 
     # Test colormaps are the first one in each category in
     # https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html.
-    @pytest.mark.parametrize('colormap_name', [
-        'viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag'
-    ])
+    @pytest.mark.parametrize(
+        'colormap_name',
+        ['viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag'])
     def test_cell_colors(self, colormap_name):
         qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
         values = 1.0 + 2.0 * np.random.random(len(qubits))  # [1, 3)
@@ -62,8 +62,8 @@ class TestHeatmap:
         qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
         values = np.random.random(len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-        random_heatmap = (heatmap.Heatmap(test_value_map)
-                          .set_annotation_format(format_string))
+        random_heatmap = (heatmap.Heatmap(test_value_map).set_annotation_format(
+            format_string))
         _, ax = plt.subplots()
         random_heatmap.plot(ax)
         actual_texts = set()
@@ -82,11 +82,10 @@ class TestHeatmap:
         annos = np.random.choice([c for c in string.ascii_letters], len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         test_anno_map = {
-            qubit: anno
-            for qubit, anno in zip(qubits, annos) if qubit != (1, 6)
+            qubit: anno for qubit, anno in zip(qubits, annos) if qubit != (1, 6)
         }
-        random_heatmap = (heatmap.Heatmap(test_value_map)
-                          .set_annotation_map(test_anno_map))
+        random_heatmap = (
+            heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map))
         _, ax = plt.subplots()
         random_heatmap.plot(ax)
         actual_texts = set()
@@ -126,8 +125,8 @@ class TestHeatmap:
         colormap_name = 'viridis'
         vmin, vmax = 0.0, 1.0
         random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-            colormap_name, vmin=vmin, vmax=vmax)
-                          .set_annotation_format(format_string))
+            colormap_name, vmin=vmin,
+            vmax=vmax).set_annotation_format(format_string))
         _, ax = plt.subplots()
         mesh, _ = random_heatmap.plot(ax)
 
@@ -156,15 +155,16 @@ class TestHeatmap:
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         test_url_map = {
             qubit: 'http://google.com/{}+{}'.format(qubit[0], qubit[1])
-            for qubit in qubits if qubit != (1, 6)
+            for qubit in qubits
+            if qubit != (1, 6)
         }
         # Add an extra entry that should not show up in results because the
         # qubit is not in the value map.
         test_url_map[(10, 7)] = 'http://google.com/10+7'
 
         _, ax = plt.subplots()
-        mesh, _ = (heatmap.Heatmap(test_value_map)
-                   .set_url_map(test_url_map)).plot(ax)
+        mesh, _ = (
+            heatmap.Heatmap(test_value_map).set_url_map(test_url_map)).plot(ax)
         expected_urls = [
             test_url_map.get((row, col), '') for row, col in sorted(qubits)
         ]
