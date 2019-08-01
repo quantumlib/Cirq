@@ -8,7 +8,6 @@ import pytest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-
 from cirq.google.vis import heatmap
 
 
