@@ -240,7 +240,9 @@ class Engine:
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
-            processor_ids: The engine processors to run against.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor.
 
