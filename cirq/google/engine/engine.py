@@ -204,10 +204,11 @@ class Engine:
         # Suppress warnings about using Application Default Credentials.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            self.service = discovery.build('' if discovery_url else 'quantum',
-                                           '' if discovery_url else version,
-                                           discoveryServiceUrl=self.discovery_url,
-                                           **service_args)
+            self.service = discovery.build(
+                '' if discovery_url else 'quantum',
+                '' if discovery_url else version,
+                discoveryServiceUrl=self.discovery_url,
+                **service_args)
 
     def run(
             self,
