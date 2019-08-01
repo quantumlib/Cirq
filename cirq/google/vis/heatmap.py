@@ -11,9 +11,9 @@ The public entry points are:
 from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
                     Union)
 
+import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from matplotlib import collections as mpl_collections
 from mpl_toolkits import axes_grid1
@@ -80,8 +80,7 @@ class Heatmap:
         self.annot_kws = kws
         return self
 
-    def set_annotation_format(self, annot_format: str,
-                              **kws: str) -> 'Heatmap':
+    def set_annotation_format(self, annot_format: str, **kws: str) -> 'Heatmap':
         """Sets a format string to format values for each qubit.
 
         Args:
@@ -237,8 +236,7 @@ class Heatmap:
         colorbar_ax.tick_params(axis='y', direction='out')
         return colorbar
 
-    def _write_annotations(self,
-                           mesh: mpl_collections.Collection,
+    def _write_annotations(self, mesh: mpl_collections.Collection,
                            ax: plt.Axes) -> None:
         """Writes annotations to the center of cells. Internal."""
         for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):

@@ -2,16 +2,18 @@
 
 import string
 
+import numpy as np
+import pytest
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numpy as np
 
-import pytest
 
 from cirq.google.vis import heatmap
 
 
 class TestHeatmap:
+
     def test_cells_positions(self):
         qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
         values = np.random.random(len(qubits))
@@ -78,8 +80,7 @@ class TestHeatmap:
     def test_annotation_map(self):
         qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
         values = np.random.random(len(qubits))
-        annos = np.random.choice([c
-                                  for c in string.ascii_letters], len(qubits))
+        annos = np.random.choice([c for c in string.ascii_letters], len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         test_anno_map = {
             qubit: anno
@@ -100,7 +101,9 @@ class TestHeatmap:
 
     @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g', 's'])
     def test_non_float_values(self, format_string):
+
         class Foo:
+
             def __init__(self, value: float, unit: str):
                 self.value = value
                 self.unit = unit
@@ -116,8 +119,7 @@ class TestHeatmap:
 
         qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
         values = np.random.random(len(qubits))
-        units = np.random.choice([c
-                                  for c in string.ascii_letters], len(qubits))
+        units = np.random.choice([c for c in string.ascii_letters], len(qubits))
         test_value_map = {
             qubit: Foo(float(value), unit)
             for qubit, value, unit in zip(qubits, values, units)
