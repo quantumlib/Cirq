@@ -139,14 +139,19 @@ class Engine:
 
     This class has methods for creating programs and jobs that execute on
     Quantum Engine:
+        create_program
         run
         run_sweep
 
     Another set of methods return information about programs and jobs that
-    have been previously created on the Quantum Engine:
+    have been previously created on the Quantum Engine, as well as metadata
+    about available processors:
+        get_calibration
+        get_lastest_calibration
         get_program
         get_job
         get_job_results
+        list_processors
 
     Finally, the engine has methods to update existing programs and jobs:
         cancel_job
@@ -375,7 +380,7 @@ class Engine:
             'run_context': run_context
         }
         response = self.service.projects().programs().jobs().create(
-            parent=response['name'], body=request).execute()
+            parent=program['name'], body=request).execute()
 
         return EngineJob(job_config, response, self)
 
@@ -462,7 +467,7 @@ class Engine:
         Returns:
             A dictionary containing the metadata and the program.
         """
-        program_resource_name = program_name_from_id(program_id)
+        program_resource_name = self._program_name_from_id(program_id)
         return self.service.projects().programs().get(
             name=program_resource_name).execute()
 
@@ -554,7 +559,7 @@ class Engine:
         return 'projects/%s/programs/%s' % (
                 self.project_id,
                 program_id,
-            ),
+            )
 
     def _program_id_from_name(self, program_name: str) -> str:
         parent = 'projects/%s' % self.project_id
@@ -567,7 +572,7 @@ class Engine:
 
     def _set_program_labels(self, program_id: str,
                             labels: Dict[str, str], fingerprint: str):
-        program_resource_name = program_name_from_id(program_id)
+        program_resource_name = self._program_name_from_id(program_id)
         self.service.projects().programs().patch(
             name=program_resource_name,
             body={'name': program_resource_name, 'labels': labels,
@@ -635,6 +640,7 @@ class Engine:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
+
     def list_processors(self) -> List[Dict]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
@@ -647,6 +653,7 @@ class Engine:
         response = self.service.projects().processors().list(
             parent=parent).execute()
         return response['processors']
+
 
     def get_latest_calibration(self,
                                processor_id: str) -> Optional['Calibration']:
