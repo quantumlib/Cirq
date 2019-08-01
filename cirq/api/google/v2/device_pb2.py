@@ -19,14 +19,14 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.api.google.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.api.google.v2B\020CalibrationProtoP\001'),
-  serialized_pb=_b('\n\x1f\x63irq/api/google/v2/device.proto\x12\x12\x63irq.api.google.v2\"\xc1\x02\n\x13\x44\x65viceSpecification\x12\x36\n\x11\x61llowed_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.api.google.v2.GateSet\x12\x16\n\x0e\x61llowed_qubits\x18\x02 \x03(\t\x12X\n\x11qubit_information\x18\x03 \x03(\x0b\x32=.cirq.api.google.v2.DeviceSpecification.QubitInformationEntry\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\x1a]\n\x15QubitInformationEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x33\n\x05value\x18\x02 \x01(\x0b\x32$.cirq.api.google.v2.QubitInformation:\x02\x38\x01\"[\n\x07GateSet\x12\x15\n\rgate_set_name\x18\x01 \x01(\t\x12\x39\n\rallowed_gates\x18\x02 \x03(\x0b\x32\".cirq.api.google.v2.GateDefinition\"\x97\x01\n\x0eGateDefinition\x12\x11\n\tgate_name\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12;\n\x11\x61llowed_gate_args\x18\x03 \x03(\x0b\x32 .cirq.api.google.v2.GateArgument\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\"\xd9\x01\n\x0cGateArgument\x12\x0c\n\x04name\x18\x01 \x01(\t\x12;\n\x04type\x18\x02 \x01(\x0e\x32-.cirq.api.google.v2.GateArgument.ArgumentType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgumentRange\"C\n\x0c\x41rgumentType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x0b\n\x07\x42OOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"(\n\x10QubitInformation\x12\x14\n\x0cneighbor_ids\x18\x01 \x03(\tB3\n\x1d\x63om.google.cirq.api.google.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1f\x63irq/api/google/v2/device.proto\x12\x12\x63irq.api.google.v2\"\xb7\x01\n\x13\x44\x65viceSpecification\x12\x34\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.api.google.v2.GateSet\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x31\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1a.cirq.api.google.v2.Target\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.api.google.v2.GateDefinition\"\x8a\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.api.google.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB3\n\x1d\x63om.google.cirq.api.google.v2B\x10\x43\x61librationProtoP\x01\x62\x06proto3')
 )
 
 
 
-_GATEARGUMENT_ARGUMENTTYPE = _descriptor.EnumDescriptor(
-  name='ArgumentType',
-  full_name='cirq.api.google.v2.GateArgument.ArgumentType',
+_ARGDEFINITION_ARGTYPE = _descriptor.EnumDescriptor(
+  name='ArgType',
+  full_name='cirq.api.google.v2.ArgDefinition.ArgType',
   filename=None,
   file=DESCRIPTOR,
   values=[
@@ -39,7 +39,7 @@ _GATEARGUMENT_ARGUMENTTYPE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='BOOLEAN', index=2, number=2,
+      name='REPEATED_BOOLEAN', index=2, number=2,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
@@ -49,48 +49,11 @@ _GATEARGUMENT_ARGUMENTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=777,
-  serialized_end=844,
+  serialized_start=612,
+  serialized_end=683,
 )
-_sym_db.RegisterEnumDescriptor(_GATEARGUMENT_ARGUMENTTYPE)
+_sym_db.RegisterEnumDescriptor(_ARGDEFINITION_ARGTYPE)
 
-
-_DEVICESPECIFICATION_QUBITINFORMATIONENTRY = _descriptor.Descriptor(
-  name='QubitInformationEntry',
-  full_name='cirq.api.google.v2.DeviceSpecification.QubitInformationEntry',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='key', full_name='cirq.api.google.v2.DeviceSpecification.QubitInformationEntry.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='cirq.api.google.v2.DeviceSpecification.QubitInformationEntry.value', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=_b('8\001'),
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=284,
-  serialized_end=377,
-)
 
 _DEVICESPECIFICATION = _descriptor.Descriptor(
   name='DeviceSpecification',
@@ -100,21 +63,21 @@ _DEVICESPECIFICATION = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='allowed_gate_sets', full_name='cirq.api.google.v2.DeviceSpecification.allowed_gate_sets', index=0,
+      name='valid_gate_sets', full_name='cirq.api.google.v2.DeviceSpecification.valid_gate_sets', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='allowed_qubits', full_name='cirq.api.google.v2.DeviceSpecification.allowed_qubits', index=1,
+      name='valid_qubits', full_name='cirq.api.google.v2.DeviceSpecification.valid_qubits', index=1,
       number=2, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='qubit_information', full_name='cirq.api.google.v2.DeviceSpecification.qubit_information', index=2,
+      name='valid_targets', full_name='cirq.api.google.v2.DeviceSpecification.valid_targets', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -130,7 +93,7 @@ _DEVICESPECIFICATION = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_DEVICESPECIFICATION_QUBITINFORMATIONENTRY, ],
+  nested_types=[],
   enum_types=[
   ],
   serialized_options=None,
@@ -140,7 +103,7 @@ _DEVICESPECIFICATION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=56,
-  serialized_end=377,
+  serialized_end=239,
 )
 
 
@@ -152,14 +115,14 @@ _GATESET = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='gate_set_name', full_name='cirq.api.google.v2.GateSet.gate_set_name', index=0,
+      name='name', full_name='cirq.api.google.v2.GateSet.name', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='allowed_gates', full_name='cirq.api.google.v2.GateSet.allowed_gates', index=1,
+      name='valid_gates', full_name='cirq.api.google.v2.GateSet.valid_gates', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -177,8 +140,8 @@ _GATESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=379,
-  serialized_end=470,
+  serialized_start=241,
+  serialized_end=321,
 )
 
 
@@ -190,7 +153,7 @@ _GATEDEFINITION = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='gate_name', full_name='cirq.api.google.v2.GateDefinition.gate_name', index=0,
+      name='id', full_name='cirq.api.google.v2.GateDefinition.id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -204,7 +167,7 @@ _GATEDEFINITION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='allowed_gate_args', full_name='cirq.api.google.v2.GateDefinition.allowed_gate_args', index=2,
+      name='valid_args', full_name='cirq.api.google.v2.GateDefinition.valid_args', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -229,34 +192,34 @@ _GATEDEFINITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=473,
-  serialized_end=624,
+  serialized_start=324,
+  serialized_end=462,
 )
 
 
-_GATEARGUMENT = _descriptor.Descriptor(
-  name='GateArgument',
-  full_name='cirq.api.google.v2.GateArgument',
+_ARGDEFINITION = _descriptor.Descriptor(
+  name='ArgDefinition',
+  full_name='cirq.api.google.v2.ArgDefinition',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='name', full_name='cirq.api.google.v2.GateArgument.name', index=0,
+      name='name', full_name='cirq.api.google.v2.ArgDefinition.name', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='type', full_name='cirq.api.google.v2.GateArgument.type', index=1,
+      name='type', full_name='cirq.api.google.v2.ArgDefinition.type', index=1,
       number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='allowed_ranges', full_name='cirq.api.google.v2.GateArgument.allowed_ranges', index=2,
+      name='allowed_ranges', full_name='cirq.api.google.v2.ArgDefinition.allowed_ranges', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -267,7 +230,7 @@ _GATEARGUMENT = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
-    _GATEARGUMENT_ARGUMENTTYPE,
+    _ARGDEFINITION_ARGTYPE,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -275,8 +238,8 @@ _GATEARGUMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=627,
-  serialized_end=844,
+  serialized_start=465,
+  serialized_end=683,
 )
 
 
@@ -313,20 +276,20 @@ _ARGUMENTRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=846,
-  serialized_end=907,
+  serialized_start=685,
+  serialized_end=746,
 )
 
 
-_QUBITINFORMATION = _descriptor.Descriptor(
-  name='QubitInformation',
-  full_name='cirq.api.google.v2.QubitInformation',
+_TARGET = _descriptor.Descriptor(
+  name='Target',
+  full_name='cirq.api.google.v2.Target',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='neighbor_ids', full_name='cirq.api.google.v2.QubitInformation.neighbor_ids', index=0,
+      name='ids', full_name='cirq.api.google.v2.Target.ids', index=0,
       number=1, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -344,41 +307,31 @@ _QUBITINFORMATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=909,
-  serialized_end=949,
+  serialized_start=748,
+  serialized_end=769,
 )
 
-_DEVICESPECIFICATION_QUBITINFORMATIONENTRY.fields_by_name['value'].message_type = _QUBITINFORMATION
-_DEVICESPECIFICATION_QUBITINFORMATIONENTRY.containing_type = _DEVICESPECIFICATION
-_DEVICESPECIFICATION.fields_by_name['allowed_gate_sets'].message_type = _GATESET
-_DEVICESPECIFICATION.fields_by_name['qubit_information'].message_type = _DEVICESPECIFICATION_QUBITINFORMATIONENTRY
-_GATESET.fields_by_name['allowed_gates'].message_type = _GATEDEFINITION
-_GATEDEFINITION.fields_by_name['allowed_gate_args'].message_type = _GATEARGUMENT
-_GATEARGUMENT.fields_by_name['type'].enum_type = _GATEARGUMENT_ARGUMENTTYPE
-_GATEARGUMENT.fields_by_name['allowed_ranges'].message_type = _ARGUMENTRANGE
-_GATEARGUMENT_ARGUMENTTYPE.containing_type = _GATEARGUMENT
+_DEVICESPECIFICATION.fields_by_name['valid_gate_sets'].message_type = _GATESET
+_DEVICESPECIFICATION.fields_by_name['valid_targets'].message_type = _TARGET
+_GATESET.fields_by_name['valid_gates'].message_type = _GATEDEFINITION
+_GATEDEFINITION.fields_by_name['valid_args'].message_type = _ARGDEFINITION
+_ARGDEFINITION.fields_by_name['type'].enum_type = _ARGDEFINITION_ARGTYPE
+_ARGDEFINITION.fields_by_name['allowed_ranges'].message_type = _ARGUMENTRANGE
+_ARGDEFINITION_ARGTYPE.containing_type = _ARGDEFINITION
 DESCRIPTOR.message_types_by_name['DeviceSpecification'] = _DEVICESPECIFICATION
 DESCRIPTOR.message_types_by_name['GateSet'] = _GATESET
 DESCRIPTOR.message_types_by_name['GateDefinition'] = _GATEDEFINITION
-DESCRIPTOR.message_types_by_name['GateArgument'] = _GATEARGUMENT
+DESCRIPTOR.message_types_by_name['ArgDefinition'] = _ARGDEFINITION
 DESCRIPTOR.message_types_by_name['ArgumentRange'] = _ARGUMENTRANGE
-DESCRIPTOR.message_types_by_name['QubitInformation'] = _QUBITINFORMATION
+DESCRIPTOR.message_types_by_name['Target'] = _TARGET
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 DeviceSpecification = _reflection.GeneratedProtocolMessageType('DeviceSpecification', (_message.Message,), dict(
-
-  QubitInformationEntry = _reflection.GeneratedProtocolMessageType('QubitInformationEntry', (_message.Message,), dict(
-    DESCRIPTOR = _DEVICESPECIFICATION_QUBITINFORMATIONENTRY,
-    __module__ = 'cirq.api.google.v2.device_pb2'
-    # @@protoc_insertion_point(class_scope:cirq.api.google.v2.DeviceSpecification.QubitInformationEntry)
-    ))
-  ,
   DESCRIPTOR = _DEVICESPECIFICATION,
   __module__ = 'cirq.api.google.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.DeviceSpecification)
   ))
 _sym_db.RegisterMessage(DeviceSpecification)
-_sym_db.RegisterMessage(DeviceSpecification.QubitInformationEntry)
 
 GateSet = _reflection.GeneratedProtocolMessageType('GateSet', (_message.Message,), dict(
   DESCRIPTOR = _GATESET,
@@ -394,12 +347,12 @@ GateDefinition = _reflection.GeneratedProtocolMessageType('GateDefinition', (_me
   ))
 _sym_db.RegisterMessage(GateDefinition)
 
-GateArgument = _reflection.GeneratedProtocolMessageType('GateArgument', (_message.Message,), dict(
-  DESCRIPTOR = _GATEARGUMENT,
+ArgDefinition = _reflection.GeneratedProtocolMessageType('ArgDefinition', (_message.Message,), dict(
+  DESCRIPTOR = _ARGDEFINITION,
   __module__ = 'cirq.api.google.v2.device_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.GateArgument)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ArgDefinition)
   ))
-_sym_db.RegisterMessage(GateArgument)
+_sym_db.RegisterMessage(ArgDefinition)
 
 ArgumentRange = _reflection.GeneratedProtocolMessageType('ArgumentRange', (_message.Message,), dict(
   DESCRIPTOR = _ARGUMENTRANGE,
@@ -408,14 +361,13 @@ ArgumentRange = _reflection.GeneratedProtocolMessageType('ArgumentRange', (_mess
   ))
 _sym_db.RegisterMessage(ArgumentRange)
 
-QubitInformation = _reflection.GeneratedProtocolMessageType('QubitInformation', (_message.Message,), dict(
-  DESCRIPTOR = _QUBITINFORMATION,
+Target = _reflection.GeneratedProtocolMessageType('Target', (_message.Message,), dict(
+  DESCRIPTOR = _TARGET,
   __module__ = 'cirq.api.google.v2.device_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.QubitInformation)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Target)
   ))
-_sym_db.RegisterMessage(QubitInformation)
+_sym_db.RegisterMessage(Target)
 
 
 DESCRIPTOR._options = None
-_DEVICESPECIFICATION_QUBITINFORMATIONENTRY._options = None
 # @@protoc_insertion_point(module_scope)

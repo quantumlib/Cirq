@@ -4,34 +4,19 @@ import google.protobuf.message
 import typing
 
 class DeviceSpecification(google.protobuf.message.Message):
-    class QubitInformationEntry(google.protobuf.message.Message):
-        key = ... # type: typing.Text
-
-        @property
-        def value(self) -> QubitInformation: ...
-
-        def __init__(self,
-            key : typing.Optional[typing.Text] = None,
-            value : typing.Optional[QubitInformation] = None,
-            ) -> None: ...
-        @classmethod
-        def FromString(cls, s: bytes) -> DeviceSpecification.QubitInformationEntry: ...
-        def MergeFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
-        def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
-
-    allowed_qubits = ... # type: google.protobuf.internal.containers.RepeatedScalarFieldContainer[typing.Text]
+    valid_qubits = ... # type: google.protobuf.internal.containers.RepeatedScalarFieldContainer[typing.Text]
     developer_recommendations = ... # type: typing.Text
 
     @property
-    def allowed_gate_sets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[GateSet]: ...
+    def valid_gate_sets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[GateSet]: ...
 
     @property
-    def qubit_information(self) -> typing.MutableMapping[typing.Text, QubitInformation]: ...
+    def valid_targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Target]: ...
 
     def __init__(self,
-        allowed_gate_sets : typing.Optional[typing.Iterable[GateSet]] = None,
-        allowed_qubits : typing.Optional[typing.Iterable[typing.Text]] = None,
-        qubit_information : typing.Optional[typing.Mapping[typing.Text, QubitInformation]] = None,
+        valid_gate_sets : typing.Optional[typing.Iterable[GateSet]] = None,
+        valid_qubits : typing.Optional[typing.Iterable[typing.Text]] = None,
+        valid_targets : typing.Optional[typing.Iterable[Target]] = None,
         developer_recommendations : typing.Optional[typing.Text] = None,
         ) -> None: ...
     @classmethod
@@ -40,14 +25,14 @@ class DeviceSpecification(google.protobuf.message.Message):
     def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
 
 class GateSet(google.protobuf.message.Message):
-    gate_set_name = ... # type: typing.Text
+    name = ... # type: typing.Text
 
     @property
-    def allowed_gates(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[GateDefinition]: ...
+    def valid_gates(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[GateDefinition]: ...
 
     def __init__(self,
-        gate_set_name : typing.Optional[typing.Text] = None,
-        allowed_gates : typing.Optional[typing.Iterable[GateDefinition]] = None,
+        name : typing.Optional[typing.Text] = None,
+        valid_gates : typing.Optional[typing.Iterable[GateDefinition]] = None,
         ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> GateSet: ...
@@ -55,17 +40,17 @@ class GateSet(google.protobuf.message.Message):
     def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
 
 class GateDefinition(google.protobuf.message.Message):
-    gate_name = ... # type: typing.Text
+    id = ... # type: typing.Text
     number_of_qubits = ... # type: int
     gate_duration_picos = ... # type: int
 
     @property
-    def allowed_gate_args(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[GateArgument]: ...
+    def valid_args(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[ArgDefinition]: ...
 
     def __init__(self,
-        gate_name : typing.Optional[typing.Text] = None,
+        id : typing.Optional[typing.Text] = None,
         number_of_qubits : typing.Optional[int] = None,
-        allowed_gate_args : typing.Optional[typing.Iterable[GateArgument]] = None,
+        valid_args : typing.Optional[typing.Iterable[ArgDefinition]] = None,
         gate_duration_picos : typing.Optional[int] = None,
         ) -> None: ...
     @classmethod
@@ -73,8 +58,8 @@ class GateDefinition(google.protobuf.message.Message):
     def MergeFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
     def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
 
-class GateArgument(google.protobuf.message.Message):
-    class ArgumentType(int):
+class ArgDefinition(google.protobuf.message.Message):
+    class ArgType(int):
         @classmethod
         def Name(cls, number: int) -> str: ...
         @classmethod
@@ -85,24 +70,24 @@ class GateArgument(google.protobuf.message.Message):
         def values(cls) -> typing.List[int]: ...
         @classmethod
         def items(cls) -> typing.List[typing.Tuple[str, int]]: ...
-    UNSPECIFIED = typing.cast(ArgumentType, 0)
-    FLOAT = typing.cast(ArgumentType, 1)
-    BOOLEAN = typing.cast(ArgumentType, 2)
-    STRING = typing.cast(ArgumentType, 3)
+    UNSPECIFIED = typing.cast(ArgType, 0)
+    FLOAT = typing.cast(ArgType, 1)
+    REPEATED_BOOLEAN = typing.cast(ArgType, 2)
+    STRING = typing.cast(ArgType, 3)
 
     name = ... # type: typing.Text
-    type = ... # type: GateArgument.ArgumentType
+    type = ... # type: ArgDefinition.ArgType
 
     @property
     def allowed_ranges(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[ArgumentRange]: ...
 
     def __init__(self,
         name : typing.Optional[typing.Text] = None,
-        type : typing.Optional[GateArgument.ArgumentType] = None,
+        type : typing.Optional[ArgDefinition.ArgType] = None,
         allowed_ranges : typing.Optional[typing.Iterable[ArgumentRange]] = None,
         ) -> None: ...
     @classmethod
-    def FromString(cls, s: bytes) -> GateArgument: ...
+    def FromString(cls, s: bytes) -> ArgDefinition: ...
     def MergeFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
     def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
 
@@ -119,13 +104,13 @@ class ArgumentRange(google.protobuf.message.Message):
     def MergeFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
     def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
 
-class QubitInformation(google.protobuf.message.Message):
-    neighbor_ids = ... # type: google.protobuf.internal.containers.RepeatedScalarFieldContainer[typing.Text]
+class Target(google.protobuf.message.Message):
+    ids = ... # type: google.protobuf.internal.containers.RepeatedScalarFieldContainer[typing.Text]
 
     def __init__(self,
-        neighbor_ids : typing.Optional[typing.Iterable[typing.Text]] = None,
+        ids : typing.Optional[typing.Iterable[typing.Text]] = None,
         ) -> None: ...
     @classmethod
-    def FromString(cls, s: bytes) -> QubitInformation: ...
+    def FromString(cls, s: bytes) -> Target: ...
     def MergeFrom(self, other_msg: google.protobuf.message.Message) -> None: ...
     def CopyFrom(self, other_msg: google.protobuf.message.Message) -> None: ...

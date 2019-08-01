@@ -48,7 +48,7 @@ message GateDefinition {
 
   // The name of the arguments that should be specified for 
   // an operation of this gate
-  repeated ArgumentDefinition valid_args = 3;
+  repeated ArgDefinition valid_args = 3;
 
   // This defines the approximate amount of time for each gate,
   // specified as an integer number of picoseconds.
@@ -73,7 +73,7 @@ message ArgDefinition {
     // The type of the argument.
     // This should correspond to the legal assignment
     // of the Arg.arg oneof for this argument
-    ArgumentType type = 2;
+    ArgType type = 2;
 
     // This should only be populated for type FLOAT.
     // If not set, all float values are allowed.
