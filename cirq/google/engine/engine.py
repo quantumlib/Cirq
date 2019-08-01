@@ -572,15 +572,6 @@ class Engine:
             program_id,
         )
 
-    def _program_id_from_name(self, program_name: str) -> str:
-        parent = 'projects/%s' % self.project_id
-        program_pattern = re.compile('%s/programs/(.*)' % parent)
-        match = program_pattern.match(program_name)
-        if not match:
-            raise ValueError("Unable to parse incorrectly-formatted program "
-                             "name: '%s'" % program_name)
-        return match.group(1)
-
     def _set_program_labels(self, program_id: str, labels: Dict[str, str],
                             fingerprint: str):
         program_resource_name = self._program_name_from_id(program_id)

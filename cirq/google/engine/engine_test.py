@@ -234,7 +234,7 @@ def test_circuit_device_validation_fails(build):
         cirq.Z(cirq.NamedQubit("dorothy"))]))
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError, match='Unsupported qubit type'):
-        program = engine.create_program('test', circuit)
+        engine.create_program('test', circuit)
 
 
 @mock.patch.object(discovery, 'build')
@@ -248,7 +248,7 @@ def test_schedule_device_validation_fails(build):
 
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError):
-        program = engine.create_program('test', schedule)
+        engine.create_program('test', schedule)
 
 
 @mock.patch.object(discovery, 'build')
@@ -537,7 +537,7 @@ def test_bad_program_proto(build):
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
     with pytest.raises(ValueError, match='invalid program proto version'):
-        program = engine.create_program('test', _CIRCUIT)
+        engine.create_program('test', _CIRCUIT)
 
 
 @mock.patch.object(discovery, 'build')
@@ -731,6 +731,19 @@ def test_bad_job_config_inference_order(build):
 
     eng._infer_gcs_results(config)
     eng._infer_gcs_program(config)
+
+
+@mock.patch.object(discovery, 'build')
+def test_get_program(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    fake_result = ({'name': 'project/my-project/program/foo'})
+    programs.get().execute.return_value = fake_result
+    result = cg.Engine(project_id='my-project').get_program('foo')
+    assert programs.get.call_args[1]['name'] == (
+        'projects/my-project/programs/foo')
+    assert result == fake_result
 
 
 @mock.patch.object(discovery, 'build')
