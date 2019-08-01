@@ -16,8 +16,8 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(project_id='my-project-id')
-    options = cirq.google.JobConfig(program_id='hello-world')
-    result = engine.run(options, circuit, repetitions=10)
+    program = engine.create_program(ciruit, 'my-experiment')
+    result = engine.run(program=program, repetitions=10)
 
 In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
@@ -90,54 +90,37 @@ class JobConfig:
     scheduled or terminated programs executions. Program and job resources have
     string names. This object contains the information necessary to create a
     program and then create a job on Quantum Engine, hence running the program.
-    Program ids are of the form
-        `projects/project_id/programs/program_id`
-    while job ids are of the form
-        `projects/project_id/programs/program_id/jobs/job_id`
     """
 
     def __init__(self,
-                 program_id: Optional[str] = None,
                  job_id: Optional[str] = None,
                  gcs_prefix: Optional[str] = None,
-                 gcs_program: Optional[str] = None,
                  gcs_results: Optional[str] = None) -> None:
         """Configuration for a job that is run on Quantum Engine.
 
         Args:
-            program_id: Id of the program to create, defaults to a random
-                version of 'prog-ABCD'.
             job_id: Id of the job to create, defaults to 'job-0'.
             gcs_prefix: Google Cloud Storage bucket and object prefix to use
                 for storing programs and results. The bucket will be created if
                 needed. Must be in the form "gs://bucket-name/object-prefix/".
-            gcs_program: Explicit override for the program storage location.
             gcs_results: Explicit override for the results storage location.
         """
-        self.program_id = program_id
         self.job_id = job_id
         self.gcs_prefix = gcs_prefix
-        self.gcs_program = gcs_program
         self.gcs_results = gcs_results
 
     def copy(self):
-        return JobConfig(program_id=self.program_id,
-                         job_id=self.job_id,
+        return JobConfig(job_id=self.job_id,
                          gcs_prefix=self.gcs_prefix,
-                         gcs_program=self.gcs_program,
                          gcs_results=self.gcs_results)
 
     def _value_equality_values_(self):
-        return (self.program_id, self.job_id, self.gcs_prefix, self.gcs_program,
-                self.gcs_results)
+        return (self.job_id, self.gcs_prefix, self.gcs_results)
 
     def __repr__(self):
-        return ('cirq.google.JobConfig(program_id={!r}, '
-                'job_id={!r}, '
+        return ('cirq.google.JobConfig(job_id={!r}, '
                 'gcs_prefix={!r}, '
-                'gcs_program={!r}, '
-                'gcs_results={!r})').format(self.program_id, self.job_id,
-                                            self.gcs_prefix, self.gcs_program,
+                'gcs_results={!r})').format(self.job_id, self.gcs_prefix,
                                             self.gcs_results)
 
 
@@ -270,39 +253,17 @@ class Engine:
 
         job_config.gcs_prefix = gcs_prefix
 
-    def _infer_program_id(self, job_config: JobConfig) -> None:
-        if job_config.program_id is not None:
-            return
-
-        random_digits = [
-            random.choice(string.ascii_uppercase + string.digits)
-            for _ in range(6)
-        ]
-        job_config.program_id = 'prog-' + ''.join(random_digits)
-
     def _infer_job_id(self, job_config: JobConfig) -> None:
         if job_config.job_id is None:
             job_config.job_id = 'job-0'
-
-    def _infer_gcs_program(self, job_config: JobConfig) -> None:
-        if job_config.gcs_prefix is None:
-            raise ValueError("Must infer gcs_prefix before gcs_program.")
-
-        if job_config.gcs_program is None:
-            job_config.gcs_program = '{}programs/{}/{}'.format(
-                job_config.gcs_prefix,
-                job_config.program_id,
-                job_config.program_id)
 
     def _infer_gcs_results(self, job_config: JobConfig) -> None:
         if job_config.gcs_prefix is None:
             raise ValueError("Must infer gcs_prefix before gcs_results.")
 
         if job_config.gcs_results is None:
-            job_config.gcs_results = '{}programs/{}/jobs/{}'.format(
-                job_config.gcs_prefix,
-                job_config.program_id,
-                job_config.job_id)
+            job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
+                                                        job_config.job_id)
 
     def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
         implied_job_config = (JobConfig()
@@ -311,9 +272,7 @@ class Engine:
 
         # Note: inference order is important. Later ones may need earlier ones.
         self._infer_gcs_prefix(implied_job_config)
-        self._infer_program_id(implied_job_config)
         self._infer_job_id(implied_job_config)
-        self._infer_gcs_program(implied_job_config)
         self._infer_gcs_results(implied_job_config)
 
         return implied_job_config
@@ -399,17 +358,28 @@ class Engine:
         return EngineJob(job_config, response, self)
 
     def create_program(self,
-                       program_id: str,
                        program: Program,
-                       gate_set: SerializableGateSet = gate_sets.XMON) -> Dict:
+                       program_id: Optional[str] = None,
+                       gate_set: Optional[SerializableGateSet] = gate_sets.XMON
+                      ) -> Dict:
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
         Args:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
+            program_id: A user-provided label for the program. If none is
+                provided, a random id of the format 'prog-######' will be
+                generated.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
         """
+        if not program_id:
+            random_digits = [
+                random.choice(string.ascii_uppercase + string.digits)
+                for _ in range(6)
+            ]
+            program_id = 'prog-' + ''.join(random_digits)
+
         parent_name = 'projects/%s' % self.project_id
         program_name = '%s/programs/%s' % (parent_name, program_id)
         # Create program.

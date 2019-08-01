@@ -182,7 +182,7 @@ _CALIBRATION = {
 
 
 def test_repr():
-    v = cirq.google.JobConfig(program_id='my-program-id', job_id='my-job-id')
+    v = cirq.google.JobConfig(job_id='my-job-id')
     cirq.testing.assert_equivalent_repr(v)
 
 
@@ -204,7 +204,7 @@ def test_run_circuit(build):
         'result': _A_RESULT}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _CIRCUIT)
+    program = engine.create_program(_CIRCUIT)
     result = engine.run(program=program,
                         job_config=cg.JobConfig(
                             'project-id', gcs_prefix='gs://bucket/folder'))
@@ -234,7 +234,7 @@ def test_circuit_device_validation_fails(build):
         cirq.Z(cirq.NamedQubit("dorothy"))]))
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError, match='Unsupported qubit type'):
-        engine.create_program('test', circuit)
+        engine.create_program(circuit)
 
 
 @mock.patch.object(discovery, 'build')
@@ -248,7 +248,7 @@ def test_schedule_device_validation_fails(build):
 
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError):
-        engine.create_program('test', schedule)
+        engine.create_program(schedule)
 
 
 @mock.patch.object(discovery, 'build')
@@ -271,7 +271,7 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
     engine = cg.Engine(project_id='project-id')
     circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
                                     device=cg.Foxtail)
-    program = engine.create_program('test', circuit)
+    program = engine.create_program(circuit)
     result = engine.run(program=program, job_config=cg.JobConfig('project-id'))
     assert result.repetitions == 1
 
@@ -299,7 +299,7 @@ def test_run_circuit_failed(build):
         'executionStatus': {'state': 'FAILURE'}}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _CIRCUIT)
+    program = engine.create_program(_CIRCUIT)
     with pytest.raises(RuntimeError, match='It is in state FAILURE'):
         engine.run(program=program)
 
@@ -322,7 +322,7 @@ def test_default_prefix(build):
         'result': _A_RESULT}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _CIRCUIT)
+    program = engine.create_program(_CIRCUIT)
     result = engine.run(program=program)
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -353,7 +353,7 @@ def test_run_sweep_params(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(
         program=program,
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
@@ -401,7 +401,7 @@ def test_run_sweep_v1(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(program=program,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
@@ -458,7 +458,7 @@ def test_run_sweep_v2(build):
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(program=program,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
@@ -514,7 +514,7 @@ def test_bad_result_proto(build):
 
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(program=program,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
@@ -537,7 +537,7 @@ def test_bad_program_proto(build):
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
     with pytest.raises(ValueError, match='invalid program proto version'):
-        engine.create_program('test', _CIRCUIT)
+        engine.create_program(_CIRCUIT)
 
 
 @mock.patch.object(discovery, 'build')
@@ -565,7 +565,7 @@ def test_cancel(build):
         'executionStatus': {'state': 'CANCELLED'}}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(program=program,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'))
@@ -686,35 +686,15 @@ def test_implied_job_config(build):
 
     # Infer all from project id.
     implied = eng.implied_job_config(cg.JobConfig())
-    assert re.fullmatch(r'prog-[0-9A-Z]+', implied.program_id)
     assert implied.job_id == 'job-0'
     assert implied.gcs_prefix == 'gs://gqe-project_id/'
-    assert re.fullmatch(
-        r'gs://gqe-project_id/programs/prog-[0-9A-Z]+/prog-[0-9A-Z]+',
-        implied.gcs_program)
-    assert re.fullmatch(
-        r'gs://gqe-project_id/programs/prog-[0-9A-Z]+/jobs/job-0',
-        implied.gcs_results)
-
-    # Force program id.
-    implied = eng.implied_job_config(cg.JobConfig(program_id='j'))
-    assert implied.program_id == 'j'
-    assert implied.job_id == 'job-0'
-    assert implied.gcs_prefix == 'gs://gqe-project_id/'
-    assert implied.gcs_program == 'gs://gqe-project_id/programs/j/j'
-    assert implied.gcs_results == 'gs://gqe-project_id/programs/j/jobs/job-0'
+    assert re.fullmatch(r'gs://gqe-project_id/jobs/job-0', implied.gcs_results)
 
     # Force all.
     implied = eng.implied_job_config(
-        cg.JobConfig(program_id='b',
-                     job_id='c',
-                     gcs_prefix='gs://d',
-                     gcs_program='e',
-                     gcs_results='f'))
-    assert implied.program_id == 'b'
+        cg.JobConfig(job_id='c', gcs_prefix='gs://d', gcs_results='f'))
     assert implied.job_id == 'c'
     assert implied.gcs_prefix == 'gs://d/'
-    assert implied.gcs_program == 'e'
     assert implied.gcs_results == 'f'
 
 
@@ -725,12 +705,9 @@ def test_bad_job_config_inference_order(build):
 
     with pytest.raises(ValueError):
         eng._infer_gcs_results(config)
-    with pytest.raises(ValueError):
-        eng._infer_gcs_program(config)
     eng._infer_gcs_prefix(config)
 
     eng._infer_gcs_results(config)
-    eng._infer_gcs_program(config)
 
 
 @mock.patch.object(discovery, 'build')
@@ -742,6 +719,19 @@ def test_get_program(build):
     programs.get().execute.return_value = fake_result
     result = cg.Engine(project_id='my-project').get_program('foo')
     assert programs.get.call_args[1]['name'] == (
+        'projects/my-project/programs/foo')
+    assert result == fake_result
+
+
+@mock.patch.object(discovery, 'build')
+def test_create_program(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    fake_result = ({'name': 'project/my-project/program/foo'})
+    programs.create().execute.return_value = fake_result
+    result = cg.Engine(project_id='my-project').create_program(_CIRCUIT, 'foo')
+    assert programs.create.call_args[1]['body']['name'] == (
         'projects/my-project/programs/foo')
     assert result == fake_result
 
@@ -811,7 +801,7 @@ def test_calibration_from_job(build):
     calibrations.get().execute.return_value = {'data': _CALIBRATION}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(
         program=program,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
@@ -841,7 +831,7 @@ def test_calibration_from_job_with_no_calibration(build):
 
     calibrations = service.projects().processors().calibrations()
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program('test', _SCHEDULE)
+    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(
         program=program,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
