@@ -208,7 +208,7 @@ class Engine:
     def run(
             self,
             *,  # Force keyword args.
-            program: Program,
+            program: Dict,
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
@@ -218,8 +218,8 @@ class Engine:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
-                provided, a moment by moment schedule will be used.
+            program: A Quantum Engine-wrapped Circuit or Schedule object. This
+              may be generated with create_program() or get_program().
             job_config: Configures the names of programs and jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
@@ -318,28 +318,27 @@ class Engine:
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: Program,
+            program: Dict,
             job_config: Optional[JobConfig] = None,
             params: Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
-            processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
+            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
-                provided, a moment by moment schedule will be used.
-            job_config: Configures the names of programs and jobs.
+            program: A Quantum Engine-wrapped Circuit or Schedule object. This
+              may be generated with create_program() or get_program().
+            job_config: Configures optional job parameters.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
-            processor_ids: The engine processors to run against.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -353,35 +352,11 @@ class Engine:
             raise ValueError('priority must be between 0 and 1000')
 
         sweeps = study.to_sweeps(params or ParamResolver({}))
-        if self.proto_version == ProtoVersion.V1:
-            code, run_context = self._serialize_program_v1(
-                program, sweeps, repetitions)
-        elif self.proto_version == ProtoVersion.V2:
-            code, run_context = self._serialize_program_v2(
-                program, sweeps, repetitions, gate_set)
-        else:
-            raise ValueError('invalid proto version: {}'.format(
-                self.proto_version))
-
-        # Create program.
-        request = {
-            'name':
-            'projects/%s/programs/%s' % (
-                self.project_id,
-                job_config.program_id,
-            ),
-            'gcs_code_location': {
-                'uri': job_config.gcs_program
-            },
-            'code':
-            code,
-        }
-        response = self.service.projects().programs().create(
-            parent='projects/%s' % self.project_id, body=request).execute()
+        run_context = self._serialize_run_context(sweeps, repetitions)
 
         # Create job.
         request = {
-            'name': '%s/jobs/%s' % (response['name'], job_config.job_id),
+            'name': '%s/jobs/%s' % (program['name'], job_config.job_id),
             'output_config': {
                 'gcs_results_location': {
                     'uri': job_config.gcs_results
@@ -404,60 +379,93 @@ class Engine:
 
         return EngineJob(job_config, response, self)
 
-    def _serialize_program_v1(self, program: Program, sweeps: List[Sweep],
-                              repetitions: int
-                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        schedule = self.program_as_schedule(program)
-        schedule.device.validate_schedule(schedule)
+    def create_program(self, program_id: str, program: Program,
+                       gate_set: SerializableGateSet = gate_sets.XMON) -> Dict:
 
-        program_descriptor = v1.program_pb2.Program.DESCRIPTOR
-        program_dict = {}  # type: Dict[str, Any]
-        program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
-        program_dict['operations'] = [
-            op for op in api_v1.schedule_to_proto_dicts(schedule)
-        ]
+        """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
-        context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
-        context_dict = {}  # type: Dict[str, Any]
-        context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
-        context_dict['parameter_sweeps'] = [
-            api_v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
-        ]
-        return program_dict, context_dict
+        Args:
+            program: The Circuit or Schedule to execute. If a circuit is
+                provided, a moment by moment schedule will be used.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor
+        """
+        parent_name = 'projects/%s' % self.project_id
+        program_name = '%s/programs/%s' % (parent_name, program_id)
+        # Create program.
+        request = {
+            'name': program_name,
+            'code': self._serialize_program(program, gate_set),
+        }
+        return self.service.projects().programs().create(
+             parent=parent_name, body=request).execute()
 
-    def _serialize_program_v2(self, program: Program, sweeps: List[Sweep],
-                              repetitions: int, gate_set: SerializableGateSet
-                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        if isinstance(program, Schedule):
-            program.device.validate_schedule(program)
+    def _serialize_program(self, program: Program,
+                            gate_set: SerializableGateSet = gate_sets.XMON
+                           ) -> Dict[str, Any]:
+        if self.proto_version == ProtoVersion.V1:
+            schedule = self.program_as_schedule(program)
+            schedule.device.validate_schedule(schedule)
 
-        program = gate_set.serialize(program)
+            program_descriptor = v1.program_pb2.Program.DESCRIPTOR
+            program_dict = {}  # type: Dict[str, Any]
+            program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
+            program_dict['operations'] = [
+                op for op in api_v1.schedule_to_proto_dicts(schedule)
+            ]
+            return program_dict
+        elif self.proto_version == ProtoVersion.V2:
+            if isinstance(program, Schedule):
+                program.device.validate_schedule(program)
+            program = gate_set.serialize(program)
+            return any_dict(program)
+        else:
+            raise ValueError('Invalid program proto version: {}'.format(
+                self.proto_version))
 
-        run_context = v2.run_context_pb2.RunContext()
-        for sweep in sweeps:
-            sweep_proto = run_context.parameter_sweeps.add()
-            sweep_proto.repetitions = repetitions
-            api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
-        def any_dict(message: gp.message.Message) -> Dict[str, Any]:
-            any_message = any_pb2.Any()
-            any_message.Pack(message)
-            return gp.json_format.MessageToDict(any_message)
+    def _serialize_run_context(self, sweeps: List[Sweep], repetitions: int,
+                                  ) -> Dict[str, Any]:
+        if self.proto_version == ProtoVersion.V1:
+            context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
+            context_dict = {}  # type: Dict[str, Any]
+            context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
+            context_dict['parameter_sweeps'] = [
+                api_v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+            ]
+            return context_dict
+        elif self.proto_version == ProtoVersion.V2:
+            run_context = v2.run_context_pb2.RunContext()
+            for sweep in sweeps:
+                sweep_proto = run_context.parameter_sweeps.add()
+                sweep_proto.repetitions = repetitions
+                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
-        return any_dict(program), any_dict(run_context)
+            def any_dict(message: gp.message.Message) -> Dict[str, Any]:
+                any_message = any_pb2.Any()
+                any_message.Pack(message)
+                return gp.json_format.MessageToDict(any_message)
 
-    def get_program(self, program_resource_name: str) -> Dict:
+            return any_dict(run_context)
+        else:
+            raise ValueError('Invalid run context proto version: {}'.format(
+                self.proto_version))
+
+
+    def get_program(self, program_id: str) -> Dict:
         """Returns the previously created quantum program.
 
         Params:
-            program_resource_name: A string of the form
-                `projects/project_id/programs/program_id`.
+            program_id: A string containing the unique ID of a program within
+              the project specified for the Engine.
 
         Returns:
             A dictionary containing the metadata and the program.
         """
+        program_resource_name = program_name_from_id(program_id)
         return self.service.projects().programs().get(
             name=program_resource_name).execute()
+
 
     def get_job(self, job_resource_name: str) -> Dict:
         """Returns metadata about a previously created job.
@@ -542,41 +550,57 @@ class Engine:
         self.service.projects().programs().jobs().cancel(
             name=job_resource_name, body={}).execute()
 
-    def _set_program_labels(self, program_resource_name: str,
+    def _program_name_from_id(self, program_id: str) -> str:
+        return 'projects/%s/programs/%s' % (
+                self.project_id,
+                program_id,
+            ),
+
+    def _program_id_from_name(self, program_name: str) -> str:
+        parent = 'projects/%s' % self.project_id
+        program_pattern = re.compile('%s/programs/(.*)' % parent)
+        match = program_pattern.match(program_name)
+        if not match:
+            raise ValueError("Unable to parse incorrectly-formatted program "
+                             "name: '%s'" % program_name)
+        return match.group(1)
+
+    def _set_program_labels(self, program_id: str,
                             labels: Dict[str, str], fingerprint: str):
+        program_resource_name = program_name_from_id(program_id)
         self.service.projects().programs().patch(
             name=program_resource_name,
             body={'name': program_resource_name, 'labels': labels,
                   'labelFingerprint': fingerprint},
             updateMask='labels').execute()
 
-    def set_program_labels(self, program_resource_name: str,
+    def set_program_labels(self, program_id: str,
                            labels: Dict[str, str]):
-        job = self.get_program(program_resource_name)
-        self._set_program_labels(program_resource_name, labels,
-                                 job.get('labelFingerprint', ''))
+        program = self.get_program(program_id)
+        self._set_program_labels(program_id, labels,
+                                 program.get('labelFingerprint', ''))
 
-    def add_program_labels(self, program_resource_name: str,
+    def add_program_labels(self, program_id: str,
                            labels: Dict[str, str]):
-        job = self.get_program(program_resource_name)
+        program = self.get_program(program_id)
         old_labels = job.get('labels', {})
         new_labels = old_labels.copy()
         new_labels.update(labels)
         if new_labels != old_labels:
             fingerprint = job.get('labelFingerprint', '')
-            self._set_program_labels(program_resource_name, new_labels,
+            self._set_program_labels(program_id, new_labels,
                                      fingerprint)
 
-    def remove_program_labels(self, program_resource_name: str,
+    def remove_program_labels(self, program_id: str,
                               label_keys: List[str]):
-        job = self.get_program(program_resource_name)
+        job = self.get_program(program_id)
         old_labels = job.get('labels', {})
         new_labels = old_labels.copy()
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
             fingerprint = job.get('labelFingerprint', '')
-            self._set_program_labels(program_resource_name, new_labels,
+            self._set_program_labels(program_id, new_labels,
                                      fingerprint)
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
@@ -729,7 +753,7 @@ class EngineJob:
         self._job = job
         self._engine = engine
         self.job_resource_name = job['name']
-        self.program_resource_name = self.job_resource_name.split('/jobs')[0]
+        self.program_id = self.job_resource_name.split('/jobs')[0]
         self._results = None  # type: Optional[List[TrialResult]]
 
     def _update_job(self):
