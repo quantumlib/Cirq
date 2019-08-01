@@ -24,6 +24,8 @@ from apiclient import discovery, http
 import cirq
 import cirq.google as cg
 
+_CIRCUIT = cirq.Circuit()
+_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
@@ -201,9 +203,11 @@ def test_run_circuit(build):
     jobs.getResult().execute.return_value = {
         'result': _A_RESULT}
 
-    result = cg.Engine(project_id='project-id').run(
-        program=cirq.Circuit(),
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+    engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _CIRCUIT)
+    result = engine.run(program=program,
+                        job_config=cg.JobConfig(
+                            'project-id', gcs_prefix='gs://bucket/folder'))
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
@@ -228,10 +232,9 @@ def test_circuit_device_validation_fails(build):
     # This simulates a failure in the incremental checks.
     circuit._moments.append(cirq.Moment([
         cirq.Z(cirq.NamedQubit("dorothy"))]))
-
+    engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError, match='Unsupported qubit type'):
-        cg.Engine(project_id='project-id').run(
-            program=circuit, job_config=cg.JobConfig('project-id'))
+        program = engine.create_program('test', circuit)
 
 
 @mock.patch.object(discovery, 'build')
@@ -243,8 +246,9 @@ def test_schedule_device_validation_fails(build):
     schedule = cirq.Schedule(device=cg.Foxtail,
                              scheduled_operations=[scheduled_op])
 
+    engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError):
-        cg.Engine(project_id='project-id').run(program=schedule)
+        program = engine.create_program('test', schedule)
 
 
 @mock.patch.object(discovery, 'build')
@@ -264,19 +268,19 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
     jobs.getResult().execute.return_value = {
         'result': _A_RESULT}
 
+    engine = cg.Engine(project_id='project-id')
     circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
                                     device=cg.Foxtail)
-    result = cg.Engine(project_id='project-id').run(
-        program=circuit, job_config=cg.JobConfig('project-id'))
+    program = engine.create_program('test', circuit)
+    result = engine.run(program=program, job_config=cg.JobConfig('project-id'))
     assert result.repetitions == 1
 
 
 @mock.patch.object(discovery, 'build')
 def test_unsupported_program_type(build):
-    eng = cg.Engine(project_id='project-id')
-    with pytest.raises(TypeError, match='program'):
-        eng.run(program="this isn't even the right type of thing!",
-                job_config=cg.JobConfig('project-id'))
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(ValueError, match='program'):
+        engine.run(program="this isn't even the right type of thing!")
 
 
 @mock.patch.object(discovery, 'build')
@@ -294,11 +298,10 @@ def test_run_circuit_failed(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'FAILURE'}}
 
+    engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _CIRCUIT)
     with pytest.raises(RuntimeError, match='It is in state FAILURE'):
-        cg.Engine(project_id='project-id').run(
-            program=cirq.Circuit(),
-            job_config=cg.JobConfig('project-id',
-                                    gcs_prefix='gs://bucket/folder'))
+        engine.run(program=program)
 
 
 @mock.patch.object(discovery, 'build')
@@ -318,8 +321,9 @@ def test_default_prefix(build):
     jobs.getResult().execute.return_value = {
         'result': _A_RESULT}
 
-    result = cg.Engine(project_id='project-id').run(
-        program=cirq.Circuit(), job_config=cg.JobConfig('org.com:project-id'))
+    engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _CIRCUIT)
+    result = engine.run(program=program)
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
@@ -329,8 +333,6 @@ def test_default_prefix(build):
                                                   '/$discovery/rest?version='
                                                   '{apiVersion}'),
                              requestBuilder=mock.ANY)
-    assert programs.create.call_args[1]['body']['gcs_code_location'][
-        'uri'].startswith('gs://gqe-project-id/programs/')
 
 
 @mock.patch.object(discovery, 'build')
@@ -350,9 +352,10 @@ def test_run_sweep_params(build):
     jobs.getResult().execute.return_value = {
         'result': _RESULTS}
 
-    job = cg.Engine(project_id='project-id').run_sweep(
-        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                               cirq.Circuit()),
+    engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _SCHEDULE)
+    job = engine.run_sweep(
+        program=program,
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
@@ -398,11 +401,11 @@ def test_run_sweep_v1(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(
-        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                               cirq.Circuit()),
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
-        params=cirq.Points('a', [1, 2]))
+    program = engine.create_program('test', _SCHEDULE)
+    job = engine.run_sweep(program=program,
+                           job_config=cg.JobConfig(
+                               'project-id', gcs_prefix='gs://bucket/folder'),
+                           params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V1
     assert len(results) == 2
@@ -455,11 +458,11 @@ def test_run_sweep_v2(build):
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    job = engine.run_sweep(
-        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                               cirq.Circuit()),
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
-        params=cirq.Points('a', [1, 2]))
+    program = engine.create_program('test', _SCHEDULE)
+    job = engine.run_sweep(program=program,
+                           job_config=cg.JobConfig(
+                               'project-id', gcs_prefix='gs://bucket/folder'),
+                           params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
     assert len(results) == 2
@@ -511,34 +514,39 @@ def test_bad_result_proto(build):
 
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_sweep(
-        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                               cirq.Circuit()),
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
-        params=cirq.Points('a', [1, 2]))
+    program = engine.create_program('test', _SCHEDULE)
+    job = engine.run_sweep(program=program,
+                           job_config=cg.JobConfig(
+                               'project-id', gcs_prefix='gs://bucket/folder'),
+                           params=cirq.Points('a', [1, 2]))
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
 
 
 @mock.patch.object(discovery, 'build')
 def test_bad_sweep_proto(build):
-    eng = cg.Engine(project_id='project-id',
-                    proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
-    with pytest.raises(ValueError, match='invalid proto version'):
-        eng.run(program=cirq.Circuit(),
-                job_config=cg.JobConfig('project-id',
-                                        gcs_prefix='gs://bucket/folder'))
+    engine = cg.Engine(project_id='project-id',
+                       proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
+    program = {'name': 'foo'}
+    with pytest.raises(ValueError, match='invalid run context proto version'):
+        engine.run(program=program)
+
+
+@mock.patch.object(discovery, 'build')
+def test_bad_program_proto(build):
+    engine = cg.Engine(project_id='project-id',
+                       proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
+    with pytest.raises(ValueError, match='invalid program proto version'):
+        program = engine.create_program('test', _CIRCUIT)
 
 
 @mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
-    eng = cg.Engine(project_id='project-id',
-                    proto_version=cg.engine.engine.ProtoVersion.V2)
+    engine = cg.Engine(project_id='project-id',
+                       proto_version=cg.engine.engine.ProtoVersion.V2)
+    program = {'name': 'foo'}
     with pytest.raises(ValueError, match='priority must be'):
-        eng.run(program=cirq.Circuit(),
-                job_config=cg.JobConfig('project-id',
-                                        gcs_prefix='gs://bucket/folder'),
-                priority=1001)
+        engine.run(program=program, priority=1001)
 
 
 @mock.patch.object(discovery, 'build')
@@ -556,9 +564,11 @@ def test_cancel(build):
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'CANCELLED'}}
 
-    job = cg.Engine(project_id='project-id').run_sweep(
-        program=cirq.Circuit(),
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'))
+    engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _SCHEDULE)
+    job = engine.run_sweep(program=program,
+                           job_config=cg.JobConfig(
+                               'project-id', gcs_prefix='gs://bucket/folder'))
     job.cancel()
     assert job.job_resource_name == ('projects/project-id/programs/test/'
                                      'jobs/test')
@@ -788,9 +798,9 @@ def test_calibration_from_job(build):
     calibrations.get().execute.return_value = {'data': _CALIBRATION}
 
     engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _SCHEDULE)
     job = engine.run_sweep(
-        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                               cirq.Circuit()),
+        program=program,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
 
     calibration = job.get_calibration()
@@ -818,9 +828,9 @@ def test_calibration_from_job_with_no_calibration(build):
 
     calibrations = service.projects().processors().calibrations()
     engine = cg.Engine(project_id='project-id')
+    program = engine.create_program('test', _SCHEDULE)
     job = engine.run_sweep(
-        program=cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                               cirq.Circuit()),
+        program=program,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
 
     calibration = job.get_calibration()

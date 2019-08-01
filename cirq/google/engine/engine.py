@@ -62,6 +62,12 @@ class ProtoVersion(enum.Enum):
 Program = Union[circuits.Circuit, Schedule]
 
 
+def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
+    any_message = any_pb2.Any()
+    any_message.Pack(message)
+    return gp.json_format.MessageToDict(any_message)
+
+
 def _user_project_header_request_builder(project_id: str):
     """Provides a request builder that sets a user project header on engine
     requests to allow using standard OAuth credentials.
@@ -247,8 +253,7 @@ class Engine:
                            params=[param_resolver],
                            repetitions=repetitions,
                            priority=priority,
-                           processor_ids=processor_ids,
-                           gate_set=gate_set))[0]
+                           processor_ids=processor_ids))[0]
 
     def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
         gcs_prefix = (job_config.gcs_prefix or self.default_gcs_prefix or
@@ -355,12 +360,14 @@ class Engine:
             TrialResults, one for each parameter sweep.
         """
 
-        job_config = self.implied_job_config(job_config)
+        if not 'name' in program:
+            raise ValueError('program does not have a name')
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
+        job_config = self.implied_job_config(job_config)
         sweeps = study.to_sweeps(params or ParamResolver({}))
         run_context = self._serialize_run_context(sweeps, repetitions)
 
@@ -430,9 +437,9 @@ class Engine:
             if isinstance(program, Schedule):
                 program.device.validate_schedule(program)
             program = gate_set.serialize(program)
-            return any_dict(program)
+            return _any_dict_from_msg(program)
         else:
-            raise ValueError('Invalid program proto version: {}'.format(
+            raise ValueError('invalid program proto version: {}'.format(
                 self.proto_version))
 
     def _serialize_run_context(
@@ -456,14 +463,9 @@ class Engine:
                 sweep_proto.repetitions = repetitions
                 api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
-            def any_dict(message: gp.message.Message) -> Dict[str, Any]:
-                any_message = any_pb2.Any()
-                any_message.Pack(message)
-                return gp.json_format.MessageToDict(any_message)
-
-            return any_dict(run_context)
+            return _any_dict_from_msg(run_context)
         else:
-            raise ValueError('Invalid run context proto version: {}'.format(
+            raise ValueError('invalid run context proto version: {}'.format(
                 self.proto_version))
 
     def get_program(self, program_id: str) -> Dict:
@@ -595,21 +597,21 @@ class Engine:
 
     def add_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
-        old_labels = job.get('labels', {})
+        old_labels = program.get('labels', {})
         new_labels = old_labels.copy()
         new_labels.update(labels)
         if new_labels != old_labels:
-            fingerprint = job.get('labelFingerprint', '')
+            fingerprint = program.get('labelFingerprint', '')
             self._set_program_labels(program_id, new_labels, fingerprint)
 
     def remove_program_labels(self, program_id: str, label_keys: List[str]):
-        job = self.get_program(program_id)
-        old_labels = job.get('labels', {})
+        program = self.get_program(program_id)
+        old_labels = program.get('labels', {})
         new_labels = old_labels.copy()
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
-            fingerprint = job.get('labelFingerprint', '')
+            fingerprint = program.get('labelFingerprint', '')
             self._set_program_labels(program_id, new_labels, fingerprint)
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
