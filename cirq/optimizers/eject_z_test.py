@@ -266,6 +266,7 @@ def test_swap():
     cirq.DropEmptyMoments().optimize_circuit(optimized)
 
     assert optimized[0].operations == (cirq.SWAP(a, b),)
+    # Note: EjectZ drops `global_phase` from Rz turning it into a Z
     assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
@@ -292,6 +293,7 @@ def test_swap_fsim(theta):
 
     assert optimized[0].operations == (cirq.FSimGate(theta=theta,
                                                      phi=.123).on(a, b),)
+    # Note: EjectZ drops `global_phase` from Rz turning it into a Z
     assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
@@ -316,6 +318,7 @@ def test_swap_iswap(exponent):
     cirq.DropEmptyMoments().optimize_circuit(optimized)
 
     assert optimized[0].operations == (cirq.ISWAP(a, b)**exponent,)
+    # Note: EjectZ drops `global_phase` from Rz turning it into a Z
     assert optimized[1].operations == (cirq.Z(b)**(.123 / np.pi),)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(original),
                                                     cirq.unitary(optimized),
