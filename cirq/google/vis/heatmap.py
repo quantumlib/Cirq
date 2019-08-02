@@ -86,7 +86,7 @@ class Heatmap:
         # Fail fast if float() fails.
         # Keep the original value object for annotation.
         self.value_map = {
-            key: (float(value), value) for key, value in value_map.items()
+            qubit: (float(value), value) for qubit, value in value_map.items()
         }
         return self
 
@@ -102,7 +102,10 @@ class Heatmap:
             text_options: keyword arguments passed to matplotlib.text.Text()
                 when drawing the annotation texts.
         """
-        self.annot_map = annot_map
+        self.annot_map = {
+            _get_qubit_row_col(qubit): value
+            for qubit, value in annot_map.items()
+        }
         self.annot_kwargs = text_options
         return self
 
@@ -115,8 +118,8 @@ class Heatmap:
             text_options: keyword arguments to matplotlib.text.Text().
         """
         self.annot_map = {
-            key: format(value[1], annot_format)
-            for key, value in self.value_map.items()
+            _get_qubit_row_col(qubit): format(value[1], annot_format)
+            for qubit, value in self.value_map.items()
         }
         self.annot_kwargs = text_options
         return self
@@ -128,7 +131,10 @@ class Heatmap:
 
     def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) -> 'Heatmap':
         """Sets the URLs for each cell."""
-        self.url_map = url_map
+        self.url_map = {
+            _get_qubit_row_col(qubit): value
+            for qubit, value in url_map.items()
+        }
         return self
 
     def unset_url_map(self) -> 'Heatmap':

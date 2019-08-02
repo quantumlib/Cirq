@@ -27,6 +27,10 @@ from cirq.google.vis import heatmap
 
 class TestHeatmap:
 
+    def setup_method(self):
+        self.figure = mpl.figure.Figure()
+        self.ax = self.figure.add_subplot(111)
+
     @pytest.mark.parametrize('test_GridQubit', [True, False])
     def test_cells_positions(self, test_GridQubit):
         row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
@@ -38,8 +42,7 @@ class TestHeatmap:
             qubits = row_col_list
         values = np.random.random(len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-        _, ax = plt.subplots()
-        mesh, _ = heatmap.Heatmap(test_value_map).plot(ax)
+        mesh, _ = heatmap.Heatmap(test_value_map).plot(self.ax)
 
         found_qubits = set()
         for path in mesh.get_paths():
@@ -61,8 +64,7 @@ class TestHeatmap:
         vmin, vmax = 1.5, 2.5
         random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
             colormap_name, vmin=vmin, vmax=vmax))
-        _, ax = plt.subplots()
-        mesh, _ = random_heatmap.plot(ax)
+        mesh, _ = random_heatmap.plot(self.ax)
 
         colormap = mpl.cm.get_cmap(colormap_name)
         for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
@@ -85,10 +87,9 @@ class TestHeatmap:
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         random_heatmap = (heatmap.Heatmap(test_value_map).set_annotation_format(
             format_string))
-        _, ax = plt.subplots()
-        random_heatmap.plot(ax)
+        random_heatmap.plot(self.ax)
         actual_texts = set()
-        for artist in ax.get_children():
+        for artist in self.ax.get_children():
             if isinstance(artist, mpl.text.Text):
                 col, row = artist.get_position()
                 text = artist.get_text()
@@ -97,25 +98,35 @@ class TestHeatmap:
                              for qubit, value in test_value_map.items())
         assert expected_texts.issubset(actual_texts)
 
-    def test_annotation_map(self):
-        qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+    @pytest.mark.parametrize('test_GridQubit', [True, False])
+    def test_annotation_map(self, test_GridQubit):
+        row_col_list = [(0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8)]
+        if test_GridQubit:
+            qubits = [
+                grid_qubit.GridQubit(*row_col) for row_col in row_col_list
+            ]
+        else:
+            qubits = row_col_list
         values = np.random.random(len(qubits))
         annos = np.random.choice([c for c in string.ascii_letters], len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         test_anno_map = {
-            qubit: anno for qubit, anno in zip(qubits, annos) if qubit != (1, 6)
+            qubit: anno
+            for qubit, row_col, anno in zip(qubits, row_col_list, annos)
+            if row_col != (1, 6)
         }
         random_heatmap = (
             heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map))
-        _, ax = plt.subplots()
-        random_heatmap.plot(ax)
+        random_heatmap.plot(self.ax)
         actual_texts = set()
-        for artist in ax.get_children():
+        for artist in self.ax.get_children():
             if isinstance(artist, mpl.text.Text):
                 col, row = artist.get_position()
                 assert (row, col) != (1, 6)
                 actual_texts.add(((row, col), artist.get_text()))
-        expected_texts = set(test_anno_map.items())
+        expected_texts = set((row_col, anno)
+                             for row_col, anno in zip(row_col_list, annos)
+                             if row_col != (1, 6))
         assert expected_texts.issubset(actual_texts)
 
     @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g', 's'])
@@ -148,8 +159,7 @@ class TestHeatmap:
         random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
             colormap_name, vmin=vmin,
             vmax=vmax).set_annotation_format(format_string))
-        _, ax = plt.subplots()
-        mesh, _ = random_heatmap.plot(ax)
+        mesh, _ = random_heatmap.plot(self.ax)
 
         colormap = mpl.cm.get_cmap(colormap_name)
         for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
@@ -161,7 +171,7 @@ class TestHeatmap:
             expected_color = np.array(colormap(color_scale))
             assert np.all(np.isclose(facecolor, expected_color))
 
-        for artist in ax.get_children():
+        for artist in self.ax.get_children():
             if isinstance(artist, mpl.text.Text):
                 col, row = artist.get_position()
                 if (row, col) in test_value_map:
@@ -170,24 +180,32 @@ class TestHeatmap:
                     expected_text = format(foo, format_string)
                     assert actual_text == expected_text
 
-    def test_urls(self):
-        qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+    @pytest.mark.parametrize('test_GridQubit', [True, False])
+    def test_urls(self, test_GridQubit):
+        row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+        if test_GridQubit:
+            qubits = [
+                grid_qubit.GridQubit(*row_col) for row_col in row_col_list
+            ]
+        else:
+            qubits = row_col_list
         values = np.random.random(len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         test_url_map = {
-            qubit: 'http://google.com/{}+{}'.format(qubit[0], qubit[1])
-            for qubit in qubits
-            if qubit != (1, 6)
+            qubit: 'http://google.com/{}+{}'.format(*row_col)
+            for qubit, row_col in zip(qubits, row_col_list)
+            if row_col != (1, 6)
         }
         # Add an extra entry that should not show up in results because the
         # qubit is not in the value map.
-        test_url_map[(10, 7)] = 'http://google.com/10+7'
+        extra_qubit = grid_qubit.GridQubit(10, 7) if test_GridQubit else (10, 7)
+        test_url_map[extra_qubit] = 'http://google.com/10+7'
 
-        _, ax = plt.subplots()
-        mesh, _ = (
-            heatmap.Heatmap(test_value_map).set_url_map(test_url_map)).plot(ax)
+        my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
+        mesh, _ = my_heatmap.plot(self.ax)
         expected_urls = [
-            test_url_map.get((row, col), '') for row, col in sorted(qubits)
+            test_url_map.get(qubit, '')
+            for row_col, qubit in sorted(zip(row_col_list, qubits))
         ]
         assert mesh.get_urls() == expected_urls
 
