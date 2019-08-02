@@ -1,4 +1,17 @@
-"""Tests for heatmap."""
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Tests for Heatmap."""
 
 import string
 
@@ -8,13 +21,21 @@ import pytest
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+from cirq.devices import grid_qubit
 from cirq.google.vis import heatmap
 
 
 class TestHeatmap:
 
-    def test_cells_positions(self):
-        qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+    @pytest.mark.parametrize('test_GridQubit', [True, False])
+    def test_cells_positions(self, test_GridQubit):
+        row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+        if test_GridQubit:
+            qubits = [
+                grid_qubit.GridQubit(row, col) for (row, col) in row_col_list
+            ]
+        else:
+            qubits = row_col_list
         values = np.random.random(len(qubits))
         test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
         _, ax = plt.subplots()
@@ -26,7 +47,7 @@ class TestHeatmap:
             row = int(round(np.mean([v[1] for v in vertices])))
             col = int(round(np.mean([v[0] for v in vertices])))
             found_qubits.add((row, col))
-        assert found_qubits == set(qubits)
+        assert found_qubits == set(row_col_list)
 
     # Test colormaps are the first one in each category in
     # https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html.

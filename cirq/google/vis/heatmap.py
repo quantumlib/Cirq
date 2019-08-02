@@ -1,11 +1,29 @@
-"""Convenience functions for visualizations.
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Heatmap class.
 
-The main design goal is to make the interface easy to use for most common use
-cases, yet powerful enough for customizations.
+Typical usage:
 
-The public entry points are:
+import matplotlib.pyplot as plt
+import cirq.google.vis.heatmap as vis_heatmap
 
-* class Heatmap:  a heatmap of qubit metrics.
+value_map = {(0, 5): 3.7, (1, 7): 2.5, (3, 3): 0.4, (2, 1); 9.8 }
+heatmap = vis_heatmap.Heatmap(value_map).set_colormap('summer')
+# customize the heatmap as much as you want here.
+fig, ax = plt.subplots(figsize=(9, 9))
+heatmap.plot(ax)
+plt.show()
 """
 
 from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
@@ -18,10 +36,19 @@ import pandas as pd
 from matplotlib import collections as mpl_collections
 from mpl_toolkits import axes_grid1
 
-QubitCoordinate = Tuple[int, int]
+from cirq.devices import grid_qubit
+
+QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
 
 # The value map is qubit coordinate -> a type that supports float conversion.
 ValueMap = Dict[QubitCoordinate, SupportsFloat]
+
+
+def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
+    if isinstance(qubit, grid_qubit.GridQubit):
+        return qubit.row, qubit.col
+    elif isinstance(qubit, tuple):
+        return qubit[0], qubit[1]
 
 
 def relative_luminance(color: np.ndarray) -> float:
@@ -64,7 +91,7 @@ class Heatmap:
         return self
 
     def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
-                           **kws: str) -> 'Heatmap':
+                           **text_options: str) -> 'Heatmap':
         """Sets the annotation text for each qubit.
 
         Note that set_annotation_map() and set_annotation_format()
@@ -72,24 +99,26 @@ class Heatmap:
 
         Args:
             annot_map: the texts to be drawn on each qubit cell.
-            kws: keyword arguments to matplotlib.text.Text().
+            text_options: keyword arguments passed to matplotlib.text.Text()
+                when drawing the annotation texts.
         """
         self.annot_map = annot_map
-        self.annot_kws = kws
+        self.annot_kwargs = text_options
         return self
 
-    def set_annotation_format(self, annot_format: str, **kws: str) -> 'Heatmap':
+    def set_annotation_format(self, annot_format: str,
+                              **text_options: str) -> 'Heatmap':
         """Sets a format string to format values for each qubit.
 
         Args:
             annot_format: the format string for formating values.
-            kws: keyword arguments to matplotlib.text.Text().
+            text_options: keyword arguments to matplotlib.text.Text().
         """
         self.annot_map = {
             key: format(value[1], annot_format)
             for key, value in self.value_map.items()
         }
-        self.annot_kws = kws
+        self.annot_kwargs = text_options
         return self
 
     def unset_annotation(self) -> 'Heatmap':
@@ -111,7 +140,7 @@ class Heatmap:
                      position: str = 'right',
                      size: str = '5%',
                      pad: str = '2%',
-                     **kws: Any) -> 'Heatmap':
+                     **colorbar_options: Any) -> 'Heatmap':
         """Sets location and style of colorbar.
 
         Args:
@@ -120,6 +149,8 @@ class Heatmap:
                 Nominally, '100%' means the same width as the heatmap.
             pad: a string ending in '%' to specify the space between the
                 colorbar and the heatmap.
+            colorbar_options: keyword arguments passed to
+                matplotlib.Figure.colorbar().
         """
         self.plot_colorbar = True
         self.colorbar_location_options = {
@@ -127,7 +158,7 @@ class Heatmap:
             'size': size,
             'pad': pad
         }
-        self.colorbar_options = kws
+        self.colorbar_options = colorbar_options
         return self
 
     def unset_colorbar(self) -> 'Heatmap':
@@ -153,13 +184,13 @@ class Heatmap:
         self.vmax = vmax
         return self
 
-    def plot(self, ax: plt.Axes,
-             **kws: Any) -> Tuple[mpl_collections.Collection, pd.DataFrame]:
+    def plot(self, ax: plt.Axes, **pcolor_options: Any
+            ) -> Tuple[mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
 
         Args:
             ax: the Axes to draw on.
-            kws: keyword arguments passed to ax.pcolor().
+            pcolor_options: keyword arguments passed to ax.pcolor().
 
         Returns: a 2-tuple (mesh, value_table)
             mesh: the collection of paths drawn and filled.
@@ -167,8 +198,11 @@ class Heatmap:
                 the value_map.
         """
         # Find the boundary and size of the heatmap.
-        rows = [row for row, _ in self.value_map.keys()]
-        cols = [col for _, col in self.value_map.keys()]
+        coordinate_list = [
+            _get_qubit_row_col(qubit) for qubit in self.value_map.keys()
+        ]
+        rows = [row for row, _ in coordinate_list]
+        cols = [col for _, col in coordinate_list]
         min_row, max_row = min(rows), max(rows)
         min_col, max_col = min(cols), max(cols)
         height, width = max_row - min_row + 1, max_col - min_col + 1
@@ -177,7 +211,8 @@ class Heatmap:
         value_table = pd.DataFrame(np.nan,
                                    index=range(min_row, max_row + 1),
                                    columns=range(min_col, max_col + 1))
-        for (row, col), (float_value, _) in self.value_map.items():
+        for qubit, (float_value, _) in self.value_map.items():
+            row, col = _get_qubit_row_col(qubit)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
         x_table = np.array([np.arange(min_col - 0.5, max_col + 1.5)] *
@@ -201,7 +236,7 @@ class Heatmap:
                          vmax=self.vmax,
                          cmap=self.colormap,
                          urls=url_array,
-                         **kws)
+                         **pcolor_options)
         mesh.update_scalarmappable()
         ax.set(xlabel='column', ylabel='row')
         ax.invert_yaxis()
@@ -245,6 +280,6 @@ class Heatmap:
                 continue
             face_luminance = relative_luminance(facecolor)
             text_color = 'black' if face_luminance > 0.4 else 'white'
-            text_kws = dict(color=text_color, ha="center", va="center")
-            text_kws.update(self.annot_kws)
-            ax.text(col, row, annotation, **text_kws)
+            text_kwargs = dict(color=text_color, ha="center", va="center")
+            text_kwargs.update(self.annot_kwargs)
+            ax.text(col, row, annotation, **text_kwargs)
