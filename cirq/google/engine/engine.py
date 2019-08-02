@@ -146,20 +146,20 @@ class Engine:
     have been previously created on the Quantum Engine, as well as metadata
     about available processors:
         get_calibration
-        get_lastest_calibration
-        get_program
         get_job
         get_job_results
+        get_latest_calibration
+        get_program
         list_processors
 
     Finally, the engine has methods to update existing programs and jobs:
-        cancel_job
-        set_program_labels
+        add_job_labels
         add_program_labels
+        cancel_job
+        remove_job_labels
         remove_program_labels
         set_job_labels
-        add_job_labels
-        remove_job_labels
+        set_program_labels
     """
 
     def __init__(self,
