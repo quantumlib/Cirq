@@ -280,6 +280,11 @@ class PauliSum:
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
 
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        qs = {q for k in self._linear_dict.keys() for q, _ in k}
+        return tuple(sorted(qs))
+
     def copy(self) -> 'PauliSum':
         factory = type(self)
         return factory(self._linear_dict.copy())
