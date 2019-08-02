@@ -22,6 +22,8 @@ import cirq
 import random
 import numpy as np
 import copy
+import sympy
+import itertools
 
 # Qubit preparation
 
@@ -93,7 +95,7 @@ def main(number_qubits):
         last.append(holder)
 
     print("Results: "+str(last))
-    return [last, secret_function]
+    return [last, secret_function, s, last]
 
 
 
@@ -180,8 +182,11 @@ def make_simon_circuit(first_qubits, second_qubits, oracle):
 run = main(number_qubits)
 matrix_input = run[0]
 secret_function = run[1]
+string_secret = run[2]
+r = run[3]
 
 def shuffle_op(matrix, point):
+
 
     for i in range(0, len(matrix)):
         if (matrix[i] == [0 for l in range(0, len(matrix[0]))]):
@@ -190,17 +195,23 @@ def shuffle_op(matrix, point):
             if (matrix[i] == matrix[j] and i != j):
                 raise ValueError("System of equations not linearly independent, try again")
 
-    for j in range(0, len(matrix)):
-        if (matrix[j][j] != 1):
-            for k in range(0, len(matrix)):
-                if (matrix[k][j] == 1 and 1 in [matrix[l][j] for l in range(k, len(matrix))]):
-                    holder = matrix[j]
-                    matrix[j] = matrix[k]
-                    matrix[k] = holder
 
-    #If that isn't the case, simply go through the conversion to triangular form, then choose first column
+    for i in range(1, len(matrix)+1):
+      for c in list(itertools.combinations([y[0:len(matrix)+1] for y in matrix], i)):
+        hol = []
+        for b in c:
+          hol.append(b)
+        calc = [sum(x)%2 for x in zip(*hol)]
+        ha = True
+        for ij in range (0, len(hol)):
+            for ik in range (0, len(hol)):
+                if (hol[ik] == hol[ij] and ik != ij):
+                    ha = False
+        if (ha == True and calc == [0 for p in range(0, len(calc))]):
+          raise ValueError("System of equations not linearly independent, try again")
 
-    #Elimination into triangular form (mod 2)
+    flip = False
+    passage = False
 
     for i in range(0, len(matrix)):
         for j in range(i+1, len(matrix)):
@@ -211,93 +222,81 @@ def shuffle_op(matrix, point):
                 matrix[j] = new
 
 
-    #Determines which column to delete from the matrix
+    for a in range(0, len(matrix)+1):
 
-    #First check to see if there are any "linked pairs" or "zero columns" that we can do away with
+        fm = []
+        flip = a
 
-    for i in range(0, len(matrix)):
-        if (matrix[i] == [0 for l in range(0, len(matrix[0]))]):
-            raise ValueError("System of equations not linearly independent, try again")
-        for j in range(0, len(matrix)):
-            if (matrix[i] == matrix[j] and i != j):
-                raise ValueError("System of equations not linearly independent, try again")
+        work = copy.deepcopy(matrix)
 
-    flip = False
-
-    for j in range(0, len(matrix[0])-2):
-        flip_switch = True
-        for i in range(0, len(matrix)):
-            if ([matrix[i][j], matrix[i][j+1]] != [0, 0] and [matrix[i][j], matrix[i][j+1]] != [1, 1]):
-                flip_switch = False
-        if (flip_switch == True):
-            flip = j
-            break;
-
-    for j in range(0, len(matrix[0])-1):
-        flip_switch = True
-        for i in range(0, len(matrix)):
-            if (matrix[i][j] != 0):
-                flip_switch = False
-        if (flip_switch == True):
-            flip = j
-            break;
-
-    if (flip == False):
-        one = [1]+[0 for i in range(0, len(matrix[0])-2)]+[point]
-        two = [1]+[0 for i in range(0, len(matrix[0])-2)]+[int(not point)]
-        index_var = 0
-        while (one in matrix or two in matrix):
-            del one[index_var]
-            index_var = index_var + 1
-            one.insert(index_var, 1)
-        matrix.append(one)
-
-    else:
         h = [0 for i in range(0, len(matrix[0])-2)]+[point]
         h.insert(flip, 1)
-        matrix.append(h)
+        work.append(h)
 
-    select = False
-    true_stuff = False
+        for j in range(0, len(work[0])-1):
+            temporary = []
+            for g in range(0, len(work)):
+                if (work[g][j] == 1):
+                    temporary.append(work[g])
+            fm.append(temporary)
 
-    while (select == False):
-        select = True
-        for j in range(0, len(matrix)):
-            if (matrix[j][j] != 1):
-                select = False
-                for k in range(0, len(matrix)):
-                    if (matrix[k][j] == 1):
-                        holder = matrix[j]
-                        matrix[j] = matrix[k]
-                        matrix[k] = holder
-                        true_stuff = True
-                        for v in range (0, len(matrix)):
-                            if (matrix[v][v] != 1):
-                                true_stuff = False
-                        if (true_stuff == True):
-                            break;
-                    if (true_stuff == True):
-                        break
-            if (true_stuff == True):
-                break;
-        if (true_stuff == True):
+        cv = False
+
+        if ([] not in fm):
+            for element in itertools.product(*fm):
+
+                if (sorted(work) == sorted(element)):
+
+                    cv = True
+
+                    last_work = copy.deepcopy(list(element))
+
+                    #Check for linear independence
+
+                    for i in range(0, len(last_work)):
+                        if (last_work[i] == [0 for l in range(0, len(last_work[0]))]):
+                            cv = False
+                        for j in range(0, len(last_work)):
+                            if (last_work[i] == last_work[j] and i != j):
+                                cv = False
+
+
+                    for i in range(1, len(last_work)+1):
+                      for c in list(itertools.combinations([y[0:len(last_work)] for y in last_work], i)):
+                        hol = []
+                        for b in c:
+                          hol.append(b)
+                        calc = [sum(x)%2 for x in zip(*hol)]
+                        ha = True
+                        for ij in range (0, len(hol)):
+                            for ik in range (0, len(hol)):
+                                if (hol[ik] == hol[ij] and ik != ij):
+                                    ha = False
+                        if (ha == True and calc == [0 for p in range(0, len(calc))]):
+                          cv = False
+
+                    #Check if the matrix can be reduced
+
+                    for i in range(0, len(last_work)):
+                        for j in range(i+1, len(last_work)):
+                            if (last_work[i][i] == 0):
+                                cv = False
+                            else:
+                                x = -1*last_work[j][i]/last_work[i][i]
+                                iterator = map(lambda y: y*int(x), last_work[i])
+                                new = [sum(z)%2 for z in zip(last_work[j], iterator)]
+                                last_work[j] = new
+
+                    if (cv == True):
+                        break;
+
+
+        if (cv == True):
             break;
 
+    matrix = last_work
 
-    #If that isn't the case, simply go through the conversion to triangular form, then choose first column
-
-    #Elimination into triangular form (mod 2)
-
-    for i in range(0, len(matrix)):
-        for j in range(i+1, len(matrix)):
-            if (matrix[i][i] == 0):
-                raise ValueError("System of equations not linearly independent, try again")
-            x = -1*matrix[j][i]/matrix[i][i]
-            iterator = map(lambda y: y*int(x), matrix[i])
-            new = [sum(z)%2 for z in zip(matrix[j], iterator)]
-            matrix[j] = new
-
-    return matrix
+    return last_work
 
 def construct_solve(matrix_out):
 
@@ -316,6 +315,7 @@ def construct_solve(matrix_out):
 
     return solution
 
+
 other_matrix_input = copy.deepcopy(matrix_input)
 
 first_shot = shuffle_op(matrix_input, 0)
@@ -331,5 +331,6 @@ if (secret_function[1][secret_function[0].index(0)] == secret_function[1][secret
     if (int(processing1, 2) == 0):
         final = int(processing2, 2)
     print("The secret string is: "+str(final))
+
 else:
     print("The secret string is 0")
