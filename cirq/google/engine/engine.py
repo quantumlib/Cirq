@@ -16,8 +16,9 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(project_id='my-project-id')
-    program = engine.create_program(ciruit, 'my-experiment')
-    result = engine.run(program=program, repetitions=10)
+    program = engine.create_program(ciruit)
+    result0 = program.run(params=params0, repetitions=10)
+    result1 = program.run(params=params1, repetitions=10)
 
 In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
@@ -294,12 +295,14 @@ class Engine:
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: Dict,
+            program: Program,
+            program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             params: Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -320,48 +323,18 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-
-        if not 'name' in program:
-            raise ValueError('program does not have a name')
-
-        # Check program to run and program parameters.
-        if not 0 <= priority < 1000:
-            raise ValueError('priority must be between 0 and 1000')
-
-        job_config = self.implied_job_config(job_config)
-        sweeps = study.to_sweeps(params or ParamResolver({}))
-        run_context = self._serialize_run_context(sweeps, repetitions)
-
-        # Create job.
-        request = {
-            'name': '%s/jobs/%s' % (program['name'], job_config.job_id),
-            'output_config': {
-                'gcs_results_location': {
-                    'uri': job_config.gcs_results
-                }
-            },
-            'scheduling_config': {
-                'priority': priority,
-                'processor_selector': {
-                    'processor_names': [
-                        'projects/%s/processors/%s' %
-                        (self.project_id, processor_id)
-                        for processor_id in processor_ids
-                    ]
-                }
-            },
-            'run_context': run_context
-        }
-        response = self.service.projects().programs().jobs().create(
-            parent=program['name'], body=request).execute()
-
-        return EngineJob(job_config, response, self)
+        engine_program = self.create_program(program, program_id, gate_set)
+        return engine_program.run_sweep(job_config=job_config,
+                           params=params,
+                           repetitions=repetitions,
+                           priority=priority,
+                           processor_ids=processor_ids)
 
     def create_program(self,
                        program: Program,
                        program_id: Optional[str] = None,
                        gate_set: Optional[SerializableGateSet] = gate_sets.XMON
-                      ) -> Dict:
+                      ) -> 'EngineProgram':
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
         Args:
@@ -387,8 +360,11 @@ class Engine:
             'name': program_name,
             'code': self._serialize_program(program, gate_set),
         }
-        return self.service.projects().programs().create(
+        result = self.service.projects().programs().create(
             parent=parent_name, body=request).execute()
+
+        return EngineProgram(result, self)
+
 
     def _serialize_program(self,
                            program: Program,
@@ -700,6 +676,105 @@ class Calibration:
                 flat_values += [value[type] for type in value]
             result.append({'targets': metric['targets'], 'values': flat_values})
         return result
+
+class EngineProgram:
+    """A program created via the Quantum Engine API.
+
+    This program wraps a Circuit or Schedule with additional metadata used to
+    schedule againt devices maintained by Google.
+
+    Attributes:
+      name: The full resource name of the engine program.
+      code: A serialized version of the Circuit or Schedule
+    """
+
+    def __init__(self,
+                 program: Dict[str, Any],
+                 engine: Engine) -> None:
+        """A job submitted to the engine.
+
+        Args:
+            program: A full Program Dict from the Engine.
+            engine: Engine connected to the job.
+        """
+        # Check name since this is important for performing operations
+        if not 'name' in program:
+            raise ValueError('program does not have a name')
+
+        if not 'code' in program:
+            raise ValueError('program does not have code')
+
+        self._program = program
+        self._engine = engine
+
+    def get_resource_name() -> str:
+      return self._program['name']
+
+    def get_program() -> Program:
+      #TODO: deserialize code
+      return {}
+
+    def run_sweep(
+            self,
+            *,  # Force keyword args.
+            job_config: Optional[JobConfig] = None,
+            params: Sweepable = None,
+            repetitions: int = 1,
+            priority: int = 500,
+            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
+        """Runs the supplied Circuit or Schedule via Quantum Engine.
+
+        In contrast to run, this runs across multiple parameter sweeps, and
+        does not block until a result is returned.
+
+        Args:
+            job_config: Configures optional job parameters.
+            params: Parameters to run with the program.
+            repetitions: The number of circuit repetitions to run.
+            priority: The priority to run at, 0-100.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
+
+        Returns:
+            An EngineJob. If this is iterated over it returns a list of
+            TrialResults, one for each parameter sweep.
+        """
+
+        # Check program to run and program parameters.
+        if not 0 <= priority < 1000:
+            raise ValueError('priority must be between 0 and 1000')
+
+        program_name = self.get_resource_name()
+        job_config = self.implied_job_config(job_config)
+        sweeps = study.to_sweeps(params or ParamResolver({}))
+        run_context = self._serialize_run_context(sweeps, repetitions)
+
+        # Create job.
+        request = {
+            'name': '%s/jobs/%s' % (program_name, job_config.job_id),
+            'output_config': {
+                'gcs_results_location': {
+                    'uri': job_config.gcs_results
+                }
+            },
+            'scheduling_config': {
+                'priority': priority,
+                'processor_selector': {
+                    'processor_names': [
+                        'projects/%s/processors/%s' %
+                        (self.project_id, processor_id)
+                        for processor_id in processor_ids
+                    ]
+                }
+            },
+            'run_context': run_context
+        }
+        response = self.service.projects().programs().jobs().create(
+            parent=program_name, body=request).execute()
+
+        return EngineJob(job_config, response, self)
+
 
 
 class EngineJob:
