@@ -697,3 +697,9 @@ def test_cannot_multiply_by_non_paulis():
         _ = cirq.Z(q)**0.5 * cirq.X(q)
     with pytest.raises(TypeError):
         _ = cirq.Y(q) * cirq.S(q)
+
+
+def test_filters_identities():
+    q1, q2 = cirq.LineQubit.range(2)
+    assert cirq.PauliString({q1: cirq.I, q2: cirq.X}) == \
+           cirq.PauliString({q2: cirq.X})

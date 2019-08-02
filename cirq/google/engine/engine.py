@@ -30,6 +30,7 @@ import re
 import string
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+import warnings
 
 from apiclient import discovery, http as apiclient_http
 import google.protobuf as gp
@@ -200,10 +201,14 @@ class Engine:
             request_builder = _user_project_header_request_builder(project_id)
             service_args['requestBuilder'] = request_builder
 
-        self.service = discovery.build('' if discovery_url else 'quantum',
-                                       '' if discovery_url else version,
-                                       discoveryServiceUrl=self.discovery_url,
-                                       **service_args)
+        # Suppress warnings about using Application Default Credentials.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.service = discovery.build(
+                '' if discovery_url else 'quantum',
+                '' if discovery_url else version,
+                discoveryServiceUrl=self.discovery_url,
+                **service_args)
 
     def run(
             self,

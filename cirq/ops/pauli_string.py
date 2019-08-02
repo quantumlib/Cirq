@@ -44,6 +44,11 @@ class PauliString(raw_types.Operation):
                  coefficient: Union[int, float, complex] = 1) -> None:
         if qubit_pauli_map is None:
             qubit_pauli_map = {}
+        qubit_pauli_map = {
+            q: p
+            for q, p in qubit_pauli_map.items()
+            if not isinstance(p, common_gates.IdentityGate)
+        }
         for p in qubit_pauli_map.values():
             if not isinstance(p, pauli_gates.Pauli):
                 raise TypeError(f'{p} is not a Pauli')
