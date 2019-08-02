@@ -241,43 +241,6 @@ class Engine:
                            priority=priority,
                            processor_ids=processor_ids))[0]
 
-    def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
-        gcs_prefix = (job_config.gcs_prefix or self.default_gcs_prefix or
-                      'gs://gqe-' +
-                      self.project_id[self.project_id.rfind(':') + 1:])
-        if gcs_prefix and not gcs_prefix.endswith('/'):
-            gcs_prefix += '/'
-
-        if not gcs_prefix_pattern.match(gcs_prefix):
-            raise ValueError('gcs_prefix must be of the form "gs://'
-                             '<bucket name and optional object prefix>/"')
-
-        job_config.gcs_prefix = gcs_prefix
-
-    def _infer_job_id(self, job_config: JobConfig) -> None:
-        if job_config.job_id is None:
-            job_config.job_id = 'job-0'
-
-    def _infer_gcs_results(self, job_config: JobConfig) -> None:
-        if job_config.gcs_prefix is None:
-            raise ValueError("Must infer gcs_prefix before gcs_results.")
-
-        if job_config.gcs_results is None:
-            job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
-                                                        job_config.job_id)
-
-    def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
-        implied_job_config = (JobConfig()
-                              if job_config is None
-                              else job_config.copy())
-
-        # Note: inference order is important. Later ones may need earlier ones.
-        self._infer_gcs_prefix(implied_job_config)
-        self._infer_job_id(implied_job_config)
-        self._infer_gcs_results(implied_job_config)
-
-        return implied_job_config
-
     def program_as_schedule(self, program: Program) -> Schedule:
         if isinstance(program, circuits.Circuit):
             device = program.device
@@ -388,32 +351,6 @@ class Engine:
             return _any_dict_from_msg(program)
         else:
             raise ValueError('invalid program proto version: {}'.format(
-                self.proto_version))
-
-    def _serialize_run_context(
-            self,
-            sweeps: List[Sweep],
-            repetitions: int,
-    ) -> Dict[str, Any]:
-        if self.proto_version == ProtoVersion.V1:
-            context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
-            context_dict = {}  # type: Dict[str, Any]
-            context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
-            context_dict['parameter_sweeps'] = [
-                api_v1.sweep_to_proto_dict(sweep, repetitions)
-                for sweep in sweeps
-            ]
-            return context_dict
-        elif self.proto_version == ProtoVersion.V2:
-            run_context = v2.run_context_pb2.RunContext()
-            for sweep in sweeps:
-                sweep_proto = run_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-
-            return _any_dict_from_msg(run_context)
-        else:
-            raise ValueError('invalid run context proto version: {}'.format(
                 self.proto_version))
 
     def get_program(self, program_id: str) -> Dict:
@@ -701,18 +638,12 @@ class EngineProgram:
         if not 'name' in program:
             raise ValueError('program does not have a name')
 
-        if not 'code' in program:
-            raise ValueError('program does not have code')
-
         self._program = program
         self._engine = engine
+        self._job_id_counter = 0 # Unique suffix for generated IDs.
 
-    def get_resource_name() -> str:
+    def get_resource_name(self) -> str:
       return self._program['name']
-
-    def get_program() -> Program:
-      #TODO: deserialize code
-      return {}
 
     def run_sweep(
             self,
@@ -763,18 +694,83 @@ class EngineProgram:
                 'processor_selector': {
                     'processor_names': [
                         'projects/%s/processors/%s' %
-                        (self.project_id, processor_id)
+                        (self._engine.project_id, processor_id)
                         for processor_id in processor_ids
                     ]
                 }
             },
             'run_context': run_context
         }
-        response = self.service.projects().programs().jobs().create(
+        response = self._engine.service.projects().programs().jobs().create(
             parent=program_name, body=request).execute()
 
         return EngineJob(job_config, response, self)
 
+    def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
+        implied_job_config = (JobConfig()
+                              if job_config is None
+                              else job_config.copy())
+
+        # Note: inference order is important. Later ones may need earlier ones.
+        self._infer_gcs_prefix(implied_job_config)
+        self._infer_job_id(implied_job_config)
+        self._infer_gcs_results(implied_job_config)
+
+        return implied_job_config
+
+    def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
+        project_id = self._engine.project_id
+        gcs_prefix = (job_config.gcs_prefix or self._engine.default_gcs_prefix or
+                      'gs://gqe-' +
+                      project_id[project_id.rfind(':') + 1:])
+        if gcs_prefix and not gcs_prefix.endswith('/'):
+            gcs_prefix += '/'
+
+        if not gcs_prefix_pattern.match(gcs_prefix):
+            raise ValueError('gcs_prefix must be of the form "gs://'
+                             '<bucket name and optional object prefix>/"')
+
+        job_config.gcs_prefix = gcs_prefix
+
+    def _infer_job_id(self, job_config: JobConfig) -> None:
+        if job_config.job_id is None:
+            job_config.job_id = 'job-%s' % (self._job_id_counter)
+            self._job_id_counter += 1
+
+    def _infer_gcs_results(self, job_config: JobConfig) -> None:
+        if job_config.gcs_prefix is None:
+            raise ValueError("Must infer gcs_prefix before gcs_results.")
+
+        if job_config.gcs_results is None:
+            job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
+                                                        job_config.job_id)
+
+    def _serialize_run_context(
+            self,
+            sweeps: List[Sweep],
+            repetitions: int,
+    ) -> Dict[str, Any]:
+        proto_version = self._engine.proto_version
+        if proto_version == ProtoVersion.V1:
+            context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
+            context_dict = {}  # type: Dict[str, Any]
+            context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
+            context_dict['parameter_sweeps'] = [
+                api_v1.sweep_to_proto_dict(sweep, repetitions)
+                for sweep in sweeps
+            ]
+            return context_dict
+        elif proto_version == ProtoVersion.V2:
+            run_context = v2.run_context_pb2.RunContext()
+            for sweep in sweeps:
+                sweep_proto = run_context.parameter_sweeps.add()
+                sweep_proto.repetitions = repetitions
+                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+
+            return _any_dict_from_msg(run_context)
+        else:
+            raise ValueError('invalid run context proto version: {}'.format(
+                proto_version))
 
 
 class EngineJob:
