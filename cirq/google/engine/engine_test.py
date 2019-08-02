@@ -204,8 +204,7 @@ def test_run_circuit(build):
         'result': _A_RESULT}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_CIRCUIT)
-    result = engine.run(program=program,
+    result = engine.run(program=_CIRCUIT,
                         job_config=cg.JobConfig(
                             'project-id', gcs_prefix='gs://bucket/folder'))
     assert result.repetitions == 1
@@ -234,6 +233,8 @@ def test_circuit_device_validation_fails(build):
         cirq.Z(cirq.NamedQubit("dorothy"))]))
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(ValueError, match='Unsupported qubit type'):
+        engine.run_sweep(program=circuit)
+    with pytest.raises(ValueError, match='Unsupported qubit type'):
         engine.create_program(circuit)
 
 
@@ -247,6 +248,8 @@ def test_schedule_device_validation_fails(build):
                              scheduled_operations=[scheduled_op])
 
     engine = cg.Engine(project_id='project-id')
+    with pytest.raises(ValueError):
+        engine.run_sweep(program=schedule)
     with pytest.raises(ValueError):
         engine.create_program(schedule)
 
@@ -271,15 +274,14 @@ def test_circuit_device_validation_passes_non_xmon_gate(build):
     engine = cg.Engine(project_id='project-id')
     circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
                                     device=cg.Foxtail)
-    program = engine.create_program(circuit)
-    result = engine.run(program=program, job_config=cg.JobConfig('project-id'))
+    result = engine.run(program=circuit, job_config=cg.JobConfig('project-id'))
     assert result.repetitions == 1
 
 
 @mock.patch.object(discovery, 'build')
 def test_unsupported_program_type(build):
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(ValueError, match='program'):
+    with pytest.raises(TypeError, match='program'):
         engine.run(program="this isn't even the right type of thing!")
 
 
@@ -299,9 +301,8 @@ def test_run_circuit_failed(build):
         'executionStatus': {'state': 'FAILURE'}}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_CIRCUIT)
     with pytest.raises(RuntimeError, match='It is in state FAILURE'):
-        engine.run(program=program)
+        engine.run(program=_CIRCUIT)
 
 
 @mock.patch.object(discovery, 'build')
@@ -322,8 +323,7 @@ def test_default_prefix(build):
         'result': _A_RESULT}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_CIRCUIT)
-    result = engine.run(program=program)
+    result = engine.run(program=_CIRCUIT)
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
@@ -353,9 +353,8 @@ def test_run_sweep_params(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(
-        program=program,
+        program=_SCHEDULE,
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
@@ -401,8 +400,7 @@ def test_run_sweep_v1(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_SCHEDULE)
-    job = engine.run_sweep(program=program,
+    job = engine.run_sweep(program=_SCHEDULE,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -432,6 +430,62 @@ def test_run_sweep_v1(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_run_multiple_times(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    jobs.getResult().execute.return_value = {'result': _RESULTS}
+
+    engine = cg.Engine(project_id='project-id')
+    program = engine.create_program(program=_SCHEDULE)
+    program.run(param_resolver=cirq.ParamResolver({'a': 1}))
+    sweeps1 = jobs.create.call_args[1]['body']['run_context'][
+        'parameter_sweeps']
+    job2 = program.run_sweep(repetitions=2, params=cirq.Points('a', [3, 4]))
+    sweeps2 = jobs.create.call_args[1]['body']['run_context'][
+        'parameter_sweeps']
+    results = job2.results()
+    assert engine.proto_version == cg.engine.engine.ProtoVersion.V1
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    build.assert_called_with('quantum',
+                             'v1alpha1',
+                             discoveryServiceUrl=('https://{api}.googleapis.com'
+                                                  '/$discovery/rest?version='
+                                                  '{apiVersion}'),
+                             requestBuilder=mock.ANY)
+    assert len(sweeps1) == 1
+    assert sweeps1[0]['repetitions'] == 1
+    assert sweeps1[0]['sweep']['factors'][0]['sweeps'][0]['points'][
+        'points'] == [1]
+    assert len(sweeps2) == 1
+    assert sweeps2[0]['repetitions'] == 2
+    assert sweeps2[0]['sweep']['factors'][0]['sweeps'][0]['points'][
+        'points'] == [3, 4]
+    assert jobs.get().execute.call_count == 2
+    assert jobs.getResult().execute.call_count == 2
+
+
+@mock.patch.object(discovery, 'build')
 def test_run_sweep_v2(build):
     service = mock.Mock()
     build.return_value = service
@@ -458,8 +512,7 @@ def test_run_sweep_v2(build):
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    program = engine.create_program(_SCHEDULE)
-    job = engine.run_sweep(program=program,
+    job = engine.run_sweep(program=_SCHEDULE,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -514,8 +567,7 @@ def test_bad_result_proto(build):
 
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
-    program = engine.create_program(_SCHEDULE)
-    job = engine.run_sweep(program=program,
+    job = engine.run_sweep(program=_SCHEDULE,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -527,9 +579,9 @@ def test_bad_result_proto(build):
 def test_bad_sweep_proto(build):
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
-    program = {'name': 'foo'}
+    program = cg.engine.engine.EngineProgram({'name': 'foo'}, engine)
     with pytest.raises(ValueError, match='invalid run context proto version'):
-        engine.run(program=program)
+        program.run_sweep()
 
 
 @mock.patch.object(discovery, 'build')
@@ -537,16 +589,23 @@ def test_bad_program_proto(build):
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
     with pytest.raises(ValueError, match='invalid program proto version'):
+        engine.run_sweep(program=_CIRCUIT)
+    with pytest.raises(ValueError, match='invalid program proto version'):
         engine.create_program(_CIRCUIT)
 
 
 @mock.patch.object(discovery, 'build')
 def test_bad_priority(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
-    program = {'name': 'foo'}
     with pytest.raises(ValueError, match='priority must be'):
-        engine.run(program=program, priority=1001)
+        engine.run(program=_CIRCUIT, priority=1001)
 
 
 @mock.patch.object(discovery, 'build')
@@ -565,8 +624,7 @@ def test_cancel(build):
         'executionStatus': {'state': 'CANCELLED'}}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_SCHEDULE)
-    job = engine.run_sweep(program=program,
+    job = engine.run_sweep(program=_SCHEDULE,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'))
     job.cancel()
@@ -686,9 +744,10 @@ def test_implied_job_config(build):
 
     # Infer all from project id.
     implied = eng.implied_job_config(cg.JobConfig())
-    assert implied.job_id == 'job-0'
+    assert implied.job_id.startswith('job-')
+    assert len(implied.job_id) == 10
     assert implied.gcs_prefix == 'gs://gqe-project_id/'
-    assert re.fullmatch(r'gs://gqe-project_id/jobs/job-0', implied.gcs_results)
+    assert re.match(r'gs://gqe-project_id/jobs/job-', implied.gcs_results)
 
     # Force all.
     implied = eng.implied_job_config(
@@ -733,7 +792,7 @@ def test_create_program(build):
     result = cg.Engine(project_id='my-project').create_program(_CIRCUIT, 'foo')
     assert programs.create.call_args[1]['body']['name'] == (
         'projects/my-project/programs/foo')
-    assert result == fake_result
+    assert result._program == fake_result
 
 
 @mock.patch.object(discovery, 'build')
@@ -801,9 +860,8 @@ def test_calibration_from_job(build):
     calibrations.get().execute.return_value = {'data': _CALIBRATION}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(
-        program=program,
+        program=_SCHEDULE,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
 
     calibration = job.get_calibration()
@@ -831,9 +889,8 @@ def test_calibration_from_job_with_no_calibration(build):
 
     calibrations = service.projects().processors().calibrations()
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(_SCHEDULE)
     job = engine.run_sweep(
-        program=program,
+        program=_SCHEDULE,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
 
     calibration = job.get_calibration()
@@ -906,3 +963,9 @@ def test_not_both_version_and_discovery(build):
         cg.Engine(project_id='project-id',
                   version='vNo',
                   discovery_url='funkyDisco')
+
+
+@mock.patch.object(discovery, 'build')
+def test_program_without_name(build):
+    with pytest.raises(ValueError, match='program does not have a name'):
+        cg.engine.engine.EngineProgram({}, cg.Engine('project-id'))
