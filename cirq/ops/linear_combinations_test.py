@@ -119,6 +119,71 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(
         assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
 
 
+@pytest.mark.parametrize('terms, exponent, expected_terms', (
+    ({
+        cirq.X: 1,
+    }, 2, {
+        cirq.I: 1,
+    }),
+    ({
+        cirq.X: 1,
+    }, 3, {
+        cirq.X: 1,
+    }),
+    ({
+        cirq.Y: 0.5,
+    }, 10, {
+        cirq.I: 2**-10,
+    }),
+    ({
+        cirq.Y: 0.5,
+    }, 11, {
+        cirq.Y: 2**-11,
+    }),
+    ({
+        cirq.I: 1,
+        cirq.X: 2,
+        cirq.Y: 3,
+        cirq.Z: 4,
+    }, 2, {
+        cirq.I: 30,
+        cirq.X: 4,
+        cirq.Y: 6,
+        cirq.Z: 8,
+    }),
+    ({
+        cirq.X: 1,
+        cirq.Y: 1j,
+    }, 2, {}),
+))
+def test_linear_combinations_of_gates_valid_powers(terms, exponent,
+                                                   expected_terms):
+    combination = cirq.LinearCombinationOfGates(terms)
+    actual_result = combination**exponent
+    expected_result = cirq.LinearCombinationOfGates(expected_terms)
+    assert cirq.approx_eq(actual_result, expected_result)
+    assert len(actual_result) == len(expected_terms)
+
+
+@pytest.mark.parametrize('terms', (
+    {},
+    {
+        cirq.H: 1,
+    },
+    {
+        cirq.CNOT: 2,
+    },
+    {
+        cirq.X: 1,
+        cirq.S: -1,
+    },
+))
+def test_linear_combinations_of_gates_invalid_powers(terms):
+    combination = cirq.LinearCombinationOfGates(terms)
+    with pytest.raises(TypeError):
+        _ = combination**2
+
+
 def get_matrix(operator: Union[cirq.Gate, cirq.GateOperation, cirq.
                                LinearCombinationOfGates, cirq.
                                LinearCombinationOfOperations]) -> np.ndarray:
@@ -134,6 +199,11 @@ def assert_linear_combinations_are_equal(
                       LinearCombinationOfOperations],
         expected: Union[cirq.LinearCombinationOfGates, cirq.
                         LinearCombinationOfOperations]) -> None:
+    if not actual and not expected:
+        assert len(actual) == 0
+        assert len(expected) == 0
+        return
+
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
     assert np.allclose(actual_matrix, expected_matrix)
@@ -155,11 +225,18 @@ def assert_linear_combinations_are_equal(
     (-1j * cirq.Y, cirq.Ry(np.pi)),
     (np.sqrt(-1j) * cirq.S, cirq.Rz(np.pi / 2)),
     (0.5 * (cirq.IdentityGate(2) + cirq.XX + cirq.YY + cirq.ZZ), cirq.SWAP),
-    ((cirq.IdentityGate(2) + 1j * (cirq.XX + cirq.YY) + cirq.ZZ) / 2,
-        cirq.ISWAP),
+    ((cirq.IdentityGate(2) + 1j *
+      (cirq.XX + cirq.YY) + cirq.ZZ) / 2, cirq.ISWAP),
     (cirq.CNOT + 0 * cirq.SWAP, cirq.CNOT),
     (0.5 * cirq.FREDKIN, cirq.FREDKIN / 2),
     (cirq.FREDKIN * 0.5, cirq.FREDKIN / 2),
+    (((cirq.X + cirq.Y) / np.sqrt(2))**2, cirq.I),
+    ((cirq.X + cirq.Z)**3, 2 * (cirq.X + cirq.Z)),
+    ((cirq.X + 1j * cirq.Y)**2, cirq.LinearCombinationOfGates({})),
+    ((cirq.X - 1j * cirq.Y)**2, cirq.LinearCombinationOfGates({})),
+    (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**24, cirq.I),
+    (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**25,
+     (3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13),
 ))
 def test_gate_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)

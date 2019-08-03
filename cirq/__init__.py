@@ -82,6 +82,7 @@ from cirq.linalg import (
     one_hot,
     partial_trace,
     PAULI_BASIS,
+    pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,

@@ -17,7 +17,8 @@ from typing import Mapping, Optional, Tuple, Union, List, FrozenSet, DefaultDict
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, pauli_gates, pauli_string
+from cirq.linalg import operator_spaces
+from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
@@ -95,6 +96,31 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         if not isinstance(other, LinearCombinationOfGates):
             other = other.wrap_in_linear_combination()
         return super().__isub__(other)
+
+    def __pow__(self, exponent: int) -> 'LinearCombinationOfGates':
+        if self.num_qubits() != 1:
+            return NotImplemented
+        pauli_basis = {
+            common_gates.I,
+            pauli_gates.X,
+            pauli_gates.Y,
+            pauli_gates.Z,
+        }
+        if not set(self.keys()).issubset(pauli_basis):
+            return NotImplemented
+
+        ai = self[common_gates.I]
+        ax = self[pauli_gates.X]
+        ay = self[pauli_gates.Y]
+        az = self[pauli_gates.Z]
+        bi, bx, by, bz = operator_spaces.pow_pauli_combination(
+            ai, ax, ay, az, exponent)
+        return LinearCombinationOfGates({
+            common_gates.I: bi,
+            pauli_gates.X: bx,
+            pauli_gates.Y: by,
+            pauli_gates.Z: bz
+        })
 
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying gates.
