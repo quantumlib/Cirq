@@ -112,7 +112,7 @@ class Moment:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.operations == other.operations
+        return set(self.operations) == set(other.operations)
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
