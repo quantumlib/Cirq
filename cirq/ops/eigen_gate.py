@@ -60,9 +60,9 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
-    def __init__(self, *,  # Forces keyword args.
+    def __init__(self, *,
                  exponent: Union[sympy.Basic, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
+                 eigen_shifts: Tuple[float] = None) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of each eigenspace of a gate is computed by
@@ -101,8 +101,101 @@ class EigenGate(raw_types.Gate):
                 `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
         """
         self._exponent = exponent
-        self._global_shift = global_shift
         self._canonical_exponent_cached = None
+        if (eigen_shifts is not None and
+            self._validate_eigen_shifts_with_exponent(eigen_shifts, exponent)):
+            self._eigen_shifts = eigen_shifts
+        else:
+            self._eigen_shifts = self._default_eigen_shifts()
+
+    @abc.abstractmethod
+    def _default_eigen_shifts(self) -> Tuple[float]:
+        """Define the default eigen_shifts"""
+
+    @abc.abstractmethod
+    def _eigen_spaces(self) -> Tuple[np.ndarray]:
+        """Define the eigen_spaces"""
+
+    def _eigen_shifts(self) -> Tuple[float]:
+        return self._eigen_shifts
+
+    def _validate_eigen_shifts_with_exponent(self, shifts, exponent) -> bool:
+        """ Returns whether the given shifts imply the same relative phases
+        between the eigenspaces as the default with this exponent.
+        """
+        default = np.exp(1j*np.pi*np.array(self._default_eigen_shifts())*exponent)
+        default /= default[0]
+        actual = np.exp(1j*np.pi*np.array(shifts)*exponent)
+        actual /= actual[0]
+        return np.allclose(default, actual)
+
+    def _eigen_components(self) -> List[Union[EigenComponent,
+                                              Tuple[float, np.ndarray]]]:
+        """Describes the eigendecomposition of the gate's matrix.
+
+        Returns:
+            A list of EigenComponent tuples. Each tuple in the list
+            corresponds to one of the eigenspaces of the gate's matrix. Each
+            tuple has two elements. The first element of a tuple is the θ in
+            λ = exp(i π θ) (where λ is the eigenvalue of the eigenspace). The
+            second element is a projection matrix onto the eigenspace.
+
+        Examples:
+            The Pauli Z gate's eigencomponents are:
+
+                [
+                    (0, np.array([[1, 0],
+                                  [0, 0]])),
+                    (1, np.array([[0, 0],
+                                  [0, 1]])),
+                ]
+
+            Valid eigencomponents for Rz(π) = -iZ are:
+
+                [
+                    (-0.5, np.array([[1, 0],
+                                    [0, 0]])),
+                    (+0.5, np.array([[0, 0],
+                                     [0, 1]])),
+                ]
+
+            But in principle you could also use this:
+
+                [
+                    (+1.5, np.array([[1, 0],
+                                    [0, 0]])),
+                    (-0.5, np.array([[0, 0],
+                                     [0, 1]])),
+                ]
+
+                The choice between -0.5 and +1.5 does not affect the gate's
+                matrix, but it does affect the matrix of powers of the gates
+                (because (x+2)*s != x*s (mod 2) when s is a real number).
+
+            The Pauli X gate's eigencomponents are:
+
+                [
+                    (0, np.array([[0.5, 0.5],
+                                  [0.5, 0.5]])),
+                    (1, np.array([[+0.5, -0.5],
+                                  [-0.5, +0.5]])),
+                ]
+        """
+        return [*zip(self._eigen_shifts(), self._eigen_spaces())]
+
+    def _with_eigen_shifts(self, shifts):
+        """ Adjusts eigen_shifts of this gate to the given shifts if they are
+        compatible with this gate type.
+        """
+        if self._validate_eigen_shifts_with_exponent(shifts, self._exponent):
+            self._eigen_shifts = shifts
+        else:
+            raise ValueError("Provided shifts incompatible with this class")
+
+
+
+
+
 
     @property
     def exponent(self) -> Union[sympy.Basic, float]:
@@ -180,75 +273,7 @@ class EigenGate(raw_types.Gate):
 
         return result
 
-    # virtual method
-    def _eigen_shifts(self) -> List[float]:
-        """Describes the eigenvalues of the gate's matrix.
 
-        By default, this just extracts the shifts by calling
-        self._eigen_components(). However, because that method generates
-        matrices it may be extremely expensive.
-
-        Returns:
-            A list of floats. Each float in the list corresponds to one of the
-            eigenvalues of the gate's matrix, before accounting for any global
-            shift. Each float is the θ in λ = exp(i π θ) (where λ is the
-            eigenvalue).
-        """
-        return [e[0] for e in self._eigen_components()]
-
-    @abc.abstractmethod
-    def _eigen_components(self) -> List[Union[EigenComponent,
-                                              Tuple[float, np.ndarray]]]:
-        """Describes the eigendecomposition of the gate's matrix.
-
-        Returns:
-            A list of EigenComponent tuples. Each tuple in the list
-            corresponds to one of the eigenspaces of the gate's matrix. Each
-            tuple has two elements. The first element of a tuple is the θ in
-            λ = exp(i π θ) (where λ is the eigenvalue of the eigenspace). The
-            second element is a projection matrix onto the eigenspace.
-
-        Examples:
-            The Pauli Z gate's eigencomponents are:
-
-                [
-                    (0, np.array([[1, 0],
-                                  [0, 0]])),
-                    (1, np.array([[0, 0],
-                                  [0, 1]])),
-                ]
-
-            Valid eigencomponents for Rz(π) = -iZ are:
-
-                [
-                    (-0.5, np.array([[1, 0],
-                                    [0, 0]])),
-                    (+0.5, np.array([[0, 0],
-                                     [0, 1]])),
-                ]
-
-            But in principle you could also use this:
-
-                [
-                    (+1.5, np.array([[1, 0],
-                                    [0, 0]])),
-                    (-0.5, np.array([[0, 0],
-                                     [0, 1]])),
-                ]
-
-                The choice between -0.5 and +1.5 does not affect the gate's
-                matrix, but it does affect the matrix of powers of the gates
-                (because (x+2)*s != x*s (mod 2) when s is a real number).
-
-            The Pauli X gate's eigencomponents are:
-
-                [
-                    (0, np.array([[0.5, 0.5],
-                                  [0.5, 0.5]])),
-                    (1, np.array([[+0.5, -0.5],
-                                  [-0.5, +0.5]])),
-                ]
-        """
 
     def _period(self) -> Optional[float]:
         """Determines how the exponent parameter is canonicalized when equating.
