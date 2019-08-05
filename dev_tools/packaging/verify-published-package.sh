@@ -28,7 +28,7 @@
 ################################################################################
 
 set -e
-trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 
 PROJECT_NAME=cirq
@@ -36,7 +36,7 @@ PROJECT_VERSION=$1
 PROD_SWITCH=$2
 
 if [ -z "${PROJECT_VERSION}" ]; then
-    echo -e "\e[31mFirst argument must be the package version to test.\e[0m"
+    echo -e "\033[31mFirst argument must be the package version to test.\033[0m"
     exit 1
 fi
 
@@ -47,7 +47,7 @@ elif [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--prod" ]; then
     PYPI_REPOSITORY_FLAG=''
     PYPI_REPO_NAME="PROD"
 else
-    echo -e "\e[31mSecond argument must be empty, '--prod' or '--test'.\e[0m"
+    echo -e "\033[31mSecond argument must be empty, '--prod' or '--test'.\033[0m"
     exit 1
 fi
 
@@ -66,7 +66,7 @@ for PYTHON_VERSION in python3; do
     RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
     CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq/contrib/contrib-requirements.txt"
 
-    echo -e "\n\e[32m${PYTHON_VERSION}\e[0m"
+    echo -e "\n\033[32m${PYTHON_VERSION}\033[0m"
     echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
     virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
 
@@ -99,4 +99,4 @@ for PYTHON_VERSION in python3; do
 done
 
 echo
-echo -e '\e[32mVERIFIED\e[0m'
+echo -e '\033[32mVERIFIED\033[0m'

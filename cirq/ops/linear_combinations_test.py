@@ -579,6 +579,16 @@ def test_pauli_sum_construction():
     assert len(zero) == 0
 
 
+@pytest.mark.parametrize('psum, expected_qubits', (
+    (cirq.Z(q1), (q1,)),
+    (cirq.X(q0) + cirq.Y(q0), (q0,)),
+    (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+    (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
+))
+def test_pauli_sum_qubits(psum, expected_qubits):
+    assert psum.qubits == expected_qubits
+
+
 def test_pauli_sum_from_single_pauli():
     q = cirq.LineQubit.range(2)
     psum1 = cirq.X(q[0]) + cirq.Y(q[1])
