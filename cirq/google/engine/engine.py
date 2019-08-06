@@ -436,8 +436,7 @@ class Engine:
         result = self.service.projects().programs().create(
             parent=parent_name, body=request).execute()
 
-        print(result)
-        return EngineProgram(result, self)
+        return EngineProgram(result['name'], self)
 
     def _serialize_program(self,
                            program: Program,
@@ -736,24 +735,17 @@ class EngineProgram:
       code: A serialized version of the Circuit or Schedule
     """
 
-    def __init__(self, program: Dict[str, Any], engine: Engine) -> None:
+    def __init__(self, resource_name: str, engine: Engine) -> None:
         """A job submitted to the engine.
 
         Args:
-            program: A full Program Dict from the Engine.
+            resource_name: The globally unique identifier for the program:
+                `projects/project_id/programs/program_id`.
             engine: An Engine object associated with the same project as the
                 program.
         """
-        # Check name since this is important for performing operations
-        if not 'name' in program:
-            raise ValueError('program does not have a name')
-
-        self._program = program
+        self.resource_name = resource_name
         self._engine = engine
-        self._job_id_counter = 0  # Unique suffix for generated IDs.
-
-    def get_resource_name(self) -> str:
-        return self._program['name']
 
     def run_sweep(
             self,
@@ -781,7 +773,7 @@ class EngineProgram:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-        return self._engine.create_job(program_name=self.get_resource_name(),
+        return self._engine.create_job(program_name=self.resource_name,
                                        job_config=job_config,
                                        params=params,
                                        repetitions=repetitions,

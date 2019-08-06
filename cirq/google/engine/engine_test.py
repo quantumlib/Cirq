@@ -787,12 +787,12 @@ def test_create_program(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
-    fake_result = ({'name': 'project/my-project/program/foo'})
+    fake_result = {'name': 'project/my-project/program/foo'}
     programs.create().execute.return_value = fake_result
     result = cg.Engine(project_id='my-project').create_program(_CIRCUIT, 'foo')
     assert programs.create.call_args[1]['body']['name'] == (
         'projects/my-project/programs/foo')
-    assert result._program == fake_result
+    assert result.resource_name == fake_result['name']
 
 
 @mock.patch.object(discovery, 'build')
@@ -963,9 +963,3 @@ def test_not_both_version_and_discovery(build):
         cg.Engine(project_id='project-id',
                   version='vNo',
                   discovery_url='funkyDisco')
-
-
-@mock.patch.object(discovery, 'build')
-def test_program_without_name(build):
-    with pytest.raises(ValueError, match='program does not have a name'):
-        cg.engine.engine.EngineProgram({}, cg.Engine('project-id'))
