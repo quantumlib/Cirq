@@ -20,5 +20,8 @@ from cirq.google.engine.engine import (
     JobConfig,
 )
 
+from cirq.google.engine.engine_sampler import (
+    QuantumEngineSampler,)
+
 from cirq.google.engine.env_config import (
     engine_from_environment,)

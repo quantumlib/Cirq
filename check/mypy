@@ -11,9 +11,9 @@
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-echo -e -n "\e[31m"
+echo -e -n "\033[31m"
 mypy --config-file=dev_tools/conf/mypy.ini $@ .
 result=$?
-echo -e -n "\e[0m"
+echo -e -n "\033[0m"
 
 exit ${result}

@@ -37,6 +37,7 @@ from cirq.google.engine import (
     engine_from_environment,
     Engine,
     JobConfig,
+    QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (
