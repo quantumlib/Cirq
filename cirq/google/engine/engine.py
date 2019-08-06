@@ -92,13 +92,10 @@ def _make_random_id(prefix: str, length: int = 6):
 
 @value.value_equality
 class JobConfig:
-    """Configuration for a program and job to run on the Quantum Engine API.
+    """Configuration for a job to run on the Quantum Engine API.
 
-    Quantum engine has two resources: programs and jobs. Programs live
-    under cloud projects. Every program may have many jobs, which represent
-    scheduled or terminated programs executions. Program and job resources have
-    string names. This object contains the information necessary to create a
-    program and then create a job on Quantum Engine, hence running the program.
+    An instance of a program that has been scheduled on the Quantum Engine is
+    called a Job. This object contains the configuration for a job.
     """
 
     def __init__(self,
@@ -226,8 +223,8 @@ class Engine:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
-            program: A Quantum Engine-wrapped Circuit or Schedule object. This
-              may be generated with create_program() or get_program().
+            program: The Circuit or Schedule to execute. If a circuit is
+                provided, a moment by moment schedule will be used.
             job_config: Configures the names of programs and jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
@@ -247,7 +244,8 @@ class Engine:
                            params=[param_resolver],
                            repetitions=repetitions,
                            priority=priority,
-                           processor_ids=processor_ids))[0]
+                           processor_ids=processor_ids,
+                           gate_set=gate_set))[0]
 
     def program_as_schedule(self, program: Program) -> Schedule:
         if isinstance(program, circuits.Circuit):
@@ -280,8 +278,8 @@ class Engine:
         does not block until a result is returned.
 
         Args:
-            program: A Quantum Engine-wrapped Circuit or Schedule object. This
-              may be generated with create_program() or get_program().
+            program: The Circuit or Schedule to execute. If a circuit is
+                provided, a moment by moment schedule will be used.
             job_config: Configures optional job parameters.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
@@ -330,7 +328,7 @@ class Engine:
             },
             'scheduling_config': {
                 'priority': priority,
-                'processor_selector': {
+                'processor_seluctor': {
                     'processor_names': [
                         'projects/%s/processors/%s' %
                         (self.project_id, processor_id)
@@ -418,9 +416,10 @@ class Engine:
         Args:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
-            program_id: A user-provided label for the program. If none is
-                provided, a random id of the format 'prog-######' will be
-                generated.
+            program_id: A user-provided identifier for the program. This must be
+                unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-######' will be generated.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
         """
@@ -742,7 +741,8 @@ class EngineProgram:
 
         Args:
             program: A full Program Dict from the Engine.
-            engine: Engine connected to the job.
+            engine: An Engine object associated with the same project as the
+                program.
         """
         # Check name since this is important for performing operations
         if not 'name' in program:
@@ -795,13 +795,18 @@ class EngineProgram:
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: SerializableGateSet = gate_sets.XMON) -> TrialResult:
+            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
             program: A Quantum Engine-wrapped Circuit or Schedule object. This
               may be generated with create_program() or get_program().
+            program_id: A user-provided identifier for the program. This must be
+                unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-######' will be generated.
+            program_id: A user-defined identifer for the program. This must be
+              unique within the project specified on the Engine instance.
             job_config: Configures the names of programs and jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
@@ -809,8 +814,6 @@ class EngineProgram:
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor.
 
         Returns:
             A single TrialResult for this run.
@@ -844,7 +847,8 @@ class EngineJob:
         Args:
             job_config: The JobConfig used to create the job.
             job: A full Job Dict.
-            engine: Engine connected to the job.
+            engine: An Engine instance associated with the same projct as the
+                job.
         """
         self.job_config = job_config
         self._job = job
