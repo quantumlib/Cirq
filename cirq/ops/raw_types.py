@@ -264,7 +264,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
             decomposed = protocols.decompose_once_with_qubits(
                 self,
-                qubits=line_qubit.LineQubit.range(protocols.num_qubits(self)),
+                qubits=line_qubit.LineQid.for_gate(self),
                 default=None)
             if decomposed is None:
                 return NotImplemented

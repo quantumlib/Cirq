@@ -34,7 +34,7 @@ def assert_decompose_is_consistent_with_unitary(
         qubits = val.qubits
         dec = protocols.decompose_once(val, default=None)
     else:
-        qubits = tuple(devices.LineQubit.range(qubit_count))
+        qubits = tuple(devices.LineQid.for_gate(val))
         dec = protocols.decompose_once_with_qubits(val, qubits, default=None)
     if dec is None:
         # If there's no decomposition, it's vacuously consistent.
