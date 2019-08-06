@@ -263,7 +263,8 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2/e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> TSelf:
+    def __pow__(self: TSelf,
+                exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
