@@ -277,7 +277,7 @@ def test_expand_is_inverse_of_reconstruct(m1, basis):
         (-1, -2, 3, 4),
         (1j, 2j, 3j, 4j),
         (1j, 2j, 3, 4),
-    ), (0, 1, 2, 3, 4, 5, 10, 11, 20, 21, 100, 101)),
+    ), (0, 1, 2, 3, 4, 5, 100, 101)),
 )
 def test_pow_pauli_combination(coefficients, exponent):
     i = cirq.PAULI_BASIS['I']
