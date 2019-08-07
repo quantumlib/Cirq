@@ -84,7 +84,8 @@ def _user_project_header_request_builder(project_id: str):
 
 def _make_random_id(prefix: str, length: int = 6):
     random_digits = [
-        random.choice(string.ascii_uppercase + string.digits) for _ in range(6)
+        random.choice(string.ascii_uppercase + string.digits)
+        for _ in range(length)
     ]
     suffix = ''.join(random_digits)
     return '%s%s' % (prefix, suffix)
@@ -438,10 +439,11 @@ class Engine:
 
         return EngineProgram(result['name'], self)
 
-    def _serialize_program(self,
-                           program: Program,
-                           gate_set: Optional[SerializableGateSet] = gate_sets.XMON
-                          ) -> Dict[str, Any]:
+    def _serialize_program(
+            self,
+            program: Program,
+            gate_set: Optional[SerializableGateSet] = gate_sets.XMON
+    ) -> Dict[str, Any]:
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
             schedule.device.validate_schedule(schedule)
