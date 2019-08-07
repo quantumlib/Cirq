@@ -68,7 +68,6 @@ class Circuit:
         are_all_measurements_terminal
         unitary
         final_wavefunction
-        apply_unitary_effect_to_state
         to_text_diagram
         to_text_diagram_drawer
 
