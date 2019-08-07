@@ -118,7 +118,7 @@ def unitary(val: Any,
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
     """
-    if isinstance(val, np.ndarray) and linalg.is_unitary(val):
+    if isinstance(val, np.ndarray):
         return val
 
     strats = [
