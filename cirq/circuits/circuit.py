@@ -24,9 +24,9 @@ from fractions import Fraction
 from itertools import groupby
 import math
 
-from typing import (
-    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Set, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
+from typing import (List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
+                    Optional, Sequence, Union, Set, Type, Tuple, cast, TypeVar,
+                    overload, TYPE_CHECKING)
 
 import re
 import numpy as np
@@ -667,16 +667,41 @@ class Circuit:
             is_blocker: Callable[[ops.Operation], bool] = lambda op: False
     ) -> List[Tuple[int, ops.Operation]]:
         """
-        Finds all operations until a blocking operation is hit.  This returns
-        a list of all operations from the starting frontier until a blocking
-        operation is encountered.  An operation is part of the list if
-        it is involves a qubit in the start_frontier dictionary, comes after
-        the moment listed in that dictionary, and before any blocking
-        operations that involve that qubit.  Operations are only considered
-        to be blocking the qubits that they operate on, so a blocking operation
-        that does not operate on any qubit in the starting frontier is not
-        actually considered blocking.  See `reachable_frontier_from` for a more
-        in depth example of reachable states.
+        Finds all operations until a blocking operation is hit.
+
+        An operation is considered blocking if
+
+        a) It is in the 'light cone' of start_frontier.
+
+        AND
+
+        (
+
+            1) is_blocker returns a truthy value.
+
+            OR
+
+            2) It acts on a blocked qubit.
+        )
+
+        Every qubit acted on by a blocking operation is thereafter itself
+        blocked.
+
+
+        The notion of reachability here differs from that in
+        reachable_frontier_from in two respects:
+
+        1) An operation is not considered blocking only because it is in a
+            moment before the start_frontier of one of the qubits on which it
+            acts.
+        2) Operations that act on qubits not in start_frontier are not
+            automatically blocking.
+
+        For every (moment_index, operation) returned:
+
+        1) moment_index >= min((start_frontier[q] for q in operation.qubits
+            if q in start_frontier), default=0)
+        2) set(operation.qubits).intersection(start_frontier)
 
         Args:
             start_frontier: A starting set of reachable locations.
@@ -695,16 +720,14 @@ class Circuit:
         if not start_frontier:
             return op_list
         start_index = min(start_frontier.values())
-        blocked_qubits = set() # Set[cirq.Qid]
+        blocked_qubits = set()  # type: Set[cirq.Qid]
         for index, moment in enumerate(self[start_index:], start_index):
             active_qubits = set(
                 q for q, s in start_frontier.items() if s <= index)
             for op in moment.operations:
-                if active_qubits.isdisjoint(op.qubits):
-                    continue
                 if is_blocker(op) or blocked_qubits.intersection(op.qubits):
                     blocked_qubits.update(op.qubits)
-                else:
+                elif active_qubits.intersection(op.qubits):
                     op_list.append((index, op))
             if blocked_qubits.issuperset(start_frontier):
                 break

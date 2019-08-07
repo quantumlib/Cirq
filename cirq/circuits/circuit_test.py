@@ -1111,18 +1111,35 @@ def test_findall_operations_with_gate():
          cirq.MeasurementGate(1, key='b')),
     ]
 
+
+def assert_findall_operations_until_blocked_as_expected(circuit=None,
+                                                        start_frontier=None,
+                                                        is_blocker=None,
+                                                        expected_ops=None):
+    if circuit is None:
+        circuit = cirq.Circuit()
+    if start_frontier is None:
+        start_frontier = {}
+    kwargs = {} if is_blocker is None else {'is_blocker': is_blocker}
+    found_ops = circuit.findall_operations_until_blocked(
+        start_frontier, **kwargs)
+
+    for i, op in found_ops:
+        assert i >= min(
+            (start_frontier[q] for q in op.qubits if q in start_frontier),
+            default=0)
+        assert set(op.qubits).intersection(start_frontier)
+
+    if expected_ops is None:
+        return
+    assert sorted(found_ops) == sorted(expected_ops)
+
+
 def test_findall_operations_until_blocked():
     a, b, c, d = cirq.LineQubit.range(4)
 
-    #    0: ───H───@───────────────────────────────────────@───H───
-    #              │                                       │
-    #    1: ───────@───H───@───────────────────────@───H───@───────
-    #                      │                       │
-    #    2: ───────────────@───H───@───────@───H───@───────────────
-    #                              │       │
-    #    3: ───────────────────────@───H───@───────────────────────
-    #
-    # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
+    assert_findall_operations_until_blocked_as_expected()
+
     circuit = cirq.Circuit.from_ops(
         cirq.H(a),
         cirq.CZ(a, b),
@@ -1137,75 +1154,166 @@ def test_findall_operations_until_blocked():
         cirq.H(b),
         cirq.CZ(a, b),
         cirq.H(a))
+    expected_diagram = """
+0: ───H───@───────────────────────────────────────@───H───
+          │                                       │
+1: ───────@───H───@───────────────────────@───H───@───────
+                  │                       │
+2: ───────────────@───H───@───────@───H───@───────────────
+                          │       │
+3: ───────────────────────@───H───@───────────────────────
+""".strip()
+    #     0   1   2   3   4   5   6   7   8   9   10  11  12
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
     # Always return true to test basic features
     go_to_end = lambda op : False
     stop_if_op = lambda op : True
-    stop_if_h = lambda op : op.gate == cirq.H
+    stop_if_h_on_a = lambda op: op.gate == cirq.H and a in op.qubits
 
     # Empty cases.
-    assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={}, is_blocker=go_to_end) == []
-    assert circuit.findall_operations_until_blocked(
-        start_frontier={}, is_blocker=go_to_end) == []
+    assert_findall_operations_until_blocked_as_expected(is_blocker=go_to_end,
+                                                        expected_ops=[])
+    assert_findall_operations_until_blocked_as_expected(circuit=circuit,
+                                                        is_blocker=go_to_end,
+                                                        expected_ops=[])
 
     # Clamped input cases. (out of bounds)
-    assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={a: 5}, is_blocker=stop_if_op) == []
-    assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={a: -100}) == []
-    assert circuit.findall_operations_until_blocked(
-        start_frontier={a: 100}) == []
+    assert_findall_operations_until_blocked_as_expected(start_frontier={a: 5},
+                                                        is_blocker=stop_if_op,
+                                                        expected_ops=[])
+    assert_findall_operations_until_blocked_as_expected(
+        start_frontier={a: -100}, is_blocker=stop_if_op, expected_ops=[])
+    assert_findall_operations_until_blocked_as_expected(circuit=circuit,
+                                                        start_frontier={a: 100},
+                                                        is_blocker=stop_if_op,
+                                                        expected_ops=[])
+
 
     # Test if all operations are blocked
     for idx in range(0, 15):
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={a: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={b: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={c: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={d: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={a:idx, b:idx, c:idx, d: idx},
-            is_blocker=stop_if_op) == []
+        for q in (a, b, c, d):
+            assert_findall_operations_until_blocked_as_expected(
+                circuit=circuit,
+                start_frontier={q: idx},
+                is_blocker=stop_if_op,
+                expected_ops=[])
+        assert_findall_operations_until_blocked_as_expected(
+            circuit=circuit,
+            start_frontier={
+                a: idx,
+                b: idx,
+                c: idx,
+                d: idx
+            },
+            is_blocker=stop_if_op,
+            expected_ops=[])
 
     # Cases where nothing is blocked, it goes to the end
     a_ending_ops = [(11, cirq.CZ.on(a,b)), (12, cirq.H.on(a))]
     for idx in range(2, 10):
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={a: idx}, is_blocker=go_to_end) == a_ending_ops
+        assert_findall_operations_until_blocked_as_expected(
+            circuit=circuit,
+            start_frontier={a: idx},
+            is_blocker=go_to_end,
+            expected_ops=a_ending_ops)
 
     # Block on H, but pick up the CZ
     for idx in range(2, 10):
-        assert circuit.findall_operations_until_blocked(
+        assert_findall_operations_until_blocked_as_expected(
+            circuit=circuit,
             start_frontier={a: idx},
-            is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
+            is_blocker=stop_if_h_on_a,
+            expected_ops=[(11, cirq.CZ.on(a, b))])
 
     circuit = cirq.Circuit.from_ops(
         [cirq.CZ(a, b), cirq.CZ(a, b),
          cirq.CZ(b, c)])
+    expected_diagram = """
+0: ───@───@───────
+      │   │
+1: ───@───@───@───
+              │
+2: ───────────@───
+""".strip()
+    #     0   1   2
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
-    start = {a: 0, b: 0}
+    start_frontier = {a: 0, b: 0}
     is_blocker = lambda next_op: sorted(next_op.qubits) != [a, b]
-    assert (circuit.findall_operations_until_blocked(start, is_blocker) == [
-        (0, cirq.CZ(a, b)), (1, cirq.CZ(a, b))
-    ])
+    expected_ops = [(0, cirq.CZ(a, b)), (1, cirq.CZ(a, b))]
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=expected_ops)
 
     circuit = cirq.Circuit.from_ops([cirq.ZZ(a, b), cirq.ZZ(b, c)])
-    start = {a: 0, b: 0, c: 0}
+    expected_diagram = """
+0: ───ZZ────────
+      │
+1: ───ZZ───ZZ───
+           │
+2: ────────ZZ───
+""".strip()
+    #     0    1
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+    start_frontier = {a: 0, b: 0, c: 0}
     is_blocker = lambda op: a in op.qubits
-    assert circuit.findall_operations_until_blocked(start, is_blocker) == []
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=[])
 
     circuit = cirq.Circuit.from_ops(
         [cirq.ZZ(a, b), cirq.XX(c, d),
          cirq.ZZ(b, c), cirq.Z(b)])
-    start = {a: 0, b: 0, c: 0, d: 0}
+    expected_diagram = """
+0: ───ZZ────────────
+      │
+1: ───ZZ───ZZ───Z───
+           │
+2: ───XX───ZZ───────
+      │
+3: ───XX────────────
+""".strip()
+    #     0    1    2
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+    start_frontier = {a: 0, b: 0, c: 0, d: 0}
     is_blocker = lambda op: isinstance(op.gate, cirq.XXPowGate)
-    assert (circuit.findall_operations_until_blocked(start, is_blocker) == [
-        (0, cirq.ZZ(a, b))
-    ])
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=[(0, cirq.ZZ(a, b))])
+
+    circuit = cirq.Circuit.from_ops(
+        [cirq.XX(a, b),
+         cirq.Z(a),
+         cirq.ZZ(b, c),
+         cirq.ZZ(c, d),
+         cirq.Z(d)])
+    expected_diagram = """
+0: ───XX───Z─────────────
+      │
+1: ───XX───ZZ────────────
+           │
+2: ────────ZZ───ZZ───────
+                │
+3: ─────────────ZZ───Z───
+""".strip()
+    #     0    1    2    3
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+    start_frontier = {a: 0, d: 0}
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=[])
 
 
 def test_has_measurements():
