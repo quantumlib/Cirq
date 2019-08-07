@@ -331,7 +331,7 @@ Classes defining and used by the magic method protocols.
     QasmArgs
     QasmOutput
     SupportsApplyChannel
-    SupportsApplyUnitary
+    SupportsConsistentApplyUnitary
     SupportsApproximateEquality
     SupportsChannel
     SupportsCircuitDiagramInfo
