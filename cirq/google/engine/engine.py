@@ -440,7 +440,7 @@ class Engine:
 
     def _serialize_program(self,
                            program: Program,
-                           gate_set: SerializableGateSet = gate_sets.XMON
+                           gate_set: Optional[SerializableGateSet] = gate_sets.XMON
                           ) -> Dict[str, Any]:
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
