@@ -242,8 +242,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             return TypeError(
                 "Can't simulate operations that don't implement "
                 "SupportsUnitary, SupportsConsistentApplyUnitary, "
-                "SupportsMixture, SupportsChannel or is a measurement: {!r}"
-                .format(bad_op))
+                "SupportsMixture, SupportsChannel or is a measurement: {!r}".
+                format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
             return (protocols.has_channel(potential_op)
