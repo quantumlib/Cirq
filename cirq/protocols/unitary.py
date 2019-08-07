@@ -87,7 +87,7 @@ def unitary(val: Any,
             ) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
-    If the given value is a unitary matrix, the given value is returned.
+    If the given value is a matrix, the given value is returned.
 
     Otherwise, the matrix is determined by any one of the following techniques:
 
@@ -118,7 +118,7 @@ def unitary(val: Any,
         TypeError: `val` doesn't have a unitary effect and no default value was
             specified.
     """
-    if isinstance(val, np.ndarray) and linalg.is_unitary(val):
+    if isinstance(val, np.ndarray):
         return val
 
     strats = [
