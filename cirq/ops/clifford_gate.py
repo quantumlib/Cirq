@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import common_gates, gate_features, named_qubit, op_tree, \
     pauli_gates, raw_types
 from cirq.ops.pauli_gates import Pauli
+from cirq.type_workarounds import NotImplementedType
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
@@ -217,15 +219,17 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)
 
-    def commutes_with(self,
-                      gate_or_pauli: Union['SingleQubitCliffordGate', Pauli]
-                      ) -> bool:
-        if isinstance(gate_or_pauli, SingleQubitCliffordGate):
-            gate = gate_or_pauli
-            return self.commutes_with_single_qubit_gate(gate)
+    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
+                       ) -> Union[bool, NotImplementedType]:
+        if isinstance(other, SingleQubitCliffordGate):
+            return self.commutes_with_single_qubit_gate(other)
+        if isinstance(other, Pauli):
+            return self.commutes_with_pauli(other)
+        return NotImplemented
 
-        pauli = gate_or_pauli
-        return self.commutes_with_pauli(pauli)
+    commutes_with = deprecated(
+        deadline='v0.7.0',
+        fix='Use `cirq.commutes()` instead.')(_commutes_with_)
 
     def commutes_with_single_qubit_gate(self,
                                         gate: 'SingleQubitCliffordGate') \

@@ -308,43 +308,39 @@ def test_zip_paulis(map1, map2, out):
 
 
 def test_commutes_with():
-    q0, q1, q2 = _make_qubits(3)
+    qubits = _make_qubits(3)
 
-    assert cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-           cirq.PauliString.from_single(q0, cirq.X))
-    assert not cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-               cirq.PauliString.from_single(q0, cirq.Y))
-    assert cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-           cirq.PauliString.from_single(q1, cirq.X))
-    assert cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-           cirq.PauliString.from_single(q1, cirq.Y))
+    ps1 = cirq.PauliString.from_single(qubits[0], cirq.X)
+    assert cirq.commutes(ps1, 'X') == NotImplemented
+    assert cirq.commutes(ps1, 'X', default='default') == 'default'
+    for A, commutes in [(cirq.X, True), (cirq.Y, False)]:
+        assert (cirq.commutes(ps1, cirq.PauliString.from_single(qubits[0],
+                                                                A)) == commutes)
+        assert cirq.commutes(ps1, cirq.PauliString.from_single(qubits[1], A))
 
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q0: cirq.X, q1: cirq.Y}))
-    assert not cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-               cirq.PauliString({q0: cirq.X, q1: cirq.Z}))
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q0: cirq.Y, q1: cirq.X}))
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q0: cirq.Y, q1: cirq.Z}))
+    ps1 = cirq.PauliString(dict(zip(qubits, (cirq.X, cirq.Y))))
 
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z}))
-    assert not cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-               cirq.PauliString({q0: cirq.X, q1: cirq.Z, q2: cirq.Z}))
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q0: cirq.Y, q1: cirq.X, q2: cirq.Z}))
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q0: cirq.Y, q1: cirq.Z, q2: cirq.X}))
+    for paulis, commutes in {
+        (cirq.X, cirq.Y): True,
+        (cirq.X, cirq.Z): False,
+        (cirq.Y, cirq.X): True,
+        (cirq.Y, cirq.Z): True,
+        (cirq.X, cirq.Y, cirq.Z): True,
+        (cirq.X, cirq.Z, cirq.Z): False,
+        (cirq.Y, cirq.X, cirq.Z): True,
+        (cirq.Y, cirq.Z, cirq.X): True,
+    }.items():
+        ps2 = cirq.PauliString(dict(zip(qubits, paulis)))
+        assert cirq.commutes(ps1, ps2) == commutes
 
-    assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-           cirq.PauliString({q2: cirq.X, q1: cirq.Y}))
-    assert not cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-               cirq.PauliString({q2: cirq.X, q1: cirq.Z}))
-    assert not cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-               cirq.PauliString({q2: cirq.Y, q1: cirq.X}))
-    assert not cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
-               cirq.PauliString({q2: cirq.Y, q1: cirq.Z}))
+    for paulis, commutes in {
+        (cirq.Y, cirq.X): True,
+        (cirq.Z, cirq.X): False,
+        (cirq.X, cirq.Y): False,
+        (cirq.Z, cirq.Y): False,
+    }.items():
+        ps2 = cirq.PauliString(dict(zip(qubits[1:], paulis)))
+        assert cirq.commutes(ps1, ps2) == commutes
 
 
 def test_negate():

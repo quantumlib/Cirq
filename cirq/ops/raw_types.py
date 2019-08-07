@@ -18,8 +18,9 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
 
-from cirq import value
+from cirq import linalg, protocols, value
 from cirq.protocols import decompose, inverse, qid_shape_protocol
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -256,6 +257,17 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
+
+    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
+                       ) -> Union[bool, NotImplementedType]:
+        if (qid_shape_protocol.qid_shape(self, None) !=
+                qid_shape_protocol.qid_shape(other, None)):
+            return NotImplemented
+        self_unitary = protocols.unitary(self, None)
+        other_unitary = protocols.unitary(other, None)
+        if self_unitary is None or other_unitary is None:
+            return NotImplemented
+        return linalg.commutes(self_unitary, other_unitary, atol=atol)
 
 
 class Operation(metaclass=abc.ABCMeta):

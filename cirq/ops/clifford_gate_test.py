@@ -397,6 +397,12 @@ def test_inverse_matrix(gate):
                                        rtol=1e-7, atol=1e-7)
 
 
+def test_commutes_with_notimplemented_type():
+    assert cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X') == NotImplemented
+    assert (cirq.commutes(
+        cirq.SingleQubitCliffordGate.X, 'X', default='default') == 'default')
+
+
 @pytest.mark.parametrize('gate,other',
     itertools.product(_all_clifford_gates(),
                       _all_clifford_gates()))
@@ -410,7 +416,7 @@ def test_commutes_with_single_qubit_gate(gate, other):
         other(q0),
         gate(q0),
     ).unitary()
-    commutes = gate.commutes_with(other)
+    commutes = cirq.commutes(gate, other)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 
@@ -430,7 +436,7 @@ def test_commutes_with_pauli(gate, pauli, half_turns):
         pauli_gate(q0),
         gate(q0),
     ).unitary()
-    commutes = gate.commutes_with(pauli)
+    commutes = cirq.commutes(gate, pauli)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
 

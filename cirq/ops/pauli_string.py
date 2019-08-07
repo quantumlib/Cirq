@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
+from typing import (Any, Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload, Optional, cast)
 
 import cmath
@@ -22,6 +22,7 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
+from cirq._compat import deprecated
 from cirq.ops import (
     global_phase_op,
     raw_types,
@@ -31,6 +32,7 @@ from cirq.ops import (
     clifford_gate,
     pauli_interaction_gate,
 )
+from cirq.type_workarounds import NotImplementedType
 
 TDefault = TypeVar('TDefault')
 
@@ -250,10 +252,17 @@ class PauliString(raw_types.Operation):
                   ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
         return (paulis for qubit, paulis in self.zip_items(other))
 
-    def commutes_with(self, other: 'PauliString') -> bool:
+    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
+                       ) -> Union[bool, NotImplementedType]:
+        if not isinstance(other, PauliString):
+            return NotImplemented
         return sum(not p0.commutes_with(p1)
                    for p0, p1 in self.zip_paulis(other)
                    ) % 2 == 0
+
+    commutes_with = deprecated(
+        deadline='v0.7.0',
+        fix='Use `cirq.commutes()` instead.')(_commutes_with_)
 
     def __neg__(self) -> 'PauliString':
         return PauliString(self._qubit_pauli_map, -self._coefficient)

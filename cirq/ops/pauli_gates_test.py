@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 import numpy as np
 import pytest
 import cirq
@@ -172,15 +174,10 @@ def test_third():
 
 
 def test_commutes_with():
-    assert cirq.X.commutes_with(cirq.X)
-    assert not cirq.X.commutes_with(cirq.Y)
-    assert not cirq.X.commutes_with(cirq.Z)
-    assert not cirq.Y.commutes_with(cirq.X)
-    assert cirq.Y.commutes_with(cirq.Y)
-    assert not cirq.Y.commutes_with(cirq.Z)
-    assert not cirq.Z.commutes_with(cirq.X)
-    assert not cirq.Z.commutes_with(cirq.Y)
-    assert cirq.Z.commutes_with(cirq.Z)
+    for A, B in itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2):
+        assert cirq.commutes(A, B) == (A == B)
+    assert cirq.commutes(cirq.X, 'X') == NotImplemented
+    assert cirq.commutes(cirq.X, 'X', default='default') == 'default'
 
 
 def test_unitary():

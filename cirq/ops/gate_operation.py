@@ -120,6 +120,19 @@ class GateOperation(raw_types.Operation):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self.gate, default=None)
 
+    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
+                       ) -> Union[bool, NotImplementedType]:
+        if isinstance(other, type(self)):
+            if self.qubits != other.qubits:
+                return NotImplemented
+            return protocols.commutes(self.gate, other.gate)
+        elif isinstance(other, raw_types.Gate):
+            if (protocols.qid_shape(self, None) != protocols.qid_shape(
+                    other, None)):
+                return NotImplemented
+            return protocols.commutes(self.gate, other)
+        return NotImplemented
+
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.gate)
 
