@@ -410,7 +410,7 @@ class Engine:
     def create_program(self,
                        program: Program,
                        program_id: Optional[str] = None,
-                       gate_set: Optional[SerializableGateSet] = gate_sets.XMON
+                       gate_set: SerializableGateSet = gate_sets.XMON
                       ) -> 'EngineProgram':
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
@@ -439,11 +439,10 @@ class Engine:
 
         return EngineProgram(result['name'], self)
 
-    def _serialize_program(
-            self,
-            program: Program,
-            gate_set: Optional[SerializableGateSet] = gate_sets.XMON
-    ) -> Dict[str, Any]:
+    def _serialize_program(self,
+                           program: Program,
+                           gate_set: SerializableGateSet = gate_sets.XMON
+                          ) -> Dict[str, Any]:
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
             schedule.device.validate_schedule(schedule)
