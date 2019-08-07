@@ -53,7 +53,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
     That is, the circuit must have elements that follow on of the protocols:
         * `cirq.SupportsChannel`
         * `cirq.SupportsMixture`
-        * `cirq.SupportsApplyUnitary`
+        * `cirq.SupportsConsistentApplyUnitary`
         * `cirq.SupportsUnitary`
         * `cirq.SupportsDecompose`
     or is a measurement.
@@ -241,7 +241,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         def on_stuck(bad_op: ops.Operation):
             return TypeError(
                 "Can't simulate operations that don't implement "
-                "SupportsUnitary, SupportsApplyUnitary, SupportsMixture, "
+                "SupportsUnitary, SupportsConsistentApplyUnitary, SupportsMixture, "
                 "SupportsChannel or is a measurement: {!r}".format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
