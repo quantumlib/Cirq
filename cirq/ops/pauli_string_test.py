@@ -681,3 +681,25 @@ def test_decompose():
         cirq.X(a), cirq.Z(b)
     ]
     assert cirq.decompose_once(cirq.Y(b) * cirq.Z(a)) == [cirq.Z(a), cirq.Y(b)]
+
+
+def test_rejects_non_paulis():
+    q = cirq.NamedQubit('q')
+    with pytest.raises(TypeError):
+        _ = cirq.PauliString({q: cirq.S})
+
+
+def test_cannot_multiply_by_non_paulis():
+    q = cirq.NamedQubit('q')
+    with pytest.raises(TypeError):
+        _ = cirq.X(q) * cirq.Z(q)**0.5
+    with pytest.raises(TypeError):
+        _ = cirq.Z(q)**0.5 * cirq.X(q)
+    with pytest.raises(TypeError):
+        _ = cirq.Y(q) * cirq.S(q)
+
+
+def test_filters_identities():
+    q1, q2 = cirq.LineQubit.range(2)
+    assert cirq.PauliString({q1: cirq.I, q2: cirq.X}) == \
+           cirq.PauliString({q2: cirq.X})
