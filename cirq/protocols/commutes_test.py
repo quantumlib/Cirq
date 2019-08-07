@@ -38,8 +38,8 @@ def test_commutes_on_matrices():
 def test_commutes_on_gates_and_gate_operations():
     X, Y, Z = tuple(cirq.unitary(A) for A in (cirq.X, cirq.Y, cirq.Z))
     XGate, YGate, ZGate = (cirq.SingleQubitMatrixGate(A) for A in (X, Y, Z))
-    XXGate, YYGate, ZZGate = (cirq.TwoQubitMatrixGate(cirq.kron(A, A))
-            for A in (X, Y, Z))
+    XXGate, YYGate, ZZGate = (
+        cirq.TwoQubitMatrixGate(cirq.kron(A, A)) for A in (X, Y, Z))
     a, b = cirq.LineQubit.range(2)
     for A in (XGate, YGate, ZGate):
         assert cirq.commutes(A, A)
@@ -62,6 +62,6 @@ def test_commutes_on_gates_and_gate_operations():
         assert cirq.commutes(A, B(a, b)) == NotImplemented
         assert cirq.commutes(A(b), B) == NotImplemented
         assert cirq.commutes(A, B) == NotImplemented
-    assert cirq.commutes(XGate, cirq.X ** sympy.Symbol('e')) == NotImplemented
+    assert cirq.commutes(XGate, cirq.X**sympy.Symbol('e')) == NotImplemented
     assert cirq.commutes(XGate(a), 'Gate') == NotImplemented
     assert cirq.commutes(XGate(a), 'Gate', default='default') == 'default'

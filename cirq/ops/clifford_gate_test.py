@@ -399,8 +399,9 @@ def test_inverse_matrix(gate):
 
 def test_commutes_with_notimplemented_type():
     assert cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X') == NotImplemented
-    assert (cirq.commutes(
-        cirq.SingleQubitCliffordGate.X, 'X', default='default') == 'default')
+    assert (cirq.commutes(cirq.SingleQubitCliffordGate.X,
+                          'X',
+                          default='default') == 'default')
 
 
 @pytest.mark.parametrize('gate,other',

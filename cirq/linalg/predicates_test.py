@@ -294,21 +294,11 @@ def test_is_special_unitary_tolerance():
 
 
 def test_commutes():
-    assert cirq.linalg.commutes(
-        np.empty((0, 0)),
-        np.empty((0, 0)))
-    assert not cirq.linalg.commutes(
-        np.empty((1, 0)),
-        np.empty((0, 1)))
-    assert not cirq.linalg.commutes(
-        np.empty((0, 1)),
-        np.empty((1, 0)))
-    assert not cirq.linalg.commutes(
-        np.empty((1, 0)),
-        np.empty((1, 0)))
-    assert not cirq.linalg.commutes(
-        np.empty((0, 1)),
-        np.empty((0, 1)))
+    assert cirq.linalg.commutes(np.empty((0, 0)), np.empty((0, 0)))
+    assert not cirq.linalg.commutes(np.empty((1, 0)), np.empty((0, 1)))
+    assert not cirq.linalg.commutes(np.empty((0, 1)), np.empty((1, 0)))
+    assert not cirq.linalg.commutes(np.empty((1, 0)), np.empty((1, 0)))
+    assert not cirq.linalg.commutes(np.empty((0, 1)), np.empty((0, 1)))
 
     assert cirq.linalg.commutes(np.array([[1]]), np.array([[2]]))
     assert cirq.linalg.commutes(np.array([[1]]), np.array([[0]]))
