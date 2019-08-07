@@ -59,12 +59,15 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_between
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        reachable_frontier_from
+        has_measurements
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        apply_unitary_effect_to_state
+        final_wavefunction
         to_text_diagram
         to_text_diagram_drawer
 
@@ -1258,7 +1261,6 @@ class Circuit:
         if not self._has_unitary_():
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
-
 
     def unitary(self,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
