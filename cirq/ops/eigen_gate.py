@@ -294,9 +294,8 @@ class EigenGate(raw_types.Gate):
     def _trace_distance_bound_(self) -> float:
         if protocols.is_parameterized(self._exponent):
             return None
-        scaled_shifts = np.array(self._eigen_shifts()) * self._exponent
-        angle_list = (scaled_shifts - 2 * np.floor(scaled_shifts * 0.5)) * np.pi
-        return trace_distance_from_angle_list(angle_list)
+        angles = np.pi * (np.array(self._eigen_shifts()) * self._exponent % 2)
+        return trace_distance_from_angle_list(angles)
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()

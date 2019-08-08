@@ -131,7 +131,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                                                exponent=self.exponent_relative)
 
     def _trace_distance_bound_(self) -> float:
-        if self._num_qubits_() == 0:
+        if len(self.qubits) == 0:
             return 0.0
         return protocols.trace_distance_bound(
             pauli_gates.Z**self.exponent_relative)
