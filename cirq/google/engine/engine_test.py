@@ -220,15 +220,27 @@ def test_run_circuit(build):
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
     assert jobs.create.call_args[1] == {
         'parent': 'projects/project-id/programs/test',
-        'body': {'name': 'projects/project-id/programs/test/jobs/job-id',
-                 'output_config': {'gcs_results_location': {
-                     'uri': 'gs://bucket/folder/jobs/job-id'}},
-                 'scheduling_config': {'priority': 50, 'processor_selector': {
-                     'processor_names': [
-                         'projects/project-id/processors/mysim']}},
-                 'run_context': {
-                     '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
-                     'parameter_sweeps': [{'repetitions': 1}]}}}
+        'body': {
+            'name': 'projects/project-id/programs/test/jobs/job-id',
+            'output_config': {
+                'gcs_results_location': {
+                    'uri': 'gs://bucket/folder/jobs/job-id'
+                }
+            },
+            'scheduling_config': {
+                'priority': 50,
+                'processor_selector': {
+                    'processor_names': ['projects/project-id/processors/mysim']
+                }
+            },
+            'run_context': {
+                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
+                'parameter_sweeps': [{
+                    'repetitions': 1
+                }]
+            }
+        }
+    }
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
