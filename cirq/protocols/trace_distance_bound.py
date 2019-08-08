@@ -65,7 +65,7 @@ def trace_distance_bound(val: Any) -> float:
 
     """
     strats = [
-        _strat_from_trace_distance_bound_method,_strat_distance_from_unitary
+        _strat_from_trace_distance_bound_method, _strat_distance_from_unitary
     ]
 
     for strat in strats:

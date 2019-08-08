@@ -224,6 +224,7 @@ def test_trace_distance_bound():
                 (0, np.array([[1, 0], [0, 0]])),
                 (12, np.array([[0, 0], [0, 1]])),
             ]
+
     assert E()._num_qubits_() == 1
     for numerator in range(13):
         assert_has_consistent_trace_distance_bound(E()**(numerator / 12))

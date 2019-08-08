@@ -788,7 +788,7 @@ class CZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 1])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -908,7 +908,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                           [0, 0, -0.5, 0.5]])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -1023,7 +1023,7 @@ class SwapPowGate(eigen_gate.EigenGate,
                           [0,  0,    0,   0]])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -1129,7 +1129,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
                              [0, 0, 0, 0]])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
