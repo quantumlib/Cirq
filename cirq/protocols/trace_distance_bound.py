@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, Optional
+from typing import Any, TypeVar, Optional, Iterable
 import numpy as np
 from typing_extensions import Protocol
 from cirq.protocols.unitary import unitary
@@ -43,35 +43,56 @@ class SupportsTraceDistanceBound(Protocol):
 
 def trace_distance_bound(val: Any) -> float:
     """Returns a maximum on the trace distance between this effect's input
-    and output.  This method makes use of the effect's `_trace_distance_bound_`
-    method to determine the maximum bound on the trace difference between
-    before and after the effect.
+    and output.
+
+    This method attempts a number of strategies to calculate this value.
+
+    Strategy 1:
+        Use the effect's `_trace_distance_bound_` method.
+
+    Strategy 2:
+        If the effect is unitary, calculate the trace_distance_bound from the
+        eigenvalues of the unitary matrix.
 
     Args:
         val: The effect of which the bound should be calculated
 
     Returns:
-        If `val` has a _trace_distance_bound_ method and its result is not
-        NotImplemented, that result is returned. Otherwise, 1 is returned.
-        Result is capped at a maximum of 1, even if the underlying function
-        produces a result greater than 1.
+        If any of the strategies return a result that is not Notimplemented and
+        not None, that result is returned. Otherwise, 1.0 is returned.
+        Result is capped at a maximum of 1.0, even if the underlying function
+        produces a result greater than 1.0
 
     """
-    getter = getattr(val, '_trace_distance_bound_', None)
-    result = NotImplemented if getter is None else getter()
+    strats = [
+        _strat_from_trace_distance_bound_method,_strat_distance_from_unitary]
 
-    if result is not NotImplemented:
-        return min(1.0, result)
-
-    # Possibly get the trace_distance_bound from the unitary of val
-    result = _strat_distance_from_unitary(val)
-    if result is not NotImplemented:
-        return result
+    for strat in strats:
+        result = strat(val)
+        if result is None:
+            break
+        if result is not NotImplemented:
+            return result
 
     return 1.0
 
 
+def _strat_from_trace_distance_bound_method(val: any) -> Optional[float]:
+    """Attempts to use a specialized method."""
+    getter = getattr(val, '_trace_distance_bound_', None)
+    result = NotImplemented if getter is None else getter()
+
+    if result is None:
+        return None
+
+    if result is not NotImplemented:
+        return min(1.0, result)
+
+    return NotImplemented
+
+
 def _strat_distance_from_unitary(val: any) -> Optional[float]:
+    """Attempts to compute a value's trace_distance_bound from its unitary."""
     u = unitary(val, default=None)
 
     if u is None:
@@ -83,7 +104,17 @@ def _strat_distance_from_unitary(val: any) -> Optional[float]:
             return 0.0
         return squared**0.5
 
-    angles = np.sort(np.angle(np.linalg.eigvals(u)))
+    return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
+
+
+def trace_distance_from_angle_list(angle_list: Iterable[float]) -> float:
+    """ Given a list of arguments of the eigenvalues of a unitary matrix,
+    calculates the trace_distance_bound of the unitary effect.
+
+    The maximum provided angle should not exceed the minimum provided angle
+    by more than two pi.
+    """
+    angles = np.sort(angle_list)
     maxim = 2 * np.pi + angles[0] - angles[-1]
     for i in range(1, len(angles)):
         maxim = max(maxim, angles[i] - angles[i - 1])

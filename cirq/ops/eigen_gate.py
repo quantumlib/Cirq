@@ -24,6 +24,7 @@ import sympy
 from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
+from cirq.protocols import trace_distance_from_angle_list
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -292,15 +293,10 @@ class EigenGate(raw_types.Gate):
 
     def _trace_distance_bound_(self) -> float:
         if protocols.is_parameterized(self._exponent):
-            return 1.0
-        scaled_angles = np.array(self._eigen_shifts()) * self._exponent
-        angles = np.sort(scaled_angles - 2 * np.floor(scaled_angles * 0.5))
-        maxim = 2 + angles[0] - angles[-1]
-        for i in range(1, len(angles)):
-            maxim = max(maxim, angles[i] - angles[i - 1])
-        if maxim <= 1:
-            return 1.0
-        return abs(np.sin(0.5 * maxim * np.pi))
+            return None
+        scaled_shifts = np.array(self._eigen_shifts()) * self._exponent
+        angle_list = (scaled_shifts - 2 * np.floor(scaled_shifts * 0.5)) * np.pi
+        return trace_distance_from_angle_list(angle_list)
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()

@@ -98,7 +98,7 @@ class XPowGate(eigen_gate.EigenGate,
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -213,7 +213,7 @@ class YPowGate(eigen_gate.EigenGate,
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -339,7 +339,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -790,7 +790,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
@@ -910,7 +910,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -1025,7 +1025,7 @@ class SwapPowGate(eigen_gate.EigenGate,
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
@@ -1131,7 +1131,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _decompose_(self, qubits):
