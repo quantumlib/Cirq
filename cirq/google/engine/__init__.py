@@ -16,8 +16,12 @@
 """
 
 from cirq.google.engine.engine import (
+    Calibration,
     Engine,
+    EngineJob,
+    EngineProgram,
     JobConfig,
+    ProtoVersion,
 )
 
 from cirq.google.engine.engine_sampler import (
