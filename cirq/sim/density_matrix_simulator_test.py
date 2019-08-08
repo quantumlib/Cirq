@@ -667,7 +667,7 @@ def test_density_matrix_trial_result_str():
         measurements={},
         final_simulator_state=final_simulator_state)
 
-    # numpy varies whitespace in its representation for differnt versions
+    # numpy varies whitespace in its representation for different versions
     # Eliminate whitespace to harden tests against this variation
     result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
     assert result_no_whitespace == ('measurements:(nomeasurements)'
