@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Optional
 import numpy as np
 from typing_extensions import Protocol
 from cirq.protocols.unitary import unitary
-from cirq.protocols.has_unitary import has_unitary
 
 
 TDefault = TypeVar('TDefault')
@@ -64,19 +63,30 @@ def trace_distance_bound(val: Any) -> float:
     if result is not NotImplemented:
         return min(1.0, result)
 
-    if has_unitary(val):
-        u = unitary(val)
-        if u.shape[0] == 2:
-            squared = 1 - (0.5 * abs(u[0][0] + u[1][1]))**2
-            if squared <= 0:
-                return 0
-            return squared**0.5
-        angles = np.sort(np.angle(np.linalg.eigvals(u)))
-        maxim = 2 * np.pi + angles[0] - angles[-1]
-        for i in range(1, len(angles)):
-            maxim = max(maxim, angles[i] - angles[i - 1])
-        if maxim <= np.pi:
-            return 1
-        return np.sin(0.5 * maxim)
+    # Possibly get the trace_distance_bound from the unitary of val
+    result = _strat_distance_from_unitary(val)
+    if result is not NotImplemented:
+        return result
 
     return 1.0
+
+
+def _strat_distance_from_unitary(val: any) -> Optional[float]:
+    u = unitary(val, default=None)
+
+    if u is None:
+        return NotImplemented
+
+    if u.shape == (2, 2):
+        squared = 1 - (0.5 * abs(u[0][0] + u[1][1]))**2
+        if squared <= 0:
+            return 0.0
+        return squared**0.5
+
+    angles = np.sort(np.angle(np.linalg.eigvals(u)))
+    maxim = 2 * np.pi + angles[0] - angles[-1]
+    for i in range(1, len(angles)):
+        maxim = max(maxim, angles[i] - angles[i - 1])
+    if maxim <= np.pi:
+        return 1.0
+    return max(0.0, np.sin(0.5 * maxim))

@@ -120,11 +120,11 @@ class ParallelGateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return self.with_gate(resolved_gate)
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         angle = len(self.qubits) * np.arcsin(
             protocols.trace_distance_bound(self._gate))
         if angle >= np.pi * 0.5:
-            return 1
+            return 1.0
         return np.sin(angle)
 
     def _circuit_diagram_info_(self,

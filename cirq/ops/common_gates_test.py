@@ -830,20 +830,26 @@ def test_trace_distance():
     scz = cirq.CZ**foo
     sswap = cirq.SWAP**foo
     siswap = cirq.ISWAP**foo
-    assert cirq.trace_distance_bound(sx) == 1
-    assert cirq.trace_distance_bound(sy) == 1
-    assert cirq.trace_distance_bound(sz) == 1
-    assert cirq.trace_distance_bound(scx) == 1
-    assert cirq.trace_distance_bound(scz) == 1
-    assert cirq.trace_distance_bound(sswap) == 1
-    assert cirq.trace_distance_bound(siswap) == 1
-    assert cirq.trace_distance_bound(sh) == 1
-    assert cirq.trace_distance_bound(cirq.X) == 1
-    assert cirq.trace_distance_bound(cirq.Y**-1) == 1
-    assert cirq.trace_distance_bound(cirq.Z**0.5) == np.sin(np.pi / 4)
-    assert cirq.trace_distance_bound(cirq.H**0.25) == np.sin(np.pi / 8)
-    assert cirq.trace_distance_bound(cirq.CX**2) < 1.e-15
-    assert cirq.trace_distance_bound(cirq.CZ**(1 / 9)) == np.sin(np.pi / 18)
-    assert cirq.trace_distance_bound(cirq.SWAP**0.3) == np.sin(3 * np.pi / 20)
-    assert cirq.trace_distance_bound(cirq.ISWAP**0) < 1.e-15
-    assert cirq.trace_distance_bound(cirq.I) == 0
+    # These values should have 1.0 or 0.0 directly returned
+    assert cirq.trace_distance_bound(sx) == 1.0
+    assert cirq.trace_distance_bound(sy) == 1.0
+    assert cirq.trace_distance_bound(sz) == 1.0
+    assert cirq.trace_distance_bound(scx) == 1.0
+    assert cirq.trace_distance_bound(scz) == 1.0
+    assert cirq.trace_distance_bound(sswap) == 1.0
+    assert cirq.trace_distance_bound(siswap) == 1.0
+    assert cirq.trace_distance_bound(sh) == 1.0
+    assert cirq.trace_distance_bound(cirq.I) == 0.0
+    # These values are calculated, so we use approx_eq
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.X), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Y**-1), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Z**0.5),
+                          np.sin(np.pi / 4))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.H**0.25),
+                          np.sin(np.pi / 8))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX**2), 0.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ**(1 / 9)),
+                          np.sin(np.pi / 18))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP**0.3),
+                          np.sin(0.3 * np.pi / 2))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)

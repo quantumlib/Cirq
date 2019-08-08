@@ -211,7 +211,18 @@ def test_inverse():
 def test_trace_distance_bound():
     assert cirq.trace_distance_bound(CExpZinGate(0.001)) < 0.01
     assert cirq.trace_distance_bound(CExpZinGate(sympy.Symbol('a'))) == 1
-    assert cirq.trace_distance_bound(CExpZinGate(2)) == 1
+    assert cirq.approx_eq(cirq.trace_distance_bound(CExpZinGate(2)), 1)
+
+    class E(cirq.EigenGate):
+
+        def _num_qubits_(self):
+            return 3
+
+        def _eigen_components(self):
+            return [
+                (0, np.array([[1, 0], [0, 0]])),
+                (12, np.array([[0, 0], [0, 1]])),
+            ]
 
 
 def test_extrapolate():

@@ -166,6 +166,7 @@ def test_trace_distance():
     twoop = cirq.ParallelGateOperation(s, cirq.LineQubit.range(2))
     threeop = cirq.ParallelGateOperation(s, cirq.LineQubit.range(3))
     fourop = cirq.ParallelGateOperation(s, cirq.LineQubit.range(4))
-    assert cirq.trace_distance_bound(twoop) == np.sin(np.pi / 4)
-    assert cirq.trace_distance_bound(threeop) == np.sin(3 * np.pi / 8)
-    assert cirq.trace_distance_bound(fourop) == 1
+    assert cirq.approx_eq(cirq.trace_distance_bound(twoop), np.sin(np.pi / 4))
+    assert cirq.approx_eq(cirq.trace_distance_bound(threeop),
+                          np.sin(3 * np.pi / 8))
+    assert cirq.approx_eq(cirq.trace_distance_bound(fourop), 1.0)

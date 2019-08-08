@@ -119,22 +119,19 @@ class ControlledOperation(raw_types.Operation):
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
         return ControlledOperation(self.controls, new_sub_op)
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1
-        if protocols.has_unitary(self.sub_operation):
-            angles = np.sort(
-                np.append(
-                    np.angle(
-                        np.linalg.eigvals(protocols.unitary(
-                            self.sub_operation))), 0))
-            maxim = 2 * np.pi + angles[0] - angles[-1]
-            for i in range(1, len(angles)):
-                maxim = max(maxim, angles[i] - angles[i - 1])
-            if maxim <= np.pi:
-                return 1
-            return np.sin(0.5 * maxim)
-        return 1
+            return 1.0
+        u = protocols.unitary(self.sub_operation, default=None)
+        if u is None:
+            return 1.0
+        angles = np.sort(np.append(np.angle(np.linalg.eigvals(u)), 0))
+        maxim = 2 * np.pi + angles[0] - angles[-1]
+        for i in range(1, len(angles)):
+            maxim = max(maxim, angles[i] - angles[i - 1])
+        if maxim <= np.pi:
+            return 1.0
+        return max(0.0, np.sin(0.5 * maxim))
 
     def __pow__(self, exponent: Any) -> 'ControlledOperation':
         new_sub_op = protocols.pow(self.sub_operation,

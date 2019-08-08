@@ -290,17 +290,17 @@ class EigenGate(raw_types.Gate):
             exponent = value.PeriodicValue(self._exponent, period)
         return exponent, self._global_shift
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         if protocols.is_parameterized(self._exponent):
-            return 1
-        angles = np.sort(self._eigen_shifts())
+            return 1.0
+        scaled_angles = np.array(self._eigen_shifts()) * self._exponent
+        angles = np.sort(scaled_angles - 2 * np.floor(scaled_angles * 0.5))
         maxim = 2 + angles[0] - angles[-1]
         for i in range(1, len(angles)):
             maxim = max(maxim, angles[i] - angles[i - 1])
-        angle = (2 - maxim) * abs(self._exponent)
-        if angle >= 1:
-            return 1
-        return abs(np.sin(0.5 * angle * np.pi))
+        if maxim <= 1:
+            return 1.0
+        return abs(np.sin(0.5 * maxim * np.pi))
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()

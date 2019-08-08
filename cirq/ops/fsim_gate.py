@@ -79,7 +79,6 @@ class FSimGate(gate_features.TwoQubitGate,
             [0, 0, 0, c],
         ])
 
-
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented

@@ -55,9 +55,9 @@ class XXPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         if protocols.is_parameterized(self._exponent):
-            return 1
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -118,9 +118,9 @@ class YYPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         if protocols.is_parameterized(self._exponent):
-            return 1
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -168,9 +168,9 @@ class ZZPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         if protocols.is_parameterized(self._exponent):
-            return 1
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs

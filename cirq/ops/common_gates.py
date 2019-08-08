@@ -96,9 +96,9 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -211,9 +211,9 @@ class YPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -337,9 +337,9 @@ class ZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -624,8 +624,8 @@ class IdentityGate(raw_types.Gate):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return value.LinearDict({'I' * self.num_qubits(): 1.0})
 
-    def _trace_distance_bound_(self):
-        return 0
+    def _trace_distance_bound_(self) -> float:
+        return 0.0
 
     def __repr__(self):
         if self.num_qubits() == 1:
@@ -686,9 +686,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -788,9 +788,9 @@ class CZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 1])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
@@ -908,9 +908,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                           [0, 0, -0.5, 0.5]])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
@@ -1023,9 +1023,9 @@ class SwapPowGate(eigen_gate.EigenGate,
                           [0,  0,    0,   0]])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
@@ -1129,9 +1129,9 @@ class ISwapPowGate(eigen_gate.EigenGate,
                              [0, 0, 0, 0]])),
         ]
 
-    def _trace_distance_bound_(self):
-        if protocols.is_parameterized(self._exponent):
-            return 1
+    def _trace_distance_bound_(self) -> float:
+        if self._is_parameterized_():
+            return 1.0
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _decompose_(self, qubits):

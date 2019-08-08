@@ -100,6 +100,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
 
     def _trace_distance_bound_(self):
         """See `cirq.SupportsTraceDistanceBound`."""
+        if self._is_parameterized_():
+            return 1.0
         return protocols.trace_distance_bound(cirq.X**self._exponent)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
