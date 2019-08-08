@@ -688,7 +688,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
     def _trace_distance_bound_(self) -> float:
         if self._is_parameterized_():
-            return 1.0
+            return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
