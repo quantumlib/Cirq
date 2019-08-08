@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, Optional, Iterable
+from typing import Any, TypeVar, Optional, Sequence
 import numpy as np
 from typing_extensions import Protocol
 from cirq.protocols.unitary import unitary
@@ -108,12 +108,12 @@ def _strat_distance_from_unitary(val: Any) -> Optional[float]:
     return trace_distance_from_angle_list(np.angle(np.linalg.eigvals(u)))
 
 
-def trace_distance_from_angle_list(angle_list: Iterable[float]) -> float:
-    """ Given a list of arguments of the eigenvalues of a unitary matrix,
-    calculates the trace_distance_bound of the unitary effect.
+def trace_distance_from_angle_list(angle_list: Sequence[float]) -> float:
+    """Given a list of arguments of the eigenvalues of a unitary matrix,
+    calculates the trace distance bound of the unitary effect.
 
     The maximum provided angle should not exceed the minimum provided angle
-    by more than two pi.
+    by more than two π.
     """
     angles = np.sort(angle_list)
     maxim = 2 * np.pi + angles[0] - angles[-1]
