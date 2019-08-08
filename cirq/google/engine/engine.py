@@ -339,7 +339,7 @@ class Engine:
             },
             'scheduling_config': {
                 'priority': priority,
-                'processor_seluctor': {
+                'processor_selector': {
                     'processor_names': [
                         'projects/%s/processors/%s' %
                         (self.project_id, processor_id)
