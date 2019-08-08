@@ -96,7 +96,7 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -211,7 +211,7 @@ class YPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -337,7 +337,7 @@ class ZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -686,7 +686,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
 
         return [(0, component0), (1, component1)]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))

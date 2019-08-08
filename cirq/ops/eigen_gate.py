@@ -292,7 +292,7 @@ class EigenGate(raw_types.Gate):
             exponent = value.PeriodicValue(self._exponent, period)
         return exponent, self._global_shift
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if protocols.is_parameterized(self._exponent):
             return None
         angles = np.pi * (np.array(self._eigen_shifts()) * self._exponent % 2)

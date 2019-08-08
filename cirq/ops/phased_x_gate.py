@@ -98,7 +98,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                               exponent=new_exponent,
                               global_shift=self._global_shift)
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))

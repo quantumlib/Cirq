@@ -142,7 +142,7 @@ class ControlledGate(raw_types.Gate):
                                                     param_resolver)
         return ControlledGate(new_sub_gate, self.control_qubits)
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         u = protocols.unitary(self.sub_gate, default=None)

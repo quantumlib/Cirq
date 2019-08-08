@@ -65,7 +65,8 @@ def trace_distance_bound(val: Any) -> float:
 
     """
     strats = [
-        _strat_from_trace_distance_bound_method,_strat_distance_from_unitary]
+        _strat_from_trace_distance_bound_method,_strat_distance_from_unitary
+    ]
 
     for strat in strats:
         result = strat(val)
@@ -77,7 +78,7 @@ def trace_distance_bound(val: Any) -> float:
     return 1.0
 
 
-def _strat_from_trace_distance_bound_method(val: any) -> Optional[float]:
+def _strat_from_trace_distance_bound_method(val: Any) -> Optional[float]:
     """Attempts to use a specialized method."""
     getter = getattr(val, '_trace_distance_bound_', None)
     result = NotImplemented if getter is None else getter()
@@ -91,7 +92,7 @@ def _strat_from_trace_distance_bound_method(val: any) -> Optional[float]:
     return NotImplemented
 
 
-def _strat_distance_from_unitary(val: any) -> Optional[float]:
+def _strat_distance_from_unitary(val: Any) -> Optional[float]:
     """Attempts to compute a value's trace_distance_bound from its unitary."""
     u = unitary(val, default=None)
 

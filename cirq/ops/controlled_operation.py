@@ -120,7 +120,7 @@ class ControlledOperation(raw_types.Operation):
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
         return ControlledOperation(self.controls, new_sub_op)
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         u = protocols.unitary(self.sub_operation, default=None)

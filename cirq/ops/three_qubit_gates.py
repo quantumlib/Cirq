@@ -45,7 +45,7 @@ class CCZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -167,7 +167,7 @@ class CCXPowGate(eigen_gate.EigenGate,
                                   np.array([[0.5, -0.5], [-0.5, 0.5]]))),
         ]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))

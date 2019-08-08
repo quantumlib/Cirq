@@ -55,7 +55,7 @@ class XXPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -118,7 +118,7 @@ class YYPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
@@ -168,7 +168,7 @@ class ZZPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _trace_distance_bound_(self) -> float:
+    def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))

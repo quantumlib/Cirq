@@ -14,8 +14,8 @@
 
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
-import sympy
 import numpy as np
+import sympy
 
 from cirq import ops, protocols
 from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
