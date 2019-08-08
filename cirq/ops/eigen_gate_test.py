@@ -18,6 +18,7 @@ import numpy as np
 import sympy
 
 import cirq
+from cirq.testing import assert_has_consistent_trace_distance_bound
 
 
 class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
@@ -216,13 +217,16 @@ def test_trace_distance_bound():
     class E(cirq.EigenGate):
 
         def _num_qubits_(self):
-            return 3
+            return 1
 
         def _eigen_components(self):
             return [
                 (0, np.array([[1, 0], [0, 0]])),
                 (12, np.array([[0, 0], [0, 1]])),
             ]
+
+    for numerator in range(13):
+        assert_has_consistent_trace_distance_bound(E()**(numerator / 12))
 
 
 def test_extrapolate():
