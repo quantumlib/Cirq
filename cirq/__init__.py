@@ -82,6 +82,7 @@ from cirq.linalg import (
     one_hot,
     partial_trace,
     PAULI_BASIS,
+    pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,
@@ -250,6 +251,7 @@ from cirq.sim import (
     to_valid_density_matrix,
     to_valid_state_vector,
     validate_normalized_state,
+    von_neumann_entropy,
     WaveFunctionSimulatorState,
     WaveFunctionStepResult,
     WaveFunctionTrialResult,
@@ -262,11 +264,13 @@ from cirq.study import (
     ParamResolverOrSimilarType,
     plot_state_histogram,
     Points,
+    Product,
     Sweep,
     Sweepable,
     to_resolvers,
     TrialResult,
     UnitSweep,
+    Zip,
 )
 
 from cirq.value import (

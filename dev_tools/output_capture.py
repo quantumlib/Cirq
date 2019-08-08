@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import circuits
-from cirq.contrib.qasm_import._parser import QasmParser
+import sys
+import io
 
 
-def circuit_from_qasm(qasm: str) -> circuits.Circuit:
-    """Parses an OpenQASM string to `cirq.Circuit`.
+class OutputCapture:
+    """A context manager that captures stdout and stderr."""
 
-    Args:
-        qasm: The OpenQASM string
+    def __init__(self):
+        self.buffer = io.StringIO()
+        self._cache = None
 
-    Returns:
-        The parsed circuit
-    """
+    def __enter__(self):
+        self._cache = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = self.buffer, self.buffer
+        return None
 
-    return QasmParser().parse(qasm).circuit
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        sys.stdout, sys.stderr = self._cache
+
+    def content(self) -> str:
+        return self.buffer.getvalue()
