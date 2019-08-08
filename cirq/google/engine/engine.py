@@ -215,6 +215,7 @@ class Engine:
             self,
             *,  # Force keyword args.
             program: Program,
+            program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             param_resolver: ParamResolver = ParamResolver({}),
             repetitions: int = 1,
@@ -226,7 +227,11 @@ class Engine:
         Args:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
-            job_config: Configures the names of programs and jobs.
+            program_id: A user-provided identifier for the program. This must
+                be unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-######' will be generated.
+            job_config: Configures the names and properties of jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
@@ -241,6 +246,7 @@ class Engine:
         """
         return list(
             self.run_sweep(program=program,
+                           program_id=program_id,
                            job_config=job_config,
                            params=[param_resolver],
                            repetitions=repetitions,
@@ -281,7 +287,11 @@ class Engine:
         Args:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
-            job_config: Configures optional job parameters.
+            program_id: A user-provided identifier for the program. This must
+                be unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-######' will be generated.
+            job_config: Configures the names and properties of jobs.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
