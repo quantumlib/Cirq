@@ -16,8 +16,9 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(project_id='my-project-id')
-    options = cirq.google.JobConfig(program_id='hello-world')
-    result = engine.run(options, circuit, repetitions=10)
+    program = engine.create_program(ciruit)
+    result0 = program.run(params=params0, repetitions=10)
+    result1 = program.run(params=params1, repetitions=10)
 
 In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
@@ -62,6 +63,12 @@ class ProtoVersion(enum.Enum):
 Program = Union[circuits.Circuit, Schedule]
 
 
+def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
+    any_message = any_pb2.Any()
+    any_message.Pack(message)
+    return gp.json_format.MessageToDict(any_message)
+
+
 def _user_project_header_request_builder(project_id: str):
     """Provides a request builder that sets a user project header on engine
     requests to allow using standard OAuth credentials.
@@ -75,63 +82,52 @@ def _user_project_header_request_builder(project_id: str):
     return request_builder
 
 
+def _make_random_id(prefix: str, length: int = 6):
+    random_digits = [
+        random.choice(string.ascii_uppercase + string.digits)
+        for _ in range(length)
+    ]
+    suffix = ''.join(random_digits)
+    return '%s%s' % (prefix, suffix)
+
+
 @value.value_equality
 class JobConfig:
-    """Configuration for a program and job to run on the Quantum Engine API.
+    """Configuration for a job to run on the Quantum Engine API.
 
-    Quantum engine has two resources: programs and jobs. Programs live
-    under cloud projects. Every program may have many jobs, which represent
-    scheduled or terminated programs executions. Program and job resources have
-    string names. This object contains the information necessary to create a
-    program and then create a job on Quantum Engine, hence running the program.
-    Program ids are of the form
-        `projects/project_id/programs/program_id`
-    while job ids are of the form
-        `projects/project_id/programs/program_id/jobs/job_id`
+    An instance of a program that has been scheduled on the Quantum Engine is
+    called a Job. This object contains the configuration for a job.
     """
 
     def __init__(self,
-                 program_id: Optional[str] = None,
                  job_id: Optional[str] = None,
                  gcs_prefix: Optional[str] = None,
-                 gcs_program: Optional[str] = None,
                  gcs_results: Optional[str] = None) -> None:
         """Configuration for a job that is run on Quantum Engine.
 
         Args:
-            program_id: Id of the program to create, defaults to a random
-                version of 'prog-ABCD'.
             job_id: Id of the job to create, defaults to 'job-0'.
             gcs_prefix: Google Cloud Storage bucket and object prefix to use
                 for storing programs and results. The bucket will be created if
                 needed. Must be in the form "gs://bucket-name/object-prefix/".
-            gcs_program: Explicit override for the program storage location.
             gcs_results: Explicit override for the results storage location.
         """
-        self.program_id = program_id
         self.job_id = job_id
         self.gcs_prefix = gcs_prefix
-        self.gcs_program = gcs_program
         self.gcs_results = gcs_results
 
     def copy(self):
-        return JobConfig(program_id=self.program_id,
-                         job_id=self.job_id,
+        return JobConfig(job_id=self.job_id,
                          gcs_prefix=self.gcs_prefix,
-                         gcs_program=self.gcs_program,
                          gcs_results=self.gcs_results)
 
     def _value_equality_values_(self):
-        return (self.program_id, self.job_id, self.gcs_prefix, self.gcs_program,
-                self.gcs_results)
+        return (self.job_id, self.gcs_prefix, self.gcs_results)
 
     def __repr__(self):
-        return ('cirq.google.JobConfig(program_id={!r}, '
-                'job_id={!r}, '
+        return ('cirq.google.JobConfig(job_id={!r}, '
                 'gcs_prefix={!r}, '
-                'gcs_program={!r}, '
-                'gcs_results={!r})').format(self.program_id, self.job_id,
-                                            self.gcs_prefix, self.gcs_program,
+                'gcs_results={!r})').format(self.job_id, self.gcs_prefix,
                                             self.gcs_results)
 
 
@@ -140,23 +136,28 @@ class Engine:
 
     This class has methods for creating programs and jobs that execute on
     Quantum Engine:
+        create_program
         run
         run_sweep
 
     Another set of methods return information about programs and jobs that
-    have been previously created on the Quantum Engine:
-        get_program
+    have been previously created on the Quantum Engine, as well as metadata
+    about available processors:
+        get_calibration
         get_job
         get_job_results
+        get_latest_calibration
+        get_program
+        list_processors
 
     Finally, the engine has methods to update existing programs and jobs:
-        cancel_job
-        set_program_labels
+        add_job_labels
         add_program_labels
+        cancel_job
+        remove_job_labels
         remove_program_labels
         set_job_labels
-        add_job_labels
-        remove_job_labels
+        set_program_labels
     """
 
     def __init__(self,
@@ -229,7 +230,9 @@ class Engine:
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
             priority: The priority to run at, 0-100.
-            processor_ids: The engine processors to run against.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor.
 
@@ -244,67 +247,6 @@ class Engine:
                            priority=priority,
                            processor_ids=processor_ids,
                            gate_set=gate_set))[0]
-
-    def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
-        gcs_prefix = (job_config.gcs_prefix or self.default_gcs_prefix or
-                      'gs://gqe-' +
-                      self.project_id[self.project_id.rfind(':') + 1:])
-        if gcs_prefix and not gcs_prefix.endswith('/'):
-            gcs_prefix += '/'
-
-        if not gcs_prefix_pattern.match(gcs_prefix):
-            raise ValueError('gcs_prefix must be of the form "gs://'
-                             '<bucket name and optional object prefix>/"')
-
-        job_config.gcs_prefix = gcs_prefix
-
-    def _infer_program_id(self, job_config: JobConfig) -> None:
-        if job_config.program_id is not None:
-            return
-
-        random_digits = [
-            random.choice(string.ascii_uppercase + string.digits)
-            for _ in range(6)
-        ]
-        job_config.program_id = 'prog-' + ''.join(random_digits)
-
-    def _infer_job_id(self, job_config: JobConfig) -> None:
-        if job_config.job_id is None:
-            job_config.job_id = 'job-0'
-
-    def _infer_gcs_program(self, job_config: JobConfig) -> None:
-        if job_config.gcs_prefix is None:
-            raise ValueError("Must infer gcs_prefix before gcs_program.")
-
-        if job_config.gcs_program is None:
-            job_config.gcs_program = '{}programs/{}/{}'.format(
-                job_config.gcs_prefix,
-                job_config.program_id,
-                job_config.program_id)
-
-    def _infer_gcs_results(self, job_config: JobConfig) -> None:
-        if job_config.gcs_prefix is None:
-            raise ValueError("Must infer gcs_prefix before gcs_results.")
-
-        if job_config.gcs_results is None:
-            job_config.gcs_results = '{}programs/{}/jobs/{}'.format(
-                job_config.gcs_prefix,
-                job_config.program_id,
-                job_config.job_id)
-
-    def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
-        implied_job_config = (JobConfig()
-                              if job_config is None
-                              else job_config.copy())
-
-        # Note: inference order is important. Later ones may need earlier ones.
-        self._infer_gcs_prefix(implied_job_config)
-        self._infer_program_id(implied_job_config)
-        self._infer_job_id(implied_job_config)
-        self._infer_gcs_program(implied_job_config)
-        self._infer_gcs_results(implied_job_config)
-
-        return implied_job_config
 
     def program_as_schedule(self, program: Program) -> Schedule:
         if isinstance(program, circuits.Circuit):
@@ -324,6 +266,7 @@ class Engine:
             self,
             *,  # Force keyword args.
             program: Program,
+            program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             params: Sweepable = None,
             repetitions: int = 1,
@@ -338,55 +281,47 @@ class Engine:
         Args:
             program: The Circuit or Schedule to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
-            job_config: Configures the names of programs and jobs.
+            job_config: Configures optional job parameters.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
             priority: The priority to run at, 0-100.
-            processor_ids: The engine processors to run against.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
+        engine_program = self.create_program(program, program_id, gate_set)
+        return engine_program.run_sweep(job_config=job_config,
+                                        params=params,
+                                        repetitions=repetitions,
+                                        priority=priority,
+                                        processor_ids=processor_ids)
 
-        job_config = self.implied_job_config(job_config)
+    def create_job(
+            self,
+            *,  # Force keyword args.
+            program_name: str,
+            job_config: Optional[JobConfig] = None,
+            params: Sweepable = None,
+            repetitions: int = 1,
+            priority: int = 500,
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
+        job_config = self.implied_job_config(job_config)
         sweeps = study.to_sweeps(params or ParamResolver({}))
-        if self.proto_version == ProtoVersion.V1:
-            code, run_context = self._serialize_program_v1(
-                program, sweeps, repetitions)
-        elif self.proto_version == ProtoVersion.V2:
-            code, run_context = self._serialize_program_v2(
-                program, sweeps, repetitions, gate_set)
-        else:
-            raise ValueError('invalid proto version: {}'.format(
-                self.proto_version))
-
-        # Create program.
-        request = {
-            'name':
-            'projects/%s/programs/%s' % (
-                self.project_id,
-                job_config.program_id,
-            ),
-            'gcs_code_location': {
-                'uri': job_config.gcs_program
-            },
-            'code':
-            code,
-        }
-        response = self.service.projects().programs().create(
-            parent='projects/%s' % self.project_id, body=request).execute()
+        run_context = self._serialize_run_context(sweeps, repetitions)
 
         # Create job.
         request = {
-            'name': '%s/jobs/%s' % (response['name'], job_config.job_id),
+            'name': '%s/jobs/%s' % (program_name, job_config.job_id),
             'output_config': {
                 'gcs_results_location': {
                     'uri': job_config.gcs_results
@@ -394,7 +329,7 @@ class Engine:
             },
             'scheduling_config': {
                 'priority': priority,
-                'processor_selector': {
+                'processor_seluctor': {
                     'processor_names': [
                         'projects/%s/processors/%s' %
                         (self.project_id, processor_id)
@@ -405,64 +340,143 @@ class Engine:
             'run_context': run_context
         }
         response = self.service.projects().programs().jobs().create(
-            parent=response['name'], body=request).execute()
+            parent=program_name, body=request).execute()
 
         return EngineJob(job_config, response, self)
 
-    def _serialize_program_v1(self, program: Program, sweeps: List[Sweep],
-                              repetitions: int
-                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        schedule = self.program_as_schedule(program)
-        schedule.device.validate_schedule(schedule)
+    def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
+        implied_job_config = (JobConfig()
+                              if job_config is None else job_config.copy())
 
-        program_descriptor = v1.program_pb2.Program.DESCRIPTOR
-        program_dict = {}  # type: Dict[str, Any]
-        program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
-        program_dict['operations'] = [
-            op for op in api_v1.schedule_to_proto_dicts(schedule)
-        ]
+        # Note: inference order is important. Later ones may need earlier ones.
+        self._infer_gcs_prefix(implied_job_config)
+        self._infer_job_id(implied_job_config)
+        self._infer_gcs_results(implied_job_config)
 
-        context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
-        context_dict = {}  # type: Dict[str, Any]
-        context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
-        context_dict['parameter_sweeps'] = [
-            api_v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
-        ]
-        return program_dict, context_dict
+        return implied_job_config
 
-    def _serialize_program_v2(self, program: Program, sweeps: List[Sweep],
-                              repetitions: int, gate_set: SerializableGateSet
-                             ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        if isinstance(program, Schedule):
-            program.device.validate_schedule(program)
+    def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
+        project_id = self.project_id
+        gcs_prefix = (job_config.gcs_prefix or self.default_gcs_prefix or
+                      'gs://gqe-' + project_id[project_id.rfind(':') + 1:])
+        if gcs_prefix and not gcs_prefix.endswith('/'):
+            gcs_prefix += '/'
 
-        program = gate_set.serialize(program)
+        if not gcs_prefix_pattern.match(gcs_prefix):
+            raise ValueError('gcs_prefix must be of the form "gs://'
+                             '<bucket name and optional object prefix>/"')
 
-        run_context = v2.run_context_pb2.RunContext()
-        for sweep in sweeps:
-            sweep_proto = run_context.parameter_sweeps.add()
-            sweep_proto.repetitions = repetitions
-            api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+        job_config.gcs_prefix = gcs_prefix
 
-        def any_dict(message: gp.message.Message) -> Dict[str, Any]:
-            any_message = any_pb2.Any()
-            any_message.Pack(message)
-            return gp.json_format.MessageToDict(any_message)
+    def _infer_job_id(self, job_config: JobConfig) -> None:
+        if job_config.job_id is None:
+            job_config.job_id = _make_random_id('job-')
 
-        return any_dict(program), any_dict(run_context)
+    def _infer_gcs_results(self, job_config: JobConfig) -> None:
+        if job_config.gcs_prefix is None:
+            raise ValueError("Must infer gcs_prefix before gcs_results.")
 
-    def get_program(self, program_resource_name: str) -> Dict:
+        if job_config.gcs_results is None:
+            job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
+                                                        job_config.job_id)
+
+    def _serialize_run_context(
+            self,
+            sweeps: List[Sweep],
+            repetitions: int,
+    ) -> Dict[str, Any]:
+        proto_version = self.proto_version
+        if proto_version == ProtoVersion.V1:
+            context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
+            context_dict = {}  # type: Dict[str, Any]
+            context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
+            context_dict['parameter_sweeps'] = [
+                api_v1.sweep_to_proto_dict(sweep, repetitions)
+                for sweep in sweeps
+            ]
+            return context_dict
+        elif proto_version == ProtoVersion.V2:
+            run_context = v2.run_context_pb2.RunContext()
+            for sweep in sweeps:
+                sweep_proto = run_context.parameter_sweeps.add()
+                sweep_proto.repetitions = repetitions
+                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+
+            return _any_dict_from_msg(run_context)
+        else:
+            raise ValueError(
+                'invalid run context proto version: {}'.format(proto_version))
+
+    def create_program(self,
+                       program: Program,
+                       program_id: Optional[str] = None,
+                       gate_set: SerializableGateSet = gate_sets.XMON
+                      ) -> 'EngineProgram':
+        """Wraps a Circuit or Scheduler for use with the Quantum Engine.
+
+        Args:
+            program: The Circuit or Schedule to execute. If a circuit is
+                provided, a moment by moment schedule will be used.
+            program_id: A user-provided identifier for the program. This must be
+                unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-######' will be generated.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor
+        """
+        if not program_id:
+            program_id = _make_random_id('prog-')
+
+        parent_name = 'projects/%s' % self.project_id
+        program_name = '%s/programs/%s' % (parent_name, program_id)
+        # Create program.
+        request = {
+            'name': program_name,
+            'code': self._serialize_program(program, gate_set),
+        }
+        result = self.service.projects().programs().create(
+            parent=parent_name, body=request).execute()
+
+        return EngineProgram(result['name'], self)
+
+    def _serialize_program(self,
+                           program: Program,
+                           gate_set: SerializableGateSet = gate_sets.XMON
+                          ) -> Dict[str, Any]:
+        if self.proto_version == ProtoVersion.V1:
+            schedule = self.program_as_schedule(program)
+            schedule.device.validate_schedule(schedule)
+
+            program_descriptor = v1.program_pb2.Program.DESCRIPTOR
+            program_dict = {}  # type: Dict[str, Any]
+            program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
+            program_dict['operations'] = [
+                op for op in api_v1.schedule_to_proto_dicts(schedule)
+            ]
+            return program_dict
+        elif self.proto_version == ProtoVersion.V2:
+            if isinstance(program, Schedule):
+                program.device.validate_schedule(program)
+            program = gate_set.serialize(program)
+            return _any_dict_from_msg(program)
+        else:
+            raise ValueError('invalid program proto version: {}'.format(
+                self.proto_version))
+
+    def get_program(self, program_id: str) -> Dict:
         """Returns the previously created quantum program.
 
         Params:
-            program_resource_name: A string of the form
-                `projects/project_id/programs/program_id`.
+            program_id: A string containing the unique ID of a program within
+              the project specified for the Engine.
 
         Returns:
             A dictionary containing the metadata and the program.
         """
+        program_resource_name = self._program_name_from_id(program_id)
         return self.service.projects().programs().get(
             name=program_resource_name).execute()
+
 
     def get_job(self, job_resource_name: str) -> Dict:
         """Returns metadata about a previously created job.
@@ -547,42 +561,44 @@ class Engine:
         self.service.projects().programs().jobs().cancel(
             name=job_resource_name, body={}).execute()
 
-    def _set_program_labels(self, program_resource_name: str,
-                            labels: Dict[str, str], fingerprint: str):
+    def _program_name_from_id(self, program_id: str) -> str:
+        return 'projects/%s/programs/%s' % (
+            self.project_id,
+            program_id,
+        )
+
+    def _set_program_labels(self, program_id: str, labels: Dict[str, str],
+                            fingerprint: str):
+        program_resource_name = self._program_name_from_id(program_id)
         self.service.projects().programs().patch(
             name=program_resource_name,
             body={'name': program_resource_name, 'labels': labels,
                   'labelFingerprint': fingerprint},
             updateMask='labels').execute()
 
-    def set_program_labels(self, program_resource_name: str,
-                           labels: Dict[str, str]):
-        job = self.get_program(program_resource_name)
-        self._set_program_labels(program_resource_name, labels,
-                                 job.get('labelFingerprint', ''))
+    def set_program_labels(self, program_id: str, labels: Dict[str, str]):
+        program = self.get_program(program_id)
+        self._set_program_labels(program_id, labels,
+                                 program.get('labelFingerprint', ''))
 
-    def add_program_labels(self, program_resource_name: str,
-                           labels: Dict[str, str]):
-        job = self.get_program(program_resource_name)
-        old_labels = job.get('labels', {})
+    def add_program_labels(self, program_id: str, labels: Dict[str, str]):
+        program = self.get_program(program_id)
+        old_labels = program.get('labels', {})
         new_labels = old_labels.copy()
         new_labels.update(labels)
         if new_labels != old_labels:
-            fingerprint = job.get('labelFingerprint', '')
-            self._set_program_labels(program_resource_name, new_labels,
-                                     fingerprint)
+            fingerprint = program.get('labelFingerprint', '')
+            self._set_program_labels(program_id, new_labels, fingerprint)
 
-    def remove_program_labels(self, program_resource_name: str,
-                              label_keys: List[str]):
-        job = self.get_program(program_resource_name)
-        old_labels = job.get('labels', {})
+    def remove_program_labels(self, program_id: str, label_keys: List[str]):
+        program = self.get_program(program_id)
+        old_labels = program.get('labels', {})
         new_labels = old_labels.copy()
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
-            fingerprint = job.get('labelFingerprint', '')
-            self._set_program_labels(program_resource_name, new_labels,
-                                     fingerprint)
+            fingerprint = program.get('labelFingerprint', '')
+            self._set_program_labels(program_id, new_labels, fingerprint)
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
                         fingerprint: str):
@@ -616,6 +632,7 @@ class Engine:
             fingerprint = job.get('labelFingerprint', '')
             self._set_job_labels(job_resource_name, new_labels, fingerprint)
 
+
     def list_processors(self) -> List[Dict]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
@@ -628,6 +645,7 @@ class Engine:
         response = self.service.projects().processors().list(
             parent=parent).execute()
         return response['processors']
+
 
     def get_latest_calibration(self,
                                processor_id: str) -> Optional['Calibration']:
@@ -707,6 +725,100 @@ class Calibration:
         return result
 
 
+class EngineProgram:
+    """A program created via the Quantum Engine API.
+
+    This program wraps a Circuit or Schedule with additional metadata used to
+    schedule againt devices maintained by Google.
+
+    Attributes:
+      name: The full resource name of the engine program.
+      code: A serialized version of the Circuit or Schedule
+    """
+
+    def __init__(self, resource_name: str, engine: Engine) -> None:
+        """A job submitted to the engine.
+
+        Args:
+            resource_name: The globally unique identifier for the program:
+                `projects/project_id/programs/program_id`.
+            engine: An Engine object associated with the same project as the
+                program.
+        """
+        self.resource_name = resource_name
+        self._engine = engine
+
+    def run_sweep(
+            self,
+            *,  # Force keyword args.
+            job_config: Optional[JobConfig] = None,
+            params: Sweepable = None,
+            repetitions: int = 1,
+            priority: int = 500,
+            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
+        """Runs the program on the QuantumEngine.
+
+        In contrast to run, this runs across multiple parameter sweeps, and
+        does not block until a result is returned.
+
+        Args:
+            job_config: Configures optional job parameters.
+            params: Parameters to run with the program.
+            repetitions: The number of circuit repetitions to run.
+            priority: The priority to run at, 0-100.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
+
+        Returns:
+            An EngineJob. If this is iterated over it returns a list of
+            TrialResults, one for each parameter sweep.
+        """
+        return self._engine.create_job(program_name=self.resource_name,
+                                       job_config=job_config,
+                                       params=params,
+                                       repetitions=repetitions,
+                                       priority=priority,
+                                       processor_ids=processor_ids)
+
+    def run(
+            self,
+            *,  # Force keyword args.
+            job_config: Optional[JobConfig] = None,
+            param_resolver: ParamResolver = ParamResolver({}),
+            repetitions: int = 1,
+            priority: int = 50,
+            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
+        """Runs the supplied Circuit or Schedule via Quantum Engine.
+
+        Args:
+            program: A Quantum Engine-wrapped Circuit or Schedule object. This
+              may be generated with create_program() or get_program().
+            program_id: A user-provided identifier for the program. This must be
+                unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-######' will be generated.
+            program_id: A user-defined identifer for the program. This must be
+              unique within the project specified on the Engine instance.
+            job_config: Configures the names of programs and jobs.
+            param_resolver: Parameters to run with the program.
+            repetitions: The number of repetitions to simulate.
+            priority: The priority to run at, 0-100.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
+
+        Returns:
+            A single TrialResult for this run.
+        """
+        return list(
+            self.run_sweep(job_config=job_config,
+                           params=[param_resolver],
+                           repetitions=repetitions,
+                           priority=priority,
+                           processor_ids=processor_ids))[0]
+
+
 class EngineJob:
     """A job created via the Quantum Engine API.
 
@@ -728,13 +840,14 @@ class EngineJob:
         Args:
             job_config: The JobConfig used to create the job.
             job: A full Job Dict.
-            engine: Engine connected to the job.
+            engine: An Engine instance associated with the same projct as the
+                job.
         """
         self.job_config = job_config
         self._job = job
         self._engine = engine
         self.job_resource_name = job['name']
-        self.program_resource_name = self.job_resource_name.split('/jobs')[0]
+        self.program_id = self.job_resource_name.split('/jobs')[0]
         self._results = None  # type: Optional[List[TrialResult]]
 
     def _update_job(self):
