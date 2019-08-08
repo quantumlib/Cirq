@@ -170,3 +170,6 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(threeop),
                           np.sin(3 * np.pi / 8))
     assert cirq.approx_eq(cirq.trace_distance_bound(fourop), 1.0)
+    foo = sympy.Symbol('foo')
+    spo = cirq.ParallelGateOperation(cirq.X**foo, cirq.LineQubit.range(4))
+    assert cirq.approx_eq(cirq.trace_distance_bound(spo), 1.0)
