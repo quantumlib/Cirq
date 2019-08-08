@@ -121,10 +121,8 @@ class ParallelGateOperation(raw_types.Operation):
         return self.with_gate(resolved_gate)
 
     def _trace_distance_bound_(self) -> Optional[float]:
-        single_gate_bound = protocols.trace_distance_bound(self._gate)
-        if single_gate_bound is None or single_gate_bound is NotImplemented:
-            return single_gate_bound
-        angle = len(self.qubits) * np.arcsin(single_gate_bound)
+        angle = (len(self.qubits) *
+                 np.arcsin(protocols.trace_distance_bound(self._gate)))
         if angle >= np.pi * 0.5:
             return 1.0
         return np.sin(angle)
