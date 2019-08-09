@@ -170,7 +170,7 @@ class SimulatesIntermediateWaveFunction(
     ) -> List[List[complex]]:
 
         trial_results = self.simulate_sweep(program,
-                                            study.ParamResolver(params),
+                                            params,
                                             qubit_order)
 
         amplitude_indices = [
