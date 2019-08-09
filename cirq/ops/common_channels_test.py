@@ -242,6 +242,28 @@ def test_amplitude_damping_channel_text_diagram():
             == cirq.CircuitDiagramInfo(wire_symbols=('AD(0.3)',)))
 
 
+def test_reset_channel():
+    d = cirq.reset()
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (np.array([[1., 0.], [0., 0]]), np.array([[0., 1.0], [0., 0.]])))
+    assert cirq.has_channel(d)
+    assert not cirq.has_mixture_channel(d)
+
+
+def test_reset_channel_repr():
+    cirq.testing.assert_equivalent_repr(cirq.ResetChannel())
+
+
+def test_reset_channel_str():
+    assert (str(cirq.reset()) == 'reset()')
+
+
+def test_reset_channel_text_diagram():
+    assert (cirq.circuit_diagram_info(
+        cirq.reset()) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
