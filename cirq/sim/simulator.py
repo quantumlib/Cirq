@@ -177,6 +177,76 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         return compute_displays_results
 
 
+class SimulatesAmplitudes(metaclass=abc.ABCMeta):
+    """Simulator that computes final amplitudes of given bitstrings.
+
+    Given a circuit and a list of bitstrings, computes the amplitudes
+    of the given bitstrings in the state obtained by applying the circuits
+    to the all zeros state. Implementors of this interface should implement
+    the compute_amplitudes_sweep method.
+    """
+
+    def compute_amplitudes(
+        self,
+        program: Union[circuits.Circuit, schedules.Schedule],
+        bitstrings: np.ndarray,
+        param_resolver: 'study.ParamResolverOrSimilarType' = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> List[complex]:
+        """Computes the desired amplitudes.
+
+        The initial state is assumed to be the all zeros state.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            bitstrings: The bitstrings whose amplitudes are desired, input
+                as a two-dimensional array of bools. The first dimension
+                indexes the bitstrings and the second dimension indexes
+                the bits within a bitstring.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            List of amplitudes.
+        """
+        return self.compute_amplitudes_sweep(
+            program,
+            bitstrings,
+            study.ParamResolver(param_resolver),
+            qubit_order)[0]
+
+    @abc.abstractmethod
+    def compute_amplitudes_sweep(
+        self,
+        program: Union[circuits.Circuit, schedules.Schedule],
+        bitstrings: np.ndarray,
+        params: study.Sweepable,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> List[List[complex]]:
+        """Computes the desired amplitudes.
+
+        The initial state is assumed to be the all zeros state.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            bitstrings: The bitstrings whose amplitudes are desired, input
+                as a two-dimensional array of bools. The first dimension
+                indexes the bitstrings and the second dimension indexes
+                the bits within a bitstring.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            List of lists of amplitudes. The outer dimension indexes the
+            circuit parameters and the inner dimension indexes the bitstrings.
+        """
+        raise NotImplementedError()
+
+
 class SimulatesFinalState(metaclass=abc.ABCMeta):
     """Simulator that allows access to a quantum computer's final state.
 
@@ -388,7 +458,6 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             params=params,
             measurements=measurements,
             final_simulator_state=final_simulator_state)
-
 
 
 class StepResult(metaclass=abc.ABCMeta):
