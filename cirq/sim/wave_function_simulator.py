@@ -24,9 +24,10 @@ from cirq import circuits, ops, schedules, study, value
 from cirq.sim import simulator, wave_function
 
 
-class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
-                                        simulator.SimulatesIntermediateState,
-                                        metaclass=abc.ABCMeta):
+class SimulatesIntermediateWaveFunction(
+        simulator.SimulatesAmplitudes,
+        simulator.SimulatesIntermediateState,
+        metaclass=abc.ABCMeta):
     """A simulator that accesses its wave function as it does its simulation.
 
     Implementors of this interface should implement the _simulator_iterator
@@ -161,25 +162,26 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
         return compute_displays_results
 
     def compute_amplitudes_sweep(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        bitstrings: np.ndarray,
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            bitstrings: np.ndarray,
+            params: study.Sweepable,
+            qubit_order: ops.QubitOrderOrList=ops.QubitOrder.DEFAULT,
     ) -> List[List[complex]]:
 
-        trial_results = self.simulate_sweep(
-            program,
-            study.ParamResolver(params),
-            qubit_order)
+        trial_results = self.simulate_sweep(program,
+                                            study.ParamResolver(params),
+                                            qubit_order)
 
-        amplitude_indices = [_bitstring_to_integer(bitstring)
-                             for bitstring in bitstrings]
+        amplitude_indices = [
+            _bitstring_to_integer(bitstring) for bitstring in bitstrings
+        ]
 
         all_amplitudes = []
         for trial_result in trial_results:
-            amplitudes = [trial_result.final_state[index]
-                          for index in amplitude_indices]
+            amplitudes = [
+                trial_result.final_state[index] for index in amplitude_indices
+            ]
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes

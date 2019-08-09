@@ -187,11 +187,11 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     """
 
     def compute_amplitudes(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        bitstrings: np.ndarray,
-        param_resolver: 'study.ParamResolverOrSimilarType' = None,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            bitstrings: np.ndarray,
+            param_resolver: 'study.ParamResolverOrSimilarType'=None,
+            qubit_order: ops.QubitOrderOrList=ops.QubitOrder.DEFAULT,
     ) -> List[complex]:
         """Computes the desired amplitudes.
 
@@ -212,18 +212,16 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             List of amplitudes.
         """
         return self.compute_amplitudes_sweep(
-            program,
-            bitstrings,
-            study.ParamResolver(param_resolver),
-            qubit_order)[0]
+            program, bitstrings,
+            study.ParamResolver(param_resolver), qubit_order)[0]
 
     @abc.abstractmethod
     def compute_amplitudes_sweep(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        bitstrings: np.ndarray,
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            bitstrings: np.ndarray,
+            params: study.Sweepable,
+            qubit_order: ops.QubitOrderOrList=ops.QubitOrder.DEFAULT,
     ) -> List[List[complex]]:
         """Computes the desired amplitudes.
 

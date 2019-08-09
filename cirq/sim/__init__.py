@@ -40,8 +40,7 @@ from cirq.sim.simulator import (
     SimulatesIntermediateState,
     SimulatesSamples,
     SimulationTrialResult,
-    StepResult,
-)
+    StepResult,)
 
 from cirq.sim.sparse_simulator import (
     Simulator,
