@@ -206,7 +206,8 @@ def test_run_circuit(build):
     engine = cg.Engine(project_id='project-id')
     result = engine.run(program=_CIRCUIT,
                         job_config=cg.JobConfig(
-                            'project-id', gcs_prefix='gs://bucket/folder'))
+                            'job-id', gcs_prefix='gs://bucket/folder'),
+                        processor_ids=['mysim'])
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
     assert result.measurements == {'q': np.array([[0]], dtype='uint8')}
@@ -217,8 +218,29 @@ def test_run_circuit(build):
                                                   '{apiVersion}'),
                              requestBuilder=mock.ANY)
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
-    assert jobs.create.call_args[1][
-        'parent'] == 'projects/project-id/programs/test'
+    assert jobs.create.call_args[1] == {
+        'parent': 'projects/project-id/programs/test',
+        'body': {
+            'name': 'projects/project-id/programs/test/jobs/job-id',
+            'output_config': {
+                'gcs_results_location': {
+                    'uri': 'gs://bucket/folder/jobs/job-id'
+                }
+            },
+            'scheduling_config': {
+                'priority': 50,
+                'processor_selector': {
+                    'processor_names': ['projects/project-id/processors/mysim']
+                }
+            },
+            'run_context': {
+                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
+                'parameter_sweeps': [{
+                    'repetitions': 1
+                }]
+            }
+        }
+    }
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
