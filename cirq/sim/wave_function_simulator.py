@@ -179,8 +179,11 @@ class SimulatesIntermediateWaveFunction(
 
         all_amplitudes = []
         for trial_result in trial_results:
+            # mypy doesn't know that this trial result has a final_state
+            # attribute
+            final_state = trial_result.final_state # type: ignore
             amplitudes = [
-                trial_result.final_state[index] for index in amplitude_indices
+                final_state[index] for index in amplitude_indices
             ]
             all_amplitudes.append(amplitudes)
 
