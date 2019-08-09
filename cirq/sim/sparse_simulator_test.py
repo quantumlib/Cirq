@@ -623,6 +623,7 @@ def test_compute_amplitudes():
     result = sim.compute_amplitudes(c, np.array([[0, 1], [1, 0], [1, 1]]))
     np.testing.assert_allclose(np.array(result), np.array([0.5, -0.5, -0.5]))
 
-    result = sim.compute_amplitudes(
-        c, np.array([[0, 1], [1, 0], [1, 1]]), qubit_order=(b, a))
+    result = sim.compute_amplitudes(c,
+                                    np.array([[0, 1], [1, 0], [1, 1]]),
+                                    qubit_order=(b, a))
     np.testing.assert_allclose(np.array(result), np.array([-0.5, 0.5, -0.5]))

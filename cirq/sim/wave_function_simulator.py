@@ -24,10 +24,9 @@ from cirq import circuits, ops, schedules, study, value
 from cirq.sim import simulator, wave_function
 
 
-class SimulatesIntermediateWaveFunction(
-        simulator.SimulatesAmplitudes,
-        simulator.SimulatesIntermediateState,
-        metaclass=abc.ABCMeta):
+class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
+                                        simulator.SimulatesIntermediateState,
+                                        metaclass=abc.ABCMeta):
     """A simulator that accesses its wave function as it does its simulation.
 
     Implementors of this interface should implement the _simulator_iterator
@@ -166,12 +165,10 @@ class SimulatesIntermediateWaveFunction(
             program: Union[circuits.Circuit, schedules.Schedule],
             bitstrings: np.ndarray,
             params: study.Sweepable,
-            qubit_order: ops.QubitOrderOrList=ops.QubitOrder.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> List[List[complex]]:
 
-        trial_results = self.simulate_sweep(program,
-                                            params,
-                                            qubit_order)
+        trial_results = self.simulate_sweep(program, params, qubit_order)
 
         amplitude_indices = [
             _bitstring_to_integer(bitstring) for bitstring in bitstrings
@@ -181,10 +178,8 @@ class SimulatesIntermediateWaveFunction(
         for trial_result in trial_results:
             # mypy doesn't know that this trial result has a final_state
             # attribute
-            final_state = trial_result.final_state # type: ignore
-            amplitudes = [
-                final_state[index] for index in amplitude_indices
-            ]
+            final_state = trial_result.final_state  # type: ignore
+            amplitudes = [final_state[index] for index in amplitude_indices]
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes

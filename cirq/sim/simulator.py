@@ -190,8 +190,8 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
             bitstrings: np.ndarray,
-            param_resolver: 'study.ParamResolverOrSimilarType'=None,
-            qubit_order: ops.QubitOrderOrList=ops.QubitOrder.DEFAULT,
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> List[complex]:
         """Computes the desired amplitudes.
 
@@ -212,8 +212,8 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             List of amplitudes.
         """
         return self.compute_amplitudes_sweep(
-            program, bitstrings,
-            study.ParamResolver(param_resolver), qubit_order)[0]
+            program, bitstrings, study.ParamResolver(param_resolver),
+            qubit_order)[0]
 
     @abc.abstractmethod
     def compute_amplitudes_sweep(
@@ -221,7 +221,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             program: Union[circuits.Circuit, schedules.Schedule],
             bitstrings: np.ndarray,
             params: study.Sweepable,
-            qubit_order: ops.QubitOrderOrList=ops.QubitOrder.DEFAULT,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> List[List[complex]]:
         """Computes the desired amplitudes.
 

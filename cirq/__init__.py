@@ -255,7 +255,8 @@ from cirq.sim import (
     von_neumann_entropy,
     WaveFunctionSimulatorState,
     WaveFunctionStepResult,
-    WaveFunctionTrialResult,)
+    WaveFunctionTrialResult,
+)
 
 from cirq.study import (
     ComputeDisplaysResult,
