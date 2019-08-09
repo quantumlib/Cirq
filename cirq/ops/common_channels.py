@@ -448,9 +448,9 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 @value.value_equality
 class ResetChannel(gate_features.SingleQubitGate):
-    """Reset a qubit back to its $|0\rangle$ state.
+    """Reset a qubit back to its $|0>$ state.
 
-    The reset channel is equivalent to performing an unobserved measurement 
+    The reset channel is equivalent to performing an unobserved measurement
     which then controls a bit flip onto the targeted qubit.
     """
 
