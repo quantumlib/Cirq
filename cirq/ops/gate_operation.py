@@ -123,6 +123,8 @@ class GateOperation(raw_types.Operation):
     def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
                        ) -> Union[bool, NotImplementedType]:
         if isinstance(other, type(self)):
+            if set(self.qubits).isdisjoint(other.qubits):
+                return True
             if self.qubits != other.qubits:
                 return NotImplemented
             return protocols.commutes(self.gate, other.gate)

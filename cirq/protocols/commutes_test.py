@@ -50,6 +50,7 @@ def test_commutes_on_gates_and_gate_operations():
     for A, B in [(XGate, YGate), (XGate, ZGate), (ZGate, YGate),
                  (XGate, cirq.Y), (XGate, cirq.Z), (ZGate, cirq.Y)]:
         assert not cirq.commutes(A, B)
+        assert cirq.commutes(A(a), B(b))
         assert not cirq.commutes(A(a), B(a))
         assert not cirq.commutes(A, B(a))
     for A, B in [(XXGate, YYGate), (XXGate, ZZGate)]:

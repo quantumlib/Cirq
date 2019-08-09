@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union
+from typing import Any, cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union
 
 import abc
 
 from cirq import circuits, ops, optimizers, protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)
@@ -142,6 +143,14 @@ class SwapPermutationGate(PermutationGate):
 
     def _value_equality_values_(self):
         return (self.swap_gate,)
+
+    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
+                       ) -> Union[bool, NotImplementedType]:
+        if (isinstance(other, ops.Gate) and
+                isinstance(other, ops.InterchangeableQubitsGate) and
+                protocols.num_qubits(other) == 2):
+            return True
+        return NotImplemented
 
 
 def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:
