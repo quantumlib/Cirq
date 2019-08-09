@@ -51,7 +51,7 @@ def trace_distance_bound(val: Any) -> float:
         Use the effect's `_trace_distance_bound_` method.
 
     Strategy 2:
-        If the effect is unitary, calculate the trace_distance_bound from the
+        If the effect is unitary, calculate the trace distance bound from the
         eigenvalues of the unitary matrix.
 
     Args:
@@ -113,7 +113,7 @@ def trace_distance_from_angle_list(angle_list: Sequence[float]) -> float:
     calculates the trace distance bound of the unitary effect.
 
     The maximum provided angle should not exceed the minimum provided angle
-    by more than two π.
+    by more than 2π.
     """
     angles = np.sort(angle_list)
     maxim = 2 * np.pi + angles[0] - angles[-1]
