@@ -217,6 +217,7 @@ def test_trace_distance_bound():
     class E(cirq.EigenGate):
 
         def _num_qubits_(self):
+            # coverage: ignore
             return 1
 
         def _eigen_components(self):
@@ -225,7 +226,6 @@ def test_trace_distance_bound():
                 (12, np.array([[0, 0], [0, 1]])),
             ]
 
-    assert E()._num_qubits_() == 1
     for numerator in range(13):
         assert_has_consistent_trace_distance_bound(E()**(numerator / 12))
 
