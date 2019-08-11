@@ -448,7 +448,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 @value.value_equality
 class ResetChannel(gate_features.SingleQubitGate):
-    """Reset a qubit back to its $|0>$ state.
+    """Reset a qubit back to its |0⟩ state.
 
     The reset channel is equivalent to performing an unobserved measurement
     which then controls a bit flip onto the targeted qubit.
@@ -491,47 +491,20 @@ class ResetChannel(gate_features.SingleQubitGate):
         return True
 
     def _value_equality_values_(self):
-        return 1
+        return None
 
     def __repr__(self) -> str:
-        return 'cirq.reset()'
+        return 'cirq.reset'
 
     def __str__(self) -> str:
-        return 'reset()'
+        return 'reset'
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs) -> str:
         return 'R'
 
 
-def reset() -> ResetChannel:
-    r"""
-    Returns a ResetChannel.
-
-    This channel evolves a density matrix via:
-
-        $$
-        \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
-        $$
-
-    With:
-
-        $$
-        \begin{aligned}
-        M_0 =& \begin{bmatrix}
-                1 & 0  \\
-                0 & 0
-              \end{bmatrix}
-        \\
-        M_1 =& \begin{bmatrix}
-                0 & 1 \\
-                0 & 0
-              \end{bmatrix}
-        \end{aligned}
-        $$
-
-    """
-    return ResetChannel()
+reset = ResetChannel()
 
 
 @value.value_equality
