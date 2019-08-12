@@ -59,11 +59,6 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
-    def _trace_distance_bound_(self):
-        vals = np.linalg.eigvals(self._matrix)
-        rotation_angle = abs(np.angle(vals[0] / vals[1]))
-        return rotation_angle * 1.2
-
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         z = _phase_matrix(phase_turns)
         phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
