@@ -21,7 +21,6 @@ import threading
 from cirq import study
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 

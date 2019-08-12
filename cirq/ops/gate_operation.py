@@ -15,8 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (
-    Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar, TYPE_CHECKING,
-    Union
+    Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 )
 
 import numpy as np
@@ -24,10 +23,6 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
 
 
 @value.value_equality(approximate=True)
@@ -85,7 +80,7 @@ class GateOperation(raw_types.Operation):
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
-        groups = {}  # type: Dict[int, List[raw_types.Qid]]
+        groups: Dict[int, List[raw_types.Qid]] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:

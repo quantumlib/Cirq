@@ -18,7 +18,6 @@ from typing_extensions import Protocol
 import sympy
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 TDefault = TypeVar('TDefault')
