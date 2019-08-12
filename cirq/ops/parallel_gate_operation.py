@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
+from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any, Optional
 
 import numpy as np
 
@@ -119,6 +119,13 @@ class ParallelGateOperation(raw_types.Operation):
     def _resolve_parameters_(self, resolver):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return self.with_gate(resolved_gate)
+
+    def _trace_distance_bound_(self) -> Optional[float]:
+        angle = (len(self.qubits) *
+                 np.arcsin(protocols.trace_distance_bound(self._gate)))
+        if angle >= np.pi * 0.5:
+            return 1.0
+        return np.sin(angle)
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs
