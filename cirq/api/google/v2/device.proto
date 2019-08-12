@@ -3,7 +3,7 @@ syntax = "proto3";
 package cirq.api.google.v2;
 
 option java_package = "com.google.cirq.api.google.v2";
-option java_outer_classname = "CalibrationProto";
+option java_outer_classname = "DeviceProto";
 option java_multiple_files = true;
 
 // This contains information about a device that includes the
@@ -80,7 +80,7 @@ message ArgDefinition {
     repeated ArgumentRange allowed_ranges =3;
 }
 
-// Minimum and maximum should be inclusive.
+// Minimum value is inclusive and maximum value is exclusive.
 // If minimum and maximum values are the same, only a single value is allowed.
 message ArgumentRange {
   float minimum_value = 1;
