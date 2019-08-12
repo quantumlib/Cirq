@@ -22,7 +22,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from cirq.devices import grid_qubit
-from cirq.google.vis import heatmap
+from cirq.vis import heatmap
 
 
 class TestHeatmap:
