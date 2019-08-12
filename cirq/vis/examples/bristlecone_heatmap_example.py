@@ -4,10 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cirq
 
-value_map = {
-    (qubit.row, qubit.col): np.random.random()
-    for qubit in cirq.google.known_devices.Bristlecone.qubits
-}
+value_map = {(qubit.row, qubit.col): np.random.random()
+             for qubit in cirq.google.known_devices.Bristlecone.qubits}
 
 heatmap = cirq.Heatmap(value_map)
 fig, ax = plt.subplots(figsize=(9, 9))
