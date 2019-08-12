@@ -96,6 +96,11 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -205,6 +210,11 @@ class YPowGate(eigen_gate.EigenGate,
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
             (1, np.array([[0.5, 0.5j], [-0.5j, 0.5]])),
         ]
+
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -326,6 +336,11 @@ class ZPowGate(eigen_gate.EigenGate,
             (0, np.diag([1, 0])),
             (1, np.diag([0, 1])),
         ]
+
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -609,6 +624,9 @@ class IdentityGate(raw_types.Gate):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return value.LinearDict({'I' * self.num_qubits(): 1.0})
 
+    def _trace_distance_bound_(self) -> float:
+        return 0.0
+
     def __repr__(self):
         if self.num_qubits() == 1:
             return 'cirq.I'
@@ -667,6 +685,11 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         ]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
+
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -764,6 +787,11 @@ class CZPowGate(eigen_gate.EigenGate,
             (0, np.diag([1, 1, 1, 0])),
             (1, np.diag([0, 0, 0, 1])),
         ]
+
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Union[np.ndarray, NotImplementedType]:
@@ -880,6 +908,11 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                           [0, 0, -0.5, 0.5]])),
         ]
 
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
     def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
                                ) -> protocols.CircuitDiagramInfo:
         return protocols.CircuitDiagramInfo(
@@ -990,6 +1023,11 @@ class SwapPowGate(eigen_gate.EigenGate,
                           [0,  0,    0,   0]])),
         ]
 
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
     def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
                         ) -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -1090,6 +1128,11 @@ class ISwapPowGate(eigen_gate.EigenGate,
                              [0, -0.5, 0.5, 0],
                              [0, 0, 0, 0]])),
         ]
+
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _decompose_(self, qubits):
         a, b = qubits

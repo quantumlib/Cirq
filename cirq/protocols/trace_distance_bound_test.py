@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import cirq
 
 
@@ -35,6 +36,16 @@ def test_trace_distance_bound():
         def _trace_distance_bound_(self) -> float:
             return self.bound
 
+    x = cirq.SingleQubitMatrixGate(cirq.unitary(cirq.X))
+    cx = cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CX))
+    cxh = cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CX**0.5))
+
+    assert np.isclose(cirq.trace_distance_bound(x),
+                      cirq.trace_distance_bound(cirq.X))
+    assert np.isclose(cirq.trace_distance_bound(cx),
+                      cirq.trace_distance_bound(cirq.CX))
+    assert np.isclose(cirq.trace_distance_bound(cxh),
+                      cirq.trace_distance_bound(cirq.CX**0.5))
     assert cirq.trace_distance_bound(NoMethod()) == 1.0
     assert cirq.trace_distance_bound(ReturnsNotImplemented()) == 1.0
     assert cirq.trace_distance_bound(ReturnsTwo()) == 1.0
