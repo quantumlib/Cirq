@@ -15,14 +15,14 @@ The heatmap figure is produced with the example codes below.
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
-import cirq.google.vis.heatmap as vis_heatmap
+import cirq
 
 value_map = {
     (qubit.row, qubit.col): np.random.random()
     for qubit in cirq.google.known_devices.Bristlecone.qubits
 }
 
-heatmap = vis_heatmap.Heatmap(value_map)
+heatmap = cirq.Heatmap(value_map)
 fig, ax = plt.subplots(figsize=(9, 9))
 heatmap.plot(ax)
 plt.show()
