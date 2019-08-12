@@ -152,7 +152,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
-            s = 'PhasedX({{:.{}}})'.format(args.precision).format(
+            s = 'PhasedX({{:.{}f}})'.format(args.precision).format(
                 self.phase_exponent)
         return protocols.CircuitDiagramInfo(
             wire_symbols=(s,),
