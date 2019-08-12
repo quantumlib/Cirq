@@ -24,9 +24,9 @@ from fractions import Fraction
 from itertools import groupby
 import math
 
-from typing import (
-    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Set, Type, Tuple, cast, TypeVar, overload)
+from typing import (List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
+                    Optional, Sequence, Union, Set, Type, Tuple, cast, TypeVar,
+                    overload)
 
 import re
 import numpy as np

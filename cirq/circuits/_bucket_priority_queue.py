@@ -54,9 +54,8 @@ class BucketPriorityQueue(Generic[TItem]):
         self._buckets: List[List[TItem]] = []
         self._offset = 0
         self._len = 0
-        self._drop_set: Optional[Set[Tuple[int, TItem]]] = (set()
-                                                            if drop_duplicate_entries
-                                                            else None)
+        self._drop_set: Optional[Set[Tuple[int, TItem]]] = (
+            set() if drop_duplicate_entries else None)
 
         for p, e in entries:
             self.enqueue(p, e)

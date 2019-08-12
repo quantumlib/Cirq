@@ -36,7 +36,6 @@ _OPTIMIZERS: List[Callable[[circuits.Circuit], None]] = [
     optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
 ]
 
-
 _OPTIMIZERS_PART_CZ: List[Callable[[circuits.Circuit], None]] = [
     convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
     optimizers.MergeInteractions(tolerance=_TOLERANCE,

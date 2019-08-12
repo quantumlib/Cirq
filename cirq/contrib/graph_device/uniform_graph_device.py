@@ -32,8 +32,7 @@ def uniform_undirected_graph_device(
     """
 
     labelled_edges: Dict[Iterable[Hashable], Any] = {
-        frozenset(edge): edge_label
-        for edge in edges
+        frozenset(edge): edge_label for edge in edges
     }
     device_graph = UndirectedHypergraph(labelled_edges=labelled_edges)
     return UndirectedGraphDevice(device_graph=device_graph)

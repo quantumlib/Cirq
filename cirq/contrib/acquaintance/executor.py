@@ -183,8 +183,8 @@ class GreedyExecutionStrategy(ExecutionStrategy):
         Takes a set of gates specified by ordered sequences of logical
         indices, and groups those that act on the same qubits regardless of
         order."""
-        canonicalized_gates: DefaultDict[frozenset,
-                                         LogicalGates] = defaultdict(dict)
+        canonicalized_gates: DefaultDict[frozenset, LogicalGates] = defaultdict(
+            dict)
         for indices, gate in gates.items():
             indices = tuple(indices)
             canonicalized_gates[frozenset(indices)][indices] = gate

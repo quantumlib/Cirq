@@ -141,6 +141,7 @@ def test_acquaint_part_pairs(part_lens):
     expected_opps = set(frozenset(s + t) for s, t in combinations(parts, 2))
     assert expected_opps == actual_opps
 
+
 acquaintance_sizes: Tuple[Optional[int], ...] = (None,)
 acquaintance_sizes += tuple(range(5))
 @pytest.mark.parametrize('part_lens, acquaintance_size',

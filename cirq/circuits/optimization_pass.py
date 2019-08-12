@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import (
-    Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast)
+from typing import (Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING,
+                    Tuple, cast)
 
 import abc
 from collections import defaultdict
