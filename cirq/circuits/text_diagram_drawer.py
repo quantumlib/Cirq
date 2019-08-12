@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, NamedTuple, Tuple, TYPE_CHECKING, cast, Union
+from typing import (Callable, cast, Dict, List, Optional, NamedTuple, Tuple,
+                    Union)
 
 import numpy as np
 
@@ -22,12 +23,6 @@ from cirq.circuits._box_drawing_character_data import (
     BOLD_BOX_CHARS,
     ASCII_BOX_CHARS,
 )
-
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Tuple, Dict, Optional
-
 
 _HorizontalLine = NamedTuple('HorizontalLine', [
     ('y', Union[int, float]),
@@ -60,17 +55,17 @@ class TextDiagramDrawer:
     """
 
     def __init__(self):
-        self.entries = dict()  # type: Dict[Tuple[int, int], _DiagramText]
-        self.vertical_lines = []  # type: List[_VerticalLine]
-        self.horizontal_lines = []  # type: List[_HorizontalLine]
-        self.horizontal_padding = {}  # type: Dict[int, Union[int, float]]
-        self.vertical_padding = {}  # type: Dict[int, Union[int, float]]
+        self.entries: Dict[Tuple[int, int], _DiagramText] = dict()
+        self.vertical_lines: List[_VerticalLine] = []
+        self.horizontal_lines: List[_HorizontalLine] = []
+        self.horizontal_padding: Dict[int, Union[int, float]] = {}
+        self.vertical_padding: Dict[int, Union[int, float]] = {}
 
     def write(self,
               x: int,
               y: int,
               text: str,
-              transposed_text: 'Optional[str]' = None):
+              transposed_text: Optional[str] = None):
         """Adds text to the given location.
 
         Args:

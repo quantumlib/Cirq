@@ -31,7 +31,6 @@ from cirq import protocols, value
 from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops import pauli_string
 
 
