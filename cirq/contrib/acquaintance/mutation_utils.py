@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Dict, List, Optional, Sequence, Type, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, optimizers
 
