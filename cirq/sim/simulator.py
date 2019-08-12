@@ -18,6 +18,9 @@ Simulator types include:
 
     SimulatesSamples: mimics the interface of quantum hardware.
 
+    SimulatesAmplitudes: computes amplitudes of desired bitstrings in the
+        final state of the simulation.
+
     SimulatesFinalState: allows access to the final state of the simulation.
 
     SimulatesIntermediateState: allows for access to the state of the simulation
@@ -181,7 +184,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     """Simulator that computes final amplitudes of given bitstrings.
 
     Given a circuit and a list of bitstrings, computes the amplitudes
-    of the given bitstrings in the state obtained by applying the circuits
+    of the given bitstrings in the state obtained by applying the circuit
     to the all zeros state. Implementors of this interface should implement
     the compute_amplitudes_sweep method.
     """
