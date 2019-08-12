@@ -16,7 +16,14 @@ import asyncio
 import subprocess
 import sys
 from typing import (
-    Optional, Tuple, Union, IO, Any, cast, TYPE_CHECKING, NamedTuple,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    IO,
+    Any,
+    cast,
+    NamedTuple,
 )
 
 from collections.abc import AsyncIterable
@@ -29,10 +36,6 @@ CommandOutput = NamedTuple(
         ('exit_code', int),
     ]
 )
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
 
 
 BOLD = 1
@@ -85,7 +88,7 @@ async def _async_forward(async_chunks: AsyncIterable,
     capture = isinstance(out, TeeCapture)
     out_pipe = out.out_pipe if isinstance(out, TeeCapture) else out
 
-    chunks = [] if capture else None  # type: Optional[List[str]]
+    chunks: Optional[List[str]] = [] if capture else None
     async for chunk in async_chunks:
         if not isinstance(chunk, str):
             chunk = chunk.decode()

@@ -19,7 +19,6 @@ from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
