@@ -21,7 +21,6 @@ from typing_extensions import Protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
@@ -31,7 +30,7 @@ TDefault = TypeVar('TDefault')
 
 TError = TypeVar('TError', bound=Exception)
 
-RaiseTypeErrorIfNotProvided = ([],)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
@@ -238,7 +237,7 @@ def decompose(
         return NotImplemented
 
     output = []
-    queue = [val]  # type: List[Any]
+    queue: List[Any] = [val]
     while queue:
         item = queue.pop(0)
 
