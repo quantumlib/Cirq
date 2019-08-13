@@ -263,7 +263,8 @@ class Operation(metaclass=abc.ABCMeta):
     effect into a qubit-independent Gate and the qubits it should be applied to.
     """
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()
 
