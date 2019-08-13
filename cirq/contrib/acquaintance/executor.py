@@ -40,14 +40,16 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     keep_acquaintance = False
 
-    @abc.abstractproperty
+    @abc.abstractmethod
+    @property
     def device(self) -> devices.Device:
         """The device for which the executed acquaintance strategy should be
         valid.
         """
 
 
-    @abc.abstractproperty
+    @abc.abstractmethod
+    @property
     def initial_mapping(self) -> LogicalMapping:
         """The initial mapping of logical indices to qubits."""
 
