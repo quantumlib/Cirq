@@ -185,9 +185,9 @@ def test_diagram():
         cirq.PhasedXPowGate(phase_exponent=sympy.Symbol('a'),
                             exponent=sympy.Symbol('b')).on(q),
         cirq.PhasedXPowGate(phase_exponent=0.25,
-                            exponent=1).on(q)
+                            exponent=1).on(q),
         cirq.PhasedXPowGate(phase_exponent=1,
-                            exponent=1).on(q)
+                            exponent=1).on(q),
     )
     cirq.testing.assert_has_diagram(c, """
 q: ───PhasedX(a)^b───PhasedX(0.25)───PhasedX(1.0)───
