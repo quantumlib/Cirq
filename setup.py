@@ -37,7 +37,7 @@ cirq_packages = ['cirq'] + [
     'cirq.' + package for package in find_packages(where='cirq')
 ]
 
-setup(name='cirq',
+setup(name='cirq-dev',
       version=__version__,
       url='http://github.com/quantumlib/cirq',
       author='The Cirq Developers',
