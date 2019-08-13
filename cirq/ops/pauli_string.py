@@ -30,6 +30,7 @@ from cirq.ops import (
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,
+    pauli_string_expectation,
 )
 
 TDefault = TypeVar('TDefault')
@@ -240,19 +241,23 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
-
-    def _expectation_(self, Union[]):
+    def _expectation_from_wavefunction(self, state: np.ndarray) -> float:
 
         # CHECKME: how is the index map used? Will this break if the state
         # size and the pauli size don't match?
         qubit_index_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
         # wavefunction case
-        return pauli_string_expectation(self).value_derived_from_wavefunction(state, qubit_index_map)
-        # wavefunction case
-        return pauli_string_expectation(self).value_derived_from_wavefunction(state, qubit_index_map)
-        # samples case
-        # todo: extract correct column from DataFrame to pass as `measurements`
-        pauli_string_expectation(self).value_derived_from_samples(measurements)
+        return pauli_string_expectation(
+            self).value_derived_from_wavefunction(state, qubit_index_map)
+
+    def _expectation_from_density_matrix(self, state: np.ndarray) -> float:
+        qubit_index_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
+        return pauli_string_expectation(
+            self).value_derived_from_density_matrix(state, qubit_index_map)
+
+    def _expectation_from_samples(self, measurements: np.ndarray) -> float:
+        return pauli_string_expectation(
+            self).value_derived_from_samples(measurements)
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
