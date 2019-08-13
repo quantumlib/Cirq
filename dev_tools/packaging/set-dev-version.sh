@@ -15,7 +15,7 @@
 # limitations under the License.
 
 set -e
-trap "{ echo -e 'FAILED'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; set +e }" ERR
 
 PROJECT_NAME=cirq
 
@@ -29,3 +29,5 @@ fi
 
 unset ACTUAL_VERSION_LINE
 unset ACTUAL_VERSION
+
+set +e
