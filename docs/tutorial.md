@@ -37,7 +37,7 @@ value of the energy.
 This idea has led to a class of algorithms known as variational quantum
 algorithms. Indeed this approach is not just limited to finding low
 energy eigenstates, but minimizing any objective function that can
-be expressed as a quantum observable. It is an open question to identify 
+be expressed as a quantum observable. It is an open question to identify
 under what conditions these quantum variational algorithms will succeed,
 and exploring this class of algorithms is a key part of research
 for [noisy intermediate scale quantum computers](https://arxiv.org/abs/1801.00862).
@@ -51,9 +51,9 @@ the general class of problems that Cirq is designed to tackle.
 
 Consider the energy function
 
-![Energy: $E(s_1,\dots,s_n) = \sum_{<i,j>} J_{i,j}s_i s_j + \sum_i h_i s_i$](resources/EnergyDef.gif)
+$E(s_1,\dots,s_n) = \sum_{<i,j>} J_{i,j}s_i s_j + \sum_i h_i s_i$
 
-where here each s<sub>i</sub>, J<sub>i,j</sub>, and h<sub>i</sub> are either 
+where here each s<sub>i</sub>, J<sub>i,j</sub>, and h<sub>i</sub> are either
 +1 or -1.  Here each index i is associated with a bit on a square lattice,
 and the <i,j> notation means sums over neighboring bits on this lattice.
 The problem we would like to solve is, given J<sub>i,j</sub>, and h<sub>i</sub>,
@@ -64,21 +64,21 @@ to consider `n` qubits and associate them with each of the bits in the
 classical problem.  This maps the classical problem onto the quantum problem
 of minimizing the expectation value of the observable
 
-![Hamiltonian: $H=\sum_{<i,j>} J_{i,j} Z_i Z_j + \sum_i h_iZ_i$](resources/HamiltonianDef.gif)
+$H=\sum_{<i,j>} J_{i,j} Z_i Z_j + \sum_i h_iZ_i$
 
-Then one defines a set of parameterized quantum circuits, i.e. a 
+Then one defines a set of parameterized quantum circuits, i.e. a
 quantum circuit where the gates (or more general quantum operations)
 are parameterized by some values.  This produces an ansatz state
 
-![State definition: $|\psi(p_1, p_2, \dots, p_k)\rangle$](resources/StateDef.gif)
+$|\psi(p_1, p_2, \dots, p_k)\rangle$
 
 where p<sub>i</sub> are the parameters that produce this state
 (here we assume a pure state, but mixed states are of course
 possible).
 
 The variational algorithm then works by noting that one
-can obtain the value of the objective function for a 
-given ansatz state by 
+can obtain the value of the objective function for a
+given ansatz state by
 1. Prepare the ansatz state.
 2. Make a measurement which samples from some terms in H.
 3. Goto 1.
@@ -88,16 +88,16 @@ the use of quantum phase estimation).  So one often relies
 on the linearity of expectation values to measure parts of
 H in step 2. One always needs to repeat the measurements to
 obtain an estimate of the expectation value. How many measurements
-needed to achieve a given accuracy is beyond the scope of 
+needed to achieve a given accuracy is beyond the scope of
 this tutorial, but Cirq can help investigate this question.
 
-The above shows that one can use a quantum computer to 
+The above shows that one can use a quantum computer to
 obtain estimates of the objective function for the ansatz.
-This can then be used in an outer loop to try to 
+This can then be used in an outer loop to try to
 obtain parameters for the the lowest value of the
 objective function. For these values, one can then use
 that best ansatz to produce samples of solutions to the problem
-which obtain a hopefully good approximation for the 
+which obtain a hopefully good approximation for the
 lowest possible value of the objective function.
 
 ### Create a circuit on a Grid
@@ -121,7 +121,7 @@ should help illustrate these concepts.
 
 Because the problem we have defined has a natural structure on a grid, we will
 use Cirq's built in `GridQubit`s as our qubits.
-We will demonstrate some of how this works in an 
+We will demonstrate some of how this works in an
 interactive Python environment, the following code can
 be run in series in a Python environment where you have
 Cirq installed.
@@ -136,10 +136,10 @@ length = 3
 # define qubits on the grid.
 qubits = [cirq.GridQubit(i, j) for i in range(length) for j in range(length)]
 print(qubits)
-# prints 
+# prints
 # [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2), cirq.GridQubit(1, 0), cirq.GridQubit(1, 1), cirq.GridQubit(1, 2), cirq.GridQubit(2, 0), cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
 ```
-Here we see that we've created a bunch of `GridQubit`s. 
+Here we see that we've created a bunch of `GridQubit`s.
 `GridQubit`s implement the `Qid` class, which just means
 that they are equatable and hashable. `Qid` has an abstract `_comparison_key` method that must be implemented by child types in order to ensure there's a reasonable sorting order for diagrams and that this matches what happens when `sorted(qubits)` is called.`GridQubit`s in addition
 have a row and column, indicating their position on a grid.
@@ -175,12 +175,12 @@ print(circuit)
 One thing to notice here.  First `cirq.X` is a `Gate` object. There
 are many different gates supported by Cirq. A good place to look
 at gates that are defined is in [common_gates.py](https://github.com/quantumlib/Cirq/blob/master/cirq/ops/common_gates.py).
-One common confusion to avoid is the difference between a gate class 
+One common confusion to avoid is the difference between a gate class
 and a gate object (which is an instantiation of a class).  The second is that gate
 objects are transformed into `Operation`s (technically `GateOperation`s)
 via either the method `on(qubit)` or, as we see for the `X` gates, via simply
 applying the gate to the qubits `(qubit)`. Here we only apply single
-qubit gates, but a similar pattern applies for multiple qubit gates with a 
+qubit gates, but a similar pattern applies for multiple qubit gates with a
 sequence of qubits as parameters.
 
 Another thing to notice about the above circuit is that the gates from both the
@@ -212,9 +212,9 @@ print(circuit)
 # (1, 0): ───────X───
 #
 # (1, 1): ───H───────
-# 
+#
 # (1, 2): ───────X───
-# 
+#
 # (2, 0): ───H───────
 #
 # (2, 1): ───────X───
@@ -226,7 +226,7 @@ This circuit has now has staggered gates created by two `Moment`s.
 ```python
 for i, m in enumerate(circuit):
     print('Moment {}: {}'.format(i, m))
-# prints 
+# prints
 # Moment 0: H((0, 0)) and H((0, 2)) and H((1, 1)) and H((2, 0)) and H((2, 2))
 # Moment 1: X((0, 1)) and X((1, 0)) and X((1, 2)) and X((2, 1))
 ```
@@ -246,12 +246,12 @@ of operations, or into a single operation. Examples of an `OP_TREE` are
 * A list of `Operation`s.
 * A tuple of `Operation`s.
 * A list of a list of `Operations`s.
-* A generator yielding `Operations`. 
+* A generator yielding `Operations`.
 
 This last case yields a nice pattern for defining sub-circuits / layers:
 define a function that takes in the relevant parameters and then
 yields the operations for the sub circuit and then this can be appended
-to the Circuit: 
+to the Circuit:
 ```python
 def rot_x_layer(length, half_turns):
     """Yields X rotations by half_turns on a square grid of given length."""
@@ -259,7 +259,7 @@ def rot_x_layer(length, half_turns):
     for i in range(length):
         for j in range(length):
             yield rot(cirq.GridQubit(i, j))
-        
+
 circuit = cirq.Circuit()
 circuit.append(rot_x_layer(2, 0.1))
 print(circuit)
@@ -301,7 +301,7 @@ def random_instance(length):
     # links within a column
     jc = rand2d(length, length - 1)
     return (h, jr, jc)
-    
+
 h, jr, jc = random_instance(3)
 print('transverse fields: {}'.format(h))
 print('row j fields: {}'.format(jr))
@@ -347,7 +347,7 @@ def rot_11_layer(jr, jc, half_turns):
             if jr_ij == -1:
                 yield cirq.X(cirq.GridQubit(i, j))
                 yield cirq.X(cirq.GridQubit(i + 1, j))
-            
+
     for i, jc_row in enumerate(jc):
         for j, jc_ij in enumerate(jc_row):
             if jc_ij == -1:
