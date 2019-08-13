@@ -17,6 +17,7 @@
 from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
+import functools
 
 from cirq import value, protocols
 
@@ -47,8 +48,59 @@ class Qid(metaclass=abc.ABCMeta):
         comparison key.
         """
 
+    @property
+    @abc.abstractmethod
+    def levels(self) -> int:
+        """Returns the number of quantum levels this qid has.  E.g. 2 for a
+        qubit, 3 for a qutrit, etc.
+        """
+
+    @staticmethod
+    def validate_levels(levels: int) -> None:
+        """Raises an exception if `levels` is not positive.
+
+        Raises:
+            ValueError: `levels` is not positive.
+        """
+        if levels < 1:
+            raise ValueError('Wrong number of quantum levels. '
+                             'Expected a positive integer but got {}.'.format(
+                                levels))
+
+    def with_levels(self, levels) -> 'Qid':
+        """Returns a new qid with a different number of levels.
+
+        Child classes can override.  Wraps the qid object by default.
+        """
+        return _WrappedQid(self, levels=levels)
+
+    def with_fewer_levels(self, levels) -> 'Qid':
+        """Returns a new qid with fewer or the same number of levels.
+
+        Raises:
+            ValueError: `levels > self.levels`
+        """
+        if levels > self.levels:
+            raise ValueError('Too many quantum levels for <{!r}>. '
+                             'Expected fewer than or equal to {} levels but '
+                             'got {}.'.format(self, self.levels, levels))
+        return self.with_levels(levels)
+
+    def with_more_levels(self, levels) -> 'Qid':
+        """Returns a new qid with more or the same number of levels.
+
+        Raises:
+            ValueError: `levels > self.levels`
+        """
+        if levels > self.levels:
+            raise ValueError('Too many quantum levels for <{!r}>. '
+                             'Expected fewer than or equal to {} levels but '
+                             'got {}.'.format(self, self.levels, levels))
+        return self.with_levels(levels)
+
     def _cmp_tuple(self):
-        return type(self).__name__, repr(type(self)), self._comparison_key()
+        return (type(self).__name__, repr(type(self)), self._comparison_key(),
+                self.levels)
 
     def __hash__(self):
         return hash((Qid, self._comparison_key()))
@@ -82,6 +134,35 @@ class Qid(metaclass=abc.ABCMeta):
         if not isinstance(other, Qid):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
+
+
+@functools.total_ordering
+class _WrappedQid(Qid):
+    def __init__(self, qid: Qid, levels: int):
+        self._qid = qid
+        self._levels = levels
+        self.validate_levels(levels)
+
+    @property
+    def qid(self) -> Qid:
+        return self._qid
+
+    @property
+    def levels(self) -> int:
+        return self._levels
+
+    def with_levels(self, levels: int) -> '_WrappedQid':
+        """Returns a copy with a different number of levels."""
+        return self.qid.with_levels(levels)
+
+    def _comparison_key(self) -> Any:
+        return self._qid._cmp_tuple()[:-1]  # Don't include self._qid.levels
+
+    def __repr__(self):
+        return '{!r}.with_levels({})'.format(self.qid, self.levels)
+
+    def __str__(self):
+        return '{!s} (levels={})'.format(self.qid, self.levels)
 
 
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):

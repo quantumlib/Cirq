@@ -77,6 +77,7 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQid,
     LineQubit,
     NO_NOISE,
     NoiseModel,
