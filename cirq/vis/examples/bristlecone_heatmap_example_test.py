@@ -9,7 +9,3 @@ class TestBristleconeHeatmapExample:
     def test_that_example_runs(self):
         plt.switch_backend('agg')
         bristlecone_heatmap_example.main()
-
-
-if __name__ == '__main__':
-  googletest.main()
