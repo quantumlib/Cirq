@@ -24,7 +24,7 @@ ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
 
 unset CIRQ_DEV_VERSION
 if [[ ${ACTUAL_VERSION_LINE} == *"dev"* ]]; then
-  CIRQ_DEV_VERSION="${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
+  export CIRQ_DEV_VERSION="${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
 fi
 
 unset ACTUAL_VERSION_LINE

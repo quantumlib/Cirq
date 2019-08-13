@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ exec(open('cirq/_version.py').read())
 
 name = 'cirq'
 
-# If CIRQ_DEV_VERSION is set then we us cirq-dev as the name of the package
+# If CIRQ_DEV_VERSION is set then we use cirq-dev as the name of the package
 # and update the version to this value.
-if os.environ['CIRQ_DEV_VERSION']:
+if 'CIRQ_DEV_VERSION' in os.environ:
     name = 'cirq-dev'
     __version__ = os.environ['CIRQ_DEV_VERSION']
 

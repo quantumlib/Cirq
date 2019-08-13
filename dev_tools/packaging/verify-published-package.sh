@@ -28,7 +28,7 @@
 ################################################################################
 
 set -e
-trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
+trap "{ echo -e 'FAILED'; }" ERR
 
 
 PROJECT_NAME=cirq
