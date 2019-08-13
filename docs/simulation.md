@@ -209,7 +209,7 @@ of such a noise model is the bit flip channel. This channel
 randomly applied either does nothing (identity) or applies
 a Pauli `cirq.X` gate:
 
-![Bit flip channel: $\rho \rightarrow (1-p) \rho + p X \rho X$](resources/BitFlipChannelDef.gif)
+$\rho \rightarrow (1-p) \rho + p X \rho X$
 
 Lets see a use of this in a simulator
 ```python

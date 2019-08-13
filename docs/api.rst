@@ -137,6 +137,8 @@ the more general concept of a noisy open system quantum evolution.
     DepolarizingChannel
     generalized_amplitude_damp
     GeneralizedAmplitudeDampingChannel
+    reset
+    ResetChannel
     phase_damp
     phase_flip
     PhaseDampingChannel
@@ -331,7 +333,7 @@ Classes defining and used by the magic method protocols.
     QasmArgs
     QasmOutput
     SupportsApplyChannel
-    SupportsApplyUnitary
+    SupportsConsistentApplyUnitary
     SupportsApproximateEquality
     SupportsChannel
     SupportsCircuitDiagramInfo
