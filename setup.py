@@ -24,9 +24,9 @@ name = 'cirq'
 
 # If CIRQ_DEV_VERSION is set then we us cirq-dev as the name of the package
 # and update the version to this value.
-if os['CIRQ_DEV_VERSION']:
+if os.environ['CIRQ_DEV_VERSION']:
     name = 'cirq-dev'
-    __version__ = os['CIRQ_DEV_VERSION']
+    __version__ = os.environ['CIRQ_DEV_VERSION']
 
 description = ('A framework for creating, editing, and invoking '
                'Noisy Intermediate Scale Quantum (NISQ) circuits.')
