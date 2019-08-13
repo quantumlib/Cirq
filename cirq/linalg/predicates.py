@@ -13,15 +13,11 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import Sequence, Union, Tuple, TYPE_CHECKING
+from typing import List, Sequence, Union, Tuple
 
 import numpy as np
 
 from cirq.linalg import tolerance, transformations
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
 
 
 def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
@@ -256,8 +252,9 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
     """
     n = num_qubits if num_qubits is not None else (
         max(target_qubit_axes) if target_qubit_axes else -1)
-    result = [slice(None)] * (n + 2 * (
-            num_qubits is None))  # type: List[Union[slice, int, ellipsis]]
+    result: List[Union[slice, int, 'ellipsis']] = [slice(None)
+                                                  ] * (n + 2 *
+                                                       (num_qubits is None))
     for k, axis in enumerate(target_qubit_axes):
         result[axis] = (little_endian_qureg_value >> k) & 1
     if num_qubits is None:

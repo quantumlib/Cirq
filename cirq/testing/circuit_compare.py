@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type, cast
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Type, cast
 
 from collections import defaultdict
 import itertools
@@ -20,10 +20,6 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, linalg, protocols, EigenGate
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -77,7 +73,7 @@ def _measurement_subspaces(
         measurement_mask |= 1 << i
 
     # Keyed by computational basis state with lowest index.
-    measurement_subspaces = defaultdict(list)  # type: Dict[int, List[int]]
+    measurement_subspaces: Dict[int, List[int]] = defaultdict(list)
     computational_basis = range(1 << n_qubits)
 
     for basis_state in computational_basis:

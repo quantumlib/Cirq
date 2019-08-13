@@ -25,8 +25,8 @@ from itertools import groupby
 import math
 
 from typing import (List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
-                    Optional, Sequence, Union, Set, Type, Tuple, cast, TypeVar,
-                    overload, TYPE_CHECKING)
+                    Optional, overload, Sequence, Union, Set, Type, Tuple, cast,
+                    TypeVar)
 
 import re
 import numpy as np
@@ -39,10 +39,6 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
 import cirq._version
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
 
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
@@ -59,12 +55,15 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_between
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        reachable_frontier_from
+        has_measurements
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        apply_unitary_effect_to_state
+        final_wavefunction
         to_text_diagram
         to_text_diagram_drawer
 
@@ -569,7 +568,7 @@ class Circuit:
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active = set()  # type: Set[ops.Qid]
+        active: Set[ops.Qid] = set()
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
@@ -1283,7 +1282,6 @@ class Circuit:
         if not self._has_unitary_():
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
-
 
     def unitary(self,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
