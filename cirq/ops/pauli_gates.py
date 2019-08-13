@@ -18,7 +18,6 @@ import sympy
 from cirq.ops import common_gates, raw_types
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
 

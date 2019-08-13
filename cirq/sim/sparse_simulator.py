@@ -40,11 +40,11 @@ class Simulator(simulator.SimulatesSamples,
     `_apply_unitary_`, `_mixture_` methods, are measurements, or support a
     `_decompose_` method that returns operations satisfying these same
     conditions. That is to say, the operations should follow the
-    `cirq.SupportsApplyUnitary` protocol, the `cirq.SupportsUnitary` protocol,
-    the `cirq.SupportsMixture` protocol, or the `cirq.CompositeOperation`
-    protocol. It is also permitted for the circuit to contain measurements
-    which are operations that support `cirq.SupportsChannel` and
-    `cirq.SupportsMeasurementKey`
+    `cirq.SupportsConsistentApplyUnitary` protocol, the `cirq.SupportsUnitary`
+    protocol, the `cirq.SupportsMixture` protocol, or the
+    `cirq.CompositeOperation` protocol. It is also permitted for the circuit
+    to contain measurements which are operations that support
+    `cirq.SupportsChannel` and `cirq.SupportsMeasurementKey`
 
     This simulator supports three types of simulation.
 

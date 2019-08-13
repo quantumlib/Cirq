@@ -98,9 +98,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                               exponent=new_exponent,
                               global_shift=self._global_shift)
 
-    def _trace_distance_bound_(self):
-        """See `cirq.SupportsTraceDistanceBound`."""
-        return protocols.trace_distance_bound(cirq.X**self._exponent)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
@@ -151,7 +152,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
-            s = 'PhasedX({{:.{}}})'.format(args.precision).format(
+            s = 'PhasedX({{:.{}f}})'.format(args.precision).format(
                 self.phase_exponent)
         return protocols.CircuitDiagramInfo(
             wire_symbols=(s,),

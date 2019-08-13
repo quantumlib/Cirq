@@ -45,6 +45,11 @@ class CCZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 0, 0, 0, 0, 0, 0, 1])),
         ]
 
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -162,6 +167,11 @@ class CCXPowGate(eigen_gate.EigenGate,
                                   np.array([[0.5, -0.5], [-0.5, 0.5]]))),
         ]
 
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -254,6 +264,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
             'ZYY': -1/4,
             'ZZZ': -1/4,
         })
+
+    def _trace_distance_bound_(self) -> float:
+        return 1.0
 
     def _decompose_(self, qubits):
         c, t1, t2 = qubits
