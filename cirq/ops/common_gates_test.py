@@ -818,3 +818,38 @@ q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
         ), """
 q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(0.5π)───
     """)
+
+
+def test_trace_distance():
+    foo = sympy.Symbol('foo')
+    sx = cirq.X**foo
+    sy = cirq.Y**foo
+    sz = cirq.Z**foo
+    sh = cirq.H**foo
+    scx = cirq.CX**foo
+    scz = cirq.CZ**foo
+    sswap = cirq.SWAP**foo
+    siswap = cirq.ISWAP**foo
+    # These values should have 1.0 or 0.0 directly returned
+    assert cirq.trace_distance_bound(sx) == 1.0
+    assert cirq.trace_distance_bound(sy) == 1.0
+    assert cirq.trace_distance_bound(sz) == 1.0
+    assert cirq.trace_distance_bound(scx) == 1.0
+    assert cirq.trace_distance_bound(scz) == 1.0
+    assert cirq.trace_distance_bound(sswap) == 1.0
+    assert cirq.trace_distance_bound(siswap) == 1.0
+    assert cirq.trace_distance_bound(sh) == 1.0
+    assert cirq.trace_distance_bound(cirq.I) == 0.0
+    # These values are calculated, so we use approx_eq
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.X), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Y**-1), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Z**0.5),
+                          np.sin(np.pi / 4))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.H**0.25),
+                          np.sin(np.pi / 8))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX**2), 0.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ**(1 / 9)),
+                          np.sin(np.pi / 18))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP**0.3),
+                          np.sin(0.3 * np.pi / 2))
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)

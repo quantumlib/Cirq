@@ -13,14 +13,10 @@
 # limitations under the License.
 
 """A combination of several optimizations targeting XmonDevice."""
-from typing import Optional, Callable, cast, TYPE_CHECKING
+from typing import Callable, cast, List, Optional
 
 from cirq import circuits, devices, ops, optimizers
 from cirq.google import convert_to_xmon_gates, xmon_device
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
 
 
 _TOLERANCE = 1e-5
@@ -30,7 +26,7 @@ def _merge_rots(c: circuits.Circuit):
     return optimizers.merge_single_qubit_gates_into_phased_x_z(c, _TOLERANCE)
 
 
-_OPTIMIZERS = [
+_OPTIMIZERS: List[Callable[[circuits.Circuit], None]] = [
     convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
     optimizers.MergeInteractions(tolerance=_TOLERANCE,
                                  allow_partial_czs=False).optimize_circuit,
@@ -38,10 +34,9 @@ _OPTIMIZERS = [
     optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]  # type: List[Callable[[circuits.Circuit], None]]
+]
 
-
-_OPTIMIZERS_PART_CZ = [
+_OPTIMIZERS_PART_CZ: List[Callable[[circuits.Circuit], None]] = [
     convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
     optimizers.MergeInteractions(tolerance=_TOLERANCE,
                                  allow_partial_czs=True).optimize_circuit,
@@ -49,7 +44,7 @@ _OPTIMIZERS_PART_CZ = [
     optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]  # type: List[Callable[[circuits.Circuit], None]]
+]
 
 
 def optimized_for_xmon(

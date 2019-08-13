@@ -14,17 +14,13 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable
+from typing import cast, Dict, Iterable, List, Optional, Tuple
 from collections import defaultdict
 import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List, Tuple
 
 
 def _is_integer(n):

@@ -167,6 +167,8 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
+    reset,
+    ResetChannel,
     Rx,
     Ry,
     Rz,
