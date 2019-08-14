@@ -484,15 +484,11 @@ class StepResult(metaclass=abc.ABCMeta):
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
 
-        result = {
-            k: np.array([x[s:e] for x in indexed_sample
-                        ]) for k, (s, e) in bounds.items()
-        }
-        corrected_results = {
-            k: bits ^ meas_ops[k].full_invert_mask()
-            for k, bits in result.items()
-        }
-        return corrected_results
+        results = {}
+        for k, (s, e) in bounds.items():
+            before_invert_mask = np.array([x[s:e] for x in indexed_sample])
+            results[k] = before_invert_mask ^ meas_ops[k].full_invert_mask()
+        return results
 
 
 @value.value_equality(unhashable=True)
