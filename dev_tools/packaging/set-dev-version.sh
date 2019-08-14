@@ -28,7 +28,6 @@
 #     source set-dev-version.sh
 #
 # Which, for example sets $CIRQ_DEV_VERSION to 0.6.0.dev20190813193556.
-#
 ################################################################################
 
 CIRQ_DEV_VERSION="$(
