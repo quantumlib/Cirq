@@ -14,6 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+################################################################################
+# If cirq's version is a dev release, this script can be used to set
+# the CIRQ_DEV_VERSION variable to a string that is the dev version
+# plus an increasing date string.
+#
+# This is used by travis during deployment, and should not be run as
+# part of a deployment from a local branch. When travis uses this it
+# pushes to the cirq-dev pypi package, not the cirq package.
+#
+# The variable is set by sourcing this file
+#
+#     source set-dev-version.sh
+#
+# Which, for example sets $CIRQ_DEV_VERSION to 0.6.0.dev20190813193556.
+#
+################################################################################
+
 CIRQ_DEV_VERSION="$(
   set -e
 
