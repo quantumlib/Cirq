@@ -47,7 +47,7 @@ class BadPhaser:
         ])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
-        return BadPhaser(self.e + phase_turns*4)
+        return BadPhaser(self.e + phase_turns * 4)
 
     def _resolve_parameters_(self, param_resolver):
         return BadPhaser(param_resolver.value_of(self.e))
