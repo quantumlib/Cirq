@@ -244,7 +244,7 @@ class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
     def __init__(self, key: Union[str, sympy.Symbol]) -> None:
-        if isinstance(key, sympy.Symbol):
+        if isinstance(key, sympy.Basic):
             key = str(key)
         self.key = key
 
