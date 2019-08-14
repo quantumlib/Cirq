@@ -610,3 +610,20 @@ def test_works_on_pauli_string():
     np.testing.assert_allclose(result.reshape(4),
                                np.array([0, 0, 0, 1]),
                                atol=1e-8)
+
+def test_invert_mask():
+    simulator = cirq.Simulator()
+
+    # Circuit with identity gate, and then an inverted measurement.
+    # Expect to measure '1' every time.
+    # Actually measure '0' every time.
+    qubit_invert = cirq.GridQubit(0, 0)
+    circuit_invert = cirq.Circuit()
+
+    circuit_invert.append(cirq.I(qubit_invert))
+    circuit_invert.append(cirq.measure(
+        qubit_invert, key=str(qubit_invert), invert_mask=(True,)))
+
+    result_invert = simulator.run(circuit_invert, repetitions=5)
+    print(result_invert)
+    assert False
