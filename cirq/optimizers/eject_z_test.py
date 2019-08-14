@@ -52,10 +52,11 @@ def assert_removes_all_z_gates(circuit: cirq.Circuit,
 
     if cirq.is_parameterized(circuit):
         for a in (0, 0.1, 0.5, 1.0, -1.0, 3.0):
-            cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-                cirq.resolve_parameters(circuit, {'a': a}),
-                cirq.resolve_parameters(optimized, {'a': a}),
-                atol=1e-8)
+            (cirq.testing.
+             assert_circuits_with_terminal_measurements_are_equivalent(
+                 cirq.resolve_parameters(circuit, {'a': a}),
+                 cirq.resolve_parameters(optimized, {'a': a}),
+                 atol=1e-8))
     else:
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
             circuit, optimized, atol=1e-8)
