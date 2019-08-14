@@ -484,17 +484,16 @@ class StepResult(metaclass=abc.ABCMeta):
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
 
-        result = {k: np.array([x[s:e] for x in indexed_sample]) for k, (s, e) in
-                  bounds.items()}
+        result = {
+            k: np.array([x[s:e] for x in indexed_sample
+                        ]) for k, (s, e) in bounds.items()
+        }
         corrected_results = {}
         for k, bits in result.items():
             meas = meas_ops[k]
-            invert_mask = (meas.invert_mask or protocols.num_qubits(meas) * (False,))
-            if len(invert_mask) < protocols.num_qubits(meas):
-                invert_mask += (False,) * (protocols.num_qubits(meas) - len(invert_mask))
-
-            corrected_results[k] = bits ^ invert_mask
+            corrected_results[k] = (bits ^ meas.full_invert_mask())
         return corrected_results
+
 
 @value.value_equality(unhashable=True)
 class SimulationTrialResult:
