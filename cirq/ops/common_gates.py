@@ -485,7 +485,7 @@ class MeasurementGate(raw_types.Gate):
         If the user supplies a partial invert_mask, this returns that mask
         padded by False.
 
-        Similarly if no invert_mask is supplies this returns the a tuple
+        Similarly if no invert_mask is supplies this returns a tuple
         of size equal to the number of qubits with all entries False.
         """
         mask = (self.invert_mask or self.num_qubits() * (False,))
