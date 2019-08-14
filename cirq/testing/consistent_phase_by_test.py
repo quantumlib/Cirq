@@ -88,10 +88,7 @@ class SemiBadPhaser:
         return cirq.is_parameterized(self.e)
 
     def _resolve_parameters_(self, param_resolver):
-        return SemiBadPhaser([
-            param_resolver.value_of(val)
-            for val in self.e
-        ])
+        return SemiBadPhaser([param_resolver.value_of(val) for val in self.e])
 
 
 def test_assert_phase_by_is_consistent_with_unitary():
