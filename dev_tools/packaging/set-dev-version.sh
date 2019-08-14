@@ -14,20 +14,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-trap "{ echo -e '\033[31mFAILED\033[0m'; set +e }" ERR
+CIRQ_DEV_VERSION="$(
+  set -e
 
-PROJECT_NAME=cirq
+  # Get the working directory to the repo root.
+  cd "$( dirname "${BASH_SOURCE[0]}" )"
+  repo_dir=$(git rev-parse --show-toplevel)
+  cd "${repo_dir}"
 
-ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
-ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
+  PROJECT_NAME=cirq
 
-unset CIRQ_DEV_VERSION
-if [[ ${ACTUAL_VERSION_LINE} == *"dev"* ]]; then
-  export CIRQ_DEV_VERSION="${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
+  ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
+  ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
+
+  unset CIRQ_DEV_VERSION
+  if [[ ${ACTUAL_VERSION_LINE} == *"dev"* ]]; then
+    echo "${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
+  fi
+
+  exit 0
+)"
+
+if [ $? -ne 0 ]; then
+  echo -e '\033[31mFAILED\033[0m'
 fi
-
-unset ACTUAL_VERSION_LINE
-unset ACTUAL_VERSION
-
-set +e
