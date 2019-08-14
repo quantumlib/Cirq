@@ -315,28 +315,26 @@ def test_blocked_by_unknown_and_symbols(sym):
             [cirq.X(a)],
         ))
 
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.X(a)],
-            [cirq.Z(a)**sym],
-            [cirq.X(a)],
-        ),
-        expected=quick_circuit(
-            [cirq.X(a)],
-            [cirq.Z(a)**sym],
-            [cirq.X(a)],
-        ),
-        compare_unitaries=False)
+    assert_optimizes(before=quick_circuit(
+        [cirq.X(a)],
+        [cirq.Z(a)**sym],
+        [cirq.X(a)],
+    ),
+                     expected=quick_circuit(
+                         [cirq.X(a)],
+                         [cirq.Z(a)**sym],
+                         [cirq.X(a)],
+                     ),
+                     compare_unitaries=False)
 
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.X(a)],
-            [cirq.CZ(a, b)**sym],
-            [cirq.X(a)],
-        ),
-        expected=quick_circuit(
-            [cirq.X(a)],
-            [cirq.CZ(a, b)**sym],
-            [cirq.X(a)],
-        ),
-        compare_unitaries=False)
+    assert_optimizes(before=quick_circuit(
+        [cirq.X(a)],
+        [cirq.CZ(a, b)**sym],
+        [cirq.X(a)],
+    ),
+                     expected=quick_circuit(
+                         [cirq.X(a)],
+                         [cirq.CZ(a, b)**sym],
+                         [cirq.X(a)],
+                     ),
+                     compare_unitaries=False)
