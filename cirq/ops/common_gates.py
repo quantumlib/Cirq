@@ -488,10 +488,9 @@ class MeasurementGate(raw_types.Gate):
         Similarly if no invert_mask is supplies this returns a tuple
         of size equal to the number of qubits with all entries False.
         """
-        mask = (self.invert_mask or self.num_qubits() * (False,))
+        mask = self.invert_mask or self.num_qubits() * (False,)
         deficit = self.num_qubits() - len(mask)
-        if deficit > 0:
-            mask += (False,) * deficit
+        mask += (False,) * deficit
         return mask
 
     def _measurement_key_(self):

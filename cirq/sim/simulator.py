@@ -488,10 +488,9 @@ class StepResult(metaclass=abc.ABCMeta):
             k: np.array([x[s:e] for x in indexed_sample
                         ]) for k, (s, e) in bounds.items()
         }
-        corrected_results = {}
-        for k, bits in result.items():
-            meas = meas_ops[k]
-            corrected_results[k] = (bits ^ meas.full_invert_mask())
+        corrected_results = {
+            k: bits ^ meas_ops[k].full_invert_mask for k, bits in result.items()
+        }
         return corrected_results
 
 
