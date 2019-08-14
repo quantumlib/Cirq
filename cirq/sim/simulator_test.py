@@ -172,14 +172,18 @@ def test_step_sample_measurement_ops_repetitions():
 
 
 def test_step_sample_measurement_ops_invert_mask():
-  q0, q1, q2 = cirq.LineQubit.range(3)
-  measurement_ops = [cirq.measure(q0, q1, invert_mask=(True,)),
-                     cirq.measure(q2, invert_mask=(True,))]
-  step_result = FakeStepResult([q1])
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    measurement_ops = [
+        cirq.measure(q0, q1, invert_mask=(True,)),
+        cirq.measure(q2, invert_mask=(True,))
+    ]
+    step_result = FakeStepResult([q1])
 
-  measurements = step_result.sample_measurement_ops(measurement_ops)
-  np.testing.assert_equal(measurements,
-                          {'0,1': [[True, True]], '2': [[True]]})
+    measurements = step_result.sample_measurement_ops(measurement_ops)
+    np.testing.assert_equal(measurements, {
+        '0,1': [[True, True]],
+        '2': [[True]]
+    })
 
 
 def test_step_sample_measurement_ops_no_measurements():

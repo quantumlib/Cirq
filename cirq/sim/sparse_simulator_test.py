@@ -674,7 +674,7 @@ def test_measure_at_end_invert_mask_multiple_qubits():
 
 def test_measure_at_end_invert_mask_partial():
     simulator = cirq.Simulator()
-    a, b, c = cirq.LineQubit.range(3)
+    a, _, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(
         cirq.measure(a, c, key='ac', invert_mask=(True,)))
     result = simulator.run(circuit, repetitions=4)
