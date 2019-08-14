@@ -11,7 +11,7 @@ before_install:
 stages:
 - test
 - name: deploy
-  if: branch = master
+  if: type = push AND branch = master
 matrix:
   include:
   - stage: test
