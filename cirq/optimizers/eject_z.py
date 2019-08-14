@@ -50,8 +50,9 @@ class EjectZ():
     measurements, cross CZ gates, cross W gates (by phasing them), etc.
     """
 
-    def __init__(self, tolerance: float = 0.0, eject_parameterized: bool = False
-                ) -> None:
+    def __init__(self,
+                 tolerance: float = 0.0,
+                 eject_parameterized: bool = False) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
@@ -125,8 +126,8 @@ class EjectZ():
         circuit.batch_insert(insertions)
 
 
-def _try_get_known_z_half_turns(op: ops.Operation, eject_parameterized: bool
-                               ) -> Optional[float]:
+def _try_get_known_z_half_turns(op: ops.Operation,
+                                eject_parameterized: bool) -> Optional[float]:
     if not isinstance(op, ops.GateOperation):
         return None
     if not isinstance(op.gate, ops.ZPowGate):
