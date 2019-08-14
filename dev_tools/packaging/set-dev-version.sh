@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,14 @@
 CIRQ_DEV_VERSION="$(
   set -e
 
+  if ! (return 0 2>/dev/null); then
+    echo "Usage:" >&2;
+    echo "  source set-dev-version.sh" >&2;
+    echo >&2;
+    echo "This script sets the environment variable \$CIRQ_DEV_VERSION." >&2;
+    exit 1
+  fi
+
   # Get the working directory to the repo root.
   cd "$( dirname "${BASH_SOURCE[0]}" )"
   repo_dir=$(git rev-parse --show-toplevel)
@@ -27,7 +35,6 @@ CIRQ_DEV_VERSION="$(
   ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
   ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
 
-  unset CIRQ_DEV_VERSION
   if [[ ${ACTUAL_VERSION_LINE} == *"dev"* ]]; then
     echo "${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
   fi
@@ -36,5 +43,6 @@ CIRQ_DEV_VERSION="$(
 )"
 
 if [ $? -ne 0 ]; then
+  unset CIRQ_DEV_VERSION
   echo -e '\033[31mFAILED\033[0m'
 fi
