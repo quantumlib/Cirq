@@ -58,6 +58,9 @@ class EjectZ():
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
+            eject_parameterized: If True, the optimization will attempt to eject
+                parametrized Z gates as well.  This may result in other gates
+                parameterized by symbolic expressions.
         """
         self.tolerance = tolerance
         self.eject_parameterized = eject_parameterized
