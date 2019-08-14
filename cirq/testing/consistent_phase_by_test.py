@@ -32,6 +32,12 @@ class GoodPhaser:
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodPhaser(self.e + phase_turns*4)
 
+    def _is_parameterized_(self) -> bool:
+        return cirq.is_parameterized(self.e)
+
+    def _resolve_parameters_(self, param_resolver):
+        return GoodPhaser(param_resolver.value_of(self.e))
+
 
 class BadPhaser:
     def __init__(self, e):
@@ -45,6 +51,12 @@ class BadPhaser:
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodPhaser(self.e + phase_turns*4)
+
+    def _is_parameterized_(self) -> bool:
+        return cirq.is_parameterized(self.e)
+
+    def _resolve_parameters_(self, param_resolver):
+        return BadPhaser(param_resolver.value_of(self.e))
 
 
 class NotPhaser:
@@ -71,6 +83,15 @@ class SemiBadPhaser:
         r = list(self.e)
         r[qubit_index] += phase_turns*4
         return SemiBadPhaser(r)
+
+    def _is_parameterized_(self) -> bool:
+        return cirq.is_parameterized(self.e)
+
+    def _resolve_parameters_(self, param_resolver):
+        return SemiBadPhaser([
+            param_resolver.value_of(val)
+            for val in self.e
+        ])
 
 
 def test_assert_phase_by_is_consistent_with_unitary():
