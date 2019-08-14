@@ -489,12 +489,11 @@ class StepResult(metaclass=abc.ABCMeta):
         corrected_results = {}
         for k, bits in result.items():
             meas = meas_ops[k]
-            invert_mask = meas.invert_mask or protocols.num_qubits(meas) * (
-            False,)
-            np.bitwise_xor()
-            corrected_results[k] = [bit ^ mask for bit, mask in
-                                    zip(bits, invert_mask)]
-            corrected_results[k] = bits
+            invert_mask = (meas.invert_mask or protocols.num_qubits(meas) * (False,))
+            if len(invert_mask) < protocols.num_qubits(meas):
+                invert_mask += (False,) * (protocols.num_qubits(meas) - len(invert_mask))
+
+            corrected_results[k] = bits ^ invert_mask
         return corrected_results
 
 @value.value_equality(unhashable=True)

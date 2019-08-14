@@ -611,10 +611,33 @@ def test_works_on_pauli_string():
                                np.array([0, 0, 0, 1]),
                                atol=1e-8)
 
+
 def test_sample_invert_mask():
     simulator = cirq.Simulator()
-
     a = cirq.NamedQubit('a')
-    circuit = cirq.Circuit.from_ops(cirq.measure(a, key='a', invert_mask=(True,)))
+    circuit = cirq.Circuit.from_ops(
+        cirq.measure(a, key='a', invert_mask=(True,)))
     result = simulator.run(circuit, repetitions=4)
-    np.testing.assert_equal(result.measurements['a'], np.array([[True, True, True, True]]))
+    np.testing.assert_equal(result.measurements['a'], np.array([[True]] * 4))
+
+
+def test_sample_invert_mask_multiple_qubits():
+    simulator = cirq.Simulator()
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.measure(a, key='a', invert_mask=(True,)),
+        cirq.measure(b, c, key='bc', invert_mask=(False, True)))
+    result = simulator.run(circuit, repetitions=4)
+    np.testing.assert_equal(result.measurements['a'], np.array([[True]] * 4))
+    np.testing.assert_equal(result.measurements['bc'],
+                            np.array([[False, True]] * 4))
+
+
+def test_sample_invert_mask_partial():
+    simulator = cirq.Simulator()
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.measure(a, c, key='ac', invert_mask=(True,)))
+    result = simulator.run(circuit, repetitions=4)
+    np.testing.assert_equal(result.measurements['ac'],
+                            np.array([[True, False]] * 4))
