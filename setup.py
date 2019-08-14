@@ -13,11 +13,20 @@
 # limitations under the License.
 
 import io
+import os
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
 exec(open('cirq/_version.py').read())
+
+name = 'cirq'
+
+# If CIRQ_DEV_VERSION is set then we use cirq-dev as the name of the package
+# and update the version to this value.
+if 'CIRQ_DEV_VERSION' in os.environ:
+    name = 'cirq-dev'
+    __version__ = os.environ['CIRQ_DEV_VERSION']
 
 description = ('A framework for creating, editing, and invoking '
                'Noisy Intermediate Scale Quantum (NISQ) circuits.')
@@ -37,7 +46,7 @@ cirq_packages = ['cirq'] + [
     'cirq.' + package for package in find_packages(where='cirq')
 ]
 
-setup(name='cirq',
+setup(name=name,
       version=__version__,
       url='http://github.com/quantumlib/cirq',
       author='The Cirq Developers',
