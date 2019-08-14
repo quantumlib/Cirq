@@ -28,7 +28,6 @@ from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 # This is a special indicator value used by the unitary method to determine

@@ -13,17 +13,13 @@
 # limitations under the License.
 
 
-from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any, Optional
+from typing import Sequence, Tuple, Union, Any, Optional
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
 
 
 @value.value_equality

@@ -17,7 +17,6 @@ from typing import Union, List, TYPE_CHECKING
 from cirq import work
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
