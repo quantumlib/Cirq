@@ -849,8 +849,8 @@ class EngineJob:
 
         Args:
             job_config: The JobConfig used to create the job.
-            job: A full Job Dict correspond to the QuantumJob proto.
-            engine: An Engine instance associated with the same project as the
+            job: A full Job Dict.
+            engine: An Engine instance associated with the same projct as the
                 job.
         """
         self.job_config = job_config
@@ -860,12 +860,12 @@ class EngineJob:
         self.program_id = self.job_resource_name.split('/jobs')[0]
         self._results = None  # type: Optional[List[TrialResult]]
 
-    def _update_job(self) -> Dict:
+    def _update_job(self):
         if self._job['executionStatus']['state'] not in TERMINAL_STATES:
             self._job = self._engine.get_job(self.job_resource_name)
         return self._job
 
-    def status(self) -> str:
+    def status(self):
         """Return the execution status of the job."""
         return self._update_job()['executionStatus']['state']
 
@@ -876,7 +876,7 @@ class EngineJob:
         if (not 'calibrationName' in status): return None
         return self._engine.get_calibration(status['calibrationName'])
 
-    def cancel(self) -> None:
+    def cancel(self):
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
 
@@ -890,31 +890,13 @@ class EngineJob:
                     break
                 time.sleep(0.5)
                 job = self._update_job()
-            self._raise_on_failure(job)
+            if job['executionStatus']['state'] != 'SUCCESS':
+                raise RuntimeError(
+                    'Job %s did not succeed. It is in state %s.' % (
+                        job['name'], job['executionStatus']['state']))
             self._results = self._engine.get_job_results(
                 self.job_resource_name)
         return self._results
-
-    def _raise_on_failure(self, job: Dict) -> None:
-        execution_status = job['executionStatus']
-        state = execution_status['state']
-        if state != 'SUCCESS':
-            if state == 'FAILURE':
-                raise RuntimeError(
-                    "Job {} on processor {} failed. {}: {}".format(
-                        job['name'], job['processor'] or 'UNKNOWN',
-                        execution_status['error_code'],
-                        execution_status['message']
-                    ))
-            elif state in TERMINAL_STATES:
-                raise RuntimeError(
-                    'Job {} failed in state {}.'.format(job['name'], state)
-                )
-            else:
-                raise RuntimeError(
-                    'Timed out waiting for results. Job {} is in state {}.'.format(
-                        job['name'], state)
-                )
 
     def __iter__(self):
         return self.results().__iter__()

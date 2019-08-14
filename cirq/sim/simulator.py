@@ -489,7 +489,8 @@ class StepResult(metaclass=abc.ABCMeta):
                         ]) for k, (s, e) in bounds.items()
         }
         corrected_results = {
-            k: bits ^ meas_ops[k].full_invert_mask for k, bits in result.items()
+            k: bits ^ meas_ops[k].full_invert_mask
+            for k, bits in result.items()
         }
         return corrected_results
 
