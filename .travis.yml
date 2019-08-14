@@ -68,10 +68,10 @@ matrix:
     - pip install -r cirq/contrib/contrib-requirements.txt
     script: check/doctest -q
   - os: linux
+    if: branch = master
     env: NAME=dev-release
     python: '3.7'
     script: source dev_tools/packaging/set-dev-version.sh
-    if: branch = master
 
 before_deploy:
   - echo "Dev version is: $CIRQ_DEV_VERSION"
