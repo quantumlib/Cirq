@@ -189,7 +189,7 @@ def test_diagram():
     )
     cirq.testing.assert_has_diagram(
         c, """
-q: ───PhasedX(a)^b───PhasedX(0.25)───PhasedX(1.0)───
+q: ───PhasedX(a)^b───PhasedX(0.25)───PhasedX(1)───
 """)
 
 
