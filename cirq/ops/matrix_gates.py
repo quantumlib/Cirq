@@ -59,7 +59,10 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return SingleQubitMatrixGate(new_mat)
 
-    def _phase_by_(self, phase_turns: float, qubit_index: int):
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'SingleQubitMatrixGate':
+        if not isinstance(phase_turns, (int, float)):
+            return NotImplemented
         z = _phase_matrix(phase_turns)
         phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
         return SingleQubitMatrixGate(phased_matrix)
@@ -133,7 +136,10 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return TwoQubitMatrixGate(new_mat)
 
-    def _phase_by_(self, phase_turns: float, qubit_index: int):
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'TwoQubitMatrixGate':
+        if not isinstance(phase_turns, (int, float)):
+            return NotImplemented
         i = np.eye(2)
         z = _phase_matrix(phase_turns)
         z2 = np.kron(i, z) if qubit_index else np.kron(z, i)
