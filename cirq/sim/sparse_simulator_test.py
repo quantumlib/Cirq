@@ -610,3 +610,20 @@ def test_works_on_pauli_string():
     np.testing.assert_allclose(result.reshape(4),
                                np.array([0, 0, 0, 1]),
                                atol=1e-8)
+
+
+def test_compute_amplitudes():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.X(a), cirq.H(a), cirq.H(b))
+    sim = cirq.Simulator()
+
+    result = sim.compute_amplitudes(c, np.array([[0, 0]]))
+    np.testing.assert_allclose(np.array(result), np.array([0.5]))
+
+    result = sim.compute_amplitudes(c, np.array([[0, 1], [1, 0], [1, 1]]))
+    np.testing.assert_allclose(np.array(result), np.array([0.5, -0.5, -0.5]))
+
+    result = sim.compute_amplitudes(c,
+                                    np.array([[0, 1], [1, 0], [1, 1]]),
+                                    qubit_order=(b, a))
+    np.testing.assert_allclose(np.array(result), np.array([-0.5, 0.5, -0.5]))
