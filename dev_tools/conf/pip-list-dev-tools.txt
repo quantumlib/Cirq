@@ -1,20 +1,20 @@
 # For testing and analyzing code.
-mypy==0.701.*
-pylint==2.3.*
-pytest==3.8.*
-pytest-cov==2.5.*
-pytest-benchmark==3.2.*
-yapf==0.27.*
+mypy~=0.701.0
+pylint~=2.3.0
+pytest~=3.8.0
+pytest-cov~=2.5.0
+pytest-benchmark~=3.2.0
+yapf~=0.27.0
 
 # For generating protobufs
-grpcio-tools==1.21.*
+grpcio-tools~=1.21.0
 mypy-protobuf==1.10
 
 # For uploading packages to pypi.
 twine
 
 # For verifying behavior of qasm output.
-qiskit==0.6.*
+qiskit~=0.6.0
 
 # For generating documentation.
 pypandoc
@@ -24,4 +24,4 @@ sphinx_rtd_theme
 sphinx-markdown-tables
 
 # Need to pin pylint's parser to 2.1 instead of 2.2 until https://github.com/PyCQA/astroid/issues/650 is fixed
-astroid==2.1.*
+astroid~=2.1.0

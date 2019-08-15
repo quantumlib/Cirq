@@ -179,16 +179,20 @@ def test_unphaseable_causes_earlier_merge_without_size_increase():
         ]))
 
 
-def test_symbols_block():
+@pytest.mark.parametrize('sym', [
+    sympy.Symbol('a'),
+    sympy.Symbol('a') + 1,
+])
+def test_symbols_block(sym):
     q = cirq.NamedQubit('q')
     assert_optimizes(before=cirq.Circuit([
         cirq.Moment([cirq.Z(q)]),
-        cirq.Moment([cirq.Z(q)**sympy.Symbol('a')]),
+        cirq.Moment([cirq.Z(q)**sym]),
         cirq.Moment([cirq.Z(q)**0.25]),
     ]),
                      expected=cirq.Circuit([
                          cirq.Moment(),
-                         cirq.Moment([cirq.Z(q)**sympy.Symbol('a')]),
+                         cirq.Moment([cirq.Z(q)**sym]),
                          cirq.Moment([cirq.Z(q)**1.25]),
                      ]))
 
