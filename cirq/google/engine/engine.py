@@ -897,17 +897,23 @@ class EngineJob:
     def _raise_on_failure(self, job: Dict) -> None:
         execution_status = job['executionStatus']
         state = execution_status['state']
+        name = job['name']
         if state != 'SUCCESS':
             if state == 'FAILURE':
+                processor = (execution_status['processorName'] if
+                             'processorName' in execution_status else 'UNKNOWN')
+                error_code = execution_status['failure']['errorCode']
+                error_message = execution_status['failure']['errorMessage']
                 raise RuntimeError(
                     "Job {} on processor {} failed. {}: {}".format(
-                        job['name'], job['processor'] or 'UNKNOWN',
-                        execution_status['error_code'],
-                        execution_status['message']))
+                        name, processor, error_code, error_message))
             elif state in TERMINAL_STATES:
                 raise RuntimeError('Job {} failed in state {}.'.format(
-                    job['name'], state))
+                    name, state))
             else:
                 raise RuntimeError(
-                    'Timed out waiting for results. Job {} is in state {}.'.
-                        format(job['name'], state))
+                    'Timed out waiting for results. Job {} is in state {}'.
+                    format(name, state))
+
+    def __iter__(self):
+        return iter(self.results())
