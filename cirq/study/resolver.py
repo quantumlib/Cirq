@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 
 
 # Things that ParamResolver understands how to wrap.
-ParamResolverOrSimilarType = Union['cirq.ParamResolver', Dict[Union[str, sympy.Symbol], float], None]
+ParamResolverOrSimilarType = Union['cirq.ParamResolver',
+                                   Dict[Union[str, sympy.Symbol], float], None]
 
 
 class ParamResolver(object):
@@ -48,8 +49,9 @@ class ParamResolver(object):
         if hasattr(self, '_param_hash'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
-        self.param_dict = cast(Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
-                               {} if param_dict is None else param_dict)
+        self.param_dict = cast(
+            Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
+            {} if param_dict is None else param_dict)
         self._param_hash = hash(frozenset(self.param_dict.items()))
 
     def value_of(

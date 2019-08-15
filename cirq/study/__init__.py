@@ -17,9 +17,7 @@
 from cirq.study.compute_displays_result import (
     ComputeDisplaysResult,)
 
-from cirq.study.flattener import (
-    ParamFlattener,
-)
+from cirq.study.flattener import ParamFlattener
 
 from cirq.study.resolver import (
     ParamResolver,

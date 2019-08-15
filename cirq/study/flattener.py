@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Resolves symbolic expressions to unique symbols."""
 
 from typing import overload, Any, Dict, Iterable, Iterator, List, Union
@@ -68,6 +67,7 @@ class ParamFlattener(ParamResolver):
         >>> print(cirq.resolve_parameters(circuit, list(sweep)[1])) # Equivalent
         0: ───X^0.25───X^0.75───
     """
+
     def __new__(cls, *args, **kwargs):
         """Disables the behavior of `ParamResolver.__new__`."""
         return super().__new__(cls)
@@ -87,8 +87,10 @@ class ParamFlattener(ParamResolver):
                 repetitions.  By default the parameter names are x0, x1, x2, ...
         """
         if isinstance(param_dict, ParamResolver):
-            param_dict = {_ensure_not_str(param): _ensure_not_str(val)
-                          for param, val in param_dict.param_dict.items()}
+            param_dict = {
+                _ensure_not_str(param): _ensure_not_str(val)
+                for param, val in param_dict.param_dict.items()
+            }
         super().__init__(param_dict)
         if new_param_names is None:
             new_param_names = ParamFlattener.default_param_names()
@@ -158,7 +160,7 @@ class ParamFlattener(ParamResolver):
 
     def __repr__(self):
         return ('cirq.ParamFlattener({!r}, new_param_names={!r})'.format(
-                    self.param_dict, self.new_param_names))
+            self.param_dict, self.new_param_names))
 
     def flatten(self, val: Any) -> Any:
         """Returns a copy of `val` with any symbols or expressions replaced with
@@ -174,7 +176,8 @@ class ParamFlattener(ParamResolver):
         """
         return resolve_parameters(val, self)
 
-    def transform_sweep(self, sweep: Union[Sweep, List[ParamResolver]]) -> Sweep:
+    def transform_sweep(self,
+                        sweep: Union[Sweep, List[ParamResolver]]) -> Sweep:
         """Returns a sweep to use with a circuit flattened earlier with
         `flatten`.
 
@@ -190,7 +193,8 @@ class ParamFlattener(ParamResolver):
         sweep = to_sweep(sweep)
         return _TransformedSweep(sweep, dict(self.param_dict))
 
-    def transform_resolver(self, resolver: ParamResolverOrSimilarType) -> ParamResolver:
+    def transform_resolver(self, resolver: ParamResolverOrSimilarType
+                          ) -> ParamResolver:
         """Returns a `ParamResolver` to use with a circuit flattened earlier
         with `flatten`.
 
@@ -208,24 +212,28 @@ class ParamFlattener(ParamResolver):
 
 class _TransformedSweep(Sweep):
     """A sweep created by `ParamFlattener.transform_sweep`."""
+
     def __init__(self, sweep: Sweep,
-                 expression_map: Dict[Union[sympy.Basic, float], Union[sympy.Basic, float]]):
+                 expression_map: Dict[Union[sympy.Basic, float],
+                                      Union[sympy.Basic, float]]):
         self.sweep = sweep
         self.expression_map = expression_map
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self.sweep == other.sweep
-                and self.expression_map == other.expression_map)
+        return (self.sweep == other.sweep and
+                self.expression_map == other.expression_map)
 
     def __ne__(self, other):
         return not self == other
 
     @property
     def keys(self) -> List[str]:
-        return [sym for sym in self.expression_map.values()
-                    if isinstance(sym, sympy.Basic)]
+        return [
+            sym for sym in self.expression_map.values()
+            if isinstance(sym, sympy.Basic)
+        ]
 
     def __len__(self) -> int:
         return len(self.sweep)
@@ -239,7 +247,11 @@ class _TransformedSweep(Sweep):
             yield _params_without_symbols(r)
 
 
-def _transform_resolver(resolver: ParamResolverOrSimilarType, expression_map: Dict[Union[sympy.Basic, float], Union[sympy.Basic, float]]) -> ParamResolver:
+def _transform_resolver(
+        resolver: ParamResolverOrSimilarType,
+        expression_map: Dict[Union[sympy.Basic, float], Union[sympy.
+                                                              Basic, float]]
+) -> ParamResolver:
     param_dict = {
         sym: resolve_parameters(formula, resolver)
         for formula, sym in expression_map.items()
@@ -251,9 +263,13 @@ def _transform_resolver(resolver: ParamResolverOrSimilarType, expression_map: Di
 @overload
 def _ensure_not_str(param: Union[sympy.Basic, str]) -> sympy.Basic:
     pass
+
+
 @overload
 def _ensure_not_str(param: float) -> float:
     pass
+
+
 def _ensure_not_str(param):
     if isinstance(param, str):
         return sympy.Symbol(param)
