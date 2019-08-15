@@ -43,7 +43,6 @@ def test_wrapper_cmp():
     assert u1 >= u0
 
 
-
 def test_wrapper_cmp_failure():
     with pytest.raises(TypeError):
         _ = object() < cirq.Unique(1)
@@ -243,3 +242,11 @@ def test_larger_circuit():
     cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
                                                     dag.to_circuit().unitary(),
                                                     atol=1e-7)
+
+
+@pytest.mark.parametrize(
+    'circuit', [cirq.testing.random_circuit(10, 10, 0.5) for _ in range(3)])
+def test_is_maximalist(circuit):
+    dag = cirq.CircuitDag.from_circuit(circuit)
+    transitive_closure = networkx.dag.transitive_closure(dag)
+    assert transitive_closure == dag
