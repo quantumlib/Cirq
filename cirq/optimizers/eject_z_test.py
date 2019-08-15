@@ -20,8 +20,9 @@ from cirq.optimizers.eject_z import _try_get_known_z_half_turns
 
 
 def assert_optimizes(before: cirq.Circuit,
-                     expected: cirq.Circuit):
-    opt = cirq.EjectZ()
+                     expected: cirq.Circuit,
+                     eject_parameterized: bool = False):
+    opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
 
     if cirq.has_unitary(before):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
@@ -38,19 +39,27 @@ def assert_optimizes(before: cirq.Circuit,
     cirq.testing.assert_same_circuits(circuit, expected)
 
 
-def assert_removes_all_z_gates(circuit: cirq.Circuit):
-    opt = cirq.EjectZ()
+def assert_removes_all_z_gates(circuit: cirq.Circuit,
+                               eject_parameterized: bool = True):
+    opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
     optimized = circuit.copy()
     opt.optimize_circuit(optimized)
-    has_z = any(_try_get_known_z_half_turns(op) is not None
-                for moment in optimized
-                for op in moment.operations)
+    has_z = any(
+        _try_get_known_z_half_turns(op, eject_parameterized) is not None
+        for moment in optimized
+        for op in moment.operations)
     assert not has_z
 
-    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        circuit,
-        optimized,
-        atol=1e-8)
+    if cirq.is_parameterized(circuit):
+        for a in (0, 0.1, 0.5, 1.0, -1.0, 3.0):
+            (cirq.testing.
+             assert_circuits_with_terminal_measurements_are_equivalent(
+                 cirq.resolve_parameters(circuit, {'a': a}),
+                 cirq.resolve_parameters(optimized, {'a': a}),
+                 atol=1e-8))
+    else:
+        cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            circuit, optimized, atol=1e-8)
 
 
 def test_single_z_stays():
@@ -197,6 +206,25 @@ def test_symbols_block(sym):
                      ]))
 
 
+@pytest.mark.parametrize('sym', [
+    sympy.Symbol('a'),
+    sympy.Symbol('a') + 1,
+])
+def test_symbols_eject(sym):
+    q = cirq.NamedQubit('q')
+    assert_optimizes(before=cirq.Circuit([
+        cirq.Moment([cirq.Z(q)]),
+        cirq.Moment([cirq.Z(q)**sym]),
+        cirq.Moment([cirq.Z(q)**0.25]),
+    ]),
+                     expected=cirq.Circuit([
+                         cirq.Moment(),
+                         cirq.Moment(),
+                         cirq.Moment([cirq.Z(q)**(sym + 1.25)]),
+                     ]),
+                     eject_parameterized=True)
+
+
 def test_removes_zs():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -235,6 +263,12 @@ def test_removes_zs():
         cirq.CZ(a, b),
         cirq.CZ(a, b),
         cirq.measure(a, b)))
+
+    assert_removes_all_z_gates(cirq.Circuit.from_ops(
+        cirq.Z(a)**sympy.Symbol('a'),
+        cirq.Z(b)**(sympy.Symbol('a') + 1), cirq.CZ(a, b), cirq.CZ(a, b),
+        cirq.measure(a, b)),
+                               eject_parameterized=True)
 
 
 def test_unknown_operation_blocks():
