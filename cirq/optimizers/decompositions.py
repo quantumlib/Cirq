@@ -17,12 +17,15 @@
 from typing import List, Tuple, cast
 
 import numpy as np
+import sympy
 
 from cirq import ops, linalg, protocols
 from cirq.linalg.tolerance import near_zero_mod
 
 
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
+    if isinstance(turns, sympy.Basic):
+        return False
     return abs(_signed_mod_1(turns)) <= tolerance
 
 
