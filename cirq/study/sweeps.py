@@ -361,14 +361,14 @@ class ListSweep(Sweep):
 
     @property
     def keys(self) -> List[str]:
-        return list(self.resolver_list[0].param_dict)
+        return list(map(str, self.resolver_list[0].param_dict))
 
     def __len__(self) -> int:
         return len(self.resolver_list)
 
     def param_tuples(self) -> Iterator[Params]:
         for r in self.resolver_list:
-            yield _params_without_symbols(r)
+            yield tuple(_params_without_symbols(r))
 
 
 def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
