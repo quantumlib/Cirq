@@ -34,10 +34,10 @@ export CIRQ_DEV_VERSION="$(
   set -e
 
   if ! (return 0 2>/dev/null); then
-    echo "Usage:" >&2;
-    echo "  source set-dev-version.sh" >&2;
-    echo >&2;
-    echo "This script sets the environment variable \$CIRQ_DEV_VERSION." >&2;
+    echo "Usage:" >&2
+    echo "  source set-dev-version.sh" >&2
+    echo >&2
+    echo "This script sets the environment variable \$CIRQ_DEV_VERSION." >&2
     exit 1
   fi
 
