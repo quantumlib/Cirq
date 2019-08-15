@@ -99,8 +99,13 @@ message TargetList {
   // which targets are valid.
   string name = 1;
 
+  // If set to true, any order of the targets is valid.
+  // If false, then the order of the targets matters and must match the order in
+  // the targets list.
+  bool is_symmetric = 2;
+
   // A list of targets that are valid
-  repeated Target targets = 2;
+  repeated Target targets = 3;
 }
 
 

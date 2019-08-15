@@ -108,12 +108,14 @@ class ArgumentRange(google.protobuf.message.Message):
 
 class TargetList(google.protobuf.message.Message):
     name = ... # type: typing.Text
+    is_symmetric = ... # type: bool
 
     @property
     def targets(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[Target]: ...
 
     def __init__(self,
         name : typing.Optional[typing.Text] = None,
+        is_symmetric : typing.Optional[bool] = None,
         targets : typing.Optional[typing.Iterable[Target]] = None,
         ) -> None: ...
     @classmethod

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.api.google.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.api.google.v2B\013DeviceProtoP\001'),
-  serialized_pb=_b('\n\x1f\x63irq/api/google/v2/device.proto\x12\x12\x63irq.api.google.v2\"\xbb\x01\n\x13\x44\x65viceSpecification\x12\x34\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.api.google.v2.GateSet\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x35\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1e.cirq.api.google.v2.TargetList\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.api.google.v2.GateDefinition\"\xa1\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\x12\x15\n\rvalid_targets\x18\x05 \x03(\t\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.api.google.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"G\n\nTargetList\x12\x0c\n\x04name\x18\x01 \x01(\t\x12+\n\x07targets\x18\x02 \x03(\x0b\x32\x1a.cirq.api.google.v2.Target\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB.\n\x1d\x63om.google.cirq.api.google.v2B\x0b\x44\x65viceProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1f\x63irq/api/google/v2/device.proto\x12\x12\x63irq.api.google.v2\"\xbb\x01\n\x13\x44\x65viceSpecification\x12\x34\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.api.google.v2.GateSet\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x35\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1e.cirq.api.google.v2.TargetList\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.api.google.v2.GateDefinition\"\xa1\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\x12\x15\n\rvalid_targets\x18\x05 \x03(\t\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.api.google.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"]\n\nTargetList\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x0cis_symmetric\x18\x02 \x01(\x08\x12+\n\x07targets\x18\x03 \x03(\x0b\x32\x1a.cirq.api.google.v2.Target\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB.\n\x1d\x63om.google.cirq.api.google.v2B\x0b\x44\x65viceProtoP\x01\x62\x06proto3')
 )
 
 
@@ -303,8 +303,15 @@ _TARGETLIST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='targets', full_name='cirq.api.google.v2.TargetList.targets', index=1,
-      number=2, type=11, cpp_type=10, label=3,
+      name='is_symmetric', full_name='cirq.api.google.v2.TargetList.is_symmetric', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='targets', full_name='cirq.api.google.v2.TargetList.targets', index=2,
+      number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -322,7 +329,7 @@ _TARGETLIST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=775,
-  serialized_end=846,
+  serialized_end=868,
 )
 
 
@@ -352,8 +359,8 @@ _TARGET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=848,
-  serialized_end=869,
+  serialized_start=870,
+  serialized_end=891,
 )
 
 _DEVICESPECIFICATION.fields_by_name['valid_gate_sets'].message_type = _GATESET
