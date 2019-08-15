@@ -21,9 +21,8 @@ message DeviceSpecification {
   // If empty, all qubit values are allowed (e.g. in a simulator)
   repeated string valid_qubits = 2;
 
-  // A list of allowed targets for multi-qubit gates.
-  // For a typical grid layout, this will be a list of adjacent pairs
-  repeated Target valid_targets = 3;
+  // A list of targets that gates can use.
+  repeated TargetList valid_targets = 3;
 
   // Additional recommendations, caveats, and soft requirements that
   // are advice to users of the device, specified in English text
@@ -46,13 +45,18 @@ message GateDefinition {
   // If unset or set to zero, any number of qubits is allowed.
   int32 number_of_qubits = 2;
 
-  // The name of the arguments that should be specified for 
+  // The name of the arguments that should be specified for
   // an operation of this gate
   repeated ArgDefinition valid_args = 3;
 
   // This defines the approximate amount of time for each gate,
   // specified as an integer number of picoseconds.
   int64 gate_duration_picos = 4;
+
+  // Valid targets that this gate can use.
+  // Values in this list correspond to the name of the TargetList
+  // If unset, all combinations using the number of qubits are allowed.
+  repeated string valid_targets = 5;
 }
 
 // A description of an argument to an operation.
@@ -86,6 +90,19 @@ message ArgumentRange {
   float minimum_value = 1;
   float maximum_value = 2;
 }
+
+// A list of targets that are valid for a set of gates.
+// For instance, all qubit pairs that can be acted on by a 2-qubit gate
+message TargetList {
+  // The name of the target list.
+  // This will be referenced in the GateDefintion to denote
+  // which targets are valid.
+  string name = 1;
+
+  // A list of targets that are valid
+  repeated Target targets = 2;
+}
+
 
 // A description of a valid target of a multi-qubit gate operation
 // For most Google devices, this will be a pair of qubit ids.
