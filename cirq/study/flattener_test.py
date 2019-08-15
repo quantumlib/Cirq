@@ -101,3 +101,43 @@ def test_resolver_new():
     flattener = cirq.ParamFlattener({'a': 'b'})
     flattener2 = cirq.ParamResolver(flattener)
     assert flattener2 is flattener
+
+
+def test_transformed_sweep():
+    a = sympy.Symbol('a')
+    sweep = cirq.Linspace('a', start=0, stop=3, length=4)
+    flattener = cirq.ParamFlattener({
+        a/4: 'x0',
+        1-a/4: 'x1'})
+    transformed = flattener.transform_sweep(sweep)
+    assert len(transformed) == 4
+    assert transformed.keys == ['x0', 'x1']
+    params = list(transformed.param_tuples())
+    assert len(params) == 4
+    assert params[1] == (('x0', 1/4), ('x1', 1-1/4))
+
+
+def test_transformed_sweep_equality():
+    a = sympy.Symbol('a')
+    sweep = cirq.Linspace('a', start=0, stop=3, length=4)
+    flattener = cirq.ParamFlattener({
+        a/4: 'x0',
+        1-a/4: 'x1'})
+
+    sweep2 = cirq.Linspace(a, start=0, stop=3, length=4)
+    flattener2 = cirq.ParamFlattener({
+        a/4: 'x0',
+        1-a/4: 'x1'})
+
+    sweep3 = cirq.Linspace(a, start=0, stop=3, length=20)
+    flattener3 = cirq.ParamFlattener({
+        a/20: 'x0',
+        1-a/20: 'x1'})
+
+    et = cirq.testing.EqualsTester()
+    et.make_equality_group(lambda: flattener.transform_sweep(sweep),
+                           lambda: flattener.transform_sweep(sweep2),
+                           lambda: flattener2.transform_sweep(sweep2))
+    et.add_equality_group(flattener.transform_sweep(sweep3))
+    et.add_equality_group(flattener3.transform_sweep(sweep))
+    et.add_equality_group(flattener3.transform_sweep(sweep3))
