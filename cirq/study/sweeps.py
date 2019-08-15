@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Iterable, Iterator, List, Sequence, Tuple, Union
+from typing import cast, Any, Iterable, Iterator, List, Sequence, Tuple, Union
 
 import abc
 import collections
@@ -342,7 +342,7 @@ class ListSweep(Sweep):
             resolver_list: The list of parameter resolvers to use in the sweep.
                 All resolvers must resolve the same set of parameters.
         """
-        self.resolver_list = []
+        self.resolver_list: List[resolver.ParamResolver] = []
         for r in resolver_list:
             if not isinstance(r, (dict, resolver.ParamResolver)):
                 raise TypeError('Not a ParamResolver or dict: <{!r}>'.format(r))
@@ -370,4 +370,11 @@ class ListSweep(Sweep):
 
     def param_tuples(self) -> Iterator[Params]:
         for r in self.resolver_list:
-            yield r.param_dict.items()
+            yield _params_without_symbols(r)
+
+
+def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
+    for sym, val in resolver.param_dict.items():
+        if isinstance(sym, sympy.Symbol):
+            sym = sym.name
+        yield cast(str, sym), cast(float, val)

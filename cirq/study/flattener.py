@@ -14,13 +14,13 @@
 
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import Any, Dict, Iterable, Iterator, List, Union
+from typing import overload, Any, Dict, Iterable, Iterator, List, Union
 
 import itertools
 import sympy
 
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import Sweep, Params
+from cirq.study.sweeps import Sweep, Params, _params_without_symbols
 from cirq.study.sweepable import to_sweep
 from cirq.protocols.resolve_parameters import resolve_parameters
 
@@ -236,7 +236,7 @@ class _TransformedSweep(Sweep):
 
     def param_tuples(self) -> Iterator[Params]:
         for r in self:
-            yield r.param_dict.items()
+            yield _params_without_symbols(r)
 
 
 def _transform_resolver(resolver: ParamResolverOrSimilarType, expression_map: Dict[Union[sympy.Basic, float], Union[sympy.Basic, float]]) -> ParamResolver:
@@ -247,6 +247,13 @@ def _transform_resolver(resolver: ParamResolverOrSimilarType, expression_map: Di
     }
     return ParamResolver(param_dict)
 
+
+@overload
+def _ensure_not_str(param: Union[sympy.Basic, str]) -> sympy.Basic:
+    pass
+@overload
+def _ensure_not_str(param: float) -> float:
+    pass
 def _ensure_not_str(param):
     if isinstance(param, str):
         return sympy.Symbol(param)
