@@ -290,6 +290,14 @@ def test_measurement_eq():
     eq.add_equality_group(cirq.MeasurementGate(3, 'a'))
 
 
+def test_measurement_full_invert_mask():
+    assert cirq.MeasurementGate(1, 'a').full_invert_mask() == (False,)
+    assert (cirq.MeasurementGate(
+        2, 'a', invert_mask=(False, True)).full_invert_mask() == (False, True))
+    assert (cirq.MeasurementGate(
+        2, 'a', invert_mask=(True,)).full_invert_mask() == (True, False))
+
+
 def test_interchangeable_qubit_eq():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

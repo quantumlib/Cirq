@@ -479,6 +479,20 @@ class MeasurementGate(raw_types.Gate):
         return MeasurementGate(self.num_qubits(), key=self.key,
                                invert_mask=tuple(new_mask))
 
+    def full_invert_mask(self):
+        """Returns the invert mask for all qubits.
+
+        If the user supplies a partial invert_mask, this returns that mask
+        padded by False.
+
+        Similarly if no invert_mask is supplies this returns a tuple
+        of size equal to the number of qubits with all entries False.
+        """
+        mask = self.invert_mask or self.num_qubits() * (False,)
+        deficit = self.num_qubits() - len(mask)
+        mask += (False,) * deficit
+        return mask
+
     def _measurement_key_(self):
         return self.key
 
