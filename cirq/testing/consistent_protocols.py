@@ -14,6 +14,7 @@
 
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
+import numpy as np
 import sympy
 
 from cirq import ops, protocols
@@ -92,6 +93,23 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
     assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
 
 
+def assert_has_consistent_trace_distance_bound(val: Any) -> None:
+    u = protocols.unitary(val, default=None)
+    val_from_trace = protocols.trace_distance_bound(val)
+    assert 0.0 <= val_from_trace <= 1.0
+    if u is not None:
+
+        class Unitary:
+
+            def _unitary_(self):
+                return u
+
+        val_from_unitary = protocols.trace_distance_bound(Unitary())
+
+        assert val_from_trace >= val_from_unitary or np.isclose(
+            val_from_trace, val_from_unitary)
+
+
 def _assert_meets_standards_helper(
         val: Any,
         qubit_count: Optional[int],
@@ -102,6 +120,7 @@ def _assert_meets_standards_helper(
     assert_has_consistent_qid_shape(val, qubit_count=qubit_count)
     assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
     assert_qasm_is_consistent_with_unitary(val)
+    assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val,
         ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)

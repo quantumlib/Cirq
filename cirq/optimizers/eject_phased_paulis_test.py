@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import Iterable, cast
 
+import pytest
 import sympy
 
 import cirq
@@ -294,7 +295,11 @@ def test_phases_partial_ws():
         ))
 
 
-def test_blocked_by_unknown_and_symbols():
+@pytest.mark.parametrize('sym', [
+    sympy.Symbol('a'),
+    sympy.Symbol('a') + 1,
+])
+def test_blocked_by_unknown_and_symbols(sym):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -310,28 +315,26 @@ def test_blocked_by_unknown_and_symbols():
             [cirq.X(a)],
         ))
 
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.X(a)],
-            [cirq.Z(a)**sympy.Symbol('z')],
-            [cirq.X(a)],
-        ),
-        expected=quick_circuit(
-            [cirq.X(a)],
-            [cirq.Z(a)**sympy.Symbol('z')],
-            [cirq.X(a)],
-        ),
-        compare_unitaries=False)
+    assert_optimizes(before=quick_circuit(
+        [cirq.X(a)],
+        [cirq.Z(a)**sym],
+        [cirq.X(a)],
+    ),
+                     expected=quick_circuit(
+                         [cirq.X(a)],
+                         [cirq.Z(a)**sym],
+                         [cirq.X(a)],
+                     ),
+                     compare_unitaries=False)
 
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.X(a)],
-            [cirq.CZ(a, b)**sympy.Symbol('z')],
-            [cirq.X(a)],
-        ),
-        expected=quick_circuit(
-            [cirq.X(a)],
-            [cirq.CZ(a, b)**sympy.Symbol('z')],
-            [cirq.X(a)],
-        ),
-        compare_unitaries=False)
+    assert_optimizes(before=quick_circuit(
+        [cirq.X(a)],
+        [cirq.CZ(a, b)**sym],
+        [cirq.X(a)],
+    ),
+                     expected=quick_circuit(
+                         [cirq.X(a)],
+                         [cirq.CZ(a, b)**sym],
+                         [cirq.X(a)],
+                     ),
+                     compare_unitaries=False)

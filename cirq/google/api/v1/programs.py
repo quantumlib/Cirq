@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    Union)
+from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Union)
 import numpy as np
 import sympy
 
@@ -22,8 +22,6 @@ from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Optional
     from cirq.google import xmon_device
 
 
@@ -141,7 +139,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     Yields:
         A proto dictionary corresponding to an Operation proto.
     """
-    last_time_picos = None  # type: Optional[int]
+    last_time_picos: Optional[int] = None
     for so in schedule.scheduled_operations:
         op = gate_to_proto_dict(
             cast(ops.GateOperation, so.operation).gate, so.operation.qubits)
