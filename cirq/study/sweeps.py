@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, List, Sequence, Tuple, Union
+from typing import Any, Iterable, Iterator, List, Sequence, Tuple, Union
 
 import abc
 import collections
@@ -20,7 +20,7 @@ import sympy
 from cirq.study import resolver
 
 
-Params = Tuple[Tuple[str, float], ...]
+Params = Iterable[Tuple[str, float]]
 
 
 def _check_duplicate_keys(sweeps):
@@ -330,3 +330,44 @@ class Linspace(SingleSweep):
     def __repr__(self):
         return 'cirq.Linspace({!r}, start={!r}, stop={!r}, length={!r})'.format(
                 self.key, self.start, self.stop, self.length)
+
+
+class ListSweep(Sweep):
+    """A wrapper around a list of `ParamResolver`s."""
+
+    def __init__(self, resolver_list: Iterable[resolver.ParamResolverOrSimilarType]):
+        """Creates a `Sweep` over a list of `ParamResolver`s.
+
+        Args:
+            resolver_list: The list of parameter resolvers to use in the sweep.
+                All resolvers must resolve the same set of parameters.
+        """
+        self.resolver_list = []
+        for r in resolver_list:
+            if not isinstance(r, (dict, resolver.ParamResolver)):
+                raise TypeError('Not a ParamResolver or dict: <{!r}>'.format(r))
+            self.resolver_list.append(resolver.ParamResolver(r))
+        if len(self.resolver_list) == 0:
+            self.resolver_list = [resolver.ParamResolver({})]
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.resolver_list == other.resolver_list
+
+    def __ne__(self, other):
+        return not self == other
+
+    @property
+    def keys(self) -> List[str]:
+        return list(self.resolver_list[0].param_dict)
+
+    def __len__(self) -> int:
+        return len(self.resolver_list)
+
+    def __iter__(self) -> Iterator[resolver.ParamResolver]:
+        return iter(self.resolver_list)
+
+    def param_tuples(self) -> Iterator[Params]:
+        for r in self.resolver_list:
+            yield r.param_dict.items()

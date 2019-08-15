@@ -261,6 +261,8 @@ from cirq.sim import (
 from cirq.study import (
     ComputeDisplaysResult,
     Linspace,
+    ListSweep,
+    ParamFlattener,
     ParamResolver,
     ParamResolverOrSimilarType,
     plot_state_histogram,
@@ -269,6 +271,7 @@ from cirq.study import (
     Sweep,
     Sweepable,
     to_resolvers,
+    to_sweep,
     TrialResult,
     UnitSweep,
     Zip,

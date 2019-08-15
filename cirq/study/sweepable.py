@@ -14,9 +14,9 @@
 
 """Defines which types are Sweepable."""
 
-from typing import cast, Iterable, List, Union
+from typing import cast, Iterable, List, Sequence, Union
 
-from cirq.study.resolver import ParamResolver
+from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import Points, Sweep, UnitSweep, Zip
 
 
@@ -51,6 +51,25 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         elif all(isinstance(item, ParamResolver) for item in items):
             return [_resolver_to_sweep(cast(ParamResolver, p)) for p in items]
     raise TypeError('Unexpected Sweepable: {}'.format(sweepable))
+
+
+def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType, Iterable[ParamResolver]]) -> 'Sweep':
+    """Converts the argument into a `Sweep`.
+
+    Args:
+        sweep_or_resolver_list: The object to try to turn into a `Sweep`.  A
+            `Sweep`, a single `ParamResolver`, or a list of `ParamResolver`s.
+
+    Returns:
+        A sweep equal to or containing the argument.
+    """
+    if isinstance(sweep_or_resolver_list, Sweep):
+        return sweep_or_resolver_list
+    if isinstance(sweep_or_resolver_list, (ParamResolver, dict)):
+        return ListSweep([sweep_or_resolver_list])
+    if isinstance(sweep_or_resolver_list, Iterable):
+        return ListSweep(sweep_or_resolver_list)
+    raise TypeError('Unexpected sweep-like value: {}'.format(sweep_or_resolver_list))
 
 
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
