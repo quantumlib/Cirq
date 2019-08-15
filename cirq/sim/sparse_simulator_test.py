@@ -680,6 +680,7 @@ def test_measure_at_end_invert_mask_partial():
     result = simulator.run(circuit, repetitions=4)
     np.testing.assert_equal(result.measurements['ac'], np.array([[1, 0]] * 4))
 
+
 def test_compute_amplitudes():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(cirq.X(a), cirq.H(a), cirq.H(b))
