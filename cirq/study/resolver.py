@@ -23,8 +23,9 @@ if TYPE_CHECKING:
 
 
 # Things that ParamResolver understands how to wrap.
-ParamResolverOrSimilarType = Union['cirq.ParamResolver',
-                                   Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]], None]
+ParamResolverOrSimilarType = Union[
+    'cirq.ParamResolver', Dict[Union[str, sympy.Symbol], Union[float, str, sympy
+                                                               .Symbol]], None]
 
 
 class ParamResolver(object):

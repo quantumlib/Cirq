@@ -13,8 +13,8 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import (
-    overload, Any, Dict, Iterable, Iterator, List, Optional, Union)
+from typing import (overload, Any, Dict, Iterable, Iterator, List, Optional,
+                    Union)
 
 import itertools
 import sympy
@@ -238,7 +238,8 @@ class _TransformedSweep(Sweep):
     @property
     def keys(self) -> List[str]:
         return [
-            str(sym) for sym in self.expression_map.values()
+            str(sym)
+            for sym in self.expression_map.values()
             if isinstance(sym, (sympy.Symbol, str))
         ]
 
@@ -247,11 +248,9 @@ class _TransformedSweep(Sweep):
 
     def param_tuples(self) -> Iterator[Params]:
         for r in self.sweep:
-            yield tuple(
-                (str(sym), resolve_parameters(formula, r))
-                for formula, sym in self.expression_map.items()
-                if isinstance(sym, (sympy.Symbol, str))
-            )
+            yield tuple((str(sym), resolve_parameters(formula, r))
+                        for formula, sym in self.expression_map.items()
+                        if isinstance(sym, (sympy.Symbol, str)))
 
 
 @overload

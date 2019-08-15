@@ -75,9 +75,18 @@ def test_product():
 
 
 @pytest.mark.parametrize('r_list', [
-    [{'a': a, 'b': a+1} for a in (0, 0.5, 1, -10)],
-    ({'a': a, 'b': a+1} for a in (0, 0.5, 1, -10)),
-    ({sympy.Symbol('a'): a, 'b': a+1} for a in (0, 0.5, 1, -10)),
+    [{
+        'a': a,
+        'b': a + 1
+    } for a in (0, 0.5, 1, -10)],
+    ({
+        'a': a,
+        'b': a + 1
+    } for a in (0, 0.5, 1, -10)),
+    ({
+        sympy.Symbol('a'): a,
+        'b': a + 1
+    } for a in (0, 0.5, 1, -10)),
 ])
 def test_list_sweep(r_list):
     sweep = cirq.ListSweep(r_list)
@@ -124,15 +133,22 @@ def test_equality():
 
     # ListSweep
     et.make_equality_group(
-        lambda: cirq.ListSweep([{'var': 1}, {'var': -1}]),
-        lambda: cirq.ListSweep(({'var': 1}, {'var': -1})),
-        lambda: cirq.ListSweep(r for r in ({'var': 1}, {'var': -1})))
-    et.make_equality_group(
-        lambda: cirq.ListSweep([{'var': -1}, {'var': 1}]))
-    et.make_equality_group(
-        lambda: cirq.ListSweep([{'var': 1}]))
-    et.make_equality_group(
-        lambda: cirq.ListSweep([{'x': 1}, {'x': -1}]))
+        lambda: cirq.ListSweep([{
+            'var': 1
+        }, {
+            'var': -1
+        }]), lambda: cirq.ListSweep(({
+            'var': 1
+        }, {
+            'var': -1
+        })), lambda: cirq.ListSweep(r for r in ({
+            'var': 1
+        }, {
+            'var': -1
+        })))
+    et.make_equality_group(lambda: cirq.ListSweep([{'var': -1}, {'var': 1}]))
+    et.make_equality_group(lambda: cirq.ListSweep([{'var': 1}]))
+    et.make_equality_group(lambda: cirq.ListSweep([{'x': 1}, {'x': -1}]))
 
 
 def test_repr():
