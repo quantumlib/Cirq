@@ -129,6 +129,6 @@ def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
     if not isinstance(op.gate, ops.ZPowGate):
         return None
     h = op.gate.exponent
-    if isinstance(h, sympy.Symbol):
+    if isinstance(h, sympy.Basic):
         return None
     return h
