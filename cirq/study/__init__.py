@@ -30,6 +30,7 @@ from cirq.study.sweepable import (
 
 from cirq.study.sweeps import (
     Linspace,
+    Product,
     Points,
     Product,
     Sweep,

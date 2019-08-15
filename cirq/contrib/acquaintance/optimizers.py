@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Sequence, TYPE_CHECKING
+from typing import cast, FrozenSet, List, Sequence, Set
 
 from cirq import circuits, ops
 
@@ -22,10 +22,6 @@ from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.inspection_utils import LogicalAnnotator
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import FrozenSet, List, Set
 
 
 def remove_redundant_acquaintance_opportunities(
