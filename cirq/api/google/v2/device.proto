@@ -95,7 +95,7 @@ message ArgumentRange {
 // For instance, all qubit pairs that can be acted on by a 2-qubit gate
 message TargetList {
   // The name of the target list.
-  // This will be referenced in the GateDefintion to denote
+  // This will be referenced in the GateDefinition to denote
   // which targets are valid.
   string name = 1;
 
