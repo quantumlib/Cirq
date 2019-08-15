@@ -55,7 +55,7 @@ message GateDefinition {
 
   // Valid targets that this gate can use.
   // Values in this list correspond to the name of the TargetList
-  // If unset, all combinations using the number of qubits are allowed.
+  // If unset, all combinations with number_of_qubits target are allowed.
   repeated string valid_targets = 5;
 }
 
@@ -108,11 +108,9 @@ message TargetList {
   repeated Target targets = 3;
 }
 
-
 // A description of a valid target of a multi-qubit gate operation
 // For most Google devices, this will be a pair of qubit ids.
 message Target {
   // A list of qubit ids that form a valid gate target.
   repeated string ids = 1;
 }
-
