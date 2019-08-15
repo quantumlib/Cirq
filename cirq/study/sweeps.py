@@ -366,9 +366,6 @@ class ListSweep(Sweep):
     def __len__(self) -> int:
         return len(self.resolver_list)
 
-    def __iter__(self) -> Iterator[resolver.ParamResolver]:
-        return iter(self.resolver_list)
-
     def param_tuples(self) -> Iterator[Params]:
         for r in self.resolver_list:
             yield _params_without_symbols(r)

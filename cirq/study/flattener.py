@@ -207,7 +207,12 @@ class ParamFlattener(ParamResolver):
         Args:
             resolver: The resolver to transform.
         """
-        return _transform_resolver(resolver, self.param_dict)
+        param_dict = {
+            sym: resolve_parameters(formula, resolver)
+            for formula, sym in self.param_dict.items()
+            if isinstance(sym, sympy.Basic)
+        }
+        return ParamResolver(param_dict)
 
 
 class _TransformedSweep(Sweep):
@@ -238,26 +243,13 @@ class _TransformedSweep(Sweep):
     def __len__(self) -> int:
         return len(self.sweep)
 
-    def __iter__(self) -> Iterator[ParamResolver]:
-        for r in self.sweep:
-            yield _transform_resolver(r, self.expression_map)
-
     def param_tuples(self) -> Iterator[Params]:
-        for r in self:
-            yield _params_without_symbols(r)
-
-
-def _transform_resolver(
-        resolver: ParamResolverOrSimilarType,
-        expression_map: Dict[Union[sympy.Basic, float], Union[sympy.
-                                                              Basic, float]]
-) -> ParamResolver:
-    param_dict = {
-        sym: resolve_parameters(formula, resolver)
-        for formula, sym in expression_map.items()
-        if isinstance(sym, sympy.Basic)
-    }
-    return ParamResolver(param_dict)
+        for r in self.sweep:
+            yield {
+                str(sym): resolve_parameters(formula, r)
+                for formula, sym in expression_map.items()
+                if isinstance(sym, (sympy.Basic, str))
+            }
 
 
 @overload
