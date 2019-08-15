@@ -365,6 +365,9 @@ from cirq.neutral_atoms import (
     NeutralAtomDevice,
 )
 
+from cirq.vis import (
+    Heatmap,)
+
 from cirq.work import (
     CircuitSampleJob,
     PauliSumCollector,
