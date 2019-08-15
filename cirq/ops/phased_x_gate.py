@@ -148,7 +148,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                                ) -> protocols.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        if (isinstance(self.phase_exponent, sympy.Symbol) or
+        if (isinstance(self.phase_exponent, sympy.Basic) or
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
         elif isinstance(self.phase_exponent, int):
@@ -187,7 +187,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     @property
     def _canonical_exponent(self):
         period = self._period()
-        if not period or isinstance(self._exponent, sympy.Symbol):
+        if not period or isinstance(self._exponent, sympy.Basic):
             return self._exponent
 
         return self._exponent % period

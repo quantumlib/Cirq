@@ -22,17 +22,21 @@ exec(open('cirq/_version.py').read())
 
 name = 'cirq'
 
-# If CIRQ_DEV_VERSION is set then we use cirq-dev as the name of the package
-# and update the version to this value.
-if 'CIRQ_DEV_VERSION' in os.environ:
-    name = 'cirq-dev'
-    __version__ = os.environ['CIRQ_DEV_VERSION']
-
 description = ('A framework for creating, editing, and invoking '
                'Noisy Intermediate Scale Quantum (NISQ) circuits.')
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
+
+# If CIRQ_DEV_VERSION is set then we use cirq-dev as the name of the package
+# and update the version to this value.
+if 'CIRQ_DEV_VERSION' in os.environ:
+    name = 'cirq-dev'
+    __version__ = os.environ['CIRQ_DEV_VERSION']
+    long_description = (
+        "**This is a development version of Cirq and may be "
+        "unstable.**\n\n**For the latest stable release of Cirq "
+        "see ** `here <https://pypi.org/project/cirq>`__.\n" + long_description)
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
@@ -45,6 +49,9 @@ dev_requirements = [r.strip() for r in dev_requirements]
 cirq_packages = ['cirq'] + [
     'cirq.' + package for package in find_packages(where='cirq')
 ]
+
+# Sanity check
+assert __version__, 'Version string cannot be empty'
 
 setup(name=name,
       version=__version__,
