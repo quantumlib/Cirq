@@ -14,14 +14,12 @@
 
 """An optimization pass that removes operations with tiny effects."""
 
-from typing import TYPE_CHECKING
+from typing import List, Tuple, TYPE_CHECKING
 
 from cirq import protocols
 from cirq.circuits import circuit as _circuit
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List, Tuple
     from cirq import ops
 
 
@@ -35,7 +33,7 @@ class DropNegligible():
         self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: _circuit.Circuit) -> None:
-        deletions = []  # type: List[Tuple[int, ops.Operation]]
+        deletions: List[Tuple[int, ops.Operation]] = []
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
                 if (op is not None and

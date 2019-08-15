@@ -167,6 +167,8 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
+    reset,
+    ResetChannel,
     Rx,
     Ry,
     Rz,
@@ -238,6 +240,7 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
+    SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -361,6 +364,9 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.vis import (
+    Heatmap,)
 
 from cirq.work import (
     CircuitSampleJob,

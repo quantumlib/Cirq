@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """Defines the OptimizationPass type."""
-from typing import (
-    Callable, Iterable, Optional, Sequence, TYPE_CHECKING, Tuple, cast)
+from typing import (Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING,
+                    Tuple, cast)
 
 import abc
 from collections import defaultdict
@@ -23,9 +23,7 @@ from cirq import ops
 from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops import Qid
-    from typing import Dict
 
 
 class PointOptimizationSummary:
@@ -116,7 +114,7 @@ class PointOptimizer:
         """
 
     def optimize_circuit(self, circuit: Circuit):
-        frontier = defaultdict(lambda: 0)  # type: Dict[Qid, int]
+        frontier: Dict['Qid', int] = defaultdict(lambda: 0)
         i = 0
         while i < len(circuit):  # Note: circuit may mutate as we go.
             for op in circuit[i].operations:

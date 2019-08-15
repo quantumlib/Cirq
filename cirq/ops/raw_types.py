@@ -23,9 +23,7 @@ from cirq.protocols import decompose, inverse, qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops import gate_operation, linear_combinations
-    # pylint: enable=unused-import
 
 
 class Qid(metaclass=abc.ABCMeta):
@@ -277,7 +275,8 @@ class Operation(metaclass=abc.ABCMeta):
     effect into a qubit-independent Gate and the qubits it should be applied to.
     """
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()
 

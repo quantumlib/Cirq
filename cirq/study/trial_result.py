@@ -26,7 +26,6 @@ from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 T = TypeVar('T')
