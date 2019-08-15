@@ -8,28 +8,36 @@ branches:
   - master
 before_install:
 - pip install --upgrade pip setuptools wheel
+stages:
+- test
+- name: deploy
+  if: type = push AND branch = master
 matrix:
   include:
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=mypy
     python: '3.6'
     install:
     - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
     script: check/mypy
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=pylint
     python: '3.6'
     install:
     - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v
       "#" | xargs pip install
     script: check/pylint
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=format
     python: '3.6'
     install:
     - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
     script: check/format-incremental
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=pytest-and-incremental-coverage
     python: '3.6'
     install:
@@ -37,14 +45,16 @@ matrix:
     - pip install -r cirq/contrib/contrib-requirements.txt
     - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master --actually-quiet
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=pytest (without contrib)
     python: '3.7'
     install:
     - pip install -r requirements.txt
     - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
-  - os: windows
+  - stage: test
+    os: windows
     env: NAME=pytest (Windows)
     language: sh
     python: '3.7.3'
@@ -60,22 +70,28 @@ matrix:
     - python -m pip install -r cirq/contrib/contrib-requirements.txt
     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip --actually-quiet
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=doctest
     python: '3.6'
     install:
     - pip install -r requirements.txt
     - pip install -r cirq/contrib/contrib-requirements.txt
     script: check/doctest -q
+  - stage: deploy
+    os: linux
+    env: NAME=dev-release
+    python: '3.7'
+    script: source dev_tools/packaging/set-dev-version.sh
 
 before_deploy:
-  - source dev_tools/packaging/set-dev-version.sh
+  - echo "Deploying dev version '$CIRQ_DEV_VERSION'"
 
 deploy:
   - provider: pypi
     user: quantumlibtest
     on:
-      condition: "$CIRQ_DEV_VERSION"
+      condition: '"$CIRQ_DEV_VERSION" == *dev*'
     distributions: "bdist_wheel"
     password:
       secure: mgMHPX1AI7TnZoA3VqK8SWhcldbgoIfOysgI1X60lXbkePsYAjVO1NlgIaATAKpVHLYPlKlrdreJiSrZL+k6ACaTRzV5TN2Y8/vZSwCcDlloEpAj9CProC2DJFJeunL1uqN5kSL4hOSOi9/JlIdfUM7GoiZFUAol/SzQYtDunWozUvVjh8JGiqapjJ46iH8kpeOhgCYD4s7GdQ4L5gwSAlQzc5iu2JGpcRP/cPzB8aKL0Fgxnj+F0ajxgQFda9UNq7eyemRMtqLvaKlWDxeYiGEF6EazyHkN9Yz3r519j/nawLlESiY7kQ1/u0ZMxYfopN+M578uCT99yVRQeSFe7KeF9D5eanuDs1m1ZamkTgW+8Yw4ygZGvHcjkMbks14mCSHOem5Lyxo0DBsxEd4Q+adgBiF33T280qzGQK2IS4mxSk28v8dz9dTLM+0rcBSJkmJ6X61ma4Hi6Pb7pfSOulcudOd/sT3HWBtF4F3UF+XT9WR3SM9CgaEOFlbfPtQo0F/hiAvCn31fOh/Pa4uTisK9flf9MGN75wE8fEKY9KrOCe1eANIQE805I4y8jTsd3fblXhbgGjIvbdRSh1VuHQMS78JVJm7Te+2bQBBRwVrkjlZmuihfByCUBCgf+GVftPO/XjoEQNoSWp23BCOTGeHVmKcR0UfK548lg3bvYsY=
