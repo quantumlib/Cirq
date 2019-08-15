@@ -13,7 +13,8 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Dict, Iterable, Iterator, List, Union
+from typing import (
+    overload, Any, Dict, Iterable, Iterator, List, Optional, Union)
 
 import itertools
 import sympy
@@ -73,7 +74,7 @@ class ParamFlattener(ParamResolver):
         return super().__new__(cls)
 
     def __init__(self,
-                 param_dict: ParamResolverOrSimilarType = None,
+                 param_dict: Optional[ParamResolverOrSimilarType] = None,
                  new_param_names: Iterable[str] = ()):
         """Initializes a new ParamFlattener.
 
@@ -87,16 +88,14 @@ class ParamFlattener(ParamResolver):
                 repetitions.  By default the parameter names are x0, x1, x2, ...
         """
         if isinstance(param_dict, ParamResolver):
-            param_dict = param_dict.param_dict
-        if param_dict is None:
-            param_dict = {}
-        param_dict = {
+            params = param_dict.param_dict
+        else:
+            params = param_dict if param_dict else {}
+        symbol_params = {
             _ensure_not_str(param): _ensure_not_str(val)
-            for param, val in param_dict.items()
+            for param, val in params.items()
         }
-        super().__init__(param_dict)
-        if new_param_names is None:
-            new_param_names = ParamFlattener.default_param_names()
+        super().__init__(symbol_params)
         self._param_name_gen = iter(new_param_names)
         self.new_param_names = new_param_names
         self._taken_symbols = set(self.param_dict.values())
