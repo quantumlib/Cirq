@@ -87,10 +87,13 @@ class ParamFlattener(ParamResolver):
                 repetitions.  By default the parameter names are x0, x1, x2, ...
         """
         if isinstance(param_dict, ParamResolver):
-            param_dict = {
-                _ensure_not_str(param): _ensure_not_str(val)
-                for param, val in param_dict.param_dict.items()
-            }
+            param_dict = param_dict.param_dict
+        if param_dict is None:
+            param_dict = {}
+        param_dict = {
+            _ensure_not_str(param): _ensure_not_str(val)
+            for param, val in param_dict.items()
+        }
         super().__init__(param_dict)
         if new_param_names is None:
             new_param_names = ParamFlattener.default_param_names()
@@ -236,8 +239,8 @@ class _TransformedSweep(Sweep):
     @property
     def keys(self) -> List[str]:
         return [
-            sym for sym in self.expression_map.values()
-            if isinstance(sym, sympy.Basic)
+            str(sym) for sym in self.expression_map.values()
+            if isinstance(sym, (sympy.Symbol, str))
         ]
 
     def __len__(self) -> int:
@@ -245,11 +248,11 @@ class _TransformedSweep(Sweep):
 
     def param_tuples(self) -> Iterator[Params]:
         for r in self.sweep:
-            yield {
-                str(sym): resolve_parameters(formula, r)
-                for formula, sym in expression_map.items()
-                if isinstance(sym, (sympy.Basic, str))
-            }
+            yield tuple(
+                (str(sym), resolve_parameters(formula, r))
+                for formula, sym in self.expression_map.items()
+                if isinstance(sym, (sympy.Symbol, str))
+            )
 
 
 @overload
