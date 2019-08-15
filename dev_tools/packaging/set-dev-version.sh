@@ -30,7 +30,7 @@
 # Which, for example sets $CIRQ_DEV_VERSION to 0.6.0.dev20190813193556.
 ################################################################################
 
-CIRQ_DEV_VERSION="$(
+export CIRQ_DEV_VERSION="$(
   set -e
 
   if ! (return 0 2>/dev/null); then
