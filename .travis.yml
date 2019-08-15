@@ -81,7 +81,7 @@ matrix:
     os: linux
     env: NAME=dev-release
     python: '3.7'
-    script: source dev_tools/packaging/set-dev-version.sh
+    script: source dev_tools/packaging/set-dev-version.sh && head -n -1 cirq/_version.py > temp && echo "__version__ = '$CIRQ_DEV_VERSION'" >> temp && mv temp cirq/_version.py
 
 before_deploy:
   - echo "Deploying dev version '$CIRQ_DEV_VERSION'"
