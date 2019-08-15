@@ -58,9 +58,12 @@ def test_commutes_on_gates_and_gate_operations():
         assert cirq.commutes(A(a, b), B)
         assert cirq.commutes(A, B(a, b))
         assert cirq.commutes(A(a, b), B(a, b))
+        assert cirq.definitely_commutes(A(a, b), B(a, b))
         assert cirq.commutes(A(a, b), B(b, a)) == NotImplemented
+        assert not cirq.definitely_commutes(A(a, b), B(b, a))
     for A, B in [(XGate, XXGate), (XGate, YYGate)]:
         assert cirq.commutes(A, B(a, b)) == NotImplemented
+        assert not cirq.definitely_commutes(A, B(a, b))
         assert cirq.commutes(A(b), B) == NotImplemented
         assert cirq.commutes(A, B) == NotImplemented
     assert cirq.commutes(XGate, cirq.X**sympy.Symbol('e')) == NotImplemented

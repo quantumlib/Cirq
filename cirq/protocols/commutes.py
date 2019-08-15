@@ -24,7 +24,7 @@ TDefault = TypeVar('TDefault')
 
 
 def commutes(left_val: Any,
-             right_val,
+             right_val: Any,
              atol: Union[int, float] = 1e-8,
              default: TDefault = NotImplemented) -> Union[bool, TDefault]:
     """Determines whether two values commute.
@@ -63,6 +63,15 @@ def commutes(left_val: Any,
         if result is not NotImplemented:
             return result
     return default
+
+
+def definitely_commutes(left_val: Any, right_val: Any,
+        atol: Union[int, float] = 1e-8) -> bool:
+    """Determines whether two values definitely commute.
+
+    If the commutation relation cannot be determined, returns False.
+    """
+    return commutes(left_val, right_val, atol, default=False)
 
 
 def _strat_commutes_from_commutes_with(left_val: Any,

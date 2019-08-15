@@ -34,7 +34,8 @@ from cirq.protocols.channel import (
     SupportsChannel,
 )
 from cirq.protocols.commutes import (
-    commutes,)
+    commutes,
+    definitely_commutes)
 from cirq.protocols.control import (
     control,
 )
