@@ -57,7 +57,7 @@ matrix:
     os: windows
     env: NAME=pytest (Windows)
     language: sh
-    python: '3.7.3'
+    python: 3.7.3
     before_install:
     - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
     - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
@@ -83,16 +83,14 @@ matrix:
     env: NAME=dev-release
     python: '3.7'
     script: source dev_tools/packaging/set-dev-version.sh
-
 before_deploy:
-  - echo "Deploying dev version '$CIRQ_DEV_VERSION'"
-
+- echo "Deploying dev version '$CIRQ_DEV_VERSION'"
 deploy:
+  matrix:
   - provider: pypi
-    user: quantumlibtest
+    user: quantumlib
     on:
       condition: '"$CIRQ_DEV_VERSION" == *dev*'
-    distributions: "bdist_wheel"
+    distributions: bdist_wheel
     password:
-      secure: mgMHPX1AI7TnZoA3VqK8SWhcldbgoIfOysgI1X60lXbkePsYAjVO1NlgIaATAKpVHLYPlKlrdreJiSrZL+k6ACaTRzV5TN2Y8/vZSwCcDlloEpAj9CProC2DJFJeunL1uqN5kSL4hOSOi9/JlIdfUM7GoiZFUAol/SzQYtDunWozUvVjh8JGiqapjJ46iH8kpeOhgCYD4s7GdQ4L5gwSAlQzc5iu2JGpcRP/cPzB8aKL0Fgxnj+F0ajxgQFda9UNq7eyemRMtqLvaKlWDxeYiGEF6EazyHkN9Yz3r519j/nawLlESiY7kQ1/u0ZMxYfopN+M578uCT99yVRQeSFe7KeF9D5eanuDs1m1ZamkTgW+8Yw4ygZGvHcjkMbks14mCSHOem5Lyxo0DBsxEd4Q+adgBiF33T280qzGQK2IS4mxSk28v8dz9dTLM+0rcBSJkmJ6X61ma4Hi6Pb7pfSOulcudOd/sT3HWBtF4F3UF+XT9WR3SM9CgaEOFlbfPtQo0F/hiAvCn31fOh/Pa4uTisK9flf9MGN75wE8fEKY9KrOCe1eANIQE805I4y8jTsd3fblXhbgGjIvbdRSh1VuHQMS78JVJm7Te+2bQBBRwVrkjlZmuihfByCUBCgf+GVftPO/XjoEQNoSWp23BCOTGeHVmKcR0UfK548lg3bvYsY=
-    server: https://test.pypi.org/legacy/
+      secure: eRZ9+hXH/aW/dLfZtJ8YXlaXNRU1PU9Hn4/0BsV3SK81gzk7wNiXqQcfI+l3X8/wnESXHRTgo2SC+Az6VyCPhHT/1MupjoEMoGqqiPdV4sKOTNuIkfTA6wfzUNjPqYKosFlnQywdkhASJOLbZsjeDMVWX0ITikWoYoWCQVWnlJSkbWdYvi1+SIIDCXWrMaL4Ets14n9LCg4u+WdPu6wj7HJI+aZjuZTotUweG/DDZXt9M6HMHUabSL2IC5ivVz0dhGY6raoytRfcYG+H7W9//WnVteDRERocZksRgYd469lA0LyqJ8pekwYbEfvaN/GfMqJlbG0at2MwYTg94B2Oxs9R3CnOinsBSO4UYrZC86IGpqMVly8j1jQXoXeojjfULH7uKnIrvEU7AVsze2nUhLbalk8v5WDnX10FMx1v3s8CKqXSpHX1WjuL2mkQ8waSZGDt5vkiyyWHQPs966qI/F1qeyVq6Y+wWUfEFP6JcQrT/kQJ5Fcr17alTFsAGKN9ccimiT/yb/49U7jO4XP0GWi1TtrJ2T+yNqDTY5MVfHUbvZgs5FAP+NToNzt62JzuTQtZRrO2cgJ0w6xeQVFV/OLVtBH63T96Xr1AEO73BebeVjzOn2Lld9i2+uPQZZ7lYLt2mXjGQ7Cdf94Ph/FSkPOvybtK35ACIGr5O+j38tQ=
