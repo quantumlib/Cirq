@@ -37,8 +37,6 @@ if 'CIRQ_DEV_VERSION' in os.environ:
         "**This is a development version of Cirq and may be "
         "unstable.**\n\n**For the latest stable release of Cirq "
         "see **\n`here <https://pypi.org/project/cirq>`__.\n\n" + long_description)
-print(long_description)
-assert False
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
