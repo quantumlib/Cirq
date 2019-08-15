@@ -30,14 +30,14 @@
 # Which, for example sets $CIRQ_DEV_VERSION to 0.6.0.dev20190813193556.
 ################################################################################
 
-CIRQ_DEV_VERSION="$(
+export CIRQ_DEV_VERSION="$(
   set -e
 
   if ! (return 0 2>/dev/null); then
-    echo "Usage:" >&2;
-    echo "  source set-dev-version.sh" >&2;
-    echo >&2;
-    echo "This script sets the environment variable \$CIRQ_DEV_VERSION." >&2;
+    echo "Usage:" >&2
+    echo "  source set-dev-version.sh" >&2
+    echo >&2
+    echo "This script sets the environment variable \$CIRQ_DEV_VERSION." >&2
     exit 1
   fi
 
@@ -51,8 +51,11 @@ CIRQ_DEV_VERSION="$(
   ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
   ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
 
-  if [[ ${ACTUAL_VERSION_LINE} == *"dev"* ]]; then
+  if [[ ${ACTUAL_VERSION} == *"dev" ]]; then
     echo "${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
+  else
+    echo "Version doesn't end in dev: ${ACTUAL_VERSION_LINE}" >&2
+    exit 1
   fi
 
   exit 0

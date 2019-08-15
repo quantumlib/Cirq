@@ -46,6 +46,9 @@ cirq_packages = ['cirq'] + [
     'cirq.' + package for package in find_packages(where='cirq')
 ]
 
+# Sanity check
+assert __version__, 'Version string cannot be empty'
+
 setup(name=name,
       version=__version__,
       url='http://github.com/quantumlib/cirq',
