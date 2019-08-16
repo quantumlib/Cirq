@@ -99,6 +99,10 @@ def test_list_sweep(r_list):
     assert params[3] == (('a', -10), ('b', -9))
 
 
+def test_list_sweep_empty():
+    assert cirq.ListSweep([]).keys == []
+
+
 def test_list_sweep_type_error():
     with pytest.raises(TypeError, match='Not a ParamResolver'):
         _ = cirq.ListSweep([cirq.ParamResolver(), 'bad'])

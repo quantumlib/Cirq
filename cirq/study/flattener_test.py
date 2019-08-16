@@ -17,7 +17,39 @@ import sympy
 import cirq
 
 
-def test_flatten_circuit_sweep():
+@pytest.mark.parametrize('new_names', [
+    ['a', 'b', 'c', 'd'],
+    'abcd',
+    (name for name in 'abcd'),
+])
+def test_flattener_names(new_names):
+    flattener = cirq.ParamFlattener({'p': 'c', 'q': 'x1'}, new_names)
+    print(id(flattener), new_names)
+    expressions = [sympy.Symbol('x') + i for i in range(5)]
+    syms = cirq.resolve_parameters(expressions, flattener)
+    assert syms == [sympy.Symbol(name) for name in ('a', 'b', 'd', 'x0', 'x2')]
+
+
+def test_flattener_value_of():
+    flattener = cirq.ParamFlattener({'c': 5, 'x1': 'x1'})
+    assert flattener.value_of(9) == 9
+    assert flattener.value_of('c') == 5
+    assert flattener.value_of(sympy.Symbol('c')) == 5
+    # Twice
+    assert flattener.value_of(sympy.Symbol('c')+1) == sympy.Symbol('x0')
+    assert flattener.value_of(sympy.Symbol('c')+1) == sympy.Symbol('x0')
+    # Skip 'x1'
+    assert flattener.value_of(sympy.Symbol('c')+2) == sympy.Symbol('x2')
+
+
+def test_flattener_repr():
+    assert repr(cirq.ParamFlattener({'a': 1})) == (
+        "cirq.ParamFlattener({a: 1})")
+    assert repr(cirq.ParamFlattener({'a': 1}, 'abcdef')) == (
+        "cirq.ParamFlattener({a: 1}, new_param_names='abcdef')")
+
+
+def test_flatten_circuit():
     qubit = cirq.LineQubit(0)
     a = sympy.Symbol('a')
     circuit = cirq.Circuit.from_ops(

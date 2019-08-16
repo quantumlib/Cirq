@@ -348,8 +348,6 @@ class ListSweep(Sweep):
             if not isinstance(r, (dict, resolver.ParamResolver)):
                 raise TypeError('Not a ParamResolver or dict: <{!r}>'.format(r))
             self.resolver_list.append(resolver.ParamResolver(r))
-        if len(self.resolver_list) == 0:
-            self.resolver_list = [resolver.ParamResolver({})]
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -361,6 +359,8 @@ class ListSweep(Sweep):
 
     @property
     def keys(self) -> List[str]:
+        if not self.resolver_list:
+            return []
         return list(map(str, self.resolver_list[0].param_dict))
 
     def __len__(self) -> int:

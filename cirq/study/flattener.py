@@ -20,7 +20,7 @@ import itertools
 import sympy
 
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import Sweep, Params, _params_without_symbols
+from cirq.study.sweeps import Sweep, Params
 from cirq.study.sweepable import to_sweep
 from cirq.protocols.resolve_parameters import resolve_parameters
 
@@ -87,6 +87,9 @@ class ParamFlattener(ParamResolver):
                 expression with.  It may be infinite but there must be no
                 repetitions.  By default the parameter names are x0, x1, x2, ...
         """
+        if hasattr(self, '_param_name_gen'):
+            # Has already been initialized
+            return
         if isinstance(param_dict, ParamResolver):
             params = param_dict.param_dict
         else:
@@ -161,8 +164,11 @@ class ParamFlattener(ParamResolver):
     __hash__ = object.__hash__
 
     def __repr__(self):
-        return ('cirq.ParamFlattener({!r}, new_param_names={!r})'.format(
-            self.param_dict, self.new_param_names))
+        if self.new_param_names:
+            return ('cirq.ParamFlattener({!r}, new_param_names={!r})'.format(
+                self.param_dict, self.new_param_names))
+        else:
+            return 'cirq.ParamFlattener({!r})'.format(self.param_dict)
 
     def flatten(self, val: Any) -> Any:
         """Returns a copy of `val` with any symbols or expressions replaced with
