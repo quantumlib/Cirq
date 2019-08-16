@@ -48,7 +48,9 @@ class EjectPhasedPaulis():
     then be removed by the EjectZ optimization).
     """
 
-    def __init__(self, tolerance: float = 1e-8, eject_parameterized: bool = False) -> None:
+    def __init__(self,
+                 tolerance: float = 1e-8,
+                 eject_parameterized: bool = False) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
@@ -69,7 +71,8 @@ class EjectPhasedPaulis():
                 affected = [q for q in op.qubits if q in state.held_w_phases]
 
                 # Collect, phase, and merge Ws.
-                w = _try_get_known_phased_pauli(op, no_symbolic=not self.eject_parameterized)
+                w = _try_get_known_phased_pauli(
+                    op, no_symbolic=not self.eject_parameterized)
                 if w is not None:
                     if decompositions.is_negligible_turn(
                             w[0] - 1,
@@ -86,7 +89,8 @@ class EjectPhasedPaulis():
                     continue
 
                 # Absorb Z rotations.
-                t = _try_get_known_z_half_turns(op, no_symbolic=not self.eject_parameterized)
+                t = _try_get_known_z_half_turns(
+                    op, no_symbolic=not self.eject_parameterized)
                 if t is not None:
                     _absorb_z_into_w(moment_index, op, state)
                     continue
@@ -96,7 +100,9 @@ class EjectPhasedPaulis():
                     _dump_into_measurement(moment_index, op, state)
 
                 # Cross CZs using kickback.
-                if _try_get_known_cz_half_turns(op, no_symbolic=not self.eject_parameterized) is not None:
+                if _try_get_known_cz_half_turns(
+                        op,
+                        no_symbolic=not self.eject_parameterized) is not None:
                     if len(affected) == 1:
                         _single_cross_over_cz(moment_index,
                                               op,
@@ -155,8 +161,8 @@ def _dump_into_measurement(moment_index: int,
                            state: _OptimizerState) -> None:
     measurement = cast(ops.MeasurementGate, cast(ops.GateOperation, op).gate)
     new_measurement = measurement.with_bits_flipped(
-        *[i for i, q in enumerate(op.qubits) if q in state.held_w_phases]
-    ).on(*op.qubits)
+        *[i for i, q in enumerate(op.qubits) if q in state.held_w_phases]).on(
+            *op.qubits)
     for q in op.qubits:
         state.held_w_phases.pop(q, None)
     state.deletions.append((moment_index, op))
@@ -180,8 +186,7 @@ def _potential_cross_whole_w(moment_index: int,
     """
     state.deletions.append((moment_index, op))
 
-    _, phase_exponent = cast(Tuple[TVal, TVal],
-                             _try_get_known_phased_pauli(op))
+    _, phase_exponent = cast(Tuple[TVal, TVal], _try_get_known_phased_pauli(op))
     q = op.qubits[0]
     a = state.held_w_phases.get(q, None)
     b = phase_exponent
@@ -311,8 +316,8 @@ def _double_cross_over_cz(op: ops.Operation,
         state.held_w_phases[q] = cast(TVal, state.held_w_phases[q]) + t / 2
 
 
-def _try_get_known_cz_half_turns(op: ops.Operation, no_symbolic: bool = False
-                                ) -> Optional[TVal]:
+def _try_get_known_cz_half_turns(op: ops.Operation,
+                                 no_symbolic: bool = False) -> Optional[TVal]:
     if (not isinstance(op, ops.GateOperation) or
             not isinstance(op.gate, ops.CZPowGate)):
         return None
@@ -324,8 +329,8 @@ def _try_get_known_cz_half_turns(op: ops.Operation, no_symbolic: bool = False
 
 def _try_get_known_phased_pauli(op: ops.Operation, no_symbolic: bool = False
                                ) -> Optional[Tuple[TVal, TVal]]:
-    if ((no_symbolic and protocols.is_parameterized(op))
-        or not isinstance(op, ops.GateOperation)):
+    if ((no_symbolic and protocols.is_parameterized(op)) or
+            not isinstance(op, ops.GateOperation)):
         return None
     gate = op.gate
 
@@ -343,8 +348,8 @@ def _try_get_known_phased_pauli(op: ops.Operation, no_symbolic: bool = False
     return value.canonicalize_half_turns(e), value.canonicalize_half_turns(p)
 
 
-def _try_get_known_z_half_turns(op: ops.Operation, no_symbolic: bool = False
-                               ) -> Optional[TVal]:
+def _try_get_known_z_half_turns(op: ops.Operation,
+                                no_symbolic: bool = False) -> Optional[TVal]:
     if (not isinstance(op, ops.GateOperation) or
             not isinstance(op.gate, ops.ZPowGate)):
         return None

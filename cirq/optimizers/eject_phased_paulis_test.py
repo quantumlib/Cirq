@@ -32,12 +32,12 @@ def assert_optimizes(before: cirq.Circuit,
     # They should have equivalent effects.
     if compare_unitaries:
         if cirq.is_parameterized(circuit):
-            for a in (0, 0.1, 0.5, -1.0, np.pi, np.pi/2):
-                params = {'x': a, 'y': a/2, 'z': -2*a}
-                (cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
+            for a in (0, 0.1, 0.5, -1.0, np.pi, np.pi / 2):
+                params = {'x': a, 'y': a / 2, 'z': -2 * a}
+                (cirq.testing.
+                 assert_circuits_with_terminal_measurements_are_equivalent(
                      cirq.resolve_parameters(circuit, params),
-                     cirq.resolve_parameters(expected, params),
-                     1e-8))
+                     cirq.resolve_parameters(expected, params), 1e-8))
         else:
             cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
                 circuit, expected, 1e-8)
@@ -101,20 +101,20 @@ def test_absorbs_z():
     assert_optimizes(
         before=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
-            [cirq.Z(q) ** x],
+            [cirq.Z(q)**x],
         ),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.125+x/2).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0.125 + x / 2).on(q)],
             [],
         ),
         eject_parameterized=True)
     assert_optimizes(
         before=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
-            [cirq.Z(q) ** (x+1)],
+            [cirq.Z(q)**(x + 1)],
         ),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.625+x/2).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0.625 + x / 2).on(q)],
             [],
         ),
         eject_parameterized=True)
@@ -136,27 +136,26 @@ def test_absorbs_z():
     assert_optimizes(
         before=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
-            [cirq.S(q) ** x],
-            [cirq.T(q) ** -x],
+            [cirq.S(q)**x],
+            [cirq.T(q)**-x],
         ),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.125+x/8).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0.125 + x / 8).on(q)],
             [],
             [],
         ),
         eject_parameterized=True)
 
     # Parameterized Phase and Partial Z
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
-            [cirq.S(q)],
-        ),
-        expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=x+0.25).on(q)],
-            [],
-        ),
-        eject_parameterized=True)
+    assert_optimizes(before=quick_circuit(
+        [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
+        [cirq.S(q)],
+    ),
+                     expected=quick_circuit(
+                         [cirq.PhasedXPowGate(phase_exponent=x + 0.25).on(q)],
+                         [],
+                     ),
+                     eject_parameterized=True)
 
 
 def test_crosses_czs():
@@ -187,17 +186,16 @@ def test_crosses_czs():
             [cirq.CZ(a, b)],
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(a)],
         ))
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=x).on(a)],
-            [cirq.CZ(b, a)],
-        ),
-        expected=quick_circuit(
-            [cirq.Z(b)],
-            [cirq.CZ(a, b)],
-            [cirq.PhasedXPowGate(phase_exponent=x).on(a)],
-        ),
-        eject_parameterized=True)
+    assert_optimizes(before=quick_circuit(
+        [cirq.PhasedXPowGate(phase_exponent=x).on(a)],
+        [cirq.CZ(b, a)],
+    ),
+                     expected=quick_circuit(
+                         [cirq.Z(b)],
+                         [cirq.CZ(a, b)],
+                         [cirq.PhasedXPowGate(phase_exponent=x).on(a)],
+                     ),
+                     eject_parameterized=True)
 
     # Partial CZ.
     assert_optimizes(
@@ -210,17 +208,16 @@ def test_crosses_czs():
             [cirq.CZ(a, b)**-0.25],
             [cirq.X(a)],
         ))
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.X(a)],
-            [cirq.CZ(a, b)**x],
-        ),
-        expected=quick_circuit(
-            [cirq.Z(b)**x],
-            [cirq.CZ(a, b)**-x],
-            [cirq.X(a)],
-        ),
-        eject_parameterized=True)
+    assert_optimizes(before=quick_circuit(
+        [cirq.X(a)],
+        [cirq.CZ(a, b)**x],
+    ),
+                     expected=quick_circuit(
+                         [cirq.Z(b)**x],
+                         [cirq.CZ(a, b)**-x],
+                         [cirq.X(a)],
+                     ),
+                     eject_parameterized=True)
 
     # Double cross.
     assert_optimizes(
@@ -246,8 +243,10 @@ def test_crosses_czs():
             [],
             [],
             [cirq.CZ(a, b)**z],
-            [cirq.PhasedXPowGate(phase_exponent=y+z/2).on(b),
-             cirq.PhasedXPowGate(phase_exponent=x+z/2).on(a)],
+            [
+                cirq.PhasedXPowGate(phase_exponent=y + z / 2).on(b),
+                cirq.PhasedXPowGate(phase_exponent=x + z / 2).on(a)
+            ],
         ),
         eject_parameterized=True)
 
@@ -276,16 +275,15 @@ def test_toggles_measurements():
             [],
             [cirq.measure(a, b, invert_mask=(False, True))],
         ))
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=x).on(b)],
-            [cirq.measure(a, b)],
-        ),
-        expected=quick_circuit(
-            [],
-            [cirq.measure(a, b, invert_mask=(False, True))],
-        ),
-        eject_parameterized=True)
+    assert_optimizes(before=quick_circuit(
+        [cirq.PhasedXPowGate(phase_exponent=x).on(b)],
+        [cirq.measure(a, b)],
+    ),
+                     expected=quick_circuit(
+                         [],
+                         [cirq.measure(a, b, invert_mask=(False, True))],
+                     ),
+                     eject_parameterized=True)
 
     # Multiple.
     assert_optimizes(
@@ -327,16 +325,15 @@ def test_cancels_other_full_w():
             [],
         ))
 
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
-            [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
-        ),
-        expected=quick_circuit(
-            [],
-            [],
-        ),
-        eject_parameterized=True)
+    assert_optimizes(before=quick_circuit(
+        [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
+        [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
+    ),
+                     expected=quick_circuit(
+                         [],
+                         [],
+                     ),
+                     eject_parameterized=True)
 
     assert_optimizes(
         before=quick_circuit(
@@ -368,16 +365,15 @@ def test_cancels_other_full_w():
             [cirq.Z(q)**-0.5],
         ))
 
-    assert_optimizes(
-        before=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
-            [cirq.PhasedXPowGate(phase_exponent=y).on(q)],
-        ),
-        expected=quick_circuit(
-            [],
-            [cirq.Z(q)**(2*(y-x))],
-        ),
-        eject_parameterized=True)
+    assert_optimizes(before=quick_circuit(
+        [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
+        [cirq.PhasedXPowGate(phase_exponent=y).on(q)],
+    ),
+                     expected=quick_circuit(
+                         [],
+                         [cirq.Z(q)**(2 * (y - x))],
+                     ),
+                     eject_parameterized=True)
 
 
 def test_phases_partial_ws():
@@ -437,7 +433,7 @@ def test_phases_partial_ws():
         ),
         expected=quick_circuit(
             [],
-            [cirq.PhasedXPowGate(phase_exponent=2*x-y, exponent=z).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=2 * x - y, exponent=z).on(q)],
             [cirq.PhasedXPowGate(phase_exponent=x).on(q)],
         ),
         eject_parameterized=True)

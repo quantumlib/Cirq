@@ -106,5 +106,3 @@ def canonicalize_half_turns(
         half_turns -= 2
     return half_turns
 # pylint: enable=function-redefined
-
-
