@@ -13,6 +13,6 @@ from cirq.experiments.qubit_characterizations import (
 )
 
 from cirq.experiments.cross_entropy_benchmarking import (
-    cross_entropy_benchmarking,
     build_entangling_layers,
+    cross_entropy_benchmarking,
 )
