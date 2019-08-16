@@ -89,10 +89,9 @@ before_deploy:
 
 deploy:
   - provider: pypi
-    user: quantumlibtest
+    user: quantumlibdev
     on:
       condition: '"$CIRQ_DEV_VERSION" == *dev*'
     distributions: "bdist_wheel"
     password:
-      secure: mgMHPX1AI7TnZoA3VqK8SWhcldbgoIfOysgI1X60lXbkePsYAjVO1NlgIaATAKpVHLYPlKlrdreJiSrZL+k6ACaTRzV5TN2Y8/vZSwCcDlloEpAj9CProC2DJFJeunL1uqN5kSL4hOSOi9/JlIdfUM7GoiZFUAol/SzQYtDunWozUvVjh8JGiqapjJ46iH8kpeOhgCYD4s7GdQ4L5gwSAlQzc5iu2JGpcRP/cPzB8aKL0Fgxnj+F0ajxgQFda9UNq7eyemRMtqLvaKlWDxeYiGEF6EazyHkN9Yz3r519j/nawLlESiY7kQ1/u0ZMxYfopN+M578uCT99yVRQeSFe7KeF9D5eanuDs1m1ZamkTgW+8Yw4ygZGvHcjkMbks14mCSHOem5Lyxo0DBsxEd4Q+adgBiF33T280qzGQK2IS4mxSk28v8dz9dTLM+0rcBSJkmJ6X61ma4Hi6Pb7pfSOulcudOd/sT3HWBtF4F3UF+XT9WR3SM9CgaEOFlbfPtQo0F/hiAvCn31fOh/Pa4uTisK9flf9MGN75wE8fEKY9KrOCe1eANIQE805I4y8jTsd3fblXhbgGjIvbdRSh1VuHQMS78JVJm7Te+2bQBBRwVrkjlZmuihfByCUBCgf+GVftPO/XjoEQNoSWp23BCOTGeHVmKcR0UfK548lg3bvYsY=
-    server: https://test.pypi.org/legacy/
+      secure: k0S3+TUtUWl/WEa3dY8qeBYXTOEMCdswkzAFyFjOOru4EO0ncSXXoOvcAqlvLPkGYGoFkqKtAbR2HCZU6JBVcGcm/diGmwt1GNXMQjGARyeoARhPEAWLGNlN/whZ1Jcx5i1r+v2Lx8KjsDoF2SaNMJprHCnbnNe6tzxGcX4mKh4lnG4SIIHbwbIhgkAqQhpWyMcx0q3lJvdx4fCh5R1B1ZHWpiO3OGYGZlt4BM9w0qwGSaI2XFHrLUZHJma5ECOsFZ/V5pyJim7vtafi80OTh6IpX83dlADr105bdMICY/p4Lth+7Un45b6PdNzIk3/xg9e3RCn3H1ajaYukBTOfwM9hbzw3XKePng/MVC8J6MZAgZxG9RnyyTAyidz7/IhTqex2gTiy7CYZllyIvrXpru2Kx6n9VmRIILbHlo/Y6hPyAv9mfzmyo3Ijg9llaLr+wjjJ+uvLDSrXAMH5kwjAh4EQVaQ6bAgn7R+7oPIgvKR8OiI8d0rp8LUwv83pf1wSW5CQuGJLAuJehKyIpqerfaPD+VW4GbsIbaOm//Z7w64HlxfJwZMbN0muhB96eBAroD3uCY/BYzbKX1Ar30L3Pga+eh+as1sMZuNDS3tXJktaWqOY7FLQDZAkhR6B4QIXvRVrkIj6/Rtzz+gnB8DPgvBwG2A/yZdkXPmhzGf/da0=
