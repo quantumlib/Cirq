@@ -22,7 +22,7 @@ message DeviceSpecification {
   repeated string valid_qubits = 2;
 
   // A list of targets that gates can use.
-  repeated TargetList valid_targets = 3;
+  repeated TargetSet valid_targets = 3;
 
   // Additional recommendations, caveats, and soft requirements that
   // are advice to users of the device, specified in English text
@@ -54,7 +54,7 @@ message GateDefinition {
   int64 gate_duration_picos = 4;
 
   // Valid targets that this gate can use.
-  // Values in this list correspond to the name of the TargetList
+  // Values in this list correspond to the name of the TargetSet
   // If unset, all combinations with number_of_qubits target are allowed.
   repeated string valid_targets = 5;
 }
@@ -62,26 +62,27 @@ message GateDefinition {
 // A description of an argument to an operation.
 message ArgDefinition {
 
-    enum ArgType {
-       UNSPECIFIED = 0;
-       FLOAT = 1;
-       REPEATED_BOOLEAN = 2;
-       STRING = 3;
-    }
+  // Note: This should be kept in sync with the ArgValue proto
+  enum ArgType {
+     UNSPECIFIED = 0;
+     FLOAT = 1;
+     REPEATED_BOOLEAN = 2;
+     STRING = 3;
+  }
 
-    // The name of the argument
-    // This corresponds to the valid key values for the
-    // map value of Operation.args
-    string name = 1;
+  // The name of the argument
+  // This corresponds to the valid key values for the
+  // map value of Operation.args
+  string name = 1;
 
-    // The type of the argument.
-    // This should correspond to the legal assignment
-    // of the Arg.arg oneof for this argument
-    ArgType type = 2;
+  // The type of the argument.
+  // This should correspond to the legal assignment
+  // of the Arg.arg oneof for this argument
+  ArgType type = 2;
 
-    // This should only be populated for type FLOAT.
-    // If not set, all float values are allowed.
-    repeated ArgumentRange allowed_ranges =3;
+  // This should only be populated for type FLOAT.
+  // If not set, all float values are allowed.
+  repeated ArgumentRange allowed_ranges =3;
 }
 
 // Minimum value is inclusive and maximum value is exclusive.
@@ -93,16 +94,31 @@ message ArgumentRange {
 
 // A list of targets that are valid for a set of gates.
 // For instance, all qubit pairs that can be acted on by a 2-qubit gate
-message TargetList {
+message TargetSet {
+  enum TargetOrdering {
+    UNSPECIFIED = 0;
+
+    // Symmetric gates, any id order within each target is valid.
+    SYMMETRIC = 1;
+
+    // Asymmetric gates, the order of ids in each target is important.
+    // Only the order specified in each target is valid.
+    ASYMMETRIC = 2;
+
+    // All targets should be single qubits.  Any subset of these targets
+    // should be considered valid.
+    // (For example, if measurement is possible on a subset of qubits)
+    SUBSET_PERMUTATION = 3;
+  }
+
   // The name of the target list.
   // This will be referenced in the GateDefinition to denote
   // which targets are valid.
   string name = 1;
 
-  // If set to true, any order of the targets is valid.
-  // If false, then the order of the targets matters and must match the order in
-  // the targets list.
-  bool is_symmetric = 2;
+  // The type of ordering of the ids within each target in this set.
+  // For instance, if the ids within each target are symmetric.
+  TargetOrdering target_ordering = 2;
 
   // A list of targets that are valid
   repeated Target targets = 3;

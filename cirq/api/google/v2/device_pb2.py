@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.api.google.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.api.google.v2B\013DeviceProtoP\001'),
-  serialized_pb=_b('\n\x1f\x63irq/api/google/v2/device.proto\x12\x12\x63irq.api.google.v2\"\xbb\x01\n\x13\x44\x65viceSpecification\x12\x34\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.api.google.v2.GateSet\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x35\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1e.cirq.api.google.v2.TargetList\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.api.google.v2.GateDefinition\"\xa1\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\x12\x15\n\rvalid_targets\x18\x05 \x03(\t\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.api.google.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"]\n\nTargetList\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x0cis_symmetric\x18\x02 \x01(\x08\x12+\n\x07targets\x18\x03 \x03(\x0b\x32\x1a.cirq.api.google.v2.Target\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB.\n\x1d\x63om.google.cirq.api.google.v2B\x0b\x44\x65viceProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x1f\x63irq/api/google/v2/device.proto\x12\x12\x63irq.api.google.v2\"\xba\x01\n\x13\x44\x65viceSpecification\x12\x34\n\x0fvalid_gate_sets\x18\x01 \x03(\x0b\x32\x1b.cirq.api.google.v2.GateSet\x12\x14\n\x0cvalid_qubits\x18\x02 \x03(\t\x12\x34\n\rvalid_targets\x18\x03 \x03(\x0b\x32\x1d.cirq.api.google.v2.TargetSet\x12!\n\x19\x64\x65veloper_recommendations\x18\x04 \x01(\t\"P\n\x07GateSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x0bvalid_gates\x18\x02 \x03(\x0b\x32\".cirq.api.google.v2.GateDefinition\"\xa1\x01\n\x0eGateDefinition\x12\n\n\x02id\x18\x01 \x01(\t\x12\x18\n\x10number_of_qubits\x18\x02 \x01(\x05\x12\x35\n\nvalid_args\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgDefinition\x12\x1b\n\x13gate_duration_picos\x18\x04 \x01(\x03\x12\x15\n\rvalid_targets\x18\x05 \x03(\t\"\xda\x01\n\rArgDefinition\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x37\n\x04type\x18\x02 \x01(\x0e\x32).cirq.api.google.v2.ArgDefinition.ArgType\x12\x39\n\x0e\x61llowed_ranges\x18\x03 \x03(\x0b\x32!.cirq.api.google.v2.ArgumentRange\"G\n\x07\x41rgType\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x14\n\x10REPEATED_BOOLEAN\x10\x02\x12\n\n\x06STRING\x10\x03\"=\n\rArgumentRange\x12\x15\n\rminimum_value\x18\x01 \x01(\x02\x12\x15\n\rmaximum_value\x18\x02 \x01(\x02\"\xe7\x01\n\tTargetSet\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x45\n\x0ftarget_ordering\x18\x02 \x01(\x0e\x32,.cirq.api.google.v2.TargetSet.TargetOrdering\x12+\n\x07targets\x18\x03 \x03(\x0b\x32\x1a.cirq.api.google.v2.Target\"X\n\x0eTargetOrdering\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\r\n\tSYMMETRIC\x10\x01\x12\x0e\n\nASYMMETRIC\x10\x02\x12\x16\n\x12SUBSET_PERMUTATION\x10\x03\"\x15\n\x06Target\x12\x0b\n\x03ids\x18\x01 \x03(\tB.\n\x1d\x63om.google.cirq.api.google.v2B\x0b\x44\x65viceProtoP\x01\x62\x06proto3')
 )
 
 
@@ -49,10 +49,40 @@ _ARGDEFINITION_ARGTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=639,
-  serialized_end=710,
+  serialized_start=638,
+  serialized_end=709,
 )
 _sym_db.RegisterEnumDescriptor(_ARGDEFINITION_ARGTYPE)
+
+_TARGETSET_TARGETORDERING = _descriptor.EnumDescriptor(
+  name='TargetOrdering',
+  full_name='cirq.api.google.v2.TargetSet.TargetOrdering',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='UNSPECIFIED', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SYMMETRIC', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ASYMMETRIC', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='SUBSET_PERMUTATION', index=3, number=3,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=918,
+  serialized_end=1006,
+)
+_sym_db.RegisterEnumDescriptor(_TARGETSET_TARGETORDERING)
 
 
 _DEVICESPECIFICATION = _descriptor.Descriptor(
@@ -103,7 +133,7 @@ _DEVICESPECIFICATION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=56,
-  serialized_end=243,
+  serialized_end=242,
 )
 
 
@@ -140,8 +170,8 @@ _GATESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=245,
-  serialized_end=325,
+  serialized_start=244,
+  serialized_end=324,
 )
 
 
@@ -199,8 +229,8 @@ _GATEDEFINITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=328,
-  serialized_end=489,
+  serialized_start=327,
+  serialized_end=488,
 )
 
 
@@ -245,8 +275,8 @@ _ARGDEFINITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=492,
-  serialized_end=710,
+  serialized_start=491,
+  serialized_end=709,
 )
 
 
@@ -283,34 +313,34 @@ _ARGUMENTRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=712,
-  serialized_end=773,
+  serialized_start=711,
+  serialized_end=772,
 )
 
 
-_TARGETLIST = _descriptor.Descriptor(
-  name='TargetList',
-  full_name='cirq.api.google.v2.TargetList',
+_TARGETSET = _descriptor.Descriptor(
+  name='TargetSet',
+  full_name='cirq.api.google.v2.TargetSet',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='name', full_name='cirq.api.google.v2.TargetList.name', index=0,
+      name='name', full_name='cirq.api.google.v2.TargetSet.name', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='is_symmetric', full_name='cirq.api.google.v2.TargetList.is_symmetric', index=1,
-      number=2, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
+      name='target_ordering', full_name='cirq.api.google.v2.TargetSet.target_ordering', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='targets', full_name='cirq.api.google.v2.TargetList.targets', index=2,
+      name='targets', full_name='cirq.api.google.v2.TargetSet.targets', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -321,6 +351,7 @@ _TARGETLIST = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _TARGETSET_TARGETORDERING,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -329,7 +360,7 @@ _TARGETLIST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=775,
-  serialized_end=868,
+  serialized_end=1006,
 )
 
 
@@ -359,24 +390,26 @@ _TARGET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=870,
-  serialized_end=891,
+  serialized_start=1008,
+  serialized_end=1029,
 )
 
 _DEVICESPECIFICATION.fields_by_name['valid_gate_sets'].message_type = _GATESET
-_DEVICESPECIFICATION.fields_by_name['valid_targets'].message_type = _TARGETLIST
+_DEVICESPECIFICATION.fields_by_name['valid_targets'].message_type = _TARGETSET
 _GATESET.fields_by_name['valid_gates'].message_type = _GATEDEFINITION
 _GATEDEFINITION.fields_by_name['valid_args'].message_type = _ARGDEFINITION
 _ARGDEFINITION.fields_by_name['type'].enum_type = _ARGDEFINITION_ARGTYPE
 _ARGDEFINITION.fields_by_name['allowed_ranges'].message_type = _ARGUMENTRANGE
 _ARGDEFINITION_ARGTYPE.containing_type = _ARGDEFINITION
-_TARGETLIST.fields_by_name['targets'].message_type = _TARGET
+_TARGETSET.fields_by_name['target_ordering'].enum_type = _TARGETSET_TARGETORDERING
+_TARGETSET.fields_by_name['targets'].message_type = _TARGET
+_TARGETSET_TARGETORDERING.containing_type = _TARGETSET
 DESCRIPTOR.message_types_by_name['DeviceSpecification'] = _DEVICESPECIFICATION
 DESCRIPTOR.message_types_by_name['GateSet'] = _GATESET
 DESCRIPTOR.message_types_by_name['GateDefinition'] = _GATEDEFINITION
 DESCRIPTOR.message_types_by_name['ArgDefinition'] = _ARGDEFINITION
 DESCRIPTOR.message_types_by_name['ArgumentRange'] = _ARGUMENTRANGE
-DESCRIPTOR.message_types_by_name['TargetList'] = _TARGETLIST
+DESCRIPTOR.message_types_by_name['TargetSet'] = _TARGETSET
 DESCRIPTOR.message_types_by_name['Target'] = _TARGET
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -415,12 +448,12 @@ ArgumentRange = _reflection.GeneratedProtocolMessageType('ArgumentRange', (_mess
   ))
 _sym_db.RegisterMessage(ArgumentRange)
 
-TargetList = _reflection.GeneratedProtocolMessageType('TargetList', (_message.Message,), dict(
-  DESCRIPTOR = _TARGETLIST,
+TargetSet = _reflection.GeneratedProtocolMessageType('TargetSet', (_message.Message,), dict(
+  DESCRIPTOR = _TARGETSET,
   __module__ = 'cirq.api.google.v2.device_pb2'
-  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.TargetList)
+  # @@protoc_insertion_point(class_scope:cirq.api.google.v2.TargetSet)
   ))
-_sym_db.RegisterMessage(TargetList)
+_sym_db.RegisterMessage(TargetSet)
 
 Target = _reflection.GeneratedProtocolMessageType('Target', (_message.Message,), dict(
   DESCRIPTOR = _TARGET,
