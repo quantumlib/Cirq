@@ -15,7 +15,7 @@
 
 import numpy as np
 
-from cirq import value
+from cirq import value, protocols
 from cirq.ops import raw_types
 
 
@@ -62,3 +62,6 @@ class GlobalPhaseOperation(raw_types.Operation):
 
     def __repr__(self):
         return 'cirq.GlobalPhaseOperation({!r})'.format(self.coefficient)
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['coefficient'])

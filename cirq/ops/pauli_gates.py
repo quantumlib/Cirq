@@ -59,7 +59,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     ) -> Tuple[complex, Union['Pauli', 'common_gates.IdentityGate']]:
         if self == other:
             return 1, common_gates.I
-        return 1j**other.relative_index(self), self.third(other)
+        return 1j ** other.relative_index(self), self.third(other)
 
     def __gt__(self, other):
         if not isinstance(other, Pauli):
@@ -94,6 +94,11 @@ class _PauliX(Pauli, common_gates.XPowGate):
                 exponent: Union[sympy.Basic, float]) -> common_gates.XPowGate:
         return common_gates.XPowGate(exponent=exponent)
 
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
+
 
 class _PauliY(Pauli, common_gates.YPowGate):
     def __init__(self, *, exponent: Union[sympy.Basic, float] = 1.0):
@@ -103,6 +108,11 @@ class _PauliY(Pauli, common_gates.YPowGate):
     def __pow__(self: '_PauliY',
                 exponent: Union[sympy.Basic, float]) -> common_gates.YPowGate:
         return common_gates.YPowGate(exponent=exponent)
+
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
@@ -114,6 +124,11 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
                 exponent: Union[sympy.Basic, float]) -> common_gates.ZPowGate:
         return common_gates.ZPowGate(exponent=exponent)
 
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
+
 
 # The Pauli X gate.
 #
@@ -123,7 +138,6 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
 #    [1, 0]]
 X = _PauliX()
 
-
 # The Pauli Y gate.
 #
 # Matrix:
@@ -132,7 +146,6 @@ X = _PauliX()
 #      [i, 0]]
 Y = _PauliY()
 
-
 # The Pauli Z gate.
 #
 # Matrix:
@@ -140,6 +153,5 @@ Y = _PauliY()
 #     [[1, 0],
 #      [0, -1]]
 Z = _PauliZ()
-
 
 Pauli._XYZ = (X, Y, Z)

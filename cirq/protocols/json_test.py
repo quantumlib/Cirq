@@ -73,32 +73,59 @@ def test_op_roundtrip():
 
 
 PREP_FUNCTIONS = {
-    'CCXPowGate': lambda: cirq.CCNOT(*cirq.LineQubit.range(3)),
-    'CCZPowGate': lambda: cirq.CCZ(*cirq.LineQubit.range(3)),
-    'CNotPowGate': lambda: cirq.CNOT(*cirq.LineQubit.range(2)) ** 2,
-    'CZPowGate': lambda: cirq.CZ(*cirq.LineQubit.range(2)),
-    'EigenGate': lambda: None,
-    'GateOperation': lambda: None,
-    'GridQubit': lambda: cirq.GridQubit(10, 11),
-    'HPowGate': lambda: cirq.H(cirq.GridQubit(10, 11)),
-    'ISwapPowGate': lambda: cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.5,
-    'LineQubit': lambda: cirq.LineQubit(0),
-    'PauliInteractionGate': lambda: None,
-    'SingleQubitPauliStringGateOperation': lambda: None,
-    'SwapPowGate': lambda: cirq.SWAP(*cirq.LineQubit.range(2)),
-    'XPowGate': lambda: cirq.X(cirq.LineQubit(5)) ** 123,
-    'XXPowGate': lambda: cirq.XX(*cirq.LineQubit.range(2)),
-    'YPowGate': lambda: cirq.Y(cirq.LineQubit(10)) ** 0.123,
-    'YYPowGate': lambda: cirq.YY(*cirq.LineQubit.range(2)),
-    'ZPowGate': lambda: cirq.Z(cirq.LineQubit(0)) ** 0.5,
-    'ZZPowGate': lambda: cirq.ZZ(*cirq.LineQubit.range(2)),
+    'CCXPowGate': [cirq.CCNOT, cirq.TOFFOLI, cirq.CCX ** 0.123],
+    'CCZPowGate': cirq.CCZ,
+    'CNotPowGate': cirq.CNOT,
+    'CSwapGate': cirq.CSWAP,
+    'CZPowGate': cirq.CZ,
+    'FSimGate': cirq.FSimGate(theta=0.123, phi=.456),
+    'GateOperation': [
+        cirq.CCNOT(*cirq.LineQubit.range(3)),
+        cirq.CCZ(*cirq.LineQubit.range(3)),
+        cirq.CNOT(*cirq.LineQubit.range(2)),
+        # TODO: https://github.com/quantumlib/Cirq/issues/1972
+        # cirq.CSWAP(*cirq.LineQubit.range(3)),
+        cirq.CZ(*cirq.LineQubit.range(2))
+    ],
+    'GlobalPhaseOperation': cirq.GlobalPhaseOperation(-1j),
+    'GridQubit': cirq.GridQubit(10, 11),
+    'HPowGate': [cirq.H, cirq.H ** 0.123],
+    'ISwapPowGate': [cirq.ISWAP, cirq.ISWAP ** 0.123],
+    'IdentityGate': [cirq.I, cirq.IdentityGate(num_qubits=5)],
+    'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
+    'MeasurementGate': [
+        cirq.MeasurementGate(num_qubits=3, key='z'),
+        cirq.MeasurementGate(num_qubits=3, key='z',
+                             invert_mask=(True, False, True)),
+    ],
+    '_PauliX': cirq.X,
+    '_PauliY': cirq.Y,
+    '_PauliZ': cirq.Z,
+    'SwapPowGate': [cirq.SWAP, cirq.SWAP ** 0.5],
+    'XPowGate': cirq.X ** 0.123,
+    'XXPowGate': [cirq.XX, cirq.XX ** 0.123],
+    'YPowGate': cirq.Y ** 0.456,
+    'YYPowGate': [cirq.YY, cirq.YY ** 0.456],
+    'ZPowGate': cirq.Z ** 0.789,
+    'ZZPowGate': [cirq.ZZ, cirq.ZZ ** 0.789],
+    'complex': [1 + 2j],
 }
 
 
-@pytest.mark.parametrize('cirq_type',
+@pytest.mark.parametrize('cirq_type,cls',
                          cirq.protocols.json.RESOLVER_CACHE
-                         .cirq_class_resolver_dictionary.keys())
-def test_all_roundtrip(cirq_type: str):
-    prep_func = PREP_FUNCTIONS[cirq_type]
-    obj = prep_func()
-    assert_roundtrip(obj)
+                         .cirq_class_resolver_dictionary.items())
+def test_all_roundtrip(cirq_type: str, cls):
+    if cirq_type == 'CSwapGate':
+        return pytest.xfail(reason='https://github.com/quantumlib/Cirq/issues/1972')
+
+    objs = PREP_FUNCTIONS[cirq_type]
+    if not isinstance(objs, list):
+        objs = [objs]
+
+    for obj in objs:
+        assert isinstance(obj, cls)
+
+        # more strict: must be exact (no subclasses)
+        assert type(obj) == cls
+        assert_roundtrip(obj)

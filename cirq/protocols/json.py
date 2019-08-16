@@ -55,7 +55,7 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
-                # 'CSwapGate': cirq.CSwapGate,
+                'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 # 'Circuit': cirq.Circuit,
                 # 'CircuitDag': cirq.CircuitDag,
@@ -64,6 +64,7 @@ class _ResolverCache:
                 # 'CircuitSampleJob': cirq.CircuitSampleJob,
                 # 'ComputeDisplaysResult': cirq.ComputeDisplaysResult,
                 # 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
+                # TODO: https://github.com/quantumlib/Cirq/issues/1973
                 # 'ControlledGate': cirq.ControlledGate,
                 # 'ControlledOperation': cirq.ControlledOperation,
                 # 'ConvertToCzAndSingleGates': cirq.ConvertToCzAndSingleGates,
@@ -79,19 +80,17 @@ class _ResolverCache:
                 # 'DropEmptyMoments': cirq.DropEmptyMoments,
                 # 'DropNegligible': cirq.DropNegligible,
                 # 'Duration': cirq.Duration,
-                'EigenGate': cirq.EigenGate,
                 # 'EjectPhasedPaulis': cirq.EjectPhasedPaulis,
                 # 'EjectZ': cirq.EjectZ,
                 # 'ExpandComposite': cirq.ExpandComposite,
-                # 'FSimGate': cirq.FSimGate,
-                # 'Gate': cirq.Gate,
+                'FSimGate': cirq.FSimGate,
                 'GateOperation': cirq.GateOperation,
                 # 'GeneralizedAmplitudeDampingChannel': cirq.GeneralizedAmplitudeDampingChannel,
-                # 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+                'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
-                # 'IdentityGate': cirq.IdentityGate,
+                'IdentityGate': cirq.IdentityGate,
                 # 'InsertStrategy': cirq.InsertStrategy,
                 # 'InterchangeableQubitsGate': cirq.InterchangeableQubitsGate,
                 # 'IonDevice': cirq.IonDevice,
@@ -101,7 +100,7 @@ class _ResolverCache:
                 # 'LinearCombinationOfOperations': cirq.LinearCombinationOfOperations,
                 # 'LinearDict': cirq.LinearDict,
                 # 'Linspace': cirq.Linspace,
-                # 'MeasurementGate': cirq.MeasurementGate,
+                'MeasurementGate': cirq.MeasurementGate,
                 # 'MergeInteractions': cirq.MergeInteractions,
                 # 'MergeSingleQubitGates': cirq.MergeSingleQubitGates,
                 # 'Moment': cirq.Moment,
@@ -113,7 +112,10 @@ class _ResolverCache:
                 # 'ParamResolver': cirq.ParamResolver,
                 # 'ParamResolverOrSimilarType': cirq.ParamResolverOrSimilarType,
                 # 'Pauli': cirq.Pauli,
-                'PauliInteractionGate': cirq.PauliInteractionGate,
+                '_PauliX': cirq.ops.pauli_gates._PauliX,
+                '_PauliY': cirq.ops.pauli_gates._PauliY,
+                '_PauliZ': cirq.ops.pauli_gates._PauliZ,
+                # 'PauliInteractionGate': cirq.PauliInteractionGate,
                 # 'PauliString': cirq.PauliString,
                 # 'PauliStringExpectation': cirq.PauliStringExpectation,
                 # 'PauliStringGateOperation': cirq.PauliStringGateOperation,
@@ -150,7 +152,7 @@ class _ResolverCache:
                 # 'SingleQubitCliffordGate': cirq.SingleQubitCliffordGate,
                 # 'SingleQubitGate': cirq.SingleQubitGate,
                 # 'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
-                'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
+                # 'SingleQubitPauliStringGateOperation': cirq.SingleQubitPauliStringGateOperation,
                 # 'SparseSimulatorStep': cirq.SparseSimulatorStep,
                 # 'StateVectorMixin': cirq.StateVectorMixin,
                 # 'StepResult': cirq.StepResult,
@@ -193,6 +195,9 @@ class _ResolverCache:
                 'YYPowGate': cirq.YYPowGate,
                 'ZPowGate': cirq.ZPowGate,
                 'ZZPowGate': cirq.ZZPowGate,
+
+                # not a cirq class, but treated as one:
+                'complex': complex,
             }
         return self._crd
 
@@ -238,6 +243,12 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
+        if isinstance(o, complex):
+            return {
+                'cirq_type': 'complex',
+                'real': o.real,
+                'imag': o.imag,
+            }
         if isinstance(o, np.ndarray):
             return o.tolist()
         if isinstance(o, np.int_):
