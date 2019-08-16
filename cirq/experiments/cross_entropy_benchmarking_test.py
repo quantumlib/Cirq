@@ -67,5 +67,5 @@ def test_cross_entropy_benchmarking():
     assert np.isclose(np.mean(fidelities_2), 1.0, atol=0.1)
     assert len(fidelities_3) == 1
 
-    # Sanity test that plot does not barf.
+    # Sanity test that plot runs.
     results_1.plot()
