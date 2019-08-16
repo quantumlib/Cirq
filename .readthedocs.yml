@@ -5,6 +5,5 @@ python:
   version: 3.6
   pip_install: true
 
-  install:
-      - requirements: contrib/contrib-requirements.txt
-      - requirements: requirements.txt
+  extra_requirements:
+           - contrib
