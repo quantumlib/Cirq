@@ -34,9 +34,14 @@ from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 
 from cirq.google.engine import (
-    engine_from_environment,
+    Calibration,
     Engine,
+    engine_from_environment,
+    EngineJob,
+    EngineProgram,
     JobConfig,
+    ProtoVersion,
+    QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (

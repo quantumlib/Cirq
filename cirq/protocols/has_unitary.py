@@ -30,7 +30,6 @@ from typing_extensions import Protocol
 from cirq.protocols import qid_shape_protocol
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 TDefault = TypeVar('TDefault')

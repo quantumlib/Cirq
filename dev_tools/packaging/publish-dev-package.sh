@@ -43,22 +43,22 @@
 
 PROJECT_NAME=cirq
 set -e
-trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 EXPECTED_VERSION=$1
 PROD_SWITCH=$2
 
 if [ -z "${EXPECTED_VERSION}" ]; then
-    echo -e "\e[31mFirst argument must be the expected version.\e[0m"
+    echo -e "\033[31mFirst argument must be the expected version.\033[0m"
     exit 1
 fi
 if [[ "${EXPECTED_VERSION}" != *dev* ]]; then
-  echo -e "\e[31mExpected version must include 'dev'.\e[0m"
+  echo -e "\033[31mExpected version must include 'dev'.\033[0m"
   exit 1
 fi
 ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
 if [ "${ACTUAL_VERSION_LINE}" != '__version__ = "'"${EXPECTED_VERSION}"'"' ]; then
-  echo -e "\e[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\e[0m"
+  echo -e "\033[31mExpected version (${EXPECTED_VERSION}) didn't match the one in ${PROJECT_NAME}/_version.py (${ACTUAL_VERSION_LINE}).\033[0m"
   exit 1
 fi
 
@@ -68,11 +68,11 @@ if [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--test" ]; then
     USERNAME="${TEST_TWINE_USERNAME}"
     PASSWORD="${TEST_TWINE_PASSWORD}"
     if [ -z "${USERNAME}" ]; then
-      echo -e "\e[31mTEST_TWINE_USERNAME environment variable must be set.\e[0m"
+      echo -e "\033[31mTEST_TWINE_USERNAME environment variable must be set.\033[0m"
       exit 1
     fi
     if [ -z "${PASSWORD}" ]; then
-      echo -e "\e[31mTEST_TWINE_PASSWORD environment variable must be set.\e[0m"
+      echo -e "\033[31mTEST_TWINE_PASSWORD environment variable must be set.\033[0m"
       exit 1
     fi
 elif [ "${PROD_SWITCH}" = "--prod" ]; then
@@ -81,21 +81,21 @@ elif [ "${PROD_SWITCH}" = "--prod" ]; then
     USERNAME="${PROD_TWINE_USERNAME}"
     PASSWORD="${PROD_TWINE_PASSWORD}"
     if [ -z "${USERNAME}" ]; then
-      echo -e "\e[31mPROD_TWINE_USERNAME environment variable must be set.\e[0m"
+      echo -e "\033[31mPROD_TWINE_USERNAME environment variable must be set.\033[0m"
       exit 1
     fi
     if [ -z "${PASSWORD}" ]; then
-      echo -e "\e[31mPROD_TWINE_PASSWORD environment variable must be set.\e[0m"
+      echo -e "\033[31mPROD_TWINE_PASSWORD environment variable must be set.\033[0m"
       exit 1
     fi
 else
-    echo -e "\e[31mSecond argument must be empty, '--test' or '--prod'.\e[0m"
+    echo -e "\033[31mSecond argument must be empty, '--test' or '--prod'.\033[0m"
     exit 1
 fi
 
 
 UPLOAD_VERSION="${EXPECTED_VERSION}$(date "+%Y%m%d%H%M%S")"
-echo -e "Producing package with version \e[33m\e[100m${UPLOAD_VERSION}\e[0m to upload to \e[33m\e[100m${PYPI_REPO_NAME}\e[0m pypi repository"
+echo -e "Producing package with version \033[33m\033[100m${UPLOAD_VERSION}\033[0m to upload to \033[33m\033[100m${PYPI_REPO_NAME}\033[0m pypi repository"
 
 # Get the working directory to the repo root.
 cd "$( dirname "${BASH_SOURCE[0]}" )"
@@ -109,4 +109,4 @@ trap "{ rm -rf ${tmp_package_dir}; }" EXIT
 dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
 twine upload --username="${USERNAME}" --password="${PASSWORD}" ${PYPI_REPOSITORY_FLAG} "${tmp_package_dir}/*"
 
-echo -e "\e[32mUploaded package with version ${UPLOAD_VERSION} to ${PYPI_REPO_NAME} pypi repository\e[0m"
+echo -e "\033[32mUploaded package with version ${UPLOAD_VERSION} to ${PYPI_REPO_NAME} pypi repository\033[0m"
