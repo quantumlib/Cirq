@@ -307,8 +307,7 @@ def test_unsupported_program_type(build):
         engine.run(program="this isn't even the right type of thing!")
 
 
-@mock.patch.object(discovery, 'build')
-def test_run_circuit_failed(build):
+def setup_run_circuit_(build, job_return_value):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
@@ -318,12 +317,90 @@ def test_run_circuit_failed(build):
     jobs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'READY'}}
-    jobs.get().execute.return_value = {
+    jobs.get().execute.return_value = job_return_value
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_circuit_failed(build):
+    job_return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'FAILURE'}}
+        'executionStatus': {
+            'state': 'FAILURE',
+            'processorName': 'myqc',
+            'failure': {
+                'errorCode': 'MY_OH_MY',
+                'errorMessage': 'Not good'
+            }
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
 
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(RuntimeError, match='It is in state FAILURE'):
+    with pytest.raises(RuntimeError, match='myqc'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='MY_OH_MY'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='Not good'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='jobs/test'):
+        engine.run(program=_CIRCUIT)
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_circuit_failed_missing_processor_name(build):
+    job_return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'FAILURE',
+            'failure': {
+                'errorCode': 'MY_OH_MY',
+                'errorMessage': 'Not good'
+            }
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
+
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='UNKNOWN'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='MY_OH_MY'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='Not good'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='jobs/test'):
+        engine.run(program=_CIRCUIT)
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_circuit_cancelled(build):
+    job_return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'CANCELLED',
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
+
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='CANCELLED'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='jobs/test'):
+        engine.run(program=_CIRCUIT)
+
+
+@mock.patch.object(discovery, 'build')
+@mock.patch('time.sleep', return_value=None)
+def test_run_circuit_timeout(build, patched_time_sleep):
+    job_return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'RUNNING',
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
+
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='Timed out'):
         engine.run(program=_CIRCUIT)
 
 

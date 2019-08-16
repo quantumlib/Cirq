@@ -667,6 +667,9 @@ def test_density_matrix_trial_result_str():
         measurements={},
         final_simulator_state=final_simulator_state)
 
-    assert str(result) == ('measurements: (no measurements)\n'
-                           'final density matrix:\n'
-                           '[[0.5 0.5]\n [0.5 0.5]]')
+    # numpy varies whitespace in its representation for different versions
+    # Eliminate whitespace to harden tests against this variation
+    result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
+    assert result_no_whitespace == ('measurements:(nomeasurements)'
+                                    'finaldensitymatrix:'
+                                    '[[0.50.5][0.50.5]]')
