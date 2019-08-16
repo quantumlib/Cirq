@@ -241,6 +241,8 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
+    def expectation(self, state_or_bits):
+
     def _expectation_from_wavefunction(self, state: np.ndarray) -> float:
 
         # CHECKME: how is the index map used? Will this break if the state
