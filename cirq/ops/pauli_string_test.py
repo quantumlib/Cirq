@@ -703,3 +703,26 @@ def test_filters_identities():
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.PauliString({q1: cirq.I, q2: cirq.X}) == \
            cirq.PauliString({q2: cirq.X})
+
+
+def test_expectation_invalid_input():
+    # TODO: Possibly more tests pending a refactoring of `display.py`
+    q0, q1 = _make_qubits(2)
+    qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
+    pauli_string = cirq.PauliString(qubit_pauli_map)
+    state = np.array([1, 0, 0, 0])
+
+    im_pauli_string = (1j + 1) * pauli_string
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
+        im_pauli_string.expectation(state)
+
+    with pytest.raises(ValueError, match='size (7)'):
+        pauli_string.expectation(np.arange(7))
+    with pytest.raises(ValueError, match='normalized'):
+        pauli_string.expectation(np.arange(16))
+    with pytest.raises(ValueError, match='shaped'):
+        pauli_string.expectation(np.arange(16).reshape((16, 1)))
+    with pytest.raises(ValueError, match='shaped'):
+        pauli_string.expectation(np.arange(16).reshape((4, 4, 1)))
+    with pytest.raises(ValueError, match='shaped'):
+        pauli_string.expectation(np.arange(8).reshape((2, 2, 2)))

@@ -241,31 +241,52 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
-    def expectation(self, state_or_bits: np.ndarray) -> float:
+    def expectation(self, state: np.ndarray) -> float:
         """Evaluate the expectation value of this PauliString.
 
         Compute the expectation value of this PauliString with respect to an
-        array representing either a wavefunction, density matrix, or list of
-        bitstring samples.
+        array representing either a wavefunction or density matrix.
+
+        If the input represents a state in wavefunction form it must have shape
+        `(2 ** n,)`, while if it represents a state in density matrix form it
+        must have shape like `(2 ** n, 2 ** n)`, where the state is represented
+        over `n` qubits.
 
         By convention, expectation values are defined for Hermitian operators,
         and so this method will fail if this PauliString is non-Hermitian.
 
         Args:
-            state_or_bits: An array representing a state or set of samples.
+            state: An array representing a wavefunction or density matrix.
 
         Returns:
-            The expectation value of the input state or samples.
+            The expectation value of the input state.
 
         Raises:
             NotImplementedError if this PauliString is non-Hermitian.
+            ValueError if the input is a state with a size that is not a power
+            of 2, or a shape that is neither `(2 ** n,)` nor `(2 ** n, 2 ** n)`.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        
+        # TODO: add support for mixtures.
+        size = state.size
+        if size & (size - 1):
+            raise ValueError("Input state's size ({}) is not "
+                             "a power of two.".format(size))
+        if not np.isclose(np.linalg.norm(state), 1):
+            raise ValueError("Input state must be normalized.")
+
+        if state.shape == (size,):
+            return self._expectation_from_wavefunction(state)
+        if state.shape == (size // 2, size // 2):
+            return self._expectation_from_density_matrix(state)
+
+        raise ValueError("Input array does not represent a wavefunction with "
+                         "shape `(2 ** n,)` or a density matrix with shape "
+                         "`(2 ** n, 2 ** n)`.")
 
     def _expectation_from_wavefunction(self, state: np.ndarray) -> float:
 
@@ -279,10 +300,6 @@ class PauliString(raw_types.Operation):
         qubit_index_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
         return pauli_string_expectation(
             self).value_derived_from_density_matrix(state, qubit_index_map)
-
-    def _expectation_from_samples(self, measurements: np.ndarray) -> float:
-        return pauli_string_expectation(
-            self).value_derived_from_samples(measurements)
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
