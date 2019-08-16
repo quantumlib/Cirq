@@ -241,14 +241,37 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
-    def expectation(self, state_or_bits):
+    def expectation(self, state_or_bits: np.ndarray) -> float:
+        """Evaluate the expectation value of this PauliString.
+
+        Compute the expectation value of this PauliString with respect to an
+        array representing either a wavefunction, density matrix, or list of
+        bitstring samples.
+
+        By convention, expectation values are defined for Hermitian operators,
+        and so this method will fail if this PauliString is non-Hermitian.
+
+        Args:
+            state_or_bits: An array representing a state or set of samples.
+
+        Returns:
+            The expectation value of the input state or samples.
+
+        Raises:
+            NotImplementedError if this PauliString is non-Hermitian.
+        """
+        if abs(self.coefficient.imag) > 0.0001:
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        
 
     def _expectation_from_wavefunction(self, state: np.ndarray) -> float:
 
         # CHECKME: how is the index map used? Will this break if the state
         # size and the pauli size don't match?
         qubit_index_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
-        # wavefunction case
         return pauli_string_expectation(
             self).value_derived_from_wavefunction(state, qubit_index_map)
 
@@ -322,7 +345,7 @@ class PauliString(raw_types.Operation):
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
-                    "Exponentiated to a non-hermitian PauliString <{}**{}>. "
+                    "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
                     "Coefficient must be imaginary.".format(base, self))
 
             half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
