@@ -538,12 +538,14 @@ class StepResult(metaclass=abc.ABCMeta):
         """
         bounds = {}  # type: Dict[str, Tuple]
         all_qubits = []  # type: List[ops.Qid]
+        meas_ops = {}
         current_index = 0
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError('{} was not a MeasurementGate'.format(gate))
             key = protocols.measurement_key(gate)
+            meas_ops[key] = gate
             if key in bounds:
                 raise ValueError(
                     'Duplicate MeasurementGate with key {}'.format(key))
@@ -551,8 +553,12 @@ class StepResult(metaclass=abc.ABCMeta):
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
-        return {k: np.array([x[s:e] for x in indexed_sample]) for k, (s, e) in
-                bounds.items()}
+
+        results = {}
+        for k, (s, e) in bounds.items():
+            before_invert_mask = np.array([x[s:e] for x in indexed_sample])
+            results[k] = before_invert_mask ^ meas_ops[k].full_invert_mask()
+        return results
 
 
 @value.value_equality(unhashable=True)
