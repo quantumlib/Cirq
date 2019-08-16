@@ -72,7 +72,7 @@ def test_op_roundtrip():
 }""")
 
 
-PREP_FUNCTIONS = {
+TEST_OBJECTS = {
     'CCXPowGate': [cirq.CCNOT, cirq.TOFFOLI, cirq.CCX ** 0.123],
     'CCZPowGate': cirq.CCZ,
     'CNotPowGate': cirq.CNOT,
@@ -119,7 +119,7 @@ def test_all_roundtrip(cirq_type: str, cls):
     if cirq_type == 'CSwapGate':
         return pytest.xfail(reason='https://github.com/quantumlib/Cirq/issues/1972')
 
-    objs = PREP_FUNCTIONS[cirq_type]
+    objs = TEST_OBJECTS[cirq_type]
     if not isinstance(objs, list):
         objs = [objs]
 
