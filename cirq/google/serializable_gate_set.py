@@ -56,6 +56,15 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
+    def is_supported_gate(self, gate: ops.Gate) -> bool:
+        """Whether or not the given gate can be serialized by this gate set."""
+        for gate_type_mro in type(gate).mro():
+            if gate_type_mro in self.serializers:
+                for serializer in self.serializers[gate_type_mro]:
+                    if serializer.can_serialize_gate(gate):
+                        return True
+        return False
+
     def serialize_dict(self,
                        program: Union[circuits.Circuit, schedules.Schedule]
                       ) -> Dict:

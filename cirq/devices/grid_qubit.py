@@ -27,10 +27,10 @@ class GridQubit(ops.Qid):
 
     New GridQubits can be constructed by adding or subtracting tuples
 
-        >>> GridQubit(2, 3) + (3, 1)
+        >>> cirq.GridQubit(2, 3) + (3, 1)
         cirq.GridQubit(5, 4)
 
-        >>> GridQubit(2, 3) - (1, 2)
+        >>> cirq.GridQubit(2, 3) - (1, 2)
         cirq.GridQubit(1, 1)
     """
 

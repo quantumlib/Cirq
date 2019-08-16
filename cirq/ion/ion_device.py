@@ -13,15 +13,11 @@
 # limitations under the License.
 
 from datetime import timedelta
-from typing import cast, Iterable, Optional, Union, TYPE_CHECKING
+from typing import cast, Iterable, Optional, Set, Union
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.line import LineQubit
 from cirq.ion import convert_to_ion_gates
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
 
 
 @value.value_equality
@@ -187,7 +183,7 @@ class IonDevice(devices.Device):
 
 
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
-    seen = set()  # type: Set[str]
+    seen: Set[str] = set()
     for op in operations:
         meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         if meas:

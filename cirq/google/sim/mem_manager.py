@@ -47,8 +47,8 @@ class SharedMemManager(object):
         self._lock = Lock()
         self._current = 0
         self._count = 0
-        self._arrays = SharedMemManager._INITIAL_SIZE * [
-            None]  # type: List[Optional[Tuple[Any, Tuple[int, ...]]]]
+        self._arrays: List[Optional[Tuple[
+            Any, Tuple[int, ...]]]] = SharedMemManager._INITIAL_SIZE * [None]
 
     def _create_array(self, arr: np.ndarray) -> int:
         """Returns the handle of a RawArray created from the given numpy array.

@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING
+from typing import Callable, List
 
 import pytest
 import sympy
 
 import cirq
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Callable, List
 
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
@@ -30,13 +26,13 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_optimizations = [
+    followup_optimizations: List[Callable[[cirq.Circuit], None]] = [
         cirq.merge_single_qubit_gates_into_phased_x_z,
         cirq.EjectPhasedPaulis().optimize_circuit,
         cirq.EjectZ().optimize_circuit,
         cirq.DropNegligible().optimize_circuit,
         cirq.DropEmptyMoments().optimize_circuit
-    ]  # type: List[Callable[[cirq.Circuit], None]]
+    ]
     for post in followup_optimizations:
         post(actual)
         post(expected)

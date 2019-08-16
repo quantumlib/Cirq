@@ -6,16 +6,16 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
 
     Examples:
 
-        >>> big_endian_bits_to_int([0, 1])
+        >>> cirq.big_endian_bits_to_int([0, 1])
         1
 
-        >>> big_endian_bits_to_int([1, 0])
+        >>> cirq.big_endian_bits_to_int([1, 0])
         2
 
-        >>> big_endian_bits_to_int([0, 1, 0])
+        >>> cirq.big_endian_bits_to_int([0, 1, 0])
         2
 
-        >>> big_endian_bits_to_int([1, 0, 0, 1, 0])
+        >>> cirq.big_endian_bits_to_int([1, 0, 0, 1, 0])
         18
 
     Args:
@@ -36,13 +36,13 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     """Returns the big-endian bits of an integer.
 
     Examples:
-        >>> big_endian_int_to_bits(19, bit_count=8)
+        >>> cirq.big_endian_int_to_bits(19, bit_count=8)
         [0, 0, 0, 1, 0, 0, 1, 1]
 
-        >>> big_endian_int_to_bits(19, bit_count=4)
+        >>> cirq.big_endian_int_to_bits(19, bit_count=4)
         [0, 0, 1, 1]
 
-        >>> big_endian_int_to_bits(-3, bit_count=4)
+        >>> cirq.big_endian_int_to_bits(-3, bit_count=4)
         [1, 1, 0, 1]
 
     Args:
@@ -64,13 +64,13 @@ def big_endian_digits_to_int(digits: Iterable[int], *,
 
     Examples:
 
-        >>> big_endian_digits_to_int([0, 1], base=10)
+        >>> cirq.big_endian_digits_to_int([0, 1], base=10)
         1
 
-        >>> big_endian_digits_to_int([1, 0], base=10)
+        >>> cirq.big_endian_digits_to_int([1, 0], base=10)
         10
 
-        >>> big_endian_digits_to_int([1, 2, 3], base=[2, 3, 4])
+        >>> cirq.big_endian_digits_to_int([1, 2, 3], base=[2, 3, 4])
         23
 
     Args:
@@ -125,10 +125,10 @@ def big_endian_int_to_digits(val: int,
     """Separates an integer into big-endian digits.
 
     Examples:
-        >>> big_endian_int_to_digits(11, digit_count=4, base=10)
+        >>> cirq.big_endian_int_to_digits(11, digit_count=4, base=10)
         [0, 0, 1, 1]
 
-        >>> big_endian_int_to_digits(11, base=[2, 3, 4])
+        >>> cirq.big_endian_int_to_digits(11, base=[2, 3, 4])
         [0, 2, 3]
 
     Args:

@@ -15,6 +15,7 @@
 from typing import Any
 
 import numpy as np
+import sympy
 
 from cirq import protocols, linalg
 from cirq.testing import lin_alg_utils
@@ -30,14 +31,16 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
     qubit_count = len(original).bit_length() - 1
     original = original.reshape((2, 2) * qubit_count)
 
-    for t in [0.125, -0.25, 1]:
+    for t in [0.125, -0.25, 1, sympy.Symbol('a'), sympy.Symbol('a') + 1]:
         p = 1j**(t*4)
+        p = protocols.resolve_parameters(p, {'a': -0.125})
         for i in range(qubit_count):
             phased = protocols.phase_by(val, t, i, default=None)
             if phased is None:
                 # If not phaseable, then phase_by is vacuously consistent.
                 continue
 
+            phased = protocols.resolve_parameters(phased, {'a': -0.125})
             actual = protocols.unitary(phased).reshape((2, 2) * qubit_count)
 
             expected = np.array(original)
