@@ -38,36 +38,25 @@ def assert_roundtrip(obj, text_should_be=None):
 
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
-
-    buffer = io.StringIO()
-    cirq.protocols.to_json(q1, buffer)
-
-    buffer.seek(0)
-    text = buffer.read()
-
-    print()
-    print(text)
-
-    assert text == """{
+    assert_roundtrip(q1, text_should_be="""{
   "cirq_type": "LineQubit",
   "x": 12
-}"""
+}""")
 
-    buffer.seek(0)
-    q2 = cirq.protocols.read_json(buffer)
-    assert q1 == q2
+
+def test_gridqubit_roundtrip():
+    q = cirq.GridQubit(15, 18)
+    assert_roundtrip(q, text_should_be="""{
+  "cirq_type": "GridQubit",
+  "row": 15,
+  "col": 18
+}""")
 
 
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
     op1 = cirq.Rx(.123).on(q)
-
-    buffer = io.StringIO()
-    cirq.protocols.to_json(op1, buffer)
-
-    buffer.seek(0)
-    text = buffer.read()
-    assert text == """{
+    assert_roundtrip(op1, text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
     "cirq_type": "XPowGate",
@@ -80,20 +69,36 @@ def test_op_roundtrip():
       "x": 5
     }
   ]
-}"""
-
-    print()
-    print(text)
-
-    buffer.seek(0)
-    op2 = cirq.protocols.read_json(buffer)
-    assert op1 == op2
-
-
-def test_gridqubit_roundtrip():
-    q = cirq.GridQubit(15, 18)
-    assert_roundtrip(q, text_should_be="""{
-  "cirq_type": "GridQubit",
-  "row": 15,
-  "col": 18
 }""")
+
+
+PREP_FUNCTIONS = {
+    'CCXPowGate': lambda: cirq.CCNOT(*cirq.LineQubit.range(3)),
+    'CCZPowGate': lambda: cirq.CCZ(*cirq.LineQubit.range(3)),
+    'CNotPowGate': lambda: cirq.CNOT(*cirq.LineQubit.range(2)) ** 2,
+    'CZPowGate': lambda: cirq.CZ(*cirq.LineQubit.range(2)),
+    'EigenGate': lambda: None,
+    'GateOperation': lambda: None,
+    'GridQubit': lambda: cirq.GridQubit(10, 11),
+    'HPowGate': lambda: cirq.H(cirq.GridQubit(10, 11)),
+    'ISwapPowGate': lambda: cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.5,
+    'LineQubit': lambda: cirq.LineQubit(0),
+    'PauliInteractionGate': lambda: None,
+    'SingleQubitPauliStringGateOperation': lambda: None,
+    'SwapPowGate': lambda: cirq.SWAP(*cirq.LineQubit.range(2)),
+    'XPowGate': lambda: cirq.X(cirq.LineQubit(5)) ** 123,
+    'XXPowGate': lambda: cirq.XX(*cirq.LineQubit.range(2)),
+    'YPowGate': lambda: cirq.Y(cirq.LineQubit(10)) ** 0.123,
+    'YYPowGate': lambda: cirq.YY(*cirq.LineQubit.range(2)),
+    'ZPowGate': lambda: cirq.Z(cirq.LineQubit(0)) ** 0.5,
+    'ZZPowGate': lambda: cirq.ZZ(*cirq.LineQubit.range(2)),
+}
+
+
+@pytest.mark.parametrize('cirq_type',
+                         cirq.protocols.json.RESOLVER_CACHE
+                         .cirq_class_resolver_dictionary.keys())
+def test_all_roundtrip(cirq_type: str):
+    prep_func = PREP_FUNCTIONS[cirq_type]
+    obj = prep_func()
+    assert_roundtrip(obj)
