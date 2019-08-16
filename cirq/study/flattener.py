@@ -58,10 +58,10 @@ class ParamFlattener(ParamResolver):
 
         >>> new_sweep = flattener.transform_sweep(sweep)
         >>> list(new_sweep)  #doctest: +NORMALIZE_WHITESPACE
-        [cirq.ParamResolver({x0: 0.0, x1: 1.0}),
-         cirq.ParamResolver({x0: 0.25, x1: 0.75}),
-         cirq.ParamResolver({x0: 0.5, x1: 0.5}),
-         cirq.ParamResolver({x0: 0.75, x1: 0.25})]
+        [cirq.ParamResolver(OrderedDict([('x0', 0.0), ('x1', 1.0)])),
+         cirq.ParamResolver(OrderedDict([('x0', 0.25), ('x1', 0.75)])),
+         cirq.ParamResolver(OrderedDict([('x0', 0.5), ('x1', 0.5)])),
+         cirq.ParamResolver(OrderedDict([('x0', 0.75), ('x1', 0.25)]))]
 
         >>> print(cirq.resolve_parameters(c_flat, list(new_sweep)[1]))
         0: ───X^0.25───X^0.75───
