@@ -14,10 +14,7 @@
 
 """Utility classes for representing QASM."""
 
-from typing import Set, Any  # pylint: disable=unused-import
-from typing import (
-    Callable, Dict, Optional, Sequence, Tuple, Union
-)
+from typing import (Callable, Dict, Optional, Sequence, Set, Tuple, Union)
 
 import re
 import numpy as np
@@ -242,7 +239,7 @@ class QasmOutput:
             output('qreg q[{}];\n'.format(len(self.qubits)))
         # Classical registers
         # Pick an id for the creg that will store each measurement
-        already_output_keys = set()  # type: Set[str]
+        already_output_keys: Set[str] = set()
         for meas in self.measurements:
             key = protocols.measurement_key(meas)
             if key in already_output_keys:

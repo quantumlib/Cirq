@@ -16,18 +16,14 @@
 
 import collections
 
-from typing import (
-        cast, Dict, Iterator, List, Optional, TYPE_CHECKING, Type, Union)
+from typing import (Any, cast, Dict, Hashable, Iterator, List, Optional, Type,
+                    Union)
 
 import numpy as np
 
 from cirq import (circuits, linalg, ops, protocols, schedules, study, value,
                   devices)
 from cirq.sim import density_matrix_utils, simulator
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any, Hashable
 
 
 class _StateAndBuffers:
@@ -367,9 +363,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
-        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        compute_displays_results: List[study.ComputeDisplaysResult] = []
         for param_resolver in param_resolvers:
-            display_values = {}  # type: Dict[Hashable, Any]
+            display_values: Dict[Hashable, Any] = {}
 
             # Compute the displays in the first Moment
             moment = circuit[0]

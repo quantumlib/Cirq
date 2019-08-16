@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Hashable, Iterable, Mapping, Optional, TYPE_CHECKING
+from typing import Any, Dict, Hashable, Iterable, Mapping, Optional
 
 from cirq import line, ops
 from cirq.contrib.graph_device.graph_device import (UndirectedGraphDevice,
                                                     UndirectedGraphDeviceEdge)
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any, Dict
 
 
 def uniform_undirected_graph_device(
@@ -35,8 +31,9 @@ def uniform_undirected_graph_device(
         edge_label: The label to apply to all edges. Defaults to None.
     """
 
-    labelled_edges = {frozenset(edge): edge_label for edge in edges
-                     }  # type: Dict[Iterable[Hashable], Any]
+    labelled_edges: Dict[Iterable[Hashable], Any] = {
+        frozenset(edge): edge_label for edge in edges
+    }
     device_graph = UndirectedHypergraph(labelled_edges=labelled_edges)
     return UndirectedGraphDevice(device_graph=device_graph)
 
