@@ -264,7 +264,7 @@ class PauliString(raw_types.Operation):
         Raises:
             NotImplementedError if this PauliString is non-Hermitian.
             ValueError if the input is a state with a size that is not a power
-            of 2, or a shape that is neither `(2 ** n,)` nor `(2 ** n, 2 ** n)`.
+            of 2, or a shape that is neither `(2 ** n,)` or `(2 ** n, 2 ** n)`.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(

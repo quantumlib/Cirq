@@ -726,3 +726,44 @@ def test_expectation_invalid_input():
         pauli_string.expectation(np.arange(16).reshape((4, 4, 1)))
     with pytest.raises(ValueError, match='shaped'):
         pauli_string.expectation(np.arange(8).reshape((2, 2, 2)))
+
+
+def test_expectation():
+    # TODO: Possibly more tests pending a refactoring of `display.py`
+    q0, q1 = _make_qubits(2)
+    x0_pauli_map = {q0: cirq.X}
+    x0 = cirq.PauliString(x0_pauli_map)
+
+    np.testing.assert_allclose(x0.expectation(np.array([1, 0])), 0)
+    np.testing.assert_allclose(x0.expectation(np.array([0, 1])), 0)
+    np.testing.assert_allclose(x0.expectation(np.array(1, 1) / np.sqrt(2)), 1)
+    np.testing.assert_allclose(x0.expectation(np.array(1, -1) / np.sqrt(2)), -1)
+
+    np.testing.assert_allclose(x0.expectation(np.array([[1, 0], [0, 0]])), 0)
+    np.testing.assert_allclose(x0.expectation(np.array([[0, 0], [0, 1]])), 0)
+    np.testing.assert_allclose(x0.expectation(
+        np.array([[1, 1], [1, 1]]) / 2), 1)
+    np.testing.assert_allclose(x0.expectation(
+        np.array([[1, -1], [-1, 1]]) / 2), -1)
+
+    z0z1_pauli_map = {q0: cirq.Z, q1: cirq.Z}
+    z0z1 = cirq.PauliString(z0z1_pauli_map)
+    x0x1_pauli_map = {q0: cirq.X, q1: cirq.X}
+    x0x1 = cirq.PauliString(x0x1_pauli_map)
+    wf1 = np.array([0, 1, 1, 0]) / np.sqrt(2)
+    rho1 = np.kron(wf1, wf1).reshape(4, 4)
+    for state in [wf1, rho1]:
+        np.testing.assert_allclose(z0z1.expectation(state), -1)
+        np.testing.assert_allclose(x0x1.expectation(state), 0)
+
+    wf2 = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    rho2 = np.kron(wf2, wf2).reshape(4, 4)
+    for state in [wf2, rho2]:
+        np.testing.assert_allclose(z0z1.expectation(state), 0)
+        np.testing.assert_allclose(x0x1.expectation(state), 1)
+
+    wf3 = np.array([1, 1, 1, 1]) / 2
+    rho3 = np.kron(wf3, wf3).reshape(4, 4)
+    for state in [wf3, rho3]:
+        np.testing.assert_allclose(z0z1.expectation(state), 0)
+        np.testing.assert_allclose(x0x1.expectation(state), 1)
