@@ -315,6 +315,42 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
+def expectation(self, state: np.ndarray) -> float:
+    """Evaluate the expectation value of this PauliSum.
+
+    Compute the expectation value of this PauliSum with respect to an
+    array representing either a wavefunction or density matrix.
+
+    See `PauliString.expectation` for input requirements.
+
+    Args:
+        state: An array representing a wavefunction or density matrix.
+
+    Returns:
+        The expectation value of the input state.
+
+    Raises:
+        NotImplementedError if any term in this PauliSum is non-Hermitian.
+        ValueError if the input is a state with a size that is not a power
+        of 2, or a shape that is neither `(2 ** n,)` or `(2 ** n, 2 ** n)`.
+    """
+
+    # TODO: add support for mixtures.
+    size = state.size
+    if size & (size - 1):
+        raise ValueError("Input state's size ({}) is not "
+                         "a power of two.".format(size))
+    if not np.isclose(np.linalg.norm(state), 1):
+        raise ValueError("Input state must be normalized.")
+
+    if state.shape == (size,):
+        return sum([p._expectation_from_wavefunction(state) for p in self])
+    if state.shape == (size // 2, size // 2):
+        return sum([p._expectation_from_density_matrix(state) for p in self])
+    raise ValueError("Input array does not represent a wavefunction with "
+                     "shape `(2 ** n,)` or a density matrix with shape "
+                     "`(2 ** n, 2 ** n)`.")
+
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():
             yield _pauli_string_from_unit(vec, coeff)
