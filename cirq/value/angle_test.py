@@ -28,6 +28,8 @@ def test_canonicalize_half_turns():
     assert cirq.canonicalize_half_turns(-0.5) == -0.5
     assert cirq.canonicalize_half_turns(101.5) == -0.5
     assert cirq.canonicalize_half_turns(sympy.Symbol('a')) == sympy.Symbol('a')
+    # Sympy expression for a constant
+    assert cirq.canonicalize_half_turns(sympy.Symbol('a')*0+3) == 1
 
 
 def test_chosen_angle_to_half_turns():
