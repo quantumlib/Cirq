@@ -93,13 +93,16 @@ class StateVectorMixin():
         standard Kronecker convention of numpy.kron.
 
         For example:
-            self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-                dtype=np.complex64)
-            qubits = None
-            gives us \rho = \begin{bmatrix}
-                                0.5 & 0.5
-                                0.5 & 0.5
-                            \end{bmatrix}
+        self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+            dtype=np.complex64)
+        qubits = None
+        gives us
+            $$
+            \rho = \begin{bmatrix}
+                        0.5 & 0.5 \\
+                        0.5 & 0.5
+                    \end{bmatrix}
+            $$
 
         Args:
             qubits: list containing qubit IDs that you would like
@@ -187,17 +190,15 @@ def density_matrix_from_state_vector(
     convention of numpy.kron.
 
     For example:
-
-        state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-        indices = None
-
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    indices = None
     gives us
 
         $$
         \rho = \begin{bmatrix}
+                0.5 & 0.5 \\
                 0.5 & 0.5
-                0.5 & 0.5
-            \end{bmatrix}
+        \end{bmatrix}
         $$
 
     Args:
