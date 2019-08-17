@@ -346,7 +346,7 @@ class Stepper(object):
             index: Which qubit is measured.
 
         Returns:
-            True iff the measurement result corresponds to the |1> state.
+            True if the measurement result corresponds to the |1> state.
         """
         args = self._shard_num_args({'index': index})
         prob_one = np.sum(self._pool.map(_one_prob_per_shard, args))
