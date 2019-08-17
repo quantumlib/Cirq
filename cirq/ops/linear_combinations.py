@@ -336,7 +336,6 @@ class PauliSum:
         """
 
         # TODO: add support for mixtures.
-        # FIXME: right now each term in the sum can'e "see" the
         size = state.size
         if size & (size - 1):
             raise ValueError("Input state's size ({}) is not "
@@ -344,7 +343,8 @@ class PauliSum:
         if not np.isclose(np.linalg.norm(state), 1):
             raise ValueError("Input state must be normalized.")
 
-
+        # FIXME: right now each term in the sum can'e "see" the qubits belonging
+        # to the other paulis; need some way to do alignment
 
         if state.shape == (size,):
             return sum([p._expectation_from_wavefunction(state) for p in self])

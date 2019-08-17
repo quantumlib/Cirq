@@ -863,7 +863,6 @@ def test_expectation():
     np.testing.assert_allclose(psum1.expectation(np.array([1, 1j]) / np.sqrt(2)), 1)
     np.testing.assert_allclose(psum1.expectation(np.array([1, -1j]) / np.sqrt(2)), -1)
 
-
     psum2 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
     wf1 = np.array([0, 1, 1, 0]) / np.sqrt(2)
     np.testing.assert_allclose(psum2.expectation(wf1), -2.2)
@@ -872,4 +871,8 @@ def test_expectation():
     np.testing.assert_allclose(psum2.expectation(wf2), 4.2)
     np.testing.assert_allclose(psum2.expectation(wf2), -4.2)
 
-    pstr2 = 0.5 * cirq.X(q[0]) + cirq.Z(q[1]) + 1.7 * cirq.I(q[0])
+    psum3 = cirq.Z(q[0]) + cirq.X(q[1])
+    # this will test 'alignment' for paulis in a sum...
+    wf3 = np.array([1, 1, 0, 0,]) / np.sqrt(2)
+
+    # pstr2 = 0.5 * cirq.X(q[0]) + cirq.Z(q[1]) + 1.7 * cirq.I(q[0])

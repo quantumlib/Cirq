@@ -241,24 +241,31 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
-    def expectation(self, state: np.ndarray) -> float:
-        """Evaluate the expectation value of this PauliString.
+    def expectation(self, state: np.ndarray, qubit_map: Optional[Dict[raw_types.Qid, int]]=None) -> float:
+        r"""Evaluate the expectation value of this PauliString.
 
         Compute the expectation value of this PauliString with respect to an
-        array representing either a wavefunction or density matrix.
+        array representing either a wavefunction or density matrix. By
+        convention expectation values are defined for Hermitian operators, and
+        so this method will fail if this PauliString is non-Hermitian.
 
         If the input represents a state in wavefunction form it must have shape
         `(2 ** n,)`, while if it represents a state in density matrix form it
         must have shape like `(2 ** n, 2 ** n)`, where the state is represented
-        over `n` qubits. It is assumed that the state is defined over this
-        PauliString's qubits in ascending order of index.
+        over `n` qubits.
 
-        By convention, expectation values are defined for Hermitian operators,
-        and so this method will fail if this PauliString is non-Hermitian.
+        If `qubit_map` is not provided, default behavior is to assume that
+        `state` is defined over this PauliString's qubits in ascending order of
+        index. For example if `state` represents $|0\rangle |+\rangle$ and
+        `q0, q1 = cirq.LineQubit.range(2)` then:
+
+            cirq.X(q0).expectation(state) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
 
         Args:
             state: An array representing a wavefunction or density matrix.
-
+            qubit_map: A map from qubits defined in this PauliString to the
+            indices of the qubits that `state` is defined over.
         Returns:
             The expectation value of the input state.
 
@@ -282,27 +289,30 @@ class PauliString(raw_types.Operation):
         if not np.isclose(np.linalg.norm(state), 1):
             raise ValueError("Input state must be normalized.")
 
+        if qubit_map is None:
+            qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
         if state.shape == (size,):
-            return self._expectation_from_wavefunction(state)
-        if state.shape == (size // 2, size // 2):
-            return self._expectation_from_density_matrix(state)
+            return self._expectation_from_wavefunction(state, qubit_map)
+        if state.shape == (int(np.sqrt(size)),) * 2:
+            return self._expectation_from_density_matrix(state, qubit_map)
 
         raise ValueError("Input array does not represent a wavefunction with "
                          "shape `(2 ** n,)` or a density matrix with shape "
                          "`(2 ** n, 2 ** n)`.")
 
-    def _expectation_from_wavefunction(self, state: np.ndarray) -> float:
-
-        # CHECKME: how is the index map used? Will this break if the state
-        # size and the pauli size don't match?
-        qubit_index_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
+    def _expectation_from_wavefunction(self,
+                                       state: np.ndarray,
+                                       qubit_map: Dict[raw_types.Qid, int]
+                                       ) -> float:
         return pauli_string_expectation(
-            self).value_derived_from_wavefunction(state, qubit_index_map)
+            self).value_derived_from_wavefunction(state, qubit_map)
 
-    def _expectation_from_density_matrix(self, state: np.ndarray) -> float:
-        qubit_index_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
+    def _expectation_from_density_matrix(self,
+                                         state: np.ndarray,
+                                         qubit_map: Dict[raw_types.Qid, int]
+                                         ) -> float:
         return pauli_string_expectation(
-            self).value_derived_from_density_matrix(state, qubit_index_map)
+            self).value_derived_from_density_matrix(state, qubit_map)
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
