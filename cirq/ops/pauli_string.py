@@ -250,7 +250,8 @@ class PauliString(raw_types.Operation):
         If the input represents a state in wavefunction form it must have shape
         `(2 ** n,)`, while if it represents a state in density matrix form it
         must have shape like `(2 ** n, 2 ** n)`, where the state is represented
-        over `n` qubits.
+        over `n` qubits. It is assumed that the state is defined over this
+        PauliString's qubits in ascending order of index.
 
         By convention, expectation values are defined for Hermitian operators,
         and so this method will fail if this PauliString is non-Hermitian.
@@ -265,6 +266,8 @@ class PauliString(raw_types.Operation):
             NotImplementedError if this PauliString is non-Hermitian.
             ValueError if the input is a state with a size that is not a power
             of 2, or a shape that is neither `(2 ** n,)` or `(2 ** n, 2 ** n)`.
+            ValueError if the input state is defined over fewer qubits than
+            this PauliString.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(

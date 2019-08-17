@@ -706,7 +706,6 @@ def test_filters_identities():
 
 
 def test_expectation_invalid_input():
-    # TODO: Possibly more tests pending a refactoring of `display.py`
     q0, q1 = _make_qubits(2)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     pauli_string = cirq.PauliString(qubit_pauli_map)
@@ -716,6 +715,8 @@ def test_expectation_invalid_input():
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_pauli_string.expectation(state)
 
+    with pytest.raises(ValueError, match='match'):
+        pauli_string.expectation(np.array([1, 0]))
     with pytest.raises(ValueError, match='size (7)'):
         pauli_string.expectation(np.arange(7))
     with pytest.raises(ValueError, match='normalized'):
@@ -767,3 +768,14 @@ def test_expectation():
     for state in [wf3, rho3]:
         np.testing.assert_allclose(z0z1.expectation(state), 0)
         np.testing.assert_allclose(x0x1.expectation(state), 1)
+
+def test_scratch():
+    q0, q1, q2 = _make_qubits(3)
+    z2_pauli_map = {q0: cirq.Z, q2: cirq.Z}
+    z2 = cirq.PauliString(z2_pauli_map)
+    state = np.array([1, 0, 0, 0], dtype=np.complex)
+    print("PING")
+    print(z2.expectation(state))
+
+if __name__ == "__main__":
+    test_scratch()

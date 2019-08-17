@@ -830,3 +830,46 @@ def test_bad_arithmetic():
 
     with pytest.raises(TypeError):
         _ = psum / [1, 2, 3]
+
+def test_expectation_invalid_input():
+    q = cirq.LineQubit.range(2)
+    psum = cirq.Z(q[0]) + cirq.Y(q[1])
+    state = np.array([1, 0, 0, 0])
+
+    im_psum = psum + 1j * cirq.I(q[0])
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
+        im_psum.expectation(state)
+
+    with pytest.raises(ValueError, match='match'):
+        psum.expectation(np.array([1, 0]))
+    with pytest.raises(ValueError, match='size (7)'):
+        psum.expectation(np.arange(7))
+    with pytest.raises(ValueError, match='normalized'):
+        psum.expectation(np.arange(16))
+    with pytest.raises(ValueError, match='shaped'):
+        psum.expectation(np.arange(16).reshape((16, 1)))
+    with pytest.raises(ValueError, match='shaped'):
+        psum.expectation(np.arange(16).reshape((4, 4, 1)))
+    with pytest.raises(ValueError, match='shaped'):
+        psum.expectation(np.arange(8).reshape((2, 2, 2)))
+
+def test_expectation():
+    q = cirq.LineQubit.range(2)
+    psum1 = cirq.X(q[0]) + cirq.Y(q[0]) + cirq.Z(q[0])
+    np.testing.assert_allclose(psum1.expectation(np.array([1, 0])), 1)
+    np.testing.assert_allclose(psum1.expectation(np.array([0, 1])), -1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, 1]) / np.sqrt(2)), 1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, -1]) / np.sqrt(2)), -1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, 1j]) / np.sqrt(2)), 1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, -1j]) / np.sqrt(2)), -1)
+
+
+    psum2 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
+    wf1 = np.array([0, 1, 1, 0]) / np.sqrt(2)
+    np.testing.assert_allclose(psum2.expectation(wf1), -2.2)
+    np.testing.assert_allclose(psum2.expectation(wf1), 2.2)
+    wf2 = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    np.testing.assert_allclose(psum2.expectation(wf2), 4.2)
+    np.testing.assert_allclose(psum2.expectation(wf2), -4.2)
+
+    pstr2 = 0.5 * cirq.X(q[0]) + cirq.Z(q[1]) + 1.7 * cirq.I(q[0])
