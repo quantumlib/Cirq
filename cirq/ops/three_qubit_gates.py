@@ -161,8 +161,9 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
     def __init__(self,
                  diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
-        r"""
-        A 3 qubit gate whose off-diagonal elements are zero and whose on-diagonal
+        r"""A three qubit gate with only diagonal elements.
+
+        This gate's off-diagonal elements are zero and it's on diagonal
         elements are all phases.
 
         Args:
