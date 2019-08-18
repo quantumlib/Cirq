@@ -181,7 +181,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         if power == -1:
             # HACK: break cycle
-            from cirq.line import line_qubit
+            from cirq.devices import line_qubit
 
             decomposed = decompose.decompose_once_with_qubits(
                 self,
