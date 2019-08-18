@@ -322,15 +322,16 @@ class PauliSum:
                     ) -> float:
         """Evaluate the expectation value of this PauliSum.
 
-        Compute the expectation value of this PauliSum with respect to an
-        array representing either a wavefunction or density matrix.
+        Compute the expectation value of this Hermitian PauliSum with respect to
+        an array representing either a wavefunction or density matrix.
 
         See `PauliString.expectation` for input requirements.
 
         Args:
             state: An array representing a wavefunction or density matrix.
-            qubit_map: A map from qubits defined in this PauliString to the
+            qubit_map: A map from all qubits used in this PauliSum to the
             indices of the qubits that `state` is defined over.
+
         Returns:
             The expectation value of the input state.
 
@@ -339,6 +340,10 @@ class PauliSum:
             ValueError if the input is a state with a size that is not a power
             of 2, or a shape that is neither `(2 ** n,)` or `(2 ** n, 2 ** n)`.
         """
+        if any([abs(p.coefficient.imag) > 0.0001 for p in self]):
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
 
         # TODO: add support for mixtures.
         size = state.size
@@ -350,10 +355,24 @@ class PauliSum:
 
         if qubit_map is None:
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
+
+        # `state` must support a map over all qubits in this PauliSum.
         if state.shape == (size,):
+            num_qubits = size.bit_length() - 1
+            if len(set(qubit_map.keys())) > num_qubits:
+                raise ValueError("Number of qubits in `qubit_map` does not "
+                                 "match the number of qubits in "
+                                 "PauliString <{}>".format(self))
             return sum([p._expectation_from_wavefunction(state, qubit_map) for p in self])
-        if state.shape == (size // 2, size // 2):
+
+        if state.shape == (int(np.sqrt(size)),) * 2:
+            num_qubits = int(np.sqrt(size)).bit_length() - 1
+            if len(set(qubit_map.keys())) > num_qubits:
+                raise ValueError("Number of qubits in `qubit_map` does not "
+                                 "match the number of qubits in "
+                                 "PauliString <{}>".format(self))
             return sum([p._expectation_from_density_matrix(state, qubit_map) for p in self])
+
         raise ValueError("Input array does not represent a wavefunction with "
                          "shape `(2 ** n,)` or a density matrix with shape "
                          "`(2 ** n, 2 ** n)`.")

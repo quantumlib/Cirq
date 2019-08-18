@@ -715,13 +715,13 @@ def test_expectation_invalid_input():
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_pauli_string.expectation(state)
 
-    with pytest.raises(ValueError, match='match'):
-        pauli_string.expectation(np.array([1, 0]))
     with pytest.raises(ValueError, match='size'):
         pauli_string.expectation(np.arange(7))
     with pytest.raises(ValueError, match='normalized'):
         pauli_string.expectation(np.arange(16))
-
+    with pytest.raises(ValueError, match='match'):
+        pauli_string.expectation(np.array([1, 0]))
+        
     state = np.arange(16) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
         pauli_string.expectation(state.reshape((16, 1)))

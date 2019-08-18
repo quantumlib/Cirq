@@ -837,16 +837,16 @@ def test_expectation_invalid_input():
     psum = cirq.Z(q[0]) + cirq.Y(q[1])
     state = np.array([1, 0, 0, 0])
 
-    im_psum = psum + 1j * cirq.I(q[0])
+    im_psum = psum + 1j * cirq.X(q[0])
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_psum.expectation(state)
-    with pytest.raises(ValueError, match='match'):
-        psum.expectation(np.array([1, 0]))
     with pytest.raises(ValueError, match='size'):
         psum.expectation(np.arange(7))
     with pytest.raises(ValueError, match='normalized'):
         psum.expectation(np.arange(16))
-
+    with pytest.raises(ValueError, match='match'):
+        psum.expectation(np.array([1, 0]))
+        
     state = np.arange(16) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
         psum.expectation(state.reshape((16, 1)))
@@ -883,3 +883,7 @@ def test_expectation():
     np.testing.assert_allclose(psum3.expectation(wf3, qubit_map={q0: 1, q1: 0}), 0)
 
     # pstr2 = 0.5 * cirq.X(q[0]) + cirq.Z(q[1]) + 1.7 * cirq.I(q[0])
+
+if __name__ == "__main__":
+    test_expectation_invalid_input()
+    # test_expectation()

@@ -267,8 +267,9 @@ class PauliString(raw_types.Operation):
 
         Args:
             state: An array representing a wavefunction or density matrix.
-            qubit_map: A map from qubits defined in this PauliString to the
+            qubit_map: A map from all qubits used in this PauliString to the
             indices of the qubits that `state` is defined over.
+
         Returns:
             The expectation value of the input state.
 
