@@ -26,8 +26,8 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
-    pauli_gates,
     op_tree,
+    pauli_gates,
     raw_types,
 )
 if TYPE_CHECKING:
