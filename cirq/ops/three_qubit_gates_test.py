@@ -30,12 +30,14 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
             eigen_gate_type, ignoring_global_phase=True)
 
 
-def test_consistent_protocols():
-    cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
-
+@pytest.mark.parametrize(
+    'gate,ignoring_global_phase',
+    ((cirq.CSWAP, False),
+     (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]), True),
+     (cirq.ThreeQubitDiagonalGate([0, 0, 0, 0, 0, 0, 0, 0]), True)))
+def test_consistent_protocols(gate, ignoring_global_phase):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
-        ignoring_global_phase=True)
+        gate, ignoring_global_phase=ignoring_global_phase)
 
 
 def test_init():
@@ -140,6 +142,14 @@ def test_eq():
     eq.add_equality_group(cirq.TOFFOLI(a, b, d))
     eq.add_equality_group(cirq.CSWAP(a, b, c), cirq.FREDKIN(a, b, c))
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
+
+
+def test_gate_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.CSwapGate(), cirq.CSwapGate())
+    eq.add_equality_group(cirq.CZPowGate(), cirq.CZPowGate())
+    eq.add_equality_group(cirq.CCXPowGate(), cirq.CCXPowGate())
+    eq.add_equality_group(cirq.CCZPowGate(), cirq.CCZPowGate())
 
 
 @pytest.mark.parametrize('op,max_two_cost', [
