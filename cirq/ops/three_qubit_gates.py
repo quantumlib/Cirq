@@ -156,15 +156,18 @@ class CCZPowGate(eigen_gate.EigenGate,
 
 @value.value_equality()
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
-    """A gate given by a diagonal 8x8 matrix."""
+    """A 3 qubit gate given by a diagonal 8x8 matrix."""
 
     def __init__(self,
                  diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
         """
+        A 3 qubit gate whose off-diagonal elements are zero and who on-diagonal
+        elements are all phases.
 
         Args:
             diag_angles_radians: The list of angles on the diagonal in radians.
-
+                If these values are $(x0, x1, \ldots , x^7)$ then the unitary
+                has on diagonal values $(e^{i x0}, e^{i x1}, \ldots, e^{i x_7$.
         """
         self._diag_angles_radians = diag_angles_radians \
         # type: List[Union[float, sympy.Basic]]
@@ -278,6 +281,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
     def _value_equality_values_(self):
         return tuple(self._diag_angles_radians)
+
+    
 
     def __repr__(self) -> str:
         return 'cirq.ThreeQubitDiagonalGate([{}])'.format(','.join(
