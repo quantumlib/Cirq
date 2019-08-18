@@ -33,6 +33,7 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQubit,
     NO_NOISE,
     NoiseModel,
     UnconstrainedDevice,
@@ -89,10 +90,6 @@ from cirq.linalg import (
     targeted_conjugate_about,
     targeted_left_multiply,
     wavefunction_partial_trace_as_mixture,
-)
-
-from cirq.line import (
-    LineQubit,
 )
 
 from cirq.ops import (

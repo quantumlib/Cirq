@@ -16,7 +16,7 @@ from typing import Any, List
 
 import numpy as np
 
-from cirq import protocols, ops, line, linalg
+from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils
 
 
@@ -47,7 +47,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         qubits = val.qubits
         op = val
     elif isinstance(val, ops.Gate):
-        qubits = tuple(line.LineQubit.range(qubit_count))
+        qubits = tuple(devices.LineQubit.range(qubit_count))
         op = val.on(*qubits)
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))
