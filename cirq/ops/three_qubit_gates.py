@@ -167,15 +167,11 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
         Args:
             diag_angles_radians: The list of angles on the diagonal in radians.
-                If these values are $(x0, x1, \ldots , x^7)$ then the unitary
-                has on diagonal values $(e^{i x0}, e^{i x1}, \ldots, e^{i x_7$.
+                If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
+                has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
         self._diag_angles_radians: List[
             Union[float, sympy.Basic]] = diag_angles_radians
-
-
-
-
 
     def _is_parameterized_(self):
         return any(
