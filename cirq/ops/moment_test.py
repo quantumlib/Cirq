@@ -62,7 +62,7 @@ def test_equality():
     # Equality doesn't depend on order.
     eq.add_equality_group(Moment([cirq.X(a), cirq.X(b)]),
                           Moment([cirq.X(a), cirq.X(b)]))
-    
+
     # Two qubit gates.
     eq.make_equality_group(lambda: Moment([cirq.CZ(c, d)]))
     eq.make_equality_group(lambda: Moment([cirq.CZ(a, c)]))
