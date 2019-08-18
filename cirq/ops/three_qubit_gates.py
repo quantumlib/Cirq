@@ -175,6 +175,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
 
 
 
+
     def _is_parameterized_(self):
         return any(
             isinstance(angle, sympy.Basic)
