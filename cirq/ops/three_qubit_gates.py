@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
                  gate_features.InterchangeableQubitsGate):
@@ -169,8 +170,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                 If these values are $(x0, x1, \ldots , x^7)$ then the unitary
                 has on diagonal values $(e^{i x0}, e^{i x1}, \ldots, e^{i x_7$.
         """
-        self._diag_angles_radians = diag_angles_radians \
-        # type: List[Union[float, sympy.Basic]]
+        self._diag_angles_radians: List[
+            Union[float, sympy.Basic]] = diag_angles_radians
 
 
 
@@ -402,6 +403,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
+@value.value_equality()
 class CSwapGate(gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
@@ -540,6 +542,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
+
+    def _value_equality_values_(self):
+        return ()
 
     def __str__(self) -> str:
         return 'FREDKIN'
