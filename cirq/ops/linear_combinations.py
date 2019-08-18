@@ -355,7 +355,7 @@ class PauliSum:
 
         if qubit_map is None:
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
-
+        print("qubit map", qubit_map)
         # `state` must support a map over all qubits in this PauliSum.
         if state.shape == (size,):
             num_qubits = size.bit_length() - 1
