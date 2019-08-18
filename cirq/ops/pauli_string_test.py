@@ -743,7 +743,6 @@ def test_expectation():
     np.testing.assert_allclose(x0.expectation(np.array([0, 1], dtype=np.complex), qubit_map=None), 0)
     np.testing.assert_allclose(x0.expectation(np.array([1, 1], dtype=np.complex) / np.sqrt(2), qubit_map=None), 1)
     np.testing.assert_allclose(x0.expectation(np.array([1, -1], dtype=np.complex) / np.sqrt(2), qubit_map=None), -1)
-
     np.testing.assert_allclose(x0.expectation(np.array([[1, 0], [0, 0]], dtype=np.complex), qubit_map=None), 0)
     np.testing.assert_allclose(x0.expectation(np.array([[0, 0], [0, 1]], dtype=np.complex), qubit_map=None), 0)
     np.testing.assert_allclose(x0.expectation(
@@ -784,15 +783,3 @@ def test_expectation_qubit_map():
     np.testing.assert_allclose(z.expectation(state, qubit_map={q0: 1, q1: 2, q2: 0}), 0)
     np.testing.assert_allclose(z.expectation(state, qubit_map={q0: 2, q1: 0, q2: 1}), -1)
     np.testing.assert_allclose(z.expectation(state, qubit_map={q0: 2, q1: 1, q2: 0}), -1)
-
-
-def test_scratch():
-    q0, q1, q2 = _make_qubits(3)
-    z2_pauli_map = {q0: cirq.Z, q2: cirq.Z}
-    z2 = cirq.PauliString(z2_pauli_map)
-    state = np.array([1, 0, 0, 0], dtype=np.complex)
-    print("PING")
-    print(z2.expectation(state))
-
-if __name__ == "__main__":
-    test_expectation_invalid_input()

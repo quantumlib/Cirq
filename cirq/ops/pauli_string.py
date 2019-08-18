@@ -241,7 +241,10 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
-    def expectation(self, state: np.ndarray, qubit_map: Optional[Dict[raw_types.Qid, int]]=None) -> float:
+    def expectation(self,
+                    state: np.ndarray,
+                    qubit_map: Optional[Dict[raw_types.Qid, int]]=None
+                    ) -> float:
         r"""Evaluate the expectation value of this PauliString.
 
         Compute the expectation value of this PauliString with respect to an
@@ -289,6 +292,7 @@ class PauliString(raw_types.Operation):
         if not np.isclose(np.linalg.norm(state), 1):
             raise ValueError("Input state must be normalized.")
 
+        # TODO: add input validation for `qubit_map`.
         if qubit_map is None:
             qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
         if state.shape == (size,):

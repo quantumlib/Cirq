@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections import defaultdict
-from typing import Mapping, Optional, Tuple, Union, List, FrozenSet, DefaultDict
+from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
+                    DefaultDict, Dict)
 
 import numpy as np
 
@@ -315,7 +316,10 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def expectation(self, state: np.ndarray) -> float:
+    def expectation(self,
+                    state: np.ndarray,
+                    qubit_map: Optional[Dict[raw_types.Qid, int]]=None
+                    ) -> float:
         """Evaluate the expectation value of this PauliSum.
 
         Compute the expectation value of this PauliSum with respect to an
@@ -325,7 +329,8 @@ class PauliSum:
 
         Args:
             state: An array representing a wavefunction or density matrix.
-
+            qubit_map: A map from qubits defined in this PauliString to the
+            indices of the qubits that `state` is defined over.
         Returns:
             The expectation value of the input state.
 
@@ -343,13 +348,12 @@ class PauliSum:
         if not np.isclose(np.linalg.norm(state), 1):
             raise ValueError("Input state must be normalized.")
 
-        # FIXME: right now each term in the sum can'e "see" the qubits belonging
-        # to the other paulis; need some way to do alignment
-
+        if qubit_map is None:
+            qubit_map = {q: i for i, q in enumerate(self.qubits)}
         if state.shape == (size,):
-            return sum([p._expectation_from_wavefunction(state) for p in self])
+            return sum([p._expectation_from_wavefunction(state, qubit_map) for p in self])
         if state.shape == (size // 2, size // 2):
-            return sum([p._expectation_from_density_matrix(state) for p in self])
+            return sum([p._expectation_from_density_matrix(state, qubit_map) for p in self])
         raise ValueError("Input array does not represent a wavefunction with "
                          "shape `(2 ** n,)` or a density matrix with shape "
                          "`(2 ** n, 2 ** n)`.")

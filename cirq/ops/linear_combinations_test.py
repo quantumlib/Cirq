@@ -831,6 +831,7 @@ def test_bad_arithmetic():
     with pytest.raises(TypeError):
         _ = psum / [1, 2, 3]
 
+
 def test_expectation_invalid_input():
     q = cirq.LineQubit.range(2)
     psum = cirq.Z(q[0]) + cirq.Y(q[1])
@@ -839,40 +840,46 @@ def test_expectation_invalid_input():
     im_psum = psum + 1j * cirq.I(q[0])
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_psum.expectation(state)
-
     with pytest.raises(ValueError, match='match'):
         psum.expectation(np.array([1, 0]))
-    with pytest.raises(ValueError, match='size (7)'):
+    with pytest.raises(ValueError, match='size'):
         psum.expectation(np.arange(7))
     with pytest.raises(ValueError, match='normalized'):
         psum.expectation(np.arange(16))
-    with pytest.raises(ValueError, match='shaped'):
-        psum.expectation(np.arange(16).reshape((16, 1)))
-    with pytest.raises(ValueError, match='shaped'):
-        psum.expectation(np.arange(16).reshape((4, 4, 1)))
-    with pytest.raises(ValueError, match='shaped'):
-        psum.expectation(np.arange(8).reshape((2, 2, 2)))
+
+    state = np.arange(16) / np.linalg.norm(np.arange(16))
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation(state.reshape((16, 1)))
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation(state.reshape((4, 4, 1)))
+
+    state = np.arange(8) / np.linalg.norm(np.arange(8))
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation(state.reshape((2, 2, 2)))
+
 
 def test_expectation():
     q = cirq.LineQubit.range(2)
     psum1 = cirq.X(q[0]) + cirq.Y(q[0]) + cirq.Z(q[0])
-    np.testing.assert_allclose(psum1.expectation(np.array([1, 0])), 1)
-    np.testing.assert_allclose(psum1.expectation(np.array([0, 1])), -1)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, 1]) / np.sqrt(2)), 1)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, -1]) / np.sqrt(2)), -1)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, 1j]) / np.sqrt(2)), 1)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, -1j]) / np.sqrt(2)), -1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, 0]), qubit_map=None), 1)
+    np.testing.assert_allclose(psum1.expectation(np.array([0, 1]), qubit_map=None), -1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, 1]) / np.sqrt(2), qubit_map=None), 1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, -1]) / np.sqrt(2), qubit_map=None), -1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, 1j]) / np.sqrt(2), qubit_map=None), 1)
+    np.testing.assert_allclose(psum1.expectation(np.array([1, -1j]) / np.sqrt(2), qubit_map=None), -1)
 
     psum2 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
     wf1 = np.array([0, 1, 1, 0]) / np.sqrt(2)
-    np.testing.assert_allclose(psum2.expectation(wf1), -2.2)
-    np.testing.assert_allclose(psum2.expectation(wf1), 2.2)
+    np.testing.assert_allclose(psum2.expectation(wf1, qubit_map=None), -2.2)
+    np.testing.assert_allclose(psum2.expectation(wf1, qubit_map=None), 2.2)
     wf2 = np.array([1, 0, 0, 1]) / np.sqrt(2)
-    np.testing.assert_allclose(psum2.expectation(wf2), 4.2)
-    np.testing.assert_allclose(psum2.expectation(wf2), -4.2)
+    np.testing.assert_allclose(psum2.expectation(wf2, qubit_map=None), 4.2)
+    np.testing.assert_allclose(psum2.expectation(wf2, qubit_map=None), -4.2)
 
     psum3 = cirq.Z(q[0]) + cirq.X(q[1])
     # this will test 'alignment' for paulis in a sum...
     wf3 = np.array([1, 1, 0, 0,]) / np.sqrt(2)
+    np.testing.assert_allclose(psum3.expectation(wf3, qubit_map={q0: 0, q1: 1}), 2)
+    np.testing.assert_allclose(psum3.expectation(wf3, qubit_map={q0: 1, q1: 0}), 0)
 
     # pstr2 = 0.5 * cirq.X(q[0]) + cirq.Z(q[1]) + 1.7 * cirq.I(q[0])
