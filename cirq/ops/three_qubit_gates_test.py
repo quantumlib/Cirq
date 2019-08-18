@@ -142,6 +142,14 @@ def test_eq():
     eq.add_equality_group(cirq.CSWAP(b, a, c), cirq.CSWAP(b, c, a))
 
 
+def test_gate_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.CSwapGate(), cirq.CSwapGate())
+    eq.add_equality_group(cirq.CZPowGate(), cirq.CZPowGate())
+    eq.add_equality_group(cirq.CCXPowGate(), cirq.CCXPowGate())
+    eq.add_equality_group(cirq.CCZPowGate(), cirq.CCZPowGate())
+
+
 @pytest.mark.parametrize('op,max_two_cost', [
     (cirq.CCZ(*cirq.LineQubit.range(3)), 8),
     (cirq.CCX(*cirq.LineQubit.range(3)), 8),
