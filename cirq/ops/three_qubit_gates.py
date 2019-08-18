@@ -167,8 +167,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             diag_angles_radians: The list of angles on the diagonal in radians.
 
         """
-        self._diag_angles_radians = diag_angles_radians
-        # type: List[Union[float, sympy.Basic]]
+        self._diag_angles_radians: List[
+            Union[float, sympy.Basic]] = diag_angles_radians
 
     def _is_parameterized_(self):
         return any(
