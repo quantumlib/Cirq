@@ -171,6 +171,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         # type: List[Union[float, sympy.Basic]]
 
 
+
     def _is_parameterized_(self):
         return any(
             isinstance(angle, sympy.Basic)
