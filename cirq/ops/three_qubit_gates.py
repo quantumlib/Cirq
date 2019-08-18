@@ -26,13 +26,14 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
-    pauli_gates,
     op_tree,
+    pauli_gates,
     raw_types,
 )
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
+
 
 
 class CCZPowGate(eigen_gate.EigenGate,
@@ -166,8 +167,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             diag_angles_radians: The list of angles on the diagonal in radians.
 
         """
-        self._diag_angles_radians = diag_angles_radians \
-        # type: List[Union[float, sympy.Basic]]
+        self._diag_angles_radians: List[
+            Union[float, sympy.Basic]] = diag_angles_radians
 
     def _is_parameterized_(self):
         return any(
@@ -380,6 +381,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
+@value.value_equality()
 class CSwapGate(gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
@@ -518,6 +520,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
+
+    def _value_equality_values_(self):
+        return ()
 
     def __str__(self) -> str:
         return 'FREDKIN'
