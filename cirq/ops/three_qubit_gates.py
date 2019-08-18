@@ -156,7 +156,7 @@ class CCZPowGate(eigen_gate.EigenGate,
 
 @value.value_equality()
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
-    """A 3 qubit gate given by a diagonal 8x8 matrix."""
+    """A gate given by a diagonal 8x8 matrix."""
 
     def __init__(self,
                  diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
@@ -172,6 +172,9 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         self._diag_angles_radians = diag_angles_radians \
         # type: List[Union[float, sympy.Basic]]
 
+
+
+
     def _is_parameterized_(self):
         return any(
             isinstance(angle, sympy.Basic)
@@ -185,6 +188,16 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             return NotImplemented
         return np.diag(
             [np.exp(1j * angle) for angle in self._diag_angles_radians])
+
+    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+        if self._is_parameterized_():
+            return NotImplemented
+        for index, angle in enumerate(self._diag_angles_radians):
+            little_endian_index = 4 * (index & 1) + 2 * ((index >> 1) & 1) + (
+                (index >> 2) & 1)
+            subspace_index = args.subspace_index(little_endian_index)
+            args.target_tensor[subspace_index] *= np.exp(1j * angle)
+        return args.target_tensor
 
     def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
                             ) -> 'ThreeQubitDiagonalGate':
@@ -269,20 +282,23 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             sweep_abc,
         ]
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
-        if self._is_parameterized_():
-            return NotImplemented
-        for index, angle in enumerate(self._diag_angles_radians):
-            little_endian_index = 4 * (index & 1) + 2 * ((index >> 1) & 1) + (
-                (index >> 2) & 1)
-            subspace_index = args.subspace_index(little_endian_index)
-            args.target_tensor[subspace_index] *= np.exp(1j * angle)
-        return args.target_tensor
-
     def _value_equality_values_(self):
         return tuple(self._diag_angles_radians)
 
-    
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        x = [np.exp(1j * angle) for angle in self._diag_angles_radians]
+        return value.LinearDict({
+            'III': (x[0] + x[1] + x[2] + x[3] + x[4] + x[5] + x[6] + x[7]) / 8,
+            'IIZ': (x[0] - x[1] + x[2] - x[3] + x[4] - x[5] + x[6] - x[7]) / 8,
+            'IZI': (x[0] + x[1] - x[2] - x[3] + x[4] + x[5] - x[6] - x[7]) / 8,
+            'IZZ': (x[0] - x[1] - x[2] + x[3] + x[4] - x[5] - x[6] + x[7]) / 8,
+            'ZII': (x[0] + x[1] + x[2] + x[3] - x[4] - x[5] - x[6] - x[7]) / 8,
+            'ZIZ': (x[0] - x[1] + x[2] - x[3] - x[4] + x[5] - x[6] + x[7]) / 8,
+            'ZZI': (x[0] + x[1] - x[2] - x[3] - x[4] - x[5] + x[6] + x[7]) / 8,
+            'ZZZ': (x[0] - x[1] - x[2] + x[3] - x[4] + x[5] + x[6] - x[7]) / 8,
+        })
 
     def __repr__(self) -> str:
         return 'cirq.ThreeQubitDiagonalGate([{}])'.format(','.join(
