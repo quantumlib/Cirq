@@ -26,9 +26,9 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
+    op_tree,
     pauli_gates,
     raw_types,
-    op_tree,
 )
 if TYPE_CHECKING:
     # pylint: disable=unused-import
