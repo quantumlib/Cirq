@@ -894,8 +894,3 @@ def test_expectation():
     for state in [wf3, rho3]:
         np.testing.assert_allclose(psum3.expectation(state, qubit_map={q0: 0, q1: 1}), 2)
         np.testing.assert_allclose(psum3.expectation(state, qubit_map={q0: 1, q1: 0}), 0)
-
-
-if __name__ == "__main__":
-    test_expectation()
-    # test_expectation()
