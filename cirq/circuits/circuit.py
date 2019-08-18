@@ -24,9 +24,9 @@ from fractions import Fraction
 from itertools import groupby
 import math
 
-from typing import (
-    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
+from typing import (List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
+                    Optional, Sequence, Union, Set, Type, Tuple, cast, TypeVar,
+                    overload)
 
 import re
 import numpy as np
@@ -39,10 +39,6 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
 import cirq._version
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
 
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
@@ -59,12 +55,15 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_between
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        reachable_frontier_from
+        has_measurements
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        apply_unitary_effect_to_state
+        final_wavefunction
         to_text_diagram
         to_text_diagram_drawer
 
@@ -569,7 +568,7 @@ class Circuit:
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active = set()  # type: Set[ops.Qid]
+        active: Set[ops.Qid] = set()
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
@@ -691,20 +690,21 @@ class Circuit:
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
         """
-        op_list = []
-        max_index = len(self._moments)
-        for qubit in start_frontier:
-            current_index = start_frontier[qubit]
-            if current_index < 0:
-                current_index = 0
-            while current_index < max_index:
-                if self[current_index].operates_on_single_qubit(qubit):
-                    next_op = self.operation_at(qubit, current_index)
-                    if next_op is not None:
-                        if is_blocker(next_op):
-                            break
-                        op_list.append((current_index,next_op))
-                current_index+=1
+        op_list = []  # type: List[Tuple[int, ops.Operation]]
+        frontier = dict(start_frontier)
+        if not frontier:
+            return op_list
+        start_index = min(frontier.values())
+        for index, moment in enumerate(self[start_index:], start_index):
+            active_qubits = set(q for q, s in frontier.items() if s <= index)
+            for op in moment.operations:
+                active_op_qubits = active_qubits.intersection(op.qubits)
+                if active_op_qubits:
+                    if is_blocker(op):
+                        for q in active_op_qubits:
+                            del frontier[q]
+                    else:
+                        op_list.append((index, op))
         return op_list
 
     def operation_at(self,
@@ -1257,7 +1257,6 @@ class Circuit:
         if not self._has_unitary_():
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
-
 
     def unitary(self,
                 qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,

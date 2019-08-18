@@ -1183,6 +1183,16 @@ def test_findall_operations_until_blocked():
             start_frontier={a: idx},
             is_blocker=stop_if_h) == [(11, cirq.CZ.on(a,b))]
 
+    circuit = cirq.Circuit.from_ops(
+        [cirq.CZ(a, b), cirq.CZ(a, b),
+         cirq.CZ(b, c)])
+
+    start = {a: 0, b: 0}
+    is_blocker = lambda next_op: sorted(next_op.qubits) != [a, b]
+    assert (circuit.findall_operations_until_blocked(start, is_blocker) == [
+        (0, cirq.CZ(a, b)), (1, cirq.CZ(a, b))
+    ])
+
 
 def test_has_measurements():
     a = cirq.NamedQubit('a')
