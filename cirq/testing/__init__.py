@@ -42,6 +42,7 @@ from cirq.testing.consistent_pauli_expansion import (
 
 from cirq.testing.consistent_protocols import (
     assert_eigengate_implements_consistent_protocols,
+    assert_has_consistent_trace_distance_bound,
     assert_implements_consistent_protocols,
 )
 

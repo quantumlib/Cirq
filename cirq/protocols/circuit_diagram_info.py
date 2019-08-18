@@ -20,7 +20,6 @@ from typing_extensions import Protocol
 from cirq import value
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 

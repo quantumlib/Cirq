@@ -35,8 +35,7 @@ via.
 """
 import math
 import collections
-from typing import cast, Dict, Iterator, List, Set, Union
-from typing import Tuple  # pylint: disable=unused-import
+from typing import cast, Dict, Iterator, List, Set, Tuple, Union
 
 import numpy as np
 
@@ -162,8 +161,7 @@ class XmonSimulator(sim.SimulatesSamples,
                           circuit: circuits.Circuit,
                           repetitions: int) -> Dict[str, np.ndarray]:
         keys = find_measurement_keys(circuit)
-        measurements = {k: [] for k in
-                        keys}  # type: Dict[str, List[np.ndarray]]
+        measurements: Dict[str, List[np.ndarray]] = {k: [] for k in keys}
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
                 circuit,
@@ -240,9 +238,9 @@ class XmonSimulator(sim.SimulatesSamples,
             if len(circuit) == 0:
                 yield XmonStepResult(stepper, qubit_map, {})
             for moment in circuit:
-                measurements = collections.defaultdict(
-                    list)  # type: Dict[str, List[bool]]
-                phase_map = {}  # type: Dict[Tuple[int, ...], float]
+                measurements: Dict[str, List[bool]] = collections.defaultdict(
+                    list)
+                phase_map: Dict[Tuple[int, ...], float] = {}
                 for op in moment.operations:
                     gate = cast(ops.GateOperation, op).gate
                     if isinstance(gate, ops.ZPowGate):
@@ -291,7 +289,7 @@ class XmonSimulator(sim.SimulatesSamples,
 
 
 def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
-    keys = set()  # type: Set[str]
+    keys: Set[str] = set()
     for _, _, gate in circuit.findall_operations_with_gate_type(
             ops.MeasurementGate):
         key = protocols.measurement_key(gate)
