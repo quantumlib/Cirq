@@ -26,9 +26,10 @@ from cirq.ops import (
     eigen_gate,
     gate_features,
     pauli_gates,
-    op_tree,
     raw_types,
+    op_tree,
 )
+
 
 
 class CCZPowGate(eigen_gate.EigenGate,
@@ -246,6 +247,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
+@value.value_equality()
 class CSwapGate(gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
@@ -384,6 +386,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])
+
+    def _value_equality_values_(self):
+        return ()
 
     def __str__(self) -> str:
         return 'FREDKIN'
