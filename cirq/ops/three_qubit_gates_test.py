@@ -15,6 +15,7 @@
 import itertools
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -31,6 +32,10 @@ def test_eigen_gates_consistent_protocols(eigen_gate_type):
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(cirq.CSWAP)
+
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
+        ignoring_global_phase=True)
 
 
 def test_init():
@@ -87,6 +92,13 @@ def test_unitary():
         [0, 0, 0, 0, 0, 0, 0, 1],
     ]), atol=1e-8)
 
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
+    assert cirq.has_unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles))
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.ThreeQubitDiagonalGate(diagonal_angles)),
+        np.diag([np.exp(1j * angle) for angle in diagonal_angles]),
+        atol=1e-8)
+
 
 def test_str():
     assert str(cirq.CCX) == 'TOFFOLI'
@@ -133,14 +145,12 @@ def test_eq():
 @pytest.mark.parametrize('op,max_two_cost', [
     (cirq.CCZ(*cirq.LineQubit.range(3)), 8),
     (cirq.CCX(*cirq.LineQubit.range(3)), 8),
-    (cirq.CCZ(cirq.LineQubit(0),
-              cirq.LineQubit(2),
-              cirq.LineQubit(1)), 8),
+    (cirq.CCZ(cirq.LineQubit(0), cirq.LineQubit(2), cirq.LineQubit(1)), 8),
     (cirq.CSWAP(*cirq.LineQubit.range(3)), 9),
     (cirq.CSWAP(*reversed(cirq.LineQubit.range(3))), 9),
-    (cirq.CSWAP(cirq.LineQubit(1),
-                cirq.LineQubit(0),
-                cirq.LineQubit(2)), 12),
+    (cirq.CSWAP(cirq.LineQubit(1), cirq.LineQubit(0), cirq.LineQubit(2)), 12),
+    (cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])(
+        cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3)), 8),
 ])
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     ops = tuple(
@@ -152,7 +162,10 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.CCX, cirq.CSWAP, cirq.CCZ,
+    cirq.CCX,
+    cirq.CSWAP,
+    cirq.CCZ,
+    cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19]),
 ])
 def test_decomposition_respects_locality(gate):
     a = cirq.GridQubit(0, 0)
@@ -167,16 +180,13 @@ def test_decomposition_respects_locality(gate):
 
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(
-        cirq.TOFFOLI(a, b, c),
-        cirq.TOFFOLI(a, b, c)**0.5,
-        cirq.CCX(a, c, b),
-        cirq.CCZ(a, d, b),
-        cirq.CCZ(a, d, b)**0.5,
-        cirq.CSWAP(a, c, d),
-        cirq.FREDKIN(a, b, c)
-    )
-    cirq.testing.assert_has_diagram(circuit, """
+    circuit = cirq.Circuit.from_ops(cirq.TOFFOLI(a, b, c),
+                                    cirq.TOFFOLI(a, b, c)**0.5,
+                                    cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
+                                    cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d),
+                                    cirq.FREDKIN(a, b, c))
+    cirq.testing.assert_has_diagram(
+        circuit, """
 0: ───@───@───────@───@───@───────@───@───
       │   │       │   │   │       │   │
 1: ───@───@───────X───@───@───────┼───×───
@@ -185,7 +195,8 @@ def test_diagram():
                       │   │       │
 3: ───────────────────@───@^0.5───×───────
 """)
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(circuit,
+                                    """
 0: ---@---@-------@---@---@-------@------@------
       |   |       |   |   |       |      |
 1: ---@---@-------X---@---@-------|------swap---
@@ -193,4 +204,57 @@ def test_diagram():
 2: ---X---X^0.5---@---|---|-------swap---swap---
                       |   |       |
 3: -------------------@---@^0.5---swap----------
-""", use_unicode_characters=False)
+""",
+                                    use_unicode_characters=False)
+
+    diagonal_circuit = cirq.Circuit.from_ops(
+        cirq.ThreeQubitDiagonalGate([2, 3, 5, 7, 11, 13, 17, 19])(a, b, c))
+    cirq.testing.assert_has_diagram(
+        diagonal_circuit, """
+0: ───diag(2, 3, 5, 7, 11, 13, 17, 19)───
+      │
+1: ───#2─────────────────────────────────
+      │
+2: ───#3─────────────────────────────────
+""")
+    cirq.testing.assert_has_diagram(diagonal_circuit,
+                                    """
+0: ---diag(2, 3, 5, 7, 11, 13, 17, 19)---
+      |
+1: ---#2---------------------------------
+      |
+2: ---#3---------------------------------
+""",
+                                    use_unicode_characters=False)
+
+
+def test_diagonal_exponent():
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
+    diagonal_gate = cirq.ThreeQubitDiagonalGate(diagonal_angles)
+
+    sqrt_diagonal_gate = diagonal_gate**.5
+
+    expected_angles = [prime / 2 for prime in diagonal_angles]
+    np.testing.assert_allclose(expected_angles,
+                               sqrt_diagonal_gate._diag_angles_radians,
+                               atol=1e-8)
+
+    assert cirq.pow(cirq.ThreeQubitDiagonalGate(diagonal_angles), "test",
+                    None) is None
+
+
+def test_resolve():
+    diagonal_angles = [2, 3, 5, 7, 11, 13, 17, 19]
+    diagonal_gate = cirq.ThreeQubitDiagonalGate(
+        diagonal_angles[:6] +
+        [sympy.Symbol('a'), sympy.Symbol('b')])
+    assert cirq.is_parameterized(diagonal_gate)
+
+    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 17})
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles[:7] +
+                                                        [sympy.Symbol('b')])
+    assert cirq.is_parameterized(diagonal_gate)
+
+    diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 19})
+    assert diagonal_gate == cirq.ThreeQubitDiagonalGate(diagonal_angles)
+    assert not cirq.is_parameterized(diagonal_gate)

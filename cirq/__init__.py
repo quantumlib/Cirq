@@ -183,6 +183,7 @@ from cirq.ops import (
     SwapPowGate,
     T,
     ThreeQubitGate,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
