@@ -75,12 +75,27 @@ def test_op_roundtrip():
 }""")
 
 
+QUBITS = cirq.LineQubit.range(5)
+Q0, Q1, Q2, Q3, Q4 = QUBITS
+
 TEST_OBJECTS = {
-    'CCXPowGate': [cirq.CCNOT, cirq.TOFFOLI, cirq.CCX ** 0.123],
-    'CCZPowGate': cirq.CCZ,
-    'CNotPowGate': cirq.CNOT,
-    'CSwapGate': cirq.CSWAP,
-    'CZPowGate': cirq.CZ,
+    'CCNOT': cirq.CCNOT,
+    'CCX': cirq.CCX,
+    'CCXPowGate': cirq.CCXPowGate(exponent=0.123, global_shift=0.456),
+    'CCZ': cirq.CCZ,
+    'CCZPowGate': cirq.CCZPowGate(exponent=0.123, global_shift=0.456),
+    'CNOT': cirq.CNOT,
+    'CNotPowGate': cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
+    'CX': cirq.CX,
+    'CSWAP': cirq.CSWAP,
+    'CSwapGate': cirq.CSwapGate(),
+    'CZ': cirq.CZ,
+    'CZPowGate': cirq.CZPowGate(exponent=0.123, global_shift=0.456),
+    'Circuit': [
+        cirq.Circuit.from_ops(cirq.H.on_each(QUBITS),
+                              cirq.measure(*QUBITS)),
+    ],
+    'FREDKIN': cirq.FREDKIN,
     'FSimGate': cirq.FSimGate(theta=0.123, phi=.456),
     'GateOperation': [
         cirq.CCNOT(*cirq.LineQubit.range(3)),
@@ -92,8 +107,11 @@ TEST_OBJECTS = {
     ],
     'GlobalPhaseOperation': cirq.GlobalPhaseOperation(-1j),
     'GridQubit': cirq.GridQubit(10, 11),
-    'HPowGate': [cirq.H, cirq.H ** 0.123],
-    'ISwapPowGate': [cirq.ISWAP, cirq.ISWAP ** 0.123],
+    'H': cirq.H,
+    'HPowGate': [cirq.HPowGate(exponent=-8), cirq.H ** 0.123],
+    'I': cirq.I,
+    'ISWAP': cirq.ISWAP,
+    'ISwapPowGate': [cirq.ISwapPowGate(exponent=-8), cirq.ISWAP ** 0.123],
     'IdentityGate': [cirq.I, cirq.IdentityGate(num_qubits=5)],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
     'MeasurementGate': [
@@ -101,34 +119,53 @@ TEST_OBJECTS = {
         cirq.MeasurementGate(num_qubits=3, key='z',
                              invert_mask=(True, False, True)),
     ],
-    '_PauliX': cirq.X,
-    '_PauliY': cirq.Y,
-    '_PauliZ': cirq.Z,
-    'SwapPowGate': [cirq.SWAP, cirq.SWAP ** 0.5],
+    'Moment': [
+        cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1), cirq.Z(Q2)]),
+    ],
+    'X': cirq.X,
+    'Y': cirq.Y,
+    'Z': cirq.Z,
+    'S': cirq.S,
+    'SWAP': cirq.SWAP,
+    'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP ** 0.5],
+    'T': cirq.T,
+    'TOFFOLI': cirq.TOFFOLI,
+    'UnconstrainedDevice': cirq.UnconstrainedDevice,
     'XPowGate': cirq.X ** 0.123,
-    'XXPowGate': [cirq.XX, cirq.XX ** 0.123],
+    'XX': cirq.XX,
+    'XXPowGate': [cirq.XXPowGate(), cirq.XX ** 0.123],
     'YPowGate': cirq.Y ** 0.456,
-    'YYPowGate': [cirq.YY, cirq.YY ** 0.456],
+    'YY': cirq.YY,
+    'YYPowGate': [cirq.YYPowGate(), cirq.YY ** 0.456],
     'ZPowGate': cirq.Z ** 0.789,
-    'ZZPowGate': [cirq.ZZ, cirq.ZZ ** 0.789],
+    'ZZ': cirq.ZZ,
+    'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ ** 0.789],
     'complex': [1 + 2j],
 }
 
 
 def _get_all_public_classes():
-    for cls_name, cls_cls in inspect.getmembers(cirq, inspect.isclass):
+    for cls_name, cls_cls in inspect.getmembers(cirq):
+        if inspect.isfunction(cls_cls) or inspect.ismodule(cls_cls):
+            continue
+
+
+        if not inspect.isclass(cls_cls):
+            print(cls_name, '- not a class, but lets test anyway')
+            cls_cls = cls_cls.__class__
+
+
         if cls_name.startswith('_'):
             continue
 
-        if inspect.isabstract(cls_cls) or issubclass(cls_cls, abc.ABCMeta):
+        if (inspect.isclass(cls_cls)
+                and (inspect.isabstract(cls_cls)
+                     or issubclass(cls_cls, abc.ABCMeta))):
             continue
 
         yield cls_name, cls_cls
 
-    # extras
-    yield '_PauliX', cirq.ops.pauli_gates._PauliX
-    yield '_PauliY', cirq.ops.pauli_gates._PauliY
-    yield '_PauliZ', cirq.ops.pauli_gates._PauliZ
+    # extra
     yield 'complex', complex
 
 
@@ -140,7 +177,6 @@ NOT_YET_SERIALIZABLE = [
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'BitFlipChannel',
-    'Circuit',  # TODO
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
@@ -149,6 +185,7 @@ NOT_YET_SERIALIZABLE = [
     'ConstantQubitNoiseModel',
     'ControlledGate',  # TODO
     'ControlledOperation',  # TODO
+    'CONTROL_TAG',
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
@@ -167,7 +204,7 @@ NOT_YET_SERIALIZABLE = [
     'Heatmap',
     'InsertStrategy',
     'InterchangeableQubitsGate',
-    'IonDevice',
+    'IonDevice', # TODO
     'KakDecomposition',
     'LinearCombinationOfGates',  # TODO
     'LinearCombinationOfOperations',  # TODO
@@ -175,17 +212,21 @@ NOT_YET_SERIALIZABLE = [
     'Linspace',
     'MergeInteractions',
     'MergeSingleQubitGates',
-    'Moment',  # TODO
     'NamedQubit',  # TODO
-    'NeutralAtomDevice',
+    'NeutralAtomDevice', # TODO
+    'NO_NOISE',
+    'OP_TREE',
     'ParallelGateOperation',
     'ParamResolver',
+    'ParamResolverOrSimilarType', # to-not-do: type
+    'PAULI_BASIS', # TODO
     'Pauli',  # TODO, should be excluded
     'PauliInteractionGate',
     'PauliString',  # TODO
     'PauliStringExpectation',
     'PauliStringPhasor',
     'PauliSum',  # TODO
+    'PauliSumLike', # to-not-do: type
     'PauliSumCollector',
     'PauliTransform',
     'PeriodicValue',
@@ -199,6 +240,7 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QubitOrderOrList', # to-not-do: type
     'ResetChannel',
     'Schedule',
     'ScheduledOperation',
@@ -227,22 +269,25 @@ NOT_YET_SERIALIZABLE = [
     'SupportsQasmWithArgsAndQubits',
     'SupportsTraceDistanceBound',
     'SupportsUnitary',
+    'Sweepable', # to-not-do: type
     'TextDiagramDrawer',
     'ThreeQubitGate',  # TODO
     'Timestamp',
     'TrialResult',
     'TwoQubitGate',  # TODO
     'TwoQubitMatrixGate',
+    'UnitSweep',
     'Unique',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'Zip',
+    'reset',
 ]
 
 
 @pytest.mark.parametrize('cirq_type,cls', _get_all_public_classes())
 def test_all_roundtrip(cirq_type: str, cls):
-    if cirq_type == 'CSwapGate':
+    if cirq_type == 'CSwapGate' or cirq_type == 'CSWAP' or cirq_type == 'FREDKIN':
         return pytest.xfail(reason='https://github.com/quantumlib/Cirq/issues/1972')
 
     if cirq_type in NOT_YET_SERIALIZABLE:
