@@ -53,7 +53,7 @@ def test_is_negligible_turn():
     assert not cirq.is_negligible_turn(sympy.Symbol('a'), 1e-5)
     assert not cirq.is_negligible_turn(sympy.Symbol('a') + 1, 1e-5)
     assert not cirq.is_negligible_turn(sympy.Symbol('a') * 1e-10, 1e-5)
-    # Sympy expression for a constant
+    # Constant sympy expression
     assert cirq.is_negligible_turn(sympy.Symbol('a') * 0 + 3 + 1e-6, 1e-5)
     assert not cirq.is_negligible_turn(sympy.Symbol('a') * 0 + 1.5 - 1e-6, 1e-5)
 
