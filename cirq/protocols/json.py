@@ -21,21 +21,6 @@ from typing_extensions import Protocol
 from cirq.type_workarounds import NotImplementedType
 
 
-# Note for developers:
-# I used this code to originally generate this list, followed by manual
-# pruning:
-#
-# import cirq
-#
-# for k in sorted(cirq.__dict__.keys()):
-#     if k.startswith('__'):
-#         continue
-#
-#     if k[0].isupper():
-#         if k.isupper():
-#             continue
-#         print(f"'{k}': cirq.{k},")
-
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
 
