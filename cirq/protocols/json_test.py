@@ -127,6 +127,9 @@ TEST_OBJECTS = {
         cirq.PauliString({Q0: cirq.X, Q1: cirq.Y, Q2: cirq.Z}),
         cirq.X(Q0) * cirq.Y(Q1) * 123
     ],
+    'PhasedXPowGate': cirq.PhasedXPowGate(phase_exponent=0.123,
+                                          exponent=0.456,
+                                          global_shift=0.789),
     'X': cirq.X,
     'Y': cirq.Y,
     'Z': cirq.Z,
@@ -295,7 +298,6 @@ NOT_YET_SERIALIZABLE = [
     'PeriodicValue',
     'PhaseDampingChannel',
     'PhaseFlipChannel',
-    'PhasedXPowGate',  # high prio
     'PointOptimizationSummary',
     'Points',
     'Product',
