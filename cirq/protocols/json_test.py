@@ -251,6 +251,8 @@ def test_not_yet_serializable_no_superfluous():
     for name in NOT_YET_SERIALIZABLE:
         assert name in names
 
+
+def test_mutually_exclusive_blacklist():
     assert len(set(SHOULDNT_BE_SERIALIZED) & set(NOT_YET_SERIALIZABLE)) == 0
 
 
