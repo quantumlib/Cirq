@@ -265,7 +265,7 @@ NOT_YET_SERIALIZABLE = [
     'CircuitSampleJob',
     'ComputeDisplaysResult',
     'ConstantQubitNoiseModel',
-    'ControlledGate',
+    'ControlledGate', # TODO: after fix
     'ControlledOperation',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
@@ -283,7 +283,7 @@ NOT_YET_SERIALIZABLE = [
     'LinearDict',
     'Linspace',
     'NO_NOISE',
-    'NamedQubit',
+    'NamedQubit', # high prio
     'NeutralAtomDevice',
     'ParallelGateOperation',
     'ParamResolver',
