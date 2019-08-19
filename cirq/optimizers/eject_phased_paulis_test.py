@@ -13,9 +13,9 @@
 # limitations under the License.
 from typing import Iterable, cast
 
+import numpy as np
 import pytest
 import sympy
-import numpy as np
 
 import cirq
 
@@ -39,8 +39,9 @@ def assert_optimizes(before: cirq.Circuit,
                      cirq.resolve_parameters(circuit, params),
                      cirq.resolve_parameters(expected, params), 1e-8))
         else:
-            cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-                circuit, expected, 1e-8)
+            (cirq.testing.
+             assert_circuits_with_terminal_measurements_are_equivalent(
+                 circuit, expected, 1e-8))
 
     # And match the expected circuit.
     assert circuit == expected, (
