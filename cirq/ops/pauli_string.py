@@ -31,7 +31,8 @@ from cirq.ops import (
     clifford_gate,
     pauli_interaction_gate,
 )
-
+from cirq.sim.wave_function import to_valid_state_vector
+from cirq.sim.density_matrix_utils import to_valid_density_matrix
 TDefault = TypeVar('TDefault')
 
 
@@ -285,19 +286,18 @@ class PauliString(raw_types.Operation):
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
         # TODO: add support for mixtures.
-        size = state.size
-        if size & (size - 1):
-            raise ValueError("Input state's size ({}) is not "
-                             "a power of two.".format(size))
-        if not np.isclose(np.linalg.norm(state), 1):
-            raise ValueError("Input state must be normalized.")
-
         # TODO: add input validation for `qubit_map`.
         if qubit_map is None:
             qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
+
+        size = state.size
         if state.shape == (size,):
+            num_qubits = size.bit_length() - 1
+            state = to_valid_state_vector(state, num_qubits)
             return self._expectation_from_wavefunction(state, qubit_map)
         if state.shape == (int(np.sqrt(size)),) * 2:
+            num_qubits = int(np.sqrt(size)).bit_length() - 1
+            state = to_valid_density_matrix(state, num_qubits)
             return self._expectation_from_density_matrix(state, qubit_map)
 
         raise ValueError("Input array does not represent a wavefunction with "

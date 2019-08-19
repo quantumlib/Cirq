@@ -88,7 +88,7 @@ def test_exponentiation_as_exponent():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliString({a: cirq.X, b: cirq.Y})
 
-    with pytest.raises(NotImplementedError, match='non-hermitian'):
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
         _ = math.e**(math.pi * p)
 
     with pytest.raises(TypeError, match='unsupported'):
@@ -468,7 +468,7 @@ def test_pow():
 def test_numpy_ufunc():
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = np.sin(cirq.PauliString())
-    with pytest.raises(NotImplementedError, match="non-hermitian"):
+    with pytest.raises(NotImplementedError, match="non-Hermitian"):
         _ = np.exp(cirq.PauliString())
     x = np.exp(1j * np.pi * cirq.PauliString())
     assert x is not None
@@ -877,9 +877,16 @@ def test_pauli_string_expectation_value_mixed_state_linearity():
     wavefunction1 = cirq.testing.random_superposition(2**n_qubits)
     wavefunction2 = cirq.testing.random_superposition(2**n_qubits)
 
+    print(np.linalg.norm(wavefunction1))
     rho1 = np.outer(wavefunction1, np.conj(wavefunction1))
     rho2 = np.outer(wavefunction2, np.conj(wavefunction2))
-    density_matrix = rho1 + rho2
+    print(np.linalg.norm(rho1))
+    print(np.linalg.norm(rho2))
+    density_matrix = rho1 / 2 + rho2 / 2
+    print(np.linalg.norm(density_matrix))
+    print(np.linalg.norm(density_matrix, 2))
+    print(np.trace(density_matrix))
+    # density_matrix = density_matrix / np.linalg.norm(density_matrix)
 
     qubits = cirq.LineQubit.range(n_qubits)
     qubit_index_map = {q: i for i, q in enumerate(qubits)}
