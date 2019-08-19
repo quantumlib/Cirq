@@ -105,9 +105,11 @@ message TargetSet {
     // Only the order specified in each target is valid.
     ASYMMETRIC = 2;
 
-    // All targets should be single qubits.  Any subset of these targets
-    // should be considered valid.
-    // (For example, if measurement is possible on a subset of qubits)
+    // All targets in this TargetSet should contain only a single qubit id.
+    // Gates using this TargetSet can be applied to any subset of these targets
+    // in any order.
+    // For example, this could be the case for measurement gates that can
+    // measure any subset of qubits at once.
     SUBSET_PERMUTATION = 3;
   }
 
