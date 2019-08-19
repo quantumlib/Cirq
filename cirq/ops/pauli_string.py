@@ -30,7 +30,6 @@ from cirq.ops import (
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,
-    pauli_string_expectation,
 )
 
 TDefault = TypeVar('TDefault')
@@ -309,15 +308,35 @@ class PauliString(raw_types.Operation):
                                        state: np.ndarray,
                                        qubit_map: Dict[raw_types.Qid, int]
                                        ) -> float:
-        return pauli_string_expectation(
-            self).value_derived_from_wavefunction(state, qubit_map)
+        num_qubits = state.shape[0].bit_length() - 1
+        ket = np.reshape(np.copy(state), (2,) * num_qubits)
+        for qubit, pauli in self.items():
+            buffer = np.empty(ket.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(
+                    target_tensor=ket,
+                    available_buffer=buffer,
+                    axes=(qubit_map[qubit],)
+                    )
+            ket = protocols.apply_unitary(pauli, args)
+        ket = np.reshape(ket, state.shape)
+        return np.dot(state.conj(), ket) * self.coefficient
 
     def _expectation_from_density_matrix(self,
                                          state: np.ndarray,
                                          qubit_map: Dict[raw_types.Qid, int]
                                          ) -> float:
-        return pauli_string_expectation(
-            self).value_derived_from_density_matrix(state, qubit_map)
+        num_qubits = state.shape[0].bit_length() - 1
+        result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
+        for qubit, pauli in self.items():
+            buffer = np.empty(result.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(
+                    target_tensor=result,
+                    available_buffer=buffer,
+                    axes=(qubit_map[qubit],)
+                    )
+            result = protocols.apply_unitary(pauli, args)
+        result = np.reshape(result, state.shape)
+        return np.trace(result) * self.coefficient
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:

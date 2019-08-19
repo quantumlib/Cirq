@@ -151,7 +151,7 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    pauli_string_expectation,
+    approx_pauli_string_expectation,
     PauliInteractionGate,
     PauliString,
     PauliStringExpectation,
