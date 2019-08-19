@@ -73,7 +73,6 @@ from cirq.ops.display import (
     ApproxPauliStringExpectation,
     DensityMatrixDisplay,
     approx_pauli_string_expectation,
-    PauliStringExpectation,
     SamplesDisplay,
     WaveFunctionDisplay,
 )

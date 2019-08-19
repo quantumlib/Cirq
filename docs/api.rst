@@ -189,7 +189,6 @@ Displays
     ApproxPauliStringExpectation
     approx_pauli_string_expectation
     DensityMatrixDisplay
-    PauliStringExpectation
     SamplesDisplay
     WaveFunctionDisplay
 

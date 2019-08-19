@@ -734,7 +734,6 @@ def test_expectation_invalid_input():
 
 
 def test_expectation():
-    # TODO: Possibly more tests pending a refactoring of `display.py`
     q0, q1 = _make_qubits(2)
     x0_pauli_map = {q0: cirq.X}
     x0 = cirq.PauliString(x0_pauli_map)
@@ -798,70 +797,43 @@ def test_pauli_string_expectation_value_pure_state():
     wavefunction = circuit.final_wavefunction(qubit_order=qubits)
     density_matrix = np.outer(wavefunction, np.conj(wavefunction))
 
-    z0z1 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[1]: cirq.Z})
-            )
-    z0z2 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[2]: cirq.Z})
-            )
-    z0z3 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[3]: cirq.Z})
-            )
-    z0x1 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[1]: cirq.X})
-            )
-    z1x2 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[2]: cirq.X})
-            )
-    x0z1 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.X,
-                              qubits[1]: cirq.Z})
-            )
-    x3 = cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.X})
-            )
+    z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
+    z0z2 = cirq.PauliString({qubits[0]: cirq.Z, qubits[2]: cirq.Z})
+    z0z3 = cirq.PauliString({qubits[0]: cirq.Z, qubits[3]: cirq.Z})
+    z0x1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.X})
+    z1x2 = cirq.PauliString({qubits[1]: cirq.Z, qubits[2]: cirq.X})
+    x0z1 = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Z})
+    x3 = cirq.PauliString({qubits[3]: cirq.X})
 
     np.testing.assert_allclose(
-        z0z1.value_derived_from_wavefunction(wavefunction, qubit_index_map), -1)
+        z0z1.expectation(wavefunction, qubit_index_map), -1)
     np.testing.assert_allclose(
-        z0z2.value_derived_from_wavefunction(wavefunction, qubit_index_map), 0)
+        z0z2.expectation(wavefunction, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z0z3.value_derived_from_wavefunction(wavefunction, qubit_index_map), 0)
+        z0z3.expectation(wavefunction, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z0x1.value_derived_from_wavefunction(wavefunction, qubit_index_map), 0)
+        z0x1.expectation(wavefunction, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z1x2.value_derived_from_wavefunction(wavefunction, qubit_index_map), -1)
+        z1x2.expectation(wavefunction, qubit_index_map), -1)
     np.testing.assert_allclose(
-        x0z1.value_derived_from_wavefunction(wavefunction, qubit_index_map), 0)
+        x0z1.expectation(wavefunction, qubit_index_map), 0)
     np.testing.assert_allclose(
-        x3.value_derived_from_wavefunction(wavefunction, qubit_index_map), -1)
+        x3.expectation(wavefunction, qubit_index_map), -1)
 
     np.testing.assert_allclose(
-        z0z1.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), -1)
+        z0z1.expectation(density_matrix, qubit_index_map), -1)
     np.testing.assert_allclose(
-        z0z2.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), 0)
+        z0z2.expectation(density_matrix, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z0z3.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), 0)
+        z0z3.expectation(density_matrix, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z0x1.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), 0)
+        z0x1.expectation(density_matrix, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z1x2.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), -1)
+        z1x2.expectation(density_matrix, qubit_index_map), -1)
     np.testing.assert_allclose(
-        x0z1.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), 0)
+        x0z1.expectation(density_matrix, qubit_index_map), 0)
     np.testing.assert_allclose(
-        x3.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map), -1)
+        x3.expectation(density_matrix, qubit_index_map), -1)
 
 
 def test_pauli_string_expectation_value_pure_state_with_coef():
@@ -877,27 +849,23 @@ def test_pauli_string_expectation_value_pure_state_with_coef():
     wavefunction = circuit.apply_unitary_effect_to_state(qubit_order=qs)
     density_matrix = np.outer(wavefunction, np.conj(wavefunction))
 
-    z0z1 = cirq.pauli_string_expectation(cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123)
-    z0z2 = cirq.pauli_string_expectation(cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1)
-    z1x2 = cirq.pauli_string_expectation(-cirq.Z(qs[1]) * cirq.X(qs[2]))
+    z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123
+    z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
+    z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
 
     np.testing.assert_allclose(
-        z0z1.value_derived_from_wavefunction(wavefunction, qubit_index_map),
-        -0.123)
+        z0z1.expectation(wavefunction, qubit_index_map), -0.123)
     np.testing.assert_allclose(
-        z0z2.value_derived_from_wavefunction(wavefunction, qubit_index_map), 0)
+        z0z2.expectation(wavefunction, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z1x2.value_derived_from_wavefunction(wavefunction, qubit_index_map), 1)
+        z1x2.expectation(wavefunction, qubit_index_map), 1)
 
     np.testing.assert_allclose(
-        z0z1.value_derived_from_density_matrix(density_matrix, qubit_index_map),
-        -0.123)
+        z0z1.expectation(density_matrix, qubit_index_map), -0.123)
     np.testing.assert_allclose(
-        z0z2.value_derived_from_density_matrix(density_matrix, qubit_index_map),
-        0)
+        z0z2.expectation(density_matrix, qubit_index_map), 0)
     np.testing.assert_allclose(
-        z1x2.value_derived_from_density_matrix(density_matrix, qubit_index_map),
-        1)
+        z1x2.expectation(density_matrix, qubit_index_map), 1)
 
 
 def test_pauli_string_expectation_value_mixed_state_linearity():
@@ -913,14 +881,11 @@ def test_pauli_string_expectation_value_mixed_state_linearity():
     qubits = cirq.LineQubit.range(n_qubits)
     qubit_index_map = {q: i for i, q in enumerate(qubits)}
     paulis = [cirq.X, cirq.Y, cirq.Z]
-    pauli_string_expectation = cirq.pauli_string_expectation(
-            cirq.PauliString({q: np.random.choice(paulis) for q in qubits}))
+    pauli_string = cirq.PauliString(
+        {q: np.random.choice(paulis) for q in qubits}))
 
-    a = pauli_string_expectation.value_derived_from_wavefunction(
-            wavefunction1, qubit_index_map)
-    b = pauli_string_expectation.value_derived_from_wavefunction(
-            wavefunction2, qubit_index_map)
-    c = pauli_string_expectation.value_derived_from_density_matrix(
-            density_matrix, qubit_index_map)
+    a = pauli_string.expectation(wavefunction1, qubit_index_map)
+    b = pauli_string.expectation(wavefunction2, qubit_index_map)
+    c = pauli_string.expectation(density_matrix, qubit_index_map)
 
     np.testing.assert_allclose(a + b, c)

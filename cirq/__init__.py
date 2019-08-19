@@ -154,7 +154,6 @@ from cirq.ops import (
     approx_pauli_string_expectation,
     PauliInteractionGate,
     PauliString,
-    PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
