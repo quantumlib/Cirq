@@ -76,11 +76,6 @@ class TrialResult:
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
-            by the qubits being measured.)
     """
 
     def __init__(

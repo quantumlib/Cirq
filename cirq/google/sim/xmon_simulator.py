@@ -301,13 +301,6 @@ def find_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
 
 class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
     """Results of a step of the simulator.
-
-    Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state_vector() method).
-        measurements: A dictionary from measurement gate key to measurement
-            results, ordered by the qubits that the measurement operates on.
     """
 
     def __init__(
@@ -315,6 +308,14 @@ class XmonStepResult(sim.StateVectorMixin, sim.WaveFunctionStepResult):
             stepper: xmon_stepper.Stepper,
             qubit_map: Dict,
             measurements: Dict[str, np.ndarray]) -> None:
+        """
+        Args:
+            qubit_map: A map from the Qubits in the Circuit to the the index
+                of this qubit for a canonical ordering. This canonical ordering
+                is used to define the state (see the state_vector() method).
+            measurements: A dictionary from measurement gate key to measurement
+                results, ordered by the qubits that the measurement operates on.
+        """
         super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._stepper = stepper
 
