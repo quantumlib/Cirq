@@ -81,9 +81,10 @@ class ParamFlattener(resolver.ParamResolver):
         """Disables the behavior of `ParamResolver.__new__`."""
         return super().__new__(cls)
 
-    def __init__(self,
-                 param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
-                 new_param_names: Iterable[str] = ()):
+    def __init__(
+            self,
+            param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
+            new_param_names: Iterable[str] = ()):
         """Initializes a new ParamFlattener.
 
         Args:
@@ -198,7 +199,8 @@ class ParamFlattener(resolver.ParamResolver):
         return protocols.resolve_parameters(val, self)
 
     def transform_sweep(self,
-                        sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]) -> sweeps.Sweep:
+                        sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
+                       ) -> sweeps.Sweep:
         """Returns a sweep to use with a circuit flattened earlier with
         `flatten`.
 
@@ -215,7 +217,7 @@ class ParamFlattener(resolver.ParamResolver):
         return _TransformedSweep(sweep, dict(self.param_dict))
 
     def transform_params(self, params: resolver.ParamResolverOrSimilarType
-                         ) -> resolver.ParamResolver:
+                        ) -> resolver.ParamResolver:
         """Returns a `ParamResolver` to use with a circuit flattened earlier
         with `flatten`.
 
