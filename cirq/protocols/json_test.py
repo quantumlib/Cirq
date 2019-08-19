@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
+import inspect
+
 import pytest
 
 import cirq
@@ -112,12 +115,138 @@ TEST_OBJECTS = {
 }
 
 
-@pytest.mark.parametrize('cirq_type,cls',
-                         cirq.protocols.json.RESOLVER_CACHE
-                         .cirq_class_resolver_dictionary.items())
+def _get_all_public_classes():
+    for cls_name, cls_cls in inspect.getmembers(cirq, inspect.isclass):
+        if cls_name.startswith('_'):
+            continue
+
+        if inspect.isabstract(cls_cls) or issubclass(cls_cls, abc.ABCMeta):
+            continue
+
+        yield cls_name, cls_cls
+
+    # extras
+    yield '_PauliX', cirq.ops.pauli_gates._PauliX
+    yield '_PauliY', cirq.ops.pauli_gates._PauliY
+    yield '_PauliZ', cirq.ops.pauli_gates._PauliZ
+    yield 'complex', complex
+
+
+NOT_YET_SERIALIZABLE = [
+    'AmplitudeDampingChannel',
+    'ApplyChannelArgs',
+    'ApplyUnitaryArgs',
+    'ApproxPauliStringExpectation',
+    'AsymmetricDepolarizingChannel',
+    'AxisAngleDecomposition',
+    'BitFlipChannel',
+    'Circuit',  # TODO
+    'CircuitDag',
+    'CircuitDiagramInfo',
+    'CircuitDiagramInfoArgs',
+    'CircuitSampleJob',
+    'ComputeDisplaysResult',
+    'ConstantQubitNoiseModel',
+    'ControlledGate',  # TODO
+    'ControlledOperation',  # TODO
+    'ConvertToCzAndSingleGates',
+    'ConvertToIonGates',
+    'ConvertToNeutralAtomGates',
+    'DensityMatrixSimulator',
+    'DensityMatrixSimulatorState',
+    'DensityMatrixStepResult',
+    'DensityMatrixTrialResult',
+    'DepolarizingChannel',
+    'DropEmptyMoments',
+    'DropNegligible',
+    'Duration',
+    'EjectPhasedPaulis',
+    'EjectZ',
+    'ExpandComposite',
+    'GeneralizedAmplitudeDampingChannel',
+    'Heatmap',
+    'InsertStrategy',
+    'InterchangeableQubitsGate',
+    'IonDevice',
+    'KakDecomposition',
+    'LinearCombinationOfGates',  # TODO
+    'LinearCombinationOfOperations',  # TODO
+    'LinearDict',  # TODO
+    'Linspace',
+    'MergeInteractions',
+    'MergeSingleQubitGates',
+    'Moment',  # TODO
+    'NamedQubit',  # TODO
+    'NeutralAtomDevice',
+    'ParallelGateOperation',
+    'ParamResolver',
+    'Pauli',  # TODO, should be excluded
+    'PauliInteractionGate',
+    'PauliString',  # TODO
+    'PauliStringExpectation',
+    'PauliStringPhasor',
+    'PauliSum',  # TODO
+    'PauliSumCollector',
+    'PauliTransform',
+    'PeriodicValue',
+    'PhaseDampingChannel',
+    'PhaseFlipChannel',
+    'PhasedXPowGate',  # TODO
+    'PointOptimizationSummary',
+    'PointOptimizer',
+    'Points',
+    'Product',
+    'QasmArgs',
+    'QasmOutput',
+    'QubitOrder',
+    'ResetChannel',
+    'Schedule',
+    'ScheduledOperation',
+    'SimulationTrialResult',
+    'Simulator',
+    'SingleQubitCliffordGate',
+    'SingleQubitGate',
+    'SingleQubitMatrixGate',
+    'SingleQubitPauliStringGateOperation',
+    'SparseSimulatorStep',
+    'StateVectorMixin',
+    'SupportsApplyChannel',
+    'SupportsApproximateEquality',
+    'SupportsChannel',
+    'SupportsCircuitDiagramInfo',
+    'SupportsConsistentApplyUnitary',
+    'SupportsDecompose',
+    'SupportsDecomposeWithQubits',
+    'SupportsExplicitNumQubits',
+    'SupportsExplicitQidShape',
+    'SupportsMixture',
+    'SupportsParameterization',
+    'SupportsPhase',
+    'SupportsQasm',
+    'SupportsQasmWithArgs',
+    'SupportsQasmWithArgsAndQubits',
+    'SupportsTraceDistanceBound',
+    'SupportsUnitary',
+    'TextDiagramDrawer',
+    'ThreeQubitGate',  # TODO
+    'Timestamp',
+    'TrialResult',
+    'TwoQubitGate',  # TODO
+    'TwoQubitMatrixGate',
+    'Unique',
+    'WaveFunctionSimulatorState',
+    'WaveFunctionTrialResult',
+    'Zip',
+]
+
+
+@pytest.mark.parametrize('cirq_type,cls', _get_all_public_classes())
 def test_all_roundtrip(cirq_type: str, cls):
     if cirq_type == 'CSwapGate':
         return pytest.xfail(reason='https://github.com/quantumlib/Cirq/issues/1972')
+
+    if cirq_type in NOT_YET_SERIALIZABLE:
+        return pytest.xfail(reason="Not serializable (yet)")
 
     objs = TEST_OBJECTS[cirq_type]
     if not isinstance(objs, list):
