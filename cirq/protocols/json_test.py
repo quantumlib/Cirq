@@ -94,6 +94,7 @@ TEST_OBJECTS = {
     'Circuit': [
         cirq.Circuit.from_ops(cirq.H.on_each(QUBITS),
                               cirq.measure(*QUBITS)),
+        cirq.Circuit.from_ops(cirq.CCNOT(Q0, Q1, Q2), cirq.X(Q0) ** 0.123)
     ],
     'FREDKIN': cirq.FREDKIN,
     'FSimGate': cirq.FSimGate(theta=0.123, phi=.456),
@@ -122,11 +123,16 @@ TEST_OBJECTS = {
     'Moment': [
         cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1), cirq.Z(Q2)]),
     ],
+    'PauliString': [
+        cirq.PauliString({Q0: cirq.X, Q1: cirq.Y, Q2: cirq.Z}),
+        cirq.X(Q0) * cirq.Y(Q1) * 123
+    ],
     'X': cirq.X,
     'Y': cirq.Y,
     'Z': cirq.Z,
     'S': cirq.S,
     'SWAP': cirq.SWAP,
+    'SingleQubitPauliStringGateOperation': cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP ** 0.5],
     'T': cirq.T,
     'TOFFOLI': cirq.TOFFOLI,
@@ -149,11 +155,9 @@ def _get_all_public_classes():
         if inspect.isfunction(cls_cls) or inspect.ismodule(cls_cls):
             continue
 
-
         if not inspect.isclass(cls_cls):
             print(cls_name, '- not a class, but lets test anyway')
             cls_cls = cls_cls.__class__
-
 
         if cls_name.startswith('_'):
             continue
@@ -204,7 +208,7 @@ NOT_YET_SERIALIZABLE = [
     'Heatmap',
     'InsertStrategy',
     'InterchangeableQubitsGate',
-    'IonDevice', # TODO
+    'IonDevice',  # TODO
     'KakDecomposition',
     'LinearCombinationOfGates',  # TODO
     'LinearCombinationOfOperations',  # TODO
@@ -213,20 +217,19 @@ NOT_YET_SERIALIZABLE = [
     'MergeInteractions',
     'MergeSingleQubitGates',
     'NamedQubit',  # TODO
-    'NeutralAtomDevice', # TODO
+    'NeutralAtomDevice',  # TODO
     'NO_NOISE',
     'OP_TREE',
     'ParallelGateOperation',
     'ParamResolver',
-    'ParamResolverOrSimilarType', # to-not-do: type
-    'PAULI_BASIS', # TODO
+    'ParamResolverOrSimilarType',  # to-not-do: type
+    'PAULI_BASIS',  # TODO
     'Pauli',  # TODO, should be excluded
     'PauliInteractionGate',
-    'PauliString',  # TODO
     'PauliStringExpectation',
     'PauliStringPhasor',
     'PauliSum',  # TODO
-    'PauliSumLike', # to-not-do: type
+    'PauliSumLike',  # to-not-do: type
     'PauliSumCollector',
     'PauliTransform',
     'PeriodicValue',
@@ -240,7 +243,7 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
-    'QubitOrderOrList', # to-not-do: type
+    'QubitOrderOrList',  # to-not-do: type
     'ResetChannel',
     'Schedule',
     'ScheduledOperation',
@@ -249,7 +252,6 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SingleQubitGate',
     'SingleQubitMatrixGate',
-    'SingleQubitPauliStringGateOperation',
     'SparseSimulatorStep',
     'StateVectorMixin',
     'SupportsApplyChannel',
@@ -269,7 +271,7 @@ NOT_YET_SERIALIZABLE = [
     'SupportsQasmWithArgsAndQubits',
     'SupportsTraceDistanceBound',
     'SupportsUnitary',
-    'Sweepable', # to-not-do: type
+    'Sweepable',  # to-not-do: type
     'TextDiagramDrawer',
     'ThreeQubitGate',  # TODO
     'Timestamp',
