@@ -102,8 +102,7 @@ TEST_OBJECTS = {
         cirq.CCNOT(*cirq.LineQubit.range(3)),
         cirq.CCZ(*cirq.LineQubit.range(3)),
         cirq.CNOT(*cirq.LineQubit.range(2)),
-        # TODO: https://github.com/quantumlib/Cirq/issues/1972
-        # cirq.CSWAP(*cirq.LineQubit.range(3)),
+        cirq.CSWAP(*cirq.LineQubit.range(3)),
         cirq.CZ(*cirq.LineQubit.range(2))
     ],
     'GlobalPhaseOperation': cirq.GlobalPhaseOperation(-1j),
@@ -265,7 +264,7 @@ NOT_YET_SERIALIZABLE = [
     'CircuitSampleJob',
     'ComputeDisplaysResult',
     'ConstantQubitNoiseModel',
-    'ControlledGate', # TODO: after fix
+    'ControlledGate',
     'ControlledOperation',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
@@ -313,6 +312,7 @@ NOT_YET_SERIALIZABLE = [
     'SparseSimulatorStep',
     'StateVectorMixin',
     'TextDiagramDrawer',
+    'ThreeQubitDiagonalGate',
     'Timestamp',
     'TrialResult',
     'TwoQubitMatrixGate',
@@ -326,9 +326,6 @@ NOT_YET_SERIALIZABLE = [
 
 @pytest.mark.parametrize('cirq_type,cls', _get_all_public_classes())
 def test_all_roundtrip(cirq_type: str, cls):
-    if cirq_type == 'CSwapGate' or cirq_type == 'CSWAP' or cirq_type == 'FREDKIN':
-        return pytest.xfail(reason='https://github.com/quantumlib/Cirq/issues/1972')
-
     if cirq_type in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
 
