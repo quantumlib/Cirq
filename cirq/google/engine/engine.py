@@ -739,11 +739,10 @@ class EngineProgram:
     """A program created via the Quantum Engine API.
 
     This program wraps a Circuit or Schedule with additional metadata used to
-    schedule againt devices maintained by Google.
+    schedule against the devices managed by Quantum Engine.
 
     Attributes:
       name: The full resource name of the engine program.
-      code: A serialized version of the Circuit or Schedule
     """
 
     def __init__(self, resource_name: str, engine: Engine) -> None:
