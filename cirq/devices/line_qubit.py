@@ -17,6 +17,7 @@ from typing import List
 
 from cirq import ops
 
+
 @functools.total_ordering
 class LineQubit(ops.Qid):
     """A qubit on a 1d lattice with nearest-neighbor connectivity.
