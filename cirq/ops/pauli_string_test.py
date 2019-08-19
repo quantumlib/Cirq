@@ -733,7 +733,7 @@ def test_expectation_invalid_input():
         pauli_string.expectation(state.reshape((2, 2, 2)))
 
 
-def test_expectation():
+def test_expectation_basis_states():
     q0, q1 = _make_qubits(2)
     x0_pauli_map = {q0: cirq.X}
     x0 = cirq.PauliString(x0_pauli_map)
@@ -749,6 +749,9 @@ def test_expectation():
     np.testing.assert_allclose(x0.expectation(
         np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, qubit_map=None), -1)
 
+
+def test_expectation_entangled_states():
+    q0, q1 = _make_qubits(2)
     z0z1_pauli_map = {q0: cirq.Z, q1: cirq.Z}
     z0z1 = cirq.PauliString(z0z1_pauli_map)
     x0x1_pauli_map = {q0: cirq.X, q1: cirq.X}
@@ -882,7 +885,7 @@ def test_pauli_string_expectation_value_mixed_state_linearity():
     qubit_index_map = {q: i for i, q in enumerate(qubits)}
     paulis = [cirq.X, cirq.Y, cirq.Z]
     pauli_string = cirq.PauliString(
-        {q: np.random.choice(paulis) for q in qubits}))
+        {q: np.random.choice(paulis) for q in qubits})
 
     a = pauli_string.expectation(wavefunction1, qubit_index_map)
     b = pauli_string.expectation(wavefunction2, qubit_index_map)
