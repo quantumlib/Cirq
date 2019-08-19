@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ def test_flatten_circuit():
     }
 
 
-def test_transform_resolver():
+def test_transform_params():
     a = sympy.Symbol('a')
     flattener = cirq.ParamFlattener({
         a / 4: 'x0',  # Either a str or a Symbol
@@ -80,7 +80,7 @@ def test_transform_resolver():
     })
     resolver = cirq.ParamResolver({'a': 3})
 
-    new_resolver = flattener.transform_resolver(resolver)
+    new_resolver = flattener.transform_params(resolver)
     assert isinstance(new_resolver, cirq.ParamResolver)
 
     expected_resolver = cirq.ParamResolver({

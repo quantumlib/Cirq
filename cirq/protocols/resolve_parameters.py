@@ -82,12 +82,12 @@ def resolve_parameters(
         If `val` has no `_resolve_parameters_` method or if it returns
         NotImplemented, `val` itself is returned.
     """
-    from cirq import ParamResolver, ParamFlattener  # HACK: break cycle.
-    if not param_resolver and not isinstance(param_resolver, ParamFlattener):
+    from cirq import study  # HACK: break cycle.
+    if (not param_resolver and not isinstance(param_resolver, study.ParamFlattener)):
         return val
 
     # Ensure its a dictionary wrapped in a ParamResolver.
-    param_resolver = ParamResolver(param_resolver)
+    param_resolver = study.ParamResolver(param_resolver)
     if isinstance(val, sympy.Basic):
         return param_resolver.value_of(val)
     if isinstance(val, (list, tuple)):

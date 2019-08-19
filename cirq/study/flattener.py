@@ -19,13 +19,11 @@ from typing import (overload, Any, Dict, Iterable, Iterator, List, Optional,
 import itertools
 import sympy
 
-from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import Sweep, Params
-from cirq.study.sweepable import to_sweep
-from cirq.protocols.resolve_parameters import resolve_parameters
+from cirq import protocols
+from cirq.study import resolver, sweeps, sweepable
 
 
-class ParamFlattener(ParamResolver):
+class ParamFlattener(resolver.ParamResolver):
     """A `ParamResolver` that resolves sympy expressions to unique symbols.
 
     This is a mutable object that stores new expression to symbol mappings
@@ -63,10 +61,20 @@ class ParamFlattener(ParamResolver):
          cirq.ParamResolver(OrderedDict([('x0', 0.5), ('x1', 0.5)])),
          cirq.ParamResolver(OrderedDict([('x0', 0.75), ('x1', 0.25)]))]
 
-        >>> print(cirq.resolve_parameters(c_flat, list(new_sweep)[1]))
-        0: ───X^0.25───X^0.75───
-        >>> print(cirq.resolve_parameters(circuit, list(sweep)[1])) # Equivalent
-        0: ───X^0.25───X^0.75───
+        >>> for params in sweep:  # Original
+        ...     print(circuit, '=>', end=' ')
+        ...     print(cirq.resolve_parameters(circuit, params))
+        0: ───X^(a/4)───X^(1 - a/4)─── => 0: ───X^0───X───
+        0: ───X^(a/4)───X^(1 - a/4)─── => 0: ───X^0.25───X^0.75───
+        0: ───X^(a/4)───X^(1 - a/4)─── => 0: ───X^0.5───X^0.5───
+        0: ───X^(a/4)───X^(1 - a/4)─── => 0: ───X^0.75───X^0.25───
+        >>> for params in new_sweep:  # Flattened
+        ...     print(c_flat, '=>', end=' ')
+        ...     print(cirq.resolve_parameters(c_flat, params))
+        0: ───X^x0───X^x1─── => 0: ───X^0───X───
+        0: ───X^x0───X^x1─── => 0: ───X^0.25───X^0.75───
+        0: ───X^x0───X^x1─── => 0: ───X^0.5───X^0.5───
+        0: ───X^x0───X^x1─── => 0: ───X^0.75───X^0.25───
     """
 
     def __new__(cls, *args, **kwargs):
@@ -74,7 +82,7 @@ class ParamFlattener(ParamResolver):
         return super().__new__(cls)
 
     def __init__(self,
-                 param_dict: Optional[ParamResolverOrSimilarType] = None,
+                 param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
                  new_param_names: Iterable[str] = ()):
         """Initializes a new ParamFlattener.
 
@@ -90,7 +98,7 @@ class ParamFlattener(ParamResolver):
         if hasattr(self, '_param_name_gen'):
             # Has already been initialized
             return
-        if isinstance(param_dict, ParamResolver):
+        if isinstance(param_dict, resolver.ParamResolver):
             params = param_dict.param_dict
         else:
             params = param_dict if param_dict else {}
@@ -118,18 +126,26 @@ class ParamFlattener(ParamResolver):
         for i in itertools.count(start):
             yield '{}{}'.format(prefix, i)
 
-    def _next_name(self) -> str:
+    def _gen_next_name(self) -> str:
         try:
             return next(self._param_name_gen)
         except StopIteration:
             self._param_name_gen = self.default_param_names()
             return next(self._param_name_gen)
 
+    def _next_symbol(self, val: sympy.Basic) -> sympy.Symbol:
+        symbol = sympy.Symbol(self._gen_next_name())
+        # Ensure the symbol hasn't already been used
+        while symbol in self._taken_symbols:
+            symbol = sympy.Symbol(self._gen_next_name())
+        return symbol
+
     def value_of(self, value: Union[sympy.Basic, float, str]
                 ) -> Union[sympy.Basic, float]:
         """Resolves a symbol or expression to a new symbol unique to that value.
 
         If value is a float, returns it.
+        If value is a str, treat it as a symbol with that name and continue.
         If this `ParamFlattener` was initialized with a `param_dict` and `value`
         is a key, returns `param_dict[value]`.
         Otherwise return a symbol unique to the given value.
@@ -150,10 +166,7 @@ class ParamFlattener(ParamResolver):
         if out is not None:
             return out
         # Create a new symbol
-        symbol = sympy.Symbol(self._next_name())
-        # Ensure the symbol hasn't already been used
-        while symbol in self._taken_symbols:
-            symbol = sympy.Symbol(self._next_name())
+        symbol = self._next_symbol(value)
         self.param_dict[value] = symbol
         self._taken_symbols.add(symbol)
         return symbol
@@ -177,15 +190,15 @@ class ParamFlattener(ParamResolver):
 
         This method mutates the `ParamFlattener` by storing any new mappings
         from expression to symbol that is uses on val.  Use `transform_sweep` or
-        `transform_resolver` after `flatten`.
+        `transform_params` after `flatten`.
 
         Args:
             val: The value to copy with substituted parameters.
         """
-        return resolve_parameters(val, self)
+        return protocols.resolve_parameters(val, self)
 
     def transform_sweep(self,
-                        sweep: Union[Sweep, List[ParamResolver]]) -> Sweep:
+                        sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]) -> sweeps.Sweep:
         """Returns a sweep to use with a circuit flattened earlier with
         `flatten`.
 
@@ -198,35 +211,35 @@ class ParamFlattener(ParamResolver):
         Args:
             sweep: The sweep to transform.
         """
-        sweep = to_sweep(sweep)
+        sweep = sweepable.to_sweep(sweep)
         return _TransformedSweep(sweep, dict(self.param_dict))
 
-    def transform_resolver(self, resolver: ParamResolverOrSimilarType
-                          ) -> ParamResolver:
+    def transform_params(self, params: resolver.ParamResolverOrSimilarType
+                         ) -> resolver.ParamResolver:
         """Returns a `ParamResolver` to use with a circuit flattened earlier
         with `flatten`.
 
-        If `resolver` maps symbol `a` to 3.0 and this `ParamFlattener` maps
+        If `params` maps symbol `a` to 3.0 and this `ParamFlattener` maps
         `a/2+1` to `x0` then this method returns a resolver that maps symbol
         `x0` to 2.5.
 
         See the class doc for example code.
 
         Args:
-            resolver: The resolver to transform.
+            params: The params to transform.
         """
         param_dict = {
-            sym: resolve_parameters(formula, resolver)
+            sym: protocols.resolve_parameters(formula, params)
             for formula, sym in self.param_dict.items()
             if isinstance(sym, sympy.Basic)
         }
-        return ParamResolver(param_dict)
+        return resolver.ParamResolver(param_dict)
 
 
-class _TransformedSweep(Sweep):
+class _TransformedSweep(sweeps.Sweep):
     """A sweep created by `ParamFlattener.transform_sweep`."""
 
-    def __init__(self, sweep: Sweep,
+    def __init__(self, sweep: sweeps.Sweep,
                  expression_map: Dict[Union[sympy.Basic, float],
                                       Union[sympy.Basic, float]]):
         self.sweep = sweep
@@ -252,9 +265,9 @@ class _TransformedSweep(Sweep):
     def __len__(self) -> int:
         return len(self.sweep)
 
-    def param_tuples(self) -> Iterator[Params]:
+    def param_tuples(self) -> Iterator[sweeps.Params]:
         for r in self.sweep:
-            yield tuple((str(sym), resolve_parameters(formula, r))
+            yield tuple((str(sym), protocols.resolve_parameters(formula, r))
                         for formula, sym in self.expression_map.items()
                         if isinstance(sym, (sympy.Symbol, str)))
 
