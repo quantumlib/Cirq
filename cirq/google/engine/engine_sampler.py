@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 class QuantumEngineSampler(work.Sampler):
-    """A sampler that samples from processor managed by the Quantum Engine.
+    """A sampler that samples from processors managed by the Quantum Engine.
 
     Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`.
     """
