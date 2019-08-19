@@ -63,6 +63,7 @@ class _ResolverCache:
                 'LineQubit': cirq.LineQubit,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
+                'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,

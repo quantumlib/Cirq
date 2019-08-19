@@ -122,6 +122,7 @@ TEST_OBJECTS = {
     'Moment': [
         cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1), cirq.Z(Q2)]),
     ],
+    'NamedQubit': cirq.NamedQubit('hi mom'),
     'PauliString': [
         cirq.PauliString({Q0: cirq.X, Q1: cirq.Y, Q2: cirq.Z}),
         cirq.X(Q0) * cirq.Y(Q1) * 123
@@ -282,7 +283,6 @@ NOT_YET_SERIALIZABLE = [
     'LinearDict',
     'Linspace',
     'NO_NOISE',
-    'NamedQubit', # high prio
     'NeutralAtomDevice',
     'ParallelGateOperation',
     'ParamResolver',
