@@ -149,111 +149,34 @@ TEST_OBJECTS = {
     'complex': [1 + 2j],
 }
 
+SHOULDNT_BE_SERIALIZED = [
 
-def _get_all_public_classes():
-    for cls_name, cls_cls in inspect.getmembers(cirq):
-        if inspect.isfunction(cls_cls) or inspect.ismodule(cls_cls):
-            continue
-
-        if not inspect.isclass(cls_cls):
-            print(cls_name, '- not a class, but lets test anyway')
-            cls_cls = cls_cls.__class__
-
-        if cls_name.startswith('_'):
-            continue
-
-        if (inspect.isclass(cls_cls)
-                and (inspect.isabstract(cls_cls)
-                     or issubclass(cls_cls, abc.ABCMeta))):
-            continue
-
-        yield cls_name, cls_cls
-
-    # extra
-    yield 'complex', complex
-
-
-NOT_YET_SERIALIZABLE = [
-    'AmplitudeDampingChannel',
-    'ApplyChannelArgs',
-    'ApplyUnitaryArgs',
-    'ApproxPauliStringExpectation',
-    'AsymmetricDepolarizingChannel',
-    'AxisAngleDecomposition',
-    'BitFlipChannel',
-    'CircuitDag',
-    'CircuitDiagramInfo',
-    'CircuitDiagramInfoArgs',
-    'CircuitSampleJob',
-    'ComputeDisplaysResult',
-    'ConstantQubitNoiseModel',
-    'ControlledGate',  # TODO
-    'ControlledOperation',  # TODO
-    'CONTROL_TAG',
+    # Circuit optimizers are function-like. Only attributes
+    # are ignore_failures, tolerance, and other feature flags
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
-    'DensityMatrixSimulator',
-    'DensityMatrixSimulatorState',
-    'DensityMatrixStepResult',
-    'DensityMatrixTrialResult',
-    'DepolarizingChannel',
     'DropEmptyMoments',
     'DropNegligible',
-    'Duration',
     'EjectPhasedPaulis',
     'EjectZ',
     'ExpandComposite',
-    'GeneralizedAmplitudeDampingChannel',
-    'Heatmap',
-    'InsertStrategy',
-    'InterchangeableQubitsGate',
-    'IonDevice',  # TODO
-    'KakDecomposition',
-    'LinearCombinationOfGates',  # TODO
-    'LinearCombinationOfOperations',  # TODO
-    'LinearDict',  # TODO
-    'Linspace',
     'MergeInteractions',
     'MergeSingleQubitGates',
-    'NamedQubit',  # TODO
-    'NeutralAtomDevice',  # TODO
-    'NO_NOISE',
-    'OP_TREE',
-    'ParallelGateOperation',
-    'ParamResolver',
-    'ParamResolverOrSimilarType',  # to-not-do: type
-    'PAULI_BASIS',  # TODO
-    'Pauli',  # TODO, should be excluded
-    'PauliInteractionGate',
-    'PauliStringExpectation',
-    'PauliStringPhasor',
-    'PauliSum',  # TODO
-    'PauliSumLike',  # to-not-do: type
-    'PauliSumCollector',
-    'PauliTransform',
-    'PeriodicValue',
-    'PhaseDampingChannel',
-    'PhaseFlipChannel',
-    'PhasedXPowGate',  # TODO
-    'PointOptimizationSummary',
     'PointOptimizer',
-    'Points',
-    'Product',
-    'QasmArgs',
-    'QasmOutput',
-    'QubitOrder',
-    'QubitOrderOrList',  # to-not-do: type
-    'ResetChannel',
-    'Schedule',
-    'ScheduledOperation',
-    'SimulationTrialResult',
-    'Simulator',
-    'SingleQubitCliffordGate',
+
+    # global objects
+    'CONTROL_TAG',
+    'PAULI_BASIS',
+
+    # abstract, but not inspect.isabstract():
+    'InterchangeableQubitsGate',
+    'Pauli',
     'SingleQubitGate',
-    'SingleQubitMatrixGate',
-    'SparseSimulatorStep',
-    'StateVectorMixin',
+    'ThreeQubitGate',
+    'TwoQubitGate',
+
+    # protocols:
     'SupportsApplyChannel',
     'SupportsApproximateEquality',
     'SupportsChannel',
@@ -271,15 +194,129 @@ NOT_YET_SERIALIZABLE = [
     'SupportsQasmWithArgsAndQubits',
     'SupportsTraceDistanceBound',
     'SupportsUnitary',
-    'Sweepable',  # to-not-do: type
+
+    # mypy types:
+    'OP_TREE',
+    'ParamResolverOrSimilarType',
+    'PauliSumLike',
+    'QubitOrderOrList',
+    'Sweepable',
+
+    # utility:
+    'Unique',
+]
+
+
+def _get_all_public_classes():
+    for cls_name, cls_cls in inspect.getmembers(cirq):
+        if inspect.isfunction(cls_cls) or inspect.ismodule(cls_cls):
+            continue
+
+        if cls_name in SHOULDNT_BE_SERIALIZED:
+            continue
+
+        if not inspect.isclass(cls_cls):
+            # singletons, for instance
+            cls_cls = cls_cls.__class__
+
+        if cls_name.startswith('_'):
+            continue
+
+        if (inspect.isclass(cls_cls)
+                and (inspect.isabstract(cls_cls)
+                     or issubclass(cls_cls, abc.ABCMeta))):
+            continue
+
+        yield cls_name, cls_cls
+
+    # extra
+    yield 'complex', complex
+
+
+def test_shouldnt_be_serialized_no_superfluous():
+    # everything in the list should be ignored for a reason
+    names = [name for name, _ in inspect.getmembers(
+        cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))]
+    for name in SHOULDNT_BE_SERIALIZED:
+        assert name in names
+
+
+def test_not_yet_serializable_no_superfluous():
+    # everything in the list should be ignored for a reason
+    names = [name for name, _ in inspect.getmembers(
+        cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))]
+    for name in NOT_YET_SERIALIZABLE:
+        assert name in names
+
+    assert len(set(SHOULDNT_BE_SERIALIZED) & set(NOT_YET_SERIALIZABLE)) == 0
+
+
+NOT_YET_SERIALIZABLE = [
+    'AmplitudeDampingChannel',
+    'ApplyChannelArgs',
+    'ApplyUnitaryArgs',
+    'ApproxPauliStringExpectation',
+    'AsymmetricDepolarizingChannel',
+    'AxisAngleDecomposition',
+    'BitFlipChannel',
+    'CircuitDag',
+    'CircuitDiagramInfo',
+    'CircuitDiagramInfoArgs',
+    'CircuitSampleJob',
+    'ComputeDisplaysResult',
+    'ConstantQubitNoiseModel',
+    'ControlledGate',
+    'ControlledOperation',
+    'DensityMatrixSimulator',
+    'DensityMatrixSimulatorState',
+    'DensityMatrixStepResult',
+    'DensityMatrixTrialResult',
+    'DepolarizingChannel',
+    'Duration',
+    'GeneralizedAmplitudeDampingChannel',
+    'Heatmap',
+    'InsertStrategy',
+    'IonDevice',
+    'KakDecomposition',
+    'LinearCombinationOfGates',
+    'LinearCombinationOfOperations',
+    'LinearDict',
+    'Linspace',
+    'NO_NOISE',
+    'NamedQubit',
+    'NeutralAtomDevice',
+    'ParallelGateOperation',
+    'ParamResolver',
+    'PauliInteractionGate',
+    'PauliStringExpectation',
+    'PauliStringPhasor',
+    'PauliSum',
+    'PauliSumCollector',
+    'PauliTransform',
+    'PeriodicValue',
+    'PhaseDampingChannel',
+    'PhaseFlipChannel',
+    'PhasedXPowGate',  # high prio
+    'PointOptimizationSummary',
+    'Points',
+    'Product',
+    'QasmArgs',
+    'QasmOutput',
+    'QubitOrder',
+    'ResetChannel',
+    'Schedule',
+    'ScheduledOperation',
+    'SimulationTrialResult',
+    'Simulator',
+    'SingleQubitCliffordGate',
+    'SingleQubitMatrixGate',
+    'SparseSimulatorStep',
+    'StateVectorMixin',
     'TextDiagramDrawer',
-    'ThreeQubitGate',  # TODO
     'Timestamp',
     'TrialResult',
-    'TwoQubitGate',  # TODO
     'TwoQubitMatrixGate',
     'UnitSweep',
-    'Unique',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'Zip',
