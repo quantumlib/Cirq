@@ -288,6 +288,7 @@ from cirq.value import (
     LinearDict,
     PeriodicValue,
     Timestamp,
+    TParamVal,
     validate_probability,
     value_equality,
 )
