@@ -168,14 +168,16 @@ def test_repr():
 
 
 def test_zip_product_str():
-    assert str(cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep) == (
-        'cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep')
-    assert str(cirq.UnitSweep * cirq.UnitSweep * cirq.UnitSweep) == (
-        'cirq.UnitSweep * cirq.UnitSweep * cirq.UnitSweep')
-    assert str(cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep) == (
-        'cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep')
-    assert str((cirq.UnitSweep + cirq.UnitSweep) * cirq.UnitSweep) == (
-        '(cirq.UnitSweep + cirq.UnitSweep) * cirq.UnitSweep')
+    assert (str(cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep) ==
+            'cirq.UnitSweep + cirq.UnitSweep + cirq.UnitSweep')
+    assert (str(
+        cirq.UnitSweep * cirq.UnitSweep *
+        cirq.UnitSweep) == 'cirq.UnitSweep * cirq.UnitSweep * cirq.UnitSweep')
+    assert (str(cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep) ==
+            'cirq.UnitSweep + cirq.UnitSweep * cirq.UnitSweep')
+    assert (str(
+        (cirq.UnitSweep + cirq.UnitSweep) *
+        cirq.UnitSweep) == '(cirq.UnitSweep + cirq.UnitSweep) * cirq.UnitSweep')
 
 
 def test_list_sweep_str():
@@ -198,12 +200,16 @@ def test_list_sweep_str():
 {'a': 15.25}
 {'a': 15.5}
 {'a': 15.75}'''
-    assert str(cirq.ListSweep(
-        cirq.Linspace('a', 0, 3, 4) + cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
+    assert str(
+        cirq.ListSweep(
+            cirq.Linspace('a', 0, 3, 4) +
+            cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 1.0, 'b': 2.0}'''
-    assert str(cirq.ListSweep(
-        cirq.Linspace('a', 0, 3, 4) * cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
+    assert str(
+        cirq.ListSweep(
+            cirq.Linspace('a', 0, 3, 4) *
+            cirq.Linspace('b', 1, 2, 2))) == '''Sweep:
 {'a': 0.0, 'b': 1.0}
 {'a': 0.0, 'b': 2.0}
 {'a': 1.0, 'b': 1.0}
