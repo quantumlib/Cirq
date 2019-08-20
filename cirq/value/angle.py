@@ -98,11 +98,11 @@ def canonicalize_half_turns(
 ) -> Union[sympy.Basic, float]:
     """Wraps the input into the range (-1, +1]."""
     if isinstance(half_turns, sympy.Basic):
-        return half_turns
+        if not half_turns.is_constant():
+            return half_turns
+        half_turns = float(half_turns)
     half_turns %= 2
     if half_turns > 1:
         half_turns -= 2
     return half_turns
 # pylint: enable=function-redefined
-
-
