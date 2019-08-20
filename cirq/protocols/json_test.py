@@ -249,6 +249,7 @@ SHOULDNT_BE_SERIALIZED = [
     'PauliSumLike',
     'QubitOrderOrList',
     'Sweepable',
+    'TParamVal',
 
     # utility:
     'Unique',
