@@ -223,8 +223,9 @@ TEST_OBJECTS = {
     cirq.ZZ,
     'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
     'complex': [1 + 2j],
-    'ndarray': [np.ones((11,5)), np.arange(3)],
-    'int': 5,
+    'ndarray': [np.ones((11, 5)), np.arange(3)],
+    'int':
+    5,
 }
 
 SHOULDNT_BE_SERIALIZED = [
