@@ -118,7 +118,7 @@ class Moment:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
-        return approx_eq(self.operations, other.operations, atol=atol)
+        return approx_eq(set(self.operations), set(other.operations), atol=atol)
 
     def __ne__(self, other):
         return not self == other
