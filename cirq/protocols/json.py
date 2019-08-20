@@ -55,10 +55,10 @@ class _ResolverCache:
                 'PauliString': cirq.PauliString,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'SingleQubitPauliStringGateOperation':
-                    cirq.SingleQubitPauliStringGateOperation,
+                cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
                 '_UnconstrainedDeviceType':
-                    cirq.devices.unconstrained_device._UnconstrainedDeviceType,
+                cirq.devices.unconstrained_device._UnconstrainedDeviceType,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
                 'YPowGate': cirq.YPowGate,
@@ -110,6 +110,7 @@ def to_json_dict(obj, attribute_names):
 
 
 class CirqEncoder(json.JSONEncoder):
+
     def default(self, o):
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
@@ -152,7 +153,8 @@ def to_json(obj: Any, file, *, indent=2, cls=CirqEncoder):
     return json.dump(obj, file, indent=indent, cls=cls)
 
 
-def read_json(file_or_fn, resolvers: Optional[List[Callable[[str], Type]]] = None):
+def read_json(file_or_fn,
+              resolvers: Optional[List[Callable[[str], Type]]] = None):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:

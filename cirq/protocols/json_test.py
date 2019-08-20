@@ -41,7 +41,8 @@ def assert_roundtrip(obj, text_should_be=None):
 
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
-    assert_roundtrip(q1, text_should_be="""{
+    assert_roundtrip(q1,
+                     text_should_be="""{
   "cirq_type": "LineQubit",
   "x": 12
 }""")
@@ -49,7 +50,8 @@ def test_line_qubit_roundtrip():
 
 def test_gridqubit_roundtrip():
     q = cirq.GridQubit(15, 18)
-    assert_roundtrip(q, text_should_be="""{
+    assert_roundtrip(q,
+                     text_should_be="""{
   "cirq_type": "GridQubit",
   "row": 15,
   "col": 18
@@ -59,7 +61,8 @@ def test_gridqubit_roundtrip():
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
     op1 = cirq.Rx(.123).on(q)
-    assert_roundtrip(op1, text_should_be="""{
+    assert_roundtrip(op1,
+                     text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
     "cirq_type": "XPowGate",
@@ -79,25 +82,39 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 TEST_OBJECTS = {
-    'CCNOT': cirq.CCNOT,
-    'CCX': cirq.CCX,
-    'CCXPowGate': cirq.CCXPowGate(exponent=0.123, global_shift=0.456),
-    'CCZ': cirq.CCZ,
-    'CCZPowGate': cirq.CCZPowGate(exponent=0.123, global_shift=0.456),
-    'CNOT': cirq.CNOT,
-    'CNotPowGate': cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
-    'CX': cirq.CX,
-    'CSWAP': cirq.CSWAP,
-    'CSwapGate': cirq.CSwapGate(),
-    'CZ': cirq.CZ,
-    'CZPowGate': cirq.CZPowGate(exponent=0.123, global_shift=0.456),
+    'CCNOT':
+    cirq.CCNOT,
+    'CCX':
+    cirq.CCX,
+    'CCXPowGate':
+    cirq.CCXPowGate(exponent=0.123, global_shift=0.456),
+    'CCZ':
+    cirq.CCZ,
+    'CCZPowGate':
+    cirq.CCZPowGate(exponent=0.123, global_shift=0.456),
+    'CNOT':
+    cirq.CNOT,
+    'CNotPowGate':
+    cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
+    'CX':
+    cirq.CX,
+    'CSWAP':
+    cirq.CSWAP,
+    'CSwapGate':
+    cirq.CSwapGate(),
+    'CZ':
+    cirq.CZ,
+    'CZPowGate':
+    cirq.CZPowGate(exponent=0.123, global_shift=0.456),
     'Circuit': [
-        cirq.Circuit.from_ops(cirq.H.on_each(QUBITS),
-                              cirq.measure(*QUBITS)),
-        cirq.Circuit.from_ops(cirq.CCNOT(Q0, Q1, Q2), cirq.X(Q0) ** 0.123)
+        cirq.Circuit.from_ops(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
+        cirq.Circuit.from_ops(cirq.CCNOT(Q0, Q1, Q2),
+                              cirq.X(Q0)**0.123)
     ],
-    'FREDKIN': cirq.FREDKIN,
-    'FSimGate': cirq.FSimGate(theta=0.123, phi=.456),
+    'FREDKIN':
+    cirq.FREDKIN,
+    'FSimGate':
+    cirq.FSimGate(theta=0.123, phi=.456),
     'GateOperation': [
         cirq.CCNOT(*cirq.LineQubit.range(3)),
         cirq.CCZ(*cirq.LineQubit.range(3)),
@@ -105,50 +122,78 @@ TEST_OBJECTS = {
         cirq.CSWAP(*cirq.LineQubit.range(3)),
         cirq.CZ(*cirq.LineQubit.range(2))
     ],
-    'GlobalPhaseOperation': cirq.GlobalPhaseOperation(-1j),
-    'GridQubit': cirq.GridQubit(10, 11),
-    'H': cirq.H,
-    'HPowGate': [cirq.HPowGate(exponent=-8), cirq.H ** 0.123],
-    'I': cirq.I,
-    'ISWAP': cirq.ISWAP,
-    'ISwapPowGate': [cirq.ISwapPowGate(exponent=-8), cirq.ISWAP ** 0.123],
+    'GlobalPhaseOperation':
+    cirq.GlobalPhaseOperation(-1j),
+    'GridQubit':
+    cirq.GridQubit(10, 11),
+    'H':
+    cirq.H,
+    'HPowGate': [cirq.HPowGate(exponent=-8), cirq.H**0.123],
+    'I':
+    cirq.I,
+    'ISWAP':
+    cirq.ISWAP,
+    'ISwapPowGate': [cirq.ISwapPowGate(exponent=-8), cirq.ISWAP**0.123],
     'IdentityGate': [cirq.I, cirq.IdentityGate(num_qubits=5)],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
-        cirq.MeasurementGate(num_qubits=3, key='z',
+        cirq.MeasurementGate(num_qubits=3,
+                             key='z',
                              invert_mask=(True, False, True)),
     ],
     'Moment': [
-        cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1), cirq.Z(Q2)]),
+        cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1),
+                                cirq.Z(Q2)]),
     ],
-    'NamedQubit': cirq.NamedQubit('hi mom'),
+    'NamedQubit':
+    cirq.NamedQubit('hi mom'),
     'PauliString': [
-        cirq.PauliString({Q0: cirq.X, Q1: cirq.Y, Q2: cirq.Z}),
+        cirq.PauliString({
+            Q0: cirq.X,
+            Q1: cirq.Y,
+            Q2: cirq.Z
+        }),
         cirq.X(Q0) * cirq.Y(Q1) * 123
     ],
-    'PhasedXPowGate': cirq.PhasedXPowGate(phase_exponent=0.123,
-                                          exponent=0.456,
-                                          global_shift=0.789),
-    'X': cirq.X,
-    'Y': cirq.Y,
-    'Z': cirq.Z,
-    'S': cirq.S,
-    'SWAP': cirq.SWAP,
-    'SingleQubitPauliStringGateOperation': cirq.X(Q0),
-    'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP ** 0.5],
-    'T': cirq.T,
-    'TOFFOLI': cirq.TOFFOLI,
-    'UnconstrainedDevice': cirq.UnconstrainedDevice,
-    'XPowGate': cirq.X ** 0.123,
-    'XX': cirq.XX,
-    'XXPowGate': [cirq.XXPowGate(), cirq.XX ** 0.123],
-    'YPowGate': cirq.Y ** 0.456,
-    'YY': cirq.YY,
-    'YYPowGate': [cirq.YYPowGate(), cirq.YY ** 0.456],
-    'ZPowGate': cirq.Z ** 0.789,
-    'ZZ': cirq.ZZ,
-    'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ ** 0.789],
+    'PhasedXPowGate':
+    cirq.PhasedXPowGate(phase_exponent=0.123,
+                        exponent=0.456,
+                        global_shift=0.789),
+    'X':
+    cirq.X,
+    'Y':
+    cirq.Y,
+    'Z':
+    cirq.Z,
+    'S':
+    cirq.S,
+    'SWAP':
+    cirq.SWAP,
+    'SingleQubitPauliStringGateOperation':
+    cirq.X(Q0),
+    'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'T':
+    cirq.T,
+    'TOFFOLI':
+    cirq.TOFFOLI,
+    'UnconstrainedDevice':
+    cirq.UnconstrainedDevice,
+    'XPowGate':
+    cirq.X**0.123,
+    'XX':
+    cirq.XX,
+    'XXPowGate': [cirq.XXPowGate(), cirq.XX**0.123],
+    'YPowGate':
+    cirq.Y**0.456,
+    'YY':
+    cirq.YY,
+    'YYPowGate': [cirq.YYPowGate(), cirq.YY**0.456],
+    'ZPowGate':
+    cirq.Z**0.789,
+    'ZZ':
+    cirq.ZZ,
+    'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
     'complex': [1 + 2j],
 }
 
@@ -225,9 +270,8 @@ def _get_all_public_classes():
         if cls_name.startswith('_'):
             continue
 
-        if (inspect.isclass(cls_cls)
-                and (inspect.isabstract(cls_cls)
-                     or issubclass(cls_cls, abc.ABCMeta))):
+        if (inspect.isclass(cls_cls) and
+            (inspect.isabstract(cls_cls) or issubclass(cls_cls, abc.ABCMeta))):
             continue
 
         yield cls_name, cls_cls
@@ -238,16 +282,20 @@ def _get_all_public_classes():
 
 def test_shouldnt_be_serialized_no_superfluous():
     # everything in the list should be ignored for a reason
-    names = [name for name, _ in inspect.getmembers(
-        cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))]
+    names = [
+        name for name, _ in inspect.getmembers(
+            cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))
+    ]
     for name in SHOULDNT_BE_SERIALIZED:
         assert name in names
 
 
 def test_not_yet_serializable_no_superfluous():
     # everything in the list should be ignored for a reason
-    names = [name for name, _ in inspect.getmembers(
-        cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))]
+    names = [
+        name for name, _ in inspect.getmembers(
+            cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))
+    ]
     for name in NOT_YET_SERIALIZABLE:
         assert name in names
 

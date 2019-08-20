@@ -15,6 +15,7 @@ from cirq import protocols
 from cirq.devices.device import Device
 from cirq.value import Duration, value_equality
 
+
 @value_equality()
 class _UnconstrainedDeviceType(Device):
     """A device that allows everything."""

@@ -59,7 +59,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     ) -> Tuple[complex, Union['Pauli', 'common_gates.IdentityGate']]:
         if self == other:
             return 1, common_gates.I
-        return 1j ** other.relative_index(self), self.third(other)
+        return 1j**other.relative_index(self), self.third(other)
 
     def __gt__(self, other):
         if not isinstance(other, Pauli):
