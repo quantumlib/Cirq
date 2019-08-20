@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import json
-from typing import Union, Any, Dict, Optional, List, Callable, Type
+from typing import Union, Any, Dict, Optional, List, Callable, Type, cast
 
 import numpy as np
 from typing_extensions import Protocol
@@ -171,7 +171,11 @@ def read_json(file_or_fn,
             the next resolver should be tried.
     """
     if resolvers is None:
-        resolvers = DEFAULT_RESOLVERS
+        # This cast is required because mypy does not accept
+        # assigning an expression of type T to a variable of type
+        # Optional[T]. This cast may hide actual bugs, so be careful.
+        resolvers = cast(Optional[List[Callable[[str], Type]]],
+                         DEFAULT_RESOLVERS)
 
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers)
