@@ -28,7 +28,7 @@ class _ResolverCache:
         self._crd = None
 
     @property
-    def cirq_class_resolver_dictionary(self):
+    def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
             self._crd = {
@@ -75,7 +75,7 @@ class _ResolverCache:
 RESOLVER_CACHE = _ResolverCache()
 
 
-def _cirq_class_resolver(cirq_type: str):
+def _cirq_class_resolver(cirq_type: str) -> Type:
     return RESOLVER_CACHE.cirq_class_resolver_dictionary[cirq_type]
 
 
