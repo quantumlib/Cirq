@@ -15,8 +15,8 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Dict, Union, TYPE_CHECKING, cast
-
 import sympy
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
@@ -52,10 +52,8 @@ class ParamResolver(object):
                                {} if param_dict is None else param_dict)
         self._param_hash = hash(frozenset(self.param_dict.items()))
 
-    def value_of(
-            self,
-            value: Union[sympy.Basic, float, str]
-    ) -> Union[sympy.Basic, float]:
+    def value_of(self,
+                 value: Union[sympy.Basic, float, str]) -> value.TParamVal:
         """Attempt to resolve a Symbol or name or float to its assigned value.
 
         If unable to resolve a sympy.Symbol, returns it unchanged.
