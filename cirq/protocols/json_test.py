@@ -224,8 +224,10 @@ TEST_OBJECTS = {
     'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
     'complex': [1 + 2j],
     'ndarray': [np.ones((11, 5)), np.arange(3)],
-    'int':
-    5,
+    'dict': {
+        'test': [123, 5.5],
+        'key2': 'asdf'
+    }
 }
 
 SHOULDNT_BE_SERIALIZED = [
@@ -311,7 +313,9 @@ def _get_all_public_classes():
     # extra
     yield 'complex', complex
     yield 'ndarray', np.ndarray
-    yield 'int', int
+
+    # test coverage for `default` paths
+    yield 'dict', dict
 
 
 def test_shouldnt_be_serialized_no_superfluous():
