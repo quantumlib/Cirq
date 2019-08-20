@@ -115,12 +115,14 @@ class Sweep(metaclass=abc.ABCMeta):
             beginning_len = max_show
         end_len = max_show - beginning_len
         lines = ['Sweep:']
-        lines.extend(str(dict(r.param_dict))
-                     for r in itertools.islice(self, beginning_len))
+        lines.extend(
+            str(dict(r.param_dict))
+            for r in itertools.islice(self, beginning_len))
         if end_len > 0:
             lines.append('...')
-            lines.extend(str(dict(r.param_dict))
-                         for r in itertools.islice(self, length-end_len, length))
+            lines.extend(
+                str(dict(r.param_dict))
+                for r in itertools.islice(self, length - end_len, length))
         return '\n'.join(lines)
 
 
@@ -250,14 +252,13 @@ class Zip(Sweep):
             yield sum(values, ())
 
     def __repr__(self):
-        return 'cirq.Zip({})'.format(', '.join(
-            repr(s) for s in self.sweeps))
+        return 'cirq.Zip({})'.format(', '.join(repr(s) for s in self.sweeps))
 
     def __str__(self):
         if not self.sweeps:
             return 'Zip()'
-        return ' + '.join(str(s) if isinstance(s, Product) else repr(s)
-                          for s in self.sweeps)
+        return ' + '.join(
+            str(s) if isinstance(s, Product) else repr(s) for s in self.sweeps)
 
 
 class SingleSweep(Sweep):

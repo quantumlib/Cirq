@@ -168,14 +168,15 @@ def test_repr():
 
 
 def test_list_sweep_str():
-    assert str(cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4))
-        ) == '''Sweep:
+    assert str(cirq.ListSweep(cirq.Linspace('a', start=0, stop=3,
+                                            length=4))) == '''Sweep:
 {'a': 0.0}
 {'a': 1.0}
 {'a': 2.0}
 {'a': 3.0}'''
-    assert str(cirq.ListSweep(cirq.Linspace('a', start=0, stop=15.75, length=64)
-        )) == '''Sweep:
+    assert str(
+        cirq.ListSweep(cirq.Linspace('a', start=0, stop=15.75,
+                                     length=64))) == '''Sweep:
 {'a': 0.0}
 {'a': 0.25}
 {'a': 0.5}
