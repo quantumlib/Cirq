@@ -258,8 +258,17 @@ class _ParamFlattener(resolver.ParamResolver):
 
 
 class ExpressionMap(dict):
+    """A dictionary where the keys are sympy expressions and symbols and the
+    values are sympy symbols.
+
+    This is returned by `cirq.flatten`.  See `ExpressionMap.transform_sweep` and
+    `ExpressionMap.transform_params`.
+    """
 
     def __init__(self, *args, **kwargs):
+        """Initialized the `ExpressionMap`.  The arguments are the same as the
+        builtin `dict`.
+        """
         super().__init__(*args, **kwargs)
 
     def transform_sweep(self,
@@ -269,10 +278,11 @@ class ExpressionMap(dict):
         `cirq.flatten`.
 
         If `sweep` sweeps symbol `a` over (1.0, 2.0, 3.0) and this
-        `_ParamFlattener` maps `a/2+1` to `x0` then this method returns a sweep
-        that sweeps symbol `x0` over (1.5, 2, 2.5).
+        `ExpressionMap` maps `a/2+1` to the symbol `'<a/2 + 1>'` then this
+        method returns a sweep that sweeps symbol `'<a/2 + 1>'` over
+        (1.5, 2, 2.5).
 
-        See the class doc for an example.
+        See `cirq.flatten` for an example.
 
         Args:
             sweep: The sweep to transform.
@@ -285,11 +295,11 @@ class ExpressionMap(dict):
         """Returns a `ParamResolver` to use with a circuit flattened earlier
         with `cirq.flatten`.
 
-        If `params` maps symbol `a` to 3.0 and this `_ParamFlattener` maps
-        `a/2+1` to `x0` then this method returns a resolver that maps symbol
-        `x0` to 2.5.
+        If `params` maps symbol `a` to 3.0 and this `ExpressionMap` maps
+        `a/2+1` to `'<a/2 + 1>'` then this method returns a resolver that maps
+        symbol `'<a/2 + 1>'` to 2.5.
 
-        See the class doc for example code.
+        See `cirq.flatten` for an example.
 
         Args:
             params: The params to transform.
