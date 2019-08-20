@@ -66,7 +66,7 @@ def test_example_runs_phase_estimator():
 
 
 def test_example_runs_qaoa():
-    examples.qaoa.main()
+    examples.qaoa.main(repetitions=10, maxiter=5)
 
 
 def test_example_runs_quantum_teleportation():
