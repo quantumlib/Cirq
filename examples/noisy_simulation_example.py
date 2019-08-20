@@ -17,7 +17,7 @@ def noisy_circuit_demo(amplitude_damp):
                           noise=cirq.ConstantQubitNoiseModel(
                               cirq.amplitude_damp(amplitude_damp)),
                           repetitions=100)
-    print("Noise model: ConstantQubitNoiseModel with",
+    print("ConstantQubitNoiseModel with amplitude damping of rate",
           cirq.amplitude_damp(amplitude_damp))
     print('Sampling of initial state of qubit "q":')
     print(results.histogram(key='initial_state'))
@@ -26,17 +26,10 @@ def noisy_circuit_demo(amplitude_damp):
 
 
 def main():
-    print("Iteration 1:")
-    noisy_circuit_demo(0)
-    print()
-    print("Iteration 2:")
-    noisy_circuit_demo(0.4)
-    print()
-    print("Iteration 3:")
-    noisy_circuit_demo(0.5)
-    print()
-    print("Iteration 4:")
-    noisy_circuit_demo(1.0)
+    amp_damp_rates = [0, 0.4, 0.5, 1.0]
+    for amp_damp_rate in amp_damp_rates:
+        noisy_circuit_demo(amp_damp_rate)
+        print()
 
 
 if __name__ == '__main__':
