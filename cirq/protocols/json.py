@@ -77,7 +77,7 @@ class _ResolverCache:
 RESOLVER_CACHE = _ResolverCache()
 
 
-def _cirq_class_resolver(cirq_type: str) -> Type:
+def _cirq_class_resolver(cirq_type: str) -> Union[None, Type]:
     return RESOLVER_CACHE.cirq_class_resolver_dictionary.get(cirq_type, None)
 
 
@@ -127,7 +127,7 @@ class CirqEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def _cirq_object_hook(d, resolvers: List[Callable[[str], Type]]):
+def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
     if 'cirq_type' in d:
         for resolver in resolvers:
             cls = resolver(d['cirq_type'])
@@ -154,8 +154,9 @@ def to_json(obj: Any, file, *, indent=2, cls=CirqEncoder):
     return json.dump(obj, file, indent=indent, cls=cls)
 
 
-def read_json(file_or_fn,
-              resolvers: Optional[List[Callable[[str], Type]]] = None):
+def read_json(
+        file_or_fn,
+        resolvers: Optional[List[Callable[[str], Union[None, Type]]]] = None):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -173,7 +174,7 @@ def read_json(file_or_fn,
         # This cast is required because mypy does not accept
         # assigning an expression of type T to a variable of type
         # Optional[T]. This cast may hide actual bugs, so be careful.
-        resolvers = cast(Optional[List[Callable[[str], Type]]],
+        resolvers = cast(Optional[List[Callable[[str], Union[None, Type]]]],
                          DEFAULT_RESOLVERS)
 
     def obj_hook(x):
