@@ -62,7 +62,8 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         [cirq.ParamResolver(OrderedDict([('<a/4>', 0.0), ('<1 - a/2>', 1.0)])),
          cirq.ParamResolver(OrderedDict([('<a/4>', 0.25), ('<1 - a/2>', 0.5)])),
          cirq.ParamResolver(OrderedDict([('<a/4>', 0.5), ('<1 - a/2>', 0.0)])),
-         cirq.ParamResolver(OrderedDict([('<a/4>', 0.75), ('<1 - a/2>', -0.5)]))]
+         cirq.ParamResolver(OrderedDict([('<a/4>', 0.75), ('<1 - a/2>', -0.5)])\
+        )]
 
         >>> for params in sweep:  # Original
         ...     print(circuit, '=>', end=' ')
