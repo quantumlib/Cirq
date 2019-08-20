@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
-
 import numpy as np
 import sympy
 
 import cirq
 from cirq.testing import assert_has_consistent_trace_distance_bound
+from cirq.value import type_alias
 
 
 class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
@@ -28,7 +27,8 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         [0  0  i  0]
         [0  0  0 -i]
     """
-    def __init__(self, quarter_turns: Union[sympy.Basic, float]) -> None:
+
+    def __init__(self, quarter_turns: type_alias.TParamVal) -> None:
         super().__init__(exponent=quarter_turns)
 
     @property

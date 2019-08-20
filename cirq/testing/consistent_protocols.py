@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Sequence, Type, Union
+from typing import Any, Dict, Optional, Sequence, Type
 
 import numpy as np
 import sympy
@@ -29,6 +29,7 @@ from cirq.testing.consistent_qasm import (
 from cirq.testing.consistent_pauli_expansion import (
         assert_pauli_expansion_is_consistent_with_unitary)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
+from cirq.value import type_alias
 
 
 def assert_implements_consistent_protocols(
@@ -67,11 +68,11 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
-        exponents: Sequence[Union[sympy.Basic, float]] = (
-            0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+        exponents: Sequence[type_alias.TParamVal] = (0, 1, -1, 0.25, -0.5, 0.1,
+                                                     sympy.Symbol('s')),
         global_shifts: Sequence[float] = (0, -0.5, 0.1),
         qubit_count: Optional[int] = None,
-        ignoring_global_phase: bool=False,
+        ignoring_global_phase: bool = False,
         setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:

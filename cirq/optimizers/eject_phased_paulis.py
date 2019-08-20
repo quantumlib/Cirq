@@ -15,23 +15,24 @@
 """Pushes 180 degree rotations around axes in the XY plane later in the circuit.
 """
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Union
+from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
 import sympy
 
 from cirq import circuits, ops, value, protocols
 from cirq.optimizers import decompositions
+from cirq.value import type_alias
 
 if TYPE_CHECKING:
     from typing import Dict, List
 
 
-TVal = Union[float, sympy.Basic]
+
 
 
 class _OptimizerState:
     def __init__(self):
         # The phases of the W gates currently being pushed along each qubit.
-        self.held_w_phases = {}  # type: Dict[ops.Qid, TVal]
+        self.held_w_phases = {}  # type: Dict[ops.Qid, type_alias.TParamVal]
 
         # Accumulated commands to batch-apply to the circuit later.
         self.deletions = []  # type: List[Tuple[int, ops.Operation]]
@@ -138,7 +139,7 @@ def _absorb_z_into_w(moment_index: int,
         ≡ ────────────────────────W(a+t/2)───────── (cancel Ws)
         ≡ ───W(a+t/2)───
     """
-    t = cast(TVal, _try_get_known_z_half_turns(op))
+    t = cast(type_alias.TParamVal, _try_get_known_z_half_turns(op))
     q = op.qubits[0]
     state.held_w_phases[q] += t / 2
     state.deletions.append((moment_index, op))
@@ -186,7 +187,8 @@ def _potential_cross_whole_w(moment_index: int,
     """
     state.deletions.append((moment_index, op))
 
-    _, phase_exponent = cast(Tuple[TVal, TVal], _try_get_known_phased_pauli(op))
+    _, phase_exponent = cast(Tuple[type_alias.TParamVal, type_alias.TParamVal],
+                             _try_get_known_phased_pauli(op))
     q = op.qubits[0]
     a = state.held_w_phases.get(q, None)
     b = phase_exponent
@@ -221,8 +223,9 @@ def _potential_cross_partial_w(moment_index: int,
     a = state.held_w_phases.get(op.qubits[0], None)
     if a is None:
         return
-    exponent, phase_exponent = cast(Tuple[TVal, TVal],
-                                    _try_get_known_phased_pauli(op))
+    exponent, phase_exponent = cast(
+        Tuple[type_alias.TParamVal, type_alias.TParamVal],
+        _try_get_known_phased_pauli(op))
     new_op = ops.PhasedXPowGate(
         exponent=exponent,
         phase_exponent=2 * a - phase_exponent).on(op.qubits[0])
@@ -265,7 +268,7 @@ def _single_cross_over_cz(moment_index: int,
                    │
           ─────────@^-t───W(a)────
     """
-    t = cast(TVal, _try_get_known_cz_half_turns(op))
+    t = cast(type_alias.TParamVal, _try_get_known_cz_half_turns(op))
     other_qubit = op.qubits[0] if qubit_with_w == op.qubits[1] else op.qubits[1]
     negated_cz = ops.CZ(*op.qubits)**-t
     kickback = ops.Z(other_qubit)**t
@@ -311,13 +314,14 @@ def _double_cross_over_cz(op: ops.Operation,
              │
           ───@^t───W(b+t/2)───
     """
-    t = cast(TVal, _try_get_known_cz_half_turns(op))
+    t = cast(type_alias.TParamVal, _try_get_known_cz_half_turns(op))
     for q in op.qubits:
-        state.held_w_phases[q] = cast(TVal, state.held_w_phases[q]) + t / 2
+        state.held_w_phases[q] = cast(type_alias.TParamVal,
+                                      state.held_w_phases[q]) + t / 2
 
 
-def _try_get_known_cz_half_turns(op: ops.Operation,
-                                 no_symbolic: bool = False) -> Optional[TVal]:
+def _try_get_known_cz_half_turns(op: ops.Operation, no_symbolic: bool = False
+                                ) -> Optional[type_alias.TParamVal]:
     if (not isinstance(op, ops.GateOperation) or
             not isinstance(op.gate, ops.CZPowGate)):
         return None
@@ -327,8 +331,9 @@ def _try_get_known_cz_half_turns(op: ops.Operation,
     return h
 
 
-def _try_get_known_phased_pauli(op: ops.Operation, no_symbolic: bool = False
-                               ) -> Optional[Tuple[TVal, TVal]]:
+def _try_get_known_phased_pauli(
+        op: ops.Operation, no_symbolic: bool = False
+) -> Optional[Tuple[type_alias.TParamVal, type_alias.TParamVal]]:
     if ((no_symbolic and protocols.is_parameterized(op)) or
             not isinstance(op, ops.GateOperation)):
         return None
@@ -348,8 +353,8 @@ def _try_get_known_phased_pauli(op: ops.Operation, no_symbolic: bool = False
     return value.canonicalize_half_turns(e), value.canonicalize_half_turns(p)
 
 
-def _try_get_known_z_half_turns(op: ops.Operation,
-                                no_symbolic: bool = False) -> Optional[TVal]:
+def _try_get_known_z_half_turns(op: ops.Operation, no_symbolic: bool = False
+                               ) -> Optional[type_alias.TParamVal]:
     if (not isinstance(op, ops.GateOperation) or
             not isinstance(op.gate, ops.ZPowGate)):
         return None
