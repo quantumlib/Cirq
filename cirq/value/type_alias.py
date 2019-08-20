@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,5 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.line.line_qubit import (
-    LineQubit,)
+from typing import Union
+import sympy
+"""Supply aliases for commonly used types.
+"""
+
+TParamVal = Union[float, sympy.Basic]

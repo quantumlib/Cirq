@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, Union, cast, Dict
+from typing import List, Sequence, Tuple, cast, Dict
 
 import numpy as np
-import sympy
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
@@ -42,10 +41,12 @@ class PauliInteractionGate(eigen_gate.EigenGate,
     CNOT = None  # type: PauliInteractionGate
 
     def __init__(self,
-                 pauli0: pauli_gates.Pauli, invert0: bool,
-                 pauli1: pauli_gates.Pauli, invert1: bool,
+                 pauli0: pauli_gates.Pauli,
+                 invert0: bool,
+                 pauli1: pauli_gates.Pauli,
+                 invert1: bool,
                  *,
-                 exponent: Union[sympy.Basic, float] = 1.0) -> None:
+                 exponent: value.TParamVal = 1.0) -> None:
         """
         Args:
             pauli0: The interaction axis for the first qubit.
@@ -73,8 +74,8 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             return 0
         return index
 
-    def _with_exponent(self, exponent: Union[sympy.Basic, float]
-                       ) -> 'PauliInteractionGate':
+    def _with_exponent(self,
+                       exponent: value.TParamVal) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
                                     exponent=exponent)

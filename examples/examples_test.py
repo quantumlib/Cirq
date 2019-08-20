@@ -3,6 +3,7 @@ import examples.basic_arithmetic
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
+import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
 import examples.hello_qubit
@@ -65,7 +66,7 @@ def test_example_runs_phase_estimator():
 
 
 def test_example_runs_qaoa():
-    examples.qaoa.main()
+    examples.qaoa.main(repetitions=10, maxiter=5)
 
 
 def test_example_runs_quantum_teleportation():
@@ -86,3 +87,9 @@ def test_example_runs_qubit_characterizations():
 
 def test_example_swap_networks():
     examples.swap_networks.main()
+
+
+def test_example_cross_entropy_benchmarking():
+    examples.cross_entropy_benchmarking_example.main(repetitions=10,
+                                                     num_circuits=2,
+                                                     cycles=[2, 3, 4])
