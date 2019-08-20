@@ -14,11 +14,11 @@
 import abc
 import inspect
 
+import io
 import pytest
 
 import cirq
 import cirq.protocols
-import io
 
 
 def assert_roundtrip(obj, text_should_be=None):
