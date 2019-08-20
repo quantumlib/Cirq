@@ -15,10 +15,13 @@ import abc
 import inspect
 
 import io
+import os
+
 import pytest
 
 import cirq
 import cirq.protocols
+import numpy as np
 
 
 def assert_roundtrip(obj, text_should_be=None):
@@ -28,15 +31,14 @@ def assert_roundtrip(obj, text_should_be=None):
     if text_should_be is not None:
         buffer.seek(0)
         text = buffer.read()
-
-        print()
-        print(text)
-
         assert text == text_should_be
 
     buffer.seek(0)
     obj2 = cirq.protocols.read_json(buffer)
-    assert obj == obj2
+    if isinstance(obj, np.ndarray):
+        np.testing.assert_equal(obj, obj2)
+    else:
+        assert obj == obj2
 
 
 def test_line_qubit_roundtrip():
@@ -76,6 +78,32 @@ def test_op_roundtrip():
     }
   ]
 }""")
+
+
+def test_op_roundtrip_filename(tmpdir):
+    filename = f'{tmpdir}/op.json'
+    q = cirq.LineQubit(5)
+    op1 = cirq.Rx(.123).on(q)
+    cirq.to_json(op1, filename)
+    assert os.path.exists(filename)
+    op2 = cirq.read_json(filename)
+    assert op1 == op2
+
+
+def test_fail_to_resolve():
+    buffer = io.StringIO()
+    buffer.write("""
+    {
+      "cirq_type": "MyCustomClass",
+      "data": [1, 2, 3]
+    }
+    """)
+    buffer.seek(0)
+
+    with pytest.raises(ValueError) as e:
+        cirq.read_json(buffer)
+    assert e.match("Could not resolve type 'MyCustomClass' "
+                   "during deserialization")
 
 
 QUBITS = cirq.LineQubit.range(5)
@@ -195,6 +223,8 @@ TEST_OBJECTS = {
     cirq.ZZ,
     'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
     'complex': [1 + 2j],
+    'ndarray': [np.ones((11,5)), np.arange(3)],
+    'int': 5,
 }
 
 SHOULDNT_BE_SERIALIZED = [
@@ -279,6 +309,8 @@ def _get_all_public_classes():
 
     # extra
     yield 'complex', complex
+    yield 'ndarray', np.ndarray
+    yield 'int', int
 
 
 def test_shouldnt_be_serialized_no_superfluous():

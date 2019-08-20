@@ -78,7 +78,7 @@ RESOLVER_CACHE = _ResolverCache()
 
 
 def _cirq_class_resolver(cirq_type: str) -> Type:
-    return RESOLVER_CACHE.cirq_class_resolver_dictionary[cirq_type]
+    return RESOLVER_CACHE.cirq_class_resolver_dictionary.get(cirq_type, None)
 
 
 DEFAULT_RESOLVERS = [
@@ -124,8 +124,6 @@ class CirqEncoder(json.JSONEncoder):
             }
         if isinstance(o, np.ndarray):
             return o.tolist()
-        if isinstance(o, np.int_):
-            return o.item()
         return super().default(o)
 
 
@@ -136,7 +134,8 @@ def _cirq_object_hook(d, resolvers: List[Callable[[str], Type]]):
             if cls is not None:
                 break
         else:
-            raise ValueError("Could not resolve {}".format(d['cirq_type']))
+            raise ValueError("Could not resolve type '{}' "
+                             "during deserialization".format(d['cirq_type']))
 
         if hasattr(cls, '_from_json_dict_'):
             return cls._from_json_dict_(**d)

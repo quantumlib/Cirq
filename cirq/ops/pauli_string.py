@@ -74,10 +74,6 @@ class PauliString(raw_types.Operation):
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
-    @property
-    def qubit_pauli_map(self) -> Mapping[raw_types.Qid, pauli_gates.Pauli]:
-        return self._qubit_pauli_map
-
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
