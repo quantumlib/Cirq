@@ -161,24 +161,24 @@ _CALIBRATION = {
             }]
         }, {
             'name': 't1',
-            'targets': ['0_0'],
+            'targets': ['q0_0'],
             'values': [{
                 'doubleVal': 321
             }]
         }, {
             'name': 't1',
-            'targets': ['0_1'],
+            'targets': ['q0_1'],
             'values': [{
                 'doubleVal': 911
             }]
         }, {
             'name': 't1',
-            'targets': ['1_0'],
+            'targets': ['q1_0'],
             'values': [{
                 'doubleVal': 505
             }]
         }, {
-            'name': 'temp',
+            'name': 'globalMetric',
             'values': [{
                 'floatVal': 12300
             }]
@@ -927,7 +927,7 @@ def test_latest_calibration(build):
     assert calibrations.list.call_args[1][
         'parent'] == 'projects/myproject/processors/x'
     assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == set(['xeb', 't1', 'temp'])
+    assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
 
 
 @mock.patch.object(discovery, 'build')
@@ -970,7 +970,7 @@ def test_calibration_from_job(build):
 
     calibration = job.get_calibration()
     assert calibration.timestamp == 1562544000021
-    assert set(calibration.keys()) == set(['xeb', 't1', 'temp'])
+    assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
 
 

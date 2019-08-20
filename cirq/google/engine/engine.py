@@ -718,7 +718,7 @@ class Calibration(abc.Mapping):
 
     and query a single value by looking up the name by index:
 
-        `calibration['t1'`
+        `calibration['t1']`
 
     Attributes:
         timestamp: The time that this calibration was run, in milliseconds since
@@ -736,11 +736,14 @@ class Calibration(abc.Mapping):
                                       GridQubit, ...], Any]] = defaultdict(dict)
         for metric in metrics:
             name = metric['name']
-            # Flatten the values a list, removing keys containing type names
+            # Flatten the values to a list, removing keys containing type names
             # (e.g. proto version of each value is {<type>: value}).
             flat_values = [v[t] for v in metric['values'] for t in v]
             if 'targets' in metric:
-                targets = metric['targets']
+                targets = [
+                    t[1:] if t.startswith('q') else t for t in metric['targets']
+                ]
+                # TODO: Remove when calibrations don't prepend this.
                 qubits = tuple(
                     devices.GridQubit.from_proto_id(t) for t in targets)
                 results[name][qubits] = flat_values
@@ -754,9 +757,9 @@ class Calibration(abc.Mapping):
     def __getitem__(self, key: str) -> Dict[Tuple[devices.GridQubit, ...], Any]:
         """Supports getting calibrations by index.
 
-        Calibration may be accessed by key
+        Calibration may be accessed by key:
 
-            calibration['t1']
+            `calibration['t1']`.
 
         This returns a map from tuples of `cirq.GridQubit`s to a list of the
         values of the metric. If there are no targets, the only key will only
