@@ -83,8 +83,7 @@ def resolve_parameters(
         NotImplemented, `val` itself is returned.
     """
     from cirq import study  # HACK: break cycle.
-    if (not param_resolver and
-            not isinstance(param_resolver, study.ParamFlattener)):
+    if not param_resolver:
         return val
 
     # Ensure its a dictionary wrapped in a ParamResolver.
