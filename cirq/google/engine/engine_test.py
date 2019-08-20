@@ -17,8 +17,8 @@ import base64
 import re
 from unittest import mock
 import numpy as np
-import matplotlib as mpl
 import pytest
+import matplotlib as mpl
 
 from apiclient import discovery, http
 
