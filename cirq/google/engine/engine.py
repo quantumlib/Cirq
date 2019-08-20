@@ -25,6 +25,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+from collections import abc, defaultdict
 import enum
 import random
 import re
@@ -37,7 +38,7 @@ from apiclient import discovery, http as apiclient_http
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, devices, optimizers, schedules, study, value
+from cirq import circuits, devices, optimizers, schedules, study, value, vis
 from cirq.api.google import v1, v2
 from cirq.google import convert_to_xmon_gates, gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
@@ -699,18 +700,25 @@ class Engine:
         return Calibration(response['data']['data'])
 
 
-class Calibration:
-    """A convenience wrapper for calibrations.
+class Calibration(abc.Mapping):
+    """A convenience wrapper for calibrations that acts like a dictionary.
 
-    Calibration may be accessed by key
+    Calibrations act as dictionaries whose keys are the names of the metric,
+    and whose values are the metric values.  The metric values themselves are
+    represented as a dictionary.  These metric value dictionaries have
+    keys that are tuples of `cirq.GridQubit`s and values that are lists of the
+    metric values for those qubits. If a metric acts globally and is attached
+    to no specified number of qubits, the map will be from the empty tuple
+    to the metrics values.
 
-        calibration['t1']
+    Calibrations act just like a python dictionary. For example you can get
+    a list of all of the metric names using
 
-    This returns a map from tuples of `cirq.GridQubit`s to a list of the values
-    of the metric. If there are no targets, the only key will only be an empty
-    tuple.
+        `calibration.keys()`
 
-    A list of all metric names may be accessed using `get_metric_names` or
+    and query a single value by looking up the name by index:
+
+        `calibration['t1'`
 
     Attributes:
         timestamp: The time that this calibration was run, in milliseconds since
@@ -719,64 +727,65 @@ class Calibration:
 
     def __init__(self, calibration: Dict) -> None:
         self.timestamp = int(calibration['timestampMs'])
-        self._metrics = calibration['metrics']
+        self._metric_dict = self._compute_metric_dict(calibration['metrics'])
 
-    def get_metric_names(self) -> List[str]:
-        """ Returns a list of known metrics in this calibration. """
-        return list(set(m['name'] for m in self._metrics))
-
-    def get_metrics_by_name(self, name: str) -> Dict[
-        Tuple[devices.GridQubit], Any]:
-        """Get a filtered list of metrics matching the provided name.
-
-        Params:
-            name: the name of a metric referred to in the calibration. Valid
-                names can be found with the `get_metric_names` method.
-
-        Returns:
-            A map from tuples of `cirq.GridQubit`s to a list of the values
-            of the metric. If there are no targets, the only key will only be
-            an empty tuple.
-        """
-        matching_metrics = [m for m in self._metrics if m['name'] == name]
-        result: Dict[Tuple[devices.GridQubit], Any] = {}
-        for metric in matching_metrics:
+    def _compute_metric_dict(
+            self, metrics: Dict
+    ) -> Dict[str, Dict[Tuple[devices.GridQubit, ...], Any]]:
+        results: Dict[str, Dict[Tuple[devices.
+                                      GridQubit, ...], Any]] = defaultdict(dict)
+        for metric in metrics:
+            name = metric['name']
             # Flatten the values a list, removing keys containing type names
             # (e.g. proto version of each value is {<type>: value}).
-            flat_values = [v[t] for t in value for v in metric['values']]
+            flat_values = [v[t] for v in metric['values'] for t in v]
             if 'targets' in metric:
                 targets = metric['targets']
-                result[(devices.GridQubit.from_proto_id(t)
-                        for t in targets)] = flat_values
+                qubits = tuple(
+                    devices.GridQubit.from_proto_id(t) for t in targets)
+                results[name][qubits] = flat_values
             else:
-                assert len(result) == 0, (
-                    'Only one metric of a given name can '
-                    'have no targets. Instead for key {} found metrics: {}'.
-                        format(name, matching_metrics))
-                result[()] = flat_values
-        return result
+                assert len(results[name]) == 0, (
+                    'Only one metric of a given name can have no targets. '
+                    'Found multiple for key {}'.format(name))
+                results[name][()] = flat_values
+        return results
 
-    def __get_item__(self, key: str) -> Dict[Tuple[devices.GridQubit], Any]:
+    def __getitem__(self, key: str) -> Dict[Tuple[devices.GridQubit, ...], Any]:
         """Supports getting calibrations by index.
 
         Calibration may be accessed by key
 
             calibration['t1']
 
-        This returns a map from tuples of `cirq.GridQubit`s to a list of the values
-        of the metric. If there are no targets, the only key will only be an empty
-        tuple.
+        This returns a map from tuples of `cirq.GridQubit`s to a list of the
+        values of the metric. If there are no targets, the only key will only
+        be an empty tuple.
         """
         if not isinstance(key, str):
             raise TypeError(
                 'Calibration metrics only have string keys. Key was {}'.format(
                     key))
-        if not key in self._metrics['name']:
+        if key not in self._metric_dict:
             raise KeyError('Metric named {} not in calibration'.format(key))
-        return self.get_metrics_by_name(key)
+        return self._metric_dict[key]
+
+    def __iter__(self):
+        return iter(self._metric_dict)
 
     def __len__(self):
-        return len(self._metrics)
+        return len(self._metric_dict)
+
+    def heatmap(self, key: str) -> vis.Heatmap:
+        metrics = self[key]
+        assert all(len(k) == 1 for k in metrics.keys()), (
+            'Heatmaps are only supported if all the targets in a metric'
+            ' are single qubits.')
+        assert all(len(k) == 1 for k in metrics.values()), (
+            'Heatmaps are only supported if all the values in a metric'
+            ' are single metric values.')
+        value_map = {qubit: value for (qubit,), (value,) in metrics.items()}
+        return vis.Heatmap(value_map)
 
 
 class EngineProgram:
@@ -902,7 +911,7 @@ class EngineJob:
         self._engine = engine
         self.job_resource_name = job['name']
         self.program_id = self.job_resource_name.split('/jobs')[0]
-        self._results = None  # type: Optional[List[TrialResult]]
+        self._results: Optional[List[study.TrialResult]] = None
 
     def _update_job(self) -> Dict:
         if self._job['executionStatus']['state'] not in TERMINAL_STATES:
