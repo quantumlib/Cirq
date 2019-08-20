@@ -13,8 +13,8 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import (overload, Any, Callable, Dict, Iterator, List,
-                    Optional, Tuple, Union)
+from typing import (overload, Any, Callable, Dict, Iterator, List, Optional,
+                    Tuple, Union)
 
 import sympy
 
@@ -88,7 +88,10 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     expr_map = ExpressionMap(flattener.param_dict)
     return val_flat, expr_map
 
-def flatten_with_sweep(val: Any, sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]) -> Tuple[Any, sweeps.Sweep]:
+
+def flatten_with_sweep(val: Any,
+                       sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
+                      ) -> Tuple[Any, sweeps.Sweep]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.  Also creates a transformed `Sweep` that resolves the new value.
@@ -107,7 +110,7 @@ def flatten_with_sweep(val: Any, sweep: Union[sweeps.Sweep, List[resolver.ParamR
 
 
 def flatten_with_params(val: Any, params: resolver.ParamResolverOrSimilarType
-                  ) -> Tuple[Any, resolver.ParamDictType]:
+                       ) -> Tuple[Any, resolver.ParamDictType]:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
     type.  Also creates transformed parameters that resolve the new value.
@@ -143,7 +146,9 @@ class _ParamFlattener(resolver.ParamResolver):
             self,
             param_dict: Optional[resolver.ParamResolverOrSimilarType] = None,
             *,  # Force keyword args
-            get_param_name: Callable[[sympy.Basic, ], str] = None):
+            get_param_name: Callable[[
+                sympy.Basic,
+            ], str] = None):
         """Initializes a new _ParamFlattener.
 
         Args:
@@ -253,6 +258,7 @@ class _ParamFlattener(resolver.ParamResolver):
 
 
 class ExpressionMap(dict):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

@@ -21,7 +21,9 @@ def test_expr_map_names():
     flattener = flatten_expressions._ParamFlattener({'collision': '<x + 2>'})
     expressions = [sympy.Symbol('x') + i for i in range(3)]
     syms = flattener.flatten(expressions)
-    assert syms == [sympy.Symbol(name) for name in ('x', '<x + 1>', '<x + 2>_1')]
+    assert syms == [
+        sympy.Symbol(name) for name in ('x', '<x + 1>', '<x + 2>_1')
+    ]
 
 
 def test_flattener_value_of():
@@ -30,25 +32,31 @@ def test_flattener_value_of():
     assert flattener.value_of('c') == 5
     assert flattener.value_of(sympy.Symbol('c')) == 5
     # Twice
-    assert (flattener.value_of(sympy.Symbol('c')/2 + 1) == sympy.Symbol('<c/2 + 1>'))
-    assert (flattener.value_of(sympy.Symbol('c')/2 + 1) == sympy.Symbol('<c/2 + 1>'))
+    assert (flattener.value_of(sympy.Symbol('c') / 2 +
+                               1) == sympy.Symbol('<c/2 + 1>'))
+    assert (flattener.value_of(sympy.Symbol('c') / 2 +
+                               1) == sympy.Symbol('<c/2 + 1>'))
     # Collisions
-    assert (flattener.value_of(sympy.Symbol('c')/sympy.Symbol('2 + 1')) ==
-            sympy.Symbol('<c/2 + 1>_1'))
-    assert (flattener.value_of(sympy.Symbol('c/2') + 1) ==
-            sympy.Symbol('<c/2 + 1>_2'))
+    assert (flattener.value_of(
+        sympy.Symbol('c') /
+        sympy.Symbol('2 + 1')) == sympy.Symbol('<c/2 + 1>_1'))
+    assert (flattener.value_of(sympy.Symbol('c/2') +
+                               1) == sympy.Symbol('<c/2 + 1>_2'))
 
-    assert (cirq.flatten([sympy.Symbol('c')/2+1, sympy.Symbol('c/2')+1])[0] ==
-            [sympy.Symbol('<c/2 + 1>'), sympy.Symbol('<c/2 + 1>_1')])
+    assert (cirq.flatten([sympy.Symbol('c') / 2 + 1,
+                          sympy.Symbol('c/2') + 1])[0] == [
+                              sympy.Symbol('<c/2 + 1>'),
+                              sympy.Symbol('<c/2 + 1>_1')
+                          ])
 
 
 def test_flattener_repr():
     assert repr(flatten_expressions._ParamFlattener(
-        {'a': 1})
-        ) == ("_ParamFlattener({a: 1})")
-    assert repr(flatten_expressions._ParamFlattener(
-        {'a': 1}, get_param_name=lambda expr: 'x')
-        ).startswith("_ParamFlattener({a: 1}, get_param_name=<function ")
+        {'a': 1})) == ("_ParamFlattener({a: 1})")
+    assert repr(
+        flatten_expressions._ParamFlattener(
+            {'a': 1}, get_param_name=lambda expr: 'x')).startswith(
+                "_ParamFlattener({a: 1}, get_param_name=<function ")
 
 
 def test_expression_map_repr():
