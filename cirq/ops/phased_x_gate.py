@@ -98,9 +98,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                               exponent=new_exponent,
                               global_shift=self._global_shift)
 
-    def _trace_distance_bound_(self):
-        """See `cirq.SupportsTraceDistanceBound`."""
-        return protocols.trace_distance_bound(cirq.X**self._exponent)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
@@ -147,8 +148,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                                ) -> protocols.CircuitDiagramInfo:
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        if (isinstance(self.phase_exponent, sympy.Symbol) or
+        if (isinstance(self.phase_exponent, sympy.Basic) or
                 args.precision is None):
+            s = 'PhasedX({})'.format(self.phase_exponent)
+        elif isinstance(self.phase_exponent, int):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(
@@ -184,7 +187,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     @property
     def _canonical_exponent(self):
         period = self._period()
-        if not period or isinstance(self._exponent, sympy.Symbol):
+        if not period or isinstance(self._exponent, sympy.Basic):
             return self._exponent
 
         return self._exponent % period

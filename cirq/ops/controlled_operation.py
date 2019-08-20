@@ -18,6 +18,7 @@ import numpy as np
 from cirq import protocols, linalg, value
 from cirq.ops import raw_types, gate_operation
 from cirq.type_workarounds import NotImplementedType
+from cirq.protocols import trace_distance_from_angle_list
 
 
 @value.value_equality
@@ -119,8 +120,14 @@ class ControlledOperation(raw_types.Operation):
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
         return ControlledOperation(self.controls, new_sub_op)
 
-    def _trace_distance_bound_(self) -> float:
-        return protocols.trace_distance_bound(self.sub_operation)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        u = protocols.unitary(self.sub_operation, default=None)
+        if u is None:
+            return NotImplemented
+        angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
+        return trace_distance_from_angle_list(angle_list)
 
     def __pow__(self, exponent: Any) -> 'ControlledOperation':
         new_sub_op = protocols.pow(self.sub_operation,

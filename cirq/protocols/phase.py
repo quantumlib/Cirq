@@ -32,12 +32,12 @@ class SupportsPhase(Protocol):
 
         Specifically, returns an object with matrix P U P^-1 (up to global
         phase) where U is the given object's matrix and
-        P = Z(qubit_index)**(phase_turns/2). For example, an X gate phased by 90
-        degrees would be a Y gate.
+        P = Z(qubit_index)**(2 * phase_turns). For example, an X gate phased
+        by 90 degrees would be a Y gate.
 
         Args:
             phase_turns: The amount to phase the gate, in fractions of a whole
-                turn.  Divide by 2pi to get radians.
+                turn. Multiply by 2π to get radians.
             qubit_index: The index of the target qubit the phasing applies to.
         Returns:
             The phased gate or operation.
@@ -55,7 +55,7 @@ def phase_by(val: Any, phase_turns: float, qubit_index: int,
     Args:
         val: The value to describe with a unitary matrix.
         phase_turns: The amount to phase the gate, in fractions of a whole
-            turn.  Divide by 2pi to get radians.
+            turn. Multiply by 2π to get radians.
         qubit_index: The index of the target qubit the phasing applies to. For
             operations this is the index of the qubit within the operation's
             qubit list. For gates it's the index of the qubit within the tuple

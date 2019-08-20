@@ -16,7 +16,7 @@ from typing import Any
 
 import numpy as np
 
-from cirq import protocols, ops, line, circuits
+from cirq import devices, protocols, ops, circuits
 from cirq.testing import lin_alg_utils
 
 
@@ -34,7 +34,7 @@ def assert_decompose_is_consistent_with_unitary(
         qubits = val.qubits
         dec = protocols.decompose_once(val, default=None)
     else:
-        qubits = tuple(line.LineQubit.range(qubit_count))
+        qubits = tuple(devices.LineQubit.range(qubit_count))
         dec = protocols.decompose_once_with_qubits(val, qubits, default=None)
     if dec is None:
         # If there's no decomposition, it's vacuously consistent.

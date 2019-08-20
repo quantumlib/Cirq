@@ -445,6 +445,10 @@ def test_uninformed_circuit_diagram_info():
 def test_bounded_effect():
     assert cirq.trace_distance_bound(CY**0.001) < 0.01
     assert cirq.trace_distance_bound(SCY**0.001) < 0.01
+    assert cirq.approx_eq(cirq.trace_distance_bound(CCH), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(CRestricted), 1.0)
+    foo = sympy.Symbol('foo')
+    assert cirq.trace_distance_bound(cirq.ControlledGate(cirq.X**foo)) == 1
 
 
 def test_repr():
