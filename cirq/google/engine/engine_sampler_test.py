@@ -23,11 +23,25 @@ def test_run_circuit():
     sampler = cg.QuantumEngineSampler(engine=engine,
                                       processor_id='tmp',
                                       gate_set=cg.XMON)
-    c = cirq.Circuit()
+    circuit = cirq.Circuit()
     params = [cirq.ParamResolver({'a': 1})]
-    sampler.run_sweep(c, params, 5)
+    sampler.run_sweep(circuit, params, 5)
     engine.run_sweep.assert_called_with(gate_set=cg.XMON,
                                         params=params,
                                         processor_ids=['tmp'],
-                                        program=c,
+                                        program=circuit,
                                         repetitions=5)
+
+
+def test_run_engine_program():
+    engine = mock.Mock()
+    sampler = cg.QuantumEngineSampler(engine=engine,
+                                      processor_id='tmp',
+                                      gate_set=cg.XMON)
+    program = mock.Mock(spec=cg.EngineProgram)
+    params = [cirq.ParamResolver({'a': 1})]
+    sampler.run_sweep(program, params, 5)
+    program.run_sweep.assert_called_with(params=params,
+                                         processor_ids=['tmp'],
+                                         repetitions=5)
+    engine.run_sweep.assert_not_called()

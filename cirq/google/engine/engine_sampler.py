@@ -12,18 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Union
 
 from cirq import work
+from cirq.google import engine
 
 if TYPE_CHECKING:
     import cirq
 
 
-class QuantumEngineSampler(work.Sampler):
-    """A sampler that samples from real hardware on the quantum engine.
 
-    Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`."""
+class QuantumEngineSampler(work.Sampler):
+    """A sampler that samples from processors managed by the Quantum Engine.
+
+    Exposes a `cirq.google.Engine` instance as a `cirq.Sampler`.
+    """
 
     def __init__(self, *, engine: 'cirq.google.Engine',
                  processor_id: Union[str, List[str]],
@@ -43,15 +46,19 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_sweep(
             self,
-            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            program: Union['cirq.Circuit', 'cirq.Schedule',
+                           'cirq.google.EngineProgram'],
             params: 'cirq.Sweepable',
             repetitions: int = 1,
     ) -> List['cirq.TrialResult']:
-
-        job = self._engine.run_sweep(program=program,
-                                     params=params,
-                                     repetitions=repetitions,
-                                     processor_ids=self._processor_ids,
-                                     gate_set=self._gate_set)
-
+        if isinstance(program, engine.EngineProgram):
+            job = program.run_sweep(params=params,
+                                    repetitions=repetitions,
+                                    processor_ids=self._processor_ids)
+        else:
+            job = self._engine.run_sweep(program=program,
+                                         params=params,
+                                         repetitions=repetitions,
+                                         processor_ids=self._processor_ids,
+                                         gate_set=self._gate_set)
         return job.results()
