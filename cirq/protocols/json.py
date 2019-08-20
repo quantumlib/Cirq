@@ -31,6 +31,8 @@ class _ResolverCache:
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
+            import cirq.ops.pauli_gates  # for mypy
+            import cirq.devices.unconstrained_device  # for mypy
             self._crd = {
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
@@ -127,7 +129,7 @@ class CirqEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def _cirq_object_hook(d, resolvers):
+def _cirq_object_hook(d, resolvers: List[Callable[[str], Type]]):
     if 'cirq_type' in d:
         for resolver in resolvers:
             cls = resolver(d['cirq_type'])
