@@ -36,7 +36,11 @@ def test_flattener_value_of():
                                1) == sympy.Symbol('<c/2 + 1>'))
     assert (flattener.value_of(sympy.Symbol('c') / 2 +
                                1) == sympy.Symbol('<c/2 + 1>'))
-    # Collisions
+    # Collisions between the string representation of different expressions
+    # This tests the unusual case where str(expr1) == str(expr2) doesn't imply
+    # expr1 == expr2.  In this case it would be incorrect to flatten to the same
+    # symbol because the two expression will evaluate to different values.
+    # Also tests that '_#' is appended when avoiding collisions.
     assert (flattener.value_of(
         sympy.Symbol('c') /
         sympy.Symbol('2 + 1')) == sympy.Symbol('<c/2 + 1>_1'))
