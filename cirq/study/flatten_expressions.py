@@ -31,9 +31,6 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     after `flatten`.  Use `flatten_with_sweep` or `flatten_with_params` instead
     of `flatten` as a shortcut.
 
-    Args:
-        val: The value to copy with substituted parameters.
-
     Example:
         >>> qubit = cirq.LineQubit(0)
         >>> a = sympy.Symbol('a')
@@ -45,11 +42,12 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         0: ───X^(a/4)───Y^(1 - a/2)───
 
         >>> sweep = cirq.Linspace(a, start=0, stop=3, length=4)
-        >>> list(sweep)  #doctest: +NORMALIZE_WHITESPACE
-        [cirq.ParamResolver(OrderedDict([('a', 0.0)])),
-         cirq.ParamResolver(OrderedDict([('a', 1.0)])),
-         cirq.ParamResolver(OrderedDict([('a', 2.0)])),
-         cirq.ParamResolver(OrderedDict([('a', 3.0)]))]
+        >>> print(cirq.ListSweep(sweep))
+        Sweep:
+        {'a': 0.0}
+        {'a': 1.0}
+        {'a': 2.0}
+        {'a': 3.0}
 
         >>> c_flat, expr_map = cirq.flatten(circuit)
         >>> print(c_flat)
@@ -58,12 +56,12 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         cirq.ExpressionMap({a/4: <a/4>, 1 - a/2: <1 - a/2>})
 
         >>> new_sweep = expr_map.transform_sweep(sweep)
-        >>> list(new_sweep)  #doctest: +NORMALIZE_WHITESPACE
-        [cirq.ParamResolver(OrderedDict([('<a/4>', 0.0), ('<1 - a/2>', 1.0)])),
-         cirq.ParamResolver(OrderedDict([('<a/4>', 0.25), ('<1 - a/2>', 0.5)])),
-         cirq.ParamResolver(OrderedDict([('<a/4>', 0.5), ('<1 - a/2>', 0.0)])),
-         cirq.ParamResolver(OrderedDict([('<a/4>', 0.75), ('<1 - a/2>', -0.5)])\
-)]
+        >>> print(new_sweep)
+        Sweep:
+        {'<a/4>': 0.0, '<1 - a/2>': 1.0}
+        {'<a/4>': 0.25, '<1 - a/2>': 0.5}
+        {'<a/4>': 0.5, '<1 - a/2>': 0.0}
+        {'<a/4>': 0.75, '<1 - a/2>': -0.5}
 
         >>> for params in sweep:  # Original
         ...     print(circuit, '=>', end=' ')
@@ -72,6 +70,7 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.25───Y^0.5───
         0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.5───Y^0───
         0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.75───Y^-0.5───
+
         >>> for params in new_sweep:  # Flattened
         ...     print(c_flat, '=>', end=' ')
         ...     print(cirq.resolve_parameters(c_flat, params))
@@ -79,6 +78,9 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.25───Y^0.5───
         0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.5───Y^0───
         0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.75───Y^-0.5───
+
+    Args:
+        val: The value to copy with substituted parameters.
 
     Returns:
         A tuple containing the value with flattened parameters and the
