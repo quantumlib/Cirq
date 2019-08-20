@@ -124,7 +124,7 @@ class CirqEncoder(json.JSONEncoder):
             }
         if isinstance(o, np.ndarray):
             return o.tolist()
-        return super().default(o)
+        return super().default(o)  # coverage: ignore
 
 
 def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
