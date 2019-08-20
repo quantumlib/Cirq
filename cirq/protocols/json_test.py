@@ -19,9 +19,9 @@ import os
 
 import pytest
 
+import numpy as np
 import cirq
 import cirq.protocols
-import numpy as np
 
 
 def assert_roundtrip(obj, text_should_be=None):
