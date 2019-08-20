@@ -527,7 +527,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return protocols.to_json_dict(self, ['pauli', 'qubit'])
 
     @classmethod
-    def _from_json_dict_(cls, pauli: pauli_gates.Pauli, qubit: raw_types.Qid, **kwargs):  # type: ignore
+    def _from_json_dict_(  # type: ignore
+            cls, pauli: pauli_gates.Pauli, qubit: raw_types.Qid, **kwargs):
         # Note, this method is required or else superclasses' deser
         # would be used
         return cls(pauli=pauli, qubit=qubit)
