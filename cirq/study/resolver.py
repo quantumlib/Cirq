@@ -16,7 +16,7 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
-from cirq.value import type_alias
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
@@ -53,7 +53,7 @@ class ParamResolver(object):
         self._param_hash = hash(frozenset(self.param_dict.items()))
 
     def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> type_alias.TParamVal:
+                 value: Union[sympy.Basic, float, str]) -> value.TParamVal:
         """Attempt to resolve a Symbol or name or float to its assigned value.
 
         If unable to resolve a sympy.Symbol, returns it unchanged.

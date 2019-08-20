@@ -17,9 +17,9 @@ from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
 import numpy as np
 import sympy
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops, protocols, value
 from cirq.schedules import Schedule, ScheduledOperation
-from cirq.value import Timestamp, type_alias
+from cirq.value import Timestamp
 
 if TYPE_CHECKING:
     from cirq.google import xmon_device
@@ -335,7 +335,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
     raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
-def _parameterized_value_from_proto_dict(message: Dict) -> type_alias.TParamVal:
+def _parameterized_value_from_proto_dict(message: Dict) -> value.TParamVal:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -346,7 +346,7 @@ def _parameterized_value_from_proto_dict(message: Dict) -> type_alias.TParamVal:
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: type_alias.TParamVal) -> Dict:
+def _parameterized_value_to_proto_dict(param: value.TParamVal) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())

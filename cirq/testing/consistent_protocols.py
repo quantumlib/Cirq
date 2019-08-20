@@ -17,7 +17,7 @@ from typing import Any, Dict, Optional, Sequence, Type
 import numpy as np
 import sympy
 
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
                                           assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
@@ -29,7 +29,6 @@ from cirq.testing.consistent_qasm import (
 from cirq.testing.consistent_pauli_expansion import (
         assert_pauli_expansion_is_consistent_with_unitary)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
-from cirq.value import type_alias
 
 
 def assert_implements_consistent_protocols(
@@ -68,8 +67,8 @@ def assert_implements_consistent_protocols(
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
-        exponents: Sequence[type_alias.TParamVal] = (0, 1, -1, 0.25, -0.5, 0.1,
-                                                     sympy.Symbol('s')),
+        exponents: Sequence[value.TParamVal] = (0, 1, -1, 0.25, -0.5, 0.1,
+                                                sympy.Symbol('s')),
         global_shifts: Sequence[float] = (0, -0.5, 0.1),
         qubit_count: Optional[int] = None,
         ignoring_global_phase: bool = False,

@@ -16,8 +16,9 @@ import numpy as np
 import sympy
 
 import cirq
+from cirq import value
 from cirq.testing import assert_has_consistent_trace_distance_bound
-from cirq.value import type_alias
+
 
 
 class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
@@ -28,7 +29,7 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         [0  0  0 -i]
     """
 
-    def __init__(self, quarter_turns: type_alias.TParamVal) -> None:
+    def __init__(self, quarter_turns: value.TParamVal) -> None:
         super().__init__(exponent=quarter_turns)
 
     @property

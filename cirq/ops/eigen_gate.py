@@ -25,7 +25,6 @@ from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 from cirq.protocols import trace_distance_from_angle_list
-from cirq.value import type_alias
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -65,7 +64,7 @@ class EigenGate(raw_types.Gate):
     def __init__(
             self,
             *,  # Forces keyword args.
-            exponent: type_alias.TParamVal = 1.0,
+            exponent: value.TParamVal = 1.0,
             global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
@@ -109,11 +108,11 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> type_alias.TParamVal:
+    def exponent(self) -> value.TParamVal:
         return self._exponent
 
     # virtual method
-    def _with_exponent(self: TSelf, exponent: type_alias.TParamVal) -> TSelf:
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__

@@ -21,7 +21,6 @@ from cirq._compat import proper_repr
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
         op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.value import type_alias
 
 
 pauli_eigen_map = cast(
@@ -47,7 +46,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
                  pauli1: pauli_gates.Pauli,
                  invert1: bool,
                  *,
-                 exponent: type_alias.TParamVal = 1.0) -> None:
+                 exponent: value.TParamVal = 1.0) -> None:
         """
         Args:
             pauli0: The interaction axis for the first qubit.
@@ -75,8 +74,8 @@ class PauliInteractionGate(eigen_gate.EigenGate,
             return 0
         return index
 
-    def _with_exponent(self, exponent: type_alias.TParamVal
-                      ) -> 'PauliInteractionGate':
+    def _with_exponent(self,
+                       exponent: value.TParamVal) -> 'PauliInteractionGate':
         return PauliInteractionGate(self.pauli0, self.invert0,
                                     self.pauli1, self.invert1,
                                     exponent=exponent)
