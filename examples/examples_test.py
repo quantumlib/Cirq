@@ -93,9 +93,8 @@ def test_example_swap_networks():
 def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
 
-    
+
 def test_example_cross_entropy_benchmarking():
     examples.cross_entropy_benchmarking_example.main(repetitions=10,
                                                      num_circuits=2,
                                                      cycles=[2, 3, 4])
-
