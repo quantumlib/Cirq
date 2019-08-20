@@ -1,60 +1,63 @@
 sudo: false
 language: python
-
 cache:
   directories:
-    - .benchmarks
+  - ".benchmarks"
 branches:
   only:
-    - master
-
+  - master
 before_install:
-  - pip install --upgrade pip setuptools wheel
-
+- pip install --upgrade pip setuptools wheel
+stages:
+- test
+- name: deploy
+  if: type = push AND branch = master
 matrix:
   include:
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=mypy
-    python: "3.6"
+    python: '3.6'
     install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
+    - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
     script: check/mypy
-
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=pylint
-    python: "3.6"
+    python: '3.6'
     install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
+    - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v
+      "#" | xargs pip install
     script: check/pylint
-
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=format
-    python: "3.6"
+    python: '3.6'
     install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
+    - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
     script: check/format-incremental
-
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=pytest-and-incremental-coverage
-    python: "3.6"
+    python: '3.6'
     install:
-      - pip install -r requirements.txt
-      - pip install -r cirq/contrib/contrib-requirements.txt
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    - pip install -r requirements.txt
+    - pip install -r cirq/contrib/contrib-requirements.txt
+    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest-and-incremental-coverage master --actually-quiet
-
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=pytest (without contrib)
-    python: "3.7"
+    python: '3.7'
     install:
-      - pip install -r requirements.txt
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    - pip install -r requirements.txt
+    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
-
-  - os: windows
+  - stage: test
+    os: windows
     env: NAME=pytest (Windows)
     language: sh
-    python: "3.7.3"
+    python: '3.7.3'
     before_install:
     - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
     - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
@@ -67,11 +70,28 @@ matrix:
     - python -m pip install -r cirq/contrib/contrib-requirements.txt
     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip --actually-quiet
-
-  - os: linux
+  - stage: test
+    os: linux
     env: NAME=doctest
-    python: "3.6"
+    python: '3.6'
     install:
-      - pip install -r requirements.txt
-      - pip install -r cirq/contrib/contrib-requirements.txt
+    - pip install -r requirements.txt
+    - pip install -r cirq/contrib/contrib-requirements.txt
     script: check/doctest -q
+  - stage: deploy
+    os: linux
+    env: NAME=dev-release
+    python: '3.7'
+    script: source dev_tools/packaging/set-dev-version.sh
+
+before_deploy:
+  - echo "Deploying dev version '$CIRQ_DEV_VERSION'"
+
+deploy:
+  - provider: pypi
+    user: quantumlibdev
+    on:
+      condition: '"$CIRQ_DEV_VERSION" == *dev*'
+    distributions: "bdist_wheel"
+    password:
+      secure: k0S3+TUtUWl/WEa3dY8qeBYXTOEMCdswkzAFyFjOOru4EO0ncSXXoOvcAqlvLPkGYGoFkqKtAbR2HCZU6JBVcGcm/diGmwt1GNXMQjGARyeoARhPEAWLGNlN/whZ1Jcx5i1r+v2Lx8KjsDoF2SaNMJprHCnbnNe6tzxGcX4mKh4lnG4SIIHbwbIhgkAqQhpWyMcx0q3lJvdx4fCh5R1B1ZHWpiO3OGYGZlt4BM9w0qwGSaI2XFHrLUZHJma5ECOsFZ/V5pyJim7vtafi80OTh6IpX83dlADr105bdMICY/p4Lth+7Un45b6PdNzIk3/xg9e3RCn3H1ajaYukBTOfwM9hbzw3XKePng/MVC8J6MZAgZxG9RnyyTAyidz7/IhTqex2gTiy7CYZllyIvrXpru2Kx6n9VmRIILbHlo/Y6hPyAv9mfzmyo3Ijg9llaLr+wjjJ+uvLDSrXAMH5kwjAh4EQVaQ6bAgn7R+7oPIgvKR8OiI8d0rp8LUwv83pf1wSW5CQuGJLAuJehKyIpqerfaPD+VW4GbsIbaOm//Z7w64HlxfJwZMbN0muhB96eBAroD3uCY/BYzbKX1Ar30L3Pga+eh+as1sMZuNDS3tXJktaWqOY7FLQDZAkhR6B4QIXvRVrkIj6/Rtzz+gnB8DPgvBwG2A/yZdkXPmhzGf/da0=

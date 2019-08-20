@@ -35,6 +35,8 @@ from cirq.ops.common_channels import (
     phase_flip,
     PhaseDampingChannel,
     PhaseFlipChannel,
+    reset,
+    ResetChannel,
 )
 
 from cirq.ops.common_gates import (
@@ -181,5 +183,6 @@ from cirq.ops.three_qubit_gates import (
     CSWAP,
     CSwapGate,
     FREDKIN,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
 )

@@ -20,7 +20,6 @@ from cirq.value import Duration
 
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 # Note: circuit/schedule types specified by name to avoid circular references.

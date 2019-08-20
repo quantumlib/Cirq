@@ -21,7 +21,7 @@ from typing import List, Optional, Type, Union, Sequence, cast
 
 import numpy as np
 
-from cirq import circuits, protocols, study, schedules, devices, ops, line
+from cirq import circuits, devices, protocols, study, schedules, devices, ops
 from cirq.sim import sparse_simulator, density_matrix_simulator
 
 
@@ -101,7 +101,7 @@ def final_wavefunction(
         pass
     elif isinstance(program, ops.Gate):
         program = circuits.Circuit.from_ops(
-            program.on(*line.LineQubit.range(program.num_qubits())))
+            program.on(*devices.LineQubit.range(program.num_qubits())))
     else:
         # It should be an OP_TREE.
         program = circuits.Circuit.from_ops(program)

@@ -14,7 +14,7 @@
 
 """Utilities for manipulating linear operators as elements of vector space."""
 
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 
@@ -74,3 +74,39 @@ def matrix_from_basis_coefficients(expansion: value.LinearDict[str],
     for name, coefficient in expansion.items():
         result += coefficient * basis[name]
     return result
+
+
+def pow_pauli_combination(
+        ai: value.Scalar, ax: value.Scalar, ay: value.Scalar, az: value.Scalar,
+        exponent: int
+) -> Tuple[value.Scalar, value.Scalar, value.Scalar, value.Scalar]:
+    """Computes non-negative integer power of single-qubit Pauli combination.
+
+    Returns scalar coefficients bi, bx, by, bz such that
+
+        bi I + bx X + by Y + bz Z = (ai I + ax X + ay Y + az Z)^exponent
+
+    Correctness of the formulas below follows from the binomial expansion
+    and the fact that for any real or complex vector (ax, ay, az) and any
+    non-negative integer k:
+
+         [ax X + ay Y + az Z]^(2k) = (ax^2 + ay^2 + az^2)^k I
+
+    """
+    if exponent == 0:
+        return 1, 0, 0, 0
+
+    v = np.sqrt(ax * ax + ay * ay + az * az)
+    s = np.power(ai + v, exponent)
+    t = np.power(ai - v, exponent)
+
+    ci = (s + t) / 2
+    if s == t:
+        # v is near zero, only one term in binomial expansion survives
+        cxyz = exponent * np.power(ai, exponent - 1)
+    else:
+        # v is non-zero, account for all terms of binomial expansion
+        cxyz = (s - t) / 2
+        cxyz = cxyz / v
+
+    return ci, cxyz * ax, cxyz * ay, cxyz * az

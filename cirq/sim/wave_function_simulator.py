@@ -24,7 +24,8 @@ from cirq import circuits, ops, schedules, study, value
 from cirq.sim import simulator, wave_function
 
 
-class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
+class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
+                                        simulator.SimulatesIntermediateState,
                                         metaclass=abc.ABCMeta):
     """A simulator that accesses its wave function as it does its simulation.
 
@@ -158,6 +159,35 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesIntermediateState,
                 display_values=display_values))
 
         return compute_displays_results
+
+    def compute_amplitudes_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            bitstrings: np.ndarray,
+            params: study.Sweepable,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> List[List[complex]]:
+
+        trial_results = self.simulate_sweep(program, params, qubit_order)
+
+        amplitude_indices = [
+            _bitstring_to_integer(bitstring) for bitstring in bitstrings
+        ]
+
+        all_amplitudes = []
+        for trial_result in trial_results:
+            # mypy doesn't know that this trial result has a final_state
+            # attribute
+            final_state = trial_result.final_state  # type: ignore
+            amplitudes = [final_state[index] for index in amplitude_indices]
+            all_amplitudes.append(amplitudes)
+
+        return all_amplitudes
+
+
+def _bitstring_to_integer(bitstring: np.ndarray):
+    n = len(bitstring)
+    return sum(bitstring[i] << (n - i - 1) for i in range(n))
 
 
 def _enter_moment_display_values_into_dictionary(

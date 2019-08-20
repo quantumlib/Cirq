@@ -23,7 +23,6 @@ from cirq.google.line.placement.chip import chip_as_adjacency_list
 from cirq.google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.google.line.placement.sequence import LineSequence
     import cirq.google
 

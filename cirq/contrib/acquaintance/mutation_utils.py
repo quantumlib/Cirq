@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Optional, Sequence, TYPE_CHECKING, Union
+from typing import Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, optimizers
 
@@ -26,9 +26,7 @@ from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops import Gate
-    from typing import Dict, List, Type
 
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
@@ -52,8 +50,8 @@ def rectify_acquaintance_strategy(
 
     rectified_moments = []
     for moment in circuit:
-        gate_type_to_ops = collections.defaultdict(list
-                ) # type: Dict[bool, List[ops.GateOperation]]
+        gate_type_to_ops: Dict[bool, List[
+            ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
             gate_type_to_ops[isinstance(op.gate, AcquaintanceOpportunityGate)
                     ].append(op)
