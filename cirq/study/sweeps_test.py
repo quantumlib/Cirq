@@ -156,7 +156,34 @@ def test_equality():
 
 
 def test_repr():
-    assert repr(cirq.study.sweeps.Product(cirq.UnitSweep)) == \
-        'cirq.study.sweeps.Product(cirq.UnitSweep)'
-    assert repr(cirq.study.sweeps.Zip(cirq.UnitSweep)) == \
-        'cirq.study.sweeps.Zip(cirq.UnitSweep)'
+    cirq.testing.assert_equivalent_repr(
+        cirq.study.sweeps.Product(cirq.UnitSweep),
+        setup_code='import cirq\nfrom collections import OrderedDict')
+    cirq.testing.assert_equivalent_repr(
+        cirq.study.sweeps.Zip(cirq.UnitSweep),
+        setup_code='import cirq\nfrom collections import OrderedDict')
+    cirq.testing.assert_equivalent_repr(
+        cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4)),
+        setup_code='import cirq\nfrom collections import OrderedDict')
+
+
+def test_list_sweep_str():
+    assert str(cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4))
+        ) == '''Sweep:
+{'a': 0.0}
+{'a': 1.0}
+{'a': 2.0}
+{'a': 3.0}'''
+    assert str(cirq.ListSweep(cirq.Linspace('a', start=0, stop=15.75, length=64)
+        )) == '''Sweep:
+{'a': 0.0}
+{'a': 0.25}
+{'a': 0.5}
+{'a': 0.75}
+{'a': 1.0}
+...
+{'a': 14.75}
+{'a': 15.0}
+{'a': 15.25}
+{'a': 15.5}
+{'a': 15.75}'''

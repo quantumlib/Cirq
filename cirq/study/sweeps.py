@@ -15,6 +15,7 @@ from typing import cast, Iterable, Iterator, List, Sequence, Tuple, Union
 
 import abc
 import collections
+import itertools
 import sympy
 
 from cirq.study import resolver
@@ -104,6 +105,24 @@ class Sweep(metaclass=abc.ABCMeta):
     def param_tuples(self) -> Iterator[Params]:
         """An iterator over (key, value) pairs assigning Symbol key to value."""
 
+    def __str__(self):
+        length = len(self)
+        max_show = 10
+        # Show a maximum of max_show entries with an ellipsis in the middle
+        if length > max_show:
+            beginning_len = max_show - max_show // 2
+        else:
+            beginning_len = max_show
+        end_len = max_show - beginning_len
+        lines = ['Sweep:']
+        lines.extend(str(dict(r.param_dict))
+                     for r in itertools.islice(self, beginning_len))
+        if end_len > 0:
+            lines.append('...')
+            lines.extend(str(dict(r.param_dict))
+                         for r in itertools.islice(self, length-end_len, length))
+        return '\n'.join(lines)
+
 
 class _Unit(Sweep):
     """A sweep with a single element that assigns no parameter values.
@@ -177,7 +196,7 @@ class Product(Sweep):
         return _gen(self.factors)
 
     def __repr__(self):
-        return 'cirq.study.sweeps.Product({})'.format(', '.join(
+        return 'cirq.Product({})'.format(', '.join(
             repr(f) for f in self.factors))
 
     def __str__(self):
@@ -185,9 +204,9 @@ class Product(Sweep):
             return 'Product()'
         factor_strs = []
         for factor in self.factors:
-            factor_str = str(factor)
+            factor_str = repr(factor)
             if isinstance(factor, Zip):
-                factor_str = '(' + factor_str + ')'
+                factor_str = '(' + str(factor) + ')'
             factor_strs.append(factor_str)
         return ' * '.join(factor_strs)
 
@@ -231,13 +250,14 @@ class Zip(Sweep):
             yield sum(values, ())
 
     def __repr__(self):
-        return 'cirq.study.sweeps.Zip({})'.format(', '.join(
+        return 'cirq.Zip({})'.format(', '.join(
             repr(s) for s in self.sweeps))
 
     def __str__(self):
         if not self.sweeps:
             return 'Zip()'
-        return ' + '.join(str(s) for s in self.sweeps)
+        return ' + '.join(str(s) if isinstance(s, Product) else repr(s)
+                          for s in self.sweeps)
 
 
 class SingleSweep(Sweep):
@@ -369,6 +389,9 @@ class ListSweep(Sweep):
     def param_tuples(self) -> Iterator[Params]:
         for r in self.resolver_list:
             yield tuple(_params_without_symbols(r))
+
+    def __repr__(self):
+        return 'cirq.ListSweep({!r})'.format(self.resolver_list)
 
 
 def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
