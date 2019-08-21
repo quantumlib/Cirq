@@ -75,26 +75,26 @@ def main():
 
     print("\nBloch Sphere of Message After Random X and Y Gates:")
     # Prints the Bloch Sphere of the Message after the X and Y gates
-    b0X, b0Y, b0Z = cirq.bloch_vector_from_state_vector(
+    expected = cirq.bloch_vector_from_state_vector(
         message.final_state, 0)
-    print("x: ", np.around(b0X, 4),
-          "y: ", np.around(b0Y, 4),
-          "z: ", np.around(b0Z, 4))
+    print("x: ", np.around(expected[0], 4),
+          "y: ", np.around(expected[1], 4),
+          "z: ", np.around(expected[2], 4))
 
     # Records the final state of the simulation
     final_results = sim.simulate(circuit)
 
     print("\nBloch Sphere of Qubit 2 at Final State:")
     # Prints the Bloch Sphere of Bob's entangled qubit at the final state
-    b2X, b2Y, b2Z = cirq.bloch_vector_from_state_vector(
+    teleported = cirq.bloch_vector_from_state_vector(
         final_results.final_state, 2)
-    print("x: ", np.around(b2X, 4),
-          "y: ", np.around(b2Y, 4),
-          "z: ", np.around(b2Z, 4))
+    print("x: ", np.around(teleported[0], 4),
+          "y: ", np.around(teleported[1], 4),
+          "z: ", np.around(teleported[2], 4))
 
-    if not np.all(np.isclose([b0X, b0Y, b0Z], [b2X, b2Y, b2Z])):
+    if not np.all(np.isclose(expected, teleported, rtol=1e-4)):
         raise ValueError("Teleportation error! {} != {}.".format(
-                [b0X, b0Y, b0Z], [b2X, b2Y, b2Z]))
+                expected, teleported))
 
 
 if __name__ == '__main__':
