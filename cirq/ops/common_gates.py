@@ -479,6 +479,20 @@ class MeasurementGate(raw_types.Gate):
         return MeasurementGate(self.num_qubits(), key=self.key,
                                invert_mask=tuple(new_mask))
 
+    def full_invert_mask(self):
+        """Returns the invert mask for all qubits.
+
+        If the user supplies a partial invert_mask, this returns that mask
+        padded by False.
+
+        Similarly if no invert_mask is supplies this returns a tuple
+        of size equal to the number of qubits with all entries False.
+        """
+        mask = self.invert_mask or self.num_qubits() * (False,)
+        deficit = self.num_qubits() - len(mask)
+        mask += (False,) * deficit
+        return mask
+
     def _measurement_key_(self):
         return self.key
 
@@ -1198,19 +1212,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-def Rx(rads: Union[float, sympy.Basic]) -> XPowGate:
+def Rx(rads: value.TParamVal) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Ry(rads: Union[float, sympy.Basic]) -> YPowGate:
+def Ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Rz(rads: Union[float, sympy.Basic]) -> ZPowGate:
+def Rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)

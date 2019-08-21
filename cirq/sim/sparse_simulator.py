@@ -292,13 +292,12 @@ class Simulator(simulator.SimulatesSamples,
         meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         # TODO: support measurement outside computational basis.
         if meas:
-            invert_mask = meas.invert_mask or num_qubits * (False,)
+            invert_mask = meas.full_invert_mask()
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(data.state,
                                                          indices,
                                                          data.state)
-            corrected = [bit ^ mask for bit, mask in
-                         zip(bits, invert_mask)]
+            corrected = [bit ^ mask for bit, mask in zip(bits, invert_mask)]
             key = protocols.measurement_key(meas)
             measurements[key].extend(corrected)
 

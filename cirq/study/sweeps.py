@@ -87,7 +87,8 @@ class Sweep(metaclass=abc.ABCMeta):
     def __ne__(self, other):
         return not self == other
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def keys(self) -> List[str]:
         """The keys for the all of the sympy.Symbols that are resolved."""
 

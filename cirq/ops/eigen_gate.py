@@ -61,9 +61,11 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[sympy.Basic, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            exponent: value.TParamVal = 1.0,
+            global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of each eigenspace of a gate is computed by
@@ -106,12 +108,11 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> Union[sympy.Basic, float]:
+    def exponent(self) -> value.TParamVal:
         return self._exponent
 
     # virtual method
-    def _with_exponent(self: TSelf,
-                       exponent: Union[sympy.Basic, float]) -> TSelf:
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__

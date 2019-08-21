@@ -181,7 +181,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
         if power == -1:
             # HACK: break cycle
-            from cirq.line import line_qubit
+            from cirq.devices import line_qubit
 
             decomposed = decompose.decompose_once_with_qubits(
                 self,
@@ -263,7 +263,8 @@ class Operation(metaclass=abc.ABCMeta):
     effect into a qubit-independent Gate and the qubits it should be applied to.
     """
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()
 
