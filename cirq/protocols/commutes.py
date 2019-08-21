@@ -65,8 +65,9 @@ def commutes(left_val: Any,
     return default
 
 
-def definitely_commutes(left_val: Any, right_val: Any,
-        atol: Union[int, float] = 1e-8) -> bool:
+def definitely_commutes(left_val: Any,
+                        right_val: Any,
+                        atol: Union[int, float] = 1e-8) -> bool:
     """Determines whether two values definitely commute.
 
     If the commutation relation cannot be determined, returns False.

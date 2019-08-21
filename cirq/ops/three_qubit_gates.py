@@ -14,7 +14,7 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Any, List, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -30,6 +30,7 @@ from cirq.ops import (
     pauli_gates,
     raw_types,
 )
+
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
@@ -159,8 +160,7 @@ class CCZPowGate(eigen_gate.EigenGate,
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     """A gate given by a diagonal 8x8 matrix."""
 
-    def __init__(self,
-                 diag_angles_radians: List[Union[float, sympy.Basic]]) -> None:
+    def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
         r"""A three qubit gate with only diagonal elements.
 
         This gate's off-diagonal elements are zero and it's on diagonal
@@ -171,8 +171,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
                 If these values are $(x_0, x_1, \ldots , x_7)$ then the unitary
                 has diagonal values $(e^{i x_0}, e^{i x_1}, \ldots, e^{i x_7})$.
         """
-        self._diag_angles_radians: List[
-            Union[float, sympy.Basic]] = diag_angles_radians
+        self._diag_angles_radians: List[value.TParamVal] = diag_angles_radians
 
     def _is_parameterized_(self):
         return any(
