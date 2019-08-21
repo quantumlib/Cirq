@@ -25,4 +25,4 @@ jobs:
         pip install -r cirq/contrib/contrib-requirements.txt
     - name: Test with pytest
       run: |
-        check/pytest-and-incremental-coverage master --actually-quiet
+        check/pytest-and-incremental-coverage --actually-quiet
