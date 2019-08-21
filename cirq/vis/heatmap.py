@@ -41,7 +41,8 @@ from cirq.devices import grid_qubit
 QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
 
 # The value map is qubit coordinate -> a type that supports float conversion.
-ValueMap = Dict[QubitCoordinate, SupportsFloat]
+ValueMap = Union[Dict[Union[Tuple[int, int]], SupportsFloat],
+                 Dict[grid_qubit.GridQubit, SupportsFloat]]
 
 
 def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:

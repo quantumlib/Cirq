@@ -25,6 +25,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+from collections import abc, defaultdict
 import enum
 import random
 import re
@@ -37,15 +38,12 @@ from apiclient import discovery, http as apiclient_http
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, optimizers, study, value
-from cirq.google import gate_sets
+from cirq import circuits, devices, optimizers, schedules, study, value, vis
 from cirq.api.google import v1, v2
+from cirq.google import convert_to_xmon_gates, gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
-from cirq.google.convert_to_xmon_gates import ConvertToXmonGates
-from cirq.google.serializable_gate_set import SerializableGateSet
-from cirq.schedules import Schedule, moment_by_moment_schedule
-from cirq.study import ParamResolver, Sweep, Sweepable, TrialResult
+
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
@@ -60,7 +58,7 @@ class ProtoVersion(enum.Enum):
 
 
 # Quantum programs to run can be specified as circuits or schedules.
-Program = Union[circuits.Circuit, Schedule]
+TProgram = Union[circuits.Circuit, schedules.Schedule]
 
 
 def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
@@ -214,14 +212,15 @@ class Engine:
     def run(
             self,
             *,  # Force keyword args.
-            program: Program,
+            program: TProgram,
             program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
-            param_resolver: ParamResolver = ParamResolver({}),
+            param_resolver: study.ParamResolver = study.ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: SerializableGateSet = gate_sets.XMON) -> TrialResult:
+            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+    ) -> study.TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -254,16 +253,17 @@ class Engine:
                            processor_ids=processor_ids,
                            gate_set=gate_set))[0]
 
-    def program_as_schedule(self, program: Program) -> Schedule:
+    def program_as_schedule(self, program: TProgram) -> schedules.Schedule:
         if isinstance(program, circuits.Circuit):
             device = program.device
             circuit_copy = program.copy()
-            ConvertToXmonGates().optimize_circuit(circuit_copy)
+            convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit(
+                circuit_copy)
             optimizers.DropEmptyMoments().optimize_circuit(circuit_copy)
             device.validate_circuit(circuit_copy)
-            return moment_by_moment_schedule(device, circuit_copy)
+            return schedules.moment_by_moment_schedule(device, circuit_copy)
 
-        if isinstance(program, Schedule):
+        if isinstance(program, schedules.Schedule):
             return program
 
         raise TypeError('Unexpected program type.')
@@ -271,14 +271,15 @@ class Engine:
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: Program,
+            program: TProgram,
             program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
-            params: Sweepable = None,
+            params: study.Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
+            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+    ) -> 'EngineJob':
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -315,18 +316,19 @@ class Engine:
             *,  # Force keyword args.
             program_name: str,
             job_config: Optional[JobConfig] = None,
-            params: Sweepable = None,
+            params: study.Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: SerializableGateSet = gate_sets.XMON) -> 'EngineJob':
+            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+    ) -> 'EngineJob':
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
             raise ValueError('priority must be between 0 and 1000')
 
         job_config = self.implied_job_config(job_config)
-        sweeps = study.to_sweeps(params or ParamResolver({}))
+        sweeps = study.to_sweeps(params or study.ParamResolver({}))
         run_context = self._serialize_run_context(sweeps, repetitions)
 
         # Create job.
@@ -392,7 +394,7 @@ class Engine:
 
     def _serialize_run_context(
             self,
-            sweeps: List[Sweep],
+            sweeps: List[study.Sweep],
             repetitions: int,
     ) -> Dict[str, Any]:
         proto_version = self.proto_version
@@ -417,11 +419,12 @@ class Engine:
             raise ValueError(
                 'invalid run context proto version: {}'.format(proto_version))
 
-    def create_program(self,
-                       program: Program,
-                       program_id: Optional[str] = None,
-                       gate_set: SerializableGateSet = gate_sets.XMON
-                      ) -> 'EngineProgram':
+    def create_program(
+            self,
+            program: TProgram,
+            program_id: Optional[str] = None,
+            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+    ) -> 'EngineProgram':
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
         Args:
@@ -449,10 +452,11 @@ class Engine:
 
         return EngineProgram(result['name'], self)
 
-    def _serialize_program(self,
-                           program: Program,
-                           gate_set: SerializableGateSet = gate_sets.XMON
-                          ) -> Dict[str, Any]:
+    def _serialize_program(
+            self,
+            program: TProgram,
+            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+    ) -> Dict[str, Any]:
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
             schedule.device.validate_schedule(schedule)
@@ -465,7 +469,7 @@ class Engine:
             ]
             return program_dict
         elif self.proto_version == ProtoVersion.V2:
-            if isinstance(program, Schedule):
+            if isinstance(program, schedules.Schedule):
                 program.device.validate_schedule(program)
             program = gate_set.serialize(program)
             return _any_dict_from_msg(program)
@@ -504,7 +508,8 @@ class Engine:
         return self.service.projects().programs().jobs().get(
             name=job_resource_name).execute()
 
-    def get_job_results(self, job_resource_name: str) -> List[TrialResult]:
+    def get_job_results(self,
+                        job_resource_name: str) -> List[study.TrialResult]:
         """Returns the actual results (not metadata) of a completed job.
 
         Params:
@@ -527,7 +532,8 @@ class Engine:
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
 
-    def _get_job_results_v1(self, result: Dict[str, Any]) -> List[TrialResult]:
+    def _get_job_results_v1(self,
+                            result: Dict[str, Any]) -> List[study.TrialResult]:
         trial_results = []
         for sweep_result in result['sweepResults']:
             sweep_repetitions = sweep_result['repetitions']
@@ -539,14 +545,14 @@ class Engine:
                                                      key_sizes)
 
                 trial_results.append(
-                    TrialResult.from_single_parameter_set(
-                        params=ParamResolver(
+                    study.TrialResult.from_single_parameter_set(
+                        params=study.ParamResolver(
                             result.get('params', {}).get('assignments', {})),
                         measurements=measurements))
         return trial_results
 
-    def _get_job_results_v2(self,
-                            result_dict: Dict[str, Any]) -> List[TrialResult]:
+    def _get_job_results_v2(self, result_dict: Dict[str, Any]
+                           ) -> List[study.TrialResult]:
         result_any = any_pb2.Any()
         gp.json_format.ParseDict(result_dict, result_any)
         result = v2.result_pb2.Result()
@@ -659,8 +665,7 @@ class Engine:
 
     def get_latest_calibration(self,
                                processor_id: str) -> Optional['Calibration']:
-        """ Returns metadata about the latest known calibration run for a
-        processor, or None if there is no calibration available.
+        """Returns metadata about the latest known calibration for a processor.
 
         Params:
             processor_id: The processor identifier within the resource name,
@@ -668,7 +673,8 @@ class Engine:
                 `projects/<project_id>/processors/<processor_id>`.
 
         Returns:
-            A dictionary containing the calibration data.
+            A dictionary containing the calibration data or None if there are
+            no calibrations.
         """
         processor_name = 'projects/{}/processors/{}'.format(
             self.project_id, processor_id)
@@ -694,8 +700,25 @@ class Engine:
         return Calibration(response['data']['data'])
 
 
-class Calibration:
-    """A convenience wrapper for calibrations
+class Calibration(abc.Mapping):
+    """A convenience wrapper for calibrations that acts like a dictionary.
+
+    Calibrations act as dictionaries whose keys are the names of the metric,
+    and whose values are the metric values.  The metric values themselves are
+    represented as a dictionary.  These metric value dictionaries have
+    keys that are tuples of `cirq.GridQubit`s and values that are lists of the
+    metric values for those qubits. If a metric acts globally and is attached
+    to no specified number of qubits, the map will be from the empty tuple
+    to the metrics values.
+
+    Calibrations act just like a python dictionary. For example you can get
+    a list of all of the metric names using
+
+        `calibration.keys()`
+
+    and query a single value by looking up the name by index:
+
+        `calibration['t1']`
 
     Attributes:
         timestamp: The time that this calibration was run, in milliseconds since
@@ -704,35 +727,68 @@ class Calibration:
 
     def __init__(self, calibration: Dict) -> None:
         self.timestamp = int(calibration['timestampMs'])
-        self._metrics = calibration['metrics']
+        self._metric_dict = self._compute_metric_dict(calibration['metrics'])
 
-    def get_metric_names(self) -> List[str]:
-        """ Returns a list of known metrics in this calibration. """
-        return list(set(m['name'] for m in self._metrics))
-
-    def get_metrics_by_name(self, name: str) -> List[Dict]:
-        """ Get a filtered list of metrics matching the provided name.
-
-        Values are grouped into a flat list, grouped by target.
-
-        Params:
-            name: the name of a metric referred to in the calibration. Valid
-            names can be found with the get_metric_names() method.
-
-        Returns:
-            A list of dictionaries containing pairs of targets and values for
-            the requested metric.
-        """
-        result = []
-        matching_metrics = [m for m in self._metrics if m['name'] == name]
-        for metric in matching_metrics:
-            flat_values: List = []
-            # Flatten the values a list, removing keys containing type names
+    def _compute_metric_dict(
+            self, metrics: Dict
+    ) -> Dict[str, Dict[Tuple[devices.GridQubit, ...], Any]]:
+        results: Dict[str, Dict[Tuple[devices.
+                                      GridQubit, ...], Any]] = defaultdict(dict)
+        for metric in metrics:
+            name = metric['name']
+            # Flatten the values to a list, removing keys containing type names
             # (e.g. proto version of each value is {<type>: value}).
-            for value in metric['values']:
-                flat_values += [value[type] for type in value]
-            result.append({'targets': metric['targets'], 'values': flat_values})
-        return result
+            flat_values = [v[t] for v in metric['values'] for t in v]
+            if 'targets' in metric:
+                targets = [
+                    t[1:] if t.startswith('q') else t for t in metric['targets']
+                ]
+                # TODO: Remove when calibrations don't prepend this.
+                qubits = tuple(
+                    devices.GridQubit.from_proto_id(t) for t in targets)
+                results[name][qubits] = flat_values
+            else:
+                assert len(results[name]) == 0, (
+                    'Only one metric of a given name can have no targets. '
+                    'Found multiple for key {}'.format(name))
+                results[name][()] = flat_values
+        return results
+
+    def __getitem__(self, key: str) -> Dict[Tuple[devices.GridQubit, ...], Any]:
+        """Supports getting calibrations by index.
+
+        Calibration may be accessed by key:
+
+            `calibration['t1']`.
+
+        This returns a map from tuples of `cirq.GridQubit`s to a list of the
+        values of the metric. If there are no targets, the only key will only
+        be an empty tuple.
+        """
+        if not isinstance(key, str):
+            raise TypeError(
+                'Calibration metrics only have string keys. Key was {}'.format(
+                    key))
+        if key not in self._metric_dict:
+            raise KeyError('Metric named {} not in calibration'.format(key))
+        return self._metric_dict[key]
+
+    def __iter__(self):
+        return iter(self._metric_dict)
+
+    def __len__(self):
+        return len(self._metric_dict)
+
+    def heatmap(self, key: str) -> vis.Heatmap:
+        metrics = self[key]
+        assert all(len(k) == 1 for k in metrics.keys()), (
+            'Heatmaps are only supported if all the targets in a metric'
+            ' are single qubits.')
+        assert all(len(k) == 1 for k in metrics.values()), (
+            'Heatmaps are only supported if all the values in a metric'
+            ' are single metric values.')
+        value_map = {qubit: value for (qubit,), (value,) in metrics.items()}
+        return vis.Heatmap(value_map)
 
 
 class EngineProgram:
@@ -761,7 +817,7 @@ class EngineProgram:
             self,
             *,  # Force keyword args.
             job_config: Optional[JobConfig] = None,
-            params: Sweepable = None,
+            params: study.Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
@@ -794,10 +850,10 @@ class EngineProgram:
             self,
             *,  # Force keyword args.
             job_config: Optional[JobConfig] = None,
-            param_resolver: ParamResolver = ParamResolver({}),
+            param_resolver: study.ParamResolver = study.ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> TrialResult:
+            processor_ids: Sequence[str] = ('xmonsim',)) -> study.TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         Args:
@@ -857,7 +913,7 @@ class EngineJob:
         self._engine = engine
         self.job_resource_name = job['name']
         self.program_id = self.job_resource_name.split('/jobs')[0]
-        self._results = None  # type: Optional[List[TrialResult]]
+        self._results: Optional[List[study.TrialResult]] = None
 
     def _update_job(self) -> Dict:
         if self._job['executionStatus']['state'] not in TERMINAL_STATES:
@@ -879,7 +935,7 @@ class EngineJob:
         """Cancel the job."""
         self._engine.cancel_job(self.job_resource_name)
 
-    def results(self) -> List[TrialResult]:
+    def results(self) -> List[study.TrialResult]:
         """Returns the job results, blocking until the job is complete.
         """
         if not self._results:
