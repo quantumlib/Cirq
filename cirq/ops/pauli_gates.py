@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
 from cirq._compat import deprecated
