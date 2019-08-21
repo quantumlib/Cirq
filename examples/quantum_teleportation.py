@@ -67,11 +67,11 @@ def main():
     sim = cirq.Simulator()
 
     # Create qubits.
-    q0, q1 = cirq.LineQubit.range(2)
+    q0 = cirq.LineQubit(0)
 
     # Produces the message using random X and Y gates
     message = sim.simulate(cirq.Circuit.from_ops(
-        [cirq.X(q0)**ranX, cirq.Y(q1)**ranY]))
+        [cirq.X(q0)**ranX, cirq.Y(q0)**ranY]))
 
     print("\nBloch Sphere of Message After Random X and Y Gates:")
     # Prints the Bloch Sphere of the Message after the X and Y gates
@@ -91,6 +91,10 @@ def main():
     print("x: ", np.around(b2X, 4),
           "y: ", np.around(b2Y, 4),
           "z: ", np.around(b2Z, 4))
+
+    if not np.all(np.isclose([b0X, b0Y, b0Z], [b2X, b2Y, b2Z])):
+        raise ValueError("Teleportation error! {} != {}.".format(
+                [b0X, b0Y, b0Z], [b2X, b2Y, b2Z]))
 
 
 if __name__ == '__main__':
