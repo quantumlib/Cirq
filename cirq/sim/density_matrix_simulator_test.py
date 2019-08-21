@@ -656,3 +656,20 @@ def test_works_on_pauli_string():
     np.testing.assert_allclose(result.reshape(4, 4),
                                np.diag([0, 0, 0, 1]),
                                atol=1e-8)
+
+
+def test_density_matrix_trial_result_str():
+    q0 = cirq.LineQubit(0)
+    final_simulator_state = cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((2, 2)) * 0.5, qubit_map={q0: 0})
+    result = cirq.DensityMatrixTrialResult(
+        params=cirq.ParamResolver({}),
+        measurements={},
+        final_simulator_state=final_simulator_state)
+
+    # numpy varies whitespace in its representation for different versions
+    # Eliminate whitespace to harden tests against this variation
+    result_no_whitespace = str(result).replace('\n', '').replace(' ', '')
+    assert result_no_whitespace == ('measurements:(nomeasurements)'
+                                    'finaldensitymatrix:'
+                                    '[[0.50.5][0.50.5]]')

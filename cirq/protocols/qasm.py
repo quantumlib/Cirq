@@ -21,7 +21,6 @@ from typing_extensions import Protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 TDefault = TypeVar('TDefault')

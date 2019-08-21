@@ -116,9 +116,11 @@ class CircuitDag(networkx.DiGraph):
 
     def append(self, op: ops.Operation) -> None:
         new_node = self.make_node(op)
-        self.add_edges_from([(node, new_node)
-                             for node in self.nodes()
-                             if not self.can_reorder(node.val, new_node.val)])
+        for node in list(self.nodes()):
+            if not self.can_reorder(node.val, op):
+                self.add_edge(node, new_node)
+                for pred in self.pred[node]:
+                    self.add_edge(pred, new_node)
         self.add_node(new_node)
 
     def __eq__(self, other):

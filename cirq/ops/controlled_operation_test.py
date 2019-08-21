@@ -243,6 +243,12 @@ def test_parameterizable():
 
 
 def test_bounded_effect():
-    qubits = cirq.LineQubit.range(2)
+    qubits = cirq.LineQubit.range(3)
     cy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]))
     assert cirq.trace_distance_bound(cy ** 0.001) < 0.01
+    foo = sympy.Symbol('foo')
+    scy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1])**foo)
+    assert cirq.trace_distance_bound(scy) == 1.0
+    assert cirq.approx_eq(cirq.trace_distance_bound(cy), 1.0)
+    mock = cirq.ControlledOperation(qubits[:1], MockGate().on(*qubits[1:]))
+    assert cirq.approx_eq(cirq.trace_distance_bound(mock), 1)

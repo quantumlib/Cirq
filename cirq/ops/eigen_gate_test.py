@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
-
 import numpy as np
 import pytest
 import sympy
 
 import cirq
+from cirq import value
+from cirq.testing import assert_has_consistent_trace_distance_bound
+
 
 
 class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
@@ -28,7 +29,8 @@ class CExpZinGate(cirq.EigenGate, cirq.TwoQubitGate):
         [0  0  i  0]
         [0  0  0 -i]
     """
-    def __init__(self, quarter_turns: Union[sympy.Basic, float]) -> None:
+
+    def __init__(self, quarter_turns: value.TParamVal) -> None:
         super().__init__(exponent=quarter_turns)
 
     @property
@@ -211,7 +213,23 @@ def test_inverse():
 
 def test_trace_distance_bound():
     assert cirq.trace_distance_bound(CExpZinGate(0.001)) < 0.01
-    assert cirq.trace_distance_bound(CExpZinGate(sympy.Symbol('a'))) >= 1
+    assert cirq.trace_distance_bound(CExpZinGate(sympy.Symbol('a'))) == 1
+    assert cirq.approx_eq(cirq.trace_distance_bound(CExpZinGate(2)), 1)
+
+    class E(cirq.EigenGate):
+
+        def _num_qubits_(self):
+            # coverage: ignore
+            return 1
+
+        def _eigen_components(self):
+            return [
+                (0, np.array([[1, 0], [0, 0]])),
+                (12, np.array([[0, 0], [0, 1]])),
+            ]
+
+    for numerator in range(13):
+        assert_has_consistent_trace_distance_bound(E()**(numerator / 12))
 
 
 def test_extrapolate():

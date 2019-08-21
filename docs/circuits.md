@@ -362,3 +362,112 @@ print(circuit[1:3])
 Especially useful is dropping the last moment (which are often just
 measurements): ``circuit[:-1]``, or reversing a circuit:
 ``circuit[::-1]``.
+
+
+### Importing from OpenQASM
+
+The QASM importer is in experimental state and currently only supports a subset of the full OpenQASM spec. 
+Amongst others, classical control, arbitrary gate definitions and even some of the gates that don't have a one-to-one representation in Cirq are not yet supported.
+The functionality should be sufficient to import interesting quantum circuits. 
+Error handling is very simple - on any lexical or syntactical error a `QasmException` is raised. 
+
+#### Importing cirq.Circuit from QASM format
+
+
+Requirements: `ply` 
+
+```bash
+pip install ply==3.4
+```
+
+The following call will create a circuit defined by the input QASM string:
+
+```python
+from cirq.contrib.qasm_import import circuit_from_qasm
+circuit = circuit_from_qasm("""
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg q[3];
+    creg meas[3];
+    h q;
+    measure q -> meas;
+    """)
+print(circuit)
+```
+
+Results: 
+
+```
+q_0: ───H───M('meas_0')───
+
+q_1: ───H───M('meas_1')───
+
+q_2: ───H───M('meas_2')───
+```
+
+
+#### Supported Control statements 
+
+
+| Statement|Cirq support|Description|Example|
+|----| --------| --------| --------|
+|`OPENQASM 2.0;`| supported| Denotes a file in Open QASM format| OPENQASM 2.0;|
+|`qreg name[size];`| supported (see mapping qubits)| Declare a named register of qubits|`qreg q[5];`|
+|`creg name[size];`|supported (see mapping classical register to measurement keys)|  Declare a named register of bits|`creg c[5];`|
+|`include "filename";`| supported ONLY to include the standard "qelib1.inc" lib for compatibility| Open and parse another source file|`include "qelib1.inc";`|
+|`gate name(params) qargs;`|NOT supported| Declare a unitary gate||
+|`opaque name(params) qargs;`| NOT supported| Declare an opaque gate||
+|`// comment text`| supported|Comment a line of text|`// supported!`|
+|`U(θ,φ,λ) qubit/qreg;`|  supported| Apply built-in single qubit gate(s)|`U(pi/2,2*pi/3,0) q[0];`|
+|`CX qubit/qreg,qubit/qreg;`| supported|Apply built-in CNOT gate(s)|`CX q[0],q[1];`|
+|` measure qubit/qreg -> bit/creg;`| supported|Make measurement(s) in`Z` basis|`measure q -> c;`|
+|`reset qubit/qreg;`| NOT supported|Prepare qubit(s) in <code>&#124;0></code>|`reset q[0];`| 
+|`gatename(params) qargs;`|  supported for ONLY the supported subset of standard gates defined in "qelib1.inc"|Apply a user-defined unitary gate|`rz(pi/2) q[0];`|
+|`if(creg==int) qop;`| NOT supported| Conditionally apply quantum operation|`if(c==5) CX q[0],q[1];`|
+|`barrier qargs;`| NOT supported| Prevent transformations across this source line|`barrier q[0],q[1];`|
+
+
+#### Gate conversion rules 
+
+Note: The standard Quantum Experience standard gates are defined in ([qelib.inc](https://github.com/Qiskit/qiskit-terra/blob/master/qiskit/qasm/libs/qelib1.inc)) 
+based on the `U` and `CX` built-in instructions and we could generate them dynamically. Instead, we chose to map them to native cirq gates explicitly which results in a more user friendly circuit. 
+
+| QE gates| Cirq translation| Notes|
+| --------| --------| --------|
+|`U(θ,φ,λ)` |`QasmUGate(θ,φ,λ)`|| 
+|`CX` |`cirq.CX`|| 
+|`u3(θ,φ,λ)`|`QasmUGate(θ,φ,λ)`||
+|`u2(φ,λ) = u3(π/2,φ,λ)`|`QasmUGate(π/2,φ,λ)`|| 
+|`u1 (λ) = u3(0,0,λ)`| NOT supported || 
+|`id`|`cirq.Identity`| one single-qubit Identity gate is created for each qubit if applied on a register|  
+|`u0(γ)`| NOT supported| this is the "WAIT gate" for length γ in QE| 
+|`x`|`cirq.X`|| 
+|`y`|`cirq.Y`|| 
+|`z`|`cirq.Z`|| 
+|`h`|`cirq.H`|| 
+|`s`|`cirq.S`|| 
+|`sdg`|`cirq.S**-1`|| 
+|`t`|`cirq.T`|| 
+|`tdg`|`cirq.T**-1`||
+|`rx(θ)`|`cirq.Rx(θ)`|| 
+|`ry(θ)`|`cirq.Ry(θ)`|| 
+|`rz(θ)`|`cirq.Rz(θ)`|| 
+|`cx`|`cirq.CX`|| 
+|`cy`|`cirq.ControlledGate(cirq.Y)`|| 
+|`cz`|`cirq.CZ`|| 
+|`ch`|`cirq.ControlledGate(cirq.H)`|| 
+|`swap`|`cirq.SWAP`|| 
+|`ccx`|`cirq.CCX`|| 
+|`cswap`|`cirq.CSWAP`|| 
+|`crz`| NOT supported || 
+|`cu1`| NOT supported|| 
+|`cu3`| NOT supported|| 
+|`rzz`| NOT supported|| 
+
+#### Mapping quantum registers to qubits 
+
+For a quantum register `qreg qfoo[n];` the QASM importer will create `cirq.NamedQubit`s named `qfoo_0`..`qfoo_<n-1>`. 
+
+#### Mapping classical registers to measurement keys
+
+For a classical register `creg cbar[n];` the QASM importer will create measurement keys named `cbar_0`..`cbar_<n-1>`. 

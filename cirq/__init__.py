@@ -33,6 +33,7 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQubit,
     NO_NOISE,
     NoiseModel,
     UnconstrainedDevice,
@@ -82,16 +83,13 @@ from cirq.linalg import (
     one_hot,
     partial_trace,
     PAULI_BASIS,
+    pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
     wavefunction_partial_trace_as_mixture,
-)
-
-from cirq.line import (
-    LineQubit,
 )
 
 from cirq.ops import (
@@ -167,6 +165,8 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
+    reset,
+    ResetChannel,
     Rx,
     Ry,
     Rz,
@@ -180,6 +180,7 @@ from cirq.ops import (
     SwapPowGate,
     T,
     ThreeQubitGate,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -238,6 +239,7 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
+    SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -263,11 +265,13 @@ from cirq.study import (
     ParamResolverOrSimilarType,
     plot_state_histogram,
     Points,
+    Product,
     Sweep,
     Sweepable,
     to_resolvers,
     TrialResult,
     UnitSweep,
+    Zip,
 )
 
 from cirq.value import (
@@ -284,6 +288,7 @@ from cirq.value import (
     LinearDict,
     PeriodicValue,
     Timestamp,
+    TParamVal,
     validate_probability,
     value_equality,
 )
@@ -358,6 +363,9 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.vis import (
+    Heatmap,)
 
 from cirq.work import (
     CircuitSampleJob,

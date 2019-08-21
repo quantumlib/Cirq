@@ -13,16 +13,11 @@
 # limitations under the License.
 
 from datetime import timedelta
-from typing import Iterable, cast, Optional, List, Union, TYPE_CHECKING
+from typing import cast, Iterable, List, Optional, Set, Union
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
-
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
 
 
 @value.value_equality
@@ -222,7 +217,7 @@ class XmonDevice(devices.Device):
 
 
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
-    seen = set()  # type: Set[str]
+    seen: Set[str] = set()
     for op in operations:
         if protocols.is_measurement(op):
             key = protocols.measurement_key(op)

@@ -17,6 +17,7 @@ from typing import List
 
 from cirq import ops
 
+
 @functools.total_ordering
 class LineQubit(ops.Qid):
     """A qubit on a 1d lattice with nearest-neighbor connectivity.
@@ -27,10 +28,10 @@ class LineQubit(ops.Qid):
 
     One can construct new LineQubits by adding or subtracting integers:
 
-        >>> LineQubit(1) + 3
+        >>> cirq.LineQubit(1) + 3
         cirq.LineQubit(4)
 
-        >>> LineQubit(2) - 1
+        >>> cirq.LineQubit(2) - 1
         cirq.LineQubit(1)
     """
 
