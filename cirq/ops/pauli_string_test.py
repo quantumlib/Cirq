@@ -876,17 +876,9 @@ def test_pauli_string_expectation_value_mixed_state_linearity():
 
     wavefunction1 = cirq.testing.random_superposition(2**n_qubits)
     wavefunction2 = cirq.testing.random_superposition(2**n_qubits)
-
-    print(np.linalg.norm(wavefunction1))
     rho1 = np.outer(wavefunction1, np.conj(wavefunction1))
     rho2 = np.outer(wavefunction2, np.conj(wavefunction2))
-    print(np.linalg.norm(rho1))
-    print(np.linalg.norm(rho2))
     density_matrix = rho1 / 2 + rho2 / 2
-    print(np.linalg.norm(density_matrix))
-    print(np.linalg.norm(density_matrix, 2))
-    print(np.trace(density_matrix))
-    # density_matrix = density_matrix / np.linalg.norm(density_matrix)
 
     qubits = cirq.LineQubit.range(n_qubits)
     qubit_index_map = {q: i for i, q in enumerate(qubits)}
@@ -897,5 +889,4 @@ def test_pauli_string_expectation_value_mixed_state_linearity():
     a = pauli_string.expectation(wavefunction1, qubit_index_map)
     b = pauli_string.expectation(wavefunction2, qubit_index_map)
     c = pauli_string.expectation(density_matrix, qubit_index_map)
-
-    np.testing.assert_allclose(a + b, c)
+    np.testing.assert_allclose(0.5 * (a + b), c)

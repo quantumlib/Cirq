@@ -21,8 +21,6 @@ from cirq import protocols, value
 from cirq.linalg import operator_spaces
 from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString
-from cirq.sim.wave_function import to_valid_state_vector
-from cirq.sim.density_matrix_utils import to_valid_density_matrix
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
@@ -359,7 +357,9 @@ class PauliSum:
                 raise ValueError("Number of qubits in `qubit_map` does not "
                                  "match the number of qubits in "
                                  "PauliString <{}>".format(self))
-            state = to_valid_state_vector(state, num_qubits)
+            # HACK: Avoid circular import.
+            from cirq.sim.wave_function import to_valid_state_vector
+            state = to_valid_state_vector(state, num_qubits, dtype=state.dtype)
             return sum([p._expectation_from_wavefunction(state, qubit_map) for p in self])
 
         if state.shape == (int(np.sqrt(size)),) * 2:
@@ -368,7 +368,9 @@ class PauliSum:
                 raise ValueError("Number of qubits in `qubit_map` does not "
                                  "match the number of qubits in "
                                  "PauliString <{}>".format(self))
-            state = to_valid_density_matrix(state, num_qubits)
+            # HACK: Avoid circular import.
+            from cirq.sim.density_matrix_utils import to_valid_density_matrix
+            state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
             return sum([p._expectation_from_density_matrix(state, qubit_map) for p in self])
 
         raise ValueError("Input array does not represent a wavefunction with "
