@@ -273,19 +273,22 @@ class PauliString(raw_types.Operation):
 
         Raises:
             NotImplementedError if this PauliString is non-Hermitian.
-            ValueError if the input is a state with a size that is not a power
-            of 2, or a shape that is neither `(2 ** n,)` or `(2 ** n, 2 ** n)`.
-            ValueError if the input state is defined over fewer qubits than
-            this PauliString.
+            ValueError if the shape of `state` is neither `(2 ** n,)`
+                or `(2 ** n, 2 ** n)`.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        # TODO: add input validation for `qubit_map`.
         if qubit_map is None:
             qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
+        else:
+            if not isinstance(qubit_map, dict) or not all(
+                isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+                raise TypeError("Input qubit map must be a valid mapping from "
+                                "Qubit ID's to integer indices.")
+
         size = state.size
         if state.shape == (size,):
             num_qubits = size.bit_length() - 1
@@ -293,6 +296,7 @@ class PauliString(raw_types.Operation):
             from cirq.sim.wave_function import to_valid_state_vector
             state = to_valid_state_vector(state, num_qubits, dtype=state.dtype)
             return self._expectation_from_wavefunction(state, qubit_map)
+
         if state.shape == (int(np.sqrt(size)),) * 2:
             num_qubits = int(np.sqrt(size)).bit_length() - 1
             # HACK: avoid circular import

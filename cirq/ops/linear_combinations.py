@@ -337,17 +337,21 @@ class PauliSum:
 
         Raises:
             NotImplementedError if any term in this PauliSum is non-Hermitian.
-            ValueError if the input is a state with a size that is not a power
-            of 2, or a shape that is neither `(2 ** n,)` or `(2 ** n, 2 ** n)`.
+            ValueError if the shape of `state` is neither `(2 ** n,)`
+                or `(2 ** n, 2 ** n)`.
         """
         if any([abs(p.coefficient.imag) > 0.0001 for p in self]):
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        # TODO: add support for mixtures.
         if qubit_map is None:
             qubit_map = {q: i for i, q in enumerate(self.qubits)}
+        else:
+            if not isinstance(qubit_map, dict) or not all(
+                isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+                raise TypeError("Input qubit map must be a valid mapping from "
+                                "Qubit ID's to integer indices.")
 
         # `state` must support a map over all qubits in this PauliSum.
         size = state.size

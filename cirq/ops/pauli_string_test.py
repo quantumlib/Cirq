@@ -710,27 +710,35 @@ def test_expectation_invalid_input():
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     pauli_string = cirq.PauliString(qubit_pauli_map)
     state = np.array([1, 0, 0, 0])
+    q_map = dict({q0: 0, q1: 1})
 
     im_pauli_string = (1j + 1) * pauli_string
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
-        im_pauli_string.expectation(state)
+        im_pauli_string.expectation(state, qubit_map=q_map)
+
+    with pytest.raises(TypeError, match='mapping'):
+        pauli_string.expectation(state, qubit_map="bad type")
+    with pytest.raises(TypeError, match='mapping'):
+        pauli_string.expectation(state, qubit_map={"bad key": 1})
+    with pytest.raises(TypeError, match='mapping'):
+        pauli_string.expectation(state, qubit_map={q0: "bad value"})
 
     with pytest.raises(ValueError, match='size'):
-        pauli_string.expectation(np.arange(7))
+        pauli_string.expectation(np.arange(7), qubit_map=q_map)
     with pytest.raises(ValueError, match='normalized'):
-        pauli_string.expectation(np.arange(16))
+        pauli_string.expectation(np.arange(16), qubit_map=q_map)
     with pytest.raises(ValueError, match='match'):
-        pauli_string.expectation(np.array([1, 0]))
+        pauli_string.expectation(np.array([1, 0]), qubit_map=q_map)
 
     state = np.arange(16) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
-        pauli_string.expectation(state.reshape((16, 1)))
+        pauli_string.expectation(state.reshape((16, 1)), qubit_map=q_map)
     with pytest.raises(ValueError, match='shape'):
-        pauli_string.expectation(state.reshape((4, 4, 1)))
+        pauli_string.expectation(state.reshape((4, 4, 1)), qubit_map=q_map)
 
     state = np.arange(8) / np.linalg.norm(np.arange(8))
     with pytest.raises(ValueError, match='shape'):
-        pauli_string.expectation(state.reshape((2, 2, 2)))
+        pauli_string.expectation(state.reshape((2, 2, 2)), qubit_map=q_map)
 
 
 def test_expectation_basis_states():

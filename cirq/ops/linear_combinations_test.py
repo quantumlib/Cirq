@@ -836,28 +836,37 @@ def test_expectation_invalid_input():
     q = cirq.LineQubit.range(2)
     psum = cirq.Z(q[0]) + cirq.Y(q[1])
     state = np.array([1, 0, 0, 0])
+    q_map = dict(zip(q, range(2)))
 
     im_psum = psum + 1j * cirq.X(q[0])
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
-        im_psum.expectation(state)
+        im_psum.expectation(state, qubit_map=q_map)
+
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation(state, qubit_map="bad type")
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation(state, qubit_map={"bad key": 1})
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation(state, qubit_map={q0: "bad value"})
+
     with pytest.raises(ValueError, match='size'):
-        psum.expectation(np.arange(7))
+        psum.expectation(np.arange(7), qubit_map=q_map)
     with pytest.raises(ValueError, match='normalized'):
-        psum.expectation(np.arange(16))
+        psum.expectation(np.arange(16), qubit_map=q_map)
     with pytest.raises(ValueError, match='match'):
-        psum.expectation(np.array([1, 0]))
+        psum.expectation(np.array([1, 0]), qubit_map=q_map)
     with pytest.raises(ValueError, match='match'):
-        psum.expectation(np.array([[1, 0], [0, 0]]))
+        psum.expectation(np.array([[1, 0], [0, 0]]), qubit_map=q_map)
 
     state = np.arange(16) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation(state.reshape((16, 1)))
+        psum.expectation(state.reshape((16, 1)), qubit_map=q_map)
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation(state.reshape((4, 4, 1)))
+        psum.expectation(state.reshape((4, 4, 1)), qubit_map=q_map)
 
     state = np.arange(8) / np.linalg.norm(np.arange(8))
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation(state.reshape((2, 2, 2)))
+        psum.expectation(state.reshape((2, 2, 2)), qubit_map=q_map)
 
 
 def test_expectation():
