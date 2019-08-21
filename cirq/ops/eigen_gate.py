@@ -323,7 +323,7 @@ class EigenGate(raw_types.Gate):
         if not isinstance(other, EigenGate):
             return NotImplemented
 
-        exponents = (self._exponent, other._exponent)
+        exponents = (self._canonical_exponent, other._canonical_exponent)
         exponents_is_parameterized = tuple(
             protocols.is_parameterized(e) for e in exponents)
         if (all(exponents_is_parameterized) and exponents[0] != exponents[1]):
