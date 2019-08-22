@@ -90,9 +90,7 @@ def main():
     print("x: ", np.around(teleported[0], 4), "y: ",
           np.around(teleported[1], 4), "z: ", np.around(teleported[2], 4))
 
-    if not np.all(np.isclose(expected, teleported, rtol=1e-4)):
-        raise ValueError("Teleportation error! {} != {}.".format(
-            expected, teleported))
+    return expected, teleported
 
 
 if __name__ == '__main__':
