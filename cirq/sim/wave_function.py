@@ -25,16 +25,17 @@ from cirq import linalg, ops
 
 class StateVectorMixin():
     """A mixin that provide methods for objects that have a state vector.
-
-    Attributes:
-        qubit_map: A map from the Qubits in the Circuit to the the index
-            of this qubit for a canonical ordering. This canonical ordering is
-            used to define the state (see the state_vector() method).
     """
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
     def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None,
         *args, **kwargs):
+        """
+        Args:
+            qubit_map: A map from the Qubits in the Circuit to the the index
+                of this qubit for a canonical ordering. This canonical ordering
+                is used to define the state (see the state_vector() method).
+        """
         super().__init__(*args, **kwargs)  # type: ignore
         self._qubit_map = qubit_map or {}
 
@@ -58,16 +59,16 @@ class StateVectorMixin():
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
 
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
 
         """
         raise NotImplementedError()
@@ -93,13 +94,16 @@ class StateVectorMixin():
         standard Kronecker convention of numpy.kron.
 
         For example:
-            self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
-                dtype=np.complex64)
-            qubits = None
-            gives us \rho = \begin{bmatrix}
-                                0.5 & 0.5
-                                0.5 & 0.5
-                            \end{bmatrix}
+        self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+            dtype=np.complex64)
+        qubits = None
+        gives us
+            $$
+            \rho = \begin{bmatrix}
+                        0.5 & 0.5 \\
+                        0.5 & 0.5
+                    \end{bmatrix}
+            $$
 
         Args:
             qubits: list containing qubit IDs that you would like
@@ -187,17 +191,15 @@ def density_matrix_from_state_vector(
     convention of numpy.kron.
 
     For example:
-
-        state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-        indices = None
-
+    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    indices = None
     gives us
 
         $$
         \rho = \begin{bmatrix}
+                0.5 & 0.5 \\
                 0.5 & 0.5
-                0.5 & 0.5
-            \end{bmatrix}
+        \end{bmatrix}
         $$
 
     Args:

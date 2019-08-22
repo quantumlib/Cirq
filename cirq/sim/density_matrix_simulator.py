@@ -513,16 +513,17 @@ class DensityMatrixStepResult(simulator.StepResult):
              Then the returned density matrix will have (row and column) indices
              mapped to qubit basis states like the following table
 
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
+
         """
         size = 2 ** len(self._qubit_map)
         return np.reshape(self._density_matrix, (size, size))
@@ -579,16 +580,16 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
          Then the returned density matrix will have (row and column) indices
          mapped to qubit basis states like the following table
 
-                | QubitA | QubitB | QubitC
-            :-: | :----: | :----: | :----:
-             0  |   0    |   0    |   0
-             1  |   0    |   0    |   1
-             2  |   0    |   1    |   0
-             3  |   0    |   1    |   1
-             4  |   1    |   0    |   0
-             5  |   1    |   0    |   1
-             6  |   1    |   1    |   0
-             7  |   1    |   1    |   1
+            |     | QubitA | QubitB | QubitC |
+            | :-: | :----: | :----: | :----: |
+            |  0  |   0    |   0    |   0    |
+            |  1  |   0    |   0    |   1    |
+            |  2  |   0    |   1    |   0    |
+            |  3  |   0    |   1    |   1    |
+            |  4  |   1    |   0    |   0    |
+            |  5  |   1    |   0    |   1    |
+            |  6  |   1    |   1    |   0    |
+            |  7  |   1    |   1    |   1    |
 
     Attributes:
         params: A ParamResolver of settings used for this result.
