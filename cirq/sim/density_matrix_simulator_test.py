@@ -673,3 +673,21 @@ def test_density_matrix_trial_result_str():
     assert result_no_whitespace == ('measurements:(nomeasurements)'
                                     'finaldensitymatrix:'
                                     '[[0.50.5][0.50.5]]')
+
+
+def test_run_sweep_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.DensityMatrixSimulator()
+    circuit = cirq.Circuit.from_ops(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_simulate_sweep_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.DensityMatrixSimulator()
+    circuit = cirq.Circuit.from_ops(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.simulate_sweep(circuit, cirq.ParamResolver({}))
