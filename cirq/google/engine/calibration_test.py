@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import matplotlib as mpl
 import pytest
+
+import matplotlib as mpl
 
 import cirq
 import cirq.google as cg
+
 
 _CALIBRATION_DATA = {
     '@type':
