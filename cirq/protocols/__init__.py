@@ -87,6 +87,7 @@ from cirq.protocols.qasm import (
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,
+    trace_distance_from_angle_list,
 )
 from cirq.protocols.resolve_parameters import (
     is_parameterized,

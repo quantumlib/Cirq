@@ -24,6 +24,7 @@ import sympy
 from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
+from cirq.protocols import trace_distance_from_angle_list
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -60,9 +61,11 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[sympy.Basic, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            exponent: value.TParamVal = 1.0,
+            global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of each eigenspace of a gate is computed by
@@ -105,12 +108,11 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> Union[sympy.Basic, float]:
+    def exponent(self) -> value.TParamVal:
         return self._exponent
 
     # virtual method
-    def _with_exponent(self: TSelf,
-                       exponent: Union[sympy.Basic, float]) -> TSelf:
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -263,7 +265,8 @@ class EigenGate(raw_types.Gate):
         real_periods = [abs(2/e) for e in exponents if e != 0]
         return _approximate_common_period(real_periods)
 
-    def __pow__(self: TSelf, exponent: Union[float, sympy.Symbol]) -> TSelf:
+    def __pow__(self: TSelf,
+                exponent: Union[float, sympy.Symbol]) -> 'EigenGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
             return NotImplemented
@@ -290,14 +293,11 @@ class EigenGate(raw_types.Gate):
             exponent = value.PeriodicValue(self._exponent, period)
         return exponent, self._global_shift
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> Optional[float]:
         if protocols.is_parameterized(self._exponent):
-            return 1
-
-        angles = [half_turns for half_turns, _ in self._eigen_components()]
-        min_angle = min(angles)
-        max_angle = max(angles)
-        return abs((max_angle - min_angle) * self._exponent * 3.5)
+            return None
+        angles = np.pi * (np.array(self._eigen_shifts()) * self._exponent % 2)
+        return trace_distance_from_angle_list(angles)
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()

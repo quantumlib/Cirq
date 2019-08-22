@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simulators specific to Google's quantum hardware.
+from typing import Union
+import sympy
+"""Supply aliases for commonly used types.
 """
 
-from cirq.google.sim.xmon_simulator import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
-)
-
-from cirq.google.sim.xmon_stepper import (
-    Stepper,)
+TParamVal = Union[float, sympy.Basic]

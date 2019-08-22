@@ -34,9 +34,14 @@ from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 
 from cirq.google.engine import (
-    engine_from_environment,
+    Calibration,
     Engine,
+    engine_from_environment,
+    EngineJob,
+    EngineProgram,
     JobConfig,
+    ProtoVersion,
+    QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (
@@ -69,12 +74,6 @@ from cirq.google.op_serializer import (
 
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
-
-from cirq.google.sim import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
-)
 
 from cirq.google.xmon_device import (
     XmonDevice,)

@@ -447,6 +447,67 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 
 @value.value_equality
+class ResetChannel(gate_features.SingleQubitGate):
+    """Reset a qubit back to its |0⟩ state.
+
+    The reset channel is equivalent to performing an unobserved measurement
+    which then controls a bit flip onto the targeted qubit.
+    """
+
+    def __init__(self) -> None:
+        r"""The reset channel.
+
+        Construct a channel that resets the qubit.
+
+        This channel evolves a density matrix as follows:
+
+            $$
+            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+            $$
+
+        With:
+
+            $$
+            \begin{aligned}
+            M_0 =& \begin{bmatrix}
+                    1 & 0  \\
+                    0 & 0
+                  \end{bmatrix}
+            \\
+            M_1 =& \begin{bmatrix}
+                    0 & 1 \\
+                    0 & 0
+                  \end{bmatrix}
+            \end{aligned}
+            $$
+
+        """
+        self._delegate = AmplitudeDampingChannel(1.0)
+
+    def _channel_(self) -> Iterable[np.ndarray]:
+        return self._delegate._channel_()
+
+    def _has_channel_(self) -> bool:
+        return True
+
+    def _value_equality_values_(self):
+        return None
+
+    def __repr__(self) -> str:
+        return 'cirq.reset'
+
+    def __str__(self) -> str:
+        return 'reset'
+
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs) -> str:
+        return 'R'
+
+
+reset = ResetChannel()
+
+
+@value.value_equality
 class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
 
