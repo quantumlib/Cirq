@@ -18,6 +18,7 @@ import re
 from unittest import mock
 import numpy as np
 import pytest
+import matplotlib as mpl
 
 from apiclient import discovery, http
 
@@ -148,13 +149,13 @@ _CALIBRATION = {
         '1562544000021',
         'metrics': [{
             'name': 'xeb',
-            'targets': ['q0_0', 'q0_1'],
+            'targets': ['0_0', '0_1'],
             'values': [{
                 'doubleVal': .9999
             }]
         }, {
             'name': 'xeb',
-            'targets': ['q0_0', 'q1_0'],
+            'targets': ['0_0', '1_0'],
             'values': [{
                 'doubleVal': .9998
             }]
@@ -175,6 +176,11 @@ _CALIBRATION = {
             'targets': ['q1_0'],
             'values': [{
                 'doubleVal': 505
+            }]
+        }, {
+            'name': 'globalMetric',
+            'values': [{
+                'floatVal': 12300
             }]
         }]
     }
@@ -794,8 +800,7 @@ def test_job_labels(build):
     assert body()['labelFingerprint'] == 'abcdef'
 
 
-@mock.patch.object(discovery, 'build')
-def test_implied_job_config_gcs_prefix(build):
+def test_implied_job_config_gcs_prefix():
     eng = cg.Engine(project_id='project_id')
     config = cg.JobConfig()
 
@@ -922,7 +927,7 @@ def test_latest_calibration(build):
     assert calibrations.list.call_args[1][
         'parent'] == 'projects/myproject/processors/x'
     assert calibration.timestamp == 1562544000021
-    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+    assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
 
 
 @mock.patch.object(discovery, 'build')
@@ -965,7 +970,7 @@ def test_calibration_from_job(build):
 
     calibration = job.get_calibration()
     assert calibration.timestamp == 1562544000021
-    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+    assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
 
 
@@ -997,37 +1002,37 @@ def test_calibration_from_job_with_no_calibration(build):
     assert not calibrations.get.called
 
 
-@mock.patch.object(discovery, 'build')
-def test_calibration_metrics(build):
+def test_calibration_metrics_dictionary():
     calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
-    t1s = calibration.get_metrics_by_name('t1')
-    xebs = calibration.get_metrics_by_name('xeb')
 
-    assert t1s == [
-        {
-            'targets': ['q0_0'],
-            'values': [321]
-        },
-        {
-            'targets': ['q0_1'],
-            'values': [911]
-        },
-        {
-            'targets': ['q1_0'],
-            'values': [505]
-        },
-    ]
+    t1s = calibration['t1']
+    assert t1s == {
+        (cirq.GridQubit(0, 0),): [321],
+        (cirq.GridQubit(0, 1),): [911],
+        (cirq.GridQubit(1, 0),): [505]
+    }
+    assert len(calibration) == 3
 
-    assert xebs == [
-        {
-            'targets': ['q0_0', 'q0_1'],
-            'values': [.9999]
-        },
-        {
-            'targets': ['q0_0', 'q1_0'],
-            'values': [.9998]
-        },
-    ]
+    assert 't1' in calibration
+    assert 't2' not in calibration
+
+    for qubits, values in t1s.items():
+        assert len(qubits) == 1
+        assert len(values) == 1
+
+    with pytest.raises(TypeError, match="was 1"):
+        _ = calibration[1]
+    with pytest.raises(KeyError, match='notit'):
+        _ = calibration['notit']
+
+
+def test_calibration_heatmap():
+    calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
+
+    heatmap = calibration.heatmap('t1')
+    figure = mpl.figure.Figure()
+    axes = figure.add_subplot(111)
+    heatmap.plot(axes)
 
 
 @mock.patch.object(discovery, 'build')
