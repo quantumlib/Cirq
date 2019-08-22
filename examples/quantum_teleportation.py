@@ -67,30 +67,30 @@ def main():
     sim = cirq.Simulator()
 
     # Create qubits.
-    q0, q1 = cirq.LineQubit.range(2)
+    q0 = cirq.LineQubit(0)
 
     # Produces the message using random X and Y gates
-    message = sim.simulate(cirq.Circuit.from_ops(
-        [cirq.X(q0)**ranX, cirq.Y(q1)**ranY]))
+    message = sim.simulate(
+        cirq.Circuit.from_ops([cirq.X(q0)**ranX,
+                               cirq.Y(q0)**ranY]))
 
     print("\nBloch Sphere of Message After Random X and Y Gates:")
     # Prints the Bloch Sphere of the Message after the X and Y gates
-    b0X, b0Y, b0Z = cirq.bloch_vector_from_state_vector(
-        message.final_state, 0)
-    print("x: ", np.around(b0X, 4),
-          "y: ", np.around(b0Y, 4),
-          "z: ", np.around(b0Z, 4))
+    expected = cirq.bloch_vector_from_state_vector(message.final_state, 0)
+    print("x: ", np.around(expected[0], 4), "y: ", np.around(expected[1], 4),
+          "z: ", np.around(expected[2], 4))
 
     # Records the final state of the simulation
     final_results = sim.simulate(circuit)
 
     print("\nBloch Sphere of Qubit 2 at Final State:")
     # Prints the Bloch Sphere of Bob's entangled qubit at the final state
-    b2X, b2Y, b2Z = cirq.bloch_vector_from_state_vector(
-        final_results.final_state, 2)
-    print("x: ", np.around(b2X, 4),
-          "y: ", np.around(b2Y, 4),
-          "z: ", np.around(b2Z, 4))
+    teleported = cirq.bloch_vector_from_state_vector(final_results.final_state,
+                                                     2)
+    print("x: ", np.around(teleported[0], 4), "y: ",
+          np.around(teleported[1], 4), "z: ", np.around(teleported[2], 4))
+
+    return expected, teleported
 
 
 if __name__ == '__main__':
