@@ -18,7 +18,6 @@ import re
 from unittest import mock
 import numpy as np
 import pytest
-import matplotlib as mpl
 
 from apiclient import discovery, http
 
@@ -187,8 +186,10 @@ _CALIBRATION = {
 }
 
 
-def test_repr():
-    v = cirq.google.JobConfig(job_id='my-job-id')
+def test_job_config_repr():
+    v = cirq.google.JobConfig(job_id='my-job-id',
+                              gcs_prefix='pre',
+                              gcs_results='gc')
     cirq.testing.assert_equivalent_repr(v)
 
 
@@ -280,30 +281,6 @@ def test_schedule_device_validation_fails(build):
         engine.run_sweep(program=schedule)
     with pytest.raises(ValueError):
         engine.create_program(schedule)
-
-
-@mock.patch.object(discovery, 'build')
-def test_circuit_device_validation_passes_non_xmon_gate(build):
-    service = mock.Mock()
-    build.return_value = service
-    programs = service.projects().programs()
-    jobs = programs.jobs()
-    programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'}
-    jobs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'READY'}}
-    jobs.get().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'SUCCESS'}}
-    jobs.getResult().execute.return_value = {
-        'result': _A_RESULT}
-
-    engine = cg.Engine(project_id='project-id')
-    circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
-                                    device=cg.Foxtail)
-    result = engine.run(program=circuit, job_config=cg.JobConfig('project-id'))
-    assert result.repetitions == 1
 
 
 @mock.patch.object(discovery, 'build')
@@ -487,6 +464,7 @@ def test_run_sweep_params(build):
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
 
+
 @mock.patch.object(discovery, 'build')
 def test_run_sweep_v1(build):
     service = mock.Mock()
@@ -646,6 +624,15 @@ def test_run_sweep_v2(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_bad_sweep_proto(build):
+    engine = cg.Engine(project_id='project-id',
+                       proto_version=cg.ProtoVersion.UNDEFINED)
+    program = cg.EngineProgram({'name': 'foo'}, engine)
+    with pytest.raises(ValueError, match='invalid run context proto version'):
+        program.run_sweep()
+
+
+@mock.patch.object(discovery, 'build')
 def test_bad_result_proto(build):
     service = mock.Mock()
     build.return_value = service
@@ -678,15 +665,6 @@ def test_bad_result_proto(build):
                            params=cirq.Points('a', [1, 2]))
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
-
-
-@mock.patch.object(discovery, 'build')
-def test_bad_sweep_proto(build):
-    engine = cg.Engine(project_id='project-id',
-                       proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
-    program = cg.engine.engine.EngineProgram({'name': 'foo'}, engine)
-    with pytest.raises(ValueError, match='invalid run context proto version'):
-        program.run_sweep()
 
 
 @mock.patch.object(discovery, 'build')
@@ -972,67 +950,6 @@ def test_calibration_from_job(build):
     assert calibration.timestamp == 1562544000021
     assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
-
-
-@mock.patch.object(discovery, 'build')
-def test_calibration_from_job_with_no_calibration(build):
-    service = mock.Mock()
-    build.return_value = service
-
-    programs = service.projects().programs()
-    jobs = programs.jobs()
-    programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'
-    }
-    jobs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {
-            'state': 'SUCCESS',
-        },
-    }
-
-    calibrations = service.projects().processors().calibrations()
-    engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(
-        program=_SCHEDULE,
-        job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
-
-    calibration = job.get_calibration()
-    assert not calibration
-    assert not calibrations.get.called
-
-
-def test_calibration_metrics_dictionary():
-    calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
-
-    t1s = calibration['t1']
-    assert t1s == {
-        (cirq.GridQubit(0, 0),): [321],
-        (cirq.GridQubit(0, 1),): [911],
-        (cirq.GridQubit(1, 0),): [505]
-    }
-    assert len(calibration) == 3
-
-    assert 't1' in calibration
-    assert 't2' not in calibration
-
-    for qubits, values in t1s.items():
-        assert len(qubits) == 1
-        assert len(values) == 1
-
-    with pytest.raises(TypeError, match="was 1"):
-        _ = calibration[1]
-    with pytest.raises(KeyError, match='notit'):
-        _ = calibration['notit']
-
-
-def test_calibration_heatmap():
-    calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
-
-    heatmap = calibration.heatmap('t1')
-    figure = mpl.figure.Figure()
-    axes = figure.add_subplot(111)
-    heatmap.plot(axes)
 
 
 @mock.patch.object(discovery, 'build')

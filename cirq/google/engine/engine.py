@@ -25,28 +25,25 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
-from collections import abc, defaultdict
 import enum
 import random
 import re
 import string
-import time
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 import warnings
 
 from apiclient import discovery, http as apiclient_http
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, devices, optimizers, schedules, study, value, vis
+from cirq import circuits, optimizers, schedules, study, value
 from cirq.api.google import v1, v2
-from cirq.google import convert_to_xmon_gates, gate_sets, serializable_gate_set
+from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
-
+from cirq.google.engine import calibration, engine_job, engine_program
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
-TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 TYPE_PREFIX = 'type.googleapis.com/'
 
 
@@ -114,7 +111,7 @@ class JobConfig:
         self.gcs_prefix = gcs_prefix
         self.gcs_results = gcs_results
 
-    def copy(self):
+    def copy(self) -> 'JobConfig':
         return JobConfig(job_id=self.job_id,
                          gcs_prefix=self.gcs_prefix,
                          gcs_results=self.gcs_results)
@@ -257,8 +254,6 @@ class Engine:
         if isinstance(program, circuits.Circuit):
             device = program.device
             circuit_copy = program.copy()
-            convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit(
-                circuit_copy)
             optimizers.DropEmptyMoments().optimize_circuit(circuit_copy)
             device.validate_circuit(circuit_copy)
             return schedules.moment_by_moment_schedule(device, circuit_copy)
@@ -279,7 +274,7 @@ class Engine:
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
             gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
-    ) -> 'EngineJob':
+    ) -> engine_job.EngineJob:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
@@ -321,7 +316,7 @@ class Engine:
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
             gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
-    ) -> 'EngineJob':
+    ) -> engine_job.EngineJob:
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
@@ -354,7 +349,7 @@ class Engine:
         response = self.service.projects().programs().jobs().create(
             parent=program_name, body=request).execute()
 
-        return EngineJob(job_config, response, self)
+        return engine_job.EngineJob(job_config, response, self)
 
     def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
         implied_job_config = (JobConfig()
@@ -424,7 +419,7 @@ class Engine:
             program: TProgram,
             program_id: Optional[str] = None,
             gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
-    ) -> 'EngineProgram':
+    ) -> engine_program.EngineProgram:
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
         Args:
@@ -450,7 +445,7 @@ class Engine:
         result = self.service.projects().programs().create(
             parent=parent_name, body=request).execute()
 
-        return EngineProgram(result['name'], self)
+        return engine_program.EngineProgram(result['name'], self)
 
     def _serialize_program(
             self,
@@ -662,9 +657,8 @@ class Engine:
             parent=parent).execute()
         return response['processors']
 
-
-    def get_latest_calibration(self,
-                               processor_id: str) -> Optional['Calibration']:
+    def get_latest_calibration(self, processor_id: str
+                              ) -> Optional[calibration.Calibration]:
         """Returns metadata about the latest known calibration for a processor.
 
         Params:
@@ -683,9 +677,9 @@ class Engine:
         if (not 'calibrations' in response or
                 len(response['calibrations']) < 1):
             return None
-        return Calibration(response['calibrations'][0]['data'])
+        return calibration.Calibration(response['calibrations'][0]['data'])
 
-    def get_calibration(self, calibration_name: str) -> 'Calibration':
+    def get_calibration(self, calibration_name: str) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.
 
         Params:
@@ -697,278 +691,4 @@ class Engine:
         """
         response = self.service.projects().processors().calibrations().get(
             name=calibration_name).execute()
-        return Calibration(response['data']['data'])
-
-
-class Calibration(abc.Mapping):
-    """A convenience wrapper for calibrations that acts like a dictionary.
-
-    Calibrations act as dictionaries whose keys are the names of the metric,
-    and whose values are the metric values.  The metric values themselves are
-    represented as a dictionary.  These metric value dictionaries have
-    keys that are tuples of `cirq.GridQubit`s and values that are lists of the
-    metric values for those qubits. If a metric acts globally and is attached
-    to no specified number of qubits, the map will be from the empty tuple
-    to the metrics values.
-
-    Calibrations act just like a python dictionary. For example you can get
-    a list of all of the metric names using
-
-        `calibration.keys()`
-
-    and query a single value by looking up the name by index:
-
-        `calibration['t1']`
-
-    Attributes:
-        timestamp: The time that this calibration was run, in milliseconds since
-            the epoch.
-    """
-
-    def __init__(self, calibration: Dict) -> None:
-        self.timestamp = int(calibration['timestampMs'])
-        self._metric_dict = self._compute_metric_dict(calibration['metrics'])
-
-    def _compute_metric_dict(
-            self, metrics: Dict
-    ) -> Dict[str, Dict[Tuple[devices.GridQubit, ...], Any]]:
-        results: Dict[str, Dict[Tuple[devices.
-                                      GridQubit, ...], Any]] = defaultdict(dict)
-        for metric in metrics:
-            name = metric['name']
-            # Flatten the values to a list, removing keys containing type names
-            # (e.g. proto version of each value is {<type>: value}).
-            flat_values = [v[t] for v in metric['values'] for t in v]
-            if 'targets' in metric:
-                targets = [
-                    t[1:] if t.startswith('q') else t for t in metric['targets']
-                ]
-                # TODO: Remove when calibrations don't prepend this.
-                qubits = tuple(
-                    devices.GridQubit.from_proto_id(t) for t in targets)
-                results[name][qubits] = flat_values
-            else:
-                assert len(results[name]) == 0, (
-                    'Only one metric of a given name can have no targets. '
-                    'Found multiple for key {}'.format(name))
-                results[name][()] = flat_values
-        return results
-
-    def __getitem__(self, key: str) -> Dict[Tuple[devices.GridQubit, ...], Any]:
-        """Supports getting calibrations by index.
-
-        Calibration may be accessed by key:
-
-            `calibration['t1']`.
-
-        This returns a map from tuples of `cirq.GridQubit`s to a list of the
-        values of the metric. If there are no targets, the only key will only
-        be an empty tuple.
-        """
-        if not isinstance(key, str):
-            raise TypeError(
-                'Calibration metrics only have string keys. Key was {}'.format(
-                    key))
-        if key not in self._metric_dict:
-            raise KeyError('Metric named {} not in calibration'.format(key))
-        return self._metric_dict[key]
-
-    def __iter__(self):
-        return iter(self._metric_dict)
-
-    def __len__(self):
-        return len(self._metric_dict)
-
-    def heatmap(self, key: str) -> vis.Heatmap:
-        metrics = self[key]
-        assert all(len(k) == 1 for k in metrics.keys()), (
-            'Heatmaps are only supported if all the targets in a metric'
-            ' are single qubits.')
-        assert all(len(k) == 1 for k in metrics.values()), (
-            'Heatmaps are only supported if all the values in a metric'
-            ' are single metric values.')
-        value_map = {qubit: value for (qubit,), (value,) in metrics.items()}
-        return vis.Heatmap(value_map)
-
-
-class EngineProgram:
-    """A program created via the Quantum Engine API.
-
-    This program wraps a Circuit or Schedule with additional metadata used to
-    schedule against the devices managed by Quantum Engine.
-
-    Attributes:
-      name: The full resource name of the engine program.
-    """
-
-    def __init__(self, resource_name: str, engine: Engine) -> None:
-        """A job submitted to the engine.
-
-        Args:
-            resource_name: The globally unique identifier for the program:
-                `projects/project_id/programs/program_id`.
-            engine: An Engine object associated with the same project as the
-                program.
-        """
-        self.resource_name = resource_name
-        self._engine = engine
-
-    def run_sweep(
-            self,
-            *,  # Force keyword args.
-            job_config: Optional[JobConfig] = None,
-            params: study.Sweepable = None,
-            repetitions: int = 1,
-            priority: int = 500,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> 'EngineJob':
-        """Runs the program on the QuantumEngine.
-
-        In contrast to run, this runs across multiple parameter sweeps, and
-        does not block until a result is returned.
-
-        Args:
-            job_config: Configures optional job parameters.
-            params: Parameters to run with the program.
-            repetitions: The number of circuit repetitions to run.
-            priority: The priority to run at, 0-100.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
-
-        Returns:
-            An EngineJob. If this is iterated over it returns a list of
-            TrialResults, one for each parameter sweep.
-        """
-        return self._engine.create_job(program_name=self.resource_name,
-                                       job_config=job_config,
-                                       params=params,
-                                       repetitions=repetitions,
-                                       priority=priority,
-                                       processor_ids=processor_ids)
-
-    def run(
-            self,
-            *,  # Force keyword args.
-            job_config: Optional[JobConfig] = None,
-            param_resolver: study.ParamResolver = study.ParamResolver({}),
-            repetitions: int = 1,
-            priority: int = 50,
-            processor_ids: Sequence[str] = ('xmonsim',)) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule via Quantum Engine.
-
-        Args:
-            program: A Quantum Engine-wrapped Circuit or Schedule object. This
-              may be generated with create_program() or get_program().
-            program_id: A user-provided identifier for the program. This must be
-                unique within the Google Cloud project being used. If this
-                parameter is not provided, a random id of the format
-                'prog-######' will be generated.
-            program_id: A user-defined identifer for the program. This must be
-              unique within the project specified on the Engine instance.
-            job_config: Configures the names of programs and jobs.
-            param_resolver: Parameters to run with the program.
-            repetitions: The number of repetitions to simulate.
-            priority: The priority to run at, 0-100.
-            processor_ids: The engine processors that should be candidates
-                to run the program. Only one of these will be scheduled for
-                execution.
-
-        Returns:
-            A single TrialResult for this run.
-        """
-        return list(
-            self.run_sweep(job_config=job_config,
-                           params=[param_resolver],
-                           repetitions=repetitions,
-                           priority=priority,
-                           processor_ids=processor_ids))[0]
-
-
-class EngineJob:
-    """A job created via the Quantum Engine API.
-
-    This job may be in a variety of states. It may be scheduling, it may be
-    executing on a machine, or it may have entered a terminal state
-    (either succeeding or failing).
-
-    Attributes:
-      job_config: The JobConfig used to create the job.
-      job_resource_name: The full resource name of the engine job.
-    """
-
-    def __init__(self,
-                 job_config: JobConfig,
-                 job: Dict,
-                 engine: Engine) -> None:
-        """A job submitted to the engine.
-
-        Args:
-            job_config: The JobConfig used to create the job.
-            job: A full Job Dict.
-            engine: An Engine instance associated with the same projct as the
-                job.
-        """
-        self.job_config = job_config
-        self._job = job
-        self._engine = engine
-        self.job_resource_name = job['name']
-        self.program_id = self.job_resource_name.split('/jobs')[0]
-        self._results: Optional[List[study.TrialResult]] = None
-
-    def _update_job(self) -> Dict:
-        if self._job['executionStatus']['state'] not in TERMINAL_STATES:
-            self._job = self._engine.get_job(self.job_resource_name)
-        return self._job
-
-    def status(self) -> str:
-        """Return the execution status of the job."""
-        return self._update_job()['executionStatus']['state']
-
-    def get_calibration(self) -> Optional[Calibration]:
-        """Returns the recorded calibration at the time when the job was run, if
-        one was captured, else None."""
-        status = self._job['executionStatus']
-        if (not 'calibrationName' in status): return None
-        return self._engine.get_calibration(status['calibrationName'])
-
-    def cancel(self) -> None:
-        """Cancel the job."""
-        self._engine.cancel_job(self.job_resource_name)
-
-    def results(self) -> List[study.TrialResult]:
-        """Returns the job results, blocking until the job is complete.
-        """
-        if not self._results:
-            job = self._update_job()
-            for _ in range(1000):
-                if job['executionStatus']['state'] in TERMINAL_STATES:
-                    break
-                time.sleep(0.5)
-                job = self._update_job()
-            self._raise_on_failure(job)
-            self._results = self._engine.get_job_results(self.job_resource_name)
-        return self._results
-
-    def _raise_on_failure(self, job: Dict) -> None:
-        execution_status = job['executionStatus']
-        state = execution_status['state']
-        name = job['name']
-        if state != 'SUCCESS':
-            if state == 'FAILURE':
-                processor = (execution_status['processorName'] if
-                             'processorName' in execution_status else 'UNKNOWN')
-                error_code = execution_status['failure']['errorCode']
-                error_message = execution_status['failure']['errorMessage']
-                raise RuntimeError(
-                    "Job {} on processor {} failed. {}: {}".format(
-                        name, processor, error_code, error_message))
-            elif state in TERMINAL_STATES:
-                raise RuntimeError('Job {} failed in state {}.'.format(
-                    name, state))
-            else:
-                raise RuntimeError(
-                    'Timed out waiting for results. Job {} is in state {}'.
-                    format(name, state))
-
-    def __iter__(self):
-        return iter(self.results())
+        return calibration.Calibration(response['data']['data'])
