@@ -151,7 +151,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
                     'are of the same arity.')
         self.index_set_to_gates = self.canonicalize_gates(gates)
         self._initial_mapping = initial_mapping.copy()
-        self._device = devices.UnconstrainedDevice if device is None else device
+        self._device = device or devices.UNCONSTRAINED_DEVICE
 
 
 
