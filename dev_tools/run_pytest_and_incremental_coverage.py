@@ -19,7 +19,6 @@ import sys
 
 from dev_tools import prepared_env, shell_tools
 
-
 from dev_tools import (
     check_incremental_coverage,
     check_pytest_with_coverage,
