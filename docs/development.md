@@ -155,7 +155,7 @@ If you want to run all of these tests, you can use the [check/all](https://githu
 ```
 
 This script will run all relevant checks within those clean environments. When using this script, you can
-run a subset of the checks using the ```--only-changed-files``` flag to only pytest against changed files
+run a subset of the checks using the ```--only-changed-files``` flag to only pytest against changed files,
 and the ```--apply-format-changes-only``` flag to fix formatting problems automatically.
 
 ### Writing docstrings and generating documentation
