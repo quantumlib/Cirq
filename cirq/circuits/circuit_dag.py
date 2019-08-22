@@ -70,7 +70,7 @@ class CircuitDag(networkx.DiGraph):
                  can_reorder: Callable[[ops.Operation, ops.Operation],
                                        bool] = _disjoint_qubits,
                  incoming_graph_data: Any = None,
-                 device: devices.Device = devices.UnconstrainedDevice
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE
                  ) -> None:
         """Initializes a CircuitDag.
 
@@ -107,7 +107,7 @@ class CircuitDag(networkx.DiGraph):
     def from_ops(*operations: ops.OP_TREE,
                  can_reorder: Callable[[ops.Operation, ops.Operation],
                                        bool] = _disjoint_qubits,
-                 device: devices.Device = devices.UnconstrainedDevice
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE
                  ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):

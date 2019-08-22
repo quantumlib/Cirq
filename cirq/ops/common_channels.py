@@ -504,7 +504,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         return 'R'
 
 
-reset = ResetChannel()
+RESET = ResetChannel()
 
 
 @value.value_equality

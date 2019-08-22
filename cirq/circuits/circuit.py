@@ -95,7 +95,7 @@ class Circuit:
 
     def __init__(self,
                  moments: Iterable[ops.Moment] = (),
-                 device: devices.Device = devices.UnconstrainedDevice) -> None:
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a circuit.
 
         Args:
@@ -118,7 +118,7 @@ class Circuit:
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
                  strategy: InsertStrategy = InsertStrategy.EARLIEST,
-                 device: devices.Device = devices.UnconstrainedDevice
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE
                  ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
 
@@ -225,10 +225,10 @@ class Circuit:
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device
-                  if other.device is devices.UnconstrainedDevice
+                  if other.device is devices.UNCONSTRAINED_DEVICE
                   else other.device)
         device_2 = (other.device
-                    if self._device is devices.UnconstrainedDevice
+                    if self._device is devices.UNCONSTRAINED_DEVICE
                     else self._device)
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
@@ -278,14 +278,14 @@ class Circuit:
         return circuit
 
     def __repr__(self):
-        if not self._moments and self._device == devices.UnconstrainedDevice:
+        if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
             return 'cirq.Circuit(device={!r})'.format(self._device)
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
-        if self._device == devices.UnconstrainedDevice:
+        if self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit(moments={})'.format(moment_str)
 
         return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,

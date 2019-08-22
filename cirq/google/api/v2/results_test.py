@@ -37,7 +37,7 @@ def test_find_measurements_simple_circuit():
 
 def test_find_measurements_simple_schedule():
     schedule = cirq.Schedule(
-        device=cirq.UnconstrainedDevice,
+        device=cirq.UNCONSTRAINED_DEVICE,
         scheduled_operations=[
             cirq.ScheduledOperation(
                 time=cirq.Timestamp(picos=10_000),
