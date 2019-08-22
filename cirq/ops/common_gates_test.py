@@ -630,10 +630,9 @@ def test_iswap_str():
 def test_iswap_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(cirq.ISWAP),
-        np.array([[1, 0, 0, 0],
-                  [0, 0, 1j, 0],
-                  [0, 1j, 0, 0],
-                  [0, 0, 0, 1]]),
+        # Reference for the iswap gate's matrix using +i instead of -i:
+        # https://quantumcomputing.stackexchange.com/questions/2594/
+        np.array([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8)
 
 

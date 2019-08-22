@@ -1128,6 +1128,10 @@ class ISwapPowGate(eigen_gate.EigenGate,
 
     `cirq.ISWAP`, the swap gate that applies i to the |01⟩ and |10⟩ states,
     is an instance of this gate at exponent=1.
+
+    References:
+        "What is the matrix of the iSwap gate?"
+        https://quantumcomputing.stackexchange.com/questions/2594/
     """
 
     def _eigen_components(self):
