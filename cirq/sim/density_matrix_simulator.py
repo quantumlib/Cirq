@@ -16,18 +16,14 @@
 
 import collections
 
-from typing import (
-        cast, Dict, Iterator, List, Optional, TYPE_CHECKING, Type, Union)
+from typing import (Any, cast, Dict, Hashable, Iterator, List, Optional, Type,
+                    Union)
 
 import numpy as np
 
 from cirq import (circuits, linalg, ops, protocols, schedules, study, value,
                   devices)
 from cirq.sim import density_matrix_utils, simulator
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any, Hashable
 
 
 class _StateAndBuffers:
@@ -53,7 +49,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
     That is, the circuit must have elements that follow on of the protocols:
         * `cirq.SupportsChannel`
         * `cirq.SupportsMixture`
-        * `cirq.SupportsApplyUnitary`
+        * `cirq.SupportsConsistentApplyUnitary`
         * `cirq.SupportsUnitary`
         * `cirq.SupportsDecompose`
     or is a measurement.
@@ -241,8 +237,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         def on_stuck(bad_op: ops.Operation):
             return TypeError(
                 "Can't simulate operations that don't implement "
-                "SupportsUnitary, SupportsApplyUnitary, SupportsMixture, "
-                "SupportsChannel or is a measurement: {!r}".format(bad_op))
+                "SupportsUnitary, SupportsConsistentApplyUnitary, "
+                "SupportsMixture, SupportsChannel or is a measurement: {!r}".
+                format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
             return (protocols.has_channel(potential_op)
@@ -366,9 +363,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
-        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
+        compute_displays_results: List[study.ComputeDisplaysResult] = []
         for param_resolver in param_resolvers:
-            display_values = {}  # type: Dict[Hashable, Any]
+            display_values: Dict[Hashable, Any] = {}
 
             # Compute the displays in the first Moment
             moment = circuit[0]
@@ -516,16 +513,17 @@ class DensityMatrixStepResult(simulator.StepResult):
              Then the returned density matrix will have (row and column) indices
              mapped to qubit basis states like the following table
 
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
+
         """
         size = 2 ** len(self._qubit_map)
         return np.reshape(self._density_matrix, (size, size))
@@ -582,16 +580,16 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
          Then the returned density matrix will have (row and column) indices
          mapped to qubit basis states like the following table
 
-                | QubitA | QubitB | QubitC
-            :-: | :----: | :----: | :----:
-             0  |   0    |   0    |   0
-             1  |   0    |   0    |   1
-             2  |   0    |   1    |   0
-             3  |   0    |   1    |   1
-             4  |   1    |   0    |   0
-             5  |   1    |   0    |   1
-             6  |   1    |   1    |   0
-             7  |   1    |   1    |   1
+            |     | QubitA | QubitB | QubitC |
+            | :-: | :----: | :----: | :----: |
+            |  0  |   0    |   0    |   0    |
+            |  1  |   0    |   0    |   1    |
+            |  2  |   0    |   1    |   0    |
+            |  3  |   0    |   1    |   1    |
+            |  4  |   1    |   0    |   0    |
+            |  5  |   1    |   0    |   1    |
+            |  6  |   1    |   1    |   0    |
+            |  7  |   1    |   1    |   1    |
 
     Attributes:
         params: A ParamResolver of settings used for this result.

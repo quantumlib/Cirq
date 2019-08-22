@@ -14,16 +14,33 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable
+from typing import cast, Dict, Iterable, List, Optional, Tuple
 from collections import defaultdict
+import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List, Tuple
+
+def _is_integer(n):
+    return np.isclose(n, np.round(n))
+
+
+def _is_swaplike(op: ops.Operation):
+    gate1 = ops.op_gate_of_type(op, ops.SwapPowGate)
+    if gate1:
+        return gate1.exponent == 1
+
+    gate2 = ops.op_gate_of_type(op, ops.ISwapPowGate)
+    if gate2:
+        return _is_integer((gate2.exponent - 1) / 2)
+
+    gate3 = ops.op_gate_of_type(op, ops.FSimGate)
+    if gate3:
+        return _is_integer((gate3.theta - (np.pi / 2)) / np.pi)
+
+    return False
 
 
 class EjectZ():
@@ -33,14 +50,20 @@ class EjectZ():
     measurements, cross CZ gates, cross W gates (by phasing them), etc.
     """
 
-    def __init__(self, tolerance: float = 0.0) -> None:
+    def __init__(self,
+                 tolerance: float = 0.0,
+                 eject_parameterized: bool = False) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
+            eject_parameterized: If True, the optimization will attempt to eject
+                parametrized Z gates as well.  This may result in other gates
+                parameterized by symbolic expressions.
         """
         self.tolerance = tolerance
+        self.eject_parameterized = eject_parameterized
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
@@ -62,7 +85,7 @@ class EjectZ():
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
                 # Move Z gates into tracked qubit phases.
-                h = _try_get_known_z_half_turns(op)
+                h = _try_get_known_z_half_turns(op, self.eject_parameterized)
                 if h is not None:
                     q = op.qubits[0]
                     qubit_phase[q] += h / 2
@@ -79,6 +102,13 @@ class EjectZ():
                 if all(decompositions.is_negligible_turn(p, self.tolerance)
                        for p in phases):
                     continue
+
+                if _is_swaplike(op):
+                    a, b = op.qubits
+                    qubit_phase[a], qubit_phase[b] = qubit_phase[
+                        b], qubit_phase[a]
+                    continue
+
 
                 # Try to move the tracked phasing over the operation.
                 phased_op = op
@@ -99,12 +129,13 @@ class EjectZ():
         circuit.batch_insert(insertions)
 
 
-def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
+def _try_get_known_z_half_turns(op: ops.Operation,
+                                eject_parameterized: bool) -> Optional[float]:
     if not isinstance(op, ops.GateOperation):
         return None
     if not isinstance(op.gate, ops.ZPowGate):
         return None
     h = op.gate.exponent
-    if isinstance(h, sympy.Symbol):
+    if not eject_parameterized and isinstance(h, sympy.Basic):
         return None
     return h

@@ -137,6 +137,8 @@ the more general concept of a noisy open system quantum evolution.
     DepolarizingChannel
     generalized_amplitude_damp
     GeneralizedAmplitudeDampingChannel
+    reset
+    ResetChannel
     phase_damp
     phase_flip
     PhaseDampingChannel
@@ -331,7 +333,7 @@ Classes defining and used by the magic method protocols.
     QasmArgs
     QasmOutput
     SupportsApplyChannel
-    SupportsApplyUnitary
+    SupportsConsistentApplyUnitary
     SupportsApproximateEquality
     SupportsChannel
     SupportsCircuitDiagramInfo
@@ -486,10 +488,6 @@ Functionality specific to quantum hardware and services from Google.
     google.schedule_to_proto_dicts
     google.unpack_results
     google.xmon_op_from_proto_dict
-    google.XmonDevice
-    google.XmonOptions
-    google.XmonSimulator
-    google.XmonStepResult
 
 
 Testing
