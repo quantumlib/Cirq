@@ -147,15 +147,15 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
 The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
 For example, you may be running an older version of `pylint` or `numpy`.
-In order to run a check that is significantly more likely to agree with the travis builds, you can use the [check/all](https://github.com/quantumlib/Cirq/blob/master/check/all) script:
+
+If you want to run all of these tests, you can use the [check/all](https://github.com/quantumlib/Cirq/blob/master/check/all) script:
 
 ```bash
 ./check/all
 ```
 
-This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies and run all relevant checks within those clean environments.
-Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `check/all` is significantly slower than the simpler check scripts.
-When using this script, you can run a subset of the checks using the ```--only-changed-files``` flag to only pytest against changed files
+This script will run all relevant checks within those clean environments. When using this script, you can
+run a subset of the checks using the ```--only-changed-files``` flag to only pytest against changed files
 and the ```--apply-format-changes-only``` flag to fix formatting problems automatically.
 
 ### Writing docstrings and generating documentation
