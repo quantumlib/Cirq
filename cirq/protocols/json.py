@@ -13,12 +13,18 @@
 # limitations under the License.
 
 import json
-from typing import Union, Any, Dict, Optional, List, Callable, Type, cast
+from typing import Union, Any, Dict, Optional, List, Callable, Type, cast, \
+    TYPE_CHECKING
 
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    # mypy needs these explicitly imported
+    import cirq.ops.pauli_gates
+    import cirq.devices.unconstrained_device
 
 
 class _ResolverCache:
@@ -31,8 +37,6 @@ class _ResolverCache:
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
-            import cirq.ops.pauli_gates  # for mypy
-            import cirq.devices.unconstrained_device  # for mypy
             self._crd = {
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
