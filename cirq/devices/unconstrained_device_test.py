@@ -12,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.devices.device import (
-    Device,)
+import cirq
 
-from cirq.devices.grid_qubit import (
-    GridQubit,)
 
-from cirq.devices.line_qubit import (
-    LineQubit,)
+def test_repr():
+    cirq.testing.assert_equivalent_repr(cirq.UNCONSTRAINED_DEVICE)
 
-from cirq.devices.unconstrained_device import (
-    UNCONSTRAINED_DEVICE,)
 
-from cirq.devices.noise_model import (
-    NO_NOISE,
-    NoiseModel,
-    ConstantQubitNoiseModel,
-)
+def test_infinitely_fast():
+    assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(
+        cirq.NamedQubit('a'))) == cirq.Duration(picos=0)
