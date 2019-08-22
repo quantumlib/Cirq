@@ -632,10 +632,7 @@ def test_iswap_unitary():
         cirq.unitary(cirq.ISWAP),
         # Reference for the iswap gate's matrix using +i instead of -i:
         # https://quantumcomputing.stackexchange.com/questions/2594/
-        np.array([[1, 0, 0, 0],
-                  [0, 0, 1j, 0],
-                  [0, 1j, 0, 0],
-                  [0, 0, 0, 1]]),
+        np.array([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8)
 
 
