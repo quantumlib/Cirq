@@ -20,6 +20,8 @@ import os
 import pytest
 
 import numpy as np
+import sympy
+
 import cirq
 import cirq.protocols
 
@@ -137,7 +139,13 @@ TEST_OBJECTS = {
     'Circuit': [
         cirq.Circuit.from_ops(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
         cirq.Circuit.from_ops(cirq.CCNOT(Q0, Q1, Q2),
-                              cirq.X(Q0)**0.123)
+                              cirq.X(Q0)**0.123),
+        cirq.Circuit.from_ops(cirq.XPowGate(exponent=sympy.Symbol('theta'),
+                                            global_shift=0).on(Q0)),
+        # TODO: even the following doesn't work because theta gets
+        #       multiplied by 1/pi.
+        #       https://github.com/quantumlib/Cirq/issues/2014
+        # cirq.Circuit.from_ops(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
     ],
     'FREDKIN':
     cirq.FREDKIN,
@@ -201,6 +209,7 @@ TEST_OBJECTS = {
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'Symbol': sympy.Symbol('theta'),
     'T':
     cirq.T,
     'TOFFOLI':
@@ -314,6 +323,7 @@ def _get_all_public_classes():
     # extra
     yield 'complex', complex
     yield 'ndarray', np.ndarray
+    yield 'Symbol', sympy.Symbol
 
     # test coverage for `default` paths
     yield 'dict', dict

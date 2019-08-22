@@ -17,6 +17,7 @@ from typing import Union, Any, Dict, Optional, List, Callable, Type, cast, \
     TYPE_CHECKING
 
 import numpy as np
+import sympy
 from typing_extensions import Protocol
 
 from cirq.type_workarounds import NotImplementedType
@@ -63,6 +64,7 @@ class _ResolverCache:
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
+                'Symbol': sympy.Symbol,
                 '_UnconstrainedDeviceType':
                 cirq.devices.unconstrained_device._UnconstrainedDeviceType,
                 'XPowGate': cirq.XPowGate,
@@ -128,6 +130,11 @@ class CirqEncoder(json.JSONEncoder):
             }
         if isinstance(o, np.ndarray):
             return o.tolist()
+
+        # TODO: More support for sympy
+        #       https://github.com/quantumlib/Cirq/issues/2014
+        if isinstance(o, sympy.Symbol):
+            return to_json_dict(o, ['name'])
         return super().default(o)  # coverage: ignore
 
 
