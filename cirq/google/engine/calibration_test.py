@@ -19,7 +19,6 @@ import matplotlib as mpl
 import cirq
 import cirq.google as cg
 
-
 _CALIBRATION_DATA = {
     '@type':
     'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
