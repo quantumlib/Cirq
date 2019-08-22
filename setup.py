@@ -63,7 +63,7 @@ setup(name=name,
       install_requires=requirements,
       extras_require={
           'contrib': contrib_requirements,
-          'dev': dev_requirements,
+          'developer_environment': dev_requirements,
       },
       license='Apache 2',
       description=description,
