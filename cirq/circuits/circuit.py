@@ -119,7 +119,7 @@ class Circuit:
     def from_ops(*operations: ops.OP_TREE,
                  strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UNCONSTRAINED_DEVICE
-                 ) -> 'Circuit':
+                ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
 
         Args:
@@ -224,11 +224,9 @@ class Circuit:
             other = self.from_ops(other)
         if not isinstance(other, type(self)):
             return NotImplemented
-        device = (self._device
-                  if other.device is devices.UNCONSTRAINED_DEVICE
+        device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE
                   else other.device)
-        device_2 = (other.device
-                    if self._device is devices.UNCONSTRAINED_DEVICE
+        device_2 = (other.device if self._device is devices.UNCONSTRAINED_DEVICE
                     else self._device)
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
