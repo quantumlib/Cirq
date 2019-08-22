@@ -216,8 +216,8 @@ TEST_OBJECTS = {
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
-    'UnconstrainedDevice':
-    cirq.UnconstrainedDevice,
+    'UNCONSTRAINED_DEVICE':
+    cirq.UNCONSTRAINED_DEVICE,
     'XPowGate':
     cirq.X**0.123,
     'XX':
@@ -425,7 +425,7 @@ NOT_YET_SERIALIZABLE = [
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'Zip',
-    'reset',
+    'RESET',
 ]
 
 

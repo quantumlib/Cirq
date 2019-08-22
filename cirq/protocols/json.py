@@ -64,8 +64,8 @@ class _ResolverCache:
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
                 'sympy.Symbol': sympy.Symbol,
-                '_UnconstrainedDeviceType':
-                cirq.devices.unconstrained_device._UnconstrainedDeviceType,
+                '_UnconstrainedDevice':
+                cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
                 'YPowGate': cirq.YPowGate,
