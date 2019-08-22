@@ -23,7 +23,6 @@ from typing_extensions import Protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # mypy needs these explicitly imported
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
