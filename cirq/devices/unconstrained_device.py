@@ -36,7 +36,7 @@ class _UnconstrainedDevice(device.Device):
         pass
 
     def __repr__(self):
-        return 'cirq.UnconstrainedDevice'  # coverage: ignore
+        return 'cirq.UNCONSTRAINED_DEVICE'
 
     def _value_equality_values_(self):
         return ()
