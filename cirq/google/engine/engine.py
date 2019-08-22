@@ -38,7 +38,7 @@ from google.protobuf import any_pb2
 
 from cirq import circuits, optimizers, schedules, study, value
 from cirq.api.google import v1, v2
-from cirq.google import convert_to_xmon_gates, gate_sets, serializable_gate_set
+from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
 from cirq.google.engine import calibration, engine_job, engine_program
@@ -111,7 +111,7 @@ class JobConfig:
         self.gcs_prefix = gcs_prefix
         self.gcs_results = gcs_results
 
-    def copy(self):
+    def copy(self) -> 'JobConfig':
         return JobConfig(job_id=self.job_id,
                          gcs_prefix=self.gcs_prefix,
                          gcs_results=self.gcs_results)

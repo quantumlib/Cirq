@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 from unittest import mock
 
 from apiclient import discovery
@@ -22,13 +23,82 @@ import cirq.google as cg
 
 def test_status():
     engine = mock.Mock()
-    job = {'name': 'projects/a/programs/b/jobs/steve',
-           'executionStatus': {'state': 'RUNNING'}}
-    engine.get_job.return_value =  job
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'state': 'RUNNING'
+        }
+    }
+    engine.get_job.return_value = job
     job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
                        job=job,
                        engine=engine)
     assert job.status() == 'RUNNING'
+    engine.get_job.assert_called_once()
+
+
+def test_get_calibration():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'calibrationName': 'hobbes'
+        }
+    }
+    calibration = mock.Mock()
+    engine.get_calibration.return_value = calibration
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert job.get_calibration() == calibration
+    engine.get_calibration.assert_called_once_with('hobbes')
+
+
+def test_get_cancel():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+    }
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    job.cancel()
+    engine.cancel_job.assert_called_once()
+
+
+def test_results():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    results = mock.Mock()
+    engine.get_job_results.return_value = results
+
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert job.results() == results
+    engine.get_job_results.assert_called_once()
+
+
+@mock.patch('time.sleep', return_value=None)
+def test_timeout(patched_time_sleep):
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'state': 'RUNNING'
+        }
+    }
+    engine.get_job.return_value = job
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    with pytest.raises(RuntimeError, match='Timed out'):
+        job.results()
 
 
 @mock.patch.object(discovery, 'build')
