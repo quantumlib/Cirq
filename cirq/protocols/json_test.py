@@ -283,6 +283,7 @@ SHOULDNT_BE_SERIALIZED = [
     'QubitOrderOrList',
     'Sweepable',
     'TParamVal',
+    'ParamDictType',
 
     # utility:
     'Unique',
@@ -364,6 +365,7 @@ NOT_YET_SERIALIZABLE = [
     'DensityMatrixTrialResult',
     'DepolarizingChannel',
     'Duration',
+    'ExpressionMap',
     'GeneralizedAmplitudeDampingChannel',
     'Heatmap',
     'InsertStrategy',
@@ -373,6 +375,7 @@ NOT_YET_SERIALIZABLE = [
     'LinearCombinationOfOperations',
     'LinearDict',
     'Linspace',
+    'ListSweep',
     'NO_NOISE',
     'NeutralAtomDevice',
     'ParallelGateOperation',
