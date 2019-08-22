@@ -26,7 +26,7 @@ import cirq
 import cirq.google as cg
 
 _CIRCUIT = cirq.Circuit()
-_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice, _CIRCUIT)
+_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':

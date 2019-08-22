@@ -324,7 +324,7 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
     def __init__(self, state_vector, measurements, qubit_map, dtype):
         """Results of a step of the simulator.
 
-        Attributes:
+        Args:
             qubit_map: A map from the Qubits in the Circuit to the the index
                 of this qubit for a canonical ordering. This canonical ordering
                 is used to define the state vector (see the state_vector()
@@ -357,16 +357,16 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
 
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
         """
         return self._simulator_state().state_vector
 

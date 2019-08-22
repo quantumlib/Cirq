@@ -11,17 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from cirq import protocols
-from cirq.devices.device import Device
-from cirq.value import Duration, value_equality
+
+from cirq import value, protocols
+from cirq.devices import device
 
 
-@value_equality()
-class _UnconstrainedDeviceType(Device):
-    """A device that allows everything."""
+@value.value_equality()
+class _UnconstrainedDevice(device.Device):
+    """A device that allows everything, infinitely fast."""
 
     def duration_of(self, operation):
-        return Duration(picos=0)
+        return value.Duration(picos=0)
 
     def validate_operation(self, operation):
         pass
@@ -45,4 +45,4 @@ class _UnconstrainedDeviceType(Device):
         return protocols.to_json_dict(self, [])
 
 
-UnconstrainedDevice = _UnconstrainedDeviceType()  # type: Device
+UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()

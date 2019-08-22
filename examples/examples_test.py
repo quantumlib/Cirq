@@ -1,3 +1,5 @@
+import numpy as np
+
 import cirq
 import examples.basic_arithmetic
 import examples.bell_inequality
@@ -70,7 +72,8 @@ def test_example_runs_qaoa():
 
 
 def test_example_runs_quantum_teleportation():
-    examples.quantum_teleportation.main()
+    expected, teleported = examples.quantum_teleportation.main()
+    assert np.all(np.isclose(expected, teleported, rtol=1e-4))
 
 
 def test_example_runs_superdense_coding():
