@@ -122,6 +122,21 @@ def to_json_dict(obj, attribute_names, namespace=None):
 
 
 class CirqEncoder(json.JSONEncoder):
+    """Extend json.JSONEncoder to support Cirq objects.
+
+    This supports custom serialization. For details, see the documentation
+    for the SupportsJSON protocol.
+
+    In addition to serializing objects that implement the SupportsJSON
+    protocol, this encoder deals with common, basic types:
+
+     - Python complex numbers get saved as a dictionary keyed by 'real'
+       and 'imag'.
+     - Numpy ndarrays are converted to lists to use the json module's
+       built-in support for lists.
+     - Preliminary support for Sympy objects. Currently only sympy.Symbol.
+       See https://github.com/quantumlib/Cirq/issues/2014
+    """
 
     def default(self, o):
         if hasattr(o, '_json_dict_'):
