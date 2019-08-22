@@ -682,7 +682,7 @@ class IdentityGate(raw_types.Gate):
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
-            'num_qubits': self._num_qubits
+            'num_qubits': self.num_qubits(),
         }
 
 
