@@ -3195,5 +3195,5 @@ def test_json_dict():
     assert c._json_dict_() == {
         'cirq_type': 'Circuit',
         'moments': [cirq.Moment([cirq.CNOT(q0, q1)])],
-        'device': cirq.UnconstrainedDevice,
+        'device': cirq.UNCONSTRAINED_DEVICE,
     }
