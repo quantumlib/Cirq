@@ -64,7 +64,7 @@ class _ResolverCache:
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
-                'Symbol': sympy.Symbol,
+                'sympy.Symbol': sympy.Symbol,
                 '_UnconstrainedDeviceType':
                 cirq.devices.unconstrained_device._UnconstrainedDeviceType,
                 'XPowGate': cirq.XPowGate,
@@ -110,8 +110,13 @@ class SupportsJSON(Protocol):
         pass
 
 
-def to_json_dict(obj, attribute_names):
-    d = {'cirq_type': obj.__class__.__name__}
+def to_json_dict(obj, attribute_names, namespace=None):
+    if namespace is not None:
+        prefix = '{}.'.format(namespace)
+    else:
+        prefix = ''
+
+    d = {'cirq_type': prefix + obj.__class__.__name__}
     for attr_name in attribute_names:
         d[attr_name] = getattr(obj, attr_name)
     return d
@@ -134,7 +139,7 @@ class CirqEncoder(json.JSONEncoder):
         # TODO: More support for sympy
         #       https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
-            return to_json_dict(o, ['name'])
+            return to_json_dict(o, ['name'], namespace='sympy')
         return super().default(o)  # coverage: ignore
 
 
