@@ -1107,7 +1107,7 @@ class SwapPowGate(eigen_gate.EigenGate,
 class ISwapPowGate(eigen_gate.EigenGate,
                    gate_features.InterchangeableQubitsGate,
                    gate_features.TwoQubitGate):
-    """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.
+    """Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
@@ -1126,7 +1126,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
         c = cos(π·t/2)
         s = sin(π·t/2)
 
-    `cirq.ISWAP`, the swap gate that applies i to the |01> and |10> states,
+    `cirq.ISWAP`, the swap gate that applies i to the |01⟩ and |10⟩ states,
     is an instance of this gate at exponent=1.
     """
 
