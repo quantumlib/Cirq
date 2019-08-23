@@ -17,6 +17,7 @@ class MeasureInfo(
             ('key', str),
             ('qubits', List[devices.GridQubit]),
             ('slot', int),
+            ('mask', List[bool]),
         ])):
     """Extra info about a single measurement within a circuit or schedule.
 
@@ -28,6 +29,8 @@ class MeasureInfo(
             of the measurement. This is used internally when scheduling on
             hardware so that we can combine measurements that occupy the same
             slot.
+        mask: a list of booleans describing whether the results should
+            be flipped for each of the qubits in the qubits field.
     """
 
 
@@ -62,7 +65,8 @@ def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[MeasureInfo]:
                     isinstance(op.gate, ops.MeasurementGate)):
                 yield MeasureInfo(key=op.gate.key,
                                   qubits=_grid_qubits(op),
-                                  slot=i)
+                                  slot=i,
+                                  mask=_full_mask(op))
 
 
 def _schedule_measurements(schedule: schedules.Schedule
@@ -73,7 +77,8 @@ def _schedule_measurements(schedule: schedules.Schedule
                 isinstance(op.gate, ops.MeasurementGate)):
             yield MeasureInfo(key=op.gate.key,
                               qubits=_grid_qubits(op),
-                              slot=so.time.raw_picos())
+                              slot=so.time.raw_picos(),
+                              mask=_full_mask(op))
 
 
 def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
@@ -81,6 +86,13 @@ def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
         raise ValueError('Expected GridQubits: {}'.format(op.qubits))
     return cast(List[devices.GridQubit], list(op.qubits))
 
+
+def _full_mask(op: ops.Operation) -> List[bool]:
+    len_missing_mask = len(op.qubits) - len(op.gate.invert_mask)
+    if len_missing_mask > 0:
+        return list(op.gate.invert_mask) + [False] * len_missing_mask
+    else:
+        return list(op.gate.invert_mask)
 
 def pack_bits(bits: np.ndarray) -> bytes:
     """Pack bits given as a numpy array of bools into bytes."""
