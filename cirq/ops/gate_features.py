@@ -50,7 +50,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             ValueError if targets are not instances of Qid or List[Qid].
         """
-        operations = []  # type: List[raw_types.Operation]
+        operations: raw_types.Operation = []
         for target in targets:
             if isinstance(target, Iterable) and not isinstance(target, str):
                 operations.extend(self.on_each(*target))
