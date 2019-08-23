@@ -75,7 +75,7 @@ def test_equality():
 
     # Default is empty. Iterables get listed.
     eq.add_equality_group(cirq.Circuit(),
-                          cirq.Circuit(device=cirq.UnconstrainedDevice),
+                          cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE),
                           cirq.Circuit([]), cirq.Circuit(()))
     eq.add_equality_group(cirq.Circuit([cirq.Moment()]),
                           cirq.Circuit((cirq.Moment(),)))
@@ -501,11 +501,11 @@ def test_with_device():
 
 def test_set_device():
     c = cirq.Circuit.from_ops(cirq.X(cirq.LineQubit(0)))
-    assert c.device is cirq.UnconstrainedDevice
+    assert c.device is cirq.UNCONSTRAINED_DEVICE
 
     with pytest.raises(ValueError):
         c.device = cg.Foxtail
-    assert c.device is cirq.UnconstrainedDevice
+    assert c.device is cirq.UNCONSTRAINED_DEVICE
 
     c[:] = []
     c.append(cirq.X(cirq.GridQubit(0, 0)))

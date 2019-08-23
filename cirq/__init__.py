@@ -36,7 +36,7 @@ from cirq.devices import (
     LineQubit,
     NO_NOISE,
     NoiseModel,
-    UnconstrainedDevice,
+    UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
@@ -165,7 +165,7 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
-    reset,
+    RESET,
     ResetChannel,
     Rx,
     Ry,
