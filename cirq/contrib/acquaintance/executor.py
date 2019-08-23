@@ -40,14 +40,16 @@ class ExecutionStrategy(metaclass=abc.ABCMeta):
 
     keep_acquaintance = False
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def device(self) -> devices.Device:
         """The device for which the executed acquaintance strategy should be
         valid.
         """
 
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def initial_mapping(self) -> LogicalMapping:
         """The initial mapping of logical indices to qubits."""
 
@@ -149,7 +151,7 @@ class GreedyExecutionStrategy(ExecutionStrategy):
                     'are of the same arity.')
         self.index_set_to_gates = self.canonicalize_gates(gates)
         self._initial_mapping = initial_mapping.copy()
-        self._device = devices.UnconstrainedDevice if device is None else device
+        self._device = device or devices.UNCONSTRAINED_DEVICE
 
 
 

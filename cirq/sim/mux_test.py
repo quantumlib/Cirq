@@ -112,7 +112,7 @@ def test_final_wavefunction_different_program_types():
 
     np.testing.assert_allclose(
         cirq.final_wavefunction(
-            cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
+            cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE,
                                            cirq.Circuit.from_ops(ops))),
         [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
         atol=1e-8)

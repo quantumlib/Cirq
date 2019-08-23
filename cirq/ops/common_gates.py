@@ -479,6 +479,20 @@ class MeasurementGate(raw_types.Gate):
         return MeasurementGate(self.num_qubits(), key=self.key,
                                invert_mask=tuple(new_mask))
 
+    def full_invert_mask(self):
+        """Returns the invert mask for all qubits.
+
+        If the user supplies a partial invert_mask, this returns that mask
+        padded by False.
+
+        Similarly if no invert_mask is supplies this returns a tuple
+        of size equal to the number of qubits with all entries False.
+        """
+        mask = self.invert_mask or self.num_qubits() * (False,)
+        deficit = self.num_qubits() - len(mask)
+        mask += (False,) * deficit
+        return mask
+
     def _measurement_key_(self):
         return self.key
 
@@ -1093,7 +1107,7 @@ class SwapPowGate(eigen_gate.EigenGate,
 class ISwapPowGate(eigen_gate.EigenGate,
                    gate_features.InterchangeableQubitsGate,
                    gate_features.TwoQubitGate):
-    """Rotates the |01⟩-vs-|10⟩ subspace of two qubits around its Bloch X-axis.
+    """Rotates the |01⟩ vs |10⟩ subspace of two qubits around its Bloch X-axis.
 
     When exponent=1, swaps the two qubits and phases |01⟩ and |10⟩ by i. More
     generally, this gate's matrix is defined as follows:
@@ -1112,8 +1126,12 @@ class ISwapPowGate(eigen_gate.EigenGate,
         c = cos(π·t/2)
         s = sin(π·t/2)
 
-    `cirq.ISWAP`, the swap gate that applies i to the |01> and |10> states,
+    `cirq.ISWAP`, the swap gate that applies i to the |01⟩ and |10⟩ states,
     is an instance of this gate at exponent=1.
+
+    References:
+        "What is the matrix of the iSwap gate?"
+        https://quantumcomputing.stackexchange.com/questions/2594/
     """
 
     def _eigen_components(self):
@@ -1198,19 +1216,19 @@ class ISwapPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-def Rx(rads: Union[float, sympy.Basic]) -> XPowGate:
+def Rx(rads: value.TParamVal) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Ry(rads: Union[float, sympy.Basic]) -> YPowGate:
+def Ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Rz(rads: Union[float, sympy.Basic]) -> ZPowGate:
+def Rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)

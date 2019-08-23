@@ -143,13 +143,13 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
     """
     from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-    from cirq import linalg, line, ops
+    from cirq import devices, linalg, ops
 
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
         return None
     if isinstance(val, ops.Gate):
-        val = val.on(*line.LineQubit.range(val.num_qubits()))
+        val = val.on(*devices.LineQubit.range(val.num_qubits()))
     if not isinstance(val, ops.Operation):
         return None
 

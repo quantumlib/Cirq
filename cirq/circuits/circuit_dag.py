@@ -67,11 +67,10 @@ class CircuitDag(networkx.DiGraph):
     disjoint_qubits = staticmethod(_disjoint_qubits)
 
     def __init__(self,
-                 can_reorder: Callable[[ops.Operation, ops.Operation],
-                                       bool] = _disjoint_qubits,
+                 can_reorder: Callable[[ops.Operation, ops.
+                                        Operation], bool] = _disjoint_qubits,
                  incoming_graph_data: Any = None,
-                 device: devices.Device = devices.UnconstrainedDevice
-                 ) -> None:
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a CircuitDag.
 
         Args:
@@ -105,10 +104,10 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
-                 can_reorder: Callable[[ops.Operation, ops.Operation],
-                                       bool] = _disjoint_qubits,
-                 device: devices.Device = devices.UnconstrainedDevice
-                 ) -> 'CircuitDag':
+                 can_reorder: Callable[[ops.Operation, ops.
+                                        Operation], bool] = _disjoint_qubits,
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE
+                ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
             dag.append(cast(ops.Operation, op))
@@ -116,9 +115,11 @@ class CircuitDag(networkx.DiGraph):
 
     def append(self, op: ops.Operation) -> None:
         new_node = self.make_node(op)
-        self.add_edges_from([(node, new_node)
-                             for node in self.nodes()
-                             if not self.can_reorder(node.val, new_node.val)])
+        for node in list(self.nodes()):
+            if not self.can_reorder(node.val, op):
+                self.add_edge(node, new_node)
+                for pred in self.pred[node]:
+                    self.add_edge(pred, new_node)
         self.add_node(new_node)
 
     def __eq__(self, other):
