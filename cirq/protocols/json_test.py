@@ -438,6 +438,7 @@ def test_all_roundtrip(cirq_type: str, cls):
     try:
         objs = TEST_OBJECTS[cirq_type]
     except KeyError:
+        # coverage: ignore
         raise NotImplementedError(
             textwrap.fill(
                 f"Hello intrepid developer. There is a public class named "
