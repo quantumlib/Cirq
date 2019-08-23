@@ -691,3 +691,14 @@ def test_simulate_sweep_parameters_not_resolved():
         cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
     with pytest.raises(ValueError, match='symbols were not specified'):
         _ = simulator.simulate_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_random_seed():
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit.from_ops(cirq.X(a)**0.5, cirq.measure(a))
+    result = sim.run(circuit, repetitions=10)
+    print(result.measurements['a'])
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
