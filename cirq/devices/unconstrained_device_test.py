@@ -12,26 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Client for running on Google's Quantum Engine.
-"""
+import cirq
 
-from cirq.google.engine.calibration import (
-    Calibration,)
 
-from cirq.google.engine.engine import (
-    Engine,
-    JobConfig,
-    ProtoVersion,
-)
+def test_repr():
+    cirq.testing.assert_equivalent_repr(cirq.UNCONSTRAINED_DEVICE)
 
-from cirq.google.engine.engine_job import (
-    EngineJob,)
 
-from cirq.google.engine.engine_program import (
-    EngineProgram,)
-
-from cirq.google.engine.engine_sampler import (
-    QuantumEngineSampler,)
-
-from cirq.google.engine.env_config import (
-    engine_from_environment,)
+def test_infinitely_fast():
+    assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(
+        cirq.NamedQubit('a'))) == cirq.Duration(picos=0)

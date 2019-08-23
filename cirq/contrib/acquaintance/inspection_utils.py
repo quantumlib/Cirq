@@ -42,7 +42,7 @@ class LogicalAnnotator(ExecutionStrategy):
 
     @property
     def device(self) -> devices.Device:
-        return devices.UnconstrainedDevice
+        return devices.UNCONSTRAINED_DEVICE
 
     def get_operations(self,
                        indices: Sequence[LogicalIndex],

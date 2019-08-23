@@ -67,11 +67,10 @@ class CircuitDag(networkx.DiGraph):
     disjoint_qubits = staticmethod(_disjoint_qubits)
 
     def __init__(self,
-                 can_reorder: Callable[[ops.Operation, ops.Operation],
-                                       bool] = _disjoint_qubits,
+                 can_reorder: Callable[[ops.Operation, ops.
+                                        Operation], bool] = _disjoint_qubits,
                  incoming_graph_data: Any = None,
-                 device: devices.Device = devices.UnconstrainedDevice
-                 ) -> None:
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a CircuitDag.
 
         Args:
@@ -105,10 +104,10 @@ class CircuitDag(networkx.DiGraph):
 
     @staticmethod
     def from_ops(*operations: ops.OP_TREE,
-                 can_reorder: Callable[[ops.Operation, ops.Operation],
-                                       bool] = _disjoint_qubits,
-                 device: devices.Device = devices.UnconstrainedDevice
-                 ) -> 'CircuitDag':
+                 can_reorder: Callable[[ops.Operation, ops.
+                                        Operation], bool] = _disjoint_qubits,
+                 device: devices.Device = devices.UNCONSTRAINED_DEVICE
+                ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
         for op in ops.flatten_op_tree(operations):
             dag.append(cast(ops.Operation, op))
