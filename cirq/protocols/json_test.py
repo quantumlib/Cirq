@@ -438,16 +438,17 @@ def test_all_roundtrip(cirq_type: str, cls):
     try:
         objs = TEST_OBJECTS[cirq_type]
     except KeyError:
-        raise NotImplementedError(textwrap.fill(
-            f"Hello intrepid developer. There is a public class named "
-            f"'{cirq_type}' that does not have a test case for JSON "
-            f"roundtripability. Add an entry to TEST_OBJECTS that constructs "
-            f"an instance of `{cirq_type}` which will be tested for "
-            f"serialization and deserialization. For more information on "
-            f"JSON serialization, please read the docstring for "
-            f"protocols.SupportsJSON. If this type is not "
-            f"appropriate for serialization, add its name to "
-            f"SHOULDNT_BE_SERIALIZED."))
+        raise NotImplementedError(
+            textwrap.fill(
+                f"Hello intrepid developer. There is a public class named "
+                f"'{cirq_type}' that does not have a test case for JSON "
+                f"roundtripability. Add an entry to TEST_OBJECTS that constructs "
+                f"an instance of `{cirq_type}` which will be tested for "
+                f"serialization and deserialization. For more information on "
+                f"JSON serialization, please read the docstring for "
+                f"protocols.SupportsJSON. If this type is not "
+                f"appropriate for serialization, add its name to "
+                f"SHOULDNT_BE_SERIALIZED."))
 
     if not isinstance(objs, list):
         objs = [objs]
