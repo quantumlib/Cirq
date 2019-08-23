@@ -39,7 +39,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
                ) -> List[raw_types.Operation]:
-        """Returns a list of operations apply this gate to each of the targets.
+        """Returns a list of operations applying the gate to all targets.
 
         Args:
             *targets: The qubits to apply this gate to.
@@ -50,7 +50,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         Raises:
             ValueError if targets are not instances of Qid or List[Qid].
         """
-        operations: raw_types.Operation = []
+        operations = []  # type: List[raw_types.Operation]
         for target in targets:
             if isinstance(target, Iterable) and not isinstance(target, str):
                 operations.extend(self.on_each(*target))

@@ -630,7 +630,7 @@ class IdentityGate(raw_types.Gate):
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
                ) -> List[raw_types.Operation]:
-        """Returns a list of operations apply the single qubit identity
+        """Returns a list of operations that applies the single qubit identity
         to each of the targets.
 
         Args:
@@ -648,7 +648,7 @@ class IdentityGate(raw_types.Gate):
             raise ValueError(
                 'IdentityGate only supports on_each when it is a one qubit '
                 'gate.')
-        operations: raw_types.Operation = []
+        operations: List[raw_types.Operation] = []
         for target in targets:
             if isinstance(target, Iterable) and not isinstance(target, str):
                 operations.extend(self.on_each(*target))

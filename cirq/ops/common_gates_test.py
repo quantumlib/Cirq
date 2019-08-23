@@ -223,7 +223,11 @@ def test_identity_on_each():
                            q2]) == [cirq.I(q0),
                                     cirq.I(q1),
                                     cirq.I(q2)]
-    with pytest.raises(ValueError):
+    assert cirq.I.on_each(iter([q0, [q1],
+                                q2])) == [cirq.I(q0),
+                                          cirq.I(q1),
+                                          cirq.I(q2)]
+    with pytest.raises(ValueError, match='str'):
         cirq.I.on_each('abc')
 
 
