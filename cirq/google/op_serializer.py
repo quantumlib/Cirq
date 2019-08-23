@@ -93,6 +93,16 @@ class GateOpSerializer:
         self.args = args
         self.can_serialize_predicate = can_serialize_predicate
 
+    def can_serialize_gate(self, gate: ops.Gate) -> bool:
+        """Whether the given gate can be serialized by this serializer.
+
+        This checks that the gate is a subclass of the gate type for this
+        serializer, and that the gate returns true for
+        `can_serializer_predicate` called on the gate.
+        """
+        supported_gate_type = self.gate_type in type(gate).mro()
+        return supported_gate_type and self.can_serialize_predicate(gate)
+
     def to_proto_dict(self, op: ops.GateOperation) -> Optional[Dict]:
         msg = self.to_proto(op)
         if msg is None:

@@ -193,3 +193,15 @@ def test_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Y)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Z)
+
+
+def test_powers():
+    assert isinstance(cirq.X, cirq.Pauli)
+    assert isinstance(cirq.Y, cirq.Pauli)
+    assert isinstance(cirq.Z, cirq.Pauli)
+    assert not isinstance(cirq.X**-0.5, cirq.Pauli)
+    assert not isinstance(cirq.Y**0.2, cirq.Pauli)
+    assert not isinstance(cirq.Z**0.5, cirq.Pauli)
+    assert isinstance(cirq.X**-0.5, cirq.XPowGate)
+    assert isinstance(cirq.Y**0.2, cirq.YPowGate)
+    assert isinstance(cirq.Z**0.5, cirq.ZPowGate)

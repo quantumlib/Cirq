@@ -20,6 +20,7 @@ import cirq
 from cirq import linalg, protocols, value
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
+from cirq.protocols import trace_distance_from_angle_list
 
 
 @value.value_equality
@@ -141,8 +142,14 @@ class ControlledGate(raw_types.Gate):
                                                     param_resolver)
         return ControlledGate(new_sub_gate, self.control_qubits)
 
-    def _trace_distance_bound_(self):
-        return protocols.trace_distance_bound(self.sub_gate)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        u = protocols.unitary(self.sub_gate, default=None)
+        if u is None:
+            return NotImplemented
+        angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
+        return trace_distance_from_angle_list(angle_list)
 
     def _circuit_diagram_info_(self,
                                args: protocols.CircuitDiagramInfoArgs

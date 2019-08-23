@@ -17,7 +17,6 @@ from typing import Dict, List, Tuple, TYPE_CHECKING
 from cirq.devices import GridQubit
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq.google
 
 

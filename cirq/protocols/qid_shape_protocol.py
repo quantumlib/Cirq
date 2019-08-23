@@ -19,7 +19,6 @@ from typing_extensions import Protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 # This is a special indicator value used by the methods to determine whether or
