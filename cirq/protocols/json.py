@@ -175,21 +175,22 @@ class CirqEncoder(json.JSONEncoder):
 
 
 def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
-    if 'cirq_type' in d:
-        for resolver in resolvers:
-            cls = resolver(d['cirq_type'])
-            if cls is not None:
-                break
-        else:
-            raise ValueError("Could not resolve type '{}' "
-                             "during deserialization".format(d['cirq_type']))
+    if 'cirq_type' not in d:
+        return d
 
-        if hasattr(cls, '_from_json_dict_'):
-            return cls._from_json_dict_(**d)
+    for resolver in resolvers:
+        cls = resolver(d['cirq_type'])
+        if cls is not None:
+            break
+    else:
+        raise ValueError("Could not resolve type '{}' "
+                         "during deserialization".format(d['cirq_type']))
 
-        del d['cirq_type']
-        return cls(**d)
+    if hasattr(cls, '_from_json_dict_'):
+        return cls._from_json_dict_(**d)
 
+    del d['cirq_type']
+    return cls(**d)
 
 
 def to_json(obj: Any, file, *, indent=2, cls=CirqEncoder):
