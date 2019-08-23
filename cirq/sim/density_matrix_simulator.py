@@ -118,13 +118,17 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
     def __init__(self,
                  *,
                  dtype: Type[np.number] = np.complex64,
-                 noise: devices.NoiseModel = devices.NO_NOISE):
+                 noise: devices.NoiseModel = devices.NO_NOISE,
+                 seed: Optional[int] = None):
         """Density matrix simulator.
 
          Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
+            seed: The random seed to use for this simulator. Sets numpy's
+                random seed. Setting numpy's seed different in between
+                use of this class will lead to non-seeded behavior.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
@@ -132,6 +136,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         self._dtype = dtype
         self.noise = noise
+        if seed:
+            np.random.seed(seed)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,

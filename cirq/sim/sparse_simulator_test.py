@@ -696,3 +696,14 @@ def test_compute_amplitudes():
                                     np.array([[0, 1], [1, 0], [1, 1]]),
                                     qubit_order=(b, a))
     np.testing.assert_allclose(np.array(result), np.array([-0.5, 0.5, -0.5]))
+
+
+def test_random_seed():
+    sim = cirq.Simulator(seed=1234)
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit.from_ops(cirq.X(a)**0.5, cirq.measure(a))
+    result = sim.run(circuit, repetitions=10)
+    print(result.measurements['a'])
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])

@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Type, Union
 
 import numpy as np
 
@@ -120,17 +120,25 @@ class Simulator(simulator.SimulatesSamples,
     See `Simulator` for the definitions of the supported methods.
     """
 
-    def __init__(self, *, dtype=np.complex64):
+    def __init__(self,
+                 *,
+                 dtype: Type[np.number] = np.complex64,
+                 seed: int = None):
         """A sparse matrix simulator.
 
         Args:
             dtype: The `numpy.dtype` used by the simulation. One of
-            `numpy.complex64` or `numpy.complex128`
+                `numpy.complex64` or `numpy.complex128`.
+            seed: The random seed to use for this simulator. Sets numpy's
+                random seed. Setting numpy's seed different in between
+                use of this class will lead to non-seeded behavior.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(
                 'dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
+        if seed:
+            np.random.seed(seed)
 
     def _run(
         self,
