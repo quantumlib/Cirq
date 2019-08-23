@@ -92,7 +92,7 @@ DEFAULT_RESOLVERS = [
 """A default list of 'resolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
-please read the docstring for `read_json`.
+please read the docstring for `cirq.read_json`.
 
 3rd party packages which extend Cirq's JSON serialization API should
 provide their own resolver functions. 3rd party resolvers can be
@@ -190,7 +190,6 @@ def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
         del d['cirq_type']
         return cls(**d)
 
-    return d
 
 
 def to_json(obj: Any, file, *, indent=2, cls=CirqEncoder):
