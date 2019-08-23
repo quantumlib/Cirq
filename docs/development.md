@@ -113,7 +113,7 @@ See the previous section for instructions.
     ```
 
 
-### Running continuous integration checks locally
+### Continuous integration and local testing
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
