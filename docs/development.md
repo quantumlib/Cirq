@@ -143,20 +143,20 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
 # Only run tests associated with files that have changed when diffed vs master (or a custom revision of your choice).
 ./check/pytest-changed-files [BASE_REVISION]
+
+# Run the documentation tests.
+./check/doctest
+
+# Check the format of the filess.  Use --apply to apply the suggested format changes.
+./check/format-incremental [--apply]
+
+# Run all of the above tests. Which pytest is run is set by the --only-changed-files.
+./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
 ```
 
 The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
-For example, you may be running an older version of `pylint` or `numpy`.
-
-If you want to run all of these tests, you can use the [check/all](https://github.com/quantumlib/Cirq/blob/master/check/all) script:
-
-```bash
-./check/all
-```
-
-This script will run all relevant checks within those clean environments. When using this script, you can
-run a subset of the checks using the ```--only-changed-files``` flag to only pytest against changed files,
-and the ```--apply-format-changes-only``` flag to fix formatting problems automatically.
+For example, you may be running an older version of `pylint` or `numpy`. If you need to test against the actual continuous integration check, open up a pull request.
+For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 
