@@ -437,7 +437,7 @@ def test_all_roundtrip(cirq_type: str, cls):
 
     try:
         objs = TEST_OBJECTS[cirq_type]
-    except KeyError:
+    except KeyError:  # coverage: ignore
         # coverage: ignore
         raise NotImplementedError(
             textwrap.fill(
