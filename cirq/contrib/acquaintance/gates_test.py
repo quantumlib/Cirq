@@ -181,7 +181,7 @@ def test_swap_network_gate_from_ops():
                                                        acquaintance_size,
                                                        cirq.ZZ)
     circuit = cirq.Circuit.from_ops(swap_network(*qubits))
-    cca.decompose_permutation_gates(circuit)
+    cca.DECOMPOSE_PERMUTATION_GATES(circuit)
 
     expected_diagram = """
 0: ───█───ZZ────────────█───ZZ────────────█───ZZ───

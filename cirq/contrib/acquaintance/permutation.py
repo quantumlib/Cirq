@@ -232,10 +232,15 @@ def get_logical_operations(operations: ops.OP_TREE,
             yield op.transform_qubits(mapping.__getitem__)
 
 
-class ExpandPermutationGates(optimizers.ExpandComposite):
-    """Decomposes any permutation gates other SwapPermutationGate."""
+class DecomposePermutationGates(optimizers.ExpandComposite):
 
     def __init__(self, keep_swap_permutations: bool = True):
+        """Decomposes permutation gates.
+
+        Args:
+            keep_swap_permutations: Whether or not to except
+                SwapPermutationGate.
+        """
         circuits.PointOptimizer.__init__(self)
 
         if keep_swap_permutations:
@@ -251,8 +256,9 @@ class ExpandPermutationGates(optimizers.ExpandComposite):
             ]))
 
 
-expand_permutation_gates = ExpandPermutationGates(keep_swap_permutations=True)
-decompose_permutation_gates = ExpandPermutationGates(
+EXPAND_PERMUTATION_GATES = DecomposePermutationGates(
+    keep_swap_permutations=True)
+DECOMPOSE_PERMUTATION_GATES = DecomposePermutationGates(
     keep_swap_permutations=False)
 
 
