@@ -193,12 +193,29 @@ def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
     return cls(**d)
 
 
-def to_json(obj: Any, file, *, indent=2, cls=CirqEncoder):
-    if isinstance(file, str):
-        with open(file, 'w') as actually_a_file:
+def to_json(obj: Any, file_or_fn, *, indent=2, cls=CirqEncoder):
+    """Write a JSON file containing a representation of obj.
+
+    The object may be a cirq object or have data members that are cirq
+    objects which implement the SupportsJSON protocol.
+
+    Args:
+        obj: An object which can be serialized to a JSON representation.
+        file_or_fn: A filename (if a string), otherwise a file-like
+            object to serve as the destination for `obj`.
+        indent: Pretty-print the resulting file with this indent level.
+            Passed to json.dump.
+        cls: Passed to json.dump; the default value of CirqEncoder
+            enables the serialization of Cirq objects which implement
+            the SupportsJSON protocol. To support serialization of 3rd
+            party classes, prefer adding the _json_dict_ magic method
+            to your classes rather than overriding this default.
+    """
+    if isinstance(file_or_fn, str):
+        with open(file_or_fn, 'w') as actually_a_file:
             return json.dump(obj, actually_a_file, indent=indent, cls=cls)
 
-    return json.dump(obj, file, indent=indent, cls=cls)
+    return json.dump(obj, file_or_fn, indent=indent, cls=cls)
 
 
 def read_json(
@@ -208,7 +225,7 @@ def read_json(
 
     Args:
         file_or_fn: A filename (if a string), otherwise a file-like
-            object.
+            object from which we read in a representation of an object.
         resolvers: A list of functions that are called in order to turn
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
