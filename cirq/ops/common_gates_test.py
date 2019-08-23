@@ -233,7 +233,7 @@ def test_identity_on_each():
 
 def test_identity_on_each_only_single_qubit():
     q0, q1 = cirq.LineQubit.range(2)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='one qubit'):
         cirq.IdentityGate(num_qubits=2).on_each(q0, q1)
 
 
