@@ -30,7 +30,8 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
            noise: devices.NoiseModel = devices.NO_NOISE,
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
-           dtype: Type[np.number] = np.complex64) -> study.TrialResult:
+           dtype: Type[np.number] = np.complex64,
+           seed: Optional[int] = None) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
@@ -41,11 +42,14 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
+        seed: The random seed to use for this simulator. Sets numpy's
+            random seed. Setting numpy's seed different in between
+            use of this class will lead to non-seeded behavior.
     """
 
     # State vector simulation is much faster, but only works if no randomness.
     if noise == devices.NO_NOISE and protocols.has_unitary(program):
-        return sparse_simulator.Simulator(dtype=dtype).run(
+        return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
             program=program,
             param_resolver=param_resolver,
             repetitions=repetitions)
@@ -64,7 +68,8 @@ def final_wavefunction(
                              ndarray] = 0,
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        dtype: Type[np.number] = np.complex64) -> 'np.ndarray':
+        dtype: Type[np.number] = np.complex64,
+        seed: Optional[int] = None) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -84,6 +89,9 @@ def final_wavefunction(
             be safely castable to an appropriate dtype for the simulator.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
+        seed: The random seed to use for this simulator. Sets numpy's
+            random seed. Setting numpy's seed different in between
+            use of this class will lead to non-seeded behavior.
 
     Returns:
         The wavefunction resulting from applying the given unitary operations to
@@ -115,7 +123,7 @@ def final_wavefunction(
             "\n"
             "Program: {!r}".format(program))
 
-    result = sparse_simulator.Simulator(dtype=dtype).simulate(
+    result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
         program=program,
         initial_state=initial_state,
         qubit_order=qubit_order,
@@ -124,13 +132,15 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
-                 params: study.Sweepable,
-                 *,
-                 noise: devices.NoiseModel = devices.NO_NOISE,
-                 repetitions: int = 1,
-                 dtype: Type[np.number] = np.complex64
-                ) -> List[study.TrialResult]:
+def sample_sweep(
+        program: Union[circuits.Circuit, schedules.Schedule],
+        params: study.Sweepable,
+        *,
+        noise: devices.NoiseModel = devices.NO_NOISE,
+        repetitions: int = 1,
+        dtype: Type[np.number] = np.complex64,
+        seed: Optional[int] = None,
+) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -145,11 +155,16 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
+        seed: The random seed to use for this simulator. Sets numpy's
+            random seed. Setting numpy's seed different in between
+            use of this class will lead to non-seeded behavior.
 
     Returns:
         TrialResult list for this run; one for each possible parameter
         resolver.
     """
+    if seed:
+        np.random.seed(seed)
     circuit = (program if isinstance(program, circuits.Circuit)
                else program.to_circuit())
     param_resolvers = study.to_resolvers(params)
