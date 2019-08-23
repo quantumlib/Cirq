@@ -146,6 +146,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit,
                                                         param_resolver)
+        self._check_all_resolved(resolved_circuit)
 
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
@@ -198,6 +199,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         return self._base_iterator(resolved_circuit,
                                    qubit_order,
@@ -400,6 +402,17 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 display_values=display_values))
 
         return compute_displays_results
+
+    def _check_all_resolved(self, circuit):
+        """Raises if the circuit contains unresolved symbols."""
+        if protocols.is_parameterized(circuit):
+            unresolved = [
+                op for moment in circuit for op in moment
+                if protocols.is_parameterized(op)
+            ]
+            raise ValueError(
+                'Circuit contains ops whose symbols were not specified in '
+                'parameter sweep. Ops: {}'.format(unresolved))
 
 
 def _enter_moment_display_values_into_dictionary(

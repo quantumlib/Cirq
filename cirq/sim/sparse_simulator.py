@@ -148,6 +148,8 @@ class Simulator(simulator.SimulatesSamples,
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
+
         def measure_or_mixture(op):
             return protocols.is_measurement(op) or protocols.has_mixture(op)
         if circuit.are_all_matches_terminal(measure_or_mixture):
@@ -206,6 +208,7 @@ class Simulator(simulator.SimulatesSamples,
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         return self._base_iterator(resolved_circuit,
                                    qubit_order,
@@ -323,6 +326,17 @@ class Simulator(simulator.SimulatesSamples,
                                                out=data.buffer)
         data.buffer = data.state
         data.state = result
+
+    def _check_all_resolved(self, circuit):
+        """Raises if the circuit contains unresolved symbols."""
+        if protocols.is_parameterized(circuit):
+            unresolved = [
+                op for moment in circuit for op in moment
+                if protocols.is_parameterized(op)
+            ]
+            raise ValueError(
+                'Circuit contains ops whose symbols were not specified in '
+                'parameter sweep. Ops: {}'.format(unresolved))
 
 
 class SparseSimulatorStep(wave_function.StateVectorMixin,
