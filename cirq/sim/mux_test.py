@@ -52,6 +52,15 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({0: 1})
 
 
+def test_sample_seed():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit.from_ops(cirq.X(q)**0.5, cirq.measure(q))
+    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    assert np.all(
+        result.measurements['q'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
 def test_sample_sweep():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit.from_ops(
@@ -90,6 +99,18 @@ def test_sample_sweep():
     assert len(results) == 2
     assert results[0].histogram(key=q) == collections.Counter({0: 3})
     assert results[1].histogram(key=q) == collections.Counter({0: 3})
+
+
+def test_sample_sweep_seed():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit.from_ops(cirq.X(q)**0.5, cirq.measure(q))
+    results = cirq.sample_sweep(circuit,
+                                cirq.Linspace('t', 0, 1, 3),
+                                repetitions=2,
+                                seed=1234)
+    assert np.all(results[0].measurements['q'] == [[False], [True]])
+    assert np.all(results[1].measurements['q'] == [[False], [True]])
+    assert np.all(results[2].measurements['q'] == [[True], [False]])
 
 
 def test_final_wavefunction_different_program_types():
@@ -185,3 +206,13 @@ def test_final_wavefunction_qubit_order():
         cirq.final_wavefunction([cirq.X(a), cirq.X(b)**0.5], qubit_order=[b,
                                                                           a]),
         [0, 0.5 + 0.5j, 0, 0.5 - 0.5j])
+
+
+def test_final_wavefunction_seed():
+    a = cirq.LineQubit(0)
+    np.testing.assert_allclose(cirq.final_wavefunction(
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=123), [0, 0.707107 - 0.707107j],
+                               atol=1e-4)
+    np.testing.assert_allclose(cirq.final_wavefunction(
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [0.707107 + 0.707107j, 0],
+                               atol=1e-4)

@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Union
+from typing import Dict, Iterator, List, Type, Union
 
 import numpy as np
 
@@ -120,17 +120,25 @@ class Simulator(simulator.SimulatesSamples,
     See `Simulator` for the definitions of the supported methods.
     """
 
-    def __init__(self, *, dtype=np.complex64):
+    def __init__(self,
+                 *,
+                 dtype: Type[np.number] = np.complex64,
+                 seed: int = None):
         """A sparse matrix simulator.
 
         Args:
             dtype: The `numpy.dtype` used by the simulation. One of
-            `numpy.complex64` or `numpy.complex128`
+                `numpy.complex64` or `numpy.complex128`.
+            seed: The random seed to use for this simulator. Sets numpy's
+                random seed. Setting numpy's seed different in between
+                use of this class will lead to non-seeded behavior.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(
                 'dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
+        if seed:
+            np.random.seed(seed)
 
     def _run(
         self,
@@ -140,6 +148,8 @@ class Simulator(simulator.SimulatesSamples,
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
+
         def measure_or_mixture(op):
             return protocols.is_measurement(op) or protocols.has_mixture(op)
         if circuit.are_all_matches_terminal(measure_or_mixture):
@@ -198,6 +208,7 @@ class Simulator(simulator.SimulatesSamples,
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         return self._base_iterator(resolved_circuit,
                                    qubit_order,
@@ -315,6 +326,17 @@ class Simulator(simulator.SimulatesSamples,
                                                out=data.buffer)
         data.buffer = data.state
         data.state = result
+
+    def _check_all_resolved(self, circuit):
+        """Raises if the circuit contains unresolved symbols."""
+        if protocols.is_parameterized(circuit):
+            unresolved = [
+                op for moment in circuit for op in moment
+                if protocols.is_parameterized(op)
+            ]
+            raise ValueError(
+                'Circuit contains ops whose symbols were not specified in '
+                'parameter sweep. Ops: {}'.format(unresolved))
 
 
 class SparseSimulatorStep(wave_function.StateVectorMixin,

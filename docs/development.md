@@ -89,7 +89,7 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     python -m pip install --upgrade pip
-    python -m pip install -e .[dev,contrib]
+    python -m pip install -e .[dev_env]
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
