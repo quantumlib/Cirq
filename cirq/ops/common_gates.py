@@ -552,6 +552,20 @@ class MeasurementGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.num_qubits(), self.key, self.invert_mask
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'num_qubits': self.num_qubits(),
+            'key': self.key,
+            'invert_mask': self.invert_mask
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, num_qubits, key, invert_mask, **kwargs):
+        return cls(num_qubits=num_qubits,
+                   key=key,
+                   invert_mask=tuple(invert_mask))
+
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
@@ -628,6 +642,38 @@ class IdentityGate(raw_types.Gate):
     def num_qubits(self) -> int:
         return self._num_qubits
 
+    def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
+               ) -> List[raw_types.Operation]:
+        """Returns a list of operations that applies the single qubit identity
+        to each of the targets.
+
+        Args:
+            *targets: The qubits to apply this gate to.
+
+        Returns:
+            Operations applying this gate to the target qubits.
+
+        Raises:
+            ValueError if targets are not instances of Qid or List[Qid] or
+            the gate from which this is applied is not a single qubit identity
+            gate.
+        """
+        if self._num_qubits != 1:
+            raise ValueError(
+                'IdentityGate only supports on_each when it is a one qubit '
+                'gate.')
+        operations: List[raw_types.Operation] = []
+        for target in targets:
+            if isinstance(target, Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
+            elif isinstance(target, raw_types.Qid):
+                operations.append(self.on(target))
+            else:
+                raise ValueError(
+                    'Gate was called with type different than Qid. Type: {}'.
+                    format(type(target)))
+        return operations
+
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
 
@@ -664,6 +710,12 @@ class IdentityGate(raw_types.Gate):
 
     def _value_equality_values_(self):
         return self.num_qubits(),
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'num_qubits': self.num_qubits(),
+        }
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):

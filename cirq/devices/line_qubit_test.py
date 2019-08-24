@@ -107,3 +107,10 @@ def test_addition_subtraction_type_error():
 
 def test_neg():
     assert -cirq.LineQubit(1) == cirq.LineQubit(-1)
+
+
+def test_json_dict():
+    assert cirq.LineQubit(5)._json_dict_() == {
+        'cirq_type': 'LineQubit',
+        'x': 5,
+    }

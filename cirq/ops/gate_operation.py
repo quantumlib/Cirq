@@ -71,6 +71,9 @@ class GateOperation(raw_types.Operation):
         return '{}({})'.format(self.gate,
                                ', '.join(str(e) for e in self.qubits))
 
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['gate', 'qubits'])
+
     def _group_interchangeable_qubits(self) -> Tuple[
             Union[raw_types.Qid,
                   Tuple[int, FrozenSet[raw_types.Qid]]],

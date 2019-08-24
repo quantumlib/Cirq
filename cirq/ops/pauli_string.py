@@ -74,6 +74,19 @@ class PauliString(raw_types.Operation):
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            # JSON requires mappings to have string keys.
+            'qubit_pauli_map': list(self._qubit_pauli_map.items()),
+            'coefficient': self.coefficient,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_pauli_map, coefficient, **kwargs):
+        return cls(qubit_pauli_map=dict(qubit_pauli_map),
+                   coefficient=coefficient)
+
     def _value_equality_values_cls_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
             return gate_operation.GateOperation
@@ -479,8 +492,17 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return SingleQubitPauliStringGateOperation(
             cast(pauli_gates.Pauli, self.gate), new_qubits[0])
 
+    @property
+    def pauli(self) -> pauli_gates.Pauli:
+        return cast(pauli_gates.Pauli, self.gate)
+
+    @property
+    def qubit(self) -> raw_types.Qid:
+        assert len(self.qubits) == 1
+        return self.qubits[0]
+
     def _as_pauli_string(self) -> PauliString:
-        return PauliString({self.qubits[0]: cast(pauli_gates.Pauli, self.gate)})
+        return PauliString({self.qubit: self.pauli})
 
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
@@ -496,3 +518,13 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     def __neg__(self):
         return -self._as_pauli_string()
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['pauli', 'qubit'])
+
+    @classmethod
+    def _from_json_dict_(  # type: ignore
+            cls, pauli: pauli_gates.Pauli, qubit: raw_types.Qid, **kwargs):
+        # Note, this method is required or else superclasses' deserialization
+        # would be used
+        return cls(pauli=pauli, qubit=qubit)

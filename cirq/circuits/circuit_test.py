@@ -3180,3 +3180,20 @@ def test_deprecated_to_unitary_matrix():
 def test_deprecated_apply_unitary_effect_to_state():
     np.testing.assert_allclose(cirq.Circuit().apply_unitary_effect_to_state(),
                                cirq.Circuit().final_wavefunction())
+
+
+def test_moments_property():
+    q = cirq.NamedQubit('q')
+    c = cirq.Circuit.from_ops(cirq.X(q), cirq.Y(q))
+    assert c.moments[0] == cirq.Moment([cirq.X(q)])
+    assert c.moments[1] == cirq.Moment([cirq.Y(q)])
+
+
+def test_json_dict():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.CNOT(q0, q1))
+    assert c._json_dict_() == {
+        'cirq_type': 'Circuit',
+        'moments': [cirq.Moment([cirq.CNOT(q0, q1)])],
+        'device': cirq.UNCONSTRAINED_DEVICE,
+    }

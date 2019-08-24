@@ -18,7 +18,7 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
 
-from cirq import value
+from cirq import value, protocols
 from cirq.protocols import decompose, inverse, qid_shape_protocol
 
 if TYPE_CHECKING:
@@ -254,6 +254,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, attribute_names=[])
 
 
 class Operation(metaclass=abc.ABCMeta):

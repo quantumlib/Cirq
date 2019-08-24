@@ -15,7 +15,7 @@
 import functools
 from typing import List
 
-from cirq import ops
+from cirq import ops, protocols
 
 
 @functools.total_ordering
@@ -85,3 +85,6 @@ class LineQubit(ops.Qid):
 
     def __neg__(self) -> 'LineQubit':
         return LineQubit(-self.x)
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['x'])
