@@ -154,7 +154,7 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 ./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
 ```
 
-The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
+The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on T ravis.
 For example, you may be running an older version of `pylint` or `numpy`. If you need to test against the actual continuous integration check, open up a pull request.
 For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
 
