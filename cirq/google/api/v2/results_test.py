@@ -19,10 +19,15 @@ def test_pack_bits(reps):
 q = cirq.GridQubit  # For brevity.
 
 
-def _check_measurement(m, key, qubits, slot):
+def _check_measurement(m, key, qubits, slot, invert_mask=None):
     assert m.key == key
     assert m.qubits == qubits
     assert m.slot == slot
+    if invert_mask is not None:
+        assert m.invert_mask == invert_mask
+    else:
+        assert len(m.invert_mask) == len(m.qubits)
+        assert m.invert_mask == [False] * len(m.qubits)
 
 
 def test_find_measurements_simple_circuit():
@@ -51,6 +56,38 @@ def test_find_measurements_simple_schedule():
     assert len(measurements) == 1
     m = measurements[0]
     _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 10_000)
+
+
+def test_find_measurements_invert_mask():
+    circuit = cirq.Circuit()
+    circuit.append(
+        cirq.measure(q(0, 0),
+                     q(0, 1),
+                     q(0, 2),
+                     key='k',
+                     invert_mask=[False, True, True]))
+    measurements = v2.find_measurements(circuit)
+
+    assert len(measurements) == 1
+    m = measurements[0]
+    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0,
+                       [False, True, True])
+
+
+def test_find_measurements_fill_mask():
+    circuit = cirq.Circuit()
+    circuit.append(
+        cirq.measure(q(0, 0),
+                     q(0, 1),
+                     q(0, 2),
+                     key='k',
+                     invert_mask=[False, True]))
+    measurements = v2.find_measurements(circuit)
+
+    assert len(measurements) == 1
+    m = measurements[0]
+    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0,
+                       [False, True, False])
 
 
 def test_find_measurements_duplicate_keys():
@@ -101,7 +138,9 @@ def test_multiple_measurements_shared_slots():
 
 
 def test_results_to_proto():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0)]
+    measurements = [
+        v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])
+    ]
     trial_results = [
         [
             cirq.TrialResult.from_single_parameter_set(
@@ -145,7 +184,9 @@ def test_results_to_proto():
 
 
 def test_results_to_proto_sweep_repetitions():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0)], slot=0)]
+    measurements = [
+        v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])
+    ]
     trial_results = [[
         cirq.TrialResult.from_single_parameter_set(params=cirq.ParamResolver(
             {'i': 0}),
@@ -167,7 +208,11 @@ def test_results_to_proto_sweep_repetitions():
 
 
 def test_results_from_proto_qubit_ordering():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0)]
+    measurements = [
+        v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)],
+                       slot=0,
+                       invert_mask=[False, False, False])
+    ]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
@@ -204,7 +249,11 @@ def test_results_from_proto_qubit_ordering():
 
 
 def test_results_from_proto_duplicate_qubit():
-    measurements = [v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)], slot=0)]
+    measurements = [
+        v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)],
+                       slot=0,
+                       invert_mask=[False, False, False])
+    ]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
