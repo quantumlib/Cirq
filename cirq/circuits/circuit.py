@@ -1578,6 +1578,13 @@ class Circuit:
         """
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
+    @property
+    def moments(self):
+        return self._moments
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['moments', 'device'])
+
 
 def _resolve_operations(
         operations: Iterable[ops.Operation],
