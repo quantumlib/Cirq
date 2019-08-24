@@ -30,7 +30,6 @@ def _check_measurement(m, key, qubits, slot, invert_mask=None):
         assert m.invert_mask == [False] * len(m.qubits)
 
 
-
 def test_find_measurements_simple_circuit():
     circuit = cirq.Circuit()
     circuit.append(cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k'))
@@ -62,9 +61,11 @@ def test_find_measurements_simple_schedule():
 def test_find_measurements_invert_mask():
     circuit = cirq.Circuit()
     circuit.append(
-        cirq.measure(
-            q(0, 0), q(0, 1), q(0, 2), key='k', invert_mask=[False, True, True
-                                                            ]))
+        cirq.measure(q(0, 0),
+                     q(0, 1),
+                     q(0, 2),
+                     key='k',
+                     invert_mask=[False, True, True]))
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 1
@@ -76,8 +77,11 @@ def test_find_measurements_invert_mask():
 def test_find_measurements_fill_mask():
     circuit = cirq.Circuit()
     circuit.append(
-        cirq.measure(
-            q(0, 0), q(0, 1), q(0, 2), key='k', invert_mask=[False, True]))
+        cirq.measure(q(0, 0),
+                     q(0, 1),
+                     q(0, 2),
+                     key='k',
+                     invert_mask=[False, True]))
     measurements = v2.find_measurements(circuit)
 
     assert len(measurements) == 1
@@ -205,10 +209,9 @@ def test_results_to_proto_sweep_repetitions():
 
 def test_results_from_proto_qubit_ordering():
     measurements = [
-        v2.MeasureInfo(
-            'foo', [q(0, 0), q(0, 1), q(1, 1)],
-            slot=0,
-            invert_mask=[False, False, False])
+        v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)],
+                       slot=0,
+                       invert_mask=[False, False, False])
     ]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()
@@ -247,10 +250,9 @@ def test_results_from_proto_qubit_ordering():
 
 def test_results_from_proto_duplicate_qubit():
     measurements = [
-        v2.MeasureInfo(
-            'foo', [q(0, 0), q(0, 1), q(1, 1)],
-            slot=0,
-            invert_mask=[False, False, False])
+        v2.MeasureInfo('foo', [q(0, 0), q(0, 1), q(1, 1)],
+                       slot=0,
+                       invert_mask=[False, False, False])
     ]
     proto = result_pb2.Result()
     sr = proto.sweep_results.add()

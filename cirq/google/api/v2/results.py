@@ -63,11 +63,10 @@ def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[MeasureInfo]:
         for op in moment:
             if (isinstance(op, ops.GateOperation) and
                     isinstance(op.gate, ops.MeasurementGate)):
-                yield MeasureInfo(
-                    key=op.gate.key,
-                    qubits=_grid_qubits(op),
-                    slot=i,
-                    invert_mask=_full_mask(op))
+                yield MeasureInfo(key=op.gate.key,
+                                  qubits=_grid_qubits(op),
+                                  slot=i,
+                                  invert_mask=_full_mask(op))
 
 
 def _schedule_measurements(schedule: schedules.Schedule
@@ -76,11 +75,10 @@ def _schedule_measurements(schedule: schedules.Schedule
         op = so.operation
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, ops.MeasurementGate)):
-            yield MeasureInfo(
-                key=op.gate.key,
-                qubits=_grid_qubits(op),
-                slot=so.time.raw_picos(),
-                invert_mask=_full_mask(op))
+            yield MeasureInfo(key=op.gate.key,
+                              qubits=_grid_qubits(op),
+                              slot=so.time.raw_picos(),
+                              invert_mask=_full_mask(op))
 
 
 def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
@@ -96,6 +94,7 @@ def _full_mask(op: ops.GateOperation) -> List[bool]:
         return invert_mask + [False] * len_missing_mask
     else:
         return invert_mask
+
 
 def pack_bits(bits: np.ndarray) -> bytes:
     """Pack bits given as a numpy array of bools into bytes."""
