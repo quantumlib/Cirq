@@ -113,7 +113,7 @@ See the previous section for instructions.
     ```
 
 
-### Running continuous integration checks locally
+### Continuous integration and local testing
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
@@ -143,20 +143,20 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
 # Only run tests associated with files that have changed when diffed vs master (or a custom revision of your choice).
 ./check/pytest-changed-files [BASE_REVISION]
+
+# Run the documentation tests.
+./check/doctest
+
+# Check the format of the filess.  Use --apply to apply the suggested format changes.
+./check/format-incremental [--apply]
+
+# Run all of the above tests. Which pytest is run is set by the --only-changed-files.
+./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
 ```
 
-The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
-For example, you may be running an older version of `pylint` or `numpy`.
-In order to run a check that is significantly more likely to agree with the travis builds, you can use the [continuous-integration/check.sh](https://github.com/quantumlib/Cirq/blob/master/continuous-integration/check.sh) script:
-
-```bash
-./continuous-integration/check.sh
-```
-
-This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies and run all relevant checks within those clean environments.
-Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `continuous-integration/check.sh` is significantly slower than the simpler check scripts.
-When using this script, you can run a subset of the checks using the ```--only``` flag.
-This flag value can be `pylint`, `typecheck`, `pytest`, or `incremental-coverage`.
+The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on T ravis.
+For example, you may be running an older version of `pylint` or `numpy`. If you need to test against the actual continuous integration check, open up a pull request.
+For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 
