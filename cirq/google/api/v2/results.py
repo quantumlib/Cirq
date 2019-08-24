@@ -63,10 +63,11 @@ def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[MeasureInfo]:
         for op in moment:
             if (isinstance(op, ops.GateOperation) and
                     isinstance(op.gate, ops.MeasurementGate)):
-                yield MeasureInfo(key=op.gate.key,
-                                  qubits=_grid_qubits(op),
-                                  slot=i,
-                                  invert_mask=_full_mask(op))
+                yield MeasureInfo(
+                    key=op.gate.key,
+                    qubits=_grid_qubits(op),
+                    slot=i,
+                    invert_mask=_full_mask(op))
 
 
 def _schedule_measurements(schedule: schedules.Schedule
@@ -75,10 +76,11 @@ def _schedule_measurements(schedule: schedules.Schedule
         op = so.operation
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, ops.MeasurementGate)):
-            yield MeasureInfo(key=op.gate.key,
-                              qubits=_grid_qubits(op),
-                              slot=so.time.raw_picos(),
-                              invert_mask=_full_mask(op))
+            yield MeasureInfo(
+                key=op.gate.key,
+                qubits=_grid_qubits(op),
+                slot=so.time.raw_picos(),
+                invert_mask=_full_mask(op))
 
 
 def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
