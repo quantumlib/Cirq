@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq import value
+from cirq import value, protocols
 from cirq.devices import device
 
 
+@value.value_equality()
 class _UnconstrainedDevice(device.Device):
     """A device that allows everything, infinitely fast."""
 
@@ -36,6 +37,12 @@ class _UnconstrainedDevice(device.Device):
 
     def __repr__(self):
         return 'cirq.UNCONSTRAINED_DEVICE'
+
+    def _value_equality_values_(self):
+        return ()
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, [])
 
 
 UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()

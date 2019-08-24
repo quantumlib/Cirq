@@ -552,6 +552,20 @@ class MeasurementGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.num_qubits(), self.key, self.invert_mask
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'num_qubits': self.num_qubits(),
+            'key': self.key,
+            'invert_mask': self.invert_mask
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, num_qubits, key, invert_mask, **kwargs):
+        return cls(num_qubits=num_qubits,
+                   key=key,
+                   invert_mask=tuple(invert_mask))
+
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
@@ -696,6 +710,12 @@ class IdentityGate(raw_types.Gate):
 
     def _value_equality_values_(self):
         return self.num_qubits(),
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'num_qubits': self.num_qubits(),
+        }
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):

@@ -275,3 +275,10 @@ def test_operation_shape():
     assert len(shape_op.qubits) == 4
     assert cirq.qid_shape(shape_op) == (1, 2, 3, 4)
     assert cirq.num_qubits(shape_op) == 4
+
+
+def test_gate_json_dict():
+    g = cirq.CSWAP  # not an eigen gate (which has its own _json_dict_)
+    assert g._json_dict_() == {
+        'cirq_type': 'CSwapGate',
+    }
