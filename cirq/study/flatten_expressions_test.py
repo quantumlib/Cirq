@@ -17,6 +17,16 @@ import cirq
 from cirq.study import flatten_expressions
 
 
+# The printed order of terms in a two term expression containing a negative
+# factor changed from sympy 1.3 to 1.4
+ONE_MINUS_A_2 = '<{!s}>'.format(1 - sympy.Symbol('a') / 2)
+
+
+def test_sympy_negative_term_ordering():
+    # Sympy >=1.4 vs sympy <=1.3
+    assert ONE_MINUS_A_2 == '<1 - a/2>' or ONE_MINUS_A_2 == '<-a/2 + 1>'
+
+
 def test_expr_map_names():
     flattener = flatten_expressions._ParamFlattener({'collision': '<x + 2>'})
     expressions = [sympy.Symbol('x') + i for i in range(3)]
@@ -79,13 +89,13 @@ def test_flatten_circuit():
 
     c_expected = cirq.Circuit.from_ops(
         cirq.X(qubit)**a,
-        cirq.X(qubit)**sympy.Symbol('<1 - a/2>'),
+        cirq.X(qubit)**sympy.Symbol(ONE_MINUS_A_2),
     )
     assert c_flat == c_expected
     assert isinstance(expr_map, cirq.ExpressionMap)
     assert expr_map == {
         a: a,
-        1 - a / 2: sympy.Symbol('<1 - a/2>'),
+        1 - a / 2: sympy.Symbol(ONE_MINUS_A_2),
     }
 
 
@@ -102,7 +112,7 @@ def test_transform_params():
 
     expected_params = {
         sympy.Symbol('<a/4>'): 3 / 4,
-        sympy.Symbol('<1 - a/2>'): 1 - 3 / 2
+        sympy.Symbol(ONE_MINUS_A_2): 1 - 3 / 2
     }
     assert new_params == expected_params
 
@@ -123,19 +133,19 @@ def test_transform_sweep():
     expected_resolvers = [
         cirq.ParamResolver({
             '<a/4>': 0.0,
-            '<1 - a/2>': 1.0,
+            ONE_MINUS_A_2: 1.0,
         }),
         cirq.ParamResolver({
             '<a/4>': 0.25,
-            '<1 - a/2>': 0.5,
+            ONE_MINUS_A_2: 0.5,
         }),
         cirq.ParamResolver({
             '<a/4>': 0.5,
-            '<1 - a/2>': 0,
+            ONE_MINUS_A_2: 0,
         }),
         cirq.ParamResolver({
             '<a/4>': 0.75,
-            '<1 - a/2>': -0.5,
+            ONE_MINUS_A_2: -0.5,
         })
     ]
     assert resolvers == expected_resolvers
