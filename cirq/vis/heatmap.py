@@ -16,14 +16,14 @@
 Typical usage:
 
 import matplotlib.pyplot as plt
-import cirq.google.vis.heatmap as vis_heatmap
+from cirq import Heatmap
 
 value_map = {(0, 5): 3.7, (1, 7): 2.5, (3, 3): 0.4, (2, 1); 9.8 }
-heatmap = vis_heatmap.Heatmap(value_map).set_colormap('summer')
+heatmap = Heatmap(value_map).set_colormap('summer')
 # customize the heatmap as much as you want here.
 fig, ax = plt.subplots(figsize=(9, 9))
 heatmap.plot(ax)
-plt.show()
+fig.show()
 """
 
 from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
