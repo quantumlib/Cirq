@@ -19,9 +19,7 @@
 # the CIRQ_DEV_VERSION variable to a string that is the dev version
 # plus an increasing date string.
 #
-# This is used by travis during deployment, and should not be run as
-# part of a deployment from a local branch. When travis uses this it
-# pushes to the cirq-dev pypi package, not the cirq package.
+# This is used by travis during deployment and by published-dev-package.sh.
 #
 # The variable is set by sourcing this file
 #
