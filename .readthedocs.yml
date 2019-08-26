@@ -1,8 +1,7 @@
-requirements_file: dev_tools/conf/pip-list-dev-tools.txt
 build:
   image: latest
 python:
-  version: 3.7
+  version: 3.6
   pip_install: true
   extra_requirements:
       - contrib
