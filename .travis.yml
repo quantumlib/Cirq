@@ -78,3 +78,12 @@ matrix:
     - pip install -r requirements.txt
     - pip install -r cirq/contrib/contrib-requirements.txt
     script: check/doctest -q
+  - stage: build-docs
+    os: linux
+    env: NAME=buil-docs
+    python: '3.6'
+    install:
+    - pip install -r requirements.txt
+    - pip install -r cirq/contrib/contrib-requirements.txt
+    - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: dev_tools/build-docs.sh
