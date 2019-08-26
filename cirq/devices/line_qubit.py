@@ -148,6 +148,9 @@ class LineQid(_BaseLineQid):
     def __str__(self):
         return '{!s} (d={})'.format(self.x, self.levels)
 
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['x', 'levels'])
+
 
 class LineQubit(_BaseLineQid):
     """A qubit on a 1d lattice with nearest-neighbor connectivity.

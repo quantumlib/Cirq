@@ -164,6 +164,9 @@ class _WrappedQid(Qid):
     def __str__(self):
         return '{!s} (levels={})'.format(self.qid, self.levels)
 
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['qid', 'levels'])
+
 
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     """An operation type that can be applied to a collection of qubits.
