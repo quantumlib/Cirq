@@ -327,7 +327,7 @@ class SwapNetworkGate(PermutationGate):
                         swap_gate: ops.Gate=ops.SWAP
                         ) -> 'SwapNetworkGate':
         part_sizes = operations_to_part_lens(qubit_order, operations)
-        return SwapNetworkGate(part_sizes, acquaintance_size)
+        return SwapNetworkGate(part_sizes, acquaintance_size, swap_gate)
 
     def permutation(self) -> Dict[int, int]:
         return {i: j for i, j in

@@ -118,13 +118,17 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
     def __init__(self,
                  *,
                  dtype: Type[np.number] = np.complex64,
-                 noise: devices.NoiseModel = devices.NO_NOISE):
+                 noise: devices.NoiseModel = devices.NO_NOISE,
+                 seed: Optional[int] = None):
         """Density matrix simulator.
 
          Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
+            seed: The random seed to use for this simulator. Sets numpy's
+                random seed. Setting numpy's seed different in between
+                use of this class will lead to non-seeded behavior.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
@@ -132,6 +136,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         self._dtype = dtype
         self.noise = noise
+        if seed:
+            np.random.seed(seed)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -140,6 +146,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit,
                                                         param_resolver)
+        self._check_all_resolved(resolved_circuit)
 
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
@@ -192,6 +199,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
         return self._base_iterator(resolved_circuit,
                                    qubit_order,
@@ -395,6 +403,17 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         return compute_displays_results
 
+    def _check_all_resolved(self, circuit):
+        """Raises if the circuit contains unresolved symbols."""
+        if protocols.is_parameterized(circuit):
+            unresolved = [
+                op for moment in circuit for op in moment
+                if protocols.is_parameterized(op)
+            ]
+            raise ValueError(
+                'Circuit contains ops whose symbols were not specified in '
+                'parameter sweep. Ops: {}'.format(unresolved))
+
 
 def _enter_moment_display_values_into_dictionary(
         display_values: Dict,
@@ -513,16 +532,17 @@ class DensityMatrixStepResult(simulator.StepResult):
              Then the returned density matrix will have (row and column) indices
              mapped to qubit basis states like the following table
 
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
+
         """
         size = 2 ** len(self._qubit_map)
         return np.reshape(self._density_matrix, (size, size))
@@ -579,16 +599,16 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
          Then the returned density matrix will have (row and column) indices
          mapped to qubit basis states like the following table
 
-                | QubitA | QubitB | QubitC
-            :-: | :----: | :----: | :----:
-             0  |   0    |   0    |   0
-             1  |   0    |   0    |   1
-             2  |   0    |   1    |   0
-             3  |   0    |   1    |   1
-             4  |   1    |   0    |   0
-             5  |   1    |   0    |   1
-             6  |   1    |   1    |   0
-             7  |   1    |   1    |   1
+            |     | QubitA | QubitB | QubitC |
+            | :-: | :----: | :----: | :----: |
+            |  0  |   0    |   0    |   0    |
+            |  1  |   0    |   0    |   1    |
+            |  2  |   0    |   1    |   0    |
+            |  3  |   0    |   1    |   1    |
+            |  4  |   1    |   0    |   0    |
+            |  5  |   1    |   0    |   1    |
+            |  6  |   1    |   1    |   0    |
+            |  7  |   1    |   1    |   1    |
 
     Attributes:
         params: A ParamResolver of settings used for this result.

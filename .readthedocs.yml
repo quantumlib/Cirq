@@ -4,5 +4,6 @@ build:
 python:
   version: 3.7
   pip_install: true
-  extras_requirements:
+  extra_requirements:
       - contrib
+      - dev_env

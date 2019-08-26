@@ -18,6 +18,7 @@ from typing import Sequence
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -29,6 +30,32 @@ def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
     cirq.testing.assert_allclose_up_to_global_phase(actual_effect,
                                                     intended_effect,
                                                     atol=atol)
+
+
+def test_is_negligible_turn():
+    assert cirq.is_negligible_turn(0, 1e-5)
+    assert cirq.is_negligible_turn(1e-6, 1e-5)
+    assert cirq.is_negligible_turn(1, 1e-5)
+    assert cirq.is_negligible_turn(1 + 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(1 - 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(-1, 1e-5)
+    assert cirq.is_negligible_turn(-1 + 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(-1 - 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(3, 1e-5)
+    assert cirq.is_negligible_turn(3 + 1e-6, 1e-5)
+    assert not cirq.is_negligible_turn(1e-4, 1e-5)
+    assert not cirq.is_negligible_turn(-1e-4, 1e-5)
+    assert not cirq.is_negligible_turn(0.5, 1e-5)
+    assert not cirq.is_negligible_turn(-0.5, 1e-5)
+    assert not cirq.is_negligible_turn(0.5, 1e-5)
+    assert not cirq.is_negligible_turn(4.5, 1e-5)
+    # Variable sympy expression
+    assert not cirq.is_negligible_turn(sympy.Symbol('a'), 1e-5)
+    assert not cirq.is_negligible_turn(sympy.Symbol('a') + 1, 1e-5)
+    assert not cirq.is_negligible_turn(sympy.Symbol('a') * 1e-10, 1e-5)
+    # Constant sympy expression
+    assert cirq.is_negligible_turn(sympy.Symbol('a') * 0 + 3 + 1e-6, 1e-5)
+    assert not cirq.is_negligible_turn(sympy.Symbol('a') * 0 + 1.5 - 1e-6, 1e-5)
 
 
 def test_single_qubit_matrix_to_gates_known_x():

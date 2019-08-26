@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, TYPE_CHECKING, Tuple, Optional
+from typing import Union, TYPE_CHECKING, Tuple
 
-import sympy
+from cirq import value
 from cirq.ops import common_gates, raw_types
+
 
 if TYPE_CHECKING:
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
@@ -86,33 +87,51 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
 
 class _PauliX(Pauli, common_gates.XPowGate):
-    def __init__(self, *, exponent: Union[sympy.Basic, float] = 1.0):
+
+    def __init__(self, *, exponent: value.TParamVal = 1.0):
         Pauli.__init__(self, index=0, name='X')
         common_gates.XPowGate.__init__(self, exponent=exponent)
 
     def __pow__(self: '_PauliX',
-                exponent: Union[sympy.Basic, float]) -> common_gates.XPowGate:
+                exponent: value.TParamVal) -> common_gates.XPowGate:
         return common_gates.XPowGate(exponent=exponent)
+
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
-    def __init__(self, *, exponent: Union[sympy.Basic, float] = 1.0):
+
+    def __init__(self, *, exponent: value.TParamVal = 1.0):
         Pauli.__init__(self, index=1, name='Y')
         common_gates.YPowGate.__init__(self, exponent=exponent)
 
     def __pow__(self: '_PauliY',
-                exponent: Union[sympy.Basic, float]) -> common_gates.YPowGate:
+                exponent: value.TParamVal) -> common_gates.YPowGate:
         return common_gates.YPowGate(exponent=exponent)
+
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
-    def __init__(self, *, exponent: Union[sympy.Basic, float] = 1.0):
+
+    def __init__(self, *, exponent: value.TParamVal = 1.0):
         Pauli.__init__(self, index=2, name='Z')
         common_gates.ZPowGate.__init__(self, exponent=exponent)
 
     def __pow__(self: '_PauliZ',
-                exponent: Union[sympy.Basic, float]) -> common_gates.ZPowGate:
+                exponent: value.TParamVal) -> common_gates.ZPowGate:
         return common_gates.ZPowGate(exponent=exponent)
+
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
 
 
 # The Pauli X gate.
@@ -123,7 +142,6 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
 #    [1, 0]]
 X = _PauliX()
 
-
 # The Pauli Y gate.
 #
 # Matrix:
@@ -132,7 +150,6 @@ X = _PauliX()
 #      [i, 0]]
 Y = _PauliY()
 
-
 # The Pauli Z gate.
 #
 # Matrix:
@@ -140,6 +157,5 @@ Y = _PauliY()
 #     [[1, 0],
 #      [0, -1]]
 Z = _PauliZ()
-
 
 Pauli._XYZ = (X, Y, Z)

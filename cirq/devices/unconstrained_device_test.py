@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,23 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dev_tools import (
-    check_incremental_coverage,
-    check_pylint,
-    check_pytest_with_coverage,
-    check_typecheck,
-)
+import cirq
 
 
-pylint = check_pylint.LintCheck()
-typecheck = check_typecheck.TypeCheck()
-pytest = check_pytest_with_coverage.TestAndPrepareCoverageCheck()
-incremental_coverage = check_incremental_coverage.IncrementalCoverageCheck(
-    pytest)
+def test_repr():
+    cirq.testing.assert_equivalent_repr(cirq.UNCONSTRAINED_DEVICE)
 
-ALL_CHECKS = [
-    pylint,
-    typecheck,
-    pytest,
-    incremental_coverage,
-]
+
+def test_infinitely_fast():
+    assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(
+        cirq.NamedQubit('a'))) == cirq.Duration(picos=0)

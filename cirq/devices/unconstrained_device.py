@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.devices.device import Device
-from cirq.value import Duration
+from cirq import value, protocols
+from cirq.devices import device
 
 
-class _UnconstrainedDeviceType(Device):
-    """A device that allows everything."""
+@value.value_equality()
+class _UnconstrainedDevice(device.Device):
+    """A device that allows everything, infinitely fast."""
 
     def duration_of(self, operation):
-        return Duration(picos=0)
+        return value.Duration(picos=0)
 
     def validate_operation(self, operation):
         pass
@@ -35,7 +36,13 @@ class _UnconstrainedDeviceType(Device):
         pass
 
     def __repr__(self):
-        return 'cirq.UnconstrainedDevice'  # coverage: ignore
+        return 'cirq.UNCONSTRAINED_DEVICE'
+
+    def _value_equality_values_(self):
+        return ()
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, [])
 
 
-UnconstrainedDevice = _UnconstrainedDeviceType()  # type: Device
+UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()
