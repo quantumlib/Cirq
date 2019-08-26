@@ -4,3 +4,6 @@ build:
 python:
   version: 3.6
   pip_install: true
+  extra_requirements:
+      - contrib
+      - dev_env
