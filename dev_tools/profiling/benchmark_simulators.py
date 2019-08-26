@@ -21,10 +21,7 @@ import timeit
 import numpy as np
 
 import cirq
-import cirq.google as cg
 
-
-_XMON = 'xmon'
 _UNITARY = 'unitary'
 _DENSITY = 'density_matrix'
 
@@ -36,11 +33,7 @@ test_device = cirq.google.XmonDevice(
     qubits=[cirq.GridQubit(0, k) for k in range(100)])
 
 
-def simulate(sim_type: str,
-             num_qubits: int,
-             num_gates: int,
-             num_prefix_qubits: int = 0,
-             use_processes: bool = False) -> None:
+def simulate(sim_type: str, num_qubits: int, num_gates: int) -> None:
     """"Runs the simulator."""
     circuit = cirq.Circuit(device=test_device)
 
@@ -66,11 +59,7 @@ def simulate(sim_type: str,
                      key='meas')
     ])
 
-    if sim_type == _XMON:
-        options = cg.XmonOptions(num_shards=2 ** num_prefix_qubits,
-                                 use_processes=use_processes)
-        cg.XmonSimulator(options).run(circuit)
-    elif sim_type == _UNITARY:
+    if sim_type == _UNITARY:
         circuit.final_wavefunction(initial_state=0)
     elif sim_type == _DENSITY:
         cirq.DensityMatrixSimulator().run(circuit)
@@ -80,17 +69,12 @@ def main(sim_type: str,
          min_num_qubits: int,
          max_num_qubits: int,
          num_gates: int,
-         num_prefix_qubits: int,
-         use_processes: bool,
          num_repetitions: int,
-         setup: str= 'from __main__ import simulate'):
+         setup: str = 'from __main__ import simulate'):
     print('num_qubits,seconds per gate')
     for num_qubits in range(min_num_qubits, max_num_qubits + 1):
-        command = 'simulate(\'{}\', {}, {}, {}, {})'.format(sim_type,
-                                                            num_qubits,
-                                                            num_gates,
-                                                            num_prefix_qubits,
-                                                            use_processes)
+        command = 'simulate(\'{}\', {}, {})'.format(sim_type, num_qubits,
+                                                    num_gates)
         time = timeit.timeit(command, setup, number=num_repetitions)
         print('{},{}'.format(num_qubits, time / (num_repetitions * num_gates)))
 
@@ -98,24 +82,21 @@ def main(sim_type: str,
 
 def parse_arguments(args):
     parser = argparse.ArgumentParser('Benchmark a simulator.')
-    parser.add_argument('--sim_type', choices=[_XMON, _UNITARY, _DENSITY],
-                        default=_XMON,
-                        help='Which simulator to benchmark.', type=str)
+    parser.add_argument('--sim_type',
+                        choices=[_UNITARY, _DENSITY],
+                        default=_UNITARY,
+                        help='Which simulator to benchmark.',
+                        type=str)
     parser.add_argument('--min_num_qubits', default=4, type=int,
                         help='Minimum number of qubits to benchmark.')
     parser.add_argument('--max_num_qubits', default=26, type=int,
                         help='Maximum number of qubits to benchmark.')
     parser.add_argument('--num_gates', default=100, type=int,
                         help='Number of gates in a single run.')
-    parser.add_argument('--num_repetitions', default=10, type=int,
+    parser.add_argument('--num_repetitions',
+                        default=10,
+                        type=int,
                         help='Number of times to repeat a simulation')
-    parser.add_argument('--num_prefix_qubits', default=2, type=int,
-                        help='Used for sharded simulators, the number of '
-                             'shards is 2 raised to this number.')
-    parser.add_argument('--use_processes', default=False,
-                        action='store_true',
-                        help='Whether or not to use multiprocessing '
-                             '(otherwise uses threads).')
     return vars(parser.parse_args(args))
 
 

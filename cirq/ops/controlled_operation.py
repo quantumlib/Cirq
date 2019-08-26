@@ -23,21 +23,17 @@ from cirq.protocols import trace_distance_from_angle_list
 
 @value.value_equality
 class ControlledOperation(raw_types.Operation):
-    def __new__(cls,
-                controls: Sequence[raw_types.Qid],
-                sub_operation: raw_types.Operation):
-        """Auto-flatten nested controlled operations."""
-        if isinstance(sub_operation, ControlledOperation):
-            return ControlledOperation(
-                tuple(controls) + sub_operation.controls,
-                sub_operation.sub_operation)
-        return super().__new__(cls)
 
     def __init__(self,
                  controls: Sequence[raw_types.Qid],
                  sub_operation: raw_types.Operation):
-        self.controls = tuple(controls)
-        self.sub_operation = sub_operation
+        if not isinstance(sub_operation, ControlledOperation):
+            self.controls = tuple(controls)
+            self.sub_operation = sub_operation
+        else:
+            # Auto-flatten nested controlled operations.
+            self.controls = tuple(controls) + sub_operation.controls
+            self.sub_operation = sub_operation.sub_operation
 
     @property
     def qubits(self):

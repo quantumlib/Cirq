@@ -36,7 +36,7 @@ from cirq.devices import (
     LineQubit,
     NO_NOISE,
     NoiseModel,
-    UnconstrainedDevice,
+    UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
@@ -165,7 +165,7 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
-    reset,
+    RESET,
     ResetChannel,
     Rx,
     Ry,
@@ -260,7 +260,13 @@ from cirq.sim import (
 
 from cirq.study import (
     ComputeDisplaysResult,
+    ExpressionMap,
+    flatten,
+    flatten_with_params,
+    flatten_with_sweep,
     Linspace,
+    ListSweep,
+    ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
     plot_state_histogram,
@@ -269,6 +275,7 @@ from cirq.study import (
     Sweep,
     Sweepable,
     to_resolvers,
+    to_sweep,
     TrialResult,
     UnitSweep,
     Zip,
@@ -328,6 +335,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
+    read_json,
     resolve_parameters,
     SupportsApplyChannel,
     SupportsConsistentApplyUnitary,
@@ -346,6 +354,8 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json,
+    to_json_dict,
     trace_distance_bound,
     unitary,
     validate_mixture,

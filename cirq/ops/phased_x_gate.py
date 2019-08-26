@@ -90,6 +90,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
@@ -209,3 +213,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 exponent=self._exponent,
                 global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(
+            self, ['phase_exponent', 'exponent', 'global_shift'])

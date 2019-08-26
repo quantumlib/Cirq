@@ -70,17 +70,12 @@ def _key_to_str(key: TMeasurementKey) -> str:
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
     Stored as a Pandas DataFrame that can be accessed through the "data"
-    attribute. The repitition number is the row index and measurement keys
+    attribute. The repetition number is the row index and measurement keys
     are the columns of the DataFrame. Each element is a Pandas Series of
     measurement outcomes per bit for the measurement key in that repitition.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
-            by the qubits being measured.)
     """
 
     def __init__(

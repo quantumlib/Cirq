@@ -111,6 +111,10 @@ class EigenGate(raw_types.Gate):
     def exponent(self) -> value.TParamVal:
         return self._exponent
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     # virtual method
     def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
@@ -344,6 +348,9 @@ class EigenGate(raw_types.Gate):
         period = self_without_phase._period()
         canonical_diff = (exponents[0] - exponents[1]) % period
         return np.isclose(canonical_diff, 0, atol=atol)
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['exponent', 'global_shift'])
 
 
 def _lcm(vals: Iterable[int]) -> int:

@@ -16,6 +16,7 @@
 
 from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
 
+from cirq import protocols
 from cirq.protocols import approx_eq
 from cirq.ops import raw_types
 
@@ -146,6 +147,9 @@ class Moment:
                          ) -> TSelf_Moment:
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['operations'])
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
