@@ -323,20 +323,27 @@ class EigenGate(raw_types.Gate):
         if not isinstance(other, EigenGate):
             return NotImplemented
 
-        exponents = (self._canonical_exponent, other._canonical_exponent)
+        exponents = (self.exponent, other.exponent)
         exponents_is_parameterized = tuple(
             protocols.is_parameterized(e) for e in exponents)
         if (all(exponents_is_parameterized) and exponents[0] != exponents[1]):
             return False
-        if (any(exponents_is_parameterized) or
-                not np.isclose(exponents[0], exponents[1], atol=atol)):
+        if any(exponents_is_parameterized):
+            return False
+        self_without_phase = self._with_exponent(self.exponent)
+        self_without_phase._global_shift = 0
+        self_without_exp_or_phase = self_without_phase._with_exponent(0)
+        other_without_phase = other._with_exponent(other.exponent)
+        other_without_phase._global_shift = 0
+        other_without_exp_or_phase = other_without_phase._with_exponent(0)
+        if not protocols.approx_eq(self_without_exp_or_phase,
+                                   other_without_exp_or_phase,
+                                   atol=atol):
             return False
 
-        self_without_exp_or_phase = self._with_exponent(0)
-        self_without_exp_or_phase._global_shift = 0
-        other_without_exp_or_phase = other._with_exponent(0)
-        other_without_exp_or_phase._global_shift = 0
-        return self_without_exp_or_phase == other_without_exp_or_phase
+        period = self_without_phase._period()
+        canonical_diff = (exponents[0] - exponents[1]) % period
+        return np.isclose(canonical_diff, 0, atol=atol)
 
 
 def _lcm(vals: Iterable[int]) -> int:

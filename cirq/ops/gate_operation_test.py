@@ -325,6 +325,7 @@ def test_equal_up_to_global_phase_on_gates(gate1, gate2, eq_up_to_global_phase):
     op2_on_diff_qubits = gate2(*qubits[1:num_qubits2 + 1])
     assert not cirq.equal_up_to_global_phase(op1, op2_on_diff_qubits)
 
+
 def test_equal_up_to_global_phase_on_diff_types():
     op = cirq.X(cirq.LineQubit(0))
     assert not cirq.equal_up_to_global_phase(op, 3)

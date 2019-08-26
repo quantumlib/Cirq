@@ -380,6 +380,7 @@ def test_diagram_period():
     (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
     (cirq.ZPowGate(global_shift=0.5)**sympy.Symbol('e'), cirq.Z, False),
     (cirq.Z**sympy.Symbol('e'), cirq.Z**sympy.Symbol('f'), False),
+    (cirq.ZZ**1.9, cirq.ZZ**-0.1, True),
 ])
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):
     assert cirq.equal_up_to_global_phase(gate1, gate2) == eq_up_to_global_phase
