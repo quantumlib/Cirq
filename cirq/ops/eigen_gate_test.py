@@ -373,6 +373,29 @@ def test_diagram_period():
     assert ShiftyGate(505.2, 0, np.pi, np.e)._diagram_exponent(args) == 505.2
 
 
+class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
+
+    def __init__(self, weight, **kwargs):
+        self.weight = weight
+        super().__init__(**kwargs)
+
+    def _value_equality_values_(self):
+        return self.weight, self._canonical_exponent, self._global_shift
+
+    _value_equality_approximate_values_ = _value_equality_values_
+
+    def _eigen_components(self):
+        return [
+            (0, np.diag([1, 0])),
+            (self.weight, np.diag([0, 1])),
+        ]
+
+    def _with_exponent(self, exponent):
+        return type(self)(self.weight,
+                          exponent=exponent,
+                          global_shift=self._global_shift)
+
+
 @pytest.mark.parametrize('gate1,gate2,eq_up_to_global_phase', [
     (cirq.Rz(0.3 * np.pi), cirq.Z**0.3, True),
     (cirq.Z, cirq.Gate, False),
@@ -381,6 +404,8 @@ def test_diagram_period():
     (cirq.ZPowGate(global_shift=0.5)**sympy.Symbol('e'), cirq.Z, False),
     (cirq.Z**sympy.Symbol('e'), cirq.Z**sympy.Symbol('f'), False),
     (cirq.ZZ**1.9, cirq.ZZ**-0.1, True),
+    (WeightedZPowGate(0), WeightedZPowGate(0.1), False),
+    (WeightedZPowGate(0.3), WeightedZPowGate(0.3, global_shift=0.1), True),
 ])
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):
     assert cirq.equal_up_to_global_phase(gate1, gate2) == eq_up_to_global_phase
