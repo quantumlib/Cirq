@@ -55,8 +55,8 @@ class ValidQid(cirq.Qid):
 
 
 def test_wrapped_qid():
-    assert (ValidQubit('a').with_levels(3).with_levels(4)
-            == ValidQubit('a').with_levels(4))
+    assert ValidQubit('a').with_levels(3).with_levels(4) == ValidQubit(
+        'a').with_levels(4)
     assert ValidQubit('a').with_levels(3).qid == ValidQubit('a')
     assert ValidQubit('a').with_levels(3) == ValidQubit('a').with_levels(3)
     assert ValidQubit('a').with_levels(3) < ValidQubit('a').with_levels(4)

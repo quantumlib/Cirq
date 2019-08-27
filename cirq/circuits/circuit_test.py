@@ -3197,6 +3197,7 @@ def test_moments_property():
 
 
 def test_operation_shape_validation():
+
     class BadOperation1(cirq.Operation):
 
         def _qid_shape_(self):

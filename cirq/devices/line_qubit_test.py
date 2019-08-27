@@ -59,8 +59,8 @@ def test_cmp():
 
     assert cirq.LineQid(0, 2) == cirq.LineQid(0, 2)
     assert cirq.LineQid(0, 2) != cirq.LineQid(1, 2)
-    assert cirq.LineQid(0, 2) <  cirq.LineQid(1, 2)
-    assert cirq.LineQid(1, 2) >  cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) < cirq.LineQid(1, 2)
+    assert cirq.LineQid(1, 2) > cirq.LineQid(0, 2)
     assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 2)
     assert cirq.LineQid(0, 2) <= cirq.LineQid(1, 2)
     assert cirq.LineQid(0, 2) >= cirq.LineQid(0, 2)
@@ -68,8 +68,8 @@ def test_cmp():
 
     assert cirq.LineQid(0, 2) == cirq.LineQid(0, 2)
     assert cirq.LineQid(0, 2) != cirq.LineQid(0, 3)
-    assert cirq.LineQid(0, 2) <  cirq.LineQid(0, 3)
-    assert cirq.LineQid(0, 3) >  cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) < cirq.LineQid(0, 3)
+    assert cirq.LineQid(0, 3) > cirq.LineQid(0, 2)
     assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 2)
     assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 3)
     assert cirq.LineQid(0, 2) >= cirq.LineQid(0, 2)
@@ -132,7 +132,10 @@ def test_range():
 def test_qid_range():
     assert cirq.LineQid.range(0, levels=3) == []
     assert cirq.LineQid.range(1, levels=3) == [cirq.LineQid(0, 3)]
-    assert cirq.LineQid.range(2, levels=3) == [cirq.LineQid(0, 3), cirq.LineQid(1, 3)]
+    assert cirq.LineQid.range(2, levels=3) == [
+        cirq.LineQid(0, 3),
+        cirq.LineQid(1, 3),
+    ]
     assert cirq.LineQid.range(5, levels=3) == [
         cirq.LineQid(0, 3),
         cirq.LineQid(1, 3),
@@ -143,16 +146,21 @@ def test_qid_range():
 
     assert cirq.LineQid.range(0, 0, levels=4) == []
     assert cirq.LineQid.range(0, 1, levels=4) == [cirq.LineQid(0, 4)]
-    assert cirq.LineQid.range(
-        1, 4, levels=4) == [cirq.LineQid(1, 4),
-                            cirq.LineQid(2, 4),
-                            cirq.LineQid(3, 4)]
+    assert cirq.LineQid.range(1, 4, levels=4) == [
+        cirq.LineQid(1, 4),
+        cirq.LineQid(2, 4),
+        cirq.LineQid(3, 4),
+    ]
 
-    assert cirq.LineQid.range(3, 1, -1, levels=1) == [cirq.LineQid(3, 1),
-                                        cirq.LineQid(2, 1)]
+    assert cirq.LineQid.range(3, 1, -1, levels=1) == [
+        cirq.LineQid(3, 1),
+        cirq.LineQid(2, 1),
+    ]
     assert cirq.LineQid.range(3, 5, -1, levels=2) == []
-    assert cirq.LineQid.range(1, 5, 2, levels=2) == [cirq.LineQid(1, 2),
-                                       cirq.LineQid(3, 2)]
+    assert cirq.LineQid.range(1, 5, 2, levels=2) == [
+        cirq.LineQid(1, 2),
+        cirq.LineQid(3, 2),
+    ]
 
 
 def test_addition_subtraction():
@@ -225,6 +233,7 @@ def test_for_qid_shape():
 
 
 def test_for_gate():
+
     class NoQidGate:
 
         def _qid_shape_(self):
