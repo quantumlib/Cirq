@@ -361,7 +361,7 @@ class PauliSum:
                 raise ValueError("Number of qubits in `qubit_map` does not "
                                  "match the number of qubits in "
                                  "PauliString <{}>".format(self))
-            # HACK: Avoid circular import.
+            # HACK: Avoid circular import. See issue #2000.
             from cirq.sim.wave_function import to_valid_state_vector
             state = to_valid_state_vector(state, num_qubits, dtype=state.dtype)
             return sum([p._expectation_from_wavefunction(state, qubit_map) for p in self])
@@ -372,7 +372,7 @@ class PauliSum:
                 raise ValueError("Number of qubits in `qubit_map` does not "
                                  "match the number of qubits in "
                                  "PauliString <{}>".format(self))
-            # HACK: Avoid circular import.
+            # HACK: Avoid circular import. See issue #2000.
             from cirq.sim.density_matrix_utils import to_valid_density_matrix
             state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
             return sum([p._expectation_from_density_matrix(state, qubit_map) for p in self])

@@ -795,6 +795,7 @@ def test_expectation_qubit_map():
     np.testing.assert_allclose(z.expectation(state, qubit_map={q0: 2, q1: 1, q2: 0}), -1)
 
 
+
 def test_pauli_string_expectation_value_pure_state():
     qubits = cirq.LineQubit.range(4)
     qubit_index_map = {q: i for i, q in enumerate(qubits)}

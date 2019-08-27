@@ -297,6 +297,28 @@ class PauliString(raw_types.Operation):
         raise ValueError("Input array does not represent a wavefunction with "
                          "shape `(2 ** n,)` or `(2, 2, ..., 2)`.")
 
+    def _expectation_from_wavefunction(self,
+                                       state: np.ndarray,
+                                       qubit_map: Dict[raw_types.Qid, int]
+                                       ) -> float:
+        """Evaluate the expectation of this PauliString given a wavefunction.
+
+        This method does not provide input validation. See
+        `PauliString.expectation_from_wavefunction` for function description.
+        """
+        ket = state
+        if len(state.shape) == 1:
+            num_qubits = state.shape[0].bit_length() - 1
+            ket = np.reshape(np.copy(state), (2,) * num_qubits)
+        for qubit, pauli in self.items():
+            buffer = np.empty(ket.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(target_tensor=ket,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
+            ket = protocols.apply_unitary(pauli, args)
+        ket = np.reshape(ket, state.shape)
+        return np.dot(state.conj(), ket) * self.coefficient
+
     def expectation_from_density_matrix(
         self,
         state: np.ndarray,
@@ -356,54 +378,14 @@ class PauliString(raw_types.Operation):
         raise ValueError("Input array does not represent a density matrix with "
                          "shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)`.")
 
-    def _expectation_from_wavefunction(self,
-                                       state: np.ndarray,
-                                       qubit_map: Dict[raw_types.Qid, int]
-                                       ) -> float:
-        """Evaluate the expectation of this PauliString given a wavefunction.
-
-        `state` must be an array representation of a wavefunction and have
-        shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
-        expressed over n qubits.
-
-        Args:
-            state: An array representing a wavefunction.
-            qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
-
-        Returns:
-            The expectation value of the input state.
-        """
-        ket = state
-        if len(state.shape) == 1:
-            num_qubits = state.shape[0].bit_length() - 1
-            ket = np.reshape(np.copy(state), (2,) * num_qubits)
-        for qubit, pauli in self.items():
-            buffer = np.empty(ket.shape, dtype=state.dtype)
-            args = protocols.ApplyUnitaryArgs(target_tensor=ket,
-                                              available_buffer=buffer,
-                                              axes=(qubit_map[qubit],))
-            ket = protocols.apply_unitary(pauli, args)
-        ket = np.reshape(ket, state.shape)
-        return np.dot(state.conj(), ket) * self.coefficient
-
     def _expectation_from_density_matrix(self,
                                          state: np.ndarray,
                                          qubit_map: Dict[raw_types.Qid, int]
                                          ) -> float:
         """Evaluate the expectation of this PauliString given a density matrix.
 
-        `state` must be an array representation of a density matrix and have
-        shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)` (2*n entries), where
-        `state` is expressed over n qubits.
-
-        Args:
-            state: An array representing a wavefunction.
-            qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
-
-        Returns:
-            The expectation value of the input state.
+        This method does not provide input validation. See
+        `PauliString.expectation_from_density_matrix` for function description.
         """
         result = state
         if len(result.shape) == 2:
