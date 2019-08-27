@@ -136,7 +136,7 @@ the more general concept of a noisy open system quantum evolution.
     DepolarizingChannel
     generalized_amplitude_damp
     GeneralizedAmplitudeDampingChannel
-    reset
+    RESET
     ResetChannel
     phase_damp
     phase_flip
