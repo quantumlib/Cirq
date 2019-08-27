@@ -17,7 +17,6 @@ Classes for identifying the qubits and hardware you want to operate on.
     LineQubit
     NamedQubit
     Qid
-    UnconstrainedDevice
 
 
 Single Qubit Unitary Gates
@@ -137,7 +136,7 @@ the more general concept of a noisy open system quantum evolution.
     DepolarizingChannel
     generalized_amplitude_damp
     GeneralizedAmplitudeDampingChannel
-    reset
+    RESET
     ResetChannel
     phase_damp
     phase_flip
