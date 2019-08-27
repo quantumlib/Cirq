@@ -17,14 +17,9 @@ import cirq
 from cirq.study import flatten_expressions
 
 
-# The printed order of terms in a two term expression containing a negative
-# factor changed from sympy 1.3 to 1.4
-ONE_MINUS_A_2 = '<{!s}>'.format(1 - sympy.Symbol('a') / 2)
-
-
-def test_sympy_negative_term_ordering():
-    # Sympy >=1.4 vs sympy <=1.3
-    assert ONE_MINUS_A_2 == '<1 - a/2>' or ONE_MINUS_A_2 == '<-a/2 + 1>'
+# None of the following tests use expressions of the form
+# <constant term> - <other term> because the string of these expressions is not
+# consistent for sympy versions <1.4 vs >=1.4.
 
 
 def test_expr_map_names():
@@ -82,20 +77,20 @@ def test_flatten_circuit():
     a = sympy.Symbol('a')
     circuit = cirq.Circuit.from_ops(
         cirq.X(qubit)**a,
-        cirq.X(qubit)**(1 - a / 2),
+        cirq.X(qubit)**(1 + a / 2),
     )
 
     c_flat, expr_map = cirq.flatten(circuit)
 
     c_expected = cirq.Circuit.from_ops(
         cirq.X(qubit)**a,
-        cirq.X(qubit)**sympy.Symbol(ONE_MINUS_A_2),
+        cirq.X(qubit)**sympy.Symbol('<a/2 + 1>'),
     )
     assert c_flat == c_expected
     assert isinstance(expr_map, cirq.ExpressionMap)
     assert expr_map == {
         a: a,
-        1 - a / 2: sympy.Symbol(ONE_MINUS_A_2),
+        1 + a / 2: sympy.Symbol('<a/2 + 1>'),
     }
 
 
@@ -104,7 +99,7 @@ def test_transform_params():
     a = sympy.Symbol('a')
     circuit = cirq.Circuit.from_ops(
         cirq.X(qubit)**(a / 4),
-        cirq.X(qubit)**(1 - a / 2),
+        cirq.X(qubit)**(1 + a / 2),
     )
     params = {'a': 3}
 
@@ -112,7 +107,7 @@ def test_transform_params():
 
     expected_params = {
         sympy.Symbol('<a/4>'): 3 / 4,
-        sympy.Symbol(ONE_MINUS_A_2): 1 - 3 / 2
+        sympy.Symbol('<a/2 + 1>'): 1 + 3 / 2
     }
     assert new_params == expected_params
 
@@ -122,7 +117,7 @@ def test_transform_sweep():
     a = sympy.Symbol('a')
     circuit = cirq.Circuit.from_ops(
         cirq.X(qubit)**(a / 4),
-        cirq.X(qubit)**(1 - a / 2),
+        cirq.X(qubit)**(1 + a / 2),
     )
     sweep = cirq.Linspace(a, start=0, stop=3, length=4)
 
@@ -133,19 +128,19 @@ def test_transform_sweep():
     expected_resolvers = [
         cirq.ParamResolver({
             '<a/4>': 0.0,
-            ONE_MINUS_A_2: 1.0,
+            '<a/2 + 1>': 1.0,
         }),
         cirq.ParamResolver({
             '<a/4>': 0.25,
-            ONE_MINUS_A_2: 0.5,
+            '<a/2 + 1>': 1.5,
         }),
         cirq.ParamResolver({
             '<a/4>': 0.5,
-            ONE_MINUS_A_2: 0,
+            '<a/2 + 1>': 2,
         }),
         cirq.ParamResolver({
             '<a/4>': 0.75,
-            ONE_MINUS_A_2: -0.5,
+            '<a/2 + 1>': 2.5,
         })
     ]
     assert resolvers == expected_resolvers
