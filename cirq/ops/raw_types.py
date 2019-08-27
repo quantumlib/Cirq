@@ -151,7 +151,7 @@ class _WrappedQid(Qid):
     def levels(self) -> int:
         return self._levels
 
-    def with_levels(self, levels: int) -> '_WrappedQid':
+    def with_levels(self, levels: int) -> Qid:
         """Returns a copy with a different number of levels."""
         return self.qid.with_levels(levels)
 

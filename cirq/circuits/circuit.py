@@ -884,7 +884,9 @@ class Circuit:
         Raises:
             ValueError: The operation had qids that don't match its qid shape.
         """
-        for op in ops.flatten_op_tree(op_tree):
+        # Cast from Iterable[Operation, Moment] because preserve_moments is
+        # False.
+        for op in cast(Iterable[ops.Operation], ops.flatten_op_tree(op_tree)):
             op.validate_qubits()
 
     def insert(
