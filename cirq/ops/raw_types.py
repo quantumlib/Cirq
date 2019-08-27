@@ -437,20 +437,20 @@ class _InverseCompositeGate(Gate):
 
 
 def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
-        """Helper function to validate qubits for gates and operations.
+    """Helper function to validate qubits for gates and operations.
 
-        Raises:
-            ValueError: The operation had qids that don't match it's qid shape.
-        """
-        if any(not isinstance(qid, Qid) for qid in qubits):
-            raise ValueError('Gate was called with type different than Qid.')
-        qid_shape = protocol.qid_shape(val)
-        if len(qubits) != len(qid_shape):
-            raise ValueError('Wrong number of qubits for <{!r}>. '
-                             'Expected {} qubits but got <{!r}>.'.format(
-                                val, len(qid_shape), qubits))
-        if any(qid.levels != levels for qid, levels in zip(qubits, qid_shape)):
-            raise ValueError('Wrong shape of qids for <{!r}>. '
-                             'Expected {} but got {} <{!r}>.'.format(
-                                val, qid_shape,
-                                tuple(qid.levels for qid in qubits), qubits))
+    Raises:
+        ValueError: The operation had qids that don't match it's qid shape.
+    """
+    if any(not isinstance(qid, Qid) for qid in qubits):
+        raise ValueError('Gate was called with type different than Qid.')
+    qid_shape = protocols.qid_shape(val)
+    if len(qubits) != len(qid_shape):
+        raise ValueError('Wrong number of qubits for <{!r}>. '
+                         'Expected {} qubits but got <{!r}>.'.format(
+                            val, len(qid_shape), qubits))
+    if any(qid.levels != levels for qid, levels in zip(qubits, qid_shape)):
+        raise ValueError('Wrong shape of qids for <{!r}>. '
+                         'Expected {} but got {} <{!r}>.'.format(
+                            val, qid_shape,
+                            tuple(qid.levels for qid in qubits), qubits))

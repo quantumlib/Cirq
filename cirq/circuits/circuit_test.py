@@ -1489,7 +1489,7 @@ def test_qid_shape_qudit():
         def _qid_shape_(self):
             return (1,)
 
-    a, b, c, d = cirq.LineQid.for_qid_shape((3, 2, 1, 2))
+    a, b, c = cirq.LineQid.for_qid_shape((3, 2, 1))
 
     circuit = cirq.Circuit.from_ops(
         PlusOneMod3Gate().on(a),

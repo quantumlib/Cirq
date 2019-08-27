@@ -29,7 +29,6 @@ def assert_decompose_is_consistent_with_unitary(
     if expected is None:
         # If there's no unitary, it's vacuously consistent.
         return
-    qubit_count = len(expected).bit_length() - 1
     if isinstance(val, ops.Operation):
         qubits = val.qubits
         dec = protocols.decompose_once(val, default=None)

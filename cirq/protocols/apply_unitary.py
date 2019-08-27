@@ -450,7 +450,6 @@ def apply_unitaries(unitary_values: Iterable[Any],
         TypeError: An item from `unitary_values` doesn't have a unitary effect
             and `default` wasn't specified.
     """
-    from cirq import ops
     if args is None:
         qid_shape = qid_shape_protocol.qid_shape(qubits)
         args = ApplyUnitaryArgs.default(qid_shape=qid_shape)
