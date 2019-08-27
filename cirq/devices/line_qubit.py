@@ -147,7 +147,7 @@ class LineQid(_BaseLineQid):
         return 'cirq.LineQid({}, levels={})'.format(self.x, self.levels)
 
     def __str__(self):
-        return '{!s} (d={})'.format(super().__str__(), self.levels)
+        return '{!s} (d={})'.format(self.x, self.levels)
 
     def _json_dict_(self):
         return protocols.to_json_dict(self, ['x', 'levels'])

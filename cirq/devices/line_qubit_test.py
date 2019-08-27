@@ -21,6 +21,10 @@ def test_init():
     q = cirq.LineQubit(1)
     assert q.x == 1
 
+    q = cirq.LineQid(1, levels=3)
+    assert q.x == 1
+    assert q.levels == 3
+
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
@@ -28,13 +32,19 @@ def test_eq():
     eq.add_equality_group(cirq.LineQubit(2))
     eq.add_equality_group(cirq.LineQubit(0))
 
+    eq.make_equality_group(lambda: cirq.LineQid(1, 2))
+    eq.add_equality_group(cirq.LineQid(1, 3))
+    eq.add_equality_group(cirq.LineQid(2, 2))
+
 
 def test_str():
     assert str(cirq.LineQubit(5)) == '5'
+    assert str(cirq.LineQid(5, levels=3)) == '5 (d=3)'
 
 
 def test_repr():
     assert repr(cirq.LineQubit(5)) == 'cirq.LineQubit(5)'
+    assert repr(cirq.LineQid(5, levels=3)) == 'cirq.LineQid(5, levels=3)'
 
 
 def test_cmp():
@@ -47,12 +57,37 @@ def test_cmp():
     assert cirq.LineQubit(0) >= cirq.LineQubit(0)
     assert cirq.LineQubit(1) >= cirq.LineQubit(0)
 
+    assert cirq.LineQid(0, 2) == cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) != cirq.LineQid(1, 2)
+    assert cirq.LineQid(0, 2) <  cirq.LineQid(1, 2)
+    assert cirq.LineQid(1, 2) >  cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) <= cirq.LineQid(1, 2)
+    assert cirq.LineQid(0, 2) >= cirq.LineQid(0, 2)
+    assert cirq.LineQid(1, 2) >= cirq.LineQid(0, 2)
+
+    assert cirq.LineQid(0, 2) == cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) != cirq.LineQid(0, 3)
+    assert cirq.LineQid(0, 2) <  cirq.LineQid(0, 3)
+    assert cirq.LineQid(0, 3) >  cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 3)
+    assert cirq.LineQid(0, 2) >= cirq.LineQid(0, 2)
+    assert cirq.LineQid(0, 3) >= cirq.LineQid(0, 2)
+
+    assert cirq.LineQid(1, 3) < cirq.LineQid(2, 1)
+    assert cirq.LineQid(1, 2) < cirq.LineQubit(0)
+
 
 def test_cmp_failure():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='not supported between instances'):
         _ = 0 < cirq.LineQubit(1)
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='not supported between instances'):
         _ = cirq.LineQubit(1) < 0
+    with pytest.raises(TypeError, match='not supported between instances'):
+        _ = 0 < cirq.LineQid(1, 3)
+    with pytest.raises(TypeError, match='not supported between instances'):
+        _ = cirq.LineQid(1, 3) < 0
 
 
 def test_is_adjacent():
@@ -61,6 +96,9 @@ def test_is_adjacent():
     assert cirq.LineQubit(2).is_adjacent(cirq.LineQubit(3))
     assert not cirq.LineQubit(1).is_adjacent(cirq.LineQubit(3))
     assert not cirq.LineQubit(2).is_adjacent(cirq.LineQubit(0))
+
+    assert cirq.LineQubit(2).is_adjacent(cirq.LineQid(3, 3))
+    assert not cirq.LineQubit(2).is_adjacent(cirq.LineQid(0, 3))
 
 
 def test_range():
@@ -91,11 +129,42 @@ def test_range():
                                        cirq.LineQubit(3)]
 
 
+def test_qid_range():
+    assert cirq.LineQid.range(0, levels=3) == []
+    assert cirq.LineQid.range(1, levels=3) == [cirq.LineQid(0, 3)]
+    assert cirq.LineQid.range(2, levels=3) == [cirq.LineQid(0, 3), cirq.LineQid(1, 3)]
+    assert cirq.LineQid.range(5, levels=3) == [
+        cirq.LineQid(0, 3),
+        cirq.LineQid(1, 3),
+        cirq.LineQid(2, 3),
+        cirq.LineQid(3, 3),
+        cirq.LineQid(4, 3),
+    ]
+
+    assert cirq.LineQid.range(0, 0, levels=4) == []
+    assert cirq.LineQid.range(0, 1, levels=4) == [cirq.LineQid(0, 4)]
+    assert cirq.LineQid.range(
+        1, 4, levels=4) == [cirq.LineQid(1, 4),
+                            cirq.LineQid(2, 4),
+                            cirq.LineQid(3, 4)]
+
+    assert cirq.LineQid.range(3, 1, -1, levels=1) == [cirq.LineQid(3, 1),
+                                        cirq.LineQid(2, 1)]
+    assert cirq.LineQid.range(3, 5, -1, levels=2) == []
+    assert cirq.LineQid.range(1, 5, 2, levels=2) == [cirq.LineQid(1, 2),
+                                       cirq.LineQid(3, 2)]
+
+
 def test_addition_subtraction():
     assert cirq.LineQubit(1) + 2 == cirq.LineQubit(3)
     assert cirq.LineQubit(3) - 1 == cirq.LineQubit(2)
     assert 1 + cirq.LineQubit(4) == cirq.LineQubit(5)
     assert 5 - cirq.LineQubit(3) == cirq.LineQubit(2)
+
+    assert cirq.LineQid(1, 3) + 2 == cirq.LineQid(3, 3)
+    assert cirq.LineQid(3, 3) - 1 == cirq.LineQid(2, 3)
+    assert 1 + cirq.LineQid(4, 3) == cirq.LineQid(5, 3)
+    assert 5 - cirq.LineQid(3, 3) == cirq.LineQid(2, 3)
 
 
 def test_addition_subtraction_type_error():
@@ -104,9 +173,15 @@ def test_addition_subtraction_type_error():
     with pytest.raises(TypeError, match='dave'):
         _ = cirq.LineQubit(1) - 'dave'
 
+    with pytest.raises(TypeError, match='dave'):
+        _ = cirq.LineQid(1, 3) + 'dave'
+    with pytest.raises(TypeError, match='dave'):
+        _ = cirq.LineQid(1, 3) - 'dave'
+
 
 def test_neg():
     assert -cirq.LineQubit(1) == cirq.LineQubit(-1)
+    assert -cirq.LineQid(1, 3) == cirq.LineQid(-1, 3)
 
 
 def test_json_dict():
@@ -114,3 +189,74 @@ def test_json_dict():
         'cirq_type': 'LineQubit',
         'x': 5,
     }
+    assert cirq.LineQid(5, 3)._json_dict_() == {
+        'cirq_type': 'LineQid',
+        'x': 5,
+        'levels': 3,
+    }
+
+
+def test_for_qid_shape():
+    assert cirq.LineQid.for_qid_shape(()) == []
+    assert cirq.LineQid.for_qid_shape((4, 2, 3, 1)) == [
+        cirq.LineQid(0, 4),
+        cirq.LineQid(1, 2),
+        cirq.LineQid(2, 3),
+        cirq.LineQid(3, 1),
+    ]
+    assert cirq.LineQid.for_qid_shape((4, 2, 3, 1), start=5) == [
+        cirq.LineQid(5, 4),
+        cirq.LineQid(6, 2),
+        cirq.LineQid(7, 3),
+        cirq.LineQid(8, 1),
+    ]
+    assert cirq.LineQid.for_qid_shape((4, 2, 3, 1), step=2) == [
+        cirq.LineQid(0, 4),
+        cirq.LineQid(2, 2),
+        cirq.LineQid(4, 3),
+        cirq.LineQid(6, 1),
+    ]
+    assert cirq.LineQid.for_qid_shape((4, 2, 3, 1), start=5, step=-1) == [
+        cirq.LineQid(5, 4),
+        cirq.LineQid(4, 2),
+        cirq.LineQid(3, 3),
+        cirq.LineQid(2, 1),
+    ]
+
+
+def test_for_gate():
+    class NoQidGate:
+
+        def _qid_shape_(self):
+            return ()
+
+    class QuditGate:
+
+        def _qid_shape_(self):
+            return (4, 2, 3, 1)
+
+    assert cirq.LineQid.for_gate(NoQidGate()) == []
+    assert cirq.LineQid.for_gate(QuditGate()) == [
+        cirq.LineQid(0, 4),
+        cirq.LineQid(1, 2),
+        cirq.LineQid(2, 3),
+        cirq.LineQid(3, 1),
+    ]
+    assert cirq.LineQid.for_gate(QuditGate(), start=5) == [
+        cirq.LineQid(5, 4),
+        cirq.LineQid(6, 2),
+        cirq.LineQid(7, 3),
+        cirq.LineQid(8, 1),
+    ]
+    assert cirq.LineQid.for_gate(QuditGate(), step=2) == [
+        cirq.LineQid(0, 4),
+        cirq.LineQid(2, 2),
+        cirq.LineQid(4, 3),
+        cirq.LineQid(6, 1),
+    ]
+    assert cirq.LineQid.for_gate(QuditGate(), start=5, step=-1) == [
+        cirq.LineQid(5, 4),
+        cirq.LineQid(4, 2),
+        cirq.LineQid(3, 3),
+        cirq.LineQid(2, 1),
+    ]
