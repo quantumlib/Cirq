@@ -17,7 +17,6 @@ Classes for identifying the qubits and hardware you want to operate on.
     LineQubit
     NamedQubit
     Qid
-    UnconstrainedDevice
 
 
 Single Qubit Unitary Gates
