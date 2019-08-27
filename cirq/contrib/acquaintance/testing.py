@@ -14,7 +14,7 @@
 
 from typing import cast, Sequence
 
-from cirq import line, ops, protocols
+from cirq import devices, ops, protocols
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate, update_mapping)
 
@@ -22,7 +22,7 @@ from cirq.contrib.acquaintance.permutation import (
 def assert_permutation_decomposition_equivalence(
         gate: PermutationGate,
         n_qubits: int) -> None:
-    qubits = line.LineQubit.range(n_qubits)
+    qubits = devices.LineQubit.range(n_qubits)
     operations = protocols.decompose_once_with_qubits(gate, qubits)
     operations = list(
             cast(Sequence[ops.Operation], ops.flatten_op_tree(operations)))

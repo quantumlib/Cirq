@@ -25,7 +25,7 @@ import cirq
 import cirq.google as cg
 
 _CIRCUIT = cirq.Circuit()
-_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice, _CIRCUIT)
+_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
@@ -148,13 +148,13 @@ _CALIBRATION = {
         '1562544000021',
         'metrics': [{
             'name': 'xeb',
-            'targets': ['q0_0', 'q0_1'],
+            'targets': ['0_0', '0_1'],
             'values': [{
                 'doubleVal': .9999
             }]
         }, {
             'name': 'xeb',
-            'targets': ['q0_0', 'q1_0'],
+            'targets': ['0_0', '1_0'],
             'values': [{
                 'doubleVal': .9998
             }]
@@ -176,13 +176,20 @@ _CALIBRATION = {
             'values': [{
                 'doubleVal': 505
             }]
+        }, {
+            'name': 'globalMetric',
+            'values': [{
+                'floatVal': 12300
+            }]
         }]
     }
 }
 
 
-def test_repr():
-    v = cirq.google.JobConfig(job_id='my-job-id')
+def test_job_config_repr():
+    v = cirq.google.JobConfig(job_id='my-job-id',
+                              gcs_prefix='pre',
+                              gcs_results='gc')
     cirq.testing.assert_equivalent_repr(v)
 
 
@@ -277,38 +284,13 @@ def test_schedule_device_validation_fails(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_circuit_device_validation_passes_non_xmon_gate(build):
-    service = mock.Mock()
-    build.return_value = service
-    programs = service.projects().programs()
-    jobs = programs.jobs()
-    programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'}
-    jobs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'READY'}}
-    jobs.get().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'SUCCESS'}}
-    jobs.getResult().execute.return_value = {
-        'result': _A_RESULT}
-
-    engine = cg.Engine(project_id='project-id')
-    circuit = cirq.Circuit.from_ops(cirq.H.on(cirq.GridQubit(0, 1)),
-                                    device=cg.Foxtail)
-    result = engine.run(program=circuit, job_config=cg.JobConfig('project-id'))
-    assert result.repetitions == 1
-
-
-@mock.patch.object(discovery, 'build')
 def test_unsupported_program_type(build):
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(TypeError, match='program'):
         engine.run(program="this isn't even the right type of thing!")
 
 
-@mock.patch.object(discovery, 'build')
-def test_run_circuit_failed(build):
+def setup_run_circuit_(build, job_return_value):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
@@ -318,12 +300,90 @@ def test_run_circuit_failed(build):
     jobs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
         'executionStatus': {'state': 'READY'}}
-    jobs.get().execute.return_value = {
+    jobs.get().execute.return_value = job_return_value
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_circuit_failed(build):
+    job_return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'FAILURE'}}
+        'executionStatus': {
+            'state': 'FAILURE',
+            'processorName': 'myqc',
+            'failure': {
+                'errorCode': 'MY_OH_MY',
+                'errorMessage': 'Not good'
+            }
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
 
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(RuntimeError, match='It is in state FAILURE'):
+    with pytest.raises(RuntimeError, match='myqc'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='MY_OH_MY'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='Not good'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='jobs/test'):
+        engine.run(program=_CIRCUIT)
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_circuit_failed_missing_processor_name(build):
+    job_return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'FAILURE',
+            'failure': {
+                'errorCode': 'MY_OH_MY',
+                'errorMessage': 'Not good'
+            }
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
+
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='UNKNOWN'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='MY_OH_MY'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='Not good'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='jobs/test'):
+        engine.run(program=_CIRCUIT)
+
+
+@mock.patch.object(discovery, 'build')
+def test_run_circuit_cancelled(build):
+    job_return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'CANCELLED',
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
+
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='CANCELLED'):
+        engine.run(program=_CIRCUIT)
+    with pytest.raises(RuntimeError, match='jobs/test'):
+        engine.run(program=_CIRCUIT)
+
+
+@mock.patch.object(discovery, 'build')
+@mock.patch('time.sleep', return_value=None)
+def test_run_circuit_timeout(build, patched_time_sleep):
+    job_return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'RUNNING',
+        }
+    }
+    setup_run_circuit_(build, job_return_value)
+
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='Timed out'):
         engine.run(program=_CIRCUIT)
 
 
@@ -403,6 +463,7 @@ def test_run_sweep_params(build):
         'parent'] == 'projects/project-id/programs/test'
     assert jobs.get().execute.call_count == 1
     assert jobs.getResult().execute.call_count == 1
+
 
 @mock.patch.object(discovery, 'build')
 def test_run_sweep_v1(build):
@@ -563,6 +624,15 @@ def test_run_sweep_v2(build):
 
 
 @mock.patch.object(discovery, 'build')
+def test_bad_sweep_proto(build):
+    engine = cg.Engine(project_id='project-id',
+                       proto_version=cg.ProtoVersion.UNDEFINED)
+    program = cg.EngineProgram({'name': 'foo'}, engine)
+    with pytest.raises(ValueError, match='invalid run context proto version'):
+        program.run_sweep()
+
+
+@mock.patch.object(discovery, 'build')
 def test_bad_result_proto(build):
     service = mock.Mock()
     build.return_value = service
@@ -595,15 +665,6 @@ def test_bad_result_proto(build):
                            params=cirq.Points('a', [1, 2]))
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
-
-
-@mock.patch.object(discovery, 'build')
-def test_bad_sweep_proto(build):
-    engine = cg.Engine(project_id='project-id',
-                       proto_version=cg.engine.engine.ProtoVersion.UNDEFINED)
-    program = cg.engine.engine.EngineProgram({'name': 'foo'}, engine)
-    with pytest.raises(ValueError, match='invalid run context proto version'):
-        program.run_sweep()
 
 
 @mock.patch.object(discovery, 'build')
@@ -717,8 +778,7 @@ def test_job_labels(build):
     assert body()['labelFingerprint'] == 'abcdef'
 
 
-@mock.patch.object(discovery, 'build')
-def test_implied_job_config_gcs_prefix(build):
+def test_implied_job_config_gcs_prefix():
     eng = cg.Engine(project_id='project_id')
     config = cg.JobConfig()
 
@@ -845,7 +905,7 @@ def test_latest_calibration(build):
     assert calibrations.list.call_args[1][
         'parent'] == 'projects/myproject/processors/x'
     assert calibration.timestamp == 1562544000021
-    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+    assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
 
 
 @mock.patch.object(discovery, 'build')
@@ -888,69 +948,8 @@ def test_calibration_from_job(build):
 
     calibration = job.get_calibration()
     assert calibration.timestamp == 1562544000021
-    assert set(calibration.get_metric_names()) == set(['xeb', 't1'])
+    assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
-
-
-@mock.patch.object(discovery, 'build')
-def test_calibration_from_job_with_no_calibration(build):
-    service = mock.Mock()
-    build.return_value = service
-
-    programs = service.projects().programs()
-    jobs = programs.jobs()
-    programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'
-    }
-    jobs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {
-            'state': 'SUCCESS',
-        },
-    }
-
-    calibrations = service.projects().processors().calibrations()
-    engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(
-        program=_SCHEDULE,
-        job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
-
-    calibration = job.get_calibration()
-    assert not calibration
-    assert not calibrations.get.called
-
-
-@mock.patch.object(discovery, 'build')
-def test_calibration_metrics(build):
-    calibration = cg.engine.engine.Calibration(_CALIBRATION['data'])
-    t1s = calibration.get_metrics_by_name('t1')
-    xebs = calibration.get_metrics_by_name('xeb')
-
-    assert t1s == [
-        {
-            'targets': ['q0_0'],
-            'values': [321]
-        },
-        {
-            'targets': ['q0_1'],
-            'values': [911]
-        },
-        {
-            'targets': ['q1_0'],
-            'values': [505]
-        },
-    ]
-
-    assert xebs == [
-        {
-            'targets': ['q0_0', 'q0_1'],
-            'values': [.9999]
-        },
-        {
-            'targets': ['q0_0', 'q1_0'],
-            'values': [.9998]
-        },
-    ]
 
 
 @mock.patch.object(discovery, 'build')

@@ -494,7 +494,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         return None
 
     def __repr__(self) -> str:
-        return 'cirq.reset'
+        return 'cirq.ResetChannel()'
 
     def __str__(self) -> str:
         return 'reset'
@@ -504,7 +504,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         return 'R'
 
 
-reset = ResetChannel()
+RESET = ResetChannel()
 
 
 @value.value_equality

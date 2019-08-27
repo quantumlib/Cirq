@@ -13,17 +13,31 @@
 # limitations under the License.
 
 import io
+import os
 from setuptools import find_packages, setup
 
 # This reads the __version__ variable from cirq/_version.py
 __version__ = ''
 exec(open('cirq/_version.py').read())
 
+name = 'cirq'
+
 description = ('A framework for creating, editing, and invoking '
                'Noisy Intermediate Scale Quantum (NISQ) circuits.')
 
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
+
+# If CIRQ_DEV_VERSION is set then we use cirq-dev as the name of the package
+# and update the version to this value.
+if 'CIRQ_DEV_VERSION' in os.environ:
+    name = 'cirq-dev'
+    __version__ = os.environ['CIRQ_DEV_VERSION']
+    long_description = (
+        "**This is a development version of Cirq and may be "
+        "unstable.**\n\n**For the latest stable release of Cirq "
+        "see**\n`here <https://pypi.org/project/cirq>`__.\n\n" +
+        long_description)
 
 # Read in requirements
 requirements = open('requirements.txt').readlines()
@@ -37,7 +51,10 @@ cirq_packages = ['cirq'] + [
     'cirq.' + package for package in find_packages(where='cirq')
 ]
 
-setup(name='cirq',
+# Sanity check
+assert __version__, 'Version string cannot be empty'
+
+setup(name=name,
       version=__version__,
       url='http://github.com/quantumlib/cirq',
       author='The Cirq Developers',
@@ -46,7 +63,7 @@ setup(name='cirq',
       install_requires=requirements,
       extras_require={
           'contrib': contrib_requirements,
-          'dev': dev_requirements,
+          'dev_env': dev_requirements + contrib_requirements,
       },
       license='Apache 2',
       description=description,

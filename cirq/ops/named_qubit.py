@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from cirq import protocols
 from cirq.ops import raw_types
 
 
@@ -59,6 +59,9 @@ class NamedQubit(raw_types.Qid):
             A list of NamedQubits.
         """
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['name'])
 
 
 def _pad_digits(text: str) -> str:

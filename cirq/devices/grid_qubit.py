@@ -15,7 +15,7 @@
 
 from typing import Dict, List, Tuple
 
-from cirq import ops
+from cirq import ops, protocols
 
 
 class GridQubit(ops.Qid):
@@ -138,6 +138,9 @@ class GridQubit(ops.Qid):
 
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['row', 'col'])
 
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
         if not (isinstance(other, tuple) and len(other) == 2 and

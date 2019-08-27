@@ -33,9 +33,10 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQubit,
     NO_NOISE,
     NoiseModel,
-    UnconstrainedDevice,
+    UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
@@ -89,10 +90,6 @@ from cirq.linalg import (
     targeted_conjugate_about,
     targeted_left_multiply,
     wavefunction_partial_trace_as_mixture,
-)
-
-from cirq.line import (
-    LineQubit,
 )
 
 from cirq.ops import (
@@ -168,7 +165,7 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
-    reset,
+    RESET,
     ResetChannel,
     Rx,
     Ry,
@@ -183,6 +180,7 @@ from cirq.ops import (
     SwapPowGate,
     T,
     ThreeQubitGate,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -241,6 +239,7 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
+    SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -261,7 +260,13 @@ from cirq.sim import (
 
 from cirq.study import (
     ComputeDisplaysResult,
+    ExpressionMap,
+    flatten,
+    flatten_with_params,
+    flatten_with_sweep,
     Linspace,
+    ListSweep,
+    ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
     plot_state_histogram,
@@ -270,6 +275,7 @@ from cirq.study import (
     Sweep,
     Sweepable,
     to_resolvers,
+    to_sweep,
     TrialResult,
     UnitSweep,
     Zip,
@@ -289,6 +295,7 @@ from cirq.value import (
     LinearDict,
     PeriodicValue,
     Timestamp,
+    TParamVal,
     validate_probability,
     value_equality,
 )
@@ -328,6 +335,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
+    read_json,
     resolve_parameters,
     SupportsApplyChannel,
     SupportsConsistentApplyUnitary,
@@ -346,6 +354,8 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json,
+    to_json_dict,
     trace_distance_bound,
     unitary,
     validate_mixture,
@@ -363,6 +373,9 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.vis import (
+    Heatmap,)
 
 from cirq.work import (
     CircuitSampleJob,

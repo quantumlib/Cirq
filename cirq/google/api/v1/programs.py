@@ -13,11 +13,11 @@
 # limitations under the License.
 import json
 from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
-                    TYPE_CHECKING, Union)
+                    TYPE_CHECKING)
 import numpy as np
 import sympy
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops, protocols, value
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
@@ -335,8 +335,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
     raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
-def _parameterized_value_from_proto_dict(message: Dict
-                                        ) -> Union[sympy.Basic, float]:
+def _parameterized_value_from_proto_dict(message: Dict) -> value.TParamVal:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -347,8 +346,7 @@ def _parameterized_value_from_proto_dict(message: Dict
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
-                                      ) -> Dict:
+def _parameterized_value_to_proto_dict(param: value.TParamVal) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())
