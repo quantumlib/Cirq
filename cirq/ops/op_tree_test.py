@@ -166,6 +166,6 @@ def test_transform_internal_nodes():
     assert skip_tree_freeze(operations) == tuple(operations[1:])
 
     # Tree.
-    assert (
-        skip_tree_freeze((operations[1:5], operations[0], operations[5:])) ==
-        (operations[0], tuple(operations[6:])))
+    assert (skip_tree_freeze(
+        (operations[1:5], operations[0],
+         operations[5:])) == (operations[0], tuple(operations[6:])))

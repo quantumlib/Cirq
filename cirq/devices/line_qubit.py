@@ -114,8 +114,8 @@ class LineQid(_BaseLineQid):
         return [LineQid(i, levels=levels) for i in range(*range_args)]
 
     @staticmethod
-    def for_qid_shape(qid_shape: Sequence[int], start: int = 0, step: int = 1
-                     ) -> List['LineQid']:
+    def for_qid_shape(qid_shape: Sequence[int], start: int = 0,
+                      step: int = 1) -> List['LineQid']:
         """Returns a range of line qids for each entry in `qid_shape` with
         matching levels.
 
@@ -124,8 +124,10 @@ class LineQid(_BaseLineQid):
             start: The x coordinate of the first `LineQid`.
             step: The amount to increment each x coordinate.
         """
-        return [LineQid(start+step*i, levels=levels)
-                for i, levels in enumerate(qid_shape)]
+        return [
+            LineQid(start + step * i, levels=levels)
+            for i, levels in enumerate(qid_shape)
+        ]
 
     @staticmethod
     def for_gate(val: Any, start: int = 0, step: int = 1) -> List['LineQid']:
@@ -140,7 +142,6 @@ class LineQid(_BaseLineQid):
         # Avoids circular import.
         from cirq.protocols.qid_shape_protocol import qid_shape
         return LineQid.for_qid_shape(qid_shape(val), start=start, step=step)
-
 
     def __repr__(self):
         return 'cirq.LineQid({}, levels={})'.format(self.x, self.levels)

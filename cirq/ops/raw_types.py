@@ -63,9 +63,9 @@ class Qid(metaclass=abc.ABCMeta):
             ValueError: `levels` is not positive.
         """
         if levels < 1:
-            raise ValueError('Wrong number of quantum levels. '
-                             'Expected a positive integer but got {}.'.format(
-                                levels))
+            raise ValueError(
+                'Wrong number of quantum levels. '
+                'Expected a positive integer but got {}.'.format(levels))
 
     def with_levels(self, levels) -> 'Qid':
         """Returns a new qid with a different number of levels.
@@ -138,6 +138,7 @@ class Qid(metaclass=abc.ABCMeta):
 
 @functools.total_ordering
 class _WrappedQid(Qid):
+
     def __init__(self, qid: Qid, levels: int):
         self._qid = qid
         self._levels = levels
@@ -263,9 +264,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             from cirq.devices import line_qubit
 
             decomposed = protocols.decompose_once_with_qubits(
-                self,
-                qubits=line_qubit.LineQid.for_gate(self),
-                default=None)
+                self, qubits=line_qubit.LineQid.for_gate(self), default=None)
             if decomposed is None:
                 return NotImplemented
 
@@ -448,9 +447,9 @@ def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
     if len(qubits) != len(qid_shape):
         raise ValueError('Wrong number of qubits for <{!r}>. '
                          'Expected {} qubits but got <{!r}>.'.format(
-                            val, len(qid_shape), qubits))
+                             val, len(qid_shape), qubits))
     if any(qid.levels != levels for qid, levels in zip(qubits, qid_shape)):
         raise ValueError('Wrong shape of qids for <{!r}>. '
                          'Expected {} but got {} <{!r}>.'.format(
-                            val, qid_shape,
-                            tuple(qid.levels for qid in qubits), qubits))
+                             val, qid_shape,
+                             tuple(qid.levels for qid in qubits), qubits))
