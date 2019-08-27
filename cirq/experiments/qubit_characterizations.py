@@ -54,7 +54,7 @@ class RabiResult:
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
         plt.ylabel('Excited State Probability', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 class RandomizedBenchMarkResult:
@@ -96,7 +96,7 @@ class RandomizedBenchMarkResult:
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Number of Cliffords", figure=fig)
         plt.ylabel('Ground State Probability', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 class TomographyResult:
@@ -121,7 +121,7 @@ class TomographyResult:
         3D bar plots.
         """
         fig = _plot_density_matrix(self._density_matrix)
-        fig.show()
+        fig.show(warn=False)
 
 
 def rabi_oscillations(sampler: work.Sampler,
