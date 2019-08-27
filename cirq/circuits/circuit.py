@@ -463,23 +463,42 @@ class Circuit:
 
         The location L = (qubit, moment_index) is *reachable* if and only if:
 
-            a) L is one of the items in `start_frontier`.
+            a) There is not a blocking operation covering L.
+
+            AND
+
+            [
+                b1) qubit is in start frontier and moment_index =
+                    max(start_frontier[qubit], 0).
+
+                OR
+
+                b2) There is no operation at L and prev(L) = (qubit,
+                    moment_index-1) is reachable.
+
+                OR
+
+                b3) There is an (non-blocking) operation P covering L such that
+                    (q', moment_index - 1) is reachable for every q' on which P
+                    acts.
+            ]
+
+        An operation in moment moment_index is blocking if
+
+            a) `is_blocker` returns a truthy value.
 
             OR
 
-            b) There is no operation at L and prev(L) = (qubit, moment_index-1)
-                is reachable and L is within the bounds of the circuit.
+            b) The operation acts on a qubit not in start_frontier.
 
             OR
 
-            c) There is an operation P covering L and, for every location
-                M = (q', moment_index) that P covers, the location
-                prev(M) = (q', moment_index-1) is reachable. Also, P must not be
-                classified as a blocker by the given `is_blocker` argument.
+            c) The operation acts on a qubit q such that start_frontier[q] >
+                moment_index.
 
         In other words, the reachable region extends forward through time along
-        each qubit until it hits a blocked operation or an operation that
-        crosses into the set of not-involved-at-the-moment qubits.
+        each qubit in start_frontier until it hits a blocking operation. Any
+        location involving a qubit not in start_frontier is unreachable.
 
         For each qubit q in `start_frontier`, the reachable locations will
         correspond to a contiguous range starting at start_frontier[q] and
