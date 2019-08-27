@@ -1459,18 +1459,17 @@ def test_qid_shape_qubit():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
 
-    circ = cirq.Circuit([
+    circuit = cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(b)]),
     ])
 
-    assert cirq.qid_shape(circ) == (2, 2)
-    assert cirq.num_qubits(circ) == 2
-    assert cirq.max_qid_shape(circ) == (2, 2)
-    assert cirq.max_qid_shape(circ, qubit_order=[c, a, b],
-                              default_level=2) == (2, 2, 2)
+    assert cirq.qid_shape(circuit) == (2, 2)
+    assert cirq.num_qubits(circuit) == 2
+    assert circuit.qid_shape() == (2, 2)
+    assert circuit.qid_shape(qubit_order=[c, a, b]) == (2, 2, 2)
     with pytest.raises(ValueError, match='extra qubits'):
-        _ = cirq.max_qid_shape(circ, qubit_order=[a])
+        _ = circuit.qid_shape(qubit_order=[a])
 
 
 def test_qid_shape_qudit():
