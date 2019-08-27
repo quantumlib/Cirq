@@ -1490,29 +1490,20 @@ def test_qid_shape_qudit():
         def _qid_shape_(self):
             return (1,)
 
-    a, b, c, d, e, f, g = cirq.LineQubit.range(7)
+    a, b, c, d = cirq.LineQid.for_qid_shape((3, 2, 1, 2))
 
-    circ = cirq.Circuit.from_ops(
-        IdentityGate().on_each(a, b, c),  # a->1, b->1, c->1
-        PlusOneMod3Gate().on_each(c, d),  # c->3, d->3
-        C2NotGate().on(d, e),  # d:3->3, e->2
-        C2NotGate().on(f, b),  # f->3, b:1->2
-        IdentityGate().on_each(e, f),  # e:2, f:3
+    circuit = cirq.Circuit.from_ops(
+        PlusOneMod3Gate().on(a),
+        C2NotGate().on(a, b),
+        IdentityGate().on_each(c),
     )
 
-    assert cirq.qid_shape(circ) == (1, 2, 3, 3, 2, 3)
-    assert cirq.num_qubits(circ) == 6
-    assert cirq.max_qid_shape(circ) == (1, 2, 3, 3, 2, 3)
-    assert cirq.max_qid_shape(circ, default_level=2) == (1, 2, 3, 3, 2, 3)
-    assert (cirq.max_qid_shape(circ, qubit_order=[f, e, d, c, b,
-                                                  a]) == (3, 2, 3, 3, 2, 1))
-    assert (cirq.max_qid_shape(circ, qubit_order=[g, f, e, d, c, b,
-                                                  a]) == (1, 3, 2, 3, 3, 2, 1))
-    assert (cirq.max_qid_shape(circ,
-                               qubit_order=[g, f, e, d, c, b, a],
-                               default_level=2) == (2, 3, 2, 3, 3, 2, 1))
+    assert cirq.num_qubits(circuit) == 3
+    assert cirq.qid_shape(circuit) == (3, 2, 1)
+    assert circuit.qid_shape() == (3, 2, 1)
+    assert circuit.qid_shape()
     with pytest.raises(ValueError, match='extra qubits'):
-        _ = cirq.max_qid_shape(circ, qubit_order=[g, a, b, c])
+        _ = circuit.qid_shape(qubit_order=[b, c])
 
 
 def test_from_ops():

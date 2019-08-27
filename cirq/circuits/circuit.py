@@ -1264,11 +1264,15 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
-    def _qid_shape_(self):
-        return ops.max_qid_shape(
-            self._moments,
-            qubits_that_should_be_present=self.all_qubits(),
-            default_level=1)
+    def qid_shape(self,
+                  qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT
+                 ) -> Tuple[int, ...]:
+        qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return protocols.qid_shape(qids)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self.qid_shape()
 
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
@@ -1341,7 +1345,7 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        qid_shape = self.qid_shape(qubit_order=qs)
         side_len = np.product(qid_shape, dtype=int)
 
         state = linalg.eye_tensor(qid_shape, dtype=dtype)
@@ -1415,7 +1419,7 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
         if isinstance(initial_state, int):
