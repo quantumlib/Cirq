@@ -13,17 +13,8 @@
 # limitations under the License.
 """Heatmap class.
 
-An example usage in an interactive session:
-
-import matplotlib.pyplot as plt
-import cirq
-
-value_map = {(0, 5): 3.7, (1, 7): 2.5, (3, 3): 0.4, (2, 1); 9.8 }
-heatmap = cirq.Heatmap(value_map).set_colormap('summer')
-# customize the heatmap as much as you want here.
-fig, ax = plt.subplots(figsize=(9, 9))
-heatmap.plot(ax)
-fig.show()
+See cirq/vis/examples/bristlecone_heatmap_example.py for an example usage in
+an interactive session.
 """
 
 from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
