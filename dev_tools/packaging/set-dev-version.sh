@@ -21,45 +21,30 @@
 #
 # This is used by travis during deployment and by published-dev-package.sh.
 #
-# The variable is set by sourcing this file
+# The variable can be set using
 #
-#     source set-dev-version.sh
+#     export CIRQ_DEV_VERSION=`dev_tools/packaging/set-dev-version.sh`
 #
 # Which, for example sets $CIRQ_DEV_VERSION to 0.6.0.dev20190813193556.
 ################################################################################
 
-export CIRQ_DEV_VERSION="$(
-  set -e
+set -e
 
-  if ! (return 0 2>/dev/null); then
-    echo "Usage:" >&2
-    echo "  source set-dev-version.sh" >&2
-    echo >&2
-    echo "This script sets the environment variable \$CIRQ_DEV_VERSION." >&2
-    exit 1
-  fi
+# Get the working directory to the repo root.
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+repo_dir=$(git rev-parse --show-toplevel)
+cd "${repo_dir}"
 
-  # Get the working directory to the repo root.
-  cd "$( dirname "${BASH_SOURCE[0]}" )"
-  repo_dir=$(git rev-parse --show-toplevel)
-  cd "${repo_dir}"
+PROJECT_NAME=cirq
 
-  PROJECT_NAME=cirq
+ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
+ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
 
-  ACTUAL_VERSION_LINE=$(cat "${PROJECT_NAME}/_version.py" | tail -n 1)
-  ACTUAL_VERSION=`echo $ACTUAL_VERSION_LINE | cut -d'"' -f 2`
-
-  if [[ ${ACTUAL_VERSION} == *"dev" ]]; then
-    echo "${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
-  else
-    echo "Version doesn't end in dev: ${ACTUAL_VERSION_LINE}" >&2
-    exit 1
-  fi
-
-  exit 0
-)"
-
-if [ $? -ne 0 ]; then
-  unset CIRQ_DEV_VERSION
-  echo -e '\033[31mFAILED\033[0m'
+if [[ ${ACTUAL_VERSION} == *"dev" ]]; then
+  echo "${ACTUAL_VERSION}$(date "+%Y%m%d%H%M%S")"
+else
+  echo "Version doesn't end in dev: ${ACTUAL_VERSION_LINE}" >&2
+  exit 1
 fi
+
+exit 0
