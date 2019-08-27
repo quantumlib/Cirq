@@ -190,6 +190,23 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         all_qubits = set.union(*qubit_sets)
         return tuple(sorted(all_qubits))
 
+    def __pow__(self, exponent: int) -> 'LinearCombinationOfOperations':
+        if len(self.qubits) != 1:
+            return NotImplemented
+        qubit = self.qubits[0]
+        i = common_gates.I(qubit)
+        x = pauli_gates.X(qubit)
+        y = pauli_gates.Y(qubit)
+        z = pauli_gates.Z(qubit)
+        pauli_basis = {i, x, y, z}
+        if not set(self.keys()).issubset(pauli_basis):
+            return NotImplemented
+
+        ai, ax, ay, az = self[i], self[x], self[y], self[z]
+        bi, bx, by, bz = operator_spaces.pow_pauli_combination(
+            ai, ax, ay, az, exponent)
+        return LinearCombinationOfOperations({i: bi, x: bx, y: by, z: bz})
+
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying operations.
 
