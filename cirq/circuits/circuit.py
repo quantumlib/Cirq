@@ -887,7 +887,13 @@ class Circuit:
         # Cast from Iterable[Operation, Moment] because preserve_moments is
         # False.
         for op in cast(Iterable[ops.Operation], ops.flatten_op_tree(op_tree)):
-            op.validate_qubits()
+            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
+                raise ValueError(
+                    'Invalid operation. '
+                    'An operation has qid shape <{!r}> but is on qids with '
+                    'shape <{!r}>. The operation is <{!r}>.'.format(
+                        protocols.qid_shape(op), protocols.qid_shape(op.qubits),
+                        op))
 
     def insert(
             self,

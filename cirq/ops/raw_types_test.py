@@ -113,8 +113,9 @@ class ValiGate(cirq.Gate):
         return 2
 
     def validate_args(self, qubits):
-        if len(qubits) == 3:
-            raise ValueError()
+        if len(qubits) == 1:
+            return  # Bypass check for some tests
+        super().validate_args(qubits)
 
 
 def test_gate():
@@ -124,13 +125,15 @@ def test_gate():
     assert cirq.num_qubits(g) == 2
 
     _ = g.on(a, c)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Wrong number'):
         _ = g.on(a, c, b)
 
-    _ = g(a)
+    _ = g(a)  # Bypassing validate_args
     _ = g(a, c)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Wrong number'):
         _ = g(c, b, a)
+    with pytest.raises(ValueError, match='Wrong shape'):
+        _ = g(a, b.with_levels(3))
 
 
 def test_op():
@@ -141,6 +144,19 @@ def test_op():
     controlled_op = op.controlled_by(b, c)
     assert controlled_op.sub_operation == op
     assert controlled_op.controls == (b, c)
+
+
+def test_op_validate():
+    op = cirq.X(cirq.LineQid(0, 2))
+    op2 = cirq.CNOT(*cirq.LineQid.range(2, levels=2))
+    op.validate_args([cirq.LineQid(1, 2)])  # Valid
+    op2.validate_args(cirq.LineQid.range(1, 3, levels=2))  # Valid
+    with pytest.raises(ValueError, match='Wrong shape'):
+        op.validate_args([cirq.LineQid(1, 9)])
+    with pytest.raises(ValueError, match='Wrong number'):
+        op.validate_args([cirq.LineQid(1, 2), cirq.LineQid(2, 2)])
+    with pytest.raises(ValueError, match='Duplicate'):
+        op2.validate_args([cirq.LineQid(1, 2), cirq.LineQid(1, 2)])
 
 
 def test_default_validation_and_inverse():

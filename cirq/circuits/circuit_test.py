@@ -3196,6 +3196,38 @@ def test_moments_property():
     assert c.moments[1] == cirq.Moment([cirq.Y(q)])
 
 
+def test_operation_shape_validation():
+    class BadOperation1(cirq.Operation):
+
+        def _qid_shape_(self):
+            return (1,)
+
+        @property
+        def qubits(self):
+            return cirq.LineQid.for_qid_shape((1, 2, 3))
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError
+
+    class BadOperation2(cirq.Operation):
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 9)
+
+        @property
+        def qubits(self):
+            return cirq.LineQid.for_qid_shape((1, 2, 3))
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError
+
+    _ = cirq.Circuit.from_ops(cirq.X(cirq.LineQid(0, 2)))  # Valid
+    with pytest.raises(ValueError, match='Invalid operation'):
+        _ = cirq.Circuit.from_ops(BadOperation1())
+    with pytest.raises(ValueError, match='Invalid operation'):
+        _ = cirq.Circuit.from_ops(BadOperation2())
+
+
 def test_json_dict():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(cirq.CNOT(q0, q1))

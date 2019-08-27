@@ -388,6 +388,8 @@ class Operation(metaclass=abc.ABCMeta):
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 
+        Call this method from a subclass's `with_qubits` method.
+
         Args:
             qubits: The new qids for the operation.
 
@@ -395,16 +397,6 @@ class Operation(metaclass=abc.ABCMeta):
             ValueError: The operation had qids that don't match it's qid shape.
         """
         _validate_qid_shape(self, qubits)
-
-    def validate_qubits(self):
-        """Raises an exception if this operation has qubits that don't match its
-        qid shape.
-
-        Raises:
-            ValueError: The operation had qubits that don't match it's qid
-            shape.
-        """
-        _validate_qid_shape(self, self.qubits)
 
 
 @value.value_equality
@@ -441,8 +433,6 @@ def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
     Raises:
         ValueError: The operation had qids that don't match it's qid shape.
     """
-    if any(not isinstance(qid, Qid) for qid in qubits):
-        raise ValueError('Gate was called with type different than Qid.')
     qid_shape = protocols.qid_shape(val)
     if len(qubits) != len(qid_shape):
         raise ValueError('Wrong number of qubits for <{!r}>. '
@@ -453,3 +443,7 @@ def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
                          'Expected {} but got {} <{!r}>.'.format(
                              val, qid_shape,
                              tuple(qid.levels for qid in qubits), qubits))
+    if len(set(qubits)) != len(qubits):
+        raise ValueError('Duplicate qids for <{!r}>. '
+                         'Expected unique qids but got <{!r}>.'.format(
+                             val, qubits))
