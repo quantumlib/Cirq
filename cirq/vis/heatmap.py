@@ -13,7 +13,7 @@
 # limitations under the License.
 """Heatmap class.
 
-Typical usage:
+An example usage in an interactive session:
 
 import matplotlib.pyplot as plt
 import cirq
