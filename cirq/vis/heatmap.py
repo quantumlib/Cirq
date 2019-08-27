@@ -16,10 +16,10 @@
 Typical usage:
 
 import matplotlib.pyplot as plt
-from cirq import Heatmap
+import cirq
 
 value_map = {(0, 5): 3.7, (1, 7): 2.5, (3, 3): 0.4, (2, 1); 9.8 }
-heatmap = Heatmap(value_map).set_colormap('summer')
+heatmap = cirq.Heatmap(value_map).set_colormap('summer')
 # customize the heatmap as much as you want here.
 fig, ax = plt.subplots(figsize=(9, 9))
 heatmap.plot(ax)
