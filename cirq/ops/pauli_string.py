@@ -239,22 +239,21 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
-    def expectation(self,
-                    state: np.ndarray,
-                    qubit_map: Optional[Dict[raw_types.Qid, int]]=None
-                    ) -> float:
-        r"""Evaluate the expectation value of this PauliString.
+    def expectation_from_wavefunction(
+        self,
+        state: np.ndarray,
+        qubit_map: Optional[Dict[raw_types.Qid, int]]=None) -> float:
+        r"""Evaluate the expectation of this PauliString given a wavefunction.
 
-        Compute the expectation value of this PauliString with respect to an
-        array representing either a wavefunction or density matrix. By
+        Compute the expectation value of this PauliString with respect to a wavefunction. By
         convention expectation values are defined for Hermitian operators, and
         so this method will fail if this PauliString is non-Hermitian.
 
-        If the input represents a state in wavefunction form it must have shape
-        `(2 ** n,)`, while if it represents a state in density matrix form it
-        must have shape like `(2 ** n, 2 ** n)`, where the state is represented
-        over `n` qubits.
+        `state` must be an array representation of a wavefunction and have
+        shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
+        expressed over n qubits.
 
+        # FIXME:
         If `qubit_map` is not provided, default behavior is to assume that
         `state` is defined over this PauliString's qubits in ascending order of
         index. For example if `state` represents $|0\rangle |+\rangle$ and
@@ -273,8 +272,6 @@ class PauliString(raw_types.Operation):
 
         Raises:
             NotImplementedError if this PauliString is non-Hermitian.
-            ValueError if the shape of `state` is neither `(2 ** n,)`
-                or `(2 ** n, 2 ** n)`.
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
@@ -290,37 +287,102 @@ class PauliString(raw_types.Operation):
                                 "Qubit ID's to integer indices.")
 
         size = state.size
-        if state.shape == (size,):
-            num_qubits = size.bit_length() - 1
+        num_qubits = size.bit_length() - 1
+        if len(state.shape) == 1 or state.shape == (2,) * num_qubits:
             # HACK: avoid circular import
             from cirq.sim.wave_function import to_valid_state_vector
             state = to_valid_state_vector(state, num_qubits, dtype=state.dtype)
             return self._expectation_from_wavefunction(state, qubit_map)
 
-        if state.shape == (int(np.sqrt(size)),) * 2:
-            num_qubits = int(np.sqrt(size)).bit_length() - 1
+        raise ValueError("Input array does not represent a wavefunction with "
+                         "shape `(2 ** n,)` or `(2, 2, ..., 2)`.")
+
+    def expectation_from_density_matrix(
+        self,
+        state: np.ndarray,
+        qubit_map: Optional[Dict[raw_types.Qid, int]]=None) -> float:
+        r"""Evaluate the expectation of this PauliString given a density matrix.
+
+        Compute the expectation value of this PauliString with respect to an
+        array representing a density matrix. By convention expectation values
+        are defined for Hermitian operators, and so this method will fail if
+        this PauliString is non-Hermitian.
+
+        `state` must be an array representation of a density matrix and have
+        shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)` (2*n entries), where
+        `state` is expressed over n qubits.
+
+        # FIXME:
+        If `qubit_map` is not provided, default behavior is to assume that
+        `state` is defined over this PauliString's qubits in ascending order of
+        index. For example if `state` represents $|0\rangle |+\rangle$ and
+        `q0, q1 = cirq.LineQubit.range(2)` then:
+
+            cirq.X(q0).expectation(state) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
+
+        Args:
+            state: An array representing a wavefunction or density matrix.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+
+        Raises:
+            NotImplementedError if this PauliString is non-Hermitian.
+        """
+        if abs(self.coefficient.imag) > 0.0001:
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        if qubit_map is None:
+            qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
+        else:
+            if not isinstance(qubit_map, dict) or not all(
+                isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+                raise TypeError("Input qubit map must be a valid mapping from "
+                                "Qubit ID's to integer indices.")
+
+        size = state.size
+        num_qubits = int(np.sqrt(size)).bit_length() - 1
+        if state.shape == (int(np.sqrt(size)),) * 2 or state.shape == (2, 2) * num_qubits:
             # HACK: avoid circular import
             from cirq.sim.density_matrix_utils import to_valid_density_matrix
             state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
             return self._expectation_from_density_matrix(state, qubit_map)
 
-        raise ValueError("Input array does not represent a wavefunction with "
-                         "shape `(2 ** n,)` or a density matrix with shape "
-                         "`(2 ** n, 2 ** n)`.")
+        raise ValueError("Input array does not represent a density matrix with "
+                         "shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)`.")
 
     def _expectation_from_wavefunction(self,
                                        state: np.ndarray,
                                        qubit_map: Dict[raw_types.Qid, int]
                                        ) -> float:
-        num_qubits = state.shape[0].bit_length() - 1
-        ket = np.reshape(np.copy(state), (2,) * num_qubits)
+        """Evaluate the expectation of this PauliString given a wavefunction.
+
+        `state` must be an array representation of a wavefunction and have
+        shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
+        expressed over n qubits.
+
+        Args:
+            state: An array representing a wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+        """
+        ket = state
+        if len(state.shape) == 1:
+            num_qubits = state.shape[0].bit_length() - 1
+            ket = np.reshape(np.copy(state), (2,) * num_qubits)
         for qubit, pauli in self.items():
             buffer = np.empty(ket.shape, dtype=state.dtype)
-            args = protocols.ApplyUnitaryArgs(
-                    target_tensor=ket,
-                    available_buffer=buffer,
-                    axes=(qubit_map[qubit],)
-                    )
+            args = protocols.ApplyUnitaryArgs(target_tensor=ket,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
             ket = protocols.apply_unitary(pauli, args)
         ket = np.reshape(ket, state.shape)
         return np.dot(state.conj(), ket) * self.coefficient
@@ -329,15 +391,29 @@ class PauliString(raw_types.Operation):
                                          state: np.ndarray,
                                          qubit_map: Dict[raw_types.Qid, int]
                                          ) -> float:
-        num_qubits = state.shape[0].bit_length() - 1
-        result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
+        """Evaluate the expectation of this PauliString given a density matrix.
+
+        `state` must be an array representation of a density matrix and have
+        shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)` (2*n entries), where
+        `state` is expressed over n qubits.
+
+        Args:
+            state: An array representing a wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+        """
+        result = state
+        if len(result.shape) == 2:
+            num_qubits = state.shape[0].bit_length() - 1
+            result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
         for qubit, pauli in self.items():
             buffer = np.empty(result.shape, dtype=state.dtype)
-            args = protocols.ApplyUnitaryArgs(
-                    target_tensor=result,
-                    available_buffer=buffer,
-                    axes=(qubit_map[qubit],)
-                    )
+            args = protocols.ApplyUnitaryArgs(target_tensor=result,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
             result = protocols.apply_unitary(pauli, args)
         result = np.reshape(result, state.shape)
         return np.trace(result) * self.coefficient
