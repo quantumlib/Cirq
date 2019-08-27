@@ -82,20 +82,20 @@ class Qid(metaclass=abc.ABCMeta):
         """
         if levels > self.levels:
             raise ValueError('Too many quantum levels for <{!r}>. '
-                             'Expected fewer than or equal to {} levels but '
-                             'got {}.'.format(self, self.levels, levels))
+                             'Expected {} or fewer levels but got {}'.format(
+                                self, self.levels, levels))
         return self.with_levels(levels)
 
     def with_more_levels(self, levels) -> 'Qid':
         """Returns a new qid with more or the same number of levels.
 
         Raises:
-            ValueError: `levels > self.levels`
+            ValueError: `levels < self.levels`
         """
-        if levels > self.levels:
-            raise ValueError('Too many quantum levels for <{!r}>. '
-                             'Expected fewer than or equal to {} levels but '
-                             'got {}.'.format(self, self.levels, levels))
+        if levels < self.levels:
+            raise ValueError('Too few quantum levels for <{!r}>. '
+                             'Expected {} or more levels but got {}.'.format(
+                                self, self.levels, levels))
         return self.with_levels(levels)
 
     def _cmp_tuple(self):
