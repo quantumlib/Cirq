@@ -67,6 +67,23 @@ def test_insert_moment_types():
     circuit.insert(0, moment_or_operation_tree)
 
 
+def test_setitem():
+    circuit = cirq.Circuit([cirq.Moment(), cirq.Moment()])
+
+    circuit[1] = cirq.Moment([cirq.X(cirq.LineQubit(0))])
+    assert circuit == cirq.Circuit(
+        [cirq.Moment(), cirq.Moment([cirq.X(cirq.LineQubit(0))])])
+
+    circuit[1:1] = (cirq.Moment([cirq.Y(cirq.LineQubit(0))]),
+                    cirq.Moment([cirq.Z(cirq.LineQubit(0))]))
+    assert circuit == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment([cirq.Y(cirq.LineQubit(0))]),
+        cirq.Moment([cirq.Z(cirq.LineQubit(0))]),
+        cirq.Moment([cirq.X(cirq.LineQubit(0))]),
+    ])
+
+
 def test_equality():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
