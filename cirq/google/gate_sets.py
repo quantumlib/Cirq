@@ -78,7 +78,7 @@ XMON = serializable_gate_set.SerializableGateSet(
                 op_serializer.SerializingArg(
                     serialized_name='key',
                     serialized_type=str,
-                    gate_getter=lambda gate: protocols.measurement_key(gate)),
+                    gate_getter=protocols.measurement_key),
                 op_serializer.SerializingArg(serialized_name='invert_mask',
                                              serialized_type=List[bool],
                                              gate_getter='invert_mask')

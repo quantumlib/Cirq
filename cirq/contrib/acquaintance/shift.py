@@ -13,14 +13,11 @@
 # limitations under the License.
 
 import itertools
-from typing import TYPE_CHECKING, Dict, Sequence, Tuple
+from typing import Dict, Sequence, Tuple
 
-from cirq import ops, value
+from cirq import ops, protocols, value
 from cirq.contrib.acquaintance.permutation import (
         SwapPermutationGate, PermutationGate)
-
-if TYPE_CHECKING:
-    from cirq import protocols
 
 
 @value.value_equality
@@ -61,8 +58,8 @@ class CircularShiftGate(PermutationGate):
             for k in range(i, j, 2):
                 yield swap_gate(*qubits[k:k+2])
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
         direction_symbols = (
@@ -80,3 +77,6 @@ class CircularShiftGate(PermutationGate):
         permuted_indices = itertools.chain(range(shift, self.num_qubits()),
                                  range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}
+
+
+

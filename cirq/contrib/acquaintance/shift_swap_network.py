@@ -14,17 +14,14 @@
 
 import functools
 import itertools
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Tuple
+from typing import Dict, Iterable, Optional, Sequence, Tuple
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate)
 from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
-
-if TYPE_CHECKING:
-    from cirq import protocols
 
 
 class ShiftSwapNetworkGate(PermutationGate):
@@ -113,8 +110,8 @@ class ShiftSwapNetworkGate(PermutationGate):
                     range(self.qubit_count('right'))
             )))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> Tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)
 

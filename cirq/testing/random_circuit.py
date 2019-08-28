@@ -13,24 +13,24 @@
 # limitations under the License.
 
 from random import choice, sample, random
-from typing import List, Union, Sequence, Dict, Optional, Tuple
+from typing import List, Union, Sequence, Dict, Optional
 
 from cirq import ops
 from cirq.circuits import Circuit
 
-DEFAULT_GATE_DOMAIN: List[Tuple[ops.Gate, int]] = [
-    (ops.CNOT, 2),
-    (ops.CZ, 2),
-    (ops.H, 1),
-    (ops.ISWAP, 2),
-    (ops.CZPowGate(), 2),
-    (ops.S, 1),
-    (ops.SWAP, 2),
-    (ops.T, 1),
-    (ops.X, 1),
-    (ops.Y, 1),
-    (ops.Z, 1),
-]
+DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
+    ops.CNOT: 2,
+    ops.CZ: 2,
+    ops.H: 1,
+    ops.ISWAP: 2,
+    ops.CZPowGate(): 2,
+    ops.S: 1,
+    ops.SWAP: 2,
+    ops.T: 1,
+    ops.X: 1,
+    ops.Y: 1,
+    ops.Z: 1
+}
 
 
 def random_circuit(qubits: Union[Sequence[ops.Qid], int],
@@ -61,12 +61,10 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
     if not 0 < op_density < 1:
         raise ValueError('op_density must be in (0, 1).')
     if gate_domain is None:
-        gate_domain_list = DEFAULT_GATE_DOMAIN
-    else:
-        gate_domain_list = list(gate_domain.items())
-    if not gate_domain_list:
+        gate_domain = DEFAULT_GATE_DOMAIN
+    if not gate_domain:
         raise ValueError('gate_domain must be non-empty')
-    max_arity = max(val for key, val in gate_domain_list)
+    max_arity = max(gate_domain.values())
 
     if isinstance(qubits, int):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
@@ -79,7 +77,7 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         operations = []
         free_qubits = set(q for q in qubits)
         while len(free_qubits) >= max_arity:
-            gate, arity = choice(gate_domain_list)
+            gate, arity = choice(tuple(gate_domain.items()))
             op_qubits = sample(free_qubits, arity)
             free_qubits.difference_update(op_qubits)
             if random() <= op_density:

@@ -14,15 +14,14 @@
 
 import enum
 import itertools
-from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Union
+from typing import Dict, Sequence, Tuple, Union
 
-from cirq import ops
+from cirq import ops, protocols
+
+
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
-
-if TYPE_CHECKING:
-    from cirq import protocols
 
 
 @enum.unique
@@ -124,8 +123,8 @@ class BipartiteSwapNetworkGate(PermutationGate):
             return dict(enumerate(range(2 * self.part_size)))
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+                               ) -> Tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in '

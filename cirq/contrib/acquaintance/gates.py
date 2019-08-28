@@ -57,7 +57,8 @@ class AcquaintanceOpportunityGate(
         return ('cirq.contrib.acquaintance.AcquaintanceOpportunityGate('
                 'num_qubits={!r})'.format(self.num_qubits()))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs):
         wire_symbol = '█' if args.use_unicode_characters else 'Acq'
         wire_symbols = (wire_symbol,) * self.num_qubits()
         return wire_symbols
@@ -309,7 +310,8 @@ class SwapNetworkGate(PermutationGate):
         if final_gate:
             yield final_gate(*qubits)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs):
         wire_symbol = ('×' if args.use_unicode_characters else 'swap')
         wire_symbols = tuple(
             wire_symbol + '({},{})'.format(part_index, qubit_index)
