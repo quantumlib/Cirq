@@ -76,7 +76,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
                 raise IndexError('key is out of bounds.')
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> Tuple[str, ...]:
+                              ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation()

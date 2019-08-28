@@ -74,7 +74,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         return np.array(self._matrix)
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
 
@@ -155,7 +155,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
         return np.array(self._matrix)
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
 

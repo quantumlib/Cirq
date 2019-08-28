@@ -116,8 +116,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         if len(qubits) != protocols.num_qubits(self):
             raise ValueError('Wrong number of qubits for <{!r}>. '
                              'Expected {} qubits but got <{!r}>.'.format(
-                                 self, protocols.num_qubits(self),
-                                 qubits))
+                                 self, protocols.num_qubits(self), qubits))
 
         if any([not isinstance(qubit, Qid)
                 for qubit in qubits]):
@@ -184,8 +183,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
             decomposed = protocols.decompose_once_with_qubits(
                 self,
-                qubits=line_qubit.LineQubit.range(
-                    protocols.num_qubits(self)),
+                qubits=line_qubit.LineQubit.range(protocols.num_qubits(self)),
                 default=None)
             if decomposed is None:
                 return NotImplemented
@@ -325,8 +323,8 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return protocols.inverse(protocols.decompose_once_with_qubits(
-            self._original, qubits))
+        return protocols.inverse(
+            protocols.decompose_once_with_qubits(self._original, qubits))
 
     def _value_equality_values_(self):
         return self._original

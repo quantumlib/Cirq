@@ -122,13 +122,12 @@ class CCZPowGate(eigen_gate.EigenGate,
         return args.target_tensor
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             ('@', '@', '@'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: 'protocols.QasmArgs',
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
@@ -368,13 +367,12 @@ class CCXPowGate(eigen_gate.EigenGate,
         yield common_gates.H(t)
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             ('@', '@', 'X'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: 'protocols.QasmArgs',
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
@@ -527,13 +525,12 @@ class CSwapGate(gate_features.ThreeQubitGate,
                                  np.diag([1]))
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
-    def _qasm_(self,
-               args: 'protocols.QasmArgs',
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',

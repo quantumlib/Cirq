@@ -132,9 +132,8 @@ class ControlledOperation(raw_types.Operation):
             return NotImplemented
         return ControlledOperation(self.controls, new_sub_op)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> Optional['protocols.CircuitDiagramInfo']:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Optional['protocols.CircuitDiagramInfo']:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(

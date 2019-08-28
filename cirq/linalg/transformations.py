@@ -367,9 +367,9 @@ def wavefunction_partial_trace_as_mixture(
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
-    return tuple([
-        (float(p[0]), p[1]) for p in mixture if not protocols.approx_eq(p[0], 0.0)
-    ])
+    return tuple([(float(p[0]), p[1])
+                  for p in mixture
+                  if not protocols.approx_eq(p[0], 0.0)])
 
 
 def subwavefunction(wavefunction: np.ndarray,

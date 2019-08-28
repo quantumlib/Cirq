@@ -50,7 +50,7 @@ def test_random_circuit_errors():
         ),
         choice((True, False))
     ) for _ in range(10)]
-)
+)  # yapf: disable
 def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
                         n_moments: int,
                         op_density: float,

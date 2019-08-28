@@ -108,7 +108,7 @@ class GateOperation(raw_types.Operation):
         return protocols.pauli_expansion(self.gate)
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                        ) -> Union[np.ndarray, None, NotImplementedType]:
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(self.gate, args, default=None)
 
     def _has_unitary_(self) -> bool:
@@ -139,9 +139,8 @@ class GateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.circuit_diagram_info(self.gate,
                                               args,
                                               NotImplemented)

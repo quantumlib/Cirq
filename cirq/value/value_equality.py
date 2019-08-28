@@ -105,11 +105,9 @@ def _value_equality_approx_eq(self: _SupportsValueEquality,
         return False
 
     # Delegate to cirq.approx_eq for approximate equality comparison.
-    return protocols.approx_eq(
-        self._value_equality_approximate_values_(),
-        other._value_equality_approximate_values_(),
-        atol=atol
-    )
+    return protocols.approx_eq(self._value_equality_approximate_values_(),
+                               other._value_equality_approximate_values_(),
+                               atol=atol)
 
 
 # pylint: disable=function-redefined

@@ -124,7 +124,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> Tuple[str, ...]:
+                              ) -> Tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in '

@@ -61,7 +61,7 @@ class XXPowGate(eigen_gate.EigenGate,
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+                              ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
             symbol = _rads_func_symbol(
@@ -124,7 +124,7 @@ class YYPowGate(eigen_gate.EigenGate,
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('YY', 'YY'),
             exponent=self._diagram_exponent(args))
@@ -174,13 +174,13 @@ class ZZPowGate(eigen_gate.EigenGate,
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('ZZ', 'ZZ'),
             exponent=self._diagram_exponent(args))
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
-                        ) -> Optional[np.ndarray]:
+                       ) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 

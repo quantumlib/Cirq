@@ -1457,10 +1457,9 @@ class Circuit:
             transpose: bool = False,
             precision: Optional[int] = 3,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            get_circuit_diagram_info:
-                Optional[Callable[[ops.Operation,
-                                   'protocols.CircuitDiagramInfoArgs'],
-                                   'protocols.CircuitDiagramInfo']]=None
+            get_circuit_diagram_info: Optional[
+                Callable[[ops.Operation, 'protocols.CircuitDiagramInfoArgs'],
+                         'protocols.CircuitDiagramInfo']] = None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1616,8 +1615,8 @@ def _resolve_operations(
 
 
 def _get_operation_circuit_diagram_info_with_fallback(
-        op: ops.Operation,
-        args: 'protocols.CircuitDiagramInfoArgs') -> 'protocols.CircuitDiagramInfo':
+        op: ops.Operation, args: 'protocols.CircuitDiagramInfoArgs'
+) -> 'protocols.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
     if info is not None:
         if len(op.qubits) != len(info.wire_symbols):
@@ -1651,7 +1650,7 @@ def _is_exposed_formula(text: str) -> bool:
 
 def _formatted_exponent(info: 'protocols.CircuitDiagramInfo',
                         args: 'protocols.CircuitDiagramInfoArgs'
-                        ) -> Optional[str]:
+                       ) -> Optional[str]:
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
@@ -1698,11 +1697,9 @@ def _draw_moment_in_diagram(
         out_diagram: TextDiagramDrawer,
         precision: Optional[int],
         moment_groups: List[Tuple[int, int]],
-        get_circuit_diagram_info:
-            Optional[Callable[[ops.Operation,
-                               'protocols.CircuitDiagramInfoArgs'],
-                               'protocols.CircuitDiagramInfo']]=None
-        ):
+        get_circuit_diagram_info: Optional[
+            Callable[[ops.Operation, 'protocols.CircuitDiagramInfoArgs'],
+                     'protocols.CircuitDiagramInfo']] = None):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
                 _get_operation_circuit_diagram_info_with_fallback)

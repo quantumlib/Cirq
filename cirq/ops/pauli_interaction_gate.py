@@ -106,7 +106,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         yield right_gate1(q1)
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+                              ) -> 'protocols.CircuitDiagramInfo':
         labels = cast(Dict[pauli_gates.Pauli, np.ndarray], {
             pauli_gates.X: 'X',
             pauli_gates.Y: 'Y',

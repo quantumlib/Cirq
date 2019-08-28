@@ -59,7 +59,7 @@ class CircularShiftGate(PermutationGate):
                 yield swap_gate(*qubits[k:k+2])
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> Tuple[str, ...]:
+                              ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
         direction_symbols = (
@@ -77,6 +77,3 @@ class CircularShiftGate(PermutationGate):
         permuted_indices = itertools.chain(range(shift, self.num_qubits()),
                                  range(shift))
         return {s: i for i, s in enumerate(permuted_indices)}
-
-
-

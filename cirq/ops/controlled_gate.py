@@ -150,9 +150,8 @@ class ControlledGate(raw_types.Gate):
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs'
-                               ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(args.known_qubit_count - self.num_controls()
                                if args.known_qubit_count is not None else None),
