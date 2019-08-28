@@ -61,6 +61,7 @@ def test_load_tree_ordered(depth=2):
             current_path[:] = path[:-1]
 
     fail = False
+
     def handle_error(import_from, import_to):
         nonlocal fail
         if import_from[:depth] != import_to[:depth]:
