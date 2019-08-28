@@ -17,14 +17,12 @@ import itertools
 from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Union
 
 from cirq import ops
-
-if TYPE_CHECKING:
-    from cirq import protocols
-
-
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
+
+if TYPE_CHECKING:
+    from cirq import protocols
 
 
 @enum.unique
