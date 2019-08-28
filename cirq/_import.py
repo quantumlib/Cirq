@@ -21,17 +21,11 @@ import sys
 
 class WrappingFinder:
 
-    def __init__(self,
-                 finder,
-                 module_name,
-                 wrap_module,
-                 after_exec,
-                 include_sub=True):
+    def __init__(self, finder, module_name, wrap_module, after_exec):
         self.finder = finder
         self.module_name = module_name
         self.wrap_module = wrap_module
         self.after_exec = after_exec
-        self.include_sub = include_sub
 
     def find_spec(self, fullname, path=None, target=None):
         components = fullname.split('.')
@@ -39,12 +33,8 @@ class WrappingFinder:
         if spec is None:
             return None
         match_components = self.module_name.split('.')
-        if self.include_sub:
-            if components[:len(match_components)] == match_components:
-                return self.wrap_spec(spec)
-        else:
-            if components == match_components:
-                return self.wrap_spec(spec)
+        if components[:len(match_components)] == match_components:
+            spec = self.wrap_spec(spec)
         return spec
 
     def wrap_spec(self, spec):

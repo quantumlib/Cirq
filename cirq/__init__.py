@@ -16,6 +16,7 @@ from cirq import _import
 with _import.delay_import('cirq.protocols'):
     # Dependency order of sub-modules.
     # A module can only depend on modules earlier in this list at import time.
+    # Pytest will fail otherwise (enforced by cirq/import_test.py).
     from cirq import (
         # Low level
         _version,

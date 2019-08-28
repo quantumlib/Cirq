@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import importlib
 import os.path
 import sys
 
 # Don't import as submodule of cirq
 sys.path.append(os.path.dirname(__file__))
-from _import import wrap_module_executions
+# pylint: disable=wrong-import-position
+from _import import wrap_module_executions  # type: ignore
+# pylint: enable=wrong-import-position
 sys.path.remove(os.path.dirname(__file__))
 
 
@@ -65,7 +66,7 @@ def test_load_tree_ordered(depth=2):
                                                 '.'.join(import_to)))
 
     with wrap_module_executions('cirq', wrap_module, after_exec):
-        import cirq
+        import cirq  # pylint: disable=unused-import
 
     if fail:
         raise Exception('Possible circular import.  See stdout for details.')
