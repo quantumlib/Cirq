@@ -286,12 +286,18 @@ class PauliString(raw_types.Operation):
                 raise TypeError("Input qubit map must be a valid mapping from "
                                 "Qubit ID's to integer indices.")
 
+        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
         size = state.size
         num_qubits = size.bit_length() - 1
         if len(state.shape) == 1 or state.shape == (2,) * num_qubits:
             # HACK: avoid circular import
             from cirq.sim.wave_function import validate_normalized_state
-            validate_normalized_state(state, num_qubits, dtype=np.complex64)
+            validate_normalized_state(state, num_qubits, dtype=state.dtype)
             return self._expectation_from_wavefunction(state, qubit_map)
 
         raise ValueError("Input array does not represent a wavefunction with "
@@ -367,12 +373,18 @@ class PauliString(raw_types.Operation):
                 raise TypeError("Input qubit map must be a valid mapping from "
                                 "Qubit ID's to integer indices.")
 
+        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
         if state.shape == (int(np.sqrt(size)),) * 2 or state.shape == (2, 2) * num_qubits:
             # HACK: avoid circular import
             from cirq.sim.density_matrix_utils import to_valid_density_matrix
-            state = to_valid_density_matrix(state, num_qubits)
+            state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
             return self._expectation_from_density_matrix(state, qubit_map)
 
         raise ValueError("Input array does not represent a density matrix with "
