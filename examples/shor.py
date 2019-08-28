@@ -82,9 +82,10 @@ def find_factor_of_prime_power(n: int) -> Optional[int]:
         m *= c
         if m == n:
             return c
+    return None
 
 
-def find_factor(n: int, order_finder: Callable[[int], int]) -> int:
+def find_factor(n: int, order_finder: Callable[[int, int], int]) -> int:
     """Returns a non-trivial factor of composite integer n.
 
     Args:
