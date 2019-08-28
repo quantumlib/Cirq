@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+#def late_load():
 from cirq.protocols.apply_unitary import (
     apply_unitaries,
     apply_unitary,
@@ -113,3 +114,7 @@ from cirq.protocols.has_unitary import (
     has_unitary,
     SupportsExplicitHasUnitary,
 )
+
+#    # Move imports into module
+#    for key, val in locals().items():
+#        globals()[key] = val

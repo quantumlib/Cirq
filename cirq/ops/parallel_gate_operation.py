@@ -80,7 +80,7 @@ class ParallelGateOperation(raw_types.Operation):
         """
         return [self.gate.on(qubit) for qubit in self.qubits]
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                         ) -> Union[np.ndarray, None, NotImplementedType]:
         """Replicates the logic the simulators use to apply the equivalent
            sequence of GateOperations
@@ -124,8 +124,8 @@ class ParallelGateOperation(raw_types.Operation):
         return np.sin(angle)
 
     def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+                               args: 'protocols.CircuitDiagramInfoArgs'
+                               ) -> 'protocols.CircuitDiagramInfo':
         diagram_info = protocols.circuit_diagram_info(self.gate,
                                                       args,
                                                       NotImplemented)
