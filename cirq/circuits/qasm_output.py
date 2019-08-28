@@ -52,7 +52,7 @@ class QasmUGate(ops.SingleQubitGate):
 
     def _qasm_(self,
                qubits: Tuple[ops.Qid, ...],
-               args: protocols.QasmArgs) -> str:
+               args: 'protocols.QasmArgs') -> str:
         args.validate_version('2.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
