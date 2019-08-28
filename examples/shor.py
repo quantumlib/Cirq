@@ -57,7 +57,17 @@ parser.add_argument('n', type=int, help='composite integer to factor')
 
 
 def naive_order_finder(x: int, n: int) -> int:
-    """Computes smallest positive r such that x^r mod n == 1."""
+    """Computes smallest positive r such that x^r mod n == 1.
+
+    Args:
+        x: integer whose order is to be computed, must belong to
+           the multiplicative group of integers modulo n, i.e
+           must be relatively prime to n,
+        n: modulus of the multiplicative group.
+
+    Returns:
+        Smallest positive integer r such that x^r == 1 mod n.
+    """
     if x < 2 or n <= x:
         raise ValueError(f'Invalid x={x} for modulus n={n}')
     r, y = 1, x
@@ -75,13 +85,13 @@ def quantum_order_finder(x: int, n: int) -> int:
 def find_factor_of_prime_power(n: int) -> Optional[int]:
     """Returns non-trivial factor of n if n is a prime power, else None."""
     for k in range(2, math.floor(math.log2(n)) + 1):
-        c = math.floor(math.pow(n, 1 / k))
-        m = c**k
-        if m == n:
-            return c
-        m *= c
-        if m == n:
-            return c
+        c = math.pow(n, 1 / k)
+        c1 = math.floor(c)
+        if c1**k == n:
+            return c1
+        c2 = math.ceil(c)
+        if c2**k == n:
+            return c2
     return None
 
 
@@ -106,22 +116,23 @@ def find_factor(n: int, order_finder: Callable[[int, int], int]) -> int:
         x = random.randint(2, n - 1)
         c = math.gcd(x, n)
         if 1 < c < n:
-            return c
+            return c  # coverage: ignore
         r = order_finder(x, n)
         if r % 2 != 0:
-            continue
+            continue  # coverage: ignore
         y = x**(r // 2) % n
         c = math.gcd(y - 1, n)
         if 1 < c < n:
             return c
+        # coverage: ignore
         c = math.gcd(y + 1, n)
         if 1 < c < n:
             return c
 
 
-def main():
-    args = parser.parse_args()
-    n = args.n
+def main(n: Optional[int] = None):
+    if n is None:
+        n = parser.parse_args().n  # coverage: ignore
     assert n > 2
 
     d = find_factor(n, order_finder=naive_order_finder)
