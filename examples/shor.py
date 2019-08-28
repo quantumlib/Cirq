@@ -130,5 +130,6 @@ def main():
     assert 1 < d < n
     assert n % d == 0
 
+
 if __name__ == '__main__':
     main()
