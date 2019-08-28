@@ -110,7 +110,7 @@ class ShiftSwapNetworkGate(PermutationGate):
                     range(self.qubit_count('right'))
             )))
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                                ) -> Tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)

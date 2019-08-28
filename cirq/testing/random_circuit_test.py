@@ -45,7 +45,7 @@ def test_random_circuit_errors():
         (
             None
             if randint(0, 1)
-            else dict(sample(tuple(DEFAULT_GATE_DOMAIN.items()),
+            else dict(sample(DEFAULT_GATE_DOMAIN,
                              randint(1, len(DEFAULT_GATE_DOMAIN))))
         ),
         choice((True, False))
@@ -63,7 +63,7 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
         assert circuit.all_qubits().issubset(qubit_set)
     assert len(circuit) == n_moments
     if gate_domain is None:
-        gate_domain = DEFAULT_GATE_DOMAIN
+        gate_domain = dict(DEFAULT_GATE_DOMAIN)
     assert set(cast(cirq.GateOperation, op).gate
                for op in circuit.all_operations()
                ).issubset(gate_domain)

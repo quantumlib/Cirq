@@ -122,8 +122,8 @@ class AcquaintanceOperation(ops.GateOperation):
         self.logical_indices: LogicalIndexSequence = logical_indices
 
     def _circuit_diagram_info_(self,
-            args: protocols.CircuitDiagramInfoArgs
-            ) -> protocols.CircuitDiagramInfo:
+            args: 'protocols.CircuitDiagramInfoArgs'
+            ) -> 'protocols.CircuitDiagramInfo':
         wire_symbols = tuple('({})'.format(i) for i in self.logical_indices)
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols)
 

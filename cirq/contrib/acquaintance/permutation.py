@@ -75,7 +75,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             if max(permutation) >= n_elements:
                 raise IndexError('key is out of bounds.')
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                                ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
@@ -96,8 +96,8 @@ class MappingDisplayGate(ops.Gate):
     def num_qubits(self) -> int:
         return self._num_qubits
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         wire_symbols = tuple('' if i is None else str(i) for i in self.indices)
         return protocols.CircuitDiagramInfo(wire_symbols, connected=False)
 

@@ -58,7 +58,7 @@ class CircularShiftGate(PermutationGate):
             for k in range(i, j, 2):
                 yield swap_gate(*qubits[k:k+2])
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                                ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
