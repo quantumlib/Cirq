@@ -28,75 +28,10 @@ Usage:
 """
 
 import collections
-from contextlib import contextmanager
 import os.path
 import subprocess
 import sys
 import time
-
-
-class WrappingFinder:
-
-    def __init__(self, finder, module_name, wrap_module, after_exec):
-        self.finder = finder
-        self.module_name = module_name
-        self.wrap_module = wrap_module
-        self.after_exec = after_exec
-
-    def find_spec(self, fullname, path=None, target=None):
-        components = fullname.split('.')
-        spec = self.finder.find_spec(fullname, path=path, target=target)
-        if spec is None:
-            return None
-        match_components = self.module_name.split('.')
-        if components[:len(match_components)] == match_components:
-            spec = self.wrap_spec(spec)
-        return spec
-
-    def wrap_spec(self, spec):
-        spec.loader = WrappingLoader(spec.loader, self.wrap_module,
-                                     self.after_exec)
-        return spec
-
-
-class WrappingLoader:
-
-    def __init__(self, loader, wrap_module, after_exec):
-        self.loader = loader
-        self.wrap_module = wrap_module
-        self.after_exec = after_exec
-
-    def create_module(self, spec):
-        return self.loader.create_module(spec)
-
-    def exec_module(self, module):
-        module = self.wrap_module(module)
-        if module is not None:
-            self.loader.exec_module(module)
-            self.after_exec(module)
-
-
-@contextmanager
-def wrap_module_executions(module_name, wrap_func, after_exec=lambda m: None):
-    """A context manager that hooks python's import machinery within the
-    context.
-
-    `wrap_func` is called before executing the module called `module_name` and
-    any of its submodules.  The module returned by `wrap_func` will be executed.
-    """
-
-    def wrap(finder):
-        if not hasattr(finder, 'find_spec'):
-            return finder
-        return WrappingFinder(finder, module_name, wrap_func, after_exec)
-
-    new_meta_path = [wrap(finder) for finder in sys.meta_path]
-
-    try:
-        orig_meta_path, sys.meta_path = sys.meta_path, new_meta_path
-        yield
-    finally:
-        sys.meta_path = orig_meta_path
 
 
 def verify_import_tree(depth=2):
@@ -146,10 +81,21 @@ def verify_import_tree(depth=2):
             print('ERROR: {} imported {}'.format('.'.join(import_from),
                                                  '.'.join(import_to)))
 
-    # Add cirq to python path
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    # Import wrap_module_executions without importing cirq
+    orig_path = list(sys.path)
+    project_dir = os.path.dirname(os.path.dirname(__file__))
+    cirq_dir = os.path.join(project_dir, 'cirq')
+    sys.path.append(cirq_dir)  # Put cirq/_import.py in the path.
+    from _import import wrap_module_executions  # type: ignore
+    sys.path[:] = orig_path  # Restore the path.
+
+    sys.path.append(project_dir)  # Ensure the cirq package is in the path.
+
     with wrap_module_executions('cirq', wrap_module, after_exec):
+        # Import cirq with instrumentation
         import cirq  # pylint: disable=unused-import
+
+    sys.path[:] = orig_path  # Restore the path.
 
     worst_loads = collections.Counter(load_times).most_common(10)
     print()
@@ -161,6 +107,9 @@ def verify_import_tree(depth=2):
 
 
 def test_no_circular_imports():
+    """Runs the test in a subprocess because cirq has already been imported
+    before in an earlier test but this test needs to control the import process.
+    """
     status = subprocess.call(['python', __file__])
     if status == 65:
         # coverage: ignore
