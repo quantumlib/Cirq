@@ -242,7 +242,7 @@ class PauliString(raw_types.Operation):
     def expectation_from_wavefunction(
         self,
         state: np.ndarray,
-        qubit_map: Optional[Dict[raw_types.Qid, int]]=None) -> float:
+        qubit_map: Dict[raw_types.Qid, int]) -> float:
         r"""Evaluate the expectation of this PauliString given a wavefunction.
 
         Compute the expectation value of this PauliString with respect to a wavefunction. By
@@ -278,13 +278,14 @@ class PauliString(raw_types.Operation):
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if qubit_map is None:
-            qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
-        else:
-            if not isinstance(qubit_map, dict) or not all(
-                isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
-                raise TypeError("Input qubit map must be a valid mapping from "
-                                "Qubit ID's to integer indices.")
+        if not isinstance(qubit_map, dict) or not all(
+            isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+            raise TypeError("`qubit_map` must be a valid mapping from "
+                            "Qubit ID's to integer indices.")
+
+        if set(qubit_map.keys()) != set(self.qubits):
+            raise ValueError("`qubit_map` must be a complete mapping over this "
+                             "PauliString's qubits.")
 
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
@@ -365,13 +366,14 @@ class PauliString(raw_types.Operation):
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if qubit_map is None:
-            qubit_map = {q: i for i, q in enumerate(self._qubit_pauli_map.keys())}
-        else:
-            if not isinstance(qubit_map, dict) or not all(
-                isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
-                raise TypeError("Input qubit map must be a valid mapping from "
-                                "Qubit ID's to integer indices.")
+        if not isinstance(qubit_map, dict) or not all(
+            isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+            raise TypeError("Input qubit map must be a valid mapping from "
+                            "Qubit ID's to integer indices.")
+
+        if set(qubit_map.keys()) != set(self.qubits):
+            raise ValueError("`qubit_map` must be a complete mapping over this "
+                             "PauliString's qubits.")
 
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
