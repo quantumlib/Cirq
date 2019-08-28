@@ -131,7 +131,7 @@ def verify_load_tree():
                                                 '.'.join(import_to)))
 
     with wrap_module_executions('cirq', wrap_module, after_exec):
-        import cirq
+        import cirq  # pylint: disable=unused-import
 
     worst_loads = collections.Counter(load_times).most_common(10)
     print('Worst load times:')

@@ -13,11 +13,14 @@
 # limitations under the License.
 
 import itertools
-from typing import Dict, Sequence, Tuple
+from typing import TYPE_CHECKING, Dict, Sequence, Tuple
 
-from cirq import ops, protocols, value
+from cirq import ops, value
 from cirq.contrib.acquaintance.permutation import (
         SwapPermutationGate, PermutationGate)
+
+if TYPE_CHECKING:
+    from cirq import protocols
 
 
 @value.value_equality

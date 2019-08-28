@@ -14,14 +14,17 @@
 
 import functools
 import itertools
-from typing import Dict, Iterable, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Sequence, Tuple
 
-from cirq import ops, protocols
+from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate)
 from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
+
+if TYPE_CHECKING:
+    from cirq import protocols
 
 
 class ShiftSwapNetworkGate(PermutationGate):
