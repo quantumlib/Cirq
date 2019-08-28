@@ -709,12 +709,16 @@ def test_expectation_from_wavefunction_invalid_input():
     q0, q1 = _make_qubits(2)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps = cirq.PauliString(qubit_pauli_map)
-    wf = np.array([1, 0, 0, 0])
+    wf = np.array([1, 0, 0, 0], dtype=np.complex64)
     q_map = dict({q0: 0, q1: 1})
 
     im_ps = (1j + 1) * ps
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_ps.expectation_from_wavefunction(wf, qubit_map=q_map)
+
+
+    with pytest.raises(NotImplementedError, match='dtype'):
+        ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.int), qubit_map=q_map)
 
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_wavefunction(wf, qubit_map="bad type")
@@ -860,6 +864,9 @@ def test_expectation_from_density_matrix_invalid_input():
     im_ps = (1j + 1) * ps
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_ps.expectation_from_density_matrix(rho, qubit_map=q_map)
+
+    with pytest.raises(NotImplementedError, match='dtype'):
+        ps.expectation_from_density_matrix(0.5 * np.eye(2, dtype=np.int), qubit_map=q_map)
 
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_density_matrix(rho, qubit_map="bad type")
