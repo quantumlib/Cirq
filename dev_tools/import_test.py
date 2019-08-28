@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Copyright 2019 The Cirq Developers
 #
@@ -215,7 +215,7 @@ def test_no_circular_imports():
     """Runs the test in a subprocess because cirq has already been imported
     before in an earlier test but this test needs to control the import process.
     """
-    status = subprocess.call(['python3', __file__])
+    status = subprocess.call([sys.executable, __file__])
     if status == FAIL_EXIT_CODE:
         # coverage: ignore
         raise Exception('Invalid import. See captured output for details.')
