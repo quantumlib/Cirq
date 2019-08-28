@@ -13,19 +13,13 @@
 # limitations under the License.
 
 import importlib
+import os.path
 import sys
 
-from cirq._import import wrap_module_executions
-
-
-def unload_module(name):
-    """Remotes a module and its submodules from `sys.modules` more thoroughly
-    than `importlib.reload`.
-    """
-    all_keys = [key for key in sys.modules if key.startswith(name + '.')]
-    for key in all_keys:
-        sys.modules.pop(key)
-    sys.modules.pop(name, None)
+# Don't import as submodule of cirq
+sys.path.append(os.path.dirname(__file__))
+from _import import wrap_module_executions
+sys.path.remove(os.path.dirname(__file__))
 
 
 def test_load_tree_ordered(depth=2):
@@ -70,7 +64,6 @@ def test_load_tree_ordered(depth=2):
                   '       Imported {}\n'.format('.'.join(import_from),
                                                 '.'.join(import_to)))
 
-    unload_module('cirq')
     with wrap_module_executions('cirq', wrap_module, after_exec):
         import cirq
 
