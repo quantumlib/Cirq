@@ -29,6 +29,7 @@ Usage:
 
 import collections
 from contextlib import contextmanager
+import os.path
 import subprocess
 import sys
 import time
@@ -145,6 +146,8 @@ def verify_import_tree(depth=2):
             print('ERROR: {} imported {}'.format('.'.join(import_from),
                                                  '.'.join(import_to)))
 
+    # Add cirq to python path
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     with wrap_module_executions('cirq', wrap_module, after_exec):
         import cirq  # pylint: disable=unused-import
 
@@ -161,7 +164,7 @@ def test_no_circular_imports():
     status = subprocess.call(['python', __file__])
     if status == 65:
         # coverage: ignore
-        raise Exception('Possible circular import. See stdout for details.')
+        raise Exception('Invalid import. See captured output for details.')
     elif status != 0:
         # coverage: ignore
         raise RuntimeError('Error in subprocess')
