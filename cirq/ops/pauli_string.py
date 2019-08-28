@@ -290,8 +290,8 @@ class PauliString(raw_types.Operation):
         num_qubits = size.bit_length() - 1
         if len(state.shape) == 1 or state.shape == (2,) * num_qubits:
             # HACK: avoid circular import
-            from cirq.sim.wave_function import to_valid_state_vector
-            state = to_valid_state_vector(state, num_qubits, dtype=state.dtype)
+            from cirq.sim.wave_function import validate_normalized_state
+            validate_normalized_state(state, num_qubits, dtype=np.complex64)
             return self._expectation_from_wavefunction(state, qubit_map)
 
         raise ValueError("Input array does not represent a wavefunction with "
@@ -372,7 +372,7 @@ class PauliString(raw_types.Operation):
         if state.shape == (int(np.sqrt(size)),) * 2 or state.shape == (2, 2) * num_qubits:
             # HACK: avoid circular import
             from cirq.sim.density_matrix_utils import to_valid_density_matrix
-            state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
+            state = to_valid_density_matrix(state, num_qubits)
             return self._expectation_from_density_matrix(state, qubit_map)
 
         raise ValueError("Input array does not represent a density matrix with "
