@@ -20,11 +20,11 @@ Specifically, this test treats the modules as a tree structure where `cirq` is
 the root, each submodule is a node and each python file is a leaf node.  While
 a node (module) is in the process of being imported, it is not allowed to import
 nodes for the first time other than its children.  If a module was imported
-earlier by cirq.__init__, it may be imported.  This is currently only enforced
+earlier by `cirq.__init__`, it may be imported.  This is currently only enforced
 for the first level of submodules under cirq, not sub-submodules.
 
 Usage:
-    import_test.py [-h] [--time] [--others]
+    dev_tools/import_test.py [-h] [--time] [--others]
 
     optional arguments:
       -h, --help  show this help message and exit
