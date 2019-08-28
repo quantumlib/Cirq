@@ -13,40 +13,46 @@
 # limitations under the License.
 
 from cirq import _import
+
+# Dependency order of sub-modules.
+# A module can only depend on modules earlier in this list at import time.
+# Pytest will fail otherwise (enforced by dev_tools/import_test.py).
+from cirq import (
+    # Low level
+    _version,
+    _compat,
+    type_workarounds,
+)
 with _import.delay_import('cirq.protocols'):
-    # Dependency order of sub-modules.
-    # A module can only depend on modules earlier in this list at import time.
-    # Pytest will fail otherwise (enforced by dev_tools/import_test.py).
     from cirq import (
-        # Low level
-        _version,
-        _compat,
-        type_workarounds,
         # Core
         protocols,
         value,
         linalg,
         ops,
-        devices,
-        study,
-        circuits,
-        schedules,
-        # Optimize and run
-        optimizers,
-        work,
-        sim,
-        vis,
-        # Hardware specific
-        ion,
-        neutral_atoms,
-        api,
-        google,
-        # Applications
-        experiments,
-        # Extra (nothing should depend on these)
-        testing,
-        contrib,
     )
+from cirq import (
+    # Core
+    devices,
+    study,
+    circuits,
+    schedules,
+    # Optimize and run
+    optimizers,
+    work,
+    sim,
+    vis,
+    # Hardware specific
+    ion,
+    neutral_atoms,
+    api,
+    google,
+    # Applications
+    experiments,
+    # Extra (nothing should depend on these)
+    testing,
+    contrib,
+)
 
 from cirq._version import (
     __version__,
