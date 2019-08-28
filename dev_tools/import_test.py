@@ -16,12 +16,20 @@
 """
 Locates imports that violate cirq's submodule dependencies.
 
+Specifically, this test treats the modules as a tree structure where `cirq` is
+the root, each submodule is a node and each python file is a leaf node.  While
+a node (module) is in the process of being imported, it is not allowed to import
+nodes for the first time other than it's children.  If a module was imported
+earlier by cirq.__init__, it may be imported.  This is currently only enforced
+for the first level of submodules under cirq, not sub-submodules.
+
 Usage:
     python run_import_test.py
 """
 
 import collections
 from contextlib import contextmanager
+import subprocess
 import sys
 import time
 
@@ -41,7 +49,7 @@ class WrappingFinder:
             return None
         match_components = self.module_name.split('.')
         if components[:len(match_components)] == match_components:
-            return self.wrap_spec(spec)
+            spec = self.wrap_spec(spec)
         return spec
 
     def wrap_spec(self, spec):
@@ -62,8 +70,9 @@ class WrappingLoader:
 
     def exec_module(self, module):
         module = self.wrap_module(module)
-        self.loader.exec_module(module)
-        self.after_exec(module)
+        if module is not None:
+            self.loader.exec_module(module)
+            self.after_exec(module)
 
 
 @contextmanager
@@ -74,18 +83,23 @@ def wrap_module_executions(module_name, wrap_func, after_exec=lambda m: None):
     `wrap_func` is called before executing the module called `module_name` and
     any of its submodules.  The module returned by `wrap_func` will be executed.
     """
-    orig_meta_path = sys.meta_path
+
+    def wrap(finder):
+        if not hasattr(finder, 'find_spec'):
+            return finder
+        return WrappingFinder(finder, module_name, wrap_func, after_exec)
+
+    new_meta_path = [wrap(finder) for finder in sys.meta_path]
+
     try:
-        sys.meta_path = [
-            WrappingFinder(finder, module_name, wrap_func, after_exec)
-            for finder in sys.meta_path
-        ]
+        orig_meta_path, sys.meta_path = sys.meta_path, new_meta_path
         yield
     finally:
         sys.meta_path = orig_meta_path
 
 
-def verify_load_tree():
+def verify_import_tree(depth=2):
+    fail = False
     start_times = {}
     load_times = {}
     current_path = []
@@ -101,7 +115,7 @@ def verify_load_tree():
             # Jump somewhere else in the tree
             handle_error(current_path, path)
             current_path[:] = path
-        if len(path) <= 2:
+        if len(path) <= depth:
             print('Start', module.__name__)
 
         return module
@@ -111,7 +125,7 @@ def verify_load_tree():
                                        start_times[module.__name__])
 
         path = module.__name__.split('.')
-        if len(path) <= 2:
+        if len(path) <= depth:
             print('End  ', module.__name__)
         if path == current_path:
             # No submodules were here
@@ -125,19 +139,33 @@ def verify_load_tree():
             current_path[:] = path[:-1]
 
     def handle_error(import_from, import_to):
-        if import_from[:2] != import_to[:2]:
-            print('ERROR: Module   {}\n'
-                  '       Imported {}\n'.format('.'.join(import_from),
-                                                '.'.join(import_to)))
+        nonlocal fail
+        if import_from[:depth] != import_to[:depth]:
+            fail = True
+            print('ERROR: {} imported {}'.format('.'.join(import_from),
+                                                 '.'.join(import_to)))
 
     with wrap_module_executions('cirq', wrap_module, after_exec):
         import cirq  # pylint: disable=unused-import
 
     worst_loads = collections.Counter(load_times).most_common(10)
+    print()
     print('Worst load times:')
     for name, dt in worst_loads:
         print('{:.3f}  {}'.format(dt, name))
 
+    return 65 if fail else 0
+
+
+def test_no_circular_imports():
+    status = subprocess.call(['python', __file__])
+    if status == 65:
+        # coverage: ignore
+        raise Exception('Possible circular import. See stdout for details.')
+    elif status != 0:
+        # coverage: ignore
+        raise RuntimeError('Error in subprocess')
+
 
 if __name__ == '__main__':
-    verify_load_tree()
+    sys.exit(verify_import_tree())
