@@ -24,6 +24,9 @@ class WrappingFinder:
     def __init__(self, finder, module_name, wrap_module, after_exec):
         self.finder = finder
         self.module_name = module_name
+        self.match_components = []
+        if self.module_name:
+            self.match_components = self.module_name.split('.')
         self.wrap_module = wrap_module
         self.after_exec = after_exec
 
@@ -32,8 +35,7 @@ class WrappingFinder:
         spec = self.finder.find_spec(fullname, path=path, target=target)
         if spec is None:
             return None
-        match_components = self.module_name.split('.')
-        if components[:len(match_components)] == match_components:
+        if components[:len(self.match_components)] == self.match_components:
             spec = self.wrap_spec(spec)
         return spec
 

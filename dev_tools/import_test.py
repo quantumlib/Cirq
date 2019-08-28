@@ -24,7 +24,11 @@ earlier by cirq.__init__, it may be imported.  This is currently only enforced
 for the first level of submodules under cirq, not sub-submodules.
 
 Usage:
-    python run_import_test.py
+    python run_import_test.py [--time] [--others]
+
+    --time      Print a report of the modules that took the longest to import.
+    --others    Also track packages other than cirq and print when they are
+                imported.
 """
 
 import collections
@@ -34,7 +38,7 @@ import sys
 import time
 
 
-def verify_import_tree(depth=2):
+def verify_import_tree(depth=2, track_others=False, timeit=False):
     fail = False
     start_times = {}
     load_times = {}
@@ -44,6 +48,11 @@ def verify_import_tree(depth=2):
         start_times[module.__name__] = time.perf_counter()
 
         path = module.__name__.split('.')
+        if path[0] != 'cirq':
+            if len(path) == 1:
+                print('Other', module.__name__)
+            return module
+
         if len(path) == len(current_path) + 1 and path[:-1] == current_path:
             # Move down in tree
             current_path.append(path[-1])
@@ -61,6 +70,9 @@ def verify_import_tree(depth=2):
                                        start_times[module.__name__])
 
         path = module.__name__.split('.')
+        if path[0] != 'cirq':
+            return
+
         if len(path) <= depth:
             print('End  ', module.__name__)
         if path == current_path:
@@ -91,17 +103,19 @@ def verify_import_tree(depth=2):
 
     sys.path.append(project_dir)  # Ensure the cirq package is in the path.
 
-    with wrap_module_executions('cirq', wrap_module, after_exec):
+    with wrap_module_executions('' if track_others else 'cirq', wrap_module,
+                                after_exec):
         # Import cirq with instrumentation
         import cirq  # pylint: disable=unused-import
 
     sys.path[:] = orig_path  # Restore the path.
 
-    worst_loads = collections.Counter(load_times).most_common(10)
-    print()
-    print('Worst load times:')
-    for name, dt in worst_loads:
-        print('{:.3f}  {}'.format(dt, name))
+    if timeit:
+        worst_loads = collections.Counter(load_times).most_common(15)
+        print()
+        print('Worst load times:')
+        for name, dt in worst_loads:
+            print('{:.3f}  {}'.format(dt, name))
 
     return 65 if fail else 0
 
@@ -120,4 +134,6 @@ def test_no_circular_imports():
 
 
 if __name__ == '__main__':
-    sys.exit(verify_import_tree())
+    track_others = '--others' in sys.argv[1:]
+    timeit = '--time' in sys.argv[1:]
+    sys.exit(verify_import_tree(track_others=track_others, timeit=timeit))
