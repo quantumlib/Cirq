@@ -12,25 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Callable, List, Optional
+
 from contextlib import contextmanager
 import importlib
 import sys
 
-# TODO: Type annotation
+# Bug workaround: https://github.com/python/mypy/issues/1498
+ModuleType = Any
 
 
 class WrappingFinder:
 
-    def __init__(self, finder, module_name, wrap_module, after_exec):
+    def __init__(self, finder: Any, module_name: str,
+                 wrap_module: Callable[[ModuleType], Optional[ModuleType]],
+                 after_exec: Callable[[ModuleType], None]):
         self.finder = finder
         self.module_name = module_name
-        self.match_components = []
+        self.match_components: List[str] = []
         if self.module_name:
             self.match_components = self.module_name.split('.')
         self.wrap_module = wrap_module
         self.after_exec = after_exec
 
-    def find_spec(self, fullname, path=None, target=None):
+    def find_spec(self, fullname: str, path: Any = None,
+                  target: Any = None) -> Any:
         components = fullname.split('.')
         spec = self.finder.find_spec(fullname, path=path, target=target)
         if spec is None:
@@ -39,7 +45,7 @@ class WrappingFinder:
             spec = self.wrap_spec(spec)
         return spec
 
-    def wrap_spec(self, spec):
+    def wrap_spec(self, spec: Any) -> Any:
         spec.loader = WrappingLoader(spec.loader, self.wrap_module,
                                      self.after_exec)
         return spec
@@ -47,15 +53,17 @@ class WrappingFinder:
 
 class WrappingLoader:
 
-    def __init__(self, loader, wrap_module, after_exec):
+    def __init__(self, loader: Any,
+                 wrap_module: Callable[[ModuleType], Optional[ModuleType]],
+                 after_exec: Callable[[ModuleType], None]):
         self.loader = loader
         self.wrap_module = wrap_module
         self.after_exec = after_exec
 
-    def create_module(self, spec):
+    def create_module(self, spec: ModuleType) -> ModuleType:
         return self.loader.create_module(spec)
 
-    def exec_module(self, module):
+    def exec_module(self, module: ModuleType) -> None:
         module = self.wrap_module(module)
         if module is not None:
             self.loader.exec_module(module)
@@ -63,7 +71,10 @@ class WrappingLoader:
 
 
 @contextmanager
-def wrap_module_executions(module_name, wrap_func, after_exec=lambda m: None):
+def wrap_module_executions(
+        module_name: str,
+        wrap_func: Callable[[ModuleType], Optional[ModuleType]],
+        after_exec: Callable[[ModuleType], None] = lambda m: None):
     """A context manager that hooks python's import machinery within the
     context.
 
@@ -71,7 +82,7 @@ def wrap_module_executions(module_name, wrap_func, after_exec=lambda m: None):
     any of its submodules.  The module returned by `wrap_func` will be executed.
     """
 
-    def wrap(finder):
+    def wrap(finder: Any) -> Any:
         if not hasattr(finder, 'find_spec'):
             return finder
         return WrappingFinder(finder, module_name, wrap_func, after_exec)
@@ -86,7 +97,7 @@ def wrap_module_executions(module_name, wrap_func, after_exec=lambda m: None):
 
 
 @contextmanager
-def delay_import(module_name):
+def delay_import(module_name: str):
     """A context manager that allows the module or submodule named `module_name`
     to be imported without the contents of the module executing until the
     context manager exits.
@@ -94,7 +105,7 @@ def delay_import(module_name):
     delay = True
     execute_list = []
 
-    def wrap_func(module):
+    def wrap_func(module: ModuleType) -> Optional[ModuleType]:
         if delay:
             execute_list.append(module)
             return None  # Don't allow the module to be executed yet
