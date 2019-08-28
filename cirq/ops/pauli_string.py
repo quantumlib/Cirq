@@ -283,7 +283,7 @@ class PauliString(raw_types.Operation):
             raise TypeError("`qubit_map` must be a valid mapping from "
                             "Qubit ID's to integer indices.")
 
-        if set(qubit_map.keys()) != set(self.qubits):
+        if set(qubit_map.keys()) < set(self.qubits):
             raise ValueError("`qubit_map` must be a complete mapping over this "
                              "PauliString's qubits.")
 
@@ -371,7 +371,7 @@ class PauliString(raw_types.Operation):
             raise TypeError("Input qubit map must be a valid mapping from "
                             "Qubit ID's to integer indices.")
 
-        if set(qubit_map.keys()) != set(self.qubits):
+        if set(qubit_map.keys()) < set(self.qubits):
             raise ValueError("`qubit_map` must be a complete mapping over this "
                              "PauliString's qubits.")
 
@@ -383,10 +383,12 @@ class PauliString(raw_types.Operation):
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
-        if state.shape == (int(np.sqrt(size)),) * 2 or state.shape == (2, 2) * num_qubits:
+        dim = int(np.sqrt(size))
+        if state.shape == (dim, dim) or state.shape == (2, 2) * num_qubits:
             # HACK: avoid circular import
             from cirq.sim.density_matrix_utils import to_valid_density_matrix
-            state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
+            # Do not enforce reshaping if the state all axes are dimension 2.
+            _ = to_valid_density_matrix(state.reshape(dim, dim), num_qubits, dtype=state.dtype)
             return self._expectation_from_density_matrix(state, qubit_map)
 
         raise ValueError("Input array does not represent a density matrix with "
