@@ -22,11 +22,32 @@ import sys
 ModuleType = Any
 
 
-class WrappingFinder:
+class InstrumentedFinder(importlib.abc.MetaPathFinder):
+    """A module finder used to hook the python import statement."""
 
     def __init__(self, finder: Any, module_name: str,
                  wrap_module: Callable[[ModuleType], Optional[ModuleType]],
                  after_exec: Callable[[ModuleType], None]):
+        """A module finder that uses an existing module finder to find a python
+        module spec and intercept the execution of matching modules.
+
+        Replace finders in `sys.meta_path` with instances of this class to
+        instrument import statements.
+
+        Args:
+            finder: The original module finder to wrap.
+            module_name: The fully qualified module name to instrument e.g.
+                `'pkg.submodule'`.  Submodules of this are also instrumented.
+            wrap_module: A callback function that takes a module object before
+                it is run and either modifies or replaces it before it is run.
+                The module returned by this function will be executed.  If None
+                is returned the module is not executed and may be executed
+                later.
+            after_exec: A callback function that is called with the return value
+                of `wrap_module` after that module was executed if `wrap_module`
+                didn't return None.
+        """
+
         self.finder = finder
         self.module_name = module_name
         self.match_components: List[str] = []
@@ -46,16 +67,36 @@ class WrappingFinder:
         return spec
 
     def wrap_spec(self, spec: Any) -> Any:
-        spec.loader = WrappingLoader(spec.loader, self.wrap_module,
-                                     self.after_exec)
+        spec.loader = InstrumentedLoader(spec.loader, self.wrap_module,
+                                         self.after_exec)
         return spec
 
 
-class WrappingLoader:
+class InstrumentedLoader(importlib.abc.Loader):
+    """A module loader used to hook the python import statement."""
 
     def __init__(self, loader: Any,
                  wrap_module: Callable[[ModuleType], Optional[ModuleType]],
                  after_exec: Callable[[ModuleType], None]):
+        """A module loader that uses an existing module loader and intercepts
+        the execution of a module.
+
+        Use `InstrumentedFinder` to instrument modules with instances of this
+        class.
+
+        Args:
+            loader: The original module loader to wrap.
+            module_name: The fully qualified module name to instrument e.g.
+                `'pkg.submodule'`.  Submodules of this are also instrumented.
+            wrap_module: A callback function that takes a module object before
+                it is run and either modifies or replaces it before it is run.
+                The module returned by this function will be executed.  If None
+                is returned the module is not executed and may be executed
+                later.
+            after_exec: A callback function that is called with the return value
+                of `wrap_module` after that module was executed if `wrap_module`
+                didn't return None.
+        """
         self.loader = loader
         self.wrap_module = wrap_module
         self.after_exec = after_exec
@@ -85,7 +126,7 @@ def wrap_module_executions(
     def wrap(finder: Any) -> Any:
         if not hasattr(finder, 'find_spec'):
             return finder
-        return WrappingFinder(finder, module_name, wrap_func, after_exec)
+        return InstrumentedFinder(finder, module_name, wrap_func, after_exec)
 
     new_meta_path = [wrap(finder) for finder in sys.meta_path]
 
@@ -93,6 +134,7 @@ def wrap_module_executions(
         orig_meta_path, sys.meta_path = sys.meta_path, new_meta_path
         yield
     finally:
+        assert sys.meta_path == new_meta_path
         sys.meta_path = orig_meta_path
 
 
