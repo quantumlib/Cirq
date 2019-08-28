@@ -14,9 +14,10 @@
 
 from cirq import _import
 
-# Dependency order of sub-modules.
-# A module can only depend on modules earlier in this list at import time.
-# Pytest will fail otherwise (enforced by dev_tools/import_test.py).
+# A module can only depend on modules imported earlier in this list of modules
+# at import time.  Pytest will fail otherwise (enforced by
+# dev_tools/import_test.py).
+# Begin dependency order list of sub-modules.
 from cirq import (
     # Low level
     _version,
@@ -53,6 +54,7 @@ from cirq import (
     testing,
     contrib,
 )
+# End dependency order list of sub-modules
 
 from cirq._version import (
     __version__,
