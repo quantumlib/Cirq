@@ -240,14 +240,15 @@ class PauliString(raw_types.Operation):
                                          self.qubits, args)
 
     def expectation_from_wavefunction(
-        self,
-        state: np.ndarray,
-        qubit_map: Dict[raw_types.Qid, int]) -> float:
+            self,
+            state: np.ndarray,
+            qubit_map: Dict[raw_types.Qid, int]) -> float:
         r"""Evaluate the expectation of this PauliString given a wavefunction.
 
-        Compute the expectation value of this PauliString with respect to a wavefunction. By
-        convention expectation values are defined for Hermitian operators, and
-        so this method will fail if this PauliString is non-Hermitian.
+        Compute the expectation value of this PauliString with respect to a
+        wavefunction. By convention expectation values are defined for Hermitian
+        operators, and so this method will fail if this PauliString is
+        non-Hermitian.
 
         `state` must be an array representation of a wavefunction and have
         shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is

@@ -316,70 +316,89 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def expectation(self,
-                    state: np.ndarray,
-                    qubit_map: Optional[Dict[raw_types.Qid, int]]=None
-                    ) -> float:
-        """Evaluate the expectation value of this PauliSum.
+    def expectation_from_wavefunction(
+            self,
+            state: np.ndarray,
+            qubit_map: Dict[raw_types.Qid, int]) -> float:
+        """Evaluate the expectation of this PauliSum given a wavefunction.
 
-        Compute the expectation value of this Hermitian PauliSum with respect to
-        an array representing either a wavefunction or density matrix.
-
-        See `PauliString.expectation` for input requirements.
-
-        Args:
-            state: An array representing a wavefunction or density matrix.
-            qubit_map: A map from all qubits used in this PauliSum to the
-            indices of the qubits that `state` is defined over.
-
-        Returns:
-            The expectation value of the input state.
-
-        Raises:
-            NotImplementedError if any term in this PauliSum is non-Hermitian.
-            ValueError if the shape of `state` is neither `(2 ** n,)`
-                or `(2 ** n, 2 ** n)`.
+        See `PauliString.expectation_from_wavefunction`.
         """
         if any([abs(p.coefficient.imag) > 0.0001 for p in self]):
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if qubit_map is None:
-            qubit_map = {q: i for i, q in enumerate(self.qubits)}
-        else:
-            if not isinstance(qubit_map, dict) or not all(
-                isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
-                raise TypeError("Input qubit map must be a valid mapping from "
-                                "Qubit ID's to integer indices.")
+        if not isinstance(qubit_map, dict) or not all(
+            isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+            raise TypeError("Input qubit map must be a valid mapping from "
+                            "Qubit ID's to integer indices.")
 
-        # `state` must support a map over all qubits in this PauliSum.
+        if set(qubit_map.keys()) < set(self.qubits):
+            raise ValueError("`qubit_map` must be a complete mapping over this "
+                             "PauliString's qubits.")
+
+        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
         size = state.size
-        if state.shape == (size,):
-            num_qubits = size.bit_length() - 1
-            if len(set(qubit_map.keys())) > num_qubits:
-                raise ValueError("Number of qubits in `qubit_map` does not "
-                                 "match the number of qubits in "
-                                 "PauliString <{}>".format(self))
-            # HACK: Avoid circular import. See issue #2000.
-            from cirq.sim.wave_function import to_valid_state_vector
-            state = to_valid_state_vector(state, num_qubits, dtype=state.dtype)
+        num_qubits = size.bit_length() - 1
+        if len(state.shape) == 1 or state.shape == (2,) * num_qubits:
+            # HACK: avoid circular import
+            from cirq.sim.wave_function import validate_normalized_state
+            validate_normalized_state(state, num_qubits, dtype=state.dtype)
             return sum([p._expectation_from_wavefunction(state, qubit_map) for p in self])
 
-        if state.shape == (int(np.sqrt(size)),) * 2:
-            num_qubits = int(np.sqrt(size)).bit_length() - 1
-            if len(set(qubit_map.keys())) > num_qubits:
-                raise ValueError("Number of qubits in `qubit_map` does not "
-                                 "match the number of qubits in "
-                                 "PauliString <{}>".format(self))
-            # HACK: Avoid circular import. See issue #2000.
+        raise ValueError("Input array does not represent a wavefunction with "
+                         "shape `(2 ** n,)` or `(2, 2, ..., 2)`.")
+
+    def expectation_from_density_matrix(self,
+                    state: np.ndarray,
+                    qubit_map: Optional[Dict[raw_types.Qid, int]]=None
+                    ) -> float:
+        """Evaluate the expectation of this PauliSum given a density matrix.
+
+        See `PauliString.expectation_from_density_matrix`.
+        """
+        if any([abs(p.coefficient.imag) > 0.0001 for p in self]):
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        if not isinstance(qubit_map, dict) or not all(
+            isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+            raise TypeError("Input qubit map must be a valid mapping from "
+                            "Qubit ID's to integer indices.")
+
+        if set(qubit_map.keys()) < set(self.qubits):
+            raise ValueError("`qubit_map` must be a complete mapping over this "
+                             "PauliString's qubits.")
+
+        if set(qubit_map.keys()) < set(self.qubits):
+            raise ValueError("`qubit_map` must be a complete mapping over this "
+                             "PauliString's qubits.")
+
+        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
+        size = state.size
+        num_qubits = int(np.sqrt(size)).bit_length() - 1
+        dim = int(np.sqrt(size))
+        if state.shape == (dim, dim) or state.shape == (2, 2) * num_qubits:
+            # HACK: avoid circular import
             from cirq.sim.density_matrix_utils import to_valid_density_matrix
-            state = to_valid_density_matrix(state, num_qubits, dtype=state.dtype)
+            # Do not enforce reshaping if the state all axes are dimension 2.
+            _ = to_valid_density_matrix(state.reshape(dim, dim), num_qubits, dtype=state.dtype)
             return sum([p._expectation_from_density_matrix(state, qubit_map) for p in self])
 
-        raise ValueError("Input array does not represent a wavefunction with "
-                         "shape `(2 ** n,)` or a density matrix with shape "
-                         "`(2 ** n, 2 ** n)`.")
+        raise ValueError("Input array does not represent a density matrix with "
+                         "shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)`.")
 
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():
