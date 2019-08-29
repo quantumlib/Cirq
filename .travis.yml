@@ -82,7 +82,7 @@ matrix:
     os: linux
     env: NAME=dev-release
     python: '3.7'
-    script: export CIRQ_DEV_VERSION=`dev_tools/packaging/generate-dev-version-id.sh`
+    script: export CIRQ_DEV_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
   before_deploy:
   - echo "Deploying dev version '$CIRQ_DEV_VERSION'"
   deploy:
