@@ -81,9 +81,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             self._p_x, self._p_y, self._p_z
         )
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'A({},{},{})'.format(f, f, f).format(self._p_x, self._p_y,
@@ -161,9 +160,8 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'depolarize(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'D({!r})'.format(self._p)
 
 
@@ -287,9 +285,8 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             self._p, self._gamma
         )
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'GAD({!r},{!r})'.format(self._p, self._gamma)
 
 
@@ -405,9 +402,8 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'amplitude_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'AD({!r})'.format(self._gamma)
 
 
@@ -500,7 +496,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         return 'reset'
 
     def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs) -> str:
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'R'
 
 
@@ -568,9 +564,8 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'PD({!r})'.format(self._gamma)
 
 
@@ -666,9 +661,8 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'PF({!r})'.format(self._p)
 
 
@@ -812,9 +806,8 @@ class BitFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'bit_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'BF({!r})'.format(self._p)
 
 

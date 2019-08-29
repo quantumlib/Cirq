@@ -73,8 +73,8 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
 
@@ -154,8 +154,8 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
 
@@ -180,7 +180,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,
-                              args: protocols.CircuitDiagramInfoArgs) -> str:
+                              args: 'protocols.CircuitDiagramInfoArgs') -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)

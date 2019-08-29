@@ -80,6 +80,24 @@ def test_cell_colors(axes, colormap_name):
         assert np.all(np.isclose(facecolor, expected_color))
 
 
+def test_default_annotation(axes):
+    """Tests that the default annotation is '.2g' format on float(value)."""
+    qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
+    values = ['3.752', '42', '-5.27e8', '-7.34e-9', 732, 0.432, 3.9753e28]
+    test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
+    random_heatmap = heatmap.Heatmap(test_value_map)
+    random_heatmap.plot(axes)
+    actual_texts = set()
+    for artist in axes.get_children():
+        if isinstance(artist, mpl.text.Text):
+            col, row = artist.get_position()
+            text = artist.get_text()
+            actual_texts.add(((row, col), text))
+    expected_texts = set((qubit, format(float(value), '.2g'))
+                         for qubit, value in test_value_map.items())
+    assert expected_texts.issubset(actual_texts)
+
+
 @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g'])
 def test_annotation_position_and_content(axes, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
