@@ -17,7 +17,8 @@ from typing import Any, Iterable
 
 import networkx
 
-from cirq import circuits, ops
+import cirq
+from cirq import ops
 
 
 def is_topologically_sorted(dag: 'cirq.CircuitDag',

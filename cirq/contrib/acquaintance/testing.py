@@ -14,6 +14,7 @@
 
 from typing import cast, Sequence
 
+import cirq
 from cirq import devices, ops, protocols
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate, update_mapping)

@@ -17,6 +17,7 @@ from typing import DefaultDict, Dict, List, Sequence
 import abc
 from collections import defaultdict
 
+import cirq
 from cirq import circuits, devices, ops, protocols
 
 from cirq.contrib.acquaintance.gates import (
@@ -108,7 +109,8 @@ class AcquaintanceOperation(ops.GateOperation):
     """Represents an a acquaintance opportunity between a particular set of
     logical indices on a particular set of physical qubits.
     """
-    def __init__(self, qubits: Sequence['cirq.raw_types'.Qid],
+
+    def __init__(self, qubits: Sequence['cirq.Qid'],
                  logical_indices: Sequence[LogicalIndex]) -> None:
         if len(logical_indices) != len(qubits):
             raise ValueError('len(logical_indices) != len(qubits)')

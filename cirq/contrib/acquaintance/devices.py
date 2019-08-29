@@ -16,6 +16,7 @@ from typing import Union
 
 import abc
 
+import cirq
 from cirq import circuits, devices, ops, schedules
 from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)

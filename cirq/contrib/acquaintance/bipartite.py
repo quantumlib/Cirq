@@ -16,6 +16,7 @@ import enum
 import itertools
 from typing import Dict, Sequence, Tuple, Union
 
+import cirq
 from cirq import ops, protocols
 
 

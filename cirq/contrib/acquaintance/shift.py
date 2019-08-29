@@ -15,6 +15,7 @@
 import itertools
 from typing import Dict, Sequence, Tuple
 
+import cirq
 from cirq import ops, protocols, value
 from cirq.contrib.acquaintance.permutation import (
         SwapPermutationGate, PermutationGate)

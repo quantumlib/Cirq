@@ -15,6 +15,7 @@
 import itertools
 from typing import Iterable, Sequence, Tuple, TypeVar
 
+import cirq
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import(
     UnconstrainedAcquaintanceDevice)

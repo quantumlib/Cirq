@@ -14,12 +14,14 @@
 
 from typing import cast, Iterable, List, Sequence, Tuple
 
+import cirq
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import (
     UnconstrainedAcquaintanceDevice)
 from cirq.contrib.acquaintance.gates import acquaint, SwapNetworkGate
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates)
+
 
 def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]
                               ) -> List['cirq.Qid']:

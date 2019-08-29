@@ -14,6 +14,7 @@
 
 from typing import Sequence
 
+import cirq
 from cirq import circuits, ops
 
 from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice

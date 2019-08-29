@@ -16,6 +16,7 @@ import collections
 
 from typing import Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
+import cirq
 from cirq import circuits, ops, optimizers
 
 from cirq.contrib.acquaintance.gates import (

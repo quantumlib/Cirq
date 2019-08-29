@@ -14,6 +14,7 @@
 
 from typing import cast, FrozenSet, List, Sequence, Set
 
+import cirq
 from cirq import circuits, ops
 
 from cirq.contrib.acquaintance.devices import (

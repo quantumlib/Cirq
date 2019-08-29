@@ -16,6 +16,7 @@ from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union
 
 import abc
 
+import cirq
 from cirq import circuits, ops, optimizers, protocols, value
 
 

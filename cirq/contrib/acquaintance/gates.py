@@ -18,6 +18,7 @@ import math
 import operator
 from typing import Sequence, Dict, Tuple, List, NamedTuple, Optional
 
+import cirq
 from cirq import ops, protocols, value
 
 from cirq.contrib.acquaintance.shift import CircularShiftGate
@@ -68,6 +69,7 @@ class AcquaintanceOpportunityGate(
 
 def acquaint(*qubits) -> 'cirq.Operation':
     return AcquaintanceOpportunityGate(len(qubits)).on(*qubits)
+
 
 Layers = NamedTuple('Layers',
                     [('prior_interstitial', List['cirq.Operation']),

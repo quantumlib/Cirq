@@ -16,6 +16,7 @@ import functools
 import itertools
 from typing import Dict, Iterable, Optional, Sequence, Tuple
 
+import cirq
 from cirq import ops, protocols
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (

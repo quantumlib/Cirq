@@ -14,6 +14,7 @@
 
 from typing import FrozenSet, Sequence, Set
 
+import cirq
 from cirq import circuits, devices, ops
 
 from cirq.contrib.acquaintance.executor import (
