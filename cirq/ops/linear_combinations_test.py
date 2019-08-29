@@ -832,74 +832,76 @@ def test_bad_arithmetic():
         _ = psum / [1, 2, 3]
 
 
-def test_expectation_invalid_input():
+def test_expectation_from_wavefunction_basis_states():
     q = cirq.LineQubit.range(2)
-    psum = cirq.Z(q[0]) + cirq.Y(q[1])
-    state = np.array([1, 0, 0, 0])
-    q_map = dict(zip(q, range(2)))
+    psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
+    q_map = {x: i for i, x in enumerate(q)}
 
-    im_psum = psum + 1j * cirq.X(q[0])
-    with pytest.raises(NotImplementedError, match='non-Hermitian'):
-        im_psum.expectation(state, qubit_map=q_map)
-
-    with pytest.raises(TypeError, match='mapping'):
-        psum.expectation(state, qubit_map="bad type")
-    with pytest.raises(TypeError, match='mapping'):
-        psum.expectation(state, qubit_map={"bad key": 1})
-    with pytest.raises(TypeError, match='mapping'):
-        psum.expectation(state, qubit_map={q0: "bad value"})
-
-    with pytest.raises(ValueError, match='size'):
-        psum.expectation(np.arange(7), qubit_map=q_map)
-    with pytest.raises(ValueError, match='normalized'):
-        psum.expectation(np.arange(16), qubit_map=q_map)
-    with pytest.raises(ValueError, match='match'):
-        psum.expectation(np.array([1, 0]), qubit_map=q_map)
-    with pytest.raises(ValueError, match='match'):
-        psum.expectation(np.array([[1, 0], [0, 0]]), qubit_map=q_map)
-
-    state = np.arange(16) / np.linalg.norm(np.arange(16))
-    with pytest.raises(ValueError, match='shape'):
-        psum.expectation(state.reshape((16, 1)), qubit_map=q_map)
-    with pytest.raises(ValueError, match='shape'):
-        psum.expectation(state.reshape((4, 4, 1)), qubit_map=q_map)
-
-    state = np.arange(8) / np.linalg.norm(np.arange(8))
-    with pytest.raises(ValueError, match='shape'):
-        psum.expectation(state.reshape((2, 2, 2)), qubit_map=q_map)
+    np.testing.assert_allclose(psum.expectation_from_wavefunction(np.array([1, 1], dtype=np.complex) / np.sqrt(2), qubit_map=q_map), 1)
+    np.testing.assert_allclose(psum.expectation_from_wavefunction(np.array([1, -1], dtype=np.complex) / np.sqrt(2), qubit_map=q_map), -1)
+    np.testing.assert_allclose(psum.expectation_from_wavefunction(np.array([1, 1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map), 2)
+    np.testing.assert_allclose(psum.expectation_from_wavefunction(np.array([1, -1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map), -2)
+    np.testing.assert_allclose(psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex), qubit_map=q_map), 3)
+    np.testing.assert_allclose(psum.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex), qubit_map=q_map), -3)
 
 
-def test_expectation():
+def test_expectation_from_wavefunction_two_qubit_states():
     q = cirq.LineQubit.range(2)
-    psum1 = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
-    np.testing.assert_allclose(psum1.expectation(np.array([1, 0], dtype=np.complex), qubit_map=None), 3)
-    np.testing.assert_allclose(psum1.expectation(np.array([0, 1], dtype=np.complex), qubit_map=None), -3)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, 1], dtype=np.complex) / np.sqrt(2), qubit_map=None), 1)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, -1], dtype=np.complex) / np.sqrt(2), qubit_map=None), -1)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, 1j], dtype=np.complex) / np.sqrt(2), qubit_map=None), 2)
-    np.testing.assert_allclose(psum1.expectation(np.array([1, -1j], dtype=np.complex) / np.sqrt(2), qubit_map=None), -2)
-    np.testing.assert_allclose(psum1.expectation(
-        np.array([[1, 0], [0, 0]], dtype=np.complex), qubit_map=None), 3)
-    np.testing.assert_allclose(psum1.expectation(
-        np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, qubit_map=None), 1)
+    q_map = {x: i for i, x in enumerate(q)}
 
-    psum2 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
-    psum3 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
+    psum1 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
+    psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
+    wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
+    for state in [wf1, wf1.reshape(2, 2)]:
+        np.testing.assert_allclose(psum1.expectation_from_wavefunction(state, qubit_map=q_map), -2.2)
+        np.testing.assert_allclose(psum2.expectation_from_wavefunction(state, qubit_map=q_map), 0)
+
+    wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    for state in [wf2, wf2.reshape(2, 2)]:
+        np.testing.assert_allclose(psum1.expectation_from_wavefunction(state, qubit_map=q_map), 0)
+        np.testing.assert_allclose(psum2.expectation_from_wavefunction(state, qubit_map=q_map), 1)
+
+    psum3 = cirq.Z(q[0]) + cirq.X(q[1])
+    wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
+    for state in [wf3, wf3.reshape(2, 2)]:
+        np.testing.assert_allclose(psum3.expectation_from_wavefunction(state, qubit_map={q0: 0, q1: 1}), 2)
+        np.testing.assert_allclose(psum3.expectation_from_wavefunction(state, qubit_map={q0: 1, q1: 0}), 0)
+
+
+def test_expectation_from_density_matrix_basis_states():
+    q = cirq.LineQubit.range(2)
+    psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
+    q_map = {x: i for i, x in enumerate(q)}
+
+    np.testing.assert_allclose(psum.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, q_map), 1)
+    np.testing.assert_allclose(psum.expectation_from_density_matrix(np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, q_map), -1)
+    np.testing.assert_allclose(psum.expectation_from_density_matrix(np.array([[1, -1j], [1j, 1]], dtype=np.complex) / 2, qubit_map=q_map), 2)
+    np.testing.assert_allclose(psum.expectation_from_density_matrix(np.array([[1, 1j], [-1j, 1]], dtype=np.complex) / 2, qubit_map=q_map), -2)
+    np.testing.assert_allclose(psum.expectation_from_density_matrix(np.array([[1, 0], [0, 0]], dtype=np.complex), q_map), 3)
+    np.testing.assert_allclose(psum.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=np.complex), q_map), -3)
+
+
+def test_expectation_from_density_matrix_two_qubit_states():
+    q = cirq.LineQubit.range(2)
+    q_map = {x: i for i, x in enumerate(q)}
+
+    psum1 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
+    psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
     wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
     rho1 = np.kron(wf1, wf1).reshape(4, 4)
-    for state in [wf1, rho1]:
-        np.testing.assert_allclose(psum2.expectation(state, qubit_map=None), -2.2)
-        np.testing.assert_allclose(psum3.expectation(state, qubit_map=None), 0)
+    for state in [rho1, rho1.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(psum1.expectation_from_density_matrix(state, qubit_map=q_map), -2.2)
+        np.testing.assert_allclose(psum2.expectation_from_density_matrix(state, qubit_map=q_map), 0)
 
     wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
     rho2 = np.kron(wf2, wf2).reshape(4, 4)
-    for state in [wf2, rho2]:
-        np.testing.assert_allclose(psum2.expectation(state, qubit_map=None), 0)
-        np.testing.assert_allclose(psum3.expectation(state, qubit_map=None), 1)
+    for state in [rho2, rho2.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(psum1.expectation_from_density_matrix(state, qubit_map=q_map), 0)
+        np.testing.assert_allclose(psum2.expectation_from_density_matrix(state, qubit_map=q_map), 1)
 
     psum3 = cirq.Z(q[0]) + cirq.X(q[1])
     wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
     rho3 = np.kron(wf3, wf3).reshape(4, 4)
-    for state in [wf3, rho3]:
-        np.testing.assert_allclose(psum3.expectation(state, qubit_map={q0: 0, q1: 1}), 2)
-        np.testing.assert_allclose(psum3.expectation(state, qubit_map={q0: 1, q1: 0}), 0)
+    for state in [rho3, rho3.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(psum3.expectation_from_density_matrix(state, qubit_map={q0: 0, q1: 1}), 2)
+        np.testing.assert_allclose(psum3.expectation_from_density_matrix(state, qubit_map={q0: 1, q1: 0}), 0)
