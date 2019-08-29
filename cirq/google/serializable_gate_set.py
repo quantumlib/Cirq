@@ -222,8 +222,9 @@ class SerializableGateSet:
 
         gate_id = operation_proto.gate.id
         if gate_id not in self.deserializers.keys():
-            raise ValueError(
-                'Unsupported serialized gate with id {}'.format(gate_id))
+            raise ValueError('Unsupported serialized gate with id "{}".'
+                             '\n\noperation_proto:\n{}'.format(
+                                 gate_id, operation_proto))
 
         return self.deserializers[gate_id].from_proto(operation_proto)
 
@@ -246,10 +247,16 @@ class SerializableGateSet:
     def _deserialize_circuit(self, circuit_proto: v2.program_pb2.Circuit
                             ) -> circuits.Circuit:
         moments = []
-        for moment_proto in circuit_proto.moments:
-            moment_ops = [
-                self.deserialize_op(o) for o in moment_proto.operations
-            ]
+        for i, moment_proto in enumerate(circuit_proto.moments):
+            moment_ops = []
+            for op in moment_proto.operations:
+                try:
+                    moment_ops.append(self.deserialize_op(op))
+                except ValueError as ex:
+                    raise ValueError(f'Failed to deserialize circuit. '
+                                     f'There was a problem in moment {i} '
+                                     f'handling an operation with the '
+                                     f'following proto:\n{op}') from ex
             moments.append(ops.Moment(moment_ops))
         return circuits.Circuit(moments)
 
