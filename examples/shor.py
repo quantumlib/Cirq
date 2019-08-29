@@ -34,8 +34,8 @@ The subroutine for finding the order r of a number x modulo n consists of two
 steps. In the first step, Quantum Phase Estimation is applied to a unitary such
 as
 
-    U|y) = |xy mod n)  0 <= y < n
-    U|y) = |y)         n =< y
+    U|y⟩ = |xy mod n⟩  0 <= y < n
+    U|y⟩ = |y⟩         n =< y
 
 whose eigenvalues are s/r for s = 0, 1, ..., r - 1. In the second step, the
 classical continued fractions algorithm is used to recover r from s/r. Note
