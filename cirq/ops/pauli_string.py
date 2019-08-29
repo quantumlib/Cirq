@@ -245,7 +245,7 @@ class PauliString(raw_types.Operation):
         return linalg.kron(self.coefficient,
                            *[protocols.unitary(self[q]) for q in self.qubits])
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs):
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
         if self.coefficient != 1:
