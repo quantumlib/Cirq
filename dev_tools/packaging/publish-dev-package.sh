@@ -41,6 +41,11 @@
 #
 #     pip install -r requirements.txt
 #     pip install --index-url https://test.pypi.org/simple/ cirq==VERSION_YOU_UPLOADED
+#
+# Package verification:
+#
+#     dev_tools/packaging/verify-dev-package.sh VERSION_YOU_UPLOADED [--test|--prod]
+#
 ################################################################################
 
 PROJECT_NAME=cirq
@@ -108,7 +113,7 @@ tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
 trap "{ rm -rf ${tmp_package_dir}; }" EXIT
 
 # Configure to push to cirq-dev and not cirq.
-export CIRQ_DEV_VERSION=$(dev_tools/packaging/set-dev-version.sh)
+export CIRQ_DEV_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
 
 # Produce packages.
 dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"
