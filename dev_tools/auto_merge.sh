@@ -27,7 +27,7 @@
 # are good if you want good commit messages.
 #
 # Usage:
-#     export CIRQ_GITHUB_PR_ACCESS_TOKEN=[access token for your github account]
+#     export CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token for your github account]
 #     bash dev_tools/auto_merge.sh [PR#1] [PR#2] ...
 
 

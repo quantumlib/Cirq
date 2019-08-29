@@ -69,8 +69,8 @@ class XPowGate(eigen_gate.EigenGate,
     `cirq.X`, the Pauli X gate, is an instance of this gate at exponent=1.
     """
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
         zero = args.subspace_index(0)
@@ -111,8 +111,8 @@ class XPowGate(eigen_gate.EigenGate,
             'X': -1j * phase * np.sin(angle),
         })
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
                 'Rx',
@@ -123,8 +123,7 @@ class XPowGate(eigen_gate.EigenGate,
             wire_symbols=('X',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -226,8 +225,8 @@ class YPowGate(eigen_gate.EigenGate,
             'Y': -1j * phase * np.sin(angle),
         })
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
                 'Ry',
@@ -238,8 +237,7 @@ class YPowGate(eigen_gate.EigenGate,
             wire_symbols=('Y',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -310,8 +308,8 @@ class ZPowGate(eigen_gate.EigenGate,
     `cirq.Z`, the Pauli Z gate, is an instance of this gate at exponent=1.
     """
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 
@@ -355,8 +353,8 @@ class ZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
                 'Rz',
@@ -378,8 +376,7 @@ class ZPowGate(eigen_gate.EigenGate,
             wire_symbols=('Z',),
             exponent=e)
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -509,8 +506,8 @@ class MeasurementGate(raw_types.Gate):
     def _has_channel_(self):
         return True
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
@@ -526,8 +523,7 @@ class MeasurementGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         invert_mask = self.invert_mask
@@ -677,8 +673,8 @@ class IdentityGate(raw_types.Gate):
     def _unitary_(self):
         return np.identity(2 ** self.num_qubits())
 
-    def _apply_unitary_(
-        self, args: protocols.ApplyUnitaryArgs) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -698,12 +694,12 @@ class IdentityGate(raw_types.Gate):
 
         return 'I({})'.format(self.num_qubits())
 
-    def _circuit_diagram_info_(self,
-        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('I',) * self.num_qubits(), connected=True)
 
-    def _qasm_(self, args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
@@ -768,8 +764,8 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'Z': -1j * phase * np.sin(angle) / np.sqrt(2),
         })
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -794,14 +790,13 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         yield XPowGate(exponent=self._exponent).on(q)
         yield YPowGate(exponent=-0.25).on(q)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('H',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
@@ -859,8 +854,8 @@ class CZPowGate(eigen_gate.EigenGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, NotImplementedType]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, NotImplementedType]:
         if protocols.is_parameterized(self):
             return NotImplemented
 
@@ -888,15 +883,14 @@ class CZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-    ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
                 wire_symbols=('@', '@'),
                 exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-            args: protocols.QasmArgs,
-            qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'protocols.QasmArgs',
+               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -918,8 +912,7 @@ class CZPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-def _rads_func_symbol(func_name: str,
-                      args: protocols.CircuitDiagramInfoArgs,
+def _rads_func_symbol(func_name: str, args: 'protocols.CircuitDiagramInfoArgs',
                       half_turns: Any) -> str:
     if protocols.is_parameterized(half_turns):
         return '{}({})'.format(func_name, sympy.pi * half_turns)
@@ -979,14 +972,14 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('@', 'X'),
             exponent=self._diagram_exponent(args))
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -1013,8 +1006,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZX': global_phase * -c,
         })
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
@@ -1094,8 +1086,8 @@ class SwapPowGate(eigen_gate.EigenGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -1122,8 +1114,8 @@ class SwapPowGate(eigen_gate.EigenGate,
             'ZZ': global_phase * c,
         })
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
                 wire_symbols=('swap', 'swap'),
@@ -1132,8 +1124,7 @@ class SwapPowGate(eigen_gate.EigenGate,
             wire_symbols=('×', '×'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
@@ -1216,8 +1207,8 @@ class ISwapPowGate(eigen_gate.EigenGate,
         yield H(a)
         yield CNOT(a, b)
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if self._exponent != 1:
             return NotImplemented
 
@@ -1246,8 +1237,8 @@ class ISwapPowGate(eigen_gate.EigenGate,
             'ZZ': global_phase * s * s,
         })
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('iSwap', 'iSwap'),
             exponent=self._diagram_exponent(args))

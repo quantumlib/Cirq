@@ -12,6 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import _import
+
+# A module can only depend on modules imported earlier in this list of modules
+# at import time.  Pytest will fail otherwise (enforced by
+# dev_tools/import_test.py).
+# Begin dependency order list of sub-modules.
+from cirq import (
+    # Low level
+    _version,
+    _compat,
+    type_workarounds,
+)
+with _import.delay_import('cirq.protocols'):
+    from cirq import (
+        # Core
+        protocols,
+        value,
+        linalg,
+        ops,
+    )
+from cirq import (
+    # Core
+    devices,
+    study,
+    circuits,
+    schedules,
+    # Optimize and run
+    optimizers,
+    work,
+    sim,
+    vis,
+    # Hardware specific
+    ion,
+    neutral_atoms,
+    api,
+    google,
+    # Applications
+    experiments,
+    # Extra (nothing should depend on these)
+    testing,
+    contrib,
+)
+# End dependency order list of sub-modules
+
 from cirq._version import (
     __version__,
 )
