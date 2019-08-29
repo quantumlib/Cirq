@@ -46,8 +46,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
@@ -148,8 +147,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             phase_exponent=self._phase_exponent + phase_turns * 2,
             global_shift=self._global_shift)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
         if (isinstance(self.phase_exponent, sympy.Basic) or
