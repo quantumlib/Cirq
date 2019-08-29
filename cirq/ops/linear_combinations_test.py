@@ -17,6 +17,7 @@ from typing import Union
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -171,23 +172,29 @@ def test_linear_combinations_of_gates_valid_powers(terms, exponent,
     assert len(actual_result) == len(expected_terms)
 
 
-@pytest.mark.parametrize('terms', (
-    {},
-    {
+@pytest.mark.parametrize('terms, exponent', (
+    ({}, 2),
+    ({
         cirq.H: 1,
-    },
-    {
+    }, 2),
+    ({
         cirq.CNOT: 2,
-    },
-    {
+    }, 2),
+    ({
         cirq.X: 1,
         cirq.S: -1,
-    },
+    }, 2),
+    ({
+        cirq.X: 1,
+    }, -1),
+    ({
+        cirq.Y: 1,
+    }, sympy.Symbol('k')),
 ))
-def test_linear_combinations_of_gates_invalid_powers(terms):
+def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
     combination = cirq.LinearCombinationOfGates(terms)
     with pytest.raises(TypeError):
-        _ = combination**2
+        _ = combination**exponent
 
 
 def get_matrix(operator: Union[cirq.Gate, cirq.GateOperation, cirq.
@@ -681,27 +688,33 @@ def test_linear_combinations_of_operations_valid_powers(terms, exponent,
     assert len(actual_result) == len(expected_terms)
 
 
-@pytest.mark.parametrize('terms', (
-    {},
-    {
+@pytest.mark.parametrize('terms, exponent', (
+    ({}, 2),
+    ({
         cirq.H(q0): 1,
-    },
-    {
+    }, 2),
+    ({
         cirq.CNOT(q0, q1): 2,
-    },
-    {
+    }, 2),
+    ({
         cirq.X(q0): 1,
         cirq.S(q0): -1,
-    },
-    {
+    }, 2),
+    ({
         cirq.X(q0): 1,
         cirq.Y(q1): 1,
-    },
+    }, 2),
+    ({
+        cirq.Z(q0): 1,
+    }, -1),
+    ({
+        cirq.X(q0): 1,
+    }, sympy.Symbol('k')),
 ))
-def test_linear_combinations_of_operations_invalid_powers(terms):
+def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
     combination = cirq.LinearCombinationOfOperations(terms)
     with pytest.raises(TypeError):
-        _ = combination**2
+        _ = combination**exponent
 
 
 @pytest.mark.parametrize('expression, expected_result', (
