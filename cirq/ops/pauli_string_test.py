@@ -717,7 +717,7 @@ def test_expectation_from_wavefunction_invalid_input():
         im_ps.expectation_from_wavefunction(wf, q_map)
 
 
-    with pytest.raises(ValueError, match='dtype'):
+    with pytest.raises(TypeError, match='dtype'):
         ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
@@ -727,7 +727,7 @@ def test_expectation_from_wavefunction_invalid_input():
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_wavefunction(wf, {q0: "bad value"})
 
-    with pytest.raises(TypeError, match='complete'):
+    with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0})
 
 
@@ -877,7 +877,7 @@ def test_expectation_from_density_matrix_invalid_input():
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_ps.expectation_from_density_matrix(rho, q_map)
 
-    with pytest.raises(ValueError, match='dtype'):
+    with pytest.raises(TypeError, match='dtype'):
         ps.expectation_from_density_matrix(0.5 * np.eye(2, dtype=np.int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
@@ -887,7 +887,7 @@ def test_expectation_from_density_matrix_invalid_input():
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_density_matrix(rho, {q0: "bad value"})
 
-    with pytest.raises(TypeError, match='complete'):
+    with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0})
 
     with pytest.raises(ValueError, match='hermitian'):

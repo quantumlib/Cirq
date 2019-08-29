@@ -313,18 +313,20 @@ class PauliString(raw_types.Operation):
         This method does not provide input validation. See
         `PauliString.expectation_from_wavefunction` for function description.
         """
-        ket = state
         if len(state.shape) == 1:
             num_qubits = state.shape[0].bit_length() - 1
-            ket = np.reshape(np.copy(state), (2,) * num_qubits)
+            state = np.reshape(state, (2,) * num_qubits)
+
+        ket = np.copy(state)
         for qubit, pauli in self.items():
             buffer = np.empty(ket.shape, dtype=state.dtype)
             args = protocols.ApplyUnitaryArgs(target_tensor=ket,
                                               available_buffer=buffer,
                                               axes=(qubit_map[qubit],))
             ket = protocols.apply_unitary(pauli, args)
-        ket = np.reshape(ket, state.shape)
-        return np.dot(state.conj(), ket) * self.coefficient
+
+        return self.coefficient * np.asscalar(
+            np.tensordot(state.conj(), ket, axes=len(ket.shape)))
 
     def expectation_from_density_matrix(
         self,
@@ -403,18 +405,21 @@ class PauliString(raw_types.Operation):
         This method does not provide input validation. See
         `PauliString.expectation_from_density_matrix` for function description.
         """
-        result = state
-        if len(result.shape) == 2:
+        result = np.copy(state)
+        if len(state.shape) == 2:
             num_qubits = state.shape[0].bit_length() - 1
-            result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
+            result = np.reshape(result, (2,) * num_qubits * 2)
+
         for qubit, pauli in self.items():
             buffer = np.empty(result.shape, dtype=state.dtype)
             args = protocols.ApplyUnitaryArgs(target_tensor=result,
                                               available_buffer=buffer,
                                               axes=(qubit_map[qubit],))
             result = protocols.apply_unitary(pauli, args)
-        result = np.reshape(result, state.shape)
-        return np.trace(result) * self.coefficient
+
+        while any(result.shape):
+            result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
+        return result * self.coefficient
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
