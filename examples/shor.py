@@ -10,7 +10,7 @@ finding problem. Given two positive integers x and n, the order-finding
 problem asks for the smallest positive integer r such that x^r mod n == 1.
 
 The classical reduction algorithm first handles two corner cases which do
-not require quantum computation: when n is even or a prime power. For other
+not rely on quantum computation: when n is even or a prime power. For other
 n, the algorithm first draws a random x uniformly from 2..n-1 and then uses
 the quantum order-finding subroutine to compute the order r of x modulo n,
 i.e. it finds the smallest positive integer r such that x^r == 1 mod n. Now,
@@ -25,8 +25,8 @@ y cannot be 1). If r is odd or if y is a trivial solution of (*), then the
 algorithm is repeated for a different random x.
 
 It turns out [1] that the probability of r being even and y = x^(r/2) being
-a non-trivial solution of equation (*) is not less than 1 - 1/2^(k - 1) where
-k is the number of distinct prime factors of n. Since the case k = 1 has been
+a non-trivial solution of equation (*) is at least 1 - 1/2^(k - 1) where k
+is the number of distinct prime factors of n. Since the case k = 1 has been
 handled by the classical part, we have k >= 2 and the success probability of
 a single attempt is at least 1/2.
 
