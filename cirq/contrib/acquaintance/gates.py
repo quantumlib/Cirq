@@ -28,12 +28,12 @@ from cirq.contrib.acquaintance.permutation import (
 def operations_to_part_lens(
         qubit_order: Sequence['cirq.Qid'],
         op_tree: 'cirq.OP_TREE',
-        ) -> Tuple[int, ...]:
+) -> Tuple[int, ...]:
     qubit_sort_key = functools.partial(operator.indexOf, qubit_order)
     op_parts = [tuple(sorted(op.qubits,key=qubit_sort_key))
                 for op in ops.flatten_op_tree(op_tree)]
     singletons = [(q,) for q in set(qubit_order).difference(*op_parts)
-                 ] # type: List[Tuple['cirq.Qid', ...]]
+                 ]  # type: List[Tuple['cirq.Qid', ...]]
     part_sort_key = lambda p: min(qubit_sort_key(q) for q in p)
     parts = tuple(tuple(part) for part in
                   sorted(singletons + op_parts, key=part_sort_key))
@@ -57,8 +57,7 @@ class AcquaintanceOpportunityGate(
         return ('cirq.contrib.acquaintance.AcquaintanceOpportunityGate('
                 'num_qubits={!r})'.format(self.num_qubits()))
 
-    def _circuit_diagram_info_(self,
-                               args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         wire_symbol = '█' if args.use_unicode_characters else 'Acq'
         wire_symbols = (wire_symbol,) * self.num_qubits()
         return wire_symbols
@@ -70,24 +69,22 @@ class AcquaintanceOpportunityGate(
 def acquaint(*qubits) -> 'cirq.Operation':
     return AcquaintanceOpportunityGate(len(qubits)).on(*qubits)
 
-Layers = NamedTuple('Layers', [
-    ('prior_interstitial', List['cirq.Operation']),
-    ('pre', List['cirq.Operation']),
-    ('intra', List['cirq.Operation']),
-    ('post', List['cirq.Operation']),
-    ('posterior_interstitial', List['cirq.Operation'])
-    ])
+Layers = NamedTuple('Layers',
+                    [('prior_interstitial', List['cirq.Operation']),
+                     ('pre', List['cirq.Operation']),
+                     ('intra', List['cirq.Operation']),
+                     ('post', List['cirq.Operation']),
+                     ('posterior_interstitial', List['cirq.Operation'])])
+
 
 def new_layers(**kwargs: List['cirq.Operation']) -> Layers:
     return Layers._make(kwargs.get(field, []) for field in Layers._fields)
 
+
 def acquaint_insides(swap_gate: 'cirq.Gate',
                      acquaintance_gate: 'cirq.Operation',
-                     qubits: Sequence['cirq.Qid'],
-                     before: bool,
-                     layers: Layers,
-                     mapping: Dict[ops.Qid, int]
-                     ) -> None:
+                     qubits: Sequence['cirq.Qid'], before: bool, layers: Layers,
+                     mapping: Dict[ops.Qid, int]) -> None:
     """Acquaints each of the qubits with another set specified by an
     acquaintance gate.
 
@@ -134,10 +131,8 @@ def _get_max_reach(size: int, round_up: bool=True) -> int:
 
 
 def acquaint_and_shift(parts: Tuple[List['cirq.Qid'], List['cirq.Qid']],
-                       layers: Layers,
-                       acquaintance_size: Optional[int],
-                       swap_gate: 'cirq.Gate',
-                       mapping: Dict[ops.Qid, int]):
+                       layers: Layers, acquaintance_size: Optional[int],
+                       swap_gate: 'cirq.Gate', mapping: Dict[ops.Qid, int]):
     """Acquaints and shifts a pair of lists of qubits. The first part is
     acquainted with every qubit individually in the second part, and vice
     versa. Operations are grouped into several layers:
@@ -255,9 +250,8 @@ class SwapNetworkGate(PermutationGate):
 
     def __init__(self,
                  part_lens: Sequence[int],
-                 acquaintance_size: Optional[int]=0,
-                 swap_gate: 'cirq.Gate'=ops.SWAP
-                 ) -> None:
+                 acquaintance_size: Optional[int] = 0,
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
         super().__init__(sum(part_lens), swap_gate)
         if len(part_lens) < 2:
             raise ValueError('len(part_lens) < 2.')
@@ -310,8 +304,7 @@ class SwapNetworkGate(PermutationGate):
         if final_gate:
             yield final_gate(*qubits)
 
-    def _circuit_diagram_info_(self,
-                               args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         wire_symbol = ('×' if args.use_unicode_characters else 'swap')
         wire_symbols = tuple(
             wire_symbol + '({},{})'.format(part_index, qubit_index)
@@ -324,8 +317,7 @@ class SwapNetworkGate(PermutationGate):
     def from_operations(qubit_order: Sequence['cirq.Qid'],
                         operations: Sequence['cirq.Operation'],
                         acquaintance_size: Optional[int] = 0,
-                        swap_gate: 'cirq.Gate'=ops.SWAP
-                        ) -> 'SwapNetworkGate':
+                        swap_gate: 'cirq.Gate' = ops.SWAP) -> 'SwapNetworkGate':
         part_sizes = operations_to_part_lens(qubit_order, operations)
         return SwapNetworkGate(part_sizes, acquaintance_size, swap_gate)
 

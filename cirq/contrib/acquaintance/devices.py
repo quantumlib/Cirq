@@ -58,6 +58,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     def validate_schedule(self, schedule: schedules.Schedule) -> None:
         raise NotImplementedError()
 
+
 def is_acquaintance_strategy(circuit: 'cirq.Circuit'):
     return isinstance(circuit._device, AcquaintanceDevice)
 

@@ -35,7 +35,8 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             qubits (e.g. SWAP or fermionic swap).
     """
 
-    def __init__(self, num_qubits: int, swap_gate: 'cirq.Gate'=ops.SWAP) -> None:
+    def __init__(self, num_qubits: int,
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
         self._num_qubits = num_qubits
         self.swap_gate = swap_gate
 
@@ -48,8 +49,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         the s[i]-th element."""
 
     def update_mapping(self, mapping: Dict[ops.Qid, LogicalIndex],
-                       keys: Sequence['cirq.Qid']
-                       ) -> None:
+                       keys: Sequence['cirq.Qid']) -> None:
         """Updates a mapping (in place) from qubits to logical indices.
 
         Args:
@@ -76,7 +76,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
                 raise IndexError('key is out of bounds.')
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                               ) -> Tuple[str, ...]:
+                              ) -> Tuple[str, ...]:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation()
@@ -125,14 +125,13 @@ def display_mapping(circuit: 'cirq.Circuit',
 class SwapPermutationGate(PermutationGate):
     """Generic swap gate."""
 
-    def __init__(self, swap_gate: 'cirq.Gate'=ops.SWAP):
+    def __init__(self, swap_gate: 'cirq.Gate' = ops.SWAP):
         super().__init__(2, swap_gate)
 
     def permutation(self) -> Dict[int, int]:
         return {0: 1, 1: 0}
 
-    def _decompose_(
-            self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         yield self.swap_gate(*qubits)
 
     def __repr__(self):
@@ -156,8 +155,7 @@ class LinearPermutationGate(PermutationGate):
     def __init__(self,
                  num_qubits: int,
                  permutation: Dict[int, int],
-                 swap_gate: 'cirq.Gate'=ops.SWAP
-                 ) -> None:
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
         """Initializes a linear permutation gate.
 
         Args:
@@ -204,8 +202,7 @@ class LinearPermutationGate(PermutationGate):
 
 
 def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
-                   operations: 'cirq.OP_TREE'
-                   ) -> None:
+                   operations: 'cirq.OP_TREE') -> None:
     """Updates a mapping (in place) from qubits to logical indices according to
     a set of permutation gates. Any gates other than permutation gates are
     ignored.

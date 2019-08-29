@@ -62,8 +62,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
     def __init__(self,
                  subgraph: Union[str, BipartiteGraphType],
                  part_size: int,
-                 swap_gate: 'cirq.Gate'=ops.SWAP
-                 ) -> None:
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
         super().__init__(2 * part_size, swap_gate)
         self.part_size = part_size
         self.subgraph = (subgraph if isinstance(subgraph, BipartiteGraphType)
@@ -72,8 +71,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
 
 
     def decompose_complete(self,
-                           qubits: Sequence['cirq.Qid']
-                           ) -> 'cirq.OP_TREE':
+                           qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         swap_gate = SwapPermutationGate(self.swap_gate)
         if self.part_size == 1:
             yield acquaint(*qubits)
@@ -90,8 +88,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
 
 
     def decompose_matching(self,
-                           qubits: Sequence['cirq.Qid']
-                           ) -> 'cirq.OP_TREE':
+                           qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         swap_gate = SwapPermutationGate(self.swap_gate)
         for k in range(-self.part_size + 1, self.part_size):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
@@ -124,7 +121,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                               ) -> Tuple[str, ...]:
+                              ) -> Tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in '

@@ -24,8 +24,8 @@ from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.inspection_utils import LogicalAnnotator
 
 
-def remove_redundant_acquaintance_opportunities(
-        strategy: 'cirq.Circuit') -> int:
+def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit'
+                                               ) -> int:
     """Removes redundant acquaintance opportunities."""
     if not is_acquaintance_strategy(strategy):
         raise TypeError('not is_acquaintance_strategy(circuit)')
@@ -37,11 +37,11 @@ def remove_redundant_acquaintance_opportunities(
     annotated_strategy = strategy.copy()
     LogicalAnnotator(mapping)(annotated_strategy)
 
-    new_moments = [] # type: List['cirq.Moment']
+    new_moments = []  # type: List['cirq.Moment']
     acquaintance_opps = set() # type: Set[FrozenSet[int]]
     n_removed = 0
     for moment in annotated_strategy:
-        new_moment = [] # type: List['cirq.Operation']
+        new_moment = []  # type: List['cirq.Operation']
         for op in moment:
             if isinstance(op, AcquaintanceOperation):
                 opp = frozenset(cast(Sequence[int], op.logical_indices))

@@ -49,8 +49,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def __init__(self,
                  left_part_lens: Iterable[int],
                  right_part_lens: Iterable[int],
-                 swap_gate: 'cirq.Gate'=ops.SWAP
-                 ) -> None:
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
 
         self.part_lens = {
                 'left': tuple(left_part_lens),
@@ -111,7 +110,7 @@ class ShiftSwapNetworkGate(PermutationGate):
             )))
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                               ) -> Tuple[str, ...]:
+                              ) -> Tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)
 
