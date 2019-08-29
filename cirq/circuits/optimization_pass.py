@@ -19,6 +19,7 @@ from typing import (Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING,
 import abc
 from collections import defaultdict
 
+import cirq
 from cirq import ops
 from cirq.circuits.circuit import Circuit
 
@@ -29,10 +30,8 @@ if TYPE_CHECKING:
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
-    def __init__(self,
-                 clear_span: int,
-                 clear_qubits: Iterable[ops.Qid],
-                 new_operations: ops.OP_TREE) -> None:
+    def __init__(self, clear_span: int, clear_qubits: Iterable['cirq.Qid'],
+                 new_operations: 'cirq.OP_TREE') -> None:
         """
         Args:
             clear_span: Defines the range of moments to affect. Specifically,
@@ -74,9 +73,9 @@ class PointOptimizer:
     """Makes circuit improvements focused on a specific location."""
 
     def __init__(self,
-                 post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
-                                ] = lambda op_list: op_list
-                 ) -> None:
+                 post_clean_up: Callable[[Sequence['cirq.Operation']], ops.
+                                         OP_TREE] = lambda op_list: op_list
+                ) -> None:
         """
         Args:
             post_clean_up: This function is called on each set of optimized
@@ -89,11 +88,8 @@ class PointOptimizer:
         return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
-    def optimization_at(self,
-                        circuit: Circuit,
-                        index: int,
-                        op: ops.Operation
-                        ) -> Optional[PointOptimizationSummary]:
+    def optimization_at(self, circuit: Circuit, index: int, op: 'cirq.Operation'
+                       ) -> Optional[PointOptimizationSummary]:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an
