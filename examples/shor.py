@@ -121,11 +121,8 @@ def find_factor(n: int, order_finder: Callable[[int, int], int]) -> int:
         if r % 2 != 0:
             continue  # coverage: ignore
         y = x**(r // 2) % n
+        assert 1 < y < n
         c = math.gcd(y - 1, n)
-        if 1 < c < n:
-            return c
-        # coverage: ignore
-        c = math.gcd(y + 1, n)
         if 1 < c < n:
             return c
 
