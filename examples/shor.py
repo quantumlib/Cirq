@@ -60,9 +60,9 @@ def naive_order_finder(x: int, n: int) -> int:
     """Computes smallest positive r such that x^r mod n == 1.
 
     Args:
-        x: integer whose order is to be computed, must belong to
-           the multiplicative group of integers modulo n, i.e
-           must be relatively prime to n,
+        x: integer whose order is to be computed, must be greater than one
+           and belong to the multiplicative group of integers modulo n (which
+           consists of positive integers relatively prime to n),
         n: modulus of the multiplicative group.
 
     Returns:
@@ -73,7 +73,7 @@ def naive_order_finder(x: int, n: int) -> int:
         group of integers modulo n.
     """
     if x < 2 or n <= x or math.gcd(x, n) > 1:
-        raise ValueError(f'Invalid x={x} for modulus n={n}')
+        raise ValueError(f'Invalid x={x} for modulus n={n}.')
     r, y = 1, x
     while y != 1:
         y = (x * y) % n
@@ -108,7 +108,8 @@ def find_factor(n: int,
         n: integer to factorize,
         order_finder: function for finding the order of elements of the
             multiplicative group of integers modulo n,
-        max_attempts: number of random x's to try.
+        max_attempts: number of random x's to try, also an upper limit
+            on the number of order_finder invocations.
 
     Returns:
         Non-trivial factor of n or None if no such factor was found.
@@ -142,7 +143,7 @@ def main(n: Optional[int] = None):
         n = parser.parse_args().n  # coverage: ignore
     if n < 2:
         raise ValueError(
-            f'Invalid input {n}, expected positive integer greater than one')
+            f'Invalid input {n}, expected positive integer greater than one.')
 
     d = find_factor(n, order_finder=naive_order_finder)
 
