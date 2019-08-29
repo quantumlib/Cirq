@@ -114,6 +114,8 @@ def find_factor(n: int,
         Non-trivial factor of n or None if no such factor was found.
         Factor k of n is trivial if it is 1 or n.
     """
+    if n == 2:
+        return None
     if n % 2 == 0:
         return 2
     c = find_factor_of_prime_power(n)
@@ -138,7 +140,9 @@ def find_factor(n: int,
 def main(n: Optional[int] = None):
     if n is None:
         n = parser.parse_args().n  # coverage: ignore
-    assert n > 2
+    if n < 2:
+        raise ValueError(
+            f'Invalid input {n}, expected positive integer greater than one')
 
     d = find_factor(n, order_finder=naive_order_finder)
 
