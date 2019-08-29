@@ -520,7 +520,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return -self._as_pauli_string()
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['pauli', 'qubit'])
+        return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod
     def _from_json_dict_(  # type: ignore

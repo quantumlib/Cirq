@@ -42,7 +42,7 @@ class _UnconstrainedDevice(device.Device):
         return ()
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, [])
+        return protocols.obj_to_dict_helper(self, [])
 
 
 UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()
