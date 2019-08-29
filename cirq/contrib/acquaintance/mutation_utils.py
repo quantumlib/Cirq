@@ -32,7 +32,7 @@ STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 
 def rectify_acquaintance_strategy(
-        circuit: circuits.Circuit,
+        circuit: 'cirq.Circuit',
         acquaint_first: bool=True
         ) -> None:
     """Splits moments so that they contain either only acquaintance gates
@@ -66,10 +66,10 @@ def rectify_acquaintance_strategy(
 
 
 def replace_acquaintance_with_swap_network(
-        circuit: circuits.Circuit,
-        qubit_order: Sequence[ops.Qid],
+        circuit: 'cirq.Circuit',
+        qubit_order: Sequence['cirq.Qid'],
         acquaintance_size: Optional[int] = 0,
-        swap_gate: ops.Gate = ops.SWAP
+        swap_gate: 'cirq.Gate' = ops.SWAP
         ) -> bool:
     """
     Replace every moment containing acquaintance gates (after

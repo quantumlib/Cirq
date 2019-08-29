@@ -36,7 +36,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     """
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
-    def validate_operation(self, operation: ops.Operation) -> None:
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
         if not (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, self.gate_types)):
             raise ValueError(
@@ -58,7 +58,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     def validate_schedule(self, schedule: schedules.Schedule) -> None:
         raise NotImplementedError()
 
-def is_acquaintance_strategy(circuit: circuits.Circuit):
+def is_acquaintance_strategy(circuit: 'cirq.Circuit'):
     return isinstance(circuit._device, AcquaintanceDevice)
 
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:

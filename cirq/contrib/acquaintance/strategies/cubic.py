@@ -32,9 +32,9 @@ def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
 
 
 def cubic_acquaintance_strategy(
-        qubits: Iterable[ops.Qid],
-        swap_gate: ops.Gate=ops.SWAP
-        ) -> circuits.Circuit:
+        qubits: Iterable['cirq.Qid'],
+        swap_gate: 'cirq.Gate'=ops.SWAP
+        ) -> 'cirq.Circuit':
     """Acquaints every triple of qubits.
 
     Exploits the fact that in a simple linear swap network every pair of

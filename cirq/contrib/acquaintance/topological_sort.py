@@ -20,8 +20,8 @@ import networkx
 from cirq import circuits, ops
 
 
-def is_topologically_sorted(dag: circuits.CircuitDag,
-                            operations: ops.OP_TREE) -> bool:
+def is_topologically_sorted(dag: 'cirq.CircuitDag',
+                            operations: 'cirq.OP_TREE') -> bool:
     """Whether a given order of operations is consistent with the DAG.
 
     For example, suppose the (transitive reduction of the) circuit DAG is
