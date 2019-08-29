@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import abc
 
-import cirq
 from cirq import circuits, devices, ops, schedules
 from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)
@@ -26,6 +25,9 @@ from cirq.contrib.acquaintance.shift_swap_network import (
     ShiftSwapNetworkGate)
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):

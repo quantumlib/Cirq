@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import random
-from typing import Any, Iterable
+from typing import Any, Iterable, TYPE_CHECKING
 
 import networkx
 
-import cirq
 from cirq import ops
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def is_topologically_sorted(dag: 'cirq.CircuitDag',

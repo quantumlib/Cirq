@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Sequence, TYPE_CHECKING
 
-import cirq
 from cirq import circuits, ops
 
 from cirq.contrib.acquaintance.devices import UnconstrainedAcquaintanceDevice
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def complete_acquaintance_strategy(qubit_order: Sequence['cirq.Qid'],

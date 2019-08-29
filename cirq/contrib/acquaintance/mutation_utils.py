@@ -16,7 +16,6 @@ import collections
 
 from typing import Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
-import cirq
 from cirq import circuits, ops, optimizers
 
 from cirq.contrib.acquaintance.gates import (
@@ -27,7 +26,7 @@ from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
 if TYPE_CHECKING:
-    from cirq.ops import Gate
+    import cirq
 
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 

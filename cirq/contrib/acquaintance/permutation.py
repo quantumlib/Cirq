@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union
+from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union, \
+    TYPE_CHECKING
 
 import abc
 
-import cirq
 from cirq import circuits, ops, optimizers, protocols, value
+
+if TYPE_CHECKING:
+    import cirq
 
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)

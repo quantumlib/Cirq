@@ -13,15 +13,17 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Sequence, Tuple, TypeVar
+from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
-import cirq
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import(
     UnconstrainedAcquaintanceDevice)
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
     LinearPermutationGate, SwapPermutationGate)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 TItem = TypeVar('TItem')

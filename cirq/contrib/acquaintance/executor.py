@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import DefaultDict, Dict, List, Sequence
+from typing import DefaultDict, Dict, Sequence, TYPE_CHECKING
 
 import abc
 from collections import defaultdict
 
-import cirq
 from cirq import circuits, devices, ops, protocols
 
 from cirq.contrib.acquaintance.gates import (
@@ -30,6 +29,9 @@ from cirq.contrib.acquaintance.permutation import (
         LogicalGates, LogicalMapping)
 from cirq.contrib.acquaintance.mutation_utils import (
         expose_acquaintance_gates)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ExecutionStrategy(metaclass=abc.ABCMeta):

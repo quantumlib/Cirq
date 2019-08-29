@@ -16,14 +16,17 @@ import functools
 import itertools
 import math
 import operator
-from typing import Sequence, Dict, Tuple, List, NamedTuple, Optional
+from typing import Sequence, Dict, Tuple, List, NamedTuple, Optional, \
+    TYPE_CHECKING
 
-import cirq
 from cirq import ops, protocols, value
 
 from cirq.contrib.acquaintance.shift import CircularShiftGate
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate, LinearPermutationGate)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def operations_to_part_lens(

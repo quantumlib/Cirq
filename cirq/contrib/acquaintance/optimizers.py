@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, FrozenSet, List, Sequence, Set
+from typing import cast, FrozenSet, List, Sequence, Set, TYPE_CHECKING
 
-import cirq
-from cirq import circuits, ops
+from cirq import ops
 
 from cirq.contrib.acquaintance.devices import (
     is_acquaintance_strategy)
@@ -23,6 +22,9 @@ from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.executor import AcquaintanceOperation
 from cirq.contrib.acquaintance.mutation_utils import expose_acquaintance_gates
 from cirq.contrib.acquaintance.inspection_utils import LogicalAnnotator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit'

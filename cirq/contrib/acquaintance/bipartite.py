@@ -14,15 +14,16 @@
 
 import enum
 import itertools
-from typing import Dict, Sequence, Tuple, Union
+from typing import Dict, Sequence, Tuple, Union, TYPE_CHECKING
 
-import cirq
-from cirq import ops, protocols
-
+from cirq import ops
 
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @enum.unique

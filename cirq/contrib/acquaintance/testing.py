@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Sequence
+from typing import cast, Sequence, TYPE_CHECKING
 
-import cirq
 from cirq import devices, ops, protocols
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate, update_mapping)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def assert_permutation_decomposition_equivalence(

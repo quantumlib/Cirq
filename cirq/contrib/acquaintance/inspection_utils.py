@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import FrozenSet, Sequence, Set
+from typing import FrozenSet, Sequence, Set, TYPE_CHECKING
 
-import cirq
-from cirq import circuits, devices, ops
+from cirq import circuits, devices
 
 from cirq.contrib.acquaintance.executor import (
         AcquaintanceOperation, ExecutionStrategy)
@@ -23,6 +22,10 @@ from cirq.contrib.acquaintance.mutation_utils import (
         expose_acquaintance_gates)
 from cirq.contrib.acquaintance.permutation import (
         LogicalIndex, LogicalMapping)
+
+if TYPE_CHECKING:
+    import cirq
+
 
 class LogicalAnnotator(ExecutionStrategy):
     """Realizes acquaintance opportunities.

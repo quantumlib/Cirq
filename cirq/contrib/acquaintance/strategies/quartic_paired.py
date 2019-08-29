@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, List, Sequence, Tuple
+from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING
 
-import cirq
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import (
     UnconstrainedAcquaintanceDevice)
 from cirq.contrib.acquaintance.gates import acquaint, SwapNetworkGate
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]
