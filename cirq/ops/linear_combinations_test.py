@@ -155,6 +155,12 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(
         cirq.X: 1,
         cirq.Y: 1j,
     }, 2, {}),
+    ({
+        cirq.X: 0.4,
+        cirq.Y: 0.4,
+    }, 0, {
+        cirq.I: 1,
+    }),
 ))
 def test_linear_combinations_of_gates_valid_powers(terms, exponent,
                                                    expected_terms):
@@ -237,6 +243,8 @@ def assert_linear_combinations_are_equal(
     (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**24, cirq.I),
     (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**25,
      (3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13),
+    ((cirq.X + cirq.Y + cirq.Z)**0, cirq.I),
+    ((cirq.X - 1j * cirq.Y)**0, cirq.I),
 ))
 def test_gate_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
@@ -657,6 +665,12 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
         cirq.X(q0): 1,
         cirq.Y(q0): 1j,
     }, 2, {}),
+    ({
+        cirq.Y(q1): 2,
+        cirq.Z(q1): 3,
+    }, 0, {
+        cirq.I(q1): 1,
+    }),
 ))
 def test_linear_combinations_of_operations_valid_powers(terms, exponent,
                                                         expected_terms):
@@ -741,6 +755,10 @@ def test_linear_combinations_of_operations_invalid_powers(terms):
          cirq.Y(q0): -4 / 13,
          cirq.Z(q0): 12 / 13
      })),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q1): 2,
+        cirq.Z(q1): 3
+    })**0, cirq.LinearCombinationOfOperations({cirq.I(q1): 1})),
 ))
 def test_operation_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
