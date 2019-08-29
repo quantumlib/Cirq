@@ -135,7 +135,7 @@ def test_example_shor_find_factor_prime(n):
     assert d is None
 
 
-@pytest.mark.parametrize('n', (2, 3, 15, 17))
+@pytest.mark.parametrize('n', (2, 3, 15, 17, 2**89 - 1))
 def test_example_runs_shor_valid(n):
     examples.shor.main(n=n)
 
