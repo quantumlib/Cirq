@@ -25,7 +25,6 @@ from cirq.contrib.acquaintance.permutation import (
 if TYPE_CHECKING:
     import cirq
 
-
 TItem = TypeVar('TItem')
 def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
     n_items = len(items)

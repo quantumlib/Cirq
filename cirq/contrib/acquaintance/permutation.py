@@ -22,7 +22,6 @@ from cirq import circuits, ops, optimizers, protocols, value
 if TYPE_CHECKING:
     import cirq
 
-
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)
 LogicalIndexSequence = Union[Sequence[int], Sequence['cirq.Qid']]
 LogicalGates = Dict[Tuple[LogicalIndex, ...], ops.Gate]
