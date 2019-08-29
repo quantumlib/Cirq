@@ -125,8 +125,8 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return self._pauli_string_diagram_info(args,
                                                exponent=self.exponent_relative)
 

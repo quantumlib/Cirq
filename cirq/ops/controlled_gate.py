@@ -20,7 +20,6 @@ import cirq
 from cirq import linalg, protocols, value
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
-from cirq.protocols import trace_distance_from_angle_list
 
 
 @value.value_equality
@@ -107,7 +106,7 @@ class ControlledGate(raw_types.Gate):
             frozenset(self.control_qubits),
         )
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         qubits = cirq.LineQubit.range(self.num_controls() +
                                       self.sub_gate.num_qubits())
         op = self.sub_gate.on(*qubits[self.num_controls():])
@@ -149,11 +148,10 @@ class ControlledGate(raw_types.Gate):
         if u is None:
             return NotImplemented
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
-        return trace_distance_from_angle_list(angle_list)
+        return protocols.trace_distance_from_angle_list(angle_list)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(args.known_qubit_count - self.num_controls()
                                if args.known_qubit_count is not None else None),

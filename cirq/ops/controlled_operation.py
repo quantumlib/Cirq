@@ -18,7 +18,6 @@ import numpy as np
 from cirq import protocols, linalg, value
 from cirq.ops import raw_types, gate_operation
 from cirq.type_workarounds import NotImplementedType
-from cirq.protocols import trace_distance_from_angle_list
 
 
 @value.value_equality
@@ -55,7 +54,7 @@ class ControlledOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return frozenset(self.controls), self.sub_operation
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
         control_axes = args.axes[:n]
         sub_axes = args.axes[n:]
@@ -123,7 +122,7 @@ class ControlledOperation(raw_types.Operation):
         if u is None:
             return NotImplemented
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
-        return trace_distance_from_angle_list(angle_list)
+        return protocols.trace_distance_from_angle_list(angle_list)
 
     def __pow__(self, exponent: Any) -> 'ControlledOperation':
         new_sub_op = protocols.pow(self.sub_operation,
@@ -133,9 +132,8 @@ class ControlledOperation(raw_types.Operation):
             return NotImplemented
         return ControlledOperation(self.controls, new_sub_op)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> Optional[protocols.CircuitDiagramInfo]:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Optional['protocols.CircuitDiagramInfo']:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(

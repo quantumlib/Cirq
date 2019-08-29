@@ -19,7 +19,7 @@ import itertools
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, linalg, protocols, EigenGate
+from cirq import circuits, ops, linalg, protocols
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -301,7 +301,7 @@ def assert_has_consistent_apply_unitary(
 
 
 def assert_eigen_gate_has_consistent_apply_unitary(
-        eigen_gate_type: Type[EigenGate],
+        eigen_gate_type: Type[ops.EigenGate],
         *,
         exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         global_shifts=(0, 0.5, -0.5, 0.1),
