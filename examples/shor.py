@@ -67,8 +67,12 @@ def naive_order_finder(x: int, n: int) -> int:
 
     Returns:
         Smallest positive integer r such that x^r == 1 mod n.
+
+    Raises:
+        ValueError when x is 1 or not an element of the multiplicative
+        group of integers modulo n.
     """
-    if x < 2 or n <= x:
+    if x < 2 or n <= x or math.gcd(x, n) > 1:
         raise ValueError(f'Invalid x={x} for modulus n={n}')
     r, y = 1, x
     while y != 1:
