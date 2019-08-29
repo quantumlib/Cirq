@@ -52,6 +52,8 @@ import random
 
 from typing import Callable, Optional
 
+import sympy
+
 parser = argparse.ArgumentParser(description='Factorization demo.')
 parser.add_argument('n', type=int, help='composite integer to factor')
 
@@ -115,7 +117,7 @@ def find_factor(n: int,
         Non-trivial factor of n or None if no such factor was found.
         Factor k of n is trivial if it is 1 or n.
     """
-    if n == 2:
+    if sympy.isprime(n):
         return None
     if n % 2 == 0:
         return 2
