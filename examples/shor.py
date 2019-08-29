@@ -52,7 +52,7 @@ import random
 
 from typing import Callable, Optional
 
-parser = argparse.ArgumentParser('Factorization demo.')
+parser = argparse.ArgumentParser(description='Factorization demo.')
 parser.add_argument('n', type=int, help='composite integer to factor')
 
 
