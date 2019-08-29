@@ -19,11 +19,11 @@ from typing import (Dict, Callable, Iterable, Optional, Sequence, TYPE_CHECKING,
 import abc
 from collections import defaultdict
 
-import cirq
 from cirq import ops
 from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops import Qid
 
 

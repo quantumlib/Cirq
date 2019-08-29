@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, \
+    TYPE_CHECKING
 
 import functools
 import networkx
 
-import cirq
 from cirq import ops, devices
 from cirq.circuits import circuit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 T = TypeVar('T')

@@ -14,13 +14,16 @@
 
 """Utility classes for representing QASM."""
 
-from typing import (Callable, Dict, Optional, Sequence, Set, Tuple, Union)
+from typing import (Callable, Dict, Optional, Sequence, Set, Tuple, Union,
+                    TYPE_CHECKING)
 
 import re
 import numpy as np
 
-import cirq
 from cirq import ops, linalg, protocols, value
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality(approximate=True)
