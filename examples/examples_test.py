@@ -123,11 +123,24 @@ def test_example_shor_naive_order_finder_invalid_x(x, n):
 
 
 @pytest.mark.parametrize('n', (4, 6, 15, 125, 101 * 103, 127 * 127))
-def test_example_shor_find_factor(n):
+def test_example_shor_find_factor_composite(n):
     d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
     assert 1 < d < n
     assert n % d == 0
 
 
-def test_example_runs_shor():
-    examples.shor.main(n=15)
+@pytest.mark.parametrize('n', (2, 3, 5, 11, 101, 127, 907))
+def test_example_shor_find_factor_prime(n):
+    d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
+    assert d is None
+
+
+@pytest.mark.parametrize('n', (2, 3, 15, 17))
+def test_example_runs_shor_valid(n):
+    examples.shor.main(n=n)
+
+
+@pytest.mark.parametrize('n', (-1, 0, 1))
+def test_example_runs_shor_invalid(n):
+    with pytest.raises(ValueError):
+        examples.shor.main(n=n)
