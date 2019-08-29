@@ -15,17 +15,21 @@
 # limitations under the License.
 
 ################################################################################
-# If cirq's version is a dev release, this script can be used to set
-# the CIRQ_DEV_VERSION variable to a string that is the dev version
-# plus an increasing date string.
+# This script prints a new dev version id if the current cirq version
+# is a dev release.
 #
-# This is used by travis during deployment and by published-dev-package.sh.
+# If version in Cirq's _version.py file contains 'dev' this
+# prints a dev version appended by an id given by the time the
+# script was run. This can be used to ensure later releases
+# have increasing numerical release numbers.
 #
-# The variable can be set using
+# This script is used by publish-dev-package and can also be
+# used to set a bash variable for use by travis ci to deploy
+# a new dev version on successful merge.
 #
-#     export CIRQ_DEV_VERSION=`dev_tools/packaging/set-dev-version.sh`
-#
-# Which, for example sets $CIRQ_DEV_VERSION to 0.6.0.dev20190813193556.
+# Example:
+#     > echo `generate-dev-version-id.sh`
+#     0.6.0.dev20190829135619
 ################################################################################
 
 set -e
