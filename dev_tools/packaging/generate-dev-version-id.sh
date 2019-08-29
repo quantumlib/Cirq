@@ -50,5 +50,3 @@ else
   echo "Version doesn't end in dev: ${ACTUAL_VERSION_LINE}" >&2
   exit 1
 fi
-
-exit 0
