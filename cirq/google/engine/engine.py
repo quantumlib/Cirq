@@ -25,11 +25,12 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+import datetime
 import enum
 import random
 import re
 import string
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Collection, Dict, List, Optional, Sequence, Union
 import warnings
 
 from apiclient import discovery, http as apiclient_http
@@ -143,7 +144,9 @@ class Engine:
         get_job_results
         get_latest_calibration
         get_program
+        list_jobs
         list_processors
+        list_programs
 
     Finally, the engine has methods to update existing programs and jobs:
         add_job_labels
@@ -656,6 +659,22 @@ class Engine:
         response = self.service.projects().processors().list(
             parent=parent).execute()
         return response['processors']
+
+    def list_jobs(self,
+                  limit: int = 1000,
+                  statuses: Collection(str) = None,
+                  labels: Collection(str) = None,
+                  created_before=datetime.max,
+                  created_after=datetime.min,
+                  updated_before=datetime.max,
+                  updated_after=datetime.min):
+        assert created_before >= created_after, (
+            'created_before ({}) was less than created_after({})'.format(
+                created_before, created_after))
+        assert created_before >= created_after, (
+            'created_before ({}) was less than created_after({})'.format(
+                created_before, created_after))
+
 
     def get_latest_calibration(self, processor_id: str
                               ) -> Optional[calibration.Calibration]:

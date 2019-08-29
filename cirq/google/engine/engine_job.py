@@ -23,6 +23,7 @@ from cirq.google.engine import calibration
 if TYPE_CHECKING:
     import cirq.google.engine.engine as engine
 
+
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 
 
