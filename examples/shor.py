@@ -132,6 +132,7 @@ def find_factor(n: int,
         c = math.gcd(y - 1, n)
         if 1 < c < n:
             return c
+    return None
 
 
 def main(n: Optional[int] = None):
