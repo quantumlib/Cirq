@@ -77,30 +77,6 @@ class Qid(metaclass=abc.ABCMeta):
         """
         return _QubitAsQid(self, levels=levels)
 
-    def with_fewer_levels(self, levels) -> 'Qid':
-        """Returns a new qid with fewer or the same number of levels.
-
-        Raises:
-            ValueError: `levels > self.levels`
-        """
-        if levels > self.levels:
-            raise ValueError('Too many quantum levels for <{!r}>. '
-                             'Expected {} or fewer levels but got {}'.format(
-                                 self, self.levels, levels))
-        return self.with_levels(levels)
-
-    def with_more_levels(self, levels) -> 'Qid':
-        """Returns a new qid with more or the same number of levels.
-
-        Raises:
-            ValueError: `levels < self.levels`
-        """
-        if levels < self.levels:
-            raise ValueError('Too few quantum levels for <{!r}>. '
-                             'Expected {} or more levels but got {}.'.format(
-                                 self, self.levels, levels))
-        return self.with_levels(levels)
-
     def _cmp_tuple(self):
         return (type(self).__name__, repr(type(self)), self._comparison_key(),
                 self.levels)

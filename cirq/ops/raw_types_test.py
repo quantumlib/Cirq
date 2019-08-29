@@ -81,14 +81,6 @@ def test_qid_levels():
         _ = ValidQubit('a').with_levels(0)
     with pytest.raises(ValueError, match='Wrong number'):
         _ = ValidQubit('a').with_levels(-3)
-    assert ValidQubit('a').with_more_levels(2).levels == 2
-    assert ValidQubit('a').with_more_levels(3).levels == 3
-    with pytest.raises(ValueError, match='Too few'):
-        _ = ValidQubit('a').with_more_levels(1)
-    assert ValidQubit('a').with_fewer_levels(2).levels == 2
-    assert ValidQubit('a').with_fewer_levels(1).levels == 1
-    with pytest.raises(ValueError, match='Too many'):
-        _ = ValidQubit('a').with_fewer_levels(3)
 
     assert ValidQid('a', 3).levels == 3
     assert ValidQid('a', 3).with_levels(2).levels == 2
@@ -97,14 +89,6 @@ def test_qid_levels():
         _ = ValidQid('a', 3).with_levels(0)
     with pytest.raises(ValueError, match='Wrong number'):
         _ = ValidQid('a', 3).with_levels(-3)
-    assert ValidQid('a', 3).with_more_levels(3).levels == 3
-    assert ValidQid('a', 3).with_more_levels(4).levels == 4
-    with pytest.raises(ValueError, match='Too few'):
-        _ = ValidQid('a', 3).with_more_levels(2)
-    assert ValidQid('a', 3).with_fewer_levels(3).levels == 3
-    assert ValidQid('a', 3).with_fewer_levels(2).levels == 2
-    with pytest.raises(ValueError, match='Too many'):
-        _ = ValidQid('a', 3).with_fewer_levels(4)
 
 
 class ValiGate(cirq.Gate):
