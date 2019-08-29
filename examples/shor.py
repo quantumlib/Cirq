@@ -95,24 +95,27 @@ def find_factor_of_prime_power(n: int) -> Optional[int]:
     return None
 
 
-def find_factor(n: int, order_finder: Callable[[int, int], int]) -> int:
+def find_factor(n: int,
+                order_finder: Callable[[int, int], int],
+                max_attempts: int = 30) -> Optional[int]:
     """Returns a non-trivial factor of composite integer n.
 
     Args:
         n: integer to factorize,
         order_finder: function for finding the order of elements of the
-            multiplicative group of integers modulo n.
+            multiplicative group of integers modulo n,
+        max_attempts: number of random x's to try.
 
     Returns:
-        Non-trivial factor of n. Factor k of n is trivial if it is 1 or n.
-        Loops forever when n is prime.
+        Non-trivial factor of n or None if no such factor was found.
+        Factor k of n is trivial if it is 1 or n.
     """
     if n % 2 == 0:
         return 2
     c = find_factor_of_prime_power(n)
     if c is not None:
         return c
-    while True:
+    for _ in range(max_attempts):
         x = random.randint(2, n - 1)
         c = math.gcd(x, n)
         if 1 < c < n:
@@ -134,10 +137,13 @@ def main(n: Optional[int] = None):
 
     d = find_factor(n, order_finder=naive_order_finder)
 
-    print(f'{d} is a non-trivial factor of {n}')
+    if d is None:
+        print(f'No non-trivial factor of {n} found. It is probably a prime.')
+    else:
+        print(f'{d} is a non-trivial factor of {n}')
 
-    assert 1 < d < n
-    assert n % d == 0
+        assert 1 < d < n
+        assert n % d == 0
 
 
 if __name__ == '__main__':
