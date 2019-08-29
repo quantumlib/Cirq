@@ -19,7 +19,6 @@ from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 import abc
 
 from cirq import value, protocols
-from cirq.protocols import decompose, inverse, qid_shape_protocol
 
 if TYPE_CHECKING:
     from cirq.ops import gate_operation, linear_combinations
@@ -114,11 +113,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
-        if len(qubits) != qid_shape_protocol.num_qubits(self):
+        if len(qubits) != protocols.num_qubits(self):
             raise ValueError('Wrong number of qubits for <{!r}>. '
                              'Expected {} qubits but got <{!r}>.'.format(
-                                 self, qid_shape_protocol.num_qubits(self),
-                                 qubits))
+                                 self, protocols.num_qubits(self), qubits))
 
         if any([not isinstance(qubit, Qid)
                 for qubit in qubits]):
@@ -183,15 +181,14 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             # HACK: break cycle
             from cirq.devices import line_qubit
 
-            decomposed = decompose.decompose_once_with_qubits(
+            decomposed = protocols.decompose_once_with_qubits(
                 self,
-                qubits=line_qubit.LineQubit.range(
-                    qid_shape_protocol.num_qubits(self)),
+                qubits=line_qubit.LineQubit.range(protocols.num_qubits(self)),
                 default=None)
             if decomposed is None:
                 return NotImplemented
 
-            inverse_decomposed = inverse.inverse(decomposed, None)
+            inverse_decomposed = protocols.inverse(decomposed, None)
             if inverse_decomposed is None:
                 return NotImplemented
 
@@ -218,7 +215,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     # to keep backwards compatibility with versions of cirq where num_qubits
     # is an abstract method.
     def _backwards_compatibility_num_qubits(self) -> int:
-        return qid_shape_protocol.num_qubits(self)
+        return protocols.num_qubits(self)
 
     @value.alternative(requires='_num_qubits_',
                        implementation=_backwards_compatibility_num_qubits)
@@ -316,7 +313,7 @@ class _InverseCompositeGate(Gate):
         self._original = original
 
     def _num_qubits_(self):
-        return qid_shape_protocol.num_qubits(self._original)
+        return protocols.num_qubits(self._original)
 
     def __pow__(self, power):
         if power == 1:
@@ -326,8 +323,8 @@ class _InverseCompositeGate(Gate):
         return NotImplemented
 
     def _decompose_(self, qubits):
-        return inverse.inverse(decompose.decompose_once_with_qubits(
-            self._original, qubits))
+        return protocols.inverse(
+            protocols.decompose_once_with_qubits(self._original, qubits))
 
     def _value_equality_values_(self):
         return self._original
