@@ -24,7 +24,6 @@ from cirq.circuits import circuit
 if TYPE_CHECKING:
     import cirq
 
-
 T = TypeVar('T')
 
 @functools.total_ordering
