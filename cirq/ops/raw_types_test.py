@@ -57,7 +57,7 @@ class ValidQid(cirq.Qid):
 def test_wrapped_qid():
     assert ValidQubit('a').with_levels(3).with_levels(4) == ValidQubit(
         'a').with_levels(4)
-    assert ValidQubit('a').with_levels(3).qid == ValidQubit('a')
+    assert ValidQubit('a').with_levels(3).qubit == ValidQubit('a')
     assert ValidQubit('a').with_levels(3) == ValidQubit('a').with_levels(3)
     assert ValidQubit('a').with_levels(3) < ValidQubit('a').with_levels(4)
     assert ValidQubit('a').with_levels(3) < ValidQubit('b').with_levels(3)
@@ -68,8 +68,8 @@ def test_wrapped_qid():
     assert str(ValidQubit('a').with_levels(3)) == 'TQ_a (d=3)'
 
     assert ValidQubit('zz').with_levels(3)._json_dict_() == {
-        'cirq_type': '_WrappedQid',
-        'qid': ValidQubit('zz'),
+        'cirq_type': '_QubitAsQid',
+        'qubit': ValidQubit('zz'),
         'levels': 3,
     }
 

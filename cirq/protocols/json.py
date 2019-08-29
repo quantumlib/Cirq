@@ -68,7 +68,7 @@ class _ResolverCache:
                 'sympy.Symbol': sympy.Symbol,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
-                '_WrappedQid': raw_types._WrappedQid,
+                '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
                 'YPowGate': cirq.YPowGate,

@@ -75,7 +75,7 @@ class Qid(metaclass=abc.ABCMeta):
         Args:
             levels: The new number of levels.
         """
-        return _WrappedQid(self, levels=levels)
+        return _QubitAsQid(self, levels=levels)
 
     def with_fewer_levels(self, levels) -> 'Qid':
         """Returns a new qid with fewer or the same number of levels.
@@ -140,16 +140,16 @@ class Qid(metaclass=abc.ABCMeta):
 
 
 @functools.total_ordering
-class _WrappedQid(Qid):
+class _QubitAsQid(Qid):
 
-    def __init__(self, qid: Qid, levels: int):
-        self._qid = qid
+    def __init__(self, qubit: Qid, levels: int):
+        self._qubit = qubit
         self._levels = levels
         self.validate_levels(levels)
 
     @property
-    def qid(self) -> Qid:
-        return self._qid
+    def qubit(self) -> Qid:
+        return self._qubit
 
     @property
     def levels(self) -> int:
@@ -157,19 +157,19 @@ class _WrappedQid(Qid):
 
     def with_levels(self, levels: int) -> Qid:
         """Returns a copy with a different number of levels."""
-        return self.qid.with_levels(levels)
+        return _QubitAsQid(self.qubit, levels)
 
     def _comparison_key(self) -> Any:
-        return self._qid._cmp_tuple()[:-1]  # Don't include self._qid.levels
+        return self._qubit._cmp_tuple()[:-1]  # Don't include self._qubit.levels
 
     def __repr__(self):
-        return '{!r}.with_levels({})'.format(self.qid, self.levels)
+        return '{!r}.with_levels({})'.format(self.qubit, self.levels)
 
     def __str__(self):
-        return '{!s} (d={})'.format(self.qid, self.levels)
+        return '{!s} (d={})'.format(self.qubit, self.levels)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['qid', 'levels'])
+        return protocols.to_json_dict(self, ['qubit', 'levels'])
 
 
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
