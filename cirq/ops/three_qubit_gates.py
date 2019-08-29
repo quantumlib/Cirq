@@ -111,7 +111,7 @@ class CCZPowGate(eigen_gate.EigenGate,
             sweep_abc,
         ]
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         ooo = args.subspace_index(0b111)
@@ -121,14 +121,13 @@ class CCZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             ('@', '@', '@'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
@@ -187,7 +186,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return np.diag(
             [np.exp(1j * angle) for angle in self._diag_angles_radians])
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         if self._is_parameterized_():
             return NotImplemented
         for index, angle in enumerate(self._diag_angles_radians):
@@ -204,8 +203,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             for angle in self._diag_angles_radians
         ])
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                              ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
@@ -345,7 +344,7 @@ class CCXPowGate(eigen_gate.EigenGate,
     def qubit_index_to_equivalence_group_key(self, index):
         return index < 2
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         if protocols.is_parameterized(self):
             return NotImplemented
         p = 1j**(2 * self._exponent * self._global_shift)
@@ -367,14 +366,13 @@ class CCXPowGate(eigen_gate.EigenGate,
         yield CCZ(c1, c2, t)**self._exponent
         yield common_gates.H(t)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             ('@', '@', 'X'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
@@ -475,7 +473,7 @@ class CSwapGate(gate_features.ThreeQubitGate,
         yield common_gates.S(c)**-1
         yield pauli_gates.X(a)**-0.5
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         return protocols.apply_unitary(
             controlled_gate.ControlledGate(common_gates.SWAP),
             protocols.ApplyUnitaryArgs(
@@ -526,14 +524,13 @@ class CSwapGate(gate_features.ThreeQubitGate,
                                  np.array([[0, 1], [1, 0]]),
                                  np.diag([1]))
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
