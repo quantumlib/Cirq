@@ -19,6 +19,7 @@ import numpy as np
 import sympy
 from google.protobuf import json_format
 
+import cirq
 from cirq import devices, ops
 from cirq.api.google import v2
 from cirq.google import arg_func_langs
@@ -28,12 +29,13 @@ Gate = TypeVar('Gate', bound=ops.Gate)
 
 
 class SerializingArg(
-        NamedTuple('SerializingArg',
-                   [('serialized_name', str),
-                    ('serialized_type', Type[arg_func_langs.ArgValue]),
-                    ('gate_getter',
-                     Union[str, Callable[[ops.Gate], arg_func_langs.ArgValue]]),
-                    ('required', bool)])):
+        NamedTuple(
+            'SerializingArg',
+            [('serialized_name', str),
+             ('serialized_type', Type[arg_func_langs.ArgValue]),
+             ('gate_getter',
+              Union[str, Callable[['cirq.Gate'], arg_func_langs.ArgValue]]),
+             ('required', bool)])):
     """Specification of the arguments for a Gate and its serialization.
 
     Attributes:
@@ -66,14 +68,13 @@ class GateOpSerializer:
         serialized_gate_id: The id used when serializing the gate.
     """
 
-    def __init__(
-            self,
-            *,
-            gate_type: Type[Gate],
-            serialized_gate_id: str,
-            args: List[SerializingArg],
-            can_serialize_predicate: Callable[[ops.Gate], bool] = lambda x: True
-    ):
+    def __init__(self,
+                 *,
+                 gate_type: Type[Gate],
+                 serialized_gate_id: str,
+                 args: List[SerializingArg],
+                 can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda
+                 x: True):
         """Construct the serializer.
 
         Args:
@@ -93,7 +94,7 @@ class GateOpSerializer:
         self.args = args
         self.can_serialize_predicate = can_serialize_predicate
 
-    def can_serialize_gate(self, gate: ops.Gate) -> bool:
+    def can_serialize_gate(self, gate: 'cirq.Gate') -> bool:
         """Whether the given gate can be serialized by this serializer.
 
         This checks that the gate is a subclass of the gate type for this
@@ -103,7 +104,7 @@ class GateOpSerializer:
         supported_gate_type = self.gate_type in type(gate).mro()
         return supported_gate_type and self.can_serialize_predicate(gate)
 
-    def to_proto_dict(self, op: ops.GateOperation) -> Optional[Dict]:
+    def to_proto_dict(self, op: 'cirq.GateOperation') -> Optional[Dict]:
         msg = self.to_proto(op)
         if msg is None:
             return None
@@ -113,7 +114,7 @@ class GateOpSerializer:
                                          use_integers_for_enums=True)
 
     def to_proto(self,
-                 op: ops.GateOperation,
+                 op: 'cirq.GateOperation',
                  msg: Optional[v2.program_pb2.Operation] = None
                 ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.api.google.v2.Operation message as a proto dict."""
@@ -140,7 +141,7 @@ class GateOpSerializer:
                 self._arg_value_to_proto(value, msg.args[arg.serialized_name])
         return msg
 
-    def _value_from_gate(self, gate: ops.Gate,
+    def _value_from_gate(self, gate: 'cirq.Gate',
                          arg: SerializingArg) -> arg_func_langs.ArgValue:
         value = None
         gate_getter = arg.gate_getter

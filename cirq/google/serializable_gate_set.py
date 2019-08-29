@@ -19,7 +19,8 @@ from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union
 
 from google.protobuf import json_format
 
-from cirq import circuits, devices, ops, schedules, value
+import cirq
+from cirq import circuits, ops, schedules, value
 from cirq.api.google import v2
 from cirq.google import op_deserializer, op_serializer
 
@@ -56,7 +57,7 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
-    def is_supported_gate(self, gate: ops.Gate) -> bool:
+    def is_supported_gate(self, gate: 'cirq.Gate') -> bool:
         """Whether or not the given gate can be serialized by this gate set."""
         for gate_type_mro in type(gate).mro():
             if gate_type_mro in self.serializers:
@@ -99,7 +100,7 @@ class SerializableGateSet:
             self._serialize_schedule(program, msg.schedule)
         return msg
 
-    def serialize_op_dict(self, op: ops.Operation) -> Dict:
+    def serialize_op_dict(self, op: 'cirq.Operation') -> Dict:
         """Serialize an Operation to cirq.api.google.v2.Operation proto.
 
         Args:
@@ -114,7 +115,7 @@ class SerializableGateSet:
                                          use_integers_for_enums=True)
 
     def serialize_op(self,
-                     op: ops.Operation,
+                     op: 'cirq.Operation',
                      msg: Optional[v2.program_pb2.Operation] = None
                     ) -> v2.program_pb2.Operation:
         """Serialize an Operation to cirq.api.google.v2.Operation proto.
@@ -141,7 +142,7 @@ class SerializableGateSet:
 
     def deserialize_dict(self,
                          proto: Dict,
-                         device: Optional[devices.Device] = None
+                         device: Optional['cirq.Device'] = None
                         ) -> Union[circuits.Circuit, schedules.Schedule]:
         """Deserialize a Circuit or Schedule from a cirq.api.google.v2.Program.
 
@@ -160,7 +161,7 @@ class SerializableGateSet:
 
     def deserialize(self,
                     proto: v2.program_pb2.Program,
-                    device: Optional[devices.Device] = None
+                    device: Optional['cirq.Device'] = None
                    ) -> Union[circuits.Circuit, schedules.Schedule]:
         """Deserialize a Circuit or Schedule from a cirq.api.google.v2.Program.
 
@@ -192,7 +193,7 @@ class SerializableGateSet:
         raise ValueError(
             'Program proto does not contain a circuit or schedule.')
 
-    def deserialize_op_dict(self, operation_proto: Dict) -> ops.Operation:
+    def deserialize_op_dict(self, operation_proto: Dict) -> 'cirq.Operation':
         """Deserialize an Operation from a cirq.api.google.v2.Operation.
 
         Args:
@@ -207,7 +208,7 @@ class SerializableGateSet:
         return self.deserialize_op(msg)
 
     def deserialize_op(self, operation_proto: v2.program_pb2.Operation
-                      ) -> ops.Operation:
+                      ) -> 'cirq.Operation':
         """Deserialize an Operation from a cirq.api.google.v2.Operation.
 
         Args:
@@ -227,7 +228,7 @@ class SerializableGateSet:
 
         return self.deserializers[gate_id].from_proto(operation_proto)
 
-    def _serialize_circuit(self, circuit: circuits.Circuit,
+    def _serialize_circuit(self, circuit: 'cirq.Circuit',
                            msg: v2.program_pb2.Circuit) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
@@ -244,7 +245,7 @@ class SerializableGateSet:
                               scheduled_op_proto.operation)
 
     def _deserialize_circuit(self, circuit_proto: v2.program_pb2.Circuit
-                            ) -> circuits.Circuit:
+                            ) -> 'cirq.Circuit':
         moments = []
         for moment_proto in circuit_proto.moments:
             moment_ops = [
@@ -254,7 +255,7 @@ class SerializableGateSet:
         return circuits.Circuit(moments)
 
     def _deserialize_schedule(self, schedule_proto: v2.program_pb2.Schedule,
-                              device: devices.Device) -> schedules.Schedule:
+                              device: 'cirq.Device') -> schedules.Schedule:
         scheduled_ops = []
         for scheduled_op_proto in schedule_proto.scheduled_operations:
             if not scheduled_op_proto.HasField('operation'):

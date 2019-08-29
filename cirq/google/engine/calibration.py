@@ -17,6 +17,7 @@ from collections import abc, defaultdict
 
 from typing import Any, Dict, Tuple
 
+import cirq
 from cirq import devices, vis
 
 
@@ -51,7 +52,7 @@ class Calibration(abc.Mapping):
 
     def _compute_metric_dict(
             self, metrics: Dict
-    ) -> Dict[str, Dict[Tuple[devices.GridQubit, ...], Any]]:
+    ) -> Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]:
         results: Dict[str, Dict[Tuple[devices.
                                       GridQubit, ...], Any]] = defaultdict(dict)
         for metric in metrics:
@@ -74,7 +75,7 @@ class Calibration(abc.Mapping):
                 results[name][()] = flat_values
         return results
 
-    def __getitem__(self, key: str) -> Dict[Tuple[devices.GridQubit, ...], Any]:
+    def __getitem__(self, key: str) -> Dict[Tuple['cirq.GridQubit', ...], Any]:
         """Supports getting calibrations by index.
 
         Calibration may be accessed by key:

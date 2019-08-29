@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import List
 
+import cirq
 from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -46,7 +47,7 @@ class ConvertToXmonGates(PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
+    def _convert_one(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
@@ -62,7 +63,8 @@ class ConvertToXmonGates(PointOptimizer):
 
         return NotImplemented
 
-    def convert(self, op: ops.Operation) -> List[ops.Operation]:
+    def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
+
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "

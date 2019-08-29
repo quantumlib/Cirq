@@ -4,6 +4,7 @@ from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
 from collections import OrderedDict
 import numpy as np
 
+import cirq
 from cirq.api.google.v2 import result_pb2
 from cirq import circuits
 from cirq import devices
@@ -15,7 +16,7 @@ from cirq import study
 class MeasureInfo(
         NamedTuple('MeasureInfo', [
             ('key', str),
-            ('qubits', List[devices.GridQubit]),
+            ('qubits', List['cirq.GridQubit']),
             ('slot', int),
             ('invert_mask', List[bool]),
         ])):
@@ -58,7 +59,7 @@ def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
     return measurements
 
 
-def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[MeasureInfo]:
+def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if (isinstance(op, ops.GateOperation) and
@@ -81,13 +82,13 @@ def _schedule_measurements(schedule: schedules.Schedule
                               invert_mask=_full_mask(op))
 
 
-def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
+def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
     if not all(isinstance(q, devices.GridQubit) for q in op.qubits):
         raise ValueError('Expected GridQubits: {}'.format(op.qubits))
-    return cast(List[devices.GridQubit], list(op.qubits))
+    return cast(List['cirq.GridQubit'], list(op.qubits))
 
 
-def _full_mask(op: ops.GateOperation) -> List[bool]:
+def _full_mask(op: 'cirq.GateOperation') -> List[bool]:
     invert_mask = list(cast(ops.MeasurementGate, op.gate).invert_mask)
     len_missing_mask = len(op.qubits) - len(invert_mask)
     if len_missing_mask > 0:
