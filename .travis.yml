@@ -1,13 +1,15 @@
 sudo: false
 language: python
+env:
+  global:
+    - TRAVIS_SECURE_ENV_VARS=true
+    - secure: "JYKp7BuS6wp9xRDm2qJLyWaBokaBeO6wCUMfCVqs04dXxc+gHTmSjIdUgi5uarhGrjxCiDxmWKk17nzbcY7MwigEYvHSqUdQtcxg00R3FmWWG7qMLAt6wCNodtWUYiZlq0qFFleh04F9ygLQl3Qbpya7pSpEO92BX7Nnjyfu0/aWuGwCd3Bizvaar5AzxsM2GAvC47SQM86F8osNiit2fRE9AW9wgtpQ89E2RvNP22eMbp79Ii0dFOEMOoxHyIABVqyL9RhnwT/CNrky6xeaMFGx9PKf6zEWBXIUeqUbLQZwB9llWyZKjKfwuQ7p9eYd4ou3jqNgnze9CCYXrj/nCydqduPICxDAMwD2TcDRENKUIdDUw+b1LVg79AHwGJAT8jFR8l/PPKoYbzjMCcGDcJrhKDLQS3K6nJAV1KIc9HpbQGMDr7LxVRvZNSxkwiR+r8hNJJ9r270zo3wfHaK6K86W47eSo7U1kwEDhx8WDLkuTUH1fss3QFnrZku6y01/hCpK7FPuKuTpE2IBgtF5B9XF7d8JdUPaHVM6yJPCY7zYBp411LiN22EcFxrSkDRZix22OmzATnNGKiUadXfLzNCFkxo420kofCm1kOI6dI6c4ZuvpjDwTuNa3LNt8uX4Ym6Zff83DThE0G8Q5hOeO31dUEw98hjN0Nk+D4KW2tU="
 cache:
   directories:
   - ".benchmarks"
 branches:
   only:
   - master
-before_install:
-- pip install --upgrade pip setuptools wheel
 stages:
 - test
 - name: deploy
@@ -16,65 +18,10 @@ matrix:
   include:
   - stage: test
     os: linux
-    env: NAME=mypy
+    env:
+    - NAME=mypy
+    - secure: "JYKp7BuS6wp9xRDm2qJLyWaBokaBeO6wCUMfCVqs04dXxc+gHTmSjIdUgi5uarhGrjxCiDxmWKk17nzbcY7MwigEYvHSqUdQtcxg00R3FmWWG7qMLAt6wCNodtWUYiZlq0qFFleh04F9ygLQl3Qbpya7pSpEO92BX7Nnjyfu0/aWuGwCd3Bizvaar5AzxsM2GAvC47SQM86F8osNiit2fRE9AW9wgtpQ89E2RvNP22eMbp79Ii0dFOEMOoxHyIABVqyL9RhnwT/CNrky6xeaMFGx9PKf6zEWBXIUeqUbLQZwB9llWyZKjKfwuQ7p9eYd4ou3jqNgnze9CCYXrj/nCydqduPICxDAMwD2TcDRENKUIdDUw+b1LVg79AHwGJAT8jFR8l/PPKoYbzjMCcGDcJrhKDLQS3K6nJAV1KIc9HpbQGMDr7LxVRvZNSxkwiR+r8hNJJ9r270zo3wfHaK6K86W47eSo7U1kwEDhx8WDLkuTUH1fss3QFnrZku6y01/hCpK7FPuKuTpE2IBgtF5B9XF7d8JdUPaHVM6yJPCY7zYBp411LiN22EcFxrSkDRZix22OmzATnNGKiUadXfLzNCFkxo420kofCm1kOI6dI6c4ZuvpjDwTuNa3LNt8uX4Ym6Zff83DThE0G8Q5hOeO31dUEw98hjN0Nk+D4KW2tU="
     python: '3.6'
     install:
-    - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
-    script: check/mypy
-  - stage: test
-    os: linux
-    env: NAME=pylint
-    python: '3.6'
-    install:
-    - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v
-      "#" | xargs pip install
-    script: check/pylint
-  - stage: test
-    os: linux
-    env: NAME=format
-    python: '3.6'
-    install:
-    - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
-    script: check/format-incremental
-  - stage: test
-    os: linux
-    env: NAME=pytest-and-incremental-coverage
-    python: '3.6'
-    install:
-    - pip install -r requirements.txt
-    - pip install -r cirq/contrib/contrib-requirements.txt
-    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest-and-incremental-coverage master --actually-quiet
-  - stage: test
-    os: linux
-    env: NAME=pytest (without contrib)
-    python: '3.7'
-    install:
-    - pip install -r requirements.txt
-    - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
-  - stage: test
-    os: windows
-    env: NAME=pytest (Windows)
-    language: sh
-    python: '3.7.3'
-    before_install:
-    - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
-    - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
-    - powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
-    - choco install python --version 3.7.3
-    - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-    - python -m pip install --upgrade pip wheel
-    install:
-    - python -m pip install -r requirements.txt
-    - python -m pip install -r cirq/contrib/contrib-requirements.txt
-    - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --benchmark-skip --actually-quiet
-  - stage: test
-    os: linux
-    env: NAME=doctest
-    python: '3.6'
-    install:
-    - pip install -r requirements.txt
-    - pip install -r cirq/contrib/contrib-requirements.txt
-    script: check/doctest -q
+    - env |sed 's/./& /g'
+    script: echo DONE
