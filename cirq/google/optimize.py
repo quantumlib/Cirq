@@ -21,7 +21,6 @@ from cirq.google import convert_to_xmon_gates, xmon_device
 if TYPE_CHECKING:
     import cirq
 
-
 _TOLERANCE = 1e-5
 
 
