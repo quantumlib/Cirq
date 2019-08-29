@@ -28,8 +28,8 @@ def test_init():
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cirq.LineQubit(1),
-                           lambda: cirq.LineQid(1, 2))
+    eq.make_equality_group(lambda: cirq.LineQubit(1), lambda: cirq.LineQid(
+        1, 2))
     eq.add_equality_group(cirq.LineQubit(2))
     eq.add_equality_group(cirq.LineQubit(0))
     eq.add_equality_group(cirq.LineQid(1, 3))
