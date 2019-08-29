@@ -67,10 +67,13 @@ class Qid(metaclass=abc.ABCMeta):
                 'Wrong number of quantum levels. '
                 'Expected a positive integer but got {}.'.format(levels))
 
-    def with_levels(self, levels) -> 'Qid':
+    def with_levels(self, levels: int) -> 'Qid':
         """Returns a new qid with a different number of levels.
 
         Child classes can override.  Wraps the qid object by default.
+
+        Args:
+            levels: The new number of levels.
         """
         return _WrappedQid(self, levels=levels)
 

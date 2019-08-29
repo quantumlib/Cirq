@@ -176,6 +176,13 @@ class LineQubit(_BaseLineQid):
     def _with_x(self, x: int) -> 'LineQubit':
         return LineQubit(x)
 
+    def _cmp_tuple(self):
+        cls = LineQid if type(self) is LineQubit else type(self)
+        # Must be the same as Qid._cmp_tuple but with cls in place of
+        # type(self).
+        return (cls.__name__, repr(cls), self._comparison_key(),
+                self.levels)
+
     @staticmethod
     def range(*range_args) -> List['LineQubit']:
         """Returns a range of line qubits.

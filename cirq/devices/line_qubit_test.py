@@ -28,13 +28,11 @@ def test_init():
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cirq.LineQubit(1))
+    eq.make_equality_group(lambda: cirq.LineQubit(1),
+                           lambda: cirq.LineQid(1, 2))
     eq.add_equality_group(cirq.LineQubit(2))
     eq.add_equality_group(cirq.LineQubit(0))
-
-    eq.make_equality_group(lambda: cirq.LineQid(1, 2))
     eq.add_equality_group(cirq.LineQid(1, 3))
-    eq.add_equality_group(cirq.LineQid(2, 2))
 
 
 def test_str():
@@ -43,40 +41,23 @@ def test_str():
 
 
 def test_repr():
-    assert repr(cirq.LineQubit(5)) == 'cirq.LineQubit(5)'
-    assert repr(cirq.LineQid(5, levels=3)) == 'cirq.LineQid(5, levels=3)'
+    cirq.testing.assert_equivalent_repr(cirq.LineQubit(5))
+    cirq.testing.assert_equivalent_repr(cirq.LineQid(5, levels=3))
 
 
 def test_cmp():
-    assert cirq.LineQubit(0) == cirq.LineQubit(0)
-    assert cirq.LineQubit(0) != cirq.LineQubit(1)
-    assert cirq.LineQubit(0) < cirq.LineQubit(1)
-    assert cirq.LineQubit(1) > cirq.LineQubit(0)
-    assert cirq.LineQubit(0) <= cirq.LineQubit(0)
-    assert cirq.LineQubit(0) <= cirq.LineQubit(1)
-    assert cirq.LineQubit(0) >= cirq.LineQubit(0)
-    assert cirq.LineQubit(1) >= cirq.LineQubit(0)
-
-    assert cirq.LineQid(0, 2) == cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 2) != cirq.LineQid(1, 2)
-    assert cirq.LineQid(0, 2) < cirq.LineQid(1, 2)
-    assert cirq.LineQid(1, 2) > cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 2) <= cirq.LineQid(1, 2)
-    assert cirq.LineQid(0, 2) >= cirq.LineQid(0, 2)
-    assert cirq.LineQid(1, 2) >= cirq.LineQid(0, 2)
-
-    assert cirq.LineQid(0, 2) == cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 2) != cirq.LineQid(0, 3)
-    assert cirq.LineQid(0, 2) < cirq.LineQid(0, 3)
-    assert cirq.LineQid(0, 3) > cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 2) <= cirq.LineQid(0, 3)
-    assert cirq.LineQid(0, 2) >= cirq.LineQid(0, 2)
-    assert cirq.LineQid(0, 3) >= cirq.LineQid(0, 2)
-
-    assert cirq.LineQid(1, 3) < cirq.LineQid(2, 1)
-    assert cirq.LineQid(1, 2) < cirq.LineQubit(0)
+    order = cirq.testing.OrderTester()
+    order.add_ascending_equivalence_group(
+        cirq.LineQubit(0),
+        cirq.LineQid(0, 2),
+    )
+    order.add_ascending(
+        cirq.LineQid(0, 3),
+        cirq.LineQid(1, 1),
+        cirq.LineQubit(1),
+        cirq.LineQid(1, 3),
+        cirq.LineQid(2, 1),
+    )
 
 
 def test_cmp_failure():
