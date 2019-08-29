@@ -77,7 +77,7 @@ class Heatmap:
             _get_qubit_row_col(qubit): format(float(value), '.2g')
             for qubit, value in value_map.items()
         }
-        self.annot_kwargs = {}
+        self.annot_kwargs: Dict[str, Any] = {}
         self.unset_url_map()
         self.set_colorbar()
         self.set_colormap()
