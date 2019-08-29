@@ -13,11 +13,13 @@
 # limitations under the License.
 
 """A combination of several optimizations targeting XmonDevice."""
-from typing import Callable, cast, List, Optional
+from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
-import cirq
 from cirq import circuits, devices, ops, optimizers
 from cirq.google import convert_to_xmon_gates, xmon_device
+
+if TYPE_CHECKING:
+    import cirq
 
 
 _TOLERANCE = 1e-5

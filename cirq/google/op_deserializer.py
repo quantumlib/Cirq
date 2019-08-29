@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, NamedTuple, Optional, Sequence
+from typing import Any, Callable, Dict, NamedTuple, Optional, Sequence, \
+    TYPE_CHECKING
 
 import sympy
 from google.protobuf import json_format
 
-import cirq
 from cirq import devices
 from cirq.api.google import v2
 from cirq.google import arg_func_langs
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class DeserializingArg(

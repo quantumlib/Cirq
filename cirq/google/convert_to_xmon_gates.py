@@ -11,9 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from typing import List, TYPE_CHECKING
 
-import cirq
 from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
@@ -21,6 +20,9 @@ from cirq.circuits.optimization_pass import (
 )
 from cirq.google.api.v1 import programs
 from cirq import optimizers
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ConvertToXmonGates(PointOptimizer):

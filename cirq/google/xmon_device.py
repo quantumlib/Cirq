@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from datetime import timedelta
-from typing import cast, Iterable, List, Optional, Set, Union
+from typing import cast, Iterable, List, Optional, Set, Union, TYPE_CHECKING
 
-import cirq
 from cirq import circuits, devices, ops, protocols, value
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality

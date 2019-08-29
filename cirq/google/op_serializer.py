@@ -13,16 +13,18 @@
 # limitations under the License.
 
 from typing import (Callable, cast, Dict, List, NamedTuple, Optional, Type,
-                    TypeVar, Union)
+                    TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 import sympy
 from google.protobuf import json_format
 
-import cirq
 from cirq import devices, ops
 from cirq.api.google import v2
 from cirq.google import arg_func_langs
+
+if TYPE_CHECKING:
+    import cirq
 
 # Type for variables that are subclasses of ops.Gate.
 Gate = TypeVar('Gate', bound=ops.Gate)

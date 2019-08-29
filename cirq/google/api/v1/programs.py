@@ -17,12 +17,12 @@ from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
 import numpy as np
 import sympy
 
-import cirq
 from cirq import devices, ops, protocols, value
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.google import xmon_device
 
 

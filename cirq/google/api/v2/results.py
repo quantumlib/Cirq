@@ -1,16 +1,18 @@
 from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
-                    Union, cast)
+                    Union, cast, TYPE_CHECKING)
 
 from collections import OrderedDict
 import numpy as np
 
-import cirq
 from cirq.api.google.v2 import result_pb2
 from cirq import circuits
 from cirq import devices
 from cirq import ops
 from cirq import schedules
 from cirq import study
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class MeasureInfo(

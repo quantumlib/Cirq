@@ -15,10 +15,12 @@
 
 from collections import abc, defaultdict
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, TYPE_CHECKING
 
-import cirq
 from cirq import devices, vis
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Calibration(abc.Mapping):
