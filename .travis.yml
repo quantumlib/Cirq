@@ -2,6 +2,7 @@ sudo: false
 language: python
 env:
   global:
+    - TRAVIS_SECURE_ENV_VARS=true
     - secure: "BqqpRHZf2AeYw6mwS3DDJTZoj11lRIOQMBtQVV14blBY0vtS6K9tB/HXBEzQNvlZNJeIwoYVbqNEGqvpOlNwqaqhUW7EMyvm5xVSU+C8Sv687Rt/Sa0a4La6IFjKf3DYRTej13c4ejBpRRUsryHuvPvk2tdUXhUWVPX6meY2R5N+UpqhpKJWYIlx4TBDncZkt58GSsKeIih8NGba54+2HIgD4BaH8H0bMcfpwBkX+plDT/w4yN+wu+D6J9z/7ZcNDYtqyh2evS16QiPUug13YE0gI/ODuwbODm2lhGv/B0VsVpB19Le88JAorjU+2kJYJtFPSb3NkP/PMsHRO5bwffOoVyKpalzBuspN71H8Jf5qmahw6HLmQG3FDUJT1x6RbC55Kt6eug8IitdGqdo43eTiDNpbxK7tFuBnUnuuLjgv+pv339i/89hQatOJwi3xNNdn0t2hysET3BvrmQJWr5kmjj28umIcBV+AdmwHwSwViy16ljXKJTDIAqZaAW+E7yU1uvak2tRc4AnaI6uY4VWD+3wWZOr31RlqL/KDD0CASVjgvtHlLLSefRpPGAVnydEItFN0VcStvK/UutZ9W/cwVj0/EOAv3fVvUYeO4YOKs2m4qrK7GsXJcxpVx6qwV5eva/7+BDAX2VjYZdFZLjuk3fINzo9MxlIPSTtNZt0="
 cache:
   directories:
@@ -19,6 +20,7 @@ matrix:
     os: linux
     env:
     - NAME=mypy
+    - secure: "BqqpRHZf2AeYw6mwS3DDJTZoj11lRIOQMBtQVV14blBY0vtS6K9tB/HXBEzQNvlZNJeIwoYVbqNEGqvpOlNwqaqhUW7EMyvm5xVSU+C8Sv687Rt/Sa0a4La6IFjKf3DYRTej13c4ejBpRRUsryHuvPvk2tdUXhUWVPX6meY2R5N+UpqhpKJWYIlx4TBDncZkt58GSsKeIih8NGba54+2HIgD4BaH8H0bMcfpwBkX+plDT/w4yN+wu+D6J9z/7ZcNDYtqyh2evS16QiPUug13YE0gI/ODuwbODm2lhGv/B0VsVpB19Le88JAorjU+2kJYJtFPSb3NkP/PMsHRO5bwffOoVyKpalzBuspN71H8Jf5qmahw6HLmQG3FDUJT1x6RbC55Kt6eug8IitdGqdo43eTiDNpbxK7tFuBnUnuuLjgv+pv339i/89hQatOJwi3xNNdn0t2hysET3BvrmQJWr5kmjj28umIcBV+AdmwHwSwViy16ljXKJTDIAqZaAW+E7yU1uvak2tRc4AnaI6uY4VWD+3wWZOr31RlqL/KDD0CASVjgvtHlLLSefRpPGAVnydEItFN0VcStvK/UutZ9W/cwVj0/EOAv3fVvUYeO4YOKs2m4qrK7GsXJcxpVx6qwV5eva/7+BDAX2VjYZdFZLjuk3fINzo9MxlIPSTtNZt0="
     python: '3.6'
     install:
     - env |sed 's/./& /g'
