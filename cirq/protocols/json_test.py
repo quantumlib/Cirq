@@ -174,6 +174,9 @@ TEST_OBJECTS = {
     'ISwapPowGate': [cirq.ISwapPowGate(exponent=-8), cirq.ISWAP**0.123],
     'IdentityGate': [cirq.I, cirq.IdentityGate(num_qubits=5)],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
+    'LineQid': [cirq.LineQid(0, 1),
+                cirq.LineQid(123, 2),
+                cirq.LineQid(-4, 5)],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
         cirq.MeasurementGate(num_qubits=3,
@@ -219,6 +222,10 @@ TEST_OBJECTS = {
     cirq.TOFFOLI,
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
+    '_QubitAsQid': [
+        cirq.NamedQubit('a').with_dimension(5),
+        cirq.GridQubit(1, 2).with_dimension(1)
+    ],
     'XPowGate':
     cirq.X**0.123,
     'XX':

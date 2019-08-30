@@ -41,6 +41,10 @@ class GridQubit(ops.Qid):
     def _comparison_key(self):
         return self.row, self.col
 
+    @property
+    def dimension(self) -> int:
+        return 2
+
     def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and

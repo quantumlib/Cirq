@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
 
@@ -106,6 +106,11 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
     if result is not NotImplemented:
         return result
 
+    # Check if val is a list of qids
+    from cirq import ops  # Avoid circular dependency
+    if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
+        return tuple(q.dimension for q in val)
+
     # Fallback to _num_qubits_
     num_getter = getattr(val, '_num_qubits_', None)
     num_qubits = NotImplemented if num_getter is None else num_getter()
@@ -158,6 +163,11 @@ def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
     shape = NotImplemented if getter is None else getter()
     if shape is not NotImplemented:
         return len(shape)
+
+    # Check if val is a list of qids
+    from cirq import ops  # Avoid circular dependency
+    if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
+        return len(val)
 
     if default is not RaiseTypeErrorIfNotProvidedInt:
         return default

@@ -96,6 +96,7 @@ class ControlledGate(raw_types.Gate):
             else:
                 merged_controls.append(control)
 
+        super().validate_args(merged_controls + remaining_qubits)
         return cop.ControlledOperation(merged_controls,
                                        self.sub_gate.on(*remaining_qubits))
 
@@ -107,8 +108,7 @@ class ControlledGate(raw_types.Gate):
         )
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
-        qubits = cirq.LineQubit.range(self.num_controls() +
-                                      self.sub_gate.num_qubits())
+        qubits = cirq.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls():])
         c_op = cop.ControlledOperation(qubits[:self.num_controls()], op)
 
