@@ -399,7 +399,7 @@ from cirq.protocols import (
     SupportsTraceDistanceBound,
     SupportsUnitary,
     to_json,
-    to_json_dict,
+    obj_to_dict_helper,
     trace_distance_bound,
     unitary,
     validate_mixture,

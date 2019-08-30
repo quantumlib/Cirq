@@ -1633,7 +1633,7 @@ class Circuit:
         return self._moments
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['moments', 'device'])
+        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
 
 
 def _resolve_operations(
