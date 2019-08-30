@@ -222,9 +222,10 @@ TEST_OBJECTS = {
     cirq.TOFFOLI,
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
-    '_QubitAsQid':
-    [cirq.NamedQubit('a').with_dimension(5),
-     cirq.GridQubit(1, 2).with_dimension(1)],
+    '_QubitAsQid': [
+        cirq.NamedQubit('a').with_dimension(5),
+        cirq.GridQubit(1, 2).with_dimension(1)
+    ],
     'XPowGate':
     cirq.X**0.123,
     'XX':

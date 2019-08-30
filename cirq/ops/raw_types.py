@@ -138,7 +138,8 @@ class _QubitAsQid(Qid):
         return self.qubit.with_dimension(dimension)
 
     def _comparison_key(self) -> Any:
-        return self._qubit._cmp_tuple()[:-1]  # Don't include self._qubit.dimension
+        # Don't include self._qubit.dimension
+        return self._qubit._cmp_tuple()[:-1]
 
     def __repr__(self):
         return '{!r}.with_dimension({})'.format(self.qubit, self.dimension)
@@ -419,7 +420,8 @@ def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
         raise ValueError('Wrong number of qubits for <{!r}>. '
                          'Expected {} qubits but got <{!r}>.'.format(
                              val, len(qid_shape), qubits))
-    if any(qid.dimension != dimension for qid, dimension in zip(qubits, qid_shape)):
+    if any(qid.dimension != dimension
+           for qid, dimension in zip(qubits, qid_shape)):
         raise ValueError('Wrong shape of qids for <{!r}>. '
                          'Expected {} but got {} <{!r}>.'.format(
                              val, qid_shape,
