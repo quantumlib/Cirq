@@ -20,6 +20,7 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol
 
+from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -52,6 +53,7 @@ class _ResolverCache:
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'LineQubit': cirq.LineQubit,
+                'LineQid': cirq.LineQid,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 'NamedQubit': cirq.NamedQubit,
@@ -66,6 +68,7 @@ class _ResolverCache:
                 'sympy.Symbol': sympy.Symbol,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
                 'YPowGate': cirq.YPowGate,

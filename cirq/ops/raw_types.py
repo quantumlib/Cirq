@@ -17,6 +17,7 @@
 from typing import Any, Callable, Sequence, Tuple, TYPE_CHECKING, Union
 
 import abc
+import functools
 
 from cirq import value, protocols
 
@@ -47,8 +48,40 @@ class Qid(metaclass=abc.ABCMeta):
         comparison key.
         """
 
+    @property
+    @abc.abstractmethod
+    def dimension(self) -> int:
+        """Returns the dimension or the number of quantum levels this qid has.
+        E.g. 2 for a qubit, 3 for a qutrit, etc.
+        """
+
+    @staticmethod
+    def validate_dimension(dimension: int) -> None:
+        """Raises an exception if `dimension` is not positive.
+
+        Raises:
+            ValueError: `dimension` is not positive.
+        """
+        if dimension < 1:
+            raise ValueError(
+                'Wrong qid dimension. '
+                'Expected a positive integer but got {}.'.format(dimension))
+
+    def with_dimension(self, dimension: int) -> 'Qid':
+        """Returns a new qid with a different dimension.
+
+        Child classes can override.  Wraps the qubit object by default.
+
+        Args:
+            dimension: The new dimension or number of levels.
+        """
+        if dimension == self.dimension:
+            return self
+        return _QubitAsQid(self, dimension=dimension)
+
     def _cmp_tuple(self):
-        return type(self).__name__, repr(type(self)), self._comparison_key()
+        return (type(self).__name__, repr(type(self)), self._comparison_key(),
+                self.dimension)
 
     def __hash__(self):
         return hash((Qid, self._comparison_key()))
@@ -84,6 +117,40 @@ class Qid(metaclass=abc.ABCMeta):
         return self._cmp_tuple() >= other._cmp_tuple()
 
 
+@functools.total_ordering
+class _QubitAsQid(Qid):
+
+    def __init__(self, qubit: Qid, dimension: int):
+        self._qubit = qubit
+        self._dimension = dimension
+        self.validate_dimension(dimension)
+
+    @property
+    def qubit(self) -> Qid:
+        return self._qubit
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
+
+    def with_dimension(self, dimension: int) -> Qid:
+        """Returns a copy with a different dimension or number of levels."""
+        return self.qubit.with_dimension(dimension)
+
+    def _comparison_key(self) -> Any:
+        # Don't include self._qubit.dimension
+        return self._qubit._cmp_tuple()[:-1]
+
+    def __repr__(self):
+        return '{!r}.with_dimension({})'.format(self.qubit, self.dimension)
+
+    def __str__(self):
+        return '{!s} (d={})'.format(self.qubit, self.dimension)
+
+    def _json_dict_(self):
+        return protocols.to_json_dict(self, ['qubit', 'dimension'])
+
+
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     """An operation type that can be applied to a collection of qubits.
 
@@ -104,24 +171,21 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def validate_args(self, qubits: Sequence[Qid]) -> None:
         """Checks if this gate can be applied to the given qubits.
 
-        By default checks if input is of type Qid and qubit count.
-        Child classes can override.
+        By default checks that:
+        - inputs are of type `Qid`
+        - len(qubits) == num_qubits()
+        - qubit_i.dimension == qid_shape[i] for all qubits
+
+        Child classes can override.  The child implementation should call
+        `super().validate_args(qubits)` then do custom checks.
 
         Args:
-            qubits: The collection of qubits to potentially apply the gate to.
+            qubits: The sequence of qubits to potentially apply the gate to.
 
         Throws:
             ValueError: The gate can't be applied to the qubits.
         """
-        if len(qubits) != protocols.num_qubits(self):
-            raise ValueError('Wrong number of qubits for <{!r}>. '
-                             'Expected {} qubits but got <{!r}>.'.format(
-                                 self, protocols.num_qubits(self), qubits))
-
-        if any([not isinstance(qubit, Qid)
-                for qubit in qubits]):
-            raise ValueError(
-                    'Gate was called with type different than Qid.')
+        _validate_qid_shape(self, qubits)
 
     def on(self, *qubits: Qid) -> 'Operation':
         """Returns an application of this gate to the given qubits.
@@ -182,9 +246,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             from cirq.devices import line_qubit
 
             decomposed = protocols.decompose_once_with_qubits(
-                self,
-                qubits=line_qubit.LineQubit.range(protocols.num_qubits(self)),
-                default=None)
+                self, qubits=line_qubit.LineQid.for_gate(self), default=None)
             if decomposed is None:
                 return NotImplemented
 
@@ -304,6 +366,20 @@ class Operation(metaclass=abc.ABCMeta):
             return self
         return ControlledOperation(control_qubits, self)
 
+    def validate_args(self, qubits: Sequence[Qid]):
+        """Raises an exception if the `qubits` don't match this operation's qid
+        shape.
+
+        Call this method from a subclass's `with_qubits` method.
+
+        Args:
+            qubits: The new qids for the operation.
+
+        Raises:
+            ValueError: The operation had qids that don't match it's qid shape.
+        """
+        _validate_qid_shape(self, qubits)
+
 
 @value.value_equality
 class _InverseCompositeGate(Gate):
@@ -331,3 +407,26 @@ class _InverseCompositeGate(Gate):
 
     def __repr__(self):
         return '({!r}**-1)'.format(self._original)
+
+
+def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
+    """Helper function to validate qubits for gates and operations.
+
+    Raises:
+        ValueError: The operation had qids that don't match it's qid shape.
+    """
+    qid_shape = protocols.qid_shape(val)
+    if len(qubits) != len(qid_shape):
+        raise ValueError('Wrong number of qubits for <{!r}>. '
+                         'Expected {} qubits but got <{!r}>.'.format(
+                             val, len(qid_shape), qubits))
+    if any(qid.dimension != dimension
+           for qid, dimension in zip(qubits, qid_shape)):
+        raise ValueError('Wrong shape of qids for <{!r}>. '
+                         'Expected {} but got {} <{!r}>.'.format(
+                             val, qid_shape,
+                             tuple(qid.dimension for qid in qubits), qubits))
+    if len(set(qubits)) != len(qubits):
+        raise ValueError('Duplicate qids for <{!r}>. '
+                         'Expected unique qids but got <{!r}>.'.format(
+                             val, qubits))

@@ -104,7 +104,7 @@ def test_gate_operation_qid_shape():
         def _qid_shape_(self):
             return (1, 2, 3, 4)
 
-    op = ShapeGate().on(*cirq.LineQubit.range(4))
+    op = ShapeGate().on(*cirq.LineQid.for_qid_shape((1, 2, 3, 4)))
     assert cirq.qid_shape(op) == (1, 2, 3, 4)
     assert cirq.num_qubits(op) == 4
 
