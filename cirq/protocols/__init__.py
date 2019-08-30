@@ -56,7 +56,6 @@ from cirq.protocols.inverse import (
 )
 from cirq.protocols.json import (
     to_json,
-    to_json_dict,
     read_json,
     obj_to_dict_helper,
 )

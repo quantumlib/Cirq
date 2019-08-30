@@ -152,7 +152,7 @@ class LineQid(_BaseLineQid):
         return '{!s} (d={})'.format(self.x, self.dimension)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['x', 'dimension'])
+        return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
 
 
 class LineQubit(_BaseLineQid):
