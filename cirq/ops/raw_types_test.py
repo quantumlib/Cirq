@@ -23,7 +23,7 @@ class ValidQubit(cirq.Qid):
         self._name = name
 
     @property
-    def levels(self):
+    def dimension(self):
         return 2
 
     def _comparison_key(self):
@@ -38,60 +38,60 @@ class ValidQubit(cirq.Qid):
 
 class ValidQid(cirq.Qid):
 
-    def __init__(self, name, levels):
+    def __init__(self, name, dimension):
         self._name = name
-        self._levels = levels
-        self.validate_levels(levels)
+        self._dimension = dimension
+        self.validate_dimension(dimension)
 
     @property
-    def levels(self):
-        return self._levels
+    def dimension(self):
+        return self._dimension
 
-    def with_levels(self, levels):
-        return ValidQid(self._name, levels)
+    def with_dimension(self, dimension):
+        return ValidQid(self._name, dimension)
 
     def _comparison_key(self):
         return self._name
 
 
 def test_wrapped_qid():
-    assert type(ValidQubit('a').with_levels(3)) is not ValidQubit
-    assert type(ValidQubit('a').with_levels(2)) is ValidQubit
-    assert type(ValidQubit('a').with_levels(5).with_levels(2)) is ValidQubit
-    assert ValidQubit('a').with_levels(3).with_levels(4) == ValidQubit(
-        'a').with_levels(4)
-    assert ValidQubit('a').with_levels(3).qubit == ValidQubit('a')
-    assert ValidQubit('a').with_levels(3) == ValidQubit('a').with_levels(3)
-    assert ValidQubit('a').with_levels(3) < ValidQubit('a').with_levels(4)
-    assert ValidQubit('a').with_levels(3) < ValidQubit('b').with_levels(3)
-    assert ValidQubit('a').with_levels(4) < ValidQubit('b').with_levels(3)
+    assert type(ValidQubit('a').with_dimension(3)) is not ValidQubit
+    assert type(ValidQubit('a').with_dimension(2)) is ValidQubit
+    assert type(ValidQubit('a').with_dimension(5).with_dimension(2)) is ValidQubit
+    assert ValidQubit('a').with_dimension(3).with_dimension(4) == ValidQubit(
+        'a').with_dimension(4)
+    assert ValidQubit('a').with_dimension(3).qubit == ValidQubit('a')
+    assert ValidQubit('a').with_dimension(3) == ValidQubit('a').with_dimension(3)
+    assert ValidQubit('a').with_dimension(3) < ValidQubit('a').with_dimension(4)
+    assert ValidQubit('a').with_dimension(3) < ValidQubit('b').with_dimension(3)
+    assert ValidQubit('a').with_dimension(4) < ValidQubit('b').with_dimension(3)
 
-    cirq.testing.assert_equivalent_repr(ValidQubit('a').with_levels(3),
+    cirq.testing.assert_equivalent_repr(ValidQubit('a').with_dimension(3),
                                         global_vals={'ValidQubit': ValidQubit})
-    assert str(ValidQubit('a').with_levels(3)) == 'TQ_a (d=3)'
+    assert str(ValidQubit('a').with_dimension(3)) == 'TQ_a (d=3)'
 
-    assert ValidQubit('zz').with_levels(3)._json_dict_() == {
+    assert ValidQubit('zz').with_dimension(3)._json_dict_() == {
         'cirq_type': '_QubitAsQid',
         'qubit': ValidQubit('zz'),
-        'levels': 3,
+        'dimension': 3,
     }
 
 
-def test_qid_levels():
-    assert ValidQubit('a').levels == 2
-    assert ValidQubit('a').with_levels(3).levels == 3
-    with pytest.raises(ValueError, match='Wrong number'):
-        _ = ValidQubit('a').with_levels(0)
-    with pytest.raises(ValueError, match='Wrong number'):
-        _ = ValidQubit('a').with_levels(-3)
+def test_qid_dimension():
+    assert ValidQubit('a').dimension == 2
+    assert ValidQubit('a').with_dimension(3).dimension == 3
+    with pytest.raises(ValueError, match='Wrong qid dimension'):
+        _ = ValidQubit('a').with_dimension(0)
+    with pytest.raises(ValueError, match='Wrong qid dimension'):
+        _ = ValidQubit('a').with_dimension(-3)
 
-    assert ValidQid('a', 3).levels == 3
-    assert ValidQid('a', 3).with_levels(2).levels == 2
-    assert ValidQid('a', 3).with_levels(4) == ValidQid('a', 4)
-    with pytest.raises(ValueError, match='Wrong number'):
-        _ = ValidQid('a', 3).with_levels(0)
-    with pytest.raises(ValueError, match='Wrong number'):
-        _ = ValidQid('a', 3).with_levels(-3)
+    assert ValidQid('a', 3).dimension == 3
+    assert ValidQid('a', 3).with_dimension(2).dimension == 2
+    assert ValidQid('a', 3).with_dimension(4) == ValidQid('a', 4)
+    with pytest.raises(ValueError, match='Wrong qid dimension'):
+        _ = ValidQid('a', 3).with_dimension(0)
+    with pytest.raises(ValueError, match='Wrong qid dimension'):
+        _ = ValidQid('a', 3).with_dimension(-3)
 
 
 class ValiGate(cirq.Gate):
@@ -120,7 +120,7 @@ def test_gate():
     with pytest.raises(ValueError, match='Wrong number'):
         _ = g(c, b, a)
     with pytest.raises(ValueError, match='Wrong shape'):
-        _ = g(a, b.with_levels(3))
+        _ = g(a, b.with_dimension(3))
 
 
 def test_op():
@@ -135,9 +135,9 @@ def test_op():
 
 def test_op_validate():
     op = cirq.X(cirq.LineQid(0, 2))
-    op2 = cirq.CNOT(*cirq.LineQid.range(2, levels=2))
+    op2 = cirq.CNOT(*cirq.LineQid.range(2, dimension=2))
     op.validate_args([cirq.LineQid(1, 2)])  # Valid
-    op2.validate_args(cirq.LineQid.range(1, 3, levels=2))  # Valid
+    op2.validate_args(cirq.LineQid.range(1, 3, dimension=2))  # Valid
     with pytest.raises(ValueError, match='Wrong shape'):
         op.validate_args([cirq.LineQid(1, 9)])
     with pytest.raises(ValueError, match='Wrong number'):

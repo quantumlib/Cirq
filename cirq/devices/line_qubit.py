@@ -33,8 +33,8 @@ class _BaseLineQid(ops.Qid):
     def _comparison_key(self):
         return self.x
 
-    def with_levels(self, levels: int) -> 'LineQid':
-        return LineQid(self.x, levels)
+    def with_dimension(self, dimension: int) -> 'LineQid':
+        return LineQid(self.x, dimension)
 
     def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent line qubits."""
@@ -75,58 +75,60 @@ class LineQid(_BaseLineQid):
 
     One can construct new `LineQid`s by adding or subtracting integers:
 
-        >>> cirq.LineQid(1, levels=2) + 3
-        cirq.LineQid(4, levels=2)
+        >>> cirq.LineQid(1, dimension=2) + 3
+        cirq.LineQid(4, dimension=2)
 
-        >>> cirq.LineQid(2, levels=3) - 1
-        cirq.LineQid(1, levels=3)
+        >>> cirq.LineQid(2, dimension=3) - 1
+        cirq.LineQid(1, dimension=3)
     """
 
-    def __init__(self, x: int, levels: int) -> None:
+    def __init__(self, x: int, dimension: int) -> None:
         """Initializes a line qid at the given x coordinate.
 
         Args:
             x: The x coordinate.
-            levels: The number of quantum levels.
+            dimension: The dimension of the qid, e.g. the number of quantum
+                levels.
         """
         super().__init__(x)
-        self._levels = levels
-        self.validate_levels(levels)
+        self._dimension = dimension
+        self.validate_dimension(dimension)
 
     @property
-    def levels(self):
-        return self._levels
+    def dimension(self):
+        return self._dimension
 
     def _with_x(self, x: int) -> 'LineQid':
-        return LineQid(x, levels=self.levels)
+        return LineQid(x, dimension=self.dimension)
 
     @staticmethod
-    def range(*range_args, levels: int) -> List['LineQid']:
+    def range(*range_args, dimension: int) -> List['LineQid']:
         """Returns a range of line qids.
 
         Args:
             *range_args: Same arguments as python's built-in range method.
-            levels: The number of quantum levels.
+            dimension: The dimension of the qid, e.g. the number of quantum
+                levels.
 
         Returns:
             A list of line qids.
         """
-        return [LineQid(i, levels=levels) for i in range(*range_args)]
+        return [LineQid(i, dimension=dimension) for i in range(*range_args)]
 
     @staticmethod
     def for_qid_shape(qid_shape: Sequence[int], start: int = 0,
                       step: int = 1) -> List['LineQid']:
         """Returns a range of line qids for each entry in `qid_shape` with
-        matching levels.
+        matching dimension.
 
         Args:
-            qid_shape: A sequence of levels for for each `LineQid` to create.
+            qid_shape: A sequence of dimensions for each `LineQid` to create.
             start: The x coordinate of the first `LineQid`.
             step: The amount to increment each x coordinate.
         """
         return [
-            LineQid(start + step * i, levels=levels)
-            for i, levels in enumerate(qid_shape)
+            LineQid(start + step * i, dimension=dimension)
+            for i, dimension in enumerate(qid_shape)
         ]
 
     @staticmethod
@@ -144,13 +146,13 @@ class LineQid(_BaseLineQid):
         return LineQid.for_qid_shape(qid_shape(val), start=start, step=step)
 
     def __repr__(self):
-        return 'cirq.LineQid({}, levels={})'.format(self.x, self.levels)
+        return 'cirq.LineQid({}, dimension={})'.format(self.x, self.dimension)
 
     def __str__(self):
-        return '{!s} (d={})'.format(self.x, self.levels)
+        return '{!s} (d={})'.format(self.x, self.dimension)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['x', 'levels'])
+        return protocols.to_json_dict(self, ['x', 'dimension'])
 
 
 class LineQubit(_BaseLineQid):
@@ -170,7 +172,7 @@ class LineQubit(_BaseLineQid):
     """
 
     @property
-    def levels(self) -> int:
+    def dimension(self) -> int:
         return 2
 
     def _with_x(self, x: int) -> 'LineQubit':
@@ -180,7 +182,7 @@ class LineQubit(_BaseLineQid):
         cls = LineQid if type(self) is LineQubit else type(self)
         # Must be the same as Qid._cmp_tuple but with cls in place of
         # type(self).
-        return (cls.__name__, repr(cls), self._comparison_key(), self.levels)
+        return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
     @staticmethod
     def range(*range_args) -> List['LineQubit']:

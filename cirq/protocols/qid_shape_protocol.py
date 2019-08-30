@@ -109,7 +109,7 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
     # Check if val is a list of qids
     from cirq import ops  # Avoid circular dependency
     if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
-        return tuple(q.levels for q in val)
+        return tuple(q.dimension for q in val)
 
     # Fallback to _num_qubits_
     num_getter = getattr(val, '_num_qubits_', None)

@@ -32,7 +32,7 @@ class NamedQubit(raw_types.Qid):
         return self._comp_key
 
     @property
-    def levels(self) -> int:
+    def dimension(self) -> int:
         return 2
 
     def __str__(self):

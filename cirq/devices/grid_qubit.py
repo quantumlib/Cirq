@@ -42,7 +42,7 @@ class GridQubit(ops.Qid):
         return self.row, self.col
 
     @property
-    def levels(self) -> int:
+    def dimension(self) -> int:
         return 2
 
     def is_adjacent(self, other: ops.Qid) -> bool:

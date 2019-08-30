@@ -455,12 +455,12 @@ def apply_unitaries(unitary_values: Iterable[Any],
         args = ApplyUnitaryArgs.default(qid_shape=qid_shape)
     if len(qubits) != len(args.axes):
         raise ValueError('len(qubits) != len(args.axes)')
-    qubit_map = {q.with_levels(1): args.axes[i] for i, q in enumerate(qubits)}
+    qubit_map = {q.with_dimension(1): args.axes[i] for i, q in enumerate(qubits)}
     state = args.target_tensor
     buffer = args.available_buffer
 
     for op in unitary_values:
-        indices = [qubit_map[q.with_levels(1)] for q in op.qubits]
+        indices = [qubit_map[q.with_dimension(1)] for q in op.qubits]
         result = apply_unitary(unitary_value=op,
                                args=ApplyUnitaryArgs(state, buffer, indices),
                                default=None)
