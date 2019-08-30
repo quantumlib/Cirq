@@ -37,17 +37,18 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         # Vacuous consistency.
         return
 
-    controls = getattr(val, 'control_qubits', None)
-    if controls is None:
-        qubit_count = len(unitary).bit_length() - 1
-    else:
-        qubit_count = len(unitary).bit_length() - 1 - (len(controls) -
-                                                       controls.count(None))
     if isinstance(val, ops.Operation):
         qubits = val.qubits
         op = val
     elif isinstance(val, ops.Gate):
-        qubits = tuple(devices.LineQubit.range(qubit_count))
+        qid_shape = protocols.qid_shape(val)
+        remaining_shape = list(qid_shape)
+        controls = getattr(val, 'control_qubits', None)
+        if controls is not None:
+            for i, q in zip(reversed(range(len(controls))), reversed(controls)):
+                if q is not None:
+                    remaining_shape.pop(i)
+        qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))

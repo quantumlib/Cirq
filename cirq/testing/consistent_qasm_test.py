@@ -40,6 +40,25 @@ class Fixed(cirq.Operation):
         return args.format(self.qasm, *self.qubits)
 
 
+class QuditOp(cirq.Operation):
+
+    def _qid_shape_(self):
+        return (3, 3)
+
+    @property
+    def qubits(self):
+        return cirq.LineQid.for_qid_shape((3, 3))
+
+    def with_qubits(self, *new_qubits):
+        raise NotImplementedError
+
+    def _unitary_(self):
+        return np.eye(9)
+
+    def _qasm_(self, args: cirq.QasmArgs):
+        return NotImplemented
+
+
 def test_assert_qasm_is_consistent_with_unitary():
     try:
         import qiskit as _
@@ -70,3 +89,6 @@ def test_assert_qasm_is_consistent_with_unitary():
     with pytest.raises(AssertionError, match='Illegal character'):
         cirq.testing.assert_qasm_is_consistent_with_unitary(
             Fixed(np.array([[1, 0], [0, -1]]), 'JUNK'))
+
+    # Checks that the test handles qudits
+    cirq.testing.assert_qasm_is_consistent_with_unitary(QuditOp())
