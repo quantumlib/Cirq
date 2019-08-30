@@ -75,6 +75,8 @@ class Qid(metaclass=abc.ABCMeta):
         Args:
             levels: The new number of levels.
         """
+        if levels == self.levels:
+            return self
         return _QubitAsQid(self, levels=levels)
 
     def _cmp_tuple(self):
@@ -133,7 +135,7 @@ class _QubitAsQid(Qid):
 
     def with_levels(self, levels: int) -> Qid:
         """Returns a copy with a different number of levels."""
-        return _QubitAsQid(self.qubit, levels)
+        return self.qubit.with_levels(levels)
 
     def _comparison_key(self) -> Any:
         return self._qubit._cmp_tuple()[:-1]  # Don't include self._qubit.levels
