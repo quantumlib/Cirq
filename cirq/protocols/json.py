@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import warnings
 from typing import Union, Any, Dict, Optional, List, Callable, Type, cast, \
     TYPE_CHECKING, Iterable
 
@@ -130,7 +129,8 @@ class SupportsJSON(Protocol):
         pass
 
 
-def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str],
+def obj_to_dict_helper(obj: Any,
+                       attribute_names: Iterable[str],
                        namespace: Optional[str] = None) -> Dict[str, Any]:
     """Construct a dictionary containing attributes from obj
 
