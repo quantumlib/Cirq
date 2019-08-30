@@ -14,7 +14,7 @@
 
 import json
 from typing import Union, Any, Dict, Optional, List, Callable, Type, cast, \
-    TYPE_CHECKING
+    TYPE_CHECKING, Iterable
 
 import numpy as np
 import sympy
@@ -129,7 +129,26 @@ class SupportsJSON(Protocol):
         pass
 
 
-def to_json_dict(obj, attribute_names, namespace=None):
+def obj_to_dict_helper(obj: Any,
+                       attribute_names: Iterable[str],
+                       namespace: Optional[str] = None) -> Dict[str, Any]:
+    """Construct a dictionary containing attributes from obj
+
+    This is useful as a helper function in objects implementing the
+    SupportsJSON protocol, particularly in the _json_dict_ method.
+
+    In addition to keys and values specified by `attribute_names`, the
+    returned dictionary has an additional key "cirq_type" whose value
+    is the string name of the type of `obj`.
+
+    Args:
+        obj: A python object with attributes to be placed in the dictionary.
+        attribute_names: The names of attributes to serve as keys in the
+            resultant dictionary. The values will be the attribute values.
+        namespace: An optional prefix to the value associated with the
+            key "cirq_type". The namespace name will be joined with the
+            class name via a dot (.)
+    """
     if namespace is not None:
         prefix = '{}.'.format(namespace)
     else:
@@ -173,7 +192,7 @@ class CirqEncoder(json.JSONEncoder):
         # TODO: More support for sympy
         #       https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
-            return to_json_dict(o, ['name'], namespace='sympy')
+            return obj_to_dict_helper(o, ['name'], namespace='sympy')
         return super().default(o)  # coverage: ignore
 
 

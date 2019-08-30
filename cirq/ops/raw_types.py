@@ -148,7 +148,7 @@ class _QubitAsQid(Qid):
         return '{!s} (d={})'.format(self.qubit, self.dimension)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['qubit', 'dimension'])
+        return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
 
 
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
@@ -315,7 +315,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, attribute_names=[])
+        return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
 class Operation(metaclass=abc.ABCMeta):
