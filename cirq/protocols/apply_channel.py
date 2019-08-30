@@ -221,12 +221,12 @@ def apply_channel(val: Any,
         raise ValueError('Invalid target_tensor shape or selected axes. '
                          'The selected left and right shape of target_tensor '
                          'are not equal. Got {!r} and {!r}.'.format(
-                            left_shape, right_shape))
+                             left_shape, right_shape))
     if val_qid_shape != left_shape:
         raise ValueError('Invalid channel qid shape is not equal to the '
                          'selected left and right shape of target_tensor. '
                          'Got {!r} but expected {!r}.'.format(
-                            val_qid_shape, left_shape))
+                             val_qid_shape, left_shape))
 
     # Check if the specialized method is present.
     func = getattr(val, '_apply_channel_', None)
@@ -234,11 +234,11 @@ def apply_channel(val: Any,
         result = func(args)
         if result is not NotImplemented and result is not None:
             def err_str(buf_num_str):
-                return (
-                    "Object of type '{}' returned a result object equal to "
-                    "auxiliary_buffer{}. This type violates the contract "
-                    "that appears in apply_channel's documentation.".format(
-                        type(val), buf_num_str))
+                return ("Object of type '{}' returned a result object equal to "
+                        "auxiliary_buffer{}. This type violates the contract "
+                        "that appears in apply_channel's documentation.".format(
+                            type(val), buf_num_str))
+
             assert result is not args.auxiliary_buffer0, err_str('0')
             assert result is not args.auxiliary_buffer1, err_str('1')
             return result
@@ -329,9 +329,8 @@ def _apply_krauss_multi_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     for krauss_op in krauss:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-        krauss_tensor = np.reshape(
-                krauss_op.astype(args.target_tensor.dtype),
-                qid_shape * 2)
+        krauss_tensor = np.reshape(krauss_op.astype(args.target_tensor.dtype),
+                                   qid_shape * 2)
         linalg.targeted_left_multiply(
                 krauss_tensor,
                 args.target_tensor,

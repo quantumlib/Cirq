@@ -29,7 +29,8 @@ def assert_phase_by_is_consistent_with_unitary(val: Any):
         # If there's no unitary, it's vacuously consistent.
         return
     qid_shape = protocols.qid_shape(val,
-        default=(2,) * (len(original).bit_length() - 1))
+                                    default=(2,) *
+                                    (len(original).bit_length() - 1))
     original = original.reshape(qid_shape * 2)
 
     for t in [0.125, -0.25, 1, sympy.Symbol('a'), sympy.Symbol('a') + 1]:

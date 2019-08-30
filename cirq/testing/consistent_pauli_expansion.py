@@ -37,7 +37,7 @@ def assert_pauli_expansion_is_consistent_with_unitary(val: Any) -> None:
         return
 
     num_qubits = protocols.num_qubits(val,
-        default=unitary.shape[0].bit_length() - 1)
+                                      default=unitary.shape[0].bit_length() - 1)
     basis = operator_spaces.kron_bases(operator_spaces.PAULI_BASIS,
                                        repeat=num_qubits)
 

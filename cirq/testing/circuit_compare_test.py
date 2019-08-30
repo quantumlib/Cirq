@@ -365,6 +365,7 @@ def test_assert_has_consistent_apply_unitary():
         SameEffect())
 
     class SameQuditEffect:
+
         def _qid_shape_(self):
             return (3,)
 
@@ -377,8 +378,7 @@ def test_assert_has_consistent_apply_unitary():
         def _unitary_(self):
             return np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        SameQuditEffect())
+    cirq.testing.assert_has_consistent_apply_unitary(SameQuditEffect())
 
     class BadExponent:
         def __init__(self, power):

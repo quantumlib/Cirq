@@ -471,7 +471,7 @@ class MeasurementGate(raw_types.Gate):
             len(self.invert_mask) > self.num_qubits()):
             raise ValueError('len(invert_mask) > num_qubits')
 
-    def _qid_shape_(self) -> int:
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
@@ -554,10 +554,7 @@ class MeasurementGate(raw_types.Gate):
         if not all(d == 2 for d in self._qid_shape):
             other = ', {!r}'.format(self._qid_shape)
         return 'cirq.MeasurementGate({!r}, {!r}, {!r}{})'.format(
-            self.num_qubits(),
-            self.key,
-            self.invert_mask,
-            other)
+            self.num_qubits(), self.key, self.invert_mask, other)
 
     def _value_equality_values_(self):
         return self.key, self.invert_mask, self._qid_shape
@@ -575,7 +572,11 @@ class MeasurementGate(raw_types.Gate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, num_qubits, key, invert_mask, qid_shape=None,
+    def _from_json_dict_(cls,
+                         num_qubits,
+                         key,
+                         invert_mask,
+                         qid_shape=None,
                          **kwargs):
         return cls(num_qubits=num_qubits,
                    key=key,
@@ -639,8 +640,10 @@ def measure_each(*qubits: raw_types.Qid,
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q)
-            for q in qubits]
+    return [
+        MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q)
+        for q in qubits
+    ]
 
 
 @value.value_equality
@@ -669,7 +672,7 @@ class IdentityGate(raw_types.Gate):
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
 
-    def _qid_shape_(self) -> int:
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]

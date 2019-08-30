@@ -61,8 +61,8 @@ def test_consistent_protocols(gate_type, num_qubits):
         gate, qubit_count=num_qubits)
 
     gate = gate_type(num_qubits=num_qubits, qid_shape=(3,) * num_qubits)
-    cirq.testing.assert_implements_consistent_protocols(
-        gate, qubit_count=num_qubits)
+    cirq.testing.assert_implements_consistent_protocols(gate,
+                                                        qubit_count=num_qubits)
 
 
 def test_cz_init():
@@ -256,7 +256,7 @@ def test_identity_unitary(num_qubits):
     i = cirq.IdentityGate(num_qubits)
     assert np.allclose(cirq.unitary(i), np.identity(2 ** num_qubits))
     i3 = cirq.IdentityGate(num_qubits, (3,) * num_qubits)
-    assert np.allclose(cirq.unitary(i3), np.identity(3 ** num_qubits))
+    assert np.allclose(cirq.unitary(i3), np.identity(3**num_qubits))
 
 
 def test_identity_str():
@@ -290,10 +290,10 @@ def test_identity_eq():
     equals_tester.make_equality_group(
         lambda: cirq.I,
         lambda: cirq.IdentityGate(1),
-        lambda: cirq.IdentityGate(1, (2,)))
-    equals_tester.add_equality_group(
-        cirq.IdentityGate(2),
-        cirq.IdentityGate(2, (2, 2)))
+        lambda: cirq.IdentityGate(1, (2,)),
+    )
+    equals_tester.add_equality_group(cirq.IdentityGate(2),
+                                     cirq.IdentityGate(2, (2, 2)))
     equals_tester.add_equality_group(cirq.IdentityGate(4))
     equals_tester.add_equality_group(cirq.IdentityGate(1, (3,)))
     equals_tester.add_equality_group(cirq.IdentityGate(4, (1, 2, 3, 4)))
@@ -344,11 +344,11 @@ def test_runtime_types_of_rot_gates():
 def test_measure_init(num_qubits):
     assert cirq.MeasurementGate(num_qubits).num_qubits() == num_qubits
     assert cirq.MeasurementGate(num_qubits, key='a').key == 'a'
-    assert cirq.MeasurementGate(num_qubits, invert_mask=(True,)
-        ).invert_mask == (True,)
+    assert cirq.MeasurementGate(num_qubits,
+                                invert_mask=(True,)).invert_mask == (True,)
     assert cirq.qid_shape(cirq.MeasurementGate(num_qubits)) == (2,) * num_qubits
-    assert cirq.qid_shape(cirq.MeasurementGate(3, qid_shape=(1, 2, 3))
-        ) == (1, 2, 3)
+    assert cirq.qid_shape(cirq.MeasurementGate(3, qid_shape=(1, 2,
+                                                             3))) == (1, 2, 3)
     with pytest.raises(ValueError, match='len.* >'):
         cirq.MeasurementGate(5, invert_mask=(True,) * 6)
     with pytest.raises(ValueError, match='len.* !='):
@@ -357,21 +357,18 @@ def test_measure_init(num_qubits):
 
 def test_measurement_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(
-        lambda: cirq.MeasurementGate(1, ''),
-        lambda: cirq.MeasurementGate(1, '', invert_mask=()),
-        lambda: cirq.MeasurementGate(1, '', qid_shape=(2,)))
+    eq.make_equality_group(lambda: cirq.MeasurementGate(
+        1, ''), lambda: cirq.MeasurementGate(1, '', invert_mask=()), lambda:
+                           cirq.MeasurementGate(1, '', qid_shape=(2,)))
     eq.add_equality_group(cirq.MeasurementGate(1, 'a'))
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(True,)))
     eq.add_equality_group(cirq.MeasurementGate(1, 'a', invert_mask=(False,)))
     eq.add_equality_group(cirq.MeasurementGate(1, 'b'))
     eq.add_equality_group(cirq.MeasurementGate(2, 'a'))
     eq.add_equality_group(cirq.MeasurementGate(2, ''))
-    eq.add_equality_group(
-        cirq.MeasurementGate(3, 'a'),
-        cirq.MeasurementGate(3, 'a', qid_shape=(2,2,2)))
-    eq.add_equality_group(
-        cirq.MeasurementGate(3, 'a', qid_shape=(1,2,3)))
+    eq.add_equality_group(cirq.MeasurementGate(3, 'a'),
+                          cirq.MeasurementGate(3, 'a', qid_shape=(2, 2, 2)))
+    eq.add_equality_group(cirq.MeasurementGate(3, 'a', qid_shape=(1, 2, 3)))
 
 
 def test_measurement_full_invert_mask():
@@ -642,9 +639,10 @@ def test_measure():
                                                             key='b').on(a)
     assert cirq.measure(a, invert_mask=(True,)) == cirq.MeasurementGate(
         num_qubits=1, key='a', invert_mask=(True,)).on(a)
-    assert cirq.measure(*cirq.LineQid.for_qid_shape((1, 2, 3)), key='a'
-        ) == cirq.MeasurementGate(num_qubits=3, key='a', qid_shape=(1, 2, 3)
-        ).on(*cirq.LineQid.for_qid_shape((1, 2, 3)))
+    assert cirq.measure(*cirq.LineQid.for_qid_shape(
+        (1, 2, 3)), key='a') == cirq.MeasurementGate(
+            num_qubits=3, key='a',
+            qid_shape=(1, 2, 3)).on(*cirq.LineQid.for_qid_shape((1, 2, 3)))
 
     with pytest.raises(ValueError, match='ndarray'):
         _ = cirq.measure(np.ndarray([1, 0]))
@@ -741,7 +739,9 @@ def test_measure_each():
     assert cirq.measure_each(a) == [cirq.measure(a)]
     assert cirq.measure_each(a, b) == [cirq.measure(a), cirq.measure(b)]
     assert cirq.measure_each(a.with_dimension(3), b.with_dimension(3)) == [
-        cirq.measure(a.with_dimension(3)), cirq.measure(b.with_dimension(3))]
+        cirq.measure(a.with_dimension(3)),
+        cirq.measure(b.with_dimension(3))
+    ]
 
     assert cirq.measure_each(a, b, key_func=lambda e: e.name + '!') == [
         cirq.measure(a, key='a!'),

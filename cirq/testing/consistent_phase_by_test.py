@@ -37,6 +37,7 @@ class GoodPhaser:
 
 
 class GoodQuditPhaser:
+
     def __init__(self, e):
         self.e = e
 
@@ -51,7 +52,7 @@ class GoodQuditPhaser:
         ])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
-        return GoodQuditPhaser(self.e + phase_turns*4)
+        return GoodQuditPhaser(self.e + phase_turns * 4)
 
     def _resolve_parameters_(self, param_resolver):
         return GoodQuditPhaser(param_resolver.value_of(self.e))

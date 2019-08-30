@@ -63,8 +63,9 @@ def pauli_expansion(
     # Don't attempt to derive the pauli expansion if this is a qudit gate
     if not all(d == 2 for d in qid_shape_protocol.qid_shape(val, default=())):
         if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError('No Pauli expansion for object {} of type {}'
-                    .format(val, type(val)))
+            raise TypeError(
+                'No Pauli expansion for object {} of type {}'.format(
+                    val, type(val)))
         return default
 
     matrix = unitary(val, default=None)
