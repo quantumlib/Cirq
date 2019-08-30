@@ -160,12 +160,6 @@ def obj_to_dict_helper(obj: Any, attribute_names: Iterable[str],
     return d
 
 
-def to_json_dict(obj, attribute_names, namespace=None):
-    warnings.warn("Please use obj_to_dict_helper. This function will be "
-                  "removed before the 0.6 release.", DeprecationWarning)
-    return obj_to_dict_helper(obj, attribute_names, namespace)
-
-
 class CirqEncoder(json.JSONEncoder):
     """Extend json.JSONEncoder to support Cirq objects.
 
