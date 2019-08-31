@@ -513,7 +513,7 @@ def _matrix_bar_plot(mat: np.ndarray,
 
 def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     a, _ = mat.shape
-    num_qubits = int(np.sqrt(a))
+    num_qubits = int(np.log2(a))
     state_labels = [[0, 1]] * num_qubits
     kets = []
     for label in itertools.product(*state_labels):
