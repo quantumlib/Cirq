@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
-from typing import Any, List
+from typing import Any, List, Sequence
 
 import numpy as np
 
@@ -38,7 +38,7 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         return
 
     if isinstance(val, ops.Operation):
-        qubits = val.qubits
+        qubits: Sequence[ops.Qid] = val.qubits
         op = val
     elif isinstance(val, ops.Gate):
         qid_shape = protocols.qid_shape(val)

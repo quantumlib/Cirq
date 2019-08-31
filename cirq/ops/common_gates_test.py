@@ -379,6 +379,12 @@ def test_measurement_full_invert_mask():
         2, 'a', invert_mask=(True,)).full_invert_mask() == (True, False))
 
 
+def test_qudit_measure_qasm():
+    assert cirq.qasm(cirq.measure(cirq.LineQid(0, 3), key='a'),
+                     args=cirq.QasmArgs(),
+                     default='not implemented') == 'not implemented'
+
+
 def test_interchangeable_qubit_eq():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

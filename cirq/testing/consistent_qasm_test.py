@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Tuple
+
 import warnings
-
-import pytest
-
 import numpy as np
+import pytest
 
 import cirq
 
@@ -40,22 +41,15 @@ class Fixed(cirq.Operation):
         return args.format(self.qasm, *self.qubits)
 
 
-class QuditOp(cirq.Operation):
+class QuditGate(cirq.Gate):
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return (3, 3)
-
-    @property
-    def qubits(self):
-        return cirq.LineQid.for_qid_shape((3, 3))
-
-    def with_qubits(self, *new_qubits):
-        raise NotImplementedError
 
     def _unitary_(self):
         return np.eye(9)
 
-    def _qasm_(self, args: cirq.QasmArgs):
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]):
         return NotImplemented
 
 
@@ -91,4 +85,4 @@ def test_assert_qasm_is_consistent_with_unitary():
             Fixed(np.array([[1, 0], [0, -1]]), 'JUNK'))
 
     # Checks that the test handles qudits
-    cirq.testing.assert_qasm_is_consistent_with_unitary(QuditOp())
+    cirq.testing.assert_qasm_is_consistent_with_unitary(QuditGate())
