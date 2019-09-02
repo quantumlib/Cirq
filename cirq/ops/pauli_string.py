@@ -278,7 +278,7 @@ class PauliString(raw_types.Operation):
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if not isinstance(qubit_map, dict) or not all(
+        if not isinstance(qubit_map, Mapping) or not all(
             isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
             raise TypeError("`qubit_map` must be a valid mapping from "
                             "Qubit ID's to integer indices.")
@@ -295,16 +295,18 @@ class PauliString(raw_types.Operation):
 
         size = state.size
         num_qubits = size.bit_length() - 1
-        if len(state.shape) == 1 or state.shape == (2,) * num_qubits:
-            # HACK: avoid circular import
-            from cirq.sim.wave_function import validate_normalized_state
-            validate_normalized_state(state, num_qubits, dtype=state.dtype)
-            return self._expectation_from_wavefunction(state, qubit_map)
+        if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
+            raise ValueError("Input array does not represent a wavefunction "
+                             "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
-        raise ValueError("Input array does not represent a wavefunction with "
-                         "shape `(2 ** n,)` or `(2, 2, ..., 2)`.")
+        # HACK: avoid circular import
+        from cirq.sim.wave_function import validate_normalized_state
+        validate_normalized_state(state, num_qubits, dtype=state.dtype)
+        return self._expectation_from_wavefunction_no_validation(state, qubit_map)
 
-    def _expectation_from_wavefunction(self,
+
+
+    def _expectation_from_wavefunction_no_validation(self,
                                        state: np.ndarray,
                                        qubit_map: Dict[raw_types.Qid, int]
                                        ) -> float:
@@ -367,7 +369,7 @@ class PauliString(raw_types.Operation):
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if not isinstance(qubit_map, dict) or not all(
+        if not isinstance(qubit_map, Mapping) or not all(
             isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
             raise TypeError("Input qubit map must be a valid mapping from "
                             "Qubit ID's to integer indices.")
@@ -385,17 +387,18 @@ class PauliString(raw_types.Operation):
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
         dim = int(np.sqrt(size))
-        if state.shape == (dim, dim) or state.shape == (2, 2) * num_qubits:
-            # HACK: avoid circular import
-            from cirq.sim.density_matrix_utils import to_valid_density_matrix
-            # Do not enforce reshaping if the state all axes are dimension 2.
-            _ = to_valid_density_matrix(state.reshape(dim, dim), num_qubits, dtype=state.dtype)
-            return self._expectation_from_density_matrix(state, qubit_map)
+        if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
+            raise ValueError("Input array does not represent a density matrix "
+                             "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
-        raise ValueError("Input array does not represent a density matrix with "
-                         "shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)`.")
+        # HACK: avoid circular import
+        from cirq.sim.density_matrix_utils import to_valid_density_matrix
+        # Do not enforce reshaping if the state all axes are dimension 2.
+        _ = to_valid_density_matrix(state.reshape(dim, dim), num_qubits, dtype=state.dtype)
+        return self._expectation_from_density_matrix_no_validation(state, qubit_map)
 
-    def _expectation_from_density_matrix(self,
+
+    def _expectation_from_density_matrix_no_validation(self,
                                          state: np.ndarray,
                                          qubit_map: Dict[raw_types.Qid, int]
                                          ) -> float:
