@@ -14,10 +14,9 @@
 
 from typing import Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
+import sympy
 
 from cirq import study
-
-import sympy
 
 if TYPE_CHECKING:
     import cirq

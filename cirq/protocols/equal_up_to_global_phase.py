@@ -15,11 +15,10 @@
 from collections.abc import Iterable
 import numbers
 from typing import Any, Union
-
-from cirq import linalg
-
 import numpy as np
 from typing_extensions import Protocol
+
+from cirq import linalg
 
 
 class SupportsEqualUpToGlobalPhase(Protocol):
