@@ -20,7 +20,7 @@ import numpy as np
 from cirq import protocols, value
 from cirq.linalg import operator_spaces
 from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
-from cirq.ops.pauli_string import PauliString
+from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
@@ -326,7 +326,7 @@ class PauliSum:
 
         Args:
             state: An array representing a valid wavefunction.
-            qubit_map: A map from all qubits used in this PauliString to the
+            qubit_map: A map from all qubits used in this PauliSum to the
             indices of the qubits that `state` is defined over.
 
         Returns:
@@ -337,15 +337,6 @@ class PauliSum:
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if not isinstance(qubit_map, Mapping) or not all(
-            isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
-            raise TypeError("Input qubit map must be a valid mapping from "
-                            "Qubit ID's to integer indices.")
-
-        if set(qubit_map.keys()) < set(self.qubits):
-            raise ValueError("`qubit_map` must be a complete mapping over this "
-                             "PauliString's qubits.")
-
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
@@ -354,6 +345,8 @@ class PauliSum:
 
         size = state.size
         num_qubits = size.bit_length() - 1
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
+
         if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
             raise ValueError("Input array does not represent a wavefunction "
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
@@ -362,8 +355,6 @@ class PauliSum:
         from cirq.sim.wave_function import validate_normalized_state
         validate_normalized_state(state, num_qubits, dtype=state.dtype)
         return sum(p._expectation_from_wavefunction_no_validation(state, qubit_map) for p in self)
-
-
 
     def expectation_from_density_matrix(self,
                     state: np.ndarray,
@@ -375,7 +366,7 @@ class PauliSum:
 
         Args:
             state: An array representing a valid  density matrix.
-            qubit_map: A map from all qubits used in this PauliString to the
+            qubit_map: A map from all qubits used in this PauliSum to the
             indices of the qubits that `state` is defined over.
 
         Returns:
@@ -386,19 +377,6 @@ class PauliSum:
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        if not isinstance(qubit_map, Mapping) or not all(
-            isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
-            raise TypeError("Input qubit map must be a valid mapping from "
-                            "Qubit ID's to integer indices.")
-
-        if set(qubit_map.keys()) < set(self.qubits):
-            raise ValueError("`qubit_map` must be a complete mapping over this "
-                             "PauliString's qubits.")
-
-        if set(qubit_map.keys()) < set(self.qubits):
-            raise ValueError("`qubit_map` must be a complete mapping over this "
-                             "PauliString's qubits.")
-
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
@@ -407,6 +385,8 @@ class PauliSum:
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
+
         dim = int(np.sqrt(size))
         if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
             raise ValueError("Input array does not represent a density matrix "
@@ -417,8 +397,6 @@ class PauliSum:
         # Do not enforce reshaping if the state all axes are dimension 2.
         _ = to_valid_density_matrix(state.reshape(dim, dim), num_qubits, dtype=state.dtype)
         return sum(p._expectation_from_density_matrix_no_validation(state, qubit_map) for p in self)
-
-
 
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():

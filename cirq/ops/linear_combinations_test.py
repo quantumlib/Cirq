@@ -832,6 +832,9 @@ def test_bad_arithmetic():
         _ = psum / [1, 2, 3]
 
 
+def test_expectation_from_wavefunction_invalid_input():
+    # TODO pending PR go-ahead.
+
 def test_expectation_from_wavefunction_basis_states():
     q = cirq.LineQubit.range(2)
     psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
@@ -866,6 +869,10 @@ def test_expectation_from_wavefunction_two_qubit_states():
     for state in [wf3, wf3.reshape(2, 2)]:
         np.testing.assert_allclose(psum3.expectation_from_wavefunction(state, qubit_map={q0: 0, q1: 1}), 2)
         np.testing.assert_allclose(psum3.expectation_from_wavefunction(state, qubit_map={q0: 1, q1: 0}), 0)
+
+
+def test_expectation_from_density_matrix_invalid_input():
+    # TODO pending PR go-ahead.
 
 
 def test_expectation_from_density_matrix_basis_states():

@@ -706,7 +706,7 @@ def test_filters_identities():
 
 
 def test_expectation_from_wavefunction_invalid_input():
-    q0, q1 = _make_qubits(2)
+    q0, q1, q2 = _make_qubits(3)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps = cirq.PauliString(qubit_pauli_map)
     wf = np.array([1, 0, 0, 0], dtype=np.complex64)
@@ -715,7 +715,6 @@ def test_expectation_from_wavefunction_invalid_input():
     im_ps = (1j + 1) * ps
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
         im_ps.expectation_from_wavefunction(wf, q_map)
-
 
     with pytest.raises(TypeError, match='dtype'):
         ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.int), q_map)
@@ -729,8 +728,17 @@ def test_expectation_from_wavefunction_invalid_input():
 
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0})
+    with pytest.raises(ValueError, match='complete'):
+        ps.expectation_from_wavefunction(wf, {q0: 0, q2: 0})
 
+    with pytest.raises(ValueError, match='contiguous'):
+        ps.expectation_from_wavefunction(wf, {q0: -1, q1: 1})
+    with pytest.raises(ValueError, match='contiguous'):
+        ps.expectation_from_wavefunction(wf, {q0: 0, q1: 3})
+    # Excess keys are ignored.
+    _ = ps.expectation_from_wavefunction(wf, {q0: 0, q1: 1, q2: 0})
 
+    # State is too small for this PauliString.
     with pytest.raises(ValueError, match='match'):
         ps.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex64), q_map)
 
