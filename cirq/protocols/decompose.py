@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Callable, Union, Any, Tuple, Iterable, \
 
 from typing_extensions import Protocol
 
+from cirq import ops
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -214,7 +215,6 @@ def decompose(
             Custom type of error raised if there's an undecomposable operation
             that doesn't satisfy the given `keep` predicate.
     """
-    from cirq import ops  # HACK: Avoids circular dependencies.
 
     if (on_stuck_raise is not _value_error_describing_bad_operation and
             keep is None):
@@ -312,7 +312,6 @@ def decompose_once(val: Any,
     decomposed = NotImplemented if method is None else method(**kwargs)
 
     if decomposed is not NotImplemented and decomposed is not None:
-        from cirq import ops  # HACK: Avoids circular dependencies.
         return list(ops.flatten_op_tree(decomposed))
 
     if default is not RaiseTypeErrorIfNotProvided:
