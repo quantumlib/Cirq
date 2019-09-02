@@ -16,10 +16,10 @@ from collections.abc import Iterable
 import numbers
 from typing import Any, Union
 
+from cirq import linalg
+import cirq
 import numpy as np
 from typing_extensions import Protocol
-
-import cirq
 
 
 class SupportsEqualUpToGlobalPhase(Protocol):
@@ -90,13 +90,14 @@ def equal_up_to_global_phase(val: Any,
         a = np.asarray(val)
         b = np.asarray(other)
         if a.dtype.kind in 'uifc' and b.dtype.kind in 'uifc':
-            return cirq.linalg.allclose_up_to_global_phase(a, b, atol=atol)
+            return linalg.allclose_up_to_global_phase(a, b, atol=atol)
 
     # Fall back to approx_eq for compare the magnitude of two numbers.
+    from cirq.protocols.approximate_equality import approx_eq
     if isinstance(val, numbers.Number) and isinstance(other, numbers.Number):
-        result = cirq.approx_eq(abs(val), abs(other), atol=atol)  # type: ignore
+        result = approx_eq(abs(val), abs(other), atol=atol)  # type: ignore
         if result is not NotImplemented:
             return result
 
     # Fall back to cirq approx_eq for remaining types.
-    return cirq.approx_eq(val, other, atol=atol)
+    return approx_eq(val, other, atol=atol)
