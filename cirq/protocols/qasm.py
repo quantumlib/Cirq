@@ -54,7 +54,6 @@ class QasmArgs(string.Formatter):
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
-
         if isinstance(value, (float, int)):
             if isinstance(value, float):
                 value = round(value, self.precision)

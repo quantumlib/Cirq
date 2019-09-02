@@ -27,7 +27,7 @@ from collections import defaultdict
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols import qid_shape_protocol
+from cirq.protocols import decompose, qid_shape_protocol
 from cirq import devices, linalg, ops
 
 if TYPE_CHECKING:
@@ -164,21 +164,20 @@ def _try_decompose_into_operations_and_qubits(val: Any) -> Tuple[Optional[
         List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to.
     """
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
 
     if isinstance(val, ops.Gate):
         # Gates don't specify qubits, and so must be handled specially.
         qid_shape = qid_shape_protocol.qid_shape(val)
         qubits = devices.LineQid.for_qid_shape(
             qid_shape)  # type: Sequence[cirq.Qid]
-        return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
+        return decompose.decompose_once_with_qubits(val, qubits,
+                                                    None), qubits, qid_shape
 
     if isinstance(val, ops.Operation):
         qid_shape = qid_shape_protocol.qid_shape(val)
-        return decompose_once(val, None), val.qubits, qid_shape
+        return decompose.decompose_once(val, None), val.qubits, qid_shape
 
-    result = decompose_once(val, None)
+    result = decompose.decompose_once(val, None)
     if result is not None:
         qubit_set = set()
         qid_shape_dict = defaultdict(lambda: 1)  # type: Dict[cirq.Qid, int]

@@ -83,7 +83,6 @@ def resolve_parameters(
         If `val` has no `_resolve_parameters_` method or if it returns
         NotImplemented, `val` itself is returned.
     """
-
     if not param_resolver:
         return val
 
