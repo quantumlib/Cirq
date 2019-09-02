@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
 
+from cirq import ops
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -107,7 +108,6 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
         return result
 
     # Check if val is a list of qids
-    from cirq import ops  # Avoid circular dependency
     if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
         return tuple(q.dimension for q in val)
 
@@ -165,7 +165,6 @@ def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
         return len(shape)
 
     # Check if val is a list of qids
-    from cirq import ops  # Avoid circular dependency
     if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
         return len(val)
 

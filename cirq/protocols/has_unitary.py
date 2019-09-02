@@ -28,6 +28,8 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.decompose import decompose_once, decompose_once_with_qubits
+from cirq import devices, linalg, ops
 
 if TYPE_CHECKING:
     import cirq
@@ -143,7 +145,6 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
     """
     from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-    from cirq import linalg
 
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
@@ -164,17 +165,15 @@ def _try_decompose_into_operations_and_qubits(val: Any) -> Tuple[Optional[
         List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
     """Returns the value's decomposition (if any) and the qubits it applies to.
     """
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
-    from cirq import LineQid, Gate, Operation
 
-    if isinstance(val, Gate):
+    if isinstance(val, ops.Gate):
         # Gates don't specify qubits, and so must be handled specially.
         qid_shape = qid_shape_protocol.qid_shape(val)
-        qubits = LineQid.for_qid_shape(qid_shape)  # type: Sequence[cirq.Qid]
+        qubits = devices.LineQid.for_qid_shape(
+            qid_shape)  # type: Sequence[cirq.Qid]
         return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
 
-    if isinstance(val, Operation):
+    if isinstance(val, ops.Operation):
         qid_shape = qid_shape_protocol.qid_shape(val)
         return decompose_once(val, None), val.qubits, qid_shape
 
