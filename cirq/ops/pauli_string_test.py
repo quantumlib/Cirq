@@ -706,7 +706,7 @@ def test_filters_identities():
 
 
 def test_expectation_from_wavefunction_invalid_input():
-    q0, q1, q2 = _make_qubits(3)
+    q0, q1, q2, q3 = _make_qubits(4)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps = cirq.PauliString(qubit_pauli_map)
     wf = np.array([1, 0, 0, 0], dtype=np.complex64)
@@ -731,31 +731,30 @@ def test_expectation_from_wavefunction_invalid_input():
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0, q2: 0})
 
-    with pytest.raises(ValueError, match='contiguous'):
+    with pytest.raises(ValueError, match='indices'):
         ps.expectation_from_wavefunction(wf, {q0: -1, q1: 1})
-    with pytest.raises(ValueError, match='contiguous'):
+    with pytest.raises(ValueError, match='indices'):
         ps.expectation_from_wavefunction(wf, {q0: 0, q1: 3})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_wavefunction(wf, {q0: 0, q1: 0})
     # Excess keys are ignored.
     _ = ps.expectation_from_wavefunction(wf, {q0: 0, q1: 1, q2: 0})
-
-    # State is too small for this PauliString.
-    with pytest.raises(ValueError, match='match'):
-        ps.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex64), q_map)
 
     # Incorrectly shaped wavefunction input.
     with pytest.raises(ValueError, match='7'):
         ps.expectation_from_wavefunction(np.arange(7, dtype=np.complex64), q_map)
+    q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='normalized'):
-        ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64), q_map)
+        ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64), q_map_2)
 
     # The ambiguous case: Density matrices satisfying L2 normalization.
     _ = ps.expectation_from_wavefunction(0.5 * np.ones((2, 2), dtype=np.complex64), q_map)
 
     wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_wavefunction(wf.reshape((16, 1)), q_map)
+        ps.expectation_from_wavefunction(wf.reshape((16, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map)
+        ps.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map_2)
 
 
 def test_expectation_from_wavefunction_basis_states():

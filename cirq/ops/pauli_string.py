@@ -643,7 +643,17 @@ def _validate_qubit_mapping(
     qubit_map: Mapping[raw_types.Qid, int],
     pauli_qubits: Tuple[raw_types.Qid, ...],
     num_state_qubits: int) -> None:
-    """Validates that a qubit map is a valid mapping."""
+    """Validates that a qubit map is a valid mapping.
+
+    This will enforce that all elements of `pauli_qubits` appear in `qubit_map`,
+    and that the integers in `qubit_map` correspond to valid positions in a
+    representation of a state over `num_state_qubits`.
+
+    Args:
+        qubit_map: A map from qubits to integers.
+        pauli_qubits: The qubits that must be contained in `qubit_map`.
+        num_state_qubits: The number of qubits over which a state is expressed.
+    """
 
     if not isinstance(qubit_map, Mapping) or not all(
         isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
@@ -654,13 +664,10 @@ def _validate_qubit_mapping(
         raise ValueError("Input qubit map must be a complete mapping over all "
                          " of this PauliString's qubits.")
 
-    used_vals = [qubit_map[q] for q in pauli_qubits]
-    if sorted(used_vals) != list(range(num_state_qubits)):
-        print(used_vals)
-        print(list(range(num_state_qubits)))
-        raise ValueError("Input qubit map must map to a contiguous set of "
-                         "valid qubit indices for a state over {} "
-                         "qubits.".format(num_state_qubits))
+    used_inds = [qubit_map[q] for q in pauli_qubits]
+    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(sorted(used_inds)):
+        raise ValueError("Input qubit map indices must be valid for a state "
+                         "over {} qubits.".format(num_state_qubits))
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
