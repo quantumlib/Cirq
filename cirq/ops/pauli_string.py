@@ -286,12 +286,11 @@ class PauliString(raw_types.Operation):
 
         size = state.size
         num_qubits = size.bit_length() - 1
-        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-
         if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
             raise ValueError("Input array does not represent a wavefunction "
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         # HACK: avoid circular import
         from cirq.sim.wave_function import validate_normalized_state
         validate_normalized_state(state, num_qubits, dtype=state.dtype)
@@ -376,13 +375,12 @@ class PauliString(raw_types.Operation):
 
         size = state.size
         num_qubits = int(np.sqrt(size)).bit_length() - 1
-        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-
-        dim = int(np.sqrt(size))
+        dim = 1 << num_qubits
         if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
             raise ValueError("Input array does not represent a density matrix "
                              "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         # HACK: avoid circular import
         from cirq.sim.density_matrix_utils import to_valid_density_matrix
         # Do not enforce reshaping if the state all axes are dimension 2.
@@ -654,7 +652,6 @@ def _validate_qubit_mapping(
         pauli_qubits: The qubits that must be contained in `qubit_map`.
         num_state_qubits: The number of qubits over which a state is expressed.
     """
-
     if not isinstance(qubit_map, Mapping) or not all(
         isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
         raise TypeError("Input qubit map must be a valid mapping from "

@@ -729,7 +729,7 @@ def test_expectation_from_wavefunction_invalid_input():
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0})
     with pytest.raises(ValueError, match='complete'):
-        ps.expectation_from_wavefunction(wf, {q0: 0, q2: 0})
+        ps.expectation_from_wavefunction(wf, {q0: 0, q2: 2})
 
     with pytest.raises(ValueError, match='indices'):
         ps.expectation_from_wavefunction(wf, {q0: -1, q1: 1})
@@ -873,11 +873,11 @@ def test_pauli_string_expectation_from_wavefunction_pure_state_with_coef():
 
 
 def test_expectation_from_density_matrix_invalid_input():
-    q0, q1 = _make_qubits(2)
+    q0, q1, q2, q3 = _make_qubits(4)
     qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
     ps = cirq.PauliString(qubit_pauli_map)
     wf = cirq.testing.random_superposition(4)
-    rho = np.kron(wf.conjugate().T, wf)
+    rho = np.kron(wf.conjugate().T, wf).reshape(4,4)
     q_map = dict({q0: 0, q1: 1})
 
     im_ps = (1j + 1) * ps
@@ -895,22 +895,40 @@ def test_expectation_from_density_matrix_invalid_input():
         ps.expectation_from_density_matrix(rho, {q0: "bad value"})
 
     with pytest.raises(ValueError, match='complete'):
-        ps.expectation_from_wavefunction(wf, {q0: 0})
+        ps.expectation_from_density_matrix(rho, {q0: 0})
+    with pytest.raises(ValueError, match='complete'):
+        ps.expectation_from_density_matrix(rho, {q0: 0, q2: 2})
+
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_density_matrix(rho, {q0: -1, q1: 1})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_density_matrix(rho, {q0: 0, q1: 3})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_density_matrix(rho, {q0: 0, q1: 0})
+    # Excess keys are ignored.
+    print("shape", rho.shape)
+    _ = ps.expectation_from_density_matrix(rho, {q0: 0, q1: 1, q2: 0})
+    print("shape", rho.shape)
 
     with pytest.raises(ValueError, match='hermitian'):
-        ps.expectation_from_density_matrix(1j * np.eye(2), q_map)
+        ps.expectation_from_density_matrix(1j * np.eye(4), q_map)
     with pytest.raises(ValueError, match='trace'):
-        ps.expectation_from_density_matrix(np.eye(2, dtype=np.complex64), q_map)
+        ps.expectation_from_density_matrix(np.eye(4, dtype=np.complex64), q_map)
     with pytest.raises(ValueError, match='semidefinite'):
-        ps.expectation_from_density_matrix(np.array([[1.1, 0], [0, -.1]], dtype=np.complex64), q_map)
+        ps.expectation_from_density_matrix(np.array(
+            [[1.1, 0, 0, 0],
+             [0, -.1, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]], dtype=np.complex64), q_map)
 
     # Incorrectly shaped density matrix input.
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(np.ones((2, 3), dtype=np.complex64), q_map)
+        ps.expectation_from_density_matrix(np.ones((4, 5), dtype=np.complex64), q_map)
+    q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map)
+        ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(rho.reshape((-1)), q_map)
+        ps.expectation_from_density_matrix(rho.reshape((-1)), q_map_2)
 
     # Correctly shaped wavefunctions.
     with pytest.raises(ValueError, match='shape'):
@@ -920,7 +938,7 @@ def test_expectation_from_density_matrix_invalid_input():
 
     # The ambiguous cases: Wavefunctions satisfying trace normalization.
     # This also throws an unrelated warning, which is a bug. See #2041.
-    _ = ps.expectation_from_density_matrix(0.5 * np.ones((2, 2), dtype=np.complex64), q_map)
+    _ = ps.expectation_from_density_matrix(0.25 * np.ones((4, 4), dtype=np.complex64), q_map)
 
 
 def test_expectation_from_density_matrix_basis_states():
