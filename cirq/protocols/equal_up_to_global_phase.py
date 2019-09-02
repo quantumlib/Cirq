@@ -19,7 +19,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols import approximate_equality
+from cirq.protocols.approximate_equality import approx_eq
 
 
 class SupportsEqualUpToGlobalPhase(Protocol):
@@ -94,10 +94,9 @@ def equal_up_to_global_phase(val: Any,
 
     # Fall back to approx_eq for compare the magnitude of two numbers.
     if isinstance(val, numbers.Number) and isinstance(other, numbers.Number):
-        result = approximate_equality.approx_eq(abs(val), abs(other),
-                                                atol=atol)  # type: ignore
+        result = approx_eq(abs(val), abs(other), atol=atol)  # type: ignore
         if result is not NotImplemented:
             return result
 
     # Fall back to cirq approx_eq for remaining types.
-    return approximate_equality.approx_eq(val, other, atol=atol)
+    return approx_eq(val, other, atol=atol)
