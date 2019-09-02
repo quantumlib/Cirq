@@ -323,8 +323,16 @@ class PauliSum:
         """Evaluate the expectation of this PauliSum given a wavefunction.
 
         See `PauliString.expectation_from_wavefunction`.
+
+        Args:
+            state: An array representing a valid wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
         """
-        if any([abs(p.coefficient.imag) > 0.0001 for p in self]):
+        if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
@@ -362,8 +370,16 @@ class PauliSum:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
         See `PauliString.expectation_from_density_matrix`.
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
         """
-        if any([abs(p.coefficient.imag) > 0.0001 for p in self]):
+        if any(abs(p.coefficient.imag) > 0.0001 for p in self):
             raise NotImplementedError(
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))

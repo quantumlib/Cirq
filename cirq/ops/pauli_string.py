@@ -254,17 +254,16 @@ class PauliString(raw_types.Operation):
         shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
         expressed over n qubits.
 
-        # FIXME:
-        If `qubit_map` is not provided, default behavior is to assume that
-        `state` is defined over this PauliString's qubits in ascending order of
-        index. For example if `state` represents $|0\rangle |+\rangle$ and
-        `q0, q1 = cirq.LineQubit.range(2)` then:
+        `qubit_map` must assign an integer index to each qubit in this
+        PauliString that determines which bit position of a computational basis
+        state that qubit corresponds to. For example if `state` represents
+        $|0\rangle |+\rangle$ and `q0, q1 = cirq.LineQubit.range(2)` then:
 
-            cirq.X(q0).expectation(state) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 0, q1: 1}) = 0
             cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
 
         Args:
-            state: An array representing a wavefunction or density matrix.
+            state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliString to the
             indices of the qubits that `state` is defined over.
 
@@ -344,17 +343,16 @@ class PauliString(raw_types.Operation):
         shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)` (2*n entries), where
         `state` is expressed over n qubits.
 
-        # FIXME:
-        If `qubit_map` is not provided, default behavior is to assume that
-        `state` is defined over this PauliString's qubits in ascending order of
-        index. For example if `state` represents $|0\rangle |+\rangle$ and
-        `q0, q1 = cirq.LineQubit.range(2)` then:
+        `qubit_map` must assign an integer index to each qubit in this
+        PauliString that determines which bit position of a computational basis
+        state that qubit corresponds to. For example if `state` represents
+        $|0\rangle |+\rangle$ and `q0, q1 = cirq.LineQubit.range(2)` then:
 
-            cirq.X(q0).expectation(state) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 0, q1: 1}) = 0
             cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
 
         Args:
-            state: An array representing a wavefunction or density matrix.
+            state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliString to the
             indices of the qubits that `state` is defined over.
 
