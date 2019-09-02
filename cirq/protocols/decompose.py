@@ -31,7 +31,6 @@ from typing_extensions import Protocol
 
 from cirq import devices, ops
 from cirq.protocols import qid_shape_protocol
-
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
