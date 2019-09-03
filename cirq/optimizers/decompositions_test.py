@@ -235,8 +235,7 @@ def test_single_qubit_matrix_to_native_gates_known():
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
-    gates = cirq.single_qubit_matrix_to_phased_x_z(
-        intended_effect, atol=1e-6)
+    gates = cirq.single_qubit_matrix_to_phased_x_z(intended_effect, atol=1e-6)
     assert len(gates) <= 2
     assert_gates_implement_unitary(gates, intended_effect, atol=1e-5)
 
