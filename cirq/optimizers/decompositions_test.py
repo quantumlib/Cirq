@@ -236,9 +236,9 @@ def test_single_qubit_matrix_to_native_gates_known():
 ])
 def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
     gates = cirq.single_qubit_matrix_to_phased_x_z(
-        intended_effect, atol=0.0001)
+        intended_effect, atol=1e-6)
     assert len(gates) <= 2
-    assert_gates_implement_unitary(gates, intended_effect, atol=1e-8)
+    assert_gates_implement_unitary(gates, intended_effect, atol=1e-5)
 
 
 @pytest.mark.parametrize('pre_turns,post_turns',
