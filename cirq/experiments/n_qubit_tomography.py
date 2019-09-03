@@ -46,11 +46,11 @@ class StateTomographyExperiment:
                 If none, we use [(0, 0), (0, 0.5), (0.5, 0.5)], which
                 corresponds to rotation gates [I, X**0.5, Y**0.5].
         """
-        if prerotations == None:
+        if prerotations is None:
             prerotations = [(0, 0), (0, 0.5), (0.5, 0.5)]
         self.num_qubits = len(qubits)
 
-        phase_exp_vals, exp_vals = zip(*prerotations)  # type: ignore
+        phase_exp_vals, exp_vals = zip(*prerotations)
 
         ops: List[cirq.Operation] = []
         sweeps: List[cirq.Sweep] = []
