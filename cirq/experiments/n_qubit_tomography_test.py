@@ -25,14 +25,14 @@ def test_state_tomography_diagonal():
 
 def test_state_tomography_ghz_state():
     circuit = cirq.Circuit()
-    circuit.append(cirq.H(cirq.GridQubit(0, 0)))
-    circuit.append(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)))
-    circuit.append(cirq.CNOT(cirq.GridQubit(0, 0), cirq.GridQubit(2, 2)))
+    circuit.append(cirq.H(cirq.LineQubit(0)))
+    circuit.append(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(1)))
+    circuit.append(cirq.CNOT(cirq.LineQubit(0), cirq.LineQubit(2)))
     res = nqt.state_tomography(
         cirq.Simulator(),
-        [cirq.GridQubit(0, 0),
-         cirq.GridQubit(1, 1),
-         cirq.GridQubit(2, 2)],
+        [cirq.LineQubit(0),
+         cirq.LineQubit(1),
+         cirq.LineQubit(2)],
         circuit,
         repetitions=10000)
     should_be = np.zeros((8, 8))
@@ -45,7 +45,7 @@ def test_state_tomography_ghz_state():
 
 def test_make_experiment_no_rots():
     exp = nqt.StateTomographyExperiment(
-        [cirq.GridQubit(0, 0),
-         cirq.GridQubit(1, 1),
-         cirq.GridQubit(2, 2)])
+        [cirq.LineQubit(0),
+         cirq.LineQubit(1),
+         cirq.LineQubit(2)])
     assert len(exp.rot_sweep) > 0
