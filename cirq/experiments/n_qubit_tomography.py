@@ -3,7 +3,7 @@ different pre-measurement rotations.
 The code is designed to be modular with regards to data collection
 so that occurs outside of the StateTomographyExperiment class.
 """
-from typing import List, Tuple, cast, Optional
+from typing import List, Tuple, Optional
 
 import numpy as np
 import sympy
@@ -49,7 +49,7 @@ class StateTomographyExperiment:
 
         self.num_qubits = len(qubits)
 
-        phase_exp_vals, exp_vals = zip(*prerotations) # type: ignore
+        phase_exp_vals, exp_vals = zip(*prerotations)  # type: ignore
 
         ops: List[cirq.Operation] = []
         sweeps: List[cirq.Sweep] = []

@@ -42,8 +42,10 @@ def test_state_tomography_ghz_state():
     should_be[7, 0] = .5
     assert np.allclose(res.data, should_be, atol=1e-2)
 
+
 def test_make_experiment_no_rots():
-    exp = nqt.StateTomographyExperiment([cirq.GridQubit(0, 0),
+    exp = nqt.StateTomographyExperiment(
+        [cirq.GridQubit(0, 0),
          cirq.GridQubit(1, 1),
          cirq.GridQubit(2, 2)])
     assert len(exp.rot_sweep) > 0
