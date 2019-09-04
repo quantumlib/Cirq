@@ -452,7 +452,6 @@ def test_binary_sub_tensor_slice_big_endian():
 
 def test_qudit_sub_tensor_slice():
     a = slice(None)
-    e = Ellipsis
     sfqet = cirq.slice_for_qubits_equal_to
 
     assert sfqet([], 0, qid_shape=()) == ()
