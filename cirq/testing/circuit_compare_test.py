@@ -364,6 +364,22 @@ def test_assert_has_consistent_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(
         SameEffect())
 
+    class SameQuditEffect:
+
+        def _qid_shape_(self):
+            return (3,)
+
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
+            args.available_buffer[..., 0] = args.target_tensor[..., 2]
+            args.available_buffer[..., 1] = args.target_tensor[..., 0]
+            args.available_buffer[..., 2] = args.target_tensor[..., 1]
+            return args.available_buffer
+
+        def _unitary_(self):
+            return np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
+
+    cirq.testing.assert_has_consistent_apply_unitary(SameQuditEffect())
+
     class BadExponent:
         def __init__(self, power):
             self.power = power
