@@ -11,28 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Data format v2 for google api."""
+"""Check protobuf modules initialize successfully."""
 
-from cirq.google.api.v2.results import (
-    MeasureInfo,
-    find_measurements,
-    pack_bits,
-    unpack_bits,
-    results_from_proto,
-    results_to_proto,
-)
-
-from cirq.google.api.v2.sweeps import (
-    sweep_from_proto,
-    sweep_to_proto,
-)
-
-"""Google's v2 api for running quantum programs remotely."""
-
-from cirq.google.api.v2 import (
-    metrics_pb2,
-    program_pb2,
-    result_pb2,
-    run_context_pb2,
-)
-
+# pylint: disable=unused-import
+from cirq.google.api.v2 import metrics_pb2
+from cirq.google.api.v2 import program_pb2
+from cirq.google.api.v2 import result_pb2
+from cirq.google.api.v2 import run_context_pb2
+# pylint: enable=unused-import

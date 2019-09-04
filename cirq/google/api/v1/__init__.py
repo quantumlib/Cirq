@@ -26,3 +26,10 @@ from cirq.google.api.v1.programs import (
     unpack_results,
     xmon_op_from_proto_dict,
 )
+
+from cirq.api.google.v1 import (
+    operations_pb2,
+    params_pb2,
+    program_pb2,
+)
+

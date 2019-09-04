@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package cirq.google.api.v2;
+
+option java_package = "com.google.cirq.google.api.v2";
+option java_outer_classname = "CalibrationProto";
+option java_multiple_files = true;
+
+// A snapshot of the performance metrics for a quantum processor at a
+// particular time.
+message MetricsSnapshot {
+
+  // The time the metrics were collected, in unix time (milliseconds since
+  // Epoch minus leap seconds). Metric collection take time, so this is the
+  // time at which all of the metrics have been collected.
+  uint64 timestamp_ms = 1;
+
+  // All of the metrics collected during this snapshot.
+  repeated Metric metrics = 2;
+}
+
+// The actual metrics.
+message Metric {
+  // The name of the metric. This is the type of metric, i.e. 't1' or
+  // 'randomized_benchmarking'.
+  string name = 1;
+
+  // The targets of the metrics. Targets include things like the qubits (i.e.
+  // strings like `q0_1`), but may also be empty when the metric applies
+  // globally.
+  repeated string targets = 2;
+
+  // The values of this Metrics. Repeated to support multivalued metrics like
+  // tomography.
+  repeated Value values = 3;
+}
+
+// A generic metric value.
+message Value {
+  // The raw value.
+  oneof val {
+    double double_val = 1;
+
+    int32 int32_val = 2;
+
+    int64 int64_val = 3;
+
+    string str_val = 4;
+  }
+}
