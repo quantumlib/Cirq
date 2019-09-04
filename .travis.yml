@@ -83,13 +83,13 @@ matrix:
     env: NAME=dev-release
     python: '3.7'
     script: export CIRQ_DEV_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
-  before_deploy:
-  - echo "Deploying dev version '$CIRQ_DEV_VERSION'"
-  deploy:
-  - provider: pypi
-    user: quantumlibdev
-    on:
-      condition: '"$CIRQ_DEV_VERSION" == *dev*'
-    distributions: bdist_wheel
-    password:
-      secure: KO3RuwLvjb5/J7akv2v/a9tEIbmErp7El6S+ZfMvDRlx8qpUfav1w4nvSGw6sfn837++2+F2Tb22wbJkjefpFMzg9mOdhFGwtOpiHSOnYlY2mnxVN9XdQnMS7F+8IMFas4J3EhqrlsZxoqyMy122S3pjtE/d6YSG+3YzmCu3rLsFl4EV6I5U8MgWJY8LDFqMIxuxgmEkJfPe5z9Sqqwtneelj39jobg4q1uZc0JD3rkI0hj/uhBvBoTTLQjPiZk3ZIkgkMmPVB8tDGK9eXqVuDK7U1ZoDWvTKNebZ94g46YuKVNY6tEJpgpacti6mMalva6wX8zYpWOrY0PPo34e5d/kfwkttnrMk+sPXJnvn5eM7tEWxF+PHz4ejcLEYpehgdbWksHaUVdPog7UrYXnertHDY42ukxF17JlU9rlf60IXJVmeYHTfB1p8V7Yfllgmfa49yGDnR68Y3iIR9NtT26ZoJnMAkrxvlTgz6poBbTKj+Gyr0pkTHLzniEo3D/C8xeVcD30yZPlXxCojcM4s2dM2h5IiQU//ubptP/TE0idG2AJiooEfGUsXZ+IbN4Zxvkoa4YzYCvYFlr42ZBnv0H5/xZc4uFK6rLcVtysZqWAj3QjVGIUX3G1sxy8ik+RSQun1Dhzov8v5RVtb6aShDWT6l6paAAEwrQNt0T44yo=
+before_deploy:
+- echo "Deploying dev version '$CIRQ_DEV_VERSION'"
+deploy:
+- provider: pypi
+  user: quantumlibdev
+  on:
+    condition: '"$CIRQ_DEV_VERSION" == *dev*'
+  distributions: bdist_wheel
+  password:
+    secure: KO3RuwLvjb5/J7akv2v/a9tEIbmErp7El6S+ZfMvDRlx8qpUfav1w4nvSGw6sfn837++2+F2Tb22wbJkjefpFMzg9mOdhFGwtOpiHSOnYlY2mnxVN9XdQnMS7F+8IMFas4J3EhqrlsZxoqyMy122S3pjtE/d6YSG+3YzmCu3rLsFl4EV6I5U8MgWJY8LDFqMIxuxgmEkJfPe5z9Sqqwtneelj39jobg4q1uZc0JD3rkI0hj/uhBvBoTTLQjPiZk3ZIkgkMmPVB8tDGK9eXqVuDK7U1ZoDWvTKNebZ94g46YuKVNY6tEJpgpacti6mMalva6wX8zYpWOrY0PPo34e5d/kfwkttnrMk+sPXJnvn5eM7tEWxF+PHz4ejcLEYpehgdbWksHaUVdPog7UrYXnertHDY42ukxF17JlU9rlf60IXJVmeYHTfB1p8V7Yfllgmfa49yGDnR68Y3iIR9NtT26ZoJnMAkrxvlTgz6poBbTKj+Gyr0pkTHLzniEo3D/C8xeVcD30yZPlXxCojcM4s2dM2h5IiQU//ubptP/TE0idG2AJiooEfGUsXZ+IbN4Zxvkoa4YzYCvYFlr42ZBnv0H5/xZc4uFK6rLcVtysZqWAj3QjVGIUX3G1sxy8ik+RSQun1Dhzov8v5RVtb6aShDWT6l6paAAEwrQNt0T44yo=
