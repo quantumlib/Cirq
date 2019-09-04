@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Sequence, Tuple, TypeVar
+from typing import Iterable, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import(
@@ -22,6 +22,8 @@ from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
     LinearPermutationGate, SwapPermutationGate)
 
+if TYPE_CHECKING:
+    import cirq
 
 TItem = TypeVar('TItem')
 def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
@@ -31,10 +33,9 @@ def skip_and_wrap_around(items: Sequence[TItem]) -> Tuple[TItem, ...]:
     return tuple(items[positions[i]] for i in range(n_items))
 
 
-def cubic_acquaintance_strategy(
-        qubits: Iterable[ops.Qid],
-        swap_gate: ops.Gate=ops.SWAP
-        ) -> circuits.Circuit:
+def cubic_acquaintance_strategy(qubits: Iterable['cirq.Qid'],
+                                swap_gate: 'cirq.Gate' = ops.SWAP
+                               ) -> 'cirq.Circuit':
     """Acquaints every triple of qubits.
 
     Exploits the fact that in a simple linear swap network every pair of

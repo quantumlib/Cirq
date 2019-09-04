@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, List, Sequence, Tuple
+from typing import cast, Iterable, List, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.contrib.acquaintance.devices import (
@@ -21,9 +21,12 @@ from cirq.contrib.acquaintance.gates import acquaint, SwapNetworkGate
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates)
 
-def qubit_pairs_to_qubit_order(
-    qubit_pairs: Sequence[Sequence[ops.Qid]]
-    ) -> List[ops.Qid]:
+if TYPE_CHECKING:
+    import cirq
+
+
+def qubit_pairs_to_qubit_order(qubit_pairs: Sequence[Sequence['cirq.Qid']]
+                              ) -> List['cirq.Qid']:
     """Takes a sequence of qubit pairs and returns a sequence in which every
     pair is at distance two.
 
@@ -36,7 +39,7 @@ def qubit_pairs_to_qubit_order(
             'set(len(qubit_pair) for qubit_pair in qubit_pairs) != '
             'set((2,))')
     n_pairs = len(qubit_pairs)
-    qubits = [] # type: List[ops.Qid]
+    qubits = []  # type: List['cirq.Qid']
     for i in range(0, 2 * (n_pairs // 2), 2):
         qubits += [qubit_pairs[i][0], qubit_pairs[i + 1][0],
                    qubit_pairs[i][1], qubit_pairs[i + 1][1]]
@@ -46,16 +49,16 @@ def qubit_pairs_to_qubit_order(
 
 
 def quartic_paired_acquaintance_strategy(
-    qubit_pairs: Iterable[Tuple[ops.Qid, ops.Qid]]
-    ) -> Tuple[circuits.Circuit, Sequence[ops.Qid]]:
+        qubit_pairs: Iterable[Tuple['cirq.Qid', ops.Qid]]
+) -> Tuple['cirq.Circuit', Sequence['cirq.Qid']]:
     """Acquaintance strategy for pairs of pairs.
 
     Implements UpCCGSD ansatz from arXiv:1810.02327.
     """
 
     qubit_pairs = tuple(
-            cast(Tuple[ops.Qid, ops.Qid], tuple(qubit_pair))
-            for qubit_pair in qubit_pairs)
+        cast(Tuple['cirq.Qid', ops.Qid], tuple(qubit_pair))
+        for qubit_pair in qubit_pairs)
     qubits = qubit_pairs_to_qubit_order(qubit_pairs)
     n_qubits = len(qubits)
     swap_network = SwapNetworkGate((1,) * n_qubits, 2)(*qubits)

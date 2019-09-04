@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Sequence
+from typing import cast, Sequence, TYPE_CHECKING
 
 from cirq import devices, ops, protocols
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate, update_mapping)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def assert_permutation_decomposition_equivalence(
@@ -25,7 +28,7 @@ def assert_permutation_decomposition_equivalence(
     qubits = devices.LineQubit.range(n_qubits)
     operations = protocols.decompose_once_with_qubits(gate, qubits)
     operations = list(
-            cast(Sequence[ops.Operation], ops.flatten_op_tree(operations)))
+        cast(Sequence['cirq.Operation'], ops.flatten_op_tree(operations)))
     mapping = {cast(ops.Qid, q): i for i, q in enumerate(qubits)}
     update_mapping(mapping, operations)
     expected_mapping = {qubits[j]: i

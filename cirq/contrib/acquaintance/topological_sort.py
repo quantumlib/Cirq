@@ -13,15 +13,18 @@
 # limitations under the License.
 
 import random
-from typing import Any, Iterable
+from typing import Any, Iterable, TYPE_CHECKING
 
 import networkx
 
-from cirq import circuits, ops
+from cirq import ops
+
+if TYPE_CHECKING:
+    import cirq
 
 
-def is_topologically_sorted(dag: circuits.CircuitDag,
-                            operations: ops.OP_TREE) -> bool:
+def is_topologically_sorted(dag: 'cirq.CircuitDag',
+                            operations: 'cirq.OP_TREE') -> bool:
     """Whether a given order of operations is consistent with the DAG.
 
     For example, suppose the (transitive reduction of the) circuit DAG is
