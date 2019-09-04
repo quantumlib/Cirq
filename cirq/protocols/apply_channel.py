@@ -22,6 +22,7 @@ from typing_extensions import Protocol
 from cirq import linalg
 from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
 from cirq.protocols.channel import channel
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -205,19 +206,39 @@ def apply_channel(val: Any,
 
     Raises:
         TypeError: `val` doesn't have a channel and `default` wasn't specified.
-        AssertionError: if the
+        ValueError: Different left and right shapes of `args.target_tensor`
+            selected by `left_axes` and `right_axes` or `qid_shape(val)` doesn't
+            equal the left and right shapes.
+        AssertionError: `_apply_channel_` returned an auxiliary buffer.
     """
+    # Verify that val has the same qid shape as the selected axes of the density
+    # matrix tensor.
+    val_qid_shape = qid_shape_protocol.qid_shape(val,
+                                                 (2,) * len(args.left_axes))
+    left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
+    right_shape = tuple(args.target_tensor.shape[i] for i in args.right_axes)
+    if left_shape != right_shape:
+        raise ValueError('Invalid target_tensor shape or selected axes. '
+                         'The selected left and right shape of target_tensor '
+                         'are not equal. Got {!r} and {!r}.'.format(
+                             left_shape, right_shape))
+    if val_qid_shape != left_shape:
+        raise ValueError('Invalid channel qid shape is not equal to the '
+                         'selected left and right shape of target_tensor. '
+                         'Got {!r} but expected {!r}.'.format(
+                             val_qid_shape, left_shape))
+
     # Check if the specialized method is present.
     func = getattr(val, '_apply_channel_', None)
     if func is not None:
         result = func(args)
         if result is not NotImplemented and result is not None:
             def err_str(buf_num_str):
-                return (
-                    "Object of type '{}' returned a result object equal to "
-                    "auxiliary_buffer{}. This type violates the contract "
-                    "that appears in apply_unitary's documentation.".format(
-                        type(val), buf_num_str))
+                return ("Object of type '{}' returned a result object equal to "
+                        "auxiliary_buffer{}. This type violates the contract "
+                        "that appears in apply_channel's documentation.".format(
+                            type(val), buf_num_str))
+
             assert result is not args.auxiliary_buffer0, err_str('0')
             assert result is not args.auxiliary_buffer1, err_str('1')
             return result
@@ -270,7 +291,7 @@ def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
     np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
 
     # Special case for single-qubit operations.
-    if krauss[0].shape == (2, 2):
+    if len(args.left_axes) == 1 and krauss[0].shape == (2, 2):
         return _apply_krauss_single_qubit(krauss, args)
     # Fallback to np.einsum for the general case.
     return _apply_krauss_multi_qubit(krauss, args)
@@ -278,7 +299,7 @@ def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
 
 def _apply_krauss_single_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
         args: 'ApplyChannelArgs') -> np.ndarray:
-    """Use slicing to apply single qubit channel."""
+    """Use slicing to apply single qubit channel.  Only for two-level qubits."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
     one_left = linalg.slice_for_qubits_equal_to(args.left_axes, 1)
     zero_right = linalg.slice_for_qubits_equal_to(args.right_axes, 0)
@@ -305,11 +326,11 @@ def _apply_krauss_single_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
 def _apply_krauss_multi_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
         args: 'ApplyChannelArgs') -> np.ndarray:
     """Use numpy's einsum to apply a multi-qubit channel."""
+    qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     for krauss_op in krauss:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-        krauss_tensor = np.reshape(
-                krauss_op.astype(args.target_tensor.dtype),
-                (2,) * len(args.left_axes) * 2)
+        krauss_tensor = np.reshape(krauss_op.astype(args.target_tensor.dtype),
+                                   qid_shape * 2)
         linalg.targeted_left_multiply(
                 krauss_tensor,
                 args.target_tensor,

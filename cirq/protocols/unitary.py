@@ -25,6 +25,8 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.apply_unitary import ApplyUnitaryArgs, apply_unitaries
+from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -153,8 +155,6 @@ def _strat_unitary_from_unitary(val: Any) -> Optional[np.ndarray]:
 
 def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _apply_unitary_ method."""
-    from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-
     # Check for the magic method.
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
@@ -178,11 +178,7 @@ def _strat_unitary_from_apply_unitary(val: Any) -> Optional[np.ndarray]:
 
 def _strat_unitary_from_decompose(val: Any) -> Optional[np.ndarray]:
     """Attempts to compute a value's unitary via its _decompose_ method."""
-    from cirq.protocols.apply_unitary import ApplyUnitaryArgs, apply_unitaries
-
     # Check if there's a decomposition.
-    from cirq.protocols.has_unitary import (
-        _try_decompose_into_operations_and_qubits)
     operations, qubits, val_qid_shape = (
         _try_decompose_into_operations_and_qubits(val))
     if operations is None:

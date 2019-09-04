@@ -31,11 +31,11 @@ with _import.delay_import('cirq.protocols'):
         value,
         linalg,
         ops,
+        devices,
+        study,
     )
 from cirq import (
     # Core
-    devices,
-    study,
     circuits,
     schedules,
     # Optimize and run
@@ -175,6 +175,7 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
