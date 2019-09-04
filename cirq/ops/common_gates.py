@@ -439,7 +439,7 @@ class MeasurementGate(raw_types.Gate):
     """
 
     def __init__(self,
-                 num_qubits: int,
+                 num_qubits: Optional[int] = None,
                  key: str = '',
                  invert_mask: Tuple[bool, ...] = (),
                  qid_shape: Tuple[int, ...] = None) -> None:
@@ -458,10 +458,15 @@ class MeasurementGate(raw_types.Gate):
             ValueError: If the length of invert_mask is greater than num_qubits.
                 or if the length of qid_shape doesn't equal num_qubits.
         """
+        if qid_shape is None:
+            if num_qubits is None:
+                raise ValueError(
+                    'Specify either the num_qubits or qid_shape argument.')
+            qid_shape = (2,) * num_qubits
+        elif num_qubits is None:
+            num_qubits = len(qid_shape)
         if num_qubits == 0:
             raise ValueError('Measuring an empty set of qubits.')
-        if qid_shape is None:
-            qid_shape = (2,) * num_qubits
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')
@@ -656,7 +661,9 @@ class IdentityGate(raw_types.Gate):
     `cirq.I` is the single qubit identity gate.
     """
 
-    def __init__(self, num_qubits: int, qid_shape: Tuple[int, ...] = None):
+    def __init__(self,
+                 num_qubits: Optional[int] = None,
+                 qid_shape: Tuple[int, ...] = None):
         """
         Args:
             num_qubits:
@@ -667,7 +674,12 @@ class IdentityGate(raw_types.Gate):
             ValueError: If the length of qid_shape doesn't equal num_qubits.
         """
         if qid_shape is None:
+            if num_qubits is None:
+                raise ValueError(
+                    'Specify either the num_qubits or qid_shape argument.')
             qid_shape = (2,) * num_qubits
+        elif num_qubits is None:
+            num_qubits = len(qid_shape)
         self._qid_shape = qid_shape
         if len(self._qid_shape) != num_qubits:
             raise ValueError('len(qid_shape) != num_qubits')

@@ -220,8 +220,11 @@ def test_identity_init(num_qubits):
     assert cirq.IdentityGate(num_qubits).num_qubits() == num_qubits
     assert cirq.qid_shape(cirq.IdentityGate(num_qubits)) == (2,) * num_qubits
     assert cirq.qid_shape(cirq.IdentityGate(3, (1, 2, 3))) == (1, 2, 3)
+    assert cirq.qid_shape(cirq.IdentityGate(qid_shape=(1, 2, 3))) == (1, 2, 3)
     with pytest.raises(ValueError, match='len.* !='):
         cirq.IdentityGate(5, qid_shape=(1, 2))
+    with pytest.raises(ValueError, match='Specify either'):
+        cirq.IdentityGate()
 
 
 def test_identity_on_each():
@@ -349,10 +352,14 @@ def test_measure_init(num_qubits):
     assert cirq.qid_shape(cirq.MeasurementGate(num_qubits)) == (2,) * num_qubits
     assert cirq.qid_shape(cirq.MeasurementGate(3, qid_shape=(1, 2,
                                                              3))) == (1, 2, 3)
+    assert cirq.qid_shape(cirq.MeasurementGate(qid_shape=(1, 2, 3))) == (1, 2,
+                                                                         3)
     with pytest.raises(ValueError, match='len.* >'):
         cirq.MeasurementGate(5, invert_mask=(True,) * 6)
     with pytest.raises(ValueError, match='len.* !='):
         cirq.MeasurementGate(5, qid_shape=(1, 2))
+    with pytest.raises(ValueError, match='Specify either'):
+        cirq.MeasurementGate()
 
 
 def test_measurement_eq():
@@ -682,42 +689,12 @@ def test_measurement_channel():
                        [0, 0, 0, 1]])))
     np.testing.assert_allclose(
             cirq.channel(cirq.MeasurementGate(2, qid_shape=(2, 3))),
-            (np.array([[1, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0, 0, 0],
-                       [0, 1, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 1, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 1, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 1, 0],
-                       [0, 0, 0, 0, 0, 0]]),
-             np.array([[0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 1]])))
+            (np.diag([1, 0, 0, 0, 0, 0]),
+             np.diag([0, 1, 0, 0, 0, 0]),
+             np.diag([0, 0, 1, 0, 0, 0]),
+             np.diag([0, 0, 0, 1, 0, 0]),
+             np.diag([0, 0, 0, 0, 1, 0]),
+             np.diag([0, 0, 0, 0, 0, 1])))
     # yapf: enable
 
 
