@@ -97,10 +97,9 @@ def test_str_big():
 
 
 def test_pretty_print():
-    q = cirq.NamedQubit('a')
     result = cirq.WaveFunctionTrialResult(
         cirq.ParamResolver(), {},
-        cirq.WaveFunctionSimulatorState(np.array([1]), {q: 0}))
+        cirq.WaveFunctionSimulatorState(np.array([1]), {}))
 
     # Test Jupyter console output from
     class FakePrinter:

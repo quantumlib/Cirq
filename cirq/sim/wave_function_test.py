@@ -260,15 +260,15 @@ def test_invalid_to_valid_state_vector():
 def test_check_state():
     cirq.validate_normalized_state(
         np.array([0.5, 0.5, 0.5, 0.5], dtype=np.complex64),
-                                   2)
+                                   qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1, 1], dtype=np.complex64), 2)
-    with pytest.raises(ValueError):
-        cirq.validate_normalized_state(
-            np.array([1.0, 0.2, 0.0, 0.0], dtype=np.complex64), 2)
+        cirq.validate_normalized_state(np.array([1, 1], dtype=np.complex64), qid_shape=(2, 2))
     with pytest.raises(ValueError):
         cirq.validate_normalized_state(
-            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), 2)
+            np.array([1.0, 0.2, 0.0, 0.0], dtype=np.complex64), qid_shape=(2, 2))
+    with pytest.raises(ValueError):
+        cirq.validate_normalized_state(
+            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), qid_shape=(2, 2))
 
 
 def test_sample_state_big_endian():
@@ -322,7 +322,7 @@ def test_sample_state():
 
 
 def test_sample_empty_state():
-    state = np.array([])
+    state = np.array([1.0])
     np.testing.assert_almost_equal(cirq.sample_state_vector(state, []),
         np.zeros(shape=(1,0)))
 
@@ -518,7 +518,7 @@ def test_measure_state_no_indices_out_is_not_state():
 
 
 def test_measure_state_empty_state():
-    initial_state = np.array([])
+    initial_state = np.array([1.0])
     bits, state = cirq.measure_state_vector(initial_state, [])
     assert [] == bits
     np.testing.assert_almost_equal(state, initial_state)

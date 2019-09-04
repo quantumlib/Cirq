@@ -225,10 +225,12 @@ class Simulator(simulator.SimulatesSamples,
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
                 circuit.all_qubits())
         num_qubits = len(qubits)
+        qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
         state = wave_function.to_valid_state_vector(initial_state,
                                                     num_qubits,
-                                                    self._dtype)
+                                                    qid_shape=qid_shape,
+                                                    dtype=self._dtype)
         if len(circuit) == 0:
             yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
@@ -247,8 +249,8 @@ class Simulator(simulator.SimulatesSamples,
                     or protocols.is_measurement(potential_op))
 
         data = _StateAndBuffer(
-                state=np.reshape(state, (2,) * num_qubits),
-                buffer=np.empty((2,) * num_qubits, dtype=self._dtype))
+                state=np.reshape(state, qid_shape),
+                buffer=np.empty(qid_shape, dtype=self._dtype))
         for moment in circuit:
             measurements = collections.defaultdict(
                     list)  # type: Dict[str, List[bool]]
@@ -307,7 +309,7 @@ class Simulator(simulator.SimulatesSamples,
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(data.state,
                                                          indices,
-                                                         data.state)
+                                                         out=data.state)
             corrected = [bit ^ mask for bit, mask in zip(bits, invert_mask)]
             key = protocols.measurement_key(meas)
             measurements[key].extend(corrected)
@@ -395,11 +397,11 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
     def set_state_vector(self, state: Union[int, np.ndarray]):
         update_state = wave_function.to_valid_state_vector(state,
                                                            len(self.qubit_map),
-                                                           self._dtype)
+                                                           dtype=self._dtype)
         np.copyto(self._state_vector, update_state)
 
     def sample(self, qubits: List[ops.Qid],
                repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state_vector, indices,
-                                                 repetitions)
+                                                 repetitions=repetitions)  # TODO: Qudits
