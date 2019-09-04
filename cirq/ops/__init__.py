@@ -48,6 +48,7 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     ISWAP,
     ISwapPowGate,
