@@ -188,7 +188,7 @@ class Simulator(simulator.SimulatesSamples,
                 for k, v in step_result.measurements.items():
                     if not k in measurements:
                         measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=np.int8))
+                    measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
     def _simulator_iterator(
@@ -252,7 +252,7 @@ class Simulator(simulator.SimulatesSamples,
                                buffer=np.empty(qid_shape, dtype=self._dtype))
         for moment in circuit:
             measurements = collections.defaultdict(
-                    list)  # type: Dict[str, List[bool]]
+                    list)  # type: Dict[str, List[int]]
 
             non_display_ops = (op for op in moment
                                if not isinstance(op, (ops.SamplesDisplay,
@@ -298,7 +298,7 @@ class Simulator(simulator.SimulatesSamples,
         data.state = result
 
     def _simulate_measurement(self, op: ops.Operation, data: _StateAndBuffer,
-            indices: List[int], measurements: Dict[str, List[bool]],
+            indices: List[int], measurements: Dict[str, List[int]],
             num_qubits: int) -> None:
         """Simulate an op that is a measurement in the computataional basis."""
         meas = ops.op_gate_of_type(op, ops.MeasurementGate)
@@ -308,7 +308,8 @@ class Simulator(simulator.SimulatesSamples,
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(data.state,
                                                          indices,
-                                                         out=data.state)
+                                                         out=data.state,
+                                                         qid_shape=data.state.shape)
             corrected = [bit ^ mask for bit, mask in zip(bits, invert_mask)]
             key = protocols.measurement_key(meas)
             measurements[key].extend(corrected)

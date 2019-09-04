@@ -427,7 +427,7 @@ def sample_state_vector(
     _validate_indices(num_qubits, indices)
 
     if repetitions == 0 or len(indices) == 0:
-        return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
+        return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, qid_shape)
@@ -442,7 +442,7 @@ def sample_state_vector(
         value.big_endian_int_to_digits(result[i], base=meas_shape[::-1])[::-1]
         for i in range(len(result))
     ],
-                    dtype=np.int8)
+                    dtype=np.uint8)
 
 
 def measure_state_vector(
