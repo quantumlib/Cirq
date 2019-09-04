@@ -20,7 +20,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Type, Union
 import abc
 import numpy as np
 
-from cirq import linalg, ops, protocols, value
+from cirq import linalg, ops, value
 
 
 class StateVectorMixin():
@@ -551,8 +551,8 @@ def _probs(state: np.ndarray, indices: List[int],
     return probs
 
 
-def _validate_qid_shape(state: np.ndarray,
-                        qid_shape: Optional[Tuple[int, ...]]) -> int:
+def _validate_qid_shape(state: np.ndarray, qid_shape: Optional[Tuple[int, ...]]
+                       ) -> Tuple[int, ...]:
     """Validates that state's size is either a power of 2 or the product of the
     qid shape.
 
@@ -579,7 +579,7 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
 
 
 def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
-    qid_shape = [None] * len(qubit_map)
+    qid_shape: List[int] = [-1] * len(qubit_map)
     try:
         for q, i in qubit_map.items():
             qid_shape[i] = q.dimension
@@ -587,7 +587,7 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
         raise ValueError(
             'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
             format(qubit_map))
-    if None in qid_shape:
+    if -1 in qid_shape:
         raise ValueError(
             'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
                 qubit_map))

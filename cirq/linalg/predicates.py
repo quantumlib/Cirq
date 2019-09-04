@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import List, Optional, Sequence, Union, Tuple
+from typing import cast, List, Optional, Sequence, Union, Tuple
 
 import numpy as np
 
@@ -264,10 +264,10 @@ def slice_for_qubits_equal_to(
     """
     if qid_shape is not None or num_qubits is not None:
         if num_qubits is None:
-            num_qubits = len(qid_shape)
+            num_qubits = len(cast(Tuple[int, ...], qid_shape))
         elif qid_shape is None:
             qid_shape = (2,) * num_qubits
-        if num_qubits != len(qid_shape):
+        if num_qubits != len(cast(Tuple[int, ...], qid_shape)):
             raise ValueError('len(qid_shape) != num_qubits')
     if little_endian_qureg_value and big_endian_qureg_value:
         raise ValueError(
@@ -288,6 +288,8 @@ def slice_for_qubits_equal_to(
         digits = value.big_endian_int_to_digits(big_endian_qureg_value,
                                                 base=target_shape)
     else:
+        if little_endian_qureg_value < 0:
+            little_endian_qureg_value &= ((1 << len(target_shape)) - 1)
         digits = value.big_endian_int_to_digits(little_endian_qureg_value,
                                                 base=target_shape[::-1])[::-1]
     for axis, digit in zip(target_qubit_axes, digits):
