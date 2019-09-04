@@ -14,14 +14,16 @@
 
 import enum
 import itertools
-from typing import Dict, Sequence, Tuple, Union
+from typing import Dict, Sequence, Tuple, Union, TYPE_CHECKING
 
-from cirq import ops, protocols
-
+from cirq import ops
 
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate, SwapPermutationGate)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @enum.unique
@@ -62,8 +64,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
     def __init__(self,
                  subgraph: Union[str, BipartiteGraphType],
                  part_size: int,
-                 swap_gate: ops.Gate=ops.SWAP
-                 ) -> None:
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
         super().__init__(2 * part_size, swap_gate)
         self.part_size = part_size
         self.subgraph = (subgraph if isinstance(subgraph, BipartiteGraphType)
@@ -72,8 +73,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
 
 
     def decompose_complete(self,
-                           qubits: Sequence[ops.Qid]
-                           ) -> ops.OP_TREE:
+                           qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         swap_gate = SwapPermutationGate(self.swap_gate)
         if self.part_size == 1:
             yield acquaint(*qubits)
@@ -90,8 +90,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
 
 
     def decompose_matching(self,
-                           qubits: Sequence[ops.Qid]
-                           ) -> ops.OP_TREE:
+                           qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         swap_gate = SwapPermutationGate(self.swap_gate)
         for k in range(-self.part_size + 1, self.part_size):
             for x in range(abs(k), 2 * self.part_size - abs(k), 2):
@@ -101,7 +100,7 @@ class BipartiteSwapNetworkGate(PermutationGate):
                     yield acquaint(*qubits[x: x + 2])
 
 
-    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         if len(qubits) != 2 * self.part_size:
             raise ValueError('len(qubits) != 2 * self.part_size')
         if self.subgraph == BipartiteGraphType.COMPLETE:
@@ -123,8 +122,8 @@ class BipartiteSwapNetworkGate(PermutationGate):
             return dict(enumerate(range(2 * self.part_size)))
         raise NotImplementedError(str(self.subgraph) + 'not implemented')
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Tuple[str, ...]:
         qubit_count = 2 * self.part_size
         if args.known_qubit_count not in (None, qubit_count):
             raise ValueError('args.known_qubit_count not in '

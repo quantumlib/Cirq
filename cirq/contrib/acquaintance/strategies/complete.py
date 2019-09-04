@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
+from typing import Sequence, TYPE_CHECKING
 
 from cirq import circuits, ops
 
@@ -21,11 +21,14 @@ from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.mutation_utils import (
     expose_acquaintance_gates, replace_acquaintance_with_swap_network)
 
+if TYPE_CHECKING:
+    import cirq
 
-def complete_acquaintance_strategy(qubit_order: Sequence[ops.Qid],
+
+def complete_acquaintance_strategy(qubit_order: Sequence['cirq.Qid'],
                                    acquaintance_size: int = 0,
-                                   swap_gate: ops.Gate = ops.SWAP
-                                  ) -> circuits.Circuit:
+                                   swap_gate: 'cirq.Gate' = ops.SWAP
+                                  ) -> 'cirq.Circuit':
     """
     Returns an acquaintance strategy capable of executing a gate corresponding
     to any set of at most acquaintance_size qubits.
