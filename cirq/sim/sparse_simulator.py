@@ -188,7 +188,7 @@ class Simulator(simulator.SimulatesSamples,
                 for k, v in step_result.measurements.items():
                     if not k in measurements:
                         measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=bool))
+                    measurements[k].append(np.array(v, dtype=np.int8))
         return {k: np.array(v) for k, v in measurements.items()}
 
     def _simulator_iterator(
@@ -322,7 +322,7 @@ class Simulator(simulator.SimulatesSamples,
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
         index = np.random.choice(range(len(unitaries)), p=probs)
-        shape = (2,) * (2 * len(indices))
+        shape = protocols.qid_shape(op) * 2
         unitary = unitaries[index].astype(self._dtype).reshape(shape)
         result = linalg.targeted_left_multiply(unitary, data.state, indices,
                                                out=data.buffer)
@@ -358,7 +358,8 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         """
         super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
-        self._state_vector = np.reshape(state_vector, 2 ** len(qubit_map))
+        size = np.prod(protocols.qid_shape(self), dtype=int)
+        self._state_vector = np.reshape(state_vector, size)
 
     def _simulator_state(self
                         ) -> wave_function_simulator.WaveFunctionSimulatorState:
@@ -397,6 +398,7 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
     def set_state_vector(self, state: Union[int, np.ndarray]):
         update_state = wave_function.to_valid_state_vector(state,
                                                            len(self.qubit_map),
+                                                           qid_shape=protocols.qid_shape(self, None),
                                                            dtype=self._dtype)
         np.copyto(self._state_vector, update_state)
 
@@ -404,4 +406,5 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
                repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state_vector, indices,
-                                                 repetitions=repetitions)  # TODO: Qudits
+                                                 qid_shape=protocols.qid_shape(self, None),
+                                                 repetitions=repetitions)

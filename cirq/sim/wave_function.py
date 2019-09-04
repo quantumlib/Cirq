@@ -38,19 +38,8 @@ class StateVectorMixin():
         """
         super().__init__(*args, **kwargs)  # type: ignore
         self._qubit_map = qubit_map or {}
-        qid_shape = [None] * len(self._qubit_map)
-        try:
-            for q, i in self._qubit_map.items():
-                qid_shape[i] = q.dimension
-        except IndexError:
-            raise ValueError(
-                'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'
-                .format(self._qubit_map))
-        if None in qid_shape:
-            raise ValueError(
-                'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'
-                .format(self._qubit_map))
-        self._qid_shape = None if qubit_map is None else tuple(qid_shape)
+        qid_shape = _qubit_map_to_shape(self._qubit_map)
+        self._qid_shape = None if qubit_map is None else qid_shape
 
     @property
     def qubit_map(self) -> Dict[ops.Qid, int]:
@@ -572,3 +561,19 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
     if any(index >= num_qubits for index in indices):
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
+
+
+def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
+    qid_shape = [None] * len(qubit_map)
+    try:
+        for q, i in qubit_map.items():
+            qid_shape[i] = q.dimension
+    except IndexError:
+        raise ValueError(
+            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'
+            .format(qubit_map))
+    if None in qid_shape:
+        raise ValueError(
+            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'
+            .format(qubit_map))
+    return tuple(qid_shape)
