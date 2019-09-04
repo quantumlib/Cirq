@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
@@ -20,6 +20,9 @@ from cirq.circuits.optimization_pass import (
 )
 from cirq.google.api.v1 import programs
 from cirq import optimizers
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ConvertToXmonGates(PointOptimizer):
@@ -46,7 +49,7 @@ class ConvertToXmonGates(PointOptimizer):
         super().__init__()
         self.ignore_failures = ignore_failures
 
-    def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
+    def _convert_one(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
         # Known matrix?
         mat = protocols.unitary(op, None) if len(op.qubits) <= 2 else None
         if mat is not None and len(op.qubits) == 1:
@@ -62,7 +65,8 @@ class ConvertToXmonGates(PointOptimizer):
 
         return NotImplemented
 
-    def convert(self, op: ops.Operation) -> List[ops.Operation]:
+    def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
+
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "
