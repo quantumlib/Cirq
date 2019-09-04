@@ -64,7 +64,11 @@ class Heatmap:
 
     def __init__(self, value_map: ValueMap) -> None:
         self.set_value_map(value_map)
-        self.unset_annotation()
+        self.annot_map = {  # Default annotation.
+            _get_qubit_row_col(qubit): format(float(value), '.2g')
+            for qubit, value in value_map.items()
+        }
+        self.annot_kwargs: Dict[str, Any] = {}
         self.unset_url_map()
         self.set_colorbar()
         self.set_colormap()
@@ -237,9 +241,9 @@ class Heatmap:
                          **pcolor_options)
         mesh.update_scalarmappable()
         ax.set(xlabel='column', ylabel='row')
-        ax.invert_yaxis()
         ax.xaxis.set_ticks(np.arange(min_col, max_col + 1))
         ax.yaxis.set_ticks(np.arange(min_row, max_row + 1))
+        ax.set_ylim((max_row + 0.5, min_row - 0.5))
 
         if self.plot_colorbar:
             self._plot_colorbar(mesh, ax)

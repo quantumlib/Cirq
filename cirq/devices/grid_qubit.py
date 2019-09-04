@@ -41,6 +41,10 @@ class GridQubit(ops.Qid):
     def _comparison_key(self):
         return self.row, self.col
 
+    @property
+    def dimension(self) -> int:
+        return 2
+
     def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
@@ -140,7 +144,7 @@ class GridQubit(ops.Qid):
         return '({}, {})'.format(self.row, self.col)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['row', 'col'])
+        return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
         if not (isinstance(other, tuple) and len(other) == 2 and

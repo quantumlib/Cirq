@@ -166,50 +166,6 @@ def test_transform_internal_nodes():
     assert skip_tree_freeze(operations) == tuple(operations[1:])
 
     # Tree.
-    assert (
-        skip_tree_freeze((operations[1:5], operations[0], operations[5:])) ==
-        (operations[0], tuple(operations[6:])))
-
-
-def test_max_qid_shape():
-
-    class QuditGate(cirq.Gate):
-
-        def _qid_shape_(self):
-            return (3, 2, 1)
-
-    qubits = cirq.LineQubit.range(8)
-
-    def make_op_tree():
-        return [
-            cirq.X.on_each(*qubits[:2]),
-            (QuditGate().on(*qubits[i:i + 3]) for i in range(1, 4)),
-        ]
-
-    c = cirq.Circuit.from_ops(make_op_tree())
-
-    assert cirq.max_qid_shape(make_op_tree()) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(c) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              default_level=2) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(
-        make_op_tree(),
-        qubits_that_should_be_present=(qubits[1],)) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(
-        make_op_tree(),
-        qubits_that_should_be_present=qubits[:6]) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubits_that_should_be_present=qubits) == (2, 3, 3,
-                                                                        3, 2, 1,
-                                                                        1, 1)
-    assert cirq.max_qid_shape(
-        make_op_tree(),
-        qubits_that_should_be_present=qubits[::-1]) == (2, 3, 3, 3, 2, 1, 1, 1)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubit_order=qubits[5::-1]) == (1, 2, 3, 3, 3, 2)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubit_order=qubits[::-1]) == (1, 1, 1, 2, 3, 3, 3,
-                                                            2)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubit_order=qubits[::-1],
-                              default_level=2) == (2, 2, 1, 2, 3, 3, 3, 2)
+    assert (skip_tree_freeze(
+        (operations[1:5], operations[0],
+         operations[5:])) == (operations[0], tuple(operations[6:])))
