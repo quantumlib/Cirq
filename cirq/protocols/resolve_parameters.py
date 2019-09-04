@@ -14,8 +14,9 @@
 
 from typing import Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
-
 import sympy
+
+from cirq import study
 
 if TYPE_CHECKING:
     import cirq
@@ -82,7 +83,6 @@ def resolve_parameters(
         If `val` has no `_resolve_parameters_` method or if it returns
         NotImplemented, `val` itself is returned.
     """
-    from cirq import study  # HACK: break cycle.
     if not param_resolver:
         return val
 

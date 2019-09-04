@@ -148,7 +148,7 @@ class Moment:
                 for op in self.operations)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['operations'])
+        return protocols.obj_to_dict_helper(self, ['operations'])
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
