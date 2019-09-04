@@ -65,9 +65,9 @@ class StateTomographyExperiment:
 
         self.rot_circuit = cirq.Circuit().from_ops(ops)
         self.rot_sweep = cirq.Product(*sweeps)
-        self.mat = self.make_state_tomography_matrix()
+        self.mat = self._make_state_tomography_matrix()
 
-    def make_state_tomography_matrix(self) -> np.ndarray:
+    def _make_state_tomography_matrix(self) -> np.ndarray:
         """Gets the matrix used for solving the linear system of the tomography.
 
         Returns:
@@ -95,7 +95,7 @@ class StateTomographyExperiment:
                 of all n-qubit bitstrings for the corresponding pre-rotations
                 in `rot_sweep`.  The order of the probabilities corresponds to
                 to `rot_sweep` and the order of the bit strings corresponds to
-                increasing integers up to 2**(num_qubits)-1
+                increasing integers up to 2**(num_qubits)-1.
 
         Returns:
             `TomographyResult` with density matrix corresponding to solution of
