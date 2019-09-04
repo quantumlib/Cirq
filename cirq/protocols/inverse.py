@@ -15,6 +15,8 @@
 from typing import (Any, List, overload, Tuple, TYPE_CHECKING, TypeVar, Union,
                     Iterable)
 
+from cirq import ops
+
 if TYPE_CHECKING:
     import cirq
 
@@ -102,7 +104,6 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
             iterable containing invertible items. Also, no `default` argument
             was specified.
     """
-    from cirq import ops  # HACK: avoid circular import
 
     # Check if object defines an inverse via __pow__.
     raiser = getattr(val, '__pow__', None)

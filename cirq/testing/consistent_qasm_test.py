@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Tuple
+
 import warnings
-
-import pytest
-
 import numpy as np
+import pytest
 
 import cirq
 
@@ -38,6 +39,18 @@ class Fixed(cirq.Operation):
 
     def _qasm_(self, args: cirq.QasmArgs):
         return args.format(self.qasm, *self.qubits)
+
+
+class QuditGate(cirq.Gate):
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (3, 3)
+
+    def _unitary_(self):
+        return np.eye(9)
+
+    def _qasm_(self, args: cirq.QasmArgs, qubits: Tuple[cirq.Qid, ...]):
+        return NotImplemented
 
 
 def test_assert_qasm_is_consistent_with_unitary():
@@ -70,3 +83,6 @@ def test_assert_qasm_is_consistent_with_unitary():
     with pytest.raises(AssertionError, match='Illegal character'):
         cirq.testing.assert_qasm_is_consistent_with_unitary(
             Fixed(np.array([[1, 0], [0, -1]]), 'JUNK'))
+
+    # Checks that the test handles qudits
+    cirq.testing.assert_qasm_is_consistent_with_unitary(QuditGate())

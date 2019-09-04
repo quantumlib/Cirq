@@ -22,10 +22,12 @@ from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.google import xmon_device
 
 
-def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
+def gate_to_proto_dict(gate: 'cirq.Gate',
+                       qubits: Tuple['cirq.Qid', ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
 
@@ -62,7 +64,7 @@ def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
 
 
-def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
+def _x_to_proto_dict(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns': _parameterized_value_to_proto_dict(0),
@@ -71,7 +73,7 @@ def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
+def _y_to_proto_dict(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns': _parameterized_value_to_proto_dict(0.5),
@@ -80,7 +82,7 @@ def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
+def _phased_x_to_proto_dict(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
@@ -90,7 +92,7 @@ def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
+def _z_to_proto_dict(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> Dict:
     exp_z = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent),
@@ -98,7 +100,8 @@ def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
     return {'exp_z': exp_z}
 
 
-def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
+def _cz_to_proto_dict(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
+                      q: 'cirq.Qid') -> Dict:
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
@@ -107,8 +110,8 @@ def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
     return {'exp_11': exp_11}
 
 
-def _measure_to_proto_dict(gate: ops.MeasurementGate,
-                           qubits: Sequence[ops.Qid]):
+def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
+                           qubits: Sequence['cirq.Qid']):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
 
@@ -249,7 +252,7 @@ def unpack_results(data: bytes, repetitions: int,
     return results
 
 
-def is_native_xmon_op(op: ops.Operation) -> bool:
+def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     """Check if the gate corresponding to an operation is a native xmon gate.
 
     Args:
@@ -261,7 +264,7 @@ def is_native_xmon_op(op: ops.Operation) -> bool:
     return (isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate))
 
 
-def is_native_xmon_gate(gate: ops.Gate) -> bool:
+def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
     """Check if a gate is a native xmon gate.
 
     Args:
@@ -275,7 +278,7 @@ def is_native_xmon_gate(gate: ops.Gate) -> bool:
                        ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
-def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
+def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
     """Convert the proto dictionary to the corresponding operation.
 
     See protos in api/google/v1 for specification of the protos.

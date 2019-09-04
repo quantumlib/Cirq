@@ -15,19 +15,17 @@
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
     TypeVar,
     Optional,
-    Tuple,
-    List,
-    Sequence,
 )
 
-from collections import defaultdict
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.apply_unitary import ApplyUnitaryArgs
+from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
+from cirq import linalg
 
 if TYPE_CHECKING:
     import cirq
@@ -142,53 +140,16 @@ def _strat_has_unitary_from_decompose(val: Any) -> Optional[bool]:
 def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer a value's unitary-ness via its _apply_unitary_ method.
     """
-    from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-    from cirq import devices, linalg, ops
-
     method = getattr(val, '_apply_unitary_', None)
     if method is None:
         return None
-    if isinstance(val, ops.Gate):
-        val = val.on(*devices.LineQubit.range(val.num_qubits()))
-    if not isinstance(val, ops.Operation):
-        return None
 
-    val_qid_shape = qid_shape_protocol.qid_shape(val)
+    val_qid_shape = qid_shape_protocol.qid_shape(val, None)
+    if val_qid_shape is None:
+        return None
     state = linalg.one_hot(shape=val_qid_shape, dtype=np.complex64)
     buffer = np.empty_like(state)
     result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
     if result is NotImplemented:
         return None
     return result is not None
-
-
-def _try_decompose_into_operations_and_qubits(val: Any) -> Tuple[Optional[
-        List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
-    """Returns the value's decomposition (if any) and the qubits it applies to.
-    """
-    from cirq.protocols.decompose import (decompose_once,
-                                          decompose_once_with_qubits)
-    from cirq import LineQubit, Gate, Operation
-
-    if isinstance(val, Gate):
-        # Gates don't specify qubits, and so must be handled specially.
-        qid_shape = qid_shape_protocol.qid_shape(val)
-        qubits = LineQubit.range(len(qid_shape))  # type: Sequence[cirq.Qid]
-        return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
-
-    if isinstance(val, Operation):
-        qid_shape = qid_shape_protocol.qid_shape(val)
-        return decompose_once(val, None), val.qubits, qid_shape
-
-    result = decompose_once(val, None)
-    if result is not None:
-        qubit_set = set()
-        qid_shape_dict = defaultdict(lambda: 1)  # type: Dict[cirq.Qid, int]
-        for op in result:
-            for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
-                qubit_set.add(q)
-                qid_shape_dict[q] = max(qid_shape_dict[q], level)
-        qubits = sorted(qubit_set)
-        return result, qubits, tuple(qid_shape_dict[q] for q in qubits)
-
-    return None, (), ()

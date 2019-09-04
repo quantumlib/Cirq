@@ -47,6 +47,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         self._matrix = matrix
 
     def validate_args(self, qubits):
+        super().validate_args(qubits)
         if len(qubits) != 1:
             raise ValueError(
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
@@ -124,6 +125,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
         self._matrix = matrix
 
     def validate_args(self, qubits):
+        super().validate_args(qubits)
         if len(qubits) != 2:
             raise ValueError(
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
