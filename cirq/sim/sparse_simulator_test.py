@@ -292,7 +292,7 @@ class PlusGate(cirq.Gate):
         return u
 
 
-class TestMixture(cirq.Gate):
+class _TestMixture(cirq.Gate):
 
     def __init__(self, gate_options):
         self.gate_options = gate_options
@@ -342,7 +342,7 @@ def test_simulate_mixtures(dtype,):
 def test_simulate_qudit_mixtures(dtype,):
     q0 = cirq.LineQid(0, 3)
     simulator = cirq.Simulator(dtype=dtype)
-    mixture = TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
+    mixture = _TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
     circuit = cirq.Circuit.from_ops(mixture(q0), cirq.measure(q0))
     counts = {0: 0, 1: 0, 2: 0}
     for _ in range(300):

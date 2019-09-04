@@ -249,7 +249,7 @@ def slice_for_qubits_equal_to(
         big_endian_qureg_value: Same as `little_endian_qureg_value` but big
             endian w.r.t. to target qubit axes, meaning the low bit of the
             integer dertemines the desired value of the last target qubit, and
-            so forth.  Specify exactly of the qureg value arguments.
+            so forth.  Specify exactly one of the `*_qureg_value` arguments.
         num_qubits: If specified the slices will extend all the way up to
             this number of qubits, otherwise if it is None, the final element
             return will be Ellipsis. Optional and defaults to using Ellipsis.
@@ -262,6 +262,7 @@ def slice_for_qubits_equal_to(
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
     """
+    qid_shape_specified = qid_shape is not None
     if qid_shape is not None or num_qubits is not None:
         if num_qubits is None:
             num_qubits = len(cast(Tuple[int, ...], qid_shape))
@@ -273,23 +274,24 @@ def slice_for_qubits_equal_to(
         raise ValueError(
             'Specify exactly one of the arguments little_endian_qureg_value '
             'or big_endian_qureg_value.')
-    n = num_qubits if num_qubits is not None else (
-        max(target_qubit_axes) + 1 if target_qubit_axes else 0)
+    out_size_specified = num_qubits is not None
+    out_size = (num_qubits if out_size_specified else
+                max(target_qubit_axes, default=-1) + 1)
+    result: List[Union[slice, int, 'ellipsis']] = [slice(None)] * out_size
+    if not out_size_specified:
+        result.append(Ellipsis)
     if qid_shape is None:
-        qid_shape = (2,) * n
-    result: List[Union[slice, int, 'ellipsis']] = [slice(None)
-                                                  ] * (n + (num_qubits is None))
+        qid_shape = (2,) * out_size
     target_shape = tuple(qid_shape[i] for i in target_qubit_axes)
     if big_endian_qureg_value:
         digits = value.big_endian_int_to_digits(big_endian_qureg_value,
                                                 base=target_shape)
     else:
-        if little_endian_qureg_value < 0:
-            little_endian_qureg_value &= ((1 << len(target_shape)) - 1)
+        if little_endian_qureg_value < 0 and not qid_shape_specified:
+            # Allow negative binary numbers
+            little_endian_qureg_value &= (1 << len(target_shape)) - 1
         digits = value.big_endian_int_to_digits(little_endian_qureg_value,
                                                 base=target_shape[::-1])[::-1]
     for axis, digit in zip(target_qubit_axes, digits):
         result[axis] = digit
-    if num_qubits is None:
-        result[-1] = Ellipsis
     return tuple(result)
