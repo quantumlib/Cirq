@@ -207,13 +207,14 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
-                              little_endian_qureg_value: int = 0,
-                              *,  # Forces keyword args.
-                              big_endian_qureg_value: int = 0,
-                              num_qubits: Optional[int] = None,
-                              qid_shape: Optional[Tuple[int, ...]] = None,
-                              ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+def slice_for_qubits_equal_to(
+        target_qubit_axes: Sequence[int],
+        little_endian_qureg_value: int = 0,
+        *,  # Forces keyword args.
+        big_endian_qureg_value: int = 0,
+        num_qubits: Optional[int] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -277,20 +278,18 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
             'Must specify the num_qubits or qid_shape arguments when '
             'big_endian_qureg_value is used.')
     n = num_qubits if num_qubits is not None else (
-        max(target_qubit_axes)+1 if target_qubit_axes else 0)
+        max(target_qubit_axes) + 1 if target_qubit_axes else 0)
     if qid_shape is None:
         qid_shape = (2,) * n
     result: List[Union[slice, int, 'ellipsis']] = [slice(None)
                                                   ] * (n + (num_qubits is None))
     target_shape = tuple(qid_shape[i] for i in target_qubit_axes)
     if big_endian_qureg_value:
-        digits = value.big_endian_int_to_digits(
-            big_endian_qureg_value,
-            base=target_shape)
+        digits = value.big_endian_int_to_digits(big_endian_qureg_value,
+                                                base=target_shape)
     else:
-        digits = value.big_endian_int_to_digits(
-            little_endian_qureg_value,
-            base=target_shape[::-1])[::-1]
+        digits = value.big_endian_int_to_digits(little_endian_qureg_value,
+                                                base=target_shape[::-1])[::-1]
     for axis, digit in zip(target_qubit_axes, digits):
         result[axis] = digit
     if num_qubits is None:

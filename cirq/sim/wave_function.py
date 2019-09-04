@@ -89,7 +89,9 @@ class StateVectorMixin():
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return dirac_notation(self.state_vector(), decimals, qid_shape=self._qid_shape)
+        return dirac_notation(self.state_vector(),
+                              decimals,
+                              qid_shape=self._qid_shape)
 
     def density_matrix_of(self, qubits: List[ops.Qid] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
@@ -128,8 +130,7 @@ class StateVectorMixin():
         return density_matrix_from_state_vector(
             self.state_vector(),
             [self.qubit_map[q] for q in qubits] if qubits is not None else None,
-            qid_shape=self._qid_shape
-        )
+            qid_shape=self._qid_shape)
 
     def bloch_vector_of(self, qubit: ops.Qid) -> np.ndarray:
         """Returns the bloch vector of a qubit in the state.
@@ -155,7 +156,10 @@ class StateVectorMixin():
                                               qid_shape=self._qid_shape)
 
 
-def bloch_vector_from_state_vector(state: Sequence, index: int, qid_shape: Optional[Tuple[int, ...]] = None) -> np.ndarray:
+def bloch_vector_from_state_vector(state: Sequence,
+                                   index: int,
+                                   qid_shape: Optional[Tuple[int, ...]] = None
+                                  ) -> np.ndarray:
     """Returns the bloch vector of a qubit.
 
     Calculates the bloch vector of the qubit at index
@@ -188,9 +192,9 @@ def bloch_vector_from_state_vector(state: Sequence, index: int, qid_shape: Optio
 
 
 def density_matrix_from_state_vector(
-    state: Sequence,
-    indices: Optional[Iterable[int]] = None,
-    qid_shape: Optional[Tuple[int, ...]] = None,
+        state: Sequence,
+        indices: Optional[Iterable[int]] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
 ) -> np.ndarray:
     r"""Returns the density matrix of the wavefunction.
 
@@ -251,7 +255,9 @@ def density_matrix_from_state_vector(
     return rho.reshape((new_shape, new_shape))
 
 
-def dirac_notation(state: Sequence, decimals: int=2, qid_shape: Optional[Tuple[int, ...]] = None) -> str:
+def dirac_notation(state: Sequence,
+                   decimals: int = 2,
+                   qid_shape: Optional[Tuple[int, ...]] = None) -> str:
     """Returns the wavefunction as a string in Dirac notation.
 
     For example:
@@ -273,8 +279,10 @@ def dirac_notation(state: Sequence, decimals: int=2, qid_shape: Optional[Tuple[i
         qid_shape = (2,) * (len(state).bit_length() - 1)
 
     digit_separator = '' if max(qid_shape, default=0) < 10 else ','
-    perm_list = [digit_separator.join(seq) for seq in itertools.product(
-        *((str(i) for i in range(d)) for d in qid_shape))]
+    perm_list = [
+        digit_separator.join(seq) for seq in itertools.product(*(
+            (str(i) for i in range(d)) for d in qid_shape))
+    ]
     components = []
     ket = "|{}⟩"
     for x in range(len(perm_list)):
@@ -300,11 +308,12 @@ def dirac_notation(state: Sequence, decimals: int=2, qid_shape: Optional[Tuple[i
     return ' + '.join(components).replace(' + -', ' - ')
 
 
-def to_valid_state_vector(state_rep: Union[int, np.ndarray],
-                          num_qubits: int,
-                          *,  # Force keyword arguments
-                          qid_shape: Optional[Tuple[int, ...]] = None,
-                          dtype: Type[np.number] = np.complex64) -> np.ndarray:
+def to_valid_state_vector(
+        state_rep: Union[int, np.ndarray],
+        num_qubits: int,
+        *,  # Force keyword arguments
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        dtype: Type[np.number] = np.complex64) -> np.ndarray:
     """Verifies the state_rep is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
@@ -360,10 +369,11 @@ def to_valid_state_vector(state_rep: Union[int, np.ndarray],
     return state
 
 
-def validate_normalized_state(state: np.ndarray,
-                              *,  # Force keyword arguments
-                              qid_shape: Tuple[int, ...],
-                              dtype: Type[np.number] = np.complex64) -> None:
+def validate_normalized_state(
+        state: np.ndarray,
+        *,  # Force keyword arguments
+        qid_shape: Tuple[int, ...],
+        dtype: Type[np.number] = np.complex64) -> None:
     """Validates that the given state is a valid wave function."""
     if state.size != np.prod(qid_shape, dtype=int):
         raise ValueError(
@@ -378,11 +388,12 @@ def validate_normalized_state(state: np.ndarray,
         raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
-def sample_state_vector(state: np.ndarray,
-                        indices: List[int],
-                        *,  # Force keyword args
-                        qid_shape: Optional[Tuple[int, ...]] = None,
-                        repetitions: int=1) -> np.ndarray:
+def sample_state_vector(
+        state: np.ndarray,
+        indices: List[int],
+        *,  # Force keyword args
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        repetitions: int = 1) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the passed in state.
@@ -428,9 +439,11 @@ def sample_state_vector(state: np.ndarray,
     result = np.random.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
-    return np.array([value.big_endian_int_to_digits(result[i], base=meas_shape[::-1])[::-1]
-                     for i in range(len(result))], dtype=np.int8)
-
+    return np.array([
+        value.big_endian_int_to_digits(result[i], base=meas_shape[::-1])[::-1]
+        for i in range(len(result))
+    ],
+                    dtype=np.int8)
 
 
 def measure_state_vector(
@@ -490,10 +503,12 @@ def measure_state_vector(
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
-    measurement_bits = value.big_endian_int_to_digits(result, base=meas_shape[::-1])[::-1]
+    measurement_bits = value.big_endian_int_to_digits(
+        result, base=meas_shape[::-1])[::-1]
 
     # Calculate the slice for the measurement result.
-    result_slice = linalg.slice_for_qubits_equal_to(indices, result,
+    result_slice = linalg.slice_for_qubits_equal_to(indices,
+                                                    result,
                                                     qid_shape=qid_shape)
 
     # Create a mask which is False for only the slice.
@@ -526,18 +541,18 @@ def _probs(state: np.ndarray, indices: List[int],
     # Calculate the probabilities for measuring the particular results.
     meas_shape = tuple(qid_shape[i] for i in indices)
     probs = [
-        np.linalg.norm(
-                tensor[linalg.slice_for_qubits_equal_to(
-                    indices, b, qid_shape=qid_shape)]) ** 2
-        for b in range(np.prod(meas_shape, dtype=int))]
+        np.linalg.norm(tensor[linalg.slice_for_qubits_equal_to(
+            indices, b, qid_shape=qid_shape)])**2
+        for b in range(np.prod(meas_shape, dtype=int))
+    ]
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= sum(probs) # type: ignore
     return probs
 
 
-def _validate_qid_shape(state: np.ndarray, qid_shape: Optional[Tuple[int, ...]]
-                       ) -> int:
+def _validate_qid_shape(state: np.ndarray,
+                        qid_shape: Optional[Tuple[int, ...]]) -> int:
     """Validates that state's size is either a power of 2 or the product of the
     qid shape.
 
@@ -570,10 +585,10 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
             qid_shape[i] = q.dimension
     except IndexError:
         raise ValueError(
-            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'
-            .format(qubit_map))
+            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
+            format(qubit_map))
     if None in qid_shape:
         raise ValueError(
-            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'
-            .format(qubit_map))
+            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
+                qubit_map))
     return tuple(qid_shape)

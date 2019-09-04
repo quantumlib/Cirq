@@ -248,9 +248,8 @@ class Simulator(simulator.SimulatesSamples,
                     or protocols.has_mixture(potential_op)
                     or protocols.is_measurement(potential_op))
 
-        data = _StateAndBuffer(
-                state=np.reshape(state, qid_shape),
-                buffer=np.empty(qid_shape, dtype=self._dtype))
+        data = _StateAndBuffer(state=np.reshape(state, qid_shape),
+                               buffer=np.empty(qid_shape, dtype=self._dtype))
         for moment in circuit:
             measurements = collections.defaultdict(
                     list)  # type: Dict[str, List[bool]]
@@ -396,15 +395,18 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         return self._simulator_state().state_vector
 
     def set_state_vector(self, state: Union[int, np.ndarray]):
-        update_state = wave_function.to_valid_state_vector(state,
-                                                           len(self.qubit_map),
-                                                           qid_shape=protocols.qid_shape(self, None),
-                                                           dtype=self._dtype)
+        update_state = wave_function.to_valid_state_vector(
+            state,
+            len(self.qubit_map),
+            qid_shape=protocols.qid_shape(self, None),
+            dtype=self._dtype)
         np.copyto(self._state_vector, update_state)
 
     def sample(self, qubits: List[ops.Qid],
                repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
-        return wave_function.sample_state_vector(self._state_vector, indices,
-                                                 qid_shape=protocols.qid_shape(self, None),
+        return wave_function.sample_state_vector(self._state_vector,
+                                                 indices,
+                                                 qid_shape=protocols.qid_shape(
+                                                     self, None),
                                                  repetitions=repetitions)

@@ -258,17 +258,20 @@ def test_invalid_to_valid_state_vector():
 
 
 def test_check_state():
-    cirq.validate_normalized_state(
-        np.array([0.5, 0.5, 0.5, 0.5], dtype=np.complex64),
+    cirq.validate_normalized_state(np.array([0.5, 0.5, 0.5, 0.5],
+                                            dtype=np.complex64),
                                    qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1, 1], dtype=np.complex64), qid_shape=(2, 2))
+        cirq.validate_normalized_state(np.array([1, 1], dtype=np.complex64),
+                                       qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(
-            np.array([1.0, 0.2, 0.0, 0.0], dtype=np.complex64), qid_shape=(2, 2))
+        cirq.validate_normalized_state(np.array([1.0, 0.2, 0.0, 0.0],
+                                                dtype=np.complex64),
+                                       qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(
-            np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float64), qid_shape=(2, 2))
+        cirq.validate_normalized_state(np.array([1.0, 0.0, 0.0, 0.0],
+                                                dtype=np.float64),
+                                       qid_shape=(2, 2))
 
 
 def test_sample_state_big_endian():

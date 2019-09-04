@@ -135,7 +135,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             # Compute the displays in the first Moment
             moment = circuit[0]
             state = wave_function.to_valid_state_vector(
-                initial_state, num_qubits=len(qubits),
+                initial_state,
+                num_qubits=len(qubits),
                 qid_shape=protocols.qid_shape(qubits))
             qubit_map = {q: i for i, q in enumerate(qubits)}
             _enter_moment_display_values_into_dictionary(
@@ -168,8 +169,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> List[List[complex]]:
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
+        circuit = (program if isinstance(program, circuits.Circuit) else
+                   program.to_circuit())
 
         trial_results = self.simulate_sweep(circuit, params, qubit_order)
 
@@ -216,8 +217,9 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         qubit_order=qubit_order,
         qubits_that_should_be_present=qubit_map.keys())
     indices = [qubit_map[qubit] for qubit in display.qubits]
-    samples = wave_function.sample_state_vector(
-        modified_state, indices, repetitions=display.num_samples)
+    samples = wave_function.sample_state_vector(modified_state,
+                                                indices,
+                                                repetitions=display.num_samples)
     return display.value_derived_from_samples(samples)
 
 
