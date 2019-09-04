@@ -293,6 +293,7 @@ class PlusGate(cirq.Gate):
 
 
 class TestMixture(cirq.Gate):
+
     def __init__(self, gate_options):
         self.gate_options = gate_options
 
@@ -348,8 +349,8 @@ def test_simulate_qudit_mixtures(dtype,):
         result = simulator.simulate(circuit, qubit_order=[q0])
         meas = result.measurements['0 (d=3)'][0]
         counts[meas] += 1
-        np.testing.assert_almost_equal(result.final_state,
-                                       np.array([meas==0, meas==1, meas==2]))
+        np.testing.assert_almost_equal(
+            result.final_state, np.array([meas == 0, meas == 1, meas == 2]))
     assert counts[0] < 160 and counts[0] > 40
     assert counts[1] < 160 and counts[1] > 40
     assert counts[2] < 160 and counts[2] > 40
