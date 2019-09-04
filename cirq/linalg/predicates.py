@@ -273,10 +273,6 @@ def slice_for_qubits_equal_to(
         raise ValueError(
             'Specify exactly one of the arguments little_endian_qureg_value '
             'or big_endian_qureg_value.')
-    if big_endian_qureg_value and num_qubits is None:
-        raise ValueError(
-            'Must specify the num_qubits or qid_shape arguments when '
-            'big_endian_qureg_value is used.')
     n = num_qubits if num_qubits is not None else (
         max(target_qubit_axes) + 1 if target_qubit_axes else 0)
     if qid_shape is None:

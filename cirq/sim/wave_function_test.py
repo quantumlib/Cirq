@@ -41,6 +41,19 @@ def test_state_mixin():
     np.testing.assert_almost_equal(test.density_matrix_of(qubits[0:1]),
                                    np.array([[0, 0], [0, 1]]))
 
+    assert cirq.qid_shape(TestClass({qubits[i]: 1-i for i in range(2)})) == (2, 2)
+    assert cirq.qid_shape(TestClass({cirq.LineQid(i, i+1): 2-i for i in range(3)})) == (3, 2, 1)
+    assert cirq.qid_shape(TestClass(), 'no shape') == 'no shape'
+
+    with pytest.raises(ValueError, match='Qubit index out of bounds'):
+        _ = TestClass({qubits[0]: 1})
+    with pytest.raises(ValueError, match='Duplicate qubit index'):
+        _ = TestClass({qubits[0]: 0, qubits[1]: 0})
+    with pytest.raises(ValueError, match='Duplicate qubit index'):
+        _ = TestClass({qubits[0]: 1, qubits[1]: 1})
+    with pytest.raises(ValueError, match='Duplicate qubit index'):
+        _ = TestClass({qubits[0]: -1, qubits[1]: 1})
+
 
 def test_bloch_vector_simple_H_zero():
     sqrt = np.sqrt(0.5)
@@ -255,6 +268,8 @@ def test_invalid_to_valid_state_vector():
         _ = cirq.to_valid_state_vector(5, 2)
     with pytest.raises(TypeError):
         _ = cirq.to_valid_state_vector('not an int', 2)
+    with pytest.raises(ValueError, match=r'num_qubits != len\(qid_shape\)'):
+        _ = cirq.to_valid_state_vector(0, 5, qid_shape=(1, 2, 3))
 
 
 def test_check_state():

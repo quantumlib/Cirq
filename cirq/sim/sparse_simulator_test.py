@@ -274,6 +274,37 @@ def test_simulate(dtype,):
     assert len(result.measurements) == 0
 
 
+class PlusOneGate(cirq.Gate):
+    def __init__(self, dimension):
+        self.dimension = dimension
+
+    def _qid_shape_(self):
+        return (self.dimension,)
+
+    def _unitary_(self):
+        u = np.empty((self.dimension, self.dimension))
+        u[1:] = np.eye(self.dimension)[:-1]
+        u[0] = np.eye(self.dimension)[-1]
+        return u
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_qudits(dtype,):
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    simulator = cirq.Simulator(dtype=dtype)
+    circuit = cirq.Circuit.from_ops(
+        PlusOneGate(3)(q0),
+        PlusOneGate(4)(q1),
+        PlusOneGate(4)(q1),
+        PlusOneGate(4)(q1),
+    )
+    result = simulator.simulate(circuit, qubit_order=[q0, q1])
+    expected = np.zeros(12)
+    expected[4 * 1 + 3] = 1
+    np.testing.assert_almost_equal(result.final_state, expected)
+    assert len(result.measurements) == 0
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_mixtures(dtype,):
     q0 = cirq.LineQubit(0)
