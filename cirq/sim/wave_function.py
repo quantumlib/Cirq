@@ -342,9 +342,8 @@ def to_valid_state_vector(
     if qid_shape is None:
         qid_shape = (2,) * num_qubits
     if num_qubits != len(qid_shape):
-        raise ValueError(
-            'num_qubits != len(qid_shape). num_qubits is <{!r}>. '
-            'qid_shape is <{!r}>.'.format(num_qubits, qid_shape))
+        raise ValueError('num_qubits != len(qid_shape). num_qubits is <{!r}>. '
+                         'qid_shape is <{!r}>.'.format(num_qubits, qid_shape))
     if isinstance(state_rep, np.ndarray):
         if len(state_rep) != np.prod(qid_shape, dtype=int):
             raise ValueError(

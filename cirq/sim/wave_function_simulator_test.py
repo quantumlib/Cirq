@@ -98,7 +98,10 @@ def test_wave_function_trial_result_qid_shape():
 
     q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
     final_simulator_state = cirq.WaveFunctionSimulatorState(
-        qubit_map={q0: 1, q1: 0}, state_vector=np.array([0, 0, 0, 0, 1, 0]))
+        qubit_map={
+            q0: 1,
+            q1: 0
+        }, state_vector=np.array([0, 0, 0, 0, 1, 0]))
     trial_result = cirq.WaveFunctionTrialResult(
         params=cirq.ParamResolver({'s': 1}),
         measurements={'m': np.array([[2, 0]])},

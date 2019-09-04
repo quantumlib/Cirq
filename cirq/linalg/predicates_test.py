@@ -461,13 +461,18 @@ def test_qudit_sub_tensor_slice():
     assert sfqet([0], 2, qid_shape=(3,)) == (2,)
     assert sfqet([2], 0, qid_shape=(1, 2, 3)) == (a, a, 0)
     assert sfqet([2], 2, qid_shape=(1, 2, 3)) == (a, a, 2)
-    assert sfqet([2], big_endian_qureg_value=2, qid_shape=(1, 2, 3)) == (a, a, 2)
+    assert sfqet([2], big_endian_qureg_value=2,
+                 qid_shape=(1, 2, 3)) == (a, a, 2)
 
     assert sfqet([1, 3], 3 * 2 + 1, qid_shape=(2, 3, 4, 5)) == (a, 1, a, 2)
     assert sfqet([3, 1], 5 * 2 + 1, qid_shape=(2, 3, 4, 5)) == (a, 2, a, 1)
-    assert sfqet([2, 1, 0], 9*2 + 3*1, qid_shape=(3,) * 3) == (2, 1, 0)
-    assert sfqet([1, 3], big_endian_qureg_value=5 * 1 + 2, qid_shape=(2, 3, 4, 5)) == (a, 1, a, 2)
-    assert sfqet([3, 1], big_endian_qureg_value=3 * 1 + 2, qid_shape=(2, 3, 4, 5)) == (a, 2, a, 1)
+    assert sfqet([2, 1, 0], 9 * 2 + 3 * 1, qid_shape=(3,) * 3) == (2, 1, 0)
+    assert sfqet([1, 3],
+                 big_endian_qureg_value=5 * 1 + 2,
+                 qid_shape=(2, 3, 4, 5)) == (a, 1, a, 2)
+    assert sfqet([3, 1],
+                 big_endian_qureg_value=3 * 1 + 2,
+                 qid_shape=(2, 3, 4, 5)) == (a, 2, a, 1)
 
     m = np.array([0] * 24).reshape((1, 2, 3, 4))
     for k in range(24):

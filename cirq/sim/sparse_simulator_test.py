@@ -275,6 +275,7 @@ def test_simulate(dtype,):
 
 
 class PlusOneGate(cirq.Gate):
+
     def __init__(self, dimension):
         self.dimension = dimension
 
