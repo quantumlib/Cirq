@@ -46,6 +46,7 @@ import numpy as np
 from cirq import circuits, ops, protocols, schedules, study, value, work
 
 
+
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
@@ -622,3 +623,22 @@ class SimulationTrialResult:
         the result.
         """
         return self._final_simulator_state.qubit_map
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return _qubit_map_to_shape(self.qubit_map)
+
+
+def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
+    qid_shape: List[int] = [-1] * len(qubit_map)
+    try:
+        for q, i in qubit_map.items():
+            qid_shape[i] = q.dimension
+    except IndexError:
+        raise ValueError(
+            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
+            format(qubit_map))
+    if -1 in qid_shape:
+        raise ValueError(
+            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
+                qubit_map))
+    return tuple(qid_shape)
