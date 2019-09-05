@@ -20,7 +20,7 @@ from typing import Any, Dict, Iterator, Hashable, List, Optional, Union
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study, value
+from cirq import circuits, ops, protocols, schedules, study, value
 from cirq.sim import simulator, wave_function
 
 
@@ -135,7 +135,9 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             # Compute the displays in the first Moment
             moment = circuit[0]
             state = wave_function.to_valid_state_vector(
-                initial_state, num_qubits=len(qubits))
+                initial_state,
+                num_qubits=len(qubits),
+                qid_shape=protocols.qid_shape(qubits))
             qubit_map = {q: i for i, q in enumerate(qubits)}
             _enter_moment_display_values_into_dictionary(
                 display_values, moment, state, qubit_order, qubit_map)
@@ -167,11 +169,15 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> List[List[complex]]:
+        circuit = (program if isinstance(program, circuits.Circuit) else
+                   program.to_circuit())
 
-        trial_results = self.simulate_sweep(program, params, qubit_order)
+        trial_results = self.simulate_sweep(circuit, params, qubit_order)
 
+        qid_shape = circuit.qid_shape(qubit_order=qubit_order)
         amplitude_indices = [
-            _bitstring_to_integer(bitstring) for bitstring in bitstrings
+            value.big_endian_digits_to_int(bitstring, base=qid_shape)
+            for bitstring in bitstrings
         ]
 
         all_amplitudes = []
@@ -183,11 +189,6 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes
-
-
-def _bitstring_to_integer(bitstring: np.ndarray):
-    n = len(bitstring)
-    return sum(bitstring[i] << (n - i - 1) for i in range(n))
 
 
 def _enter_moment_display_values_into_dictionary(
@@ -216,8 +217,9 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         qubit_order=qubit_order,
         qubits_that_should_be_present=qubit_map.keys())
     indices = [qubit_map[qubit] for qubit in display.qubits]
-    samples = wave_function.sample_state_vector(
-        modified_state, indices, display.num_samples)
+    samples = wave_function.sample_state_vector(modified_state,
+                                                indices,
+                                                repetitions=display.num_samples)
     return display.value_derived_from_samples(samples)
 
 
@@ -242,6 +244,10 @@ class WaveFunctionSimulatorState:
         qubit_map: Dict[ops.Qid, int]):
         self.state_vector = state_vector
         self.qubit_map = qubit_map
+        self._qid_shape = wave_function._qubit_map_to_shape(qubit_map)
+
+    def _qid_shape_(self):
+        return self._qid_shape
 
     def __repr__(self):
         return (
