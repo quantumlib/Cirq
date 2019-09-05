@@ -290,8 +290,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             indices,
                             qid_shape=qid_shape,
                             out=state.tensor)
-                        corrected = [bit ^ mask for bit, mask in
-                                     zip(bits, invert_mask)]
+                        corrected = [
+                            bit ^ (bit < 2 and mask)
+                            for bit, mask in zip(bits, invert_mask)
+                        ]
                         key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
                 else:
