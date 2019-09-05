@@ -441,7 +441,6 @@ NOT_YET_SERIALIZABLE = [
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'Zip',
-    'RESET',
 ]
 
 
