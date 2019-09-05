@@ -159,7 +159,7 @@ class ZZPowGate(eigen_gate.EigenGate,
         where w = e^{i \pi t} and '.' means '0'.
     """
 
-def _decompose_(self, qubits):
+    def _decompose_(self, qubits):
         yield ZPowGate(exponent=self.exponent)(qubits[0])
         yield ZPowGate(exponent=self.exponent)(qubits[1])
         yield CZPowGate(exponent=-2 * self.exponent)(qubits[0], qubits[1])
