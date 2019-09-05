@@ -71,7 +71,8 @@ def to_valid_density_matrix(
         return density_matrix_rep
 
     state_vector = wave_function.to_valid_state_vector(density_matrix_rep,
-                                                       num_qubits, dtype)
+                                                       num_qubits,
+                                                       dtype=dtype)
     return np.outer(state_vector, np.conj(state_vector))
 
 
