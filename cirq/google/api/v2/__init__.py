@@ -17,7 +17,8 @@ from cirq.google.api.v2 import (
     metrics_pb2,
     program_pb2,
     result_pb2,
-    run_context_pb2,)
+    run_context_pb2,
+)
 
 from cirq.google.api.v2.results import (
     MeasureInfo,
