@@ -544,7 +544,7 @@ class DensityMatrixStepResult(simulator.StepResult):
                 |  7  |   1    |   1    |   1    |
 
         """
-        size = 2 ** len(self._qubit_map)
+        size = np.prod(self._qid_shape, dtype=int)
         return np.reshape(self._density_matrix, (size, size))
 
     def sample(self,

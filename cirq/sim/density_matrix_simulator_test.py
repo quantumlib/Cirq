@@ -21,6 +21,37 @@ import sympy
 import cirq
 
 
+class PlusGate(cirq.Gate):
+    """A qudit gate that increments a qudit state mod its dimension."""
+
+    def __init__(self, dimension, increment=1):
+        self.dimension = dimension
+        self.increment = increment % dimension
+
+    def _qid_shape_(self):
+        return (self.dimension,)
+
+    def _unitary_(self):
+        inc = (self.increment - 1) % self.dimension + 1
+        u = np.empty((self.dimension, self.dimension))
+        u[inc:] = np.eye(self.dimension)[:-inc]
+        u[:inc] = np.eye(self.dimension)[-inc:]
+        return u
+
+
+class _TestMixture(cirq.Gate):
+
+    def __init__(self, gate_options):
+        self.gate_options = gate_options
+
+    def _qid_shape_(self):
+        return cirq.qid_shape(self.gate_options[0], ())
+
+    def _mixture_(self):
+        return [(1 / len(self.gate_options), cirq.unitary(g))
+                for g in self.gate_options]
+
+
 def test_invalid_dtype():
     with pytest.raises(ValueError, match='complex'):
         cirq.DensityMatrixSimulator(dtype=np.int32)
@@ -380,14 +411,36 @@ def test_simulate_moment_steps(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), cirq.H(q0),
                                     cirq.H(q1))
-    simulator = cirq.Simulator(dtype=dtype)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
-            np.testing.assert_almost_equal(step.state_vector(),
-                                           np.array([0.5] * 4))
+            np.testing.assert_almost_equal(step.density_matrix(),
+                                           np.ones((4, 4)) / 4)
         else:
-            np.testing.assert_almost_equal(step.state_vector(),
-                                           np.array([1, 0, 0, 0]))
+            np.testing.assert_almost_equal(step.density_matrix(),
+                                           np.diag([1, 0, 0, 0]))
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_moment_steps_qudits(dtype):
+    q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
+    circuit = cirq.Circuit.from_ops(
+        PlusGate(2, 1)(q0),
+        PlusGate(3, 1)(q1),
+        cirq.reset(q1),
+        PlusGate(3, 1)(q1),
+    )
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
+        if i == 0:
+            np.testing.assert_almost_equal(step.density_matrix(),
+                                           np.diag([0, 0, 0, 0, 1, 0]))
+        elif i == 1:
+            np.testing.assert_almost_equal(step.density_matrix(),
+                                           np.diag([0, 0, 0, 1, 0, 0]))
+        else:
+            np.testing.assert_almost_equal(step.density_matrix(),
+                                           np.diag([0, 0, 0, 0, 1, 0]))
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

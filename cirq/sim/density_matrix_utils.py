@@ -265,20 +265,18 @@ def _qid_shape_from_args(num_qubits: Optional[int],
     """Returns either `(2,) * num_qubits` or `qid_shape`.
 
     Raises:
-        TypeError: If both arguments are `None`.
-        ValueError: If their values disagree.
+        ValueError: If both arguments are None or their values disagree.
     """
     if num_qubits is None and qid_shape is None:
-        raise TypeError('Either the num_qubits or qid_shape argument must be '
+        raise ValueError('Either the num_qubits or qid_shape argument must be '
                         'specified. Both were None.')
     if num_qubits is None:
         return cast(Tuple[int, ...], qid_shape)
     if qid_shape is None:
         return (2,) * num_qubits
     if len(qid_shape) != num_qubits:
-        raise ValueError('num_qubits and qid_shape disagree. num_qubits must '
-                         'equal len(qid_shape). num_qubits was {!r}. qid_shape '
-                         'was {!r}.'.format(num_qubits, qid_shape))
+        raise ValueError('num_qubits != len(qid_shape). num_qubits was {!r}. '
+                         'qid_shape was {!r}.'.format(num_qubits, qid_shape))
     return qid_shape
 
 
