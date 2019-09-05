@@ -328,6 +328,8 @@ def to_valid_state_vector(
             appropriate dtype.
         num_qubits: The number of qubits for the state. The state_rep must be
             valid for this number of qubits.
+        qid_shape: The expected qid shape of the state vector.  Specify this
+            argument when using qudits.
         dtype: The numpy dtype of the state, will be used when creating the
             state for a computational basis state, or validated against if
             state_rep is a numpy array.
@@ -405,6 +407,8 @@ def sample_state_vector(
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has its largest values in the 0th index.
+        qid_shape: The qid shape of the state vector.  Specify this argument
+            when using qudits.
         repetitions: The number of times to sample the state.
 
     Returns:
@@ -462,6 +466,8 @@ def measure_state_vector(
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values in the 0th index.
+        qid_shape: The qid shape of the state vector.  Specify this argument
+            when using qudits.
         out: An optional place to store the result. If `out` is the same as
             the `state` parameter, then state will be modified inline. If `out`
             is not None, then the result is put into `out`.  If `out` is None
