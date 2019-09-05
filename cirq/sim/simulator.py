@@ -373,7 +373,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
-                    measurements[k] = np.array(v, dtype=bool)
+                    measurements[k] = np.array(v, dtype=np.uint8)
             trial_results.append(
                 self._create_simulator_trial_result(
                     params=param_resolver,
@@ -470,7 +470,7 @@ class StepResult(metaclass=abc.ABCMeta):
     """
 
     def __init__(self,
-                 measurements: Optional[Dict[str, List[bool]]] = None) -> None:
+                 measurements: Optional[Dict[str, List[int]]] = None) -> None:
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
