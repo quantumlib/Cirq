@@ -16,8 +16,8 @@
 
 import collections
 
-from typing import (Any, cast, Dict, Hashable, Iterator, List, Optional,
-                    Type, Sequence, Union)
+from typing import (Any, cast, Dict, Hashable, Iterator, List, Optional, Type,
+                    Sequence, Union)
 
 import numpy as np
 
@@ -233,7 +233,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
         initial_matrix = density_matrix_utils.to_valid_density_matrix(
-            initial_state, len(qid_shape), qid_shape=qid_shape,
+            initial_state,
+            len(qid_shape),
+            qid_shape=qid_shape,
             dtype=self._dtype)
         if len(circuit) == 0:
             yield DensityMatrixStepResult(initial_matrix, {}, qubit_map,
@@ -386,17 +388,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
             # Compute the displays in the rest of the Moments
             all_step_results = self.simulate_moment_steps(
-                circuit,
-                param_resolver,
-                qubits,
-                initial_state)
+                circuit, param_resolver, qubits, initial_state)
             for step_result, moment in zip(all_step_results, circuit[1:]):
                 _enter_moment_display_values_into_dictionary(
-                    display_values,
-                    moment,
-                    step_result.density_matrix(),
-                    qubits,
-                    step_result._qubit_map)
+                    display_values, moment, step_result.density_matrix(),
+                    qubits, step_result._qubit_map)
 
             compute_displays_results.append(study.ComputeDisplaysResult(
                 params=param_resolver,
@@ -416,12 +412,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 'parameter sweep. Ops: {}'.format(unresolved))
 
 
-def _enter_moment_display_values_into_dictionary(
-        display_values: Dict,
-        moment: ops.Moment,
-        state: np.ndarray,
-        qubits: Sequence[ops.Qid],
-        qubit_map: Dict[ops.Qid, int]):
+def _enter_moment_display_values_into_dictionary(display_values: Dict,
+                                                 moment: ops.Moment,
+                                                 state: np.ndarray,
+                                                 qubits: Sequence[ops.Qid],
+                                                 qubit_map: Dict[ops.Qid, int]):
     for op in moment:
         if isinstance(op, ops.DensityMatrixDisplay):
             display_values[op.key] = (
@@ -432,9 +427,8 @@ def _enter_moment_display_values_into_dictionary(
 
 
 def _compute_samples_display_value(display: ops.SamplesDisplay,
-        state: np.ndarray,
-        qubits: Sequence[ops.Qid],
-        qubit_map: Dict[ops.Qid, int]):
+                                   state: np.ndarray, qubits: Sequence[ops.Qid],
+                                   qubit_map: Dict[ops.Qid, int]):
     n = len(qubits)
     qid_shape = protocols.qid_shape(qubits)
     state = np.reshape(state, qid_shape * 2)
@@ -444,8 +438,7 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         indices = [qubit_map[qubit] for qubit in op.qubits]
         gate = cast(ops.GateOperation, op).gate
         unitary = protocols.unitary(gate)
-        krauss_tensor = np.reshape(unitary,
-                                   protocols.qid_shape(gate) * 2)
+        krauss_tensor = np.reshape(unitary, protocols.qid_shape(gate) * 2)
         state = linalg.targeted_left_multiply(krauss_tensor,
                                                state,
                                                indices)
@@ -514,13 +507,13 @@ class DensityMatrixStepResult(simulator.StepResult):
             with trace one.
         """
         density_matrix = density_matrix_utils.to_valid_density_matrix(
-            density_matrix_repr, len(self._qubit_map), qid_shape=self._qid_shape, dtype=self._dtype)
+            density_matrix_repr,
+            len(self._qubit_map),
+            qid_shape=self._qid_shape,
+            dtype=self._dtype)
         sim_state_matrix = self._simulator_state().density_matrix
-        density_matrix = np.reshape(
-            density_matrix,
-            sim_state_matrix.shape)
-        np.copyto(dst=sim_state_matrix,
-                  src=density_matrix)
+        density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
+        np.copyto(dst=sim_state_matrix, src=density_matrix)
 
     def density_matrix(self):
         """Returns the density matrix at this step in the simulation.
@@ -559,7 +552,10 @@ class DensityMatrixStepResult(simulator.StepResult):
             repetitions: int = 1) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
-            self._simulator_state().density_matrix, indices, qid_shape=self._qid_shape, repetitions=repetitions)
+            self._simulator_state().density_matrix,
+            indices,
+            qid_shape=self._qid_shape,
+            repetitions=repetitions)
 
 
 @value.value_equality(unhashable=True)

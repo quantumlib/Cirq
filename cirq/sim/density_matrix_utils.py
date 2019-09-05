@@ -23,11 +23,11 @@ from cirq.sim import wave_function
 
 
 def to_valid_density_matrix(
-    density_matrix_rep: Union[int, np.ndarray],
-    num_qubits: Optional[int] = None,
-    *,  # Force keyword arguments
-    qid_shape: Optional[Tuple[int, ...]] = None,
-    dtype: Type[np.number] = np.complex64) -> np.ndarray:
+        density_matrix_rep: Union[int, np.ndarray],
+        num_qubits: Optional[int] = None,
+        *,  # Force keyword arguments
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        dtype: Type[np.number] = np.complex64) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
     This method is used to support passing a matrix, a vector (wave function),
@@ -83,11 +83,11 @@ def to_valid_density_matrix(
 
 
 def sample_density_matrix(
-    density_matrix: np.ndarray,
-    indices: List[int],
-    *,  # Force keyword arguments
-    qid_shape: Optional[Tuple[int, ...]] = None,
-    repetitions: int=1) -> np.ndarray:
+        density_matrix: np.ndarray,
+        indices: List[int],
+        *,  # Force keyword arguments
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        repetitions: int = 1) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the density_matrix.
@@ -140,15 +140,18 @@ def sample_density_matrix(
     result = np.random.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
-    return np.array([value.big_endian_int_to_digits(result[i], base=meas_shape)
-                     for i in range(len(result))], dtype=np.int8)
+    return np.array([
+        value.big_endian_int_to_digits(result[i], base=meas_shape)
+        for i in range(len(result))
+    ],
+                    dtype=np.int8)
 
 
-def measure_density_matrix(
-    density_matrix: np.ndarray,
-    indices: List[int],
-    qid_shape: Optional[Tuple[int, ...]] = None,
-    out: np.ndarray = None) -> Tuple[List[int], np.ndarray]:
+def measure_density_matrix(density_matrix: np.ndarray,
+                           indices: List[int],
+                           qid_shape: Optional[Tuple[int, ...]] = None,
+                           out: np.ndarray = None
+                          ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
     This does not modify `density_matrix` unless the optional `out` is
@@ -212,9 +215,7 @@ def measure_density_matrix(
 
     # Calculate the slice for the measurement result.
     result_slice = linalg.slice_for_qubits_equal_to(
-        indices,
-        big_endian_qureg_value=result,
-        qid_shape=qid_shape)
+        indices, big_endian_qureg_value=result, qid_shape=qid_shape)
     # Create a mask which is False for only the slice.
     mask = np.ones(qid_shape * 2, dtype=bool)
     # Remove ellipses from last element of
@@ -238,7 +239,7 @@ def measure_density_matrix(
 
 
 def _probs(density_matrix: np.ndarray, indices: List[int],
-    qid_shape: Tuple[int, ...]) -> List[float]:
+           qid_shape: Tuple[int, ...]) -> List[float]:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(
@@ -249,8 +250,11 @@ def _probs(density_matrix: np.ndarray, indices: List[int],
     # Calculate the probabilities for measuring the particular results.
     meas_shape = tuple(qid_shape[i] for i in indices)
     probs = [
-        np.sum(np.abs(tensor[linalg.slice_for_qubits_equal_to(indices, big_endian_qureg_value=b, qid_shape=qid_shape)]))
-        for b in range(np.prod(meas_shape, dtype=int))]
+        np.sum(
+            np.abs(tensor[linalg.slice_for_qubits_equal_to(
+                indices, big_endian_qureg_value=b, qid_shape=qid_shape)]))
+        for b in range(np.prod(meas_shape, dtype=int))
+    ]
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= np.sum(probs) # type: ignore
@@ -280,25 +284,24 @@ def _qid_shape_from_args(num_qubits: Optional[int],
     return qid_shape
 
 
-def _validate_density_matrix_qid_shape(density_matrix: np.array,
-                                       qid_shape: Optional[Tuple[int, ...]] = None
-                                      ) -> Tuple[int, ...]:
+def _validate_density_matrix_qid_shape(
+        density_matrix: np.array,
+        qid_shape: Optional[Tuple[int, ...]] = None) -> Tuple[int, ...]:
     """Validates that a tensor's shape is a valid shape for qids and returns the
     qid shape.
     """
     shape = density_matrix.shape
     if qid_shape is not None and len(shape) == 2:
-        if np.prod(qid_shape, dtype=int) ** 2 != np.prod(shape, dtype=int):
+        if np.prod(qid_shape, dtype=int)**2 != np.prod(shape, dtype=int):
             raise ValueError(
                 'Matrix size does not match qid shape {!r}. Got matrix with '
-                'shape {!r}. Expected {!r}.'.format(qid_shape, shape,
-                    np.prod(qid_shape, dtype=int)))
+                'shape {!r}. Expected {!r}.'.format(
+                    qid_shape, shape, np.prod(qid_shape, dtype=int)))
         return qid_shape
     if len(shape) % 2 != 0:
-        raise ValueError(
-            'Tensor was not square. Shape was {}'.format(shape))
-    left_shape = shape[:len(shape)//2]
-    right_shape = shape[len(shape)//2:]
+        raise ValueError('Tensor was not square. Shape was {}'.format(shape))
+    left_shape = shape[:len(shape) // 2]
+    right_shape = shape[len(shape) // 2:]
     if left_shape != right_shape:
         raise ValueError(
             "Tensor's left and right shape are not equal. Shape was {}".format(
@@ -332,8 +335,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     return int(row_size).bit_length() - 1
 
 
-def _indices_shape(qid_shape: Tuple[int, ...], indices: List[int]
-                  ) -> Tuple[int, ...]:
+def _indices_shape(qid_shape: Tuple[int, ...],
+                   indices: List[int]) -> Tuple[int, ...]:
     """Validates that the indices have values within range of `len(qid_shape)`."""
     if any(index < 0 for index in indices):
         raise IndexError('Negative index in indices: {}'.format(indices))
