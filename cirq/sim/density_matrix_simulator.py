@@ -286,7 +286,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         invert_mask = meas.full_invert_mask()
                         # Measure updates inline.
                         bits, _ = density_matrix_utils.measure_density_matrix(
-                            state.tensor, indices, qid_shape=qid_shape,
+                            state.tensor,
+                            indices,
+                            qid_shape=qid_shape,
                             out=state.tensor)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]

@@ -269,7 +269,7 @@ def _qid_shape_from_args(num_qubits: Optional[int],
     """
     if num_qubits is None and qid_shape is None:
         raise ValueError('Either the num_qubits or qid_shape argument must be '
-                        'specified. Both were None.')
+                         'specified. Both were None.')
     if num_qubits is None:
         return cast(Tuple[int, ...], qid_shape)
     if qid_shape is None:

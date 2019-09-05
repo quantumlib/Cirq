@@ -24,7 +24,8 @@ def assert_valid_density_matrix(matrix, num_qubits=1, qid_shape=None):
     if qid_shape is not None and num_qubits == 1:
         num_qubits = len(qid_shape)
     np.testing.assert_almost_equal(
-        cirq.to_valid_density_matrix(matrix, num_qubits=num_qubits,
+        cirq.to_valid_density_matrix(matrix,
+                                     num_qubits=num_qubits,
                                      qid_shape=qid_shape,
                                      dtype=matrix.dtype), matrix)
 
@@ -96,8 +97,11 @@ def test_to_valid_density_matrix_from_density_matrix():
          [0.2 + 0.3j, 0, 0, 0.8]]),
         num_qubits=2)
 
-    assert_valid_density_matrix(np.array([[1, 0, 0]] + [[0, 0, 0]]*2), qid_shape=(3,))
-    assert_valid_density_matrix(np.array([[0, 0, 0], [0, 0.5, 0.5j], [0, -0.5j, 0.5]]), qid_shape=(3,))
+    assert_valid_density_matrix(np.array([[1, 0, 0]] + [[0, 0, 0]] * 2),
+                                qid_shape=(3,))
+    assert_valid_density_matrix(np.array([[0, 0, 0], [0, 0.5, 0.5j],
+                                          [0, -0.5j, 0.5]]),
+                                qid_shape=(3,))
     assert_valid_density_matrix(np.eye(9) / 9.0, qid_shape=(3, 3))
     assert_valid_density_matrix(np.eye(12) / 12.0, qid_shape=(3, 4))
     assert_valid_density_matrix(np.ones([9, 9]) / 9.0, qid_shape=(3, 3))
@@ -136,9 +140,13 @@ def test_to_valid_density_matrix_not_hermitian():
 
 def test_to_valid_density_matrix_mismatched_qid_shape():
     with pytest.raises(ValueError, match=r'num_qubits != len\(qid_shape\)'):
-        cirq.to_valid_density_matrix(np.eye(4) / 4, num_qubits=1, qid_shape=(2, 2))
+        cirq.to_valid_density_matrix(np.eye(4) / 4,
+                                     num_qubits=1,
+                                     qid_shape=(2, 2))
     with pytest.raises(ValueError, match=r'num_qubits != len\(qid_shape\)'):
-        cirq.to_valid_density_matrix(np.eye(4) / 4, num_qubits=2, qid_shape=(4,))
+        cirq.to_valid_density_matrix(np.eye(4) / 4,
+                                     num_qubits=2,
+                                     qid_shape=(4,))
     with pytest.raises(ValueError, match='Both were None'):
         cirq.to_valid_density_matrix(np.eye(4) / 4)
 
