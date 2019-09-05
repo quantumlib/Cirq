@@ -275,9 +275,9 @@ def slice_for_qubits_equal_to(
             'Specify exactly one of the arguments little_endian_qureg_value '
             'or big_endian_qureg_value.')
     out_size_specified = num_qubits is not None
-    out_size = (num_qubits if out_size_specified else
+    out_size = (cast(int, num_qubits) if out_size_specified else
                 max(target_qubit_axes, default=-1) + 1)
-    result: List[Union[slice, int, 'ellipsis']] = [slice(None)] * out_size
+    result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
     if not out_size_specified:
         result.append(Ellipsis)
     if qid_shape is None:
