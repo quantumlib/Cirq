@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate
+from cirq.ops import gate_features, eigen_gate, ZPowGate, CZPowGate
 from cirq.ops.common_gates import _rads_func_symbol
 
 
@@ -158,6 +158,10 @@ class ZZPowGate(eigen_gate.EigenGate,
 
         where w = e^{i \pi t} and '.' means '0'.
     """
+    def _decompose_(self, qubits):
+        yield ZPowGate(exponent=self.exponent)(qubits[0])
+        yield ZPowGate(exponent=self.exponent)(qubits[1])
+        yield CZPowGate(exponent=-2 * self.exponent)(qubits[0], qubits[1])
 
     def _eigen_components(self):
         return [
