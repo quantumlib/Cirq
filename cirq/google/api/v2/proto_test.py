@@ -11,24 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Data format v1 for google api."""
+"""Check protobuf modules initialize successfully."""
 
-from cirq.google.api.v1 import (
-    operations_pb2,
-    params_pb2,
-    program_pb2,
-)
-
-from cirq.google.api.v1.params import (sweep_from_proto_dict,
-                                       sweep_to_proto_dict)
-
-from cirq.google.api.v1.programs import (
-    gate_to_proto_dict,
-    is_native_xmon_gate,
-    is_native_xmon_op,
-    pack_results,
-    schedule_from_proto_dicts,
-    schedule_to_proto_dicts,
-    unpack_results,
-    xmon_op_from_proto_dict,
-)
+# pylint: disable=unused-import
+from cirq.google.api.v2 import metrics_pb2
+from cirq.google.api.v2 import program_pb2
+from cirq.google.api.v2 import result_pb2
+from cirq.google.api.v2 import run_context_pb2
+# pylint: enable=unused-import
