@@ -286,7 +286,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         invert_mask = meas.full_invert_mask()
                         # Measure updates inline.
                         bits, _ = density_matrix_utils.measure_density_matrix(
-                            state.tensor, indices, out=state.tensor)
+                            state.tensor, indices, qid_shape=qid_shape,
+                            out=state.tensor)
                         corrected = [bit ^ mask for bit, mask in
                                      zip(bits, invert_mask)]
                         key = protocols.measurement_key(meas)
@@ -635,7 +636,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         super().__init__(params=params,
                          measurements=measurements,
                          final_simulator_state=final_simulator_state)
-        size = 2 ** len(final_simulator_state.qubit_map)
+        size = np.prod(protocols.qid_shape(self), dtype=int)
         self.final_density_matrix = np.reshape(
             final_simulator_state.density_matrix, (size, size))
 
