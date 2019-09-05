@@ -282,12 +282,12 @@ def _qid_shape_from_args(num_qubits: Optional[int],
 
 def _validate_density_matrix_qid_shape(
         density_matrix: np.array,
-        qid_shape: Optional[Tuple[int, ...]] = None) -> Tuple[int, ...]:
+        qid_shape: Tuple[int, ...]) -> Tuple[int, ...]:
     """Validates that a tensor's shape is a valid shape for qids and returns the
     qid shape.
     """
     shape = density_matrix.shape
-    if qid_shape is not None and len(shape) == 2:
+    if len(shape) == 2:
         if np.prod(qid_shape, dtype=int)**2 != np.prod(shape, dtype=int):
             raise ValueError(
                 'Matrix size does not match qid shape {!r}. Got matrix with '

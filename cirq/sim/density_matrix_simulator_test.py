@@ -746,6 +746,17 @@ def test_density_matrix_simulator_state_eq():
                                          qubit_map={q0: 0, q1: 1}))
 
 
+def test_density_matrix_simulator_state_qid_shape():
+    q0, q1 = cirq.LineQubit.range(2)
+    assert cirq.qid_shape(cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1})
+        ) == (2, 2)
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    assert cirq.qid_shape(cirq.DensityMatrixSimulatorState(
+        density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1})
+        ) == (3, 4)
+
+
 def test_density_matrix_simulator_state_repr():
     q0 = cirq.LineQubit(0)
     assert (repr(cirq.DensityMatrixSimulatorState(
@@ -780,6 +791,25 @@ def test_density_matrix_trial_result_eq():
             params=cirq.ParamResolver({'s': 1}),
             measurements={'m': np.array([[1]])},
             final_simulator_state=final_simulator_state))
+
+
+def test_density_matrix_trial_result_qid_shape():
+    q0, q1 = cirq.LineQubit.range(2)
+    assert cirq.qid_shape(
+        cirq.DensityMatrixTrialResult(
+            params=cirq.ParamResolver({}),
+            measurements={},
+            final_simulator_state=cirq.DensityMatrixSimulatorState(
+                density_matrix=np.ones((4, 4)) / 4, qubit_map={q0: 0, q1: 1})
+        )) == (2, 2)
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    assert cirq.qid_shape(
+        cirq.DensityMatrixTrialResult(
+            params=cirq.ParamResolver({}),
+            measurements={},
+            final_simulator_state=cirq.DensityMatrixSimulatorState(
+                density_matrix=np.ones((12, 12)) / 12, qubit_map={q0: 0, q1: 1})
+        )) == (3, 4)
 
 
 def test_density_matrix_trial_result_repr():
