@@ -13,7 +13,7 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import List, Optional, Tuple, Type, Union
+from typing import cast, List, Optional, Tuple, Type, Union
 
 import numpy as np
 from scipy.stats import entropy
@@ -76,7 +76,7 @@ def to_valid_density_matrix(
         return density_matrix_rep
 
     state_vector = wave_function.to_valid_state_vector(density_matrix_rep,
-                                                       num_qubits,
+                                                       len(qid_shape),
                                                        qid_shape=qid_shape,
                                                        dtype=dtype)
     return np.outer(state_vector, np.conj(state_vector))
@@ -126,7 +126,7 @@ def sample_density_matrix(
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
         num_qubits = len(qid_shape)
-    idx_shape = _indices_shape(qid_shape, indices)
+    meas_shape = _indices_shape(qid_shape, indices)
 
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
@@ -139,7 +139,6 @@ def sample_density_matrix(
     # choosing from a list of tuples or list of lists.
     result = np.random.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
-    meas_shape = tuple(qid_shape[i] for i in indices)
     return np.array([
         value.big_endian_int_to_digits(result[i], base=meas_shape)
         for i in range(len(result))
@@ -194,7 +193,7 @@ def measure_density_matrix(density_matrix: np.ndarray,
     else:
         _validate_density_matrix_qid_shape(density_matrix, qid_shape)
         num_qubits = len(qid_shape)
-    idx_shape = _indices_shape(qid_shape, indices)
+    meas_shape = _indices_shape(qid_shape, indices)
 
     if len(indices) == 0:
         if out is None:
@@ -210,7 +209,6 @@ def measure_density_matrix(density_matrix: np.ndarray,
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)
     result = np.random.choice(len(probs), p=probs)
-    meas_shape = tuple(qid_shape[i] for i in indices)
     measurement_bits = value.big_endian_int_to_digits(result, base=meas_shape)
 
     # Calculate the slice for the measurement result.
@@ -274,7 +272,7 @@ def _qid_shape_from_args(num_qubits: Optional[int],
         raise TypeError('Either the num_qubits or qid_shape argument must be '
                         'specified. Both were None.')
     if num_qubits is None:
-        return qid_shape
+        return cast(Tuple[int, ...], qid_shape)
     if qid_shape is None:
         return (2,) * num_qubits
     if len(qid_shape) != num_qubits:
@@ -337,7 +335,8 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
 
 def _indices_shape(qid_shape: Tuple[int, ...],
                    indices: List[int]) -> Tuple[int, ...]:
-    """Validates that the indices have values within range of `len(qid_shape)`."""
+    """Validates that the indices have values within range of `len(qid_shape)`.
+    """
     if any(index < 0 for index in indices):
         raise IndexError('Negative index in indices: {}'.format(indices))
     if any(index >= len(qid_shape) for index in indices):
