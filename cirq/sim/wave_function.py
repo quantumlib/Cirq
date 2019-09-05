@@ -439,7 +439,7 @@ def sample_state_vector(
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
     return np.array([
-        value.big_endian_int_to_digits(result[i], base=meas_shape[::-1])[::-1]
+        value.big_endian_int_to_digits(result[i], base=meas_shape)
         for i in range(len(result))
     ],
                     dtype=np.uint8)
@@ -502,13 +502,11 @@ def measure_state_vector(
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
-    measurement_bits = value.big_endian_int_to_digits(
-        result, base=meas_shape[::-1])[::-1]
+    measurement_bits = value.big_endian_int_to_digits(result, base=meas_shape)
 
     # Calculate the slice for the measurement result.
-    result_slice = linalg.slice_for_qubits_equal_to(indices,
-                                                    result,
-                                                    qid_shape=qid_shape)
+    result_slice = linalg.slice_for_qubits_equal_to(
+        indices, big_endian_qureg_value=result, qid_shape=qid_shape)
 
     # Create a mask which is False for only the slice.
     mask = np.ones(qid_shape, dtype=bool)
@@ -541,7 +539,7 @@ def _probs(state: np.ndarray, indices: List[int],
     meas_shape = tuple(qid_shape[i] for i in indices)
     probs = [
         np.linalg.norm(tensor[linalg.slice_for_qubits_equal_to(
-            indices, b, qid_shape=qid_shape)])**2
+            indices, big_endian_qureg_value=b, qid_shape=qid_shape)])**2
         for b in range(np.prod(meas_shape, dtype=int))
     ]
 
