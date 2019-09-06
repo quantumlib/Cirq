@@ -55,7 +55,7 @@ def sweep_to_proto(
         for point in sweep.points:
             out.single_sweep.points.points.append(point)
     elif isinstance(sweep, sweeps.ListSweep):
-        sweep_dict: Dict[Str, List[value.TParamVal]] = {}
+        sweep_dict: Dict[str, List[value.TParamVal]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
                 if key not in sweep_dict:

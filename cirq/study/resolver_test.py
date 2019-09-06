@@ -54,6 +54,7 @@ def test_param_dict_iter():
     assert [r.value_of(key) for key in r] == [0.5, 0.1]
     assert list(r) == ['a', 'b']
 
+
 def test_equals():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(cirq.ParamResolver(),

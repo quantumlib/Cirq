@@ -113,8 +113,8 @@ def test_sweep_with_list_sweep():
     p2 = expected.sweep_function.sweeps.add()
     p2.single_sweep.parameter_key = 'b'
     p2.single_sweep.points.points.extend([2, 4])
-
     assert proto == expected
+
 
 def test_sweep_with_flattened_sweep():
     q = cirq.GridQubit(0, 0)
