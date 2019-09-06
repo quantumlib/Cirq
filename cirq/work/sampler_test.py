@@ -13,9 +13,13 @@
 # limitations under the License.
 """Tests for cirq.Sampler."""
 
+import os
+
+import pytest
+
 import cirq
 
-
+@pytest.mark.skipif(os.name == 'nt', reason='Undiagnosed Windows async bug.')
 def test_sampler_fail():
 
     class FailingSampler(cirq.Sampler):
