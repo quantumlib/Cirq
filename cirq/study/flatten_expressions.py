@@ -338,9 +338,8 @@ class ExpressionMap(dict):
         """
         sweep = sweepable.to_sweep(sweep)
         return sweepable.dict_list_to_sweep([
-            dict(param_tuples)
-            for param_tuples in _TransformedSweep(sweep, dict(self))
-            .param_tuples()
+            dict(param_tuples) for param_tuples in _TransformedSweep(
+                sweep, dict(self)).param_tuples()
         ])
 
     def transform_params(self, params: resolver.ParamResolverOrSimilarType

@@ -146,8 +146,8 @@ def test_to_sweep_type_error():
 
 
 def test_dict_list_to_sweep():
-    expected = cirq.study.Zip(
-        cirq.study.Points('a', [1, 3]), cirq.study.Points('b', [2, 4]))
+    expected = cirq.study.Zip(cirq.study.Points('a', [1, 3]),
+                              cirq.study.Points('b', [2, 4]))
     assert (cirq.study.dict_list_to_sweep([{
         'a': 1,
         'b': 2
