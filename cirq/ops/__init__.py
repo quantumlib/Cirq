@@ -35,7 +35,7 @@ from cirq.ops.common_channels import (
     phase_flip,
     PhaseDampingChannel,
     PhaseFlipChannel,
-    RESET,
+    reset,
     ResetChannel,
 )
 
@@ -48,6 +48,7 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     ISWAP,
     ISwapPowGate,

@@ -13,11 +13,14 @@
 # limitations under the License.
 
 from datetime import timedelta
-from typing import cast, Iterable, List, Optional, Set, Union
+from typing import cast, Iterable, List, Optional, Set, Union, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq.google import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -42,7 +45,8 @@ class XmonDevice(devices.Device):
         self._exp_z_duration = value.Duration.create(exp_11_duration)
         self.qubits = frozenset(qubits)
 
-    def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
+    def decompose_operation(self,
+                            operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         return convert_to_xmon_gates.ConvertToXmonGates().convert(operation)
 
     def neighbors_of(self, qubit: GridQubit):
@@ -69,7 +73,7 @@ class XmonDevice(devices.Device):
             return value.Duration()
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
-    def validate_gate(self, gate: ops.Gate):
+    def validate_gate(self, gate: 'cirq.Gate'):
         """Raises an error if the given gate isn't allowed.
 
         Raises:
@@ -83,7 +87,7 @@ class XmonDevice(devices.Device):
                                  ops.ZPowGate)):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
-    def validate_operation(self, operation: ops.Operation):
+    def validate_operation(self, operation: 'cirq.Operation'):
         if not isinstance(operation, ops.GateOperation):
             raise ValueError('Unsupported operation: {!r}'.format(operation))
 
@@ -104,16 +108,15 @@ class XmonDevice(devices.Device):
                     'Non-local interaction: {!r}.'.format(operation))
 
     def _check_if_exp11_operation_interacts_with_any(
-            self,
-            exp11_op: ops.GateOperation,
-            others: Iterable[ops.GateOperation]) -> bool:
+            self, exp11_op: 'cirq.GateOperation',
+            others: Iterable['cirq.GateOperation']) -> bool:
         return any(self._check_if_exp11_operation_interacts(exp11_op, op)
                    for op in others)
 
-    def _check_if_exp11_operation_interacts(
-            self,
-            exp11_op: ops.GateOperation,
-            other_op: ops.GateOperation) -> bool:
+    def _check_if_exp11_operation_interacts(self,
+                                            exp11_op: 'cirq.GateOperation',
+                                            other_op: 'cirq.GateOperation'
+                                           ) -> bool:
         if isinstance(other_op.gate, (ops.XPowGate,
                                       ops.YPowGate,
                                       ops.PhasedXPowGate,
@@ -138,11 +141,11 @@ class XmonDevice(devices.Device):
                         'Adjacent Exp11 operations: {} vs {}.'.format(
                             scheduled_operation, other))
 
-    def validate_circuit(self, circuit: circuits.Circuit):
+    def validate_circuit(self, circuit: 'cirq.Circuit'):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
 
-    def validate_moment(self, moment: ops.Moment):
+    def validate_moment(self, moment: 'cirq.Moment'):
         super().validate_moment(moment)
         for op in moment.operations:
             if ops.op_gate_of_type(op, ops.CZPowGate):
@@ -154,9 +157,8 @@ class XmonDevice(devices.Device):
                         raise ValueError(
                             'Adjacent Exp11 operations: {}.'.format(moment))
 
-    def can_add_operation_into_moment(self,
-                                      operation: ops.Operation,
-                                      moment: ops.Moment) -> bool:
+    def can_add_operation_into_moment(self, operation: 'cirq.Operation',
+                                      moment: 'cirq.Moment') -> bool:
         self.validate_moment(moment)
 
         if not super().can_add_operation_into_moment(operation, moment):
@@ -164,7 +166,7 @@ class XmonDevice(devices.Device):
         if ops.op_gate_of_type(operation, ops.CZPowGate):
             return not self._check_if_exp11_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
-                cast(Iterable[ops.GateOperation], moment.operations))
+                cast(Iterable['cirq.GateOperation'], moment.operations))
         return True
 
     def validate_schedule(self, schedule):
@@ -216,7 +218,7 @@ class XmonDevice(devices.Device):
                 self.qubits)
 
 
-def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
+def _verify_unique_measurement_keys(operations: Iterable['cirq.Operation']):
     seen: Set[str] = set()
     for op in operations:
         if protocols.is_measurement(op):

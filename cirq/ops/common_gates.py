@@ -438,13 +438,11 @@ class MeasurementGate(raw_types.Gate):
     of measurements.
     """
 
-    def num_qubits(self) -> int:
-        return self._num_qubits
-
     def __init__(self,
-                 num_qubits: int,
+                 num_qubits: Optional[int] = None,
                  key: str = '',
-                 invert_mask: Tuple[bool, ...] = ()) -> None:
+                 invert_mask: Tuple[bool, ...] = (),
+                 qid_shape: Tuple[int, ...] = None) -> None:
         """
         Args:
             num_qubits: The number of qubits to act upon.
@@ -453,18 +451,33 @@ class MeasurementGate(raw_types.Gate):
                 qubits should be flipped. The list's length must not be longer
                 than the number of qubits, but it is permitted to be shorter.
                 Qubits with indices past the end of the mask are not flipped.
+            qid_shape: Specifies the dimension of each qid the measurement
+                applies to.  The default is 2 for every qubit.
 
         Raises:
-            ValueError if the length of invert_mask is greater than num_qubits.
+            ValueError: If the length of invert_mask is greater than num_qubits.
+                or if the length of qid_shape doesn't equal num_qubits.
         """
+        if qid_shape is None:
+            if num_qubits is None:
+                raise ValueError(
+                    'Specify either the num_qubits or qid_shape argument.')
+            qid_shape = (2,) * num_qubits
+        elif num_qubits is None:
+            num_qubits = len(qid_shape)
         if num_qubits == 0:
             raise ValueError('Measuring an empty set of qubits.')
-        self._num_qubits = num_qubits
+        self._qid_shape = qid_shape
+        if len(self._qid_shape) != num_qubits:
+            raise ValueError('len(qid_shape) != num_qubits')
         self.key = key
         self.invert_mask = invert_mask or ()
         if (self.invert_mask is not None and
             len(self.invert_mask) > self.num_qubits()):
             raise ValueError('len(invert_mask) > num_qubits')
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._qid_shape
 
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
@@ -494,7 +507,7 @@ class MeasurementGate(raw_types.Gate):
         return self.key
 
     def _channel_(self):
-        size = 2**self.num_qubits()
+        size = np.prod(self._qid_shape, dtype=int)
 
         def delta(i):
             result = np.zeros((size, size))
@@ -525,6 +538,8 @@ class MeasurementGate(raw_types.Gate):
 
     def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+        if not all(d == 2 for d in self._qid_shape):
+            return NotImplemented
         args.validate_version('2.0')
         invert_mask = self.invert_mask
         if len(invert_mask) < len(qubits):
@@ -540,27 +555,38 @@ class MeasurementGate(raw_types.Gate):
         return ''.join(lines)
 
     def __repr__(self):
-        return 'cirq.MeasurementGate({}, {}, {})'.format(
-            repr(self.num_qubits()),
-            repr(self.key),
-            repr(self.invert_mask))
+        other = ''
+        if not all(d == 2 for d in self._qid_shape):
+            other = ', {!r}'.format(self._qid_shape)
+        return 'cirq.MeasurementGate({!r}, {!r}, {!r}{})'.format(
+            self.num_qubits(), self.key, self.invert_mask, other)
 
     def _value_equality_values_(self):
-        return self.num_qubits(), self.key, self.invert_mask
+        return self.key, self.invert_mask, self._qid_shape
 
     def _json_dict_(self):
+        other = {}
+        if not all(d == 2 for d in self._qid_shape):
+            other['qid_shape'] = self._qid_shape
         return {
             'cirq_type': self.__class__.__name__,
-            'num_qubits': self.num_qubits(),
+            'num_qubits': len(self._qid_shape),
             'key': self.key,
-            'invert_mask': self.invert_mask
+            'invert_mask': self.invert_mask,
+            **other,
         }
 
     @classmethod
-    def _from_json_dict_(cls, num_qubits, key, invert_mask, **kwargs):
+    def _from_json_dict_(cls,
+                         num_qubits,
+                         key,
+                         invert_mask,
+                         qid_shape=None,
+                         **kwargs):
         return cls(num_qubits=num_qubits,
                    key=key,
-                   invert_mask=tuple(invert_mask))
+                   invert_mask=tuple(invert_mask),
+                   qid_shape=None if qid_shape is None else tuple(qid_shape))
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
@@ -600,7 +626,8 @@ def measure(*qubits: raw_types.Qid,
 
     if key is None:
         key = _default_measurement_key(qubits)
-    return MeasurementGate(len(qubits), key, invert_mask).on(*qubits)
+    qid_shape = protocols.qid_shape(qubits)
+    return MeasurementGate(len(qubits), key, invert_mask, qid_shape).on(*qubits)
 
 
 def measure_each(*qubits: raw_types.Qid,
@@ -618,8 +645,10 @@ def measure_each(*qubits: raw_types.Qid,
     Returns:
         A list of operations individually measuring the given qubits.
     """
-    return [MeasurementGate(1, key_func(q)).on(q) for q in qubits]
-
+    return [
+        MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q)
+        for q in qubits
+    ]
 
 
 @value.value_equality
@@ -632,11 +661,31 @@ class IdentityGate(raw_types.Gate):
     `cirq.I` is the single qubit identity gate.
     """
 
-    def __init__(self, num_qubits):
-        self._num_qubits = num_qubits
+    def __init__(self,
+                 num_qubits: Optional[int] = None,
+                 qid_shape: Tuple[int, ...] = None):
+        """
+        Args:
+            num_qubits:
+            qid_shape: Specifies the dimension of each qid the measurement
+                applies to.  The default is 2 for every qubit.
 
-    def num_qubits(self) -> int:
-        return self._num_qubits
+        Raises:
+            ValueError: If the length of qid_shape doesn't equal num_qubits.
+        """
+        if qid_shape is None:
+            if num_qubits is None:
+                raise ValueError(
+                    'Specify either the num_qubits or qid_shape argument.')
+            qid_shape = (2,) * num_qubits
+        elif num_qubits is None:
+            num_qubits = len(qid_shape)
+        self._qid_shape = qid_shape
+        if len(self._qid_shape) != num_qubits:
+            raise ValueError('len(qid_shape) != num_qubits')
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._qid_shape
 
     def on_each(self, *targets: Union[raw_types.Qid, Iterable[Any]]
                ) -> List[raw_types.Operation]:
@@ -654,7 +703,7 @@ class IdentityGate(raw_types.Gate):
             the gate from which this is applied is not a single qubit identity
             gate.
         """
-        if self._num_qubits != 1:
+        if len(self._qid_shape) != 1:
             raise ValueError(
                 'IdentityGate only supports on_each when it is a one qubit '
                 'gate.')
@@ -671,22 +720,27 @@ class IdentityGate(raw_types.Gate):
         return operations
 
     def _unitary_(self):
-        return np.identity(2 ** self.num_qubits())
+        return np.identity(np.prod(self._qid_shape, dtype=int))
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                        ) -> Optional[np.ndarray]:
         return args.target_tensor
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
+        if not all(d == 2 for d in self._qid_shape):
+            return NotImplemented
         return value.LinearDict({'I' * self.num_qubits(): 1.0})
 
     def _trace_distance_bound_(self) -> float:
         return 0.0
 
     def __repr__(self):
-        if self.num_qubits() == 1:
+        if self._qid_shape == (2,):
             return 'cirq.I'
-        return 'cirq.IdentityGate({!r})'.format(self.num_qubits())
+        other = ''
+        if not all(d == 2 for d in self._qid_shape):
+            other = ', {!r}'.format(self._qid_shape)
+        return 'cirq.IdentityGate({!r}{})'.format(self.num_qubits(), other)
 
     def __str__(self):
         if (self.num_qubits() == 1):
@@ -701,17 +755,47 @@ class IdentityGate(raw_types.Gate):
 
     def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+        if not all(d == 2 for d in self._qid_shape):
+            return NotImplemented
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
 
     def _value_equality_values_(self):
-        return self.num_qubits(),
+        return self._qid_shape
 
     def _json_dict_(self):
+        other = {}
+        if not all(d == 2 for d in self._qid_shape):
+            other['qid_shape'] = self._qid_shape
         return {
             'cirq_type': self.__class__.__name__,
-            'num_qubits': self.num_qubits(),
+            'num_qubits': len(self._qid_shape),
+            **other,
         }
+
+    @classmethod
+    def _from_json_dict_(cls, num_qubits, qid_shape=None, **kwargs):
+        return cls(num_qubits=num_qubits,
+                   qid_shape=None if qid_shape is None else tuple(qid_shape))
+
+
+def identity(*qubits: raw_types.Qid) -> raw_types.Operation:
+    """Returns a single IdentityGate applied to all the given qubits.
+
+    Args:
+        *qubits: The qubits that the identity gate will apply to.
+
+    Returns:
+        An identity operation on the given qubits.
+
+    Raises:
+        ValueError if the qubits are not instances of Qid.
+    """
+    if not all(isinstance(qubit, raw_types.Qid) for qubit in qubits):
+        raise ValueError('identity() was called with type different than Qid.')
+
+    qid_shape = protocols.qid_shape(qubits)
+    return IdentityGate(len(qubits), qid_shape).on(*qubits)
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
