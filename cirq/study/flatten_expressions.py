@@ -337,7 +337,7 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        return sweepable.dict_list_to_sweep([
+        return sweeps.ListSweep([
             dict(param_tuples) for param_tuples in _TransformedSweep(
                 sweep, dict(self)).param_tuples()
         ])

@@ -31,7 +31,6 @@ from cirq.study.resolver import (
 )
 
 from cirq.study.sweepable import (
-    dict_list_to_sweep,
     Sweepable,
     to_resolvers,
     to_sweep,

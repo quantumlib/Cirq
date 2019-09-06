@@ -54,6 +54,17 @@ def sweep_to_proto(
         out.single_sweep.parameter_key = sweep.key
         for point in sweep.points:
             out.single_sweep.points.points.append(point)
+    elif isinstance(sweep, sweeps.ListSweep):
+        sweep_dict:Dict[List] = {}
+        for param_resolver in sweep:
+            for key in param_resolver:
+                if key not in sweep_dict:
+                    sweep_dict[key] = []
+                sweep_dict[key].append(param_resolver.value_of(key))
+        out.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
+        for key in sweep_dict:
+            sweep_to_proto(sweeps.Points(key, sweep_dict[key]),
+                           out=out.sweep_function.sweeps.add())
     else:
         raise ValueError('cannot convert to v2 Sweep proto: {}'.format(sweep))
     return out

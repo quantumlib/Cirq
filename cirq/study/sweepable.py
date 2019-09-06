@@ -78,26 +78,6 @@ def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType,
         'Unexpected sweep-like value: {}'.format(sweep_or_resolver_list))
 
 
-def dict_list_to_sweep(dict_list: Iterable[Dict[str, float]]):
-    """Converts a list of dicts into a Zipped sweep
-
-    Args:
-        dict_list: this must be a sequence of dicts.  Each dict must have the
-           same set of keys.  Each key will be a parameter of a single sweep
-           and the values will be the values of that parameter.
-
-    Returns:
-        a zipped sweep of a single sweeps of points for each parameter
-    """
-    sweep_list = {}
-    for param_dict in dict_list:
-        for key in param_dict:
-            if key not in sweep_list:
-                sweep_list[key] = Points(key, [])
-            sweep_list[key].points.append(param_dict[key])
-    return Zip(*sweep_list.values())
-
-
 def _resolver_to_sweep(resolver: ParamResolver) -> Sweep:
     params = resolver.param_dict
     if not params:

@@ -80,6 +80,9 @@ class ParamResolver(object):
                 return float(v)
         return value
 
+    def __iter__(self):
+        return self.param_dict.__iter__()
+
     def __bool__(self):
         return bool(self.param_dict)
 
