@@ -187,3 +187,24 @@ class CircuitDag(networkx.DiGraph):
                     self.all_operations(),
                     strategy=circuit.InsertStrategy.EARLIEST,
                     device=self.device)
+
+    def findall_nodes_until_blocked(self,
+                                    is_blocker: Callable[[ops.Operation], bool]
+                                   ) -> Iterator[Unique[ops.Operation]]:
+        """Finds all nodes before blocking ones.
+
+        Args:
+            is_blocker: The predicate that indicates whether or not an
+            operation is blocking.
+        """
+        remaining_dag = self.copy()
+
+        for node in self.ordered_nodes():
+            if node not in remaining_dag:
+                continue
+            if is_blocker(node.val):
+                successors = list(remaining_dag.succ[node])
+                remaining_dag.remove_nodes_from(successors)
+                remaining_dag.remove_node(node)
+                continue
+            yield node
