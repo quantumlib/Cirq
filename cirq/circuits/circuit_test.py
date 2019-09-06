@@ -16,7 +16,7 @@ from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
-
+import os
 import numpy as np
 import pytest
 import sympy
@@ -2784,7 +2784,7 @@ x q[0];
 
 
 def test_save_qasm(tmpdir):
-    file_path = f'{tmpdir}/qasm'
+    file_path = os.path.join(tmpdir, 'test.qasm')
     q0 = cirq.NamedQubit('q0')
     circuit = cirq.Circuit.from_ops(
         cirq.X(q0),

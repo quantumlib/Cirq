@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-
+import os
 import numpy as np
 import pytest
 
@@ -190,7 +190,7 @@ def test_version():
 
 
 def test_save_to_file(tmpdir):
-    file_path = f'{tmpdir}/qasm'
+    file_path = os.path.join(tmpdir, 'test.qasm')
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
     output.save(file_path)

@@ -13,8 +13,12 @@
 # limitations under the License.
 
 import os
+from typing import TYPE_CHECKING
 
 from dev_tools import shell_tools
+
+if TYPE_CHECKING:
+    import _pytest
 
 
 def only_on_posix(func):
@@ -26,7 +30,7 @@ def only_on_posix(func):
 def run(
         *,
         script_file: str,
-        tmpdir_factory,
+        tmpdir_factory: '_pytest.tmpdir.TempdirFactory',
         arg: str = '',
         setup: str = '',
 ) -> shell_tools.CommandOutput:
@@ -37,7 +41,7 @@ def run(
 
     # Create a unique temporary directory
     dir_path = tmpdir_factory.mktemp('tmp', numbered=True)
-    file_path = f'{dir_path}/test-script'
+    file_path = os.path.join(dir_path, 'test-script.sh')
 
     intercepted = [
         'python',
@@ -60,8 +64,8 @@ cd {}
 git init --quiet
 git commit -m init --allow-empty --quiet --no-gpg-sign
 {}
-chmod +x ./test-script
-./test-script {}
+chmod +x ./test-script.sh
+./test-script.sh {}
 """.format(dir_path, setup, arg)
     return shell_tools.run_shell(cmd=cmd,
                                  log_run_to_stderr=False,
@@ -269,10 +273,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert "No revision 'HEAD~999999'." in result.err
 
-    result = run(
-        script_file='check/pytest-and-incremental-coverage',
-        tmpdir_factory=tmpdir_factory,
-    )
+    result = run(script_file='check/pytest-and-incremental-coverage',
+                 tmpdir_factory=tmpdir_factory)
     assert result.exit_code == 0
     assert result.out == (
         'INTERCEPTED python '
