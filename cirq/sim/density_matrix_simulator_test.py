@@ -1021,3 +1021,34 @@ def test_random_seed():
     assert np.all(
         result.measurements['a'] == [[False], [True], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
+
+
+def test_simulate_with_invert_mask():
+
+    class PlusGate(cirq.Gate):
+        """A qudit gate that increments a qudit state mod its dimension."""
+
+        def __init__(self, dimension, increment=1):
+            self.dimension = dimension
+            self.increment = increment % dimension
+
+        def _qid_shape_(self):
+            return (self.dimension,)
+
+        def _unitary_(self):
+            inc = (self.increment - 1) % self.dimension + 1
+            u = np.empty((self.dimension, self.dimension))
+            u[inc:] = np.eye(self.dimension)[:-inc]
+            u[:inc] = np.eye(self.dimension)[-inc:]
+            return u
+
+    q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
+    c = cirq.Circuit.from_ops(
+        PlusGate(2, 1)(q0),
+        PlusGate(3, 1)(q2),
+        PlusGate(3, 2)(q3),
+        PlusGate(4, 3)(q4),
+        cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
+    )
+    assert np.all(cirq.DensityMatrixSimulator().run(c).measurements['a'] ==
+                  [[0, 1, 0, 2, 3]])
