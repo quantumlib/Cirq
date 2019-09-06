@@ -10,8 +10,7 @@ before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
 - test
-- name: deploy
-  if: type = push AND branch = master
+- deploy
 matrix:
   include:
   - stage: test
