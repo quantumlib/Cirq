@@ -112,3 +112,6 @@ class EngineJob:
 
     def __iter__(self):
         return iter(self.results())
+
+    def __str__(self):
+        return str('EngineJob({})'.format(self.job_resource_name))
