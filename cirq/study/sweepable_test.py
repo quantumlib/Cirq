@@ -143,3 +143,15 @@ def test_to_sweep_resolver_list(r_list_gen):
 def test_to_sweep_type_error():
     with pytest.raises(TypeError, match='Unexpected sweep'):
         cirq.to_sweep(5)
+
+
+def test_dict_list_to_sweep():
+    expected = cirq.study.Zip(
+        cirq.study.Points('a', [1, 3]), cirq.study.Points('b', [2, 4]))
+    assert (cirq.study.dict_list_to_sweep([{
+        'a': 1,
+        'b': 2
+    }, {
+        'a': 3,
+        'b': 4
+    }]) == expected)

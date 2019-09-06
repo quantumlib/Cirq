@@ -15,6 +15,7 @@
 from typing import Iterator
 
 import pytest
+import sympy
 
 import cirq
 from cirq.api.google.v2 import run_context_pb2
@@ -48,6 +49,13 @@ class UnknownSweep(sweeps.SingleSweep):
      (cirq.Linspace('d', 0, 1, 5) + cirq.Linspace('e', 0, 10, 5)) *
      (cirq.Linspace('f', 0, 1, 6) +
       (cirq.Points('g', [1, 2]) * cirq.Points('h', [-1, 0, 1])))),
+    cirq.study.dict_list_to_sweep([{
+        'a': 1,
+        'b': 2
+    }, {
+        'a': 3,
+        'b': 4
+    }])
 ])
 def test_sweep_to_proto_roundtrip(sweep):
     msg = v2.sweep_to_proto(sweep)
@@ -99,3 +107,15 @@ def test_sweep_from_proto_single_sweep_type_not_set():
     proto.single_sweep.parameter_key = 'foo'
     with pytest.raises(ValueError, match='single sweep type not set'):
         v2.sweep_from_proto(proto)
+
+
+def test_sweep_with_flattened_sweep():
+    q = cirq.GridQubit(0, 0)
+    circuit = cirq.Circuit.from_ops(
+        cirq.PhasedXPowGate(
+            exponent=sympy.Symbol('t') / 4 + 0.5,
+            phase_exponent=sympy.Symbol('t') / 2 + 0.1,
+            global_shift=0.0)(q), cirq.measure(q, key='m'))
+    param_sweep1 = cirq.Linspace('t', start=0, stop=1, length=20)
+    (circuit2, param_sweep2) = cirq.flatten_with_sweep(circuit, param_sweep1)
+    assert v2.sweep_to_proto(param_sweep2) is not None
