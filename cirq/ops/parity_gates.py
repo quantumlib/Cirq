@@ -20,8 +20,9 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, ZPowGate, CZPowGate
-from cirq.ops.common_gates import _rads_func_symbol
+from cirq.ops import gate_features, eigen_gate
+from cirq.ops.common_gates import _rads_func_symbol, ZPowGate, CZPowGate
+from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -160,6 +161,9 @@ class ZZPowGate(eigen_gate.EigenGate,
     """
 
     def _decompose_(self, qubits):
+        # See eigen_gate.EigenGate for more info about the global phase
+        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
+        yield GlobalPhaseOperation(coefficient=phase)
         yield ZPowGate(exponent=self.exponent)(qubits[0])
         yield ZPowGate(exponent=self.exponent)(qubits[1])
         yield CZPowGate(exponent=-2 * self.exponent)(qubits[0], qubits[1])
