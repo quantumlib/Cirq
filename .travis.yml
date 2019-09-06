@@ -30,7 +30,7 @@ matrix:
     - python -m pip install -r requirements.txt
     - python -m pip install -r cirq/contrib/contrib-requirements.txt
     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --benchmark-skip -v cirq/work/sampler_test.py
+    script: check/pytest --benchmark-skip -v
   - stage: deploy
     os: linux
     env: NAME=dev-release

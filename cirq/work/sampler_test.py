@@ -13,13 +13,10 @@
 # limitations under the License.
 """Tests for cirq.Sampler."""
 
-import pytest
-
 import cirq
 
 
-@pytest.mark.parametrize('unused', range(10000))
-def test_sampler_fail(unused):
+def disable_test_sampler_fail(unused):
 
     class FailingSampler(cirq.Sampler):
 
