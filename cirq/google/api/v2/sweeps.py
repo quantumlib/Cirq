@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, Dict, List
 
+from cirq import value
 from cirq.api.google.v2 import run_context_pb2
 from cirq.study import sweeps
-
 
 def sweep_to_proto(
         sweep: sweeps.Sweep,
@@ -55,7 +55,7 @@ def sweep_to_proto(
         for point in sweep.points:
             out.single_sweep.points.points.append(point)
     elif isinstance(sweep, sweeps.ListSweep):
-        sweep_dict:Dict[List] = {}
+        sweep_dict: Dict[Str, List[value.TParamVal]] = {}
         for param_resolver in sweep:
             for key in param_resolver:
                 if key not in sweep_dict:

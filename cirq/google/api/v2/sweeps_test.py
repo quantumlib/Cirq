@@ -103,7 +103,7 @@ def test_sweep_from_proto_single_sweep_type_not_set():
 
 
 def test_sweep_with_list_sweep():
-    ls = cirq.study.to_sweep([{'a':1,'b':2},{'a':3,'b':4}])
+    ls = cirq.study.to_sweep([{'a': 1, 'b': 2}, {'a': 3, 'b': 4}])
     proto = v2.sweep_to_proto(ls)
     expected = run_context_pb2.Sweep()
     expected.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
