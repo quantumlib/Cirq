@@ -54,7 +54,7 @@ class ControlledGate(raw_types.Gate):
         if control_qubits is None:
             control_qubits = ()
         if control_values is None:
-            control_values = (1,) * num_controls
+            control_values = ((1,),) * num_controls
         if num_controls < len(control_qubits):
             raise ValueError('More specified control qubits than num_controls')
         if num_controls != len(control_values):
@@ -64,16 +64,14 @@ class ControlledGate(raw_types.Gate):
         self.control_qubits = ((None,) * (num_controls - len(control_qubits)) +
                                tuple(control_qubits))  # type: ignore
 
-        # Pad to num_qubits length
+        # Convert to sorted tuples
         self.control_values = tuple(
-            (val,) if isinstance(val) else tuple(sorted(val))
+            (val,) if isinstance(val, int) else tuple(sorted(val))
             for val in control_values
         )
         # Verify control values not out of bounds
         for q, val in zip(self.control_qubits, self.control_values):
             d = 2 if q is None else q.dimension
-            if isinstance(val, int):
-                val = (val,)
             if not all(0 <= v < d for v in val):
                 raise ValueError(
                     'Control values <{!r}> outside of range for qubit '
@@ -106,7 +104,7 @@ class ControlledGate(raw_types.Gate):
         decomposed = []
         for op in result:
             decomposed.append(cop.ControlledOperation(
-                qubits[:self.num_controls()], op))
+                qubits[:self.num_controls()], op, self.control_values))
         return decomposed
 
     def validate_args(self, qubits) -> None:
@@ -133,7 +131,7 @@ class ControlledGate(raw_types.Gate):
         super().validate_args(merged_controls + remaining_qubits)
         return cop.ControlledOperation(merged_controls,
                                        self.sub_gate.on(*remaining_qubits),
-                                       control_values=self.control_values)
+                                       self.control_values)
 
     def _value_equality_values_(self):
         return (
@@ -145,7 +143,8 @@ class ControlledGate(raw_types.Gate):
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         qubits = cirq.LineQid.for_gate(self)
         op = self.sub_gate.on(*qubits[self.num_controls():])
-        c_op = cop.ControlledOperation(qubits[:self.num_controls()], op)
+        c_op = cop.ControlledOperation(qubits[:self.num_controls()], op,
+                                       self.control_values)
 
         return protocols.apply_unitary(c_op, args, default=NotImplemented)
 
@@ -153,12 +152,12 @@ class ControlledGate(raw_types.Gate):
         return protocols.has_unitary(self.sub_gate)
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        sub_matrix = protocols.unitary(self.sub_gate, None)
-        if sub_matrix is None:
-            return NotImplemented
-        return linalg.block_diag(np.eye(np.prod(cirq.qid_shape(self), dtype=int)
-                                        - sub_matrix.shape[0]),
-                                 sub_matrix)
+        qubits = cirq.LineQid.for_gate(self)
+        op = self.sub_gate.on(*qubits[self.num_controls():])
+        c_op = cop.ControlledOperation(qubits[:self.num_controls()], op,
+                                       self.control_values)
+
+        return protocols.unitary(c_op, default=NotImplemented)
 
     def __pow__(self, exponent: Any) -> 'ControlledGate':
         new_sub_gate = protocols.pow(self.sub_gate,

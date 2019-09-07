@@ -117,7 +117,8 @@ def test_repr():
     ccz = cirq.ControlledOperation([c0], cirq.CZ(c1, t))
     assert (repr(ccz) ==
             "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
-            "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
+            "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)), "
+            "control_values=((1,),))")
     cirq.testing.assert_equivalent_repr(ccz)
 
 
