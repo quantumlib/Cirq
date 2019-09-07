@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Collection, Union, Sequence, Optional, Tuple
+from typing import cast, Any, Collection, Union, Sequence, Optional, Tuple
 
 import numpy as np
 
 import cirq
-from cirq import linalg, protocols, value
+from cirq import protocols, value
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
@@ -26,12 +26,14 @@ from cirq.type_workarounds import NotImplementedType
 class ControlledGate(raw_types.Gate):
     """Augments existing gates with a control qubit."""
 
-    def __init__(self,
-                 sub_gate: raw_types.Gate,
-                 control_qubits: Optional[Sequence[Optional[raw_types.Qid]]] = None,
-                 num_controls: int = None,
-                 control_values: Optional[Sequence[Union[int, Collection[int]]]] = None,
-                ) -> None:
+    def __init__(
+            self,
+            sub_gate: raw_types.Gate,
+            control_qubits: Optional[Sequence[Optional[raw_types.Qid]]] = None,
+            num_controls: int = None,
+            control_values: Optional[Sequence[
+                Union[int, Collection[int]]]] = None,
+    ) -> None:
         """Initializes the controlled gate.
 
         Args:
@@ -47,7 +49,7 @@ class ControlledGate(raw_types.Gate):
 
         """
         if (num_controls is None and control_qubits is None and
-            control_values is not None):
+                control_values is not None):
             num_controls = len(control_values)
         if num_controls is None:
             num_controls = 1 if control_qubits is None else len(control_qubits)
@@ -65,13 +67,13 @@ class ControlledGate(raw_types.Gate):
                                tuple(control_qubits))  # type: ignore
 
         # Convert to sorted tuples
-        self.control_values = tuple(
-            (val,) if isinstance(val, int) else tuple(sorted(val))
-            for val in control_values
-        )
+        self.control_values = cast(
+            Tuple[Tuple[int, ...], ...],
+            tuple((val,) if isinstance(val, int) else tuple(sorted(val))
+                  for val in control_values))
         # Verify control values not out of bounds
         for q, val in zip(self.control_qubits, self.control_values):
-            d = 2 if q is None else q.dimension
+            d = 2 if q is None else cast(raw_types.Qid, q).dimension
             if not all(0 <= v < d for v in val):
                 raise ValueError(
                     'Control values <{!r}> outside of range for qubit '
@@ -88,9 +90,10 @@ class ControlledGate(raw_types.Gate):
     def num_controls(self) -> int:
         return len(self.control_qubits)
 
-    def _qid_shape_(self) -> int:
-        control_shape = tuple(2 if q is None else q.dimension
-                              for q in self.control_qubits)
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        control_shape = tuple(
+            2 if q is None else cast(raw_types.Qid, q).dimension
+            for q in self.control_qubits)
         return control_shape + cirq.qid_shape(self.sub_gate)
 
     def _decompose_(self, qubits):
@@ -103,8 +106,9 @@ class ControlledGate(raw_types.Gate):
 
         decomposed = []
         for op in result:
-            decomposed.append(cop.ControlledOperation(
-                qubits[:self.num_controls()], op, self.control_values))
+            decomposed.append(
+                cop.ControlledOperation(qubits[:self.num_controls()], op,
+                                        self.control_values))
         return decomposed
 
     def validate_args(self, qubits) -> None:
@@ -165,7 +169,8 @@ class ControlledGate(raw_types.Gate):
                                      NotImplemented)
         if new_sub_gate is NotImplemented:
             return NotImplemented
-        return ControlledGate(new_sub_gate, self.control_qubits,
+        return ControlledGate(new_sub_gate,
+                              self.control_qubits,
                               control_values=self.control_values)
 
     def _is_parameterized_(self):
@@ -174,7 +179,8 @@ class ControlledGate(raw_types.Gate):
     def _resolve_parameters_(self, param_resolver):
         new_sub_gate = protocols.resolve_parameters(self.sub_gate,
                                                     param_resolver)
-        return ControlledGate(new_sub_gate, self.control_qubits,
+        return ControlledGate(new_sub_gate,
+                              self.control_qubits,
                               control_values=self.control_values)
 
     def _trace_distance_bound_(self) -> Optional[float]:
@@ -202,10 +208,12 @@ class ControlledGate(raw_types.Gate):
                                                   None)
         if sub_info is None:
             return NotImplemented
+
         def get_symbol(vals):
             if tuple(vals) == (1,):
                 return '@'
             return '({})'.format(','.join(map(str, vals)))
+
         return protocols.CircuitDiagramInfo(
             wire_symbols=(*(get_symbol(vals) for vals in self.control_values),
                           *sub_info.wire_symbols),
@@ -233,4 +241,4 @@ class ControlledGate(raw_types.Gate):
                                                   self.control_qubits))
         return ('cirq.ControlledGate(sub_gate={!r}, '
                 'control_qubits={!r}, control_values={!r})'.format(
-                self.sub_gate, self.control_qubits, self.control_values))
+                    self.sub_gate, self.control_qubits, self.control_values))

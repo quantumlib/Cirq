@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Collection, List, Optional, Sequence, Union
+from typing import cast, Any, Collection, List, Optional, Sequence, Tuple, Union
 
 import itertools
 import numpy as np
@@ -27,16 +27,17 @@ class ControlledOperation(raw_types.Operation):
     def __init__(self,
                  controls: Sequence[raw_types.Qid],
                  sub_operation: raw_types.Operation,
-                 control_values: Optional[Sequence[Union[int, Collection[int]]]] = None):
+                 control_values: Optional[Sequence[
+                     Union[int, Collection[int]]]] = None):
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):
             raise ValueError('len(control_values) != len(controls)')
         # Convert to sorted tuples
-        self.control_values = tuple(
-            (val,) if isinstance(val, int) else tuple(sorted(val))
-            for val in control_values
-        )
+        self.control_values = cast(
+            Tuple[Tuple[int, ...], ...],
+            tuple((val,) if isinstance(val, int) else tuple(sorted(val))
+                  for val in control_values))
         # Verify control values not out of bounds
         for q, val in zip(controls, self.control_values):
             if not all(0 <= v < q.dimension for v in val):
@@ -60,8 +61,7 @@ class ControlledOperation(raw_types.Operation):
     def with_qubits(self, *new_qubits):
         n = len(self.controls)
         return ControlledOperation(
-            new_qubits[:n],
-            self.sub_operation.with_qubits(*new_qubits[n:]),
+            new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]),
             self.control_values)
 
     def _decompose_(self):
@@ -69,30 +69,29 @@ class ControlledOperation(raw_types.Operation):
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op, self.control_values)
-                for op in result]
+        return [
+            ControlledOperation(self.controls, op, self.control_values)
+            for op in result
+        ]
 
     def _value_equality_values_(self):
-        return (frozenset(zip(self.controls, self.control_values)),
-                self.sub_operation)
+        return (frozenset(zip(self.controls,
+                              self.control_values)), self.sub_operation)
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
         sub_n = len(args.axes) - n
-        control_axes = args.axes[:n]
         sub_axes = args.axes[n:]
         for control_vals in itertools.product(*self.control_values):
-            active = (..., *(slice(v,v+1) for v in control_vals),
+            active = (..., *(slice(v, v + 1) for v in control_vals),
                       *(slice(None),) * sub_n)
             target_view = args.target_tensor[active]
             buffer_view = args.available_buffer[active]
-            result = protocols.apply_unitary(
-                self.sub_operation,
-                protocols.ApplyUnitaryArgs(
-                    target_view,
-                    buffer_view,
-                    sub_axes),
-                default=NotImplemented)
+            result = protocols.apply_unitary(self.sub_operation,
+                                             protocols.ApplyUnitaryArgs(
+                                                 target_view, buffer_view,
+                                                 sub_axes),
+                                             default=NotImplemented)
 
             if result is NotImplemented:
                 return NotImplemented
@@ -116,8 +115,7 @@ class ControlledOperation(raw_types.Operation):
         tensor = linalg.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls):] * 2)
         for control_vals in itertools.product(*self.control_values):
-            active = (*(v for v in control_vals),
-                      *(slice(None),) * sub_n) * 2
+            active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
             tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=int),) * 2)
 
@@ -133,7 +131,7 @@ class ControlledOperation(raw_types.Operation):
     def __repr__(self):
         return ('cirq.ControlledOperation(controls={!r}, sub_operation={!r}, '
                 'control_values={!r})'.format(self.controls, self.sub_operation,
-                self.control_values))
+                                              self.control_values))
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
@@ -183,6 +181,7 @@ class ControlledOperation(raw_types.Operation):
             if tuple(vals) == (1,):
                 return '@'
             return '({})'.format(','.join(map(str, vals)))
+
         wire_symbols = (*(get_symbol(vals) for vals in self.control_values),
                         *sub_info.wire_symbols)
         return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,

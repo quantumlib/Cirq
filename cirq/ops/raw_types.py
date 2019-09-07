@@ -14,7 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Callable, Collection, Optional, Sequence, Tuple, TYPE_CHECKING, Union)
+from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -261,7 +262,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def controlled_by(self, *control_qubits: Qid, control_values: Optional[Sequence[Union[int, Collection[int]]]] = None) -> 'Gate':
+    def controlled_by(self,
+                      *control_qubits: Qid,
+                      control_values: Optional[Sequence[
+                          Union[int, Collection[int]]]] = None) -> 'Gate':
         """Returns a controlled version of this gate.
 
         Args:
@@ -271,7 +275,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         from cirq.ops import ControlledGate
         if len(control_qubits) == 0:
             return self
-        return ControlledGate(self, control_qubits, len(control_qubits), control_values)
+        return ControlledGate(self, control_qubits, len(control_qubits),
+                              control_values)
 
     # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
     # to keep backwards compatibility with versions of cirq where num_qubits
@@ -337,7 +342,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return len(self.qubits)
 
-    def _qid_shape_(self) -> int:
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
@@ -357,7 +362,10 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
-    def controlled_by(self, *control_qubits: Qid, control_values: Optional[Sequence[Union[int, Collection[int]]]] = None) -> 'Operation':
+    def controlled_by(self,
+                      *control_qubits: Qid,
+                      control_values: Optional[Sequence[
+                          Union[int, Collection[int]]]] = None) -> 'Operation':
         """Returns a controlled version of this operation.
 
         Args:
