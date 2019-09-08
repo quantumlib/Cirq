@@ -13,7 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import (overload, Any, Callable, Dict, List, Optional, Tuple, Union)
+from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import sympy
 
