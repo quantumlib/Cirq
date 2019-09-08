@@ -14,7 +14,7 @@
 
 """Defines which types are Sweepable."""
 
-from typing import cast, Dict, Iterable, List, Union
+from typing import cast, Iterable, List, Union
 
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip

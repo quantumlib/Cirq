@@ -52,8 +52,7 @@ def sweep_to_proto(
         out.single_sweep.linspace.num_points = sweep.length
     elif isinstance(sweep, sweeps.Points):
         out.single_sweep.parameter_key = sweep.key
-        for point in sweep.points:
-            out.single_sweep.points.points.append(point)
+        out.single_sweep.points.points.extend(sweep.points)
     elif isinstance(sweep, sweeps.ListSweep):
         sweep_dict: Dict[str, List[value.TParamVal]] = {}
         for param_resolver in sweep:
