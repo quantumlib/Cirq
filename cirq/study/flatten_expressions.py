@@ -337,16 +337,15 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        return sweeps.ListSweep(list(self._transform_param_dict(sweep)))
-
-    def _transform_param_dict(self, sweep) -> Iterator[sweeps.Params]:
+        param_list = []
         for r in sweep:
             param_dict = {}
             for formula, sym in self.items():
                 if isinstance(sym, (sympy.Symbol, str)):
                     param_dict[str(sym)] = protocols.resolve_parameters(
                         formula, r)
-            yield param_dict
+            param_list.append(param_dict)
+        return sweeps.ListSweep(param_list)
 
     def transform_params(self, params: resolver.ParamResolverOrSimilarType
                         ) -> resolver.ParamDictType:
