@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union, \
-    TYPE_CHECKING
+from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union,
+                    TYPE_CHECKING)
 
 import abc
 
@@ -221,7 +221,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 
 
 def get_logical_operations(operations: 'cirq.OP_TREE',
-                           initial_mapping: Dict[ops.Qid, ops.Qid]
+                           initial_mapping: Dict[ops.Qid, Any]
                           ) -> Iterable['cirq.Operation']:
     mapping = initial_mapping.copy()
     for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(operations)):
