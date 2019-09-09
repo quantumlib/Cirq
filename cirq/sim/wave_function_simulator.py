@@ -244,7 +244,7 @@ class WaveFunctionSimulatorState:
         qubit_map: Dict[ops.Qid, int]):
         self.state_vector = state_vector
         self.qubit_map = qubit_map
-        self._qid_shape = wave_function._qubit_map_to_shape(qubit_map)
+        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
 
     def _qid_shape_(self):
         return self._qid_shape

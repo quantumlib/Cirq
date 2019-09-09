@@ -210,7 +210,7 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
-    RESET,
+    reset,
     ResetChannel,
     Rx,
     Ry,
