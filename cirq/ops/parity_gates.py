@@ -20,9 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate
-from cirq.ops.common_gates import _rads_func_symbol, ZPowGate, CZPowGate
-from cirq.ops.global_phase_op import GlobalPhaseOperation
+from cirq.ops import gate_features, eigen_gate, common_gates, global_phase_op
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -65,7 +63,7 @@ class XXPowGate(eigen_gate.EigenGate,
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
-            symbol = _rads_func_symbol(
+            symbol = common_gates._rads_func_symbol(
                 'MS',
                 args,
                 self._diagram_exponent(args, ignore_global_phase=False)/2)
@@ -163,10 +161,10 @@ class ZZPowGate(eigen_gate.EigenGate,
     def _decompose_(self, qubits):
         # See eigen_gate.EigenGate for more info about the global phase
         phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        yield GlobalPhaseOperation(coefficient=phase)
-        yield ZPowGate(exponent=self.exponent)(qubits[0])
-        yield ZPowGate(exponent=self.exponent)(qubits[1])
-        yield CZPowGate(exponent=-2 * self.exponent)(qubits[0], qubits[1])
+        yield global_phase_op.GlobalPhaseOperation(coefficient=phase)
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
+        yield common_gates.CZPowGate(exponent=-2 * self.exponent)(qubits[0], qubits[1])
 
     def _eigen_components(self):
         return [
