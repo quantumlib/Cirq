@@ -16,7 +16,7 @@ from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
-
+import os
 import numpy as np
 import pytest
 import sympy
@@ -2783,15 +2783,16 @@ x q[0];
 """.format(cirq.__version__))
 
 
-def test_save_qasm():
+def test_save_qasm(tmpdir):
+    file_path = os.path.join(tmpdir, 'test.qasm')
     q0 = cirq.NamedQubit('q0')
     circuit = cirq.Circuit.from_ops(
         cirq.X(q0),
     )
-    with cirq.testing.TempFilePath() as file_path:
-        circuit.save_qasm(file_path)
-        with open(file_path, 'r') as f:
-            file_content = f.read()
+
+    circuit.save_qasm(file_path)
+    with open(file_path, 'r') as f:
+        file_content = f.read()
     assert (file_content == """// Generated from Cirq v{}
 
 OPENQASM 2.0;
