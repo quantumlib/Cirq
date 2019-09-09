@@ -81,7 +81,7 @@ class ParamResolver(object):
         return value
 
     def __iter__(self):
-        return self.param_dict.__iter__()
+        return iter(self.param_dict)
 
     def __bool__(self):
         return bool(self.param_dict)
