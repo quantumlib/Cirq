@@ -29,7 +29,7 @@ _SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -53,7 +53,7 @@ _A_RESULT = {
 
 _RESULTS = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -84,7 +84,7 @@ _RESULTS = {
 
 _RESULTS_V2 = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v2.Result',
+    'type.googleapis.com/cirq.google.api.v2.Result',
     'sweepResults': [
         {
             'repetitions':
@@ -137,13 +137,12 @@ _RESULTS_V2 = {
     ],
 }
 
-
 _CALIBRATION = {
     'name': 'projects/foo/processors/xmonsim/calibrations/1562715599',
     'timestamp': '2019-07-09T23:39:59Z',
     'data': {
         '@type':
-        'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
+        'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
         'timestampMs':
         '1562544000021',
         'metrics': [{
@@ -241,7 +240,7 @@ def test_run_circuit(build):
                 }
             },
             'run_context': {
-                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
+                '@type': 'type.googleapis.com/cirq.google.api.v1.RunContext',
                 'parameter_sweeps': [{
                     'repetitions': 1
                 }]
