@@ -76,6 +76,8 @@ class ControlledGate(raw_types.Gate):
             control_qid_shape = tuple(
                 2 if q is None else cast(raw_types.Qid, q).dimension
                 for q in self.control_qubits)
+        if num_controls != len(control_qid_shape):
+            raise ValueError('len(control_qid_shape) != num_controls')
         self.control_qid_shape = tuple(control_qid_shape)
 
         # Convert to sorted tuples
@@ -129,6 +131,17 @@ class ControlledGate(raw_types.Gate):
     def validate_args(self, qubits) -> None:
         if len(qubits) < self.control_qubits.count(None):
             raise ValueError('Not all control qubits specified.')
+        iter_qubits = iter(qubits)
+        for control, dimension in zip(self.control_qubits,
+                                      self.control_qid_shape):
+            if control is not None:
+                continue
+            q = next(iter_qubits)
+            if q.dimension != dimension:
+                raise ValueError(
+                    "Control qids have dimensions that don't match this gate's "
+                    "control_qid_shape <{!r}>.  Qids are <{!r}>".format(
+                        self.control_qid_shape, qubits))
         self.sub_gate.validate_args(qubits[self.control_qubits.count(None):])
 
     def on(self, *qubits: raw_types.Qid) -> cop.ControlledOperation:
@@ -239,7 +252,13 @@ class ControlledGate(raw_types.Gate):
             exponent=sub_info.exponent)
 
     def __str__(self):
-        return 'C'*self.num_controls() + str(self.sub_gate)
+        if set(self.control_values) == {(1,)}:
+            def get_prefix(control_vals):
+                return 'C'
+        else:
+            def get_prefix(control_vals):
+                return 'C{}'.format(''.join(map(str, control_vals)))
+        return ''.join(map(get_prefix, self.control_values)) + str(self.sub_gate)
 
     def __repr__(self):
         if self.control_qubits == (None,) and self.control_values == ((1,),):
