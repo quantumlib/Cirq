@@ -17,11 +17,11 @@ import random
 from typing import (Any, Callable, cast, Dict, Hashable, Iterable, List,
                     Mapping, Optional, Set, Tuple)
 
-from cirq import circuits, ops
-import cirq.contrib.acquaintance as cca
 import networkx as nx
 import numpy as np
 
+from cirq import circuits, ops
+import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (get_timeslices,
