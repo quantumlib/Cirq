@@ -21,6 +21,7 @@ import abc
 import numpy as np
 
 from cirq import linalg, ops, value
+from cirq.sim import simulator
 
 
 class StateVectorMixin():
@@ -38,7 +39,7 @@ class StateVectorMixin():
         """
         super().__init__(*args, **kwargs)  # type: ignore
         self._qubit_map = qubit_map or {}
-        qid_shape = _qubit_map_to_shape(self._qubit_map)
+        qid_shape = simulator._qubit_map_to_shape(self._qubit_map)
         self._qid_shape = None if qubit_map is None else qid_shape
 
     @property
@@ -328,6 +329,8 @@ def to_valid_state_vector(
             appropriate dtype.
         num_qubits: The number of qubits for the state. The state_rep must be
             valid for this number of qubits.
+        qid_shape: The expected qid shape of the state vector.  Specify this
+            argument when using qudits.
         dtype: The numpy dtype of the state, will be used when creating the
             state for a computational basis state, or validated against if
             state_rep is a numpy array.
@@ -405,6 +408,8 @@ def sample_state_vector(
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has its largest values in the 0th index.
+        qid_shape: The qid shape of the state vector.  Specify this argument
+            when using qudits.
         repetitions: The number of times to sample the state.
 
     Returns:
@@ -462,6 +467,8 @@ def measure_state_vector(
         indices: Which qubits are measured. The state is assumed to be supplied
             in big endian order. That is the xth index of v, when expressed as
             a bitstring, has the largest values in the 0th index.
+        qid_shape: The qid shape of the state vector.  Specify this argument
+            when using qudits.
         out: An optional place to store the result. If `out` is the same as
             the `state` parameter, then state will be modified inline. If `out`
             is not None, then the result is put into `out`.  If `out` is None
@@ -573,19 +580,3 @@ def _validate_indices(num_qubits: int, indices: List[int]) -> None:
     if any(index >= num_qubits for index in indices):
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
-
-
-def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
-    qid_shape: List[int] = [-1] * len(qubit_map)
-    try:
-        for q, i in qubit_map.items():
-            qid_shape[i] = q.dimension
-    except IndexError:
-        raise ValueError(
-            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
-            format(qubit_map))
-    if -1 in qid_shape:
-        raise ValueError(
-            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
-                qubit_map))
-    return tuple(qid_shape)
