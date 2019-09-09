@@ -64,8 +64,7 @@ class XXPowGate(eigen_gate.EigenGate,
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
             symbol = common_gates._rads_func_symbol(
-                'MS',
-                args,
+                'MS', args,
                 self._diagram_exponent(args, ignore_global_phase=False)/2)
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
@@ -164,7 +163,8 @@ class ZZPowGate(eigen_gate.EigenGate,
         yield global_phase_op.GlobalPhaseOperation(coefficient=phase)
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
-        yield common_gates.CZPowGate(exponent=-2 * self.exponent)(qubits[0], qubits[1])
+        yield common_gates.CZPowGate(exponent=-2 * self.exponent)(qubits[0],
+                                                                  qubits[1])
 
     def _eigen_components(self):
         return [
