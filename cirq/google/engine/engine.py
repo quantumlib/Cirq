@@ -396,8 +396,7 @@ class Engine:
             context_dict = {}  # type: Dict[str, Any]
             context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
             context_dict['parameter_sweeps'] = [
-                v1.sweep_to_proto_dict(sweep, repetitions)
-                for sweep in sweeps
+                v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
             ]
             return context_dict
         elif proto_version == ProtoVersion.V2:
@@ -519,10 +518,10 @@ class Engine:
         result_type = result['@type'][len(TYPE_PREFIX):]
 
         if (result_type == 'cirq.api.google.v1.Result' or
-            result_type == 'cirq.google.api.v1.Result'):
+                result_type == 'cirq.google.api.v1.Result'):
             return self._get_job_results_v1(response['result'])
         if (result_type == 'cirq.api.google.v2.Result' or
-            result_type == 'cirq.google.api.v2.Result'):
+                result_type == 'cirq.google.api.v2.Result'):
             return self._get_job_results_v2(response['result'])
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
@@ -537,7 +536,7 @@ class Engine:
             for result in sweep_result['parameterizedResults']:
                 data = base64.standard_b64decode(result['measurementResults'])
                 measurements = v1.unpack_results(data, sweep_repetitions,
-                                                     key_sizes)
+                                                 key_sizes)
 
                 trial_results.append(
                     study.TrialResult.from_single_parameter_set(
