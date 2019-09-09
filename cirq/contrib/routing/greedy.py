@@ -17,8 +17,8 @@ import random
 from typing import (Any, Callable, cast, Dict, Hashable, Iterable, List,
                     Mapping, Optional, Set, Tuple)
 
-import networkx as nx
 import numpy as np
+import networkx as nx
 
 from cirq import circuits, ops
 import cirq.contrib.acquaintance as cca
