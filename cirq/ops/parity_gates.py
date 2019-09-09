@@ -65,7 +65,7 @@ class XXPowGate(eigen_gate.EigenGate,
             # Mølmer–Sørensen gate.
             symbol = common_gates._rads_func_symbol(
                 'MS', args,
-                self._diagram_exponent(args, ignore_global_phase=False)/2)
+                self._diagram_exponent(args, ignore_global_phase=False) / 2)
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
 
