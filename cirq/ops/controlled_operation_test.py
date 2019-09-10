@@ -76,6 +76,24 @@ def test_controlled_operation_init():
     assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
+    assert c.control_values == ((1,),)
+    assert cirq.qid_shape(c) == (2, 2)
+
+    c = cirq.ControlledOperation([cb], v, control_values=[0])
+    assert c.sub_operation == v
+    assert c.controls == (cb,)
+    assert c.qubits == (cb, q)
+    assert c == c.with_qubits(cb, q)
+    assert c.control_values == ((0,),)
+    assert cirq.qid_shape(c) == (2, 2)
+
+    c = cirq.ControlledOperation([cb.with_dimension(3)], v)
+    assert c.sub_operation == v
+    assert c.controls == (cb.with_dimension(3),)
+    assert c.qubits == (cb.with_dimension(3), q)
+    assert c == c.with_qubits(cb.with_dimension(3), q)
+    assert c.control_values == ((1,),)
+    assert cirq.qid_shape(c) == (3, 2)
 
 
 def test_controlled_operation_eq():
@@ -91,6 +109,12 @@ def test_controlled_operation_eq():
     eq.add_equality_group(cirq.ControlledOperation([c2], cirq.Z(q1)))
     eq.add_equality_group(cirq.ControlledOperation([c1, c2], cirq.Z(q1)),
                           cirq.ControlledOperation([c2, c1], cirq.Z(q1)))
+    eq.add_equality_group(cirq.ControlledOperation([c1, c2.with_dimension(3)],
+                                                   cirq.Z(q1),
+                                                   control_values=[1, (0, 2)]),
+                          cirq.ControlledOperation([c2.with_dimension(3), c1],
+                                                   cirq.Z(q1),
+                                                   control_values=[(2, 0), 1]))
 
 
 def test_str():
@@ -108,11 +132,11 @@ def test_str():
         def __str__(self):
             return "Op(q2)"
     assert (str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) ==
-            "C(c1, c2, Op(q2))")
+            "CC(c1, c2, Op(q2))")
 
 
 def test_repr():
-    c0, c1, t = cirq.LineQubit.range(3)
+    c0, c1, t, c2 = cirq.LineQubit.range(4)
 
     ccz = cirq.ControlledOperation([c0], cirq.CZ(c1, t))
     assert (
@@ -120,6 +144,11 @@ def test_repr():
         "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)), "
         "control_values=((1,),))")
     cirq.testing.assert_equivalent_repr(ccz)
+
+    c1c02z = cirq.ControlledOperation([c0, c1.with_dimension(3)],
+                                      cirq.CZ(c2, t),
+                                      control_values=[1, (2, 0)])
+    cirq.testing.assert_equivalent_repr(c1c02z)
 
 
 # A contrived multiqubit Hadamard gate that asserts the consistency of
@@ -169,6 +198,22 @@ def test_circuit_diagram():
 1: ───@──────
       │
 2: ───H(2)───
+""")
+
+    qubits = cirq.LineQid.for_qid_shape((3, 3, 3, 2))
+    c = cirq.Circuit()
+    c.append(cirq.ControlledOperation(qubits[:3], MultiH(1)(*qubits[3:]),
+                                      control_values=[1, (0, 1), (2, 0)]))
+
+    cirq.testing.assert_has_diagram(
+        c, """
+0 (d=3): ───@────────────
+            │
+1 (d=3): ───(0,1)────────
+            │
+2 (d=3): ───(0,2)────────
+            │
+3 (d=2): ───H(3 (d=2))───
 """)
 
 
@@ -228,6 +273,13 @@ def test_non_diagrammable_subop():
 def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
     cb = cirq.NamedQubit('ctr')
     cgate = cirq.ControlledOperation([cb], gate)
+    cirq.testing.assert_implements_consistent_protocols(cgate)
+
+    cgate = cirq.ControlledOperation([cb], gate, control_values=[0])
+    cirq.testing.assert_implements_consistent_protocols(cgate)
+
+    cb3 = cb.with_dimension(3)
+    cgate = cirq.ControlledOperation([cb3], gate, control_values=[(0, 2)])
     cirq.testing.assert_implements_consistent_protocols(cgate)
 
 

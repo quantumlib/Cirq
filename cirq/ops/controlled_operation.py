@@ -120,13 +120,24 @@ class ControlledOperation(raw_types.Operation):
         return tensor.reshape((np.prod(qid_shape, dtype=int),) * 2)
 
     def __str__(self):
+        if set(self.control_values) == {(1,)}:
+
+            def get_prefix(control_vals):
+                return 'C'
+        else:
+
+            def get_prefix(control_vals):
+                return 'C{}'.format(''.join(map(str, sorted(control_vals))))
+
+        prefix = ''.join(map(get_prefix, self.control_values))
         if isinstance(self.sub_operation, gate_operation.GateOperation):
             return '{}{}({})'.format(
-                'C' * len(self.controls),
+                prefix,
                 self.sub_operation.gate,
                 ', '.join(map(str, self.qubits)))
-        return 'C({}, {})'.format(', '.join(str(q) for q in self.controls),
-                                  str(self.sub_operation))
+        return '{}({}, {})'.format(prefix,
+                                   ', '.join(str(q) for q in self.controls),
+                                   str(self.sub_operation))
 
     def __repr__(self):
         return ('cirq.ControlledOperation(controls={!r}, sub_operation={!r}, '

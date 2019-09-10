@@ -259,7 +259,7 @@ class ControlledGate(raw_types.Gate):
         else:
 
             def get_prefix(control_vals):
-                return 'C{}'.format(''.join(map(str, control_vals)))
+                return 'C{}'.format(''.join(map(str, sorted(control_vals))))
 
         return ''.join(map(get_prefix, self.control_values)) + str(
             self.sub_gate)

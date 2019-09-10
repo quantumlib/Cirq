@@ -585,17 +585,20 @@ def test_circuit_diagram():
 2: ───H(2)───
 """)
 
-    qubits = cirq.LineQid.for_qid_shape((3, 2, 2))
+    qubits = cirq.LineQid.for_qid_shape((3, 3, 3, 2))
     c = cirq.Circuit.from_ops(
-        MultiH(2)(*qubits[1:]).controlled_by(qubits[0], control_values=[2]))
+        MultiH(1)(*qubits[3:]).controlled_by(*qubits[:3],
+                                             control_values=[1, (0, 1), (2, 0)]))
 
     cirq.testing.assert_has_diagram(
         c, """
-0 (d=3): ───(2)──────────
+0 (d=3): ───@────────────
             │
-1 (d=2): ───H(1 (d=2))───
+1 (d=3): ───(0,1)────────
             │
-2 (d=2): ───H(2 (d=2))───
+2 (d=3): ───(0,2)────────
+            │
+3 (d=2): ───H(3 (d=2))───
 """)
 
 
