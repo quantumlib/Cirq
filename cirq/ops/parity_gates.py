@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, common_gates, global_phase_op
+from cirq.ops import gate_features, eigen_gate, common_gates
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -160,9 +160,9 @@ class ZZPowGate(eigen_gate.EigenGate,
     def _decompose_(self, qubits):
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
-        yield common_gates.CZPowGate(
-            exponent=-2 * self.exponent,
-            global_shift=-self.global_shift / 2)(qubits[0], qubits[1])
+        yield common_gates.CZPowGate(exponent=-2 * self.exponent,
+                                     global_shift=-self.global_shift / 2)(
+                                         qubits[0], qubits[1])
 
     def _eigen_components(self):
         return [
