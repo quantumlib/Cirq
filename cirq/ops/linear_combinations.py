@@ -17,11 +17,13 @@ from typing import Mapping, Optional, Tuple, Union, List, FrozenSet, DefaultDict
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, pauli_gates
+from cirq.linalg import operator_spaces
+from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString
-from cirq.value import linear_dict
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
+PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
+                     SingleQubitPauliStringGateOperation]
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -95,6 +97,35 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
             other = other.wrap_in_linear_combination()
         return super().__isub__(other)
 
+    def __pow__(self, exponent: int) -> 'LinearCombinationOfGates':
+        if not isinstance(exponent, int):
+            return NotImplemented
+        if exponent < 0:
+            return NotImplemented
+        if self.num_qubits() != 1:
+            return NotImplemented
+        pauli_basis = {
+            common_gates.I,
+            pauli_gates.X,
+            pauli_gates.Y,
+            pauli_gates.Z,
+        }
+        if not set(self.keys()).issubset(pauli_basis):
+            return NotImplemented
+
+        ai = self[common_gates.I]
+        ax = self[pauli_gates.X]
+        ay = self[pauli_gates.Y]
+        az = self[pauli_gates.Z]
+        bi, bx, by, bz = operator_spaces.pow_pauli_combination(
+            ai, ax, ay, az, exponent)
+        return LinearCombinationOfGates({
+            common_gates.I: bi,
+            pauli_gates.X: bx,
+            pauli_gates.Y: by,
+            pauli_gates.Z: bz
+        })
+
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying gates.
 
@@ -162,6 +193,27 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         qubit_sets = [set(op.qubits) for op in self.keys()]
         all_qubits = set.union(*qubit_sets)
         return tuple(sorted(all_qubits))
+
+    def __pow__(self, exponent: int) -> 'LinearCombinationOfOperations':
+        if not isinstance(exponent, int):
+            return NotImplemented
+        if exponent < 0:
+            return NotImplemented
+        if len(self.qubits) != 1:
+            return NotImplemented
+        qubit = self.qubits[0]
+        i = common_gates.I(qubit)
+        x = pauli_gates.X(qubit)
+        y = pauli_gates.Y(qubit)
+        z = pauli_gates.Z(qubit)
+        pauli_basis = {i, x, y, z}
+        if not set(self.keys()).issubset(pauli_basis):
+            return NotImplemented
+
+        ai, ax, ay, az = self[i], self[x], self[y], self[z]
+        bi, bx, by, bz = operator_spaces.pow_pauli_combination(
+            ai, ax, ay, az, exponent)
+        return LinearCombinationOfOperations({i: bi, x: bx, y: by, z: bz})
 
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying operations.
@@ -246,7 +298,11 @@ class PauliSum:
     iteration.
     """
 
-    def __init__(self, linear_dict: value.LinearDict[UnitPauliStringT]):
+    def __init__(
+            self,
+            linear_dict: Optional[value.LinearDict[UnitPauliStringT]] = None):
+        if linear_dict is None:
+            linear_dict = value.LinearDict()
         if not _is_linear_dict_of_unit_pauli_string(linear_dict):
             raise ValueError(
                 "PauliSum constructor takes a LinearDict[UnitPauliStringT]. "
@@ -256,6 +312,12 @@ class PauliSum:
 
     def _value_equality_values_(self):
         return self._linear_dict
+
+    @staticmethod
+    def wrap(val: PauliSumLike) -> 'PauliSum':
+        if isinstance(val, PauliSum):
+            return val
+        return PauliSum() + val
 
     @classmethod
     def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) \
@@ -268,6 +330,11 @@ class PauliSum:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient
         return cls(linear_dict=value.LinearDict(termdict))
+
+    @property
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+        qs = {q for k in self._linear_dict.keys() for q, _ in k}
+        return tuple(sorted(qs))
 
     def copy(self) -> 'PauliSum':
         factory = type(self)
@@ -299,6 +366,12 @@ class PauliSum:
         result = self.copy()
         result += other
         return result
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __rsub__(self, other):
+        return -self.__sub__(other)
 
     def __isub__(self, other):
         if isinstance(other, (float, int, complex)):
@@ -349,7 +422,8 @@ class PauliSum:
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
-        return linear_dict._format_terms(terms=terms, format_spec=format_spec)
+        return value.linear_dict._format_terms(terms=terms,
+                                               format_spec=format_spec)
 
     def __str__(self):
         return self.__format__('.3f')

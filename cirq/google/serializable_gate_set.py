@@ -11,23 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Support for serializing and deserializing cirq.api.google.v2 protos."""
+"""Support for serializing and deserializing cirq.google.api.v2 protos."""
 
 from collections import defaultdict
 
-from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union, \
+    TYPE_CHECKING
 
 from google.protobuf import json_format
 
-from cirq import circuits, devices, ops, schedules, value
-from cirq.api.google import v2
+from cirq import circuits, ops, schedules, value
 from cirq.google import op_deserializer, op_serializer
+from cirq.google.api import v2
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class SerializableGateSet:
     """A class for serializing and deserializing programs and operations.
 
-    This class is for cirq.api.google.v2. protos.
+    This class is for cirq.google.api.v2. protos.
     """
 
     def __init__(self, gate_set_name: str,
@@ -56,16 +60,25 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
+    def is_supported_gate(self, gate: 'cirq.Gate') -> bool:
+        """Whether or not the given gate can be serialized by this gate set."""
+        for gate_type_mro in type(gate).mro():
+            if gate_type_mro in self.serializers:
+                for serializer in self.serializers[gate_type_mro]:
+                    if serializer.can_serialize_gate(gate):
+                        return True
+        return False
+
     def serialize_dict(self,
                        program: Union[circuits.Circuit, schedules.Schedule]
                       ) -> Dict:
-        """Serialize a Circuit or Schedule to cirq.api.google.v2.Program proto.
+        """Serialize a Circuit or Schedule to cirq.google.api.v2.Program proto.
 
         Args:
             program: The Circuit or Schedule to serialize.
 
         Returns:
-            A dictionary corresponding to the cirq.api.google.v2.Program proto.
+            A dictionary corresponding to the cirq.google.api.v2.Program proto.
         """
         return json_format.MessageToDict(self.serialize(program),
                                          including_default_value_fields=True,
@@ -76,7 +89,7 @@ class SerializableGateSet:
                   program: Union[circuits.Circuit, schedules.Schedule],
                   msg: Optional[v2.program_pb2.Program] = None
                  ) -> v2.program_pb2.Program:
-        """Serialize a Circuit or Schedule to cirq.api.google.v2.Program proto.
+        """Serialize a Circuit or Schedule to cirq.google.api.v2.Program proto.
 
         Args:
             program: The Circuit or Schedule to serialize.
@@ -90,14 +103,14 @@ class SerializableGateSet:
             self._serialize_schedule(program, msg.schedule)
         return msg
 
-    def serialize_op_dict(self, op: ops.Operation) -> Dict:
-        """Serialize an Operation to cirq.api.google.v2.Operation proto.
+    def serialize_op_dict(self, op: 'cirq.Operation') -> Dict:
+        """Serialize an Operation to cirq.google.api.v2.Operation proto.
 
         Args:
             op: The operation to serialize.
 
         Returns:
-            A dictionary corresponds to the cirq.api.google.v2.Operation proto.
+            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
         """
         return json_format.MessageToDict(self.serialize_op(op),
                                          including_default_value_fields=True,
@@ -105,16 +118,16 @@ class SerializableGateSet:
                                          use_integers_for_enums=True)
 
     def serialize_op(self,
-                     op: ops.Operation,
+                     op: 'cirq.Operation',
                      msg: Optional[v2.program_pb2.Operation] = None
                     ) -> v2.program_pb2.Operation:
-        """Serialize an Operation to cirq.api.google.v2.Operation proto.
+        """Serialize an Operation to cirq.google.api.v2.Operation proto.
 
         Args:
             op: The operation to serialize.
 
         Returns:
-            A dictionary corresponds to the cirq.api.google.v2.Operation proto.
+            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
         """
         gate_op = cast(ops.GateOperation, op)
         gate_type = type(gate_op.gate)
@@ -127,16 +140,17 @@ class SerializableGateSet:
                     proto_msg = serializer.to_proto(gate_op, msg)
                     if proto_msg is not None:
                         return proto_msg
-        raise ValueError('Cannot serialize op of type {}'.format(gate_type))
+        raise ValueError('Cannot serialize op {!r} of type {}'.format(
+            gate_op, gate_type))
 
     def deserialize_dict(self,
                          proto: Dict,
-                         device: Optional[devices.Device] = None
+                         device: Optional['cirq.Device'] = None
                         ) -> Union[circuits.Circuit, schedules.Schedule]:
-        """Deserialize a Circuit or Schedule from a cirq.api.google.v2.Program.
+        """Deserialize a Circuit or Schedule from a cirq.google.api.v2.Program.
 
         Args:
-            proto: A dictionary representing a cirq.api.google.v2.Program proto.
+            proto: A dictionary representing a cirq.google.api.v2.Program proto.
             device: If the proto is for a schedule, a device is required
                 Otherwise optional.
 
@@ -150,12 +164,12 @@ class SerializableGateSet:
 
     def deserialize(self,
                     proto: v2.program_pb2.Program,
-                    device: Optional[devices.Device] = None
+                    device: Optional['cirq.Device'] = None
                    ) -> Union[circuits.Circuit, schedules.Schedule]:
-        """Deserialize a Circuit or Schedule from a cirq.api.google.v2.Program.
+        """Deserialize a Circuit or Schedule from a cirq.google.api.v2.Program.
 
         Args:
-            proto: A dictionary representing a cirq.api.google.v2.Program proto.
+            proto: A dictionary representing a cirq.google.api.v2.Program proto.
             device: If the proto is for a schedule, a device is required
                 Otherwise optional.
 
@@ -182,12 +196,12 @@ class SerializableGateSet:
         raise ValueError(
             'Program proto does not contain a circuit or schedule.')
 
-    def deserialize_op_dict(self, operation_proto: Dict) -> ops.Operation:
-        """Deserialize an Operation from a cirq.api.google.v2.Operation.
+    def deserialize_op_dict(self, operation_proto: Dict) -> 'cirq.Operation':
+        """Deserialize an Operation from a cirq.google.api.v2.Operation.
 
         Args:
             operation_proto: A dictionary representing a
-                cirq.api.google.v2.Operation proto.
+                cirq.google.api.v2.Operation proto.
 
         Returns:
             The deserialized Operation.
@@ -197,12 +211,12 @@ class SerializableGateSet:
         return self.deserialize_op(msg)
 
     def deserialize_op(self, operation_proto: v2.program_pb2.Operation
-                      ) -> ops.Operation:
-        """Deserialize an Operation from a cirq.api.google.v2.Operation.
+                      ) -> 'cirq.Operation':
+        """Deserialize an Operation from a cirq.google.api.v2.Operation.
 
         Args:
             operation_proto: A dictionary representing a
-                cirq.api.google.v2.Operation proto.
+                cirq.google.api.v2.Operation proto.
 
         Returns:
             The deserialized Operation.
@@ -212,12 +226,13 @@ class SerializableGateSet:
 
         gate_id = operation_proto.gate.id
         if gate_id not in self.deserializers.keys():
-            raise ValueError(
-                'Unsupported serialized gate with id {}'.format(gate_id))
+            raise ValueError('Unsupported serialized gate with id "{}".'
+                             '\n\noperation_proto:\n{}'.format(
+                                 gate_id, operation_proto))
 
         return self.deserializers[gate_id].from_proto(operation_proto)
 
-    def _serialize_circuit(self, circuit: circuits.Circuit,
+    def _serialize_circuit(self, circuit: 'cirq.Circuit',
                            msg: v2.program_pb2.Circuit) -> None:
         msg.scheduling_strategy = v2.program_pb2.Circuit.MOMENT_BY_MOMENT
         for moment in circuit:
@@ -234,17 +249,23 @@ class SerializableGateSet:
                               scheduled_op_proto.operation)
 
     def _deserialize_circuit(self, circuit_proto: v2.program_pb2.Circuit
-                            ) -> circuits.Circuit:
+                            ) -> 'cirq.Circuit':
         moments = []
-        for moment_proto in circuit_proto.moments:
-            moment_ops = [
-                self.deserialize_op(o) for o in moment_proto.operations
-            ]
+        for i, moment_proto in enumerate(circuit_proto.moments):
+            moment_ops = []
+            for op in moment_proto.operations:
+                try:
+                    moment_ops.append(self.deserialize_op(op))
+                except ValueError as ex:
+                    raise ValueError(f'Failed to deserialize circuit. '
+                                     f'There was a problem in moment {i} '
+                                     f'handling an operation with the '
+                                     f'following proto:\n{op}') from ex
             moments.append(ops.Moment(moment_ops))
         return circuits.Circuit(moments)
 
     def _deserialize_schedule(self, schedule_proto: v2.program_pb2.Schedule,
-                              device: devices.Device) -> schedules.Schedule:
+                              device: 'cirq.Device') -> schedules.Schedule:
         scheduled_ops = []
         for scheduled_op_proto in schedule_proto.scheduled_operations:
             if not scheduled_op_proto.HasField('operation'):

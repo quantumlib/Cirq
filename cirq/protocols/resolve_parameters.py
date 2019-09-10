@@ -14,11 +14,11 @@
 
 from typing import Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
-
 import sympy
 
+from cirq import study
+
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 TDefault = TypeVar('TDefault')
@@ -52,6 +52,8 @@ def is_parameterized(val: Any) -> bool:
     """
     if isinstance(val, sympy.Basic):
         return True
+    if isinstance(val, (list, tuple)):
+        return any(is_parameterized(e) for e in val)
 
     getter = getattr(val, '_is_parameterized_', None)
     result = NotImplemented if getter is None else getter()
@@ -85,10 +87,11 @@ def resolve_parameters(
         return val
 
     # Ensure its a dictionary wrapped in a ParamResolver.
-    from cirq import ParamResolver  # HACK: break cycle.
-    param_resolver = ParamResolver(param_resolver)
+    param_resolver = study.ParamResolver(param_resolver)
     if isinstance(val, sympy.Basic):
         return param_resolver.value_of(val)
+    if isinstance(val, (list, tuple)):
+        return type(val)(resolve_parameters(e, param_resolver) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
     result = NotImplemented if getter is None else getter(param_resolver)

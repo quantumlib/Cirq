@@ -17,6 +17,7 @@ from typing import Union
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -119,6 +120,83 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(
         assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
 
 
+@pytest.mark.parametrize('terms, exponent, expected_terms', (
+    ({
+        cirq.X: 1,
+    }, 2, {
+        cirq.I: 1,
+    }),
+    ({
+        cirq.X: 1,
+    }, 3, {
+        cirq.X: 1,
+    }),
+    ({
+        cirq.Y: 0.5,
+    }, 10, {
+        cirq.I: 2**-10,
+    }),
+    ({
+        cirq.Y: 0.5,
+    }, 11, {
+        cirq.Y: 2**-11,
+    }),
+    ({
+        cirq.I: 1,
+        cirq.X: 2,
+        cirq.Y: 3,
+        cirq.Z: 4,
+    }, 2, {
+        cirq.I: 30,
+        cirq.X: 4,
+        cirq.Y: 6,
+        cirq.Z: 8,
+    }),
+    ({
+        cirq.X: 1,
+        cirq.Y: 1j,
+    }, 2, {}),
+    ({
+        cirq.X: 0.4,
+        cirq.Y: 0.4,
+    }, 0, {
+        cirq.I: 1,
+    }),
+))
+def test_linear_combinations_of_gates_valid_powers(terms, exponent,
+                                                   expected_terms):
+    combination = cirq.LinearCombinationOfGates(terms)
+    actual_result = combination**exponent
+    expected_result = cirq.LinearCombinationOfGates(expected_terms)
+    assert cirq.approx_eq(actual_result, expected_result)
+    assert len(actual_result) == len(expected_terms)
+
+
+@pytest.mark.parametrize('terms, exponent', (
+    ({}, 2),
+    ({
+        cirq.H: 1,
+    }, 2),
+    ({
+        cirq.CNOT: 2,
+    }, 2),
+    ({
+        cirq.X: 1,
+        cirq.S: -1,
+    }, 2),
+    ({
+        cirq.X: 1,
+    }, -1),
+    ({
+        cirq.Y: 1,
+    }, sympy.Symbol('k')),
+))
+def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
+    combination = cirq.LinearCombinationOfGates(terms)
+    with pytest.raises(TypeError):
+        _ = combination**exponent
+
+
 def get_matrix(operator: Union[cirq.Gate, cirq.GateOperation, cirq.
                                LinearCombinationOfGates, cirq.
                                LinearCombinationOfOperations]) -> np.ndarray:
@@ -134,6 +212,11 @@ def assert_linear_combinations_are_equal(
                       LinearCombinationOfOperations],
         expected: Union[cirq.LinearCombinationOfGates, cirq.
                         LinearCombinationOfOperations]) -> None:
+    if not actual and not expected:
+        assert len(actual) == 0
+        assert len(expected) == 0
+        return
+
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
     assert np.allclose(actual_matrix, expected_matrix)
@@ -155,11 +238,20 @@ def assert_linear_combinations_are_equal(
     (-1j * cirq.Y, cirq.Ry(np.pi)),
     (np.sqrt(-1j) * cirq.S, cirq.Rz(np.pi / 2)),
     (0.5 * (cirq.IdentityGate(2) + cirq.XX + cirq.YY + cirq.ZZ), cirq.SWAP),
-    ((cirq.IdentityGate(2) + 1j * (cirq.XX + cirq.YY) + cirq.ZZ) / 2,
-        cirq.ISWAP),
+    ((cirq.IdentityGate(2) + 1j *
+      (cirq.XX + cirq.YY) + cirq.ZZ) / 2, cirq.ISWAP),
     (cirq.CNOT + 0 * cirq.SWAP, cirq.CNOT),
     (0.5 * cirq.FREDKIN, cirq.FREDKIN / 2),
     (cirq.FREDKIN * 0.5, cirq.FREDKIN / 2),
+    (((cirq.X + cirq.Y) / np.sqrt(2))**2, cirq.I),
+    ((cirq.X + cirq.Z)**3, 2 * (cirq.X + cirq.Z)),
+    ((cirq.X + 1j * cirq.Y)**2, cirq.LinearCombinationOfGates({})),
+    ((cirq.X - 1j * cirq.Y)**2, cirq.LinearCombinationOfGates({})),
+    (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**24, cirq.I),
+    (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**25,
+     (3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13),
+    ((cirq.X + cirq.Y + cirq.Z)**0, cirq.I),
+    ((cirq.X - 1j * cirq.Y)**0, cirq.I),
 ))
 def test_gate_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
@@ -544,6 +636,87 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
         assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
 
 
+@pytest.mark.parametrize('terms, exponent, expected_terms', (
+    ({
+        cirq.X(q0): 1,
+    }, 2, {
+        cirq.I(q0): 1,
+    }),
+    ({
+        cirq.X(q0): 1,
+    }, 3, {
+        cirq.X(q0): 1,
+    }),
+    ({
+        cirq.Y(q0): 0.5,
+    }, 10, {
+        cirq.I(q0): 2**-10,
+    }),
+    ({
+        cirq.Y(q0): 0.5,
+    }, 11, {
+        cirq.Y(q0): 2**-11,
+    }),
+    ({
+        cirq.I(q0): 1,
+        cirq.X(q0): 2,
+        cirq.Y(q0): 3,
+        cirq.Z(q0): 4,
+    }, 2, {
+        cirq.I(q0): 30,
+        cirq.X(q0): 4,
+        cirq.Y(q0): 6,
+        cirq.Z(q0): 8,
+    }),
+    ({
+        cirq.X(q0): 1,
+        cirq.Y(q0): 1j,
+    }, 2, {}),
+    ({
+        cirq.Y(q1): 2,
+        cirq.Z(q1): 3,
+    }, 0, {
+        cirq.I(q1): 1,
+    }),
+))
+def test_linear_combinations_of_operations_valid_powers(terms, exponent,
+                                                        expected_terms):
+    combination = cirq.LinearCombinationOfOperations(terms)
+    actual_result = combination**exponent
+    expected_result = cirq.LinearCombinationOfOperations(expected_terms)
+    assert cirq.approx_eq(actual_result, expected_result)
+    assert len(actual_result) == len(expected_terms)
+
+
+@pytest.mark.parametrize('terms, exponent', (
+    ({}, 2),
+    ({
+        cirq.H(q0): 1,
+    }, 2),
+    ({
+        cirq.CNOT(q0, q1): 2,
+    }, 2),
+    ({
+        cirq.X(q0): 1,
+        cirq.S(q0): -1,
+    }, 2),
+    ({
+        cirq.X(q0): 1,
+        cirq.Y(q1): 1,
+    }, 2),
+    ({
+        cirq.Z(q0): 1,
+    }, -1),
+    ({
+        cirq.X(q0): 1,
+    }, sympy.Symbol('k')),
+))
+def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
+    combination = cirq.LinearCombinationOfOperations(terms)
+    with pytest.raises(TypeError):
+        _ = combination**exponent
+
+
 @pytest.mark.parametrize('expression, expected_result', (
     (cirq.LinearCombinationOfOperations({cirq.XX(q0, q1): 2}),
      cirq.LinearCombinationOfOperations(
@@ -559,6 +732,46 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
                  q1: cirq.X,
              }): -1
          })),
+    (cirq.LinearCombinationOfOperations({cirq.X(q0): 1})**
+     2, cirq.LinearCombinationOfOperations({cirq.I(q0): 1})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): np.sqrt(0.5),
+        cirq.Y(q0): np.sqrt(0.5)
+    })**2, cirq.LinearCombinationOfOperations({cirq.I(q0): 1})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 1,
+        cirq.Z(q0): 1
+    })**3, cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 2,
+        cirq.Z(q0): 2
+    })),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 1j,
+        cirq.Y(q0): 1
+    })**2, cirq.LinearCombinationOfOperations({})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): -1j,
+        cirq.Y(q0): 1
+    })**2, cirq.LinearCombinationOfOperations({})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 3 / 13,
+        cirq.Y(q0): -4 / 13,
+        cirq.Z(q0): 12 / 13
+    })**24, cirq.LinearCombinationOfOperations({cirq.I(q0): 1})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 3 / 13,
+        cirq.Y(q0): -4 / 13,
+        cirq.Z(q0): 12 / 13
+    })**25,
+     cirq.LinearCombinationOfOperations({
+         cirq.X(q0): 3 / 13,
+         cirq.Y(q0): -4 / 13,
+         cirq.Z(q0): 12 / 13
+     })),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q1): 2,
+        cirq.Z(q1): 3
+    })**0, cirq.LinearCombinationOfOperations({cirq.I(q1): 1})),
 ))
 def test_operation_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
@@ -574,6 +787,19 @@ def test_pauli_sum_construction():
 
     psum2 = cirq.PauliSum.from_pauli_strings([pstr1, pstr2])
     assert psum == psum2
+
+    zero = cirq.PauliSum()
+    assert len(zero) == 0
+
+
+@pytest.mark.parametrize('psum, expected_qubits', (
+    (cirq.Z(q1), (q1,)),
+    (cirq.X(q0) + cirq.Y(q0), (q0,)),
+    (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+    (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
+))
+def test_pauli_sum_qubits(psum, expected_qubits):
+    assert psum.qubits == expected_qubits
 
 
 def test_pauli_sum_from_single_pauli():
@@ -663,15 +889,26 @@ def test_add_number_paulisum():
 
 
 def test_add_number_paulistring():
-    q = cirq.LineQubit.range(2)
-    pstr1 = cirq.X(q[0]) * cirq.X(q[1])
+    a, b = cirq.LineQubit.range(2)
+    pstr1 = cirq.X(a) * cirq.X(b)
     psum = pstr1 + 1.3
     assert psum == cirq.PauliSum.from_pauli_strings(
         [pstr1, cirq.PauliString({}, 1.3)])
+    assert psum == 1.3 + pstr1
 
     psum = pstr1 - 1.3
+    assert psum == psum + 0 == psum - 0 == 0 + psum == -(0 - psum)
+    assert psum + 1 == 1 + psum
+    assert psum - 1 == -(1 - psum)
     assert psum == cirq.PauliSum.from_pauli_strings(
         [pstr1, cirq.PauliString({}, -1.3)])
+    assert psum == -1.3 + pstr1
+    assert psum == -1.3 - -pstr1
+
+    assert cirq.X(a) + 2 == 2 + cirq.X(a) == cirq.PauliSum.from_pauli_strings([
+        cirq.PauliString() * 2,
+        cirq.PauliString({a: cirq.X}),
+    ])
 
 
 def test_pauli_sum_formatting():

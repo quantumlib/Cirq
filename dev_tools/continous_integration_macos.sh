@@ -19,5 +19,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     check/pytest-and-incremental-coverage master
     #`import matplotlib` throws a  RuntimeError without this
     mkdir -p ~/.matplotlib && echo "backend: TkAgg" >> ~/.matplotlib/matplotlibrc
+else
+    echo "This operating system is not osx"
+    exit 1
 fi
 

@@ -18,7 +18,7 @@ from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 
 import numpy as np
 
-from cirq.protocols.approximate_equality import approx_eq
+from cirq import protocols
 from cirq.linalg import predicates
 
 # This is a special indicator value used by the subwavefunction method to
@@ -217,12 +217,11 @@ _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 
-def apply_matrix_to_slices(
-        target: np.ndarray,
-        matrix: np.ndarray,
-        slices: List[_TSlice],
-        *,
-        out: Optional[np.ndarray] = None) -> np.ndarray:
+def apply_matrix_to_slices(target: np.ndarray,
+                           matrix: np.ndarray,
+                           slices: Sequence[_TSlice],
+                           *,
+                           out: Optional[np.ndarray] = None) -> np.ndarray:
     """Left-multiplies an NxN matrix onto N slices of a numpy array.
 
     Example:
@@ -368,9 +367,9 @@ def wavefunction_partial_trace_as_mixture(
     keep_rho = partial_trace(rho, keep_indices).reshape((keep_dims,) * 2)
     eigvals, eigvecs = np.linalg.eigh(keep_rho)
     mixture = tuple(zip(eigvals, [vec.reshape(ret_shape) for vec in eigvecs.T]))
-    return tuple([
-        (float(p[0]), p[1]) for p in mixture if not approx_eq(p[0], 0.0)
-    ])
+    return tuple([(float(p[0]), p[1])
+                  for p in mixture
+                  if not protocols.approx_eq(p[0], 0.0)])
 
 
 def subwavefunction(wavefunction: np.ndarray,
@@ -456,7 +455,7 @@ def subwavefunction(wavefunction: np.ndarray,
     coherence_measure = sum(
         [abs(np.dot(left, c.reshape((keep_dims,))))**2 for c in candidates])
 
-    if approx_eq(coherence_measure, 1, atol=atol):
+    if protocols.approx_eq(coherence_measure, 1, atol=atol):
         return np.exp(
             2j * np.pi * np.random.random()) * best_candidate.reshape(ret_shape)
 

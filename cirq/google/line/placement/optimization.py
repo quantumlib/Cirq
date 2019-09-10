@@ -38,8 +38,8 @@ def _accept(random_sample: float, cost_diff: float,
     exponent = -cost_diff / temp
     if exponent >= 0.0:
         return True, 1.0
-    else:
-        probability = math.exp(exponent)
+
+    probability = math.exp(exponent)
     return probability > random_sample, probability
 
 

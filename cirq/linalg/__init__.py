@@ -39,7 +39,9 @@ from cirq.linalg.decompositions import (
 )
 
 from cirq.linalg.states import (
-    one_hot,)
+    one_hot,
+    eye_tensor,
+)
 
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
@@ -54,6 +56,7 @@ from cirq.linalg.operator_spaces import (
     kron_bases,
     matrix_from_basis_coefficients,
     PAULI_BASIS,
+    pow_pauli_combination,
 )
 
 from cirq.linalg.predicates import (

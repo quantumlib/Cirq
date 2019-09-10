@@ -48,11 +48,11 @@ from cirq.contrib.acquaintance.mutation_utils import (
 from cirq.contrib.acquaintance.optimizers import (
     remove_redundant_acquaintance_opportunities,)
 
-from cirq.contrib.acquaintance.permutation import (LinearPermutationGate,
-                                                   PermutationGate,
-                                                   SwapPermutationGate,
-                                                   update_mapping,
-                                                   get_logical_operations)
+from cirq.contrib.acquaintance.permutation import (
+    LinearPermutationGate, PermutationGate, SwapPermutationGate, update_mapping,
+    get_logical_operations, display_mapping, return_to_initial_mapping,
+    uses_consistent_swap_gate, EXPAND_PERMUTATION_GATES,
+    DECOMPOSE_PERMUTATION_GATES)
 
 from cirq.contrib.acquaintance.shift import (
     CircularShiftGate,)

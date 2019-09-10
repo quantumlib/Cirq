@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
-from typing import Any, List
+from typing import Any, List, Sequence
 
 import numpy as np
 
-from cirq import protocols, ops, line, linalg
+from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils
 
 
@@ -37,17 +37,18 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         # Vacuous consistency.
         return
 
-    controls = getattr(val, 'control_qubits', None)
-    if controls is None:
-        qubit_count = len(unitary).bit_length() - 1
-    else:
-        qubit_count = len(unitary).bit_length() - 1 - (len(controls) -
-                                                       controls.count(None))
     if isinstance(val, ops.Operation):
-        qubits = val.qubits
+        qubits: Sequence[ops.Qid] = val.qubits
         op = val
     elif isinstance(val, ops.Gate):
-        qubits = tuple(line.LineQubit.range(qubit_count))
+        qid_shape = protocols.qid_shape(val)
+        remaining_shape = list(qid_shape)
+        controls = getattr(val, 'control_qubits', None)
+        if controls is not None:
+            for i, q in zip(reversed(range(len(controls))), reversed(controls)):
+                if q is not None:
+                    remaining_shape.pop(i)
+        qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))
@@ -57,13 +58,14 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
     qasm = protocols.qasm(op, args=args, default=None)
     if qasm is None:
         return
-    else:
-        header = """
+
+    num_qubits = len(qubits)
+    header = """
 OPENQASM 2.0;
 include "qelib1.inc";
 qreg q[{}];
-""".format(len(qubits))
-        qasm = header + qasm
+""".format(num_qubits)
+    qasm = header + qasm
 
     qasm_unitary = None
     try:
@@ -72,8 +74,7 @@ qreg q[{}];
             backend=qiskit.Aer.get_backend('unitary_simulator'))
         qasm_unitary = result.result().get_unitary()
         qasm_unitary = _reorder_indices_of_matrix(
-                qasm_unitary,
-                list(reversed(range(len(qubits)))))
+            qasm_unitary, list(reversed(range(num_qubits))))
 
         lin_alg_utils.assert_allclose_up_to_global_phase(
             qasm_unitary,
@@ -103,6 +104,28 @@ qreg q[{}];
                 _indent(repr(p_unitary)),
                 _indent(repr(p_qasm_unitary)),
                 _indent(str(ex))))
+
+
+def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
+    # coverage: ignore
+    try:
+        # We don't want to require qiskit as a dependency but
+        # if Qiskit is installed, test QASM output against it.
+        import qiskit  # type: ignore
+    except ImportError:
+        return
+
+    num_qubits = int(np.log2(len(unitary)))
+    result = qiskit.execute(qiskit.load_qasm_string(qasm),
+                            backend=qiskit.Aer.get_backend('unitary_simulator'))
+    qiskit_unitary = result.result().get_unitary()
+    qiskit_unitary = _reorder_indices_of_matrix(
+        qiskit_unitary, list(reversed(range(num_qubits))))
+
+    lin_alg_utils.assert_allclose_up_to_global_phase(unitary,
+                                                     qiskit_unitary,
+                                                     rtol=1e-8,
+                                                     atol=1e-8)
 
 
 def _indent(*content: str) -> str:

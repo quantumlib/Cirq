@@ -142,9 +142,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
         if remaining_cliff_gate == ops.SingleQubitCliffordGate.I:
             all_ops.pop(start_i)
             return True
-        else:
-            all_ops[start_i] = remaining_cliff_gate(orig_qubit)
-            return False
+        all_ops[start_i] = remaining_cliff_gate(orig_qubit)
+        return False
 
     def try_merge_cz(cz_op: ops.GateOperation, start_i: int) -> int:
         """Returns the number of operations removed at or before start_i."""

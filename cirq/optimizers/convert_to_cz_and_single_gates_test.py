@@ -19,28 +19,30 @@ import numpy as np
 import cirq
 
 
-def test_avoids_infinite_cycle_when_matrix_available():
-    class OtherX(cirq.SingleQubitGate):
+def test_avoids_decompose_when_matrix_available():
+
+    class OtherXX(cirq.TwoQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
-            return np.array([[0, 1], [1, 0]])
+            m = np.array([[0, 1], [1, 0]])
+            return np.kron(m, m)
 
         def _decompose_(self, qubits):
-            return OtherOtherX().on(*qubits)
+            assert False
 
-    class OtherOtherX(cirq.SingleQubitGate):
+    class OtherOtherXX(cirq.TwoQubitGate):
         # coverage: ignore
         def _unitary_(self) -> np.ndarray:
-            return np.array([[0, 1], [1, 0]])
+            m = np.array([[0, 1], [1, 0]])
+            return np.kron(m, m)
 
         def _decompose_(self, qubits):
-            return OtherX().on(*qubits)
+            assert False
 
-    q0 = cirq.LineQubit(0)
-    c = cirq.Circuit.from_ops(OtherX()(q0), OtherOtherX()(q0))
-    c_orig = cirq.Circuit(c)
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(OtherXX()(a, b), OtherOtherXX()(a, b))
     cirq.ConvertToCzAndSingleGates().optimize_circuit(c)
-    assert c == c_orig
+    assert len(c) == 2
 
 
 def test_kak_decomposes_unknown_two_qubit_gate():

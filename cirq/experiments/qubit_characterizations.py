@@ -6,7 +6,7 @@ import sympy
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore
-from cirq import circuits, devices, ops, protocols, sim, study
+from cirq import circuits, devices, ops, protocols, study, work
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
@@ -54,7 +54,7 @@ class RabiResult:
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
         plt.ylabel('Excited State Probability', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 class RandomizedBenchMarkResult:
@@ -96,7 +96,7 @@ class RandomizedBenchMarkResult:
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Number of Cliffords", figure=fig)
         plt.ylabel('Ground State Probability', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 class TomographyResult:
@@ -121,10 +121,10 @@ class TomographyResult:
         3D bar plots.
         """
         fig = _plot_density_matrix(self._density_matrix)
-        fig.show()
+        fig.show(warn=False)
 
 
-def rabi_oscillations(sampler: sim.Sampler,
+def rabi_oscillations(sampler: work.Sampler,
                       qubit: devices.GridQubit,
                       max_angle: float = 2 * np.pi,
                       *,
@@ -163,7 +163,7 @@ def rabi_oscillations(sampler: sim.Sampler,
 
 
 def single_qubit_randomized_benchmarking(
-        sampler: sim.Sampler,
+        sampler: work.Sampler,
         qubit: devices.GridQubit,
         use_xy_basis: bool = True,
         *,
@@ -221,7 +221,7 @@ def single_qubit_randomized_benchmarking(
 
 
 def two_qubit_randomized_benchmarking(
-        sampler: sim.Sampler,
+        sampler: work.Sampler,
         first_qubit: devices.GridQubit,
         second_qubit: devices.GridQubit,
         *,
@@ -278,7 +278,7 @@ def two_qubit_randomized_benchmarking(
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def single_qubit_state_tomography(sampler: sim.Sampler,
+def single_qubit_state_tomography(sampler: work.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
                                   repetitions: int = 1000) -> TomographyResult:
@@ -324,7 +324,7 @@ def single_qubit_state_tomography(sampler: sim.Sampler,
     return TomographyResult(rho)
 
 
-def two_qubit_state_tomography(sampler: sim.Sampler,
+def two_qubit_state_tomography(sampler: work.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,
                                circuit: circuits.Circuit,
@@ -513,7 +513,7 @@ def _matrix_bar_plot(mat: np.ndarray,
 
 def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     a, _ = mat.shape
-    num_qubits = int(np.sqrt(a))
+    num_qubits = int(np.log2(a))
     state_labels = [[0, 1]] * num_qubits
     kets = []
     for label in itertools.product(*state_labels):
