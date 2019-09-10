@@ -26,6 +26,13 @@ if TYPE_CHECKING:
     from cirq.google import xmon_device
 
 
+def _load_json_bool(b: Any):
+    """Converts a json field to bool.  If already a bool, pass through."""
+    if isinstance(b, bool):
+        return b
+    return json.loads(b)
+
+
 def gate_to_proto_dict(gate: 'cirq.Gate',
                        qubits: Tuple['cirq.Qid', ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
@@ -327,7 +334,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
         meas = proto_dict['measurement']
         invert_mask = cast(Tuple[Any, ...], ())
         if 'invert_mask' in meas:
-            invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
+            invert_mask = tuple(_load_json_bool(x) for x in meas['invert_mask'])
         if 'key' not in meas or 'targets' not in meas:
             raise_missing_fields('Measurement')
         return ops.MeasurementGate(

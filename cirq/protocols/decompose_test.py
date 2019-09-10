@@ -21,12 +21,14 @@ class NoMethod:
 
 
 class DecomposeNotImplemented:
-    def _decompose_(self, **kwargs):
+
+    def _decompose_(self, qubits=None):
         return NotImplemented
 
 
 class DecomposeNone:
-    def _decompose_(self, **kwargs):
+
+    def _decompose_(self, qubits=None):
         return None
 
 
@@ -50,6 +52,12 @@ class DecomposeGenerated:
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
         yield cirq.Y(cirq.LineQubit(1))
+
+
+class DecomposeQuditGate:
+
+    def _decompose_(self, qids):
+        yield cirq.identity(*qids)
 
 
 def test_decompose_once():
@@ -112,6 +120,12 @@ def test_decompose_once_with_qubits():
         qs) == [cirq.Y(cirq.LineQubit(0)),
                 cirq.Y(cirq.LineQubit(1)),
                 cirq.Y(cirq.LineQubit(2))]
+
+    # Qudits, _decompose_ argument name is not 'qubits'.
+    assert cirq.decompose_once_with_qubits(
+        DecomposeQuditGate(), cirq.LineQid.for_qid_shape(
+            (1, 2,
+             3))) == [cirq.identity(*cirq.LineQid.for_qid_shape((1, 2, 3)))]
 
     # Works when qubits are generated.
     def use_qubits_twice(*qubits):
