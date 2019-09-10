@@ -158,13 +158,11 @@ class ZZPowGate(eigen_gate.EigenGate,
     """
 
     def _decompose_(self, qubits):
-        # See eigen_gate.EigenGate for more info about the global phase
-        phase = np.exp(1j * np.pi * self.global_shift * self.exponent)
-        yield global_phase_op.GlobalPhaseOperation(coefficient=phase)
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
         yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
-        yield common_gates.CZPowGate(exponent=-2 * self.exponent)(qubits[0],
-                                                                  qubits[1])
+        yield common_gates.CZPowGate(
+            exponent=-2 * self.exponent,
+            global_shift=-self.global_shift / 2)(qubits[0], qubits[1])
 
     def _eigen_components(self):
         return [
