@@ -109,12 +109,13 @@ def test_controlled_operation_eq():
     eq.add_equality_group(cirq.ControlledOperation([c2], cirq.Z(q1)))
     eq.add_equality_group(cirq.ControlledOperation([c1, c2], cirq.Z(q1)),
                           cirq.ControlledOperation([c2, c1], cirq.Z(q1)))
-    eq.add_equality_group(cirq.ControlledOperation([c1, c2.with_dimension(3)],
-                                                   cirq.Z(q1),
-                                                   control_values=[1, (0, 2)]),
-                          cirq.ControlledOperation([c2.with_dimension(3), c1],
-                                                   cirq.Z(q1),
-                                                   control_values=[(2, 0), 1]))
+    eq.add_equality_group(
+        cirq.ControlledOperation([c1, c2.with_dimension(3)],
+                                 cirq.Z(q1),
+                                 control_values=[1, (0, 2)]),
+        cirq.ControlledOperation([c2.with_dimension(3), c1],
+                                 cirq.Z(q1),
+                                 control_values=[(2, 0), 1]))
 
 
 def test_str():
@@ -131,8 +132,8 @@ def test_str():
             pass
         def __str__(self):
             return "Op(q2)"
-    assert (str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) ==
-            "CC(c1, c2, Op(q2))")
+    assert (str(cirq.ControlledOperation(
+        [c1, c2], SingleQubitOp())) == "CC(c1, c2, Op(q2))")
 
 
 def test_repr():
@@ -202,8 +203,10 @@ def test_circuit_diagram():
 
     qubits = cirq.LineQid.for_qid_shape((3, 3, 3, 2))
     c = cirq.Circuit()
-    c.append(cirq.ControlledOperation(qubits[:3], MultiH(1)(*qubits[3:]),
-                                      control_values=[1, (0, 1), (2, 0)]))
+    c.append(
+        cirq.ControlledOperation(qubits[:3],
+                                 MultiH(1)(*qubits[3:]),
+                                 control_values=[1, (0, 1), (2, 0)]))
 
     cirq.testing.assert_has_diagram(
         c, """

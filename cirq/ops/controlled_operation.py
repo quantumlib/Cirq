@@ -131,10 +131,8 @@ class ControlledOperation(raw_types.Operation):
 
         prefix = ''.join(map(get_prefix, self.control_values))
         if isinstance(self.sub_operation, gate_operation.GateOperation):
-            return '{}{}({})'.format(
-                prefix,
-                self.sub_operation.gate,
-                ', '.join(map(str, self.qubits)))
+            return '{}{}({})'.format(prefix, self.sub_operation.gate,
+                                     ', '.join(map(str, self.qubits)))
         return '{}({}, {})'.format(prefix,
                                    ', '.join(str(q) for q in self.controls),
                                    str(self.sub_operation))
