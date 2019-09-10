@@ -22,7 +22,8 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
-    def controlled_by(self, *control_qubits):
+
+    def control(self, *control_qubits):
         return NotImplemented
 
 p = cirq.NamedQubit('p')
@@ -43,15 +44,15 @@ def test_controlless(controllee):
     assert cirq.protocols.control(controllee, [p,q], None) is None
 
 
-def test_controlled_by_error():
+def test_control_error():
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = cirq.protocols.control(ReturnsNotImplemented(), [p])
-    with pytest.raises(TypeError, match="no controlled_by method"):
+    with pytest.raises(TypeError, match="no control method"):
         _ = cirq.protocols.control(NoMethod(), [p])
 
 
 @pytest.mark.parametrize('controllee,control_qubits,out', (
-    (dummy_gate, [p], cirq.ControlledGate(dummy_gate, [p])),
+    (dummy_gate, None, cirq.ControlledGate(dummy_gate)),
     (dummy_op, [q], cirq.ControlledOperation([q], dummy_op)),
 ))
 def test_pow_with_result(controllee, control_qubits, out):

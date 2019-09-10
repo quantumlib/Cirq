@@ -261,17 +261,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def controlled_by(self, *control_qubits: Qid) -> 'Gate':
+    def control(self) -> 'Gate':
         """Returns a controlled version of this gate.
-
-        Args:
-            control_qubits: Optional qubits to control the gate by.
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
-        if len(control_qubits) == 0:
-            return self
-        return ControlledGate(self, control_qubits, len(control_qubits))
+        return ControlledGate(self)
 
     # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
     # to keep backwards compatibility with versions of cirq where num_qubits
@@ -354,7 +349,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
-    def controlled_by(self, *control_qubits: Qid) -> 'Operation':
+    def control(self, *control_qubits: Qid) -> 'Operation':
         """Returns a controlled version of this operation.
 
         Args:
