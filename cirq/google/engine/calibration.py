@@ -102,6 +102,9 @@ class Calibration(abc.Mapping):
     def __len__(self):
         return len(self._metric_dict)
 
+    def __str__(self):
+        return 'Calibration(keys={})'.format(list(sorted(self.keys())))
+
     def heatmap(self, key: str) -> vis.Heatmap:
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (

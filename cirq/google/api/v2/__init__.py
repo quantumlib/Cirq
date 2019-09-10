@@ -13,6 +13,13 @@
 # limitations under the License.
 """Data format v2 for google api."""
 
+from cirq.google.api.v2 import (
+    metrics_pb2,
+    program_pb2,
+    result_pb2,
+    run_context_pb2,
+)
+
 from cirq.google.api.v2.results import (
     MeasureInfo,
     find_measurements,

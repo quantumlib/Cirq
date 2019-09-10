@@ -523,8 +523,6 @@ general testing utilities.
     testing.random_special_unitary
     testing.random_superposition
     testing.random_unitary
-    testing.TempDirectoryPath
-    testing.TempFilePath
 
 
 Contrib

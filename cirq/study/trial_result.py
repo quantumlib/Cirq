@@ -46,7 +46,9 @@ def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
 
 
 def _bitstring(vals: Iterable[Any]) -> str:
-    return ''.join('1' if v else '0' for v in vals)
+    str_list = [str(int(v)) for v in vals]
+    separator = '' if all(len(s) == 1 for s in str_list) else ' '
+    return separator.join(str_list)
 
 
 def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:

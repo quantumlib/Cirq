@@ -19,8 +19,8 @@ import sympy
 from google.protobuf import json_format
 
 from cirq import devices
-from cirq.api.google import v2
 from cirq.google import arg_func_langs
+from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
@@ -95,14 +95,14 @@ class GateOpDeserializer:
         self.num_qubits_param = num_qubits_param
 
     def from_proto_dict(self, proto: Dict) -> 'cirq.GateOperation':
-        """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
+        """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         msg = v2.program_pb2.Operation()
         json_format.ParseDict(proto, msg)
         return self.from_proto(msg)
 
     def from_proto(self,
                    proto: v2.program_pb2.Operation) -> 'cirq.GateOperation':
-        """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
+        """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         qubits = [devices.GridQubit.from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto)
         if self.num_qubits_param is not None:

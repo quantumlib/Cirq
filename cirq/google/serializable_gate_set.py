@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Support for serializing and deserializing cirq.api.google.v2 protos."""
+"""Support for serializing and deserializing cirq.google.api.v2 protos."""
 
 from collections import defaultdict
 
@@ -21,8 +21,8 @@ from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union, \
 from google.protobuf import json_format
 
 from cirq import circuits, ops, schedules, value
-from cirq.api.google import v2
 from cirq.google import op_deserializer, op_serializer
+from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class SerializableGateSet:
     """A class for serializing and deserializing programs and operations.
 
-    This class is for cirq.api.google.v2. protos.
+    This class is for cirq.google.api.v2. protos.
     """
 
     def __init__(self, gate_set_name: str,
@@ -72,13 +72,13 @@ class SerializableGateSet:
     def serialize_dict(self,
                        program: Union[circuits.Circuit, schedules.Schedule]
                       ) -> Dict:
-        """Serialize a Circuit or Schedule to cirq.api.google.v2.Program proto.
+        """Serialize a Circuit or Schedule to cirq.google.api.v2.Program proto.
 
         Args:
             program: The Circuit or Schedule to serialize.
 
         Returns:
-            A dictionary corresponding to the cirq.api.google.v2.Program proto.
+            A dictionary corresponding to the cirq.google.api.v2.Program proto.
         """
         return json_format.MessageToDict(self.serialize(program),
                                          including_default_value_fields=True,
@@ -89,7 +89,7 @@ class SerializableGateSet:
                   program: Union[circuits.Circuit, schedules.Schedule],
                   msg: Optional[v2.program_pb2.Program] = None
                  ) -> v2.program_pb2.Program:
-        """Serialize a Circuit or Schedule to cirq.api.google.v2.Program proto.
+        """Serialize a Circuit or Schedule to cirq.google.api.v2.Program proto.
 
         Args:
             program: The Circuit or Schedule to serialize.
@@ -104,13 +104,13 @@ class SerializableGateSet:
         return msg
 
     def serialize_op_dict(self, op: 'cirq.Operation') -> Dict:
-        """Serialize an Operation to cirq.api.google.v2.Operation proto.
+        """Serialize an Operation to cirq.google.api.v2.Operation proto.
 
         Args:
             op: The operation to serialize.
 
         Returns:
-            A dictionary corresponds to the cirq.api.google.v2.Operation proto.
+            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
         """
         return json_format.MessageToDict(self.serialize_op(op),
                                          including_default_value_fields=True,
@@ -121,13 +121,13 @@ class SerializableGateSet:
                      op: 'cirq.Operation',
                      msg: Optional[v2.program_pb2.Operation] = None
                     ) -> v2.program_pb2.Operation:
-        """Serialize an Operation to cirq.api.google.v2.Operation proto.
+        """Serialize an Operation to cirq.google.api.v2.Operation proto.
 
         Args:
             op: The operation to serialize.
 
         Returns:
-            A dictionary corresponds to the cirq.api.google.v2.Operation proto.
+            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
         """
         gate_op = cast(ops.GateOperation, op)
         gate_type = type(gate_op.gate)
@@ -147,10 +147,10 @@ class SerializableGateSet:
                          proto: Dict,
                          device: Optional['cirq.Device'] = None
                         ) -> Union[circuits.Circuit, schedules.Schedule]:
-        """Deserialize a Circuit or Schedule from a cirq.api.google.v2.Program.
+        """Deserialize a Circuit or Schedule from a cirq.google.api.v2.Program.
 
         Args:
-            proto: A dictionary representing a cirq.api.google.v2.Program proto.
+            proto: A dictionary representing a cirq.google.api.v2.Program proto.
             device: If the proto is for a schedule, a device is required
                 Otherwise optional.
 
@@ -166,10 +166,10 @@ class SerializableGateSet:
                     proto: v2.program_pb2.Program,
                     device: Optional['cirq.Device'] = None
                    ) -> Union[circuits.Circuit, schedules.Schedule]:
-        """Deserialize a Circuit or Schedule from a cirq.api.google.v2.Program.
+        """Deserialize a Circuit or Schedule from a cirq.google.api.v2.Program.
 
         Args:
-            proto: A dictionary representing a cirq.api.google.v2.Program proto.
+            proto: A dictionary representing a cirq.google.api.v2.Program proto.
             device: If the proto is for a schedule, a device is required
                 Otherwise optional.
 
@@ -197,11 +197,11 @@ class SerializableGateSet:
             'Program proto does not contain a circuit or schedule.')
 
     def deserialize_op_dict(self, operation_proto: Dict) -> 'cirq.Operation':
-        """Deserialize an Operation from a cirq.api.google.v2.Operation.
+        """Deserialize an Operation from a cirq.google.api.v2.Operation.
 
         Args:
             operation_proto: A dictionary representing a
-                cirq.api.google.v2.Operation proto.
+                cirq.google.api.v2.Operation proto.
 
         Returns:
             The deserialized Operation.
@@ -212,11 +212,11 @@ class SerializableGateSet:
 
     def deserialize_op(self, operation_proto: v2.program_pb2.Operation
                       ) -> 'cirq.Operation':
-        """Deserialize an Operation from a cirq.api.google.v2.Operation.
+        """Deserialize an Operation from a cirq.google.api.v2.Operation.
 
         Args:
             operation_proto: A dictionary representing a
-                cirq.api.google.v2.Operation proto.
+                cirq.google.api.v2.Operation proto.
 
         Returns:
             The deserialized Operation.
