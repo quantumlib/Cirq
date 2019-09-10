@@ -137,7 +137,6 @@ _RESULTS_V2 = {
     ],
 }
 
-
 _CALIBRATION = {
     'name': 'projects/foo/processors/xmonsim/calibrations/1562715599',
     'timestamp': '2019-07-09T23:39:59Z',
