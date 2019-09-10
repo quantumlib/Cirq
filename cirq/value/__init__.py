@@ -47,5 +47,8 @@ from cirq.value.periodic_value import (
 from cirq.value.timestamp import (
     Timestamp,)
 
+from cirq.value.type_alias import (
+    TParamVal,)
+
 from cirq.value.value_equality import (
     value_equality,)

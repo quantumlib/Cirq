@@ -55,7 +55,7 @@ In addition to checking that the code executes:
 """
 import inspect
 import sys
-from typing import Dict, List, Pattern, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Pattern, Tuple
 
 import os
 import re
@@ -63,10 +63,6 @@ import re
 import pytest
 
 import cirq
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any
 
 
 def test_can_run_readme_code_snippets():
@@ -368,7 +364,7 @@ def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]],
     snippet will be visible in later snippets.
     """
 
-    state = {}  # type: Dict[str, Any]
+    state: Dict[str, Any] = {}
 
     if assume_import:
         exec('import cirq', state)

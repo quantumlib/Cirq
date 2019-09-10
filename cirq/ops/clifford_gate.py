@@ -346,8 +346,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 '+-'[self.transform(pauli_gates.Z).flip],
                      self.transform(pauli_gates.Z).to)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         well_known_map = {
             SingleQubitCliffordGate.I: 'I',
             SingleQubitCliffordGate.H: 'H',
