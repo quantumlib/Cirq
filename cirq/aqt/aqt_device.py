@@ -75,7 +75,6 @@ class AQTNoiseModel(devices.NoiseModel):
         for qubit in operation.qubits:
             idx = system_qubits.index(qubit)
             neighbors = [idx - 1, idx + 1]
-            #xtlk_arr[idx] = 1.0
             for neigh_idx in neighbors:
                 if neigh_idx >= 0 and neigh_idx < num_qubits:
                     xtlk_arr[neigh_idx] = self.noise_op_dict['crosstalk']

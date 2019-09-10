@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 import numpy as np
 import pytest
 import sympy
@@ -148,7 +148,6 @@ def test_aqt_sampler_sim():
                            length=num_points)
     results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
     excited_state_probs = np.zeros(num_points)
-    # print(results)
     for i in range(num_points):
         excited_state_probs[i] = np.mean(results[i].measurements['m'])
     assert excited_state_probs[-1] == 0.25
