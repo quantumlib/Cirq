@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any
+from typing import cast, Any, Tuple
 
 import numpy as np
 
@@ -28,7 +28,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 
 class SingleQubitMatrixGate(gate_features.SingleQubitGate):
-    """A 1-qubit gate defined by its matrix.
+    """A 1-qubit or qudit gate defined by its matrix.
 
     More general than specialized classes like `ZPowGate`, but more expensive
     and more float-error sensitive to work with (due to using
@@ -42,9 +42,14 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         Args:
             matrix: The matrix that defines the gate.
         """
-        if matrix.shape != (2, 2) or not linalg.is_unitary(matrix):
-            raise ValueError('Not a 2x2 unitary matrix: {}'.format(matrix))
+        if (len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1] or
+                not linalg.is_unitary(matrix)):
+            raise ValueError(
+                'Not a 2x2 (or d x d) unitary matrix: {}'.format(matrix))
         self._matrix = matrix
+
+    def _qid_shape_(self) -> Tuple[int]:
+        return (self._matrix.shape[0],)
 
     def validate_args(self, qubits):
         super().validate_args(qubits)
@@ -91,7 +96,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return np.alltrue(self._matrix == other._matrix)
+        return np.array_equal(self._matrix, other._matrix)
 
     def __ne__(self, other):
         return not self == other
