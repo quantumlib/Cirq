@@ -482,9 +482,9 @@ def test_str():
     assert str(cirq.ControlledGate(cirq.S)) == 'CS'
     assert str(cirq.ControlledGate(cirq.Z**0.125)) == 'CZ**0.125'
     assert str(cirq.ControlledGate(cirq.ControlledGate(cirq.S))) == 'CCS'
-    assert str(C0Y) == 'C0Y'.replace('S', '')
-    assert str(C0C1H) == 'C0C1H'.replace('S', '')
-    assert str(C0Restricted) == 'C0Restricted'.replace('S', '')
-    assert str(C2Y) == 'C2Y'.replace('S', '')
-    assert str(C2C2H) == 'C2C2H'.replace('S', '')
-    assert str(C2Restricted) == 'C2Restricted'.replace('S', '')
+    assert str(C0Y) == 'C0Y'
+    assert str(C0C1H) == 'C0C1H'
+    assert str(C0Restricted) == 'C0Restricted'
+    assert str(C2Y) == 'C2Y'
+    assert str(C2C2H) == 'C2C2H'
+    assert str(C2Restricted) == 'C2Restricted'
