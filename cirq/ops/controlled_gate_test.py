@@ -108,6 +108,8 @@ def test_init2():
     with pytest.raises(ValueError,
                        match=r'len\(control_qid_shape\) != num_controls'):
         cirq.ControlledGate(cirq.Z, num_controls=1, control_qid_shape=(2, 2))
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        cirq.ControlledGate(cirq.Z, control_values=[2], control_qid_shape=(2,))
 
     gate = cirq.ControlledGate(cirq.Z, 1)
     assert gate.sub_gate is cirq.Z

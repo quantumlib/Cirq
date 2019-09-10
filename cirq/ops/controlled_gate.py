@@ -188,14 +188,13 @@ class ControlledGate(raw_types.Gate):
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                               ) -> 'protocols.CircuitDiagramInfo':
         sub_args = protocols.CircuitDiagramInfoArgs(
-            known_qubit_count=(args.known_qubit_count - self.num_controls()
+            known_qubit_count=(args.known_qubit_count - self.num_controls
                                if args.known_qubit_count is not None else None),
-            known_qubits=(args.known_qubits[self.num_controls():]
+            known_qubits=(args.known_qubits[self.num_controls:]
                           if args.known_qubits is not None else None),
             use_unicode_characters=args.use_unicode_characters,
             precision=args.precision,
-            qubit_map=args.qubit_map
-        )
+            qubit_map=args.qubit_map)
         sub_info = protocols.circuit_diagram_info(self.sub_gate,
                                                   sub_args,
                                                   None)
