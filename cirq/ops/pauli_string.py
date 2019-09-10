@@ -245,7 +245,7 @@ class PauliString(raw_types.Operation):
         return linalg.kron(self.coefficient,
                            *[protocols.unitary(self[q]) for q in self.qubits])
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs):
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
         if self.coefficient != 1:
@@ -520,7 +520,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return -self._as_pauli_string()
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['pauli', 'qubit'])
+        return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod
     def _from_json_dict_(  # type: ignore

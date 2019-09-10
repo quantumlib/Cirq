@@ -249,4 +249,4 @@ def test_larger_circuit():
 def test_is_maximalist(circuit):
     dag = cirq.CircuitDag.from_circuit(circuit)
     transitive_closure = networkx.dag.transitive_closure(dag)
-    assert transitive_closure == dag
+    assert cirq.CircuitDag(incoming_graph_data=transitive_closure) == dag

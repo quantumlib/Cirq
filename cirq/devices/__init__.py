@@ -19,7 +19,9 @@ from cirq.devices.grid_qubit import (
     GridQubit,)
 
 from cirq.devices.line_qubit import (
-    LineQubit,)
+    LineQubit,
+    LineQid,
+)
 
 from cirq.devices.unconstrained_device import (
     UNCONSTRAINED_DEVICE,)

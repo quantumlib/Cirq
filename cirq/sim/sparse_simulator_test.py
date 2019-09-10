@@ -274,6 +274,52 @@ def test_simulate(dtype,):
     assert len(result.measurements) == 0
 
 
+class PlusGate(cirq.Gate):
+    """A qudit gate that increments a qudit state mod its dimension."""
+
+    def __init__(self, dimension, increment=1):
+        self.dimension = dimension
+        self.increment = increment % dimension
+
+    def _qid_shape_(self):
+        return (self.dimension,)
+
+    def _unitary_(self):
+        inc = (self.increment - 1) % self.dimension + 1
+        u = np.empty((self.dimension, self.dimension))
+        u[inc:] = np.eye(self.dimension)[:-inc]
+        u[:inc] = np.eye(self.dimension)[-inc:]
+        return u
+
+
+class _TestMixture(cirq.Gate):
+
+    def __init__(self, gate_options):
+        self.gate_options = gate_options
+
+    def _qid_shape_(self):
+        return cirq.qid_shape(self.gate_options[0], ())
+
+    def _mixture_(self):
+        return [(1 / len(self.gate_options), cirq.unitary(g))
+                for g in self.gate_options]
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_qudits(dtype,):
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    simulator = cirq.Simulator(dtype=dtype)
+    circuit = cirq.Circuit.from_ops(
+        PlusGate(3)(q0),
+        PlusGate(4, increment=3)(q1),
+    )
+    result = simulator.simulate(circuit, qubit_order=[q0, q1])
+    expected = np.zeros(12)
+    expected[4 * 1 + 3] = 1
+    np.testing.assert_almost_equal(result.final_state, expected)
+    assert len(result.measurements) == 0
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_mixtures(dtype,):
     q0 = cirq.LineQubit(0)
@@ -290,6 +336,24 @@ def test_simulate_mixtures(dtype,):
             np.testing.assert_almost_equal(result.final_state,
                                            np.array([1, 0]))
     assert count < 80 and count > 20
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_qudit_mixtures(dtype,):
+    q0 = cirq.LineQid(0, 3)
+    simulator = cirq.Simulator(dtype=dtype)
+    mixture = _TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
+    circuit = cirq.Circuit.from_ops(mixture(q0), cirq.measure(q0))
+    counts = {0: 0, 1: 0, 2: 0}
+    for _ in range(300):
+        result = simulator.simulate(circuit, qubit_order=[q0])
+        meas = result.measurements['0 (d=3)'][0]
+        counts[meas] += 1
+        np.testing.assert_almost_equal(
+            result.final_state, np.array([meas == 0, meas == 1, meas == 2]))
+    assert counts[0] < 160 and counts[0] > 40
+    assert counts[1] < 160 and counts[1] > 40
+    assert counts[2] < 160 and counts[2] > 40
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])

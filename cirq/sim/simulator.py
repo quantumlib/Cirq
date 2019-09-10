@@ -46,6 +46,7 @@ import numpy as np
 from cirq import circuits, ops, protocols, schedules, study, value, work
 
 
+
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
@@ -373,7 +374,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
-                    measurements[k] = np.array(v, dtype=bool)
+                    measurements[k] = np.array(v, dtype=np.uint8)
             trial_results.append(
                 self._create_simulator_trial_result(
                     params=param_resolver,
@@ -470,7 +471,7 @@ class StepResult(metaclass=abc.ABCMeta):
     """
 
     def __init__(self,
-                 measurements: Optional[Dict[str, List[bool]]] = None) -> None:
+                 measurements: Optional[Dict[str, List[int]]] = None) -> None:
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
@@ -557,7 +558,8 @@ class StepResult(metaclass=abc.ABCMeta):
         results = {}
         for k, (s, e) in bounds.items():
             before_invert_mask = np.array([x[s:e] for x in indexed_sample])
-            results[k] = before_invert_mask ^ meas_ops[k].full_invert_mask()
+            results[k] = before_invert_mask ^ (np.logical_and(
+                before_invert_mask < 2, meas_ops[k].full_invert_mask()))
         return results
 
 
@@ -622,3 +624,22 @@ class SimulationTrialResult:
         the result.
         """
         return self._final_simulator_state.qubit_map
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return _qubit_map_to_shape(self.qubit_map)
+
+
+def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
+    qid_shape: List[int] = [-1] * len(qubit_map)
+    try:
+        for q, i in qubit_map.items():
+            qid_shape[i] = q.dimension
+    except IndexError:
+        raise ValueError(
+            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
+            format(qubit_map))
+    if -1 in qid_shape:
+        raise ValueError(
+            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
+                qubit_map))
+    return tuple(qid_shape)

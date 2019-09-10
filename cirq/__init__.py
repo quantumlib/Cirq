@@ -12,6 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import _import
+
+# A module can only depend on modules imported earlier in this list of modules
+# at import time.  Pytest will fail otherwise (enforced by
+# dev_tools/import_test.py).
+# Begin dependency order list of sub-modules.
+from cirq import (
+    # Low level
+    _version,
+    _compat,
+    type_workarounds,
+)
+with _import.delay_import('cirq.protocols'):
+    from cirq import (
+        # Core
+        protocols,
+        value,
+        linalg,
+        ops,
+        devices,
+        study,
+    )
+from cirq import (
+    # Core
+    circuits,
+    schedules,
+    # Optimize and run
+    optimizers,
+    work,
+    sim,
+    vis,
+    # Hardware specific
+    ion,
+    neutral_atoms,
+    api,
+    google,
+    # Applications
+    experiments,
+    # Extra (nothing should depend on these)
+    testing,
+    contrib,
+)
+# End dependency order list of sub-modules
+
 from cirq._version import (
     __version__,
 )
@@ -33,6 +77,7 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQid,
     LineQubit,
     NO_NOISE,
     NoiseModel,
@@ -130,13 +175,13 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
-    max_qid_shape,
     measure,
     measure_each,
     MeasurementGate,
@@ -165,7 +210,7 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
-    RESET,
+    reset,
     ResetChannel,
     Rx,
     Ry,
@@ -355,7 +400,7 @@ from cirq.protocols import (
     SupportsTraceDistanceBound,
     SupportsUnitary,
     to_json,
-    to_json_dict,
+    obj_to_dict_helper,
     trace_distance_bound,
     unitary,
     validate_mixture,

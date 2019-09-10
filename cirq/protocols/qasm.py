@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, \
 
 from typing_extensions import Protocol
 
+from cirq import ops
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -53,7 +54,6 @@ class QasmArgs(string.Formatter):
 
     def format_field(self, value: Any, spec: str) -> str:
         """Method of string.Formatter that specifies the output of format()."""
-        from cirq import ops  # HACK: avoids cyclic dependency.
         if isinstance(value, (float, int)):
             if isinstance(value, float):
                 value = round(value, self.precision)
