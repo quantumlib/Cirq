@@ -95,6 +95,14 @@ def test_controlled_operation_init():
     assert c.control_values == ((1,),)
     assert cirq.qid_shape(c) == (3, 2)
 
+    with pytest.raises(ValueError,
+                       match=r'len\(control_values\) != len\(controls\)'):
+        _ = cirq.ControlledOperation([cb], v, control_values=[1, 1])
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        _ = cirq.ControlledOperation([cb], v, control_values=[2])
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        _ = cirq.ControlledOperation([cb], v, control_values=[(1, -1)])
+
 
 def test_controlled_operation_eq():
     c1 = cirq.NamedQubit('c1')
@@ -132,8 +140,20 @@ def test_str():
             pass
         def __str__(self):
             return "Op(q2)"
+
     assert (str(cirq.ControlledOperation(
         [c1, c2], SingleQubitOp())) == "CC(c1, c2, Op(q2))")
+
+    assert (str(
+        cirq.ControlledOperation(
+            [c1, c2.with_dimension(3)],
+            SingleQubitOp())) == "CC(c1, c2 (d=3), Op(q2))")
+
+    assert (str(
+        cirq.ControlledOperation(
+            [c1, c2.with_dimension(3)],
+            SingleQubitOp(),
+            control_values=[1, (2, 0)])) == "C1C02(c1, c2 (d=3), Op(q2))")
 
 
 def test_repr():

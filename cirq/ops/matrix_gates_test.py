@@ -40,6 +40,15 @@ def test_single_qubit_init():
     assert np.alltrue(cirq.unitary(x2) == PLUS_ONE)
     assert cirq.qid_shape(x2) == (3,)
 
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(np.zeros((2, 2)))
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(cirq.eye_tensor((2, 2), dtype=float))
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(np.ones((3, 4)))
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(np.ones((2, 2, 2)))
+
 
 def test_single_qubit_eq():
     eq = cirq.testing.EqualsTester()
