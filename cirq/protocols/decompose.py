@@ -312,10 +312,10 @@ def decompose_once(val: Any,
             `val`.
 
     Returns:
-        The result of `val._decompose_(*args, **kwargs)`, if `val` has a `_decompose_`
-        method and it didn't return `NotImplemented` or `None`. Otherwise
-        `default` is returned, if it was specified. Otherwise an error is
-        raised.
+        The result of `val._decompose_(*args, **kwargs)`, if `val` has a
+        `_decompose_` method and it didn't return `NotImplemented` or `None`.
+        Otherwise `default` is returned, if it was specified. Otherwise an error
+        is raised.
 
     TypeError:
         `val` didn't have a `_decompose_` method (or that method returned
