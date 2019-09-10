@@ -25,9 +25,7 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, 1j, -1, -1j],
                  [1, -1, 1, -1],
                  [1, -1j, -1, 1j]]) * 0.5
-PLUS_ONE = np.array([[0, 0, 1],
-                     [1, 0, 0],
-                     [0, 1, 0]])
+PLUS_ONE = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
 
 
 def test_single_qubit_init():

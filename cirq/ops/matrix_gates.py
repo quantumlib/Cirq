@@ -44,8 +44,8 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         """
         if (len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1] or
                 not linalg.is_unitary(matrix)):
-            raise ValueError('Not a 2x2 (or d x d) unitary matrix: {}'.format(
-                matrix))
+            raise ValueError(
+                'Not a 2x2 (or d x d) unitary matrix: {}'.format(matrix))
         self._matrix = matrix
 
     def _qid_shape_(self) -> Tuple[int]:

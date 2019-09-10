@@ -253,12 +253,16 @@ class ControlledGate(raw_types.Gate):
 
     def __str__(self):
         if set(self.control_values) == {(1,)}:
+
             def get_prefix(control_vals):
                 return 'C'
         else:
+
             def get_prefix(control_vals):
                 return 'C{}'.format(''.join(map(str, control_vals)))
-        return ''.join(map(get_prefix, self.control_values)) + str(self.sub_gate)
+
+        return ''.join(map(get_prefix, self.control_values)) + str(
+            self.sub_gate)
 
     def __repr__(self):
         if self.control_qubits == (None,) and self.control_values == ((1,),):

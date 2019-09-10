@@ -65,8 +65,10 @@ class GateAllocatingNewSpaceForResult(cirq.SingleQubitGate):
                 'GateAllocatingNewSpaceForResult()')
 
 class RestrictedGate(cirq.SingleQubitGate):
+
     def __str__(self):
         return 'Restricted'
+
 
 q = cirq.NamedQubit('q')
 p = cirq.NamedQubit('p')
@@ -82,17 +84,31 @@ SCRestricted = cirq.ControlledGate(RestrictedGate(), [q])
 
 C0Y = cirq.ControlledGate(cirq.Y, control_values=[0])
 SC0Y = cirq.ControlledGate(cirq.Y, [q], control_values=[0])
-C0C1H = cirq.ControlledGate(cirq.ControlledGate(cirq.H, control_values=[1]), control_values=[0])
+C0C1H = cirq.ControlledGate(cirq.ControlledGate(cirq.H, control_values=[1]),
+                            control_values=[0])
 SC0SC1H = cirq.ControlledGate(cirq.H, [q, p], 2, control_values=[0, 1])
 C0Restricted = cirq.ControlledGate(RestrictedGate(), control_values=[0])
 SC0Restricted = cirq.ControlledGate(RestrictedGate(), [q], control_values=[0])
 
 C2Y = cirq.ControlledGate(cirq.Y, control_values=[2], control_qid_shape=(3,))
-SC2Y = cirq.ControlledGate(cirq.Y, [q3], control_values=[2], control_qid_shape=(3,))
-C2C2H = cirq.ControlledGate(cirq.ControlledGate(cirq.H, control_values=[2], control_qid_shape=(3,)), control_values=[2], control_qid_shape=(3,))
-SC2SC2H = cirq.ControlledGate(cirq.H, [q3, p3], 2, control_values=[2, 2], control_qid_shape=(3, 3))
-C2Restricted = cirq.ControlledGate(RestrictedGate(), control_values=[2], control_qid_shape=(3,))
-SC2Restricted = cirq.ControlledGate(RestrictedGate(), [q3], control_values=[2], control_qid_shape=(3,))
+SC2Y = cirq.ControlledGate(cirq.Y, [q3],
+                           control_values=[2],
+                           control_qid_shape=(3,))
+C2C2H = cirq.ControlledGate(cirq.ControlledGate(cirq.H,
+                                                control_values=[2],
+                                                control_qid_shape=(3,)),
+                            control_values=[2],
+                            control_qid_shape=(3,))
+SC2SC2H = cirq.ControlledGate(cirq.H, [q3, p3],
+                              2,
+                              control_values=[2, 2],
+                              control_qid_shape=(3, 3))
+C2Restricted = cirq.ControlledGate(RestrictedGate(),
+                                   control_values=[2],
+                                   control_qid_shape=(3,))
+SC2Restricted = cirq.ControlledGate(RestrictedGate(), [q3],
+                                    control_values=[2],
+                                    control_qid_shape=(3,))
 
 
 def test_init():
@@ -104,9 +120,11 @@ def test_init():
 def test_init2():
     with pytest.raises(ValueError, match='More .* qubits'):
         cirq.ControlledGate(cirq.Z, [p,q], 1)
-    with pytest.raises(ValueError, match=r'len\(control_values\) != num_controls'):
+    with pytest.raises(ValueError,
+                       match=r'len\(control_values\) != num_controls'):
         cirq.ControlledGate(cirq.Z, num_controls=1, control_values=(1, 0))
-    with pytest.raises(ValueError, match=r'len\(control_qid_shape\) != num_controls'):
+    with pytest.raises(ValueError,
+                       match=r'len\(control_qid_shape\) != num_controls'):
         cirq.ControlledGate(cirq.Z, num_controls=1, control_qid_shape=(2, 2))
     with pytest.raises(ValueError, match='qubit dimension .*does not match'):
         cirq.ControlledGate(cirq.Z, [p], control_qid_shape=(3,))
@@ -250,6 +268,7 @@ def test_validate_args():
         _ = C2C2H.on(a, b, c)
     _ = C2C2H.on(q3, p3, a)
 
+
 def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(CY, cirq.ControlledGate(cirq.Y))
@@ -293,7 +312,9 @@ def test_controlled_by():
     eq.add_equality_group(
         g.controlled_by(a, c, control_values=[0, 1]),
         g.controlled_by(c, a, control_values=[1, 0]),
-        g.controlled_by(a, control_values=[0]).controlled_by(c, control_values=[1]))
+        g.controlled_by(a,
+                        control_values=[0]).controlled_by(c,
+                                                          control_values=[1]))
     eq.add_equality_group(g.controlled_by(a))
     eq.add_equality_group(g.controlled_by(b))
     eq.add_equality_group(g.controlled_by(a, c))
@@ -319,15 +340,14 @@ def test_unitary():
             [0, 0, 1j, 0],
         ]),
         atol=1e-8)
-    np.testing.assert_allclose(
-        cirq.unitary(C0Y),
-        np.array([
-            [0, -1j, 0, 0],
-            [1j, 0, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-        ]),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(C0Y),
+                               np.array([
+                                   [0, -1j, 0, 0],
+                                   [1j, 0, 0, 0],
+                                   [0, 0, 1, 0],
+                                   [0, 0, 0, 1],
+                               ]),
+                               atol=1e-8)
     np.testing.assert_allclose(
         cirq.unitary(SCY),
         np.array([
@@ -379,46 +399,49 @@ def test_unitary():
         atol=1e-8)
 
 
-
-@pytest.mark.parametrize('gate', [
-    cirq.X,
-    cirq.X**0.5,
-    cirq.Rx(np.pi),
-    cirq.Rx(np.pi / 2),
-    cirq.Z,
-    cirq.H,
-    cirq.CNOT,
-    cirq.SWAP,
-    cirq.CCZ,
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
-    GateUsingWorkspaceForApplyUnitary(),
-    GateAllocatingNewSpaceForResult(),
-    cirq.IdentityGate(qid_shape=(3, 4)),
-    # Single qudit gate with dimension 4.
-    cirq.SingleQubitMatrixGate(np.kron(*(cirq.unitary(cirq.H),)*2)),
-])
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.X,
+        cirq.X**0.5,
+        cirq.Rx(np.pi),
+        cirq.Rx(np.pi / 2),
+        cirq.Z,
+        cirq.H,
+        cirq.CNOT,
+        cirq.SWAP,
+        cirq.CCZ,
+        cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
+        GateUsingWorkspaceForApplyUnitary(),
+        GateAllocatingNewSpaceForResult(),
+        cirq.IdentityGate(qid_shape=(3, 4)),
+        # Single qudit gate with dimension 4.
+        cirq.SingleQubitMatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2)),
+    ])
 def test_controlled_gate_is_consistent(gate: cirq.Gate):
     cgate = cirq.ControlledGate(gate)
     cirq.testing.assert_implements_consistent_protocols(cgate)
 
 
-@pytest.mark.parametrize('gate', [
-    cirq.X,
-    cirq.X**0.5,
-    cirq.Rx(np.pi),
-    cirq.Rx(np.pi / 2),
-    cirq.Z,
-    cirq.H,
-    cirq.CNOT,
-    cirq.SWAP,
-    cirq.CCZ,
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
-    GateUsingWorkspaceForApplyUnitary(),
-    GateAllocatingNewSpaceForResult(),
-    cirq.IdentityGate(qid_shape=(3, 4)),
-    # Single qudit gate with dimension 4.
-    cirq.SingleQubitMatrixGate(np.kron(*(cirq.unitary(cirq.H),)*2)),
-])
+@pytest.mark.parametrize(
+    'gate',
+    [
+        cirq.X,
+        cirq.X**0.5,
+        cirq.Rx(np.pi),
+        cirq.Rx(np.pi / 2),
+        cirq.Z,
+        cirq.H,
+        cirq.CNOT,
+        cirq.SWAP,
+        cirq.CCZ,
+        cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ)),
+        GateUsingWorkspaceForApplyUnitary(),
+        GateAllocatingNewSpaceForResult(),
+        cirq.IdentityGate(qid_shape=(3, 4)),
+        # Single qudit gate with dimension 4.
+        cirq.SingleQubitMatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2)),
+    ])
 def test_specified_controlled_gate_is_consistent(gate: cirq.Gate):
     cgate = cirq.ControlledGate(gate, [q])
     cirq.testing.assert_implements_consistent_protocols(cgate)
@@ -469,7 +492,8 @@ def test_extrapolatable_effect():
     assert (cirq.ControlledGate(cirq.Z, [a]).on(b)**0.5 ==
             cirq.ControlledGate(cirq.Z**0.5, [a]).on(b))
 
-    assert cirq.Z(a).controlled_by(b3) ** 0.5 == (cirq.Z(a) ** 0.5).controlled_by(b3)
+    assert cirq.Z(a).controlled_by(b3)**0.5 == (
+        cirq.Z(a)**0.5).controlled_by(b3)
 
 
 def test_reversible():
@@ -477,8 +501,9 @@ def test_reversible():
             cirq.ControlledGate(cirq.S**-1))
     assert (cirq.inverse(cirq.ControlledGate(cirq.S, [q])) ==
             cirq.ControlledGate(cirq.S**-1, [q]))
-    assert (cirq.inverse(cirq.ControlledGate(cirq.S, [q3])) ==
-            cirq.ControlledGate(cirq.S**-1, [q3]))
+    assert (cirq.inverse(cirq.ControlledGate(cirq.S,
+                                             [q3])) == cirq.ControlledGate(
+                                                 cirq.S**-1, [q3]))
 
 
 class UnphaseableGate(cirq.SingleQubitGate):
@@ -502,12 +527,10 @@ def test_circuit_diagram_info():
         exponent=1)
 
     assert cirq.circuit_diagram_info(C0Y) == cirq.CircuitDiagramInfo(
-        wire_symbols=('(0)', 'Y'),
-        exponent=1)
+        wire_symbols=('(0)', 'Y'), exponent=1)
 
     assert cirq.circuit_diagram_info(C2Y) == cirq.CircuitDiagramInfo(
-        wire_symbols=('(2)', 'Y'),
-        exponent=1)
+        wire_symbols=('(2)', 'Y'), exponent=1)
 
     assert cirq.circuit_diagram_info(cirq.ControlledGate(cirq.Y**0.5)
                                      ) == cirq.CircuitDiagramInfo(
@@ -566,7 +589,8 @@ def test_circuit_diagram():
     c = cirq.Circuit.from_ops(
         MultiH(2)(*qubits[1:]).controlled_by(qubits[0], control_values=[2]))
 
-    cirq.testing.assert_has_diagram(c, """
+    cirq.testing.assert_has_diagram(
+        c, """
 0 (d=3): ───(2)──────────
             │
 1 (d=2): ───H(1 (d=2))───
