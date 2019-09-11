@@ -15,7 +15,7 @@
 import itertools
 import random
 from typing import (Any, Callable, cast, Dict, Hashable, Iterable, List,
-                    Mapping, Optional, Set, Tuple)
+                    Mapping, Optional, Sequence, Set, Tuple)
 
 import numpy as np
 import networkx as nx
@@ -78,7 +78,7 @@ class GreedyRouter:
         """
 
         self.device_graph = device_graph
-        self.physical_distances = {
+        self.physical_distances: Dict[Tuple[ops.Qid, ops.Qid], int] = {
             (a, b): d
             for a, neighbor_distances in nx.shortest_path_length(device_graph)
             for b, d in neighbor_distances.items()
@@ -98,6 +98,7 @@ class GreedyRouter:
 
     def get_edge_sets(self,
                       edge_set_size: int) -> Iterable[Tuple[ops.Qid, ops.Qid]]:
+        """Returns matchings of the device graph of a given size."""
         if edge_set_size not in self.edge_sets:
             self.edge_sets[edge_set_size] = [
                 cast(Tuple[ops.Qid, ops.Qid],
@@ -108,17 +109,24 @@ class GreedyRouter:
             ]
         return self.edge_sets[edge_set_size]
 
-    def log_to_phys(self, *qubits):
+    def log_to_phys(self, *qubits: ops.Qid) -> Iterable[ops.Qid]:
+        """Returns an iterator over the physical qubits mapped to by the given
+        logical qubits."""
         return (self._log_to_phys[q] for q in qubits)
 
-    def phys_to_log(self, *qubits):
+    def phys_to_log(self, *qubits: ops.Qid) -> Iterable[Optional[ops.Qid]]:
+        """Returns an iterator over the logical qubits that map to the given
+        physical qubits."""
         return (self._phys_to_log[q] for q in qubits)
 
-    def apply_swap(self, *physical_edges):
+    def apply_swap(self, *physical_edges: Tuple[ops.Qid, ops.Qid]):
+        """Applies SWAP on the given edges."""
         self.update_mapping(*physical_edges)
         self.physical_ops += [SWAP(*e) for e in physical_edges]
 
-    def update_mapping(self, *physical_edges):
+    def update_mapping(self, *physical_edges: Tuple[ops.Qid, ops.Qid]):
+        """Updates the mapping in accordance with SWAPs on the given physical
+        edges."""
         for physical_edge in physical_edges:
             old_logical_edge = tuple(self.phys_to_log(*physical_edge))
             new_logical_edge = old_logical_edge[::-1]
@@ -129,6 +137,13 @@ class GreedyRouter:
 
     def set_initial_mapping(
             self, initial_mapping: Optional[Mapping[ops.Qid, ops.Qid]] = None):
+        """Sets the internal state according to an initial mapping.
+
+        Args:
+            initial_mapping: The mapping to use. If not given, one is found
+                greedily.
+        """
+
         if initial_mapping is None:
             logical_graph = get_timeslices(self.remaining_dag)[0]
             logical_graph.add_nodes_from(self.logical_qubits)
@@ -149,13 +164,14 @@ class GreedyRouter:
         for l in self._log_to_phys:
             assert l == self._phys_to_log[self._log_to_phys[l]]
 
-    def acts_on_nonadjacent_qubits(self, op):
+    def acts_on_nonadjacent_qubits(self, op: ops.Operation) -> bool:
         if len(op.qubits) == 1:
             return False
         return tuple(
             self.log_to_phys(*op.qubits)) not in self.device_graph.edges
 
     def apply_possible_ops(self):
+        """Applies all logical operations possible given the current mapping."""
         nodes = self.remaining_dag.findall_nodes_until_blocked(
             self.acts_on_nonadjacent_qubits)
         nodes = list(nodes)
@@ -180,19 +196,25 @@ class GreedyRouter:
             self.physical_ops.append(physical_op)
 
     @property
-    def swap_network(self):
+    def swap_network(self) -> SwapNetwork:
         return SwapNetwork(circuits.Circuit.from_ops(self.physical_ops),
                            self.initial_mapping)
 
-    def distance(self, edge):
-        return self.physical_distances[tuple(self.log_to_phys(*edge))]
+    def distance(self, edge: Tuple[ops.Qid, ops.Qid]) -> int:
+        """The distance between the physical qubits mapped to by a pair of
+        logical qubits."""
+        return self.physical_distances[cast(Tuple[ops.Qid, ops.Qid],
+                                            tuple(self.log_to_phys(*edge)))]
 
-    def swap_along_path(self, path):
+    def swap_along_path(self, path: Tuple[ops.Qid]):
+        """Adds SWAPs to move a logical qubit along a specified path."""
         for i in range(len(path) - 1):
-            self.apply_swap(path[i:i + 2])
+            self.apply_swap(cast(Tuple[ops.Qid, ops.Qid], path[i:i + 2]))
 
     def bring_farthest_pair_together(self,
                                      pairs: Iterable[Tuple[ops.Qid, ops.Qid]]):
+        """Adds SWAPs to bring the farthest-apart pair of logical qubits
+        together."""
         distances = [self.distance(pair) for pair in pairs]
         assert distances
         max_distance = min(distances)
@@ -207,13 +229,19 @@ class GreedyRouter:
         self.swap_along_path(shortest_path[:midpoint])
         self.swap_along_path(shortest_path[midpoint:])
 
-    def get_distance_vector(self, logical_edges, swaps):
+    def get_distance_vector(self,
+                            logical_edges: Iterable[Tuple[ops.Qid, ops.Qid]],
+                            swaps: Sequence[Tuple[ops.Qid, ops.Qid]]):
+        """Gets distances between physical qubits mapped to by given logical
+        edges, after specified SWAPs are applied."""
         self.update_mapping(*swaps)
         distance_vector = np.array([self.distance(e) for e in logical_edges])
         self.update_mapping(*swaps)
         return distance_vector
 
     def apply_next_swaps(self):
+        """Applies a few SWAPs to get the mapping closer to one in which the
+        next logical gates can be applied."""
         timeslices = get_timeslices(self.remaining_dag)
         for k in range(1, self.max_search_radius + 1):
             candidate_swap_sets = list(self.get_edge_sets(k))
@@ -239,10 +267,10 @@ class GreedyRouter:
             self.apply_next_swaps()
             self.apply_possible_ops()
         assert are_ops_consistent_with_device_graph(self.physical_ops,
-                                                     self.device_graph)
+                                                    self.device_graph)
 
 
-def _get_dominated_indices(vectors: List[np.ndarray]):
+def _get_dominated_indices(vectors: List[np.ndarray]) -> Set[int]:
     """Get the indices of vectors that are element-wise at least some other
     vector.
     """

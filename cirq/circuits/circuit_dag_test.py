@@ -270,8 +270,7 @@ def _get_circuits_and_is_blockers():
     return itertools.product(circuits, is_blockers)
 
 
-@pytest.mark.parametrize('circuit, is_blocker',
-        _get_circuits_and_is_blockers())
+@pytest.mark.parametrize('circuit, is_blocker', _get_circuits_and_is_blockers())
 def test_findall_nodes_until_blocked(circuit, is_blocker):
     dag = cirq.CircuitDag.from_circuit(circuit)
     all_nodes = list(dag.ordered_nodes())
