@@ -34,14 +34,21 @@ def get_initial_mapping(logical_graph: nx.Graph,
         logical_graph: The graph whose edges correspond to pairs of qubits that
             should be mapped to nearby physical qubits.
         device_graph: The graph of the device.
+
+    The mapping starts by mapping the center of the logical graph to the center
+    of the physical graph. Subsequent logical qubits are mapped to physical
+    qubits greedily. At each iteration, the logical qubits with the largest
+    number of already mapped neighbors and the physical qubits neighboring
+    those already mapped to are considered. The pair of logical and physical
+    qubits that maximizes the average distance to already mapped logical
+    neighbors is selected.
     """
     unplaced_vertices = set(logical_graph)
 
-    frontier_graph = logical_graph.copy()
-    frontier_center = cast(ops.Qid, get_center(frontier_graph))
+    logical_center = cast(ops.Qid, get_center(logical_graph))
     device_center = cast(ops.Qid, get_center(device_graph))
-    mapping = {device_center: frontier_center}
-    unplaced_vertices.remove(frontier_center)
+    mapping = {device_center: logical_center}
+    unplaced_vertices.remove(logical_center)
 
     physical_distances = {
         (a, b): d
@@ -51,7 +58,7 @@ def get_initial_mapping(logical_graph: nx.Graph,
     while len(unplaced_vertices):
         placed_vertices = set(mapping.values())
         placed_neighbors = {
-            v: placed_vertices.intersection(frontier_graph[v])
+            v: placed_vertices.intersection(logical_graph[v])
             for v in unplaced_vertices
         }
         nums_placed_neighbors = {v: len(N) for v, N in placed_neighbors.items()}
@@ -68,12 +75,13 @@ def get_initial_mapping(logical_graph: nx.Graph,
         total_distances = {}
         for l, p in itertools.product(candidates, border):
             total_distance = 0
-            for pp in mapping:
-                total_distance += physical_distances[p, pp]
+            for pp, ll in mapping.items():
+                if logical_graph.has_edge(l, ll):
+                    total_distance += physical_distances[p, pp]
             total_distances[l, p] = total_distance
-        max_total_distance = max(total_distances.values())
+        min_total_distance = min(total_distances.values())
         best_candidates = [
-            lp for lp, d in total_distances.items() if d == max_total_distance
+            lp for lp, d in total_distances.items() if d == min_total_distance
         ]
         l, p = random.choice(best_candidates)
         assert p not in mapping
