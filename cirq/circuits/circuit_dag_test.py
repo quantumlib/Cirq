@@ -257,19 +257,21 @@ def test_is_maximalist(circuit):
         for a, b in itertools.combinations(dag.ordered_nodes(), 2))
 
 
-qubits = cirq.LineQubit.range(10)
-circuits = [cirq.testing.random_circuit(qubits, 10, 0.5) for _ in range(1)]
-edges = [
-    set(qubit_pair)
-    for qubit_pair in itertools.combinations(qubits, 2)
-    if random.random() > 0.5
-]
-not_on_edge = lambda op: len(op.qubits) > 1 and set(op.qubits) not in edges
-is_blockers = [lambda op: False, not_on_edge]
+def _get_circuits_and_is_blockers():
+    qubits = cirq.LineQubit.range(10)
+    circuits = [cirq.testing.random_circuit(qubits, 10, 0.5) for _ in range(1)]
+    edges = [
+        set(qubit_pair)
+        for qubit_pair in itertools.combinations(qubits, 2)
+        if random.random() > 0.5
+    ]
+    not_on_edge = lambda op: len(op.qubits) > 1 and set(op.qubits) not in edges
+    is_blockers = [lambda op: False, not_on_edge]
+    return itertools.product(circuits, is_blockers)
 
 
 @pytest.mark.parametrize('circuit, is_blocker',
-                         itertools.product(circuits, is_blockers))
+        _get_circuits_and_is_blockers())
 def test_findall_nodes_until_blocked(circuit, is_blocker):
     dag = cirq.CircuitDag.from_circuit(circuit)
     all_nodes = list(dag.ordered_nodes())
