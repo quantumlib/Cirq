@@ -24,7 +24,7 @@ from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
 
 
-class _ResetUnitaryGate(ops.SingleQubitGate):
+class _FlipGate(ops.SingleQubitGate):
     """A unitary gate that flips the |0> state with another state.
 
     Used by `Simulator` to reset a qubit.
@@ -334,7 +334,7 @@ class Simulator(simulator.SimulatesSamples,
             for b, i, d in zip(bits, indices, protocols.qid_shape(reset)):
                 if b == 0:
                     continue  # Already zero, no reset needed
-                reset_unitary = _ResetUnitaryGate(d, reset_value=b)(*op.qubits)
+                reset_unitary = _FlipGate(d, reset_value=b)(*op.qubits)
                 self._simulate_unitary(reset_unitary, data, [i])
 
     def _simulate_measurement(self, op: ops.Operation, data: _StateAndBuffer,
