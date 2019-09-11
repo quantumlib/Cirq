@@ -16,12 +16,34 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Type, Union
+from typing import Dict, Iterator, List, Tuple, Type, Union
 
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
+
+
+class _FlipGate(ops.SingleQubitGate):
+    """A unitary gate that flips the |0> state with another state.
+
+    Used by `Simulator` to reset a qubit.
+    """
+
+    def __init__(self, dimension: int, reset_value: int):
+        assert 0 < reset_value < dimension
+        self.dimension = dimension
+        self.reset_value = reset_value
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self.dimension,)
+
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+        args.available_buffer[..., 0] = args.target_tensor[..., self.
+                                                           reset_value]
+        args.available_buffer[..., self.
+                              reset_value] = args.target_tensor[..., 0]
+        return args.available_buffer
 
 
 # Mutable named tuple to hold state and a buffer.
@@ -244,9 +266,10 @@ class Simulator(simulator.SimulatesSamples,
 
         def keep(potential_op: ops.Operation) -> bool:
             # The order of this is optimized to call has_xxx methods first.
-            return (protocols.has_unitary(potential_op)
-                    or protocols.has_mixture(potential_op)
-                    or protocols.is_measurement(potential_op))
+            return (protocols.has_unitary(potential_op) or
+                    protocols.has_mixture(potential_op) or
+                    protocols.is_measurement(potential_op) or
+                    ops.op_gate_isinstance(potential_op, ops.ResetChannel))
 
         data = _StateAndBuffer(state=np.reshape(state, qid_shape),
                                buffer=np.empty(qid_shape, dtype=self._dtype))
@@ -266,7 +289,9 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if protocols.has_unitary(op):
+                if ops.op_gate_isinstance(op, ops.ResetChannel):
+                    self._simulate_reset(op, data, indices)
+                elif protocols.has_unitary(op):
                     self._simulate_unitary(op, data, indices)
                 elif protocols.is_measurement(op):
                     # Do measurements second, since there may be mixtures that
@@ -296,6 +321,21 @@ class Simulator(simulator.SimulatesSamples,
         if result is data.buffer:
             data.buffer = data.state
         data.state = result
+
+    def _simulate_reset(self, op: ops.Operation, data: _StateAndBuffer,
+                        indices: List[int]) -> None:
+        """Simulate an op that is a reset to the |0> state."""
+        reset = ops.op_gate_of_type(op, ops.ResetChannel)
+        if reset:
+            # Do a silent measurement.
+            bits, _ = wave_function.measure_state_vector(
+                data.state, indices, out=data.state, qid_shape=data.state.shape)
+            # Apply bit flip(s) to change the reset the bits to 0.
+            for b, i, d in zip(bits, indices, protocols.qid_shape(reset)):
+                if b == 0:
+                    continue  # Already zero, no reset needed
+                reset_unitary = _FlipGate(d, reset_value=b)(*op.qubits)
+                self._simulate_unitary(reset_unitary, data, [i])
 
     def _simulate_measurement(self, op: ops.Operation, data: _StateAndBuffer,
                               indices: List[int],
