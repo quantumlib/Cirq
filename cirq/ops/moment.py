@@ -121,9 +121,9 @@ class Moment:
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return approx_eq(sorted(self.operations, key=lambda op: op.qubits),
-                         sorted(other.operations, key=lambda op: op.qubits),
-                         atol=atol)
+        return protocols.approx_eq(sorted(self.operations, key=lambda op: op.qubits),
+                                  sorted(other.operations, key=lambda op: op.qubits),
+                                  atol=atol)
 
     def __ne__(self, other):
         return not self == other
