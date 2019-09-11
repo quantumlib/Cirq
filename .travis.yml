@@ -56,11 +56,11 @@ matrix:
   - stage: test
     os: osx
     env: NAME=pytest (macOS)
-    python: "3.7.0"
+    python: '3.6'
     language: generic
     install: ./dev_tools/continous_integration_macos.sh
     script:
-      - source /Users/travis/.pyenv/versions/3.7.0/envs/venv/bin/activate 
+      - source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate 
       - check/pytest-and-incremental-coverage master
   - stage: test
     os: windows
