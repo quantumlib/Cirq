@@ -60,7 +60,6 @@ matrix:
     language: generic
     install: ./dev_tools/continous_integration_macos.sh
     script:
-      - source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate 
       - check/pytest --benchmark-skip
   - stage: test
     os: windows
