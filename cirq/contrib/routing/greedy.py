@@ -222,7 +222,7 @@ class GreedyRouter:
                 distance_vectors = list(
                     self.get_distance_vector(timeslice.edges, swap_set)
                     for swap_set in candidate_swap_sets)
-                dominated_indices = get_dominated_indices(distance_vectors)
+                dominated_indices = _get_dominated_indices(distance_vectors)
                 candidate_swap_sets = [
                     S for i, S in enumerate(candidate_swap_sets)
                     if i not in dominated_indices
@@ -243,10 +243,12 @@ class GreedyRouter:
                                                      self.device_graph)
 
 
-def get_dominated_indices(distance_vectors: List[np.ndarray]):
+def _get_dominated_indices(vectors: List[np.ndarray]):
+    """Get the indices of vectors that are element-wise at least some other vector.
+    """
     dominated_indices = set()
-    for i, v in enumerate(distance_vectors):
-        for w in distance_vectors[:i] + distance_vectors[i + 1:]:
+    for i, v in enumerate(vectors):
+        for w in vectors[:i] + vectors[i + 1:]:
             if all(v >= w):
                 dominated_indices.add(i)
                 break
