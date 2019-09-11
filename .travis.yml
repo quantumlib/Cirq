@@ -61,7 +61,7 @@ matrix:
     install: ./dev_tools/continous_integration_macos.sh
     script:
       - source /Users/travis/.pyenv/versions/3.6.0/envs/venv/bin/activate 
-      - check/pytest-and-incremental-coverage master
+      - check/pytest --benchmark-skip
   - stage: test
     os: windows
     env: NAME=pytest (Windows)
