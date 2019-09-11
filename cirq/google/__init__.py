@@ -75,11 +75,5 @@ from cirq.google.op_serializer import (
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
 
-from cirq.google.sim import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
-)
-
 from cirq.google.xmon_device import (
     XmonDevice,)

@@ -171,6 +171,28 @@ def test_swap_network_gate_from_ops():
     assert swap_network.acquaintance_size == acquaintance_size
     assert swap_network.part_lens == part_lens
 
+    acquaintance_size = 2
+    operations = []
+    qubits = qubits[:5]
+    swap_network = cca.SwapNetworkGate.from_operations(qubits, operations,
+                                                       acquaintance_size,
+                                                       cirq.ZZ)
+    circuit = cirq.Circuit.from_ops(swap_network(*qubits))
+    cca.DECOMPOSE_PERMUTATION_GATES(circuit)
+
+    expected_diagram = """
+0: ───█───ZZ────────────█───ZZ────────────█───ZZ───
+      │   │             │   │             │   │
+1: ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───
+               │   │             │   │
+2: ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───
+      │   │             │   │             │   │
+3: ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───
+               │   │             │   │
+4: ────────────█───ZZ────────────█───ZZ────────────
+""".strip()
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
 
 def test_swap_network_decomposition():
     qubits = cirq.LineQubit.range(8)

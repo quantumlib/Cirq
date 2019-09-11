@@ -1,5 +1,5 @@
 from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
-                    Union, cast)
+                    Union, cast, TYPE_CHECKING)
 
 from collections import OrderedDict
 import numpy as np
@@ -11,12 +11,16 @@ from cirq import ops
 from cirq import schedules
 from cirq import study
 
+if TYPE_CHECKING:
+    import cirq
+
 
 class MeasureInfo(
         NamedTuple('MeasureInfo', [
             ('key', str),
-            ('qubits', List[devices.GridQubit]),
+            ('qubits', List['cirq.GridQubit']),
             ('slot', int),
+            ('invert_mask', List[bool]),
         ])):
     """Extra info about a single measurement within a circuit or schedule.
 
@@ -28,6 +32,8 @@ class MeasureInfo(
             of the measurement. This is used internally when scheduling on
             hardware so that we can combine measurements that occupy the same
             slot.
+        invert_mask: a list of booleans describing whether the results should
+            be flipped for each of the qubits in the qubits field.
     """
 
 
@@ -55,14 +61,15 @@ def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
     return measurements
 
 
-def _circuit_measurements(circuit: circuits.Circuit) -> Iterator[MeasureInfo]:
+def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
             if (isinstance(op, ops.GateOperation) and
                     isinstance(op.gate, ops.MeasurementGate)):
                 yield MeasureInfo(key=op.gate.key,
                                   qubits=_grid_qubits(op),
-                                  slot=i)
+                                  slot=i,
+                                  invert_mask=_full_mask(op))
 
 
 def _schedule_measurements(schedule: schedules.Schedule
@@ -73,13 +80,23 @@ def _schedule_measurements(schedule: schedules.Schedule
                 isinstance(op.gate, ops.MeasurementGate)):
             yield MeasureInfo(key=op.gate.key,
                               qubits=_grid_qubits(op),
-                              slot=so.time.raw_picos())
+                              slot=so.time.raw_picos(),
+                              invert_mask=_full_mask(op))
 
 
-def _grid_qubits(op: ops.Operation) -> List[devices.GridQubit]:
+def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
     if not all(isinstance(q, devices.GridQubit) for q in op.qubits):
         raise ValueError('Expected GridQubits: {}'.format(op.qubits))
-    return cast(List[devices.GridQubit], list(op.qubits))
+    return cast(List['cirq.GridQubit'], list(op.qubits))
+
+
+def _full_mask(op: 'cirq.GateOperation') -> List[bool]:
+    invert_mask = list(cast(ops.MeasurementGate, op.gate).invert_mask)
+    len_missing_mask = len(op.qubits) - len(invert_mask)
+    if len_missing_mask > 0:
+        return invert_mask + [False] * len_missing_mask
+    else:
+        return invert_mask
 
 
 def pack_bits(bits: np.ndarray) -> bytes:

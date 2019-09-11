@@ -57,7 +57,7 @@ import scipy.optimize
 import cirq
 
 
-def main():
+def main(repetitions=1000, maxiter=50):
     # Set problem parameters
     n = 6
     p = 2
@@ -83,7 +83,6 @@ def main():
     simulator = cirq.Simulator()
 
     # Define objective function (we'll use the negative expected cut value)
-    num_samples = 1000
 
     def f(x):
         # Create circuit
@@ -91,7 +90,7 @@ def main():
         gammas = x[p:]
         circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph)
         # Sample bitstrings from circuit
-        result = simulator.run(circuit, repetitions=num_samples)
+        result = simulator.run(circuit, repetitions=repetitions)
         bitstrings = result.measurements['m']
         # Process bitstrings
         sum_of_cut_values = 0
@@ -103,7 +102,7 @@ def main():
             if value > largest_cut_value_found:
                 largest_cut_value_found = value
                 largest_cut_found = bitstring
-        mean = sum_of_cut_values / num_samples
+        mean = sum_of_cut_values / repetitions
         return -mean
 
     # Pick an initial guess
@@ -114,7 +113,7 @@ def main():
     scipy.optimize.minimize(f,
                             x0,
                             method='Nelder-Mead',
-                            options={'maxiter': 50})
+                            options={'maxiter': maxiter})
 
     # Compute best possible cut value via brute force search
     max_cut_value = max(

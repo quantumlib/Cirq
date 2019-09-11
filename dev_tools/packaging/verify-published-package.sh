@@ -15,7 +15,7 @@
 # limitations under the License.
 
 ################################################################################
-# Downloads and tests cirq wheels from the pypi package repository. Uses the
+# Downloads and tests cirq-dev wheels from the pypi package repository. Uses the
 # prod pypi repository unless the --test switch is added.
 #
 # CAUTION: when targeting the test pypi repository, this script assumes that the
@@ -32,6 +32,7 @@ trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 
 PROJECT_NAME=cirq
+PROJECT_NAME_DEV=cirq-dev
 PROJECT_VERSION=$1
 PROD_SWITCH=$2
 
@@ -75,8 +76,8 @@ for PYTHON_VERSION in python3; do
         echo "Pre-installing dependencies since they don't all exist in TEST pypi"
         "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}"
     fi
-    echo Installing "${PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PROJECT_NAME}==${PROJECT_VERSION}"
+    echo Installing "${PROJECT_NAME_DEV}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PROJECT_NAME_DEV}==${PROJECT_VERSION}"
 
     # Check that code runs without dev deps.
     echo Checking that code executes

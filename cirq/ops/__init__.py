@@ -48,6 +48,7 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     ISWAP,
     ISwapPowGate,
@@ -132,7 +133,6 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
-    max_qid_shape,
     OP_TREE,
     transform_op_tree,
 )
@@ -182,5 +182,6 @@ from cirq.ops.three_qubit_gates import (
     CSWAP,
     CSwapGate,
     FREDKIN,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
 )

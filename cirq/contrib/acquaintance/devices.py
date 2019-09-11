@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import abc
 
@@ -26,6 +26,9 @@ from cirq.contrib.acquaintance.shift_swap_network import (
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
+if TYPE_CHECKING:
+    import cirq
+
 
 class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     """A device that contains only acquaintance and permutation gates.
@@ -36,7 +39,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     """
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
-    def validate_operation(self, operation: ops.Operation) -> None:
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
         if not (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, self.gate_types)):
             raise ValueError(
@@ -58,7 +61,8 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
     def validate_schedule(self, schedule: schedules.Schedule) -> None:
         raise NotImplementedError()
 
-def is_acquaintance_strategy(circuit: circuits.Circuit):
+
+def is_acquaintance_strategy(circuit: 'cirq.Circuit'):
     return isinstance(circuit._device, AcquaintanceDevice)
 
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
