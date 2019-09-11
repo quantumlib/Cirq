@@ -4,12 +4,12 @@ from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
 from collections import OrderedDict
 import numpy as np
 
+from cirq.api.google.v2 import result_pb2
 from cirq import circuits
 from cirq import devices
 from cirq import ops
 from cirq import schedules
 from cirq import study
-from cirq.google.api.v2 import result_pb2
 
 if TYPE_CHECKING:
     import cirq

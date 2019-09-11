@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Runs bazel build for proto files in Cirq/cirq/google/api/*
+# Runs bazel build for proto files in Cirq/cirq/api/google/*
 #
 # Usage:
 #     check/bazel
@@ -11,11 +11,11 @@
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-bazel build //cirq/google/api/v1:operations_proto
-bazel build //cirq/google/api/v1:params_proto
-bazel build //cirq/google/api/v1:program_proto
+bazel build //cirq/api/google/v1:operations_proto
+bazel build //cirq/api/google/v1:params_proto
+bazel build //cirq/api/google/v1:program_proto
 
-bazel build //cirq/google/api/v2:metrics_proto
-bazel build //cirq/google/api/v2:program_proto
-bazel build //cirq/google/api/v2:run_context_proto
-bazel build //cirq/google/api/v2:result_proto
+bazel build //cirq/api/google/v2:metrics_proto
+bazel build //cirq/api/google/v2:program_proto
+bazel build //cirq/api/google/v2:run_context_proto
+bazel build //cirq/api/google/v2:result_proto
