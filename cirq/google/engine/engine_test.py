@@ -776,7 +776,7 @@ def test_job_labels(build):
     assert body()['labels'] == {'b': '1'}
     assert body()['labelFingerprint'] == 'abcdef'
 
-@not_on_darwin
+
 def test_implied_job_config_gcs_prefix():
     eng = cg.Engine(project_id='project_id')
     config = cg.JobConfig()
