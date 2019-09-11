@@ -35,7 +35,6 @@ class SwapNetwork:
         self.circuit = circuit
         self.initial_mapping = initial_mapping
 
-    @property
     def final_mapping(self):
         mapping = dict(self.initial_mapping)
         cca.update_mapping(mapping, self.circuit.all_operations())

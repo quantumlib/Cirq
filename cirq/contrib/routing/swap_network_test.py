@@ -31,7 +31,7 @@ def test_final_mapping():
             for i in range(l % 2, n_qubits - 1, 2))
         for l in range(n_qubits))
     swap_network = ccr.SwapNetwork(circuit, initial_mapping)
-    assert swap_network.final_mapping == expected_final_mapping
+    assert swap_network.final_mapping() == expected_final_mapping
 
 
 def test_swap_network_bad_args():
