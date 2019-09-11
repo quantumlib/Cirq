@@ -178,7 +178,6 @@ class GreedyRouter:
             assert len(physical_op.qubits
                       ) < 2 or physical_op.qubits in self.device_graph.edges
             self.physical_ops.append(physical_op)
-        return
 
     @property
     def swap_network(self):
