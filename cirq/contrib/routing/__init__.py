@@ -22,6 +22,6 @@ from cirq.contrib.routing.device import (
 from cirq.contrib.routing.router import (route_circuit, ROUTERS)
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (
-    get_routing_validity,
-    get_ops_consistency_with_device_graph,
+    is_valid_routing,
+    are_ops_consistent_with_device_graph,
 )

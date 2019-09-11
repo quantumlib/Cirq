@@ -31,7 +31,7 @@ def get_timeslices(dag: circuits.CircuitDag) -> List[nx.Graph]:
     ]
 
 
-def get_ops_consistency_with_device_graph(ops: Iterable[ops.Operation],
+def are_ops_consistent_with_device_graph(ops: Iterable[ops.Operation],
                                           device_graph: nx.Graph) -> bool:
     for op in ops:
         if not set(op.qubits).issubset(device_graph):
@@ -41,7 +41,7 @@ def get_ops_consistency_with_device_graph(ops: Iterable[ops.Operation],
     return True
 
 
-def get_routing_validity(
+def is_valid_routing(
         circuit: circuits.Circuit,
         swap_network: SwapNetwork,
         *,

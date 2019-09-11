@@ -30,9 +30,9 @@ def test_route_circuit(circuit, device_graph, algo):
     physical_qubits = [reverse_mapping[l] for l in logical_qubits]
     assert set(swap_network.initial_mapping).issubset(physical_qubits)
     assert sorted(swap_network.initial_mapping.values()) == logical_qubits
-    assert ccr.get_ops_consistency_with_device_graph(
+    assert ccr.are_ops_consistent_with_device_graph(
         swap_network.circuit.all_operations(), device_graph)
-    assert ccr.get_routing_validity(circuit, swap_network)
+    assert ccr.is_valid_routing(circuit, swap_network)
 
 
 def test_router_bad_args():
