@@ -243,7 +243,8 @@ class GreedyRouter:
 
 
 def _get_dominated_indices(vectors: List[np.ndarray]):
-    """Get the indices of vectors that are element-wise at least some other vector.
+    """Get the indices of vectors that are element-wise at least some other
+    vector.
     """
     dominated_indices = set()
     for i, v in enumerate(vectors):

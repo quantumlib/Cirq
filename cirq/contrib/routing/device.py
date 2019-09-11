@@ -33,7 +33,7 @@ def get_linear_device_graph(n_qubits: int) -> nx.Graph:
 
 def get_grid_device_graph(*args, **kwargs) -> nx.Graph:
     """Gets the graph of a grid of qubits.
-    
+
     See GridQubit.rect for argument details."""
     return gridqubits_to_graph_device(cirq.GridQubit.rect(*args, **kwargs))
 
