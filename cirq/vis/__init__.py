@@ -13,3 +13,4 @@
 # limitations under the License.
 
 from cirq.vis.heatmap import Heatmap
+from cirq.vis.plot import plot

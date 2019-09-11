@@ -420,7 +420,9 @@ from cirq.neutral_atoms import (
 )
 
 from cirq.vis import (
-    Heatmap,)
+    Heatmap,
+    plot
+)
 
 from cirq.work import (
     CircuitSampleJob,

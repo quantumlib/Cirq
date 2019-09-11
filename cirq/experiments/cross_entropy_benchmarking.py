@@ -31,20 +31,30 @@ class CrossEntropyResult:
         return self._data
 
     def plot(self, **plot_kwargs: Any) -> None:
-        """Plots the average XEB fidelity vs the number of cycles.
+        """Plots mean XEB fidelity vs number of cycles on a new figure.
 
         Args:
             **plot_kwargs: Arguments to be passed to 'matplotlib.pyplot.plot'.
         """
-        num_cycles = [d.num_cycle for d in self._data]
-        fidelities = [d.xeb_fidelity for d in self._data]
+        # TODO(pingyeh): deprecate this in favor of the SupportsPlot protocol.
         fig = plt.figure()
         ax = plt.gca()
-        ax.set_ylim([0, 1.1])
-        plt.plot(num_cycles, fidelities, 'ro-', figure=fig, **plot_kwargs)
-        plt.xlabel('Number of Cycles', figure=fig)
-        plt.ylabel('XEB Fidelity', figure=fig)
+        self._plot_(ax, **plot_kwargs)
         fig.show(warn=False)
+
+    def _plot_(self, ax: plt.Axes, **plot_kwargs: Any) -> None:
+        """Plots mean XEB fidelity vs number of cycles onto ax.
+
+        Args:
+            ax: the axes to plot onto.
+            **plot_kwargs: Arguments to be passed to 'ax.plot'.
+        """
+        num_cycles = [d.num_cycle for d in self._data]
+        fidelities = [d.xeb_fidelity for d in self._data]
+        ax.set_ylim([0, 1.1])
+        ax.plot(num_cycles, fidelities, 'ro-', **plot_kwargs)
+        ax.set_xlabel('Number of Cycles')
+        ax.set_ylabel('XEB Fidelity')
 
 
 def cross_entropy_benchmarking(

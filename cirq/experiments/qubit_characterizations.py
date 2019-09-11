@@ -47,14 +47,26 @@ class RabiResult:
         Args:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
+        # TODO(pingyeh): deprecate this in favor of the SupportsPlot protocol.
         fig = plt.figure()
         ax = plt.gca()
-        ax.set_ylim([0, 1])
-        plt.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
-                 figure=fig, **plot_kwargs)
-        plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
-        plt.ylabel('Excited State Probability', figure=fig)
+        self._plot_(ax, **plot_kwargs)
         fig.show(warn=False)
+
+    def _plot_(self, ax: plt.Axes, **plot_kwargs: Any) -> None:
+        """Plots excited state probability vs the Rabi angle onto ax.
+
+        Here the Rabi angle is the angle of rotation around the x-axis.
+
+        Args:
+            ax: the axes to plot onto.
+            **plot_kwargs: Arguments to be passed to ax.plot.
+        """
+        ax.set_ylim([0, 1])
+        ax.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
+                **plot_kwargs)
+        ax.set_xlabel(r"Rabi Angle (Radian)")
+        ax.set_ylabel('Excited State Probability')
 
 
 class RandomizedBenchMarkResult:
@@ -90,13 +102,21 @@ class RandomizedBenchMarkResult:
         """
         fig = plt.figure()
         ax = plt.gca()
+        self._plot_(ax, **plot_kwargs)
+        fig.show(warn=False)
+
+    def _plot_(self, ax: plt.Axes, **plot_kwargs: Any) -> None:
+        """Plots probability(|0>) vs number of Cliffords onto ax.
+
+        Args:
+            ax: the axes to plot onto.
+            **plot_kwargs: Arguments to be passed to ax.plot.
+        """
         ax.set_ylim([0, 1])
 
-        plt.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
-                 figure=fig, **plot_kwargs)
-        plt.xlabel(r"Number of Cliffords", figure=fig)
-        plt.ylabel('Ground State Probability', figure=fig)
-        fig.show(warn=False)
+        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
+        ax.set_xlabel(r"Number of Cliffords")
+        ax.set_ylabel('Ground State Probability')
 
 
 class TomographyResult:
@@ -120,6 +140,7 @@ class TomographyResult:
         """Plots the real and imaginary parts of the density matrix as two
         3D bar plots.
         """
+        # TODO(pingyeh): convert this into _plot_().
         fig = _plot_density_matrix(self._density_matrix)
         fig.show(warn=False)
 

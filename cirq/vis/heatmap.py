@@ -253,6 +253,9 @@ class Heatmap:
 
         return mesh, value_table
 
+    def _plot_(self, ax: plt.Axes, **pcolor_options: Any) -> None:
+        self.plot(ax, **pcolor_options)
+
     def _plot_colorbar(self, mappable: mpl.cm.ScalarMappable,
                        ax: plt.Axes) -> mpl.colorbar.Colorbar:
         """Plots the colorbar. Internal."""
