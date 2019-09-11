@@ -60,7 +60,6 @@ matrix:
     language: generic
     install: 
       - PYTHON=3.6.0
-      - BACKEND = 
       - brew update
       - brew install openssl readline pyenv-virtualenv
       - brew outdated pyenv || brew upgrade pyenv
