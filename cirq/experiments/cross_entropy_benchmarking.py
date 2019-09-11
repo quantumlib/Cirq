@@ -44,7 +44,7 @@ class CrossEntropyResult:
         plt.plot(num_cycles, fidelities, 'ro-', figure=fig, **plot_kwargs)
         plt.xlabel('Number of Cycles', figure=fig)
         plt.ylabel('XEB Fidelity', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 def cross_entropy_benchmarking(

@@ -19,10 +19,12 @@ from cirq.devices.grid_qubit import (
     GridQubit,)
 
 from cirq.devices.line_qubit import (
-    LineQubit,)
+    LineQubit,
+    LineQid,
+)
 
 from cirq.devices.unconstrained_device import (
-    UnconstrainedDevice,)
+    UNCONSTRAINED_DEVICE,)
 
 from cirq.devices.noise_model import (
     NO_NOISE,

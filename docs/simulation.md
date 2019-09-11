@@ -1,18 +1,9 @@
 ## Simulation
 
 Cirq comes with built in Python simulators for testing
-small circuits.  The two main types of simulations that Cirq
-supports are pure state and mixed state.
-There are two variations of simulators for pure state simulations.
-One works for generic
-gates that implement their unitary matrix: ``cirq.Simulator``
-and the other is customized for the native gate set
-of Google's Xmon hardware ``cirq.google.XmonSimulator``.
-This later simulator can shard its simulation  across
-different processes/threads to take advantage of
-multiple cores/CPUs.  Depending on your local computer
-architecture, one or the other of these may be faster.
-We recommend starting with ``cirq.Simulator``.  Mixed state
+small circuits. The two main types of simulations that Cirq
+supports are pure state and mixed state. The pure state simulations
+are supported by ``cirq.Simulator`` and the mixed state
 simulators are supported by ``cirq.DensityMatrixSimulator``.
 
 The names *pure state simulator* and *mixed state
@@ -229,32 +220,6 @@ is currently only supported in the pure state simulator and
 not in the density state simulator.  If the mixed state simulator
 encounters a mixture, it will treat it as a general channel.
 
-### XmonSimulator
-
-In addition to ``cirq.Simulator`` there is also a simulator
-which is specialized to the Google native gate set. In
-particular this simulator is specialized to use the
-``CZPowGate``, ``MeasurementGate``, ``PhasedXPowGate``,
-``XPowGate``, ``YPowGate``, and the ``ZPowGate``. This
-simulator can be configured to use processes or threads,
-and depending on your local computing architecture may
-sometimes be faster or slower that ``cirq.Simulator``.
-
-### Gate sets
-
-The ``XmonSimulator`` is designed to work with operations that
-are either a ``GateOperation`` applying a supported gate
-(such as `cirq.CZ`), a composite operation that implements
-`_decompose_`, or a 1-qubit or 2-qubit operation that
-returns a unitary matrix from its `_unitary_` method.
-
-So if you are implementing a custom gate, there are two options
-for getting it to work with the simulator:
-* Implement a `_decompose_` method that returns supported gates
-(or gates that decompose into supported gates).
-* If the operation applies to two or fewer qubits, implement a
-`_unitary_` method that returns the operation's matrix.
-
 ### Parameterized Values and Studies
 
 In addition to circuit gates with fixed values, Cirq also
@@ -317,33 +282,6 @@ describing what values were actually used in resolving the ``Symbol``s.
 
 TODO(dabacon): Describe the iterable of parameterized resolvers
 supported by Google's API.
-
-### XmonSimulator Configurations and Options
-
-The xmon simulator also contain some extra configuration
-on the simulate commands. One of these is ``initial_state``.  
-This can be passed the full wave function as a numpy array, or
-the initial state as the binary expansion of a supplied integer
-(following the order supplied by the qubits list).
-
-A simulator itself can also be passed ``Options`` in it's constructor.
-These options define some configuration for how the simulator runs.
-For the xmon simulator, these include
-
-> **num_shards**: The simulator works by sharding the wave function
-over this many shards. If this is not a power of two, the
-smallest power of two less than or equal to this number will
-be used. The sharding shards on the first log base
-2 of this number qubit's state. When this is not set the
-simulator will use the number of cpus, which tends to max
-out the benefit of multi-processing.
-
-> **min_qubits_before_shard**: Sharding and multiprocessing does
-not really help for very few number of qubits, and in fact can
-hurt because processes have a fixed (large) cost in Python.
-This is the minimum number of qubits that are needed before the
-simulator starts to do sharding. By default this is 10.
-
 
 ### Mixed state simulations
 

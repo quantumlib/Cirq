@@ -16,6 +16,7 @@
 import itertools
 
 import pytest
+import sympy
 
 import cirq
 
@@ -66,3 +67,79 @@ def test_to_sweeps_iterable_sweeps():
 def test_to_sweeps_invalid():
     with pytest.raises(TypeError):
         cirq.study.to_sweeps('nope')
+
+
+def test_to_sweep_sweep():
+    sweep = cirq.Linspace('a', 0, 1, 10)
+    assert cirq.to_sweep(sweep) is sweep
+
+
+@pytest.mark.parametrize('r_gen', [
+    lambda: {
+        'a': 1
+    },
+    lambda: {
+        sympy.Symbol('a'): 1
+    },
+    lambda: cirq.ParamResolver({'a': 1}),
+    lambda: cirq.ParamResolver({sympy.Symbol('a'): 1}),
+])
+def test_to_sweep_single_resolver(r_gen):
+    sweep = cirq.to_sweep(r_gen())
+    assert isinstance(sweep, cirq.Sweep)
+    assert list(sweep) == [cirq.ParamResolver({'a': 1})]
+
+
+@pytest.mark.parametrize(
+    'r_list_gen',
+    [
+        # Lists
+        lambda: [{
+            'a': 1
+        }, {
+            'a': 1.5
+        }],
+        lambda: [{
+            sympy.Symbol('a'): 1
+        }, {
+            sympy.Symbol('a'): 1.5
+        }],
+        lambda: [cirq.ParamResolver({'a': 1}),
+                 cirq.ParamResolver({'a': 1.5})],
+        lambda: [
+            cirq.ParamResolver({sympy.Symbol('a'): 1}),
+            cirq.ParamResolver({sympy.Symbol('a'): 1.5})
+        ],
+        lambda: [{
+            'a': 1
+        }, cirq.ParamResolver({sympy.Symbol('a'): 1.5})],
+        lambda: ({
+            'a': 1
+        }, {
+            'a': 1.5
+        }),
+        # Iterators
+        lambda: (r for r in [{
+            'a': 1
+        }, {
+            'a': 1.5
+        }]),
+        lambda: {object(): r for r in [{
+            'a': 1
+        }, {
+            'a': 1.5
+        }]}.values(),
+    ])
+def test_to_sweep_resolver_list(r_list_gen):
+    sweep = cirq.to_sweep(r_list_gen())
+    assert isinstance(sweep, cirq.Sweep)
+    print(list(sweep))
+    assert list(sweep) == [
+        cirq.ParamResolver({'a': 1}),
+        cirq.ParamResolver({'a': 1.5})
+    ]
+
+
+def test_to_sweep_type_error():
+    with pytest.raises(TypeError, match='Unexpected sweep'):
+        cirq.to_sweep(5)

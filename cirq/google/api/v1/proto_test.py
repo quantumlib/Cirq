@@ -11,15 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Check protobuf modules initialize successfully."""
 
-"""Simulators specific to Google's quantum hardware.
-"""
-
-from cirq.google.sim.xmon_simulator import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
-)
-
-from cirq.google.sim.xmon_stepper import (
-    Stepper,)
+# pylint: disable=unused-import
+from cirq.google.api.v1 import operations_pb2
+from cirq.google.api.v1 import params_pb2
+from cirq.google.api.v1 import program_pb2
+# pylint: enable=unused-import

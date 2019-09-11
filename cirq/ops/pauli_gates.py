@@ -85,6 +85,11 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
         return SingleQubitPauliStringGateOperation(self, qubits[0])
 
+    @property
+    def _canonical_exponent(self):
+        """Overrides EigenGate._canonical_exponent in subclasses."""
+        return 1
+
 
 class _PauliX(Pauli, common_gates.XPowGate):
 
@@ -95,6 +100,11 @@ class _PauliX(Pauli, common_gates.XPowGate):
     def __pow__(self: '_PauliX',
                 exponent: value.TParamVal) -> common_gates.XPowGate:
         return common_gates.XPowGate(exponent=exponent)
+
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
@@ -107,6 +117,11 @@ class _PauliY(Pauli, common_gates.YPowGate):
                 exponent: value.TParamVal) -> common_gates.YPowGate:
         return common_gates.YPowGate(exponent=exponent)
 
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
+
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
 
@@ -118,6 +133,11 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
                 exponent: value.TParamVal) -> common_gates.ZPowGate:
         return common_gates.ZPowGate(exponent=exponent)
 
+    @classmethod
+    def _from_json_dict_(cls, exponent, global_shift, **kwargs):
+        assert global_shift == 0
+        return cls(exponent=exponent)
+
 
 # The Pauli X gate.
 #
@@ -127,7 +147,6 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
 #    [1, 0]]
 X = _PauliX()
 
-
 # The Pauli Y gate.
 #
 # Matrix:
@@ -136,7 +155,6 @@ X = _PauliX()
 #      [i, 0]]
 Y = _PauliY()
 
-
 # The Pauli Z gate.
 #
 # Matrix:
@@ -144,6 +162,5 @@ Y = _PauliY()
 #     [[1, 0],
 #      [0, -1]]
 Z = _PauliZ()
-
 
 Pauli._XYZ = (X, Y, Z)

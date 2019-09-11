@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+import "cirq/google/api/v1/operations.proto";
+import "cirq/google/api/v1/params.proto";
+
+package cirq.google.api.v1;
+
+option java_package = "com.google.cirq.google.api.v1";
+option java_outer_classname = "ProgramProto";
+option java_multiple_files = true;
+
+// A quantum program. This includes a quantum circuit and also a set of circuit
+// parameters over which the circuit should be run.
+message Program {
+  // Gates and measurements that make up the circuit.
+  repeated Operation operations = 1;
+
+  // The circuit parameters for the operations above will be evaluated for
+  // each parameter in parameter sweeps.
+  repeated ParameterSweep parameter_sweeps = 2 [deprecated = true];
+}
+
+// The context for running a quantum program.
+message RunContext {
+  // The parameters for operations in a program.
+  repeated ParameterSweep parameter_sweeps = 1;
+}
+
+// The parameters used to generate result along with the results for this
+// set of parameters.
+message ParameterizedResult {
+  // The parameter dict that was used when generating these results.
+  ParameterDict params = 1;
+
+  // The measurement results. This is a packed representation of all of the
+  // measurements for fixed set of parameters (specified by params above)
+  // across all of the repetitions for the set of parameters given the
+  // params field.
+  //
+  // The result of a measurement gate is a list of bits, one for each qubit
+  // that has been measured. Every Program has a fixed set of measurement gates.
+  // These gates are labeled by a key (this key is unique across the Program).
+  // The results of a single run of the program should consist of bits for
+  // each of the measurement gates. To order these bits we use the
+  // measurement_keys field of the SweepResult. This is an ordered list of
+  // measurement keys, each of which includes a list of qubits that the
+  // measurement acts on. We use the ordering of the measurement_keys and then
+  // the ordering of the qubits to define the order of the bit string for a
+  // single run of the measurement.
+  //
+  // If the keys are (k_i), for i \in {0, 1, ..., m-1}, and the measurement
+  // acts on qubits q_{i,0}, q_{i,1}, ..., q_{i,n_i-1} (so that ith key
+  // corresponds to n_i qubits), then the measurements bit results are
+  // defined as
+  //  r_0[0] r_0[1] ... r_0[n_i-1] r_1[0] r_1[1] ... r_1[n_1-1] ...
+  //   ... r_{m-1}[0] r_{m-1}[1] ... r_{m-1}[n_{m-1}-1]
+  // Here r_i are the measurement result for the ith key (order defined by
+  // measurement keys).  Since the ith key has n_i qubits, r_i is a length
+  // n_i bit string, and r_i[j] is the jth bit in this string (order
+  // following the list order of the qubits).
+  //
+  // The above describes a bit string for a single run of a program with
+  // fixed parameters. This program however may be repeated, the number
+  // of times the program was run for these parameters is defined by the
+  // num_repetitions field of the SweepResult. If R_l is the bit string
+  // for the lth repetition of the program (defined by the r_0[0]... bit
+  // string above), then the full results is the concatenation of these
+  // bit strings
+  //   R_0 R_1 ... R_{num_repetitions - 1}
+  //
+  // Finally this entire bit string is encoded into the bytes of this field
+  // using little endian notation. That is, the least significant bit of the
+  // bytes is the first bit of the bit string, the second-least significant
+  // bit of the bytes is the second bit of the bit string, etc.
+  bytes measurement_results = 2;
+}
+
+// A message which represents a measurement key, along with the qubits
+// upon which the measurement acts. This measurement is in the computational
+// basis.
+message MeasurementKey {
+  // The measurement key.
+  string key = 1;
+
+  // The qubits upon which this measurement is performed.
+  repeated Qubit qubits = 2;
+}
+
+// The measurement results for a particular ParameterSweep.
+message SweepResult {
+  // The total number of repetitions that were performed for this sweep.
+  // This is reported in order to make it possible to decode the bytes
+  // in the measurement results.
+  int32 repetitions = 1;
+
+  // A list of measurement keys (string) along with the qubits that have been
+  // measured. The size of the measurement key is the total number of
+  // measurements in the list of operations for the Program. The measurement
+  // keys are all unique.
+  repeated MeasurementKey measurement_keys = 2;
+
+  // The results along with the parameters that generated these results.
+  // These represent the expanded parameters defined int he ParameterSweep
+  // which this SweepResult corresponds to.
+  repeated ParameterizedResult parameterized_results = 3;
+}
+
+// The overall results of running a Program.
+message Result {
+  // The results for each ParameterSweep. These will be in the same order
+  // as the parameter_sweeps repeated field in the Program that generated
+  // these results.
+  repeated SweepResult sweep_results = 1;
+}

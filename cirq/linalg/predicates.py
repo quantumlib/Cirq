@@ -13,11 +13,12 @@
 # limitations under the License.
 
 """Utility methods for checking properties of matrices."""
-from typing import List, Sequence, Union, Tuple
+from typing import cast, List, Optional, Sequence, Union, Tuple
 
 import numpy as np
 
 from cirq.linalg import tolerance, transformations
+from cirq import value
 
 
 def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
@@ -206,11 +207,14 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
-                              little_endian_qureg_value: int,
-                              *,  # Forces keyword args.
-                              num_qubits: int = None
-                              ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+def slice_for_qubits_equal_to(
+        target_qubit_axes: Sequence[int],
+        little_endian_qureg_value: int = 0,
+        *,  # Forces keyword args.
+        big_endian_qureg_value: int = 0,
+        num_qubits: Optional[int] = None,
+        qid_shape: Optional[Tuple[int, ...]] = None,
+) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
     """Returns an index corresponding to a desired subset of an np.ndarray.
 
     It is assumed that the np.ndarray's shape is of the form (2, 2, 2, ..., 2).
@@ -238,25 +242,56 @@ def slice_for_qubits_equal_to(target_qubit_axes: Sequence[int],
             other axes of the slice are unconstrained.
         little_endian_qureg_value: An integer whose bits specify what value is
             desired for of the target qubits. The integer is little endian
-            w.r.t. the target quit axes, meaning the low bit of the integer
+            w.r.t. the target qubit axes, meaning the low bit of the integer
             determines the desired value of the first targeted qubit, and so
             forth with the k'th targeted qubit's value set to
             bool(qureg_value & (1 << k)).
+        big_endian_qureg_value: Same as `little_endian_qureg_value` but big
+            endian w.r.t. to target qubit axes, meaning the low bit of the
+            integer dertemines the desired value of the last target qubit, and
+            so forth.  Specify exactly one of the `*_qureg_value` arguments.
         num_qubits: If specified the slices will extend all the way up to
             this number of qubits, otherwise if it is None, the final element
             return will be Ellipsis. Optional and defaults to using Ellipsis.
+        qid_shape: The qid shape of the state vector being sliced.  Specify this
+            instead of `num_qubits` when using qids with dimension != 2.  The
+            qureg value is interpreted to store digits with corresponding bases
+            packed into an int.
 
     Returns:
         An index object that will slice out a mutable view of the desired subset
         of a tensor.
     """
-    n = num_qubits if num_qubits is not None else (
-        max(target_qubit_axes) if target_qubit_axes else -1)
-    result: List[Union[slice, int, 'ellipsis']] = [slice(None)
-                                                  ] * (n + 2 *
-                                                       (num_qubits is None))
-    for k, axis in enumerate(target_qubit_axes):
-        result[axis] = (little_endian_qureg_value >> k) & 1
-    if num_qubits is None:
-        result[-1] = Ellipsis
+    qid_shape_specified = qid_shape is not None
+    if qid_shape is not None or num_qubits is not None:
+        if num_qubits is None:
+            num_qubits = len(cast(Tuple[int, ...], qid_shape))
+        elif qid_shape is None:
+            qid_shape = (2,) * num_qubits
+        if num_qubits != len(cast(Tuple[int, ...], qid_shape)):
+            raise ValueError('len(qid_shape) != num_qubits')
+    if little_endian_qureg_value and big_endian_qureg_value:
+        raise ValueError(
+            'Specify exactly one of the arguments little_endian_qureg_value '
+            'or big_endian_qureg_value.')
+    out_size_specified = num_qubits is not None
+    out_size = (cast(int, num_qubits) if out_size_specified else
+                max(target_qubit_axes, default=-1) + 1)
+    result = cast(List[Union[slice, int, 'ellipsis']], [slice(None)] * out_size)
+    if not out_size_specified:
+        result.append(Ellipsis)
+    if qid_shape is None:
+        qid_shape = (2,) * out_size
+    target_shape = tuple(qid_shape[i] for i in target_qubit_axes)
+    if big_endian_qureg_value:
+        digits = value.big_endian_int_to_digits(big_endian_qureg_value,
+                                                base=target_shape)
+    else:
+        if little_endian_qureg_value < 0 and not qid_shape_specified:
+            # Allow negative binary numbers
+            little_endian_qureg_value &= (1 << len(target_shape)) - 1
+        digits = value.big_endian_int_to_digits(little_endian_qureg_value,
+                                                base=target_shape[::-1])[::-1]
+    for axis, digit in zip(target_qubit_axes, digits):
+        result[axis] = digit
     return tuple(result)

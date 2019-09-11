@@ -32,6 +32,7 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -397,8 +398,6 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
 
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
                                        ) -> Optional[np.ndarray]:
-    from cirq.protocols.has_unitary import (
-        _try_decompose_into_operations_and_qubits)
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
@@ -450,22 +449,19 @@ def apply_unitaries(unitary_values: Iterable[Any],
         TypeError: An item from `unitary_values` doesn't have a unitary effect
             and `default` wasn't specified.
     """
-    from cirq import ops
     if args is None:
-        unitary_values = tuple(unitary_values)
-        # Default to 2 for backwards compatibility
-        max_qid_shape = ops.max_qid_shape(unitary_values,
-                                          qubit_order=qubits,
-                                          default_level=2)
-        args = ApplyUnitaryArgs.default(qid_shape=max_qid_shape)
+        qid_shape = qid_shape_protocol.qid_shape(qubits)
+        args = ApplyUnitaryArgs.default(qid_shape=qid_shape)
     if len(qubits) != len(args.axes):
         raise ValueError('len(qubits) != len(args.axes)')
-    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
+    qubit_map = {
+        q.with_dimension(1): args.axes[i] for i, q in enumerate(qubits)
+    }
     state = args.target_tensor
     buffer = args.available_buffer
 
     for op in unitary_values:
-        indices = [qubit_map[q] for q in op.qubits]
+        indices = [qubit_map[q.with_dimension(1)] for q in op.qubits]
         result = apply_unitary(unitary_value=op,
                                args=ApplyUnitaryArgs(state, buffer, indices),
                                default=None)

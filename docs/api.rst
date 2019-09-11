@@ -488,10 +488,6 @@ Functionality specific to quantum hardware and services from Google.
     google.schedule_to_proto_dicts
     google.unpack_results
     google.xmon_op_from_proto_dict
-    google.XmonDevice
-    google.XmonOptions
-    google.XmonSimulator
-    google.XmonStepResult
 
 
 Testing
@@ -527,8 +523,6 @@ general testing utilities.
     testing.random_special_unitary
     testing.random_superposition
     testing.random_unitary
-    testing.TempDirectoryPath
-    testing.TempFilePath
 
 
 Contrib
