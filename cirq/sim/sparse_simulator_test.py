@@ -560,7 +560,8 @@ def test_compute_samples_displays(dtype):
         cirq.H(c),
         cirq.approx_pauli_string_expectation(
             cirq.PauliString({c: cirq.X}),
-            key='x3'
+            num_samples=10,
+            key='approx_x3'
         ),
         cirq.approx_pauli_string_expectation(
             cirq.PauliString({a: cirq.Z,
@@ -578,7 +579,8 @@ def test_compute_samples_displays(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     result = simulator.compute_samples_displays(circuit)
 
-    assert 'x3' not in result.display_values
+    np.testing.assert_allclose(result.display_values['approx_x3'], -1,
+                               atol=1e-7)
     np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
                                atol=1e-7)
     np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
