@@ -123,7 +123,7 @@ class Moment:
 
         return protocols.approx_eq(sorted(self.operations,
                                           key=lambda op: op.qubits),
-                                   sorted(other.operations, 
+                                   sorted(other.operations,
                                           key=lambda op: op.qubits),
                                    atol=atol)
 
