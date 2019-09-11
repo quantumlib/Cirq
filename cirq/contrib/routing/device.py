@@ -31,11 +31,11 @@ def get_linear_device_graph(n_qubits: int) -> nx.Graph:
     return nx.Graph(edges)
 
 
-def get_grid_device_graph(width: int, height: int, dx: int = 0,
-                          dy: int = 0) -> nx.Graph:
-    """Gets the graph of a grid of qubits."""
-    return gridqubits_to_graph_device(
-        cirq.GridQubit.rect(width, height, top=dx, left=dy))
+def get_grid_device_graph(*args, **kwargs) -> nx.Graph:
+    """Gets the graph of a grid of qubits.
+    
+    See GridQubit.rect for argument details."""
+    return gridqubits_to_graph_device(cirq.GridQubit.rect(*args, **kwargs))
 
 
 def gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
