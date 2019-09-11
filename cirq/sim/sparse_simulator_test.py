@@ -52,6 +52,25 @@ def test_run_empty_circuit(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_reset(dtype):
+    q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
+    simulator = cirq.Simulator(dtype=dtype)
+    circuit = cirq.Circuit.from_ops(
+        cirq.H(q0),
+        PlusGate(3, 2)(q1),
+        cirq.reset(q0),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1a'),
+        cirq.reset(q1),
+        cirq.measure(q1, key='m1b'),
+    )
+    meas = simulator.run(circuit, repetitions=100).measurements
+    assert np.array_equal(meas['m0'], np.zeros((100, 1)))
+    assert np.array_equal(meas['m1a'], np.full((100, 1), 2))
+    assert np.array_equal(meas['m1b'], np.zeros((100, 1)))
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_bit_flips(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
