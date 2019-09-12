@@ -36,13 +36,18 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
 
     Args:
         circuit: The circuit to route.
-        device_graph: The device's graph, in which each vertex is a qubit and
-            each edge indicates the ability to do an operation on those qubits.
-
-    See GreedyRouter for argument details.
+        device_graph: The device's graph, in which each vertex is a qubit
+            and each edge indicates the ability to do an operation on those
+            qubits.
+        max_search_radius: The maximum number of disjoint device edges to
+            consider routing on.
+        initial_mapping: The initial mapping of physical to logical qubits
+            to use. Defaults to a greedy initialization.
+        can_reorder: A predicate that determines if two operations may be
+            reordered.
     """
 
-    router = GreedyRouter(circuit, device_graph, **kwargs)
+    router = _GreedyRouter(circuit, device_graph, **kwargs)
     router.route()
 
     swap_network = router.swap_network
@@ -51,7 +56,8 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
     return swap_network
 
 
-class GreedyRouter:
+class _GreedyRouter:
+    """Keeps track of the state of a greedy circuit routing procedure."""
 
     def __init__(self,
                  circuit,
@@ -62,21 +68,6 @@ class GreedyRouter:
                  can_reorder: Callable[[ops.Operation, ops.
                                         Operation], bool] = circuits.
                  circuit_dag._disjoint_qubits):
-        """Keeps track of the state of a greedy circuit routing procedure.
-
-        Args:
-            circuit: The circuit to route.
-            device_graph: The device's graph, in which each vertex is a qubit
-                and each edge indicates the ability to do an operation on those
-                qubits.
-            max_search_radius: The maximum number of disjoint device edges to
-                consider routing on.
-            initial_mapping: The initial mapping of physical to logical qubits
-                to use. Defaults to a greedy initialization.
-            can_reorder: A predicate that determines if two operations may be
-                reordered.
-        """
-
         self.device_graph = device_graph
         self.physical_distances: Dict[Tuple[ops.Qid, ops.Qid], int] = {
             (a, b): d
