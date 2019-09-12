@@ -43,6 +43,11 @@ def test_to_resolvers_iterable_sweeps():
     assert cirq.to_resolvers(sweeps) == list(itertools.chain(*sweeps))
 
 
+def test_to_resolvers_bad():
+    with pytest.raises(TypeError, match='Unrecognized sweepable'):
+        cirq.study.to_resolvers('nope')
+
+
 def test_to_sweeps_single():
     resolver = cirq.ParamResolver({})
     assert cirq.study.to_sweeps(resolver) == [cirq.UnitSweep]
@@ -70,7 +75,7 @@ def test_to_sweeps_iterable_sweeps():
 
 
 def test_to_sweeps_invalid():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='Unrecognized sweepable'):
         cirq.study.to_sweeps('nope')
 
 

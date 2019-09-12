@@ -31,7 +31,7 @@ def to_resolvers(sweepable: Sweepable) -> List[ParamResolver]:
     if isinstance(sweepable, Sweep):
         return list(sweepable)
     if isinstance(sweepable, dict):
-        return [ParamResolver(sweepable)]
+        return [ParamResolver(cast(Dict, sweepable))]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             resolver for item in sweepable for resolver in to_resolvers(
@@ -48,7 +48,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        return [_resolver_to_sweep(ParamResolver(sweepable))]
+        return [_resolver_to_sweep(ParamResolver(cast(Dict, sweepable)))]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(
