@@ -1,0 +1,141 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from unittest import mock
+
+import pytest
+
+from apiclient import discovery
+
+import cirq
+import cirq.google as cg
+
+
+def test_status():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'state': 'RUNNING'
+        }
+    }
+    engine.get_job.return_value = job
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert job.status() == 'RUNNING'
+    engine.get_job.assert_called_once()
+
+
+def test_get_calibration():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'calibrationName': 'hobbes'
+        }
+    }
+    calibration = mock.Mock()
+    engine.get_calibration.return_value = calibration
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert job.get_calibration() == calibration
+    engine.get_calibration.assert_called_once_with('hobbes')
+
+
+def test_get_cancel():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+    }
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    job.cancel()
+    engine.cancel_job.assert_called_once()
+
+
+def test_results():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    results = mock.Mock()
+    engine.get_job_results.return_value = results
+
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert job.results() == results
+    engine.get_job_results.assert_called_once()
+
+
+@mock.patch('time.sleep', return_value=None)
+def test_timeout(patched_time_sleep):
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+        'executionStatus': {
+            'state': 'RUNNING'
+        }
+    }
+    engine.get_job.return_value = job
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    with pytest.raises(RuntimeError, match='Timed out'):
+        job.results()
+
+
+@mock.patch.object(discovery, 'build')
+def test_calibration_from_job_with_no_calibration(build):
+    service = mock.Mock()
+    build.return_value = service
+
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS',
+        },
+    }
+
+    calibrations = service.projects().processors().calibrations()
+    engine = cg.Engine(project_id='project-id')
+    job = engine.run_sweep(
+        program=cirq.Circuit(),
+        job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
+
+    calibration = job.get_calibration()
+    assert not calibration
+    assert not calibrations.get.called
+
+
+def test_str():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+    }
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert str(job) == 'EngineJob(projects/a/programs/b/jobs/steve)'

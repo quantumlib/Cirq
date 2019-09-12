@@ -41,12 +41,12 @@ for arg in $@; do
         only_print=0
     elif [ -z "${rev}" ]; then
         if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
-            echo -e "\e[31mNo revision '${arg}'.\e[0m" >&2
+            echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
         rev="${arg}"
     else
-        echo -e "\e[31mToo many arguments. Expected [revision] [--apply].\e[0m" >&2
+        echo -e "\033[31mToo many arguments. Expected [revision] [--apply].\033[0m" >&2
         exit 1
     fi
 done
@@ -60,7 +60,7 @@ if [ -z "${rev}" ]; then
     elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
         rev=master
     else
-        echo -e "\e[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\e[0m" >&2
+        echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
         exit 1
     fi
 fi
@@ -93,7 +93,7 @@ for changed_file in ${changed_files}; do
             if (( only_print == 0 )); then
                 $(yapf --style=google --in-place "${changed_file}" ${changed_line_ranges})
             else
-                echo -e "\n\e[31mChanges in ${changed_file} require formatting:\e[0m\n${results}" \
+                echo -e "\n\033[31mChanges in ${changed_file} require formatting:\033[0m\n${results}" \
                     | sed "s/^\(+ .*\)$/${esc}[32m\\1${esc}[0m/" \
                     | sed "s/^\(- .*\)$/${esc}[31m\\1${esc}[0m/"
             fi
@@ -102,10 +102,10 @@ for changed_file in ${changed_files}; do
 done
 
 if (( needed_changes == 0 )); then
-    echo -e "\e[32mNo formatting needed on changed lines\e[0m."
+    echo -e "\033[32mNo formatting needed on changed lines\033[0m."
 elif (( only_print == 1 )); then
-    echo -e "\e[31mSome formatting needed on changed lines\e[0m."
+    echo -e "\033[31mSome formatting needed on changed lines\033[0m."
     exit 1
 else
-    echo -e "\e[32mReformatted changed lines\e[0m."
+    echo -e "\033[32mReformatted changed lines\033[0m."
 fi

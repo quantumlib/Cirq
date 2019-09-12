@@ -56,6 +56,7 @@ from cirq.linalg.operator_spaces import (
     kron_bases,
     matrix_from_basis_coefficients,
     PAULI_BASIS,
+    pow_pauli_combination,
 )
 
 from cirq.linalg.predicates import (

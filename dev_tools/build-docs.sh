@@ -28,7 +28,7 @@
 ################################################################################
 
 set -e
-trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

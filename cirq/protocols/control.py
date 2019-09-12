@@ -17,7 +17,6 @@ from typing import Any, TYPE_CHECKING, TypeVar, Union, Sequence, Iterable
 from cirq.ops import op_tree
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 # This is a special indicator value used by the control method to determine

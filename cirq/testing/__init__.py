@@ -42,6 +42,7 @@ from cirq.testing.consistent_pauli_expansion import (
 
 from cirq.testing.consistent_protocols import (
     assert_eigengate_implements_consistent_protocols,
+    assert_has_consistent_trace_distance_bound,
     assert_implements_consistent_protocols,
 )
 
@@ -53,11 +54,6 @@ from cirq.testing.equals_tester import (
 
 from cirq.testing.equivalent_repr_eval import (
     assert_equivalent_repr,)
-
-from cirq.testing.file_tester import (
-    TempDirectoryPath,
-    TempFilePath,
-)
 
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,

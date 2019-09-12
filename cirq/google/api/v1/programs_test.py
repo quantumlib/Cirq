@@ -191,6 +191,22 @@ def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
 
 
+def test_proto_dict_convert_invert_mask_bools():
+    gate = cirq.MeasurementGate(1, 'test', invert_mask=(True,))
+    proto_dict = {
+        'measurement': {
+            'targets': [{
+                'row': 2,
+                'col': 3
+            }],
+            'key': 'test',
+            'invert_mask': [True]
+        }
+    }
+    # Conversion only works one way, since the reverse converts True to string
+    assert cg.xmon_op_from_proto_dict(proto_dict) == gate(cirq.GridQubit(2, 3))
+
+
 def test_single_qubit_measurement_to_proto_dict_pad_invert_mask():
     gate = cirq.MeasurementGate(2, 'test', invert_mask=(True,))
     proto_dict = {

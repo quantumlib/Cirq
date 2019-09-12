@@ -30,7 +30,6 @@ from cirq.google.line.placement.sequence import (
 )
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq.google
 
 _STATE = Tuple[List[List[GridQubit]], Set[EDGE]]

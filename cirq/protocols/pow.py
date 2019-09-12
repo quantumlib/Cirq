@@ -15,12 +15,11 @@
 from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 # This is a special indicator value used by the pow method to determine
 # whether or not the caller provided a 'default' argument.
-RaiseTypeErrorIfNotProvided = ([],)  # type: Any
+RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 TDefault = TypeVar('TDefault')

@@ -242,6 +242,48 @@ def test_amplitude_damping_channel_text_diagram():
             == cirq.CircuitDiagramInfo(wire_symbols=('AD(0.3)',)))
 
 
+def test_reset_channel():
+    r = cirq.reset(cirq.LineQubit(0))
+    np.testing.assert_almost_equal(
+        cirq.channel(r),
+        (np.array([[1., 0.], [0., 0]]), np.array([[0., 1.], [0., 0.]])))
+    assert cirq.has_channel(r)
+    assert not cirq.has_mixture_channel(r)
+    assert cirq.qid_shape(r) == (2,)
+
+    r = cirq.reset(cirq.LineQid(0, dimension=3))
+    np.testing.assert_almost_equal(
+        cirq.channel(r),
+        (np.array([[1, 0, 0], [0, 0, 0], [0, 0, 0]]),
+         np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
+         np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]])))  # yapf: disable
+    assert cirq.has_channel(r)
+    assert not cirq.has_mixture_channel(r)
+    assert cirq.qid_shape(r) == (3,)
+
+
+def test_reset_channel_equality():
+    assert cirq.reset(cirq.LineQubit(0)).gate == cirq.ResetChannel()
+    assert cirq.reset(cirq.LineQid(0, 3)).gate == cirq.ResetChannel(3)
+
+
+def test_reset_channel_repr():
+    cirq.testing.assert_equivalent_repr(cirq.ResetChannel())
+    cirq.testing.assert_equivalent_repr(cirq.ResetChannel(3))
+
+
+def test_reset_channel_str():
+    assert str(cirq.ResetChannel()) == 'reset'
+    assert str(cirq.ResetChannel(3)) == 'reset'
+
+
+def test_reset_channel_text_diagram():
+    assert (cirq.circuit_diagram_info(
+        cirq.ResetChannel()) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
+    assert (cirq.circuit_diagram_info(
+        cirq.ResetChannel(3)) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),

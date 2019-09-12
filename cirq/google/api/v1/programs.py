@@ -12,22 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    Union)
+from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
+                    TYPE_CHECKING)
 import numpy as np
 import sympy
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops, protocols, value
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Optional
+    import cirq
     from cirq.google import xmon_device
 
 
-def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
+def _load_json_bool(b: Any):
+    """Converts a json field to bool.  If already a bool, pass through."""
+    if isinstance(b, bool):
+        return b
+    return json.loads(b)
+
+
+def gate_to_proto_dict(gate: 'cirq.Gate',
+                       qubits: Tuple['cirq.Qid', ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
 
@@ -64,7 +71,7 @@ def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
 
 
-def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
+def _x_to_proto_dict(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns': _parameterized_value_to_proto_dict(0),
@@ -73,7 +80,7 @@ def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
+def _y_to_proto_dict(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns': _parameterized_value_to_proto_dict(0.5),
@@ -82,7 +89,7 @@ def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
+def _phased_x_to_proto_dict(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'axis_half_turns':
@@ -92,7 +99,7 @@ def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
+def _z_to_proto_dict(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> Dict:
     exp_z = {
         'target': cast(devices.GridQubit, q).to_proto_dict(),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent),
@@ -100,7 +107,8 @@ def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
     return {'exp_z': exp_z}
 
 
-def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
+def _cz_to_proto_dict(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
+                      q: 'cirq.Qid') -> Dict:
     exp_11 = {
         'target1': cast(devices.GridQubit, p).to_proto_dict(),
         'target2': cast(devices.GridQubit, q).to_proto_dict(),
@@ -109,8 +117,8 @@ def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
     return {'exp_11': exp_11}
 
 
-def _measure_to_proto_dict(gate: ops.MeasurementGate,
-                           qubits: Sequence[ops.Qid]):
+def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
+                           qubits: Sequence['cirq.Qid']):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
 
@@ -141,7 +149,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     Yields:
         A proto dictionary corresponding to an Operation proto.
     """
-    last_time_picos = None  # type: Optional[int]
+    last_time_picos: Optional[int] = None
     for so in schedule.scheduled_operations:
         op = gate_to_proto_dict(
             cast(ops.GateOperation, so.operation).gate, so.operation.qubits)
@@ -251,7 +259,7 @@ def unpack_results(data: bytes, repetitions: int,
     return results
 
 
-def is_native_xmon_op(op: ops.Operation) -> bool:
+def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     """Check if the gate corresponding to an operation is a native xmon gate.
 
     Args:
@@ -263,7 +271,7 @@ def is_native_xmon_op(op: ops.Operation) -> bool:
     return (isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate))
 
 
-def is_native_xmon_gate(gate: ops.Gate) -> bool:
+def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
     """Check if a gate is a native xmon gate.
 
     Args:
@@ -277,7 +285,7 @@ def is_native_xmon_gate(gate: ops.Gate) -> bool:
                        ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
-def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
+def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
     """Convert the proto dictionary to the corresponding operation.
 
     See protos in api/google/v1 for specification of the protos.
@@ -326,7 +334,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         meas = proto_dict['measurement']
         invert_mask = cast(Tuple[Any, ...], ())
         if 'invert_mask' in meas:
-            invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
+            invert_mask = tuple(_load_json_bool(x) for x in meas['invert_mask'])
         if 'key' not in meas or 'targets' not in meas:
             raise_missing_fields('Measurement')
         return ops.MeasurementGate(
@@ -337,8 +345,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
     raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
-def _parameterized_value_from_proto_dict(message: Dict
-                                        ) -> Union[sympy.Basic, float]:
+def _parameterized_value_from_proto_dict(message: Dict) -> value.TParamVal:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -349,8 +356,7 @@ def _parameterized_value_from_proto_dict(message: Dict
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
-                                      ) -> Dict:
+def _parameterized_value_to_proto_dict(param: value.TParamVal) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())

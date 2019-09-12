@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING, Type, cast
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Type, cast
 
 from collections import defaultdict
 import itertools
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, linalg, protocols, EigenGate
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
+from cirq import circuits, ops, linalg, protocols
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -77,7 +73,7 @@ def _measurement_subspaces(
         measurement_mask |= 1 << i
 
     # Keyed by computational basis state with lowest index.
-    measurement_subspaces = defaultdict(list)  # type: Dict[int, List[int]]
+    measurement_subspaces: Dict[int, List[int]] = defaultdict(list)
     computational_basis = range(1 << n_qubits)
 
     for basis_state in computational_basis:
@@ -268,7 +264,11 @@ def assert_has_consistent_apply_unitary(
 
     qubit_counts = [
         qubit_count,
-        expected.shape[0].bit_length() - 1 if expected is not None else None,
+        # Only fall back to using the unitary size if num_qubits or qid_shape
+        # protocols are not defined.
+        protocols.num_qubits(val,
+                             default=expected.shape[0].bit_length() -
+                             1 if expected is not None else None),
         _infer_qubit_count(val)
     ]
     qubit_counts = [e for e in qubit_counts if e is not None]
@@ -280,8 +280,9 @@ def assert_has_consistent_apply_unitary(
         'Inconsistent qubit counts from different methods: {}'.format(
             qubit_counts))
     n = cast(int, qubit_counts[0])
+    qid_shape = protocols.qid_shape(val, default=(2,) * n)
 
-    eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
+    eye = linalg.eye_tensor((2,) + qid_shape, dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
         args=protocols.ApplyUnitaryArgs(
@@ -298,14 +299,14 @@ def assert_has_consistent_apply_unitary(
 
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
-        np.testing.assert_allclose(
-            actual.reshape(2 << n, 2 << n),
-            expected,
-            atol=atol)
+        np.testing.assert_allclose(actual.reshape((np.prod(
+            (2,) + qid_shape, dtype=int),) * 2),
+                                   expected,
+                                   atol=atol)
 
 
 def assert_eigen_gate_has_consistent_apply_unitary(
-        eigen_gate_type: Type[EigenGate],
+        eigen_gate_type: Type[ops.EigenGate],
         *,
         exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
         global_shifts=(0, 0.5, -0.5, 0.1),

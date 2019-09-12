@@ -54,6 +54,11 @@ from cirq.protocols.equal_up_to_global_phase import (
 from cirq.protocols.inverse import (
     inverse,
 )
+from cirq.protocols.json import (
+    to_json,
+    read_json,
+    obj_to_dict_helper,
+)
 from cirq.protocols.measurement_key import (
     is_measurement,
     measurement_key,
@@ -87,6 +92,7 @@ from cirq.protocols.qasm import (
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,
+    trace_distance_from_angle_list,
 )
 from cirq.protocols.resolve_parameters import (
     is_parameterized,

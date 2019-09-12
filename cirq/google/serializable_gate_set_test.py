@@ -99,6 +99,47 @@ def test_serialize_deserialize_circuit():
     assert MY_GATE_SET.deserialize_dict(proto) == circuit
 
 
+def test_deserialize_bad_operation_id():
+    proto = {
+        'language': {
+            'arg_function_language': '',
+            'gate_set': 'my_gate_set'
+        },
+        'circuit': {
+            'scheduling_strategy':
+            1,
+            'moments': [
+                {
+                    'operations': [],
+                },
+                {
+                    'operations': [
+                        {
+                            'gate': {
+                                'id': 'UNKNOWN_GATE'
+                            },
+                            'args': {
+                                'half_turns': {
+                                    'arg_value': {
+                                        'float_value': 1.0
+                                    }
+                                }
+                            },
+                            'qubits': [{
+                                'id': '1_1'
+                            }]
+                        },
+                    ]
+                },
+            ]
+        },
+    }
+    with pytest.raises(ValueError,
+                       match='problem in moment 1 handling an '
+                       'operation with the following'):
+        MY_GATE_SET.deserialize_dict(proto)
+
+
 def test_serialize_deserialize_empty_circuit():
     circuit = cirq.Circuit()
 
