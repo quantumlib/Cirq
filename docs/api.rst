@@ -187,9 +187,8 @@ Displays
     :toctree: generated/
 
     ApproxPauliStringExpectation
-    pauli_string_expectation
+    approx_pauli_string_expectation
     DensityMatrixDisplay
-    PauliStringExpectation
     SamplesDisplay
     WaveFunctionDisplay
 
