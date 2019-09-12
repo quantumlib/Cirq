@@ -34,7 +34,7 @@ print(circuit)
 
 ### Qids
 
-`Qid` is the type representing qubits and qudits.  By default a qid like `cirq.NamedQubit('a')` is a qubit.  To create a qutrit named 'a', specify the dimension with `cirq.NamedQubit('a').with_dimension(3)`.  In addition, the `LineQid` constructors support a dimension argument directly `cirq.LineQid(0, dimension=4)`.
+`Qid` is the type representing qubits and qudits.  By default a qid like `cirq.NamedQubit('a')` is a qubit.  To create a qutrit named 'a', specify the dimension with `cirq.NamedQubit('a').with_dimension(3)`.  In addition, the `LineQid` constructor supports a dimension argument directly `cirq.LineQid(0, dimension=4)`.
 
 ### `cirq.qid_shape` and `def _qid_shape_`
 
@@ -52,13 +52,13 @@ For a qubit-only gate the qid shape is a tuple of 2s containing one 2 for each q
 
 The magic methods `_unitary_`, `_apply_unitary_`, `_mixture_`, and `_channel_` used to define unitary operations, mixtures, and channels can be used with qudits with one caveat.
 The matrix dimensions for qudits will be larger than for qubits based on the values of the qudit dimensions (the object's qid shape).
-The size of the matrix is determined from the product of the qudit dimensions.  For example, a single qubit unitary is a 2x2 matrix whereas a single qutrit unitary is a 3x3 matrix.  A two qutrit unitary is a 9x9 matrix (3*3=9) and a qubit-ququart unitary is a 8x8 matrix (2*4=8).  The size of the matrices for mixtures and channels follow the same rule.
+The size of the matrix is determined from the product of the qudit dimensions.  For example, a single qubit unitary is a 2x2 matrix whereas a single qutrit unitary is a 3x3 matrix.  A two qutrit unitary is a 9x9 matrix (3 * 3 = 9) and a qubit-ququart unitary is a 8x8 matrix (2 * 4 = 8).  The size of the matrices for mixtures and channels follow the same rule.
 
 ### Simulators and Samplers
 
 Simulators like `cirq.Simulator` and `cirq.DensityMatrixSimulator` will return simulation results with larger matrices than the same size qubit circuit when simulating qudit circuits.
 The size of the matrix is determined by the product of the dimensions of the qudits being simulated.
-The state vector output of `cirq.Simulator` after simulating a circuit on a qubit, a qutrit, and a qutrit will have 2*3*3=18 elements.
+The state vector output of `cirq.Simulator` after simulating a circuit on a qubit, a qutrit, and a qutrit will have 2 * 3 * 3 = 18 elements.
 Call `cirq.qid_shape(simulation_result)` to check the qudit dimensions.
 
-Measurement results from running a qudit circuit are integers in the range `0` to `qudit.dimension-1`.
+Measurement results from running a qudit circuit are integers in the range `0` to `qid.dimension-1`.
