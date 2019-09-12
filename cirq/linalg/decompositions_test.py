@@ -316,7 +316,6 @@ def test_kak_str():
         single_qubit_operations_after=(cirq.unitary(cirq.Y),
                                        cirq.unitary(cirq.Z)),
         global_phase=1j)
-    print(v)
     assert str(v) == """KAK {
     xyz*(4/π): 0.3, 0.2, 0.1
     before: (0*π around X) ⊗ (1*π around X)
