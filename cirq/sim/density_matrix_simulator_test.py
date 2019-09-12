@@ -847,7 +847,6 @@ def test_compute_samples_displays(dtype):
         cirq.H(b),
         cirq.X(c),
         cirq.H(c),
-
         cirq.approx_pauli_string_expectation(cirq.PauliString({c: cirq.X}),
                                              num_samples=10,
                                              key='approx_x3'),
