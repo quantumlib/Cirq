@@ -40,7 +40,7 @@ def get_initial_mapping(logical_graph: nx.Graph,
     qubits greedily. At each iteration, the logical qubits with the largest
     number of already mapped neighbors and the physical qubits neighboring
     those already mapped to are considered. The pair of logical and physical
-    qubits that maximizes the average distance to already mapped logical
+    qubits that minimizes the average distance to already mapped logical
     neighbors is selected.
     """
     unplaced_vertices = set(logical_graph)
@@ -55,7 +55,7 @@ def get_initial_mapping(logical_graph: nx.Graph,
         for a, neighbor_distances in nx.shortest_path_length(device_graph)
         for b, d in neighbor_distances.items()
     }
-    while len(unplaced_vertices):
+    while unplaced_vertices:
         placed_vertices = set(mapping.values())
         placed_neighbors = {
             v: placed_vertices.intersection(logical_graph[v])
