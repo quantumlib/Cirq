@@ -376,7 +376,6 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
     sub_args = args._for_operation_with_qid_shape(range(len(val_qid_shape)),
                                                   val_qid_shape)
     matrix = matrix.astype(sub_args.target_tensor.dtype)
-
     if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
         # Special case for single-qubit, 2x2 or 1x1 operations.
         # np.einsum is faster for larger cases.

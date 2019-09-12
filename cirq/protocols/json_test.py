@@ -409,7 +409,6 @@ NOT_YET_SERIALIZABLE = [
     'ParallelGateOperation',
     'ParamResolver',
     'PauliInteractionGate',
-    'PauliStringExpectation',
     'PauliStringPhasor',
     'PauliSum',
     'PauliSumCollector',
