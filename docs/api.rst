@@ -309,10 +309,12 @@ operations, and other types.
     mixture
     mixture_channel
     mul
+    num_qubits
     pauli_expansion
     phase_by
     pow
     qasm
+    qid_shape
     resolve_parameters
     trace_distance_bound
     unitary
@@ -339,6 +341,9 @@ Classes defining and used by the magic method protocols.
     SupportsCircuitDiagramInfo
     SupportsDecompose
     SupportsDecomposeWithQubits
+    SupportsExplicitHasUnitary
+    SupportsExplicitNumQubits
+    SupportsExplicitQidShape
     SupportsMixture
     SupportsParameterization
     SupportsPhase
