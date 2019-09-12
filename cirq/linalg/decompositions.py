@@ -627,12 +627,18 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
         single_qubit_operations_before=(right[1], right[0]))
 
 
-KAK_MAGIC = np.array([[1, 0, 0, 1j], [0, 1j, 1, 0], [0, 1j, -1, 0],
+# yapf: disable
+KAK_MAGIC = np.array([[1, 0, 0, 1j],
+                      [0, 1j, 1, 0],
+                      [0, 1j, -1, 0],
                       [1, 0, 0, -1j]]) * np.sqrt(0.5)
 
-KAK_MAGIC_DAG = np.conj(KAK_MAGIC.T)
-KAK_GAMMA = np.array([[1, 1, 1, 1], [1, 1, -1, -1], [-1, 1, -1, 1],
+KAK_MAGIC_DAG = np.conjugate(np.transpose(KAK_MAGIC))
+KAK_GAMMA = np.array([[1, 1, 1, 1],
+                      [1, 1, -1, -1],
+                      [-1, 1, -1, 1],
                       [1, -1, -1, 1]]) * 0.25
+# yapf: enable
 
 
 def kak_decomposition(
