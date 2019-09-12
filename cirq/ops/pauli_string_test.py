@@ -762,16 +762,32 @@ def test_expectation_from_wavefunction_basis_states():
     x0 = cirq.PauliString({q0: cirq.X})
     q_map = {q0: 0}
 
-    np.testing.assert_allclose(x0.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex), q_map), 0)
-    np.testing.assert_allclose(x0.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex), q_map), 0)
-    np.testing.assert_allclose(x0.expectation_from_wavefunction(np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 1)
-    np.testing.assert_allclose(x0.expectation_from_wavefunction(np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), -1)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
+                                         q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex),
+                                         q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(
+            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 1)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(
+            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), -1)
 
     y0 = cirq.PauliString({q0: cirq.Y})
-    np.testing.assert_allclose(y0.expectation_from_wavefunction(np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map), 1)
-    np.testing.assert_allclose(y0.expectation_from_wavefunction(np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map), -1)
-    np.testing.assert_allclose(y0.expectation_from_wavefunction(np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 0)
-    np.testing.assert_allclose(y0.expectation_from_wavefunction(np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), 0)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map), 1)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map), -1)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 0)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), 0)
 
 
 def test_expectation_from_wavefunction_entangled_states():
@@ -783,24 +799,24 @@ def test_expectation_from_wavefunction_entangled_states():
     q_map = {q0: 0, q1: 1}
     wf1 = np.array([0, 1, 1, 0], dtype=np.complex) / np.sqrt(2)
     for state in [wf1, wf1.reshape(2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state,
-                                                                      q_map), -1)
-        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state,
-                                                                      q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), -1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_wavefunction(state, q_map), 1)
 
     wf2 = np.array([1, 0, 0, 1], dtype=np.complex) / np.sqrt(2)
     for state in [wf2, wf2.reshape(2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state,
-                                                                      q_map), 1)
-        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state,
-                                                                      q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), 1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_wavefunction(state, q_map), 1)
 
     wf3 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
     for state in [wf3, wf3.reshape(2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state,
-                                                                      q_map), 0)
-        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state,
-                                                                      q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_wavefunction(state, q_map), 1)
 
 
 def test_expectation_from_wavefunction_qubit_map():
@@ -808,12 +824,42 @@ def test_expectation_from_wavefunction_qubit_map():
     z = cirq.PauliString({q0: cirq.Z})
     wf = np.array([0, 1, 0, 1, 0, 0, 0, 0], dtype=np.complex) / np.sqrt(2)
     for state in [wf, wf.reshape(2,2,2)]:
-        np.testing.assert_allclose(z.expectation_from_wavefunction(state, {q0: 0, q1: 1, q2: 2}), 1)
-        np.testing.assert_allclose(z.expectation_from_wavefunction(state, {q0: 0, q1: 2, q2: 1}), 1)
-        np.testing.assert_allclose(z.expectation_from_wavefunction(state, {q0: 1, q1: 0, q2: 2}), 0)
-        np.testing.assert_allclose(z.expectation_from_wavefunction(state, {q0: 1, q1: 2, q2: 0}), 0)
-        np.testing.assert_allclose(z.expectation_from_wavefunction(state, {q0: 2, q1: 0, q2: 1}), -1)
-        np.testing.assert_allclose(z.expectation_from_wavefunction(state, {q0: 2, q1: 1, q2: 0}), -1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 0,
+                q1: 1,
+                q2: 2
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 0,
+                q1: 2,
+                q2: 1
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 1,
+                q1: 0,
+                q2: 2
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 1,
+                q1: 2,
+                q2: 0
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 2,
+                q1: 0,
+                q2: 1
+            }), -1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 2,
+                q1: 1,
+                q2: 0
+            }), -1)
 
 
 def test_pauli_string_expectation_from_wavefunction_pure_state():
@@ -821,10 +867,10 @@ def test_pauli_string_expectation_from_wavefunction_pure_state():
     q_map = {q: i for i, q in enumerate(qubits)}
 
     circuit = cirq.Circuit.from_ops(
-            cirq.X(qubits[1]),
-            cirq.H(qubits[2]),
-            cirq.X(qubits[3]),
-            cirq.H(qubits[3]),
+        cirq.X(qubits[1]),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
     )
     wf = circuit.final_wavefunction(qubit_order=qubits)
 
@@ -882,7 +928,7 @@ def test_expectation_from_density_matrix_invalid_input():
     q0, q1, q2, q3 = _make_qubits(4)
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
     wf = cirq.testing.random_superposition(4)
-    rho = np.kron(wf.conjugate().T, wf).reshape(4,4)
+    rho = np.kron(wf.conjugate().T, wf).reshape(4, 4)
     q_map = {q0: 0, q1: 1}
 
     im_ps = (1j + 1) * ps
@@ -916,11 +962,10 @@ def test_expectation_from_density_matrix_invalid_input():
     with pytest.raises(ValueError, match='trace'):
         ps.expectation_from_density_matrix(np.eye(4, dtype=np.complex64), q_map)
     with pytest.raises(ValueError, match='semidefinite'):
-        ps.expectation_from_density_matrix(np.array(
-            [[1.1, 0, 0, 0],
-             [0, -.1, 0, 0],
-             [0, 0, 0, 0],
-             [0, 0, 0, 0]], dtype=np.complex64), q_map)
+        ps.expectation_from_density_matrix(
+            np.array(
+                [[1.1, 0, 0, 0], [0, -.1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.complex64), q_map)
 
     # Incorrectly shaped density matrix input.
     with pytest.raises(ValueError, match='shape'):
@@ -950,10 +995,18 @@ def test_expectation_from_density_matrix_basis_states():
     x0_pauli_map = {q0: cirq.X}
     x0 = cirq.PauliString(x0_pauli_map)
     q_map = {q0: 0}
-    np.testing.assert_allclose(x0.expectation_from_density_matrix(np.array([[1, 0], [0, 0]], dtype=np.complex), q_map), 0)
-    np.testing.assert_allclose(x0.expectation_from_density_matrix(np.array([[0, 0], [0, 1]], dtype=np.complex), q_map), 0)
-    np.testing.assert_allclose(x0.expectation_from_density_matrix(np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, q_map), 1)
-    np.testing.assert_allclose(x0.expectation_from_density_matrix(np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, q_map), -1)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[1, 0], [0, 0]], dtype=np.complex), q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[0, 0], [0, 1]], dtype=np.complex), q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, q_map), 1)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, q_map), -1)
 
 
 def test_expectation_from_density_matrix_entangled_states():
@@ -967,20 +1020,26 @@ def test_expectation_from_density_matrix_entangled_states():
     wf1 = np.array([0, 1, 1, 0], dtype=np.complex) / np.sqrt(2)
     rho1 = np.kron(wf1, wf1).reshape(4, 4)
     for state in [rho1, rho1.reshape(2, 2, 2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_density_matrix(state, q_map), -1)
-        np.testing.assert_allclose(x0x1.expectation_from_density_matrix(state, q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), -1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_density_matrix(state, q_map), 1)
 
     wf2 = np.array([1, 0, 0, 1], dtype=np.complex) / np.sqrt(2)
     rho2 = np.kron(wf2, wf2).reshape(4, 4)
     for state in [rho2, rho2.reshape(2, 2, 2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_density_matrix(state, q_map), 1)
-        np.testing.assert_allclose(x0x1.expectation_from_density_matrix(state, q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), 1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_density_matrix(state, q_map), 1)
 
     wf3 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
     rho3 = np.kron(wf3, wf3).reshape(4, 4)
     for state in [rho3, rho3.reshape(2, 2, 2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_density_matrix(state, q_map), 0)
-        np.testing.assert_allclose(x0x1.expectation_from_density_matrix(state, q_map), 1)
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_density_matrix(state, q_map), 1)
 
 
 def test_expectation_from_density_matrix_qubit_map():
@@ -990,12 +1049,42 @@ def test_expectation_from_density_matrix_qubit_map():
     rho = np.kron(wf, wf).reshape(8, 8)
 
     for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2)]:
-        np.testing.assert_allclose(z.expectation_from_density_matrix(state, {q0: 0, q1: 1, q2: 2}), 1)
-        np.testing.assert_allclose(z.expectation_from_density_matrix(state, {q0: 0, q1: 2, q2: 1}), 1)
-        np.testing.assert_allclose(z.expectation_from_density_matrix(state, {q0: 1, q1: 0, q2: 2}), 0)
-        np.testing.assert_allclose(z.expectation_from_density_matrix(state, {q0: 1, q1: 2, q2: 0}), 0)
-        np.testing.assert_allclose(z.expectation_from_density_matrix(state, {q0: 2, q1: 0, q2: 1}), -1)
-        np.testing.assert_allclose(z.expectation_from_density_matrix(state, {q0: 2, q1: 1, q2: 0}), -1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 0,
+                q1: 1,
+                q2: 2
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 0,
+                q1: 2,
+                q2: 1
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 1,
+                q1: 0,
+                q2: 2
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 1,
+                q1: 2,
+                q2: 0
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 2,
+                q1: 0,
+                q2: 1
+            }), -1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 2,
+                q1: 1,
+                q2: 0
+            }), -1)
 
 
 
@@ -1004,10 +1093,10 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     q_map = {q: i for i, q in enumerate(qubits)}
 
     circuit = cirq.Circuit.from_ops(
-            cirq.X(qubits[1]),
-            cirq.H(qubits[2]),
-            cirq.X(qubits[3]),
-            cirq.H(qubits[3]),
+        cirq.X(qubits[1]),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
     )
     wavefunction = circuit.final_wavefunction(qubit_order=qubits)
     rho = np.outer(wavefunction, np.conj(wavefunction))

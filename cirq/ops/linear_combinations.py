@@ -341,10 +341,10 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def expectation_from_wavefunction(
-            self,
-            state: np.ndarray,
-            qubit_map: Dict[raw_types.Qid, int]) -> float:
+    def expectation_from_wavefunction(self,
+                                      state: np.ndarray,
+                                      qubit_map: Dict[raw_types.Qid, int]
+                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
 
         See `PauliString.expectation_from_wavefunction`.
@@ -381,12 +381,14 @@ class PauliSum:
         validate_normalized_state(state=state,
                                   qid_shape=(2,) * num_qubits,
                                   dtype=state.dtype)
-        return sum(p._expectation_from_wavefunction_no_validation(state, qubit_map) for p in self)
+        return sum(
+            p._expectation_from_wavefunction_no_validation(state, qubit_map)
+            for p in self)
 
     def expectation_from_density_matrix(self,
-                    state: np.ndarray,
-                    qubit_map: Optional[Dict[raw_types.Qid, int]]=None
-                    ) -> float:
+            state: np.ndarray,
+            qubit_map: Optional[Dict[raw_types.Qid, int]]=None
+            ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
         See `PauliString.expectation_from_density_matrix`.
@@ -425,7 +427,9 @@ class PauliSum:
         _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
                                     num_qubits=num_qubits,
                                     dtype=state.dtype)
-        return sum(p._expectation_from_density_matrix_no_validation(state, qubit_map) for p in self)
+        return sum(
+            p._expectation_from_density_matrix_no_validation(state, qubit_map)
+            for p in self)
 
     def __iter__(self):
         for vec, coeff in self._linear_dict.items():

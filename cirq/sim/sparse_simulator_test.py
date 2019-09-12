@@ -558,23 +558,17 @@ def test_compute_samples_displays(dtype):
         cirq.H(b),
         cirq.X(c),
         cirq.H(c),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({c: cirq.X}),
+                                             num_samples=10,
+                                             key='approx_x3'),
         cirq.approx_pauli_string_expectation(
-            cirq.PauliString({c: cirq.X}),
+            cirq.PauliString({a: cirq.Z, b: cirq.X}),
             num_samples=10,
-            key='approx_x3'
-        ),
+            key='approx_z1x2'),
         cirq.approx_pauli_string_expectation(
-            cirq.PauliString({a: cirq.Z,
-                              b: cirq.X}),
+            cirq.PauliString({a: cirq.Z, c: cirq.X}),
             num_samples=10,
-            key='approx_z1x2'
-        ),
-        cirq.approx_pauli_string_expectation(
-            cirq.PauliString({a: cirq.Z,
-                              c: cirq.X}),
-            num_samples=10,
-            key='approx_z1x3'
-        ),
+            key='approx_z1x3'),
     )
     simulator = cirq.Simulator(dtype=dtype)
     result = simulator.compute_samples_displays(circuit)

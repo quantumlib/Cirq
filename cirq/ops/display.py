@@ -169,8 +169,8 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string, self._num_samples, self._key
 
 
-def approx_pauli_string_expectation(
-        pauli_string: 'pauli_string.PauliString',
-        num_samples: int,
-        key: Hashable='') -> ApproxPauliStringExpectation:
+def approx_pauli_string_expectation(pauli_string: 'pauli_string.PauliString',
+                                    num_samples: int,
+                                    key: Hashable=''
+                                    ) -> ApproxPauliStringExpectation:
     return ApproxPauliStringExpectation(pauli_string, num_samples, key=key)
