@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Mapping, TYPE_CHECKING
+from typing import Dict, Iterable, TYPE_CHECKING
 
 from cirq import ops
 import cirq.contrib.acquaintance as cca
@@ -36,7 +36,7 @@ class SwapNetwork:
     """
 
     def __init__(self, circuit: 'cirq.Circuit',
-                 initial_mapping: Mapping[ops.Qid, ops.Qid]) -> None:
+                 initial_mapping: Dict[ops.Qid, ops.Qid]) -> None:
         if not all(
                 isinstance(i, ops.Qid)
                 for I in initial_mapping.items()
@@ -51,11 +51,8 @@ class SwapNetwork:
         return mapping
 
     def get_logical_operations(self) -> Iterable[ops.Operation]:
-        mapping = {
-            q: self.initial_mapping.get(q) for q in self.circuit.all_qubits()
-        }
         return cca.get_logical_operations(self.circuit.all_operations(),
-                                          mapping)
+                                          self.initial_mapping)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):

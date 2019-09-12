@@ -15,7 +15,7 @@
 import itertools
 import random
 from typing import (Any, Callable, cast, Dict, Hashable, Iterable, List,
-                    Mapping, Optional, Sequence, Set, Tuple)
+                    Optional, Sequence, Set, Tuple)
 
 import numpy as np
 import networkx as nx
@@ -127,7 +127,7 @@ class _GreedyRouter:
                     self._log_to_phys[l] = p
 
     def set_initial_mapping(
-            self, initial_mapping: Optional[Mapping[ops.Qid, ops.Qid]] = None):
+            self, initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None):
         """Sets the internal state according to an initial mapping.
 
         Args:
