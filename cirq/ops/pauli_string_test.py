@@ -88,7 +88,7 @@ def test_exponentiation_as_exponent():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliString({a: cirq.X, b: cirq.Y})
 
-    with pytest.raises(NotImplementedError, match='non-hermitian'):
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
         _ = math.e**(math.pi * p)
 
     with pytest.raises(TypeError, match='unsupported'):
@@ -468,7 +468,7 @@ def test_pow():
 def test_numpy_ufunc():
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = np.sin(cirq.PauliString())
-    with pytest.raises(NotImplementedError, match="non-hermitian"):
+    with pytest.raises(NotImplementedError, match="non-Hermitian"):
         _ = np.exp(cirq.PauliString())
     x = np.exp(1j * np.pi * cirq.PauliString())
     assert x is not None
@@ -703,3 +703,470 @@ def test_filters_identities():
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.PauliString({q1: cirq.I, q2: cirq.X}) == \
            cirq.PauliString({q2: cirq.X})
+
+
+def test_expectation_from_wavefunction_invalid_input():
+    q0, q1, q2, q3 = _make_qubits(4)
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
+    wf = np.array([1, 0, 0, 0], dtype=np.complex64)
+    q_map = {q0: 0, q1: 1}
+
+    im_ps = (1j + 1) * ps
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
+        im_ps.expectation_from_wavefunction(wf, q_map)
+
+    with pytest.raises(TypeError, match='dtype'):
+        ps.expectation_from_wavefunction(np.array([1, 0], dtype=np.int), q_map)
+
+    with pytest.raises(TypeError, match='mapping'):
+        ps.expectation_from_wavefunction(wf, "bad type")
+    with pytest.raises(TypeError, match='mapping'):
+        ps.expectation_from_wavefunction(wf, {"bad key": 1})
+    with pytest.raises(TypeError, match='mapping'):
+        ps.expectation_from_wavefunction(wf, {q0: "bad value"})
+    with pytest.raises(ValueError, match='complete'):
+        ps.expectation_from_wavefunction(wf, {q0: 0})
+    with pytest.raises(ValueError, match='complete'):
+        ps.expectation_from_wavefunction(wf, {q0: 0, q2: 2})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_wavefunction(wf, {q0: -1, q1: 1})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_wavefunction(wf, {q0: 0, q1: 3})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_wavefunction(wf, {q0: 0, q1: 0})
+    # Excess keys are ignored.
+    _ = ps.expectation_from_wavefunction(wf, {q0: 0, q1: 1, q2: 0})
+
+    # Incorrectly shaped wavefunction input.
+    with pytest.raises(ValueError, match='7'):
+        ps.expectation_from_wavefunction(np.arange(7, dtype=np.complex64),
+                                         q_map)
+    q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
+    with pytest.raises(ValueError, match='normalized'):
+        ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                         q_map_2)
+
+    # The ambiguous case: Density matrices satisfying L2 normalization.
+    rho_or_wf = 0.5 * np.ones((2, 2), dtype=np.complex64)
+    _ = ps.expectation_from_wavefunction(rho_or_wf, q_map)
+
+    wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_wavefunction(wf.reshape((16, 1)), q_map_2)
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map_2)
+
+
+def test_expectation_from_wavefunction_basis_states():
+    q0 = cirq.LineQubit(0)
+    x0 = cirq.PauliString({q0: cirq.X})
+    q_map = {q0: 0}
+
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
+                                         q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex),
+                                         q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(
+            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 1)
+    np.testing.assert_allclose(
+        x0.expectation_from_wavefunction(
+            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), -1)
+
+    y0 = cirq.PauliString({q0: cirq.Y})
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map), 1)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map), -1)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 0)
+    np.testing.assert_allclose(
+        y0.expectation_from_wavefunction(
+            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), 0)
+
+
+def test_expectation_from_wavefunction_entangled_states():
+    q0, q1 = _make_qubits(2)
+    z0z1_pauli_map = {q0: cirq.Z, q1: cirq.Z}
+    z0z1 = cirq.PauliString(z0z1_pauli_map)
+    x0x1_pauli_map = {q0: cirq.X, q1: cirq.X}
+    x0x1 = cirq.PauliString(x0x1_pauli_map)
+    q_map = {q0: 0, q1: 1}
+    wf1 = np.array([0, 1, 1, 0], dtype=np.complex) / np.sqrt(2)
+    for state in [wf1, wf1.reshape(2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), -1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_wavefunction(state, q_map), 1)
+
+    wf2 = np.array([1, 0, 0, 1], dtype=np.complex) / np.sqrt(2)
+    for state in [wf2, wf2.reshape(2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), 1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_wavefunction(state, q_map), 1)
+
+    wf3 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    for state in [wf3, wf3.reshape(2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_wavefunction(state, q_map), 1)
+
+
+def test_expectation_from_wavefunction_qubit_map():
+    q0, q1, q2 = _make_qubits(3)
+    z = cirq.PauliString({q0: cirq.Z})
+    wf = np.array([0, 1, 0, 1, 0, 0, 0, 0], dtype=np.complex) / np.sqrt(2)
+    for state in [wf, wf.reshape(2, 2, 2)]:
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 0,
+                q1: 1,
+                q2: 2
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 0,
+                q1: 2,
+                q2: 1
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 1,
+                q1: 0,
+                q2: 2
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 1,
+                q1: 2,
+                q2: 0
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 2,
+                q1: 0,
+                q2: 1
+            }), -1)
+        np.testing.assert_allclose(
+            z.expectation_from_wavefunction(state, {
+                q0: 2,
+                q1: 1,
+                q2: 0
+            }), -1)
+
+
+def test_pauli_string_expectation_from_wavefunction_pure_state():
+    qubits = cirq.LineQubit.range(4)
+    q_map = {q: i for i, q in enumerate(qubits)}
+
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qubits[1]),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
+    )
+    wf = circuit.final_wavefunction(qubit_order=qubits)
+
+    z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
+    z0z2 = cirq.PauliString({qubits[0]: cirq.Z, qubits[2]: cirq.Z})
+    z0z3 = cirq.PauliString({qubits[0]: cirq.Z, qubits[3]: cirq.Z})
+    z0x1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.X})
+    z1x2 = cirq.PauliString({qubits[1]: cirq.Z, qubits[2]: cirq.X})
+    x0z1 = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Z})
+    x3 = cirq.PauliString({qubits[3]: cirq.X})
+
+    for state in [wf, wf.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), -1)
+        np.testing.assert_allclose(
+            z0z2.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            z0z3.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            z0x1.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            z1x2.expectation_from_wavefunction(state, q_map), -1)
+        np.testing.assert_allclose(
+            x0z1.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            x3.expectation_from_wavefunction(state, q_map), -1)
+
+
+def test_pauli_string_expectation_from_wavefunction_pure_state_with_coef():
+    qs = cirq.LineQubit.range(4)
+    q_map = {q: i for i, q in enumerate(qs)}
+
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qs[1]),
+        cirq.H(qs[2]),
+        cirq.X(qs[3]),
+        cirq.H(qs[3]),
+    )
+    wf = circuit.apply_unitary_effect_to_state(qubit_order=qs)
+
+    z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123
+    z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
+    z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
+
+    for state in [wf, wf.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_wavefunction(state, q_map), -0.123)
+        np.testing.assert_allclose(
+            z0z2.expectation_from_wavefunction(state, q_map), 0)
+        np.testing.assert_allclose(
+            z1x2.expectation_from_wavefunction(state, q_map), 1)
+
+
+def test_expectation_from_density_matrix_invalid_input():
+    q0, q1, q2, q3 = _make_qubits(4)
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
+    wf = cirq.testing.random_superposition(4)
+    rho = np.kron(wf.conjugate().T, wf).reshape(4, 4)
+    q_map = {q0: 0, q1: 1}
+
+    im_ps = (1j + 1) * ps
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
+        im_ps.expectation_from_density_matrix(rho, q_map)
+
+    with pytest.raises(TypeError, match='dtype'):
+        ps.expectation_from_density_matrix(0.5 * np.eye(2, dtype=np.int), q_map)
+
+    with pytest.raises(TypeError, match='mapping'):
+        ps.expectation_from_density_matrix(rho, "bad type")
+    with pytest.raises(TypeError, match='mapping'):
+        ps.expectation_from_density_matrix(rho, {"bad key": 1})
+    with pytest.raises(TypeError, match='mapping'):
+        ps.expectation_from_density_matrix(rho, {q0: "bad value"})
+    with pytest.raises(ValueError, match='complete'):
+        ps.expectation_from_density_matrix(rho, {q0: 0})
+    with pytest.raises(ValueError, match='complete'):
+        ps.expectation_from_density_matrix(rho, {q0: 0, q2: 2})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_density_matrix(rho, {q0: -1, q1: 1})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_density_matrix(rho, {q0: 0, q1: 3})
+    with pytest.raises(ValueError, match='indices'):
+        ps.expectation_from_density_matrix(rho, {q0: 0, q1: 0})
+    # Excess keys are ignored.
+    _ = ps.expectation_from_density_matrix(rho, {q0: 0, q1: 1, q2: 0})
+
+    with pytest.raises(ValueError, match='hermitian'):
+        ps.expectation_from_density_matrix(1j * np.eye(4), q_map)
+    with pytest.raises(ValueError, match='trace'):
+        ps.expectation_from_density_matrix(np.eye(4, dtype=np.complex64), q_map)
+    with pytest.raises(ValueError, match='semidefinite'):
+        ps.expectation_from_density_matrix(
+            np.array(
+                [[1.1, 0, 0, 0], [0, -.1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.complex64), q_map)
+
+    # Incorrectly shaped density matrix input.
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_density_matrix(np.ones((4, 5), dtype=np.complex64),
+                                           q_map)
+    q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map_2)
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_density_matrix(rho.reshape((-1)), q_map_2)
+
+    # Correctly shaped wavefunctions.
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.complex64),
+                                           q_map)
+    with pytest.raises(ValueError, match='shape'):
+        ps.expectation_from_density_matrix(wf, q_map)
+
+    # The ambiguous cases: Wavefunctions satisfying trace normalization.
+    # This also throws an unrelated warning, which is a bug. See #2041.
+    rho_or_wf = 0.25 * np.ones((4, 4), dtype=np.complex64)
+    _ = ps.expectation_from_density_matrix(rho_or_wf, q_map)
+
+
+def test_expectation_from_density_matrix_basis_states():
+    q0 = cirq.LineQubit(0)
+    x0_pauli_map = {q0: cirq.X}
+    x0 = cirq.PauliString(x0_pauli_map)
+    q_map = {q0: 0}
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[1, 0], [0, 0]], dtype=np.complex), q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[0, 0], [0, 1]], dtype=np.complex), q_map), 0)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, q_map), 1)
+    np.testing.assert_allclose(
+        x0.expectation_from_density_matrix(
+            np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, q_map), -1)
+
+
+def test_expectation_from_density_matrix_entangled_states():
+    q0, q1 = _make_qubits(2)
+    z0z1_pauli_map = {q0: cirq.Z, q1: cirq.Z}
+    z0z1 = cirq.PauliString(z0z1_pauli_map)
+    x0x1_pauli_map = {q0: cirq.X, q1: cirq.X}
+    x0x1 = cirq.PauliString(x0x1_pauli_map)
+    q_map = {q0: 0, q1: 1}
+
+    wf1 = np.array([0, 1, 1, 0], dtype=np.complex) / np.sqrt(2)
+    rho1 = np.kron(wf1, wf1).reshape(4, 4)
+    for state in [rho1, rho1.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), -1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_density_matrix(state, q_map), 1)
+
+    wf2 = np.array([1, 0, 0, 1], dtype=np.complex) / np.sqrt(2)
+    rho2 = np.kron(wf2, wf2).reshape(4, 4)
+    for state in [rho2, rho2.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), 1)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_density_matrix(state, q_map), 1)
+
+    wf3 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    rho3 = np.kron(wf3, wf3).reshape(4, 4)
+    for state in [rho3, rho3.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            x0x1.expectation_from_density_matrix(state, q_map), 1)
+
+
+def test_expectation_from_density_matrix_qubit_map():
+    q0, q1, q2 = _make_qubits(3)
+    z = cirq.PauliString({q0: cirq.Z})
+    wf = np.array([0, 1, 0, 1, 0, 0, 0, 0], dtype=np.complex) / np.sqrt(2)
+    rho = np.kron(wf, wf).reshape(8, 8)
+
+    for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 0,
+                q1: 1,
+                q2: 2
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 0,
+                q1: 2,
+                q2: 1
+            }), 1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 1,
+                q1: 0,
+                q2: 2
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 1,
+                q1: 2,
+                q2: 0
+            }), 0)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 2,
+                q1: 0,
+                q2: 1
+            }), -1)
+        np.testing.assert_allclose(
+            z.expectation_from_density_matrix(state, {
+                q0: 2,
+                q1: 1,
+                q2: 0
+            }), -1)
+
+
+def test_pauli_string_expectation_from_density_matrix_pure_state():
+    qubits = cirq.LineQubit.range(4)
+    q_map = {q: i for i, q in enumerate(qubits)}
+
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qubits[1]),
+        cirq.H(qubits[2]),
+        cirq.X(qubits[3]),
+        cirq.H(qubits[3]),
+    )
+    wavefunction = circuit.final_wavefunction(qubit_order=qubits)
+    rho = np.outer(wavefunction, np.conj(wavefunction))
+
+    z0z1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.Z})
+    z0z2 = cirq.PauliString({qubits[0]: cirq.Z, qubits[2]: cirq.Z})
+    z0z3 = cirq.PauliString({qubits[0]: cirq.Z, qubits[3]: cirq.Z})
+    z0x1 = cirq.PauliString({qubits[0]: cirq.Z, qubits[1]: cirq.X})
+    z1x2 = cirq.PauliString({qubits[1]: cirq.Z, qubits[2]: cirq.X})
+    x0z1 = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Z})
+    x3 = cirq.PauliString({qubits[3]: cirq.X})
+
+    for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), -1)
+        np.testing.assert_allclose(
+            z0z2.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            z0z3.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            z0x1.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            z1x2.expectation_from_density_matrix(state, q_map), -1)
+        np.testing.assert_allclose(
+            x0z1.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            x3.expectation_from_density_matrix(state, q_map), -1)
+
+
+def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
+    qs = cirq.LineQubit.range(4)
+    q_map = {q: i for i, q in enumerate(qs)}
+
+    circuit = cirq.Circuit.from_ops(
+        cirq.X(qs[1]),
+        cirq.H(qs[2]),
+        cirq.X(qs[3]),
+        cirq.H(qs[3]),
+    )
+    wavefunction = circuit.apply_unitary_effect_to_state(qubit_order=qs)
+    rho = np.outer(wavefunction, np.conj(wavefunction))
+
+    z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123
+    z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
+    z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
+
+    for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            z0z1.expectation_from_density_matrix(state, q_map), -0.123)
+        np.testing.assert_allclose(
+            z0z2.expectation_from_density_matrix(state, q_map), 0)
+        np.testing.assert_allclose(
+            z1x2.expectation_from_density_matrix(state, q_map), 1)
+
+
+def test_pauli_string_expectation_from_wavefunction_mixed_state_linearity():
+    n_qubits = 10
+
+    wavefunction1 = cirq.testing.random_superposition(2**n_qubits)
+    wavefunction2 = cirq.testing.random_superposition(2**n_qubits)
+    rho1 = np.outer(wavefunction1, np.conj(wavefunction1))
+    rho2 = np.outer(wavefunction2, np.conj(wavefunction2))
+    density_matrix = rho1 / 2 + rho2 / 2
+
+    qubits = cirq.LineQubit.range(n_qubits)
+    q_map = {q: i for i, q in enumerate(qubits)}
+    paulis = [cirq.X, cirq.Y, cirq.Z]
+    pauli_string = cirq.PauliString(
+        {q: np.random.choice(paulis) for q in qubits})
+
+    a = pauli_string.expectation_from_wavefunction(wavefunction1, q_map)
+    b = pauli_string.expectation_from_wavefunction(wavefunction2, q_map)
+    c = pauli_string.expectation_from_density_matrix(density_matrix, q_map)
+    np.testing.assert_allclose(0.5 * (a + b), c)

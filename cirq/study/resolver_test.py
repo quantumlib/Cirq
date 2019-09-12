@@ -48,6 +48,13 @@ def test_param_dict():
     assert r.param_dict == {'a': 0.5, 'b': 0.1}
 
 
+def test_param_dict_iter():
+    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
+    assert [key for key in r] == ['a', 'b']
+    assert [r.value_of(key) for key in r] == [0.5, 0.1]
+    assert list(r) == ['a', 'b']
+
+
 def test_equals():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(cirq.ParamResolver(),

@@ -214,5 +214,5 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
     def _json_dict_(self):
-        return protocols.to_json_dict(
+        return protocols.obj_to_dict_helper(
             self, ['phase_exponent', 'exponent', 'global_shift'])

@@ -20,8 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate
-from cirq.ops.common_gates import _rads_func_symbol
+from cirq.ops import gate_features, eigen_gate, common_gates
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -64,10 +63,9 @@ class XXPowGate(eigen_gate.EigenGate,
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
-            symbol = _rads_func_symbol(
-                'MS',
-                args,
-                self._diagram_exponent(args, ignore_global_phase=False)/2)
+            symbol = common_gates._rads_func_symbol(
+                'MS', args,
+                self._diagram_exponent(args, ignore_global_phase=False) / 2)
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
 
@@ -158,6 +156,13 @@ class ZZPowGate(eigen_gate.EigenGate,
 
         where w = e^{i \pi t} and '.' means '0'.
     """
+
+    def _decompose_(self, qubits):
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
+        yield common_gates.CZPowGate(exponent=-2 * self.exponent,
+                                     global_shift=-self.global_shift / 2)(
+                                         qubits[0], qubits[1])
 
     def _eigen_components(self):
         return [

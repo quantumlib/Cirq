@@ -264,7 +264,11 @@ def assert_has_consistent_apply_unitary(
 
     qubit_counts = [
         qubit_count,
-        expected.shape[0].bit_length() - 1 if expected is not None else None,
+        # Only fall back to using the unitary size if num_qubits or qid_shape
+        # protocols are not defined.
+        protocols.num_qubits(val,
+                             default=expected.shape[0].bit_length() -
+                             1 if expected is not None else None),
         _infer_qubit_count(val)
     ]
     qubit_counts = [e for e in qubit_counts if e is not None]
@@ -276,8 +280,9 @@ def assert_has_consistent_apply_unitary(
         'Inconsistent qubit counts from different methods: {}'.format(
             qubit_counts))
     n = cast(int, qubit_counts[0])
+    qid_shape = protocols.qid_shape(val, default=(2,) * n)
 
-    eye = np.eye(2 << n, dtype=np.complex128).reshape((2,) * (2 * n + 2))
+    eye = linalg.eye_tensor((2,) + qid_shape, dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
         args=protocols.ApplyUnitaryArgs(
@@ -294,10 +299,10 @@ def assert_has_consistent_apply_unitary(
 
     # If you applied a unitary, it should match the one you say you have.
     if actual is not None:
-        np.testing.assert_allclose(
-            actual.reshape(2 << n, 2 << n),
-            expected,
-            atol=atol)
+        np.testing.assert_allclose(actual.reshape((np.prod(
+            (2,) + qid_shape, dtype=int),) * 2),
+                                   expected,
+                                   atol=atol)
 
 
 def assert_eigen_gate_has_consistent_apply_unitary(

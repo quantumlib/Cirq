@@ -323,7 +323,7 @@ class EigenGate(raw_types.Gate):
                 exponent=param_resolver.value_of(self._exponent))
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['exponent', 'global_shift'])
+        return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
 
 def _lcm(vals: Iterable[int]) -> int:
