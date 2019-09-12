@@ -29,6 +29,10 @@ class SwapNetwork:
     between logical and physical qubits. This is, in part, to distinguish
     between such gates and those with the same unitaries but that are part of
     the logical circuit to be routed.
+
+    Args:
+        circuit: The circuit.
+        initial_mapping: The initial mapping from physical to logical qubits.
     """
 
     def __init__(self, circuit: 'cirq.Circuit',
