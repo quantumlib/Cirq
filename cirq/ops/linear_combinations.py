@@ -384,10 +384,9 @@ class PauliSum:
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
 
-    def expectation_from_density_matrix(
-            self,
-            state: np.ndarray,
-            qubit_map: Mapping[raw_types.Qid, int]) -> float:
+    def expectation_from_density_matrix(self, state: np.ndarray,
+                                        qubit_map: Mapping[raw_types.Qid, int]
+                                       ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
         See `PauliString.expectation_from_density_matrix`.
