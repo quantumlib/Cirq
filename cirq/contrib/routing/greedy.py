@@ -253,6 +253,14 @@ class _GreedyRouter:
         self.bring_farthest_pair_together(frontier_edges)
 
     def route(self):
+        """Routes the circuit on the device. Alternates between heuristically
+        picking a few SWAPs to change the mapping and applying all logical
+        operations possible given the new mapping, until all logical operations
+        have been applied.
+        
+        See _GreedyRouter.apply_next_swaps for details about the SWAP selection
+        heuristic.
+        """
         self.apply_possible_ops()
         while self.remaining_dag:
             self.apply_next_swaps()
