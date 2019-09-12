@@ -23,7 +23,13 @@ if TYPE_CHECKING:
 
 class SwapNetwork:
     """A swap network, i.e. a circuit containing logical operations and swaps
-    together with an initial mapping of physical to logical qubits."""
+    together with an initial mapping of physical to logical qubits.
+    
+    Only instances of PermutationGate are considered as changing the mapping
+    between logical and physical qubits. This is, in part, to distinguish
+    between such gates and those with the same unitaries but that are part of
+    the logical circuit to be routed.
+    """
 
     def __init__(self, circuit: 'cirq.Circuit',
                  initial_mapping: Mapping[ops.Qid, ops.Qid]) -> None:
