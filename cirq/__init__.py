@@ -419,10 +419,7 @@ from cirq.neutral_atoms import (
     NeutralAtomDevice,
 )
 
-from cirq.vis import (
-    Heatmap,
-    plot
-)
+from cirq.vis import (Heatmap, plot)
 
 from cirq.work import (
     CircuitSampleJob,

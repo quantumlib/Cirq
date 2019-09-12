@@ -1,16 +1,17 @@
-import matplotlib.pyplot as plt
-
 from typing import Any, Optional
+
+import matplotlib.pyplot as plt
 from typing_extensions import Protocol
 
 
 class SupportsPlot(Protocol):
     """A class of objects that knows how to plot itself to an axes."""
+
     def _plot_(self, ax: plt.Axes, **kwargs) -> Any:
         raise NotImplementedError
 
 
-def plot(obj: SupportsPlot, ax: Optional[plt.Axes]=None, **kwargs) -> Any:
+def plot(obj: SupportsPlot, ax: Optional[plt.Axes] = None, **kwargs) -> Any:
     """Plots an object to a given Axes or a new Axes and show it.
 
     Args:
@@ -24,7 +25,7 @@ def plot(obj: SupportsPlot, ax: Optional[plt.Axes]=None, **kwargs) -> Any:
           - The return value of obj._plot_().
     """
     if ax is None:
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        _, ax = plt.subplots(1, 1, figsize=(10, 10))
     result = obj._plot_(ax, **kwargs)
     ax.get_figure().show(warn=False)
     return ax, result
