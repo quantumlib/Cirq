@@ -709,7 +709,7 @@ def test_expectation_from_wavefunction_invalid_input():
     q0, q1, q2, q3 = _make_qubits(4)
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
     wf = np.array([1, 0, 0, 0], dtype=np.complex64)
-    q_map = dict({q0: 0, q1: 1})
+    q_map = {q0: 0, q1: 1}
 
     im_ps = (1j + 1) * ps
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
@@ -739,13 +739,16 @@ def test_expectation_from_wavefunction_invalid_input():
 
     # Incorrectly shaped wavefunction input.
     with pytest.raises(ValueError, match='7'):
-        ps.expectation_from_wavefunction(np.arange(7, dtype=np.complex64), q_map)
+        ps.expectation_from_wavefunction(np.arange(7, dtype=np.complex64),
+                                         q_map)
     q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='normalized'):
-        ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64), q_map_2)
+        ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                         q_map_2)
 
     # The ambiguous case: Density matrices satisfying L2 normalization.
-    _ = ps.expectation_from_wavefunction(0.5 * np.ones((2, 2), dtype=np.complex64), q_map)
+    rho_or_wf = 0.5 * np.ones((2, 2), dtype=np.complex64)
+    _ = ps.expectation_from_wavefunction(rho_or_wf, q_map)
 
     wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
@@ -755,7 +758,7 @@ def test_expectation_from_wavefunction_invalid_input():
 
 
 def test_expectation_from_wavefunction_basis_states():
-    q0, q1 = _make_qubits(2)
+    q0 = cirq.LineQubit(0)
     x0 = cirq.PauliString({q0: cirq.X})
     q_map = {q0: 0}
 
@@ -780,18 +783,24 @@ def test_expectation_from_wavefunction_entangled_states():
     q_map = {q0: 0, q1: 1}
     wf1 = np.array([0, 1, 1, 0], dtype=np.complex) / np.sqrt(2)
     for state in [wf1, wf1.reshape(2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state, q_map), -1)
-        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state, q_map), 1)
+        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state,
+                                                                      q_map), -1)
+        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state,
+                                                                      q_map), 1)
 
     wf2 = np.array([1, 0, 0, 1], dtype=np.complex) / np.sqrt(2)
     for state in [wf2, wf2.reshape(2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state, q_map), 1)
-        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state, q_map), 1)
+        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state,
+                                                                      q_map), 1)
+        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state,
+                                                                      q_map), 1)
 
     wf3 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
     for state in [wf3, wf3.reshape(2, 2)]:
-        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state, q_map), 0)
-        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state, q_map), 1)
+        np.testing.assert_allclose(z0z1.expectation_from_wavefunction(state,
+                                                                      q_map), 0)
+        np.testing.assert_allclose(x0x1.expectation_from_wavefunction(state,
+                                                                      q_map), 1)
 
 
 def test_expectation_from_wavefunction_qubit_map():
@@ -874,7 +883,7 @@ def test_expectation_from_density_matrix_invalid_input():
     ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
     wf = cirq.testing.random_superposition(4)
     rho = np.kron(wf.conjugate().T, wf).reshape(4,4)
-    q_map = dict({q0: 0, q1: 1})
+    q_map = {q0: 0, q1: 1}
 
     im_ps = (1j + 1) * ps
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
@@ -915,7 +924,8 @@ def test_expectation_from_density_matrix_invalid_input():
 
     # Incorrectly shaped density matrix input.
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(np.ones((4, 5), dtype=np.complex64), q_map)
+        ps.expectation_from_density_matrix(np.ones((4, 5), dtype=np.complex64),
+                                           q_map)
     q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_density_matrix(rho.reshape((4, 4, 1)), q_map_2)
@@ -924,17 +934,19 @@ def test_expectation_from_density_matrix_invalid_input():
 
     # Correctly shaped wavefunctions.
     with pytest.raises(ValueError, match='shape'):
-        ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.complex64), q_map)
+        ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.complex64),
+                                           q_map)
     with pytest.raises(ValueError, match='shape'):
         ps.expectation_from_density_matrix(wf, q_map)
 
     # The ambiguous cases: Wavefunctions satisfying trace normalization.
     # This also throws an unrelated warning, which is a bug. See #2041.
-    _ = ps.expectation_from_density_matrix(0.25 * np.ones((4, 4), dtype=np.complex64), q_map)
+    rho_or_wf = 0.25 * np.ones((4, 4), dtype=np.complex64)
+    _ = ps.expectation_from_density_matrix(rho_or_wf, q_map)
 
 
 def test_expectation_from_density_matrix_basis_states():
-    q0, q1 = _make_qubits(2)
+    q0 = cirq.LineQubit(0)
     x0_pauli_map = {q0: cirq.X}
     x0 = cirq.PauliString(x0_pauli_map)
     q_map = {q0: 0}

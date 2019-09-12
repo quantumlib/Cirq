@@ -306,13 +306,16 @@ class PauliString(raw_types.Operation):
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         # HACK: avoid circular import
         from cirq.sim.wave_function import validate_normalized_state
-        validate_normalized_state(state, num_qubits, dtype=state.dtype)
-        return self._expectation_from_wavefunction_no_validation(state, qubit_map)
+        validate_normalized_state(state=state,
+                                  qid_shape=(2,) * num_qubits,
+                                  dtype=state.dtype)
+        return self._expectation_from_wavefunction_no_validation(state,
+                                                                 qubit_map)
 
-    def _expectation_from_wavefunction_no_validation(self,
-                                       state: np.ndarray,
-                                       qubit_map: Mapping[raw_types.Qid, int]
-                                       ) -> float:
+    def _expectation_from_wavefunction_no_validation(
+        self,
+        state: np.ndarray,
+        qubit_map: Mapping[raw_types.Qid, int]) -> float:
         """Evaluate the expectation of this PauliString given a wavefunction.
 
         This method does not provide input validation. See
@@ -380,7 +383,7 @@ class PauliString(raw_types.Operation):
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # FIXME: Avoid enforcing specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
         if state.dtype.kind != 'c':
             raise TypeError("Input state dtype must be np.complex64 or "
@@ -397,8 +400,11 @@ class PauliString(raw_types.Operation):
         # HACK: avoid circular import
         from cirq.sim.density_matrix_utils import to_valid_density_matrix
         # Do not enforce reshaping if the state all axes are dimension 2.
-        _ = to_valid_density_matrix(state.reshape(dim, dim), num_qubits, dtype=state.dtype)
-        return self._expectation_from_density_matrix_no_validation(state, qubit_map)
+        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
+                                    num_qubits=num_qubits,
+                                    dtype=state.dtype)
+        return self._expectation_from_density_matrix_no_validation(state,
+                                                                   qubit_map)
 
     def _expectation_from_density_matrix_no_validation(self,
                                          state: np.ndarray,
@@ -666,7 +672,8 @@ def _validate_qubit_mapping(
         num_state_qubits: The number of qubits over which a state is expressed.
     """
     if not isinstance(qubit_map, Mapping) or not all(
-        isinstance(k, raw_types.Qid) and isinstance(v, int) for k, v in qubit_map.items()):
+            isinstance(k, raw_types.Qid) and isinstance(v, int)
+            for k, v in qubit_map.items()):
         raise TypeError("Input qubit map must be a valid mapping from "
                         "Qubit ID's to integer indices.")
 
@@ -675,7 +682,8 @@ def _validate_qubit_mapping(
                          " of this PauliString's qubits.")
 
     used_inds = [qubit_map[q] for q in pauli_qubits]
-    if len(used_inds) != len(set(used_inds)) or not set(range(num_state_qubits)) >= set(sorted(used_inds)):
+    if len(used_inds) != len(set(used_inds)) or not set(
+            range(num_state_qubits)) >= set(sorted(used_inds)):
         raise ValueError("Input qubit map indices must be valid for a state "
                          "over {} qubits.".format(num_state_qubits))
 

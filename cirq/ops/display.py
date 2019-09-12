@@ -21,13 +21,13 @@ the values of Displays in a circuit is a dictionary from Display key to
 Display value.
 """
 
-from typing import Any, Dict, Hashable, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Hashable, Tuple, TYPE_CHECKING
 
 import abc
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import value
 from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
