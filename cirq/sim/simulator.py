@@ -77,10 +77,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                    else program.to_circuit())
         if not circuit.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
-        param_resolvers = study.to_resolvers(params)
 
         trial_results = []  # type: List[study.TrialResult]
-        for param_resolver in param_resolvers:
+        for param_resolver in study.to_resolvers(params):
             measurements = self._run(circuit=circuit,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
@@ -150,10 +149,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
-        for param_resolver in param_resolvers:
+        for param_resolver in study.to_resolvers(params):
             display_values = {}  # type: Dict[Hashable, Any]
             preceding_circuit = circuits.Circuit()
             for i, moment in enumerate(circuit):
@@ -362,11 +360,10 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params)
 
         trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
-        for param_resolver in param_resolvers:
+        for param_resolver in study.to_resolvers(params):
             all_step_results = self.simulate_moment_steps(circuit,
                                                           param_resolver,
                                                           qubit_order,

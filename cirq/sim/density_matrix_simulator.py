@@ -375,12 +375,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         """
         circuit = (program if isinstance(program, circuits.Circuit)
                    else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
         compute_displays_results: List[study.ComputeDisplaysResult] = []
-        for param_resolver in param_resolvers:
+        for param_resolver in study.to_resolvers(params):
             display_values: Dict[Hashable, Any] = {}
 
             # Compute the displays in the first Moment

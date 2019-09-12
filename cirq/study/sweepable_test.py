@@ -21,24 +21,32 @@ import sympy
 import cirq
 
 
+def test_to_resolvers_none():
+    assert list(cirq.to_resolvers(None)) == [cirq.ParamResolver({})]
+
+
 def test_to_resolvers_single():
-    resolver = cirq.ParamResolver({})
-    assert cirq.to_resolvers(resolver) == [resolver]
+    resolver = cirq.ParamResolver({'a': 1})
+    assert list(cirq.to_resolvers(resolver)) == [resolver]
 
 
 def test_to_resolvers_sweep():
     sweep = cirq.Linspace('a', 0, 1, 10)
-    assert cirq.to_resolvers(sweep) == list(sweep)
+    assert list(cirq.to_resolvers(sweep)) == list(sweep)
 
 
 def test_to_resolvers_iterable():
     resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
-    assert cirq.to_resolvers(resolvers) == resolvers
+    assert list(cirq.to_resolvers(resolvers)) == resolvers
 
 
 def test_to_resolvers_iterable_sweeps():
     sweeps = [cirq.Linspace('a', 0, 1, 10), cirq.Linspace('b', 0, 1, 10)]
-    assert cirq.to_resolvers(sweeps) == list(itertools.chain(*sweeps))
+    assert list(cirq.to_resolvers(sweeps)) == list(itertools.chain(*sweeps))
+
+
+def test_to_sweeps_none():
+    assert cirq.study.to_sweeps(None) == [cirq.UnitSweep]
 
 
 def test_to_sweeps_single():

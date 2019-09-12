@@ -160,9 +160,8 @@ class AQTSampler(Sampler):
         circuit = (program if isinstance(program, circuits.Circuit) else
                    program.to_circuit())
         assert isinstance(circuit.device, IonDevice)
-        param_resolvers = study.to_resolvers(params)
         trial_results = []  # type: List[study.TrialResult]
-        for param_resolver in param_resolvers:
+        for param_resolver in study.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(circuit.device.qubits)
             json_str = self._generate_json(circuit=circuit,
