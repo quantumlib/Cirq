@@ -44,11 +44,12 @@ We describe some magic methods below.
 #### `cirq.num_qubits` and `def _num_qubits_`
 
 A `Gate` must implement the `_num_qubits_` (or `_qid_shape_`) method.
-This method is used by `cirq.num_qubits` to determine how many qubits this gate operates on.
+This method returns an integer and is used by `cirq.num_qubits` to determine how many qubits this gate operates on.
 
 #### `cirq.qid_shape` and `def _qid_shape_`
 
-When a gate or operation operates on qudits, the `_qid_shape_` method is used to determine how many qudits it operates on and what dimension each qudit must be.
+A qudit gate or operation must implement the `_qid_shape_` method that returns a tuple of integers.
+This method is used to determine how many qudits the gate or operation operates on and what dimension each qudit must be.
 If only the `_num_qubits_` method is implemented, the object is assumed to operate only on qubits.
 Callers can query the qid shape of the object by calling `cirq.qid_shape` on it.
 See [qudit documentation](qudits.md) for more information.
