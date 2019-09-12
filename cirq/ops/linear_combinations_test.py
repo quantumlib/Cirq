@@ -1019,22 +1019,22 @@ def test_expectation_from_wavefunction_basis_states():
     psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
     q_map = {x: i for i, x in enumerate(q)}
 
-    np.testing.assert_allclose(psum.expectation_from_wavefunction(
-        np.array([1, 1], dtype=np.complex) /
-        np.sqrt(2),
-        qubit_map=q_map), 1)
-    np.testing.assert_allclose(psum.expectation_from_wavefunction(
-        np.array([1, -1], dtype=np.complex) /
-        np.sqrt(2),
-        qubit_map=q_map), -1)
-    np.testing.assert_allclose(psum.expectation_from_wavefunction(
-        np.array([1, 1j], dtype=np.complex) /
-        np.sqrt(2),
-        qubit_map=q_map), 2)
-    np.testing.assert_allclose(psum.expectation_from_wavefunction(
-        np.array([1, -1j], dtype=np.complex) /
-        np.sqrt(2),
-        qubit_map=q_map), -2)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, 1], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), 1)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, -1], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), -1)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, 1j], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), 2)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, -1j], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), -2)
     np.testing.assert_allclose(
         psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
                                            qubit_map=q_map), 3)
@@ -1111,9 +1111,9 @@ def test_expectation_from_density_matrix_invalid_input():
         psum.expectation_from_density_matrix(np.eye(8, dtype=np.complex64),
                                              q_map)
 
-    not_psd = np.zeros((8,8), dtype=np.complex64)
-    not_psd[0,0] = 1.1
-    not_psd[1,1] = -0.1
+    not_psd = np.zeros((8, 8), dtype=np.complex64)
+    not_psd[0, 0] = 1.1
+    not_psd[1, 1] = -0.1
     with pytest.raises(ValueError, match='semidefinite'):
         psum.expectation_from_density_matrix(not_psd, q_map)
 

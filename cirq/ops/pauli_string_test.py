@@ -823,7 +823,7 @@ def test_expectation_from_wavefunction_qubit_map():
     q0, q1, q2 = _make_qubits(3)
     z = cirq.PauliString({q0: cirq.Z})
     wf = np.array([0, 1, 0, 1, 0, 0, 0, 0], dtype=np.complex) / np.sqrt(2)
-    for state in [wf, wf.reshape(2,2,2)]:
+    for state in [wf, wf.reshape(2, 2, 2)]:
         np.testing.assert_allclose(
             z.expectation_from_wavefunction(state, {
                 q0: 0,

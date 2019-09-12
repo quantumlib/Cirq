@@ -57,7 +57,8 @@ def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
     qubits = cirq.LineQubit.range(2)
     display = cirq.approx_pauli_string_expectation(cirq.PauliString({
         qubits[0]: paulis[0],
-        qubits[1]: paulis[1]}), num_samples=1)
+        qubits[1]: paulis[1]
+    }), num_samples=1)
     matrix = np.kron(cirq.unitary(paulis[0]), cirq.unitary(paulis[1]))
 
     circuit = cirq.Circuit.from_ops(display.measurement_basis_change())
@@ -134,7 +135,7 @@ def test_approx_pauli_string_expectation_helper():
     pauli_string = cirq.PauliString(qubit_pauli_map, -1)
 
     assert (cirq.approx_pauli_string_expectation(
-        pauli_string, num_samples=5, 
+        pauli_string, num_samples=5,
         key='a') == cirq.approx_pauli_string_expectation(pauli_string,
-                                                         num_samples=5, 
+                                                         num_samples=5,
                                                          key='a'))

@@ -341,10 +341,9 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def expectation_from_wavefunction(self,
-                                      state: np.ndarray,
+    def expectation_from_wavefunction(self, state: np.ndarray,
                                       qubit_map: Dict[raw_types.Qid, int]
-                                      ) -> float:
+                                     ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
 
         See `PauliString.expectation_from_wavefunction`.
@@ -385,10 +384,10 @@ class PauliSum:
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
 
-    def expectation_from_density_matrix(self,
+    def expectation_from_density_matrix(
+            self,
             state: np.ndarray,
-            qubit_map: Optional[Dict[raw_types.Qid, int]]=None
-            ) -> float:
+            qubit_map: Optional[Dict[raw_types.Qid, int]] = None) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
         See `PauliString.expectation_from_density_matrix`.

@@ -254,7 +254,7 @@ class PauliString(raw_types.Operation):
 
     def expectation_from_wavefunction(self, state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int]
-                                      ) -> float:
+                                     ) -> float:
         r"""Evaluate the expectation of this PauliString given a wavefunction.
 
         Compute the expectation value of this PauliString with respect to a
@@ -312,8 +312,8 @@ class PauliString(raw_types.Operation):
             state, qubit_map)
 
     def _expectation_from_wavefunction_no_validation(
-        self, state: np.ndarray,
-        qubit_map: Mapping[raw_types.Qid, int]) -> float:
+            self, state: np.ndarray,
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
         """Evaluate the expectation of this PauliString given a wavefunction.
 
         This method does not provide input validation. See
@@ -344,7 +344,7 @@ class PauliString(raw_types.Operation):
 
     def expectation_from_density_matrix(self, state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int]
-                                        ) -> float:
+                                       ) -> float:
         r"""Evaluate the expectation of this PauliString given a density matrix.
 
         Compute the expectation value of this PauliString with respect to an
@@ -400,12 +400,12 @@ class PauliString(raw_types.Operation):
         _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
                                     num_qubits=num_qubits,
                                     dtype=state.dtype)
-        return self._expectation_from_density_matrix_no_validation(state,
-                                                                   qubit_map)
+        return self._expectation_from_density_matrix_no_validation(
+            state, qubit_map)
 
     def _expectation_from_density_matrix_no_validation(
-        self, state: np.ndarray,
-        qubit_map: Mapping[raw_types.Qid, int]) -> float:
+            self, state: np.ndarray,
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
         """Evaluate the expectation of this PauliString given a density matrix.
 
         This method does not provide input validation. See
