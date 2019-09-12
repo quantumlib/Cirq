@@ -707,8 +707,7 @@ def test_filters_identities():
 
 def test_expectation_from_wavefunction_invalid_input():
     q0, q1, q2, q3 = _make_qubits(4)
-    qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
-    ps = cirq.PauliString(qubit_pauli_map)
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
     wf = np.array([1, 0, 0, 0], dtype=np.complex64)
     q_map = dict({q0: 0, q1: 1})
 
@@ -717,7 +716,7 @@ def test_expectation_from_wavefunction_invalid_input():
         im_ps.expectation_from_wavefunction(wf, q_map)
 
     with pytest.raises(TypeError, match='dtype'):
-        ps.expectation_from_density_matrix(np.array([1, 0], dtype=np.int), q_map)
+        ps.expectation_from_wavefunction(np.array([1, 0], dtype=np.int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_wavefunction(wf, "bad type")
@@ -725,12 +724,10 @@ def test_expectation_from_wavefunction_invalid_input():
         ps.expectation_from_wavefunction(wf, {"bad key": 1})
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_wavefunction(wf, {q0: "bad value"})
-
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0})
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_wavefunction(wf, {q0: 0, q2: 2})
-
     with pytest.raises(ValueError, match='indices'):
         ps.expectation_from_wavefunction(wf, {q0: -1, q1: 1})
     with pytest.raises(ValueError, match='indices'):
@@ -874,8 +871,7 @@ def test_pauli_string_expectation_from_wavefunction_pure_state_with_coef():
 
 def test_expectation_from_density_matrix_invalid_input():
     q0, q1, q2, q3 = _make_qubits(4)
-    qubit_pauli_map = {q0: cirq.X, q1: cirq.Y}
-    ps = cirq.PauliString(qubit_pauli_map)
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
     wf = cirq.testing.random_superposition(4)
     rho = np.kron(wf.conjugate().T, wf).reshape(4,4)
     q_map = dict({q0: 0, q1: 1})
@@ -893,12 +889,10 @@ def test_expectation_from_density_matrix_invalid_input():
         ps.expectation_from_density_matrix(rho, {"bad key": 1})
     with pytest.raises(TypeError, match='mapping'):
         ps.expectation_from_density_matrix(rho, {q0: "bad value"})
-
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_density_matrix(rho, {q0: 0})
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_density_matrix(rho, {q0: 0, q2: 2})
-
     with pytest.raises(ValueError, match='indices'):
         ps.expectation_from_density_matrix(rho, {q0: -1, q1: 1})
     with pytest.raises(ValueError, match='indices'):
@@ -906,9 +900,7 @@ def test_expectation_from_density_matrix_invalid_input():
     with pytest.raises(ValueError, match='indices'):
         ps.expectation_from_density_matrix(rho, {q0: 0, q1: 0})
     # Excess keys are ignored.
-    print("shape", rho.shape)
     _ = ps.expectation_from_density_matrix(rho, {q0: 0, q1: 1, q2: 0})
-    print("shape", rho.shape)
 
     with pytest.raises(ValueError, match='hermitian'):
         ps.expectation_from_density_matrix(1j * np.eye(4), q_map)
