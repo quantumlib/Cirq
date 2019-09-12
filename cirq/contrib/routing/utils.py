@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
 from typing import Callable, Iterable, List, Optional
 
 import networkx as nx
@@ -56,7 +57,7 @@ def is_valid_routing(
         circuit: circuits.Circuit,
         swap_network: SwapNetwork,
         *,
-        equals: Optional[BINARY_OP_PREDICATE] = None,
+        equals: BINARY_OP_PREDICATE = operator.eq,
         can_reorder: BINARY_OP_PREDICATE = circuits.circuit_dag._disjoint_qubits
 ) -> bool:
     """Determines whether a swap network is consistent with a given circuit.

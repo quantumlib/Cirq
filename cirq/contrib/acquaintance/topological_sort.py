@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 def is_topologically_sorted(
         dag: 'cirq.CircuitDag',
         operations: 'cirq.OP_TREE',
-        equals: Optional[Callable[[ops.Operation, ops.Operation], bool]] = operator.eq
+        equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq
 ) -> bool:
     """Whether a given order of operations is consistent with the DAG.
 
