@@ -55,10 +55,8 @@ def test_density_matrix_display_on_wavefunction():
 ])
 def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
     qubits = cirq.LineQubit.range(2)
-    display = cirq.approx_pauli_string_expectation(cirq.PauliString({
-        qubits[0]: paulis[0],
-        qubits[1]: paulis[1]
-    }),
+    qubit_map = {qubits[0]: paulis[0], qubits[1]: paulis[1]}
+    display = cirq.approx_pauli_string_expectation(cirq.PauliString(qubit_map),
                                                    num_samples=1)
     matrix = np.kron(cirq.unitary(paulis[0]), cirq.unitary(paulis[1]))
 

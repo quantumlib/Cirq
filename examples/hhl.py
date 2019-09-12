@@ -255,8 +255,8 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 
     # Pauli observable display
     c.append([
-        cirq.approx_pauli_string_expectation(cirq.PauliString({ancilla: cirq.Z
-                                                              }),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({ancilla:
+                                                               cirq.Z}),
                                              num_samples=5000,
                                              key='a'),
         cirq.approx_pauli_string_expectation(cirq.PauliString({memory: cirq.X}),

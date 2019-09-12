@@ -13,7 +13,7 @@
 # limitations under the License.
 from collections import defaultdict
 from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
-                    DefaultDict, Dict)
+                    DefaultDict)
 
 import numpy as np
 
@@ -342,7 +342,7 @@ class PauliSum:
         return factory(self._linear_dict.copy())
 
     def expectation_from_wavefunction(self, state: np.ndarray,
-                                      qubit_map: Dict[raw_types.Qid, int]
+                                      qubit_map: Mapping[raw_types.Qid, int]
                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
 
@@ -387,7 +387,7 @@ class PauliSum:
     def expectation_from_density_matrix(
             self,
             state: np.ndarray,
-            qubit_map: Optional[Dict[raw_types.Qid, int]] = None) -> float:
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
         See `PauliString.expectation_from_density_matrix`.
