@@ -489,6 +489,8 @@ def attempt_update_branch_button(pr: PullRequestDetails
         '.*<input type="hidden" name="expected_head_oid" value="([^"]+)"'
         '.*</form>.*', html, re.DOTALL)
     if form_guts is None:
+        if '(Logged out)' in html:
+            return CannotAutomergeError('Need a fresh :cookie:.')
         raise RuntimeError(
             'Failed to find update branch button. Html: {}.'.format(
                 html))
