@@ -1032,9 +1032,9 @@ def test_expectation_from_wavefunction_basis_states():
                                            np.sqrt(2),
                                            qubit_map=q_map), 2)
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(np.array([1, -1j], dtype=np.complex) /
-                                           np.sqrt(2),
-                                           qubit_map=q_map), -2)
+        psum.expectation_from_wavefunction(
+            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map),
+        -2)
     np.testing.assert_allclose(
         psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
                                            qubit_map=q_map), 3)

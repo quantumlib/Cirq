@@ -1087,7 +1087,6 @@ def test_expectation_from_density_matrix_qubit_map():
             }), -1)
 
 
-
 def test_pauli_string_expectation_from_density_matrix_pure_state():
     qubits = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qubits)}
