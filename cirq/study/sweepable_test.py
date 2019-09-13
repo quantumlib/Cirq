@@ -26,8 +26,9 @@ def test_to_resolvers_none():
 
 
 def test_to_resolvers_single():
-    resolver = cirq.ParamResolver({'a': 1})
+    resolver = cirq.ParamResolver({})
     assert list(cirq.to_resolvers(resolver)) == [resolver]
+    assert list(cirq.to_resolvers({})) == [resolver]
 
 
 def test_to_resolvers_sweep():
@@ -38,11 +39,18 @@ def test_to_resolvers_sweep():
 def test_to_resolvers_iterable():
     resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
     assert list(cirq.to_resolvers(resolvers)) == resolvers
+    assert list(cirq.to_resolvers([{'a': 2}, {'a': 1}])) == resolvers
 
 
 def test_to_resolvers_iterable_sweeps():
     sweeps = [cirq.Linspace('a', 0, 1, 10), cirq.Linspace('b', 0, 1, 10)]
     assert list(cirq.to_resolvers(sweeps)) == list(itertools.chain(*sweeps))
+
+
+def test_to_resolvers_bad():
+    with pytest.raises(TypeError, match='Unrecognized sweepable'):
+        for _ in cirq.study.to_resolvers('nope'):
+            pass
 
 
 def test_to_sweeps_none():
@@ -52,6 +60,7 @@ def test_to_sweeps_none():
 def test_to_sweeps_single():
     resolver = cirq.ParamResolver({})
     assert cirq.study.to_sweeps(resolver) == [cirq.UnitSweep]
+    assert cirq.study.to_sweeps({}) == [cirq.UnitSweep]
 
 
 def test_to_sweeps_sweep():
@@ -61,10 +70,12 @@ def test_to_sweeps_sweep():
 
 def test_to_sweeps_iterable():
     resolvers = [cirq.ParamResolver({'a': 2}), cirq.ParamResolver({'a': 1})]
-    assert cirq.study.to_sweeps(resolvers) == [
+    sweeps = [
         cirq.study.Zip(cirq.Points('a', [2])),
         cirq.study.Zip(cirq.Points('a', [1])),
     ]
+    assert cirq.study.to_sweeps(resolvers) == sweeps
+    assert cirq.study.to_sweeps([{'a': 2}, {'a': 1}]) == sweeps
 
 
 def test_to_sweeps_iterable_sweeps():
@@ -73,7 +84,7 @@ def test_to_sweeps_iterable_sweeps():
 
 
 def test_to_sweeps_invalid():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='Unrecognized sweepable'):
         cirq.study.to_sweeps('nope')
 
 

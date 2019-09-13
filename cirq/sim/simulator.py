@@ -147,8 +147,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
+        circuit = (program if isinstance(program, circuits.Circuit) else
+                   program.to_circuit())
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in study.to_resolvers(params):
@@ -358,8 +358,8 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
+        circuit = (program if isinstance(program, circuits.Circuit) else
+                   program.to_circuit())
 
         trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)

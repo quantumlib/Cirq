@@ -122,8 +122,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
+        circuit = (program if isinstance(program, circuits.Circuit) else
+                   program.to_circuit())
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
