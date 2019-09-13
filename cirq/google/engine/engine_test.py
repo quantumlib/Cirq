@@ -992,30 +992,40 @@ def test_sampler(build):
     programs = service.projects().programs()
     jobs = programs.jobs()
     programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'}
+        'name': 'projects/project-id/programs/test'
+    }
     jobs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'READY'}}
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
     jobs.get().execute.return_value = {
         'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {'state': 'SUCCESS'}}
-    jobs.getResult().execute.return_value = {
-        'result': _RESULTS}
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    jobs.getResult().execute.return_value = {'result': _RESULTS}
     engine = cg.Engine(project_id='project-id')
     sampler = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
     results = sampler.run_sweep(
         program=_SCHEDULE,
-        params=[cirq.ParamResolver({'a': 1}),
-                cirq.ParamResolver({'a': 2})])
+        params=[cirq.ParamResolver({
+            'a': 1
+        }), cirq.ParamResolver({
+            'a': 2
+        })])
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    build.assert_called_with('quantum',
-                             'v1alpha1',
-                             discoveryServiceUrl=('https://{api}.googleapis.com'
-                                                  '/$discovery/rest?version='
-                                                  '{apiVersion}'),
-                             requestBuilder=mock.ANY)
+    build.assert_called_with(
+        'quantum',
+        'v1alpha1',
+        discoveryServiceUrl=('https://{api}.googleapis.com'
+                             '/$discovery/rest?version='
+                             '{apiVersion}'),
+        requestBuilder=mock.ANY)
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'

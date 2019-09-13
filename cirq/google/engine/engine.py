@@ -41,8 +41,8 @@ from cirq.api.google import v1, v2
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
-from cirq.google.engine import (
-        calibration, engine_job, engine_program, engine_sampler)
+from cirq.google.engine import (calibration, engine_job, engine_program,
+                                engine_sampler)
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
@@ -697,7 +697,6 @@ class Engine:
     def sampler(self,
                 processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet
-                ) -> engine_sampler.QuantumEngineSampler:
-        return engine_sampler.QuantumEngineSampler(engine=self,
-                                                   processor_id=processor_id,
-                                                   gate_set=gate_set)
+               ) -> engine_sampler.QuantumEngineSampler:
+        return engine_sampler.QuantumEngineSampler(
+            engine=self, processor_id=processor_id, gate_set=gate_set)
