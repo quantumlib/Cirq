@@ -28,6 +28,7 @@ from cirq.contrib.routing.utils import (get_timeslices,
                                         are_ops_consistent_with_device_graph)
 
 SWAP = cca.SwapPermutationGate()
+QidPair = Tuple[ops.Qid, ops.Qid]
 
 
 def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
@@ -69,7 +70,7 @@ class _GreedyRouter:
                                         Operation], bool] = circuits.
                  circuit_dag._disjoint_qubits):
         self.device_graph = device_graph
-        self.physical_distances: Dict[Tuple[ops.Qid, ops.Qid], int] = {
+        self.physical_distances: Dict[QidPair, int] = {
             (a, b): d
             for a, neighbor_distances in nx.shortest_path_length(device_graph)
             for b, d in neighbor_distances.items()
@@ -79,7 +80,7 @@ class _GreedyRouter:
             circuit, can_reorder=can_reorder)
         self.logical_qubits = list(self.remaining_dag.all_qubits())
         self.physical_qubits = list(self.device_graph.nodes)
-        self.edge_sets: Dict[int, List[Tuple[ops.Qid, ops.Qid]]] = {}
+        self.edge_sets: Dict[int, List[Sequence[QidPair]]] = {}
 
         self.physical_ops: List[ops.Operation] = []
 
@@ -87,12 +88,11 @@ class _GreedyRouter:
 
         self.max_search_radius = max_search_radius
 
-    def get_edge_sets(self,
-                      edge_set_size: int) -> Iterable[Tuple[ops.Qid, ops.Qid]]:
+    def get_edge_sets(self, edge_set_size: int) -> Iterable[Sequence[QidPair]]:
         """Returns matchings of the device graph of a given size."""
         if edge_set_size not in self.edge_sets:
             self.edge_sets[edge_set_size] = [
-                cast(Tuple[ops.Qid, ops.Qid],
+                cast(Sequence[QidPair],
                      edge_set) for edge_set in itertools.combinations(
                          self.device_graph.edges, edge_set_size) if all(
                              set(e).isdisjoint(f)
@@ -110,12 +110,12 @@ class _GreedyRouter:
         physical qubits."""
         return (self._phys_to_log[q] for q in qubits)
 
-    def apply_swap(self, *physical_edges: Tuple[ops.Qid, ops.Qid]):
+    def apply_swap(self, *physical_edges: QidPair):
         """Applies SWAP on the given edges."""
         self.update_mapping(*physical_edges)
         self.physical_ops += [SWAP(*e) for e in physical_edges]
 
-    def update_mapping(self, *physical_edges: Tuple[ops.Qid, ops.Qid]):
+    def update_mapping(self, *physical_edges: QidPair):
         """Updates the mapping in accordance with SWAPs on the given physical
         edges."""
         for physical_edge in physical_edges:
@@ -191,19 +191,18 @@ class _GreedyRouter:
         return SwapNetwork(circuits.Circuit.from_ops(self.physical_ops),
                            self.initial_mapping)
 
-    def distance(self, edge: Tuple[ops.Qid, ops.Qid]) -> int:
+    def distance(self, edge: QidPair) -> int:
         """The distance between the physical qubits mapped to by a pair of
         logical qubits."""
-        return self.physical_distances[cast(Tuple[ops.Qid, ops.Qid],
+        return self.physical_distances[cast(QidPair,
                                             tuple(self.log_to_phys(*edge)))]
 
     def swap_along_path(self, path: Tuple[ops.Qid]):
         """Adds SWAPs to move a logical qubit along a specified path."""
         for i in range(len(path) - 1):
-            self.apply_swap(cast(Tuple[ops.Qid, ops.Qid], path[i:i + 2]))
+            self.apply_swap(cast(QidPair, path[i:i + 2]))
 
-    def bring_farthest_pair_together(self,
-                                     pairs: Iterable[Tuple[ops.Qid, ops.Qid]]):
+    def bring_farthest_pair_together(self, pairs: Iterable[QidPair]):
         """Adds SWAPs to bring the farthest-apart pair of logical qubits
         together."""
         distances = [self.distance(pair) for pair in pairs]
@@ -220,9 +219,8 @@ class _GreedyRouter:
         self.swap_along_path(shortest_path[:midpoint])
         self.swap_along_path(shortest_path[midpoint:])
 
-    def get_distance_vector(self,
-                            logical_edges: Iterable[Tuple[ops.Qid, ops.Qid]],
-                            swaps: Sequence[Tuple[ops.Qid, ops.Qid]]):
+    def get_distance_vector(self, logical_edges: Iterable[QidPair],
+                            swaps: Sequence[QidPair]):
         """Gets distances between physical qubits mapped to by given logical
         edges, after specified SWAPs are applied."""
         self.update_mapping(*swaps)
@@ -257,7 +255,7 @@ class _GreedyRouter:
         picking a few SWAPs to change the mapping and applying all logical
         operations possible given the new mapping, until all logical operations
         have been applied.
-        
+
         See _GreedyRouter.apply_next_swaps for details about the SWAP selection
         heuristic.
         """
