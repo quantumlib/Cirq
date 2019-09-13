@@ -3238,3 +3238,42 @@ def test_json_dict():
         'moments': [cirq.Moment([cirq.CNOT(q0, q1)])],
         'device': cirq.UNCONSTRAINED_DEVICE,
     }
+
+
+def test_with_noise():
+
+    class Noise(cirq.NoiseModel):
+
+        def noisy_operation(self, operation):
+            yield operation
+            if cirq.LineQubit(0) in operation.qubits:
+                yield cirq.H(cirq.LineQubit(0))
+
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q1),
+        cirq.Z(q1),
+        cirq.Moment([cirq.X(q0)]),
+    )
+    c_expected = cirq.Circuit([
+        cirq.Moment([
+            cirq.X(q0),
+            cirq.Y(q1),
+        ]),
+        cirq.Moment([
+            cirq.H(q0),
+        ]),
+        cirq.Moment([
+            cirq.Z(q1),
+        ]),
+        cirq.Moment([
+            cirq.X(q0),
+        ]),
+        cirq.Moment([
+            cirq.H(q0),
+        ]),
+    ])
+    c_noisy = c.with_noise(Noise())
+    assert str(c_noisy) == str(c_expected)
+    assert c_noisy == c_expected

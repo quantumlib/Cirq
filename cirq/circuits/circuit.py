@@ -1626,6 +1626,25 @@ class Circuit:
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['moments', 'device'])
 
+    def with_noise(self, noise: devices.NoiseModel) -> 'cirq.Circuit':
+        """Make a noisy version of the circuit.
+
+        Args:
+            noise: The noise model to use.  This describes the kind of noise to
+                add to the circuit.
+
+        Returns:
+            A new circuit with the same moment structure but with new moments
+            inserted where needed when more than one noisy operation is
+            generated for an input operation.  Emptied moments are removed.
+        """
+        qubits = sorted(self.all_qubits())
+        c_noisy = Circuit()
+        for op_tree in noise.noisy_moments(self, qubits):
+            # Keep moments aligned
+            c_noisy += Circuit.from_ops(op_tree)
+        return c_noisy
+
 
 def _resolve_operations(operations: Iterable['cirq.Operation'],
                         param_resolver: study.ParamResolver
