@@ -196,6 +196,19 @@ class YPowGate(eigen_gate.EigenGate,
     `cirq.Y`, the Pauli Y gate, is an instance of this gate at exponent=1.
     """
 
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
+        if self._exponent != 1:
+            return NotImplemented
+        zero = args.subspace_index(0)
+        one = args.subspace_index(1)
+        args.available_buffer[zero] = -1j * args.target_tensor[one]
+        args.available_buffer[one] = 1j * args.target_tensor[zero]
+        p = 1j**(2 * self._exponent * self._global_shift)
+        if p != 1:
+            args.available_buffer *= p
+        return args.available_buffer
+
     def in_su2(self) -> 'YPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return YPowGate(exponent=self._exponent, global_shift=-0.5)
