@@ -85,6 +85,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    estimate_circuit_fidelity,
     generate_supremacy_circuit_google_v2,
     generate_supremacy_circuit_google_v2_bristlecone,
     generate_supremacy_circuit_google_v2_grid,
