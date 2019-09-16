@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for the Quantum Volume benchmarker."""
 
 from dev_tools.profiling import quantum_volume
@@ -36,7 +35,9 @@ def test_compute_heavy_set():
         cirq.Moment([]),
         cirq.Moment([cirq.CNOT(a, c)]),
         cirq.Moment([cirq.Z(a), cirq.H(b)]),
-        cirq.Moment([cirq.measure(a), cirq.measure(b), cirq.measure(c)])
+        cirq.Moment([cirq.measure(a),
+                     cirq.measure(b),
+                     cirq.measure(c)])
     ])
     assert quantum_volume.compute_heavy_set(model_circuit, 1234120) == ['101']
 
@@ -52,8 +53,7 @@ def test_main_loop():
     """Test that the main loop is able to run without erring."""
     # Keep test from taking a long time by lowering repetitions.
     args = '--num_qubits 5 --depth 5 --num_repetitions 1'.split()
-    quantum_volume.main(
-        **quantum_volume.parse_arguments(args))
+    quantum_volume.main(**quantum_volume.parse_arguments(args))
 
 
 def test_parse_args():

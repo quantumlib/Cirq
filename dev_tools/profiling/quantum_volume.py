@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tool to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926."""
 
@@ -25,8 +24,8 @@ import numpy as np
 
 import cirq
 
-def generate_model_circuit(num_qubits: int,
-                           depth: int) -> cirq.Circuit:
+
+def generate_model_circuit(num_qubits: int, depth: int) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
     The generated circuit consists of `depth` layers of random qubit
@@ -59,10 +58,8 @@ def generate_model_circuit(num_qubits: int,
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.
             ops = cirq.two_qubit_matrix_to_operations(
-                qubits[permuted_qubits[0]],
-                qubits[permuted_qubits[1]],
-                kak_unitary,
-                False)
+                qubits[permuted_qubits[0]], qubits[permuted_qubits[1]],
+                kak_unitary, False)
             circuit.append(ops)
 
     # Measure all of the qubits at the end of the circuit.
@@ -96,12 +93,10 @@ def compute_heavy_set(circuit: cirq.Circuit, seed: int = None) -> List[str]:
     median = np.median(list(results.values()))
     # Return all of the bit-strings that have a probability greater than the
     # median.
-    return([bits for bits, prob in results.items() if prob >= median])
+    return ([bits for bits, prob in results.items() if prob >= median])
 
 
-def main(num_qubits: int,
-         depth: int,
-         num_repetitions: int):
+def main(num_qubits: int, depth: int, num_repetitions: int):
     """Run the quantum volume algorithm.
 
     The Quantum Volume benchmark is fairly straightforward. This algorithm will
@@ -128,9 +123,13 @@ def main(num_qubits: int,
 def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Quantum volume benchmark.')
-    parser.add_argument('--num_qubits', default=4, type=int,
+    parser.add_argument('--num_qubits',
+                        default=4,
+                        type=int,
                         help='The number of circuit qubits to benchmark.')
-    parser.add_argument('--depth', default=4, type=int,
+    parser.add_argument('--depth',
+                        default=4,
+                        type=int,
                         help='SU(4) circuit depth.')
     parser.add_argument(
         '--num_repetitions',
