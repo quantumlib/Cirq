@@ -53,7 +53,9 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
 
 
 def create_device_proto_from_diagram(
-    s: str, gate_set: serializable_gate_set.SerializableGateSet = None
+        s: str,
+        gate_set: serializable_gate_set.SerializableGateSet = None,
+        durations: Dict[str, int] = None,
 ) -> device_pb2.DeviceSpecification:
     """
     Parse ASCIIart device layout into DeviceSpecification proto containing
@@ -70,7 +72,7 @@ def create_device_proto_from_diagram(
     grid_targets.name = TARGET_SET_NAME
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
     qubit_set = frozenset(qubits)
-    neighbor_set = set()
+    neighbor_set: Set[Tuple] = set()
     spec.valid_qubits.extend([q.proto_id() for q in qubits])
     for q in qubits:
         for neighbor in [q + (0, 1), q + (1, 0), q + (-1, 0), q + (0, -1)]:
@@ -88,12 +90,10 @@ def create_device_proto_from_diagram(
             gate = gs_proto.valid_gates.add()
             gate.id = gate_id
             gate.valid_targets.extend([TARGET_SET_NAME])
-            # TODO: figure out a way to generate duration
+            if durations is not None and gate.id in durations:
+                gate.gate_duration_picos = durations[gate.id]
             # TODO: add valid args and number of qubits
     return spec
-
-
-
 
 
 _FOXTAIL_GRID = """
@@ -119,7 +119,16 @@ Foxtail = _NamedConstantXmonDevice(
     qubits=_parse_device(_FOXTAIL_GRID)[0])
 
 
-FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID, gate_sets.XMON)
+# Duration dict in picoseconds
+_DURATIONS_FOR_XMON = {
+    'exp_11': 50000,
+    'exp_w': 20000,
+    'exp_z': 0,
+    'meas': 1000000,
+}
+
+FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID, gate_sets.XMON,
+                                                 _DURATIONS_FOR_XMON)
 
 _BRISTLECONE_GRID = """
 -----AB-----
@@ -144,4 +153,5 @@ Bristlecone = _NamedConstantXmonDevice(
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
-                                                     gate_sets.XMON)
+                                                     gate_sets.XMON,
+                                                     _DURATIONS_FOR_XMON)

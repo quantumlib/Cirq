@@ -11,8 +11,8 @@ def test_foxtail():
     invalid_qubit1 = cirq.GridQubit(2, 2)
     invalid_qubit2 = cirq.GridQubit(2, 3)
 
-    foxtail = cg.SerializableDevice(proto = cg.known_devices.FOXTAIL_PROTO,
-        gate_set=cg.gate_sets.XMON)
+    foxtail = cg.SerializableDevice(proto=cg.known_devices.FOXTAIL_PROTO,
+                                    gate_set=cg.gate_sets.XMON)
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))
@@ -28,3 +28,20 @@ def test_foxtail():
     with pytest.raises(ValueError):
         foxtail.validate_operation(cirq.CZ(invalid_qubit1, invalid_qubit2))
 
+    # Unsupport op
+    with pytest.raises(ValueError):
+        foxtail.validate_operation(cirq.H(invalid_qubit1))
+
+
+def test_duration_of():
+    # TODO(dstrain): Finish implementing duration_of calls
+    valid_qubit1 = cirq.GridQubit(0, 0)
+
+    foxtail = cg.SerializableDevice(proto=cg.known_devices.FOXTAIL_PROTO,
+                                    gate_set=cg.gate_sets.XMON)
+
+    assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=20)
+
+    # Unsupport op
+    with pytest.raises(ValueError):
+        assert foxtail.duration_of(cirq.H(valid_qubit1))

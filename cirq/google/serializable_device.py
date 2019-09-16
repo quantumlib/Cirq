@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Device object for converting from device specification protos"""
-from typing import Dict, Set, Tuple, TYPE_CHECKING
+from typing import Any, cast, Dict, List, Set, Tuple, TYPE_CHECKING
 
-from cirq import devices
+from cirq import devices, ops
 from cirq.google import serializable_gate_set
 from cirq.google.api.v2 import device_pb2
 from cirq.value import Duration
-
 
 if TYPE_CHECKING:
     import cirq
@@ -51,19 +50,20 @@ class SerializableDevice(devices.Device):
         gate_defs: Dict[str, device_pb2.GateDefinition] = dict()
         for gs in proto.valid_gate_sets:
             for gate_def in gs.valid_gates:
-              gate_defs[gate_def.id] = gate_def
+                gate_defs[gate_def.id] = gate_def
 
         self.durations: Dict[Any, Duration] = dict()
         self.target_sets: Dict[Any, List[str]] = dict()
         for gate_type in gate_set.supported_gate_types():
-            for gate_id in gate_set.deserializers:
+            for serializer in gate_set.serializers[gate_type]:
+                gate_id = serializer.serialized_gate_id
                 if gate_id not in gate_defs:
                     raise ValueError(f'Serializer has {gate_id} which is not ' +
                                      'supported by the device specification')
                 gate_picos = gate_defs[gate_id].gate_duration_picos
                 self.durations[gate_type] = Duration(picos=gate_picos)
                 self.target_sets[gate_type] = gate_defs[gate_id].valid_targets
-
+        print(self.durations)
 
     def _qubits_from_ids(self, id_list):
         """Translates a list of ids in proto format e.g. '4_3'
@@ -83,13 +83,27 @@ class SerializableDevice(devices.Device):
                 target_set.add(tuple(qid_list))
         return target_set
 
+    def _find_operation_type(self, op_key: 'cirq.Operation',
+                             type_dict: Dict[Any, Any]):
+        """Finds the type (or a compatible type) of an operation from within
+        a dictionary with keys of Gate type.
+
+        Returns:
+             the value corresponding to that key or None if no type matches
+        """
+        gate_op = cast(ops.GateOperation, op_key)
+        gate_key = gate_op.gate
+        if gate_key in type_dict:
+            return type_dict[gate_key]
+        for type_key in type_dict:
+            if isinstance(gate_key, type_key):
+                return type_dict[type_key]
+        return None
+
     def duration_of(self, operation: 'cirq.Operation') -> Duration:
-        if type(operation) in self.durations:
-            return self.durations[type(operation)]
-        else:
-            for t in self.durations:
-                if isinstance(operation, t):
-                    return self.durations[type(operation)]
+        duration = self._find_operation_type(operation, self.durations)
+        if duration is not None:
+            return duration
         raise ValueError(
             f'Operation {operation} does not have a duration listed')
 
@@ -102,8 +116,9 @@ class SerializableDevice(devices.Device):
             # TODO(dstrain): verify number of qubits and args
 
             qubit_tuple = tuple(operation.qubits)
+            gate_op = cast(ops.GateOperation, operation)
             for t in self.target_sets:
-                if isinstance(operation.gate, t):
+                if isinstance(gate_op.gate, t):
                     for ts in self.target_sets[t]:
                         if qubit_tuple in self.allowed_targets[ts]:
                             # Valid
@@ -113,8 +128,8 @@ class SerializableDevice(devices.Device):
                 f'Operation does not use valid qubit target: {operation}.')
 
     def validate_scheduled_operation(
-        self, schedule: 'cirq.Schedule',
-        scheduled_operation: 'cirq.ScheduledOperation') -> None:
+            self, schedule: 'cirq.Schedule',
+            scheduled_operation: 'cirq.ScheduledOperation') -> None:
         pass
 
     def validate_schedule(self, schedule: 'cirq.Schedule') -> None:

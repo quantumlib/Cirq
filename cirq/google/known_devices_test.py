@@ -6,7 +6,7 @@ def test_foxtail_qubits():
     expected_qubits = []
     for i in range(0, 2):
         for j in range(0, 11):
-            expected_qubits.append(GridQubit(i,j))
+            expected_qubits.append(GridQubit(i, j))
     assert set(expected_qubits) == known_devices.Foxtail.qubits
 
 
@@ -15,6 +15,7 @@ def test_foxtail_device_proto():
   name: "xmon"
   valid_gates {
     id: "exp_w"
+    gate_duration_picos: 20000
     valid_targets: "grid"
   }
   valid_gates {
@@ -23,10 +24,12 @@ def test_foxtail_device_proto():
   }
   valid_gates {
     id: "exp_11"
+    gate_duration_picos: 50000
     valid_targets: "grid"
   }
   valid_gates {
     id: "meas"
+    gate_duration_picos: 1000000
     valid_targets: "grid"
   }
 }
