@@ -31,7 +31,8 @@ def test_foxtail():
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))
-    foxtail.validate_operation(cirq.XPowGate(exponent = 0.1)(valid_qubit1))
+    foxtail.validate_operation(cirq.XPowGate(exponent=0.1)(valid_qubit1))
+    assert False
     with pytest.raises(ValueError):
         foxtail.validate_operation(cirq.X(invalid_qubit1))
     with pytest.raises(ValueError):
@@ -58,7 +59,7 @@ def test_mismatched_proto_serializer():
     # but not supported by the hardware
     with pytest.raises(ValueError):
         _ = cg.SerializableDevice(proto=augmented_proto,
-                                    gate_set=cg.gate_sets.XMON)
+                                  gate_set=cg.gate_sets.XMON)
 
 
 

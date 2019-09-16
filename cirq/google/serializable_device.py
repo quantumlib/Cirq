@@ -43,7 +43,7 @@ class SerializableDevice(devices.Device):
         """
 
         self.qubits = self._qubits_from_ids(proto.valid_qubits)
-        self.allowed_targets: Dict[str, Set[Tuple]] = dict()
+        self.allowed_targets: Dict[str, Set[Tuple['cirq.Qid']]] = dict()
         for ts in proto.valid_targets:
             self.allowed_targets[ts.name] = self._create_target_set(ts)
 
@@ -93,8 +93,6 @@ class SerializableDevice(devices.Device):
         """
         gate_op = cast(ops.GateOperation, op_key)
         gate_key = gate_op.gate
-        if gate_key in type_dict:
-            return type_dict[gate_key]
         for type_key in type_dict:
             if isinstance(gate_key, type_key):
                 return type_dict[type_key]
