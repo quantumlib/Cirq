@@ -1,9 +1,27 @@
-from typing import Set, Tuple
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Device object for converting from device specification protos"""
+from typing import Dict, Set, Tuple, TYPE_CHECKING
 
 from cirq import devices
 from cirq.google import serializable_gate_set
 from cirq.google.api.v2 import device_pb2
 from cirq.value import Duration
+
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class SerializableDevice(devices.Device):
@@ -15,7 +33,7 @@ class SerializableDevice(devices.Device):
     """
 
     def __init__(self, proto: device_pb2.DeviceSpecification,
-        gate_set: serializable_gate_set.SerializableGateSet):
+                 gate_set: serializable_gate_set.SerializableGateSet):
         """
 
         Args:
@@ -26,25 +44,25 @@ class SerializableDevice(devices.Device):
         """
 
         self.qubits = self._qubits_from_ids(proto.valid_qubits)
-        self.allowed_targets = dict()
+        self.allowed_targets: Dict[str, Set[Tuple]] = dict()
         for ts in proto.valid_targets:
             self.allowed_targets[ts.name] = self._create_target_set(ts)
 
-        gate_definitions = dict()
+        gate_defs: Dict[str, device_pb2.GateDefinition] = dict()
         for gs in proto.valid_gate_sets:
             for gate_def in gs.valid_gates:
-                gate_definitions[gate_def.id] = gate_def
+              gate_defs[gate_def.id] = gate_def
 
-        self.durations = dict()
-        self.target_sets = dict()
-        for type in gate_set.supported_gate_types():
+        self.durations: Dict[Any, Duration] = dict()
+        self.target_sets: Dict[Any, List[str]] = dict()
+        for gate_type in gate_set.supported_gate_types():
             for gate_id in gate_set.deserializers:
-                if gate_id not in gate_definitions:
+                if gate_id not in gate_defs:
                     raise ValueError(f'Serializer has {gate_id} which is not ' +
                                      'supported by the device specification')
-                gate_picos = gate_definitions[gate_id].gate_duration_picos
-                self.durations[type] = Duration(picos = gate_picos)
-                self.target_sets[type] = gate_definitions[gate_id].valid_targets
+                gate_picos = gate_defs[gate_id].gate_duration_picos
+                self.durations[gate_type] = Duration(picos=gate_picos)
+                self.target_sets[gate_type] = gate_defs[gate_id].valid_targets
 
 
     def _qubits_from_ids(self, id_list):
@@ -95,10 +113,8 @@ class SerializableDevice(devices.Device):
                 f'Operation does not use valid qubit target: {operation}.')
 
     def validate_scheduled_operation(
-        self,
-        schedule: 'cirq.Schedule',
-        scheduled_operation: 'cirq.ScheduledOperation'
-    ) -> None:
+        self, schedule: 'cirq.Schedule',
+        scheduled_operation: 'cirq.ScheduledOperation') -> None:
         pass
 
     def validate_schedule(self, schedule: 'cirq.Schedule') -> None:

@@ -6,7 +6,7 @@ def test_foxtail_qubits():
     expected_qubits = []
     for i in range(0, 2):
         for j in range(0, 11):
-          expected_qubits.append(GridQubit(i,j))
+            expected_qubits.append(GridQubit(i,j))
     assert set(expected_qubits) == known_devices.Foxtail.qubits
 
 

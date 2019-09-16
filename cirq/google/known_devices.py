@@ -52,8 +52,9 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
     return qubits, measurement_lines
 
 
-def create_device_proto_from_diagram(s: str,
-    gate_set: serializable_gate_set.SerializableGateSet = None) -> device_pb2.DeviceSpecification:
+def create_device_proto_from_diagram(
+    s: str, gate_set: serializable_gate_set.SerializableGateSet = None
+) -> device_pb2.DeviceSpecification:
     """
     Parse ASCIIart device layout into DeviceSpecification proto containing
     information about qubits and targets.  Note that this does not populate
@@ -72,7 +73,7 @@ def create_device_proto_from_diagram(s: str,
     neighbor_set = set()
     spec.valid_qubits.extend([q.proto_id() for q in qubits])
     for q in qubits:
-        for neighbor in [q + (0, 1) , q + (1, 0), q + (-1, 0), q + (0, -1)]:
+        for neighbor in [q + (0, 1), q + (1, 0), q + (-1, 0), q + (0, -1)]:
             if neighbor in qubit_set:
                 if tuple((neighbor, q)) not in neighbor_set:
                     # Don't add pairs twice
