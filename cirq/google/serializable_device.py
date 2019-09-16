@@ -43,7 +43,7 @@ class SerializableDevice(devices.Device):
         """
 
         self.qubits = self._qubits_from_ids(proto.valid_qubits)
-        self.allowed_targets: Dict[str, Set[Tuple['cirq.Qid']]] = dict()
+        self.allowed_targets: Dict[str, Set[Tuple['cirq.Qid', ...]]] = dict()
         for ts in proto.valid_targets:
             self.allowed_targets[ts.name] = self._create_target_set(ts)
 
@@ -65,13 +65,14 @@ class SerializableDevice(devices.Device):
                 self.target_sets[gate_type] = gate_defs[gate_id].valid_targets
         print(self.durations)
 
-    def _qubits_from_ids(self, id_list):
+    def _qubits_from_ids(self, id_list) -> List['cirq.Qid']:
         """Translates a list of ids in proto format e.g. '4_3'
         into cirq.GridQubit objects"""
         # TODO(dstrain): Add support for non-grid qubits
         return [devices.GridQubit.from_proto_id(id) for id in id_list]
 
-    def _create_target_set(self, ts: device_pb2.TargetSet) -> Set[Tuple]:
+    def _create_target_set(self, ts: device_pb2.TargetSet
+                          ) -> Set[Tuple['cirq.Qid', ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""
         # TODO(dstrain): add support for measurement qubits
         target_set = set()
