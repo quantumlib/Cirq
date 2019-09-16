@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Device object for converting from device specification protos"""
-from typing import Any, cast, Dict, List, Set, Tuple, TYPE_CHECKING
+from typing import Any, cast, Dict, List, Set, Tuple, Type, TYPE_CHECKING
 
 from cirq import devices, ops
 from cirq.google import serializable_gate_set
@@ -63,13 +63,17 @@ class SerializableDevice(devices.Device):
                 gate_picos = gate_defs[gate_id].gate_duration_picos
                 self.durations[gate_type] = Duration(picos=gate_picos)
                 self.target_sets[gate_type] = gate_defs[gate_id].valid_targets
-        print(self.durations)
+
+    def _qid_from_str(self, id_str: str) -> 'cirq.Qid':
+        try:
+            return devices.GridQubit.from_proto_id(id_str)
+        except ValueError:
+            return ops.NamedQubit(id_str)
 
     def _qubits_from_ids(self, id_list) -> List['cirq.Qid']:
         """Translates a list of ids in proto format e.g. '4_3'
         into cirq.GridQubit objects"""
-        # TODO(dstrain): Add support for non-grid qubits
-        return [devices.GridQubit.from_proto_id(id) for id in id_list]
+        return [self._qid_from_str(id) for id in id_list]
 
     def _create_target_set(self, ts: device_pb2.TargetSet
                           ) -> Set[Tuple['cirq.Qid', ...]]:
@@ -85,7 +89,7 @@ class SerializableDevice(devices.Device):
         return target_set
 
     def _find_operation_type(self, op_key: 'cirq.Operation',
-                             type_dict: Dict[Any, Any]):
+                             type_dict: Dict[Type['cirq.Gate'], Any]) -> Any:
         """Finds the type (or a compatible type) of an operation from within
         a dictionary with keys of Gate type.
 
