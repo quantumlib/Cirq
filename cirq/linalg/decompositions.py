@@ -448,8 +448,7 @@ class KakDecomposition:
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
 
-        return (type(KakDecomposition),
-                self.global_phase,
+        return (self.global_phase,
                 tuple(self.interaction_coefficients),
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
@@ -629,14 +628,18 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
 
 def kak_decomposition(
         mat: np.ndarray,
+        *,
         rtol: float = 1e-5,
-        atol: float = 1e-8) -> KakDecomposition:
+        atol: float = 1e-8,
+        check_preconditions: bool = True) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
         mat: The 4x4 unitary matrix to decompose.
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
+        check_preconditions: If set, verifies that the input corresponds to a
+            4x4 unitary before decomposing.
 
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
@@ -653,6 +656,13 @@ def kak_decomposition(
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
     """
+    if check_preconditions and (mat.shape != (4, 4)
+                                or not predicates.is_unitary(mat,
+                                                             rtol=rtol,
+                                                             atol=atol)):
+        raise ValueError('Input must correspond to a 4x4 unitary matrix. '
+                         'Received matrix:\n' + str(mat))
+
     magic = np.array([[1, 0, 0, 1j],
                       [0, 1j, 1, 0],
                       [0, 1j, -1, 0],
