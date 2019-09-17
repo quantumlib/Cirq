@@ -526,27 +526,28 @@ class KakDecomposition:
             before)
 
 
-def plot_normalized_kak_interaction_coefficients(interactions: Iterable[
+def scatter_plot_normalized_kak_interaction_coefficients(interactions: Iterable[
         Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
-                                                 *,
-                                                 ax: Optional[plt.Axes] = None,
-                                                 show: bool = False):
+                                                         *,
+                                                         include_frame: bool = True,
+                                                         ax: Optional[plt.Axes] = None,
+                                                         show: bool = False,
+                                                         **kwargs):
     """Plots the interaction coefficients of many two-qubit operations.
 
     Plots:
-        An orange point for the (x, y, z) normalized interaction coefficients of
+        A point for the (x, y, z) normalized interaction coefficients of
         each interaction from the given interactions. The (x, y, z) coordinates
         are normalized so that the maximum value is at 1 instead of at pi/4.
 
-        A blue wireframe outline of the canonicalized normalized KAK
-        coefficient space, which is defined by the following two
-        constraints:
+        If frame is set to True or ax is set to None, then a black wireframe
+        outline of the canonicalized normalized KAK coefficient space. The space
+        is defined by the following two constraints:
 
             0 <= abs(z) <= y <= x <= 1
             if x = 1 then z >= 0
 
-        In addition to the wireframe, there are guide lines along the z=0
-        surface of the space.
+        The wireframe has guide lines along the surface of the space at z=0.
 
     Args:
         interactions: An iterable of two qubit unitary interactions. Each
@@ -554,8 +555,17 @@ def plot_normalized_kak_interaction_coefficients(interactions: Iterable[
             object with a 4x4 unitary matrix according to `cirq.unitary` (
             (e.g. `cirq.CZ` or a `cirq.KakDecomposition` or a `cirq.Circuit`
             over two qubits).
-        ax: A matplotlib 3d axes object to plot into.
-        show: Whether or not to call `matplotlib.pyplot.show()`.
+        include_frame: Determines whether or not to draw the kak space wireframe. If not
+            set. Defaults to `True`.
+        ax: A matplotlib 3d axes object to plot into. If not specified, a new
+            figure is created.
+        show: Whether or not to call `matplotlib.pyplot.show()`. Defaults to
+            `False`.
+        kwargs: Arguments forwarded into the call to `scatter` that plots the
+            points. Working arguments include color `c='blue'`, scale `s=2`,
+            labelling `label="theta=pi/4"`, etc. For reference see the
+            `matplotlib.pyplot.scatter` documentation:
+            https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.scatter.html
 
     Returns:
         The matplotlib 3d axes object that was plotted into.
@@ -570,22 +580,23 @@ def plot_normalized_kak_interaction_coefficients(interactions: Iterable[
         xs, ys, zs = zip(*pts)
         return xs, zs, ys
 
-    envelope = [
-        (0, 0, 0),
-        (1, 1, 1),
-        (1, 1, -1),
-        (0, 0, 0),
-        (1, 1, 1),
-        (1, 0, 0),
-        (0, 0, 0),
-        (1, 1, -1),
-        (1, 0, 0),
-        (0, 0, 0),
-        (1, 0, 0),
-        (1, 1, 0),
-        (0, 0, 0),
-    ]
-    ax.plot(*coord_transform(envelope), c='C0', linewidth=1)
+    if include_frame:
+        envelope = [
+            (0, 0, 0),
+            (1, 1, 1),
+            (1, 1, -1),
+            (0, 0, 0),
+            (1, 1, 1),
+            (1, 0, 0),
+            (0, 0, 0),
+            (1, 1, -1),
+            (1, 0, 0),
+            (0, 0, 0),
+            (1, 0, 0),
+            (1, 1, 0),
+            (0, 0, 0),
+        ]
+        ax.plot(*coord_transform(envelope), c='black', linewidth=1)
 
     points = []
     for obj in interactions:
@@ -598,7 +609,7 @@ def plot_normalized_kak_interaction_coefficients(interactions: Iterable[
         normalized = np.array(kak.interaction_coefficients) * 4 / np.pi
         points.append(normalized)
 
-    ax.scatter(*coord_transform(points), c='C1', s=1)
+    ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
     ax.set_ylim(-1, +1)
     ax.set_zlim(0, +1)
