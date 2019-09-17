@@ -44,7 +44,7 @@ def test_compute_linear_xeb_fidelity_invalid_qubits():
                                     cirq.measure(q0, q1, key=MEASUREMENT_KEY))
     bitstrings = sample_noisy_bitstrings(circuit, 0.9, 10)
     with pytest.raises(ValueError):
-        cirq.compute_linear_xeb_fidelity(circuit, bitstrings, (q0, q1, q2))
+        cirq.compute_linear_xeb_fidelity(circuit, bitstrings, (q0, q2))
 
 
 def test_compute_linear_xeb_fidelity_invalid_bitstrings():

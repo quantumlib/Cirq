@@ -35,10 +35,6 @@ def compute_linear_xeb_fidelity(
     """
     dim = np.product(circuit.qid_shape())
 
-    if set(qubit_order) != circuit.all_qubits():
-        raise ValueError(
-            f'Inconsistent qubits: circuit has {circuit.all_qubits()}, '
-            f'qubit order is {qubit_order}')
     for bitstring in bitstrings:
         if not 0 <= bitstring < dim:
             raise ValueError(
