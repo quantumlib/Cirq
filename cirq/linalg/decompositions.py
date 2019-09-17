@@ -24,6 +24,7 @@ from typing import (
     Union,
     Iterable,
     Optional,
+    TYPE_CHECKING,
 )
 
 import math
@@ -32,10 +33,12 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates
+
+if TYPE_CHECKING:
+    import cirq
 
 
 T = TypeVar('T')
@@ -570,13 +573,37 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
     Returns:
         The matplotlib 3d axes object that was plotted into.
+
+    Examples:
+        >>> ax = None
+        >>> for y in np.linspace(0, 0.5, 4):
+        ...     a, b = cirq.LineQubit.range(2)
+        ...     circuits = [
+        ...         cirq.Circuit.from_ops(
+        ...             cirq.CZ(a, b)**0.5,
+        ...             cirq.X(a)**y, cirq.X(b)**x,
+        ...             cirq.CZ(a, b)**0.5,
+        ...             cirq.X(a)**x, cirq.X(b)**y,
+        ...             cirq.CZ(a, b) ** 0.5,
+        ...         )
+        ...         for x in np.linspace(0, 1, 25)
+        ...     ]
+        ...     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(
+        ...         circuits,
+        ...         s=1,
+        ...         ax=ax,
+        ...         include_frame=ax is None,
+        ...         label=f'y={y:0.2f}')
+        >>> _ = ax.legend()
+        >>> # import matplotlib.pyplot as plt
+        >>> # plt.show()
     """
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
 
     def coord_transform(
-            pts: List[Tuple[float, float, float]]
+            pts: Iterable[Tuple[float, float, float]]
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
         xs, ys, zs = zip(*pts)
         return xs, zs, ys

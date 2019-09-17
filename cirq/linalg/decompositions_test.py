@@ -478,3 +478,23 @@ def test_axis_angle_init():
 
     with pytest.raises(ValueError, match='normalize'):
         cirq.AxisAngleDecomposition(angle=1, axis=(0, 0.5, 0), global_phase=1)
+
+
+def test_scatter_plot_normalized_kak_interaction_coefficients():
+    a, b = cirq.LineQubit.range(2)
+    data = [
+        cirq.kak_decomposition(cirq.unitary(cirq.CZ)),
+        cirq.unitary(cirq.CZ),
+        cirq.CZ,
+        cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b)),
+    ]
+    ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
+    assert ax is not None
+    ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
+        data,
+        s=1,
+        c='blue',
+        ax=ax,
+        include_frame=False,
+        label=f'test')
+    assert ax2 is ax
