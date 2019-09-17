@@ -697,6 +697,14 @@ class Engine:
     def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet
                ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier, or list of string identifiers,
+                determining which processors may be used when sampling.
+            gate_set: Determines how to serialize circuits when requesting
+                samples.
+        """
         return engine_sampler.QuantumEngineSampler(engine=self,
                                                    processor_id=processor_id,
                                                    gate_set=gate_set)
