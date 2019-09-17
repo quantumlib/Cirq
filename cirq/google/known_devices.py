@@ -18,10 +18,12 @@ from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api.v2 import device_pb2
 from cirq.google.xmon_device import XmonDevice
+from cirq.ops import MeasurementGate
 from cirq.value import Duration
 
 
-TARGET_SET_NAME = "grid"
+_2_QUBIT_TARGET_SET = "2_qubit_targets"
+_MEAS_TARGET_SET = "meas_targets"
 
 
 def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
@@ -68,31 +70,45 @@ def create_device_proto_from_diagram(
     """
     qubits, _ = _parse_device(s)
     spec = device_pb2.DeviceSpecification()
+    meas_targets = spec.valid_targets.add()
+    meas_targets.name = _MEAS_TARGET_SET
+    meas_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
+
     grid_targets = spec.valid_targets.add()
-    grid_targets.name = TARGET_SET_NAME
+    grid_targets.name = _2_QUBIT_TARGET_SET
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
     qubit_set = frozenset(qubits)
     neighbor_set: Set[Tuple] = set()
     spec.valid_qubits.extend([q.proto_id() for q in qubits])
     for q in qubits:
-        for neighbor in [q + (0, 1), q + (1, 0), q + (-1, 0), q + (0, -1)]:
-            if neighbor in qubit_set:
-                if tuple((neighbor, q)) not in neighbor_set:
-                    # Don't add pairs twice
-                    new_target = grid_targets.targets.add()
-                    new_target.ids.extend([q.proto_id(), neighbor.proto_id()])
-                    neighbor_set.add(tuple((q, neighbor)))
+        for neighbor in q.neighbors(qubit_set):
+            if tuple((neighbor, q)) not in neighbor_set:
+                # Don't add pairs twice
+                new_target = grid_targets.targets.add()
+                new_target.ids.extend([q.proto_id(), neighbor.proto_id()])
+                neighbor_set.add(tuple((q, neighbor)))
 
     if gate_set is not None:
         gs_proto = spec.valid_gate_sets.add()
         gs_proto.name = gate_set.gate_set_name
-        for gate_id in gate_set.deserializers:
-            gate = gs_proto.valid_gates.add()
-            gate.id = gate_id
-            gate.valid_targets.extend([TARGET_SET_NAME])
-            if durations is not None and gate.id in durations:
-                gate.gate_duration_picos = durations[gate.id]
-            # TODO: add valid args and number of qubits
+        gate_ids: Set[str] = set()
+        for gate_type in gate_set.serializers:
+            for serializer in gate_set.serializers[gate_type]:
+                gate_id = serializer.serialized_gate_id
+                if gate_id in gate_ids:
+                    # Only add each type once
+                    continue
+
+                gate_ids.add(gate_id)
+                gate = gs_proto.valid_gates.add()
+                gate.id = gate_id
+                if gate_type == MeasurementGate:
+                    gate.valid_targets.extend([_MEAS_TARGET_SET])
+                else:
+                    gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
+                if durations is not None and gate.id in durations:
+                    gate.gate_duration_picos = durations[gate.id]
+                # TODO: add valid args and number of qubits
     return spec
 
 

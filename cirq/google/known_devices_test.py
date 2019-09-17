@@ -30,21 +30,21 @@ def test_foxtail_device_proto():
   valid_gates {
     id: "exp_w"
     gate_duration_picos: 20000
-    valid_targets: "grid"
+    valid_targets: "2_qubit_targets"
   }
   valid_gates {
     id: "exp_z"
-    valid_targets: "grid"
+    valid_targets: "2_qubit_targets"
   }
   valid_gates {
     id: "exp_11"
     gate_duration_picos: 50000
-    valid_targets: "grid"
+    valid_targets: "2_qubit_targets"
   }
   valid_gates {
     id: "meas"
     gate_duration_picos: 1000000
-    valid_targets: "grid"
+    valid_targets: "meas_targets"
   }
 }
 valid_qubits: "0_0"
@@ -70,7 +70,11 @@ valid_qubits: "1_8"
 valid_qubits: "1_9"
 valid_qubits: "1_10"
 valid_targets {
-  name: "grid"
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
   target_ordering: SYMMETRIC
   targets {
     ids: "0_0"

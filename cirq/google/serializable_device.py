@@ -31,8 +31,22 @@ class SerializableDevice(devices.Device):
     verify operations and circuits for the hardware specified by the device.
     """
 
-    def __init__(self, proto: device_pb2.DeviceSpecification,
-                 gate_set: serializable_gate_set.SerializableGateSet):
+    def __init__(self,
+                 qubits: List['cirq.Qid'],
+                 durations: Dict[Type, Duration],
+                 target_sets: Dict[Type, Set[Tuple['cirq.Qid', ...]]],
+                 permutation_gates: List[Type] = list()):
+        self.qubits = qubits
+        self.durations = durations
+        self.target_sets = target_sets
+        self.is_permutation_gate: Dict[Type, bool] = dict()
+        for gate in permutation_gates:
+            self.is_permutation_gate[gate] = True
+
+    @staticmethod
+    def from_proto(proto: device_pb2.DeviceSpecification,
+                   gate_set: serializable_gate_set.SerializableGateSet
+                  ) -> 'SerializableDevice':
         """
 
         Args:
@@ -42,46 +56,66 @@ class SerializableDevice(devices.Device):
                 into cirq Gates.
         """
 
-        self.qubits = self._qubits_from_ids(proto.valid_qubits)
-        self.allowed_targets: Dict[str, Set[Tuple['cirq.Qid', ...]]] = dict()
+        # Store target sets, since they are refered to by name later
+        allowed_targets: Dict[str, Set[Tuple['cirq.Qid', ...]]] = dict()
+        permutation_ids: List[str] = list()
         for ts in proto.valid_targets:
-            self.allowed_targets[ts.name] = self._create_target_set(ts)
+            allowed_targets[ts.name] = SerializableDevice._create_target_set(ts)
+            if ts.target_ordering == device_pb2.TargetSet.SUBSET_PERMUTATION:
+                permutation_ids.append(ts)
 
+        # Store gate definitions from proto
         gate_defs: Dict[str, device_pb2.GateDefinition] = dict()
         for gs in proto.valid_gate_sets:
             for gate_def in gs.valid_gates:
                 gate_defs[gate_def.id] = gate_def
 
-        self.durations: Dict[Any, Duration] = dict()
-        self.target_sets: Dict[Any, List[str]] = dict()
+        # Loop through serializers and create dictionaries with keys as
+        # the python type of the cirq Gate and duration/targets from the proto
+        durations: Dict[Type, Duration] = dict()
+        target_sets: Dict[Type, Set[Tuple['cirq.Qid', ...]]] = dict()
+        permutation_gates: List[Type] = list()
         for gate_type in gate_set.supported_gate_types():
             for serializer in gate_set.serializers[gate_type]:
                 gate_id = serializer.serialized_gate_id
+                if gate_type not in permutation_gates:
+                    permutation_gates.append(gate_type)
                 if gate_id not in gate_defs:
                     raise ValueError(f'Serializer has {gate_id} which is not ' +
                                      'supported by the device specification')
                 gate_picos = gate_defs[gate_id].gate_duration_picos
-                self.durations[gate_type] = Duration(picos=gate_picos)
-                self.target_sets[gate_type] = gate_defs[gate_id].valid_targets
+                durations[gate_type] = Duration(picos=gate_picos)
+                if gate_type not in target_sets:
+                    target_sets[gate_type] = set()
+                for target_set_name in gate_defs[gate_id].valid_targets:
+                    target_sets[gate_type] |= allowed_targets[target_set_name]
 
-    def _qid_from_str(self, id_str: str) -> 'cirq.Qid':
+        return SerializableDevice(
+            qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
+            durations=durations,
+            target_sets=target_sets,
+        )
+
+    @staticmethod
+    def _qid_from_str(id_str: str) -> 'cirq.Qid':
         try:
             return devices.GridQubit.from_proto_id(id_str)
         except ValueError:
             return ops.NamedQubit(id_str)
 
-    def _qubits_from_ids(self, id_list) -> List['cirq.Qid']:
+    @staticmethod
+    def _qubits_from_ids(id_list) -> List['cirq.Qid']:
         """Translates a list of ids in proto format e.g. '4_3'
         into cirq.GridQubit objects"""
-        return [self._qid_from_str(id) for id in id_list]
+        return [SerializableDevice._qid_from_str(id) for id in id_list]
 
-    def _create_target_set(self, ts: device_pb2.TargetSet
+    @staticmethod
+    def _create_target_set(ts: device_pb2.TargetSet
                           ) -> Set[Tuple['cirq.Qid', ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""
-        # TODO(dstrain): add support for measurement qubits
         target_set = set()
         for target in ts.targets:
-            qid_list = self._qubits_from_ids(target.ids)
+            qid_list = SerializableDevice._qubits_from_ids(target.ids)
             target_set.add(tuple(qid_list))
             if ts.target_ordering == device_pb2.TargetSet.SYMMETRIC:
                 qid_list.reverse()
@@ -115,20 +149,35 @@ class SerializableDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {!r}'.format(q))
 
+        if self._find_operation_type(operation,
+                                     self.is_permutation_gate) is not None:
+            # A permutation gate can have any combination of qubits
+            valid_qubits = self._find_operation_type(operation,
+                                                     self.target_sets)
+            if valid_qubits == set():
+                # All qubits are valid
+                return
+            for q in operation.qubits:
+                if q not in valid_qubits:
+                    raise ValueError(
+                        f'Operation does not use valid qubit target: {operation}.'
+                    )
+            return
+
         if (len(operation.qubits) > 1):
             # TODO(dstrain): verify number of qubits and args
 
             qubit_tuple = tuple(operation.qubits)
-            gate_op = cast(ops.GateOperation, operation)
-            for t in self.target_sets:
-                if isinstance(gate_op.gate, t):
-                    for ts in self.target_sets[t]:
-                        if qubit_tuple in self.allowed_targets[ts]:
-                            # Valid
-                            return
-            # Target is not within any of the target sets specified by the gate.
-            raise ValueError(
-                f'Operation does not use valid qubit target: {operation}.')
+            ts = self._find_operation_type(operation, self.target_sets)
+
+            if ts == set():
+                # All qubit combinations are valid
+                return
+
+            if qubit_tuple not in ts:
+                # Target is not within the target sets specified by the gate.
+                raise ValueError(
+                    f'Operation does not use valid qubit target: {operation}.')
 
     def validate_scheduled_operation(
             self, schedule: 'cirq.Schedule',

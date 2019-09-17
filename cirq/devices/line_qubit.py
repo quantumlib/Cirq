@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Any, List, Sequence, TypeVar
+from typing import Any, Iterable, List, Sequence, TypeVar
 
 import abc
 
@@ -39,6 +39,18 @@ class _BaseLineQid(ops.Qid):
     def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent line qubits."""
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
+
+    def neighbors(self, qids: Iterable[ops.Qid] = None) -> List['_BaseLineQid']:
+        """Returns qubits that are potential neighbors to this GridQubit
+
+        Args:
+            qubits: optional Iterable of qubits to constrain neighbors to.
+        """
+        neighbors = []
+        for q in [self + 1, self - 1]:
+            if qids is None or q in qids:
+                neighbors.append(q)
+        return neighbors
 
     @abc.abstractmethod
     def _with_x(self: TSelf, x: int) -> TSelf:

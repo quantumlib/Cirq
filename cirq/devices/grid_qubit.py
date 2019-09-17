@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Iterable, Tuple
 
 from cirq import ops, protocols
 
@@ -49,6 +49,18 @@ class GridQubit(ops.Qid):
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
+
+    def neighbors(self, qids: Iterable[ops.Qid] = None) -> List['GridQubit']:
+        """Returns qubits that are potential neighbors to this GridQubit
+
+        Args:
+            qids: optional Iterable of qubits to constrain neighbors to.
+        """
+        neighbors = []
+        for q in [self + (0, 1), self + (1, 0), self + (-1, 0), self + (0, -1)]:
+            if qids is None or q in qids:
+                neighbors.append(q)
+        return neighbors
 
     @staticmethod
     def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
