@@ -10,12 +10,15 @@ from typing import cast, List, Sequence, Tuple
 import numpy as np
 
 from cirq.circuits import Circuit
-from cirq.ops import Qid
+from cirq.ops import Qid, QubitOrder, QubitOrderOrList
 from cirq.sim import Simulator, WaveFunctionTrialResult
 
 
-def compute_linear_xeb_fidelity(circuit: Circuit, qubit_order: Sequence[Qid],
-                                bitstrings: Sequence[int]) -> float:
+def compute_linear_xeb_fidelity(
+        circuit: Circuit,
+        bitstrings: Sequence[int],
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
 
     Args:

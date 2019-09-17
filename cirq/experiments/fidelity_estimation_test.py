@@ -35,7 +35,7 @@ def test_compute_linear_xeb_fidelity(depolarization):
     circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1),
                                     cirq.measure(q0, q1))
     bitstrings = sample_noisy_bitstrings(circuit, depolarization, 10000)
-    f = cirq.compute_linear_xeb_fidelity(circuit, (q0, q1), bitstrings)
+    f = cirq.compute_linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
     assert np.isclose(f, 1 - depolarization, atol=0.026)
 
     np.random.set_state(prng_state)
@@ -47,7 +47,7 @@ def test_compute_linear_xeb_fidelity_invalid_qubits():
                                     cirq.measure(q0, q1))
     bitstrings = sample_noisy_bitstrings(circuit, 0.9, 10)
     with pytest.raises(ValueError):
-        cirq.compute_linear_xeb_fidelity(circuit, (q0, q1, q2), bitstrings)
+        cirq.compute_linear_xeb_fidelity(circuit, bitstrings, (q0, q1, q2))
 
 
 def test_compute_linear_xeb_fidelity_invalid_bitstrings():
@@ -56,4 +56,4 @@ def test_compute_linear_xeb_fidelity_invalid_bitstrings():
                                     cirq.measure(q0, q1))
     bitstrings = [0, 1, 2, 3, 4]
     with pytest.raises(ValueError):
-        cirq.compute_linear_xeb_fidelity(circuit, (q0, q1), bitstrings)
+        cirq.compute_linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
