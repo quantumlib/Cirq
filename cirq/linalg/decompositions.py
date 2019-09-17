@@ -526,13 +526,14 @@ class KakDecomposition:
             before)
 
 
-def scatter_plot_normalized_kak_interaction_coefficients(interactions: Iterable[
-        Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
-                                                         *,
-                                                         include_frame: bool = True,
-                                                         ax: Optional[plt.Axes] = None,
-                                                         show: bool = False,
-                                                         **kwargs):
+def scatter_plot_normalized_kak_interaction_coefficients(
+        interactions: Iterable[
+            Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
+        *,
+        include_frame: bool = True,
+        ax: Optional[plt.Axes] = None,
+        show: bool = False,
+        **kwargs):
     """Plots the interaction coefficients of many two-qubit operations.
 
     Plots:
