@@ -33,7 +33,7 @@ def compute_linear_xeb_fidelity(
         ValueError: Circuit is inconsistent with qubit order or one of the
             bitstrings is inconsistent with the number of qubits.
     """
-    dim = 2**len(qubit_order)
+    dim = np.product(circuit.qid_shape())
 
     if set(qubit_order) != circuit.all_qubits():
         raise ValueError(
