@@ -41,7 +41,7 @@ def random_unitary(dim: int, rs=None) -> np.ndarray:
 
     Args:
       dim: The width and height of the matrix.
-      rs: A numeric or RandomState to seed the qubit permutations with.
+      rs: A numeric or RandomState used as a seed.
 
     Returns:
       The sampled unitary matrix.
@@ -83,7 +83,7 @@ def random_special_unitary(dim: int, rs=None) -> np.ndarray:
 
     Args:
       dim: The width and height of the matrix.
-      rs: A numeric or RandomState to seed the qubit permutations with.
+      rs: A numeric or RandomState used as a seed.
 
     Returns:
       The sampled special unitary.

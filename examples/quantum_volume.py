@@ -42,7 +42,7 @@ def generate_model_circuit(
       The generated circuit.
     """
     # Setup the circuit and its qubits.
-    qubits = [cirq.LineQubit(i) for i in range(num_qubits)]
+    qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
     if not isinstance(rs, np.random.RandomState):
         rs = np.random.RandomState(rs)
