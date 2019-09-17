@@ -694,9 +694,9 @@ class Engine:
             name=calibration_name).execute()
         return calibration.Calibration(response['data']['data'])
 
-    def sampler(self,
-                processor_id: Union[str, List[str]],
+    def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet
                ) -> engine_sampler.QuantumEngineSampler:
-        return engine_sampler.QuantumEngineSampler(
-            engine=self, processor_id=processor_id, gate_set=gate_set)
+        return engine_sampler.QuantumEngineSampler(engine=self,
+                                                   processor_id=processor_id,
+                                                   gate_set=gate_set)
