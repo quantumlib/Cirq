@@ -1,12 +1,14 @@
 """Tests for the Quantum Volume benchmarker."""
 
+import numpy as np
 from examples.advanced import quantum_volume
 import cirq
 
 
 def test_generate_model_circuit():
     """Test that a model circuit is randomly generated."""
-    model_circuit = quantum_volume.generate_model_circuit(3, 3, random_state=1)
+    model_circuit = quantum_volume.generate_model_circuit(
+        3, 3, random_state=np.random.RandomState(1))
 
     assert len(model_circuit) == 24
     # Ensure there are no measurement gates.
@@ -17,15 +19,12 @@ def test_generate_model_circuit():
 
 def test_generate_model_circuit_seed():
     """Test that a model circuit is determined by its seed ."""
-    model_circuit_1 = quantum_volume.generate_model_circuit(3,
-                                                            3,
-                                                            random_state=1)
-    model_circuit_2 = quantum_volume.generate_model_circuit(3,
-                                                            3,
-                                                            random_state=1)
-    model_circuit_3 = quantum_volume.generate_model_circuit(3,
-                                                            3,
-                                                            random_state=2)
+    model_circuit_1 = quantum_volume.generate_model_circuit(
+        3, 3, random_state=np.random.RandomState(1))
+    model_circuit_2 = quantum_volume.generate_model_circuit(
+        3, 3, random_state=np.random.RandomState(1))
+    model_circuit_3 = quantum_volume.generate_model_circuit(
+        3, 3, random_state=np.random.RandomState(2))
 
     assert model_circuit_1 == model_circuit_2
     assert model_circuit_2 != model_circuit_3

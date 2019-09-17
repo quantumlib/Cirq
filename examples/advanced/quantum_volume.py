@@ -1,21 +1,31 @@
 """Tool to run the Quantum Volume benchmark defined by IBM in
-https://arxiv.org/abs/1811.12926."""
+https://arxiv.org/abs/1811.12926.
+
+Usage:
+    python examples/advanced/quantum_volume.py \
+        --num_qubits=4 --depth=4 --num_repetitions=1 [--seed=int]
+
+Output:
+    This program is still in progress. Currently, it will print out the Heavy
+    Set of bit-strings produced by a randomly-generated model circuit.
+    Example: ['0001', '0010', '0100', '0101', '0110', '0111', '1011', '1111']
+"""
 
 import argparse
 import statistics
 import sys
-from typing import List, cast, Union
+from typing import Optional, List, cast
 
 import numpy as np
 
 import cirq
 
 
-def generate_model_circuit(
-        num_qubits: int,
-        depth: int,
-        *,
-        random_state: Union[int, np.random.RandomState] = None) -> cirq.Circuit:
+def generate_model_circuit(num_qubits: int,
+                           depth: int,
+                           *,
+                           random_state: Optional[np.random.RandomState] = None
+                          ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
     The generated circuit consists of `depth` layers of random qubit
@@ -28,17 +38,18 @@ def generate_model_circuit(
         random_state: A way to seed the RandomState.
 
     Returns:
-      The generated circuit.
+        The generated circuit.
     """
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    rs = cirq.testing.get_seeded_state(random_state)
+    if random_state is None:
+        random_state = np.random.RandomState()
 
     # For each layer.
     for _ in range(depth):
         # Generate uniformly random permutation Pj of [0...n-1]
-        perm = rs.permutation(num_qubits)
+        perm = random_state.permutation(num_qubits)
 
         # For each consecutive pair in Pj, generate Haar random SU(4)
         # Decompose each SU(4) into CNOT + SU(2) and add to Ci
@@ -86,11 +97,11 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[str]:
     format_str = '{0:0%sb}' % len(circuit.all_qubits())
     # Return all of the bit-strings that have a probability greater than the
     # median.
-    return ([
+    return [
         format_str.format(idx)
         for idx, prob in enumerate(results.state_vector())
         if prob > median
-    ])
+    ]
 
 
 def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
@@ -110,10 +121,8 @@ def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
         num_repetitions: The number of times to run the algorithm.
     """
     for _ in range(num_repetitions):
-        model_circuit = generate_model_circuit(num_qubits,
-                                               depth,
-                                               random_state=seed)
-        print(model_circuit)
+        model_circuit = generate_model_circuit(
+            num_qubits, depth, random_state=np.random.RandomState(seed))
         heavy_set = compute_heavy_set(model_circuit)
         print(heavy_set)
         # TODO(villela): Implement model circuit and run it.

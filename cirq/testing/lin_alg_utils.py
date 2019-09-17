@@ -14,7 +14,7 @@
 
 """A testing class with utilities for checking linear algebra."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 
@@ -36,35 +36,15 @@ def random_superposition(dim: int) -> np.ndarray:
     return state_vector
 
 
-def get_seeded_state(random_state: Union[int, np.random.RandomState]
-                    ) -> np.random.RandomState:
-    """Convenience method to get a RandomState according to the arguments.
-
-    If random_state is a RandomState object, return that. If it is an int,
-    return a new RandomState which is seeded with that. Otherwise, return a
-    RandomState that reads from /dev/urandom.
-
-    Args:
-        random_state: A number, RandomState, or None.
-
-    Returns:
-        The RandomState as specified above.
-
-    """
-    if not isinstance(random_state, np.random.RandomState):
-        return np.random.RandomState(random_state)
-    return random_state
-
-
 def random_unitary(dim: int,
                    *,
-                   random_state: Union[int, np.random.RandomState] = None
+                   random_state: Optional[np.random.RandomState] = None
                   ) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
       dim: The width and height of the matrix.
-      random_state: A way to seed the RandomState.
+      random_state: A seed to use for random number generation.
 
     Returns:
       The sampled unitary matrix.
@@ -73,9 +53,10 @@ def random_unitary(dim: int,
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    rs = get_seeded_state(random_state)
+    if random_state is None:
+        random_state = np.random.RandomState()
 
-    z = (rs.randn(dim, dim) + 1j * rs.randn(dim, dim))
+    z = (random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim))
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
@@ -100,14 +81,15 @@ def random_orthogonal(dim: int) -> np.ndarray:
     return q * (d / abs(d))
 
 
-def random_special_unitary(
-        dim: int, *,
-        random_state: Union[int, np.random.RandomState] = None) -> np.ndarray:
+def random_special_unitary(dim: int,
+                           *,
+                           random_state: Optional[np.random.RandomState] = None
+                          ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
     Args:
       dim: The width and height of the matrix.
-      random_state: A way to seed the RandomState.
+      random_state: A seed to use for random number generation.
 
     Returns:
       The sampled special unitary.
