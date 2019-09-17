@@ -231,7 +231,7 @@ def test_kak_canonicalize_vector(x, y, z):
     SWAP * 1j,
     CZ,
     CNOT,
-    SWAP.dot(CZ),
+    SWAP @ CZ,
 ] + [
     cirq.testing.random_unitary(4)
     for _ in range(10)
@@ -239,6 +239,13 @@ def test_kak_canonicalize_vector(x, y, z):
 def test_kak_decomposition(target):
     kak = cirq.kak_decomposition(target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
+
+
+def test_kak_decomposition_unitary_object():
+    op = cirq.ISWAP(*cirq.LineQubit.range(2))**0.5
+    kak = cirq.kak_decomposition(op)
+    np.testing.assert_allclose(cirq.unitary(kak), cirq.unitary(op), atol=1e-8)
+    assert cirq.kak_decomposition(kak) is kak
 
 
 def test_kak_decomposition_eq():

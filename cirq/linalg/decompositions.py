@@ -628,12 +628,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
     points = []
     for obj in interactions:
-        if isinstance(obj, KakDecomposition):
-            kak = obj
-        elif isinstance(obj, np.ndarray) and obj.shape == (4, 4):
-            kak = kak_decomposition(obj)
-        else:
-            kak = kak_decomposition(protocols.unitary(obj))
+        kak = kak_decomposition(obj)
         normalized = np.array(kak.interaction_coefficients) * 4 / np.pi
         points.append(normalized)
 
@@ -762,13 +757,15 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
 
 
 def kak_decomposition(
-        mat: np.ndarray,
+        unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         rtol: float = 1e-5,
         atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
-        mat: The 4x4 unitary matrix to decompose.
+        unitary_object: The value to decompose. Can either be a 4x4 unitary
+            matrix, or an object that has a 4x4 unitary matrix (via the
+            `cirq.SupportsUnitary` protocol).
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
 
@@ -787,6 +784,13 @@ def kak_decomposition(
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
     """
+    if isinstance(unitary_object, KakDecomposition):
+        return unitary_object
+    if isinstance(unitary_object, np.ndarray):
+        mat = unitary_object
+    else:
+        mat = protocols.unitary(unitary_object)
+
     magic = np.array([[1, 0, 0, 1j],
                       [0, 1j, 1, 0],
                       [0, 1j, -1, 0],
