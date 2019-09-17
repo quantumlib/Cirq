@@ -40,7 +40,7 @@ def compute_linear_xeb_fidelity(
             f'Inconsistent qubits: circuit has {circuit.all_qubits()}, '
             f'qubit order is {qubit_order}')
     for bitstring in bitstrings:
-        if bitstring < 0 or dim <= bitstring:
+        if not 0 <= bitstring < dim:
             raise ValueError(
                 f'Bitstring {bitstring} could not have been observed '
                 f'on {len(qubit_order)} qubits.')
