@@ -2,7 +2,6 @@
 https://arxiv.org/abs/1811.12926."""
 
 import argparse
-import math
 import statistics
 import sys
 from typing import List, cast, Union
