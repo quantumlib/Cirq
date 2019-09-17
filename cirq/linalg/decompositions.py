@@ -756,6 +756,20 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
         single_qubit_operations_before=(right[1], right[0]))
 
 
+# yapf: disable
+KAK_MAGIC = np.array([[1, 0, 0, 1j],
+                      [0, 1j, 1, 0],
+                      [0, 1j, -1, 0],
+                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
+
+KAK_MAGIC_DAG = np.conjugate(np.transpose(KAK_MAGIC))
+KAK_GAMMA = np.array([[1, 1, 1, 1],
+                      [1, 1, -1, -1],
+                      [-1, 1, -1, 1],
+                      [1, -1, -1, 1]]) * 0.25
+# yapf: enable
+
+
 def kak_decomposition(
         unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         rtol: float = 1e-5,
@@ -791,18 +805,9 @@ def kak_decomposition(
     else:
         mat = protocols.unitary(unitary_object)
 
-    magic = np.array([[1, 0, 0, 1j],
-                      [0, 1j, 1, 0],
-                      [0, 1j, -1, 0],
-                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    gamma = np.array([[1, 1, 1, 1],
-                      [1, 1, -1, -1],
-                      [-1, 1, -1, 1],
-                      [1, -1, -1, 1]]) * 0.25
-
     # Diagonalize in magic basis.
     left, d, right = diagonalize.bidiagonalize_unitary_with_special_orthogonals(
-        combinators.dot(np.conj(magic.T), mat, magic),
+        KAK_MAGIC_DAG @ mat @ KAK_MAGIC,
         atol=atol,
         rtol=rtol,
         check_preconditions=False)
@@ -816,7 +821,7 @@ def kak_decomposition(
                                atol=atol,
                                rtol=rtol,
                                check_preconditions=False)
-    w, x, y, z = gamma.dot(np.vstack(np.angle(d))).flatten()
+    w, x, y, z = (KAK_GAMMA @ np.vstack(np.angle(d))).flatten()
     g = np.exp(1j * w)
 
     # Canonicalize.
