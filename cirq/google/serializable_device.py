@@ -35,13 +35,14 @@ class SerializableDevice(devices.Device):
                  qubits: List['cirq.Qid'],
                  durations: Dict[Type, Duration],
                  target_sets: Dict[Type, Set[Tuple['cirq.Qid', ...]]],
-                 permutation_gates: List[Type] = list()):
+                 permutation_gates: List[Type] = None):
         self.qubits = qubits
         self.durations = durations
         self.target_sets = target_sets
         self.is_permutation_gate: Dict[Type, bool] = dict()
-        for gate in permutation_gates:
-            self.is_permutation_gate[gate] = True
+        if permutation_gates is not None:
+            for gate in permutation_gates:
+                self.is_permutation_gate[gate] = True
 
     @staticmethod
     def from_proto(proto: device_pb2.DeviceSpecification,
@@ -160,8 +161,7 @@ class SerializableDevice(devices.Device):
             for q in operation.qubits:
                 if q not in valid_qubits:
                     raise ValueError(
-                        f'Operation does not use valid qubit target: {operation}.'
-                    )
+                        f'Operation does not use valid qubits: {operation}.')
             return
 
         if (len(operation.qubits) > 1):

@@ -47,7 +47,7 @@ class _BaseLineQid(ops.Qid):
             qubits: optional Iterable of qubits to constrain neighbors to.
         """
         neighbors = []
-        for q in [self + 1, self - 1]:
+        for q in [self - 1, self + 1]:
             if qids is None or q in qids:
                 neighbors.append(q)
         return neighbors
