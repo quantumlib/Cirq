@@ -232,10 +232,7 @@ def test_kak_canonicalize_vector(x, y, z):
     CZ,
     CNOT,
     SWAP @ CZ,
-] + [
-    cirq.testing.random_unitary(4)
-    for _ in range(10)
-])
+] + [cirq.testing.random_unitary(4) for _ in range(10)])
 def test_kak_decomposition(target):
     kak = cirq.kak_decomposition(target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
@@ -497,10 +494,5 @@ def test_scatter_plot_normalized_kak_interaction_coefficients():
     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
     assert ax is not None
     ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
-        data,
-        s=1,
-        c='blue',
-        ax=ax,
-        include_frame=False,
-        label=f'test')
+        data, s=1, c='blue', ax=ax, include_frame=False, label=f'test')
     assert ax2 is ax

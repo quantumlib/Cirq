@@ -40,7 +40,6 @@ from cirq.linalg import combinators, diagonalize, predicates
 if TYPE_CHECKING:
     import cirq
 
-
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
                   [0, 1j, 1, 0],
@@ -770,10 +769,9 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 # yapf: enable
 
 
-def kak_decomposition(
-        unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> KakDecomposition:
+def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
+                      rtol: float = 1e-5,
+                      atol: float = 1e-8) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
