@@ -24,7 +24,7 @@ from cirq import circuits, ops
 import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
-from cirq.contrib.routing.utils import (get_timeslices,
+from cirq.contrib.routing.utils import (get_time_slices,
                                         ops_are_consistent_with_device_graph)
 
 SWAP = cca.SwapPermutationGate()
@@ -46,6 +46,27 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
             to use. Defaults to a greedy initialization.
         can_reorder: A predicate that determines if two operations may be
             reordered.
+
+    Alternates between heuristically picking a few SWAPs to change the mapping
+    and applying all logical operations possible given the new mapping, until
+    all logical operations have been applied.
+
+    The SWAP selection heuristic is as follows. In every iteration, the
+    remaining two-qubit gates are partitioned into time slices. (See
+    utils.get_time_slices for details.) For each set of candidate SWAPs, the new
+    mapping is computed. For each time slice and every two-qubit gate therein,
+    the distance of the two logical qubits in the device graph under the new
+    mapping is calculated. A candidate set 'S' of SWAPs is taken out of
+    consideration if for some other set 'T' there is a time slice such that all
+    of the distances for 'T' are at most those for 'S' (and they are not all
+    equal).
+
+    If more than one candidate remains, the size of the set of SWAPs considered
+    is increased by one and the process is repeated. If after considering SWAP
+    sets of size up to 'max_search_radius', more than one candidate remains,
+    then the pairs of qubits in the first time slice are considered, and those
+    farthest away under the current mapping are brought together using SWAPs
+    using a shortest path in the device graph.
     """
 
     router = _GreedyRouter(circuit, device_graph, **kwargs)
@@ -136,7 +157,7 @@ class _GreedyRouter:
         """
 
         if initial_mapping is None:
-            logical_graph = get_timeslices(self.remaining_dag)[0]
+            logical_graph = get_time_slices(self.remaining_dag)[0]
             logical_graph.add_nodes_from(self.logical_qubits)
             initial_mapping = get_initial_mapping(logical_graph,
                                                   self.device_graph)
@@ -230,13 +251,16 @@ class _GreedyRouter:
 
     def apply_next_swaps(self):
         """Applies a few SWAPs to get the mapping closer to one in which the
-        next logical gates can be applied."""
-        timeslices = get_timeslices(self.remaining_dag)
+        next logical gates can be applied.
+
+        See route_circuit_greedily for more details.
+        """
+        time_slices = get_time_slices(self.remaining_dag)
         for k in range(1, self.max_search_radius + 1):
             candidate_swap_sets = list(self.get_edge_sets(k))
-            for timeslice in timeslices:
+            for time_slice in time_slices:
                 distance_vectors = list(
-                    self.get_distance_vector(timeslice.edges, swap_set)
+                    self.get_distance_vector(time_slice.edges, swap_set)
                     for swap_set in candidate_swap_sets)
                 dominated_indices = _get_dominated_indices(distance_vectors)
                 candidate_swap_sets = [
@@ -247,18 +271,10 @@ class _GreedyRouter:
                     self.apply_swap(*candidate_swap_sets[0])
                     return
 
-        frontier_edges = timeslices[0].edges
+        frontier_edges = time_slices[0].edges
         self.bring_farthest_pair_together(frontier_edges)
 
     def route(self):
-        """Routes the circuit on the device. Alternates between heuristically
-        picking a few SWAPs to change the mapping and applying all logical
-        operations possible given the new mapping, until all logical operations
-        have been applied.
-
-        See _GreedyRouter.apply_next_swaps for details about the SWAP selection
-        heuristic.
-        """
         self.apply_possible_ops()
         while self.remaining_dag:
             self.apply_next_swaps()

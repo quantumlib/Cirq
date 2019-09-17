@@ -24,17 +24,17 @@ from cirq.contrib.routing.swap_network import SwapNetwork
 BINARY_OP_PREDICATE = Callable[[ops.Operation, ops.Operation], bool]
 
 
-def get_timeslices(dag: circuits.CircuitDag) -> List[nx.Graph]:
+def get_time_slices(dag: circuits.CircuitDag) -> List[nx.Graph]:
     """Slices the DAG into logical graphs.
 
-    Each timeslice is a graph whose vertices are qubits and whose edges
+    Each time slice is a graph whose vertices are qubits and whose edges
     correspond to two-qubit gates. Single-qubit gates are ignored (and
     more-than-two-qubit gates are not supported).
 
-    The edges of the first timeslice correspond to the nodes of the DAG without
+    The edges of the first time slice correspond to the nodes of the DAG without
     predecessors. (Again, single-qubit gates are ignored.) The edges of the
     second slice correspond to the nodes of the DAG whose only predecessors are
-    in the first timeslice, and so on.
+    in the first time slice, and so on.
     """
     circuit = circuits.Circuit.from_ops(
         op for op in dag.all_operations() if len(op.qubits) > 1)
