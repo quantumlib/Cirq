@@ -112,19 +112,27 @@ class Moment:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.operations == other.operations
+
+        return (sorted(self.operations, key=lambda op: op.qubits) == sorted(
+            other.operations, key=lambda op: op.qubits))
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
-        return protocols.approx_eq(self.operations, other.operations, atol=atol)
+
+        return protocols.approx_eq(sorted(self.operations,
+                                          key=lambda op: op.qubits),
+                                   sorted(other.operations,
+                                          key=lambda op: op.qubits),
+                                   atol=atol)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((Moment, self.operations))
+        return hash(
+            (Moment, tuple(sorted(self.operations, key=lambda op: op.qubits))))
 
     def __iter__(self):
         return iter(self.operations)
