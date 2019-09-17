@@ -5,7 +5,7 @@ works under the assumption that the evaluated circuit is sufficiently
 random, see https://arxiv.org/abs/1608.00263.
 """
 
-from typing import cast, List, Sequence, Tuple
+from typing import cast, Iterable, Tuple, Set
 
 import numpy as np
 
@@ -16,7 +16,7 @@ from cirq.sim import final_wavefunction
 
 def compute_linear_xeb_fidelity(
         circuit: Circuit,
-        bitstrings: Sequence[int],
+        bitstrings: np.ndarray,
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
 ) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
