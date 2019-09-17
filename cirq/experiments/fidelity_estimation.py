@@ -1,9 +1,4 @@
-"""Estimate fidelity of large random quantum circuit from observed bitstrings.
-
-Fidelity estimator defined here is used in cross-entropy benchmarking and
-works under the assumption that the evaluated circuit is sufficiently
-random, see https://arxiv.org/abs/1608.00263.
-"""
+"""Estimation of fidelity associated with experimental circuit executions."""
 
 from typing import cast, Iterable, Tuple, Set
 
@@ -21,14 +16,39 @@ def compute_linear_xeb_fidelity(
 ) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
 
+    Fidelity quantifies the similarity of two quantum states. Here, we estimate
+    the fidelity between the theoretically predicted output state of circuit and
+    the state producted in its experimental realization. Note that we don't know
+    the latter state. Nevertheless, we can estimate the fidelity between the two
+    states from the knowledge of the bitstrings observed in the experiment.
+
+    This estimation procedure makes two assumptions. First, it assumes that the
+    circuit is sufficiently scrambling that its output probabilities follow the
+    Porter-Thomas distribution. This assumption holds for typical instances of
+    random quantum circuits of sufficient depth. Second, it assumes that the
+    circuit uses enough qubits so that the Porter-Thomas distribution can be
+    approximated with the exponential distribution.
+
+    In practice the validity of these assumptions can be confirmed by plotting
+    a histogram of output probabilities and comparing it to the exponential
+    distribution.
+
+    In order to make the estimate more robust one should average the estimates
+    over many random circuits. The API supports per-circuit fidelity estimation
+    to enable users to examine the properties of estimate distribution over
+    many circuits.
+
+    See https://arxiv.org/abs/1608.00263 for more details.
+
     Args:
         circuit: Random quantum circuit which has been executed on quantum
             processor under test
-        qubit_order: Qubit order used to construct bitstrings from measurements
         bitstrings: Results of terminal all-qubit measurements performed after
             each circuit execution
+        qubit_order: Qubit order used to construct bitstrings from measurements
     Returns:
-        Estimate of circuit fidelity.
+        Estimate of fidelity associated with an experimental realization of
+        circuit which yielded measurements in bitstrings.
     Raises:
         ValueError: Circuit is inconsistent with qubit order or one of the
             bitstrings is inconsistent with the number of qubits.
