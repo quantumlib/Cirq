@@ -15,17 +15,18 @@
 https://arxiv.org/abs/1811.12926."""
 
 import argparse
-from collections import defaultdict
 import math
+import statistics
 import sys
-from typing import DefaultDict, List
+from typing import List, cast
 
 import numpy as np
 
 import cirq
 
 
-def generate_model_circuit(num_qubits: int, depth: int) -> cirq.Circuit:
+def generate_model_circuit(
+        num_qubits: int, depth: int, rs=None) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
     The generated circuit consists of `depth` layers of random qubit
@@ -35,39 +36,41 @@ def generate_model_circuit(num_qubits: int, depth: int) -> cirq.Circuit:
     Args:
         num_qubits: The number of qubits in the generated circuit.
         depth: The number of layers in the circuit.
+        rs: A numeric or RandomState to seed the qubit permutations with.
 
     Returns:
       The generated circuit.
     """
     # Setup the circuit and its qubits.
-    qubits = [cirq.GridQubit(0, i) for i in range(num_qubits)]
+    qubits = [cirq.LineQubit(i) for i in range(num_qubits)]
     circuit = cirq.Circuit()
+    if not isinstance(rs, np.random.RandomState):
+        rs = np.random.RandomState(rs)
 
     # For each layer.
     for _ in range(depth):
         # Generate uniformly random permutation Pj of [0...n-1]
-        perm = np.random.permutation(num_qubits)
+        perm = rs.permutation(num_qubits)
 
         # For each consecutive pair in Pj, generate Haar random SU(4)
         # Decompose each SU(4) into CNOT + SU(2) and add to Ci
         for k in range(math.floor(num_qubits / 2)):
-            permuted_qubits = [int(perm[2 * k]), int(perm[2 * k + 1])]
+            permuted_indices = [int(perm[2 * k]), int(perm[2 * k + 1])]
             special_unitary = cirq.testing.random_special_unitary(4)
-            kak_unitary = cirq.unitary(cirq.kak_decomposition(special_unitary))
 
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.
             ops = cirq.two_qubit_matrix_to_operations(
-                qubits[permuted_qubits[0]], qubits[permuted_qubits[1]],
-                kak_unitary, False)
+                qubits[permuted_indices[0]], qubits[permuted_indices[1]],
+                special_unitary, allow_partial_czs=False)
             circuit.append(ops)
 
-    # Measure all of the qubits at the end of the circuit.
-    circuit.append([cirq.measure(qubit) for qubit in qubits])
+    # Don't measure all of the qubits at the end of the circuit because we will
+    # need to classically simulate it to compute its heavy set.
     return circuit
 
 
-def compute_heavy_set(circuit: cirq.Circuit, seed: int = None) -> List[str]:
+def compute_heavy_set(circuit: cirq.Circuit) -> List[str]:
     """Classically compute the heavy set of the given circuit.
 
     The heavy set is defined as the output bit-strings that have a greater than
@@ -75,25 +78,26 @@ def compute_heavy_set(circuit: cirq.Circuit, seed: int = None) -> List[str]:
 
     Args:
         circuit: The circuit to classically simulate.
-        seed: A seed to pass to the simulator.
 
     Returns:
         A list containing all of the heavy bit-string results.
     """
-    # Run the simulation 100 times, storing the a dict from resulting bit-string
-    # to the number of times that bit-string came up.
-    results: DefaultDict[str, int] = defaultdict(int)
-    for _ in range(100):
-        simulator = cirq.Simulator(seed=seed)
-        result = simulator.run(circuit)
-        bit_string = "".join(str(i) for i in result.data.iloc[0])
-        results[bit_string] += 1
-
+    # Classically compute the probabilities of each output bit-string through
+    # simulation.
+    simulator = cirq.Simulator()
+    results = cast(cirq.WaveFunctionTrialResult,
+                   simulator.simulate(program=circuit))
     # Compute the median probability of the output bit-strings.
-    median = np.median(list(results.values()))
+    median = statistics.median(results.state_vector())
+
+    # The output wave function is a vector from the result value (big-endian) to
+    # the probability of that bit-string. Compute a format string converts the
+    # given index to the corresponding qubit string.
+    format_str = '{0:0%sb}' % len(circuit.all_qubits())
     # Return all of the bit-strings that have a probability greater than the
     # median.
-    return ([bits for bits, prob in results.items() if prob >= median])
+    return ([format_str.format(idx) for idx, prob in
+             enumerate(results.state_vector()) if prob > median])
 
 
 def main(num_qubits: int, depth: int, num_repetitions: int):

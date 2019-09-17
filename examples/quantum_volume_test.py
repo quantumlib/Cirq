@@ -13,33 +13,31 @@
 # limitations under the License.
 """Tests for the Quantum Volume benchmarker."""
 
-from dev_tools.profiling import quantum_volume
+from examples import quantum_volume
 import cirq
 
 
 def test_generate_model_circuit():
     """Test that a model circuit is randomly generated."""
-    model_circuit = quantum_volume.generate_model_circuit(3, 3)
+    model_circuit = quantum_volume.generate_model_circuit(3, 3, 1)
 
-    assert len(model_circuit) == 25
+    assert len(model_circuit) == 24
+    # Ensure there are no measurement gates.
+    assert list(model_circuit.findall_operations_with_gate_type(
+        cirq.MeasurementGate)) == []
 
 
 def test_compute_heavy_set():
     """Test that the heavy set can be computed from a given circuit."""
-    a = cirq.GridQubit(0, 0)
-    b = cirq.GridQubit(0, 1)
-    c = cirq.GridQubit(0, 2)
+    a, b, c = cirq.LineQubit.range(3)
     model_circuit = cirq.Circuit([
         cirq.Moment([]),
         cirq.Moment([cirq.X(a), cirq.Y(b)]),
         cirq.Moment([]),
         cirq.Moment([cirq.CNOT(a, c)]),
-        cirq.Moment([cirq.Z(a), cirq.H(b)]),
-        cirq.Moment([cirq.measure(a),
-                     cirq.measure(b),
-                     cirq.measure(c)])
+        cirq.Moment([cirq.Z(a), cirq.H(b)])
     ])
-    assert quantum_volume.compute_heavy_set(model_circuit, 1234120) == ['101']
+    assert quantum_volume.compute_heavy_set(model_circuit) ==  ['111']
 
 
 def test_args_have_defaults():
