@@ -25,7 +25,7 @@ import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (get_timeslices,
-                                        are_ops_consistent_with_device_graph)
+                                        ops_are_consistent_with_device_graph)
 
 SWAP = cca.SwapPermutationGate()
 QidPair = Tuple[ops.Qid, ops.Qid]
@@ -263,7 +263,7 @@ class _GreedyRouter:
         while self.remaining_dag:
             self.apply_next_swaps()
             self.apply_possible_ops()
-        assert are_ops_consistent_with_device_graph(self.physical_ops,
+        assert ops_are_consistent_with_device_graph(self.physical_ops,
                                                     self.device_graph)
 
 

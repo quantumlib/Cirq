@@ -43,7 +43,7 @@ def get_timeslices(dag: circuits.CircuitDag) -> List[nx.Graph]:
     ]
 
 
-def are_ops_consistent_with_device_graph(ops: Iterable[ops.Operation],
+def ops_are_consistent_with_device_graph(ops: Iterable[ops.Operation],
                                          device_graph: nx.Graph) -> bool:
     for op in ops:
         if not set(op.qubits).issubset(device_graph):
