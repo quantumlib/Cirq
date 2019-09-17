@@ -23,8 +23,9 @@ def test_generate_model_circuit():
 
     assert len(model_circuit) == 24
     # Ensure there are no measurement gates.
-    assert list(model_circuit.findall_operations_with_gate_type(
-        cirq.MeasurementGate)) == []
+    assert list(
+        model_circuit.findall_operations_with_gate_type(
+            cirq.MeasurementGate)) == []
 
 
 def test_compute_heavy_set():
@@ -37,7 +38,7 @@ def test_compute_heavy_set():
         cirq.Moment([cirq.CNOT(a, c)]),
         cirq.Moment([cirq.Z(a), cirq.H(b)])
     ])
-    assert quantum_volume.compute_heavy_set(model_circuit) ==  ['111']
+    assert quantum_volume.compute_heavy_set(model_circuit) == ['111']
 
 
 def test_args_have_defaults():

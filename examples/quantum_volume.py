@@ -25,8 +25,8 @@ import numpy as np
 import cirq
 
 
-def generate_model_circuit(
-        num_qubits: int, depth: int, rs=None) -> cirq.Circuit:
+def generate_model_circuit(num_qubits: int, depth: int,
+                           rs=None) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
     The generated circuit consists of `depth` layers of random qubit
@@ -61,8 +61,10 @@ def generate_model_circuit(
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.
             ops = cirq.two_qubit_matrix_to_operations(
-                qubits[permuted_indices[0]], qubits[permuted_indices[1]],
-                special_unitary, allow_partial_czs=False)
+                qubits[permuted_indices[0]],
+                qubits[permuted_indices[1]],
+                special_unitary,
+                allow_partial_czs=False)
             circuit.append(ops)
 
     # Don't measure all of the qubits at the end of the circuit because we will
@@ -96,8 +98,11 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[str]:
     format_str = '{0:0%sb}' % len(circuit.all_qubits())
     # Return all of the bit-strings that have a probability greater than the
     # median.
-    return ([format_str.format(idx) for idx, prob in
-             enumerate(results.state_vector()) if prob > median])
+    return ([
+        format_str.format(idx)
+        for idx, prob in enumerate(results.state_vector())
+        if prob > median
+    ])
 
 
 def main(num_qubits: int, depth: int, num_repetitions: int):
