@@ -541,14 +541,14 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         each interaction from the given interactions. The (x, y, z) coordinates
         are normalized so that the maximum value is at 1 instead of at pi/4.
 
-        If frame is set to True or ax is set to None, then a black wireframe
-        outline of the canonicalized normalized KAK coefficient space. The space
-        is defined by the following two constraints:
+        If `include_frame` is set to True, then a black wireframe outline of the
+        canonicalized normalized KAK coefficient space. The space is defined by
+        the following two constraints:
 
             0 <= abs(z) <= y <= x <= 1
             if x = 1 then z >= 0
 
-        The wireframe has guide lines along the surface of the space at z=0.
+        The wireframe includes lines along the surface of the space at z=0.
 
     Args:
         interactions: An iterable of two qubit unitary interactions. Each
@@ -556,8 +556,8 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             object with a 4x4 unitary matrix according to `cirq.unitary` (
             (e.g. `cirq.CZ` or a `cirq.KakDecomposition` or a `cirq.Circuit`
             over two qubits).
-        include_frame: Determines whether or not to draw the kak space wireframe. If not
-            set. Defaults to `True`.
+        include_frame: Determines whether or not to draw the kak space
+            wireframe. If not set. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created.
         show: Whether or not to call `matplotlib.pyplot.show()`. Defaults to
