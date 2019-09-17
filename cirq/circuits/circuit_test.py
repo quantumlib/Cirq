@@ -3275,5 +3275,4 @@ def test_with_noise():
         ]),
     ])
     c_noisy = c.with_noise(Noise())
-    assert str(c_noisy) == str(c_expected)
     assert c_noisy == c_expected
