@@ -14,8 +14,8 @@ from cirq.ops import Qid
 from cirq.sim import Simulator, WaveFunctionTrialResult
 
 
-def estimate_circuit_fidelity(circuit: Circuit, qubit_order: Sequence[Qid],
-                              bitstrings: Sequence[int]) -> float:
+def compute_linear_xeb_fidelity(circuit: Circuit, qubit_order: Sequence[Qid],
+                                bitstrings: Sequence[int]) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
 
     Args:

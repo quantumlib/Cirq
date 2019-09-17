@@ -18,4 +18,4 @@ from cirq.experiments.cross_entropy_benchmarking import (
 )
 
 from cirq.experiments.fidelity_estimation import (
-    estimate_circuit_fidelity,)
+    compute_linear_xeb_fidelity,)
