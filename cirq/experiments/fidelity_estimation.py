@@ -43,6 +43,4 @@ def compute_linear_xeb_fidelity(
 
     output_state = final_wavefunction(circuit, qubit_order=qubit_order)
     output_probabilities = np.abs(output_state)**2
-    assert 1 - 1e-4 < np.sum(output_probabilities) < 1 + 1e-4
-    fidelity_estimate = dim * np.mean(output_probabilities[bitstrings]) - 1
-    return fidelity_estimate
+    return dim * np.mean(output_probabilities[bitstrings]) - 1
