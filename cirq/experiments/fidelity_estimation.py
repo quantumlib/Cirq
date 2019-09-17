@@ -39,7 +39,7 @@ def compute_linear_xeb_fidelity(
         if not 0 <= bitstring < dim:
             raise ValueError(
                 f'Bitstring {bitstring} could not have been observed '
-                f'on {len(qubit_order)} qubits.')
+                f'on {len(circuit.qid_shape())} qubits.')
 
     output_state = final_wavefunction(circuit, qubit_order=qubit_order)
     output_probabilities = np.abs(output_state)**2
