@@ -595,8 +595,8 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ...         include_frame=ax is None,
         ...         label=f'y={y:0.2f}')
         >>> _ = ax.legend()
-        >>> # import matplotlib.pyplot as plt
-        >>> # plt.show()
+        >>> import matplotlib.pyplot as plt
+        >>> plt.show()
     """
     if ax is None:
         fig = plt.figure()
