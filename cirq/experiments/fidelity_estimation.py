@@ -11,7 +11,7 @@ import numpy as np
 
 from cirq.circuits import Circuit
 from cirq.ops import Qid, QubitOrder, QubitOrderOrList
-from cirq.sim import Simulator, WaveFunctionTrialResult
+from cirq.sim import final_wavefunction
 
 
 def compute_linear_xeb_fidelity(
@@ -45,10 +45,8 @@ def compute_linear_xeb_fidelity(
                 f'Bitstring {bitstring} could not have been observed '
                 f'on {len(qubit_order)} qubits.')
 
-    simulator = Simulator()
-    result = cast(WaveFunctionTrialResult,
-                  simulator.simulate(circuit, qubit_order=qubit_order))
-    output_probabilities = np.abs(result.final_state)**2
+    output_state = final_wavefunction(circuit, qubit_order=qubit_order)
+    output_probabilities = np.abs(output_state)**2
     assert 1 - 1e-4 < np.sum(output_probabilities) < 1 + 1e-4
     fidelity_estimate = dim * np.mean(output_probabilities[bitstrings]) - 1
     return fidelity_estimate
