@@ -1,16 +1,3 @@
-# Copyright 2019 The Cirq Developers
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Tool to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926."""
 
@@ -18,15 +5,18 @@ import argparse
 import math
 import statistics
 import sys
-from typing import List, cast
+from typing import List, cast, Union
 
 import numpy as np
 
 import cirq
 
 
-def generate_model_circuit(num_qubits: int, depth: int,
-                           rs=None) -> cirq.Circuit:
+def generate_model_circuit(
+        num_qubits: int,
+        depth: int,
+        *,
+        random_state: Union[int, np.random.RandomState] = None) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
     The generated circuit consists of `depth` layers of random qubit
@@ -36,7 +26,7 @@ def generate_model_circuit(num_qubits: int, depth: int,
     Args:
         num_qubits: The number of qubits in the generated circuit.
         depth: The number of layers in the circuit.
-        rs: A numeric or RandomState to seed the qubit permutations with.
+        random_state: A way to seed the RandomState.
 
     Returns:
       The generated circuit.
@@ -44,8 +34,7 @@ def generate_model_circuit(num_qubits: int, depth: int,
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    if not isinstance(rs, np.random.RandomState):
-        rs = np.random.RandomState(rs)
+    rs = cirq.testing.get_seeded_state(random_state)
 
     # For each layer.
     for _ in range(depth):
@@ -54,18 +43,18 @@ def generate_model_circuit(num_qubits: int, depth: int,
 
         # For each consecutive pair in Pj, generate Haar random SU(4)
         # Decompose each SU(4) into CNOT + SU(2) and add to Ci
-        for k in range(math.floor(num_qubits / 2)):
-            permuted_indices = [int(perm[2 * k]), int(perm[2 * k + 1])]
-            special_unitary = cirq.testing.random_special_unitary(4)
+        for k in range(0, num_qubits - 1, 2):
+            permuted_indices = [int(perm[k]), int(perm[k + 1])]
+            special_unitary = cirq.testing.random_special_unitary(
+                4, random_state=random_state)
 
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.
-            ops = cirq.two_qubit_matrix_to_operations(
-                qubits[permuted_indices[0]],
-                qubits[permuted_indices[1]],
-                special_unitary,
-                allow_partial_czs=False)
-            circuit.append(ops)
+            circuit.append(
+                cirq.two_qubit_matrix_to_operations(qubits[permuted_indices[0]],
+                                                    qubits[permuted_indices[1]],
+                                                    special_unitary,
+                                                    allow_partial_czs=False))
 
     # Don't measure all of the qubits at the end of the circuit because we will
     # need to classically simulate it to compute its heavy set.
@@ -105,7 +94,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[str]:
     ])
 
 
-def main(num_qubits: int, depth: int, num_repetitions: int):
+def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
     """Run the quantum volume algorithm.
 
     The Quantum Volume benchmark is fairly straightforward. This algorithm will
@@ -122,7 +111,9 @@ def main(num_qubits: int, depth: int, num_repetitions: int):
         num_repetitions: The number of times to run the algorithm.
     """
     for _ in range(num_repetitions):
-        model_circuit = generate_model_circuit(num_qubits, depth)
+        model_circuit = generate_model_circuit(num_qubits,
+                                               depth,
+                                               random_state=seed)
         print(model_circuit)
         heavy_set = compute_heavy_set(model_circuit)
         print(heavy_set)
@@ -140,6 +131,10 @@ def parse_arguments(args):
                         default=4,
                         type=int,
                         help='SU(4) circuit depth.')
+    parser.add_argument('--seed',
+                        default=None,
+                        type=int,
+                        help='Seed for the Random Number Generator.')
     parser.add_argument(
         '--num_repetitions',
         default=100,
