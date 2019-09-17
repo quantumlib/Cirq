@@ -15,13 +15,25 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import Callable, List, Set, Tuple, TypeVar, Union
+from typing import (
+    Callable,
+    List,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+    Iterable,
+    Optional,
+)
 
 import math
 import cmath
 import numpy as np
 
-from cirq import value
+import matplotlib.pyplot as plt
+
+import cirq
+from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates
 
@@ -512,6 +524,89 @@ class KakDecomposition:
             interaction_matrix(y_mat, y),
             interaction_matrix(x_mat, x),
             before)
+
+
+def plot_normalized_kak_interaction_coefficients(interactions: Iterable[
+        Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
+                                                 *,
+                                                 ax: Optional[plt.Axes] = None,
+                                                 show: bool = False):
+    """Plots the interaction coefficients of many two-qubit operations.
+
+    Plots:
+        An orange point for the (x, y, z) normalized interaction coefficients of
+        each interaction from the given interactions. The (x, y, z) coordinates
+        are normalized so that the maximum value is at 1 instead of at pi/4.
+
+        A blue wireframe outline of the canonicalized normalized KAK
+        coefficient space, which is defined by the following two
+        constraints:
+
+            0 <= abs(z) <= y <= x <= 1
+            if x = 1 then z >= 0
+
+        In addition to the wireframe, there are guide lines along the z=0
+        surface of the space.
+
+    Args:
+        interactions: An iterable of two qubit unitary interactions. Each
+            interaction can be specified as a raw 4x4 unitary matrix, or an
+            object with a 4x4 unitary matrix according to `cirq.unitary` (
+            (e.g. `cirq.CZ` or a `cirq.KakDecomposition` or a `cirq.Circuit`
+            over two qubits).
+        ax: A matplotlib 3d axes object to plot into.
+        show: Whether or not to call `matplotlib.pyplot.show()`.
+
+    Returns:
+        The matplotlib 3d axes object that was plotted into.
+    """
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+
+    def coord_transform(
+            pts: List[Tuple[float, float, float]]
+    ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
+        xs, ys, zs = zip(*pts)
+        return xs, zs, ys
+
+    envelope = [
+        (0, 0, 0),
+        (1, 1, 1),
+        (1, 1, -1),
+        (0, 0, 0),
+        (1, 1, 1),
+        (1, 0, 0),
+        (0, 0, 0),
+        (1, 1, -1),
+        (1, 0, 0),
+        (0, 0, 0),
+        (1, 0, 0),
+        (1, 1, 0),
+        (0, 0, 0),
+    ]
+    ax.plot(*coord_transform(envelope), c='C0', linewidth=1)
+
+    points = []
+    for obj in interactions:
+        if isinstance(obj, KakDecomposition):
+            kak = obj
+        elif isinstance(obj, np.ndarray) and obj.shape == (4, 4):
+            kak = kak_decomposition(obj)
+        else:
+            kak = kak_decomposition(protocols.unitary(obj))
+        normalized = np.array(kak.interaction_coefficients) * 4 / np.pi
+        points.append(normalized)
+
+    ax.scatter(*coord_transform(points), c='C1', s=1)
+    ax.set_xlim(0, +1)
+    ax.set_ylim(-1, +1)
+    ax.set_zlim(0, +1)
+
+    if show:
+        plt.show()
+
+    return ax
 
 
 def kak_canonicalize_vector(x: float, y: float, z: float,
