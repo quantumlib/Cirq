@@ -388,6 +388,7 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsMixture,
