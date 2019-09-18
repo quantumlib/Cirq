@@ -61,7 +61,7 @@ matrix:
     install: 
       - PYTHON=3.6.0
       - brew update
-      - brew install openssl readline pyenv-virtualenv
+      - brew install pyenv-virtualenv
       - brew outdated pyenv || brew upgrade pyenv
       - pyenv install $PYTHON
       - export PYENV_VERSION=$PYTHON
