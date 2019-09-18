@@ -7,12 +7,12 @@ Usage:
 
 Output:
     This program is still in progress. Currently, it will print out the Heavy
-    Set of bit-strings produced by a randomly-generated model circuit.
-    Example: ['0001', '0010', '0100', '0101', '0110', '0111', '1011', '1111']
+    Set of result values that represent the bit-strings produced by a
+    randomly-generated model circuit.  Example: [1, 5, 7]
+
 """
 
 import argparse
-import statistics
 import sys
 from typing import Optional, List, cast
 
@@ -30,7 +30,7 @@ def generate_model_circuit(num_qubits: int,
 
     The generated circuit consists of `depth` layers of random qubit
     permutations followed by random two-qubit gates that are sampled from the
-    Haar measure on SU(r).
+    Haar measure on SU(4).
 
     Args:
         num_qubits: The number of qubits in the generated circuit.
@@ -44,7 +44,7 @@ def generate_model_circuit(num_qubits: int,
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
     if random_state is None:
-        random_state = np.random.RandomState()
+        random_state = np.random
 
     # For each layer.
     for _ in range(depth):
@@ -71,7 +71,7 @@ def generate_model_circuit(num_qubits: int,
     return circuit
 
 
-def compute_heavy_set(circuit: cirq.Circuit) -> List[str]:
+def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     """Classically compute the heavy set of the given circuit.
 
     The heavy set is defined as the output bit-strings that have a greater than
@@ -88,19 +88,19 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[str]:
     simulator = cirq.Simulator()
     results = cast(cirq.WaveFunctionTrialResult,
                    simulator.simulate(program=circuit))
-    # Compute the median probability of the output bit-strings.
-    median = statistics.median(results.state_vector())
+
+    # Compute the median probability of the output bit-strings. Note that heavy
+    # output is defined in terms of probabilities, where our wave function is in
+    # terms of amplitudes. We convert it by using the Born rule: squaring each
+    # amplitude and taking their absolute value
+    median = np.median(np.abs(results.state_vector()**2))
 
     # The output wave function is a vector from the result value (big-endian) to
-    # the probability of that bit-string. Compute a format string converts the
-    # given index to the corresponding qubit string.
-    format_str = '{0:0%sb}' % len(circuit.all_qubits())
-    # Return all of the bit-strings that have a probability greater than the
-    # median.
+    # the probability of that bit-string. Return all of the bit-string
+    # values that have a probability greater than the median.
     return [
-        format_str.format(idx)
-        for idx, prob in enumerate(results.state_vector())
-        if prob > median
+        idx for idx, prob in enumerate(results.state_vector())
+        if np.abs(prob**2) > median
     ]
 
 

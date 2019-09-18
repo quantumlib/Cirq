@@ -17,6 +17,17 @@ def test_generate_model_circuit():
             cirq.MeasurementGate)) == []
 
 
+def test_generate_model_circuit_without_seed():
+    """Test that a model circuit is randomly generated without a seed."""
+    model_circuit = quantum_volume.generate_model_circuit(3, 3)
+
+    assert len(model_circuit) == 24
+    # Ensure there are no measurement gates.
+    assert list(
+        model_circuit.findall_operations_with_gate_type(
+            cirq.MeasurementGate)) == []
+
+
 def test_generate_model_circuit_seed():
     """Test that a model circuit is determined by its seed ."""
     model_circuit_1 = quantum_volume.generate_model_circuit(
@@ -40,7 +51,7 @@ def test_compute_heavy_set():
         cirq.Moment([cirq.CNOT(a, c)]),
         cirq.Moment([cirq.Z(a), cirq.H(b)])
     ])
-    assert quantum_volume.compute_heavy_set(model_circuit) == ['111']
+    assert quantum_volume.compute_heavy_set(model_circuit) == [5, 7]
 
 
 def test_main_loop():

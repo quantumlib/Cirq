@@ -54,7 +54,7 @@ def random_unitary(dim: int,
         http://arxiv.org/abs/math-ph/0609050
     """
     if random_state is None:
-        random_state = np.random.RandomState()
+        random_state = np.random
 
     z = (random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim))
     q, r = np.linalg.qr(z)
