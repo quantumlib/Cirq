@@ -64,4 +64,4 @@ class GlobalPhaseOperation(raw_types.Operation):
         return 'cirq.GlobalPhaseOperation({!r})'.format(self.coefficient)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['coefficient'])
+        return protocols.obj_to_dict_helper(self, ['coefficient'])

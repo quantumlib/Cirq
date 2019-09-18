@@ -43,9 +43,19 @@ class HasUnitary:
         return self._unitary
 
 
+class HasQuditUnitary:
+
+    def _qid_shape_(self):
+        return (3,)
+
+    def _unitary_(self) -> np.ndarray:
+        raise NotImplementedError
+
+
 @pytest.mark.parametrize('val', (
     NoMethod(),
     ReturnsNotImplemented(),
+    HasQuditUnitary(),
     123,
     np.eye(2),
     object(),
@@ -53,7 +63,7 @@ class HasUnitary:
 ))
 def test_raises_no_pauli_expansion(val):
     assert cirq.pauli_expansion(val, default=None) is None
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='No Pauli expansion'):
         cirq.pauli_expansion(val)
 
 

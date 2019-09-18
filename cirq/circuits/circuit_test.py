@@ -16,7 +16,7 @@ from typing import Tuple
 
 from collections import defaultdict
 from random import randint, random, sample, randrange
-
+import os
 import numpy as np
 import pytest
 import sympy
@@ -65,6 +65,23 @@ def test_insert_moment_types():
 
     moment_or_operation_tree = [[cirq.Moment([cirq.X(x)])]]
     circuit.insert(0, moment_or_operation_tree)
+
+
+def test_setitem():
+    circuit = cirq.Circuit([cirq.Moment(), cirq.Moment()])
+
+    circuit[1] = cirq.Moment([cirq.X(cirq.LineQubit(0))])
+    assert circuit == cirq.Circuit(
+        [cirq.Moment(), cirq.Moment([cirq.X(cirq.LineQubit(0))])])
+
+    circuit[1:1] = (cirq.Moment([cirq.Y(cirq.LineQubit(0))]),
+                    cirq.Moment([cirq.Z(cirq.LineQubit(0))]))
+    assert circuit == cirq.Circuit([
+        cirq.Moment(),
+        cirq.Moment([cirq.Y(cirq.LineQubit(0))]),
+        cirq.Moment([cirq.Z(cirq.LineQubit(0))]),
+        cirq.Moment([cirq.X(cirq.LineQubit(0))]),
+    ])
 
 
 def test_equality():
@@ -1459,18 +1476,17 @@ def test_qid_shape_qubit():
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
 
-    circ = cirq.Circuit([
+    circuit = cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(b)]),
     ])
 
-    assert cirq.qid_shape(circ) == (2, 2)
-    assert cirq.num_qubits(circ) == 2
-    assert cirq.max_qid_shape(circ) == (2, 2)
-    assert cirq.max_qid_shape(circ, qubit_order=[c, a, b],
-                              default_level=2) == (2, 2, 2)
+    assert cirq.qid_shape(circuit) == (2, 2)
+    assert cirq.num_qubits(circuit) == 2
+    assert circuit.qid_shape() == (2, 2)
+    assert circuit.qid_shape(qubit_order=[c, a, b]) == (2, 2, 2)
     with pytest.raises(ValueError, match='extra qubits'):
-        _ = cirq.max_qid_shape(circ, qubit_order=[a])
+        _ = circuit.qid_shape(qubit_order=[a])
 
 
 def test_qid_shape_qudit():
@@ -1490,29 +1506,20 @@ def test_qid_shape_qudit():
         def _qid_shape_(self):
             return (1,)
 
-    a, b, c, d, e, f, g = cirq.LineQubit.range(7)
+    a, b, c = cirq.LineQid.for_qid_shape((3, 2, 1))
 
-    circ = cirq.Circuit.from_ops(
-        IdentityGate().on_each(a, b, c),  # a->1, b->1, c->1
-        PlusOneMod3Gate().on_each(c, d),  # c->3, d->3
-        C2NotGate().on(d, e),  # d:3->3, e->2
-        C2NotGate().on(f, b),  # f->3, b:1->2
-        IdentityGate().on_each(e, f),  # e:2, f:3
+    circuit = cirq.Circuit.from_ops(
+        PlusOneMod3Gate().on(a),
+        C2NotGate().on(a, b),
+        IdentityGate().on_each(c),
     )
 
-    assert cirq.qid_shape(circ) == (1, 2, 3, 3, 2, 3)
-    assert cirq.num_qubits(circ) == 6
-    assert cirq.max_qid_shape(circ) == (1, 2, 3, 3, 2, 3)
-    assert cirq.max_qid_shape(circ, default_level=2) == (1, 2, 3, 3, 2, 3)
-    assert (cirq.max_qid_shape(circ, qubit_order=[f, e, d, c, b,
-                                                  a]) == (3, 2, 3, 3, 2, 1))
-    assert (cirq.max_qid_shape(circ, qubit_order=[g, f, e, d, c, b,
-                                                  a]) == (1, 3, 2, 3, 3, 2, 1))
-    assert (cirq.max_qid_shape(circ,
-                               qubit_order=[g, f, e, d, c, b, a],
-                               default_level=2) == (2, 3, 2, 3, 3, 2, 1))
+    assert cirq.num_qubits(circuit) == 3
+    assert cirq.qid_shape(circuit) == (3, 2, 1)
+    assert circuit.qid_shape() == (3, 2, 1)
+    assert circuit.qid_shape()
     with pytest.raises(ValueError, match='extra qubits'):
-        _ = cirq.max_qid_shape(circ, qubit_order=[g, a, b, c])
+        _ = circuit.qid_shape(qubit_order=[b, c])
 
 
 def test_from_ops():
@@ -2776,15 +2783,16 @@ x q[0];
 """.format(cirq.__version__))
 
 
-def test_save_qasm():
+def test_save_qasm(tmpdir):
+    file_path = os.path.join(tmpdir, 'test.qasm')
     q0 = cirq.NamedQubit('q0')
     circuit = cirq.Circuit.from_ops(
         cirq.X(q0),
     )
-    with cirq.testing.TempFilePath() as file_path:
-        circuit.save_qasm(file_path)
-        with open(file_path, 'r') as f:
-            file_content = f.read()
+
+    circuit.save_qasm(file_path)
+    with open(file_path, 'r') as f:
+        file_content = f.read()
     assert (file_content == """// Generated from Cirq v{}
 
 OPENQASM 2.0;
@@ -3189,6 +3197,39 @@ def test_moments_property():
     assert c.moments[1] == cirq.Moment([cirq.Y(q)])
 
 
+def test_operation_shape_validation():
+
+    class BadOperation1(cirq.Operation):
+
+        def _qid_shape_(self):
+            return (1,)
+
+        @property
+        def qubits(self):
+            return cirq.LineQid.for_qid_shape((1, 2, 3))
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError
+
+    class BadOperation2(cirq.Operation):
+
+        def _qid_shape_(self):
+            return (1, 2, 3, 9)
+
+        @property
+        def qubits(self):
+            return cirq.LineQid.for_qid_shape((1, 2, 3))
+
+        def with_qubits(self, *qubits):
+            raise NotImplementedError
+
+    _ = cirq.Circuit.from_ops(cirq.X(cirq.LineQid(0, 2)))  # Valid
+    with pytest.raises(ValueError, match='Invalid operation'):
+        _ = cirq.Circuit.from_ops(BadOperation1())
+    with pytest.raises(ValueError, match='Invalid operation'):
+        _ = cirq.Circuit.from_ops(BadOperation2())
+
+
 def test_json_dict():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.Circuit.from_ops(cirq.CNOT(q0, q1))
@@ -3197,3 +3238,41 @@ def test_json_dict():
         'moments': [cirq.Moment([cirq.CNOT(q0, q1)])],
         'device': cirq.UNCONSTRAINED_DEVICE,
     }
+
+
+def test_with_noise():
+
+    class Noise(cirq.NoiseModel):
+
+        def noisy_operation(self, operation):
+            yield operation
+            if cirq.LineQubit(0) in operation.qubits:
+                yield cirq.H(cirq.LineQubit(0))
+
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(
+        cirq.X(q0),
+        cirq.Y(q1),
+        cirq.Z(q1),
+        cirq.Moment([cirq.X(q0)]),
+    )
+    c_expected = cirq.Circuit([
+        cirq.Moment([
+            cirq.X(q0),
+            cirq.Y(q1),
+        ]),
+        cirq.Moment([
+            cirq.H(q0),
+        ]),
+        cirq.Moment([
+            cirq.Z(q1),
+        ]),
+        cirq.Moment([
+            cirq.X(q0),
+        ]),
+        cirq.Moment([
+            cirq.H(q0),
+        ]),
+    ])
+    c_noisy = c.with_noise(Noise())
+    assert c_noisy == c_expected

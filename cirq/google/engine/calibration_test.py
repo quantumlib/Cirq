@@ -83,8 +83,14 @@ def test_calibration_metrics_dictionary():
 
     with pytest.raises(TypeError, match="was 1"):
         _ = calibration[1]
-    with pytest.raises(KeyError, match='notit'):
-        _ = calibration['notit']
+    with pytest.raises(KeyError, match='not-it'):
+        _ = calibration['not-it']
+
+
+def test_calibration_str():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    assert str(calibration) == ("Calibration(keys=['globalMetric', 't1', "
+                                "'xeb'])")
 
 
 def test_calibration_heatmap():

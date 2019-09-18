@@ -35,7 +35,7 @@ from cirq.ops.common_channels import (
     phase_flip,
     PhaseDampingChannel,
     PhaseFlipChannel,
-    RESET,
+    reset,
     ResetChannel,
 )
 
@@ -48,6 +48,7 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     ISWAP,
     ISwapPowGate,
@@ -72,8 +73,7 @@ from cirq.ops.controlled_gate import (
 from cirq.ops.display import (
     ApproxPauliStringExpectation,
     DensityMatrixDisplay,
-    pauli_string_expectation,
-    PauliStringExpectation,
+    approx_pauli_string_expectation,
     SamplesDisplay,
     WaveFunctionDisplay,
 )
@@ -133,7 +133,6 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
-    max_qid_shape,
     OP_TREE,
     transform_op_tree,
 )

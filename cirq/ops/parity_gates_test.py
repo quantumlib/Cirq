@@ -29,7 +29,7 @@ import cirq
 )
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-            eigen_gate_type)
+        eigen_gate_type)
 
 
 def test_xx_init():

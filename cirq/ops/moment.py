@@ -17,7 +17,6 @@
 from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
 
 from cirq import protocols
-from cirq.protocols import approx_eq
 from cirq.ops import raw_types
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
@@ -113,19 +112,27 @@ class Moment:
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.operations == other.operations
+
+        return (sorted(self.operations, key=lambda op: op.qubits) == sorted(
+            other.operations, key=lambda op: op.qubits))
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
-        return approx_eq(self.operations, other.operations, atol=atol)
+
+        return protocols.approx_eq(sorted(self.operations,
+                                          key=lambda op: op.qubits),
+                                   sorted(other.operations,
+                                          key=lambda op: op.qubits),
+                                   atol=atol)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((Moment, self.operations))
+        return hash(
+            (Moment, tuple(sorted(self.operations, key=lambda op: op.qubits))))
 
     def __iter__(self):
         return iter(self.operations)
@@ -149,7 +156,7 @@ class Moment:
                 for op in self.operations)
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['operations'])
+        return protocols.obj_to_dict_helper(self, ['operations'])
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:

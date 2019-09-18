@@ -16,12 +16,34 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Type, Union
+from typing import Dict, Iterator, List, Tuple, Type, Union
 
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
+
+
+class _FlipGate(ops.SingleQubitGate):
+    """A unitary gate that flips the |0> state with another state.
+
+    Used by `Simulator` to reset a qubit.
+    """
+
+    def __init__(self, dimension: int, reset_value: int):
+        assert 0 < reset_value < dimension
+        self.dimension = dimension
+        self.reset_value = reset_value
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return (self.dimension,)
+
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
+        args.available_buffer[..., 0] = args.target_tensor[..., self.
+                                                           reset_value]
+        args.available_buffer[..., self.
+                              reset_value] = args.target_tensor[..., 0]
+        return args.available_buffer
 
 
 # Mutable named tuple to hold state and a buffer.
@@ -188,7 +210,7 @@ class Simulator(simulator.SimulatesSamples,
                 for k, v in step_result.measurements.items():
                     if not k in measurements:
                         measurements[k] = []
-                    measurements[k].append(np.array(v, dtype=bool))
+                    measurements[k].append(np.array(v, dtype=np.uint8))
         return {k: np.array(v) for k, v in measurements.items()}
 
     def _simulator_iterator(
@@ -225,10 +247,12 @@ class Simulator(simulator.SimulatesSamples,
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
                 circuit.all_qubits())
         num_qubits = len(qubits)
+        qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
         state = wave_function.to_valid_state_vector(initial_state,
                                                     num_qubits,
-                                                    self._dtype)
+                                                    qid_shape=qid_shape,
+                                                    dtype=self._dtype)
         if len(circuit) == 0:
             yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
@@ -242,16 +266,16 @@ class Simulator(simulator.SimulatesSamples,
 
         def keep(potential_op: ops.Operation) -> bool:
             # The order of this is optimized to call has_xxx methods first.
-            return (protocols.has_unitary(potential_op)
-                    or protocols.has_mixture(potential_op)
-                    or protocols.is_measurement(potential_op))
+            return (protocols.has_unitary(potential_op) or
+                    protocols.has_mixture(potential_op) or
+                    protocols.is_measurement(potential_op) or
+                    ops.op_gate_isinstance(potential_op, ops.ResetChannel))
 
-        data = _StateAndBuffer(
-                state=np.reshape(state, (2,) * num_qubits),
-                buffer=np.empty((2,) * num_qubits, dtype=self._dtype))
+        data = _StateAndBuffer(state=np.reshape(state, qid_shape),
+                               buffer=np.empty(qid_shape, dtype=self._dtype))
         for moment in circuit:
             measurements = collections.defaultdict(
-                    list)  # type: Dict[str, List[bool]]
+                list)  # type: Dict[str, List[int]]
 
             non_display_ops = (op for op in moment
                                if not isinstance(op, (ops.SamplesDisplay,
@@ -265,7 +289,9 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if protocols.has_unitary(op):
+                if ops.op_gate_isinstance(op, ops.ResetChannel):
+                    self._simulate_reset(op, data, indices)
+                elif protocols.has_unitary(op):
                     self._simulate_unitary(op, data, indices)
                 elif protocols.is_measurement(op):
                     # Do measurements second, since there may be mixtures that
@@ -296,18 +322,33 @@ class Simulator(simulator.SimulatesSamples,
             data.buffer = data.state
         data.state = result
 
+    def _simulate_reset(self, op: ops.Operation, data: _StateAndBuffer,
+                        indices: List[int]) -> None:
+        """Simulate an op that is a reset to the |0> state."""
+        reset = ops.op_gate_of_type(op, ops.ResetChannel)
+        if reset:
+            # Do a silent measurement.
+            bits, _ = wave_function.measure_state_vector(
+                data.state, indices, out=data.state, qid_shape=data.state.shape)
+            # Apply bit flip(s) to change the reset the bits to 0.
+            for b, i, d in zip(bits, indices, protocols.qid_shape(reset)):
+                if b == 0:
+                    continue  # Already zero, no reset needed
+                reset_unitary = _FlipGate(d, reset_value=b)(*op.qubits)
+                self._simulate_unitary(reset_unitary, data, [i])
+
     def _simulate_measurement(self, op: ops.Operation, data: _StateAndBuffer,
-            indices: List[int], measurements: Dict[str, List[bool]],
-            num_qubits: int) -> None:
+                              indices: List[int],
+                              measurements: Dict[str, List[int]],
+                              num_qubits: int) -> None:
         """Simulate an op that is a measurement in the computataional basis."""
         meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         # TODO: support measurement outside computational basis.
         if meas:
             invert_mask = meas.full_invert_mask()
             # Measure updates inline.
-            bits, _ = wave_function.measure_state_vector(data.state,
-                                                         indices,
-                                                         data.state)
+            bits, _ = wave_function.measure_state_vector(
+                data.state, indices, out=data.state, qid_shape=data.state.shape)
             corrected = [bit ^ mask for bit, mask in zip(bits, invert_mask)]
             key = protocols.measurement_key(meas)
             measurements[key].extend(corrected)
@@ -320,7 +361,7 @@ class Simulator(simulator.SimulatesSamples,
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
         index = np.random.choice(range(len(unitaries)), p=probs)
-        shape = (2,) * (2 * len(indices))
+        shape = protocols.qid_shape(op) * 2
         unitary = unitaries[index].astype(self._dtype).reshape(shape)
         result = linalg.targeted_left_multiply(unitary, data.state, indices,
                                                out=data.buffer)
@@ -356,7 +397,8 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         """
         super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
-        self._state_vector = np.reshape(state_vector, 2 ** len(qubit_map))
+        size = np.prod(protocols.qid_shape(self), dtype=int)
+        self._state_vector = np.reshape(state_vector, size)
 
     def _simulator_state(self
                         ) -> wave_function_simulator.WaveFunctionSimulatorState:
@@ -393,13 +435,18 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         return self._simulator_state().state_vector
 
     def set_state_vector(self, state: Union[int, np.ndarray]):
-        update_state = wave_function.to_valid_state_vector(state,
-                                                           len(self.qubit_map),
-                                                           self._dtype)
+        update_state = wave_function.to_valid_state_vector(
+            state,
+            len(self.qubit_map),
+            qid_shape=protocols.qid_shape(self, None),
+            dtype=self._dtype)
         np.copyto(self._state_vector, update_state)
 
     def sample(self, qubits: List[ops.Qid],
                repetitions: int = 1) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
-        return wave_function.sample_state_vector(self._state_vector, indices,
-                                                 repetitions)
+        return wave_function.sample_state_vector(self._state_vector,
+                                                 indices,
+                                                 qid_shape=protocols.qid_shape(
+                                                     self, None),
+                                                 repetitions=repetitions)

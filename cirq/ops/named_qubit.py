@@ -31,6 +31,10 @@ class NamedQubit(raw_types.Qid):
     def _comparison_key(self):
         return self._comp_key
 
+    @property
+    def dimension(self) -> int:
+        return 2
+
     def __str__(self):
         return self._name
 
@@ -61,7 +65,7 @@ class NamedQubit(raw_types.Qid):
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['name'])
+        return protocols.obj_to_dict_helper(self, ['name'])
 
 
 def _pad_digits(text: str) -> str:

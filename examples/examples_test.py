@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import cirq
 import examples.basic_arithmetic
@@ -16,6 +17,7 @@ import examples.qaoa
 import examples.quantum_fourier_transform
 import examples.quantum_teleportation
 import examples.qubit_characterizations_example
+import examples.shor
 import examples.superdense_coding
 import examples.swap_networks
 
@@ -96,3 +98,49 @@ def test_example_cross_entropy_benchmarking():
     examples.cross_entropy_benchmarking_example.main(repetitions=10,
                                                      num_circuits=2,
                                                      cycles=[2, 3, 4])
+
+
+@pytest.mark.parametrize('x, n', ((4, 7), (6, 49), (7, 810)))
+def test_example_shor_naive_order_finder(x, n):
+    r = examples.shor.naive_order_finder(x, n)
+    y = x
+    for _ in range(1, r):
+        assert y % n != 1
+        y *= x
+    assert y % n == 1
+
+
+@pytest.mark.parametrize('x, n', ((4, 7), (6, 49), (7, 810)))
+def test_example_shor_quantum_order_finder(x, n):
+    with pytest.raises(NotImplementedError):
+        _ = examples.shor.quantum_order_finder(x, n)
+
+
+@pytest.mark.parametrize('x, n', ((1, 7), (7, 7)))
+def test_example_shor_naive_order_finder_invalid_x(x, n):
+    with pytest.raises(ValueError):
+        _ = examples.shor.naive_order_finder(x, n)
+
+
+@pytest.mark.parametrize('n', (4, 6, 15, 125, 101 * 103, 127 * 127))
+def test_example_shor_find_factor_composite(n):
+    d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
+    assert 1 < d < n
+    assert n % d == 0
+
+
+@pytest.mark.parametrize('n', (2, 3, 5, 11, 101, 127, 907))
+def test_example_shor_find_factor_prime(n):
+    d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
+    assert d is None
+
+
+@pytest.mark.parametrize('n', (2, 3, 15, 17, 2**89 - 1))
+def test_example_runs_shor_valid(n):
+    examples.shor.main(n=n)
+
+
+@pytest.mark.parametrize('n', (-1, 0, 1))
+def test_example_runs_shor_invalid(n):
+    with pytest.raises(ValueError):
+        examples.shor.main(n=n)
