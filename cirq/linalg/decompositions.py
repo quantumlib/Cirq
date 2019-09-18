@@ -536,7 +536,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax: Optional[plt.Axes] = None,
         show: bool = False,
         **kwargs):
-    """Plots the interaction coefficients of many two-qubit operations.
+    f"""Plots the interaction coefficients of many two-qubit operations.
 
     Plots:
         A point for the (x, y, z) normalized interaction coefficients of
@@ -552,6 +552,19 @@ def scatter_plot_normalized_kak_interaction_coefficients(
 
         The wireframe includes lines along the surface of the space at z=0.
 
+        The space is a prism with the identity at the origin, a crease along
+        y=z=0 leading to the CZ/CNOT at x=1 and a vertical triangular face that
+        contains the iswap at x=y=1,z=0 and the swap at x=y=z=1:
+
+                                 (x=1,y=1,z=0)
+                             swap___iswap___swap (x=1,y=1,z=+-1)
+                               _/\    |    /
+                             _/   \   |   /
+                           _/      \  |  /
+                         _/         \ | /
+                       _/            \|/
+        (x=0,y=0,z=0) I---------------CZ (x=1,y=0,z=0)
+
     Args:
         interactions: An iterable of two qubit unitary interactions. Each
             interaction can be specified as a raw 4x4 unitary matrix, or an
@@ -559,7 +572,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
             (e.g. `cirq.CZ` or a `cirq.KakDecomposition` or a `cirq.Circuit`
             over two qubits).
         include_frame: Determines whether or not to draw the kak space
-            wireframe. If not set. Defaults to `True`.
+            wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
             figure is created.
         show: Whether or not to call `matplotlib.pyplot.show()`. Defaults to
