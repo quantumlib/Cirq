@@ -36,11 +36,12 @@ def test_route_circuit(circuit, device_graph, algo):
     assert ccr.is_valid_routing(circuit, swap_network)
 
 
-@pytest.mark.parametrize('circuit,device_graph,algo,make_bad',
-                         [(cirq.testing.random_circuit(4, 8, 0.5),
-                           ccr.get_grid_device_graph(3, 2), 'greedy', make_bad)
-                          for make_bad in (False, True)
-                          for _ in range(5)])
+@pytest.mark.parametrize(
+    'circuit,device_graph,algo,make_bad', [(cirq.testing.random_circuit(
+        4, 8, 0.5), ccr.get_grid_device_graph(3, 2), 'greedy', make_bad)
+                                           for make_bad in (False, True)
+                                           for _ in range(5)] +
+    [(cirq.Circuit(), ccr.get_grid_device_graph(3, 2), 'greedy', False)])
 def test_route_circuit_via_unitaries(circuit, device_graph, algo, make_bad):
     swap_network = ccr.route_circuit(circuit, device_graph, algo_name=algo)
 
