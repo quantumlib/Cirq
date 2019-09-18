@@ -231,17 +231,24 @@ def test_kak_canonicalize_vector(x, y, z):
     SWAP * 1j,
     CZ,
     CNOT,
-    SWAP.dot(CZ),
-] + [
-    cirq.testing.random_unitary(4)
-    for _ in range(10)
-])
+    SWAP @ CZ,
+] + [cirq.testing.random_unitary(4) for _ in range(10)])
 def test_kak_decomposition(target):
     kak = cirq.kak_decomposition(target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 
+def test_kak_decomposition_unitary_object():
+    op = cirq.ISWAP(*cirq.LineQubit.range(2))**0.5
+    kak = cirq.kak_decomposition(op)
+    np.testing.assert_allclose(cirq.unitary(kak), cirq.unitary(op), atol=1e-8)
+    assert cirq.kak_decomposition(kak) is kak
+
+
 def test_kak_decomposition_invalid_object():
+    with pytest.raises(TypeError, match='unitary effect'):
+        _ = cirq.kak_decomposition('test')
+
     with pytest.raises(ValueError, match='4x4 unitary matrix'):
         _ = cirq.kak_decomposition(np.eye(3))
 
@@ -494,3 +501,18 @@ def test_axis_angle_init():
 
     with pytest.raises(ValueError, match='normalize'):
         cirq.AxisAngleDecomposition(angle=1, axis=(0, 0.5, 0), global_phase=1)
+
+
+def test_scatter_plot_normalized_kak_interaction_coefficients():
+    a, b = cirq.LineQubit.range(2)
+    data = [
+        cirq.kak_decomposition(cirq.unitary(cirq.CZ)),
+        cirq.unitary(cirq.CZ),
+        cirq.CZ,
+        cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b)),
+    ]
+    ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
+    assert ax is not None
+    ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
+        data, s=1, c='blue', ax=ax, include_frame=False, label=f'test')
+    assert ax2 is ax

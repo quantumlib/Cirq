@@ -41,6 +41,8 @@ IGNORED_LINE_PATTERNS = [
     r'^assert False.*$',
     # Code testing if libraries are present.
     r'except ImportError',
+    # Plotting code.
+    r'plt\.show\(\)',
 ]
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 
