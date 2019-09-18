@@ -255,22 +255,19 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 
     # Pauli observable display
     c.append([
-        cirq.pauli_string_expectation(
-            cirq.PauliString({ancilla: cirq.Z}),
-            key='a'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({memory: cirq.X}),
-            key='x'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({memory: cirq.Y}),
-            key='y'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({memory: cirq.Z}),
-            key='z'
-        ),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({ancilla:
+                                                               cirq.Z}),
+                                             num_samples=5000,
+                                             key='a'),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({memory: cirq.X}),
+                                             num_samples=5000,
+                                             key='x'),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({memory: cirq.Y}),
+                                             num_samples=5000,
+                                             key='y'),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({memory: cirq.Z}),
+                                             num_samples=5000,
+                                             key='z'),
     ])
 
     return c

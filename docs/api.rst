@@ -186,9 +186,8 @@ Displays
     :toctree: generated/
 
     ApproxPauliStringExpectation
-    pauli_string_expectation
+    approx_pauli_string_expectation
     DensityMatrixDisplay
-    PauliStringExpectation
     SamplesDisplay
     WaveFunctionDisplay
 
@@ -308,10 +307,12 @@ operations, and other types.
     mixture
     mixture_channel
     mul
+    num_qubits
     pauli_expansion
     phase_by
     pow
     qasm
+    qid_shape
     resolve_parameters
     trace_distance_bound
     unitary
@@ -338,6 +339,9 @@ Classes defining and used by the magic method protocols.
     SupportsCircuitDiagramInfo
     SupportsDecompose
     SupportsDecomposeWithQubits
+    SupportsExplicitHasUnitary
+    SupportsExplicitNumQubits
+    SupportsExplicitQidShape
     SupportsMixture
     SupportsParameterization
     SupportsPhase
@@ -522,8 +526,6 @@ general testing utilities.
     testing.random_special_unitary
     testing.random_superposition
     testing.random_unitary
-    testing.TempDirectoryPath
-    testing.TempFilePath
 
 
 Contrib

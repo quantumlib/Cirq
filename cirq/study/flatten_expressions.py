@@ -13,8 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import (overload, Any, Callable, Dict, Iterator, List, Optional,
-                    Tuple, Union)
+from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import sympy
 
@@ -337,7 +336,15 @@ class ExpressionMap(dict):
             sweep: The sweep to transform.
         """
         sweep = sweepable.to_sweep(sweep)
-        return _TransformedSweep(sweep, dict(self))
+        param_list = []
+        for r in sweep:
+            param_dict = {}
+            for formula, sym in self.items():
+                if isinstance(sym, (sympy.Symbol, str)):
+                    param_dict[str(sym)] = protocols.resolve_parameters(
+                        formula, r)
+            param_list.append(param_dict)
+        return sweeps.ListSweep(param_list)
 
     def transform_params(self, params: resolver.ParamResolverOrSimilarType
                         ) -> resolver.ParamDictType:
@@ -362,42 +369,6 @@ class ExpressionMap(dict):
 
     def __repr__(self):
         return 'cirq.ExpressionMap({})'.format(super().__repr__())
-
-
-@value.value_equality(unhashable=True)
-class _TransformedSweep(sweeps.Sweep):
-    """A sweep created by `ExpressionMap.transform_sweep`."""
-
-    def __init__(self, sweep: sweeps.Sweep,
-                 expression_map: Dict[Union[sympy.Basic, float],
-                                      Union[sympy.Basic, float]]):
-        self.sweep = sweep
-        self.expression_map = expression_map
-
-    def _value_equality_values_(self):
-        return self.sweep, self.expression_map
-
-    # The value_equality decorator implements the __eq__ method after the ABC
-    # meta class had recorded that __eq__ is an abstract method.
-    def __eq__(self, other):
-        raise NotImplementedError  # coverage: ignore
-
-    @property
-    def keys(self) -> List[str]:
-        return [
-            str(sym)
-            for sym in self.expression_map.values()
-            if isinstance(sym, (sympy.Symbol, str))
-        ]
-
-    def __len__(self) -> int:
-        return len(self.sweep)
-
-    def param_tuples(self) -> Iterator[sweeps.Params]:
-        for r in self.sweep:
-            yield tuple((str(sym), protocols.resolve_parameters(formula, r))
-                        for formula, sym in self.expression_map.items()
-                        if isinstance(sym, (sympy.Symbol, str)))
 
 
 @overload

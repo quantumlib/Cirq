@@ -109,7 +109,7 @@ def final_wavefunction(
         pass
     elif isinstance(program, ops.Gate):
         program = circuits.Circuit.from_ops(
-            program.on(*devices.LineQubit.range(program.num_qubits())))
+            program.on(*devices.LineQid.for_gate(program)))
     else:
         # It should be an OP_TREE.
         program = circuits.Circuit.from_ops(program)

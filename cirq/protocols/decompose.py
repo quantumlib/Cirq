@@ -12,12 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Callable, Union, Any, Tuple, Iterable, \
-    TypeVar, List, Optional, overload
-
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    overload,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
+from collections import defaultdict
 from typing_extensions import Protocol
 
-
+from cirq import devices, ops
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -214,7 +227,6 @@ def decompose(
             Custom type of error raised if there's an undecomposable operation
             that doesn't satisfy the given `keep` predicate.
     """
-    from cirq import ops  # HACK: Avoids circular dependencies.
 
     if (on_stuck_raise is not _value_error_describing_bad_operation and
             keep is None):
@@ -273,15 +285,14 @@ def decompose_once(val: Any, **kwargs) -> List['cirq.Operation']:
 
 
 @overload
-def decompose_once(val: Any,
-                   default: TDefault,
-                   **kwargs
-                   ) -> Union[TDefault, List['cirq.Operation']]:
+def decompose_once(val: Any, default: TDefault, *args,
+                   **kwargs) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
 def decompose_once(val: Any,
                    default=RaiseTypeErrorIfNotProvided,
+                   *args,
                    **kwargs):
     """Decomposes a value into operations, if possible.
 
@@ -294,25 +305,26 @@ def decompose_once(val: Any,
         default: A default result to use if the value doesn't have a
             `_decompose_` method or that method returns `NotImplemented` or
             `None`. If not specified, undecomposable values cause a `TypeError`.
-        kwargs: Arguments to forward into the `_decompose_` method of `val`.
-            For example, this is used to tell gates what qubits they are being
-            applied to.
+        args: Positional arguments to forward into the `_decompose_` method of
+            `val`.  For example, this is used to tell gates what qubits they are
+            being applied to.
+        kwargs: Keyword arguments to forward into the `_decompose_` method of
+            `val`.
 
     Returns:
-        The result of `val._decompose_(**kwargs)`, if `val` has a `_decompose_`
-        method and it didn't return `NotImplemented` or `None`. Otherwise
-        `default` is returned, if it was specified. Otherwise an error is
-        raised.
+        The result of `val._decompose_(*args, **kwargs)`, if `val` has a
+        `_decompose_` method and it didn't return `NotImplemented` or `None`.
+        Otherwise `default` is returned, if it was specified. Otherwise an error
+        is raised.
 
     TypeError:
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
     method = getattr(val, '_decompose_', None)
-    decomposed = NotImplemented if method is None else method(**kwargs)
+    decomposed = NotImplemented if method is None else method(*args, **kwargs)
 
     if decomposed is not NotImplemented and decomposed is not None:
-        from cirq import ops  # HACK: Avoids circular dependencies.
         return list(ops.flatten_op_tree(decomposed))
 
     if default is not RaiseTypeErrorIfNotProvided:
@@ -353,7 +365,7 @@ def decompose_once_with_qubits(val: Any,
     operations recursively until some criteria is met.
 
     Args:
-        val: The value to call `._decompose_(qubits=qubits)` on, if possible.
+        val: The value to call `._decompose_(qubits)` on, if possible.
         qubits: The value to pass into the named `qubits` parameter of
             `val._decompose_`.
         default: A default result to use if the value doesn't have a
@@ -361,7 +373,7 @@ def decompose_once_with_qubits(val: Any,
             `None`. If not specified, undecomposable values cause a `TypeError`.
 
     Returns:
-        The result of `val._decompose_(qubits=qubits)`, if `val` has a
+        The result of `val._decompose_(qubits)`, if `val` has a
         `_decompose_` method and it didn't return `NotImplemented` or `None`.
         Otherwise `default` is returned, if it was specified. Otherwise an error
         is raised.
@@ -370,5 +382,35 @@ def decompose_once_with_qubits(val: Any,
         `val` didn't have a `_decompose_` method (or that method returned
         `NotImplemented` or `None`) and `default` wasn't set.
     """
-    return decompose_once(val, default, qubits=tuple(qubits))
+    return decompose_once(val, default, tuple(qubits))
 # pylint: enable=function-redefined
+
+
+def _try_decompose_into_operations_and_qubits(val: Any) -> Tuple[Optional[
+        List['cirq.Operation']], Sequence['cirq.Qid'], Tuple[int, ...]]:
+    """Returns the value's decomposition (if any) and the qubits it applies to.
+    """
+
+    if isinstance(val, ops.Gate):
+        # Gates don't specify qubits, and so must be handled specially.
+        qid_shape = qid_shape_protocol.qid_shape(val)
+        qubits = devices.LineQid.for_qid_shape(
+            qid_shape)  # type: Sequence[cirq.Qid]
+        return decompose_once_with_qubits(val, qubits, None), qubits, qid_shape
+
+    if isinstance(val, ops.Operation):
+        qid_shape = qid_shape_protocol.qid_shape(val)
+        return decompose_once(val, None), val.qubits, qid_shape
+
+    result = decompose_once(val, None)
+    if result is not None:
+        qubit_set = set()
+        qid_shape_dict = defaultdict(lambda: 1)  # type: Dict[cirq.Qid, int]
+        for op in result:
+            for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
+                qubit_set.add(q)
+                qid_shape_dict[q] = max(qid_shape_dict[q], level)
+        qubits = sorted(qubit_set)
+        return result, qubits, tuple(qid_shape_dict[q] for q in qubits)
+
+    return None, (), ()

@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any
+from typing import cast, Any, Tuple
 
 import numpy as np
 
@@ -28,7 +28,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
 
 
 class SingleQubitMatrixGate(gate_features.SingleQubitGate):
-    """A 1-qubit gate defined by its matrix.
+    """A 1-qubit or qudit gate defined by its matrix.
 
     More general than specialized classes like `ZPowGate`, but more expensive
     and more float-error sensitive to work with (due to using
@@ -42,11 +42,17 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         Args:
             matrix: The matrix that defines the gate.
         """
-        if matrix.shape != (2, 2) or not linalg.is_unitary(matrix):
-            raise ValueError('Not a 2x2 unitary matrix: {}'.format(matrix))
+        if (len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1] or
+                not linalg.is_unitary(matrix)):
+            raise ValueError(
+                'Not a 2x2 (or d x d) unitary matrix: {}'.format(matrix))
         self._matrix = matrix
 
+    def _qid_shape_(self) -> Tuple[int]:
+        return (self._matrix.shape[0],)
+
     def validate_args(self, qubits):
+        super().validate_args(qubits)
         if len(qubits) != 1:
             raise ValueError(
                 'Single-qubit gate applied to multiple qubits: {}({})'.format(
@@ -73,8 +79,8 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
 
@@ -90,7 +96,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return np.alltrue(self._matrix == other._matrix)
+        return np.array_equal(self._matrix, other._matrix)
 
     def __ne__(self, other):
         return not self == other
@@ -124,6 +130,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
         self._matrix = matrix
 
     def validate_args(self, qubits):
+        super().validate_args(qubits)
         if len(qubits) != 2:
             raise ValueError(
                 'Two-qubit gate not applied to two qubits: {}({})'.format(
@@ -154,8 +161,8 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
     def _unitary_(self) -> np.ndarray:
         return np.array(self._matrix)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
 
@@ -180,7 +187,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,
-                              args: protocols.CircuitDiagramInfoArgs) -> str:
+                              args: 'protocols.CircuitDiagramInfoArgs') -> str:
     if args.precision is not None:
         matrix = matrix.round(args.precision)
     result = str(matrix)
