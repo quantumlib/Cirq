@@ -462,9 +462,7 @@ class KakDecomposition:
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
 
-        return (type(KakDecomposition),
-                self.global_phase,
-                tuple(self.interaction_coefficients),
+        return (self.global_phase, tuple(self.interaction_coefficients),
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
 
@@ -536,7 +534,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax: Optional[plt.Axes] = None,
         show: bool = False,
         **kwargs):
-    f"""Plots the interaction coefficients of many two-qubit operations.
+    r"""Plots the interaction coefficients of many two-qubit operations.
 
     Plots:
         A point for the (x, y, z) normalized interaction coefficients of
@@ -783,8 +781,10 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 
 
 def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
+                      *,
                       rtol: float = 1e-5,
-                      atol: float = 1e-8) -> KakDecomposition:
+                      atol: float = 1e-8,
+                      check_preconditions: bool = True) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
@@ -793,6 +793,8 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
             `cirq.SupportsUnitary` protocol).
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
+        check_preconditions: If set, verifies that the input corresponds to a
+            4x4 unitary before decomposing.
 
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
@@ -815,6 +817,11 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         mat = unitary_object
     else:
         mat = protocols.unitary(unitary_object)
+    if check_preconditions and (
+            mat.shape !=
+        (4, 4) or not predicates.is_unitary(mat, rtol=rtol, atol=atol)):
+        raise ValueError('Input must correspond to a 4x4 unitary matrix. '
+                         'Received matrix:\n' + str(mat))
 
     # Diagonalize in magic basis.
     left, d, right = diagonalize.bidiagonalize_unitary_with_special_orthogonals(
