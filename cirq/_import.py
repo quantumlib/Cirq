@@ -102,6 +102,9 @@ class InstrumentedLoader(importlib.abc.Loader):
         self.after_exec = after_exec
 
     def create_module(self, spec: ModuleType) -> ModuleType:
+        if not hasattr(spec, 'create_module'):
+            # Tell python to use default module creation semantics
+            return None
         return self.loader.create_module(spec)
 
     def exec_module(self, module: ModuleType) -> None:
