@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (
-    Any, Callable, Iterable, Iterator, Sequence, Tuple, Union, cast
-)
+from typing import (Any, Callable, Iterable, Sequence, Tuple, Union, cast, List)
 
 from cirq import ops, circuits
 
@@ -23,16 +21,20 @@ from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_dag_from_circuit)
 
 
-def _possible_string_placements(
+def _sorted_best_string_placements(
         possible_nodes: Iterable[Any],
         output_ops: Sequence[ops.Operation],
         key: Callable[[Any], ops.PauliStringPhasor] = lambda node: node.val,
-) -> Iterator[Tuple[ops.PauliStringPhasor, int, circuits.
-                    Unique[ops.PauliStringPhasor]]]:
+) -> List[Tuple[ops.PauliStringPhasor, int, circuits.
+                Unique[ops.PauliStringPhasor]]]:
+
+    sort_key = lambda placement: (-len(placement[0].pauli_string), placement[1])
+
+    node_maxes = []
     for possible_node in possible_nodes:
         string_op = key(possible_node)
         # Try moving the Pauli string through, stop at measurements
-        yield string_op, 0, possible_node
+        node_max = (string_op, 0, possible_node)
 
         for i, out_op in enumerate(output_ops):
             if not set(out_op.qubits) & set(string_op.qubits):
@@ -50,13 +52,13 @@ def _possible_string_placements(
                 break
             string_op = string_op.pass_operations_over([out_op],
                                                        after_to_before=True)
-            yield string_op, i+1, possible_node
+            curr = (string_op, i + 1, possible_node)
+            if sort_key(curr) > sort_key(node_max):
+                node_max = curr
 
-        if len(string_op.pauli_string) == 1:
-            # This is as far as any Pauli string can go on this qubit
-            # and this Pauli string can be moved here.
-            # Stop searching to save time.
-            return
+        node_maxes.append(node_max)
+
+    return sorted(node_maxes, key=sort_key, reverse=True)
 
 
 def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
@@ -75,22 +77,28 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
                        - set(before for before, _ in string_dag.edges()))
 
     while rightmost_nodes:
-        # Pick the Pauli string that can be moved furthest through the Clifford
-        # circuit
-        best_string_op, best_index, best_node = max(
-            _possible_string_placements(rightmost_nodes, output_ops),
-            key=lambda placement: (-len(placement[0].pauli_string),
-                                   placement[1]))
+        # Sort the pauli string placements based on paulistring length and
+        # furthest possible distance in circuit_right
+        placements = _sorted_best_string_placements(rightmost_nodes, output_ops)
+        last_index = len(output_ops)
 
-        # Place the best one into the output circuit
-        output_ops.insert(best_index, best_string_op)
-        # Remove the best one from the dag and update rightmost_nodes
-        rightmost_nodes.remove(best_node)
-        rightmost_nodes.update(
-            pred_node
-            for pred_node in string_dag.predecessors(best_node)
-            if len(string_dag.succ[pred_node]) <= 1)
-        string_dag.remove_node(best_node)
+        # Pick the Pauli string that can be moved furthest through
+        # the Clifford circuit
+        for best_string_op, best_index, best_node in placements:
+
+            assert best_index <= last_index, (
+                "Unexpected insertion index order,"
+                " {} >= {}, len: {}".format(best_index, last_index,
+                                            len(output_ops)))
+
+            last_index = best_index
+            output_ops.insert(best_index, best_string_op)
+            # Remove the best one from the dag and update rightmost_nodes
+            rightmost_nodes.remove(best_node)
+            rightmost_nodes.update(
+                pred_node for pred_node in string_dag.predecessors(best_node)
+                if len(string_dag.succ[pred_node]) <= 1)
+            string_dag.remove_node(best_node)
 
     assert not string_dag.nodes(), 'There was a cycle in the CircuitDag'
 

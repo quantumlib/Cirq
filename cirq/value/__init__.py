@@ -12,10 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.value.abc_alt import (
+    ABCMetaImplementAnyOneOf,
+    alternative,
+)
+
 from cirq.value.angle import (
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
+)
+
+from cirq.value.digits import (
+    big_endian_bits_to_int,
+    big_endian_digits_to_int,
+    big_endian_int_to_bits,
+    big_endian_int_to_digits,
 )
 
 from cirq.value.duration import (
@@ -34,6 +46,9 @@ from cirq.value.periodic_value import (
 
 from cirq.value.timestamp import (
     Timestamp,)
+
+from cirq.value.type_alias import (
+    TParamVal,)
 
 from cirq.value.value_equality import (
     value_equality,)

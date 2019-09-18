@@ -31,7 +31,6 @@ from cirq import protocols, value
 from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops import pauli_string
 
 
@@ -163,7 +162,8 @@ class ApproxPauliStringExpectation(SamplesDisplay):
 
     def value_derived_from_samples(self,
                                    measurements: np.ndarray) -> float:
-        return np.mean([(-1)**np.sum(bitstring) for bitstring in measurements])
+        val = np.mean([(-1)**np.sum(bitstring) for bitstring in measurements])
+        return val * self._pauli_string.coefficient
 
     def _value_equality_values_(self):
         return self._pauli_string, self._num_samples, self._key
@@ -210,7 +210,7 @@ class PauliStringExpectation(DensityMatrixDisplay):
                     )
             ket = protocols.apply_unitary(pauli, args)
         ket = np.reshape(ket, state.shape)
-        return np.dot(state.conj(), ket)
+        return np.dot(state.conj(), ket) * self._pauli_string.coefficient
 
     def value_derived_from_density_matrix(self,
                                           state: np.ndarray,
@@ -227,7 +227,7 @@ class PauliStringExpectation(DensityMatrixDisplay):
                     )
             result = protocols.apply_unitary(pauli, args)
         result = np.reshape(result, state.shape)
-        return np.trace(result)
+        return np.trace(result) * self._pauli_string.coefficient
 
     def _value_equality_values_(self):
         return self._pauli_string, self._key

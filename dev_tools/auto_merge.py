@@ -18,8 +18,9 @@ GITHUB_REPO_ORGANIZATION = 'quantumlib'
 ACCESS_TOKEN_ENV_VARIABLE = 'CIRQ_BOT_GITHUB_ACCESS_TOKEN'
 
 POLLING_PERIOD = datetime.timedelta(seconds=10)
+USER_AUTO_MERGE_LABEL = 'automerge'
 HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
-AUTO_MERGE_LABELS = ['automerge', HEAD_AUTO_MERGE_LABEL]
+AUTO_MERGE_LABELS = [USER_AUTO_MERGE_LABEL, HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
 
@@ -735,6 +736,13 @@ def find_problem_with_automergeability_of_pr(
     if pr.payload['mergeable_state'] == 'dirty':
         return CannotAutomergeError('There are merge conflicts.')
 
+    # If a user removes the automerge label, remove the head label for them.
+    if (pr.has_label(HEAD_AUTO_MERGE_LABEL) and
+            not pr.has_label(USER_AUTO_MERGE_LABEL)):
+        return CannotAutomergeError(
+            f'The {USER_AUTO_MERGE_LABEL} label was removed.',
+            may_be_temporary=True)
+
     # Only collaborators with write access can use the automerge labels.
     label_problem = check_auto_merge_labeler(pr.repo, pr.pull_id)
     if label_problem is not None:
@@ -891,9 +899,7 @@ def pick_head_pr(active_prs: List[PullRequestDetails]
             return pr
 
     promoted = max(active_prs, key=merge_desirability)
-    log('Automerging PR#{} ({!r}) first.'.format(
-        promoted.pull_id,
-        promoted.title))
+    log('Front of queue: PR#{} ({!r})'.format(promoted.pull_id, promoted.title))
     add_labels_to_pr(promoted.repo, promoted.pull_id, HEAD_AUTO_MERGE_LABEL)
     return promoted
 

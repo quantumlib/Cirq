@@ -39,11 +39,12 @@ class TestAndPrepareCoverageCheck(check.Check):
                                'dev_tools',
                                'conf',
                                '.coveragerc')
+        pytest_path = os.path.join(base_path, 'check', 'pytest')
         target_path = base_path
         result = shell_tools.run_cmd(
-            env.bin('pytest'),
+            pytest_path,
             target_path,
-            None if verbose else '--quiet',
+            None if verbose else '--actually-quiet',
             *([
                 '--cov', '--cov-report=annotate',
                 '--cov-config={}'.format(rc_path), '--benchmark-skip'

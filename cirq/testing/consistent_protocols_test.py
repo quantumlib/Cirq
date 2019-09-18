@@ -102,6 +102,11 @@ class GoodGate(cirq.SingleQubitGate):
         return (isinstance(self.exponent, sympy.Basic) or
                 isinstance(self.phase_exponent, sympy.Basic))
 
+    def _resolve_parameters_(self, param_resolver) -> 'GoodGate':
+        return GoodGate(phase_exponent=param_resolver.value_of(
+            self.phase_exponent),
+                        exponent=param_resolver.value_of(self.exponent))
+
     def _identity_tuple(self):
         return (GoodGate,
                 self.phase_exponent,

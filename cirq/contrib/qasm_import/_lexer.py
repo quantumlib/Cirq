@@ -30,6 +30,8 @@ class QasmLexer(object):
     reserved = {
         'qreg': 'QREG',
         'creg': 'CREG',
+        'measure': 'MEASURE',
+        '->': 'ARROW',
     }
 
     tokens = [
@@ -91,6 +93,14 @@ class QasmLexer(object):
 
     def t_CREG(self, t):
         r"""creg"""
+        return t
+
+    def t_MEASURE(self, t):
+        r"""measure"""
+        return t
+
+    def t_ARROW(self, t):
+        """->"""
         return t
 
     def t_ID(self, t):

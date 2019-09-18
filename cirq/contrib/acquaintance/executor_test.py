@@ -166,13 +166,13 @@ def test_executor_random(num_qubits: int,
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
 
     logical_circuit = cirq.Circuit.from_ops([g(*Q) for Q, g in gates.items()])
-    expected_unitary = logical_circuit.to_unitary_matrix()
+    expected_unitary = logical_circuit.unitary()
 
     initial_mapping = {q: q for q in qubits}
     final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
-    actual_unitary = circuit.to_unitary_matrix()
+    actual_unitary = circuit.unitary()
 
     np.testing.assert_allclose(
             actual=actual_unitary,

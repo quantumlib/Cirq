@@ -12,6 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import _import
+
+# A module can only depend on modules imported earlier in this list of modules
+# at import time.  Pytest will fail otherwise (enforced by
+# dev_tools/import_test.py).
+# Begin dependency order list of sub-modules.
+from cirq import (
+    # Low level
+    _version,
+    _compat,
+    type_workarounds,
+)
+with _import.delay_import('cirq.protocols'):
+    from cirq import (
+        # Core
+        protocols,
+        value,
+        linalg,
+        ops,
+        devices,
+        study,
+    )
+from cirq import (
+    # Core
+    circuits,
+    schedules,
+    # Optimize and run
+    optimizers,
+    work,
+    sim,
+    vis,
+    # Hardware specific
+    ion,
+    neutral_atoms,
+    api,
+    google,
+    # Applications
+    experiments,
+    # Extra (nothing should depend on these)
+    testing,
+    contrib,
+)
+# End dependency order list of sub-modules
+
 from cirq._version import (
     __version__,
 )
@@ -33,9 +77,11 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQid,
+    LineQubit,
     NO_NOISE,
     NoiseModel,
-    UnconstrainedDevice,
+    UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
@@ -61,6 +107,7 @@ from cirq.linalg import (
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
+    eye_tensor,
     is_diagonal,
     is_hermitian,
     is_orthogonal,
@@ -70,6 +117,7 @@ from cirq.linalg import (
     kak_canonicalize_vector,
     kak_decomposition,
     KakDecomposition,
+    subwavefunction,
     kron,
     kron_bases,
     kron_factor_4x4_to_2x2s,
@@ -80,15 +128,13 @@ from cirq.linalg import (
     one_hot,
     partial_trace,
     PAULI_BASIS,
+    pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
-)
-
-from cirq.line import (
-    LineQubit,
+    wavefunction_partial_trace_as_mixture,
 )
 
 from cirq.ops import (
@@ -125,9 +171,11 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    GlobalPhaseOperation,
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
@@ -139,6 +187,7 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     NamedQubit,
+    op_gate_isinstance,
     op_gate_of_type,
     OP_TREE,
     Operation,
@@ -150,6 +199,8 @@ from cirq.ops import (
     PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
+    PauliSum,
+    PauliSumLike,
     PauliTransform,
     phase_damp,
     phase_flip,
@@ -159,6 +210,8 @@ from cirq.ops import (
     Qid,
     QubitOrder,
     QubitOrderOrList,
+    reset,
+    ResetChannel,
     Rx,
     Ry,
     Rz,
@@ -172,6 +225,7 @@ from cirq.ops import (
     SwapPowGate,
     T,
     ThreeQubitGate,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
     TwoQubitGate,
@@ -230,7 +284,7 @@ from cirq.sim import (
     sample_density_matrix,
     sample_state_vector,
     sample_sweep,
-    Sampler,
+    SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesIntermediateWaveFunction,
@@ -251,19 +305,34 @@ from cirq.sim import (
 
 from cirq.study import (
     ComputeDisplaysResult,
+    ExpressionMap,
+    flatten,
+    flatten_with_params,
+    flatten_with_sweep,
     Linspace,
+    ListSweep,
+    ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
     plot_state_histogram,
     Points,
+    Product,
     Sweep,
     Sweepable,
     to_resolvers,
+    to_sweep,
     TrialResult,
     UnitSweep,
+    Zip,
 )
 
 from cirq.value import (
+    ABCMetaImplementAnyOneOf,
+    alternative,
+    big_endian_bits_to_int,
+    big_endian_digits_to_int,
+    big_endian_int_to_bits,
+    big_endian_int_to_digits,
     canonicalize_half_turns,
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
@@ -271,6 +340,7 @@ from cirq.value import (
     LinearDict,
     PeriodicValue,
     Timestamp,
+    TParamVal,
     validate_probability,
     value_equality,
 )
@@ -303,19 +373,24 @@ from cirq.protocols import (
     mixture,
     mixture_channel,
     mul,
+    num_qubits,
     pauli_expansion,
     phase_by,
     pow,
     qasm,
     QasmArgs,
+    qid_shape,
+    read_json,
     resolve_parameters,
     SupportsApplyChannel,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitQidShape,
+    SupportsExplicitNumQubits,
     SupportsMixture,
     SupportsParameterization,
     SupportsPhase,
@@ -324,6 +399,8 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json,
+    obj_to_dict_helper,
     trace_distance_bound,
     unitary,
     validate_mixture,
@@ -341,6 +418,17 @@ from cirq.neutral_atoms import (
     is_native_neutral_atom_op,
     NeutralAtomDevice,
 )
+
+from cirq.vis import (
+    Heatmap,)
+
+from cirq.work import (
+    CircuitSampleJob,
+    PauliSumCollector,
+    Sampler,
+    Collector,
+)
+
 # pylint: enable=redefined-builtin
 
 # Unflattened sub-modules.

@@ -211,7 +211,7 @@ def test_validate_circuit_repeat_measurement_keys():
     circuit.append([cirq.measure(cirq.LineQubit(0), key='a'),
                     cirq.measure(cirq.LineQubit(1), key='a')])
 
-    with pytest.raises(ValueError, message='Measurement key a repeated'):
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
         d.validate_circuit(circuit)
 
 
@@ -225,7 +225,7 @@ def test_validate_schedule_repeat_measurement_keys():
             cirq.measure(cirq.LineQubit(1), key='a'), cirq.Timestamp(), d),
     ])
 
-    with pytest.raises(ValueError, message='Measurement key a repeated'):
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
         d.validate_schedule(s)
 
 

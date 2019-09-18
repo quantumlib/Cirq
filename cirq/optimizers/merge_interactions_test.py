@@ -12,16 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING
+from typing import Callable, List
 
 import pytest
 import sympy
 
 import cirq
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Callable, List
 
 
 def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
@@ -30,13 +26,13 @@ def assert_optimizes(before: cirq.Circuit, expected: cirq.Circuit):
     opt.optimize_circuit(actual)
 
     # Ignore differences that would be caught by follow-up optimizations.
-    followup_optimizations = [
+    followup_optimizations: List[Callable[[cirq.Circuit], None]] = [
         cirq.merge_single_qubit_gates_into_phased_x_z,
         cirq.EjectPhasedPaulis().optimize_circuit,
         cirq.EjectZ().optimize_circuit,
         cirq.DropNegligible().optimize_circuit,
         cirq.DropEmptyMoments().optimize_circuit
-    ]  # type: List[Callable[[cirq.Circuit], None]]
+    ]
     for post in followup_optimizations:
         post(actual)
         post(expected)
@@ -48,9 +44,9 @@ def assert_optimization_not_broken(circuit):
     """Check that the unitary matrix for the input circuit is the same (up to
     global phase and rounding error) as the unitary matrix of the optimized
     circuit."""
-    u_before = circuit.to_unitary_matrix()
+    u_before = circuit.unitary()
     cirq.MergeInteractions().optimize_circuit(circuit)
-    u_after = circuit.to_unitary_matrix()
+    u_after = circuit.unitary()
 
     cirq.testing.assert_allclose_up_to_global_phase(
         u_before, u_after, atol=1e-8)
@@ -213,7 +209,7 @@ def test_post_clean_up():
     assert isinstance(circuit[0].operations[0].gate, Marker)
     assert isinstance(circuit[-1].operations[0].gate, Marker)
 
-    u_before = c_orig.to_unitary_matrix()
-    u_after = circuit[1:-1].to_unitary_matrix()
+    u_before = c_orig.unitary()
+    u_after = circuit[1:-1].unitary()
     cirq.testing.assert_allclose_up_to_global_phase(
         u_before, u_after, atol=1e-8)

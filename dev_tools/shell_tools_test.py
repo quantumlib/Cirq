@@ -14,6 +14,7 @@
 
 import subprocess
 import os
+import sys
 
 import pytest
 
@@ -22,6 +23,12 @@ from dev_tools import shell_tools
 
 def only_on_posix(func):
     if os.name != 'posix':
+        return None
+    return func
+
+
+def not_on_darwin(func):
+    if sys.platform == 'darwin':
         return None
     return func
 

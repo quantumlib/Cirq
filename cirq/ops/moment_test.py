@@ -203,7 +203,7 @@ def test_qubits():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    assert Moment([cirq.X(a), cirq.X(b)]).qubits == {a , b}
+    assert Moment([cirq.X(a), cirq.X(b)]).qubits == {a, b}
     assert Moment([cirq.X(a)]).qubits == {a}
     assert Moment([cirq.CZ(a, b)]).qubits == {a, b}
 
@@ -225,3 +225,13 @@ def test_bool():
     assert not Moment()
     a = cirq.NamedQubit('a')
     assert Moment([cirq.X(a)])
+
+
+def test_json_dict():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    mom = Moment([cirq.CZ(a, b)])
+    assert mom._json_dict_() == {
+        'cirq_type': 'Moment',
+        'operations': (cirq.CZ(a, b),)
+    }

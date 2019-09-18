@@ -43,12 +43,12 @@ class Duration:
         """Creates a Duration from datetime.timedelta if necessary"""
         if isinstance(duration, cls):
             return duration
-        elif isinstance(duration, timedelta):
+        if isinstance(duration, timedelta):
             duration_in_picos = duration.total_seconds() * 10**12
             return cls(picos=duration_in_picos)
-        else:
-            raise TypeError(
-                'Only datetime.timedelta and cirq.Duration are supported.')
+
+        raise TypeError(
+            'Only datetime.timedelta and cirq.Duration are supported.')
 
     def total_picos(self) -> float:
         """Returns the number of picoseconds that the duration spans."""

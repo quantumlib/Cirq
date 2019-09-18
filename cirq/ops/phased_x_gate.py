@@ -22,35 +22,13 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, raw_types, op_tree
+from cirq.ops import gate_features, raw_types, op_tree, common_gates
 from cirq.type_workarounds import NotImplementedType
 
-@value.value_equality
+
+@value.value_equality(manual_cls=True)
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
-
-    def __new__(cls,
-                *,
-                phase_exponent: Union[float, sympy.Symbol],
-                exponent: Union[float, sympy.Symbol] = 1.0,
-                global_shift: float = 0.0):
-        """Substitutes a raw X or raw Y if possible.
-
-        Args:
-            phase_exponent: The exponent on the Z gates conjugating the X gate.
-            exponent: The exponent on the X gate conjugated by Zs.
-            global_shift: How much to shift the operation's eigenvalues at
-                exponent=1.
-        """
-        p = value.canonicalize_half_turns(phase_exponent)
-        if p == 0:
-            return cirq.ops.common_gates.XPowGate(
-                exponent=exponent,
-                global_shift=global_shift)
-        if p == 0.5:
-            return cirq.ops.common_gates.YPowGate(exponent=exponent,
-                                                  global_shift=global_shift)
-        return super().__new__(cls)
 
     def __init__(self,
                  *,
@@ -68,8 +46,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
@@ -112,6 +89,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
@@ -120,9 +101,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                               exponent=new_exponent,
                               global_shift=self._global_shift)
 
-    def _trace_distance_bound_(self):
-        """See `cirq.SupportsTraceDistanceBound`."""
-        return protocols.trace_distance_bound(cirq.X**self._exponent)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
@@ -165,12 +147,14 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             phase_exponent=self._phase_exponent + phase_turns * 2,
             global_shift=self._global_shift)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        if (isinstance(self.phase_exponent, sympy.Symbol) or
+        if (isinstance(self.phase_exponent, sympy.Basic) or
                 args.precision is None):
+            s = 'PhasedX({})'.format(self.phase_exponent)
+        elif isinstance(self.phase_exponent, int):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(
@@ -206,10 +190,29 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     @property
     def _canonical_exponent(self):
         period = self._period()
-        if not period or isinstance(self._exponent, sympy.Symbol):
+        if not period or isinstance(self._exponent, sympy.Basic):
             return self._exponent
-        else:
-            return self._exponent % period
+
+        return self._exponent % period
+
+    def _value_equality_values_cls_(self):
+        if self.phase_exponent == 0:
+            return common_gates.XPowGate
+        if self.phase_exponent == 0.5:
+            return common_gates.YPowGate
+        return PhasedXPowGate
 
     def _value_equality_values_(self):
+        if self.phase_exponent == 0:
+            return common_gates.XPowGate(
+                exponent=self._exponent,
+                global_shift=self._global_shift)._value_equality_values_()
+        if self.phase_exponent == 0.5:
+            return common_gates.YPowGate(
+                exponent=self._exponent,
+                global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(
+            self, ['phase_exponent', 'exponent', 'global_shift'])

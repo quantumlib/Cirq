@@ -24,6 +24,45 @@ TVector = TypeVar('TVector')
 TDefault = TypeVar('TDefault')
 
 
+def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
+    coefficient = complex(coefficient)
+    real_str = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
+    imag_str = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
+    if float(real_str) == 0 and float(imag_str) == 0:
+        return ''
+    if float(imag_str) == 0:
+        return real_str
+    if float(real_str) == 0:
+        return imag_str + 'j'
+    if real_str[0] == '-' and imag_str[0] == '-':
+        return '-({}+{}j)'.format(real_str[1:], imag_str[1:])
+    if imag_str[0] in ['+', '-']:
+        return '({}{}j)'.format(real_str, imag_str)
+    return '({}+{}j)'.format(real_str, imag_str)
+
+
+def _format_term(format_spec: str, vector: TVector, coefficient: Scalar) -> str:
+    coefficient_str = _format_coefficient(format_spec, coefficient)
+    if not coefficient_str:
+        return coefficient_str
+    result = '{}*{!s}'.format(coefficient_str, vector)
+    if result[0] in ['+', '-']:
+        return result
+    return '+' + result
+
+
+def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
+    formatted_terms = [
+        _format_term(format_spec, vector, coeff) for vector, coeff in terms
+    ]
+    s = ''.join(formatted_terms)
+    if not s:
+        return '{:{fmt}}'.format(0, fmt=format_spec)
+    if s[0] == '+':
+        return s[1:]
+    return s
+
+
 class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     """Represents linear combination of things.
 
@@ -237,45 +276,9 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
         all_vs = set(self.keys()) | set(other.keys())
         return all(abs(self[v] - other[v]) < atol for v in all_vs)
 
-    @staticmethod
-    def _format_coefficient(format_spec: str, coefficient: Scalar) -> str:
-        coefficient = complex(coefficient)
-        real_str = '{:{fmt}}'.format(coefficient.real, fmt=format_spec)
-        imag_str = '{:{fmt}}'.format(coefficient.imag, fmt=format_spec)
-        if float(real_str) == 0 and float(imag_str) == 0:
-            return ''
-        if float(imag_str) == 0:
-            return real_str
-        if float(real_str) == 0:
-            return imag_str + 'j'
-        if real_str[0] == '-' and imag_str[0] == '-':
-            return '-({}+{}j)'.format(real_str[1:], imag_str[1:])
-        if imag_str[0] in ['+', '-']:
-            return '({}{}j)'.format(real_str, imag_str)
-        return '({}+{}j)'.format(real_str, imag_str)
-
-    @staticmethod
-    def _format_term(format_spec: str,
-                     vector: TVector,
-                     coefficient: Scalar) -> str:
-        coefficient_str = LinearDict._format_coefficient(
-                format_spec, coefficient)
-        if not coefficient_str:
-            return coefficient_str
-        result = '{}*{!s}'.format(coefficient_str, vector)
-        if result[0] in ['+', '-']:
-            return result
-        return '+' + result
-
     def __format__(self, format_spec: str) -> str:
-        formatted_terms = [self._format_term(format_spec, v, self[v])
-                           for v in sorted(self.keys(), key=str)]
-        s = ''.join(formatted_terms)
-        if not s:
-            return '{:{fmt}}'.format(0, fmt=format_spec)
-        if s[0] == '+':
-            return s[1:]
-        return s
+        terms = [(v, self[v]) for v in sorted(self.keys(), key=str)]
+        return _format_terms(terms=terms, format_spec=format_spec)
 
     def __repr__(self) -> str:
         coefficients = dict(self)

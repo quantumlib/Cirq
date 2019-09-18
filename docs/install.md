@@ -34,7 +34,15 @@ That way you have control over when a breaking change affects you.
     python -m pip install cirq
     ```
 
-3. (Optional) install system dependencies that pip can't handle.
+3. (Optional) install other dependencies.
+
+    Install dependencies of features in `cirq.contrib`.
+
+    ```bash
+    python -m pip install cirq[contrib]
+    ```
+
+    Install system dependencies that pip can't handle.
 
     ```bash
     sudo apt-get install texlive-latex-base latexmk
@@ -69,7 +77,13 @@ That way you have control over when a breaking change affects you.
     python -m pip install cirq
     ```
 
-3. Check that it works!
+3. (Optional) install dependencies of features in `cirq.contrib`.
+
+    ```bash
+    python -m pip install cirq[contrib]
+    ```
+
+4. Check that it works!
 
     ```bash
     python -c 'import cirq; print(cirq.google.Foxtail)'
@@ -96,7 +110,13 @@ That way you have control over when a breaking change affects you.
     python -m pip install cirq
     ```
 
-3. Check that it works!
+3. (Optional) install dependencies of features in `cirq.contrib`.
+
+    ```bash
+    python -m pip install cirq[contrib]
+    ```
+
+4. Check that it works!
 
     ```bash
     python -c "import cirq; print(cirq.google.Foxtail)"

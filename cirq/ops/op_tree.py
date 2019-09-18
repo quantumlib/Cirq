@@ -15,9 +15,7 @@
 """A recursive type describing trees of operations, and utility methods for it.
 """
 
-import collections
-
-from typing import Any, Iterable, Union, Callable
+from typing import Any, Callable, Iterable, Union
 
 from cirq.ops.moment import Moment
 from cirq.ops.raw_types import Operation
@@ -66,13 +64,13 @@ def flatten_op_tree(root: OP_TREE,
         yield root
         return
 
-    if isinstance(root, collections.Iterable):
+    if isinstance(root, Iterable):
         for subtree in root:
             for item in flatten_op_tree(subtree, preserve_moments):
                 yield item
         return
 
-    raise TypeError('Not a collections.Iterable or an Operation: {} {}'.format(
+    raise TypeError('Not an Iterable or an Operation: {} {}'.format(
         type(root), root))
 
 
@@ -105,7 +103,7 @@ def transform_op_tree(
     if preserve_moments and isinstance(root, Moment):
         return root
 
-    if isinstance(root, collections.Iterable):
+    if isinstance(root, Iterable):
         return iter_transformation(
             transform_op_tree(subtree,
                               op_transformation,
@@ -113,8 +111,7 @@ def transform_op_tree(
                               preserve_moments)
             for subtree in root)
 
-    raise TypeError(
-        'Not a collections.Iterable or an Operation: {}'.format(root))
+    raise TypeError('Not an Iterable or an Operation: {}'.format(root))
 
 
 def freeze_op_tree(root: OP_TREE) -> OP_TREE:

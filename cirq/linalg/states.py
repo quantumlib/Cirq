@@ -13,7 +13,7 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from typing import Sequence, Union, Type
+from typing import Sequence, Union, Tuple, Type
 
 import numpy as np
 
@@ -38,3 +38,23 @@ def one_hot(*,
     result = np.zeros(shape=shape, dtype=dtype)
     result[index] = 1
     return result
+
+
+def eye_tensor(
+        half_shape: Tuple[int, ...],
+        *,  # Force keyword args
+        dtype: Type[np.number]) -> np.array:
+    """Returns an identity matrix reshaped into a tensor.
+
+    Args:
+        half_shape: A tuple representing the number of quantum levels of each
+            qubit the returned matrix applies to.  `half_shape` is (2, 2, 2) for
+            a three-qubit identity operation tensor.
+        dtype: The numpy dtype of the new array.
+
+    Returns:
+        The created numpy array with shape `half_shape + half_shape`.
+    """
+    state = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
+    state.shape = half_shape * 2
+    return state

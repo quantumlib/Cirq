@@ -35,6 +35,8 @@ from cirq.ops.common_channels import (
     phase_flip,
     PhaseDampingChannel,
     PhaseFlipChannel,
+    reset,
+    ResetChannel,
 )
 
 from cirq.ops.common_gates import (
@@ -46,6 +48,7 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     ISWAP,
     ISwapPowGate,
@@ -91,12 +94,18 @@ from cirq.ops.gate_features import (
 
 from cirq.ops.gate_operation import (
     GateOperation,
-    op_gate_of_type
+    op_gate_isinstance,
+    op_gate_of_type,
 )
+
+from cirq.ops.global_phase_op import (
+    GlobalPhaseOperation,)
 
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    PauliSum,
+    PauliSumLike,
 )
 
 from cirq.ops.parallel_gate_operation import (
@@ -174,5 +183,6 @@ from cirq.ops.three_qubit_gates import (
     CSWAP,
     CSwapGate,
     FREDKIN,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
 )

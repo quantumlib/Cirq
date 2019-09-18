@@ -54,8 +54,7 @@ def two_qubit_matrix_to_operations(q0: ops.Qid,
         q0, q1, kak, allow_partial_czs, atol=atol)
     if clean_operations:
         return _cleanup_operations(operations)
-    else:
-        return operations
+    return operations
 
 
 def _xx_interaction_via_full_czs(q0: ops.Qid,

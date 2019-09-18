@@ -14,7 +14,7 @@
 
 import asyncio
 import re
-from collections import Awaitable, Coroutine
+from collections.abc import Awaitable, Coroutine
 from typing import Any, Type, Union
 
 # A placeholder default value used to detect that callers did not specify an

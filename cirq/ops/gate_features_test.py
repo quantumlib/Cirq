@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import Iterator
+from collections.abc import Iterator
 import pytest
 
 import cirq
@@ -51,7 +51,7 @@ def test_single_qubit_gate_validates_on_each():
     with pytest.raises(ValueError):
         _ = g.on_each(*test_non_qubits)
     with pytest.raises(ValueError):
-        _ = g.on_each(test_non_qubits)
+        _ = g.on_each(*test_non_qubits)
 
 
 def test_single_qubit_validates_on():
@@ -66,7 +66,7 @@ def test_single_qubit_validates_on():
     with pytest.raises(ValueError):
         _ = g.on(*test_qubits)
     with pytest.raises(ValueError):
-        _ = g.on(test_qubits)
+        _ = g.on(*test_qubits)
 
 
 def test_two_qubit_gate_is_abstract_can_implement():

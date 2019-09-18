@@ -7,7 +7,7 @@ import cirq
 
 
 def _operations_to_matrix(operations, qubits):
-    return cirq.Circuit.from_ops(operations).to_unitary_matrix(
+    return cirq.Circuit.from_ops(operations).unitary(
         qubit_order=cirq.QubitOrder.explicit(qubits),
         qubits_that_should_be_present=qubits)
 

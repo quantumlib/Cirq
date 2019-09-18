@@ -35,10 +35,9 @@ def test_convert():
     assert all(isinstance(op.gate, cirq.SingleQubitCliffordGate)
                for op in circuit.all_operations())
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
-        atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
+                                                    c_orig.unitary(),
+                                                    atol=1e-7)
 
     cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────Z^-0.5───H───
@@ -93,10 +92,9 @@ def test_convert_composite():
     assert all(isinstance(op.gate, cirq.SingleQubitCliffordGate)
                for op in circuit.all_operations())
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circuit.to_unitary_matrix(),
-        c_orig.to_unitary_matrix(),
-        atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
+                                                    c_orig.unitary(),
+                                                    atol=1e-7)
 
     cirq.testing.assert_has_diagram(circuit, """
 0: ───X───────H───

@@ -13,16 +13,12 @@
 # limitations under the License.
 
 from random import choice, sample, random
-from typing import Union, Sequence, TYPE_CHECKING, Dict, Optional
+from typing import List, Union, Sequence, Dict, Optional
 
 from cirq import ops
 from cirq.circuits import Circuit
 
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
-
-DEFAULT_GATE_DOMAIN = {
+DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.CNOT: 2,
     ops.CZ: 2,
     ops.H: 1,
@@ -34,7 +30,7 @@ DEFAULT_GATE_DOMAIN = {
     ops.X: 1,
     ops.Y: 1,
     ops.Z: 1
-}  # type: Dict[ops.Gate, int]
+}
 
 
 def random_circuit(qubits: Union[Sequence[ops.Qid], int],
@@ -76,7 +72,7 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
-    moments = [] # type: List[ops.Moment]
+    moments: List[ops.Moment] = []
     for _ in range(n_moments):
         operations = []
         free_qubits = set(q for q in qubits)

@@ -16,14 +16,14 @@ from cirq import circuits
 from cirq.contrib.qasm_import._parser import QasmParser
 
 
-class QasmCircuitParser:
-    """QasmCircuitParser is currently partially developed, not functional,
-    DO NOT USE.
-    TODO(https://github.com/quantumlib/Cirq/issues/1548)
-    It will serve as the entrypoint for parsing QASM files."""
+def circuit_from_qasm(qasm: str) -> circuits.Circuit:
+    """Parses an OpenQASM string to `cirq.Circuit`.
 
-    def __init__(self):
-        pass
+    Args:
+        qasm: The OpenQASM string
 
-    def parse(self, qasm: str) -> circuits.Circuit:
-        return QasmParser().parse(qasm).circuit
+    Returns:
+        The parsed circuit
+    """
+
+    return QasmParser().parse(qasm).circuit
