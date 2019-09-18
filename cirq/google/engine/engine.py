@@ -37,9 +37,12 @@ import google.protobuf as gp
 from google.protobuf import any_pb2
 
 from cirq import circuits, optimizers, schedules, study, value
+from cirq.api.google import v1, v2
 from cirq.google import gate_sets, serializable_gate_set
-from cirq.google.api import v1, v2
-from cirq.google.engine import calibration, engine_job, engine_program
+from cirq.google.api import v1 as api_v1
+from cirq.google.api import v2 as api_v2
+from cirq.google.engine import (calibration, engine_job, engine_program,
+                                engine_sampler)
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
@@ -396,7 +399,8 @@ class Engine:
             context_dict = {}  # type: Dict[str, Any]
             context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
             context_dict['parameter_sweeps'] = [
-                v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
+                api_v1.sweep_to_proto_dict(sweep, repetitions)
+                for sweep in sweeps
             ]
             return context_dict
         elif proto_version == ProtoVersion.V2:
@@ -404,7 +408,7 @@ class Engine:
             for sweep in sweeps:
                 sweep_proto = run_context.parameter_sweeps.add()
                 sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
             return _any_dict_from_msg(run_context)
         else:
@@ -457,7 +461,7 @@ class Engine:
             program_dict = {}  # type: Dict[str, Any]
             program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
             program_dict['operations'] = [
-                op for op in v1.schedule_to_proto_dicts(schedule)
+                op for op in api_v1.schedule_to_proto_dicts(schedule)
             ]
             return program_dict
         elif self.proto_version == ProtoVersion.V2:
@@ -517,11 +521,9 @@ class Engine:
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
 
-        if (result_type == 'cirq.api.google.v1.Result' or
-                result_type == 'cirq.google.api.v1.Result'):
+        if result_type == 'cirq.api.google.v1.Result':
             return self._get_job_results_v1(response['result'])
-        if (result_type == 'cirq.api.google.v2.Result' or
-                result_type == 'cirq.google.api.v2.Result'):
+        if result_type == 'cirq.api.google.v2.Result':
             return self._get_job_results_v2(response['result'])
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
@@ -535,8 +537,8 @@ class Engine:
                          for m in sweep_result['measurementKeys']]
             for result in sweep_result['parameterizedResults']:
                 data = base64.standard_b64decode(result['measurementResults'])
-                measurements = v1.unpack_results(data, sweep_repetitions,
-                                                 key_sizes)
+                measurements = api_v1.unpack_results(data, sweep_repetitions,
+                                                     key_sizes)
 
                 trial_results.append(
                     study.TrialResult.from_single_parameter_set(
@@ -552,7 +554,7 @@ class Engine:
         result = v2.result_pb2.Result()
         result_any.Unpack(result)
 
-        sweep_results = v2.results_from_proto(result)
+        sweep_results = api_v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
             trial_result for sweep_result in sweep_results
@@ -691,3 +693,18 @@ class Engine:
         response = self.service.projects().processors().calibrations().get(
             name=calibration_name).execute()
         return calibration.Calibration(response['data']['data'])
+
+    def sampler(self, processor_id: Union[str, List[str]],
+                gate_set: serializable_gate_set.SerializableGateSet
+               ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier, or list of string identifiers,
+                determining which processors may be used when sampling.
+            gate_set: Determines how to serialize circuits when requesting
+                samples.
+        """
+        return engine_sampler.QuantumEngineSampler(engine=self,
+                                                   processor_id=processor_id,
+                                                   gate_set=gate_set)

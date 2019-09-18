@@ -241,6 +241,23 @@ def test_kak_decomposition(target):
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
 
 
+def test_kak_decomposition_invalid_object():
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.eye(3))
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.eye(8))
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.ones((4, 4)))
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.zeros((4, 4)))
+
+    nil = cirq.kak_decomposition(np.zeros((4, 4)), check_preconditions=False)
+    np.testing.assert_allclose(cirq.unitary(nil), np.eye(4), atol=1e-8)
+
+
 def test_kak_decomposition_eq():
     eq = cirq.testing.EqualsTester()
 
@@ -316,7 +333,6 @@ def test_kak_str():
         single_qubit_operations_after=(cirq.unitary(cirq.Y),
                                        cirq.unitary(cirq.Z)),
         global_phase=1j)
-    print(v)
     assert str(v) == """KAK {
     xyz*(4/π): 0.3, 0.2, 0.1
     before: (0*π around X) ⊗ (1*π around X)

@@ -29,7 +29,7 @@ _SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
-    'type.googleapis.com/cirq.google.api.v1.Result',
+    'type.googleapis.com/cirq.api.google.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -53,7 +53,7 @@ _A_RESULT = {
 
 _RESULTS = {
     '@type':
-    'type.googleapis.com/cirq.google.api.v1.Result',
+    'type.googleapis.com/cirq.api.google.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -84,7 +84,7 @@ _RESULTS = {
 
 _RESULTS_V2 = {
     '@type':
-    'type.googleapis.com/cirq.google.api.v2.Result',
+    'type.googleapis.com/cirq.api.google.v2.Result',
     'sweepResults': [
         {
             'repetitions':
@@ -142,7 +142,7 @@ _CALIBRATION = {
     'timestamp': '2019-07-09T23:39:59Z',
     'data': {
         '@type':
-        'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
+        'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
         'timestampMs':
         '1562544000021',
         'metrics': [{
@@ -240,7 +240,7 @@ def test_run_circuit(build):
                 }
             },
             'run_context': {
-                '@type': 'type.googleapis.com/cirq.google.api.v1.RunContext',
+                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
                 'parameter_sweeps': [{
                     'repetitions': 1
                 }]
@@ -1004,3 +1004,45 @@ def test_not_both_version_and_discovery(build):
         cg.Engine(project_id='project-id',
                   version='vNo',
                   discovery_url='funkyDisco')
+
+
+@mock.patch.object(discovery, 'build')
+def test_sampler(build):
+    service = mock.Mock()
+    build.return_value = service
+    programs = service.projects().programs()
+    jobs = programs.jobs()
+    programs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test'
+    }
+    jobs.create().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'READY'
+        }
+    }
+    jobs.get().execute.return_value = {
+        'name': 'projects/project-id/programs/test/jobs/test',
+        'executionStatus': {
+            'state': 'SUCCESS'
+        }
+    }
+    jobs.getResult().execute.return_value = {'result': _RESULTS}
+    engine = cg.Engine(project_id='project-id')
+    sampler = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
+    results = sampler.run_sweep(
+        program=_SCHEDULE,
+        params=[cirq.ParamResolver({'a': 1}),
+                cirq.ParamResolver({'a': 2})])
+    assert len(results) == 2
+    for i, v in enumerate([1, 2]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    build.assert_called_with('quantum',
+                             'v1alpha1',
+                             discoveryServiceUrl=('https://{api}.googleapis.com'
+                                                  '/$discovery/rest?version='
+                                                  '{apiVersion}'),
+                             requestBuilder=mock.ANY)
+    assert programs.create.call_args[1]['parent'] == 'projects/project-id'

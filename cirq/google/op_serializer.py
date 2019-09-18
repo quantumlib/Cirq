@@ -20,8 +20,8 @@ import sympy
 from google.protobuf import json_format
 
 from cirq import devices, ops
+from cirq.api.google import v2
 from cirq.google import arg_func_langs
-from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
@@ -119,7 +119,7 @@ class GateOpSerializer:
                  op: 'cirq.GateOperation',
                  msg: Optional[v2.program_pb2.Operation] = None
                 ) -> Optional[v2.program_pb2.Operation]:
-        """Returns the cirq.google.api.v2.Operation message as a proto dict."""
+        """Returns the cirq.api.google.v2.Operation message as a proto dict."""
         if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
             raise ValueError('All qubits must be GridQubits')
         gate = op.gate

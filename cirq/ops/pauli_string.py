@@ -31,7 +31,6 @@ from cirq.ops import (
     clifford_gate,
     pauli_interaction_gate,
 )
-
 TDefault = TypeVar('TDefault')
 
 
@@ -253,6 +252,189 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
+    def expectation_from_wavefunction(self, state: np.ndarray,
+                                      qubit_map: Mapping[raw_types.Qid, int]
+                                     ) -> float:
+        r"""Evaluate the expectation of this PauliString given a wavefunction.
+
+        Compute the expectation value of this PauliString with respect to a
+        wavefunction. By convention expectation values are defined for Hermitian
+        operators, and so this method will fail if this PauliString is
+        non-Hermitian.
+
+        `state` must be an array representation of a wavefunction and have
+        shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
+        expressed over n qubits.
+
+        `qubit_map` must assign an integer index to each qubit in this
+        PauliString that determines which bit position of a computational basis
+        state that qubit corresponds to. For example if `state` represents
+        $|0\rangle |+\rangle$ and `q0, q1 = cirq.LineQubit.range(2)` then:
+
+            cirq.X(q0).expectation(state, qubit_map={q0: 0, q1: 1}) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
+
+        Args:
+            state: An array representing a valid wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+
+        Raises:
+            NotImplementedError if this PauliString is non-Hermitian.
+        """
+        if abs(self.coefficient.imag) > 0.0001:
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
+        size = state.size
+        num_qubits = size.bit_length() - 1
+        if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
+            raise ValueError("Input array does not represent a wavefunction "
+                             "with shape `(2 ** n,)` or `(2, ..., 2)`.")
+
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
+        # HACK: avoid circular import
+        from cirq.sim.wave_function import validate_normalized_state
+        validate_normalized_state(state=state,
+                                  qid_shape=(2,) * num_qubits,
+                                  dtype=state.dtype)
+        return self._expectation_from_wavefunction_no_validation(
+            state, qubit_map)
+
+    def _expectation_from_wavefunction_no_validation(
+            self, state: np.ndarray,
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
+        """Evaluate the expectation of this PauliString given a wavefunction.
+
+        This method does not provide input validation. See
+        `PauliString.expectation_from_wavefunction` for function description.
+
+        Args:
+            state: An array representing a valid wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+        """
+        if len(state.shape) == 1:
+            num_qubits = state.shape[0].bit_length() - 1
+            state = np.reshape(state, (2,) * num_qubits)
+
+        ket = np.copy(state)
+        for qubit, pauli in self.items():
+            buffer = np.empty(ket.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(target_tensor=ket,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
+            ket = protocols.apply_unitary(pauli, args)
+
+        return self.coefficient * np.asscalar(
+            np.tensordot(state.conj(), ket, axes=len(ket.shape)))
+
+    def expectation_from_density_matrix(self, state: np.ndarray,
+                                        qubit_map: Mapping[raw_types.Qid, int]
+                                       ) -> float:
+        r"""Evaluate the expectation of this PauliString given a density matrix.
+
+        Compute the expectation value of this PauliString with respect to an
+        array representing a density matrix. By convention expectation values
+        are defined for Hermitian operators, and so this method will fail if
+        this PauliString is non-Hermitian.
+
+        `state` must be an array representation of a density matrix and have
+        shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)` (2*n entries), where
+        `state` is expressed over n qubits.
+
+        `qubit_map` must assign an integer index to each qubit in this
+        PauliString that determines which bit position of a computational basis
+        state that qubit corresponds to. For example if `state` represents
+        $|0\rangle |+\rangle$ and `q0, q1 = cirq.LineQubit.range(2)` then:
+
+            cirq.X(q0).expectation(state, qubit_map={q0: 0, q1: 1}) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+
+        Raises:
+            NotImplementedError if this PauliString is non-Hermitian.
+        """
+        if abs(self.coefficient.imag) > 0.0001:
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        # FIXME: Avoid enforcing specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
+        size = state.size
+        num_qubits = int(np.sqrt(size)).bit_length() - 1
+        dim = 1 << num_qubits
+        if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
+            raise ValueError("Input array does not represent a density matrix "
+                             "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
+
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
+        # HACK: avoid circular import
+        from cirq.sim.density_matrix_utils import to_valid_density_matrix
+        # Do not enforce reshaping if the state all axes are dimension 2.
+        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
+                                    num_qubits=num_qubits,
+                                    dtype=state.dtype)
+        return self._expectation_from_density_matrix_no_validation(
+            state, qubit_map)
+
+    def _expectation_from_density_matrix_no_validation(
+            self, state: np.ndarray,
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
+        """Evaluate the expectation of this PauliString given a density matrix.
+
+        This method does not provide input validation. See
+        `PauliString.expectation_from_density_matrix` for function description.
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+        """
+        result = np.copy(state)
+        if len(state.shape) == 2:
+            num_qubits = state.shape[0].bit_length() - 1
+            result = np.reshape(result, (2,) * num_qubits * 2)
+
+        for qubit, pauli in self.items():
+            buffer = np.empty(result.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(target_tensor=result,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
+            result = protocols.apply_unitary(pauli, args)
+
+        while any(result.shape):
+            result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
+        return result * self.coefficient
+
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
         for qubit, pauli0 in self.items():
@@ -314,7 +496,7 @@ class PauliString(raw_types.Operation):
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
-                    "Exponentiated to a non-hermitian PauliString <{}**{}>. "
+                    "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
                     "Coefficient must be imaginary.".format(base, self))
 
             half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
@@ -468,6 +650,37 @@ class PauliString(raw_types.Operation):
             'Impossible condition.  '
             'quarter_kickback is either incremented twice or never.')
         return quarter_kickback % 4 == 2
+
+
+def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
+                            pauli_qubits: Tuple[raw_types.Qid, ...],
+                            num_state_qubits: int) -> None:
+    """Validates that a qubit map is a valid mapping.
+
+    This will enforce that all elements of `pauli_qubits` appear in `qubit_map`,
+    and that the integers in `qubit_map` correspond to valid positions in a
+    representation of a state over `num_state_qubits`.
+
+    Args:
+        qubit_map: A map from qubits to integers.
+        pauli_qubits: The qubits that must be contained in `qubit_map`.
+        num_state_qubits: The number of qubits over which a state is expressed.
+    """
+    if not isinstance(qubit_map, Mapping) or not all(
+            isinstance(k, raw_types.Qid) and isinstance(v, int)
+            for k, v in qubit_map.items()):
+        raise TypeError("Input qubit map must be a valid mapping from "
+                        "Qubit ID's to integer indices.")
+
+    if not set(qubit_map.keys()) >= set(pauli_qubits):
+        raise ValueError("Input qubit map must be a complete mapping over all "
+                         " of this PauliString's qubits.")
+
+    used_inds = [qubit_map[q] for q in pauli_qubits]
+    if len(used_inds) != len(set(used_inds)) or not set(
+            range(num_state_qubits)) >= set(sorted(used_inds)):
+        raise ValueError("Input qubit map indices must be valid for a state "
+                         "over {} qubits.".format(num_state_qubits))
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
