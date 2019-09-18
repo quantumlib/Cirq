@@ -63,7 +63,7 @@ class SerializableDevice(devices.Device):
         for ts in proto.valid_targets:
             allowed_targets[ts.name] = SerializableDevice._create_target_set(ts)
             if ts.target_ordering == device_pb2.TargetSet.SUBSET_PERMUTATION:
-                permutation_ids.append(ts)
+                permutation_ids.append(ts.name)
 
         # Store gate definitions from proto
         gate_defs: Dict[str, device_pb2.GateDefinition] = dict()
@@ -79,11 +79,17 @@ class SerializableDevice(devices.Device):
         for gate_type in gate_set.supported_gate_types():
             for serializer in gate_set.serializers[gate_type]:
                 gate_id = serializer.serialized_gate_id
-                if gate_type not in permutation_gates:
-                    permutation_gates.append(gate_type)
                 if gate_id not in gate_defs:
                     raise ValueError(f'Serializer has {gate_id} which is not ' +
                                      'supported by the device specification')
+                gate_ts = gate_defs[gate_id].valid_targets
+                which_are_permutations = [t in permutation_ids for t in gate_ts]
+                if any(which_are_permutations):
+                    if not all(which_are_permutations):
+                        raise NotImplementedError('Cannot currently mix ' +
+                                                  'SUBSET_PERMUTATION with ' +
+                                                  'other target sets')
+                    permutation_gates.append(gate_type)
                 gate_picos = gate_defs[gate_id].gate_duration_picos
                 durations[gate_type] = Duration(picos=gate_picos)
                 if gate_type not in target_sets:
@@ -95,6 +101,7 @@ class SerializableDevice(devices.Device):
             qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
             durations=durations,
             target_sets=target_sets,
+            permutation_gates=permutation_gates,
         )
 
     @staticmethod
@@ -152,6 +159,7 @@ class SerializableDevice(devices.Device):
 
         if self._find_operation_type(operation,
                                      self.is_permutation_gate) is not None:
+
             # A permutation gate can have any combination of qubits
             valid_qubits = self._find_operation_type(operation,
                                                      self.target_sets)
@@ -159,9 +167,11 @@ class SerializableDevice(devices.Device):
                 # All qubits are valid
                 return
             for q in operation.qubits:
-                if q not in valid_qubits:
-                    raise ValueError(
-                        f'Operation does not use valid qubits: {operation}.')
+                for qubit_tuple in valid_qubits:
+                    if q not in qubit_tuple:
+                        raise ValueError(
+                            'Operation does not use valid qubits: ' +
+                            f'{operation}.')
             return
 
         if (len(operation.qubits) > 1):

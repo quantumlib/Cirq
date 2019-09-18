@@ -17,6 +17,35 @@ import pytest
 
 import cirq
 import cirq.google as cg
+import cirq.google.api.v2.device_pb2 as device_pb2
+
+_JUST_CZ = cg.SerializableGateSet(
+    gate_set_name='cz_gate_set',
+    serializers=[
+        cg.GateOpSerializer(gate_type=cirq.CZPowGate,
+                            serialized_gate_id='cz',
+                            args=[])
+    ],
+    deserializers=[
+        cg.GateOpDeserializer(serialized_gate_id='cz',
+                              gate_constructor=cirq.CZPowGate,
+                              args=[])
+    ],
+)
+
+_JUST_MEAS = cg.SerializableGateSet(
+    gate_set_name='meas_gate_set',
+    serializers=[
+        cg.GateOpSerializer(gate_type=cirq.MeasurementGate,
+                            serialized_gate_id='meas',
+                            args=[])
+    ],
+    deserializers=[
+        cg.GateOpDeserializer(serialized_gate_id='meas',
+                              gate_constructor=cirq.MeasurementGate,
+                              args=[])
+    ],
+)
 
 
 def test_foxtail():
@@ -90,3 +119,117 @@ def test_duration_of():
     # Unsupported op
     with pytest.raises(ValueError):
         assert foxtail.duration_of(cirq.H(valid_qubit1))
+
+
+def test_assymetric_gate():
+    spec = device_pb2.DeviceSpecification()
+    for row in range(5):
+        for col in range(2):
+            spec.valid_qubits.extend([cirq.GridQubit(row, col).proto_id()])
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = 'left_to_right'
+    grid_targets.target_ordering = device_pb2.TargetSet.ASYMMETRIC
+    for row in range(5):
+        new_target = grid_targets.targets.add()
+        new_target.ids.extend([
+            cirq.GridQubit(row, 0).proto_id(),
+            cirq.GridQubit(row, 1).proto_id()
+        ])
+
+    gs_proto = spec.valid_gate_sets.add()
+    gs_proto.name = 'cz_left_to_right_only'
+
+    gate = gs_proto.valid_gates.add()
+    gate.id = 'cz'
+    gate.valid_targets.extend(['left_to_right'])
+
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_CZ)
+
+    for row in range(5):
+        dev.validate_operation(
+            cirq.CZ(cirq.GridQubit(row, 0), cirq.GridQubit(row, 1)))
+        with pytest.raises(ValueError):
+            dev.validate_operation(
+                cirq.CZ(cirq.GridQubit(row, 1), cirq.GridQubit(row, 0)))
+
+
+def test_unconstrained_gate():
+    spec = device_pb2.DeviceSpecification()
+    for row in range(5):
+        for col in range(5):
+            spec.valid_qubits.extend([cirq.GridQubit(row, col).proto_id()])
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = '2_qubit_anywhere'
+    grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
+    gs_proto = spec.valid_gate_sets.add()
+    gs_proto.name = 'cz_free_for_all'
+
+    gate = gs_proto.valid_gates.add()
+    gate.id = 'cz'
+    gate.valid_targets.extend(['2_qubit_anywhere'])
+
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_CZ)
+
+    valid_qubit1 = cirq.GridQubit(4, 4)
+    for row in range(4):
+        for col in range(4):
+            valid_qubit2 = cirq.GridQubit(row, col)
+            dev.validate_operation(cirq.CZ(valid_qubit1, valid_qubit2))
+
+
+def test_constrained_permutations():
+    spec = device_pb2.DeviceSpecification()
+    for row in range(5):
+        for col in range(2):
+            spec.valid_qubits.extend([cirq.GridQubit(row, col).proto_id()])
+
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = 'meas_on_first_line'
+    grid_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
+    new_target = grid_targets.targets.add()
+    new_target.ids.extend([cirq.GridQubit(i, 0).proto_id() for i in range(5)])
+
+    gs_proto = spec.valid_gate_sets.add()
+    gs_proto.name = 'meas_set'
+
+    gate = gs_proto.valid_gates.add()
+    gate.id = 'meas'
+    gate.valid_targets.extend(['meas_on_first_line'])
+
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_MEAS)
+
+    dev.validate_operation(cirq.measure(cirq.GridQubit(0, 0)))
+    dev.validate_operation(cirq.measure(cirq.GridQubit(1, 0)))
+    dev.validate_operation(cirq.measure(cirq.GridQubit(2, 0)))
+    dev.validate_operation(
+        cirq.measure(*[cirq.GridQubit(i, 0) for i in range(5)]))
+
+    with pytest.raises(ValueError):
+        dev.validate_operation(cirq.measure(cirq.GridQubit(1, 1)))
+    with pytest.raises(ValueError):
+        dev.validate_operation(
+            cirq.measure(cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)))
+
+
+def test_mixing_types():
+    """ Mixing SUBSET_PERMUTATION with SYMMETRIC targets is confusing,
+    and not yet supported"""
+    spec = device_pb2.DeviceSpecification()
+
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = 'subset'
+    grid_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
+
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = 'sym'
+    grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
+
+    gs_proto = spec.valid_gate_sets.add()
+    gs_proto.name = 'set_with_mismatched_targets'
+
+    gate = gs_proto.valid_gates.add()
+    gate.id = 'meas'
+    gate.valid_targets.extend(['subset', 'sym'])
+
+    with pytest.raises(NotImplementedError):
+        _ = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_MEAS)
