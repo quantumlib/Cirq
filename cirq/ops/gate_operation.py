@@ -71,6 +71,9 @@ class GateOperation(raw_types.Operation):
         return '{}({})'.format(self.gate,
                                ', '.join(str(e) for e in self.qubits))
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
+
     def _group_interchangeable_qubits(self) -> Tuple[
             Union[raw_types.Qid,
                   Tuple[int, FrozenSet[raw_types.Qid]]],
@@ -104,8 +107,8 @@ class GateOperation(raw_types.Operation):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self.gate)
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(self.gate, args, default=None)
 
     def _has_unitary_(self) -> bool:
@@ -151,9 +154,8 @@ class GateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.circuit_diagram_info(self.gate,
                                               args,
                                               NotImplemented)
@@ -192,7 +194,7 @@ class GateOperation(raw_types.Operation):
             return NotImplemented
         return self.with_gate(new_gate)
 
-    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
+    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.gate,
                               args=args,
                               qubits=self.qubits,

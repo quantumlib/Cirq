@@ -251,10 +251,10 @@ class MySweep(cirq.study.sweeps.SingleSweep):
         pass
 
     def _values(self):
-        pass
+        return ()
 
     def __len__(self):
-        pass
+        return 0
 
 
 @pytest.mark.parametrize('bad_sweep', [

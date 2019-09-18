@@ -15,15 +15,10 @@
 """A recursive type describing trees of operations, and utility methods for it.
 """
 
-import collections
-
-from typing import Any, Dict, Callable, Iterable, Tuple, Union
+from typing import Any, Callable, Iterable, Union
 
 from cirq.ops.moment import Moment
-from cirq.ops.qubit_order import QubitOrder
-from cirq.ops.qubit_order_or_list import QubitOrderOrList
-from cirq.ops.raw_types import Operation, Qid
-from cirq import protocols
+from cirq.ops.raw_types import Operation
 
 
 OP_TREE = Union[Operation, Iterable[Any]]
@@ -130,35 +125,3 @@ def freeze_op_tree(root: OP_TREE) -> OP_TREE:
         all internal nodes are tuples instead of arbitrary iterables.
     """
     return transform_op_tree(root, iter_transformation=tuple)
-
-
-def max_qid_shape(*operations: OP_TREE,
-                  qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-                  qubits_that_should_be_present: Iterable[Qid] = (),
-                  default_level: int = 1) -> Tuple[int, ...]:
-    """Computes the highest quantum level needed for each qubit by taking the
-    maximum of the levels specified by the qid_shape of each operation in
-    `operations`.
-
-    Args:
-        operations: The operations to compute the maximum over.
-        qubit_order: If specified, determines the order of the entries of the
-            returned `qid_shape`.  If this is a list, the entries of the
-            shape will correspond directly to the entries of `qubit_order`.
-        qubits_that_should_be_present: Qubits that may or may not appear
-            in `operations` but should be included in the returned
-            `qid_shape`.
-        default_level: The default quantum level of a qubit if none of the
-            operations operate on it.
-
-    Returns:
-        A tuple of the quantum levels of each qubit sorted by `qubit_order`.
-    """
-    shape_dict = collections.defaultdict(lambda: default_level
-                                        )  # type: Dict[Qid, int]
-    for op in flatten_op_tree(operations):
-        for level, qubit in zip(protocols.qid_shape(op), op.qubits):
-            shape_dict[qubit] = max(shape_dict.get(qubit, level), level)
-    qubits = QubitOrder.as_qubit_order(qubit_order).order_for(
-        set(shape_dict.keys()) | set(qubits_that_should_be_present))
-    return tuple(shape_dict[qubit] for qubit in qubits)

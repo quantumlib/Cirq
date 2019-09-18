@@ -301,3 +301,34 @@ def test_simulation_trial_result_qubit_map():
     result = cirq.DensityMatrixSimulator().simulate(
         cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
+
+
+def test_simulate_with_invert_mask():
+
+    class PlusGate(cirq.Gate):
+        """A qudit gate that increments a qudit state mod its dimension."""
+
+        def __init__(self, dimension, increment=1):
+            self.dimension = dimension
+            self.increment = increment % dimension
+
+        def _qid_shape_(self):
+            return (self.dimension,)
+
+        def _unitary_(self):
+            inc = (self.increment - 1) % self.dimension + 1
+            u = np.empty((self.dimension, self.dimension))
+            u[inc:] = np.eye(self.dimension)[:-inc]
+            u[:inc] = np.eye(self.dimension)[-inc:]
+            return u
+
+    q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
+    c = cirq.Circuit.from_ops(
+        PlusGate(2, 1)(q0),
+        PlusGate(3, 1)(q2),
+        PlusGate(3, 2)(q3),
+        PlusGate(4, 3)(q4),
+        cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
+    )
+    assert np.all(
+        cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])

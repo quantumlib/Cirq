@@ -21,13 +21,13 @@ the values of Displays in a circuit is a dictionary from Display key to
 Display value.
 """
 
-from typing import Any, Dict, Hashable, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Hashable, Tuple, TYPE_CHECKING
 
 import abc
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import value
 from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
@@ -169,75 +169,8 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string, self._num_samples, self._key
 
 
-@value.value_equality
-class PauliStringExpectation(DensityMatrixDisplay):
-    """Expectation value of a Pauli string."""
-
-    def __init__(self,
-                 pauli_string: 'pauli_string.PauliString',
-                 key: Hashable=''):
-        self._pauli_string = pauli_string
-        self._key = key
-
-    @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
-        return self._pauli_string.qubits
-
-    def with_qubits(self,
-                    *new_qubits: raw_types.Qid
-                    ) -> 'PauliStringExpectation':
-        return PauliStringExpectation(
-                self._pauli_string.with_qubits(*new_qubits),
-                self._key
-        )
-
-    @property
-    def key(self) -> Hashable:
-        return self._key
-
-    def value_derived_from_wavefunction(self,
-                                        state: np.ndarray,
-                                        qubit_map: Dict[raw_types.Qid, int]
-                                        ) -> float:
-        num_qubits = state.shape[0].bit_length() - 1
-        ket = np.reshape(np.copy(state), (2,) * num_qubits)
-        for qubit, pauli in self._pauli_string.items():
-            buffer = np.empty(ket.shape, dtype=state.dtype)
-            args = protocols.ApplyUnitaryArgs(
-                    target_tensor=ket,
-                    available_buffer=buffer,
-                    axes=(qubit_map[qubit],)
-                    )
-            ket = protocols.apply_unitary(pauli, args)
-        ket = np.reshape(ket, state.shape)
-        return np.dot(state.conj(), ket) * self._pauli_string.coefficient
-
-    def value_derived_from_density_matrix(self,
-                                          state: np.ndarray,
-                                          qubit_map: Dict[raw_types.Qid, int]
-                                          ) -> float:
-        num_qubits = state.shape[0].bit_length() - 1
-        result = np.reshape(np.copy(state), (2,) * num_qubits * 2)
-        for qubit, pauli in self._pauli_string.items():
-            buffer = np.empty(result.shape, dtype=state.dtype)
-            args = protocols.ApplyUnitaryArgs(
-                    target_tensor=result,
-                    available_buffer=buffer,
-                    axes=(qubit_map[qubit],)
-                    )
-            result = protocols.apply_unitary(pauli, args)
-        result = np.reshape(result, state.shape)
-        return np.trace(result) * self._pauli_string.coefficient
-
-    def _value_equality_values_(self):
-        return self._pauli_string, self._key
-
-
-def pauli_string_expectation(
-        pauli_string: 'pauli_string.PauliString',
-        num_samples: Optional[int] = None,
-        key: Hashable='') -> Union[ApproxPauliStringExpectation,
-                                   PauliStringExpectation]:
-    if num_samples is None:
-        return PauliStringExpectation(pauli_string, key=key)
+def approx_pauli_string_expectation(pauli_string: 'pauli_string.PauliString',
+                                    num_samples: int,
+                                    key: Hashable = ''
+                                   ) -> ApproxPauliStringExpectation:
     return ApproxPauliStringExpectation(pauli_string, num_samples, key=key)

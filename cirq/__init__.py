@@ -12,6 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import _import
+
+# A module can only depend on modules imported earlier in this list of modules
+# at import time.  Pytest will fail otherwise (enforced by
+# dev_tools/import_test.py).
+# Begin dependency order list of sub-modules.
+from cirq import (
+    # Low level
+    _version,
+    _compat,
+    type_workarounds,
+)
+with _import.delay_import('cirq.protocols'):
+    from cirq import (
+        # Core
+        protocols,
+        value,
+        linalg,
+        ops,
+        devices,
+        study,
+    )
+from cirq import (
+    # Core
+    circuits,
+    schedules,
+    # Optimize and run
+    optimizers,
+    work,
+    sim,
+    vis,
+    # Hardware specific
+    ion,
+    neutral_atoms,
+    api,
+    google,
+    # Applications
+    experiments,
+    # Extra (nothing should depend on these)
+    testing,
+    contrib,
+)
+# End dependency order list of sub-modules
+
 from cirq._version import (
     __version__,
 )
@@ -33,10 +77,11 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQid,
     LineQubit,
     NO_NOISE,
     NoiseModel,
-    UnconstrainedDevice,
+    UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
@@ -129,13 +174,13 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
-    max_qid_shape,
     measure,
     measure_each,
     MeasurementGate,
@@ -147,10 +192,9 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    pauli_string_expectation,
+    approx_pauli_string_expectation,
     PauliInteractionGate,
     PauliString,
-    PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
@@ -259,7 +303,13 @@ from cirq.sim import (
 
 from cirq.study import (
     ComputeDisplaysResult,
+    ExpressionMap,
+    flatten,
+    flatten_with_params,
+    flatten_with_sweep,
     Linspace,
+    ListSweep,
+    ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
     plot_state_histogram,
@@ -268,6 +318,7 @@ from cirq.study import (
     Sweep,
     Sweepable,
     to_resolvers,
+    to_sweep,
     TrialResult,
     UnitSweep,
     Zip,
@@ -329,6 +380,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
+    read_json,
     resolve_parameters,
     SupportsApplyChannel,
     SupportsConsistentApplyUnitary,
@@ -347,6 +399,8 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json,
+    obj_to_dict_helper,
     trace_distance_bound,
     unitary,
     validate_mixture,
