@@ -99,8 +99,8 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # the probability of that bit-string. Return all of the bit-string
     # values that have a probability greater than the median.
     return [
-        idx for idx, prob in enumerate(results.state_vector())
-        if np.abs(prob**2) > median
+        idx for idx, amp in enumerate(results.state_vector())
+        if np.abs(amp**2) > median
     ]
 
 
