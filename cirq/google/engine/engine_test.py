@@ -776,31 +776,10 @@ def test_job_labels(build):
     assert body()['labels'] == {'b': '1'}
     assert body()['labelFingerprint'] == 'abcdef'
 
-@pytest.mark.skip(reason="no way of currently testing this")
-@mock.patch.object(discovery, 'build')
-def test_implied_job_config_project_id(build):
-    eng = cg.Engine(api_key="key")
-    with pytest.raises(ValueError, match='project id'):
-        _ = eng.implied_job_config(None)
-    with pytest.raises(ValueError, match='project id'):
-        _ = eng.implied_job_config(cg.JobConfig())
-    assert eng.implied_job_config(
-        cg.JobConfig(project_id='specific')).project_id == 'specific'
 
-    eng_with = cg.Engine(api_key="key", default_project_id='default')
-
-    # Fallback to default.
-    assert eng_with.implied_job_config(None).project_id == 'default'
-
-    # Override default.
-    assert eng_with.implied_job_config(
-        cg.JobConfig(project_id='specific')).project_id == 'specific'
-
-@pytest.mark.skip(reason="no way of currently testing this")
-@mock.patch.object(discovery, 'build')
-def test_implied_job_config_gcs_prefix(build):
-    eng = cg.Engine(api_key="key")
-    config = cg.JobConfig(project_id='project_id')
+def test_implied_job_config_gcs_prefix():
+    eng = cg.Engine(project_id='project_id')
+    config = cg.JobConfig()
 
     # Implied by project id.
     assert eng.implied_job_config(config).gcs_prefix == 'gs://gqe-project_id/'
