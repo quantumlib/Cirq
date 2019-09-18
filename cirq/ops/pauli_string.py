@@ -339,8 +339,8 @@ class PauliString(raw_types.Operation):
                                               axes=(qubit_map[qubit],))
             ket = protocols.apply_unitary(pauli, args)
 
-        return self.coefficient * np.asscalar(
-            np.tensordot(state.conj(), ket, axes=len(ket.shape)))
+        return self.coefficient * (np.tensordot(
+            state.conj(), ket, axes=len(ket.shape)).item())
 
     def expectation_from_density_matrix(self, state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int]
