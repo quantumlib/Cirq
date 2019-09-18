@@ -157,10 +157,15 @@ class _GreedyRouter:
         """
 
         if initial_mapping is None:
-            logical_graph = get_time_slices(self.remaining_dag)[0]
-            logical_graph.add_nodes_from(self.logical_qubits)
-            initial_mapping = get_initial_mapping(logical_graph,
-                                                  self.device_graph)
+            time_slices = get_time_slices(self.remaining_dag)
+            if not time_slices:
+                initial_mapping = dict(
+                    zip(self.device_graph, self.logical_qubits))
+            else:
+                logical_graph = time_slices[0]
+                logical_graph.add_nodes_from(self.logical_qubits)
+                initial_mapping = get_initial_mapping(logical_graph,
+                                                      self.device_graph)
         self.initial_mapping = initial_mapping
         self._phys_to_log = {
             q: initial_mapping.get(q) for q in self.physical_qubits
