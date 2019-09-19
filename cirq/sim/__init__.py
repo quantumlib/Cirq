@@ -67,8 +67,10 @@ from cirq.sim.wave_function import (
 )
 
 from cirq.sim.clifford import (
+    CH_Form,
     CliffordSimulator,
     CliffordState,
+    CliffordTableau,
     CliffordTrialResult,
     CliffordSimulatorStepResult,
 )
