@@ -29,17 +29,38 @@ class SerializableDevice(devices.Device):
     Given a device specification proto and a gate_set to translate the
     serialized gate_ids to cirq Gates, this will generate a Device that can
     verify operations and circuits for the hardware specified by the device.
+
+    Expected usage is through constructing this class through a proto using
+    the static function call from_proto().
     """
 
-    def __init__(self,
-                 qubits: List['cirq.Qid'],
-                 durations: Dict[Type, Duration],
-                 target_sets: Dict[Type, Set[Tuple['cirq.Qid', ...]]],
-                 permutation_gates: List[Type] = None):
+    def __init__(
+            self,
+            qubits: List['cirq.Qid'],
+            durations: Dict[Type['cirq.Gate'], Duration],
+            target_sets: Dict[Type['cirq.Gate'], Set[Tuple['cirq.Qid', ...]]],
+            permutation_gates: List[Type['cirq.Gate']] = None):
+        """Constructor for SerializableDevice using python objects.
+
+        Note that the preferred method of constructing this object is through
+        the static from_proto() call.
+
+        Args:
+            qubits: A list of valid Qid for the device.
+            durations: A dictionary with keys as Gate Types to the duration
+                of operations with that Gate type.
+            target_sets: The valid targets that a gate can act on.  This is
+                passed as a dictionary with keys as the Gate Type. The values
+                are a set of valid targets (arguments) to that gate.  These
+                are tuples of Qids.  For instance, for 2-qubit gates, they
+                will be pairs of Qubits.
+            permutation_gates: A list of types that act on all permutations
+                of the qubit targets.  (e.g. measurement gates)
+        """
         self.qubits = qubits
         self.durations = durations
         self.target_sets = target_sets
-        self.is_permutation_gate: Dict[Type, bool] = dict()
+        self.is_permutation_gate: Dict[Type['cirq.Gate'], bool] = dict()
         if permutation_gates is not None:
             for gate in permutation_gates:
                 self.is_permutation_gate[gate] = True
@@ -73,9 +94,10 @@ class SerializableDevice(devices.Device):
 
         # Loop through serializers and create dictionaries with keys as
         # the python type of the cirq Gate and duration/targets from the proto
-        durations: Dict[Type, Duration] = dict()
-        target_sets: Dict[Type, Set[Tuple['cirq.Qid', ...]]] = dict()
-        permutation_gates: List[Type] = list()
+        durations: Dict[Type['cirq.Gate'], Duration] = dict()
+        target_sets: Dict[Type['cirq.Gate'], Set[
+            Tuple['cirq.Qid', ...]]] = dict()
+        permutation_gates: List[Type['cirq.Gate']] = list()
         for gate_type in gate_set.supported_gate_types():
             for serializer in gate_set.serializers[gate_type]:
                 gate_id = serializer.serialized_gate_id
