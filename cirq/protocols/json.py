@@ -39,80 +39,46 @@ class _ResolverCache:
         if self._crd is None:
             import cirq
             self._crd = {
-                'CCXPowGate':
-                    cirq.CCXPowGate,
-                'CCZPowGate':
-                    cirq.CCZPowGate,
-                'CNotPowGate':
-                    cirq.CNotPowGate,
-                'CSwapGate':
-                    cirq.CSwapGate,
-                'CZPowGate':
-                    cirq.CZPowGate,
-                'Circuit':
-                    cirq.Circuit,
-                'Duration':
-                    cirq.Duration,
-                'FSimGate':
-                    cirq.FSimGate,
-                'GateOperation':
-                    cirq.GateOperation,
-                'GlobalPhaseOperation':
-                    cirq.GlobalPhaseOperation,
-                'GridQubit':
-                    cirq.GridQubit,
-                'HPowGate':
-                    cirq.HPowGate,
-                'ISwapPowGate':
-                    cirq.ISwapPowGate,
-                'IdentityGate':
-                    cirq.IdentityGate,
-                'LineQubit':
-                    cirq.LineQubit,
-                'LineQid':
-                    cirq.LineQid,
-                'MeasurementGate':
-                    cirq.MeasurementGate,
-                'Moment':
-                    cirq.Moment,
-                'NamedQubit':
-                    cirq.NamedQubit,
-                '_PauliX':
-                    cirq.ops.pauli_gates._PauliX,
-                '_PauliY':
-                    cirq.ops.pauli_gates._PauliY,
-                '_PauliZ':
-                    cirq.ops.pauli_gates._PauliZ,
-                'PauliString':
-                    cirq.PauliString,
-                'PhasedXPowGate':
-                    cirq.PhasedXPowGate,
+                'CCXPowGate': cirq.CCXPowGate,
+                'CCZPowGate': cirq.CCZPowGate,
+                'CNotPowGate': cirq.CNotPowGate,
+                'CSwapGate': cirq.CSwapGate,
+                'CZPowGate': cirq.CZPowGate,
+                'Circuit': cirq.Circuit,
+                'Duration': cirq.Duration,
+                'FSimGate': cirq.FSimGate,
+                'GateOperation': cirq.GateOperation,
+                'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+                'GridQubit': cirq.GridQubit,
+                'HPowGate': cirq.HPowGate,
+                'ISwapPowGate': cirq.ISwapPowGate,
+                'IdentityGate': cirq.IdentityGate,
+                'LineQubit': cirq.LineQubit,
+                'LineQid': cirq.LineQid,
+                'MeasurementGate': cirq.MeasurementGate,
+                'Moment': cirq.Moment,
+                'NamedQubit': cirq.NamedQubit,
+                '_PauliX': cirq.ops.pauli_gates._PauliX,
+                '_PauliY': cirq.ops.pauli_gates._PauliY,
+                '_PauliZ': cirq.ops.pauli_gates._PauliZ,
+                'PauliString': cirq.PauliString,
+                'PhasedXPowGate': cirq.PhasedXPowGate,
                 'SingleQubitPauliStringGateOperation':
-                    cirq.SingleQubitPauliStringGateOperation,
-                'SwapPowGate':
-                    cirq.SwapPowGate,
-                'sympy.Symbol':
-                    sympy.Symbol,
+                cirq.SingleQubitPauliStringGateOperation,
+                'SwapPowGate': cirq.SwapPowGate,
+                'sympy.Symbol': sympy.Symbol,
                 '_UnconstrainedDevice':
-                    cirq.devices.unconstrained_device._UnconstrainedDevice,
-                '_QubitAsQid':
-                    raw_types._QubitAsQid,
-                'XPowGate':
-                    cirq.XPowGate,
-                'XXPowGate':
-                    cirq.XXPowGate,
-                'YPowGate':
-                    cirq.YPowGate,
-                'YYPowGate':
-                    cirq.YYPowGate,
-                'ZPowGate':
-                    cirq.ZPowGate,
-                'ZZPowGate':
-                    cirq.ZZPowGate,
+                cirq.devices.unconstrained_device._UnconstrainedDevice,
+                '_QubitAsQid': raw_types._QubitAsQid,
+                'XPowGate': cirq.XPowGate,
+                'XXPowGate': cirq.XXPowGate,
+                'YPowGate': cirq.YPowGate,
+                'YYPowGate': cirq.YYPowGate,
+                'ZPowGate': cirq.ZPowGate,
+                'ZZPowGate': cirq.ZZPowGate,
 
                 # not a cirq class, but treated as one:
-                'complex':
-                    complex,
+                'complex': complex,
             }
         return self._crd
 
