@@ -66,7 +66,7 @@ from cirq.sim.wave_function import (
     validate_normalized_state,
 )
 
-from cirq.sim.clifford_simulator import (
+from cirq.sim.clifford import (
     CliffordSimulator,
     CliffordState,
     CliffordTrialResult,

@@ -54,10 +54,10 @@ def test_simulate_initial_state():
         for b1 in [0, 1]:
             circuit = cirq.Circuit()
             if b0:
-                circuit.append(cirq.X(q0))  
+                circuit.append(cirq.X(q0))
             if b1:
-                circuit.append(cirq.X(q1))  
-            circuit.append(cirq.measure(q0,q1)) 
+                circuit.append(cirq.X(q1))
+            circuit.append(cirq.measure(q0,q1))
 
             result = simulator.simulate(circuit, initial_state=1)
             expected_state = np.zeros(shape=(2, 2))
@@ -72,10 +72,10 @@ def test_simulate_qubit_order():
         for b1 in [0, 1]:
             circuit = cirq.Circuit()
             if b0:
-                circuit.append(cirq.X(q0))  
+                circuit.append(cirq.X(q0))
             if b1:
-                circuit.append(cirq.X(q1))  
-            circuit.append(cirq.measure(q0,q1)) 
+                circuit.append(cirq.X(q1))
+            circuit.append(cirq.measure(q0,q1))
 
             result = simulator.simulate(circuit, qubit_order=[q1, q0])
             expected_state = np.zeros(shape=(2, 2))
@@ -90,10 +90,10 @@ def test_run_measure_multiple_qubits():
         for b1 in [0, 1]:
             circuit = cirq.Circuit()
             if b0:
-                circuit.append(cirq.X(q0))  
+                circuit.append(cirq.X(q0))
             if b1:
-                circuit.append(cirq.X(q1))  
-            circuit.append(cirq.measure(q0,q1)) 
+                circuit.append(cirq.X(q1))
+            circuit.append(cirq.measure(q0,q1))
             result = simulator.run(circuit, repetitions=3)
             np.testing.assert_equal(result.measurements,
                                     {'0,1': [[b0, b1]] * 3})
@@ -150,7 +150,7 @@ def test_clifford_trial_result_repr():
 
     assert(repr(cirq.CliffordTrialResult(
             measurements={'m': np.array([[1]])},
-            final_simulator_state=final_simulator_state)) 
+            final_simulator_state=final_simulator_state))
             == "cirq.SimulationTrialResult(params=None, "
              "measurements={'m': array([[1]])}, "
              "final_simulator_state=|0⟩)")
@@ -162,7 +162,7 @@ def test_clifford_trial_result_str():
 
     assert(str(cirq.CliffordTrialResult(
             measurements={'m': np.array([[1]])},
-            final_simulator_state=final_simulator_state)) 
+            final_simulator_state=final_simulator_state))
             == "measurements: m=1\n"
                 "output state: |0⟩")
 
@@ -173,7 +173,7 @@ def test_clifford_step_result_str():
 
     assert(str(cirq.CliffordSimulatorStepResult(
             measurements={'m': np.array([[1]])},
-            state=final_simulator_state)) 
+            state=final_simulator_state))
             == "m=1\n"
                 "|0⟩")
 
@@ -184,7 +184,7 @@ def test_clifford_step_result_no_measurements_str():
 
     assert(str(cirq.CliffordSimulatorStepResult(
             measurements={},
-            state=final_simulator_state)) 
+            state=final_simulator_state))
             == "|0⟩")
 
 def test_clifford_state_str():
@@ -216,13 +216,13 @@ def test_clifford_tableau_str():
     state.apply_unitary(cirq.H(q1))
     state.apply_unitary(cirq.S(q1))
 
-    assert(str(state.tableau) == "+ X I I \n+ I Y I \n+ I I Z ") 
+    assert(str(state.tableau) == "+ X I I \n+ I Y I \n+ I I Z ")
 
 def test_clifford_tableau_repr():
     (q0,q1) = (cirq.LineQubit(0),cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0,q1: 1})
 
-    assert(repr(state.tableau) == "stabilizers: [Z0, Z1]") 
+    assert(repr(state.tableau) == "stabilizers: [Z0, Z1]")
 
 def test_clifford_tableau_str_full():
     (q0,q1) = (cirq.LineQubit(0),cirq.LineQubit(1))
@@ -230,11 +230,11 @@ def test_clifford_tableau_str_full():
     state.apply_unitary(cirq.H(q0))
     state.apply_unitary(cirq.S(q0))
 
-    assert(state.tableau._str_full_() == 
+    assert(state.tableau._str_full_() ==
         "stable | destable\n"
         "-------+----------\n"
-        "+ Y0   | + Z0  \n"  
-        "+   Z1 | +   X1\n") 
+        "+ Y0   | + Z0  \n"
+        "+   Z1 | +   X1\n")
 
 def test_ch_form_H():
     (q0,q1) = (cirq.LineQubit(0),cirq.LineQubit(1))
@@ -246,7 +246,7 @@ def test_clifford_ch_form_repr_full():
     (q0,q1) = (cirq.LineQubit(0),cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0,q1: 1})
 
-    assert(state.CH_form._repr_full() == 
+    assert(state.CH_form._repr_full() ==
         "omega: 1.00\n"
         "G:\n"
         "[[1 0]\n"
@@ -259,7 +259,7 @@ def test_clifford_ch_form_repr_full():
         " [0 0]]\n"
         "gamma: [0 0]\n"
         "v: [0 0]\n"
-        "s: [0 0]\n") 
+        "s: [0 0]\n")
 
 def test_clifford_circuit():
     (q0,q1) = (cirq.LineQubit(0),cirq.LineQubit(1))
