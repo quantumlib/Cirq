@@ -101,6 +101,28 @@ class Sweep(metaclass=abc.ABCMeta):
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
+    def __getitem__(self, val) -> Union[Params, Iterator[Params]]:
+        single_item = False
+        if isinstance(val, int):
+            val = slice(val, val + 1, None)
+            single_item = True
+        if not isinstance(val, slice):
+            raise TypeError(
+                'Sweep indices must be either int or slices, not {}'\
+                    .format(type(val)))
+        if (val.start is not None and val.start < 0) or \
+           (val.stop is not None and val.stop < 0) or \
+           (val.step is not None and val.step < 0):
+            raise ValueError(
+                'Cannot slice/access sweeps using negative indices.')
+
+        result_iterator = itertools.islice(
+            self.param_tuples(), val.start, val.stop, val.step)
+
+        if single_item:
+            return next(result_iterator)
+        return result_iterator
+
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
         """An iterator over (key, value) pairs assigning Symbol key to value."""

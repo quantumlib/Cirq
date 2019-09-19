@@ -74,6 +74,41 @@ def test_product():
     assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
 
 
+def test_slice_access_error():
+    sweep = cirq.Points('a', [1, 2, 3])
+    with pytest.raises(ValueError):
+        _ = sweep[-1]
+    with pytest.raises(ValueError):
+        _ = sweep[1:3:-1]
+    with pytest.raises(ValueError):
+        _ = sweep[1:-3:1]
+    with pytest.raises(ValueError):
+        _ = sweep[-1:3:1]
+    with pytest.raises(TypeError, match='<class \'str\'>'):
+        _ = sweep['junk']
+
+
+def test_slice_access():
+    sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
+
+    assert sweep[0] == (('a', 1), ('b', 4))
+    assert sweep[5] == (('a', 2), ('b', 5))
+
+    first_two = sweep[:2]
+    assert next(first_two) == (('a', 1), ('b', 4))
+    assert next(first_two) == (('a', 1), ('b', 5))
+
+    middle_three = sweep[5:8]
+    assert next(middle_three) == (('a', 2), ('b', 5))
+    assert next(middle_three) == (('a', 2), ('b', 6))
+    assert next(middle_three) == (('a', 2), ('b', 7))
+
+    odd_elems = sweep[1:6:2]
+    assert next(odd_elems) == (('a', 1), ('b', 5))
+    assert next(odd_elems) == (('a', 1), ('b', 7))
+    assert next(odd_elems) == (('a', 2), ('b', 5))
+
+
 @pytest.mark.parametrize('r_list', [
     [{
         'a': a,
@@ -218,3 +253,4 @@ def test_list_sweep_str():
 {'a': 2.0, 'b': 2.0}
 {'a': 3.0, 'b': 1.0}
 {'a': 3.0, 'b': 2.0}'''
+
