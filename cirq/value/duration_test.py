@@ -142,5 +142,4 @@ def test_div():
 
 def test_json_dict():
     d = Duration(picos=6)
-    assert d._json_dict_() == {'cirq_type': 'Duration',
-                               'picos': 6}
+    assert d._json_dict_() == {'cirq_type': 'Duration', 'picos': 6}

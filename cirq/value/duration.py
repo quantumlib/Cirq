@@ -126,5 +126,7 @@ class Duration:
         return 'cirq.Duration(picos={})'.format(repr(self._picos))
 
     def _json_dict_(self):
-        return {'cirq_type': self.__class__.__name__,
-                'picos': self.total_picos()}
+        return {
+            'cirq_type': self.__class__.__name__,
+            'picos': self.total_picos()
+        }
