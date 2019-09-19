@@ -35,18 +35,6 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
                            **kwargs) -> SwapNetwork:
     """Greedily routes a circuit on a given device.
 
-    Args:
-        circuit: The circuit to route.
-        device_graph: The device's graph, in which each vertex is a qubit
-            and each edge indicates the ability to do an operation on those
-            qubits.
-        max_search_radius: The maximum number of disjoint device edges to
-            consider routing on.
-        initial_mapping: The initial mapping of physical to logical qubits
-            to use. Defaults to a greedy initialization.
-        can_reorder: A predicate that determines if two operations may be
-            reordered.
-
     Alternates between heuristically picking a few SWAPs to change the mapping
     and applying all logical operations possible given the new mapping, until
     all logical operations have been applied.
@@ -67,6 +55,18 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
     then the pairs of qubits in the first time slice are considered, and those
     farthest away under the current mapping are brought together using SWAPs
     using a shortest path in the device graph.
+
+    Args:
+        circuit: The circuit to route.
+        device_graph: The device's graph, in which each vertex is a qubit
+            and each edge indicates the ability to do an operation on those
+            qubits.
+        max_search_radius: The maximum number of disjoint device edges to
+            consider routing on.
+        initial_mapping: The initial mapping of physical to logical qubits
+            to use. Defaults to a greedy initialization.
+        can_reorder: A predicate that determines if two operations may be
+            reordered.
     """
 
     router = _GreedyRouter(circuit, device_graph, **kwargs)
