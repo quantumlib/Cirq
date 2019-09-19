@@ -459,3 +459,19 @@ def test_incorporate_result_not_view():
 def test_default_method_arguments():
     with pytest.raises(TypeError, match='exactly one of'):
         cirq.ApplyUnitaryArgs.default(1, qid_shape=(2,))
+
+
+def test_apply_unitary_args_with_axes_transposed_to_start():
+    target = np.zeros((2, 3, 4, 5))
+    buffer = np.zeros((2, 3, 4, 5))
+    args = cirq.ApplyUnitaryArgs(target, buffer, [1, 3])
+
+    new_args = args.with_axes_transposed_to_start()
+    assert new_args.target_tensor.shape == (3, 5, 2, 4)
+    assert new_args.available_buffer.shape == (3, 5, 2, 4)
+
+    # Confirm aliasing.
+    new_args.target_tensor[2, 4, 1, 3] = 1
+    assert args.target_tensor[1, 2, 3, 4] == 1
+    new_args.available_buffer[2, 4, 1, 3] = 2
+    assert args.available_buffer[1, 2, 3, 4] == 2
