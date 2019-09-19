@@ -26,13 +26,17 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import base64
 import enum
+import json
 import random
 import re
 import string
-from typing import Any, Dict, List, Optional, Sequence, Union
+import time
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import warnings
 
 from apiclient import discovery, http as apiclient_http
+from apiclient.errors import HttpError
+from apiclient.http import HttpRequest
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
@@ -84,6 +88,30 @@ def _make_random_id(prefix: str, length: int = 6):
     ]
     suffix = ''.join(random_digits)
     return '%s%s' % (prefix, suffix)
+
+
+def _make_request(request: HttpRequest) -> Dict:
+    RETRYABLE_ERROR_CODES = [500, 503]
+    current_delay = 0.1  #100ms
+    max_delay = 3600  # 1 hour
+
+    while True:
+        try:
+            return request.execute()
+        except HttpError as rawErr:
+            err = json.loads(rawErr.content).get('error')
+            message = err.get('message')
+            # Raise RuntimeError for exceptions that are not retryable.
+            # Otherwise, pass through to retry.
+            if not err.get('code') in RETRYABLE_ERROR_CODES:
+                raise RuntimeError(message) from None
+
+        if current_delay > max_delay:
+            raise Exception('Too many retry attempts.')
+        print(message)
+        print('Waiting ', current_delay, 'seconds before retrying.')
+        time.sleep(current_delay)
+        current_delay *= 2
 
 
 @value.value_equality
@@ -306,6 +334,7 @@ class Engine:
                                         priority=priority,
                                         processor_ids=processor_ids)
 
+
     def create_job(
             self,
             *,  # Force keyword args.
@@ -346,8 +375,9 @@ class Engine:
             },
             'run_context': run_context
         }
-        response = self.service.projects().programs().jobs().create(
-            parent=program_name, body=request).execute()
+        response = _make_request(
+            self.service.projects().programs().jobs().create(
+                parent=program_name, body=request))
 
         return engine_job.EngineJob(job_config, response, self)
 
@@ -442,8 +472,8 @@ class Engine:
             'name': program_name,
             'code': self._serialize_program(program, gate_set),
         }
-        result = self.service.projects().programs().create(
-            parent=parent_name, body=request).execute()
+        result = _make_request(self.service.projects().programs().create(
+            parent=parent_name, body=request))
 
         return engine_program.EngineProgram(result['name'], self)
 
@@ -483,9 +513,8 @@ class Engine:
             A dictionary containing the metadata and the program.
         """
         program_resource_name = self._program_name_from_id(program_id)
-        return self.service.projects().programs().get(
-            name=program_resource_name).execute()
-
+        return _make_request(
+            self.service.projects().programs().get(name=program_resource_name))
 
     def get_job(self, job_resource_name: str) -> Dict:
         """Returns metadata about a previously created job.
@@ -500,8 +529,8 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        return self.service.projects().programs().jobs().get(
-            name=job_resource_name).execute()
+        return _make_request(self.service.projects().programs().jobs().get(
+            name=job_resource_name))
 
     def get_job_results(self,
                         job_resource_name: str) -> List[study.TrialResult]:
@@ -515,8 +544,9 @@ class Engine:
             An iterable over the TrialResult, one per parameter in the
             parameter sweep.
         """
-        response = self.service.projects().programs().jobs().getResult(
-            parent=job_resource_name).execute()
+        response = _make_request(
+            self.service.projects().programs().jobs().getResult(
+                parent=job_resource_name))
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
 
@@ -569,8 +599,8 @@ class Engine:
             job_resource_name: A string of the form
                 `projects/project_id/programs/program_id/jobs/job_id`.
         """
-        self.service.projects().programs().jobs().cancel(
-            name=job_resource_name, body={}).execute()
+        _make_request(self.service.projects().programs().jobs().cancel(
+            name=job_resource_name, body={}))
 
     def _program_name_from_id(self, program_id: str) -> str:
         return 'projects/%s/programs/%s' % (
@@ -581,11 +611,14 @@ class Engine:
     def _set_program_labels(self, program_id: str, labels: Dict[str, str],
                             fingerprint: str):
         program_resource_name = self._program_name_from_id(program_id)
-        self.service.projects().programs().patch(
+        _make_request(self.service.projects().programs().patch(
             name=program_resource_name,
-            body={'name': program_resource_name, 'labels': labels,
-                  'labelFingerprint': fingerprint},
-            updateMask='labels').execute()
+            body={
+                'name': program_resource_name,
+                'labels': labels,
+                'labelFingerprint': fingerprint
+            },
+            updateMask='labels'))
 
     def set_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
@@ -613,11 +646,14 @@ class Engine:
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
                         fingerprint: str):
-        self.service.projects().programs().jobs().patch(
+        _make_request(self.service.projects().programs().jobs().patch(
             name=job_resource_name,
-            body={'name': job_resource_name, 'labels': labels,
-                  'labelFingerprint': fingerprint},
-            updateMask='labels').execute()
+            body={
+                'name': job_resource_name,
+                'labels': labels,
+                'labelFingerprint': fingerprint
+            },
+            updateMask='labels'))
 
     def set_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
         job = self.get_job(job_resource_name)
@@ -653,8 +689,8 @@ class Engine:
             A list of dictionaries containing the metadata of each processor.
         """
         parent = 'projects/%s' % (self.project_id)
-        response = self.service.projects().processors().list(
-            parent=parent).execute()
+        response = _make_request(
+            self.service.projects().processors().list(parent=parent))
         return response['processors']
 
     def get_latest_calibration(self, processor_id: str
@@ -672,8 +708,9 @@ class Engine:
         """
         processor_name = 'projects/{}/processors/{}'.format(
             self.project_id, processor_id)
-        response = self.service.projects().processors().calibrations().list(
-            parent=processor_name).execute()
+        response = _make_request(
+            self.service.projects().processors().calibrations().list(
+                parent=processor_name))
         if (not 'calibrations' in response or
                 len(response['calibrations']) < 1):
             return None
@@ -689,6 +726,7 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        response = self.service.projects().processors().calibrations().get(
-            name=calibration_name).execute()
+        response = _make_request(
+            self.service.projects().processors().calibrations().get(
+                name=calibration_name))
         return calibration.Calibration(response['data']['data'])
