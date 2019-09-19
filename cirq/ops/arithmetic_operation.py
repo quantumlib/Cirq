@@ -15,12 +15,14 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast
+from typing import Union, Iterable, List, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
-import cirq
 from cirq.ops.raw_types import Operation
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
@@ -32,7 +34,8 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     This class handles the details of ensuring that the scaling of implementing
     the operation is O(2^n) instead of O(4^n) where n is the number of qubits
     being acted on, by implementing an `_apply_unitary_` function in terms of
-    the registers and the apply function of the child class.
+    the registers and the apply function of the child class. It also handles the
+    boilerplate of implementing the `qubits` and `with_qubits` methods.
 
     Examples:
         >>> class Add(cirq.ArithmeticOperation):
