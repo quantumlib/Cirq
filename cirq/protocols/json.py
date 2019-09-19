@@ -57,6 +57,8 @@ class _ResolverCache:
                 'LineQid': cirq.LineQid,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
+                '_NamedConstantXmonDevice':
+                cirq.google.known_devices._NamedConstantXmonDevice,
                 'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
