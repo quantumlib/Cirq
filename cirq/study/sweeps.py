@@ -116,8 +116,8 @@ class Sweep(metaclass=abc.ABCMeta):
             raise ValueError(
                 'Cannot slice/access sweeps using negative indices.')
 
-        result_iterator = itertools.islice(
-            self.param_tuples(), val.start, val.stop, val.step)
+        result_iterator = itertools.islice(self.param_tuples(), val.start,
+                                           val.stop, val.step)
 
         if single_item:
             return next(result_iterator)
