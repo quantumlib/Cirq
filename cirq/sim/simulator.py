@@ -18,6 +18,9 @@ Simulator types include:
 
     SimulatesSamples: mimics the interface of quantum hardware.
 
+    SimulatesAmplitudes: computes amplitudes of desired bitstrings in the
+        final state of the simulation.
+
     SimulatesFinalState: allows access to the final state of the simulation.
 
     SimulatesIntermediateState: allows for access to the state of the simulation
@@ -41,6 +44,7 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, schedules, study, value, work
+
 
 
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
@@ -177,6 +181,74 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         return compute_displays_results
 
 
+class SimulatesAmplitudes(metaclass=abc.ABCMeta):
+    """Simulator that computes final amplitudes of given bitstrings.
+
+    Given a circuit and a list of bitstrings, computes the amplitudes
+    of the given bitstrings in the state obtained by applying the circuit
+    to the all zeros state. Implementors of this interface should implement
+    the compute_amplitudes_sweep method.
+    """
+
+    def compute_amplitudes(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            bitstrings: np.ndarray,
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> List[complex]:
+        """Computes the desired amplitudes.
+
+        The initial state is assumed to be the all zeros state.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            bitstrings: The bitstrings whose amplitudes are desired, input
+                as a two-dimensional array of bools. The first dimension
+                indexes the bitstrings and the second dimension indexes
+                the bits within a bitstring.
+            param_resolver: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            List of amplitudes.
+        """
+        return self.compute_amplitudes_sweep(
+            program, bitstrings, study.ParamResolver(param_resolver),
+            qubit_order)[0]
+
+    @abc.abstractmethod
+    def compute_amplitudes_sweep(
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            bitstrings: np.ndarray,
+            params: study.Sweepable,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+    ) -> List[List[complex]]:
+        """Computes the desired amplitudes.
+
+        The initial state is assumed to be the all zeros state.
+
+        Args:
+            program: The circuit or schedule to simulate.
+            bitstrings: The bitstrings whose amplitudes are desired, input
+                as a two-dimensional array of bools. The first dimension
+                indexes the bitstrings and the second dimension indexes
+                the bits within a bitstring.
+            params: Parameters to run with the program.
+            qubit_order: Determines the canonical ordering of the qubits. This
+                is often used in specifying the initial state, i.e. the
+                ordering of the computational basis states.
+
+        Returns:
+            List of lists of amplitudes. The outer dimension indexes the
+            circuit parameters and the inner dimension indexes the bitstrings.
+        """
+        raise NotImplementedError()
+
+
 class SimulatesFinalState(metaclass=abc.ABCMeta):
     """Simulator that allows access to a quantum computer's final state.
 
@@ -302,7 +374,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
-                    measurements[k] = np.array(v, dtype=bool)
+                    measurements[k] = np.array(v, dtype=np.uint8)
             trial_results.append(
                 self._create_simulator_trial_result(
                     params=param_resolver,
@@ -390,7 +462,6 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             final_simulator_state=final_simulator_state)
 
 
-
 class StepResult(metaclass=abc.ABCMeta):
     """Results of a step of a SimulatesIntermediateState.
 
@@ -400,7 +471,7 @@ class StepResult(metaclass=abc.ABCMeta):
     """
 
     def __init__(self,
-                 measurements: Optional[Dict[str, List[bool]]] = None) -> None:
+                 measurements: Optional[Dict[str, List[int]]] = None) -> None:
         self.measurements = measurements or collections.defaultdict(list)
 
     @abc.abstractmethod
@@ -468,12 +539,14 @@ class StepResult(metaclass=abc.ABCMeta):
         """
         bounds = {}  # type: Dict[str, Tuple]
         all_qubits = []  # type: List[ops.Qid]
+        meas_ops = {}
         current_index = 0
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
                 raise ValueError('{} was not a MeasurementGate'.format(gate))
             key = protocols.measurement_key(gate)
+            meas_ops[key] = gate
             if key in bounds:
                 raise ValueError(
                     'Duplicate MeasurementGate with key {}'.format(key))
@@ -481,8 +554,13 @@ class StepResult(metaclass=abc.ABCMeta):
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
         indexed_sample = self.sample(all_qubits, repetitions)
-        return {k: np.array([x[s:e] for x in indexed_sample]) for k, (s, e) in
-                bounds.items()}
+
+        results = {}
+        for k, (s, e) in bounds.items():
+            before_invert_mask = np.array([x[s:e] for x in indexed_sample])
+            results[k] = before_invert_mask ^ (np.logical_and(
+                before_invert_mask < 2, meas_ops[k].full_invert_mask()))
+        return results
 
 
 @value.value_equality(unhashable=True)
@@ -546,3 +624,22 @@ class SimulationTrialResult:
         the result.
         """
         return self._final_simulator_state.qubit_map
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return _qubit_map_to_shape(self.qubit_map)
+
+
+def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
+    qid_shape: List[int] = [-1] * len(qubit_map)
+    try:
+        for q, i in qubit_map.items():
+            qid_shape[i] = q.dimension
+    except IndexError:
+        raise ValueError(
+            'Invalid qubit_map. Qubit index out of bounds. Map is <{!r}>.'.
+            format(qubit_map))
+    if -1 in qid_shape:
+        raise ValueError(
+            'Invalid qubit_map. Duplicate qubit index. Map is <{!r}>.'.format(
+                qubit_map))
+    return tuple(qid_shape)

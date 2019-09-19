@@ -14,17 +14,13 @@
 
 """An optimization pass that pushes Z gates later and later in the circuit."""
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable
+from typing import cast, Dict, Iterable, List, Optional, Tuple
 from collections import defaultdict
 import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import decompositions
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List, Tuple
 
 
 def _is_integer(n):
@@ -54,14 +50,20 @@ class EjectZ():
     measurements, cross CZ gates, cross W gates (by phasing them), etc.
     """
 
-    def __init__(self, tolerance: float = 0.0) -> None:
+    def __init__(self,
+                 tolerance: float = 0.0,
+                 eject_parameterized: bool = False) -> None:
         """
         Args:
             tolerance: Maximum absolute error tolerance. The optimization is
                  permitted to simply drop negligible combinations of Z gates,
                  with a threshold determined by this tolerance.
+            eject_parameterized: If True, the optimization will attempt to eject
+                parametrized Z gates as well.  This may result in other gates
+                parameterized by symbolic expressions.
         """
         self.tolerance = tolerance
+        self.eject_parameterized = eject_parameterized
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
@@ -83,7 +85,7 @@ class EjectZ():
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
                 # Move Z gates into tracked qubit phases.
-                h = _try_get_known_z_half_turns(op)
+                h = _try_get_known_z_half_turns(op, self.eject_parameterized)
                 if h is not None:
                     q = op.qubits[0]
                     qubit_phase[q] += h / 2
@@ -127,12 +129,13 @@ class EjectZ():
         circuit.batch_insert(insertions)
 
 
-def _try_get_known_z_half_turns(op: ops.Operation) -> Optional[float]:
+def _try_get_known_z_half_turns(op: ops.Operation,
+                                eject_parameterized: bool) -> Optional[float]:
     if not isinstance(op, ops.GateOperation):
         return None
     if not isinstance(op.gate, ops.ZPowGate):
         return None
     h = op.gate.exponent
-    if isinstance(h, sympy.Symbol):
+    if not eject_parameterized and isinstance(h, sympy.Basic):
         return None
     return h

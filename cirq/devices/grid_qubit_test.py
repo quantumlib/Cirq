@@ -167,3 +167,13 @@ def test_from_proto_bad_dict():
         cirq.GridQubit.from_proto_dict({})
     with pytest.raises(ValueError):
         cirq.GridQubit.from_proto_dict({'nothing': 1})
+
+
+def test_to_json():
+    q = cirq.GridQubit(5, 6)
+    d = q._json_dict_()
+    assert d == {
+        'cirq_type': 'GridQubit',
+        'row': 5,
+        'col': 6,
+    }

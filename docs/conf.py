@@ -113,6 +113,7 @@ version = release  # '.'.join(release.split('.')[:2])
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'recommonmark',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
@@ -127,14 +128,13 @@ templates_path = ['_templates']
 
 # Allow markdown includes.
 # http://www.sphinx-doc.org/en/master/markdown.html
-source_parsers = {
-   '.md': 'recommonmark.parser.CommonMarkParser',
-}
-
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # The master toctree document.
 master_doc = 'index'

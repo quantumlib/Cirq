@@ -35,6 +35,7 @@ from cirq.sim.mux import (
 )
 
 from cirq.sim.simulator import (
+    SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesSamples,

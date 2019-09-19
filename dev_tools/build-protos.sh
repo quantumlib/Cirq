@@ -22,14 +22,14 @@
 ################################################################################
 
 set -e
-trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Build protos for each protobuf package.
-for package in cirq/api/google/v1 cirq/api/google/v2
+for package in cirq/api/google/v1 cirq/api/google/v2 cirq/google/api/v1 cirq/google/api/v2
 do
   python -m grpc_tools.protoc -I=. --python_out=. --mypy_out=. ${package}/*.proto
 done

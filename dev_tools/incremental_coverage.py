@@ -36,11 +36,13 @@ IGNORED_LINE_PATTERNS = [
     # Empty method definitions.
     r'^pass$',
     # Code explicitly marked as not implemented.
-    r'raise NotImplementedError\(.+',
+    r'raise NotImplementedError.*',
     # Code explicitly marked as unreachable.
     r'^assert False.*$',
     # Code testing if libraries are present.
     r'except ImportError',
+    # Plotting code.
+    r'plt\.show\(\)',
 ]
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 

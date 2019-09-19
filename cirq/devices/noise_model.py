@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Iterable, Sequence, Union
+from typing import TYPE_CHECKING, Sequence
 
 from cirq import ops, value
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
+    from typing import Iterable
     import cirq
 
 

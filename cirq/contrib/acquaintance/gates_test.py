@@ -15,7 +15,7 @@
 from itertools import combinations, product
 from random import randint
 from string import ascii_lowercase as alphabet
-from typing import Sequence, Tuple, TYPE_CHECKING
+from typing import Optional, Sequence, Tuple
 
 from numpy.random import poisson
 import pytest
@@ -23,10 +23,6 @@ import pytest
 import cirq
 import cirq.testing as ct
 import cirq.contrib.acquaintance as cca
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Optional
 
 
 def test_acquaintance_gate_repr():
@@ -145,7 +141,8 @@ def test_acquaint_part_pairs(part_lens):
     expected_opps = set(frozenset(s + t) for s, t in combinations(parts, 2))
     assert expected_opps == actual_opps
 
-acquaintance_sizes = (None,) # type: Tuple[Optional[int], ...]
+
+acquaintance_sizes: Tuple[Optional[int], ...] = (None,)
 acquaintance_sizes += tuple(range(5))
 @pytest.mark.parametrize('part_lens, acquaintance_size',
     list(((part_len,) * n_parts, acquaintance_size) for
@@ -173,6 +170,28 @@ def test_swap_network_gate_from_ops():
             qubits, operations, acquaintance_size)
     assert swap_network.acquaintance_size == acquaintance_size
     assert swap_network.part_lens == part_lens
+
+    acquaintance_size = 2
+    operations = []
+    qubits = qubits[:5]
+    swap_network = cca.SwapNetworkGate.from_operations(qubits, operations,
+                                                       acquaintance_size,
+                                                       cirq.ZZ)
+    circuit = cirq.Circuit.from_ops(swap_network(*qubits))
+    cca.DECOMPOSE_PERMUTATION_GATES(circuit)
+
+    expected_diagram = """
+0: ───█───ZZ────────────█───ZZ────────────█───ZZ───
+      │   │             │   │             │   │
+1: ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───
+               │   │             │   │
+2: ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───
+      │   │             │   │             │   │
+3: ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───█───ZZ───
+               │   │             │   │
+4: ────────────█───ZZ────────────█───ZZ────────────
+""".strip()
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
 
 def test_swap_network_decomposition():

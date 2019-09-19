@@ -20,8 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate
-from cirq.ops.common_gates import _rads_func_symbol
+from cirq.ops import gate_features, eigen_gate, common_gates
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -55,14 +54,18 @@ class XXPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> Union[str, protocols.CircuitDiagramInfo]:
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
-            symbol = _rads_func_symbol(
-                'MS',
-                args,
-                self._diagram_exponent(args, ignore_global_phase=False)/2)
+            symbol = common_gates._rads_func_symbol(
+                'MS', args,
+                self._diagram_exponent(args, ignore_global_phase=False) / 2)
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
 
@@ -113,8 +116,13 @@ class YYPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('YY', 'YY'),
             exponent=self._diagram_exponent(args))
@@ -149,6 +157,13 @@ class ZZPowGate(eigen_gate.EigenGate,
         where w = e^{i \pi t} and '.' means '0'.
     """
 
+    def _decompose_(self, qubits):
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
+        yield common_gates.CZPowGate(exponent=-2 * self.exponent,
+                                     global_shift=-self.global_shift / 2)(
+                                         qubits[0], qubits[1])
+
     def _eigen_components(self):
         return [
             (0, np.diag([1, 0, 0, 1])),
@@ -158,14 +173,19 @@ class ZZPowGate(eigen_gate.EigenGate,
     def _eigen_shifts(self):
         return [0, 1]
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('ZZ', 'ZZ'),
             exponent=self._diagram_exponent(args))
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Optional[np.ndarray]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return None
 

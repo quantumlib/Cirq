@@ -13,17 +13,13 @@
 # limitations under the License.
 
 
-from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
+from typing import Sequence, Tuple, Union, Any, Optional
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
 
 
 @value.value_equality
@@ -84,8 +80,8 @@ class ParallelGateOperation(raw_types.Operation):
         """
         return [self.gate.on(qubit) for qubit in self.qubits]
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         """Replicates the logic the simulators use to apply the equivalent
            sequence of GateOperations
         """
@@ -120,9 +116,15 @@ class ParallelGateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return self.with_gate(resolved_gate)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _trace_distance_bound_(self) -> Optional[float]:
+        angle = (len(self.qubits) *
+                 np.arcsin(protocols.trace_distance_bound(self._gate)))
+        if angle >= np.pi * 0.5:
+            return 1.0
+        return np.sin(angle)
+
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         diagram_info = protocols.circuit_diagram_info(self.gate,
                                                       args,
                                                       NotImplemented)

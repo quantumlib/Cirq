@@ -22,7 +22,6 @@ from cirq import circuits, study, value
 from cirq.work import work_pool
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
