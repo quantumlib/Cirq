@@ -111,7 +111,7 @@ class Circuit:
                 circuit.
             device: Hardware that the circuit should be able to run on.
         """
-        self._moments = []
+        self._moments: List['cirq.Moment'] = []
         self._device = device
         self.append(contents, strategy=strategy)
 
