@@ -137,6 +137,19 @@ class Moment:
     def __iter__(self):
         return iter(self.operations)
 
+    def __pow__(self, power):
+        if power == 1:
+            return self
+        if power == -1:
+            inv = [
+                protocols.inverse(op, default=None) for op in self.operations
+            ]
+            for op in inv:
+                if not isinstance(op, raw_types.Operation):
+                    return NotImplemented
+            return Moment(inv)
+        return NotImplemented
+
     def __len__(self):
         return len(self.operations)
 
