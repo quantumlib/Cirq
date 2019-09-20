@@ -31,8 +31,7 @@ def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
     elif isinstance(sweepable, ParamResolver):
         yield sweepable
     elif isinstance(sweepable, Sweep):
-        for params in sweepable:
-            yield params
+        yield from sweepable
     elif isinstance(sweepable, dict):
         yield ParamResolver(cast(Dict, sweepable))
     elif isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
