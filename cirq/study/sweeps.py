@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Iterable, Iterator, List, Sequence, Tuple, Union
+from typing import cast, Dict, Iterable, Iterator, List, Sequence, Tuple, Union
 
 import abc
 import collections
@@ -101,27 +101,30 @@ class Sweep(metaclass=abc.ABCMeta):
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
-    def __getitem__(self, val) -> Union[Params, Iterator[Params]]:
-        single_item = False
+    def __getitem__(self, val) -> Union[resolver.ParamResolver, 'Sweep']:
         if isinstance(val, int):
+            if val < 0:
+                val += len(self)
             val = slice(val, val + 1, None)
-            single_item = True
         if not isinstance(val, slice):
             raise TypeError(
                 'Sweep indices must be either int or slices, not {}'\
                     .format(type(val)))
-        if (val.start is not None and val.start < 0) or \
-           (val.stop is not None and val.stop < 0) or \
-           (val.step is not None and val.step < 0):
-            raise ValueError(
-                'Cannot slice/access sweeps using negative indices.')
 
-        result_iterator = itertools.islice(self.param_tuples(), val.start,
-                                           val.stop, val.step)
+        inds_map: Dict[int, int] = {
+            val: i for i, val in enumerate(range(*val.indices(len(self))))
+        }
+        results = [
+            resolver.ParamResolver() for i in range(len(inds_map.keys()))
+        ]
+        for i, item in enumerate(self.param_tuples()):
+            if i in inds_map:
+                results[inds_map[i]] = resolver.ParamResolver(
+                    collections.OrderedDict(item))
 
-        if single_item:
-            return next(result_iterator)
-        return result_iterator
+        if len(results) == 1:
+            return results[0]
+        return ListSweep(results)
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:
