@@ -165,12 +165,11 @@ def sample_sweep(
     """
     if seed:
         np.random.seed(seed)
-    circuit = (program if isinstance(program, circuits.Circuit)
-               else program.to_circuit())
-    param_resolvers = study.to_resolvers(params)
+    circuit = (program if isinstance(program, circuits.Circuit) else
+               program.to_circuit())
 
     trial_results = []  # type: List[study.TrialResult]
-    for param_resolver in param_resolvers:
+    for param_resolver in study.to_resolvers(params):
         measurements = sample(circuit,
                               noise=noise,
                               param_resolver=param_resolver,

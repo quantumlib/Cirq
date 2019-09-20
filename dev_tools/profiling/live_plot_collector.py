@@ -26,7 +26,7 @@ class LivePlotCollector(cirq.Collector):
         self.next_index = 0
         self.circuit = circuit
         self.sweep = cirq.Points(parameter, values)
-        self.resolvers = cirq.to_resolvers(self.sweep)
+        self.resolvers = list(cirq.to_resolvers(self.sweep))
         self.reps = repetitions
 
         self.unstarted_xs = list(values)
