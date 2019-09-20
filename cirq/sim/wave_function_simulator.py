@@ -210,7 +210,7 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
     state: np.ndarray,
     qubit_order: ops.QubitOrder,
     qubit_map: Dict[ops.Qid, int]):
-    basis_change_circuit = circuits.Circuit.from_ops(
+    basis_change_circuit = circuits.Circuit(
         display.measurement_basis_change())
     modified_state = basis_change_circuit.final_wavefunction(
         state,

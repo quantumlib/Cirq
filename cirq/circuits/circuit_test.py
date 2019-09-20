@@ -1510,7 +1510,7 @@ def test_deprecated_from_ops():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    actual = cirq.Circuit.from_ops(
+    actual = cirq.Circuit(
         cirq.X(a),
         [cirq.Y(a), cirq.Z(b)],
         cirq.CZ(a, b),

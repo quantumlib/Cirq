@@ -185,6 +185,6 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             i -= num_rm
         i += 1
 
-    return circuits.Circuit.from_ops(
+    return circuits.Circuit(
                 all_ops,
                 strategy=circuits.InsertStrategy.EARLIEST)

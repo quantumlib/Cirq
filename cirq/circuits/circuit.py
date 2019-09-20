@@ -1655,7 +1655,7 @@ class Circuit:
         c_noisy = Circuit()
         for op_tree in noise.noisy_moments(self, qubits):
             # Keep moments aligned
-            c_noisy += Circuit.from_ops(op_tree)
+            c_noisy += Circuit(op_tree)
         return c_noisy
 
 

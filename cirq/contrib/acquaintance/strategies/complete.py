@@ -51,10 +51,10 @@ def complete_acquaintance_strategy(qubit_order: Sequence['cirq.Qid'],
     if acquaintance_size > len(qubit_order):
         return circuits.Circuit(device=UnconstrainedAcquaintanceDevice)
     if acquaintance_size == len(qubit_order):
-        return circuits.Circuit.from_ops(
+        return circuits.Circuit(
                 acquaint(*qubit_order), device=UnconstrainedAcquaintanceDevice)
 
-    strategy = circuits.Circuit.from_ops(
+    strategy = circuits.Circuit(
             (acquaint(q) for q in qubit_order),
             device=UnconstrainedAcquaintanceDevice)
     for size_to_acquaint in range(2, acquaintance_size + 1):

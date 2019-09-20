@@ -102,7 +102,7 @@ def move_pauli_strings_into_circuit(circuit_left: Union[circuits.Circuit,
 
     assert not string_dag.nodes(), 'There was a cycle in the CircuitDag'
 
-    return circuits.Circuit.from_ops(
+    return circuits.Circuit(
             output_ops,
             strategy=circuits.InsertStrategy.EARLIEST,
             device=circuit_right.device)

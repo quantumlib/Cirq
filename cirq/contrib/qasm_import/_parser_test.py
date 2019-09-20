@@ -940,7 +940,7 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     q0 = cirq.NamedQubit('q_0')
     q1 = cirq.NamedQubit('q_1')
 
-    expected_circuit = Circuit.from_ops([
+    expected_circuit = Circuit([
         cirq_gate.on(q0),
         cirq_gate.on(q0),
         cirq_gate.on(q1),

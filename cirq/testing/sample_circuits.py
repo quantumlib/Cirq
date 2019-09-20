@@ -21,7 +21,7 @@ def nonoptimal_toffoli_circuit(
         q2: ops.Qid,
         device: devices.Device = devices.UNCONSTRAINED_DEVICE
 ) -> circuits.Circuit:
-    return circuits.Circuit.from_ops(
+    return circuits.Circuit(
         ops.Y(q2) ** 0.5,
         ops.X(q2),
         ops.CNOT(q1, q2),
