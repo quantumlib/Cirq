@@ -197,6 +197,8 @@ TEST_OBJECTS = {
         cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1),
                                 cirq.Z(Q2)]),
     ],
+    '_NamedConstantXmonDevice':
+    cirq.google.Foxtail,
     'NamedQubit':
     cirq.NamedQubit('hi mom'),
     'PauliString': [
@@ -444,7 +446,14 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-@pytest.mark.parametrize('cirq_type,cls', _get_all_public_classes())
+def _roundtrip_test_classes():
+    for cirq_type, cls in _get_all_public_classes():
+        yield cirq_type, cls
+    yield ('_NamedConstantXmonDevice',
+            cirq.google.known_devices._NamedConstantXmonDevice)
+
+
+@pytest.mark.parametrize('cirq_type,cls', _roundtrip_test_classes())
 def test_all_roundtrip(cirq_type: str, cls):
     if cirq_type in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
