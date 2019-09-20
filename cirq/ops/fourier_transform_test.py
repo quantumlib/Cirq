@@ -20,8 +20,7 @@ import cirq
 def test_phase_gradient():
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhaseGradientGate(num_qubits=2, exponent=1)),
-        np.diag([1, 1j, -1, -1j])
-    )
+        np.diag([1, 1j, -1, -1j]))
 
     for k in range(4):
         cirq.testing.assert_implements_consistent_protocols(
@@ -29,43 +28,41 @@ def test_phase_gradient():
 
 
 def test_qft():
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))),
-        np.array([
-            [1, 1, 1, 1],
-            [1, 1j, -1, -1j],
-            [1, -1, 1, -1],
-            [1, -1j, -1, 1j],
-        ]) / 2,
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))),
+                               np.array([
+                                   [1, 1, 1, 1],
+                                   [1, 1j, -1, -1j],
+                                   [1, -1, 1, -1],
+                                   [1, -1j, -1, 1j],
+                               ]) / 2,
+                               atol=1e-8)
 
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2), without_reverse=True)),
-        np.array([
-            [1, 1, 1, 1],
-            [1, -1, 1, -1],
-            [1, 1j, -1, -1j],
-            [1, -1j, -1, 1j],
-        ]) / 2,
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(
+        cirq.QFT(*cirq.LineQubit.range(2), without_reverse=True)),
+                               np.array([
+                                   [1, 1, 1, 1],
+                                   [1, -1, 1, -1],
+                                   [1, 1j, -1, -1j],
+                                   [1, -1j, -1, 1j],
+                               ]) / 2,
+                               atol=1e-8)
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.QFT(*cirq.LineQubit.range(4))),
-        np.array([
-            [np.exp(2j * np.pi * i * j / 16) for i in range(16)]
-            for j in range(16)
-        ]) / 4,
+        np.array([[np.exp(2j * np.pi * i * j / 16)
+                   for i in range(16)]
+                  for j in range(16)]) / 4,
         atol=1e-8)
 
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))**-1),
-        np.array([
-            [1, 1, 1, 1],
-            [1, -1j, -1, 1j],
-            [1, -1, 1, -1],
-            [1, 1j, -1, -1j],
-        ]) / 2,
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(
+        cirq.QFT(*cirq.LineQubit.range(2))**-1),
+                               np.array([
+                                   [1, 1, 1, 1],
+                                   [1, -1j, -1, 1j],
+                                   [1, -1, 1, -1],
+                                   [1, 1j, -1, -1j],
+                               ]) / 2,
+                               atol=1e-8)
 
     for k in range(4):
         cirq.testing.assert_implements_consistent_protocols(
@@ -75,8 +72,7 @@ def test_qft():
 def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(
-            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))),
-        """
+            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))), """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────×───
           │              │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────×───┼───
@@ -88,9 +84,8 @@ def test_circuit_diagram():
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(
-            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4),
-                                         without_reverse=True))),
-        """
+            cirq.decompose_once(
+                cirq.QFT(*cirq.LineQubit.range(4), without_reverse=True))), """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────
           │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────────
@@ -101,9 +96,8 @@ def test_circuit_diagram():
         """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
-            cirq.QFT(*cirq.LineQubit.range(4)),
-            cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))),
+        cirq.Circuit.from_ops(cirq.QFT(*cirq.LineQubit.range(4)),
+                              cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))),
         """
 0: ───QFT───QFT^-1───
       │     │

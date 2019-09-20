@@ -122,10 +122,10 @@ class ControlledGate(raw_types.Gate):
             return NotImplemented
 
         decomposed = []
+        controls = qubits[:self.num_controls()]
         for op in result:
             decomposed.append(
-                cop.ControlledOperation(qubits[:self.num_controls()], op,
-                                        self.control_values))
+                op.controlled_by(*controls, control_values=self.control_values))
         return decomposed
 
     def validate_args(self, qubits) -> None:

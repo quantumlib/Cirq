@@ -50,12 +50,13 @@ class QuantumFourierTransformGate(raw_types.Gate):
             return
         yield cirq.H(qubits[0])
         for i in range(1, len(qubits)):
-            yield PhaseGradientGate(num_qubits=i, exponent=0.5).on(
-                *qubits[:i][::-1]).controlled_by(qubits[i])
+            yield PhaseGradientGate(
+                num_qubits=i,
+                exponent=0.5).on(*qubits[:i][::-1]).controlled_by(qubits[i])
             yield cirq.H(qubits[i])
         if not self._without_reverse:
             for i in range(len(qubits) // 2):
-                yield cirq.SWAP(qubits[i], qubits[-i-1])
+                yield cirq.SWAP(qubits[i], qubits[-i - 1])
 
     def _has_unitary_(self):
         return True
@@ -70,8 +71,8 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         return cirq.CircuitDiagramInfo(
-            wire_symbols=(str(self),) + tuple(
-                f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=(str(self),) +
+            tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
             exponent_qubit_index=0)
 
 
@@ -79,6 +80,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
 class PhaseGradientGate(raw_types.Gate):
     """Phases each computational basis state |k⟩ out of n by e^(i*k/n*exponent).
     """
+
     def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
         self._num_qubits = num_qubits
         self.exponent = exponent
@@ -117,8 +119,8 @@ class PhaseGradientGate(raw_types.Gate):
             return NotImplemented
 
         size = 1 << self._num_qubits
-        return np.diag([
-            1j**(4 * i / size * self.exponent) for i in range(size)])
+        return np.diag(
+            [1j**(4 * i / size * self.exponent) for i in range(size)])
 
     def _has_unitary_(self):
         return not isinstance(self.exponent, sympy.Basic)
@@ -134,8 +136,8 @@ class PhaseGradientGate(raw_types.Gate):
                                  exponent=new_exponent)
 
     def __str__(self):
-        return f'Grad[{self._num_qubits}]' + (
-            f'^{self.exponent}' if self.exponent != 1 else '')
+        return f'Grad[{self._num_qubits}]' + (f'^{self.exponent}'
+                                              if self.exponent != 1 else '')
 
     def __repr__(self):
         return 'cirq.PhaseGradientGate(num_qubits={!r}, exponent={})'.format(
@@ -143,8 +145,8 @@ class PhaseGradientGate(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         return cirq.CircuitDiagramInfo(
-            wire_symbols=('Grad',) + tuple(
-                f'#{k+1}' for k in range(1, self._num_qubits)),
+            wire_symbols=('Grad',) +
+            tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
             exponent=self.exponent,
             exponent_qubit_index=0)
 

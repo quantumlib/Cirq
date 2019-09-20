@@ -45,6 +45,9 @@ class QuirkOp:
         self.keys = keys
         self.can_merge = can_merge
 
+    def controlled(self, control_count: int = 1) -> 'QuirkOp':
+        return QuirkOp(*['•'] * control_count, *self.keys, can_merge=False)
+
 
 UNKNOWN_GATE = QuirkOp('UNKNOWN', can_merge=False)
 
@@ -116,39 +119,38 @@ def _gate_to_quirk_op(gate: ops.Gate) -> Optional[QuirkOp]:
     return None
 
 
-def x_to_known(gate: ops.XPowGate) -> Optional[QuirkOp]:
+def xyz_to_known(axis: str, gate: ops.EigenGate) -> Optional[QuirkOp]:
+    d = axis.lower()
+    u = axis.upper()
+
+    if gate.global_shift == -0.5:
+        return QuirkOp({'id': 'R{d}}ft', 'arg': f'{gate.exponent:.4f}pi'})
+
     e = angle_to_exponent_key(gate.exponent)
-    if e is None:
-        return None
-    return QuirkOp('X' + e)
+    if e is not None:
+        return QuirkOp(u + e)
+
+    return QuirkOp({'id': f'{u}^ft', 'arg': f'{gate.exponent:.4f}'})
+
+
+def x_to_known(gate: ops.XPowGate) -> Optional[QuirkOp]:
+    return xyz_to_known('x', gate)
 
 
 def y_to_known(gate: ops.YPowGate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.exponent)
-    if e is None:
-        return None
-    return QuirkOp('Y' + e)
+    return xyz_to_known('y', gate)
 
 
 def z_to_known(gate: ops.ZPowGate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.exponent)
-    if e is None:
-        return None
-    return QuirkOp('Z' + e)
+    return xyz_to_known('z', gate)
 
 
 def cz_to_known(gate: ops.CZPowGate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.exponent)
-    if e is None:
-        return None
-    return QuirkOp('•', 'Z' + e, can_merge=False)
+    return z_to_known(ops.Z**gate.exponent).controlled()
 
 
 def cnot_to_known(gate: ops.CNotPowGate) -> Optional[QuirkOp]:
-    e = angle_to_exponent_key(gate.exponent)
-    if e is None:
-        return None
-    return QuirkOp('•', 'X' + e, can_merge=False)
+    return x_to_known(ops.X**gate.exponent).controlled()
 
 
 def h_to_known(gate: ops.HPowGate) -> Optional[QuirkOp]:
@@ -185,7 +187,7 @@ def controlled_unwrap(op: ops.ControlledOperation) -> Optional[QuirkOp]:
     sub = known_quirk_op_for_operation(op.sub_operation)
     if sub is None:
         return None
-    return QuirkOp(*(('•',) * len(op.controls) + sub.keys), can_merge=False)
+    return sub.controlled(len(op.controls))
 
 
 _known_gate_conversions = cast(

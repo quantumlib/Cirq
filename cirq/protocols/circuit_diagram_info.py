@@ -68,11 +68,9 @@ class CircuitDiagramInfo:
                 'wire_symbols={!r}, '
                 'exponent={!r}, '
                 'connected={!r}, '
-                'exponent_qubit={!r})'.format(
-                    self.wire_symbols,
-                    self.exponent,
-                    self.connected,
-                    self.exponent_qubit_index))
+                'exponent_qubit={!r})'.format(self.wire_symbols, self.exponent,
+                                              self.connected,
+                                              self.exponent_qubit_index))
 
 
 @value.value_equality

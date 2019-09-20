@@ -174,12 +174,11 @@ class ApplyUnitaryArgs:
         new_axes = range(len(other_axes), len(ordered_axes))
         return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes)
 
-    def subspace_index(
-            self,
-            little_endian_bits_int: int = 0,
-            *,
-            big_endian_bits_int: int = 0
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    def subspace_index(self,
+                       little_endian_bits_int: int = 0,
+                       *,
+                       big_endian_bits_int: int = 0
+                      ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:

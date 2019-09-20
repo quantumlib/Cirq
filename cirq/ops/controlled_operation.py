@@ -68,9 +68,8 @@ class ControlledOperation(raw_types.Operation):
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
-
         return [
-            ControlledOperation(self.controls, op, self.control_values)
+            op.controlled_by(*self.controls, control_values=self.control_values)
             for op in result
         ]
 
@@ -196,6 +195,5 @@ class ControlledOperation(raw_types.Operation):
         return protocols.CircuitDiagramInfo(
             wire_symbols=wire_symbols,
             exponent=sub_info.exponent,
-            exponent_qubit_index=None
-                                 if sub_info.exponent_qubit_index is None
-                                 else sub_info.exponent_qubit_index + 1)
+            exponent_qubit_index=None if sub_info.exponent_qubit_index is None
+            else sub_info.exponent_qubit_index + 1)
