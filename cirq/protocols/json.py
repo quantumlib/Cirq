@@ -38,6 +38,7 @@ class _ResolverCache:
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
+            from cirq.google.known_devices import _NamedConstantXmonDevice
             self._crd = {
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
@@ -57,8 +58,7 @@ class _ResolverCache:
                 'LineQid': cirq.LineQid,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
-                '_NamedConstantXmonDevice':
-                cirq.google.known_devices._NamedConstantXmonDevice,
+                '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
