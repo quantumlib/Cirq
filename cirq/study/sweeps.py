@@ -107,7 +107,6 @@ class Sweep(metaclass=abc.ABCMeta):
     def __getitem__(self, val: int) -> resolver.ParamResolver:
         pass
 
-    # pylint: disable=function-redefined
     @overload
     def __getitem__(self, val: slice) -> 'Sweep':
         pass
@@ -116,23 +115,24 @@ class Sweep(metaclass=abc.ABCMeta):
         if isinstance(val, int):
             if val < 0:
                 val += len(self)
-            val = slice(val, val + 1, None)
+            return next(itertools.islice(self, val, val+1))
         if not isinstance(val, slice):
             raise TypeError(
-                'Sweep indices must be either int or slices, not {}'\
-                    .format(type(val)))
+                'Sweep indices must be either int or slices, not {}'.format(
+                    type(val)))
 
         inds_map: Dict[int, int] = {
-            val: i for i, val in enumerate(range(len(self))[val])
+            sweep_i: slice_i
+            for slice_i, sweep_i in enumerate(range(len(self))[val])
         }
-        results = [resolver.ParamResolver()] * len(inds_map.keys())
+        results = [resolver.ParamResolver()] * len(inds_map)
         for i, item in enumerate(self):
             if i in inds_map:
                 results[inds_map[i]] = item
 
-        if len(results) == 1:
-            return results[0]
         return ListSweep(results)
+
+    # pylint: enable=function-redefined
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:

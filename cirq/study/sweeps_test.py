@@ -103,17 +103,19 @@ def test_slice_sweep():
     sweep_reversed = sweep[::-1]
     assert list(sweep) == list(reversed(list(sweep_reversed)))
 
+    single_sweep = sweep[5:6]
+    assert list(single_sweep.param_tuples())[0] == (('a', 2), ('b', 5))
+    assert len(list(single_sweep.param_tuples())) == 1
+
 
 def test_access_sweep():
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
 
     last_elem = sweep[-1]
-    assert last_elem.__repr__(
-    ) == 'cirq.ParamResolver(OrderedDict([(\'a\', 3), (\'b\', 7)]))'
+    assert last_elem == cirq.ParamResolver({'a': 3, 'b': 7})
 
     sixth_elem = sweep[5]
-    assert sixth_elem.__repr__(
-    ) == 'cirq.ParamResolver(OrderedDict([(\'a\', 2), (\'b\', 5)]))'
+    assert sixth_elem == cirq.ParamResolver({'a': 2, 'b': 5})
 
 
 @pytest.mark.parametrize('r_list', [
