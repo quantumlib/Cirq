@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import sympy
 
 import cirq
 
@@ -20,52 +21,76 @@ import cirq
 def test_phase_gradient():
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhaseGradientGate(num_qubits=2, exponent=1)),
-        np.diag([1, 1j, -1, -1j])
-    )
+        np.diag([1, 1j, -1, -1j]))
 
     for k in range(4):
         cirq.testing.assert_implements_consistent_protocols(
             cirq.PhaseGradientGate(num_qubits=k, exponent=1))
 
 
-def test_qft():
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))),
-        np.array([
-            [1, 1, 1, 1],
-            [1, 1j, -1, -1j],
-            [1, -1, 1, -1],
-            [1, -1j, -1, 1j],
-        ]) / 2,
-        atol=1e-8)
+def test_phase_gradient_symbolic():
+    a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
+    b = cirq.PhaseGradientGate(num_qubits=2, exponent=sympy.Symbol('t'))
+    assert not cirq.is_parameterized(a)
+    assert cirq.is_parameterized(b)
+    assert cirq.has_unitary(a)
+    assert not cirq.has_unitary(b)
+    assert cirq.resolve_parameters(a, {'t': 0.25}) is a
+    assert cirq.resolve_parameters(b, {'t': 0.5}) == a
+    assert cirq.resolve_parameters(b, {'t': 0.25}) == cirq.PhaseGradientGate(
+        num_qubits=2, exponent=0.25)
 
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2), without_reverse=True)),
-        np.array([
-            [1, 1, 1, 1],
-            [1, -1, 1, -1],
-            [1, 1j, -1, -1j],
-            [1, -1j, -1, 1j],
-        ]) / 2,
-        atol=1e-8)
+
+def test_str():
+    assert str(cirq.PhaseGradientGate(num_qubits=2,
+                                      exponent=0.5)) == 'Grad[2]^0.5'
+    assert str(cirq.PhaseGradientGate(num_qubits=2, exponent=1)) == 'Grad[2]'
+
+
+def test_pow():
+    a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
+    assert a**0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
+    assert a**sympy.Symbol('t') == cirq.PhaseGradientGate(num_qubits=2,
+                                                          exponent=0.5 *
+                                                          sympy.Symbol('t'))
+
+
+def test_qft():
+    np.testing.assert_allclose(cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))),
+                               np.array([
+                                   [1, 1, 1, 1],
+                                   [1, 1j, -1, -1j],
+                                   [1, -1, 1, -1],
+                                   [1, -1j, -1, 1j],
+                               ]) / 2,
+                               atol=1e-8)
+
+    np.testing.assert_allclose(cirq.unitary(
+        cirq.QFT(*cirq.LineQubit.range(2), without_reverse=True)),
+                               np.array([
+                                   [1, 1, 1, 1],
+                                   [1, -1, 1, -1],
+                                   [1, 1j, -1, -1j],
+                                   [1, -1j, -1, 1j],
+                               ]) / 2,
+                               atol=1e-8)
 
     np.testing.assert_allclose(
         cirq.unitary(cirq.QFT(*cirq.LineQubit.range(4))),
-        np.array([
-            [np.exp(2j * np.pi * i * j / 16) for i in range(16)]
-            for j in range(16)
-        ]) / 4,
+        np.array([[np.exp(2j * np.pi * i * j / 16)
+                   for i in range(16)]
+                  for j in range(16)]) / 4,
         atol=1e-8)
 
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))**-1),
-        np.array([
-            [1, 1, 1, 1],
-            [1, -1j, -1, 1j],
-            [1, -1, 1, -1],
-            [1, 1j, -1, -1j],
-        ]) / 2,
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(
+        cirq.QFT(*cirq.LineQubit.range(2))**-1),
+                               np.array([
+                                   [1, 1, 1, 1],
+                                   [1, -1j, -1, 1j],
+                                   [1, -1, 1, -1],
+                                   [1, 1j, -1, -1j],
+                               ]) / 2,
+                               atol=1e-8)
 
     for k in range(4):
         cirq.testing.assert_implements_consistent_protocols(
@@ -75,8 +100,7 @@ def test_qft():
 def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(
-            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))),
-        """
+            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))), """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────×───
           │              │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────×───┼───
@@ -88,9 +112,8 @@ def test_circuit_diagram():
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit.from_ops(
-            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4),
-                                         without_reverse=True))),
-        """
+            cirq.decompose_once(
+                cirq.QFT(*cirq.LineQubit.range(4), without_reverse=True))), """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────
           │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────────
@@ -101,9 +124,8 @@ def test_circuit_diagram():
         """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
-            cirq.QFT(*cirq.LineQubit.range(4)),
-            cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))),
+        cirq.Circuit.from_ops(cirq.QFT(*cirq.LineQubit.range(4)),
+                              cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))),
         """
 0: ───QFT───QFT^-1───
       │     │

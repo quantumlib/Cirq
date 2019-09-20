@@ -20,10 +20,10 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 import abc
 import functools
 
-import cirq
 from cirq import value, protocols
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops import gate_operation, linear_combinations
 
 
