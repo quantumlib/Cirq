@@ -884,14 +884,14 @@ class DensityMatrix(cirq.DensityMatrixDisplay):
         self._key = key
 
     @property
-    def key(self) -> Hashable:
+    def key(self):
         return self._key
 
     @property
-    def qubits(self) -> Tuple[Qid, ...]:
+    def qubits(self):
         return self._qubits
 
-    def with_qubits(self, *new_qubits: Qid) -> 'Operation':
+    def with_qubits(self, *new_qubits):
         raise NotImplementedError()
 
     def value_derived_from_density_matrix(self, state, qubit_map):
@@ -900,7 +900,7 @@ class DensityMatrix(cirq.DensityMatrixDisplay):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_compute_samples_displays(dtype):
+def test_compute_displays(dtype):
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(
         cirq.Moment([op]) for op in [
@@ -911,8 +911,7 @@ def test_compute_samples_displays(dtype):
             DensityMatrix(a, b, c, key='C'),
             cirq.X(c),
             DensityMatrix(a, b, c, key='D')
-        ]
-    )
+        ])
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     result = simulator.compute_displays(circuit)
 
