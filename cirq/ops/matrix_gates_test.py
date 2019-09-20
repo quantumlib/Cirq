@@ -148,9 +148,7 @@ def test_single_qubit_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
-    c = cirq.Circuit(
-        cirq.SingleQubitMatrixGate(m).on(a),
-        cirq.CZ(a, b))
+    c = cirq.Circuit(cirq.SingleQubitMatrixGate(m).on(a), cirq.CZ(a, b))
 
     assert re.match(r"""
       ┌[          ]+┐

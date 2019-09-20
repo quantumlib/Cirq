@@ -39,13 +39,9 @@ def _assert_evaluates_correctly(circuit: cirq.Circuit,
 @pytest.mark.parametrize('n', range(10))
 def test_circuit_to_compute_and_feed_dict_small(n: int):
     qs = cirq.LineQubit.range(n)
-    c = cirq.Circuit(
-        [cirq.X(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
-        [[cirq.CZ(a, b), cirq.X(a)**0.5, cirq.H(b)]
-         for a in qs
-         for b in qs
-         if a < b]
-    )
+    c = cirq.Circuit([cirq.X(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
+                     [[cirq.CZ(a, b), cirq.X(a)**0.5,
+                       cirq.H(b)] for a in qs for b in qs if a < b])
     _assert_evaluates_correctly(c)
 
 
@@ -124,11 +120,8 @@ def test_circuit_to_compute_and_feed_dict_works_on_unknown_ops():
 
     phased_swap = PhasedSwapGate()
 
-    c = cirq.Circuit(
-        [cirq.Y(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
-        cirq.CCX(qs[0], qs[4], qs[8])**0.5,
-        phased_swap(qs[0], qs[1]),
-        phased_swap(qs[3], qs[9]),
-        phased_swap(qs[0], qs[6]),
-        phased_swap(qs[9], qs[8]))
+    c = cirq.Circuit([cirq.Y(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
+                     cirq.CCX(qs[0], qs[4], qs[8])**0.5,
+                     phased_swap(qs[0], qs[1]), phased_swap(qs[3], qs[9]),
+                     phased_swap(qs[0], qs[6]), phased_swap(qs[9], qs[8]))
     _assert_evaluates_correctly(c, up_to_global_phase=True)

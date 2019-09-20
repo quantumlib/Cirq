@@ -229,40 +229,25 @@ def test_removes_zs():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(cirq.Circuit(cirq.Z(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.measure(a, b)))
+    assert_removes_all_z_gates(cirq.Circuit(cirq.Z(a), cirq.measure(a, b)))
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.Z(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.Z(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.measure(a, key='k')))
+    assert_removes_all_z_gates(cirq.Circuit(cirq.Z(a), cirq.measure(a,
+                                                                    key='k')))
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.X(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.X(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.X(a),
-        cirq.X(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.X(a), cirq.X(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit(
-        cirq.Z(a),
-        cirq.Z(b),
-        cirq.CZ(a, b),
-        cirq.CZ(a, b),
-        cirq.measure(a, b)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.CZ(a, b), cirq.CZ(a, b),
+                     cirq.measure(a, b)))
 
     assert_removes_all_z_gates(cirq.Circuit(
         cirq.Z(a)**sympy.Symbol('a'),
@@ -348,8 +333,7 @@ def test_not_a_swap_fsim(theta):
 @pytest.mark.parametrize('exponent', (1, -1))
 def test_swap_iswap(exponent):
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit(
-        [cirq.Rz(.123).on(a), cirq.ISWAP(a, b)**exponent])
+    original = cirq.Circuit([cirq.Rz(.123).on(a), cirq.ISWAP(a, b)**exponent])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)

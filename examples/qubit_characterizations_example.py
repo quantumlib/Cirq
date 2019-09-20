@@ -27,7 +27,7 @@ def main():
     rb_result_2q.plot()
 
     # State-tomography of q_0 after application of an X/2 rotation.
-    cir_1q = cirq.Circuit(cirq.X(q_0) ** 0.5)
+    cir_1q = cirq.Circuit(cirq.X(q_0)**0.5)
     tomography_1q = cirq.experiments.single_qubit_state_tomography(simulator,
                                                                    q_0, cir_1q)
     tomography_1q.plot()

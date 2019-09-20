@@ -129,11 +129,14 @@ def test_inefficient_circuit_correct():
             cirq.CNOT(b, a),
             cirq.H(a),
             cirq.CNOT(a, b),
-            cirq.Z(a)**t, cirq.Z(b)**-t,
+            cirq.Z(a)**t,
+            cirq.Z(b)**-t,
             cirq.CNOT(a, b),
-            cirq.H(a), cirq.Z(b)**v,
+            cirq.H(a),
+            cirq.Z(b)**v,
             cirq.CNOT(a, b),
-            cirq.Z(a)**-v, cirq.Z(b)**-v,
+            cirq.Z(a)**-v,
+            cirq.Z(b)**-v,
         ))
 
 
@@ -145,14 +148,13 @@ def test_optimizes_single_iswap():
     assert len([1 for op in c.all_operations() if len(op.qubits) == 2]) == 2
 
 
-@pytest.mark.parametrize('circuit', (
-    cirq.Circuit(
-        cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),
-    ),
-    cirq.Circuit(
-        cirq.CZPowGate(exponent=0.2)(*cirq.LineQubit.range(2)),
-        cirq.CZPowGate(exponent=0.3)(*cirq.LineQubit.range(2)),
-    )))
+@pytest.mark.parametrize(
+    'circuit',
+    (cirq.Circuit(cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),),
+     cirq.Circuit(
+         cirq.CZPowGate(exponent=0.2)(*cirq.LineQubit.range(2)),
+         cirq.CZPowGate(exponent=0.3)(*cirq.LineQubit.range(2)),
+     )))
 def test_decompose_partial_czs(circuit):
     optimizer = cirq.MergeInteractions(allow_partial_czs=False)
     optimizer.optimize_circuit(circuit)
@@ -168,8 +170,7 @@ def test_decompose_partial_czs(circuit):
 
 def test_not_decompose_partial_czs():
     circuit = cirq.Circuit(
-        cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),
-    )
+        cirq.CZPowGate(exponent=0.1)(*cirq.LineQubit.range(2)),)
 
     optimizer = cirq.MergeInteractions(allow_partial_czs=True)
     optimizer.optimize_circuit(circuit)

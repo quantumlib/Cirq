@@ -24,18 +24,18 @@ from cirq.contrib.paulistring import (
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
-        cirq.X(q1) ** 0.5,
+        cirq.X(q1)**0.5,
         cirq.CZ(q0, q1),
-        cirq.Z(q0) ** 0.25,
-        cirq.X(q1) ** 0.25,
+        cirq.Z(q0)**0.25,
+        cirq.X(q1)**0.25,
         cirq.CZ(q0, q1),
-        cirq.X(q1) ** -0.5,
+        cirq.X(q1)**-0.5,
     )
     c_expected = converted_gate_set(
         cirq.Circuit(
             cirq.CZ(q0, q1),
-            cirq.Z(q0) ** 0.25,
-            cirq.X(q1) ** 0.25,
+            cirq.Z(q0)**0.25,
+            cirq.X(q1)**0.25,
             cirq.CZ(q0, q1),
         ))
 
@@ -60,13 +60,10 @@ def test_remove_czs():
     q0, q1 = cirq.LineQubit.range(2)
     c_orig = cirq.Circuit(
         cirq.CZ(q0, q1),
-        cirq.Z(q0) ** 0.5,
+        cirq.Z(q0)**0.5,
         cirq.CZ(q0, q1),
     )
-    c_expected = converted_gate_set(
-        cirq.Circuit(
-            cirq.Z(q0) ** 0.5,
-        ))
+    c_expected = converted_gate_set(cirq.Circuit(cirq.Z(q0)**0.5,))
 
     c_opt = clifford_optimized_circuit(c_orig)
 
@@ -90,10 +87,7 @@ def test_remove_staggered_czs():
         cirq.CZ(q1, q2),
         cirq.CZ(q0, q1),
     )
-    c_expected = converted_gate_set(
-        cirq.Circuit(
-            cirq.CZ(q1, q2),
-        ))
+    c_expected = converted_gate_set(cirq.Circuit(cirq.CZ(q1, q2),))
 
     c_opt = clifford_optimized_circuit(c_orig)
 

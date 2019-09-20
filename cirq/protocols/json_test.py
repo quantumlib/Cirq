@@ -140,7 +140,7 @@ TEST_OBJECTS = {
     'Circuit': [
         cirq.Circuit(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
         cirq.Circuit(cirq.CCNOT(Q0, Q1, Q2),
-                              cirq.X(Q0)**0.123),
+                     cirq.X(Q0)**0.123),
         cirq.Circuit(
             cirq.XPowGate(exponent=sympy.Symbol('theta'),
                           global_shift=0).on(Q0)),

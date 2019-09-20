@@ -320,12 +320,13 @@ class Circuit:
         Returns:
             The translated circuit.
         """
-        return Circuit(
-            [ops.Moment(operation.transform_qubits(qubit_mapping)
-                        for operation in moment.operations)
-             for moment in self._moments],
-            device=new_device
-        )
+        return Circuit([
+            ops.Moment(
+                operation.transform_qubits(qubit_mapping)
+                for operation in moment.operations)
+            for moment in self._moments
+        ],
+                       device=new_device)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""

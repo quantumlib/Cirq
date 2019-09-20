@@ -128,5 +128,3 @@ y: ---\1/---
 z: ---/2\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram
-
-

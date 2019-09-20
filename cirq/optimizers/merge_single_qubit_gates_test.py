@@ -62,10 +62,7 @@ def test_not_both():
 def test_combines_sequence():
     m = cirq.MergeSingleQubitGates()
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit(
-        cirq.X(q)**0.5,
-        cirq.Z(q)**0.5,
-        cirq.X(q)**-0.5)
+    c = cirq.Circuit(cirq.X(q)**0.5, cirq.Z(q)**0.5, cirq.X(q)**-0.5)
 
     opt_summary = m.optimization_at(c, 0, c.operation_at(q, 0))
     assert opt_summary.clear_span == 3
@@ -137,9 +134,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit(
-        UnsupportedDummy()(q0),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0),)
     c_orig = cirq.Circuit(circuit)
     cirq.MergeSingleQubitGates().optimize_circuit(circuit)
 
@@ -161,12 +156,14 @@ def test_rewrite():
     ).optimize_circuit(circuit)
     cirq.DropEmptyMoments().optimize_circuit(circuit)
 
-    cirq.testing.assert_same_circuits(circuit, cirq.Circuit(
-        cirq.H(q0),
-        cirq.H(q1),
-        cirq.CZ(q0, q1),
-        cirq.H(q1),
-    ))
+    cirq.testing.assert_same_circuits(
+        circuit,
+        cirq.Circuit(
+            cirq.H(q0),
+            cirq.H(q1),
+            cirq.CZ(q0, q1),
+            cirq.H(q1),
+        ))
 
 
 def test_merge_single_qubit_gates_into_phased_x_z():

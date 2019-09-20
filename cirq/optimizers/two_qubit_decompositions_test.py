@@ -189,8 +189,7 @@ def test_trivial_parity_interaction_corner_case():
     q1 = cirq.NamedQubit('q1')
     nearPi4 = np.pi/4 * 0.99
     tolerance = 1e-2
-    circuit = cirq.Circuit(
-        _parity_interaction(q0, q1, -nearPi4, tolerance))
+    circuit = cirq.Circuit(_parity_interaction(q0, q1, -nearPi4, tolerance))
     assert len(circuit) == 2
 
 
@@ -205,16 +204,14 @@ def test_kak_decomposition_depth_full_cz():
     assert len(c) <= 8
 
     # Double-axis interaction.
-    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b),
-                                           cirq.CNOT(b, a)))
+    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
     c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Test unoptimized/un-cleaned length of Double-axis interaction.
-    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b),
-                                           cirq.CNOT(b, a)))
+    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
                                                                1e-8, False)
     c = cirq.Circuit(operations_with_part)
@@ -246,8 +243,7 @@ def test_kak_decomposition_depth_partial_cz():
     assert len(c) <= 8
 
     # Double-axis interaction.
-    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b),
-                                           cirq.CNOT(b, a)))
+    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
     c = cirq.Circuit(operations_with_part)
     # 2 CP, 2+1 PhasedX, 1 Z

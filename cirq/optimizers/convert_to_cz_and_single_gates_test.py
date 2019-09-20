@@ -81,10 +81,10 @@ def test_composite_gates_without_matrix():
     )
     expected = cirq.Circuit(
         cirq.X(q0),
-        cirq.Y(q0) ** 0.5,
+        cirq.Y(q0)**0.5,
         cirq.CZ(q0, q1),
         cirq.X(q1),
-        cirq.Y(q1) ** 0.5,
+        cirq.Y(q1)**0.5,
     )
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
@@ -102,9 +102,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        UnsupportedDummy()(q0, q1),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0, q1),)
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates(ignore_failures=True
                                    ).optimize_circuit(circuit)
@@ -117,9 +115,7 @@ def test_fail_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        UnsupportedDummy()(q0, q1),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0, q1),)
     with pytest.raises(TypeError):
         cirq.ConvertToCzAndSingleGates().optimize_circuit(circuit)
 
@@ -137,9 +133,7 @@ def test_passes_through_measurements():
 
 def test_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1) ** 0.5,
-    )
+    circuit = cirq.Circuit(cirq.CZ(q0, q1)**0.5,)
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates(allow_partial_czs=True
                                    ).optimize_circuit(circuit)
@@ -147,11 +141,9 @@ def test_allow_partial_czs():
     assert circuit == c_orig
 
     circuit2 = cirq.Circuit(
-        cirq.TwoQubitMatrixGate((np.array([[1, 0, 0, 0],
-                                           [0, 1, 0, 0],
-                                           [0, 0, 1, 0],
-                                           [0, 0, 0, 1j]]))).on(q0, q1)
-    )
+        cirq.TwoQubitMatrixGate((np.array([[1, 0, 0, 0], [0, 1, 0, 0],
+                                           [0, 0, 1, 0], [0, 0, 0,
+                                                          1j]]))).on(q0, q1))
     cirq.ConvertToCzAndSingleGates(allow_partial_czs=True
                                    ).optimize_circuit(circuit2)
     two_qubit_ops = list(circuit2.findall_operations(
@@ -163,9 +155,7 @@ def test_allow_partial_czs():
 
 def test_dont_allow_partial_czs():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1) ** 0.5,
-    )
+    circuit = cirq.Circuit(cirq.CZ(q0, q1)**0.5,)
     c_orig = cirq.Circuit(circuit)
     cirq.ConvertToCzAndSingleGates(ignore_failures=True
                                    ).optimize_circuit(circuit)

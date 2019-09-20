@@ -77,8 +77,7 @@ def test_avoids_decompose_fallback_when_matrix_available_two_qubit():
 
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
-    c = cirq.Circuit(OtherCZ().on(q00, q01),
-                              OtherOtherCZ().on(q00, q01))
+    c = cirq.Circuit(OtherCZ().on(q00, q01), OtherOtherCZ().on(q00, q01))
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(c, "(0, 0): ───@───@───\n"
                                        "           │   │\n(0, 1): ───@───@───")

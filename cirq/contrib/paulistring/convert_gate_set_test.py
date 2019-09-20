@@ -41,8 +41,7 @@ from cirq.contrib.paulistring import converted_gate_set
 ))(cirq.LineQubit(0), cirq.LineQubit(1)))
 def test_converts_various_ops(op, expected_ops):
     before = cirq.Circuit(op)
-    expected = cirq.Circuit(expected_ops,
-                            strategy=cirq.InsertStrategy.EARLIEST)
+    expected = cirq.Circuit(expected_ops, strategy=cirq.InsertStrategy.EARLIEST)
 
     after = converted_gate_set(before)
     assert after == expected
@@ -60,13 +59,11 @@ def test_degenerate_single_qubit_decompose():
     q0 = cirq.LineQubit(0)
 
     before = cirq.Circuit(
-        cirq.Z(q0) ** 0.1,
-        cirq.X(q0) ** 1.0000000001,
-        cirq.Z(q0) ** 0.1,
+        cirq.Z(q0)**0.1,
+        cirq.X(q0)**1.0000000001,
+        cirq.Z(q0)**0.1,
     )
-    expected = cirq.Circuit(
-        cirq.SingleQubitCliffordGate.X(q0),
-    )
+    expected = cirq.Circuit(cirq.SingleQubitCliffordGate.X(q0),)
 
     after = converted_gate_set(before)
     assert after == expected
@@ -85,15 +82,15 @@ def test_converts_single_qubit_series():
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q0),
-        cirq.X(q0) ** 0.5,
-        cirq.Y(q0) ** 0.5,
-        cirq.Z(q0) ** 0.5,
-        cirq.X(q0) ** -0.5,
-        cirq.Y(q0) ** -0.5,
-        cirq.Z(q0) ** -0.5,
-        cirq.X(q0) ** 0.25,
-        cirq.Y(q0) ** 0.25,
-        cirq.Z(q0) ** 0.25,
+        cirq.X(q0)**0.5,
+        cirq.Y(q0)**0.5,
+        cirq.Z(q0)**0.5,
+        cirq.X(q0)**-0.5,
+        cirq.Y(q0)**-0.5,
+        cirq.Z(q0)**-0.5,
+        cirq.X(q0)**0.25,
+        cirq.Y(q0)**0.25,
+        cirq.Z(q0)**0.25,
     )
 
     after = converted_gate_set(before)
@@ -124,18 +121,18 @@ def test_converts_large_circuit():
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q0),
-        cirq.X(q0) ** 0.5,
-        cirq.Y(q0) ** 0.5,
-        cirq.Z(q0) ** 0.5,
-        cirq.X(q0) ** -0.5,
-        cirq.Y(q0) ** -0.5,
-        cirq.Z(q0) ** -0.5,
+        cirq.X(q0)**0.5,
+        cirq.Y(q0)**0.5,
+        cirq.Z(q0)**0.5,
+        cirq.X(q0)**-0.5,
+        cirq.Y(q0)**-0.5,
+        cirq.Z(q0)**-0.5,
         cirq.H(q0),
         cirq.CZ(q0, q1),
         cirq.CZ(q1, q2),
-        cirq.X(q0) ** 0.25,
-        cirq.Y(q0) ** 0.25,
-        cirq.Z(q0) ** 0.25,
+        cirq.X(q0)**0.25,
+        cirq.Y(q0)**0.25,
+        cirq.Z(q0)**0.25,
         cirq.CZ(q0, q1),
     )
 

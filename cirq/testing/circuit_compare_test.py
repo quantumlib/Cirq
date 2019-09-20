@@ -213,20 +213,14 @@ def test_random_same_matrix(circuit):
 def test_correct_qubit_ordering():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit(cirq.Z(a),
-                              cirq.Z(b),
-                              cirq.measure(b)),
-        cirq.Circuit(cirq.Z(a),
-                              cirq.measure(b)),
+        cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
+        cirq.Circuit(cirq.Z(a), cirq.measure(b)),
         atol=1e-8)
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit(cirq.Z(a),
-                                  cirq.Z(b),
-                                  cirq.measure(b)),
-            cirq.Circuit(cirq.Z(b),
-                                  cirq.measure(b)),
+            cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
+            cirq.Circuit(cirq.Z(b), cirq.measure(b)),
             atol=1e-8)
 
 
@@ -241,8 +235,7 @@ def test_known_old_failure():
             cirq.PhasedXPowGate(exponent=0.61351656,
                                 phase_exponent=0.8034575038876517).on(b),
             cirq.Z(a)**0.5,
-            cirq.Z(b)**0.1,
-            cirq.measure(a, b)),
+            cirq.Z(b)**0.1, cirq.measure(a, b)),
         atol=1e-8)
 
 

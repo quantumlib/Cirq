@@ -35,7 +35,7 @@ def test_shift_swap_network_gate_acquaintance_opps(
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)
     strategy = cirq.Circuit(gate(*qubits),
-            device=cca.UnconstrainedAcquaintanceDevice)
+                            device=cca.UnconstrainedAcquaintanceDevice)
 
     # actual_opps
     initial_mapping = {q: i for i, q in enumerate(qubits)}

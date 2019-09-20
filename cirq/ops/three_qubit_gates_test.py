@@ -191,10 +191,10 @@ def test_decomposition_respects_locality(gate):
 def test_diagram():
     a, b, c, d = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.TOFFOLI(a, b, c),
-                                    cirq.TOFFOLI(a, b, c)**0.5,
-                                    cirq.CCX(a, c, b), cirq.CCZ(a, d, b),
-                                    cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d),
-                                    cirq.FREDKIN(a, b, c))
+                           cirq.TOFFOLI(a, b, c)**0.5, cirq.CCX(a, c, b),
+                           cirq.CCZ(a, d, b),
+                           cirq.CCZ(a, d, b)**0.5, cirq.CSWAP(a, c, d),
+                           cirq.FREDKIN(a, b, c))
     cirq.testing.assert_has_diagram(
         circuit, """
 0: ───@───@───────@───@───@───────@───@───

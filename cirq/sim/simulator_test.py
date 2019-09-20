@@ -286,16 +286,14 @@ def test_async_sample():
             return m
 
     q = cirq.LineQubit(0)
-    f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)),
-                                  repetitions=10)
+    f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)), repetitions=10)
     result = cirq.testing.assert_asyncio_will_have_result(f)
     np.testing.assert_equal(result.measurements, m)
 
 
 def test_simulation_trial_result_qubit_map():
     q = cirq.LineQubit.range(2)
-    result = cirq.Simulator().simulate(
-        cirq.Circuit([cirq.CZ(q[0], q[1])]))
+    result = cirq.Simulator().simulate(cirq.Circuit([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
     result = cirq.DensityMatrixSimulator().simulate(

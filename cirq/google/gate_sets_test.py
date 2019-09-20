@@ -237,7 +237,7 @@ def test_serialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1),
-                                    cirq.measure(q1, key='m'))
+                           cirq.measure(q1, key='m'))
     expected = {
         'language': {
             'arg_function_language': '',
@@ -493,7 +493,7 @@ def test_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1),
-                                    cirq.measure(q1, key='m'))
+                           cirq.measure(q1, key='m'))
     serialized = {
         'language': {
             'gate_set': 'xmon'
