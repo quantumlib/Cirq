@@ -233,7 +233,7 @@ def experiment_adder(p, q, n=3):
     # c = qubits[0::3]
     a = qubits[1::3]
     b = qubits[2::3]
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         init_qubits(a_bin, *a),
         init_qubits(b_bin, *b),
         Adder(n * 3).on(*qubits),
@@ -255,7 +255,7 @@ def experiment_multiplier(p, q, n=3):
     y = qubits[n*3:n*4]
     x = qubits[n*4:]
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         init_qubits(x_bin, *x),
         init_qubits(y_bin, *y),
         Multiplier(5 * n).on(*qubits),
@@ -270,14 +270,14 @@ def experiment_multiplier(p, q, n=3):
 
 def main(n=3):
     print ('Execute Adder')
-    print (cirq.Circuit.from_ops(cirq.decompose(Adder(3 * n).on(
+    print (cirq.Circuit(cirq.decompose(Adder(3 * n).on(
         *cirq.LineQubit.range(3 * n)))))
     for p in range(2*2):
         for q in range(2*2):
             experiment_adder(p, q, n)
     print ('')
     print ('Execute Multiplier')
-    print (cirq.Circuit.from_ops(cirq.decompose(Multiplier(5 * n).on(
+    print (cirq.Circuit(cirq.decompose(Multiplier(5 * n).on(
         *cirq.LineQubit.range(5 * n)))))
     for p in range(2*2):
         for q in range(2*2):

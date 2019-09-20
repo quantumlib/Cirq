@@ -284,7 +284,7 @@ def test_output_unitary_same_as_qiskit():
                              precision=10)
     text = str(output)
 
-    circuit = cirq.Circuit.from_ops(operations)
+    circuit = cirq.Circuit(operations)
     cirq_unitary = circuit.unitary(qubit_order=qubits)
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(text, cirq_unitary)
 
@@ -292,7 +292,7 @@ def test_output_unitary_same_as_qiskit():
 def test_fails_on_big_unknowns():
     class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         UnrecognizedGate().on(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError, match='Cannot output operation as QASM'):
         _ = c.to_qasm()

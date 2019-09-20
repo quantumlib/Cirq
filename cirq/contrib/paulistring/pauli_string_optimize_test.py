@@ -23,7 +23,7 @@ from cirq.contrib.paulistring import (
 
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.X(q0) ** 0.25,
         cirq.H(q0),
         cirq.CZ(q0, q1),
@@ -31,7 +31,7 @@ def test_optimize():
         cirq.X(q0) ** 0.125,
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.Y(q0) ** -0.5,
             cirq.CZ(q0, q1),
             cirq.Z(q0) ** -0.125,
@@ -59,7 +59,7 @@ def test_optimize():
 
 def test_handles_measurement_gate():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.X(q0) ** 0.25,
         cirq.H(q0),
         cirq.CZ(q0, q1),

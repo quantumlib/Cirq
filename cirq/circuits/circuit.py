@@ -94,18 +94,26 @@ class Circuit:
     """
 
     def __init__(self,
-                 moments: Iterable['cirq.Moment'] = (),
-                 device: devices.Device = devices.UNCONSTRAINED_DEVICE) -> None:
+                 *contents: 'cirq.OP_TREE',
+                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a circuit.
 
         Args:
-            moments: The initial list of moments defining the circuit.
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together. This option does not affect later insertions into the
+                circuit.
             device: Hardware that the circuit should be able to run on.
         """
-        self._moments = list(moments)
+        self._moments = []
         self._device = device
-        self._device.validate_circuit(self)
-        self._validate_op_tree_qids(self)
+        self.append(contents, strategy=strategy)
 
     @property
     def device(self) -> devices.Device:
@@ -117,6 +125,7 @@ class Circuit:
         self._device = new_device
 
     @staticmethod
+    @deprecated(deadline='v0.7.0', fix='use `cirq.Circuit(*ops)` instead.')
     def from_ops(*operations: 'cirq.OP_TREE',
                  strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UNCONSTRAINED_DEVICE
@@ -139,7 +148,7 @@ class Circuit:
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, self._device)
+        return Circuit(self._moments, device=self._device)
 
     def __bool__(self):
         return bool(self._moments)
@@ -183,7 +192,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key], self.device)
+            return Circuit(self._moments[key], device=self.device)
         if isinstance(key, int):
             return self._moments[key]
 
@@ -234,7 +243,7 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        result = Circuit(moments=self._moments, device=device)
+        result = Circuit(self._moments, device=device)
         return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
@@ -287,10 +296,9 @@ class Circuit:
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit(moments={})'.format(moment_str)
+            return 'cirq.Circuit({})'.format(moment_str)
 
-        return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,
-                                                              self._device)
+        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -313,9 +321,9 @@ class Circuit:
             The translated circuit.
         """
         return Circuit(
-            moments=[ops.Moment(operation.transform_qubits(qubit_mapping)
-                            for operation in moment.operations)
-                     for moment in self._moments],
+            [ops.Moment(operation.transform_qubits(qubit_mapping)
+                        for operation in moment.operations)
+             for moment in self._moments],
             device=new_device
         )
 
@@ -1625,6 +1633,10 @@ class Circuit:
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+
+    @classmethod
+    def _from_json_dict_(cls, moments, device, **kwargs):
+        return cls(moments, device=device)
 
     def with_noise(self, noise: devices.NoiseModel) -> 'cirq.Circuit':
         """Make a noisy version of the circuit.

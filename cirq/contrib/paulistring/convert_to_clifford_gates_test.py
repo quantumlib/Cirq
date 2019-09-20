@@ -22,7 +22,7 @@ from cirq.contrib.paulistring import (
 
 def test_convert():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q1) ** 0.5,
         cirq.Z(q0) ** -0.5,
@@ -48,7 +48,7 @@ def test_convert():
 
 def test_non_clifford_known_matrix():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.Z(q0) ** 0.25,
     )
     c_orig = cirq.Circuit(circuit)
@@ -65,7 +65,7 @@ def test_non_clifford_known_matrix():
 
 def test_already_converted():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.SingleQubitCliffordGate.H(q0),
     )
     c_orig = cirq.Circuit(circuit)
@@ -83,7 +83,7 @@ def test_convert_composite():
             yield cirq.H(q0)
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         CompositeDummy()(q0, q1)
     )
     c_orig = cirq.Circuit(circuit)
@@ -108,7 +108,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         UnsupportedDummy()(q0, q1),
     )
     c_orig = cirq.Circuit(circuit)
@@ -123,7 +123,7 @@ def test_fail_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         UnsupportedDummy()(q0, q1),
     )
     with pytest.raises(TypeError):

@@ -149,7 +149,7 @@ def test_rectification():
         cca.acquaint(*qubits[:2]), perm_gate(*qubits[2:])
         ]
 
-    strategy = cirq.Circuit.from_ops(
+    strategy = cirq.Circuit(
             operations, device=cca.UnconstrainedAcquaintanceDevice)
     cca.rectify_acquaintance_strategy(strategy)
     actual_text_diagram = strategy.to_text_diagram().strip()
@@ -164,7 +164,7 @@ def test_rectification():
     """.strip()
     assert actual_text_diagram == expected_text_diagram
 
-    strategy = cirq.Circuit.from_ops(
+    strategy = cirq.Circuit(
             operations, device=cca.UnconstrainedAcquaintanceDevice)
     cca.rectify_acquaintance_strategy(strategy, False)
     actual_text_diagram = strategy.to_text_diagram()

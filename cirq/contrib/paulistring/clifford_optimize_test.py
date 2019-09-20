@@ -23,7 +23,7 @@ from cirq.contrib.paulistring import (
 
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.X(q1) ** 0.5,
         cirq.CZ(q0, q1),
         cirq.Z(q0) ** 0.25,
@@ -32,7 +32,7 @@ def test_optimize():
         cirq.X(q1) ** -0.5,
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.CZ(q0, q1),
             cirq.Z(q0) ** 0.25,
             cirq.X(q1) ** 0.25,
@@ -58,13 +58,13 @@ def test_optimize():
 
 def test_remove_czs():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.CZ(q0, q1),
         cirq.Z(q0) ** 0.5,
         cirq.CZ(q0, q1),
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.Z(q0) ** 0.5,
         ))
 
@@ -85,13 +85,13 @@ def test_remove_czs():
 
 def test_remove_staggered_czs():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.CZ(q0, q1),
         cirq.CZ(q1, q2),
         cirq.CZ(q0, q1),
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.CZ(q1, q2),
         ))
 
@@ -114,13 +114,13 @@ def test_remove_staggered_czs():
 
 def test_with_measurements():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.X(q0),
         cirq.CZ(q0, q1),
         cirq.measure(q0, q1, key='m'),
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.CZ(q0, q1),
             cirq.X(q0),
             cirq.Z(q1),

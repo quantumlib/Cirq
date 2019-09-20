@@ -50,7 +50,7 @@ def generate_2x2_grid_qft_circuit():
     a,b,c,d = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1),
                cirq.GridQubit(1, 1), cirq.GridQubit(1, 0)]
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.H(a),
         _cz_and_swap(a, b, 0.5),
         _cz_and_swap(b, c, 0.25),

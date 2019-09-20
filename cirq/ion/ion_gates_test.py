@@ -50,7 +50,7 @@ def test_MS_repr():
 def test_MS_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.SWAP(a, b),
         cirq.X(a),
         cirq.Y(a),

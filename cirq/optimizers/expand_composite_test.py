@@ -75,16 +75,16 @@ def test_multiple_composite_default():
 def test_mix_composite_non_composite():
     q0, q1 = cirq.LineQubit.range(2)
 
-    actual = cirq.Circuit.from_ops(cirq.X(q0), cirq.CNOT(q0, q1), cirq.X(q1))
+    actual = cirq.Circuit(cirq.X(q0), cirq.CNOT(q0, q1), cirq.X(q1))
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(actual)
 
-    expected = cirq.Circuit.from_ops(cirq.X(q0),
-                                     cirq.Y(q1) ** -0.5,
-                                     cirq.CZ(q0, q1),
-                                     cirq.Y(q1) ** 0.5,
-                                     cirq.X(q1),
-                                     strategy=cirq.InsertStrategy.NEW)
+    expected = cirq.Circuit(cirq.X(q0),
+                            cirq.Y(q1) ** -0.5,
+                            cirq.CZ(q0, q1),
+                            cirq.Y(q1) ** 0.5,
+                            cirq.X(q1),
+                            strategy=cirq.InsertStrategy.NEW)
     assert_equal_mod_empty(expected, actual)
 
 
@@ -116,7 +116,7 @@ def test_decompose_returns_not_flat_op_tree():
             yield cirq.X(q0),
 
     q0 = cirq.NamedQubit('q0')
-    circuit = cirq.Circuit.from_ops(DummyGate()(q0))
+    circuit = cirq.Circuit(DummyGate()(q0))
 
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
@@ -142,7 +142,7 @@ def test_decompose_returns_deep_op_tree():
             yield generator(2)
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(DummyGate()(q0, q1))
+    circuit = cirq.Circuit(DummyGate()(q0, q1))
 
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
@@ -161,7 +161,7 @@ def test_nonrecursive_expansion():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
                             op.gate == cirq.ISWAP)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    unexpanded_circuit = cirq.Circuit.from_ops(cirq.ISWAP(*qubits))
+    unexpanded_circuit = cirq.Circuit(cirq.ISWAP(*qubits))
 
     circuit = unexpanded_circuit.__copy__()
     expander.optimize_circuit(circuit)

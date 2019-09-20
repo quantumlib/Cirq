@@ -412,7 +412,7 @@ def test_interchangeable_qubit_eq():
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.SWAP(a, b),
         cirq.X(a),
         cirq.Y(a),
@@ -616,19 +616,19 @@ def test_measurement_gate_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(cirq.measure(a, b)), """
+        cirq.Circuit(cirq.measure(a, b)), """
 a: ───M───
       │
 b: ───M───
 """)
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(cirq.measure(a, b, invert_mask=(True,))), """
+        cirq.Circuit(cirq.measure(a, b, invert_mask=(True,))), """
 a: ───!M───
       │
 b: ───M────
 """)
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(cirq.measure(a, b, key='test')), """
+        cirq.Circuit(cirq.measure(a, b, key='test')), """
 a: ───M('test')───
       │
 b: ───M───────────
@@ -750,7 +750,7 @@ def test_iswap_decompose_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    decomposed = cirq.Circuit.from_ops(
+    decomposed = cirq.Circuit(
         cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
     cirq.testing.assert_has_diagram(decomposed, """
 a: ───@───H───X───T───X───T^-1───H───@───
@@ -853,7 +853,7 @@ def test_ixyz_circuit_diagram():
     iz = cirq.ZPowGate(exponent=1, global_shift=0.5)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             ix(q),
             ix(q)**-1,
             ix(q)**-0.99999,
@@ -866,7 +866,7 @@ q: ───X───X───X───X───X───X^0.5───X^0.
         """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             iy(q),
             iy(q)**-1,
             iy(q)**3,
@@ -877,7 +877,7 @@ q: ───Y───Y───Y───Y^0.5───Y^0.5───
     """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             iz(q),
             iz(q)**-1,
             iz(q)**3,
@@ -892,7 +892,7 @@ def test_rxyz_circuit_diagram():
     q = cirq.NamedQubit('q')
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.Rx(np.pi).on(q),
             cirq.Rx(-np.pi).on(q),
             cirq.Rx(-np.pi + 0.00001).on(q),
@@ -905,7 +905,7 @@ q: ───Rx(π)───Rx(-π)───Rx(-π)───Rx(-π)───Rx(-�
     """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.Rx(np.pi).on(q),
             cirq.Rx(np.pi/2).on(q),
             cirq.Rx(-np.pi + 0.00001).on(q),
@@ -916,7 +916,7 @@ q: ---Rx(pi)---Rx(0.5pi)---Rx(-pi)---Rx(-pi)---
         use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.Ry(np.pi).on(q),
             cirq.Ry(-np.pi).on(q),
             cirq.Ry(3 * np.pi).on(q),
@@ -926,7 +926,7 @@ q: ───Ry(π)───Ry(-π)───Ry(-π)───Ry(0.5π)───
     """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.Rz(np.pi).on(q),
             cirq.Rz(-np.pi).on(q),
             cirq.Rz(3 * np.pi).on(q),

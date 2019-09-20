@@ -106,7 +106,7 @@ def run_estimate(unknown_gate, qnum, repetitions):
         qubits[i] = cirq.GridQubit(0, i)
     ancilla = cirq.GridQubit(0, len(qubits))
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.H.on_each(*qubits),
         [cirq.ControlledGate(unknown_gate**(2**i)).on(qubits[qnum-i-1], ancilla)
          for i in range(qnum)],

@@ -30,7 +30,7 @@ from cirq.testing import (
     (22, 4),
 ])
 def test_swap_field(n: int, d: int):
-    before = cirq.Circuit.from_ops(
+    before = cirq.Circuit(
         cirq.ISWAP(cirq.LineQubit(j), cirq.LineQubit(j + 1))
         for i in range(d)
         for j in range(i % 2, n - 1, 2)
@@ -46,7 +46,7 @@ def test_swap_field(n: int, d: int):
 
 
 def test_ccz():
-    before = cirq.Circuit.from_ops(
+    before = cirq.Circuit(
         cirq.CCZ(cirq.GridQubit(5, 5),
                  cirq.GridQubit(5, 6),
                  cirq.GridQubit(5, 7)))

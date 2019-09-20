@@ -34,7 +34,7 @@ def test_shift_swap_network_gate_acquaintance_opps(
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)
-    strategy = cirq.Circuit.from_ops(gate(*qubits),
+    strategy = cirq.Circuit(gate(*qubits),
             device=cca.UnconstrainedAcquaintanceDevice)
 
     # actual_opps
@@ -184,7 +184,7 @@ def test_shift_swap_network_gate_diagrams(
     gate = cca.ShiftSwapNetworkGate(left_part_lens, right_part_lens)
     n_qubits = gate.qubit_count()
     qubits = cirq.LineQubit.range(n_qubits)
-    circuit = cirq.Circuit.from_ops(gate(*qubits))
+    circuit = cirq.Circuit(gate(*qubits))
 
     diagram = circuit_diagrams['undecomposed', left_part_lens, right_part_lens]
     cirq.testing.assert_has_diagram(circuit, diagram)

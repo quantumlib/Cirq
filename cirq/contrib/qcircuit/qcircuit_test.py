@@ -69,7 +69,7 @@ def test_fallback_diagram():
         def __str__(self):
             return 'MagicOperate'
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         MagicOp(cirq.NamedQubit('b')),
         MagicGate().on(cirq.NamedQubit('b'),
                        cirq.NamedQubit('a'),
@@ -90,7 +90,7 @@ def test_teleportation_diagram():
     car = cirq.NamedQubit('carrier')
     bob = cirq.NamedQubit('bob')
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.H(car),
         cirq.CNOT(car, bob),
         cirq.X(ali)**0.5,
@@ -115,7 +115,7 @@ def test_teleportation_diagram():
 def test_other_diagram():
     a, b, c = cirq.LineQubit.range(3)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(a),
         cirq.Y(b),
         cirq.Z(c))

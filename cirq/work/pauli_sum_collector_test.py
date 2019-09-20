@@ -18,7 +18,7 @@ import cirq
 def test_pauli_string_sample_collector():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(
-        circuit=cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b), cirq.X(a),
+        circuit=cirq.Circuit(cirq.H(a), cirq.CNOT(a, b), cirq.X(a),
                                       cirq.Z(b)),
         observable=cirq.X(a) * cirq.X(b) - 16 * cirq.Y(a) * cirq.Y(b) +
         4 * cirq.Z(a) * cirq.Z(b),
@@ -30,7 +30,7 @@ def test_pauli_string_sample_collector():
 
 def test_pauli_string_sample_single():
     a, b = cirq.LineQubit.range(2)
-    p = cirq.PauliSumCollector(circuit=cirq.Circuit.from_ops(
+    p = cirq.PauliSumCollector(circuit=cirq.Circuit(
         cirq.H(a), cirq.CNOT(a, b), cirq.X(a), cirq.Z(b)),
                                observable=cirq.X(a) * cirq.X(b),
                                samples_per_term=100)
@@ -49,7 +49,7 @@ def test_pauli_string_sample_collector_identity():
 
 def test_pauli_string_sample_collector_extra_qubit_z():
     a, b = cirq.LineQubit.range(2)
-    p = cirq.PauliSumCollector(circuit=cirq.Circuit.from_ops(cirq.H(a)),
+    p = cirq.PauliSumCollector(circuit=cirq.Circuit(cirq.H(a)),
                                observable=3 * cirq.Z(b),
                                samples_per_term=100)
     p.collect(sampler=cirq.Simulator())
@@ -58,7 +58,7 @@ def test_pauli_string_sample_collector_extra_qubit_z():
 
 def test_pauli_string_sample_collector_extra_qubit_x():
     a, b = cirq.LineQubit.range(2)
-    p = cirq.PauliSumCollector(circuit=cirq.Circuit.from_ops(cirq.H(a)),
+    p = cirq.PauliSumCollector(circuit=cirq.Circuit(cirq.H(a)),
                                observable=3 * cirq.X(b),
                                samples_per_term=10000)
     p.collect(sampler=cirq.Simulator())

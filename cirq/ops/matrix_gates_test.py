@@ -148,7 +148,7 @@ def test_single_qubit_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.SingleQubitMatrixGate(m).on(a),
         cirq.CZ(a, b))
 
@@ -178,7 +178,7 @@ def test_two_qubit_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(a, b),
         cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(c, a))
     assert re.match(r"""
