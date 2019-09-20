@@ -41,7 +41,7 @@ class _BaseLineQid(ops.Qid):
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 
     def neighbors(self, qids: Iterable[ops.Qid] = None) -> List['_BaseLineQid']:
-        """Returns qubits that are potential neighbors to this GridQubit
+        """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
             qubits: optional Iterable of qubits to constrain neighbors to.
