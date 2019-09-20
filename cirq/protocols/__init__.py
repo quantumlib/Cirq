@@ -51,7 +51,7 @@ from cirq.protocols.decompose import (
 )
 from cirq.protocols.equal_up_to_global_phase import (
     equal_up_to_global_phase,)
-from cirq.protocols.inverse import (
+from cirq.protocols.inverse_protocol import (
     inverse,
 )
 from cirq.protocols.json import (
