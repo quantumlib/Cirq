@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Dict, Iterable, Iterator, List, Sequence, Tuple, Union
+from typing import (cast, Dict, Iterable, Iterator, List, overload, Sequence,
+                    Tuple, Union)
 
 import abc
 import collections
@@ -101,7 +102,17 @@ class Sweep(metaclass=abc.ABCMeta):
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
 
-    def __getitem__(self, val) -> Union[resolver.ParamResolver, 'Sweep']:
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, val: int) -> resolver.ParamResolver:
+        pass
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, val: slice) -> 'Sweep':
+        pass
+
+    def __getitem__(self, val):
         if isinstance(val, int):
             if val < 0:
                 val += len(self)
@@ -112,15 +123,12 @@ class Sweep(metaclass=abc.ABCMeta):
                     .format(type(val)))
 
         inds_map: Dict[int, int] = {
-            val: i for i, val in enumerate(range(*val.indices(len(self))))
+            val: i for i, val in enumerate(range(len(self))[val])
         }
-        results = [
-            resolver.ParamResolver() for i in range(len(inds_map.keys()))
-        ]
-        for i, item in enumerate(self.param_tuples()):
+        results = [resolver.ParamResolver()] * len(inds_map.keys())
+        for i, item in enumerate(self):
             if i in inds_map:
-                results[inds_map[i]] = resolver.ParamResolver(
-                    collections.OrderedDict(item))
+                results[inds_map[i]] = item
 
         if len(results) == 1:
             return results[0]
