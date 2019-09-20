@@ -115,7 +115,7 @@ class Sweep(metaclass=abc.ABCMeta):
         if isinstance(val, int):
             if val < 0:
                 val += len(self)
-            return next(itertools.islice(self, val, val+1))
+            return next(itertools.islice(self, val, val + 1))
         if not isinstance(val, slice):
             raise TypeError(
                 'Sweep indices must be either int or slices, not {}'.format(
