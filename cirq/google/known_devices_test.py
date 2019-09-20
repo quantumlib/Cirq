@@ -17,17 +17,19 @@ import cirq
 
 def test_json_dict():
     assert cirq.google.Foxtail._json_dict_() == {
-            'cirq_type': '_NamedConstantXmonDevice',
-            'constant': 'cirq.google.Foxtail',
-            'measurement_duration': cirq.Duration(nanos=1000),
-            'exp_w_duration': cirq.Duration(nanos=20),
-            'exp_11_duration': cirq.Duration(nanos=50),
-            'qubits': sorted(cirq.google.Foxtail.qubits)}
+        'cirq_type': '_NamedConstantXmonDevice',
+        'constant': 'cirq.google.Foxtail',
+        'measurement_duration': cirq.Duration(nanos=1000),
+        'exp_w_duration': cirq.Duration(nanos=20),
+        'exp_11_duration': cirq.Duration(nanos=50),
+        'qubits': sorted(cirq.google.Foxtail.qubits)
+    }
 
     assert cirq.google.Bristlecone._json_dict_() == {
-            'cirq_type': '_NamedConstantXmonDevice',
-            'constant': 'cirq.google.Bristlecone',
-            'measurement_duration': cirq.Duration(nanos=1000),
-            'exp_w_duration': cirq.Duration(nanos=20),
-            'exp_11_duration': cirq.Duration(nanos=50),
-            'qubits': sorted(cirq.google.Bristlecone.qubits)}
+        'cirq_type': '_NamedConstantXmonDevice',
+        'constant': 'cirq.google.Bristlecone',
+        'measurement_duration': cirq.Duration(nanos=1000),
+        'exp_w_duration': cirq.Duration(nanos=20),
+        'exp_11_duration': cirq.Duration(nanos=50),
+        'qubits': sorted(cirq.google.Bristlecone.qubits)
+    }

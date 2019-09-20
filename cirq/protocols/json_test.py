@@ -450,7 +450,7 @@ def _roundtrip_test_classes():
     for cirq_type, cls in _get_all_public_classes():
         yield cirq_type, cls
     yield ('_NamedConstantXmonDevice',
-            cirq.google.known_devices._NamedConstantXmonDevice)
+           cirq.google.known_devices._NamedConstantXmonDevice)
 
 
 @pytest.mark.parametrize('cirq_type,cls', _roundtrip_test_classes())
