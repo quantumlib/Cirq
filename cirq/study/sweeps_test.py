@@ -79,6 +79,12 @@ def test_slice_access_error():
     with pytest.raises(TypeError, match='<class \'str\'>'):
         _ = sweep['junk']
 
+    with pytest.raises(IndexError):
+        _ = sweep[4]
+
+    with pytest.raises(IndexError):
+        _ = sweep[-4]
+
 
 def test_slice_sweep():
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
@@ -111,8 +117,8 @@ def test_slice_sweep():
 def test_access_sweep():
     sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
 
-    last_elem = sweep[-1]
-    assert last_elem == cirq.ParamResolver({'a': 3, 'b': 7})
+    first_elem = sweep[-12]
+    assert first_elem == cirq.ParamResolver({'a': 1, 'b': 4})
 
     sixth_elem = sweep[5]
     assert sixth_elem == cirq.ParamResolver({'a': 2, 'b': 5})

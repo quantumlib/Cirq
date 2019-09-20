@@ -112,9 +112,12 @@ class Sweep(metaclass=abc.ABCMeta):
         pass
 
     def __getitem__(self, val):
+        n = len(self)
         if isinstance(val, int):
+            if val < -n or val >= n:
+                raise IndexError(f'sweep index out of range: {val}')
             if val < 0:
-                val += len(self)
+                val += n
             return next(itertools.islice(self, val, val + 1))
         if not isinstance(val, slice):
             raise TypeError(
@@ -122,8 +125,7 @@ class Sweep(metaclass=abc.ABCMeta):
                     type(val)))
 
         inds_map: Dict[int, int] = {
-            sweep_i: slice_i
-            for slice_i, sweep_i in enumerate(range(len(self))[val])
+            sweep_i: slice_i for slice_i, sweep_i in enumerate(range(n)[val])
         }
         results = [resolver.ParamResolver()] * len(inds_map)
         for i, item in enumerate(self):
