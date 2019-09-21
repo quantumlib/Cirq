@@ -54,7 +54,7 @@ class SynchronizeTerminalMeasurements():
 
         circuit.batch_remove(deletions)
         if not self._measurement_only_moment or circuit[
-            deepest_measurement] == ops.Moment([]):
+                deepest_measurement] == ops.Moment([]):
             # Can safely add to deepest measurement if
             # self._measurement_only_moment is false or we happen to get an
             # empty final moment before re-adding all the measurements.
