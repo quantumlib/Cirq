@@ -16,7 +16,7 @@
 from cirq import circuits, ops, protocols
 
 
-class TerminalizeMeasurements():
+class SynchronizeTerminalMeasurements():
     """Move measurements to the end.
 
     Move all terminal measurements in a circuit to the final moment if it
@@ -30,8 +30,11 @@ class TerminalizeMeasurements():
         """
         Args:
             measurements_only_moment: Bool indicating whether or not all
-                measurements should be moved to the last existing moment
-                or a new moment containing them should be added to the end.
+                measurements should be moved to the last existing moment so
+                that the circuit might contain a mixture of measurements and
+                other ops (False), or a new moment containing them should be
+                added to the end with the guarantee to contain only
+                measurements (True).
         """
         self._measurement_only_moment = measurements_only_moment
 
@@ -49,29 +52,12 @@ class TerminalizeMeasurements():
                 deletions.append((index, op))
                 terminal_measures.add(op)
 
-        can_insert = True
-        for measure_op in terminal_measures:
-            test_op = circuit.operation_at(measure_op.qubits[0],
-                                           deepest_measurement)
-            if (test_op is not None) and (test_op not in terminal_measures):
-                # We have found an op that isn't a measurement and is blocking
-                # us from inserting all measurements into the moment of the
-                # last measurement.
-                can_insert = False
-                break
-
-            if self._measurement_only_moment and test_op is not None:
-                # We only want measurement gates in final moment and found
-                # a non measurement gate, therefore we can't insert into
-                # the final moment and must make a new one.
-                can_insert = False
-                break
-
         circuit.batch_remove(deletions)
-        if can_insert or circuit[deepest_measurement] == ops.Moment([]):
-            # Can safely add to deepest measurement if can_insert is true
-            # Or when removing meausrements in preparation for replacing them
-            # we momentarily made the final moment empty.
+        if not self._measurement_only_moment or circuit[
+            deepest_measurement] == ops.Moment([]):
+            # Can safely add to deepest measurement if
+            # self._measurement_only_moment is false or we happen to get an
+            # empty final moment before re-adding all the measurements.
             for op in terminal_measures:
                 circuit[deepest_measurement] = circuit[
                     deepest_measurement].with_operation(op)

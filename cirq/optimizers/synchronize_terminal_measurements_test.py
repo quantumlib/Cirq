@@ -16,8 +16,10 @@ import cirq
 
 
 def assert_optimizes(before, after, measure_only_moment=True):
-    opt = cirq.TerminalizeMeasurements(measure_only_moment)
+    opt = cirq.SynchronizeTerminalMeasurements(measure_only_moment)
+    print(repr(before))
     opt.optimize_circuit(before)
+    print(repr(before))
     assert before == after
 
 
@@ -33,6 +35,21 @@ def test_simple_align():
         cirq.Moment([cirq.H(q1), cirq.H(q2)]),
         cirq.Moment([cirq.Z(q2)]),
         cirq.Moment([cirq.measure(q1), cirq.measure(q2)])
+    ])
+    assert_optimizes(before=before, after=after)
+
+
+def test_simple_partial_align():
+    q1 = cirq.NamedQubit('q1')
+    q2 = cirq.NamedQubit('q2')
+    before = cirq.Circuit([
+        cirq.Moment([cirq.measure(q1), cirq.Z(q2)]),
+        cirq.Moment([cirq.Z(q1), cirq.measure(q2)]),
+    ])
+    after = cirq.Circuit([
+        cirq.Moment([cirq.measure(q1), cirq.Z(q2)]),
+        cirq.Moment([cirq.Z(q1)]),
+        cirq.Moment([cirq.measure(q2)])
     ])
     assert_optimizes(before=before, after=after)
 
