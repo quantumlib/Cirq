@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+import itertools
+import random
 
+import pytest
 import networkx
 
 import cirq
@@ -250,3 +252,34 @@ def test_is_maximalist(circuit):
     dag = cirq.CircuitDag.from_circuit(circuit)
     transitive_closure = networkx.dag.transitive_closure(dag)
     assert cirq.CircuitDag(incoming_graph_data=transitive_closure) == dag
+    assert not any(
+        dag.has_edge(b, a)
+        for a, b in itertools.combinations(dag.ordered_nodes(), 2))
+
+
+def _get_circuits_and_is_blockers():
+    qubits = cirq.LineQubit.range(10)
+    circuits = [cirq.testing.random_circuit(qubits, 10, 0.5) for _ in range(1)]
+    edges = [
+        set(qubit_pair)
+        for qubit_pair in itertools.combinations(qubits, 2)
+        if random.random() > 0.5
+    ]
+    not_on_edge = lambda op: len(op.qubits) > 1 and set(op.qubits) not in edges
+    is_blockers = [lambda op: False, not_on_edge]
+    return itertools.product(circuits, is_blockers)
+
+
+@pytest.mark.parametrize('circuit, is_blocker', _get_circuits_and_is_blockers())
+def test_findall_nodes_until_blocked(circuit, is_blocker):
+    dag = cirq.CircuitDag.from_circuit(circuit)
+    all_nodes = list(dag.ordered_nodes())
+    found_nodes = list(dag.findall_nodes_until_blocked(is_blocker))
+    assert not any(
+        dag.has_edge(b, a) for a, b in itertools.combinations(found_nodes, 2))
+
+    blocking_nodes = set(node for node in all_nodes if is_blocker(node.val))
+    blocked_nodes = blocking_nodes.union(*(dag.succ[node]
+                                           for node in blocking_nodes))
+    expected_nodes = set(all_nodes) - blocked_nodes
+    assert sorted(found_nodes) == sorted(expected_nodes)
