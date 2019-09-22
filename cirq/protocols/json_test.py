@@ -149,6 +149,8 @@ TEST_OBJECTS = {
         #       https://github.com/quantumlib/Cirq/issues/2014
         # cirq.Circuit.from_ops(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
     ],
+    'Duration':
+    cirq.Duration(picos=6),
     'FREDKIN':
     cirq.FREDKIN,
     'FSimGate':
@@ -393,7 +395,6 @@ NOT_YET_SERIALIZABLE = [
     'DensityMatrixStepResult',
     'DensityMatrixTrialResult',
     'DepolarizingChannel',
-    'Duration',
     'ExpressionMap',
     'GeneralizedAmplitudeDampingChannel',
     'Heatmap',

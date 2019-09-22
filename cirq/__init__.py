@@ -142,6 +142,7 @@ from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
     ApproxPauliStringExpectation,
+    ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     bit_flip,
