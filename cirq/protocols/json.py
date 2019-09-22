@@ -45,6 +45,7 @@ class _ResolverCache:
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
+                'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
                 'GateOperation': cirq.GateOperation,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
