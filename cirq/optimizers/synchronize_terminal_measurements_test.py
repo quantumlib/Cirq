@@ -17,9 +17,7 @@ import cirq
 
 def assert_optimizes(before, after, measure_only_moment=True):
     opt = cirq.SynchronizeTerminalMeasurements(measure_only_moment)
-    print(repr(before))
-    opt.optimize_circuit(before)
-    print(repr(before))
+    opt(before)
     assert before == after
 
 
