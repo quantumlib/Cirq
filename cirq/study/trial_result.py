@@ -271,3 +271,25 @@ class TrialResult:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.data.equals(other.data) and self.params == other.params
+
+    def __add__(self, other: 'TrialResult') -> 'TrialResult':
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if self.params == other.params and self.measurements.keys(
+        ) == other.measurements.keys():
+            all_measurements: Dict[str, np.ndarray] = {}
+            for key in other.measurements:
+                if self.measurements[key].shape[1] != other.measurements[
+                        key].shape[1]:
+                    raise ValueError(
+                        'Sample dimensions for measurement key {} do not match.'
+                        .format(key))
+
+                all_measurements[key] = np.append(self.measurements[key],
+                                                  other.measurements[key],
+                                                  axis=0)
+            return TrialResult(params=self.params,
+                               measurements=all_measurements)
+
+        raise ValueError('TrialResults do not have the same parameters or do '
+                         'not have the same measurement keys.')
