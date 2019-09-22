@@ -137,6 +137,17 @@ class Moment:
     def __iter__(self):
         return iter(self.operations)
 
+    def __pow__(self, power):
+        if power == 1:
+            return self
+        new_ops = []
+        for op in self.operations:
+            new_op = protocols.pow(op, power, default=None)
+            if new_op is None:
+                return NotImplemented
+            new_ops.append(new_op)
+        return Moment(new_ops)
+
     def __len__(self):
         return len(self.operations)
 

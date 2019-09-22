@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Iterable, Iterator, List, Sequence, Tuple, Union
+from typing import (cast, Dict, Iterable, Iterator, List, overload, Sequence,
+                    Tuple, Union)
 
 import abc
 import collections
@@ -100,6 +101,40 @@ class Sweep(metaclass=abc.ABCMeta):
     def __iter__(self) -> Iterator[resolver.ParamResolver]:
         for params in self.param_tuples():
             yield resolver.ParamResolver(collections.OrderedDict(params))
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, val: int) -> resolver.ParamResolver:
+        pass
+
+    @overload
+    def __getitem__(self, val: slice) -> 'Sweep':
+        pass
+
+    def __getitem__(self, val):
+        n = len(self)
+        if isinstance(val, int):
+            if val < -n or val >= n:
+                raise IndexError(f'sweep index out of range: {val}')
+            if val < 0:
+                val += n
+            return next(itertools.islice(self, val, val + 1))
+        if not isinstance(val, slice):
+            raise TypeError(
+                'Sweep indices must be either int or slices, not {}'.format(
+                    type(val)))
+
+        inds_map: Dict[int, int] = {
+            sweep_i: slice_i for slice_i, sweep_i in enumerate(range(n)[val])
+        }
+        results = [resolver.ParamResolver()] * len(inds_map)
+        for i, item in enumerate(self):
+            if i in inds_map:
+                results[inds_map[i]] = item
+
+        return ListSweep(results)
+
+    # pylint: enable=function-redefined
 
     @abc.abstractmethod
     def param_tuples(self) -> Iterator[Params]:

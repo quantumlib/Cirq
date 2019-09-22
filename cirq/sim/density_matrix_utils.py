@@ -350,5 +350,5 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     Returns:
         The calculated von Neumann entropy.
     """
-    eigenvalues = np.linalg.eigvals(density_matrix)
+    eigenvalues = np.linalg.eigvalsh(density_matrix)
     return entropy(abs(eigenvalues), base=2)

@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
 import random
-from typing import Any, Iterable, TYPE_CHECKING
+from typing import Any, Callable, cast, Iterable, Optional, TYPE_CHECKING
 
 import networkx
 
@@ -23,8 +24,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-def is_topologically_sorted(dag: 'cirq.CircuitDag',
-                            operations: 'cirq.OP_TREE') -> bool:
+def is_topologically_sorted(
+        dag: 'cirq.CircuitDag',
+        operations: 'cirq.OP_TREE',
+        equals: Callable[[ops.Operation, ops.Operation], bool] = operator.eq
+) -> bool:
     """Whether a given order of operations is consistent with the DAG.
 
     For example, suppose the (transitive reduction of the) circuit DAG is
@@ -43,6 +47,8 @@ def is_topologically_sorted(dag: 'cirq.CircuitDag',
     Args:
         dag: The circuit DAG.
         operations: The ordered operations.
+        equals: The function to determine equality of operations. Defaults to
+            `operator.eq`.
 
     Returns:
         Whether or not the operations given are topologically sorted
@@ -53,9 +59,10 @@ def is_topologically_sorted(dag: 'cirq.CircuitDag',
     frontier = [
         node for node in remaining_dag.nodes() if not remaining_dag.pred[node]
     ]
-    for operation in ops.flatten_op_tree(operations):
+    for operation in cast(Iterable[ops.Operation],
+                          ops.flatten_op_tree(operations)):
         for i, node in enumerate(frontier):
-            if node.val == operation:
+            if equals(node.val, operation):
                 frontier.pop(i)
                 succ = remaining_dag.succ[node]
                 remaining_dag.remove_node(node)
