@@ -22,26 +22,31 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
+
     def __pow__(self, exponent):
         return NotImplemented
 
 
 class ReturnsFive:
+
     def __pow__(self, exponent) -> int:
         return 5
 
 
 class SelfInverse:
+
     def __pow__(self, exponent) -> 'SelfInverse':
         return self
 
 
 class ImplementsReversible:
+
     def __pow__(self, exponent):
         return 6 if exponent == -1 else NotImplemented
 
 
 class IsIterable:
+
     def __iter__(self):
         yield 1
         yield 2
@@ -65,7 +70,7 @@ def test_objects_with_no_inverse(val):
 @pytest.mark.parametrize('val,inv', (
     (ReturnsFive(), 5),
     (ImplementsReversible(), 6),
-    (SelfInverse(),)*2,
+    (SelfInverse(),) * 2,
     (1, 1),
     (2, 0.5),
     (1j, -1j),
