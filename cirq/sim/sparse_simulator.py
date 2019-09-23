@@ -349,7 +349,10 @@ class Simulator(simulator.SimulatesSamples,
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(
                 data.state, indices, out=data.state, qid_shape=data.state.shape)
-            corrected = [bit ^ mask for bit, mask in zip(bits, invert_mask)]
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
             key = protocols.measurement_key(meas)
             measurements[key].extend(corrected)
 
