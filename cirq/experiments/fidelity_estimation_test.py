@@ -7,8 +7,6 @@ import pytest
 
 import cirq
 
-MEASUREMENT_KEY = 'm'
-
 
 def sample_noisy_bitstrings(circuit: cirq.Circuit,
                             qubit_order: Sequence[cirq.Qid],
@@ -20,11 +18,11 @@ def sample_noisy_bitstrings(circuit: cirq.Circuit,
     n_coherent = repetitions - n_incoherent
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
     circuit_with_measurements = cirq.Circuit.from_ops(
-        circuit, cirq.measure(*qubit_order, key=MEASUREMENT_KEY))
+        circuit, cirq.measure(*qubit_order, key='m'))
     # TODO(viathor): Remove conditional after #2114.
     if n_coherent > 0:
         r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
-        coherent_samples = r.data[MEASUREMENT_KEY].to_numpy()
+        coherent_samples = r.data['m'].to_numpy()
         return np.concatenate((coherent_samples, incoherent_samples))
     return incoherent_samples
 
