@@ -9,7 +9,7 @@ from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_wavefunction
 
 
-def compute_linear_xeb_fidelity(
+def linear_xeb_fidelity(
         circuit: Circuit,
         bitstrings: np.ndarray,
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
