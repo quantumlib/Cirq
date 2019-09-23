@@ -531,10 +531,9 @@ def test_measure_state_empty_density_matrix():
 
 
 def test_to_valid_density_matrix_on_simulator_output():
-    circuit = cirq.testing.random_circuit(
-            qubits=10,
-            n_moments=20,
-            op_density=0.9)
+    circuit = cirq.testing.random_circuit(qubits=10,
+                                          n_moments=20,
+                                          op_density=0.9)
     simulator = cirq.DensityMatrixSimulator()
     result = simulator.simulate(circuit)
     _ = cirq.to_valid_density_matrix(result.final_density_matrix, num_qubits=10)
