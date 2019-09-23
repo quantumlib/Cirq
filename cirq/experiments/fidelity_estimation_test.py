@@ -21,6 +21,7 @@ def sample_noisy_bitstrings(circuit: cirq.Circuit,
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
     circuit_with_measurements = cirq.Circuit.from_ops(
         circuit, cirq.measure(*qubit_order, key=MEASUREMENT_KEY))
+    # TODO(viathor): Remove conditional after #2114.
     if n_coherent > 0:
         r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
         coherent_samples = r.data[MEASUREMENT_KEY].to_numpy()
