@@ -27,7 +27,8 @@ def to_valid_density_matrix(
         num_qubits: Optional[int] = None,
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Type[np.number] = np.complex64) -> np.ndarray:
+        dtype: Type[np.number] = np.complex64,
+        atol: float = 1e-8) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
     This method is used to support passing a matrix, a vector (wave function),
@@ -45,6 +46,8 @@ def to_valid_density_matrix(
         dtype: The numpy dtype of the density matrix, will be used when creating
             the state for a computational basis state (int), or validated
             against if density_matrix_rep is a numpy array.
+        atol: Numerical tolerance for verifying that eigenvalues are
+            non-negative.
 
     Returns:
         A numpy matrix corresponding to the density matrix on the given number
@@ -71,7 +74,7 @@ def to_valid_density_matrix(
             raise ValueError(
                 'Density matrix had dtype {} but expected {}'.format(
                     density_matrix_rep.dtype, dtype))
-        if not np.all(np.linalg.eigvalsh(density_matrix_rep) > -1e-8):
+        if not np.all(np.linalg.eigvalsh(density_matrix_rep) > -atol):
             raise ValueError('The density matrix is not positive semidefinite.')
         return density_matrix_rep
 
