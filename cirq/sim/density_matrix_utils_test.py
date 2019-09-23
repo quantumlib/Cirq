@@ -528,3 +528,13 @@ def test_measure_state_empty_density_matrix():
     bits, out_matrix = cirq.measure_density_matrix(matrix, [])
     assert [] == bits
     np.testing.assert_almost_equal(matrix, out_matrix)
+
+
+def test_to_valid_density_matrix_on_simulator_output():
+    circuit = cirq.testing.random_circuit(
+            qubits=10,
+            n_moments=20,
+            op_density=0.9)
+    simulator = cirq.DensityMatrixSimulator()
+    result = simulator.simulate(circuit)
+    _ = cirq.to_valid_density_matrix(result.final_density_matrix, num_qubits=10)
