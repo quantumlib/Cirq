@@ -82,12 +82,13 @@ def random_circuit(
         prng = np.random.RandomState(random_state)
 
     moments: List[ops.Moment] = []
+    gate_arity_pairs = tuple(gate_domain.items())
+    num_gates = len(gate_domain)
     for _ in range(n_moments):
         operations = []
         free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
-            gate, arity = tuple(gate_domain.items())[prng.randint(
-                len(gate_domain))]
+            gate, arity = gate_arity_pairs[prng.randint(num_gates)]
             op_qubits = prng.choice(list(free_qubits),
                                     size=arity,
                                     replace=False)
