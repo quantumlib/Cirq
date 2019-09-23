@@ -85,30 +85,17 @@ class CH_Form():
 
         return string
 
-    def _int2arr(self, x):
-        ''' Helper function that returns the bitstring representaiton of x '''
-        arr = np.zeros(self.n, dtype=bool)
-
-        i = self.n - 1
-        while x > 0:
-            if x & 1:
-                arr[i] = True
-            i -= 1
-            x >>= 1
-
-        return arr
-
     def inner_product(self, x):
         """ Returns the amplitude of x'th element of
          the wavefunction, i.e. <x|psi> """
         if type(x) == int:
-            x = self._int2arr(x)
+            y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
-        mu = sum(x * self.gamma)
+        mu = sum(y * self.gamma)
 
         u = np.zeros(self.n, dtype=bool)
         for p in range(self.n):
-            if x[p]:
+            if y[p]:
                 u ^= self.F[p, :]
                 mu += 2 * (sum(self.M[p, :] & u) % 2)
 

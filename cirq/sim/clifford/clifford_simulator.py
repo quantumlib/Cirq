@@ -29,7 +29,7 @@ The quantum state is specified in two forms:
     to wavefunction amplitudes.
 """
 
-from typing import Dict, List, Iterator, Union, Any
+from typing import Dict, List, Iterator, Any
 import collections
 import numpy as np
 import cirq
@@ -248,8 +248,6 @@ class CliffordState():
         return self.CH_form.wave_function()
 
     def apply_unitary(self, op: ops.GateOperation):
-        print("Tha op")
-        print(type(op))
         if op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
