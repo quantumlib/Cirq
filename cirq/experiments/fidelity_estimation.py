@@ -44,8 +44,12 @@ def compute_linear_xeb_fidelity(
         circuit: Random quantum circuit which has been executed on quantum
             processor under test
         bitstrings: Results of terminal all-qubit measurements performed after
-            each circuit execution
-        qubit_order: Qubit order used to construct bitstrings from measurements
+            each circuit execution as integer array where each integer is
+            formed from measured qubit values according to qubit_order from
+            most to least significant qubit, i.e. in the order consistent with
+            cirq.final_wavefunction().
+        qubit_order: Qubit order used to construct bitstrings enumerating
+            qubits starting with the most sigificant qubit
     Returns:
         Estimate of fidelity associated with an experimental realization of
         circuit which yielded measurements in bitstrings.
