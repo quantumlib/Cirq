@@ -46,8 +46,7 @@ def to_valid_density_matrix(
         dtype: The numpy dtype of the density matrix, will be used when creating
             the state for a computational basis state (int), or validated
             against if density_matrix_rep is a numpy array.
-        atol: Numerical tolerance for verifying that eigenvalues are
-            non-negative.
+        atol: Numerical tolerance for verifying density matrix properties.
 
     Returns:
         A numpy matrix corresponding to the density matrix on the given number
@@ -64,9 +63,10 @@ def to_valid_density_matrix(
                 'Density matrix was not square and of size 2 ** num_qubit, '
                 'instead was {}'.format(density_matrix_rep.shape))
         if not np.allclose(density_matrix_rep,
-                           np.transpose(np.conj(density_matrix_rep))):
+                           np.transpose(np.conj(density_matrix_rep)),
+                           atol=atol):
             raise ValueError('The density matrix is not hermitian.')
-        if not np.isclose(np.trace(density_matrix_rep), 1.0):
+        if not np.isclose(np.trace(density_matrix_rep), 1.0, atol=atol):
             raise ValueError(
                 'Density matrix did not have trace 1 but instead {}'.format(
                     np.trace(density_matrix_rep)))
