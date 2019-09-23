@@ -239,7 +239,7 @@ class CliffordState():
         return self.CH_form.__repr__()
 
     def to_numpy(self):
-        return self.CH_form.to_numpy()
+        return self.CH_form.to_state_vector()
 
     def stabilizers(self):
         return self.tableau.stabilizers()

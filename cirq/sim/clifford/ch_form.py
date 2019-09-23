@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
 import numpy as np
 
 import cirq
@@ -69,7 +70,7 @@ class CH_Form():
 
     def __repr__(self):
         """Return the wavefunction representation of the state."""
-        return cirq.dirac_notation(self.to_numpy())
+        return cirq.dirac_notation(self.to_state_vector())
 
     def _repr_full(self):
         """Return the CH form representation of the state. """
@@ -85,7 +86,7 @@ class CH_Form():
 
         return string
 
-    def inner_product(self, x):
+    def inner_product_of_state_and_x(self, x) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of
          the wavefunction, i.e. <x|psi> """
         if type(x) == int:
@@ -98,7 +99,6 @@ class CH_Form():
             if y[p]:
                 u ^= self.F[p, :]
                 mu += 2 * (sum(self.M[p, :] & u) % 2)
-
         return self.omega * 2**(-sum(self.v) / 2) * 1j**mu * (
             -1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s))
 
@@ -106,7 +106,7 @@ class CH_Form():
         wf = np.zeros(2**self.n, dtype=complex)
 
         for x in range(2**self.n):
-            wf[x] = self.inner_product(x)
+            wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
 
@@ -180,39 +180,39 @@ class CH_Form():
         set0 = np.where((~self.v) & (t ^ u))[0]
         set1 = np.where(self.v & (t ^ u))[0]
 
-            # implement Vc
-            if len(set0) > 0:
-                q = set0[0]
-                for i in set0:
-                    if i != q:
-                        self._CNOT(q, i, right=True)
-                for i in set1:
-                    self._CZ(q, i, right=True)
-            elif len(set1) > 0:
-                q = set1[0]
-                for i in set1:
-                    if i != q:
-                        self._CNOT(i, q, right=True)
+        # implement Vc
+        if len(set0) > 0:
+            q = set0[0]
+            for i in set0:
+                if i != q:
+                    self._CNOT(q, i, right=True)
+            for i in set1:
+                self._CZ(q, i, right=True)
+        elif len(set1) > 0:
+            q = set1[0]
+            for i in set1:
+                if i != q:
+                    self._CNOT(i, q, right=True)
 
-            e = np.zeros(self.n, dtype=bool)
-            e[q] = True
+        e = np.zeros(self.n, dtype=bool)
+        e[q] = True
 
-            if t[q]:
-                y = u ^ e
-                z = u
-            else:
-                y = t
-                z = t ^ e
+        if t[q]:
+            y = u ^ e
+            z = u
+        else:
+            y = t
+            z = t ^ e
 
-            (omega, a, b, c) = self._H_decompose(self.v[q], y[q], z[q], delta)
+        (omega, a, b, c) = self._H_decompose(self.v[q], y[q], z[q], delta)
 
-            self.s = y
-            self.s[q] = c
-            self.omega *= (-1)**alpha * omega
+        self.s = y
+        self.s[q] = c
+        self.omega *= (-1)**alpha * omega
 
-            if a:
-                self._S(q, right=True)
-            self.v[q] ^= b ^ self.v[q]
+        if a:
+            self._S(q, right=True)
+        self.v[q] ^= b ^ self.v[q]
 
     def _H_decompose(self, v, y, z, delta):
         """ Determines the transformation
@@ -249,11 +249,11 @@ class CH_Form():
 
         return omega, a, b, c
 
-    def to_numpy(self):
+    def to_state_vector(self) -> np.ndarray:
         arr = np.zeros(2**self.n, dtype=complex)
 
         for x in range(len(arr)):
-            arr[x] = self.inner_product(x)
+            arr[x] = self.inner_product_of_state_and_x(x)
 
         return arr
 
