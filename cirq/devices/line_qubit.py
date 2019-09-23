@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Iterable, List, Sequence, TypeVar
+from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar
 
 import abc
 
@@ -40,16 +40,17 @@ class _BaseLineQid(ops.Qid):
         """Determines if two qubits are adjacent line qubits."""
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 
-    def neighbors(self, qids: Iterable[ops.Qid] = None) -> List['_BaseLineQid']:
+    def neighbors(self, qids: Optional[Iterable[ops.Qid]] = None
+                 ) -> Set['_BaseLineQid']:
         """Returns qubits that are potential neighbors to this LineQubit
 
         Args:
             qubits: optional Iterable of qubits to constrain neighbors to.
         """
-        neighbors = []
+        neighbors = set()
         for q in [self - 1, self + 1]:
             if qids is None or q in qids:
-                neighbors.append(q)
+                neighbors.add(q)
         return neighbors
 
     @abc.abstractmethod

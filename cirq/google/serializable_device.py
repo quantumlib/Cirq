@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Device object for converting from device specification protos"""
-from typing import Any, cast, Dict, List, Set, Tuple, Type, TYPE_CHECKING
+from typing import Any, cast, Dict, Optional, List, Set, Tuple, Type, TYPE_CHECKING
 
 from cirq import devices, ops
 from cirq.google import serializable_gate_set
-from cirq.google.api.v2 import device_pb2
+from cirq.google.api import v2
 from cirq.value import Duration
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ class SerializableDevice(devices.Device):
             qubits: List['cirq.Qid'],
             durations: Dict[Type['cirq.Gate'], Duration],
             target_sets: Dict[Type['cirq.Gate'], Set[Tuple['cirq.Qid', ...]]],
-            permutation_gates: List[Type['cirq.Gate']] = None):
+            permutation_gates: Optional[Set[Type['cirq.Gate']]] = None):
         """Constructor for SerializableDevice using python objects.
 
         Note that the preferred method of constructing this object is through
@@ -60,13 +60,12 @@ class SerializableDevice(devices.Device):
         self.qubits = qubits
         self.durations = durations
         self.target_sets = target_sets
-        self.is_permutation_gate: Dict[Type['cirq.Gate'], bool] = dict()
+        self.permutation_gates: Set[Type['cirq.Gate']] = set()
         if permutation_gates is not None:
-            for gate in permutation_gates:
-                self.is_permutation_gate[gate] = True
+            self.permutation_gates = permutation_gates
 
     @staticmethod
-    def from_proto(proto: device_pb2.DeviceSpecification,
+    def from_proto(proto: v2.device_pb2.DeviceSpecification,
                    gate_set: serializable_gate_set.SerializableGateSet
                   ) -> 'SerializableDevice':
         """
@@ -80,14 +79,14 @@ class SerializableDevice(devices.Device):
 
         # Store target sets, since they are refered to by name later
         allowed_targets: Dict[str, Set[Tuple['cirq.Qid', ...]]] = dict()
-        permutation_ids: List[str] = list()
+        permutation_ids: Set[str] = set()
         for ts in proto.valid_targets:
             allowed_targets[ts.name] = SerializableDevice._create_target_set(ts)
-            if ts.target_ordering == device_pb2.TargetSet.SUBSET_PERMUTATION:
-                permutation_ids.append(ts.name)
+            if ts.target_ordering == v2.device_pb2.TargetSet.SUBSET_PERMUTATION:
+                permutation_ids.add(ts.name)
 
         # Store gate definitions from proto
-        gate_defs: Dict[str, device_pb2.GateDefinition] = dict()
+        gate_defs: Dict[str, v2.device_pb2.GateDefinition] = dict()
         for gs in proto.valid_gate_sets:
             for gate_def in gs.valid_gates:
                 gate_defs[gate_def.id] = gate_def
@@ -97,7 +96,7 @@ class SerializableDevice(devices.Device):
         durations: Dict[Type['cirq.Gate'], Duration] = dict()
         target_sets: Dict[Type['cirq.Gate'], Set[
             Tuple['cirq.Qid', ...]]] = dict()
-        permutation_gates: List[Type['cirq.Gate']] = list()
+        permutation_gates: Set[Type['cirq.Gate']] = set()
         for gate_type in gate_set.supported_gate_types():
             for serializer in gate_set.serializers[gate_type]:
                 gate_id = serializer.serialized_gate_id
@@ -111,7 +110,7 @@ class SerializableDevice(devices.Device):
                         raise NotImplementedError('Cannot currently mix ' +
                                                   'SUBSET_PERMUTATION with ' +
                                                   'other target sets')
-                    permutation_gates.append(gate_type)
+                    permutation_gates.add(gate_type)
                 gate_picos = gate_defs[gate_id].gate_duration_picos
                 durations[gate_type] = Duration(picos=gate_picos)
                 if gate_type not in target_sets:
@@ -140,14 +139,14 @@ class SerializableDevice(devices.Device):
         return [SerializableDevice._qid_from_str(id) for id in id_list]
 
     @staticmethod
-    def _create_target_set(ts: device_pb2.TargetSet
+    def _create_target_set(ts: v2.device_pb2.TargetSet
                           ) -> Set[Tuple['cirq.Qid', ...]]:
         """Transform a TargetSet proto into a set of qubit tuples"""
         target_set = set()
         for target in ts.targets:
             qid_list = SerializableDevice._qubits_from_ids(target.ids)
             target_set.add(tuple(qid_list))
-            if ts.target_ordering == device_pb2.TargetSet.SYMMETRIC:
+            if ts.target_ordering == v2.device_pb2.TargetSet.SYMMETRIC:
                 qid_list.reverse()
                 target_set.add(tuple(qid_list))
         return target_set
@@ -179,8 +178,8 @@ class SerializableDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {!r}'.format(q))
 
-        if self._find_operation_type(operation,
-                                     self.is_permutation_gate) is not None:
+        gate = cast(ops.GateOperation, operation).gate
+        if any([isinstance(gate, gtype) for gtype in self.permutation_gates]):
 
             # A permutation gate can have any combination of qubits
             valid_qubits = self._find_operation_type(operation,

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.google import known_devices
+from cirq.google import known_devices, gate_sets
 from cirq.devices import GridQubit
 
 
@@ -25,16 +25,15 @@ def test_foxtail_qubits():
 
 
 def test_foxtail_device_proto():
-    assert str(known_devices.FOXTAIL_PROTO) == """valid_gate_sets {
+    assert str(known_devices.FOXTAIL_PROTO) == """\
+valid_gate_sets {
   name: "xmon"
   valid_gates {
     id: "exp_w"
     gate_duration_picos: 20000
-    valid_targets: "2_qubit_targets"
   }
   valid_gates {
     id: "exp_z"
-    valid_targets: "2_qubit_targets"
   }
   valid_gates {
     id: "exp_11"

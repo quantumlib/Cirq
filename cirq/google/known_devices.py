@@ -18,7 +18,7 @@ from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api.v2 import device_pb2
 from cirq.google.xmon_device import XmonDevice
-from cirq.ops import MeasurementGate
+from cirq.ops import MeasurementGate, SingleQubitGate
 from cirq.value import Duration
 
 
@@ -81,13 +81,12 @@ def create_device_proto_from_diagram(
     neighbor_set: Set[Tuple] = set()
     spec.valid_qubits.extend([q.proto_id() for q in qubits])
     for q in qubits:
-        for neighbor in q.neighbors(qubit_set):
-            if tuple((neighbor, q)) not in neighbor_set:
+        for neighbor in sorted(q.neighbors(qubit_set)):
+            if (neighbor, q) not in neighbor_set:
                 # Don't add pairs twice
                 new_target = grid_targets.targets.add()
-                new_target.ids.extend([q.proto_id(), neighbor.proto_id()])
-                neighbor_set.add(tuple((q, neighbor)))
-
+                new_target.ids.extend((q.proto_id(), neighbor.proto_id()))
+                neighbor_set.add((q, neighbor))
     if gate_set is not None:
         gs_proto = spec.valid_gate_sets.add()
         gs_proto.name = gate_set.gate_set_name
@@ -104,7 +103,7 @@ def create_device_proto_from_diagram(
                 gate.id = gate_id
                 if gate_type == MeasurementGate:
                     gate.valid_targets.extend([_MEAS_TARGET_SET])
-                else:
+                elif not issubclass(gate_type, SingleQubitGate):
                     gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
                 if durations is not None and gate.id in durations:
                     gate.gate_duration_picos = durations[gate.id]
