@@ -13,11 +13,11 @@ MEASUREMENT_KEY = 'm'
 def sample_noisy_bitstrings(circuit: cirq.Circuit,
                             qubit_order: Sequence[cirq.Qid],
                             depolarization: float,
-                            n_samples: int) -> np.ndarray:
+                            repetitions: int) -> np.ndarray:
     assert 0 <= depolarization <= 1
     dim = np.product(circuit.qid_shape())
-    n_incoherent = int(depolarization * n_samples)
-    n_coherent = n_samples - n_incoherent
+    n_incoherent = int(depolarization * repetitions)
+    n_coherent = repetitions - n_incoherent
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
     circuit_with_measurements = cirq.Circuit.from_ops(
         circuit, cirq.measure(*qubit_order, key=MEASUREMENT_KEY))
@@ -61,7 +61,7 @@ def test_linear_xeb_fidelity(depolarization):
         bitstrings = sample_noisy_bitstrings(circuit,
                                              qubits,
                                              depolarization,
-                                             n_samples=5000)
+                                             repetitions=5000)
         f = cirq.linear_xeb_fidelity(circuit, bitstrings, qubits)
         fs.append(f)
     estimated_fidelity = np.mean(fs)
