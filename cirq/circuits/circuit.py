@@ -266,17 +266,13 @@ class Circuit:
         """
         if exponent != -1:
             return NotImplemented
-        circuit = Circuit(device=self._device)
+        inv_moments = []
         for moment in self[::-1]:
-            moment_ops = []
-            for op in moment.operations:
-                try:
-                    inverse_op = cirq.protocols.inverse(op)
-                except TypeError:
-                    return NotImplemented
-                moment_ops.append(inverse_op)
-            circuit.append(ops.Moment(moment_ops))
-        return circuit
+            inv_moment = cirq.inverse(moment, default=NotImplemented)
+            if inv_moment is NotImplemented:
+                return NotImplemented
+            inv_moments.append(inv_moment)
+        return cirq.Circuit(inv_moments, device=self._device)
 
     def __repr__(self):
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
