@@ -166,6 +166,8 @@ from cirq.ops import (
     DepolarizingChannel,
     EigenGate,
     flatten_op_tree,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     FREDKIN,
     freeze_op_tree,
     FSimGate,

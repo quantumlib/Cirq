@@ -457,25 +457,20 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfds: Sequence[Sequence[ops.Gate]]
                              ) -> circuits.Circuit:
     clifford_group_size = 24
-    gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = []  # type: List[ops.Gate]
-    for gate_id in gate_ids:
-        gate_sequence.extend(cfds[gate_id])
-    gate_sequence.extend(protocols.inverse(gate_sequence))
-    circuit = circuits.Circuit.from_ops(gate(qubit) for gate in gate_sequence)
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit.from_ops(
+        gate(qubit) for idx in idxs for gate in cfds[idx])
+    return circuit + protocols.inverse(circuit)
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
                            num_cfds: int,
                            cliffords: Cliffords) -> circuits.Circuit:
     clifford_group_size = 11520
-    idx_list = list(np.random.choice(clifford_group_size, num_cfds))
-    circuit = circuits.Circuit()
-    for idx in idx_list:
-        circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
-    circuit.append(protocols.inverse(circuit))
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit.from_ops(
+        _two_qubit_clifford(q_0, q_1, idx, cliffords) for idx in idxs)
+    return circuit + protocols.inverse(circuit)
 
 
 def _matrix_bar_plot(mat: np.ndarray,
