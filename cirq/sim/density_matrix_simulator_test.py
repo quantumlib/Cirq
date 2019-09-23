@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from unittest import mock
 import itertools
 import numpy as np
@@ -840,64 +839,6 @@ def test_density_matrix_trial_result_repr():
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_compute_displays(dtype):
-    qubits = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.Z}),
-            key='z3'
-        ),
-        cirq.X(qubits[1]),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[1]: cirq.Z}),
-            key='z0z1'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[1]: cirq.X}),
-            key='z0x1'
-        ),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[2]: cirq.X}),
-            key='z1x2'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.X,
-                              qubits[1]: cirq.Z}),
-            key='x0z1'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.X}),
-            key='x3'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[2]: cirq.X}),
-            num_samples=1,
-            key='approx_z1x2'
-        ),
-    )
-    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
-    initial_state = cirq.sim.density_matrix_utils.to_valid_density_matrix(
-            0, num_qubits=len(qubits), dtype=dtype)
-    result = simulator.compute_displays(circuit, initial_state=initial_state)
-
-    np.testing.assert_allclose(result.display_values['z3'], 1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['z0z1'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['z0x1'], 0, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['z1x2'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['x0z1'], 0, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['x3'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
-                               atol=1e-7)
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_compute_samples_displays(dtype):
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit.from_ops(
@@ -905,31 +846,82 @@ def test_compute_samples_displays(dtype):
         cirq.H(b),
         cirq.X(c),
         cirq.H(c),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({c: cirq.X}),
-            key='x3'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({a: cirq.Z,
-                              b: cirq.X}),
-            num_samples=10,
-            key='approx_z1x2'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({a: cirq.Z,
-                              c: cirq.X}),
-            num_samples=10,
-            key='approx_z1x3'
-        ),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({c: cirq.X}),
+                                             num_samples=10,
+                                             key='approx_x3'),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({
+            a: cirq.Z,
+            b: cirq.X
+        }),
+                                             num_samples=10,
+                                             key='approx_z1x2'),
+        cirq.approx_pauli_string_expectation(cirq.PauliString({
+            a: cirq.Z,
+            c: cirq.X
+        }),
+                                             num_samples=10,
+                                             key='approx_z1x3'),
     )
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     result = simulator.compute_samples_displays(circuit)
 
-    assert 'x3' not in result.display_values
+    np.testing.assert_allclose(result.display_values['approx_x3'],
+                               -1,
+                               atol=1e-7)
     np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
                                atol=1e-7)
     np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
                                atol=1e-7)
+
+
+class DensityMatrix(cirq.DensityMatrixDisplay):
+    """Displays the full density matrix."""
+
+    def __init__(self, *qubits, key):
+        self._qubits = qubits
+        self._key = key
+
+    @property
+    def key(self):
+        return self._key
+
+    @property
+    def qubits(self):
+        return self._qubits
+
+    def with_qubits(self, *new_qubits):
+        raise NotImplementedError()
+
+    def value_derived_from_density_matrix(self, state, qubit_map):
+        # note: does not fix basis.
+        return state.copy()
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_compute_displays(dtype):
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit.from_ops(
+        cirq.Moment([op]) for op in [
+            DensityMatrix(a, b, c, key='A'),
+            cirq.X(a),
+            DensityMatrix(a, b, c, key='B'),
+            cirq.X(b),
+            DensityMatrix(a, b, c, key='C'),
+            cirq.X(c),
+            DensityMatrix(a, b, c, key='D')
+        ])
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    result = simulator.compute_displays(circuit)
+
+    def check_state(key, n):
+        state = np.zeros((8, 8))
+        state[n, n] = 1
+        np.testing.assert_allclose(result.display_values[key], state, atol=1e-7)
+
+    check_state('A', 0b000)
+    check_state('B', 0b100)
+    check_state('C', 0b110)
+    check_state('D', 0b111)
 
 
 def test_works_on_operation():
@@ -1017,7 +1009,6 @@ def test_random_seed():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit.from_ops(cirq.X(a)**0.5, cirq.measure(a))
     result = sim.run(circuit, repetitions=10)
-    print(result.measurements['a'])
     assert np.all(
         result.measurements['a'] == [[False], [True], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])

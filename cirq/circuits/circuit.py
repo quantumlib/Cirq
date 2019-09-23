@@ -266,17 +266,13 @@ class Circuit:
         """
         if exponent != -1:
             return NotImplemented
-        circuit = Circuit(device=self._device)
+        inv_moments = []
         for moment in self[::-1]:
-            moment_ops = []
-            for op in moment.operations:
-                try:
-                    inverse_op = cirq.protocols.inverse(op)
-                except TypeError:
-                    return NotImplemented
-                moment_ops.append(inverse_op)
-            circuit.append(ops.Moment(moment_ops))
-        return circuit
+            inv_moment = cirq.inverse(moment, default=NotImplemented)
+            if inv_moment is NotImplemented:
+                return NotImplemented
+            inv_moments.append(inv_moment)
+        return cirq.Circuit(inv_moments, device=self._device)
 
     def __repr__(self):
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
@@ -1625,6 +1621,25 @@ class Circuit:
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+
+    def with_noise(self, noise: devices.NoiseModel) -> 'cirq.Circuit':
+        """Make a noisy version of the circuit.
+
+        Args:
+            noise: The noise model to use.  This describes the kind of noise to
+                add to the circuit.
+
+        Returns:
+            A new circuit with the same moment structure but with new moments
+            inserted where needed when more than one noisy operation is
+            generated for an input operation.  Emptied moments are removed.
+        """
+        qubits = sorted(self.all_qubits())
+        c_noisy = Circuit()
+        for op_tree in noise.noisy_moments(self, qubits):
+            # Keep moments aligned
+            c_noisy += Circuit.from_ops(op_tree)
+        return c_noisy
 
 
 def _resolve_operations(operations: Iterable['cirq.Operation'],

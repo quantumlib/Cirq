@@ -15,6 +15,9 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.arithmetic_operation import (
+    ArithmeticOperation,)
+
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -73,8 +76,7 @@ from cirq.ops.controlled_gate import (
 from cirq.ops.display import (
     ApproxPauliStringExpectation,
     DensityMatrixDisplay,
-    pauli_string_expectation,
-    PauliStringExpectation,
+    approx_pauli_string_expectation,
     SamplesDisplay,
     WaveFunctionDisplay,
 )

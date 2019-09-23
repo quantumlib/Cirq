@@ -29,6 +29,7 @@ User Documentation
     noise
     simulation
     schedules
+    qudits
     development
     examples
 

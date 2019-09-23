@@ -35,6 +35,7 @@ from cirq.linalg.decompositions import (
     KakDecomposition,
     kron_factor_4x4_to_2x2s,
     map_eigenvalues,
+    scatter_plot_normalized_kak_interaction_coefficients,
     so4_to_magic_su2s,
 )
 

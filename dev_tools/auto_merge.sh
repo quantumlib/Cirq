@@ -14,21 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# This script will keep syncing a PR to master, waiting for its check to
-# succeeds, and attempting to merge it; until either the PR is merged, the
-# checks fail, or there are merge conflicts. After merging, it deletes the
-# PR's branch (unless the branch is used elsewhere) and moves on to the next PR.
-# The script does not skip a PR and go on to later PRs when the earlier PR
-# enters an impossible-to-merge state; the script just stops.
+########################################################################################
+# This script will continuously watch a github repository for PRs labelled with the
+# 'automerge' label. When it sees such a PR it will mark it by labelling it with
+# the 'front_of_queue_automerge' label. While there is an 'front_of_queue_automerge'
+# labelled PR, the script will not label any other PRs with 'front_of_queue_automerge'.
 #
-# The commit message used by this script is the title of the PR, and for the
-# message body it uses the body of the PR's initial message. So make sure those
-# are good if you want good commit messages.
+# While there is a 'front_of_queue_automerge' labelled PR, the script will sync that PR
+# with master, wait for status checks to succeed, and attempt to merge it into master.
+# If the PR goes out of date due to an intervening merge, the process will start over.
+# This will continue until either the PR is merged or there is a problem that must be
+# addressed by a human. After merging, the PR will be deleted unless it belongs to a
+# fork.
+#
+# The commit message used when merging a PR is the title of the PR and then, for details,
+# the body of the PR's initial message/comment. Users/admins should edit the title and
+# initial comment to appropriately describe the PR.
 #
 # Usage:
-#     export CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token for your github account]
-#     bash dev_tools/auto_merge.sh [PR#1] [PR#2] ...
+#     export CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token for CirqBot's github account]
+#     export CIRQ_BOT_UPDATE_BRANCH_COOKIE=[CirqBot user_session cookie from github]
+#     bash dev_tools/auto_merge.sh
+########################################################################################
 
 
 # Get the working directory to the repo root.
