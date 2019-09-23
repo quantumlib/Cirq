@@ -1,11 +1,11 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import cast, Iterable, Tuple, Set
+from typing import Iterable, Tuple, Set
 
 import numpy as np
 
 from cirq.circuits import Circuit
-from cirq.ops import Qid, QubitOrder, QubitOrderOrList
+from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_wavefunction
 
 
