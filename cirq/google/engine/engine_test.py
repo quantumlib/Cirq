@@ -14,12 +14,14 @@
 
 """Tests for engine."""
 import base64
-import re
-from unittest import mock
+import json
 import numpy as np
 import pytest
+import re
+from unittest import mock
 
 from apiclient import discovery, http
+from apiclient.errors import HttpError
 
 import cirq
 import cirq.google as cg
@@ -1025,3 +1027,41 @@ def test_sampler(build):
                                                   '{apiVersion}'),
                              requestBuilder=mock.ANY)
     assert programs.create.call_args[1]['parent'] == 'projects/project-id'
+
+
+@mock.patch.object(discovery, 'build')
+def test_api_doesnt_retry_404_errors(build):
+    service = mock.Mock()
+    build.return_value = service
+    getProgram = service.projects().programs().get()
+    content = json.dumps({
+        'error': {
+            'message': 'not found',
+            'code': 404
+        }
+    }).encode('utf-8')
+    getProgram.execute.side_effect = HttpError(mock.Mock(), content)
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(RuntimeError, match='not found'):
+        x = engine.get_program('foo')
+        assert getProgram.execute.call_count == 1
+
+
+@mock.patch.object(discovery, 'build')
+def test_api_retry_errors(build):
+    service = mock.Mock()
+    build.return_value = service
+    getProgram = service.projects().programs().get()
+    content = json.dumps({
+        'error': {
+            'message': 'internal error',
+            'code': 503
+        }
+    }).encode('utf-8')
+    getProgram.execute.side_effect = HttpError(mock.Mock(), content)
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(Exception,
+                       match='Reached max retry attempts.*internal error'):
+        engine.max_retry_delay = 1  # 2 seconds
+        engine.get_program('foo')
+        assert getProgram.execute.call_count > 1

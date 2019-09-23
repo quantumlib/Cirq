@@ -91,30 +91,6 @@ def _make_random_id(prefix: str, length: int = 6):
     return '%s%s' % (prefix, suffix)
 
 
-def _make_request(request: HttpRequest) -> Dict:
-    RETRYABLE_ERROR_CODES = [500, 503]
-    current_delay = 0.1  #100ms
-    max_delay = 3600  # 1 hour
-
-    while True:
-        try:
-            return request.execute()
-        except HttpError as rawErr:
-            err = json.loads(rawErr.content).get('error')
-            message = err.get('message')
-            # Raise RuntimeError for exceptions that are not retryable.
-            # Otherwise, pass through to retry.
-            if not err.get('code') in RETRYABLE_ERROR_CODES:
-                raise RuntimeError(message) from None
-
-        if current_delay > max_delay:
-            raise Exception('Too many retry attempts.')
-        print(message)
-        print('Waiting ', current_delay, 'seconds before retrying.')
-        time.sleep(current_delay)
-        current_delay *= 2
-
-
 @value.value_equality
 class JobConfig:
     """Configuration for a job to run on the Quantum Engine API.
@@ -218,6 +194,7 @@ class Engine:
         self.project_id = project_id
         self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
         self.default_gcs_prefix = default_gcs_prefix
+        self.max_retry_delay = 3600  # 1 hour
         self.proto_version = proto_version
 
         if not service_args:
@@ -376,7 +353,7 @@ class Engine:
             },
             'run_context': run_context
         }
-        response = _make_request(
+        response = self._make_request(
             self.service.projects().programs().jobs().create(
                 parent=program_name, body=request))
 
@@ -417,6 +394,29 @@ class Engine:
         if job_config.gcs_results is None:
             job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
                                                         job_config.job_id)
+
+    def _make_request(self, request: HttpRequest) -> Dict:
+        RETRYABLE_ERROR_CODES = [500, 503]
+        current_delay = 0.1  #100ms
+
+        while True:
+            try:
+                return request.execute()
+            except HttpError as rawErr:
+                err = json.loads(rawErr.content).get('error')
+                message = err.get('message')
+                # Raise RuntimeError for exceptions that are not retryable.
+                # Otherwise, pass through to retry.
+                if not err.get('code') in RETRYABLE_ERROR_CODES:
+                    raise RuntimeError(message) from None
+
+            current_delay *= 2
+            if current_delay > self.max_retry_delay:
+                raise Exception('Reached max retry attempts for error: ' +
+                                message)
+            print(message)
+            print('Waiting ', current_delay, 'seconds before retrying.')
+            time.sleep(current_delay)
 
     def _serialize_run_context(
             self,
@@ -473,7 +473,7 @@ class Engine:
             'name': program_name,
             'code': self._serialize_program(program, gate_set),
         }
-        result = _make_request(self.service.projects().programs().create(
+        result = self._make_request(self.service.projects().programs().create(
             parent=parent_name, body=request))
 
         return engine_program.EngineProgram(result['name'], self)
@@ -514,7 +514,7 @@ class Engine:
             A dictionary containing the metadata and the program.
         """
         program_resource_name = self._program_name_from_id(program_id)
-        return _make_request(
+        return self._make_request(
             self.service.projects().programs().get(name=program_resource_name))
 
     def get_job(self, job_resource_name: str) -> Dict:
@@ -530,7 +530,7 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        return _make_request(self.service.projects().programs().jobs().get(
+        return self._make_request(self.service.projects().programs().jobs().get(
             name=job_resource_name))
 
     def get_job_results(self,
@@ -545,7 +545,7 @@ class Engine:
             An iterable over the TrialResult, one per parameter in the
             parameter sweep.
         """
-        response = _make_request(
+        response = self._make_request(
             self.service.projects().programs().jobs().getResult(
                 parent=job_resource_name))
         result = response['result']
@@ -600,7 +600,7 @@ class Engine:
             job_resource_name: A string of the form
                 `projects/project_id/programs/program_id/jobs/job_id`.
         """
-        _make_request(self.service.projects().programs().jobs().cancel(
+        self._make_request(self.service.projects().programs().jobs().cancel(
             name=job_resource_name, body={}))
 
     def _program_name_from_id(self, program_id: str) -> str:
@@ -612,7 +612,7 @@ class Engine:
     def _set_program_labels(self, program_id: str, labels: Dict[str, str],
                             fingerprint: str):
         program_resource_name = self._program_name_from_id(program_id)
-        _make_request(self.service.projects().programs().patch(
+        self._make_request(self.service.projects().programs().patch(
             name=program_resource_name,
             body={
                 'name': program_resource_name,
@@ -647,7 +647,7 @@ class Engine:
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
                         fingerprint: str):
-        _make_request(self.service.projects().programs().jobs().patch(
+        self._make_request(self.service.projects().programs().jobs().patch(
             name=job_resource_name,
             body={
                 'name': job_resource_name,
@@ -690,7 +690,7 @@ class Engine:
             A list of dictionaries containing the metadata of each processor.
         """
         parent = 'projects/%s' % (self.project_id)
-        response = _make_request(
+        response = self._make_request(
             self.service.projects().processors().list(parent=parent))
         return response['processors']
 
@@ -709,7 +709,7 @@ class Engine:
         """
         processor_name = 'projects/{}/processors/{}'.format(
             self.project_id, processor_id)
-        response = _make_request(
+        response = self._make_request(
             self.service.projects().processors().calibrations().list(
                 parent=processor_name))
         if (not 'calibrations' in response or
@@ -727,7 +727,7 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        response = _make_request(
+        response = self._make_request(
             self.service.projects().processors().calibrations().get(
                 name=calibration_name))
         return calibration.Calibration(response['data']['data'])
