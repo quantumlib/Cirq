@@ -73,8 +73,7 @@ def test_linear_xeb_fidelity(depolarization):
 
 def test_linear_xeb_fidelity_invalid_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1),
-                                    cirq.measure(q0, q1, key=MEASUREMENT_KEY))
+    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = sample_noisy_bitstrings(circuit, (q0, q1, q2), 0.9, 10)
     with pytest.raises(ValueError):
         cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q2))
@@ -82,8 +81,7 @@ def test_linear_xeb_fidelity_invalid_qubits():
 
 def test_linear_xeb_fidelity_invalid_bitstrings():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1),
-                                    cirq.measure(q0, q1, key=MEASUREMENT_KEY))
+    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2, 3, 4]
     with pytest.raises(ValueError):
         cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
