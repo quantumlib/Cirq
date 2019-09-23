@@ -68,11 +68,11 @@ class CH_Form():
         return copy
 
     def __repr__(self):
-        ''' Return the wavefunction representation of the state. '''
+        """Return the wavefunction representation of the state."""
         return cirq.dirac_notation(self.to_numpy())
 
     def _repr_full(self):
-        ''' Return the CH form representation of the state. '''
+        """Return the CH form representation of the state. """
         string = ""
 
         string += "omega: {:.2f}\n".format(self.omega)
@@ -169,16 +169,16 @@ class CH_Form():
         self._update_sum(t, u, delta=delta, alpha=alpha)
 
     def _update_sum(self, t, u, delta=0, alpha=0):
-        ''' Implements the transformation (Proposition 4 in Bravyi et al)
+        """ Implements the transformation (Proposition 4 in Bravyi et al)
 
                 i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>
-        '''
+        """
         if np.all(t == u):
             self.s = t
             self.omega *= 1 / np.sqrt(2) * (-1)**alpha * (1 + 1j**delta)
-        else:
-            set0 = np.where((~self.v) & (t ^ u))[0]
-            set1 = np.where(self.v & (t ^ u))[0]
+            return
+        set0 = np.where((~self.v) & (t ^ u))[0]
+        set1 = np.where(self.v & (t ^ u))[0]
 
             # implement Vc
             if len(set0) > 0:
@@ -258,10 +258,10 @@ class CH_Form():
         return arr
 
     def project_Z(self, q, z):
-        ''' Applies a Z projector on the q'th qubit.
+        """ Applies a Z projector on the q'th qubit.
 
         Returns: a normalized state with Z_q |psi> = z |psi>
-        '''
+        """
         t = self.s.copy()
         u = (self.G[q, :] & self.v) ^ self.s
         delta = (2 * sum((self.G[q, :] & (~self.v)) & self.s) + 2 * z) % 4

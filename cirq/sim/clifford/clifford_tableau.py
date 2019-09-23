@@ -137,9 +137,9 @@ class CliffordTableau():
         self.zs[:, q1] ^= self.zs[:, q2]
 
     def _rowsum(self, q1, q2):
-        ''' Implements the "rowsum" routine defined by
+        """Implements the "rowsum" routine defined by
         Aaronson and Gottesman.
-        Multiplies the stabilizer in row q1 by the stabilizer in row q2. '''
+        Multiplies the stabilizer in row q1 by the stabilizer in row q2."""
 
         def g(x1, z1, x2, z2):
             if not x1 and not z1:
@@ -164,8 +164,8 @@ class CliffordTableau():
         self.zs[q1, :] ^= self.zs[q2, :]
 
     def stabilizers(self):
-        ''' Returns the stabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such thate S_i |psi> = |psi> '''
+        """Returns the stabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such thate S_i |psi> = |psi> """
         stabilizers = []
 
         for i in range(self.n, 2 * self.n):
@@ -184,10 +184,10 @@ class CliffordTableau():
         return stabilizers
 
     def _measure(self, q):
-        ''' Performs a projective measurement on the q'th qubit.
+        """ Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
-        '''
+        """
         is_commuting = True
         for i in range(self.n, 2 * self.n):
             if self.xs[i, q]:
