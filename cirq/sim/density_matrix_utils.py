@@ -28,7 +28,7 @@ def to_valid_density_matrix(
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
         dtype: Type[np.number] = np.complex64,
-        atol: float = 1e-8) -> np.ndarray:
+        atol: float = 1e-7) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
     This method is used to support passing a matrix, a vector (wave function),

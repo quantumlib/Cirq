@@ -255,7 +255,7 @@ class PauliString(raw_types.Operation):
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
-                                      atol: float = 1e-8) -> float:
+                                      atol: float = 1e-7) -> float:
         r"""Evaluate the expectation of this PauliString given a wavefunction.
 
         Compute the expectation value of this PauliString with respect to a
@@ -347,7 +347,7 @@ class PauliString(raw_types.Operation):
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
-                                        atol: float = 1e-8) -> float:
+                                        atol: float = 1e-7) -> float:
         r"""Evaluate the expectation of this PauliString given a density matrix.
 
         Compute the expectation value of this PauliString with respect to an

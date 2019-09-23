@@ -315,7 +315,7 @@ def to_valid_state_vector(
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
         dtype: Type[np.number] = np.complex64,
-        atol: float = 1e-8) -> np.ndarray:
+        atol: float = 1e-7) -> np.ndarray:
     """Verifies the state_rep is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
@@ -382,7 +382,7 @@ def validate_normalized_state(
         *,  # Force keyword arguments
         qid_shape: Tuple[int, ...],
         dtype: Type[np.number] = np.complex64,
-        atol: float = 1e-8) -> None:
+        atol: float = 1e-7) -> None:
     """Validates that the given state is a valid wave function."""
     if state.size != np.prod(qid_shape, dtype=int):
         raise ValueError(
