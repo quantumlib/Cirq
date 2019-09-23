@@ -1,6 +1,6 @@
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import Iterable, Tuple, Set
+from typing import Sequence
 
 import numpy as np
 
@@ -11,7 +11,7 @@ from cirq.sim import final_wavefunction
 
 def linear_xeb_fidelity(
         circuit: Circuit,
-        bitstrings: np.ndarray,
+        bitstrings: Sequence[int],
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
 ) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
