@@ -36,7 +36,7 @@ def get_time_slices(dag: circuits.CircuitDag) -> List[nx.Graph]:
     second slice correspond to the nodes of the DAG whose only predecessors are
     in the first time slice, and so on.
     """
-    circuit = circuits.Circuit.from_ops(
+    circuit = circuits.Circuit(
         op for op in dag.all_operations() if len(op.qubits) > 1)
     return [
         nx.Graph(op.qubits for op in moment.operations) for moment in circuit
