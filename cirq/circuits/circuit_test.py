@@ -255,7 +255,7 @@ def test_repr():
         cirq.Moment([cirq.CZ(a, b)]),
     ])
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == """cirq.Circuit(moments=[
+    assert repr(c) == """cirq.Circuit([
     cirq.Moment(operations=[
         cirq.H.on(cirq.NamedQubit('a')),
         cirq.H.on(cirq.NamedQubit('b')),
@@ -272,7 +272,7 @@ def test_repr():
 
     c = cirq.Circuit.from_ops(cirq.Z(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == """cirq.Circuit(moments=[
+    assert repr(c) == """cirq.Circuit([
     cirq.Moment(operations=[
         cirq.Z.on(cirq.GridQubit(0, 0)),
     ]),
@@ -1520,6 +1520,17 @@ def test_qid_shape_qudit():
     assert circuit.qid_shape()
     with pytest.raises(ValueError, match='extra qubits'):
         _ = circuit.qid_shape(qubit_order=[b, c])
+
+
+def test_deprecated_circuit_init_parameter_positional_device():
+    c = cirq.Circuit([], cirq.UNCONSTRAINED_DEVICE)
+    assert c == cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE)
+
+
+def test_deprecated_circuit_init_parameter_moments_keywords():
+    a = cirq.LineQubit(0)
+    c = cirq.Circuit(moments=[cirq.X(a)])
+    assert c == cirq.Circuit(cirq.X(a))
 
 
 def test_from_ops():
