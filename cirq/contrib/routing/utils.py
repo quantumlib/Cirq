@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import operator
-from typing import Callable, Iterable, List, Optional
+from typing import Callable, Iterable, List
 
 import networkx as nx
 

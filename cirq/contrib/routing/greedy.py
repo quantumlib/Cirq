@@ -14,8 +14,8 @@
 
 import itertools
 import random
-from typing import (Any, Callable, cast, Dict, Hashable, Iterable, List,
-                    Optional, Sequence, Set, Tuple)
+from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
+                    Sequence, Set, Tuple)
 
 import numpy as np
 import networkx as nx
