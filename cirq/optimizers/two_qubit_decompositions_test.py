@@ -51,7 +51,7 @@ def test_is_trivial_angle(rad, expected):
 
 
 def _operations_to_matrix(operations, qubits):
-    return cirq.Circuit.from_ops(operations).unitary(
+    return cirq.Circuit(operations).unitary(
         qubit_order=cirq.QubitOrder.explicit(qubits),
         qubits_that_should_be_present=qubits)
 
@@ -189,8 +189,7 @@ def test_trivial_parity_interaction_corner_case():
     q1 = cirq.NamedQubit('q1')
     nearPi4 = np.pi/4 * 0.99
     tolerance = 1e-2
-    circuit = cirq.Circuit.from_ops(
-        _parity_interaction(q0, q1, -nearPi4, tolerance))
+    circuit = cirq.Circuit(_parity_interaction(q0, q1, -nearPi4, tolerance))
     assert len(circuit) == 2
 
 
@@ -200,37 +199,35 @@ def test_kak_decomposition_depth_full_cz():
     # Random.
     u = cirq.testing.random_unitary(4)
     operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, False)
-    c = cirq.Circuit.from_ops(operations_with_full)
+    c = cirq.Circuit(operations_with_full)
     # 3 CZ, 3+1 PhasedX, 1 Z
     assert len(c) <= 8
 
     # Double-axis interaction.
-    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
-                                           cirq.CNOT(b, a)))
+    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Test unoptimized/un-cleaned length of Double-axis interaction.
-    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
-                                           cirq.CNOT(b, a)))
+    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False,
                                                                1e-8, False)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     assert len(c) > 6 # Length should be 13 with extra Pauli gates
 
     # Partial single-axis interaction.
     u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     # 2 CZ, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Full single-axis interaction.
     u = cirq.unitary(cirq.ControlledGate(cirq.Y))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, False)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     # 1 CZ, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
 
@@ -241,28 +238,27 @@ def test_kak_decomposition_depth_partial_cz():
     # Random.
     u = cirq.testing.random_unitary(4)
     operations_with_full = cirq.two_qubit_matrix_to_operations(a, b, u, True)
-    c = cirq.Circuit.from_ops(operations_with_full)
+    c = cirq.Circuit(operations_with_full)
     # 3 CP, 3+1 PhasedX, 1 Z
     assert len(c) <= 8
 
     # Double-axis interaction.
-    u = cirq.unitary(cirq.Circuit.from_ops(cirq.CNOT(a, b),
-                                           cirq.CNOT(b, a)))
+    u = cirq.unitary(cirq.Circuit(cirq.CNOT(a, b), cirq.CNOT(b, a)))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     # 2 CP, 2+1 PhasedX, 1 Z
     assert len(c) <= 6
 
     # Partial single-axis interaction.
     u = cirq.unitary(cirq.CNOT**0.1)
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
 
     # Full single-axis interaction.
     u = cirq.unitary(cirq.ControlledGate(cirq.Y))
     operations_with_part = cirq.two_qubit_matrix_to_operations(a, b, u, True)
-    c = cirq.Circuit.from_ops(operations_with_part)
+    c = cirq.Circuit(operations_with_part)
     # 1 CP, 1+1 PhasedX, 1 Z
     assert len(c) <= 4
