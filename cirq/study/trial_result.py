@@ -272,19 +272,15 @@ class TrialResult:
             return NotImplemented
         return self.data.equals(other.data) and self.params == other.params
 
-    def __add__(self, other: 'TrialResult') -> 'TrialResult':
+    def _measurement_shape(self):
+        return self.params, {k: v.shape[1] for k, v in self.measurement.items()}
+
+    def __add__(self, other: 'cirq.TrialResult') -> 'cirq.TrialResult':
         if not isinstance(other, type(self)):
             return NotImplemented
-        if self.params == other.params and self.measurements.keys(
-        ) == other.measurements.keys():
+        if self._measurement_shape() != other._measurement_shape():
             all_measurements: Dict[str, np.ndarray] = {}
             for key in other.measurements:
-                if self.measurements[key].shape[1] != other.measurements[
-                        key].shape[1]:
-                    raise ValueError(
-                        'Sample dimensions for measurement key {} do not match.'
-                        .format(key))
-
                 all_measurements[key] = np.append(self.measurements[key],
                                                   other.measurements[key],
                                                   axis=0)
