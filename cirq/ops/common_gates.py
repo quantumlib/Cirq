@@ -349,21 +349,6 @@ class ZPowGate(eigen_gate.EigenGate,
             (1, np.diag([0, 1])),
         ]
 
-    def controlled_by(self, *control_qubits, control_values=None):
-        if len(control_qubits) == 1 and (control_values is None or
-                                         all(control_values)):
-            return PartialGate(
-                cirq.CZPowGate(exponent=self.exponent,
-                               global_shift=self.global_shift), *control_qubits)
-        if len(control_qubits) == 2 and (control_values is None or
-                                         all(control_values)):
-            return PartialGate(
-                cirq.CCZPowGate(exponent=self.exponent,
-                                global_shift=self.global_shift),
-                *control_qubits)
-        return super().controlled_by(*control_qubits,
-                                     control_values=control_values)
-
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None

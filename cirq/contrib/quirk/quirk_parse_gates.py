@@ -144,8 +144,6 @@ class ParityControlCell(Cell):
                 column[i] = None
                 self._basis_change += gate._basis_change
                 self.qubits += gate.qubits
-                for q in gate.qubits:
-                    self._basis_change.append(ops.CNOT(self.qubits[0], q))
             elif gate is not None:
                 column[i] = gate.controlled_by(self.qubits[0])
 

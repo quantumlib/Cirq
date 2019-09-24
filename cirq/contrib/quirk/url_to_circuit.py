@@ -21,18 +21,110 @@ import cirq
 from cirq import ops
 from cirq.contrib.quirk.quirk_parse_gates import (ParityControlCell, Cell,
                                                   QuirkPseudoSwapOperation)
-from cirq.contrib.quirk.quirk_parse_reg_utils import (
+from cirq.contrib.quirk.quirk_gate_reg_utils import (
     popcnt, modular_multiplicative_inverse, reg_control, reg_input_family,
     reg_unsupported_gates, reg_gate, reg_const, reg_formula_gate,
     reg_parameterized_gate, reg_ignored_family, reg_ignored_gate,
     reg_arithmetic_gate, reg_arithmetic_family,
     reg_size_dependent_arithmetic_family, reg_unsupported_family, reg_family,
-    reg_bit_permutation_family, deinterleave_bit, interleave_bit, RegistryEntry)
+    reg_bit_permutation_family, deinterleave_bit, interleave_bit, CellType)
 
 
-def _reg_all() -> Iterator[RegistryEntry]:
+def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
+
+    parsed_url = urllib.parse.urlparse(quirk_url)
+    if not parsed_url.fragment:
+        return cirq.Circuit()
+
+    if not parsed_url.fragment.startswith('circuit='):
+        raise ValueError('Not a valid quirk url. The URL fragment (the part '
+                          'after the #) must start with "circuit=".\n'
+                          f'URL={quirk_url}')
+
+    # URL parser may not have fixed escaped characters in the fragment.
+    json_text = parsed_url.fragment[len('circuit='):]
+    if '%22' in json_text:
+        json_text = urllib.parse.unquote(json_text)
+
+    data = json.loads(json_text)
+    if not isinstance(data, dict):
+        raise ValueError('Circuit JSON must have a top-level dictionary.\n'
+                          f'URL={quirk_url}')
+    if not data.keys() <= {'cols', 'gates', 'init'}:
+        raise ValueError(f'Unrecognized Circuit JSON keys.\nURL={quirk_url}')
+    if 'gates' in data:
+        raise NotImplementedError('Custom gates not supported yet.\n'
+                                  f'URL={quirk_url}')
+    if 'init' in data:
+        raise NotImplementedError('Custom initial states not supported yet.\n'
+                                  f'URL={quirk_url}')
+    if 'cols' not in data:
+        raise ValueError('Circuit JSON dictionary must have a "cols" entry.\n'
+                          f'URL={quirk_url}')
+
+    cols = data['cols']
+    if not isinstance(cols, list):
+        raise ValueError('Circuit JSON cols must be a list.\n'
+                          f'URL={quirk_url}')
+
+    registry = {}
+    for entry in _gate_registry():
+        registry[entry.identifier] = entry
+    parsed_cols: List[List[Cell]] = []
+    for col in cols:
+        parsed_cols.append(parse_col_cells(registry, col))
+
+    for c in parsed_cols:
+        for i in range(len(c)):
+            if c[i] is not None:
+                c[i].modify_column(c)
+
+    result = cirq.Circuit()
+    for col in parsed_cols:
+        basis_change = cirq.Circuit.from_ops(
+            cell.basis_change() for cell in col if cell is not None
+        )
+        body = (
+            cell.operations() for cell in col if cell is not None
+        )
+        result += basis_change
+        result += body
+        result += basis_change**-1
+    return result
+
+
+def parse_col_cells(registry: Dict[str, CellType],
+                    col: Any) -> List[Optional[Cell]]:
+    if not isinstance(col, list):
+        raise ValueError('col must be a list.\ncol: {!r}'.format(col))
+    return [parse_cell(registry, i, col[i]) for i in range(len(col))]
+
+
+def parse_cell(registry: Dict[str, CellType], offset: int,
+               entry: Any) -> Optional[Cell]:
+    if entry == 1:
+        return None
+
+    key = None
+    arg = None
+    if isinstance(entry, dict):
+        key = entry['id']
+        arg = entry.get('arg', None)
+    elif isinstance(entry, str):
+        key = entry
+
+    if isinstance(key, str) and key in registry:
+        _, size, func = registry[key]
+        qubits = cirq.LineQubit.range(offset, offset + size)
+        return func(qubits, arg)
+
+    raise ValueError('Unrecognized column entry: {!r}'.format(entry))
+
+
+def _gate_registry() -> Iterator[CellType]:
     # Swap.
-    yield RegistryEntry("Swap", 1, lambda qubits, _: QuirkPseudoSwapOperation(qubits, []))
+    yield CellType(
+        "Swap", 1, lambda qubits, _: QuirkPseudoSwapOperation(qubits, []))
 
     # Controls.
     yield from reg_control("•", None)
@@ -43,11 +135,14 @@ def _reg_all() -> Iterator[RegistryEntry]:
     yield from reg_control("(/)", ops.X**0.5)
 
     # Parity controls.
-    yield RegistryEntry("xpar", 1, lambda qubits, _: ParityControlCell(qubits, (ops.Y**0.5).
+    yield CellType(
+        "xpar", 1, lambda qubits, _: ParityControlCell(qubits, (ops.Y**0.5).
                                                        on_each(qubits)))
-    yield RegistryEntry("ypar", 1, lambda qubits, _: ParityControlCell(qubits, (cirq.X**-0.5).
+    yield CellType(
+        "ypar", 1, lambda qubits, _: ParityControlCell(qubits, (cirq.X**-0.5).
                                                        on_each(qubits)))
-    yield RegistryEntry("zpar", 1, lambda qubits, _: ParityControlCell(qubits, []))
+    yield CellType("zpar",
+                   1, lambda qubits, _: ParityControlCell(qubits, []))
 
     # Input gates.
     yield from reg_input_family("inputA", "a")
@@ -275,86 +370,3 @@ def _reg_all() -> Iterator[RegistryEntry]:
     yield from reg_bit_permutation_family("rev", lambda n, x: n - x - 1)
     yield from reg_bit_permutation_family("weave", interleave_bit)
     yield from reg_bit_permutation_family("split", deinterleave_bit)
-
-
-def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
-
-    parsed_url = urllib.parse.urlparse(quirk_url)
-    if not parsed_url.fragment.startswith('circuit='):
-        raise SyntaxError('Not a valid quirk url. The URL fragment (the part '
-                          'after the #) must start with "circuit=".\n'
-                          f'URL={quirk_url}')
-
-    # URL parser may not have fixed escaped characters in the fragment.
-    json_text = parsed_url.fragment[len('circuit='):]
-    if '%22' in json_text:
-        json_text = urllib.parse.unquote(json_text)
-
-    data = json.loads(json_text)
-    if not isinstance(data, dict):
-        raise SyntaxError('Circuit JSON must have a top-level dictionary.\n'
-                          f'URL={quirk_url}')
-    if not data.keys() <= {'cols', 'gates', 'init'}:
-        raise SyntaxError(f'Unrecognized Circuit JSON keys.\nURL={quirk_url}')
-    if 'gates' in data:
-        raise NotImplementedError('Custom gates not supported yet.\n'
-                                  f'URL={quirk_url}')
-    if 'init' in data:
-        raise NotImplementedError('Custom initial states not supported yet.\n'
-                                  f'URL={quirk_url}')
-    if 'cols' not in data:
-        return cirq.Circuit()
-
-    cols = data['cols']
-    if not isinstance(cols, list):
-        raise SyntaxError('Circuit JSON cols must be a list.\n'
-                          f'URL={quirk_url}')
-
-    registry = {}
-    for entry in _reg_all():
-        registry[entry.identifier] = entry
-    parsed_cols: List[List[Cell]] = []
-    for col in cols:
-        parsed_cols.append(parse_col_cells(registry, col))
-
-    for c in parsed_cols:
-        for i in range(len(c)):
-            if c[i] is not None:
-                c[i].modify_column(c)
-
-    result = cirq.Circuit()
-    for col in parsed_cols:
-        for cell in col:
-            if cell is not None:
-                result.append(cell.basis_change(),
-                              strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
-                result.append(cell.operations(),
-                              strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
-                result.append(cirq.inverse(cell.basis_change()),
-                              strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
-    return result
-
-
-def parse_col_cells(registry: Dict[str, RegistryEntry],
-                    col: List[Any]) -> List[Optional[Cell]]:
-    return [parse_cell(registry, i, col[i]) for i in range(len(col))]
-
-
-def parse_cell(registry: Dict[str, RegistryEntry], offset: int,
-               entry: Any) -> Optional[Cell]:
-    if entry == 1:
-        return None
-
-    if isinstance(entry, dict):
-        key = entry['id']
-        arg = entry.get('arg', None)
-    else:
-        key = entry
-        arg = None
-
-    if isinstance(key, str) and key in registry:
-        _, size, func = registry[entry]
-        qubits = cirq.LineQubit.range(offset, offset + size)
-        return func(qubits, arg)
-
-    raise SyntaxError('Unrecognized column entry: {!r}'.format(entry))
