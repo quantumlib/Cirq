@@ -169,6 +169,11 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
     ) -> Sequence[Sequence[complex]]:
+        if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
+            raise ValueError('The list of bitstrings must be input as a '
+                             '1-dimensional array of ints. Got an array with '
+                             f'shape {bitstrings.shape}.')
+
         circuit = (program if isinstance(program, circuits.Circuit) else
                    program.to_circuit())
         trial_results = self.simulate_sweep(circuit, params, qubit_order)

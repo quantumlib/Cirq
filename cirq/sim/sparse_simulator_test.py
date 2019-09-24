@@ -724,6 +724,15 @@ def test_compute_amplitudes():
     np.testing.assert_allclose(np.array(result), np.array([-0.5, 0.5, -0.5]))
 
 
+def test_compute_amplitudes_bad_input():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit.from_ops(cirq.X(a), cirq.H(a), cirq.H(b))
+    sim = cirq.Simulator()
+
+    with pytest.raises(ValueError, match='1-dimensional'):
+        result = sim.compute_amplitudes(c, np.array([[0, 0]]))
+
+
 def test_run_sweep_parameters_not_resolved():
     a = cirq.LineQubit(0)
     simulator = cirq.Simulator()
