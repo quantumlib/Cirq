@@ -468,7 +468,7 @@ def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
                            cliffords: Cliffords) -> circuits.Circuit:
     clifford_group_size = 11520
     idxs = np.random.choice(clifford_group_size, num_cfds)
-    circuit = circuits.Circuit.from_ops(
+    circuit = circuits.Circuit(
         _two_qubit_clifford(q_0, q_1, idx, cliffords) for idx in idxs)
     return circuit + protocols.inverse(circuit)
 

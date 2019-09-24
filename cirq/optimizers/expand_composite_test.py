@@ -96,7 +96,7 @@ def test_recursive_composite():
 
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
-    expected = cirq.Circuit().from_ops(cirq.Y(q1) ** -0.5,
+    expected = cirq.Circuit(cirq.Y(q1) ** -0.5,
                                        cirq.CZ(q0, q1),
                                        cirq.Y(q1) ** 0.5,
                                        cirq.Y(q0) ** -0.5,
@@ -120,7 +120,7 @@ def test_decompose_returns_not_flat_op_tree():
 
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
-    expected = cirq.Circuit().from_ops(cirq.X(q0))
+    expected = cirq.Circuit(cirq.X(q0))
     assert_equal_mod_empty(expected, circuit)
 
 
@@ -146,7 +146,7 @@ def test_decompose_returns_deep_op_tree():
 
     opt = cirq.ExpandComposite()
     opt.optimize_circuit(circuit)
-    expected = cirq.Circuit().from_ops(
+    expected = cirq.Circuit(
         cirq.X(q0), cirq.Y(q0), cirq.Z(q0),  # From tuple
         cirq.X(q0), cirq.Y(q0), cirq.Z(q0),  # From nested lists
         # From nested generators

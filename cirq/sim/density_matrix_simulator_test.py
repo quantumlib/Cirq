@@ -881,7 +881,7 @@ class DensityMatrix(cirq.DensityMatrixDisplay):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_compute_displays(dtype):
     a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.Moment([op]) for op in [
             DensityMatrix(a, b, c, key='A'),
             cirq.X(a),

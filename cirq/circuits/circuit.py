@@ -233,7 +233,7 @@ class Circuit:
 
     def __add__(self, other):
         if isinstance(other, list):
-            other = self.from_ops(other)
+            other = Circuit(other)
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE

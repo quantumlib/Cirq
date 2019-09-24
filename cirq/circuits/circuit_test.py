@@ -2495,7 +2495,7 @@ def test_batch_insert_maintains_order_despite_multiple_previous_inserts():
 
 def test_batch_insert_doesnt_overshift_due_to_previous_shifts():
     a = cirq.NamedQubit('a')
-    c = cirq.Circuit().from_ops([cirq.H(a)] * 3)
+    c = cirq.Circuit([cirq.H(a)] * 3)
     c.batch_insert([(0, cirq.Z(a)),
                     (0, cirq.Z(a)),
                     (1, cirq.X(a)),
@@ -2513,7 +2513,7 @@ def test_batch_insert_doesnt_overshift_due_to_previous_shifts():
 
 def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit().from_ops(
+    c = cirq.Circuit(
         cirq.SWAP(a, b),
         cirq.SWAP(a, b),
         cirq.H(a),
