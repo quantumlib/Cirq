@@ -111,8 +111,10 @@ def deprecated_parameter(
         parameter_desc: The name and type of the parameter being deprecated,
             e.g. "janky_count" or "janky_count keyword" or
             "positional janky_count".
-        match: Detects if the deprecated parameter is present in the
-            args/kwargs.
+        match: A lambda that takes args, kwargs and determines if the
+            deprecated parameter is present or not. This determines whether or
+            not the deprecation warning is printed, and also whether or not
+            rewrite is called.
         rewrite: Returns new args/kwargs that don't use the deprecated
             parameter. Defaults to making no changes.
 
