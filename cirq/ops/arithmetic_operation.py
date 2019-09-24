@@ -223,7 +223,11 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             cast(List[Union[int, slice]], inputs).append(slice(None))
             dst[outputs] = src[inputs]
 
-        return args.available_buffer
+        # In case the reshaped arrays were copies instead of views.
+        dst.shape = transposed_args.available_buffer.shape
+        transposed_args.target_tensor[...] = dst
+
+        return args.target_tensor
 
 
 def _describe_bad_arithmetic_changed_const(
