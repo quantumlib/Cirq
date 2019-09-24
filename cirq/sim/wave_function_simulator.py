@@ -185,8 +185,6 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
 
         all_amplitudes = []
         for trial_result in trial_results:
-            # mypy doesn't know that this trial result has a final_state
-            # attribute
             trial_result = cast(WaveFunctionTrialResult, trial_result)
             amplitudes = trial_result.final_state[bitstrings]
             all_amplitudes.append(amplitudes)
