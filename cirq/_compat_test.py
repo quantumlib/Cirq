@@ -74,7 +74,11 @@ def test_deprecated_parameter():
 
     # Warns on first use.
     with capture_logging() as log:
+        # pylint: disable=unexpected-keyword-arg
+        # pylint: disable=no-value-for-parameter
         assert f(double_count=1) == 2
+        # pylint: enable=no-value-for-parameter
+        # pylint: enable=unexpected-keyword-arg
     assert len(log) == 1
     assert 'double_count parameter of test_func was used' in log[0].getMessage()
     assert 'will be removed in cirq vAlready' in log[0].getMessage()
@@ -82,7 +86,11 @@ def test_deprecated_parameter():
 
     # Only warns once.
     with capture_logging() as log:
+        # pylint: disable=unexpected-keyword-arg
+        # pylint: disable=no-value-for-parameter
         assert f(double_count=1) == 2
+        # pylint: enable=no-value-for-parameter
+        # pylint: enable=unexpected-keyword-arg
     assert len(log) == 0
 
 
