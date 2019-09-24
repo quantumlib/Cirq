@@ -124,7 +124,7 @@ def final_wavefunction(
             "Program: {!r}".format(program))
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-        program=program,
+        program=cast(Union[circuits.Circuit, schedules.Schedule], program),
         initial_state=initial_state,
         qubit_order=qubit_order,
         param_resolver=param_resolver)
@@ -165,8 +165,8 @@ def sample_sweep(
     """
     if seed:
         np.random.seed(seed)
-    circuit = (program if isinstance(program, circuits.Circuit) else
-               program.to_circuit())
+    circuit = (program.to_circuit()
+               if isinstance(program, schedules.Schedule) else program)
 
     trial_results = []  # type: List[study.TrialResult]
     for param_resolver in study.to_resolvers(params):
