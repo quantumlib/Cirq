@@ -205,8 +205,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             bitstrings: The bitstrings whose amplitudes are desired, input
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
-                significant qubit, i.e. in the order consistent with
-                `cirq.final_wavefunction`.
+                significant qubit, i.e. in big-endian ordering.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -236,8 +235,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
             bitstrings: The bitstrings whose amplitudes are desired, input
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
-                significant qubit, i.e. in the order consistent with
-                `cirq.final_wavefunction`.
+                significant qubit, i.e. in big-endian ordering.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
