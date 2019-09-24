@@ -18,7 +18,6 @@ from typing import Set, Tuple, Type, TYPE_CHECKING
 from cirq import devices, ops
 from cirq.google import serializable_gate_set
 from cirq.google.api import v2
-from cirq.protocols import obj_to_dict_helper
 from cirq.value import Duration
 
 if TYPE_CHECKING:
