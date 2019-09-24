@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import Dict, List
+from typing import Dict, List, Sequence, Tuple, Optional
 
 import numpy as np
 import pytest
@@ -90,26 +90,79 @@ def test_gate_type_swap():
 
 def assert_url_to_circuit_returns(
         json_text: str,
-        expected_circuit: 'cirq.Circuit',
+        expected_circuit: 'cirq.Circuit' = None,
         *,
-        output_amplitudes_from_quirk: List[Dict[str, float]] = None):
+        diagram: Optional[str] = None,
+        output_amplitudes_from_quirk: Optional[List[Dict[str, float]]] = None,
+        maps: Optional[Dict[int, int]] = None):
+    """
+    Args:
+        json_text: The part of the quirk URL after "#circuit=".
+        expected_circuit: The optional expected circuit. If specified and not
+            equal to the parsed circuit, an assertion fails.
+        diagram: The optional expected circuit diagram. If specified and the
+            parsed circuit has a different diagram, an assertion fails.
+        output_amplitudes_from_quirk: Optional data copied from Quirk's "export
+            simulation data" function, for comparison to Cirq's simulator
+            results. If specified and the output from the simulation differs
+            from this data (after accounting for differences in endian-ness),
+            an assertion fails.
+        maps: Optional dictionary of test computational basis input states and
+            the output computational basis state that they should be mapped to.
+            If any state is mapped to the wrong thing, an assertion fails. Note
+            that the states are specified using Quirk's little endian
+            convention, meaning that the last bit of a binary literal will refer
+            to the last qubit's value instead of vice versa.
+    """
     circuit = quirk_url_to_circuit(
         f'https://algassert.com/quirk#circuit={json_text}')
-    cirq.testing.assert_same_circuits(circuit, expected_circuit)
+
+    if expected_circuit is not None:
+        cirq.testing.assert_same_circuits(circuit, expected_circuit)
+
+    if diagram is not None:
+        cirq.testing.assert_has_diagram(circuit, diagram)
+
     if output_amplitudes_from_quirk is not None:
         expected = np.array([
             float(e['r']) + 1j * float(e['i'])
             for e in output_amplitudes_from_quirk
         ])
 
-        # Swap endian-ness.
-        n = len(circuit.all_qubits())
-        expected = expected.reshape((2,) * n
-                                    ).transpose(range(n)[::-1]).reshape(1 << n)
+        np.testing.assert_allclose(
+            cirq.final_wavefunction(
+                circuit,
+                # Match Quirk's endian-ness for comparison purposes.
+                qubit_order=sorted(circuit.all_qubits(), reverse=True),
+            ),
+            expected,
+            atol=1e-8)
 
-        np.testing.assert_allclose(cirq.final_wavefunction(circuit),
-                                   expected,
-                                   atol=1e-8)
+    if maps:
+        keys = sorted(maps.keys())
+        amps = [np.exp(1j * i / len(maps)) / len(maps)**0.5
+                for i in range(len(maps))]
+
+        n = len(circuit.all_qubits())
+        input_state = np.zeros(1 << n, dtype=np.complex128)
+        for k, amp in zip(keys, amps):
+            input_state[k] = amp
+
+        output_state = cirq.final_wavefunction(
+            circuit,
+            initial_state=input_state)
+
+        actual_map = {}
+        for k, amp in zip(keys, amps):
+            for i, amp2 in enumerate(output_state):
+                if abs(amp2 - amp) < 1e-5:
+                    actual_map[k] = i
+
+        for k in keys:
+            assert actual_map[k] == maps[k], (
+                f'{bin(k)} was mapped to '
+                f'{bin(actual_map[k]) if k in actual_map else None} '
+                f'instead of {bin(maps[k])}')
 
 
 def test_assert_url_to_circuit_returns():
@@ -309,7 +362,6 @@ def test_scalar_operations():
 
 def test_fixed_single_qubit_rotations():
     a, b, c, d = cirq.LineQubit.range(4)
-    t = sympy.Symbol('t')
 
     assert_url_to_circuit_returns(
         '{"cols":[["H","X","Y","Z"]]}',
@@ -353,6 +405,11 @@ def test_fixed_single_qubit_rotations():
             cirq.Z(a) ** (-1 / 8), cirq.Z(b) ** (-1 / 16),
         ))
 
+
+def test_dynamic_single_qubit_rotations():
+    a, b, c = cirq.LineQubit.range(3)
+    t = sympy.Symbol('t')
+
     # Dynamic single qubit rotations.
     assert_url_to_circuit_returns(
         '{"cols":[["X^t","Y^t","Z^t"],["X^-t","Y^-t","Z^-t"]]}',
@@ -371,7 +428,11 @@ def test_fixed_single_qubit_rotations():
             cirq.Rz(2 * sympy.pi * -t).on(c),
         ))
 
-    # Classically parameterized single qubit rotations.
+
+def test_formulaic_gates():
+    a, b = cirq.LineQubit.range(2)
+    t = sympy.Symbol('t')
+
     assert_url_to_circuit_returns(
         '{"cols":[["X^ft",{"id":"X^ft","arg":"t*t"}]]}',
         cirq.Circuit.from_ops(
@@ -409,7 +470,8 @@ def test_fixed_single_qubit_rotations():
             cirq.Rz(t * t).on(b),
         ))
 
-    # Displays.
+
+def test_displays():
     assert_url_to_circuit_returns(
         '{"cols":[["Amps2"],[1,"Amps3"],["Chance"],'
         '["Chance2"],["Density"],["Density3"],'
@@ -417,38 +479,170 @@ def test_fixed_single_qubit_rotations():
         ']}',
         cirq.Circuit())
 
-    # # Arithmetic.
-    # yield from reg_arithmetic_gate("^A<B", 1, lambda x, a, b: x ^ int(a < b))
-    # yield from reg_arithmetic_gate("^A>B", 1, lambda x, a, b: x ^ int(a > b))
-    # yield from reg_arithmetic_gate("^A<=B", 1, lambda x, a, b: x ^ int(a <= b))
-    # yield from reg_arithmetic_gate("^A>=B", 1, lambda x, a, b: x ^ int(a >= b))
-    # yield from reg_arithmetic_gate("^A=B", 1, lambda x, a, b: x ^ int(a == b))
-    # yield from reg_arithmetic_gate("^A!=B", 1, lambda x, a, b: x ^ int(a != b))
-    # yield from reg_arithmetic_family("inc", lambda x: x + 1)
-    # yield from reg_arithmetic_family("dec", lambda x: x - 1)
-    # yield from reg_arithmetic_family(
+
+def test_arithmetic_comparison_gates():
+    with pytest.raises(ValueError, match='Missing input'):
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":'
+                                 '[["^A<B"]]}')
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A<B","inputA2",1,"inputB2"]]}',
+        diagram="""
+0: ───Quirk(^A<B)───
+      │
+1: ───A0────────────
+      │
+2: ───A1────────────
+      │
+3: ───B0────────────
+      │
+4: ───B1────────────
+        """,
+        maps={
+            0b0_00_10: 0b1_00_10,
+            0b1_00_10: 0b0_00_10,
+            0b0_11_10: 0b0_11_10,
+            0b0_10_10: 0b0_10_10,
+            0b0_01_10: 0b1_01_10,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A>B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b0_11_10: 0b1_11_10,
+            0b0_10_10: 0b0_10_10,
+            0b0_01_10: 0b0_01_10,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A>=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b0_11_10: 0b1_11_10,
+            0b0_10_10: 0b1_10_10,
+            0b0_01_10: 0b0_01_10,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A<=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b0_11_10: 0b0_11_10,
+            0b0_10_10: 0b1_10_10,
+            0b0_01_10: 0b1_01_10,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b0_11_10: 0b0_11_10,
+            0b0_10_10: 0b1_10_10,
+            0b0_01_10: 0b0_01_10,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["^A!=B","inputA2",1,"inputB2"]]}',
+        maps={
+            0b0_11_10: 0b1_11_10,
+            0b0_10_10: 0b0_10_10,
+            0b0_01_10: 0b1_01_10,
+        })
+
+
+def test_arithmetic_unlisted_misc_gates():
+    pass
+# yield from reg_arithmetic_family("^=A", lambda x, a: x ^ a)
+# yield from reg_arithmetic_family("+cntA", lambda x, a: x + popcnt(a))
+# yield from reg_arithmetic_family("-cntA", lambda x, a: x - popcnt(a))
+# yield from reg_arithmetic_family(
+#     "Flip<A", lambda x, a: a - x - 1 if x < a else x)
+
+
+def test_arithmetic_addition_gates():
+    assert_url_to_circuit_returns(
+        '{"cols":[["inc3"]]}',
+        diagram="""
+0: ───Quirk(inc3)───
+      │
+1: ───#2────────────
+      │
+2: ───#3────────────
+            """,
+        maps={
+            0: 1,
+            3: 4,
+            7: 0,
+        })
+    assert_url_to_circuit_returns(
+        '{"cols":[["dec3"]]}',
+        maps={
+            0: 7,
+            3: 2,
+            7: 6,
+        })
+    assert_url_to_circuit_returns(
+        '{"cols":[["+=A2",1,"inputA2"]]}',
+        maps={
+            0b_00_00: 0b_00_00,
+            0b_01_10: 0b_11_10,
+            0b_10_11: 0b_01_11,
+        })
+    assert_url_to_circuit_returns(
+        '{"cols":[["-=A2",1,"inputA2"]]}',
+        maps={
+            0b_00_00: 0b_00_00,
+            0b_01_10: 0b_11_10,
+            0b_10_11: 0b_11_11,
+        })
+
+
+def test_arithmetic_multiply_accumulate_gates():
+    assert_url_to_circuit_returns(
+        '{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
+        maps={
+            0b_0000_00: 0b_0000_00,
+            0b_0100_10: 0b_1000_10,
+            0b_1000_11: 0b_0001_11,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["-=AA4",1,1,1,"inputA2"]]}',
+        maps={
+            0b_0000_00: 0b_0000_00,
+            0b_0100_10: 0b_0000_10,
+            0b_1000_11: 0b_1111_11,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["+=AB3",1,1,"inputA2",1,"inputB2"]]}',
+        maps={
+            0b_000_00_00: 0b_000_00_00,
+            0b_000_11_10: 0b_110_11_10,
+            0b_100_11_11: 0b_101_11_11,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["-=AB3",1,1,"inputA2",1,"inputB2"]]}',
+        maps={
+            0b_000_00_00: 0b_000_00_00,
+            0b_000_11_10: 0b_010_11_10,
+            0b_100_11_11: 0b_011_11_11,
+        })
+
+
+def test_arithmetic_modular_addition_gates():
+    pass
     #     "incmodR", lambda x, r: (x + 1) % r if x < r else x)
-    # yield from reg_arithmetic_family(
     #     "decmodR", lambda x, r: (x - 1) % r if x < r else x)
-    # yield from reg_arithmetic_family("+=A", lambda x, a: x + a)
-    # yield from reg_arithmetic_family("-=A", lambda x, a: x - a)
-    # yield from reg_arithmetic_family(
     #     "+AmodR", lambda x, a, r: (x + a) % r if x < r else x)
-    # yield from reg_arithmetic_family(
     #     "-AmodR", lambda x, a, r: (x - a) % r if x < r else x)
-    # yield from reg_arithmetic_family(
+
+
+def test_arithmetic_modular_multiply_accumulate_gates():
+    pass
     #     "+ABmodR", lambda x, a, b, r: (x + a * b) % r if x < r else x)
-    # yield from reg_arithmetic_family(
     #     "-ABmodR", lambda x, a, b, r: (x - a * b) % r if x < r else x)
-    # yield from reg_arithmetic_family("+=AA", lambda x, a: x + a * a)
-    # yield from reg_arithmetic_family("-=AA", lambda x, a: x - a * a)
-    # yield from reg_arithmetic_family("+=AB", lambda x, a, b: x + a * b)
-    # yield from reg_arithmetic_family("-=AB", lambda x, a, b: x - a * b)
-    # yield from reg_arithmetic_family("^=A", lambda x, a: x ^ a)
-    # yield from reg_arithmetic_family("+cntA", lambda x, a: x + popcnt(a))
-    # yield from reg_arithmetic_family("-cntA", lambda x, a: x - popcnt(a))
-    # yield from reg_arithmetic_family(
-    #     "Flip<A", lambda x, a: a - x - 1 if x < a else x)
+
+
+def test_arithmetic_modular_multiply_gates():
+    pass
     # yield from reg_arithmetic_family(
     #     "*AmodR", lambda x, a, r: (x * a) % r
     #     if x < r and modular_multiplicative_inverse(a, r) else x)
@@ -462,11 +656,19 @@ def test_fixed_single_qubit_rotations():
     #     "/BToAmodR", lambda x, a, b, r: (x * pow(
     #         modular_multiplicative_inverse(b, r) or 1, a, r)) % r
     #     if x < r else x)
+
+
+def test_arithmetic_multiply_gates():
+    pass
     # yield from reg_arithmetic_family("*A", lambda x, a: x * a if a & 1 else x)
     # yield from reg_size_dependent_arithmetic_family(
     #     "/A", lambda n: lambda x, a: x * modular_multiplicative_inverse(
     #         a, 1 << n) if a & 1 else x)
     #
+
+
+def test_dynamic_discrete_gates():
+    pass
     # # Dynamic gates with discretized actions.
     # yield from reg_unsupported_gates("X^⌈t⌉",
     #                                  "X^⌈t-¼⌉",
@@ -476,6 +678,10 @@ def test_fixed_single_qubit_rotations():
     # yield from reg_unsupported_family(">>t", reason="discrete parameter")
     # yield from reg_unsupported_family("<<t", reason="discrete parameter")
     #
+
+
+def test_unsupported_deprecated_arithmetic_gates():
+    pass
     # # Gates that are no longer in the toolbox and have dominant replacements.
     # yield from reg_unsupported_family("add",
     #                                   reason="deprecated; use +=A instead")
@@ -486,6 +692,10 @@ def test_fixed_single_qubit_rotations():
     # yield from reg_unsupported_family("c-=ab",
     #                                   reason="deprecated; use -=AB instead")
     #
+
+
+def test_frequency_space_gates():
+    pass
     # # Frequency space.
     # yield from reg_family("QFT", lambda n: cirq.QuantumFourierTransformGate(n))
     # yield from reg_family(
@@ -503,12 +713,20 @@ def test_fixed_single_qubit_rotations():
     #     "grad^-t", lambda n: cirq.PhaseGradientGate(
     #         num_qubits=n, exponent=-2**(n - 1) * sympy.Symbol('t')))
     #
+
+
+def test_qubit_permutation_gates():
+    pass
     # # Bit level permutations.
     # yield from reg_bit_permutation_family("<<", lambda n, x: (x + 1) % n)
     # yield from reg_bit_permutation_family(">>", lambda n, x: (x - 1) % n)
     # yield from reg_bit_permutation_family("rev", lambda n, x: n - x - 1)
     # yield from reg_bit_permutation_family("weave", interleave_bit)
     # yield from reg_bit_permutation_family("split", deinterleave_bit)
+
+
+def test_input_gates():
+    pass
     # # Input gates.
     # yield from reg_input_family("inputA", "a")
     # yield from reg_input_family("inputB", "b")
@@ -521,6 +739,10 @@ def test_fixed_single_qubit_rotations():
     #                                  "setR",
     #                                  reason="Cross column effects.")
     #
+
+
+def test_unsupported_postselection_gates():
+    pass
     # # Post selection.
     # yield from reg_unsupported_gates(
     #     "|0⟩⟨0|",
@@ -531,6 +753,10 @@ def test_fixed_single_qubit_rotations():
     #     "|/⟩⟨/|",
     #     "0",
     #     reason='postselection is not implemented in Cirq')
+
+
+def test_measurement_gates():
+    pass
     # # Measurement.
     # yield from reg_gate("Measure", gate=ops.MeasurementGate(num_qubits=1))
     # yield from reg_gate("ZDetector", gate=ops.MeasurementGate(num_qubits=1))
@@ -540,12 +766,20 @@ def test_fixed_single_qubit_rotations():
     # yield from reg_gate("XDetector",
     #                     gate=ops.MeasurementGate(num_qubits=1),
     #                     basis_change=ops.H)
+
+
+def test_unsupported_classical_feedback_gates():
+    pass
     # yield from reg_unsupported_gates(
     #     "XDetectControlReset",
     #     "YDetectControlReset",
     #     "ZDetectControlReset",
     #     reason="Classical feedback is not implemented in Cirq")
     #
+
+
+def test_parameterized_single_qubit_rotations():
+    pass
     # # Quantum parameterized single qubit rotations.
     # yield from reg_parameterized_gate("X^(A/2^n)", ops.X, +1)
     # yield from reg_parameterized_gate("Y^(A/2^n)", ops.Y, +1)

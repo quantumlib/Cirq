@@ -121,7 +121,8 @@ def reg_arithmetic_gate(identifier: str, size: int,
     yield CellType(
         identifier, size, lambda qubits, _: ArithmeticCell(
             identifier=identifier,
-            registers=[qubits] + param_names[1:],
+            registers=[qubits] + [None] * len(param_names[1:]),
+            register_letters=[None] + param_names[1:],
             operation=func))
 
 
@@ -138,7 +139,7 @@ def reg_input_family(identifier_prefix: str, letter: str,
     for i in GATE_SIZES:
         yield CellType(
             identifier_prefix + str(i), i, lambda qubits, _: InputCell(
-                qubits[::-1] if rev else qubits, 'a'))
+                qubits[::-1] if rev else qubits, letter))
 
 
 def reg_parameterized_gate(identifier: str, gate: cirq.Gate,

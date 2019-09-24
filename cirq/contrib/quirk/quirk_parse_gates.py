@@ -172,17 +172,30 @@ class InputCell(Cell):
 class ArithmeticCell(ops.ArithmeticOperation, Cell):
 
     def __init__(self, identifier: str,
-                 registers: Sequence[Union[Sequence['cirq.Qid'], int]],
+                 registers: Sequence[
+                     Optional[Union[Sequence['cirq.Qid'], int]]],
+                 register_letters: Sequence[Optional[str]],
                  operation: Callable):
         self.identifier = identifier
         self._registers = registers
+        self._register_letters = register_letters
         self._operation = operation
 
     def with_input(self, letter, register):
-        return self.with_registers(
-            *[r if r != letter else register for r in self._registers])
+        return self.with_registers(*[
+            reg if letter != reg_letter else register
+            for reg, reg_letter in zip(self._registers,
+                                       self._register_letters)
+        ])
 
     def operations(self) -> 'cirq.OP_TREE':
+        missing_inputs = [
+            letter
+            for reg, letter in zip(self._registers, self._register_letters)
+            if reg is None
+        ]
+        if missing_inputs:
+            raise ValueError(f'Missing input: {sorted(missing_inputs)}')
         return self
 
     def registers(self):
@@ -190,10 +203,30 @@ class ArithmeticCell(ops.ArithmeticOperation, Cell):
 
     def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
                       ) -> 'cirq.ArithmeticOperation':
-        return ArithmeticCell(self.identifier, new_registers, self._operation)
+        return ArithmeticCell(self.identifier,
+                              new_registers,
+                              self._register_letters,
+                              self._operation)
 
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self._operation(*registers)
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+        if args.known_qubit_count is None or args.qubit_map is None:
+            return NotImplemented
+        name = f'Quirk({self.identifier})'
+        result = [''] * args.known_qubit_count
+        for reg, letter in zip(self._registers, self._register_letters):
+            for i, q in enumerate(reg):
+                if letter is None:
+                    label = f'#{i+1}' if i else name
+                else:
+                    label = letter.upper() + str(i)
+                result[args.qubit_map[q]] = label
+        return tuple(result)
+
+    def __str__(self):
+        return f'QuirkArithmetic({self.identifier})'
 
     def __repr__(self):
         return 'cirq.quirk.ArithmeticCell({!r}, {!r} ,{!r})'.format(
