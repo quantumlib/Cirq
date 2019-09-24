@@ -36,11 +36,15 @@ def random_superposition(dim: int) -> np.ndarray:
     return state_vector
 
 
-def random_unitary(dim: int) -> np.ndarray:
+def random_unitary(dim: int,
+                   *,
+                   random_state: Optional[np.random.RandomState] = None
+                  ) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
       dim: The width and height of the matrix.
+      random_state: A seed to use for random number generation.
 
     Returns:
       The sampled unitary matrix.
@@ -49,7 +53,10 @@ def random_unitary(dim: int) -> np.ndarray:
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    z = (np.random.randn(dim, dim) + 1j * np.random.randn(dim, dim))
+    if random_state is None:
+        random_state = np.random
+
+    z = (random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim))
     q, r = np.linalg.qr(z)
     d = np.diag(r)
     return q * (d / abs(d))
@@ -74,16 +81,20 @@ def random_orthogonal(dim: int) -> np.ndarray:
     return q * (d / abs(d))
 
 
-def random_special_unitary(dim: int) -> np.ndarray:
+def random_special_unitary(dim: int,
+                           *,
+                           random_state: Optional[np.random.RandomState] = None
+                          ) -> np.ndarray:
     """Returns a random special unitary distributed with Haar measure.
 
     Args:
       dim: The width and height of the matrix.
+      random_state: A seed to use for random number generation.
 
     Returns:
       The sampled special unitary.
     """
-    r = random_unitary(dim)
+    r = random_unitary(dim, random_state=random_state)
     r[0, :] /= np.linalg.det(r)
     return r
 
