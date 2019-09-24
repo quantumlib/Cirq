@@ -71,7 +71,7 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
 
 
 @pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
-def test_random_circuit_reproducible_with_integer_seed(seed):
+def test_random_circuit_reproducible_with_seed(seed):
     circuit1 = random_circuit(qubits=20,
                               n_moments=20,
                               op_density=0.7,
@@ -82,9 +82,6 @@ def test_random_circuit_reproducible_with_integer_seed(seed):
                               random_state=seed)
     assert circuit1 == circuit2
 
-
-@pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
-def test_random_circuit_reproducible_with_random_state(seed):
     prng = np.random.RandomState(seed)
     circuit1 = random_circuit(qubits=20,
                               n_moments=20,
