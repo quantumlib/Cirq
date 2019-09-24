@@ -1529,7 +1529,9 @@ def test_deprecated_circuit_init_parameter_positional_device():
 
 def test_deprecated_circuit_init_parameter_moments_keywords():
     a = cirq.LineQubit(0)
+    # pylint: disable=unexpected-keyword-arg
     c = cirq.Circuit(moments=[cirq.X(a)])
+    # pylint: enable=unexpected-keyword-arg
     assert c == cirq.Circuit(cirq.X(a))
 
 
