@@ -266,9 +266,16 @@ def test_apply_unitary_args_tensor_manipulation():
         np.testing.assert_allclose(result, expected, atol=1e-8, verbose=True)
 
     for op in operations:
-        print('Testing', type(op).__name__)
         assert_is_swap_simple(op)
         assert_is_swap(op)
+
+
+def test_big_endian_subspace_index():
+    state = np.zeros(shape=(2, 3, 4, 5, 1, 6, 1, 1))
+    args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [1, 3])
+    s = slice(None)
+    assert args.subspace_index(little_endian_bits_int=1) == (s, 1, s, 0, ...)
+    assert args.subspace_index(big_endian_bits_int=1) == (s, 0, s, 1, ...)
 
 
 def test_apply_unitaries():
@@ -469,6 +476,7 @@ def test_apply_unitary_args_with_axes_transposed_to_start():
     new_args = args.with_axes_transposed_to_start()
     assert new_args.target_tensor.shape == (3, 5, 2, 4)
     assert new_args.available_buffer.shape == (3, 5, 2, 4)
+    assert new_args.axes == (0, 1)
 
     # Confirm aliasing.
     new_args.target_tensor[2, 4, 1, 3] = 1

@@ -23,6 +23,7 @@ import functools
 from cirq import value, protocols
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops import gate_operation, linear_combinations
 
 
@@ -415,6 +416,14 @@ class _InverseCompositeGate(Gate):
 
     def _value_equality_values_(self):
         return self._original
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+        sub_info = protocols.circuit_diagram_info(self._original,
+                                                  default=NotImplemented)
+        if sub_info is NotImplemented:
+            return NotImplemented
+        sub_info.exponent *= -1
+        return sub_info
 
     def __repr__(self):
         return '({!r}**-1)'.format(self._original)

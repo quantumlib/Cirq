@@ -193,5 +193,8 @@ class ControlledOperation(raw_types.Operation):
 
         wire_symbols = (*(get_symbol(vals) for vals in self.control_values),
                         *sub_info.wire_symbols)
-        return protocols.CircuitDiagramInfo(wire_symbols=wire_symbols,
-                                            exponent=sub_info.exponent)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=wire_symbols,
+            exponent=sub_info.exponent,
+            exponent_qubit_index=None if sub_info.exponent_qubit_index is None
+            else sub_info.exponent_qubit_index + 1)
