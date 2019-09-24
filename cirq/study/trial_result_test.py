@@ -222,7 +222,7 @@ def test_trial_result_addition_invalid():
         _ = a + b
     with pytest.raises(ValueError, match='same measurement keys'):
         _ = a + c
-    with pytest.raises(ValueError, match='Sample dimensions'):
+    with pytest.raises(ValueError):
         _ = a + d
     with pytest.raises(TypeError):
         _ = a + 'junk'

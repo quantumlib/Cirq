@@ -273,12 +273,14 @@ class TrialResult:
         return self.data.equals(other.data) and self.params == other.params
 
     def _measurement_shape(self):
-        return self.params, {k: v.shape[1] for k, v in self.measurement.items()}
+        return self.params, {
+            k: v.shape[1] for k, v in self.measurements.items()
+        }
 
     def __add__(self, other: 'cirq.TrialResult') -> 'cirq.TrialResult':
         if not isinstance(other, type(self)):
             return NotImplemented
-        if self._measurement_shape() != other._measurement_shape():
+        if self._measurement_shape() == other._measurement_shape():
             all_measurements: Dict[str, np.ndarray] = {}
             for key in other.measurements:
                 all_measurements[key] = np.append(self.measurements[key],
