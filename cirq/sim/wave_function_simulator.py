@@ -123,8 +123,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
@@ -174,8 +174,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
                              '1-dimensional array of ints. Got an array with '
                              f'shape {bitstrings.shape}.')
 
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
         trial_results = self.simulate_sweep(circuit, params, qubit_order)
 
         # 1-dimensional tuples don't trigger advanced Numpy array indexing

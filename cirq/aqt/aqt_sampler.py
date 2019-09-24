@@ -157,8 +157,8 @@ class AQTSampler(Sampler):
             resolver.
         """
         meas_name = 'm'  # TODO: Get measurement name from circuit
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
         assert isinstance(circuit.device, IonDevice)
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in study.to_resolvers(params):
