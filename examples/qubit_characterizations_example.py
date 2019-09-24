@@ -27,13 +27,13 @@ def main():
     rb_result_2q.plot()
 
     # State-tomography of q_0 after application of an X/2 rotation.
-    cir_1q = cirq.Circuit.from_ops(cirq.X(q_0) ** 0.5)
+    cir_1q = cirq.Circuit(cirq.X(q_0)**0.5)
     tomography_1q = cirq.experiments.single_qubit_state_tomography(simulator,
                                                                    q_0, cir_1q)
     tomography_1q.plot()
 
     # State-tomography of a Bell state between q_0 and q_1.
-    cir_2q = cirq.Circuit.from_ops(cirq.H(q_0), cirq.CNOT(q_0, q_1))
+    cir_2q = cirq.Circuit(cirq.H(q_0), cirq.CNOT(q_0, q_1))
     tomography_2q = cirq.experiments.two_qubit_state_tomography(simulator,
                                                                 q_0, q_1,
                                                                 cir_2q)
