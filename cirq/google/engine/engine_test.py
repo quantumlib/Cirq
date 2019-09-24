@@ -1048,7 +1048,7 @@ def test_api_doesnt_retry_404_errors(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_api_retry_errors(build):
+def test_api_retry_5xx_errors(build):
     service = mock.Mock()
     build.return_value = service
     getProgram = service.projects().programs().get()
@@ -1062,6 +1062,26 @@ def test_api_retry_errors(build):
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(Exception,
                        match='Reached max retry attempts.*internal error'):
-        engine.max_retry_delay = 1  # 2 seconds
+        engine.max_retry_delay = 1  # 1 second
+        engine.get_program('foo')
+        assert getProgram.execute.call_count > 1
+
+
+@mock.patch.object(discovery, 'build')
+def test_api_retry_connection_reset(build):
+    service = mock.Mock()
+    build.return_value = service
+    getProgram = service.projects().programs().get()
+    content = json.dumps({
+        'error': {
+            'message': 'internal error',
+            'code': 503
+        }
+    }).encode('utf-8')
+    getProgram.execute.side_effect = ConnectionResetError()
+    engine = cg.Engine(project_id='project-id')
+    with pytest.raises(Exception,
+                       match='Reached max retry attempts.*Lost connection'):
+        engine.max_retry_delay = 1  # 1 second
         engine.get_program('foo')
         assert getProgram.execute.call_count > 1

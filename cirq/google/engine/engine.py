@@ -402,6 +402,8 @@ class Engine:
         while True:
             try:
                 return request.execute()
+            except ConnectionResetError:
+                message = "Lost connection to the engine."
             except HttpError as rawErr:
                 err = json.loads(rawErr.content).get('error')
                 message = err.get('message')
