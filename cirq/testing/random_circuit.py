@@ -78,7 +78,9 @@ def random_circuit(
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
-    if isinstance(random_state, np.random.RandomState):
+    if random_state is None:
+        prng = np.random
+    elif isinstance(random_state, np.random.RandomState):
         prng = random_state
     else:
         prng = np.random.RandomState(random_state)
