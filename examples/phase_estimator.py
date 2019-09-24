@@ -42,10 +42,12 @@ def run_estimate(unknown_gate, qnum, repetitions):
     ancilla = cirq.LineQubit(-1)
     qubits = cirq.LineQubit.range(qnum)
 
-    circuit = cirq.Circuit.from_ops(cirq.H.on_each(*qubits), [
+    oracle_raised_to_power = [
         unknown_gate.on(ancilla).controlled_by(qubits[i])**(2**i)
         for i in range(qnum)
-    ],
+    ]
+    circuit = cirq.Circuit.from_ops(cirq.H.on_each(*qubits),
+                                    oracle_raised_to_power,
                                     cirq.QFT(*qubits, without_reverse=True)**-1,
                                     cirq.measure(*qubits, key='phase'))
 

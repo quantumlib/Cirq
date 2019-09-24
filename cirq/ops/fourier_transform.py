@@ -85,7 +85,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
 @value.value_equality
 class PhaseGradientGate(raw_types.Gate):
-    """Phases each computational basis state |k⟩ out of n by e^(i*k/n*exponent).
+    """Phases each state |k⟩ out of n by e^(2*pi*i*k/n*exponent).
     """
 
     def __init__(self, *, num_qubits: int, exponent: Union[float, sympy.Basic]):
@@ -165,7 +165,9 @@ class PhaseGradientGate(raw_types.Gate):
             exponent_qubit_index=0)
 
 
-def QFT(*qubits: 'cirq.Qid', without_reverse: bool = False) -> 'cirq.Operation':
+def QFT(*qubits: 'cirq.Qid',
+        without_reverse: bool = False,
+        inverse: bool = False) -> 'cirq.Operation':
     """The quantum Fourier transform.
 
     Transforms a qubit register from the computational basis to the frequency
@@ -179,9 +181,15 @@ def QFT(*qubits: 'cirq.Qid', without_reverse: bool = False) -> 'cirq.Operation':
         without_reverse: When set, swap gates at the end of the QFT are omitted.
             This reverses the qubit order relative to the standard QFT effect,
             but makes the gate cheaper to apply.
+        inverse: If set, the inverse QFT is performed instead of the QFT.
+            Equivalent to calling `cirq.inverse` on the result, or raising it
+            to the -1.
 
     Returns:
         A `cirq.Operation` applying the QFT to the given qubits.
     """
-    return QuantumFourierTransformGate(
+    result = QuantumFourierTransformGate(
         len(qubits), without_reverse=without_reverse).on(*qubits)
+    if inverse:
+        result = result**-1
+    return result
