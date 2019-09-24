@@ -3287,3 +3287,39 @@ def test_with_noise():
     ])
     c_noisy = c.with_noise(Noise())
     assert c_noisy == c_expected
+
+
+def test_init_contents():
+    a, b = cirq.LineQubit.range(2)
+
+    # Moments are not subject to insertion rules.
+    c = cirq.Circuit(
+        cirq.Moment([cirq.H(a)]),
+        cirq.Moment([cirq.X(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+    )
+    assert len(c.moments) == 3
+
+    # Earliest packing by default.
+    c = cirq.Circuit(
+        cirq.H(a),
+        cirq.X(b),
+        cirq.CNOT(a, b),
+    )
+    assert c == cirq.Circuit(
+        cirq.Moment([cirq.H(a), cirq.X(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+    )
+
+    # Packing can be controlled.
+    c = cirq.Circuit(cirq.H(a),
+                     cirq.X(b),
+                     cirq.CNOT(a, b),
+                     strategy=cirq.InsertStrategy.NEW)
+    assert c == cirq.Circuit(
+        cirq.Moment([cirq.H(a)]),
+        cirq.Moment([cirq.X(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+    )
+
+    cirq.Circuit()

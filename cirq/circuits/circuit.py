@@ -32,7 +32,7 @@ import re
 import numpy as np
 
 from cirq import devices, linalg, ops, study, protocols
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
