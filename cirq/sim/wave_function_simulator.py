@@ -16,7 +16,8 @@
 
 import abc
 
-from typing import Any, Dict, Iterator, Hashable, List, Optional, Union
+from typing import (Any, Dict, Iterator, Hashable, List, Optional, Sequence,
+                    Union, cast)
 
 import numpy as np
 
@@ -164,27 +165,28 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
     def compute_amplitudes_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            bitstrings: np.ndarray,
+            bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> List[List[complex]]:
+    ) -> Sequence[Sequence[complex]]:
+        if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
+            raise ValueError('The list of bitstrings must be input as a '
+                             '1-dimensional array of ints. Got an array with '
+                             f'shape {bitstrings.shape}.')
+
         circuit = (program if isinstance(program, circuits.Circuit) else
                    program.to_circuit())
-
         trial_results = self.simulate_sweep(circuit, params, qubit_order)
 
-        qid_shape = circuit.qid_shape(qubit_order=qubit_order)
-        amplitude_indices = [
-            value.big_endian_digits_to_int(bitstring, base=qid_shape)
-            for bitstring in bitstrings
-        ]
+        # 1-dimensional tuples don't trigger advanced Numpy array indexing
+        # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+        if isinstance(bitstrings, tuple):
+            bitstrings = list(bitstrings)
 
         all_amplitudes = []
         for trial_result in trial_results:
-            # mypy doesn't know that this trial result has a final_state
-            # attribute
-            final_state = trial_result.final_state  # type: ignore
-            amplitudes = [final_state[index] for index in amplitude_indices]
+            trial_result = cast(WaveFunctionTrialResult, trial_result)
+            amplitudes = trial_result.final_state[bitstrings]
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes

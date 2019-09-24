@@ -33,6 +33,7 @@ from typing import (
     Hashable,
     Iterator,
     List,
+    Sequence,
     Tuple,
     Union,
     Optional,
@@ -191,10 +192,10 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     def compute_amplitudes(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            bitstrings: np.ndarray,
+            bitstrings: Sequence[int],
             param_resolver: 'study.ParamResolverOrSimilarType' = None,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> List[complex]:
+    ) -> Sequence[complex]:
         """Computes the desired amplitudes.
 
         The initial state is assumed to be the all zeros state.
@@ -202,9 +203,9 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         Args:
             program: The circuit or schedule to simulate.
             bitstrings: The bitstrings whose amplitudes are desired, input
-                as a two-dimensional array of bools. The first dimension
-                indexes the bitstrings and the second dimension indexes
-                the bits within a bitstring.
+                as an integer array where each integer is formed from measured
+                qubit values according to `qubit_order` from most to least
+                significant qubit, i.e. in big-endian ordering.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -221,10 +222,10 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     def compute_amplitudes_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            bitstrings: np.ndarray,
+            bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> List[List[complex]]:
+    ) -> Sequence[Sequence[complex]]:
         """Computes the desired amplitudes.
 
         The initial state is assumed to be the all zeros state.
@@ -232,9 +233,9 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         Args:
             program: The circuit or schedule to simulate.
             bitstrings: The bitstrings whose amplitudes are desired, input
-                as a two-dimensional array of bools. The first dimension
-                indexes the bitstrings and the second dimension indexes
-                the bits within a bitstring.
+                as an integer array where each integer is formed from measured
+                qubit values according to `qubit_order` from most to least
+                significant qubit, i.e. in big-endian ordering.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
