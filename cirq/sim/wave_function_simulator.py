@@ -171,8 +171,10 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
     ) -> Sequence[Sequence[complex]]:
         circuit = (program if isinstance(program, circuits.Circuit) else
                    program.to_circuit())
-
         trial_results = self.simulate_sweep(circuit, params, qubit_order)
+
+        if isinstance(bitstrings, tuple):
+            bitstrings = list(bitstrings)
 
         all_amplitudes = []
         for trial_result in trial_results:
