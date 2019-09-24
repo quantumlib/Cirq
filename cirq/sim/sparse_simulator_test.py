@@ -730,7 +730,7 @@ def test_compute_amplitudes_bad_input():
     sim = cirq.Simulator()
 
     with pytest.raises(ValueError, match='1-dimensional'):
-        result = sim.compute_amplitudes(c, np.array([[0, 0]]))
+        _ = sim.compute_amplitudes(c, np.array([[0, 0]]))
 
 
 def test_run_sweep_parameters_not_resolved():
