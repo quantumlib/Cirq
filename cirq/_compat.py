@@ -15,7 +15,7 @@
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
 import logging
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Dict, Tuple
 
 import numpy as np
 import sympy
@@ -50,6 +50,8 @@ def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
         deadline: The version where the function will be deleted (e.g. "v0.7").
         fix: A complete sentence describing what the user should be using
             instead of this particular function (e.g. "Use cos instead.")
+        func_name: How to refer to the function.
+            Defaults to `func.__qualname__`.
 
     Returns:
         A decorator that decorates functions with a deprecation warning.
@@ -79,6 +81,67 @@ def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
             f'{fix}\n\n'
             f'------\n\n'
             f'{decorated_func.__doc__ or ""}')
+
+        return decorated_func
+
+    return decorator
+
+
+def deprecated_parameter(
+        *,
+        deadline: str,
+        fix: str,
+        func_name: Optional[str] = None,
+        parameter_desc: str,
+        match: Callable[[Tuple[Any, ...], Dict[str, Any]], bool],
+        rewrite: Optional[
+            Callable[[Tuple[Any, ...], Dict[str, Any]],
+                     Tuple[Tuple[Any, ...], Dict[str, Any]]]] = None,
+) -> Callable[[Callable], Callable]:
+    """Marks a function parameter as deprecated.
+
+    Also handles rewriting the deprecated parameter into the new signature.
+
+    Args:
+        deadline: The version where the parameter will be deleted (e.g. "v0.7").
+        fix: A complete sentence describing what the user should be using
+            instead of this particular function (e.g. "Use cos instead.")
+        func_name: How to refer to the function.
+            Defaults to `func.__qualname__`.
+        parameter_desc: The name and type of the parameter being deprecated,
+            e.g. "janky_count" or "janky_count keyword" or
+            "positional janky_count".
+        match: Detects if the deprecated parameter is present in the
+            args/kwargs.
+        rewrite: Updates the args/kwargs to not use the deprecated parameter,
+            so that they match the new signature.
+
+    Returns:
+        A decorator that decorates functions with a parameter deprecation
+            warning.
+    """
+
+    def decorator(func: Callable) -> Callable:
+        used = False
+
+        @functools.wraps(func)
+        def decorated_func(*args, **kwargs) -> Any:
+            nonlocal used
+            if match(args, kwargs):
+                if rewrite is not None:
+                    args, kwargs = rewrite(args, kwargs)
+
+                if not used:
+                    used = True
+                    qualname = (func.__qualname__
+                                if func_name is None else func_name)
+                    logging.warning(
+                        'DEPRECATION\n'
+                        f'The %s parameter of %s was used but is deprecated.\n'
+                        'It will be removed in cirq %s.\n'
+                        '%s\n', parameter_desc, qualname, deadline, fix)
+
+            return func(*args, **kwargs)
 
         return decorated_func
 

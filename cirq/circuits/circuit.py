@@ -32,7 +32,7 @@ import re
 import numpy as np
 
 from cirq import devices, linalg, ops, study, protocols
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -93,6 +93,23 @@ class Circuit:
         circuit[1:7] = [Moment(...)]
     """
 
+    @deprecated_parameter(
+        deadline='v0.8',
+        fix='Pass contents positionally or using the "contents=" keyword.',
+        func_name='cirq.Circuit',
+        parameter_desc='moments keyword',
+        match=lambda args, kwargs: 'moments' in kwargs,
+        rewrite=lambda args, kwargs: (args + (kwargs[
+            'moments'],), {k: v for k, v in kwargs.items() if k != 'moments'}))
+    @deprecated_parameter(
+        deadline='v0.8',
+        fix='Pass the device using the "device=" keyword.',
+        func_name='cirq.Circuit',
+        parameter_desc='positional device',
+        match=lambda args, kwargs: len(args) == 3 and isinstance(
+            args[2], devices.Device),
+        rewrite=lambda args, kwargs: (
+            args[:2], dict(list(kwargs.items()) + [('device', args[2])])))
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
@@ -125,7 +142,7 @@ class Circuit:
         self._device = new_device
 
     @staticmethod
-    @deprecated(deadline='v0.7.0', fix='use `cirq.Circuit(*ops)` instead.')
+    @deprecated(deadline='v0.8.0', fix='use `cirq.Circuit(*ops)` instead.')
     def from_ops(*operations: 'cirq.OP_TREE',
                  strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UNCONSTRAINED_DEVICE

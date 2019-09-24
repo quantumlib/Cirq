@@ -1506,6 +1506,17 @@ def test_qid_shape_qudit():
         _ = circuit.qid_shape(qubit_order=[b, c])
 
 
+def test_deprecated_circuit_init_parameter_positional_device():
+    c = cirq.Circuit([], cirq.UNCONSTRAINED_DEVICE)
+    assert c == cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE)
+
+
+def test_deprecated_circuit_init_parameter_moments_keywords():
+    a = cirq.LineQubit(0)
+    c = cirq.Circuit(moments=[cirq.X(a)])
+    assert c == cirq.Circuit(cirq.X(a))
+
+
 def test_deprecated_from_ops():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -2513,12 +2524,8 @@ def test_batch_insert_doesnt_overshift_due_to_previous_shifts():
 
 def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(
-        cirq.SWAP(a, b),
-        cirq.SWAP(a, b),
-        cirq.H(a),
-        cirq.SWAP(a, b),
-        cirq.SWAP(a, b))
+    c = cirq.Circuit(cirq.SWAP(a, b), cirq.SWAP(a, b), cirq.H(a),
+                     cirq.SWAP(a, b), cirq.SWAP(a, b))
     c.batch_insert([(0, cirq.X(a)),
                     (3, cirq.X(b)),
                     (4, cirq.Y(a))])
