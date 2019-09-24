@@ -255,7 +255,7 @@ def test_repr():
         cirq.Moment([cirq.CZ(a, b)]),
     ])
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == """cirq.Circuit(moments=[
+    assert repr(c) == """cirq.Circuit([
     cirq.Moment(operations=[
         cirq.H.on(cirq.NamedQubit('a')),
         cirq.H.on(cirq.NamedQubit('b')),
@@ -272,7 +272,7 @@ def test_repr():
 
     c = cirq.Circuit.from_ops(cirq.Z(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == """cirq.Circuit(moments=[
+    assert repr(c) == """cirq.Circuit([
     cirq.Moment(operations=[
         cirq.Z.on(cirq.GridQubit(0, 0)),
     ]),
@@ -1520,6 +1520,19 @@ def test_qid_shape_qudit():
     assert circuit.qid_shape()
     with pytest.raises(ValueError, match='extra qubits'):
         _ = circuit.qid_shape(qubit_order=[b, c])
+
+
+def test_deprecated_circuit_init_parameter_positional_device():
+    c = cirq.Circuit([], cirq.UNCONSTRAINED_DEVICE)
+    assert c == cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE)
+
+
+def test_deprecated_circuit_init_parameter_moments_keywords():
+    a = cirq.LineQubit(0)
+    # pylint: disable=unexpected-keyword-arg
+    c = cirq.Circuit(moments=[cirq.X(a)])
+    # pylint: enable=unexpected-keyword-arg
+    assert c == cirq.Circuit(cirq.X(a))
 
 
 def test_from_ops():
@@ -3276,3 +3289,39 @@ def test_with_noise():
     ])
     c_noisy = c.with_noise(Noise())
     assert c_noisy == c_expected
+
+
+def test_init_contents():
+    a, b = cirq.LineQubit.range(2)
+
+    # Moments are not subject to insertion rules.
+    c = cirq.Circuit(
+        cirq.Moment([cirq.H(a)]),
+        cirq.Moment([cirq.X(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+    )
+    assert len(c.moments) == 3
+
+    # Earliest packing by default.
+    c = cirq.Circuit(
+        cirq.H(a),
+        cirq.X(b),
+        cirq.CNOT(a, b),
+    )
+    assert c == cirq.Circuit(
+        cirq.Moment([cirq.H(a), cirq.X(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+    )
+
+    # Packing can be controlled.
+    c = cirq.Circuit(cirq.H(a),
+                     cirq.X(b),
+                     cirq.CNOT(a, b),
+                     strategy=cirq.InsertStrategy.NEW)
+    assert c == cirq.Circuit(
+        cirq.Moment([cirq.H(a)]),
+        cirq.Moment([cirq.X(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+    )
+
+    cirq.Circuit()

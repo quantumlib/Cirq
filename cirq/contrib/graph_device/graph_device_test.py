@@ -158,7 +158,7 @@ def test_graph_device():
         [cirq.CNOT(qubits[0], qubits[3]),
          cirq.CZ(qubits[1], qubits[2])])
     graph_device.validate_moment(moment)
-    circuit = cirq.Circuit([moment], graph_device)
+    circuit = cirq.Circuit(moment, device=graph_device)
     schedule = cirq.moment_by_moment_schedule(graph_device, circuit)
     assert graph_device.validate_schedule(schedule) is None
 
