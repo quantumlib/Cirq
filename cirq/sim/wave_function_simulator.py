@@ -178,6 +178,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
                    program.to_circuit())
         trial_results = self.simulate_sweep(circuit, params, qubit_order)
 
+        # 1-dimensional tuples don't trigger advanced Numpy array indexing
+        # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
         if isinstance(bitstrings, tuple):
             bitstrings = list(bitstrings)
 
