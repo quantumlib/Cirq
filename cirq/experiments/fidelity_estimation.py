@@ -59,6 +59,9 @@ def linear_xeb_fidelity(
     """
     dim = np.product(circuit.qid_shape())
 
+    if isinstance(bitstrings, tuple):
+        bitstrings = list(bitstrings)
+
     for bitstring in bitstrings:
         if not 0 <= bitstring < dim:
             raise ValueError(
