@@ -191,5 +191,5 @@ def QFT(*qubits: 'cirq.Qid',
     result = QuantumFourierTransformGate(
         len(qubits), without_reverse=without_reverse).on(*qubits)
     if inverse:
-        result = result**-1
+        result = cirq.inverse(result)
     return result

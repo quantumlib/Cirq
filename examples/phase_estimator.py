@@ -68,7 +68,7 @@ def experiment(qnum, repetitions=100):
             matrix=np.array([[np.exp(2*np.pi*1.0j*phi), 0], [0, 1]]))
         return gate
 
-    print('Testing with {} qubits.'.format(qnum))
+    print(f'Testing with {qnum} qubits.')
     errors = []
     for target in np.arange(0, 1, 0.1):
         result = run_estimate(example_gate(target), qnum, repetitions)

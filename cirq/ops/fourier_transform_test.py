@@ -98,6 +98,7 @@ def test_qft():
                 cirq.QuantumFourierTransformGate(num_qubits=k,
                                                  without_reverse=b))
 
+
 def test_inverse():
     a, b, c = cirq.LineQubit.range(3)
     assert cirq.QFT(a, b, c, inverse=True) == cirq.QFT(a, b, c)**-1
