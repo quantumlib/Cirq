@@ -83,7 +83,7 @@ def example():
 
     sampler = cirq.Simulator()
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(a)**sympy.Symbol('t'),
         cirq.CNOT(a, b)**sympy.Symbol('t'), cirq.measure(a, key='leader'),
         cirq.measure(b, key='follower'))
