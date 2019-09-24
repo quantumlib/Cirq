@@ -38,6 +38,7 @@ def test_deprecated():
     def f(a, b):
         return a + b
 
+    # Warns on first use.
     with capture_logging() as log:
         assert f(1, 2) == 3
     assert len(log) == 1
@@ -45,6 +46,7 @@ def test_deprecated():
     assert 'will be removed in cirq vNever' in log[0].getMessage()
     assert 'Roll some dice.' in log[0].getMessage()
 
+    # Only warns once.
     with capture_logging() as log:
         assert f(1, 2) == 3
     assert len(log) == 0
@@ -64,17 +66,24 @@ def test_deprecated_parameter():
     def f(new_count):
         return new_count
 
+    # Does not warn on usual use.
     with capture_logging() as log:
         assert f(1) == 1
         assert f(new_count=1) == 1
     assert len(log) == 0
 
+    # Warns on first use.
     with capture_logging() as log:
         assert f(double_count=1) == 2
     assert len(log) == 1
     assert 'double_count parameter of test_func was used' in log[0].getMessage()
     assert 'will be removed in cirq vAlready' in log[0].getMessage()
     assert 'Double it yourself.' in log[0].getMessage()
+
+    # Only warns once.
+    with capture_logging() as log:
+        assert f(double_count=1) == 2
+    assert len(log) == 0
 
 
 def capture_logging() -> ContextManager[List[logging.LogRecord]]:
