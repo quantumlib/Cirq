@@ -17,7 +17,7 @@
 import abc
 
 from typing import (Any, Dict, Iterator, Hashable, List, Optional, Sequence,
-                    Union)
+                    Union, cast)
 
 import numpy as np
 
@@ -187,8 +187,8 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
         for trial_result in trial_results:
             # mypy doesn't know that this trial result has a final_state
             # attribute
-            final_state = trial_result.final_state  # type: ignore
-            amplitudes = final_state[bitstrings]
+            trial_result = cast(WaveFunctionTrialResult, trial_result)
+            amplitudes = trial_result.final_state[bitstrings]
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes
