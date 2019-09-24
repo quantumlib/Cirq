@@ -11,21 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from cirq.google import known_devices, gate_sets
-from cirq.devices import GridQubit
+import cirq
 
 
 def test_foxtail_qubits():
     expected_qubits = []
     for i in range(0, 2):
         for j in range(0, 11):
-            expected_qubits.append(GridQubit(i, j))
-    assert set(expected_qubits) == known_devices.Foxtail.qubits
+            expected_qubits.append(cirq.GridQubit(i, j))
+    assert set(expected_qubits) == cirq.google.known_devices.Foxtail.qubits
 
 
 def test_foxtail_device_proto():
-    assert str(known_devices.FOXTAIL_PROTO) == """\
+    assert str(cirq.google.known_devices.FOXTAIL_PROTO) == """\
 valid_gate_sets {
   name: "xmon"
   valid_gates {
@@ -201,3 +199,24 @@ valid_targets {
   }
 }
 """
+
+
+def test_json_dict():
+    assert cirq.google.Foxtail._json_dict_() == {
+        'cirq_type': '_NamedConstantXmonDevice',
+        'constant': 'cirq.google.Foxtail',
+        'measurement_duration': cirq.Duration(nanos=1000),
+        'exp_w_duration': cirq.Duration(nanos=20),
+        'exp_11_duration': cirq.Duration(nanos=50),
+        'qubits': sorted(cirq.google.Foxtail.qubits)
+    }
+
+    assert cirq.google.Bristlecone._json_dict_() == {
+        'cirq_type': '_NamedConstantXmonDevice',
+        'constant': 'cirq.google.Bristlecone',
+        'measurement_duration': cirq.Duration(nanos=1000),
+        'exp_w_duration': cirq.Duration(nanos=20),
+        'exp_11_duration': cirq.Duration(nanos=50),
+        'qubits': sorted(cirq.google.Bristlecone.qubits)
+    }
+

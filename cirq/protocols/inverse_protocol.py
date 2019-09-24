@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 # whether or not the caller provided a 'default' argument.
 RaiseTypeErrorIfNotProvided: Tuple[List[Any]] = ([],)
 
-
 TDefault = TypeVar('TDefault')
 
 
@@ -51,29 +50,25 @@ def inverse(val: 'cirq.Circuit') -> 'cirq.Circuit':
 
 @overload
 def inverse(val: 'cirq.Gate',
-            default: TDefault
-            ) -> Union[TDefault, 'cirq.Gate']:
+            default: TDefault) -> Union[TDefault, 'cirq.Gate']:
     pass
 
 
 @overload
 def inverse(val: 'cirq.Operation',
-            default: TDefault
-            ) -> Union[TDefault, 'cirq.Operation']:
+            default: TDefault) -> Union[TDefault, 'cirq.Operation']:
     pass
 
 
 @overload
 def inverse(val: 'cirq.OP_TREE',
-            default: TDefault
-            ) -> Union[TDefault, 'cirq.OP_TREE']:
+            default: TDefault) -> Union[TDefault, 'cirq.OP_TREE']:
     pass
 
 
 @overload
 def inverse(val: 'cirq.Circuit',
-            default: TDefault
-            ) -> Union[TDefault, 'cirq.Circuit']:
+            default: TDefault) -> Union[TDefault, 'cirq.Circuit']:
     pass
 
 
@@ -127,4 +122,6 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         "object of type '{}' isn't invertible. "
         "It has no __pow__ method (or the method returned NotImplemented) "
         "and it isn't an iterable of invertible objects.".format(type(val)))
+
+
 # pylint: enable=function-redefined

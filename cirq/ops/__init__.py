@@ -136,6 +136,8 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     OP_TREE,
     transform_op_tree,
 )

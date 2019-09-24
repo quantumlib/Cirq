@@ -16,3 +16,6 @@ from cirq.experiments.cross_entropy_benchmarking import (
     build_entangling_layers,
     cross_entropy_benchmarking,
 )
+
+from cirq.experiments.fidelity_estimation import (
+    linear_xeb_fidelity,)
