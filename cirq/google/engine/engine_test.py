@@ -15,10 +15,10 @@
 """Tests for engine."""
 import base64
 import json
-import numpy as np
-import pytest
 import re
 from unittest import mock
+import numpy as np
+import pytest
 
 from apiclient import discovery, http
 from apiclient.errors import HttpError
@@ -1043,7 +1043,7 @@ def test_api_doesnt_retry_404_errors(build):
     getProgram.execute.side_effect = HttpError(mock.Mock(), content)
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(RuntimeError, match='not found'):
-        x = engine.get_program('foo')
+        engine.get_program('foo')
         assert getProgram.execute.call_count == 1
 
 
