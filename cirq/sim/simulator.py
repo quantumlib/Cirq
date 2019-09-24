@@ -74,8 +74,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
         if not circuit.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
@@ -148,8 +148,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in study.to_resolvers(params):
@@ -359,8 +359,8 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
 
         trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)

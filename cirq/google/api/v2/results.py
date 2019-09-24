@@ -49,8 +49,10 @@ def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
 
     if isinstance(program, circuits.Circuit):
         measure_iter = _circuit_measurements(program)
-    else:
+    elif isinstance(program, schedules.Schedule):
         measure_iter = _schedule_measurements(program)
+    else:
+        raise NotImplementedError(f'Unrecognized program type: {type(program)}')
 
     for m in measure_iter:
         if m.key in keys:
