@@ -84,6 +84,12 @@ from cirq.ops.display import (
 from cirq.ops.eigen_gate import (
     EigenGate,)
 
+from cirq.ops.fourier_transform import (
+    PhaseGradientGate,
+    QFT,
+    QuantumFourierTransformGate,
+)
+
 from cirq.ops.fsim_gate import (
     FSimGate,)
 
