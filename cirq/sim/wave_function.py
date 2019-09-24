@@ -314,7 +314,8 @@ def to_valid_state_vector(
         num_qubits: int,
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Type[np.number] = np.complex64) -> np.ndarray:
+        dtype: Type[np.number] = np.complex64,
+        atol: float = 1e-7) -> np.ndarray:
     """Verifies the state_rep is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
@@ -334,6 +335,8 @@ def to_valid_state_vector(
         dtype: The numpy dtype of the state, will be used when creating the
             state for a computational basis state, or validated against if
             state_rep is a numpy array.
+        atol: Numerical tolerance for verifying that the norm of the state
+            is close to 1.
 
     Returns:
         A numpy ndarray corresponding to the state on the given number of
@@ -367,7 +370,10 @@ def to_valid_state_vector(
                                    index=state_rep)
     else:
         raise TypeError('initial_state was not of type int or ndarray')
-    validate_normalized_state(state, qid_shape=qid_shape, dtype=dtype)
+    validate_normalized_state(state,
+                              qid_shape=qid_shape,
+                              dtype=dtype,
+                              atol=atol)
     return state
 
 
@@ -375,7 +381,8 @@ def validate_normalized_state(
         state: np.ndarray,
         *,  # Force keyword arguments
         qid_shape: Tuple[int, ...],
-        dtype: Type[np.number] = np.complex64) -> None:
+        dtype: Type[np.number] = np.complex64,
+        atol: float = 1e-7) -> None:
     """Validates that the given state is a valid wave function."""
     if state.size != np.prod(qid_shape, dtype=int):
         raise ValueError(
@@ -386,7 +393,7 @@ def validate_normalized_state(
             'State has invalid dtype. Expected {} but was {}'.format(
                 dtype, state.dtype))
     norm = np.sum(np.abs(state) ** 2)
-    if not np.isclose(norm, 1):
+    if not np.isclose(norm, 1, atol=atol):
         raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
