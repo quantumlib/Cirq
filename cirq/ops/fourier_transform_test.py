@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -93,8 +93,10 @@ def test_qft():
                                atol=1e-8)
 
     for k in range(4):
-        cirq.testing.assert_implements_consistent_protocols(
-            cirq.QuantumFourierTransformGate(num_qubits=k))
+        for b in [False, True]:
+            cirq.testing.assert_implements_consistent_protocols(
+                cirq.QuantumFourierTransformGate(num_qubits=k,
+                                                 without_reverse=b))
 
 
 def test_circuit_diagram():

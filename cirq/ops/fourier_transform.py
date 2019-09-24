@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,8 +73,8 @@ class QuantumFourierTransformGate(raw_types.Gate):
 
     def __repr__(self):
         return ('cirq.QuantumFourierTransformGate(num_qubits={!r}, '
-                'without_reverse=False)'.format(self._num_qubits,
-                                                self._without_reverse))
+                'without_reverse={!r})'.format(self._num_qubits,
+                                               self._without_reverse))
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         return cirq.CircuitDiagramInfo(
