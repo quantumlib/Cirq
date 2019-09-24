@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Device object for converting from device specification protos"""
-from typing import Any, cast, Dict, Optional, List, Set, Tuple, Type, TYPE_CHECKING
+from typing import Any, cast, Dict, Optional, List
+from typing import Set, Tuple, Type, TYPE_CHECKING
 
 from cirq import devices, ops
 from cirq.google import serializable_gate_set
 from cirq.google.api import v2
+from cirq.protocols import obj_to_dict_helper
 from cirq.value import Duration
 
 if TYPE_CHECKING:

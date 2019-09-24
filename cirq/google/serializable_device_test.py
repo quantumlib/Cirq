@@ -76,6 +76,8 @@ def test_foxtail():
     # Unsupport op
     with pytest.raises(ValueError):
         foxtail.validate_operation(cirq.H(invalid_qubit1))
+    with pytest.raises(ValueError):
+        foxtail.validate_operation(cirq.H(valid_qubit1))
 
     # Measurement (any combination)
     foxtail.validate_operation(cirq.measure(valid_qubit1))
