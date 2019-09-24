@@ -1,85 +1,23 @@
 """Creates and simulates a phase estimator circuit.
 
 === EXAMPLE OUTPUT ===
-Estimation with 2qubits.
-Actual, Estimation (Raw binary)
-0.0000, 0.0000 (00)
-0.1000, 0.0000 (00)
-0.2000, 0.2500 (01)
-0.3000, 0.2500 (01)
-0.4000, 0.5000 (10)
-0.5000, 0.5000 (10)
-0.6000, 0.5000 (10)
-0.7000, 0.7500 (11)
-0.8000, 0.7500 (11)
-0.9000, 0.0000 (00)
-RMS Error: 0.2915
-
-Estimation with 4qubits.
-Actual, Estimation (Raw binary)
-0.0000, 0.0000 (0000)
-0.1000, 0.1250 (0010)
-0.2000, 0.1875 (0011)
-0.3000, 0.3125 (0101)
-0.4000, 0.3750 (0110)
-0.5000, 0.5000 (1000)
-0.6000, 0.6250 (1010)
-0.7000, 0.6875 (1011)
-0.8000, 0.8125 (1101)
-0.9000, 0.8750 (1110)
-RMS Error: 0.0177
-
-Estimation with 8qubits.
-Actual, Estimation (Raw binary)
-0.0000, 0.0000 (00000000)
-0.1000, 0.1016 (00011010)
-0.2000, 0.1992 (00110011)
-0.3000, 0.3008 (01001101)
-0.4000, 0.3984 (01100110)
-0.5000, 0.5000 (10000000)
-0.6000, 0.6016 (10011010)
-0.7000, 0.6992 (10110011)
-0.8000, 0.8008 (11001101)
-0.9000, 0.8984 (11100110)
+Testing with 8 qubits.
+target=0.0000, estimate=0.0000=0/256
+target=0.1000, estimate=0.1016=26/256
+target=0.2000, estimate=0.1992=51/256
+target=0.3000, estimate=0.3008=77/256
+target=0.4000, estimate=0.3984=102/256
+target=0.5000, estimate=0.5000=128/256
+target=0.6000, estimate=0.6016=154/256
+target=0.7000, estimate=0.6992=179/256
+target=0.8000, estimate=0.8008=205/256
+target=0.9000, estimate=0.8984=230/256
 RMS Error: 0.0011
 """
 
 
 import numpy as np
 import cirq
-
-
-class QftInverse(cirq.Gate):
-    """Quantum gate for the inverse Quantum Fourier Transformation
-    """
-
-    def __init__(self, num_qubits):
-        super(QftInverse, self)
-        self._num_qubits = num_qubits
-
-    def num_qubits(self):
-        return self._num_qubits
-
-    def _decompose_(self, qubits):
-        """A quantum circuit (QFT_inv) with the following structure.
-
-        ---H--@-------@--------@----------------------------------------------
-              |       |        |
-        ------@^-0.5--+--------+---------H--@-------@-------------------------
-                      |        |            |       |
-        --------------@^-0.25--+------------@^-0.5--+---------H--@------------
-                               |                    |            |
-        -----------------------@^-0.125-------------@^-0.25------@^-0.5---H---
-
-        The number of qubits can be arbitrary.
-        """
-
-        qubits = list(qubits)
-        while len(qubits) > 0:
-            q_head = qubits.pop(0)
-            yield cirq.H(q_head)
-            for i, qubit in enumerate(qubits):
-                yield (cirq.CZ**(-1/2.0**(i+1)))(qubit, q_head)
 
 
 def run_estimate(unknown_gate, qnum, repetitions):
@@ -101,24 +39,23 @@ def run_estimate(unknown_gate, qnum, repetitions):
     phi = m1*(1/2) + m2*(1/2)^2 + m3*(1/2)^3 + ...
     """
 
-    qubits = [None] * qnum
-    for i in range(len(qubits)):
-        qubits[i] = cirq.GridQubit(0, i)
-    ancilla = cirq.GridQubit(0, len(qubits))
+    ancilla = cirq.LineQubit(-1)
+    qubits = cirq.LineQubit.range(qnum)
 
-    circuit = cirq.Circuit.from_ops(
-        cirq.H.on_each(*qubits),
-        [cirq.ControlledGate(unknown_gate**(2**i)).on(qubits[qnum-i-1], ancilla)
-         for i in range(qnum)],
-        QftInverse(qnum)(*qubits),
-        cirq.measure(*qubits, key='phase'))
-    simulator = cirq.Simulator()
-    result = simulator.run(circuit, repetitions=repetitions)
-    return result
+    oracle_raised_to_power = [
+        unknown_gate.on(ancilla).controlled_by(qubits[i])**(2**i)
+        for i in range(qnum)
+    ]
+    circuit = cirq.Circuit.from_ops(cirq.H.on_each(*qubits),
+                                    oracle_raised_to_power,
+                                    cirq.QFT(*qubits, without_reverse=True)**-1,
+                                    cirq.measure(*qubits, key='phase'))
+
+    return cirq.sample(circuit, repetitions=repetitions)
 
 
 def experiment(qnum, repetitions=100):
-    """Execute the phase estimator cirquit with multiple settings and
+    """Execute the phase estimator circuit with multiple settings and
     show results.
     """
 
@@ -131,19 +68,17 @@ def experiment(qnum, repetitions=100):
             matrix=np.array([[np.exp(2*np.pi*1.0j*phi), 0], [0, 1]]))
         return gate
 
-    print('Estimation with {}qubits.'.format(qnum))
-    print('Actual, Estimation (Raw binary)')
+    print(f'Testing with {qnum} qubits.')
     errors = []
-    fold_func = lambda ms: ''.join(np.flip(ms, 0).astype(int).astype(str))
-    for phi in np.arange(0, 1, 0.1):
-        result = run_estimate(example_gate(phi), qnum, repetitions)
-        hist = result.histogram(key='phase', fold_func=fold_func)
-        estimate_bin = hist.most_common(1)[0][0]
-        estimate = (sum([float(s)*0.5**(order+1)
-                         for order, s in enumerate(estimate_bin)]))
-        print('{:0.4f}, {:0.4f} ({})'.format(phi, estimate, estimate_bin))
-        errors.append((phi-estimate)**2)
-    print('RMS Error: {:0.4f}\n'.format(np.sqrt(sum(errors)/len(errors))))
+    for target in np.arange(0, 1, 0.1):
+        result = run_estimate(example_gate(target), qnum, repetitions)
+        mode = result.data['phase'].mode()[0]
+        guess = mode / 2**qnum
+        print(f'target={target:0.4f}, '
+              f'estimate={guess:0.4f}={mode}/{2**qnum}')
+        errors.append((target - guess)**2)
+    rms = np.sqrt(sum(errors) / len(errors))
+    print(f'RMS Error: {rms:0.4f}\n')
 
 
 def main(qnums = (2, 4, 8), repetitions=100):
