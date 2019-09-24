@@ -108,11 +108,11 @@ def final_wavefunction(
         # No change needed.
         pass
     elif isinstance(program, ops.Gate):
-        program = circuits.Circuit.from_ops(
+        program = circuits.Circuit(
             program.on(*devices.LineQid.for_gate(program)))
     else:
         # It should be an OP_TREE.
-        program = circuits.Circuit.from_ops(program)
+        program = circuits.Circuit(program)
 
     if not protocols.has_unitary(
             protocols.resolve_parameters(program, param_resolver)):
