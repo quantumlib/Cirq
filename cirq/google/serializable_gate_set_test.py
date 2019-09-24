@@ -173,6 +173,11 @@ def test_deserialize_empty_moment():
     assert MY_GATE_SET.deserialize_dict(proto) == circuit
 
 
+def test_serialize_unrecognized():
+    with pytest.raises(NotImplementedError, match='program type'):
+        MY_GATE_SET.serialize("not quite right")
+
+
 def test_serialize_deserialize_schedule():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
