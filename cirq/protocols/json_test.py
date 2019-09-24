@@ -303,6 +303,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
     'SupportsMixture',
