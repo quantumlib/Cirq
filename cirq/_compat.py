@@ -38,7 +38,7 @@ def proper_repr(value: Any) -> str:
         return result
 
     if isinstance(value, np.ndarray):
-        return 'np.array({!r})'.format(value.tolist())
+        return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
     return repr(value)
 
 
@@ -79,7 +79,6 @@ def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
             f'THIS FUNCTION IS DEPRECATED.\n\n'
             f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
             f'{fix}\n\n'
-            f'------\n\n'
             f'{decorated_func.__doc__ or ""}')
 
         return decorated_func
@@ -111,10 +110,12 @@ def deprecated_parameter(
         parameter_desc: The name and type of the parameter being deprecated,
             e.g. "janky_count" or "janky_count keyword" or
             "positional janky_count".
-        match: Detects if the deprecated parameter is present in the
-            args/kwargs.
-        rewrite: Updates the args/kwargs to not use the deprecated parameter,
-            so that they match the new signature.
+        match: A lambda that takes args, kwargs and determines if the
+            deprecated parameter is present or not. This determines whether or
+            not the deprecation warning is printed, and also whether or not
+            rewrite is called.
+        rewrite: Returns new args/kwargs that don't use the deprecated
+            parameter. Defaults to making no changes.
 
     Returns:
         A decorator that decorates functions with a parameter deprecation
