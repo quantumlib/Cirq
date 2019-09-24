@@ -1777,7 +1777,11 @@ def _draw_moment_in_diagram(
         if exponent is not None:
             if info.connected:
                 # Add an exponent to the last label only.
-                out_diagram.write(x, y2, '^' + exponent)
+                if info.exponent_qubit_index is not None:
+                    y3 = qubit_map[op.qubits[info.exponent_qubit_index]]
+                else:
+                    y3 = y2
+                out_diagram.write(x, y3, '^' + exponent)
             else:
                 # Add an exponent to every label
                 for index in indices:

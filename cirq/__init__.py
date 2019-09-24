@@ -85,6 +85,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    linear_xeb_fidelity,
     generate_supremacy_circuit_google_v2,
     generate_supremacy_circuit_google_v2_bristlecone,
     generate_supremacy_circuit_google_v2_grid,
@@ -208,9 +209,12 @@ from cirq.ops import (
     phase_damp,
     phase_flip,
     PhaseDampingChannel,
+    PhaseGradientGate,
     PhasedXPowGate,
     PhaseFlipChannel,
+    QFT,
     Qid,
+    QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
     reset,
