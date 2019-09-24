@@ -113,8 +113,8 @@ def deprecated_parameter(
             "positional janky_count".
         match: Detects if the deprecated parameter is present in the
             args/kwargs.
-        rewrite: Updates the args/kwargs to not use the deprecated parameter,
-            so that they match the new signature.
+        rewrite: Returns new args/kwargs that don't use the deprecated
+            parameter. Defaults to making no changes.
 
     Returns:
         A decorator that decorates functions with a parameter deprecation
