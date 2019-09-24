@@ -219,4 +219,3 @@ def test_json_dict():
         'exp_11_duration': cirq.Duration(nanos=50),
         'qubits': sorted(cirq.google.Bristlecone.qubits)
     }
-
