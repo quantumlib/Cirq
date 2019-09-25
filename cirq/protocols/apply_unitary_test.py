@@ -277,7 +277,7 @@ def test_apply_unitaries():
     result = cirq.apply_unitaries(
         unitary_values=[cirq.H(a),
                         cirq.CNOT(a, b),
-                        cirq.H(c).control(b)],
+                        cirq.H(c).controlled_by(b)],
         qubits=[a, b, c])
     np.testing.assert_allclose(result.reshape(8), [
         np.sqrt(0.5),
@@ -295,7 +295,7 @@ def test_apply_unitaries():
     result = cirq.apply_unitaries(
         unitary_values=[cirq.H(a),
                         cirq.CNOT(a, b),
-                        cirq.H(c).control(b)],
+                        cirq.H(c).controlled_by(b)],
         qubits=[a, c, b])
     np.testing.assert_allclose(result.reshape(8), [
         np.sqrt(0.5),
@@ -313,7 +313,7 @@ def test_apply_unitaries():
     result = cirq.apply_unitaries(
         unitary_values=[cirq.H(a),
                         cirq.CNOT(a, b),
-                        cirq.H(c).control(b)],
+                        cirq.H(c).controlled_by(b)],
         qubits=[a, b, c],
         args=cirq.ApplyUnitaryArgs.default(num_qubits=3))
     np.testing.assert_allclose(result.reshape(8), [

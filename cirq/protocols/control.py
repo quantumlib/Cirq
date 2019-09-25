@@ -27,35 +27,36 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 TDefault = TypeVar('TDefault')
 
 
-def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
+def control(controllee: op_tree.OP_TREE,
             control_qubits: Sequence['cirq.Qid'] = None,
             default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns a Controlled version of the given value, if defined.
 
     Controllees define how to be controlled by defining a method
-    control(self, control_qubits). Note that the method may return
+    controlled_by(self, control_qubits). Note that the method may return
     NotImplemented to indicate a particular controlling can't be done.
 
     Args:
-        controllee: The gate, operation or iterable of operations to control.
+        controllee: The operation or iterable of operations to control.
         control_qubits: A list of Qids that would control this controllee.
         default: Determines the fallback behavior when `controllee` doesn't
             have a controlling defined. If `default` is not set and the
             fallback occurs, a TypeError is raised instead.
+        TODO: add control_values and control_qid_shape
 
     Returns:
-        If `controllee` has a control method that returns something
+        If `controllee` has a controlled_by method that returns something
         besides NotImplemented, that result is returned. For an OP_TREE,
         transformation is applied at the leaf. Otherwise, if a default value
         was specified, the default value is returned.
 
     Raises:
-        TypeError: `controllee` doesn't have a control method (or that
+        TypeError: `controllee` doesn't have a controlled_by method (or that
             method returned NotImplemented) and no `default` was specified.
     """
     if control_qubits is None:
         control_qubits = []
-    controller = getattr(controllee, 'control', None)
+    controller = getattr(controllee, 'controlled_by', None)
     result = NotImplemented if controller is None else controller(
                                                            *control_qubits)
     if result is not NotImplemented:
@@ -70,7 +71,7 @@ def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
         return default
 
     if controller is None:
-        raise TypeError("object of type '{}' has no control "
+        raise TypeError("object of type '{}' has no controlled_by "
                         "method.".format(type(controllee)))
-    raise TypeError("object of type '{}' does have a control method, "
+    raise TypeError("object of type '{}' does have a controlled_by method, "
                     "but it returned NotImplemented.".format(type(controllee)))

@@ -109,11 +109,15 @@ def test_init2():
                        match=r'len\(control_qid_shape\) != num_controls'):
         cirq.ControlledGate(cirq.Z, num_controls=1, control_qid_shape=(2, 2))
     with pytest.raises(ValueError, match='Control values .*outside of range'):
-        cirq.ControlledGate(cirq.Z, control_values=[2], control_qid_shape=(2,))
+        cirq.ControlledGate(cirq.Z, control_values=[2])
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        cirq.ControlledGate(cirq.Z, control_values=[(1, -1)])
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        cirq.ControlledGate(cirq.Z, control_values=[3], control_qid_shape=[3])
 
     gate = cirq.ControlledGate(cirq.Z, 1)
     assert gate.sub_gate is cirq.Z
-    assert gate.num_controls == 1
+    assert gate.num_controls() == 1
     assert gate.control_values == ((1,),)
     assert gate.control_qid_shape == (2,)
     assert gate.num_qubits() == 2
@@ -121,7 +125,7 @@ def test_init2():
 
     gate = cirq.ControlledGate(cirq.Z, 2)
     assert gate.sub_gate is cirq.Z
-    assert gate.num_controls == 2
+    assert gate.num_controls() == 2
     assert gate.control_values == ((1,), (1,))
     assert gate.control_qid_shape == (2, 2)
     assert gate.num_qubits() == 3
@@ -130,7 +134,7 @@ def test_init2():
     gate = cirq.ControlledGate(
         cirq.ControlledGate(cirq.ControlledGate(cirq.Z, 3), num_controls=2), 2)
     assert gate.sub_gate is cirq.Z
-    assert gate.num_controls == 7
+    assert gate.num_controls() == 7
     assert gate.control_values == ((1,),) * 7
     assert gate.control_qid_shape == (2,) * 7
     assert gate.num_qubits() == 8
@@ -143,7 +147,7 @@ def test_init2():
 
     gate = cirq.ControlledGate(cirq.Z, control_values=(0, (0, 1)))
     assert gate.sub_gate is cirq.Z
-    assert gate.num_controls == 2
+    assert gate.num_controls() == 2
     assert gate.control_values == ((0,), (0, 1))
     assert gate.control_qid_shape == (2, 2)
     assert gate.num_qubits() == 3
@@ -151,7 +155,7 @@ def test_init2():
 
     gate = cirq.ControlledGate(cirq.Z, control_qid_shape=(3, 3))
     assert gate.sub_gate is cirq.Z
-    assert gate.num_controls == 2
+    assert gate.num_controls() == 2
     assert gate.control_values == ((1,), (1,))
     assert gate.control_qid_shape == (3, 3)
     assert gate.num_qubits() == 3
@@ -195,11 +199,11 @@ def test_validate_args():
         _ = CCH.on(a, b)
 
     # Applies when creating operations. Control qids have different dimensions.
-    with pytest.raises(ValueError, match="dimensions that don't match"):
+    with pytest.raises(ValueError, match="Wrong shape of qids"):
         _ = CY.on(q3, b)
-    with pytest.raises(ValueError, match="dimensions that don't match"):
+    with pytest.raises(ValueError, match="Wrong shape of qids"):
         _ = C2Y.on(a, b)
-    with pytest.raises(ValueError, match="dimensions that don't match"):
+    with pytest.raises(ValueError, match="Wrong shape of qids"):
         _ = C2C2H.on(a, b, c)
     _ = C2C2H.on(q3, p3, a)
 
@@ -211,6 +215,20 @@ def test_eq():
     eq.add_equality_group(cirq.ControlledGate(cirq.H))
     eq.add_equality_group(cirq.ControlledGate(cirq.X))
     eq.add_equality_group(cirq.X)
+    eq.add_equality_group(
+        cirq.ControlledGate(cirq.H,
+                            control_values=[1, (0, 2)],
+                            control_qid_shape=[2, 3]),
+        cirq.ControlledGate(cirq.H,
+                            control_values=[(2, 0), 1],
+                            control_qid_shape=[3, 2]))
+    eq.add_equality_group(
+        cirq.ControlledGate(cirq.H,
+                            control_values=[1, 0],
+                            control_qid_shape=[2, 3]),
+        cirq.ControlledGate(cirq.H,
+                            control_values=[0, 1],
+                            control_qid_shape=[3, 2]))
     eq.add_equality_group(cirq.ControlledGate(cirq.H, control_values=[1, 0]),
                           cirq.ControlledGate(cirq.H, control_values=[0, 1]))
 
@@ -225,17 +243,27 @@ def test_control():
     cg = g.control()
     assert isinstance(cg, cirq.ControlledGate)
     assert cg.sub_gate == g
-    assert cg.num_controls == 1
+    assert cg.num_controls() == 1
 
     # Equality ignores ordering but cares about set and quantity.
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(g)
-    eq.add_equality_group(g.control(), cirq.ControlledGate(g, num_controls=1))
+    eq.add_equality_group(g.control(), g.control(control_values=[1]),
+                          g.control(control_qid_shape=(2,)),
+                          cirq.ControlledGate(g, num_controls=1))
     eq.add_equality_group(cirq.ControlledGate(g, num_controls=2),
+                          g.control(control_values=[1, 1]),
+                          g.control(control_qid_shape=[2, 2]),
+                          g.control(num_controls=2),
                           g.control().control())
     eq.add_equality_group(
         cirq.ControlledGate(g, control_values=[0, 1]),
+        g.control(control_values=[0, 1]),
         g.control(control_values=[0]).control(control_values=[1]))
+    eq.add_equality_group(
+        cirq.ControlledGate(g, control_qid_shape=[4, 3]),
+        g.control(control_qid_shape=[4, 3]),
+        g.control(control_qid_shape=[4]).control(control_qid_shape=[3]))
 
 
 def test_unitary():
@@ -337,6 +365,16 @@ def test_extrapolatable_effect():
 def test_reversible():
     assert (cirq.inverse(cirq.ControlledGate(cirq.S)) == cirq.ControlledGate(
         cirq.S**-1))
+    assert (cirq.inverse(cirq.ControlledGate(
+        cirq.S, num_controls=4)) == cirq.ControlledGate(cirq.S**-1,
+                                                        num_controls=4))
+    assert (cirq.inverse(cirq.ControlledGate(
+        cirq.S, control_values=[1])) == cirq.ControlledGate(cirq.S**-1,
+                                                            control_values=[1]))
+    assert (cirq.inverse(cirq.ControlledGate(
+        cirq.S,
+        control_qid_shape=(3,))) == cirq.ControlledGate(cirq.S**-1,
+                                                        control_qid_shape=(3,)))
 
 
 class UnphaseableGate(cirq.SingleQubitGate):
@@ -418,8 +456,9 @@ def test_circuit_diagram():
 
     qubits = cirq.LineQid.for_qid_shape((3, 3, 3, 2))
     c = cirq.Circuit.from_ops(
-        MultiH(1)(*qubits[3:]).control(*qubits[:3],
-                                       control_values=[1, (0, 1), (2, 0)]))
+        MultiH(1)(*qubits[3:]).controlled_by(*qubits[:3],
+                                             control_values=[1, (0, 1),
+                                                             (2, 0)]))
 
     cirq.testing.assert_has_diagram(
         c, """
@@ -470,8 +509,6 @@ def test_repr():
         cirq.ControlledGate(cirq.Z, num_controls=1))
     cirq.testing.assert_equivalent_repr(
         cirq.ControlledGate(cirq.Z, num_controls=2))
-    cirq.testing.assert_equivalent_repr(
-        cirq.ControlledGate(cirq.Y, num_controls=1))
     cirq.testing.assert_equivalent_repr(C0C1H)
     cirq.testing.assert_equivalent_repr(C2C2H)
 

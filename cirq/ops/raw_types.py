@@ -263,13 +263,28 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*args, **kwargs)
 
     def control(self,
+                num_controls: int = None,
                 control_values: Optional[Sequence[
-                    Union[int, Collection[int]]]] = None) -> 'Gate':
+                    Union[int, Collection[int]]]] = None,
+                control_qid_shape: Optional[Tuple[int, ...]] = None) -> 'Gate':
         """Returns a controlled version of this gate.
+            num_controls: Total number of control qubits.
+            control_values: For which control qubit values to apply the sub
+                gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                qubit value (or set of possible values) where that control is
+                enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
-        return ControlledGate(self, control_values=control_values)
+        return ControlledGate(self,
+                              num_controls=num_controls,
+                              control_values=control_values,
+                              control_qid_shape=control_qid_shape)
 
     # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
     # to keep backwards compatibility with versions of cirq where num_qubits
@@ -355,14 +370,22 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return self.with_qubits(*(func(q) for q in self.qubits))
 
-    def control(self,
-                *control_qubits: Qid,
-                control_values: Optional[Sequence[
-                    Union[int, Collection[int]]]] = None) -> 'Operation':
+    def controlled_by(self,
+                      *control_qubits: Qid,
+                      control_values: Optional[Sequence[
+                          Union[int, Collection[int]]]] = None) -> 'Operation':
         """Returns a controlled version of this operation.
 
         Args:
             control_qubits: Qubits to control the operation by. Required.
+            control_values: For which control qubit values to apply the
+                operation.  A sequence of the same length as `control_qubits`
+                where each entry is an integer (or set of integers)
+                corresponding to the qubit value (or set of possible values)
+                where that control is enabled.  When all controls are enabled,
+                the operation is applied.  If unspecified, control values
+                default to 1.
+            TODO: add control_qid_shape
         """
         # Avoids circular import.
         from cirq.ops import ControlledOperation
