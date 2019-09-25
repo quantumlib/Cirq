@@ -73,7 +73,7 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
     router.route()
 
     swap_network = router.swap_network
-    swap_network.circuit = circuits.Circuit.from_ops(
+    swap_network.circuit = circuits.Circuit(
         swap_network.circuit.all_operations(), device=swap_network.device)
     return swap_network
 
@@ -214,7 +214,7 @@ class _GreedyRouter:
 
     @property
     def swap_network(self) -> SwapNetwork:
-        return SwapNetwork(circuits.Circuit.from_ops(self.physical_ops),
+        return SwapNetwork(circuits.Circuit(self.physical_ops),
                            self.initial_mapping)
 
     def distance(self, edge: QidPair) -> int:

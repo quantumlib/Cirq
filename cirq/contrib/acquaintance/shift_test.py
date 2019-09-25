@@ -57,7 +57,7 @@ def test_circular_shift_gate_decomposition():
 
     expander = cirq.ExpandComposite()
     circular_shift = cca.CircularShiftGate(2, 1, cirq.CZ)(*qubits[:2])
-    circuit = cirq.Circuit.from_ops(circular_shift)
+    circuit = cirq.Circuit(circular_shift)
     expander.optimize_circuit(circuit)
     expected_circuit = cirq.Circuit(
             (cirq.Moment((cirq.CZ(*qubits[:2]),)),))
@@ -68,7 +68,7 @@ def test_circular_shift_gate_decomposition():
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
 
     circular_shift = cca.CircularShiftGate(6, 3)(*qubits)
-    circuit = cirq.Circuit.from_ops(circular_shift)
+    circuit = cirq.Circuit(circular_shift)
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
@@ -87,7 +87,7 @@ f: ───────────×───────────
     assert actual_text_diagram == expected_text_diagram
 
     circular_shift = cca.CircularShiftGate(6, 2)(*qubits)
-    circuit = cirq.Circuit.from_ops(circular_shift)
+    circuit = cirq.Circuit(circular_shift)
     expander.optimize_circuit(circuit)
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
@@ -108,7 +108,7 @@ f: ───────────────×───────
 
 def test_circular_shift_gate_wire_symbols():
     qubits = [cirq.NamedQubit(q) for q in 'xyz']
-    circuit = cirq.Circuit.from_ops(cca.CircularShiftGate(3, 2)(*qubits))
+    circuit = cirq.Circuit(cca.CircularShiftGate(3, 2)(*qubits))
     actual_text_diagram = circuit.to_text_diagram().strip()
     expected_text_diagram = """
 x: ───╲0╱───
@@ -128,5 +128,3 @@ y: ---\1/---
 z: ---/2\---
     """.strip()
     assert actual_text_diagram.strip() == expected_text_diagram
-
-

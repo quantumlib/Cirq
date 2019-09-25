@@ -160,7 +160,7 @@ def main():
     print('On-site interaction strength = ', u)
     print('Superconducting gap = ', delta, '\n')
 
-    bog_circuit = cirq.Circuit.from_ops(
+    bog_circuit = cirq.Circuit(
         bogoliubov_trans(upper_qubits[i], lower_qubits[i], bog_theta[i])
         for i in range(n_site))
     bog_circuit = cirq.google.optimized_for_xmon(bog_circuit)
@@ -170,7 +170,7 @@ def main():
     # The inverse fermionic Fourier transformation on the spin-up states
     print(('Circuit for the inverse fermionic Fourier transformation on the '
            'spin-up states:'))
-    fourier_circuit_spin_up = cirq.Circuit.from_ops(
+    fourier_circuit_spin_up = cirq.Circuit(
         fermi_fourier_trans_inverse_4(upper_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
     fourier_circuit_spin_up = cirq.google.optimized_for_xmon(
@@ -180,7 +180,7 @@ def main():
     # The inverse fermionic Fourier transformation on the spin-down states
     print(('Circuit for the inverse fermionic Fourier transformation on the '
            'spin-down states:'))
-    fourier_circuit_spin_down = cirq.Circuit.from_ops(
+    fourier_circuit_spin_down = cirq.Circuit(
         fermi_fourier_trans_inverse_conjugate_4(lower_qubits),
         strategy=cirq.InsertStrategy.EARLIEST)
     fourier_circuit_spin_down = cirq.google.optimized_for_xmon(

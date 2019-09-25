@@ -63,7 +63,7 @@ class StateTomographyExperiment:
                 cirq.Points(phase_exp, phase_exp_vals) +
                 cirq.Points(exp, exp_vals))
 
-        self.rot_circuit = cirq.Circuit().from_ops(ops)
+        self.rot_circuit = cirq.Circuit(ops)
         self.rot_sweep = cirq.Product(*sweeps)
         self.mat = self._make_state_tomography_matrix()
 

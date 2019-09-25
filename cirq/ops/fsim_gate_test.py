@@ -63,7 +63,7 @@ def test_fsim_consistent(theta, phi):
 
 def test_fsim_circuit():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.FSimGate(np.pi / 2, np.pi).on(a, b),
         cirq.FSimGate(-np.pi, np.pi / 2).on(a, b),
     )
@@ -88,7 +88,7 @@ def test_fsim_circuit():
 """,
                                     use_unicode_characters=False,
                                     precision=None)
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.FSimGate(sympy.Symbol('a') + sympy.Symbol('b'), 0).on(a, b))
     cirq.testing.assert_has_diagram(
         c, """
@@ -231,7 +231,7 @@ def test_fsim_iswap_cphase(theta, phi):
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     iswap = cirq.ISWAP**(-theta * 2 / np.pi)
     cphase = cirq.CZPowGate(exponent=-phi / np.pi)
-    iswap_cphase = cirq.Circuit.from_ops((iswap.on(q0, q1), cphase.on(q0, q1)))
+    iswap_cphase = cirq.Circuit((iswap.on(q0, q1), cphase.on(q0, q1)))
     fsim = cirq.FSimGate(theta=theta, phi=phi)
     assert np.allclose(cirq.unitary(iswap_cphase), cirq.unitary(fsim))
 
