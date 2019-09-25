@@ -324,8 +324,8 @@ A very nice pattern emerges from this structure: define
 or `Operation` parameters.
 
 Another useful method is to construct a `Circuit` fully formed
-from an ``OP_TREE`` via the static method `Circuit.from_ops`
-(which takes an insertion strategy as a parameter):
+from an ``OP_TREE`` is to pass the `OP_TREE` into `Circuit`
+when initializing it:
 
 ```python
 circuit = cirq.Circuit(H(q0), H(q1))
