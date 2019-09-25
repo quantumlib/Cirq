@@ -46,10 +46,9 @@ def run_estimate(unknown_gate, qnum, repetitions):
         unknown_gate.on(ancilla).controlled_by(qubits[i])**(2**i)
         for i in range(qnum)
     ]
-    circuit = cirq.Circuit.from_ops(cirq.H.on_each(*qubits),
-                                    oracle_raised_to_power,
-                                    cirq.QFT(*qubits, without_reverse=True)**-1,
-                                    cirq.measure(*qubits, key='phase'))
+    circuit = cirq.Circuit(cirq.H.on_each(*qubits), oracle_raised_to_power,
+                           cirq.QFT(*qubits, without_reverse=True)**-1,
+                           cirq.measure(*qubits, key='phase'))
 
     return cirq.sample(circuit, repetitions=repetitions)
 

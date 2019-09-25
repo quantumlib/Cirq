@@ -67,11 +67,10 @@ def main():
     print("Initial circuit:")
     n = 10
     depth = 2
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.SWAP(cirq.LineQubit(j), cirq.LineQubit(j + 1))
         for i in range(depth)
-        for j in range(i % 2, n - 1, 2)
-    )
+        for j in range(i % 2, n - 1, 2))
     circuit.append(cirq.measure(*cirq.LineQubit.range(n), key='all'))
     print(circuit)
 
