@@ -59,7 +59,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                [1, 0, 0, 0],
                [0, 1, 0, 0],
                [0, 0, 1, 0]], dtype=int32)
-        >>> c = cirq.Circuit.from_ops(
+        >>> c = cirq.Circuit(
         ...    cirq.X(cirq.LineQubit(3)),
         ...    cirq.X(cirq.LineQubit(2)),
         ...    cirq.X(cirq.LineQubit(6)),

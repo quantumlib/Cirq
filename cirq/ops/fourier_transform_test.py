@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import sympy
 
 import cirq
 
@@ -25,6 +26,33 @@ def test_phase_gradient():
     for k in range(4):
         cirq.testing.assert_implements_consistent_protocols(
             cirq.PhaseGradientGate(num_qubits=k, exponent=1))
+
+
+def test_phase_gradient_symbolic():
+    a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
+    b = cirq.PhaseGradientGate(num_qubits=2, exponent=sympy.Symbol('t'))
+    assert not cirq.is_parameterized(a)
+    assert cirq.is_parameterized(b)
+    assert cirq.has_unitary(a)
+    assert not cirq.has_unitary(b)
+    assert cirq.resolve_parameters(a, {'t': 0.25}) is a
+    assert cirq.resolve_parameters(b, {'t': 0.5}) == a
+    assert cirq.resolve_parameters(b, {'t': 0.25}) == cirq.PhaseGradientGate(
+        num_qubits=2, exponent=0.25)
+
+
+def test_str():
+    assert str(cirq.PhaseGradientGate(num_qubits=2,
+                                      exponent=0.5)) == 'Grad[2]^0.5'
+    assert str(cirq.PhaseGradientGate(num_qubits=2, exponent=1)) == 'Grad[2]'
+
+
+def test_pow():
+    a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
+    assert a**0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
+    assert a**sympy.Symbol('t') == cirq.PhaseGradientGate(num_qubits=2,
+                                                          exponent=0.5 *
+                                                          sympy.Symbol('t'))
 
 
 def test_qft():
@@ -65,8 +93,18 @@ def test_qft():
                                atol=1e-8)
 
     for k in range(4):
-        cirq.testing.assert_implements_consistent_protocols(
-            cirq.QuantumFourierTransformGate(num_qubits=k))
+        for b in [False, True]:
+            cirq.testing.assert_implements_consistent_protocols(
+                cirq.QuantumFourierTransformGate(num_qubits=k,
+                                                 without_reverse=b))
+
+
+def test_inverse():
+    a, b, c = cirq.LineQubit.range(3)
+    assert cirq.QFT(a, b, c, inverse=True) == cirq.QFT(a, b, c)**-1
+    assert cirq.QFT(a, b, c, inverse=True,
+                    without_reverse=True) == cirq.inverse(
+                        cirq.QFT(a, b, c, without_reverse=True))
 
 
 def test_circuit_diagram():

@@ -142,7 +142,7 @@ def qaoa_max_cut_unitary(qubits, betas, gammas,
 
 def qaoa_max_cut_circuit(qubits, betas, gammas,
                          graph):  # Nodes should be integers
-    return cirq.Circuit.from_ops(
+    return cirq.Circuit(
         # Prepare uniform superposition
         cirq.H.on_each(*qubits),
         # Apply QAOA unitary

@@ -83,7 +83,7 @@ def test_point_optimizer_can_write_new_gates_inline():
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
     z = cirq.NamedQubit('z')
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.CZ(x, y),
         cirq.Y(x),
         cirq.Z(x),
@@ -113,7 +113,7 @@ def test_point_optimizer_post_clean_up():
     x = cirq.NamedQubit('x')
     y = cirq.NamedQubit('y')
     z = cirq.NamedQubit('z')
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.CZ(x, y),
         cirq.Y(x),
         cirq.Z(x),

@@ -24,6 +24,7 @@ import cirq
 from cirq import value, protocols
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops import gate_operation, linear_combinations
 
 

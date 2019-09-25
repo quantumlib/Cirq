@@ -80,7 +80,7 @@ def optimized_for_xmon(
     for optimizer in opts:
         optimizer(copy)
 
-    return circuits.Circuit.from_ops(
+    return circuits.Circuit(
         (op.transform_qubits(qubit_map) for op in copy.all_operations()),
         strategy=circuits.InsertStrategy.EARLIEST,
         device=new_device or copy.device)

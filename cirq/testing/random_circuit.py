@@ -44,9 +44,11 @@ def random_circuit(
     """Generates a random circuit.
 
     Args:
-        qubits: the qubits that the circuit acts on. Because the qubits on
-            which an operation acts are chosen randomly, not all given qubits
-            may be acted upon.
+        qubits: If a sequence of qubits, then these are the qubits that
+            the circuit should act on. Because the qubits on which an
+            operation acts are chosen randomly, not all given qubits
+            may be acted upon. If an int, then this number of qubits will
+            be automatically generated.
         n_moments: the number of moments in the generated circuit.
         op_density: the expected proportion of qubits that are acted on in any
             moment.
@@ -76,7 +78,9 @@ def random_circuit(
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
-    if isinstance(random_state, np.random.RandomState):
+    if random_state is None:
+        prng = np.random
+    elif isinstance(random_state, np.random.RandomState):
         prng = random_state
     else:
         prng = np.random.RandomState(random_state)
