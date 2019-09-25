@@ -167,6 +167,67 @@ def test_trial_result_equality():
             measurements={'a': np.array([[1]] * 5)}))
 
 
+def test_trial_result_addition_valid():
+    a = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    b = cirq.TrialResult.from_single_parameter_set(params=cirq.ParamResolver(
+        {'ax': 1}),
+                                                   measurements={
+                                                       'q0':
+                                                       np.array([[0, 1]],
+                                                                dtype=np.bool),
+                                                       'q1':
+                                                       np.array([[0]],
+                                                                dtype=np.bool)
+                                                   })
+
+    c = a + b
+    np.testing.assert_array_equal(c.measurements['q0'],
+                                  np.array([[0, 1], [1, 0], [0, 1], [0, 1]]))
+    np.testing.assert_array_equal(c.measurements['q1'],
+                                  np.array([[0], [0], [1], [0]]))
+
+
+def test_trial_result_addition_invalid():
+    a = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    b = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'bad': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    c = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'bad': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    d = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0, 1], [0, 1], [1, 1]], dtype=np.bool)
+        })
+
+    with pytest.raises(ValueError, match='same parameters'):
+        _ = a + b
+    with pytest.raises(ValueError, match='same measurement keys'):
+        _ = a + c
+    with pytest.raises(ValueError):
+        _ = a + d
+    with pytest.raises(TypeError):
+        _ = a + 'junk'
+
+
 def test_qubit_keys_for_histogram():
     a, b, c = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(
