@@ -68,18 +68,26 @@ def create_device_proto_from_diagram(
 
     This function also assumes that only adjacent qubits can be targets.
     """
+
     qubits, _ = _parse_device(s)
     spec = device_pb2.DeviceSpecification()
+
+    # Create valid qubit list
+    qubit_set = frozenset(qubits)
+    spec.valid_qubits.extend([q.proto_id() for q in qubits])
+
+    # Set up a target set for measurement (any qubit permutation)
     meas_targets = spec.valid_targets.add()
     meas_targets.name = _MEAS_TARGET_SET
     meas_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
 
+    # Set up a target set for 2 qubit gates (all adjacent pairs)
     grid_targets = spec.valid_targets.add()
     grid_targets.name = _2_QUBIT_TARGET_SET
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
-    qubit_set = frozenset(qubits)
+
+    # Create the target set as all adjacent pairs on the grid
     neighbor_set: Set[Tuple] = set()
-    spec.valid_qubits.extend([q.proto_id() for q in qubits])
     for q in qubits:
         for neighbor in sorted(q.neighbors(qubit_set)):
             if (neighbor, q) not in neighbor_set:
@@ -87,6 +95,8 @@ def create_device_proto_from_diagram(
                 new_target = grid_targets.targets.add()
                 new_target.ids.extend((q.proto_id(), neighbor.proto_id()))
                 neighbor_set.add((q, neighbor))
+
+    # Create gate set
     if gate_set is not None:
         gs_proto = spec.valid_gate_sets.add()
         gs_proto.name = gate_set.gate_set_name
@@ -101,13 +111,35 @@ def create_device_proto_from_diagram(
                 gate_ids.add(gate_id)
                 gate = gs_proto.valid_gates.add()
                 gate.id = gate_id
+
+                # Choose target set and number of qubits based on gate type.
+
+                # Note: if it is not a measurement gate and doesn't inherit
+                # from SingleQubitGate, it is assumed to be a two qubit gate.
                 if gate_type == MeasurementGate:
                     gate.valid_targets.extend([_MEAS_TARGET_SET])
                 elif not issubclass(gate_type, SingleQubitGate):
                     gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
+                    gate.number_of_qubits = 2
+                else:
+                    gate.number_of_qubits = 1
+
+                # Add gate duration
                 if durations is not None and gate.id in durations:
                     gate.gate_duration_picos = durations[gate.id]
-                # TODO: add valid args and number of qubits
+
+                # Add argument names and types for each gate.
+                for arg in serializer.args:
+                    new_arg = gate.valid_args.add()
+                    if arg.serialized_type == str:
+                        new_arg.type = device_pb2.ArgDefinition.STRING
+                    if arg.serialized_type == float:
+                        new_arg.type = device_pb2.ArgDefinition.FLOAT
+                    if arg.serialized_type == List[bool]:
+                        new_arg.type = device_pb2.ArgDefinition.REPEATED_BOOLEAN
+                    new_arg.name = arg.serialized_name
+                    # Note: this does not yet support adding allowed_ranges
+
     return spec
 
 

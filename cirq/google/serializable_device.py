@@ -28,10 +28,12 @@ class _GateDefinition:
     """Class for keeping track of gate definitions within SerializableDevice"""
 
     def __init__(self, duration: Duration,
-                 target_set: Set[Tuple['cirq.Qid', ...]], is_permutation: bool):
+                 target_set: Set[Tuple['cirq.Qid', ...]], number_of_qubits: int,
+                 is_permutation: bool):
         self.duration = duration
         self.target_set = target_set
         self.is_permutation = is_permutation
+        self.number_of_qubits = number_of_qubits
 
 
 class SerializableDevice(devices.Device):
@@ -49,12 +51,8 @@ class SerializableDevice(devices.Device):
     deserialization.
     """
 
-    def __init__(
-            self,
-            qubits: List['cirq.Qid'],
-            durations: Dict[Type['cirq.Gate'], Duration],
-            target_sets: Dict[Type['cirq.Gate'], Set[Tuple['cirq.Qid', ...]]],
-            permutation_gates: Optional[Set[Type['cirq.Gate']]] = None):
+    def __init__(self, qubits: List['cirq.Qid'],
+                 gate_definitions: Dict[Type['cirq.Gate'], _GateDefinition]):
         """Constructor for SerializableDevice using python objects.
 
         Note that the preferred method of constructing this object is through
@@ -74,13 +72,7 @@ class SerializableDevice(devices.Device):
         """
         self.qubits = qubits
 
-        self.gate_definitions: Dict[Type['cirq.Gate'], _GateDefinition] = {}
-        for gate_type in target_sets:
-            self.gate_definitions[gate_type] = _GateDefinition(
-                duration=durations[gate_type],
-                target_set=target_sets[gate_type],
-                is_permutation=(permutation_gates is not None and
-                                gate_type in permutation_gates))
+        self.gate_definitions = gate_definitions
 
     @classmethod
     def from_proto(cls, proto: v2.device_pb2.DeviceSpecification,
@@ -115,6 +107,7 @@ class SerializableDevice(devices.Device):
         target_sets: Dict[Type['cirq.Gate'], Set[
             Tuple['cirq.Qid', ...]]] = dict()
         permutation_gates: Set[Type['cirq.Gate']] = set()
+        gate_definitions: Dict[Type['cirq.Gate'], _GateDefinition] = {}
         for gate_type in gate_set.supported_gate_types():
             for serializer in gate_set.serializers[gate_type]:
                 gate_id = serializer.serialized_gate_id
@@ -136,12 +129,16 @@ class SerializableDevice(devices.Device):
                     target_sets[gate_type] = set()
                 for target_set_name in gate_defs[gate_id].valid_targets:
                     target_sets[gate_type] |= allowed_targets[target_set_name]
-
+        for gate_type in target_sets:
+            gate_definitions[gate_type] = _GateDefinition(
+                duration=durations[gate_type],
+                target_set=target_sets[gate_type],
+                is_permutation=(permutation_gates is not None and
+                                gate_type in permutation_gates),
+                number_of_qubits=gate_defs[gate_id].number_of_qubits)
         return SerializableDevice(
             qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
-            durations=durations,
-            target_sets=target_sets,
-            permutation_gates=permutation_gates,
+            gate_definitions=gate_definitions,
         )
 
     @staticmethod
@@ -201,6 +198,12 @@ class SerializableDevice(devices.Device):
         if gate_def is None:
             raise ValueError(f'{operation} is not a supported gate')
 
+        req_num_qubits = gate_def.number_of_qubits
+        if req_num_qubits > 0:
+            if len(operation.qubits) != req_num_qubits:
+                raise ValueError(f'{operation} has {len(operation.qubits)} '
+                                 f'qubits but expected {req_num_qubits}')
+
         if gate_def.is_permutation:
             # A permutation gate can have any combination of qubits
 
@@ -220,7 +223,7 @@ class SerializableDevice(devices.Device):
             return
 
         if len(operation.qubits) > 1:
-            # TODO(dstrain): verify number of qubits and args
+            # TODO(dstrain): verify args
 
             qubit_tuple = tuple(operation.qubits)
 

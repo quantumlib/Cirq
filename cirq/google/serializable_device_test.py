@@ -179,6 +179,30 @@ def test_unconstrained_gate():
             dev.validate_operation(cirq.CZ(valid_qubit1, valid_qubit2))
 
 
+def test_number_of_qubits_cz():
+    spec = device_pb2.DeviceSpecification()
+    spec.valid_qubits.extend(
+        [cirq.GridQubit(0, 0).proto_id(),
+         cirq.GridQubit(0, 1).proto_id()])
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = '2_qubit_anywhere'
+    grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
+    gs_proto = spec.valid_gate_sets.add()
+
+    gs_proto.name = 'cz_requires_three_qubits'
+
+    gate = gs_proto.valid_gates.add()
+    gate.id = 'cz'
+    gate.valid_targets.extend(['2_qubit_anywhere'])
+    gate.number_of_qubits = 3
+
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_CZ)
+
+    with pytest.raises(ValueError):
+        dev.validate_operation(
+            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)))
+
+
 def test_constrained_permutations():
     spec = device_pb2.DeviceSpecification()
     for row in range(5):

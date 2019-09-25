@@ -23,23 +23,51 @@ def test_foxtail_qubits():
 
 
 def test_foxtail_device_proto():
+    print(str(cirq.google.known_devices.FOXTAIL_PROTO))
     assert str(cirq.google.known_devices.FOXTAIL_PROTO) == """\
 valid_gate_sets {
   name: "xmon"
   valid_gates {
     id: "exp_w"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
     gate_duration_picos: 20000
   }
   valid_gates {
     id: "exp_z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
   }
   valid_gates {
     id: "exp_11"
+    number_of_qubits: 2
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
     gate_duration_picos: 50000
     valid_targets: "2_qubit_targets"
   }
   valid_gates {
     id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
     gate_duration_picos: 1000000
     valid_targets: "meas_targets"
   }
