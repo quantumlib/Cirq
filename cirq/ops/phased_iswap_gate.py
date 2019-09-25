@@ -53,21 +53,17 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def __init__(self,
                  *,
                  phase_exponent: Union[float, sympy.Symbol] = 0.25,
-                 exponent: Union[float, sympy.Symbol] = 1.0,
-                 global_shift: float = 0.0) -> None:
+                 exponent: Union[float, sympy.Symbol] = 1.0):
         """
         Args:
             phase_exponent: The exponent on the Z gates. We conjugate by
                 the T gate by default.
             exponent: The exponent on the ISWAP gate, see EigenGate for
                 details.
-            global_shift: How much to shift the operation's eigenvalues at
-                exponent=1, see EigenGate for details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
-        self._iswap = common_gates.ISwapPowGate(exponent=exponent,
-                                                global_shift=global_shift)
-        super().__init__(exponent=exponent, global_shift=global_shift)
+        self._iswap = common_gates.ISwapPowGate(exponent=exponent)
+        super().__init__(exponent=exponent)
 
     @property
     def phase_exponent(self) -> Union[float, sympy.Symbol]:
@@ -78,7 +74,6 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'cirq_type': self.__class__.__name__,
             'phase_exponent': self._phase_exponent,
             'exponent': self._exponent,
-            'global_shift': self._global_shift,
         }
 
     def _value_equality_values_cls_(self):
@@ -99,8 +94,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def _with_exponent(self,
                        exponent: type_alias.TParamVal) -> 'PhasedISwapPowGate':
         return PhasedISwapPowGate(phase_exponent=self.phase_exponent,
-                                  exponent=exponent,
-                                  global_shift=self.global_shift)
+                                  exponent=exponent)
 
     def _eigen_shifts(self) -> List[float]:
         return [0.0, +0.5, -0.5]
@@ -175,9 +169,6 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if self.exponent != 1:
             exponent = proper_repr(self.exponent)
             args.append(f'exponent={exponent}')
-        if self._global_shift != 0:
-            global_shift = proper_repr(self._global_shift)
-            args.append(f'global_shift={global_shift}')
         arg_string = ', '.join(args)
         return f'cirq.PhasedISwapPowGate({arg_string})'
 

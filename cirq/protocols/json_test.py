@@ -216,7 +216,7 @@ TEST_OBJECTS = {
     'PhaseGradientGate':
     cirq.PhaseGradientGate(num_qubits=3, exponent=0.235),
     'PhasedISwapPowGate':
-    cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
+    cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.2),
     'PhasedXPowGate':
     cirq.PhasedXPowGate(phase_exponent=0.123,
                         exponent=0.456,
