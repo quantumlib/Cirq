@@ -49,7 +49,6 @@ class _ResolverCache:
                 'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
                 'GateOperation': cirq.GateOperation,
-                'GivensRotation': cirq.GivensRotation,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,

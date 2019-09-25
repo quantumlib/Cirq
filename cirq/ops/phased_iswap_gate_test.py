@@ -101,11 +101,11 @@ def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent):
         ignoring_global_phase=False)
 
 
-@pytest.mark.parametrize('exponent', (-0.5, 0.1, 1.2))
-def test_givens_rotation_unitary(exponent):
-    actual = cirq.unitary(cirq.GivensRotation**exponent)
-    c = np.cos(np.pi * exponent / 2)
-    s = np.sin(np.pi * exponent / 2)
+@pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
+def test_givens_rotation_unitary(angle_rads):
+    actual = cirq.unitary(cirq.GivensRotation(angle_rads))
+    c = np.cos(angle_rads)
+    s = np.sin(angle_rads)
     # yapf: disable
     expected = np.array([[1, 0, 0, 0],
                          [0, c, -s, 0],
@@ -115,20 +115,21 @@ def test_givens_rotation_unitary(exponent):
     assert np.allclose(actual, expected)
 
 
-@pytest.mark.parametrize('exponent', (-1, 0.2, 1))
-def test_givens_rotation_hamiltonian(exponent):
-    actual = cirq.unitary(cirq.GivensRotation**exponent)
+@pytest.mark.parametrize('angle_rads', (-2 * np.pi / 3, -0.2, 0.4, np.pi / 4))
+def test_givens_rotation_hamiltonian(angle_rads):
+    actual = cirq.unitary(cirq.GivensRotation(angle_rads))
     x = np.array([[0, 1], [1, 0]])
     y = np.array([[0, -1j], [1j, 0]])
     yx = np.kron(y, x)
     xy = np.kron(x, y)
-    expected = scipy.linalg.expm(-0.25j * np.pi * exponent * (yx - xy))
+    expected = scipy.linalg.expm(-0.5j * angle_rads * (yx - xy))
     assert np.allclose(actual, expected)
 
 
 def test_givens_rotation_equivalent_circuit():
-    t = 0.123
-    gate = cirq.GivensRotation**t
+    angle_rads = 3 * np.pi / 7
+    t = 2 * angle_rads / np.pi
+    gate = cirq.GivensRotation(angle_rads)
     q0, q1 = cirq.LineQubit.range(2)
     equivalent_circuit = cirq.Circuit.from_ops([
         cirq.T(q0),
@@ -140,7 +141,7 @@ def test_givens_rotation_equivalent_circuit():
     assert np.allclose(cirq.unitary(gate), cirq.unitary(equivalent_circuit))
 
 
-@pytest.mark.parametrize('exponent', (-0.3, 0.7))
-def test_givens_rotation_has_consistent_protocols(exponent):
+@pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
+def test_givens_rotation_has_consistent_protocols(angle_rads):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.GivensRotation**exponent, ignoring_global_phase=False)
+        cirq.GivensRotation(angle_rads), ignoring_global_phase=False)

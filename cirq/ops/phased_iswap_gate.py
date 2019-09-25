@@ -174,7 +174,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 # The ISWAP gate conjugated by T⊗T^-1.
 #
-# Matrix of GivensRotation^t is
+# Matrix of GivensRotation(a) is
 #
 #     [[1, 0, 0, 0],
 #      [0, c, -s, 0],
@@ -183,11 +183,14 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 #
 # where
 #
-#     c = cos(π·t/2),
-#     s = sin(π·t/2).
+#     c = cos(a),
+#     s = sin(a).
 #
 # Equivalently, it may be defined as
 #
-#     GivensRotation^t ≡ exp(-i π t (Y⊗X - X⊗Y) / 4)
+#     GivensRotation(a) ≡ exp(-i a (Y⊗X - X⊗Y) / 2)
 #
-GivensRotation = PhasedISwapPowGate()
+def GivensRotation(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
+    """Returns gate with matrix exp(-i angle_rads (Y⊗X - X⊗Y) / 2)."""
+    pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
+    return PhasedISwapPowGate()**(2 * angle_rads / pi)
