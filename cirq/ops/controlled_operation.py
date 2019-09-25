@@ -68,8 +68,9 @@ class ControlledOperation(raw_types.Operation):
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
+
         return [
-            op.controlled_by(*self.controls, control_values=self.control_values)
+            ControlledOperation(self.controls, op, self.control_values)
             for op in result
         ]
 

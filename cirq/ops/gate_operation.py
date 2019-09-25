@@ -50,10 +50,6 @@ class GateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def controlled_by(self, *control_qubits, control_values=None):
-        return self.gate.controlled_by(
-            *control_qubits, control_values=control_values).on(*self.qubits)
-
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
         return self.gate.on(*new_qubits)
 
