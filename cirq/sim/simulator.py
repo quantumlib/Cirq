@@ -160,11 +160,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                             if isinstance(op, ops.SamplesDisplay))
                 for display in displays:
                     measurement_key = str(display.key)
-                    measurement_circuit = circuits.Circuit.from_ops(
+                    measurement_circuit = circuits.Circuit(
                         display.measurement_basis_change(),
-                        ops.measure(*display.qubits,
-                                    key=measurement_key)
-                    )
+                        ops.measure(*display.qubits, key=measurement_key))
                     measurements = self._run(
                         preceding_circuit + measurement_circuit,
                         param_resolver,
