@@ -166,6 +166,8 @@ TEST_OBJECTS = {
         cirq.CSWAP(*cirq.LineQubit.range(3)),
         cirq.CZ(*cirq.LineQubit.range(2))
     ],
+    'GivensRotation':
+    cirq.GivensRotation,
     'GlobalPhaseOperation':
     cirq.GlobalPhaseOperation(-1j),
     'GridQubit':
@@ -211,6 +213,8 @@ TEST_OBJECTS = {
         }),
         cirq.X(Q0) * cirq.Y(Q1) * 123
     ],
+    'PhasedISwapPowGate':
+    cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
     'PhasedXPowGate':
     cirq.PhasedXPowGate(phase_exponent=0.123,
                         exponent=0.456,
