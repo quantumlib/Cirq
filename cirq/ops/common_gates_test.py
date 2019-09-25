@@ -737,9 +737,11 @@ def test_iswap_unitary():
         np.array([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]]),
         atol=1e-8)
 
+
 def test_iswap_trace_distance():
     for exp in np.linspace(0, 4, 20):
         cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
+
 
 def test_iswap_decompose_diagram():
     a = cirq.NamedQubit('a')
