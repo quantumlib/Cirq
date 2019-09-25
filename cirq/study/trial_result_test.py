@@ -230,7 +230,7 @@ def test_trial_result_addition_invalid():
 
 def test_qubit_keys_for_histogram():
     a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.measure(a, b),
         cirq.X(c),
         cirq.measure(c),

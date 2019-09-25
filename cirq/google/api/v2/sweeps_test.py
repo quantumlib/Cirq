@@ -118,7 +118,7 @@ def test_sweep_with_list_sweep():
 
 def test_sweep_with_flattened_sweep():
     q = cirq.GridQubit(0, 0)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.PhasedXPowGate(exponent=sympy.Symbol('t') / 4 + 0.5,
                             phase_exponent=sympy.Symbol('t') / 2 + 0.1,
                             global_shift=0.0)(q), cirq.measure(q, key='m'))

@@ -229,42 +229,27 @@ def test_removes_zs():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(cirq.Circuit(cirq.Z(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.measure(a, b)))
+    assert_removes_all_z_gates(cirq.Circuit(cirq.Z(a), cirq.measure(a, b)))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.Z(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.Z(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.measure(a, key='k')))
+    assert_removes_all_z_gates(cirq.Circuit(cirq.Z(a), cirq.measure(a,
+                                                                    key='k')))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.X(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.X(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.X(a),
-        cirq.X(a),
-        cirq.measure(a)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.X(a), cirq.X(a), cirq.measure(a)))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
-        cirq.Z(a),
-        cirq.Z(b),
-        cirq.CZ(a, b),
-        cirq.CZ(a, b),
-        cirq.measure(a, b)))
+    assert_removes_all_z_gates(
+        cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.CZ(a, b), cirq.CZ(a, b),
+                     cirq.measure(a, b)))
 
-    assert_removes_all_z_gates(cirq.Circuit.from_ops(
+    assert_removes_all_z_gates(cirq.Circuit(
         cirq.Z(a)**sympy.Symbol('a'),
         cirq.Z(b)**(sympy.Symbol('a') + 1), cirq.CZ(a, b), cirq.CZ(a, b),
         cirq.measure(a, b)),
@@ -297,7 +282,7 @@ def test_unknown_operation_blocks():
 
 def test_swap():
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit.from_ops([cirq.Rz(.123).on(a), cirq.SWAP(a, b)])
+    original = cirq.Circuit([cirq.Rz(.123).on(a), cirq.SWAP(a, b)])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)
@@ -321,7 +306,7 @@ def test_not_a_swap(exponent):
                          (np.pi / 2, -np.pi / 2, np.pi / 2 + 5 * np.pi))
 def test_swap_fsim(theta):
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit.from_ops(
+    original = cirq.Circuit(
         [cirq.Rz(.123).on(a),
          cirq.FSimGate(theta=theta, phi=.123).on(a, b)])
     optimized = original.copy()
@@ -348,8 +333,7 @@ def test_not_a_swap_fsim(theta):
 @pytest.mark.parametrize('exponent', (1, -1))
 def test_swap_iswap(exponent):
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit.from_ops(
-        [cirq.Rz(.123).on(a), cirq.ISWAP(a, b)**exponent])
+    original = cirq.Circuit([cirq.Rz(.123).on(a), cirq.ISWAP(a, b)**exponent])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)

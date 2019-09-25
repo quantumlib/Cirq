@@ -78,6 +78,16 @@ matrix:
     - pip install -r requirements.txt
     - pip install -r cirq/contrib/contrib-requirements.txt
     script: check/doctest -q
+  - stage: test
+    os: linux
+    env: NAME=build-docs
+    python: '3.6'
+    install:
+    - pip install -r requirements.txt
+    - pip install -r cirq/contrib/contrib-requirements.txt
+    - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    - sudo apt-get install pandoc
+    script: dev_tools/build-docs.sh
   - stage: deploy
     os: linux
     env: NAME=dev-release

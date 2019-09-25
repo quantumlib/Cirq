@@ -61,6 +61,16 @@ class _NamedConstantXmonDevice(XmonDevice):
     def __repr__(self):
         return self._repr
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'constant': self._repr,
+            'measurement_duration': self._measurement_duration,
+            'exp_w_duration': self._exp_w_duration,
+            'exp_11_duration': self._exp_z_duration,
+            'qubits': sorted(self.qubits)
+        }
+
 
 Foxtail = _NamedConstantXmonDevice(
     'cirq.google.Foxtail',

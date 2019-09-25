@@ -58,7 +58,7 @@ def test_swap_network_gate():
     n_qubits = sum(part_lens)
     swap_network_op = cca.SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
-    swap_network = cirq.Circuit.from_ops(swap_network_op)
+    swap_network = cirq.Circuit(swap_network_op)
     expected_text_diagram = """
 a: ───×(0,0)───
       │
@@ -102,7 +102,7 @@ f: ─────────────────█───────�
     n_qubits = sum(part_lens)
     swap_network_op = cca.SwapNetworkGate(part_lens,
         acquaintance_size=acquaintance_size)(*qubits[:n_qubits])
-    swap_network = cirq.Circuit.from_ops(swap_network_op)
+    swap_network = cirq.Circuit(swap_network_op)
 
     expander(swap_network)
     expected_text_diagram = """
@@ -132,8 +132,8 @@ def test_acquaint_part_pairs(part_lens):
     qubits = cirq.LineQubit.range(n_qubits)
     swap_network_op = cca.SwapNetworkGate(
         part_lens, acquaintance_size=None)(*qubits)
-    swap_network = cirq.Circuit.from_ops(
-            swap_network_op, device=cca.UnconstrainedAcquaintanceDevice)
+    swap_network = cirq.Circuit(swap_network_op,
+                                device=cca.UnconstrainedAcquaintanceDevice)
     initial_mapping = {q: i for i, q in enumerate(qubits)}
 
     actual_opps = cca.get_logical_acquaintance_opportunities(
@@ -177,7 +177,7 @@ def test_swap_network_gate_from_ops():
     swap_network = cca.SwapNetworkGate.from_operations(qubits, operations,
                                                        acquaintance_size,
                                                        cirq.ZZ)
-    circuit = cirq.Circuit.from_ops(swap_network(*qubits))
+    circuit = cirq.Circuit(swap_network(*qubits))
     cca.DECOMPOSE_PERMUTATION_GATES(circuit)
 
     expected_diagram = """
@@ -198,7 +198,7 @@ def test_swap_network_decomposition():
     qubits = cirq.LineQubit.range(8)
     swap_network_gate = cca.SwapNetworkGate((4, 4), 5)
     operations = cirq.decompose_once_with_qubits(swap_network_gate, qubits)
-    circuit = cirq.Circuit.from_ops(operations)
+    circuit = cirq.Circuit(operations)
     expected_text_diagram = """
 0: ───█─────────────█─────────────╲0╱─────────────█─────────█───────0↦2───
       │             │             │               │         │       │
