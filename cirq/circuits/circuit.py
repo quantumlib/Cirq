@@ -95,7 +95,7 @@ class Circuit:
 
     @deprecated_parameter(
         deadline='v0.8',
-        fix='Pass contents positionally or using the "contents=" keyword.',
+        fix='Pass circuit contents positionally (without a keyword).',
         func_name='cirq.Circuit',
         parameter_desc='moments keyword',
         match=lambda args, kwargs: 'moments' in kwargs,
@@ -1452,9 +1452,12 @@ class Circuit:
         return result.reshape((state_len,))
 
     to_unitary_matrix = deprecated(
-        deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
+        func_name='Circuit.to_unitary_matrix',
+        deadline='v0.7.0',
+        fix='Use `Circuit.unitary()` instead.')(unitary)
 
     apply_unitary_effect_to_state = deprecated(
+        func_name='Circuit.apply_unitary_effect_to_state',
         deadline='v0.7.0',
         fix="Use `cirq.final_wavefunction(circuit)` or "
         "`Circuit.final_wavefunction()` instead")(final_wavefunction)
