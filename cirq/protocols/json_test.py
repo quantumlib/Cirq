@@ -213,12 +213,16 @@ TEST_OBJECTS = {
         }),
         cirq.X(Q0) * cirq.Y(Q1) * 123
     ],
+    'PhaseGradientGate':
+    cirq.PhaseGradientGate(num_qubits=3, exponent=0.235),
     'PhasedISwapPowGate':
     cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
     'PhasedXPowGate':
     cirq.PhasedXPowGate(phase_exponent=0.123,
                         exponent=0.456,
                         global_shift=0.789),
+    'QuantumFourierTransformGate':
+    cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
     'X':
     cirq.X,
     'Y':
@@ -303,6 +307,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
     'SupportsMixture',

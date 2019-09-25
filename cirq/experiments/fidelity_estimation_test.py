@@ -83,3 +83,12 @@ def test_linear_xeb_fidelity_invalid_bitstrings():
     bitstrings = [0, 1, 2, 3, 4]
     with pytest.raises(ValueError):
         cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
+
+
+def test_linear_xeb_fidelity_tuple_input():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
+    bitstrings = [0, 1, 2]
+    f1 = cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
+    f2 = cirq.linear_xeb_fidelity(circuit, tuple(bitstrings), (q0, q1))
+    assert f1 == f2
