@@ -32,6 +32,7 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq.protocols import qid_shape_protocol
+from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -115,6 +116,27 @@ class ApplyUnitaryArgs:
                                dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
+    def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
+        """Returns a transposed view of the same arguments.
+
+        Returns:
+            A view over the same target tensor and available workspace, but
+            with the numpy arrays transposed such that the axes field is
+            guaranteed to equal `range(len(result.axes))`. This allows one to
+            say e.g. `result.target_tensor[0, 1, 0, ...]` instead of
+            `result.target_tensor[result.subspace_index(0b010)]`.
+        """
+        axis_set = set(self.axes)
+        other_axes = [
+            axis for axis in range(len(self.target_tensor.shape))
+            if axis not in axis_set
+        ]
+        perm = (*self.axes, *other_axes)
+        target_tensor = self.target_tensor.transpose(*perm)
+        available_buffer = self.available_buffer.transpose(*perm)
+        return ApplyUnitaryArgs(target_tensor, available_buffer,
+                                range(len(self.axes)))
+
     def _for_operation_with_qid_shape(self, indices: Iterable[int],
                                       qid_shape: Tuple[int, ...]
                                      ) -> 'ApplyUnitaryArgs':
@@ -152,17 +174,24 @@ class ApplyUnitaryArgs:
         new_axes = range(len(other_axes), len(ordered_axes))
         return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes)
 
-    def subspace_index(
-            self,
-            little_endian_bits_int: int,
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    def subspace_index(self,
+                       little_endian_bits_int: int = 0,
+                       *,
+                       big_endian_bits_int: int = 0
+                      ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
             little_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The least significant
                 bit of the integer is the desired bit for the first axis, and
-                so forth in increasing order.
+                so forth in increasing order. Can't be specified at the same
+                time as `big_endian_bits_int`.
+            big_endian_bits_int: The desired value of the qubits at the
+                targeted `axes`, packed into an integer. The most significant
+                bit of the integer is the desired bit for the first axis, and
+                so forth in decreasing order. Can't be specified at the same
+                time as `little_endian_bits_int`.
             value_tuple: The desired value of the qids at the targeted `axes`,
                 packed into a tuple.  Specify either `little_endian_bits_int` or
                 `value_tuple`.
@@ -185,8 +214,10 @@ class ApplyUnitaryArgs:
 
                 args.target_tensor[:, 0, :, 1] += 1
         """
-        return linalg.slice_for_qubits_equal_to(self.axes,
-                                                little_endian_bits_int)
+        return linalg.slice_for_qubits_equal_to(
+            self.axes,
+            little_endian_qureg_value=little_endian_bits_int,
+            big_endian_qureg_value=big_endian_bits_int)
 
 
 class SupportsConsistentApplyUnitary(Protocol):
@@ -375,7 +406,6 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
     sub_args = args._for_operation_with_qid_shape(range(len(val_qid_shape)),
                                                   val_qid_shape)
     matrix = matrix.astype(sub_args.target_tensor.dtype)
-
     if len(val_qid_shape) == 1 and val_qid_shape[0] <= 2:
         # Special case for single-qubit, 2x2 or 1x1 operations.
         # np.einsum is faster for larger cases.
@@ -397,8 +427,6 @@ def _strat_apply_unitary_from_unitary(unitary_value: Any, args: ApplyUnitaryArgs
 
 def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
                                        ) -> Optional[np.ndarray]:
-    from cirq.protocols.has_unitary import (
-        _try_decompose_into_operations_and_qubits)
     operations, qubits, _ = _try_decompose_into_operations_and_qubits(val)
     if operations is None:
         return NotImplemented
@@ -450,22 +478,19 @@ def apply_unitaries(unitary_values: Iterable[Any],
         TypeError: An item from `unitary_values` doesn't have a unitary effect
             and `default` wasn't specified.
     """
-    from cirq import ops
     if args is None:
-        unitary_values = tuple(unitary_values)
-        # Default to 2 for backwards compatibility
-        max_qid_shape = ops.max_qid_shape(unitary_values,
-                                          qubit_order=qubits,
-                                          default_level=2)
-        args = ApplyUnitaryArgs.default(qid_shape=max_qid_shape)
+        qid_shape = qid_shape_protocol.qid_shape(qubits)
+        args = ApplyUnitaryArgs.default(qid_shape=qid_shape)
     if len(qubits) != len(args.axes):
         raise ValueError('len(qubits) != len(args.axes)')
-    qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
+    qubit_map = {
+        q.with_dimension(1): args.axes[i] for i, q in enumerate(qubits)
+    }
     state = args.target_tensor
     buffer = args.available_buffer
 
     for op in unitary_values:
-        indices = [qubit_map[q] for q in op.qubits]
+        indices = [qubit_map[q.with_dimension(1)] for q in op.qubits]
         result = apply_unitary(unitary_value=op,
                                args=ApplyUnitaryArgs(state, buffer, indices),
                                default=None)

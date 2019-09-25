@@ -16,11 +16,12 @@
 
 import abc
 
-from typing import Any, Dict, Iterator, Hashable, List, Optional, Union
+from typing import (Any, Dict, Iterator, Hashable, List, Optional, Sequence,
+                    Union, cast)
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study, value
+from cirq import circuits, ops, protocols, schedules, study, value
 from cirq.sim import simulator, wave_function
 
 
@@ -122,20 +123,21 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
-        param_resolvers = study.to_resolvers(params or study.ParamResolver({}))
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         qubits = qubit_order.order_for(circuit.all_qubits())
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
-        for param_resolver in param_resolvers:
+        for param_resolver in study.to_resolvers(params):
             display_values = {}  # type: Dict[Hashable, Any]
 
             # Compute the displays in the first Moment
             moment = circuit[0]
             state = wave_function.to_valid_state_vector(
-                initial_state, num_qubits=len(qubits))
+                initial_state,
+                num_qubits=len(qubits),
+                qid_shape=protocols.qid_shape(qubits))
             qubit_map = {q: i for i, q in enumerate(qubits)}
             _enter_moment_display_values_into_dictionary(
                 display_values, moment, state, qubit_order, qubit_map)
@@ -163,31 +165,31 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
     def compute_amplitudes_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            bitstrings: np.ndarray,
+            bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> List[List[complex]]:
+    ) -> Sequence[Sequence[complex]]:
+        if isinstance(bitstrings, np.ndarray) and len(bitstrings.shape) > 1:
+            raise ValueError('The list of bitstrings must be input as a '
+                             '1-dimensional array of ints. Got an array with '
+                             f'shape {bitstrings.shape}.')
 
-        trial_results = self.simulate_sweep(program, params, qubit_order)
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
+        trial_results = self.simulate_sweep(circuit, params, qubit_order)
 
-        amplitude_indices = [
-            _bitstring_to_integer(bitstring) for bitstring in bitstrings
-        ]
+        # 1-dimensional tuples don't trigger advanced Numpy array indexing
+        # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+        if isinstance(bitstrings, tuple):
+            bitstrings = list(bitstrings)
 
         all_amplitudes = []
         for trial_result in trial_results:
-            # mypy doesn't know that this trial result has a final_state
-            # attribute
-            final_state = trial_result.final_state  # type: ignore
-            amplitudes = [final_state[index] for index in amplitude_indices]
+            trial_result = cast(WaveFunctionTrialResult, trial_result)
+            amplitudes = trial_result.final_state[bitstrings]
             all_amplitudes.append(amplitudes)
 
         return all_amplitudes
-
-
-def _bitstring_to_integer(bitstring: np.ndarray):
-    n = len(bitstring)
-    return sum(bitstring[i] << (n - i - 1) for i in range(n))
 
 
 def _enter_moment_display_values_into_dictionary(
@@ -216,8 +218,9 @@ def _compute_samples_display_value(display: ops.SamplesDisplay,
         qubit_order=qubit_order,
         qubits_that_should_be_present=qubit_map.keys())
     indices = [qubit_map[qubit] for qubit in display.qubits]
-    samples = wave_function.sample_state_vector(
-        modified_state, indices, display.num_samples)
+    samples = wave_function.sample_state_vector(modified_state,
+                                                indices,
+                                                repetitions=display.num_samples)
     return display.value_derived_from_samples(samples)
 
 
@@ -242,6 +245,10 @@ class WaveFunctionSimulatorState:
         qubit_map: Dict[ops.Qid, int]):
         self.state_vector = state_vector
         self.qubit_map = qubit_map
+        self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
+
+    def _qid_shape_(self):
+        return self._qid_shape
 
     def __repr__(self):
         return (
@@ -286,16 +293,16 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
              Then the returned vector will have indices mapped to qubit basis
              states like the following table
 
-                    | QubitA | QubitB | QubitC
-                :-: | :----: | :----: | :----:
-                 0  |   0    |   0    |   0
-                 1  |   0    |   0    |   1
-                 2  |   0    |   1    |   0
-                 3  |   0    |   1    |   1
-                 4  |   1    |   0    |   0
-                 5  |   1    |   0    |   1
-                 6  |   1    |   1    |   0
-                 7  |   1    |   1    |   1
+                |     | QubitA | QubitB | QubitC |
+                | :-: | :----: | :----: | :----: |
+                |  0  |   0    |   0    |   0    |
+                |  1  |   0    |   0    |   1    |
+                |  2  |   0    |   1    |   0    |
+                |  3  |   0    |   1    |   1    |
+                |  4  |   1    |   0    |   0    |
+                |  5  |   1    |   0    |   1    |
+                |  6  |   1    |   1    |   0    |
+                |  7  |   1    |   1    |   1    |
         """
         return self._final_simulator_state.state_vector
 

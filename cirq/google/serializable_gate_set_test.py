@@ -72,7 +72,7 @@ def test_is_supported_gate_can_serialize_predicate():
 def test_serialize_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
-    circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1), cirq.X(q0))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
     proto = {
         'language': {
@@ -97,6 +97,47 @@ def test_serialize_deserialize_circuit():
     }
     assert proto == MY_GATE_SET.serialize_dict(circuit)
     assert MY_GATE_SET.deserialize_dict(proto) == circuit
+
+
+def test_deserialize_bad_operation_id():
+    proto = {
+        'language': {
+            'arg_function_language': '',
+            'gate_set': 'my_gate_set'
+        },
+        'circuit': {
+            'scheduling_strategy':
+            1,
+            'moments': [
+                {
+                    'operations': [],
+                },
+                {
+                    'operations': [
+                        {
+                            'gate': {
+                                'id': 'UNKNOWN_GATE'
+                            },
+                            'args': {
+                                'half_turns': {
+                                    'arg_value': {
+                                        'float_value': 1.0
+                                    }
+                                }
+                            },
+                            'qubits': [{
+                                'id': '1_1'
+                            }]
+                        },
+                    ]
+                },
+            ]
+        },
+    }
+    with pytest.raises(ValueError,
+                       match='problem in moment 1 handling an '
+                       'operation with the following'):
+        MY_GATE_SET.deserialize_dict(proto)
 
 
 def test_serialize_deserialize_empty_circuit():
@@ -130,6 +171,11 @@ def test_deserialize_empty_moment():
         },
     }
     assert MY_GATE_SET.deserialize_dict(proto) == circuit
+
+
+def test_serialize_unrecognized():
+    with pytest.raises(NotImplementedError, match='program type'):
+        MY_GATE_SET.serialize("not quite right")
 
 
 def test_serialize_deserialize_schedule():

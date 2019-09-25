@@ -12,6 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq import _import
+
+# A module can only depend on modules imported earlier in this list of modules
+# at import time.  Pytest will fail otherwise (enforced by
+# dev_tools/import_test.py).
+# Begin dependency order list of sub-modules.
+from cirq import (
+    # Low level
+    _version,
+    _compat,
+    type_workarounds,
+)
+with _import.delay_import('cirq.protocols'):
+    from cirq import (
+        # Core
+        protocols,
+        value,
+        linalg,
+        ops,
+        devices,
+        study,
+    )
+from cirq import (
+    # Core
+    circuits,
+    schedules,
+    # Optimize and run
+    optimizers,
+    work,
+    sim,
+    vis,
+    # Hardware specific
+    ion,
+    neutral_atoms,
+    api,
+    google,
+    # Applications
+    experiments,
+    # Extra (nothing should depend on these)
+    testing,
+    contrib,
+)
+# End dependency order list of sub-modules
+
 from cirq._version import (
     __version__,
 )
@@ -33,13 +77,15 @@ from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
     GridQubit,
+    LineQid,
     LineQubit,
     NO_NOISE,
     NoiseModel,
-    UnconstrainedDevice,
+    UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
+    linear_xeb_fidelity,
     generate_supremacy_circuit_google_v2,
     generate_supremacy_circuit_google_v2_bristlecone,
     generate_supremacy_circuit_google_v2_grid,
@@ -83,6 +129,7 @@ from cirq.linalg import (
     one_hot,
     partial_trace,
     PAULI_BASIS,
+    scatter_plot_normalized_kak_interaction_coefficients,
     pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
@@ -96,6 +143,7 @@ from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
     ApproxPauliStringExpectation,
+    ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
     bit_flip,
@@ -119,6 +167,8 @@ from cirq.ops import (
     DepolarizingChannel,
     EigenGate,
     flatten_op_tree,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     FREDKIN,
     freeze_op_tree,
     FSimGate,
@@ -130,13 +180,13 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
-    max_qid_shape,
     measure,
     measure_each,
     MeasurementGate,
@@ -148,10 +198,9 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    pauli_string_expectation,
+    approx_pauli_string_expectation,
     PauliInteractionGate,
     PauliString,
-    PauliStringExpectation,
     PauliStringGateOperation,
     PauliStringPhasor,
     PauliSum,
@@ -160,9 +209,12 @@ from cirq.ops import (
     phase_damp,
     phase_flip,
     PhaseDampingChannel,
+    PhaseGradientGate,
     PhasedXPowGate,
     PhaseFlipChannel,
+    QFT,
     Qid,
+    QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
     reset,
@@ -260,7 +312,13 @@ from cirq.sim import (
 
 from cirq.study import (
     ComputeDisplaysResult,
+    ExpressionMap,
+    flatten,
+    flatten_with_params,
+    flatten_with_sweep,
     Linspace,
+    ListSweep,
+    ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
     plot_state_histogram,
@@ -269,6 +327,7 @@ from cirq.study import (
     Sweep,
     Sweepable,
     to_resolvers,
+    to_sweep,
     TrialResult,
     UnitSweep,
     Zip,
@@ -288,6 +347,7 @@ from cirq.value import (
     LinearDict,
     PeriodicValue,
     Timestamp,
+    TParamVal,
     validate_probability,
     value_equality,
 )
@@ -327,6 +387,7 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
+    read_json,
     resolve_parameters,
     SupportsApplyChannel,
     SupportsConsistentApplyUnitary,
@@ -335,6 +396,7 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsMixture,
@@ -345,6 +407,8 @@ from cirq.protocols import (
     SupportsQasmWithArgsAndQubits,
     SupportsTraceDistanceBound,
     SupportsUnitary,
+    to_json,
+    obj_to_dict_helper,
     trace_distance_bound,
     unitary,
     validate_mixture,

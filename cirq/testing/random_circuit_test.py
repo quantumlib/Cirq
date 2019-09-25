@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Optional, Dict, Sequence, Union, cast
-
 from random import randint, random, sample, choice
+
+import numpy as np
 import pytest
 
 import cirq
@@ -67,3 +68,28 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
     assert set(cast(cirq.GateOperation, op).gate
                for op in circuit.all_operations()
                ).issubset(gate_domain)
+
+
+@pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
+def test_random_circuit_reproducible_with_seed(seed):
+    circuit1 = random_circuit(qubits=20,
+                              n_moments=20,
+                              op_density=0.7,
+                              random_state=seed)
+    circuit2 = random_circuit(qubits=20,
+                              n_moments=20,
+                              op_density=0.7,
+                              random_state=seed)
+    assert circuit1 == circuit2
+
+    prng = np.random.RandomState(seed)
+    circuit1 = random_circuit(qubits=20,
+                              n_moments=20,
+                              op_density=0.7,
+                              random_state=prng)
+    prng = np.random.RandomState(seed)
+    circuit2 = random_circuit(qubits=20,
+                              n_moments=20,
+                              op_density=0.7,
+                              random_state=prng)
+    assert circuit1 == circuit2
