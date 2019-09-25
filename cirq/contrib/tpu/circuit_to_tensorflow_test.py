@@ -39,20 +39,16 @@ def _assert_evaluates_correctly(circuit: cirq.Circuit,
 @pytest.mark.parametrize('n', range(10))
 def test_circuit_to_compute_and_feed_dict_small(n: int):
     qs = cirq.LineQubit.range(n)
-    c = cirq.Circuit.from_ops(
-        [cirq.X(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
-        [[cirq.CZ(a, b), cirq.X(a)**0.5, cirq.H(b)]
-         for a in qs
-         for b in qs
-         if a < b]
-    )
+    c = cirq.Circuit([cirq.X(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
+                     [[cirq.CZ(a, b), cirq.X(a)**0.5,
+                       cirq.H(b)] for a in qs for b in qs if a < b])
     _assert_evaluates_correctly(c)
 
 
 def test_circuit_to_compute_and_feed_dict_big():
     n = 16
     qs = cirq.LineQubit.range(n)
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         [cirq.H(q) for i, q in enumerate(qs)],
         cirq.CZ(qs[1], qs[3]),
         cirq.CZ(qs[1], qs[10]),
@@ -66,7 +62,7 @@ def test_circuit_to_compute_and_feed_dict_big():
 
 def test_circuit_to_compute_and_feed_dict_vector_custom_start_state():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit.from_ops(cirq.CZ(a, b))
+    c = cirq.Circuit(cirq.CZ(a, b))
 
     tf.reset_default_graph()
     r = circuit_to_tensorflow_runnable(c, initial_state=0)
@@ -102,11 +98,11 @@ def test_circuit_to_compute_and_feed_dict_vector_custom_start_state():
 
 def test_circuit_to_compute_and_feed_dict_allows_terminal_measurements():
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q), cirq.H(q))
+    c = cirq.Circuit(cirq.H(q), cirq.measure(q), cirq.H(q))
     with pytest.raises(ValueError):
         _ = circuit_to_tensorflow_runnable(c)
 
-    c = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+    c = cirq.Circuit(cirq.H(q), cirq.measure(q))
     _assert_evaluates_correctly(c)
 
 
@@ -124,11 +120,8 @@ def test_circuit_to_compute_and_feed_dict_works_on_unknown_ops():
 
     phased_swap = PhasedSwapGate()
 
-    c = cirq.Circuit.from_ops(
-        [cirq.Y(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
-        cirq.CCX(qs[0], qs[4], qs[8])**0.5,
-        phased_swap(qs[0], qs[1]),
-        phased_swap(qs[3], qs[9]),
-        phased_swap(qs[0], qs[6]),
-        phased_swap(qs[9], qs[8]))
+    c = cirq.Circuit([cirq.Y(q)**(0.13 * i + 0.1) for i, q in enumerate(qs)],
+                     cirq.CCX(qs[0], qs[4], qs[8])**0.5,
+                     phased_swap(qs[0], qs[1]), phased_swap(qs[3], qs[9]),
+                     phased_swap(qs[0], qs[6]), phased_swap(qs[9], qs[8]))
     _assert_evaluates_correctly(c, up_to_global_phase=True)
