@@ -43,6 +43,10 @@ class SerializableDevice(devices.Device):
 
     Expected usage is through constructing this class through a proto using
     the static function call from_proto().
+
+    This class only supports GridQubits and NamedQubits.  NamedQubits with names
+    that conflict (such as "4_3") may be converted to GridQubits on
+    deserialization.
     """
 
     def __init__(
