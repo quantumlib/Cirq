@@ -62,10 +62,7 @@ def test_not_both():
 def test_combines_sequence():
     m = cirq.MergeSingleQubitGates()
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit.from_ops(
-        cirq.X(q)**0.5,
-        cirq.Z(q)**0.5,
-        cirq.X(q)**-0.5)
+    c = cirq.Circuit(cirq.X(q)**0.5, cirq.Z(q)**0.5, cirq.X(q)**-0.5)
 
     opt_summary = m.optimization_at(c, 0, c.operation_at(q, 0))
     assert opt_summary.clear_span == 3
@@ -137,9 +134,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(
-        UnsupportedDummy()(q0),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0),)
     c_orig = cirq.Circuit(circuit)
     cirq.MergeSingleQubitGates().optimize_circuit(circuit)
 
@@ -149,7 +144,7 @@ def test_ignore_unsupported_gate():
 def test_rewrite():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(q0),
         cirq.X(q1),
         cirq.Y(q0),
@@ -161,24 +156,26 @@ def test_rewrite():
     ).optimize_circuit(circuit)
     cirq.DropEmptyMoments().optimize_circuit(circuit)
 
-    cirq.testing.assert_same_circuits(circuit, cirq.Circuit.from_ops(
-        cirq.H(q0),
-        cirq.H(q1),
-        cirq.CZ(q0, q1),
-        cirq.H(q1),
-    ))
+    cirq.testing.assert_same_circuits(
+        circuit,
+        cirq.Circuit(
+            cirq.H(q0),
+            cirq.H(q1),
+            cirq.CZ(q0, q1),
+            cirq.H(q1),
+        ))
 
 
 def test_merge_single_qubit_gates_into_phased_x_z():
     a, b = cirq.LineQubit.range(2)
-    assert_optimizes(before=cirq.Circuit.from_ops(
+    assert_optimizes(before=cirq.Circuit(
         cirq.X(a),
         cirq.Y(b)**0.5,
         cirq.CZ(a, b),
         cirq.H(a),
         cirq.Z(a),
     ),
-                     expected=cirq.Circuit.from_ops(
+                     expected=cirq.Circuit(
                          cirq.PhasedXPowGate(phase_exponent=1)(a),
                          cirq.Y(b)**0.5,
                          cirq.CZ(a, b),

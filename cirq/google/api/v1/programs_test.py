@@ -30,7 +30,7 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto_dict: Dict,
 
 def test_protobuf_round_trip():
     device = cg.Foxtail
-    circuit = cirq.Circuit.from_ops([cirq.X(q)**0.5 for q in device.qubits], [
+    circuit = cirq.Circuit([cirq.X(q)**0.5 for q in device.qubits], [
         cirq.CZ(q, q2)
         for q in [cirq.GridQubit(0, 0)]
         for q2 in device.neighbors_of(q)

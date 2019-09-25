@@ -41,7 +41,7 @@ class Zero(cirq.DensityMatrixDisplay):
 
 def test_density_matrix_display_on_wavefunction():
     zero_display = Zero([cirq.LineQubit(0)], key='zero')
-    circuit = cirq.Circuit.from_ops(zero_display)
+    circuit = cirq.Circuit(zero_display)
     simulator = cirq.Simulator()
     result = simulator.compute_displays(circuit)
     assert result.display_values['zero'] == 0
@@ -60,7 +60,7 @@ def test_approx_pauli_string_expectation_measurement_basis_change(paulis):
                                                    num_samples=1)
     matrix = np.kron(cirq.unitary(paulis[0]), cirq.unitary(paulis[1]))
 
-    circuit = cirq.Circuit.from_ops(display.measurement_basis_change())
+    circuit = cirq.Circuit(display.measurement_basis_change())
     unitary = circuit.unitary(qubit_order=qubits)
 
     ZZ = np.diag([1, -1, -1, 1])

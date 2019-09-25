@@ -183,10 +183,9 @@ class CircuitDag(networkx.DiGraph):
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
     def to_circuit(self) -> circuit.Circuit:
-        return circuit.Circuit.from_ops(
-                    self.all_operations(),
-                    strategy=circuit.InsertStrategy.EARLIEST,
-                    device=self.device)
+        return circuit.Circuit(self.all_operations(),
+                               strategy=circuit.InsertStrategy.EARLIEST,
+                               device=self.device)
 
     def findall_nodes_until_blocked(self,
                                     is_blocker: Callable[[ops.Operation], bool]
