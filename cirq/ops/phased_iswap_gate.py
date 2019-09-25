@@ -21,12 +21,12 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, raw_types, op_tree, common_gates
+from cirq.ops import common_gates, eigen_gate, op_tree, gate_features, raw_types
 from cirq.value import type_alias
 
 
 @value.value_equality(manual_cls=True)
-class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
+class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     """Fractional ISWAP conjugated by Z rotations.
 
     PhasedISwapPowGate with phase_exponent p and exponent t is equivalent to
@@ -64,6 +64,8 @@ class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
                 exponent=1, see EigenGate for details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
+        self._iswap = common_gates.ISwapPowGate(exponent=exponent,
+                                                global_shift=global_shift)
         super().__init__(exponent=exponent, global_shift=global_shift)
 
     @property
@@ -71,9 +73,12 @@ class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
         return self._phase_exponent
 
     def _json_dict_(self):
-        json_dict = super()._json_dict_()
-        json_dict['phase_exponent'] = self.phase_exponent
-        return json_dict
+        return {
+            'cirq_type': self.__class__.__name__,
+            'phase_exponent': self._phase_exponent,
+            'exponent': self._exponent,
+            'global_shift': self._global_shift,
+        }
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:
@@ -82,11 +87,11 @@ class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
 
     def _value_equality_values_(self):
         if self.phase_exponent == 0:
-            return super()._value_equality_values_()
-        return (self.phase_exponent, *super()._value_equality_values_())
+            return self._iswap._value_equality_values_()
+        return (self.phase_exponent, *self._iswap._value_equality_values_())
 
     def _is_parameterized_(self) -> bool:
-        if protocols.is_parameterized(super()):
+        if protocols.is_parameterized(self._iswap):
             return True
         return protocols.is_parameterized(self._phase_exponent)
 
@@ -104,7 +109,7 @@ class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
         phase_matrix = np.diag([1, phase, phase.conjugate(), 1])
         inverse_phase_matrix = np.conjugate(phase_matrix)
         eigen_components: List[Tuple[float, np.ndarray]] = []
-        for eigenvalue, projector in super()._eigen_components():
+        for eigenvalue, projector in self._iswap._eigen_components():
             new_projector = phase_matrix @ projector @ inverse_phase_matrix
             eigen_components.append((eigenvalue, new_projector))
         return eigen_components
@@ -121,7 +126,7 @@ class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
         oz = args.subspace_index(0b10)
         args.target_tensor[zo] *= phase
         args.target_tensor[oz] *= phase.conjugate()
-        args.target_tensor = super()._apply_unitary_(args)
+        args.target_tensor = self._iswap._apply_unitary_(args)
         assert args.target_tensor is not None
         args.target_tensor[zo] *= phase.conjugate()
         args.target_tensor[oz] *= phase
@@ -134,14 +139,14 @@ class PhasedISwapPowGate(common_gates.ISwapPowGate, gate_features.TwoQubitGate):
 
         yield cirq.Z(a)**self.phase_exponent
         yield cirq.Z(b)**-self.phase_exponent
-        yield from protocols.decompose_once_with_qubits(super(), qubits)
+        yield from protocols.decompose_once_with_qubits(self._iswap, qubits)
         yield cirq.Z(a)**-self.phase_exponent
         yield cirq.Z(b)**self.phase_exponent
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if self._is_parameterized_():
             return NotImplemented
-        expansion = protocols.pauli_expansion(super())
+        expansion = protocols.pauli_expansion(self._iswap)
         assert set(expansion.keys()).issubset({'II', 'XX', 'YY', 'ZZ'})
         assert np.isclose(expansion['XX'], expansion['YY'])
 
