@@ -76,14 +76,14 @@ def test_expression_map_repr():
 def test_flatten_circuit():
     qubit = cirq.LineQubit(0)
     a = sympy.Symbol('a')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qubit)**a,
         cirq.X(qubit)**(1 + a / 2),
     )
 
     c_flat, expr_map = cirq.flatten(circuit)
 
-    c_expected = cirq.Circuit.from_ops(
+    c_expected = cirq.Circuit(
         cirq.X(qubit)**a,
         cirq.X(qubit)**sympy.Symbol('<a/2 + 1>'),
     )
@@ -98,7 +98,7 @@ def test_flatten_circuit():
 def test_transform_params():
     qubit = cirq.LineQubit(0)
     a = sympy.Symbol('a')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qubit)**(a / 4),
         cirq.X(qubit)**(1 + a / 2),
     )
@@ -116,7 +116,7 @@ def test_transform_params():
 def test_transform_sweep():
     qubit = cirq.LineQubit(0)
     a = sympy.Symbol('a')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qubit)**(a / 4),
         cirq.X(qubit)**(1 + a / 2),
     )
