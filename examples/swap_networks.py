@@ -138,7 +138,7 @@ def get_max_cut_qaoa_circuit(vertices: Sequence[int],
     phase_sep_circuit = get_phase_sep_circuit(phase_sep_gates, qubits,
                                               initial_mapping, verbose)
 
-    mixing_circuit = cirq.Circuit.from_ops(cirq.X(q)**beta for q in qubits)
+    mixing_circuit = cirq.Circuit(cirq.X(q)**beta for q in qubits)
     return phase_sep_circuit + mixing_circuit
 
 

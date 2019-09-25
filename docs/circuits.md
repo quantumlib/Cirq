@@ -324,11 +324,11 @@ A very nice pattern emerges from this structure: define
 or `Operation` parameters.
 
 Another useful method is to construct a `Circuit` fully formed
-from an ``OP_TREE`` via the static method `Circuit.from_ops`
-(which takes an insertion strategy as a parameter):
+from an ``OP_TREE`` is to pass the `OP_TREE` into `Circuit`
+when initializing it:
 
 ```python
-circuit = cirq.Circuit.from_ops(H(q0), H(q1))
+circuit = cirq.Circuit(H(q0), H(q1))
 print(circuit)
 # prints
 # (0, 0): ───H───
@@ -341,7 +341,7 @@ print(circuit)
 ``Circuits`` can be iterated over and sliced. When they are iterated
 over each item in the iteration is a moment:
 ```python
-circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1))
+circuit = cirq.Circuit(H(q0), CZ(q0, q1))
 for moment in circuit:
     print(moment)
 # prints
@@ -351,7 +351,7 @@ for moment in circuit:
 Slicing a `Circuit` on the other hand, produces a new
 `Circuit` with only the moments corresponding to the slice:
 ```python
-circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
+circuit = cirq.Circuit(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
 print(circuit[1:3])
 # prints
 # (0, 0): ───@───────
