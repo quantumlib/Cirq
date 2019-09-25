@@ -21,17 +21,20 @@ import numpy as np
 from cirq.linalg import combinators, predicates, tolerance
 
 
-def diagonalize_real_symmetric_matrix(
-        matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> np.ndarray:
+def diagonalize_real_symmetric_matrix(matrix: np.ndarray,
+                                      *,
+                                      rtol: float = 1e-5,
+                                      atol: float = 1e-8,
+                                      check_preconditions: bool = True
+                                     ) -> np.ndarray:
     """Returns an orthogonal matrix that diagonalizes the given matrix.
 
     Args:
         matrix: A real symmetric matrix to diagonalize.
-        rtol: float = 1e-5,
-        atol: float = 1e-8
+        rtol: Relative error tolerance.
+        atol: Absolute error tolerance.
+        check_preconditions: If set, verifies that the input matrix is real and
+            symmetric.
 
     Returns:
         An orthogonal matrix P such that P.T @ matrix @ P is diagonal.
@@ -40,8 +43,9 @@ def diagonalize_real_symmetric_matrix(
         ValueError: Matrix isn't real symmetric.
     """
 
-    # TODO: Determine if thresholds should be passed into is_hermitian
-    if np.any(np.imag(matrix) != 0) or not predicates.is_hermitian(matrix):
+    if check_preconditions and (
+            np.any(np.imag(matrix) != 0) or
+            not predicates.is_hermitian(matrix, rtol=rtol, atol=atol)):
         raise ValueError('Input must be real and symmetric.')
 
     _, result = np.linalg.eigh(matrix)
@@ -137,7 +141,7 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
     for start, end in ranges:
         block = symmetric_matrix[start:end, start:end]
         p[start:end, start:end] = diagonalize_real_symmetric_matrix(
-            block, rtol=rtol, atol=atol)
+            block, rtol=rtol, atol=atol, check_preconditions=False)
 
     return p
 

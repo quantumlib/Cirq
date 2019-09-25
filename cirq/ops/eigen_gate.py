@@ -24,7 +24,6 @@ import sympy
 from cirq import value, protocols
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
-from cirq.protocols import trace_distance_from_angle_list
 
 
 TSelf = TypeVar('TSelf', bound='EigenGate')
@@ -61,9 +60,11 @@ class EigenGate(raw_types.Gate):
     method.
     """
 
-    def __init__(self, *,  # Forces keyword args.
-                 exponent: Union[sympy.Basic, float] = 1.0,
-                 global_shift: float = 0.0) -> None:
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            exponent: value.TParamVal = 1.0,
+            global_shift: float = 0.0) -> None:
         """Initializes the parameters used to compute the gate's matrix.
 
         The eigenvalue of each eigenspace of a gate is computed by
@@ -106,12 +107,15 @@ class EigenGate(raw_types.Gate):
         self._canonical_exponent_cached = None
 
     @property
-    def exponent(self) -> Union[sympy.Basic, float]:
+    def exponent(self) -> value.TParamVal:
         return self._exponent
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     # virtual method
-    def _with_exponent(self: TSelf,
-                       exponent: Union[sympy.Basic, float]) -> TSelf:
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -126,7 +130,7 @@ class EigenGate(raw_types.Gate):
         # pylint: enable=unexpected-keyword-arg
 
     def _diagram_exponent(self,
-                          args: protocols.CircuitDiagramInfoArgs,
+                          args: 'protocols.CircuitDiagramInfoArgs',
                           *,
                           ignore_global_phase: bool = True):
         """The exponent to use in circuit diagrams.
@@ -296,7 +300,7 @@ class EigenGate(raw_types.Gate):
         if protocols.is_parameterized(self._exponent):
             return None
         angles = np.pi * (np.array(self._eigen_shifts()) * self._exponent % 2)
-        return trace_distance_from_angle_list(angles)
+        return protocols.trace_distance_from_angle_list(angles)
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
@@ -317,6 +321,9 @@ class EigenGate(raw_types.Gate):
     def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
 
 def _lcm(vals: Iterable[int]) -> int:

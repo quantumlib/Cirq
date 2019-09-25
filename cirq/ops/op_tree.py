@@ -15,42 +15,43 @@
 """A recursive type describing trees of operations, and utility methods for it.
 """
 
-import collections
-
-from typing import Any, Dict, Callable, Iterable, Tuple, Union
+from typing import Callable, Iterable, Iterator, NoReturn, Union
+from typing_extensions import Protocol
 
 from cirq.ops.moment import Moment
-from cirq.ops.qubit_order import QubitOrder
-from cirq.ops.qubit_order_or_list import QubitOrderOrList
-from cirq.ops.raw_types import Operation, Qid
-from cirq import protocols
+from cirq.ops.raw_types import Operation
 
 
-OP_TREE = Union[Operation, Iterable[Any]]
-"""The recursive type consumed by circuit builder methods.
+class OpTree(Protocol):
+    """The recursive type consumed by circuit builder methods.
 
-An OP_TREE is a contract, not a class. The basic idea is that, if the input can
-be iteratively flattened into a list of operations, then the input is an
-OP_TREE.
+    An OpTree is a type protocol, satisfied by anything that can be recursively
+    flattened into Operations. We also define the Union type OP_TREE which
+    can be an OpTree or just a single Operation.
 
-For example:
-- An Operation is an OP_TREE all by itself.
-- A list of operations is an OP_TREE.
-- A list of tuples of operations is an OP_TREE.
-- A list with a mix of operations and lists of operations is an OP_TREE.
-- A generator yielding operations is an OP_TREE.
+    For example:
+    - An Operation is an OP_TREE all by itself.
+    - A list of operations is an OP_TREE.
+    - A list of tuples of operations is an OP_TREE.
+    - A list with a mix of operations and lists of operations is an OP_TREE.
+    - A generator yielding operations is an OP_TREE.
 
-Note: once mypy has support for recursive types we can define this as:
+    Note: once mypy supports recursive types this could be defined as an alias:
 
-OP_TREE = Union[Operation, Iterable['OP_TREE']]
+    OP_TREE = Union[Operation, Iterable['OP_TREE']]
 
-See: https://github.com/python/mypy/issues/731
-"""
+    See: https://github.com/python/mypy/issues/731
+    """
+
+    def __iter__(self) -> Iterator[Union[Operation, 'OpTree']]:
+        pass
 
 
-def flatten_op_tree(root: OP_TREE,
-                    preserve_moments: bool = False
-                    ) -> Iterable[Union[Operation, Moment]]:
+OP_TREE = Union[Operation, OpTree]
+
+
+def flatten_op_tree(root: OP_TREE, preserve_moments: bool = False
+                   ) -> Iterator[Union[Operation, Moment]]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
     Args:
@@ -64,19 +65,53 @@ def flatten_op_tree(root: OP_TREE,
     Raises:
         TypeError: root isn't a valid OP_TREE.
     """
-    if (isinstance(root, Operation)
-            or preserve_moments and isinstance(root, Moment)):
+    if preserve_moments:
+        return flatten_to_ops_or_moments(root)
+    else:
+        return flatten_to_ops(root)
+
+
+def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
+    """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
+
+    Args:
+        root: The operation or tree of operations to iterate.
+
+    Yields:
+        Operations or moments from the tree.
+
+    Raises:
+        TypeError: root isn't a valid OP_TREE.
+    """
+    if isinstance(root, Operation):
         yield root
-        return
-
-    if isinstance(root, Iterable):
+    elif isinstance(root, Iterable):
         for subtree in root:
-            for item in flatten_op_tree(subtree, preserve_moments):
-                yield item
-        return
+            yield from flatten_to_ops(subtree)
+    else:
+        _bad_op_tree(root)
 
-    raise TypeError('Not an Iterable or an Operation: {} {}'.format(
-        type(root), root))
+
+def flatten_to_ops_or_moments(root: OP_TREE
+                             ) -> Iterator[Union[Operation, Moment]]:
+    """Performs an in-order iteration OP_TREE, yielding ops and moments.
+
+    Args:
+        root: The operation or tree of operations to iterate.
+
+    Yields:
+        Operations or moments from the tree.
+
+    Raises:
+        TypeError: root isn't a valid OP_TREE.
+    """
+    if isinstance(root, (Operation, Moment)):
+        yield root
+    elif isinstance(root, Iterable):
+        for subtree in root:
+            yield from flatten_to_ops_or_moments(subtree)
+    else:
+        _bad_op_tree(root)
 
 
 def transform_op_tree(
@@ -116,7 +151,7 @@ def transform_op_tree(
                               preserve_moments)
             for subtree in root)
 
-    raise TypeError('Not an Iterable or an Operation: {}'.format(root))
+    _bad_op_tree(root)
 
 
 def freeze_op_tree(root: OP_TREE) -> OP_TREE:
@@ -132,33 +167,5 @@ def freeze_op_tree(root: OP_TREE) -> OP_TREE:
     return transform_op_tree(root, iter_transformation=tuple)
 
 
-def max_qid_shape(*operations: OP_TREE,
-                  qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-                  qubits_that_should_be_present: Iterable[Qid] = (),
-                  default_level: int = 1) -> Tuple[int, ...]:
-    """Computes the highest quantum level needed for each qubit by taking the
-    maximum of the levels specified by the qid_shape of each operation in
-    `operations`.
-
-    Args:
-        operations: The operations to compute the maximum over.
-        qubit_order: If specified, determines the order of the entries of the
-            returned `qid_shape`.  If this is a list, the entries of the
-            shape will correspond directly to the entries of `qubit_order`.
-        qubits_that_should_be_present: Qubits that may or may not appear
-            in `operations` but should be included in the returned
-            `qid_shape`.
-        default_level: The default quantum level of a qubit if none of the
-            operations operate on it.
-
-    Returns:
-        A tuple of the quantum levels of each qubit sorted by `qubit_order`.
-    """
-    shape_dict = collections.defaultdict(lambda: default_level
-                                        )  # type: Dict[Qid, int]
-    for op in flatten_op_tree(operations):
-        for level, qubit in zip(protocols.qid_shape(op), op.qubits):
-            shape_dict[qubit] = max(shape_dict.get(qubit, level), level)
-    qubits = QubitOrder.as_qubit_order(qubit_order).order_for(
-        set(shape_dict.keys()) | set(qubits_that_should_be_present))
-    return tuple(shape_dict[qubit] for qubit in qubits)
+def _bad_op_tree(root: OP_TREE) -> NoReturn:
+    raise TypeError(f'Not an Operation or Iterable: {type(root)} {root}')

@@ -13,6 +13,12 @@
 # limitations under the License.
 """Data format v1 for google api."""
 
+from cirq.google.api.v1 import (
+    operations_pb2,
+    params_pb2,
+    program_pb2,
+)
+
 from cirq.google.api.v1.params import (sweep_from_proto_dict,
                                        sweep_to_proto_dict)
 

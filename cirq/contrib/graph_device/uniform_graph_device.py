@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, Hashable, Iterable, Mapping, Optional
 
-from cirq import line, ops
+from cirq import devices, ops
 from cirq.contrib.graph_device.graph_device import (UndirectedGraphDevice,
                                                     UndirectedGraphDeviceEdge)
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
@@ -62,7 +62,7 @@ def uniform_undirected_linear_device(
 
     device = UndirectedGraphDevice()
     for arity, label in edge_labels.items():
-        edges = (line.LineQubit.range(i, i + arity)
+        edges = (devices.LineQubit.range(i, i + arity)
                  for i in range(n_qubits - arity + 1))
         device += uniform_undirected_graph_device(edges, label)
     return device
