@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING, TypeVar, Union, Sequence, Iterable
+from typing import Any, TYPE_CHECKING, TypeVar, Sequence, Iterable
 
 from cirq.ops import op_tree
 
