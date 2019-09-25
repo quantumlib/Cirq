@@ -62,8 +62,8 @@ def quartic_paired_acquaintance_strategy(
     qubits = qubit_pairs_to_qubit_order(qubit_pairs)
     n_qubits = len(qubits)
     swap_network = SwapNetworkGate((1,) * n_qubits, 2)(*qubits)
-    strategy = circuits.Circuit.from_ops(swap_network,
-            device=UnconstrainedAcquaintanceDevice)
+    strategy = circuits.Circuit(swap_network,
+                                device=UnconstrainedAcquaintanceDevice)
     expose_acquaintance_gates(strategy)
     for i in reversed(range(0, n_qubits, 2)):
         moment = ops.Moment([acquaint(*qubits[j: j + 4])

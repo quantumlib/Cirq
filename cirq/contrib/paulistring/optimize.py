@@ -51,7 +51,7 @@ def optimized_circuit(circuit: circuits.Circuit,
 def _optimized_ops(ops: Sequence[ops.Operation],
                    atol: float = 1e-8,
                    repeat: int = 10) -> ops.OP_TREE:
-    c = circuits.Circuit.from_ops(ops)
+    c = circuits.Circuit(ops)
     c_opt = optimized_circuit(c, atol, repeat, merge_interactions=False)
     return c_opt.all_operations()
 
