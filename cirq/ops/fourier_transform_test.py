@@ -109,8 +109,8 @@ def test_inverse():
 
 def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(
-            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))), """
+        cirq.Circuit(cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))),
+        """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────×───
           │              │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────×───┼───
@@ -135,8 +135,7 @@ def test_circuit_diagram():
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit(cirq.QFT(*cirq.LineQubit.range(4)),
-                              cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))),
-        """
+                     cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))), """
 0: ───QFT───QFT^-1───
       │     │
 1: ───#2────#2───────
