@@ -19,7 +19,7 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import protocols, value
+from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import common_gates, eigen_gate, op_tree, gate_features, raw_types
 
@@ -112,19 +112,18 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                        ) -> Optional[np.ndarray]:
         if protocols.is_parameterized(self):
             return NotImplemented
-        if self.exponent != 1:
-            return NotImplemented
 
-        phase = np.exp(1j * np.pi * self.phase_exponent)
+        c = np.cos(np.pi * self._exponent / 2)
+        s = np.sin(np.pi * self._exponent / 2)
+        f = np.exp(2j * np.pi * self._phase_exponent)
+        matrix = np.array([[c, 1j * s * f], [1j * s * f.conjugate(), c]])
+
         zo = args.subspace_index(0b01)
         oz = args.subspace_index(0b10)
-        args.target_tensor[zo] *= phase
-        args.target_tensor[oz] *= phase.conjugate()
-        args.target_tensor = self._iswap._apply_unitary_(args)
-        assert args.target_tensor is not None
-        args.target_tensor[zo] *= phase.conjugate()
-        args.target_tensor[oz] *= phase
-        return args.target_tensor
+        linalg.apply_matrix_to_slices(args.target_tensor,
+                                      matrix, [oz, zo],
+                                      out=args.available_buffer)
+        return args.available_buffer
 
     def _decompose_(self, qubits: Sequence[raw_types.Qid]) -> op_tree.OP_TREE:
         if len(qubits) != 2:
