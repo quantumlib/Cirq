@@ -140,16 +140,16 @@ TEST_OBJECTS = {
     'CZPowGate':
     cirq.CZPowGate(exponent=0.123, global_shift=0.456),
     'Circuit': [
-        cirq.Circuit.from_ops(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
-        cirq.Circuit.from_ops(cirq.CCNOT(Q0, Q1, Q2),
-                              cirq.X(Q0)**0.123),
-        cirq.Circuit.from_ops(
+        cirq.Circuit(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
+        cirq.Circuit(cirq.CCNOT(Q0, Q1, Q2),
+                     cirq.X(Q0)**0.123),
+        cirq.Circuit(
             cirq.XPowGate(exponent=sympy.Symbol('theta'),
                           global_shift=0).on(Q0)),
         # TODO: even the following doesn't work because theta gets
         #       multiplied by 1/pi.
         #       https://github.com/quantumlib/Cirq/issues/2014
-        # cirq.Circuit.from_ops(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
+        # cirq.Circuit(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
     ],
     'Duration':
     cirq.Duration(picos=6),

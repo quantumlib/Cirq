@@ -17,7 +17,7 @@ def sample_noisy_bitstrings(circuit: cirq.Circuit,
     n_incoherent = int(depolarization * repetitions)
     n_coherent = repetitions - n_incoherent
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
-    circuit_with_measurements = cirq.Circuit.from_ops(
+    circuit_with_measurements = cirq.Circuit(
         circuit, cirq.measure(*qubit_order, key='m'))
     # TODO(viathor): Remove conditional after #2114.
     if n_coherent > 0:
@@ -71,7 +71,7 @@ def test_linear_xeb_fidelity(depolarization):
 
 def test_linear_xeb_fidelity_invalid_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = sample_noisy_bitstrings(circuit, (q0, q1, q2), 0.9, 10)
     with pytest.raises(ValueError):
         cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q2))
@@ -79,7 +79,7 @@ def test_linear_xeb_fidelity_invalid_qubits():
 
 def test_linear_xeb_fidelity_invalid_bitstrings():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2, 3, 4]
     with pytest.raises(ValueError):
         cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
@@ -87,7 +87,7 @@ def test_linear_xeb_fidelity_invalid_bitstrings():
 
 def test_linear_xeb_fidelity_tuple_input():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2]
     f1 = cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
     f2 = cirq.linear_xeb_fidelity(circuit, tuple(bitstrings), (q0, q1))
