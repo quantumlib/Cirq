@@ -52,12 +52,13 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def __init__(self,
                  *,
-                 phase_exponent: Union[float, sympy.Symbol] = 1 / 4,
+                 phase_exponent: Union[float, sympy.Symbol] = 0.25,
                  exponent: Union[float, sympy.Symbol] = 1.0,
                  global_shift: float = 0.0) -> None:
         """
         Args:
-            phase_exponent: The exponent on the Z gates.
+            phase_exponent: The exponent on the Z gates. We conjugate by
+                the T gate by default.
             exponent: The exponent on the ISWAP gate, see EigenGate for
                 details.
             global_shift: How much to shift the operation's eigenvalues at
