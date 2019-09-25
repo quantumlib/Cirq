@@ -174,9 +174,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 # In numerical linear algebra Givens rotation is any linear transformation
 # with matrix equal to the identity except for a 2x2 orthogonal submatrix
-# [[cos(a), -sin(a)], [sin(a), cos(a)]] which performs a 2D rotation. In
-# quantum computational chemistry the term is used to refer to the two-qubit
-# gate defined as
+# [[cos(a), -sin(a)], [sin(a), cos(a)]] which performs a 2D rotation on a
+# subspace spanned by two basis vectors. In quantum computational chemistry
+# the term is used to refer to the two-qubit gate defined as
 #
 #     GivensRotation(a) ≡ exp(-i a (Y⊗X - X⊗Y) / 2)
 #
