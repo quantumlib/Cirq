@@ -202,7 +202,7 @@ def test_trace_bound():
 
 def test_diagram():
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.PhasedXPowGate(phase_exponent=sympy.Symbol('a'),
                             exponent=sympy.Symbol('b')).on(q),
         cirq.PhasedXPowGate(phase_exponent=sympy.Symbol('a') * 2,

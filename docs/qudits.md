@@ -23,7 +23,7 @@ class QutritPlusGate(cirq.SingleQubitGate):
         return '[+1]'
 
 q0 = cirq.LineQid(0, dimension=3)
-circuit = cirq.Circuit.from_ops(
+circuit = cirq.Circuit(
     QutritPlusGate().on(q0)
 )
 
