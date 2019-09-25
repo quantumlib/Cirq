@@ -32,7 +32,7 @@ import re
 import numpy as np
 
 from cirq import devices, linalg, ops, study, protocols
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -93,19 +93,44 @@ class Circuit:
         circuit[1:7] = [Moment(...)]
     """
 
+    @deprecated_parameter(
+        deadline='v0.8',
+        fix='Pass contents positionally or using the "contents=" keyword.',
+        func_name='cirq.Circuit',
+        parameter_desc='moments keyword',
+        match=lambda args, kwargs: 'moments' in kwargs,
+        rewrite=lambda args, kwargs: (args + (kwargs[
+            'moments'],), {k: v for k, v in kwargs.items() if k != 'moments'}))
+    @deprecated_parameter(
+        deadline='v0.8',
+        fix='Pass the device using the "device=" keyword.',
+        func_name='cirq.Circuit',
+        parameter_desc='positional device',
+        match=lambda args, kwargs: len(args) == 3 and isinstance(
+            args[2], devices.Device),
+        rewrite=lambda args, kwargs: (
+            args[:2], dict(list(kwargs.items()) + [('device', args[2])])))
     def __init__(self,
-                 moments: Iterable['cirq.Moment'] = (),
-                 device: devices.Device = devices.UNCONSTRAINED_DEVICE) -> None:
+                 *contents: 'cirq.OP_TREE',
+                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a circuit.
 
         Args:
-            moments: The initial list of moments defining the circuit.
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together. This option does not affect later insertions into the
+                circuit.
             device: Hardware that the circuit should be able to run on.
         """
-        self._moments = list(moments)
+        self._moments: List['cirq.Moment'] = []
         self._device = device
-        self._device.validate_circuit(self)
-        self._validate_op_tree_qids(self)
+        self.append(contents, strategy=strategy)
 
     @property
     def device(self) -> devices.Device:
@@ -139,7 +164,7 @@ class Circuit:
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, self._device)
+        return Circuit(self._moments, device=self._device)
 
     def __bool__(self):
         return bool(self._moments)
@@ -183,7 +208,7 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key], self.device)
+            return Circuit(self._moments[key], device=self.device)
         if isinstance(key, int):
             return self._moments[key]
 
@@ -234,7 +259,7 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        result = Circuit(moments=self._moments, device=device)
+        result = Circuit(self._moments, device=device)
         return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
@@ -283,10 +308,9 @@ class Circuit:
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit(moments={})'.format(moment_str)
+            return 'cirq.Circuit({})'.format(moment_str)
 
-        return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,
-                                                              self._device)
+        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -308,12 +332,13 @@ class Circuit:
         Returns:
             The translated circuit.
         """
-        return Circuit(
-            moments=[ops.Moment(operation.transform_qubits(qubit_mapping)
-                            for operation in moment.operations)
-                     for moment in self._moments],
-            device=new_device
-        )
+        return Circuit([
+            ops.Moment(
+                operation.transform_qubits(qubit_mapping)
+                for operation in moment.operations)
+            for moment in self._moments
+        ],
+                       device=new_device)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
@@ -907,11 +932,11 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(ops.flatten_op_tree(
-            ops.transform_op_tree(moment_or_operation_tree,
-                                  self._device.decompose_operation,
-                                  preserve_moments=True),
-            preserve_moments=True))
+        moments_and_operations = list(
+            ops.flatten_to_ops_or_moments(
+                ops.transform_op_tree(moment_or_operation_tree,
+                                      self._device.decompose_operation,
+                                      preserve_moments=True),))
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
@@ -963,15 +988,15 @@ class Circuit:
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
-        operations = list(ops.flatten_op_tree(operations))
-        for op in operations:
+        flat_ops = list(ops.flatten_to_ops(operations))
+        for op in flat_ops:
             self._device.validate_operation(op)
-        self._validate_op_tree_qids(operations)
+        self._validate_op_tree_qids(flat_ops)
 
         i = start
         op_index = 0
-        while op_index < len(operations):
-            op = operations[op_index]
+        while op_index < len(flat_ops):
+            op = flat_ops[op_index]
             while i < end and not self._device.can_add_operation_into_moment(
                     op, self._moments[i]):
                 i += 1
@@ -980,10 +1005,10 @@ class Circuit:
             self._moments[i] = self._moments[i].with_operation(op)
             op_index += 1
 
-        if op_index >= len(operations):
+        if op_index >= len(flat_ops):
             return end
 
-        return self.insert(end, operations[op_index:])
+        return self.insert(end, flat_ops[op_index:])
 
     @staticmethod
     def _pick_inserted_ops_moment_indices(
@@ -1103,10 +1128,10 @@ class Circuit:
         """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
-        operations = tuple(ops.flatten_op_tree(operations))
-        if not operations:
+        flat_ops = tuple(ops.flatten_to_ops(operations))
+        if not flat_ops:
             return frontier
-        qubits = set(q for op in operations for q in op.qubits)
+        qubits = set(q for op in flat_ops for q in op.qubits)
         if any(frontier[q] > start for q in qubits):
             raise ValueError('The frontier for qubits on which the operations'
                              'to insert act cannot be after start.')
@@ -1114,11 +1139,11 @@ class Circuit:
         next_moments = self.next_moments_operating_on(qubits, start)
 
         insertion_indices, _ = self._pick_inserted_ops_moment_indices(
-            operations, start, frontier)
+            flat_ops, start, frontier)
 
         self._push_frontier(frontier, next_moments)
 
-        self._insert_operations(operations, insertion_indices)
+        self._insert_operations(flat_ops, insertion_indices)
 
         return frontier
 
@@ -1622,6 +1647,10 @@ class Circuit:
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['moments', 'device'])
 
+    @classmethod
+    def _from_json_dict_(cls, moments, device, **kwargs):
+        return cls(moments, device=device)
+
     def with_noise(self, noise: devices.NoiseModel) -> 'cirq.Circuit':
         """Make a noisy version of the circuit.
 
@@ -1777,7 +1806,11 @@ def _draw_moment_in_diagram(
         if exponent is not None:
             if info.connected:
                 # Add an exponent to the last label only.
-                out_diagram.write(x, y2, '^' + exponent)
+                if info.exponent_qubit_index is not None:
+                    y3 = qubit_map[op.qubits[info.exponent_qubit_index]]
+                else:
+                    y3 = y2
+                out_diagram.write(x, y3, '^' + exponent)
             else:
                 # Add an exponent to every label
                 for index in indices:

@@ -85,6 +85,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    linear_xeb_fidelity,
     generate_supremacy_circuit_google_v2,
     generate_supremacy_circuit_google_v2_bristlecone,
     generate_supremacy_circuit_google_v2_grid,
@@ -166,6 +167,8 @@ from cirq.ops import (
     DepolarizingChannel,
     EigenGate,
     flatten_op_tree,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     FREDKIN,
     freeze_op_tree,
     FSimGate,
@@ -206,9 +209,12 @@ from cirq.ops import (
     phase_damp,
     phase_flip,
     PhaseDampingChannel,
+    PhaseGradientGate,
     PhasedXPowGate,
     PhaseFlipChannel,
+    QFT,
     Qid,
+    QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
     reset,
@@ -390,6 +396,7 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsMixture,

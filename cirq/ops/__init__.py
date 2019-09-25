@@ -84,6 +84,12 @@ from cirq.ops.display import (
 from cirq.ops.eigen_gate import (
     EigenGate,)
 
+from cirq.ops.fourier_transform import (
+    PhaseGradientGate,
+    QFT,
+    QuantumFourierTransformGate,
+)
+
 from cirq.ops.fsim_gate import (
     FSimGate,)
 
@@ -136,6 +142,8 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     OP_TREE,
     transform_op_tree,
 )
