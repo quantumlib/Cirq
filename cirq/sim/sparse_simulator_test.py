@@ -713,7 +713,7 @@ def test_compute_amplitudes():
 
 def test_compute_amplitudes_bad_input():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit.from_ops(cirq.X(a), cirq.H(a), cirq.H(b))
+    c = cirq.Circuit(cirq.X(a), cirq.H(a), cirq.H(b))
     sim = cirq.Simulator()
 
     with pytest.raises(ValueError, match='1-dimensional'):
