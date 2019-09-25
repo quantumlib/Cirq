@@ -87,7 +87,7 @@ def test_aqt_sampler_error_handling():
             sampler = AQTSampler(remote_host="http://localhost:5000",
                                  access_token='testkey')
             device, qubits = get_aqt_device(1)
-            circuit = Circuit.from_ops(X(qubits[0])**theta, device=device)
+            circuit = Circuit(X(qubits[0])**theta, device=device)
             sweep = study.Linspace(key='theta',
                                    start=0.1,
                                    stop=max_angle / np.pi,
@@ -115,7 +115,7 @@ def test_aqt_sampler():
         sampler = AQTSampler(remote_host="http://localhost:5000",
                              access_token='testkey')
         device, qubits = get_aqt_device(1)
-        circuit = Circuit.from_ops(X(qubits[0])**theta, device=device)
+        circuit = Circuit(X(qubits[0])**theta, device=device)
         sweep = study.Linspace(key='theta',
                                start=0.1,
                                stop=max_angle / np.pi,
@@ -141,7 +141,7 @@ def test_aqt_sampler_sim():
     device, qubits = get_aqt_device(num_qubits)
     sampler = AQTRemoteSimulator()
     sampler.simulate_ideal = True
-    circuit = Circuit.from_ops(X(qubits[3])**theta, device=device)
+    circuit = Circuit(X(qubits[3])**theta, device=device)
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,
@@ -161,10 +161,7 @@ def test_aqt_sampler_sim_xtalk():
     device, qubits = get_aqt_device(num_qubits)
     sampler = AQTRemoteSimulator()
     sampler.simulate_ideal = False
-    circuit = Circuit.from_ops(X(qubits[0]),
-                               X(qubits[3]),
-                               X(qubits[2]),
-                               device=device)
+    circuit = Circuit(X(qubits[0]), X(qubits[3]), X(qubits[2]), device=device)
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,
