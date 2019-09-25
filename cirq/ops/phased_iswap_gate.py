@@ -172,9 +172,15 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         return f'cirq.PhasedISwapPowGate({arg_string})'
 
 
-# The ISWAP gate conjugated by T⊗T^-1.
+# In numerical linear algebra Givens rotation is any linear transformation
+# with matrix equal to the identity except for a 2x2 orthogonal submatrix
+# [[cos(a), -sin(a)], [sin(a), cos(a)]] which performs a 2D rotation. In
+# quantum computational chemistry the term is used to refer to the two-qubit
+# gate defined as
 #
-# Matrix of GivensRotation(a) is
+#     GivensRotation(a) ≡ exp(-i a (Y⊗X - X⊗Y) / 2)
+#
+# with the matrix
 #
 #     [[1, 0, 0, 0],
 #      [0, c, -s, 0],
@@ -186,9 +192,10 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 #     c = cos(a),
 #     s = sin(a).
 #
-# Equivalently, it may be defined as
+# The matrix is a Givens rotation in the numerical linear algebra sense
+# acting on the subspace spanned by the |01⟩ and |10⟩ states.
 #
-#     GivensRotation(a) ≡ exp(-i a (Y⊗X - X⊗Y) / 2)
+# The gate is also equivalent to the ISWAP conjugated by T^-1 ⊗ T.
 #
 def GivensRotation(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
     """Returns gate with matrix exp(-i angle_rads (Y⊗X - X⊗Y) / 2)."""
