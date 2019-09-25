@@ -280,14 +280,13 @@ class TrialResult:
     def __add__(self, other: 'cirq.TrialResult') -> 'cirq.TrialResult':
         if not isinstance(other, type(self)):
             return NotImplemented
-        if self._measurement_shape() == other._measurement_shape():
-            all_measurements: Dict[str, np.ndarray] = {}
-            for key in other.measurements:
-                all_measurements[key] = np.append(self.measurements[key],
-                                                  other.measurements[key],
-                                                  axis=0)
-            return TrialResult(params=self.params,
-                               measurements=all_measurements)
-
-        raise ValueError('TrialResults do not have the same parameters or do '
-                         'not have the same measurement keys.')
+        if self._measurement_shape() != other._measurement_shape():
+            raise ValueError(
+                'TrialResults do not have the same parameters or do '
+                'not have the same measurement keys.')
+        all_measurements: Dict[str, np.ndarray] = {}
+        for key in other.measurements:
+            all_measurements[key] = np.append(self.measurements[key],
+                                              other.measurements[key],
+                                              axis=0)
+        return TrialResult(params=self.params, measurements=all_measurements)
