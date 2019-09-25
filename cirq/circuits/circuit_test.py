@@ -1523,7 +1523,7 @@ def test_from_ops():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    actual = cirq.Circuit(
+    actual = cirq.Circuit.from_ops(
         cirq.X(a),
         [cirq.Y(a), cirq.Z(b)],
         cirq.CZ(a, b),
@@ -1531,7 +1531,7 @@ def test_from_ops():
         [cirq.Z(b), cirq.Y(a)],
     )
 
-    assert actual == cirq.Circuit([
+    assert actual == cirq.Circuit.from_ops([
         cirq.Moment([cirq.X(a), cirq.Z(b)]),
         cirq.Moment([cirq.Y(a)]),
         cirq.Moment([cirq.CZ(a, b)]),
