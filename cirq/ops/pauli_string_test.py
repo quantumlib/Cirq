@@ -497,8 +497,7 @@ def test_to_z_basis_ops():
     pauli_string = cirq.PauliString({q0: cirq.X, q1: cirq.X,
                                      q2: cirq.Y, q3: cirq.Y,
                                      q4: cirq.Z, q5: cirq.Z})
-    circuit = cirq.Circuit.from_ops(
-                    pauli_string.to_z_basis_ops())
+    circuit = cirq.Circuit(pauli_string.to_z_basis_ops())
 
     initial_state = cirq.kron(x0, x1, y0, y1, z0, z1)
     z_basis_state = circuit.final_wavefunction(initial_state)
@@ -866,7 +865,7 @@ def test_pauli_string_expectation_from_wavefunction_pure_state():
     qubits = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qubits)}
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qubits[1]),
         cirq.H(qubits[2]),
         cirq.X(qubits[3]),
@@ -903,7 +902,7 @@ def test_pauli_string_expectation_from_wavefunction_pure_state_with_coef():
     qs = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qs)}
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qs[1]),
         cirq.H(qs[2]),
         cirq.X(qs[3]),
@@ -1091,7 +1090,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     qubits = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qubits)}
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qubits[1]),
         cirq.H(qubits[2]),
         cirq.X(qubits[3]),
@@ -1129,7 +1128,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
     qs = cirq.LineQubit.range(4)
     q_map = {q: i for i, q in enumerate(qs)}
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(qs[1]),
         cirq.H(qs[2]),
         cirq.X(qs[3]),
