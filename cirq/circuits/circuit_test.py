@@ -1531,7 +1531,7 @@ def test_deprecated_from_ops():
         [cirq.Z(b), cirq.Y(a)],
     )
 
-    assert actual == cirq.Circuit([
+    assert actual == cirq.Circuit.from_ops([
         cirq.Moment([cirq.X(a), cirq.Z(b)]),
         cirq.Moment([cirq.Y(a)]),
         cirq.Moment([cirq.CZ(a, b)]),
