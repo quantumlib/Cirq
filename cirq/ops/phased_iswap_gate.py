@@ -19,10 +19,9 @@ import numpy as np
 import sympy
 
 import cirq
-from cirq import value, protocols
+from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq.ops import common_gates, eigen_gate, op_tree, gate_features, raw_types
-from cirq.value import type_alias
 
 
 @value.value_equality(manual_cls=True)
@@ -91,8 +90,8 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return True
         return protocols.is_parameterized(self._phase_exponent)
 
-    def _with_exponent(self,
-                       exponent: type_alias.TParamVal) -> 'PhasedISwapPowGate':
+    def _with_exponent(self, exponent: value.type_alias.TParamVal
+                      ) -> 'PhasedISwapPowGate':
         return PhasedISwapPowGate(phase_exponent=self.phase_exponent,
                                   exponent=exponent)
 
