@@ -133,7 +133,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
         yield cirq.Z(a)**self.phase_exponent
         yield cirq.Z(b)**-self.phase_exponent
-        yield from protocols.decompose_once_with_qubits(self._iswap, qubits)
+        yield cirq.ISWAP(a, b)**self.exponent
         yield cirq.Z(a)**-self.phase_exponent
         yield cirq.Z(b)**self.phase_exponent
 
