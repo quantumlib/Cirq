@@ -17,28 +17,28 @@ import sympy
 
 import cirq
 from cirq import ops
+from cirq.contrib.quirk.cells.arithmetic_cells import all_arithmetic_cells
 from cirq.contrib.quirk.cells.cell import (
     CellMaker,
+)
+from cirq.contrib.quirk.cells.control_cells import all_control_cells
+from cirq.contrib.quirk.cells.input_cells import (
+    SetDefaultInputCell,
 )
 from cirq.contrib.quirk.cells.swap_cell import (
     SwapCell,
 )
-from cirq.contrib.quirk.cells.input_cells import (
-    SetDefaultInputCell,
-)
-from cirq.contrib.quirk.cells.control_cells import all_control_cells
 
 
 def generate_all_cells() -> Iterator[CellMaker]:
     from cirq.contrib.quirk.quirk_gate_reg_utils import (
-        popcnt, mod_inv_else_1, reg_input_family,
+        reg_input_family,
         reg_unsupported_gates, reg_gate, reg_const, reg_formula_gate,
         reg_parameterized_gate, reg_ignored_family, reg_ignored_gate,
-        reg_arithmetic_gate, reg_arithmetic_family,
-        reg_size_dependent_arithmetic_family, reg_unsupported_family,
+        reg_unsupported_family,
         reg_family,
         reg_bit_permutation_family, deinterleave_bit, interleave_bit, CellMaker,
-        reg_modular_arithmetic_family, invertible_else_1, reg_measurement)
+        reg_measurement)
 
     # Swap.
     yield CellMaker("Swap",
@@ -174,47 +174,7 @@ def generate_all_cells() -> Iterator[CellMaker]:
     yield from reg_ignored_family("Density")
     yield from reg_ignored_gate("Bloch")
 
-    # Arithmetic.
-    yield from reg_arithmetic_gate("^A<B", 1, lambda x, a, b: x ^ int(a < b))
-    yield from reg_arithmetic_gate("^A>B", 1, lambda x, a, b: x ^ int(a > b))
-    yield from reg_arithmetic_gate("^A<=B", 1, lambda x, a, b: x ^ int(a <= b))
-    yield from reg_arithmetic_gate("^A>=B", 1, lambda x, a, b: x ^ int(a >= b))
-    yield from reg_arithmetic_gate("^A=B", 1, lambda x, a, b: x ^ int(a == b))
-    yield from reg_arithmetic_gate("^A!=B", 1, lambda x, a, b: x ^ int(a != b))
-    yield from reg_arithmetic_family("inc", lambda x: x + 1)
-    yield from reg_arithmetic_family("dec", lambda x: x - 1)
-    yield from reg_arithmetic_family("+=A", lambda x, a: x + a)
-    yield from reg_arithmetic_family("-=A", lambda x, a: x - a)
-    yield from reg_arithmetic_family("+=AA", lambda x, a: x + a * a)
-    yield from reg_arithmetic_family("-=AA", lambda x, a: x - a * a)
-    yield from reg_arithmetic_family("+=AB", lambda x, a, b: x + a * b)
-    yield from reg_arithmetic_family("-=AB", lambda x, a, b: x - a * b)
-    yield from reg_arithmetic_family("^=A", lambda x, a: x ^ a)
-    yield from reg_arithmetic_family("+cntA", lambda x, a: x + popcnt(a))
-    yield from reg_arithmetic_family("-cntA", lambda x, a: x - popcnt(a))
-    yield from reg_arithmetic_family(
-        "Flip<A", lambda x, a: a - x - 1 if x < a else x)
-    yield from reg_arithmetic_family("*A", lambda x, a: x * a if a & 1 else x)
-    yield from reg_size_dependent_arithmetic_family(
-        "/A", lambda n: lambda x, a: x * mod_inv_else_1(a, 1 << n))
-
-    # Modular arithmetic.
-    yield from reg_modular_arithmetic_family("incmodR", lambda x, r: x + 1)
-    yield from reg_modular_arithmetic_family("decmodR", lambda x, r: x - 1)
-    yield from reg_modular_arithmetic_family("+AmodR", lambda x, a, r: x + a)
-    yield from reg_modular_arithmetic_family("-AmodR", lambda x, a, r: x - a)
-    yield from reg_modular_arithmetic_family(
-        "+ABmodR", lambda x, a, b, r: x + a * b)
-    yield from reg_modular_arithmetic_family(
-        "-ABmodR", lambda x, a, b, r: x - a * b)
-    yield from reg_modular_arithmetic_family(
-        "*AmodR", lambda x, a, r: x * invertible_else_1(a, r))
-    yield from reg_modular_arithmetic_family(
-        "/AmodR", lambda x, a, r: x * mod_inv_else_1(a, r))
-    yield from reg_modular_arithmetic_family(
-        "*BToAmodR", lambda x, a, b, r: x * pow(invertible_else_1(b, r), a, r))
-    yield from reg_modular_arithmetic_family(
-        "/BToAmodR", lambda x, a, b, r: x * pow(mod_inv_else_1(b, r), a, r))
+    yield from all_arithmetic_cells()
 
     # Dynamic gates with discretized actions.
     yield from reg_unsupported_gates("X^⌈t⌉",

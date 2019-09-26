@@ -19,7 +19,7 @@ from cirq.contrib.quirk.cells.all_cells import (
     generate_all_cells
 )
 
-from cirq.contrib.quirk.cells.arithmetic_cell import (
+from cirq.contrib.quirk.cells.arithmetic_cells import (
     ArithmeticCell,
     QuirkArithmeticOperation,
 )
@@ -45,12 +45,12 @@ from cirq.contrib.quirk.cells.input_cells import (
     SetDefaultInputCell,
 )
 
-from cirq.contrib.quirk.cells.input_rotation_cell import (
+from cirq.contrib.quirk.cells.input_rotation_cells import (
     InputRotationCell,
     QuirkInputRotationOperation,
 )
 
-from cirq.contrib.quirk.cells.qubit_permutation_cell import (
+from cirq.contrib.quirk.cells.qubit_permutation_cells import (
     QuirkQubitPermutationOperation,
 )
 

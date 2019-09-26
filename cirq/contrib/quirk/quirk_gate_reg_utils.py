@@ -27,12 +27,12 @@ import sympy.parsing.sympy_parser
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells.arithmetic_cell import ArithmeticCell
+from cirq.contrib.quirk.cells.arithmetic_cells import ArithmeticCell
 from cirq.contrib.quirk.cells.control_cells import ControlCell
 from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
 from cirq.contrib.quirk.cells.input_cells import InputCell
-from cirq.contrib.quirk.cells.input_rotation_cell import InputRotationCell
-from cirq.contrib.quirk.cells.qubit_permutation_cell import QuirkQubitPermutationOperation
+from cirq.contrib.quirk.cells.input_rotation_cells import InputRotationCell
+from cirq.contrib.quirk.cells.qubit_permutation_cells import QuirkQubitPermutationOperation
 from cirq.contrib.quirk.cells.cell import CellMaker, CELL_SIZES
 
 
@@ -104,47 +104,6 @@ def reg_unsupported_family(identifier_prefix: str,
         yield from reg_unsupported_gate(identifier_prefix + str(i), reason)
 
 
-def reg_arithmetic_family(identifier_prefix: str,
-                          func: Callable[[Any], int]) -> Iterator[CellMaker]:
-    yield from reg_size_dependent_arithmetic_family(identifier_prefix,
-                                                    func=lambda _: func,
-                                                    is_modular=False)
-
-
-def reg_modular_arithmetic_family(identifier_prefix: str,
-                                  func: Callable[[Any], int]
-                                 ) -> Iterator[CellMaker]:
-    yield from reg_size_dependent_arithmetic_family(identifier_prefix,
-                                                    func=lambda _: func,
-                                                    is_modular=True)
-
-
-def reg_size_dependent_arithmetic_family(
-        identifier_prefix: str,
-        func: Callable[[int], Callable[[Any], int]],
-        is_modular: bool = False) -> Iterator[CellMaker]:
-    for i in CELL_SIZES:
-        yield from reg_arithmetic_gate(identifier_prefix + str(i),
-                                       size=i,
-                                       func=func(i),
-                                       is_modular=is_modular)
-
-
-def reg_arithmetic_gate(identifier: str,
-                        size: int,
-                        func: Callable[[Any], int],
-                        is_modular: bool = False) -> Iterator[CellMaker]:
-    param_names = list(inspect.signature(func).parameters)
-    assert param_names[0] == 'x'
-    yield CellMaker(
-        identifier, size, lambda args: ArithmeticCell(
-            identifier=identifier,
-            registers=[args.qubits] + [None] * len(param_names[1:]),
-            register_letters=[None] + param_names[1:],
-            operation=func,
-            is_modular=is_modular))
-
-
 def reg_input_family(identifier_prefix: str, letter: str,
                      rev: bool = False) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
@@ -178,36 +137,6 @@ def reg_bit_permutation_family(identifier_prefix: str, name: str,
     ])
     for i in CELL_SIZES:
         yield CellMaker(identifier_prefix + str(i), i, f)
-
-
-def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
-    if a == 0:
-        return b, 0, 1
-    gcd, y, x = _extended_gcd(b % a, a)
-    return gcd, x - (b // a) * y, y
-
-
-def invertible_else_1(a: int, m: int) -> Optional[int]:
-    """Returns `a` if it has a multiplicative inverse, else 1."""
-    i = mod_inv_else_1(a, m)
-    return a if i != 1 else i
-
-
-def mod_inv_else_1(a: int, m: int) -> Optional[int]:
-    if m == 0:
-        return 1
-    gcd, x, _ = _extended_gcd(a % m, m)
-    if gcd != 1:
-        return 1
-    return x % m
-
-
-def popcnt(a: int) -> int:
-    t = 0
-    while a > 0:
-        a &= a - 1
-        t += 1
-    return t
 
 
 def interleave_bit(n: int, x: int) -> int:
