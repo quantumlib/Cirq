@@ -107,7 +107,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 def sample_heavy_set(circuit: cirq.Circuit,
                      heavy_set: List[int],
                      *,
-                     repetitions = 10000,
+                     repetitions=10000,
                      sampler: cirq.Sampler = cirq.Simulator()) -> float:
     """Run a sampler over the given circuit and compute the percentage of its
        outputs that are in the heavy set.
