@@ -61,9 +61,9 @@ matrix:
     install:
       - python3 -m venv venv
       - source venv/bin/activate
-      - pip install -r requirements.txt --user
-      - pip install -r cirq/contrib/contrib-requirements.txt --user
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt --user
+      - pip install -r requirements.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - mkdir -p ~/.matplotlib && echo "backend:\ TkAgg" >> ~/.matplotlib/matplotlibrc
     script: 
       - check/pytest --benchmark-skip
