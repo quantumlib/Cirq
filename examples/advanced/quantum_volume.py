@@ -107,13 +107,15 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 def sample_heavy_set(circuit: cirq.Circuit,
                      heavy_set: List[int],
                      *,
+                     repetitions = 10000,
                      sampler: cirq.Sampler = cirq.Simulator()) -> float:
     """Run a sampler over the given circuit and compute the percentage of its
        outputs that are in the heavy set.
 
     Args:
         circuit: The circuit to sample.
-        heabv_set: The previously-computed heavy set for the given circuit.
+        heavy_set: The previously-computed heavy set for the given circuit.
+        repetitions: The number of runs to sample the circuit.
         sampler: The sampler to run on the given circuit.
 
     Returns:
@@ -125,14 +127,10 @@ def sample_heavy_set(circuit: cirq.Circuit,
     circuit_copy = circuit + [cirq.measure(*sorted(circuit.all_qubits()))]
 
     # Run the sampler to compare each output against the Heavy Set.
-    repetitions = 1000
     measurements = sampler.run(program=circuit_copy, repetitions=repetitions)
 
     # Compute the number of outputs that are in the heavy set.
-    num_in_heavy_set = 0
-    for m in measurements.data.iterrows():
-        if m[1].iloc[0] in heavy_set:
-            num_in_heavy_set += 1
+    num_in_heavy_set = np.sum(np.in1d(measurements.data.iloc[:, 0], heavy_set))
 
     # Return the number of Heavy outputs over the number of runs.
     return num_in_heavy_set / repetitions
