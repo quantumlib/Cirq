@@ -15,7 +15,7 @@
 import numpy as np
 import sympy
 
-from cirq.contrib.quirk.quirk_gate_reg_utils import parse_matrix, parse_formula
+from cirq.contrib.quirk.cells.parse import parse_matrix, parse_formula
 
 
 def test_parse_matrix():

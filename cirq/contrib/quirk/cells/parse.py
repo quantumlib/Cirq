@@ -14,17 +14,12 @@
 
 from typing import (
     Any,
-    Callable,
     Union,
-    Iterator,
 )
 
 import numpy as np
-import sympy.parsing.sympy_parser
-
-import cirq
-from cirq.contrib.quirk.cells.cell import (CellMaker, CELL_SIZES,
-    ExplicitOperationsCell,)
+import sympy
+from sympy.parsing.sympy_parser import parse_expr
 
 
 def parse_formula(formula: Any,
@@ -36,7 +31,7 @@ def parse_formula(formula: Any,
 
     formula = expand_unicode_fractions(formula)
     try:
-        result = sympy.parsing.sympy_parser.parse_expr(formula)
+        result = parse_expr(formula)
     except SyntaxError as ex:
         raise SyntaxError(
             'Failed to parse the gate formula {!r}.\n'
