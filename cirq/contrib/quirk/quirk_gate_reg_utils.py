@@ -36,14 +36,6 @@ from cirq.contrib.quirk.cells.qubit_permutation_cells import QuirkQubitPermutati
 from cirq.contrib.quirk.cells.cell import CellMaker, CELL_SIZES
 
 
-def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
-    yield CellMaker(
-        identifier, 1, lambda args: ExplicitOperationsCell(
-            [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
-            basis_change=[basis_change.on(*args.qubits)]
-            if basis_change else ()))
-
-
 def reg_family(identifier_prefix: str,
                gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellMaker]:
     f = lambda args: ExplicitOperationsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
