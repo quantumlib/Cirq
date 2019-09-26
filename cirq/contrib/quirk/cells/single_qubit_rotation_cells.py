@@ -82,7 +82,7 @@ def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
     yield _gate("e^-iYt", ops.Ry(-2 * sympy.pi * sympy.Symbol('t')))
     yield _gate("e^-iZt", ops.Rz(-2 * sympy.pi * sympy.Symbol('t')))
 
-    # Classically parameterized single qubit rotations.
+    # Formulaic single qubit rotations.
     yield _formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X**e)
     yield _formula_gate("Y^ft", "sin(pi*t)", lambda e: ops.Y**e)
     yield _formula_gate("Z^ft", "sin(pi*t)", lambda e: ops.Z**e)
@@ -93,7 +93,7 @@ def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
 
 def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
     return CellMaker(
-        identifier,
+        identifier=identifier,
         size=gate.num_qubits(),
         maker=lambda args: ExplicitOperationsCell([gate.on(*args.qubits)]))
 
@@ -101,7 +101,7 @@ def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
 def _formula_gate(identifier: str, default_formula: str,
                   gate_func: Callable[[Union[sympy.Symbol, float]], 'cirq.Gate']
                  ) -> CellMaker:
-    return CellMaker(identifier,
+    return CellMaker(identifier=identifier,
                      size=gate_func(0).num_qubits(),
                      maker=lambda args: ExplicitOperationsCell([
                          gate_func(parse_formula(args.value, default_formula)).
