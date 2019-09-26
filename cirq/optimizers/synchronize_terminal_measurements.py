@@ -13,6 +13,7 @@
 # limitations under the License.
 """An optimization pass to put as many measurements possible at the end."""
 
+from typing import List, Set, Tuple, cast
 from cirq import circuits, ops, protocols
 
 
@@ -40,13 +41,16 @@ class SynchronizeTerminalMeasurements():
         self.optimize_circuit(circuit)
 
     def optimize_circuit(self, circuit: circuits.Circuit) -> None:
-        deletions = []
-        terminal_measures = set()
+        deletions: List[Tuple[int, ops.Operation]] = []
+        terminal_measures: Set[ops.Operation] = set()
 
         qubits = circuit.all_qubits()
         for qubit in qubits:
             moment_index = circuit.prev_moment_operating_on((qubit,))
-            op = circuit.operation_at(qubit, moment_index)
+            if moment_index is None:
+                continue
+            op = cast(ops.Operation,
+                      circuit.operation_at(qubit, moment_index or 0))
             if protocols.is_measurement(op):
                 deletions.append((moment_index, op))
                 terminal_measures.add(op)
