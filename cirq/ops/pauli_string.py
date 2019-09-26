@@ -23,6 +23,7 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
+from cirq._compat import deprecated
 from cirq.ops import (
     global_phase_op,
     raw_types,
@@ -45,18 +46,18 @@ class PauliString(raw_types.Operation):
                  coefficient: Union[int, float, complex] = 1) -> None:
         if qubit_paulis is None:
             qubit_pauli_map = {}
+        elif isinstance(qubit_paulis, Mapping):
+            qubit_pauli_map = qubit_paulis
         elif isinstance(qubit_paulis, Sequence):
             qubit_pauli_map = {}
             for op in qubit_paulis:
-                if len(op.qubits) > 1:
-                    raise ValueError(f"Op {op} cannot contain multiple qubits.")
+                if not isinstance(op.gate, pauli_gates.Pauli):
+                    raise ValueError(f"op.gate must be Pauli, got {op.gate}.")
                 q = op.qubits[0]
                 qubit_pauli_map[q] = op.gate
-        elif isinstance(qubit_paulis, Mapping):
-            qubit_pauli_map = qubit_paulis
         else:
             raise ValueError(
-                f"Unexpected type for qubit_paulis, got {qubit_paulis}.")
+                f"Unexpected type for qubit_paulis, got {type(qubit_paulis)}.")
 
         qubit_pauli_map = {
             q: p
@@ -70,6 +71,7 @@ class PauliString(raw_types.Operation):
         self._coefficient = complex(coefficient)
 
     @staticmethod
+    @deprecated(deadline="v0.7.0", fix="call cirq.PauliString([op]) instead")
     def from_single(qubit: raw_types.Qid,
                     pauli: pauli_gates.Pauli) -> 'PauliString':
         """Creates a PauliString with a single qubit."""

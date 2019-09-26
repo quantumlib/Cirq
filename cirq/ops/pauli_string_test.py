@@ -178,6 +178,25 @@ def test_from_single(pauli):
             == cirq.PauliString({q0: pauli}))
 
 
+@pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
+def test_list_op_constructor(pauli):
+    q0, = _make_qubits(1)
+    op = pauli.on(q0)
+    assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
+
+
+def test_constructor_fails_non_pauli():
+    q0, q1 = _make_qubits(2)
+    op = cirq.CZ.on(q0, q1)
+    with pytest.raises(ValueError):
+        cirq.PauliString([op])
+
+
+def test_bad_constructor_type():
+    with pytest.raises(ValueError):
+        cirq.PauliString("don't use a string here")
+
+
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_getitem(qubit_pauli_map):
     other = cirq.NamedQubit('other')
