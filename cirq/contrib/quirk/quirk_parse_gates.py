@@ -191,23 +191,21 @@ class SetDefaultInputCell(Cell):
     def persistent_modifiers(self):
         return {
             f'set_default_{self.letter}':
-                lambda cell: cell.with_input(self.letter, self.value)
+            lambda cell: cell.with_input(self.letter, self.value)
         }
 
 
 class ArithmeticCell(ops.ArithmeticOperation, Cell):
 
-    def __init__(self,
-                 identifier: str,
-                 registers: Sequence[
-                     Optional[Union[Sequence['cirq.Qid'], int]]],
-                 register_letters: Sequence[Optional[str]],
-                 operation: Callable,
-                 is_modular: bool):
+    def __init__(
+            self, identifier: str,
+            registers: Sequence[Optional[Union[Sequence['cirq.Qid'], int]]],
+            register_letters: Sequence[Optional[str]], operation: Callable,
+            is_modular: bool):
         if is_modular:
             f = operation
-            operation = (lambda *args:
-                f(*args) % args[-1] if args[0] < args[-1] else args[0])
+            operation = (lambda *args: f(*args) % args[-1]
+                         if args[0] < args[-1] else args[0])
 
         self.identifier = identifier
         self._registers = registers
@@ -218,8 +216,7 @@ class ArithmeticCell(ops.ArithmeticOperation, Cell):
     def with_input(self, letter, register):
         return self.with_registers(*[
             reg if letter != reg_letter else register
-            for reg, reg_letter in zip(self._registers,
-                                       self._register_letters)
+            for reg, reg_letter in zip(self._registers, self._register_letters)
         ])
 
     def operations(self) -> 'cirq.OP_TREE':
@@ -331,11 +328,8 @@ class QuirkPseudoSwapOperation(Cell):
 class DependentCell(Cell):
     """Applies an operation that depends on an input gate."""
 
-    def __init__(self,
-                 identifier: str,
-                 register: Optional[List['cirq.Qid']],
-                 register_letter: str,
-                 target: 'cirq.Qid',
+    def __init__(self, identifier: str, register: Optional[List['cirq.Qid']],
+                 register_letter: str, target: 'cirq.Qid',
                  op_maker: Callable[[int, int, Sequence['cirq.Qid']],
                                     'cirq.Operation']):
         self.identifier = identifier
@@ -349,22 +343,22 @@ class DependentCell(Cell):
             if isinstance(register, int):
                 raise ValueError('Dependent operation requires known length '
                                  'input; classical constant not allowed.')
-            return DependentCell(self.identifier, register, self.register_letter, self.target, self.op_maker)
+            return DependentCell(self.identifier, register,
+                                 self.register_letter, self.target,
+                                 self.op_maker)
         return self
 
     def controlled_by(self, qubit: 'cirq.Qid'):
         return DependentCell(
-            self.identifier,
-            self.register, self.register_letter, self.target, lambda a, b, c: self.op_maker(a, b, c).
-            controlled_by(qubit))
+            self.identifier, self.register,
+            self.register_letter, self.target, lambda a, b, c: self.op_maker(
+                a, b, c).controlled_by(qubit))
 
     def operations(self) -> 'cirq.OP_TREE':
         if self.register is None:
             raise ValueError(f'Missing input {repr(self.register_letter)}')
-        return DependentOperation(self.identifier,
-                                  self.register,
-                                  self.register_letter,
-                                  self.op_maker,
+        return DependentOperation(self.identifier, self.register,
+                                  self.register_letter, self.op_maker,
                                   [self.target])
 
 
@@ -372,9 +366,7 @@ class DependentOperation(ops.Operation):
     """Operates on target qubits in a way that varies based on an input qureg.
     """
 
-    def __init__(self,
-                 identifier: str,
-                 register: Iterable['cirq.Qid'],
+    def __init__(self, identifier: str, register: Iterable['cirq.Qid'],
                  register_letter: str,
                  op_maker: Callable[[int, int, Sequence['cirq.Qid']],
                                     'cirq.Operation'],
@@ -392,7 +384,9 @@ class DependentOperation(ops.Operation):
     def with_qubits(self, *new_qubits):
         new_op_qubits = new_qubits[:len(self.op_qubits)]
         new_register = new_qubits[len(self.op_qubits):]
-        return DependentOperation(self.identifier, new_register, self.register_letter, self.op_maker, new_op_qubits)
+        return DependentOperation(self.identifier, new_register,
+                                  self.register_letter, self.op_maker,
+                                  new_op_qubits)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         result = [self.identifier.replace('n', str(len(self.register)))]
@@ -412,15 +406,12 @@ class DependentOperation(ops.Operation):
         control_max = np.product([q.dimension for q in self.register]).item()
 
         for i in range(control_max):
-            operation = self.op_maker(i,
-                                      control_max,
-                                      self.op_qubits)
+            operation = self.op_maker(i, control_max, self.op_qubits)
             control_index = linalg.slice_for_qubits_equal_to(
                 control_axes, big_endian_qureg_value=i)
             sub_args = cirq.ApplyUnitaryArgs(
                 transposed_args.target_tensor[control_index],
-                transposed_args.available_buffer[control_index],
-                target_axes)
+                transposed_args.available_buffer[control_index], target_axes)
             sub_result = cirq.apply_unitary(operation, sub_args)
 
             if sub_result is not sub_args.target_tensor:
@@ -432,9 +423,7 @@ class DependentOperation(ops.Operation):
 class QubitPermutation(ops.Operation):
     """A qubit permutation operation specified by a permute function."""
 
-    def __init__(self,
-                 name: str,
-                 qubits: Iterable['cirq.Qid'],
+    def __init__(self, name: str, qubits: Iterable['cirq.Qid'],
                  permute: Callable[[int], int]):
         self.name = name
         self._qubits = tuple(qubits)

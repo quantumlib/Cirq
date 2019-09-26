@@ -43,7 +43,6 @@ CellArgs = NamedTuple('CellArgs', [
     ('col', int),
 ])
 
-
 CellType = NamedTuple('CellType', [
     ('identifier', str),
     ('size', int),
@@ -56,20 +55,20 @@ def reg_gate(identifier: str, gate: cirq.Gate,
     yield CellType(
         identifier, gate.num_qubits(), lambda args: OpsCell(
             [gate.on(*args.qubits)],
-            basis_change=[basis_change.on(*args.qubits)] if basis_change else ()))
+            basis_change=[basis_change.on(*args.qubits)]
+            if basis_change else ()))
 
 
 def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
     yield CellType(
-        identifier,
-        1,
-        lambda args: OpsCell(
+        identifier, 1, lambda args: OpsCell(
             [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
-            basis_change=[basis_change.on(*args.qubits)] if basis_change else ()))
+            basis_change=[basis_change.on(*args.qubits)]
+            if basis_change else ()))
 
 
-def reg_family(identifier_prefix: str, gate_maker: Callable[[int], cirq.Gate]
-              ) -> Iterator[CellType]:
+def reg_family(identifier_prefix: str,
+               gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellType]:
     f = lambda args: OpsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
     yield CellType(identifier_prefix, 1, f)
     for i in GATE_SIZES:
@@ -82,8 +81,10 @@ def reg_formula_gate(
 ) -> Iterator[CellType]:
     yield CellType(
         identifier,
-        gate_func(0).num_qubits(), lambda args: OpsCell(
-            [gate_func(parse_formula(args.value, default_formula)).on(*args.qubits)]))
+        gate_func(0).num_qubits(), lambda args: OpsCell([
+            gate_func(parse_formula(args.value, default_formula)).on(*args.
+                                                                     qubits)
+        ]))
 
 
 def reg_ignored_family(identifier_prefix: str) -> Iterator[CellType]:
@@ -96,8 +97,7 @@ def reg_ignored_gate(identifier: str):
     yield CellType(identifier, 0, lambda _: None)
 
 
-def reg_unsupported_gate(identifier: str,
-                         reason: str) -> Iterator[CellType]:
+def reg_unsupported_gate(identifier: str, reason: str) -> Iterator[CellType]:
 
     def fail(_):
         raise NotImplementedError(
@@ -107,8 +107,7 @@ def reg_unsupported_gate(identifier: str,
     yield CellType(identifier, 0, fail)
 
 
-def reg_unsupported_gates(*identifiers: str,
-                          reason: str) -> Iterator[CellType]:
+def reg_unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellType]:
     for identifier in identifiers:
         yield from reg_unsupported_gate(identifier, reason)
 
@@ -119,21 +118,19 @@ def reg_unsupported_family(identifier_prefix: str,
         yield from reg_unsupported_gate(identifier_prefix + str(i), reason)
 
 
-def reg_arithmetic_family(identifier_prefix: str, func: Callable[[Any], int]
-                         ) -> Iterator[CellType]:
-    yield from reg_size_dependent_arithmetic_family(
-        identifier_prefix,
-        func=lambda _: func,
-        is_modular=False)
+def reg_arithmetic_family(identifier_prefix: str,
+                          func: Callable[[Any], int]) -> Iterator[CellType]:
+    yield from reg_size_dependent_arithmetic_family(identifier_prefix,
+                                                    func=lambda _: func,
+                                                    is_modular=False)
 
 
-def reg_modular_arithmetic_family(
-        identifier_prefix: str, func: Callable[[Any], int]
-                         ) -> Iterator[CellType]:
-    yield from reg_size_dependent_arithmetic_family(
-        identifier_prefix,
-        func=lambda _: func,
-        is_modular=True)
+def reg_modular_arithmetic_family(identifier_prefix: str,
+                                  func: Callable[[Any], int]
+                                 ) -> Iterator[CellType]:
+    yield from reg_size_dependent_arithmetic_family(identifier_prefix,
+                                                    func=lambda _: func,
+                                                    is_modular=True)
 
 
 def reg_size_dependent_arithmetic_family(
@@ -191,16 +188,16 @@ def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
 
 def reg_const(identifier: str,
               operation: 'cirq.Operation') -> Iterator[CellType]:
-    yield CellType(identifier,
-                   1, lambda _: OpsCell([operation]))
+    yield CellType(identifier, 1, lambda _: OpsCell([operation]))
 
 
-def reg_bit_permutation_family(identifier_prefix: str,
-                               name: str,
+def reg_bit_permutation_family(identifier_prefix: str, name: str,
                                permutation: Callable[[int, int], int]
                               ) -> Iterator[CellType]:
-    f = lambda args: OpsCell(
-        [QubitPermutation(name, args.qubits, lambda e: permutation(len(args.qubits), e))])
+    f = lambda args: OpsCell([
+        QubitPermutation(name, args.qubits, lambda e: permutation(
+            len(args.qubits), e))
+    ])
     for i in GATE_SIZES:
         yield CellType(identifier_prefix + str(i), i, f)
 
@@ -308,19 +305,17 @@ def parse_matrix(text: str) -> np.ndarray:
         raise ValueError('No opening/closing braces.\ntext: {!r}'.format(text))
     text = expand_unicode_fractions(text[2:-2])
     rows = text.split('},{')
-    return np.array([[_parse_complex(c) for c in row.split(',')]
-                     for row in rows])
+    return np.array([[_parse_complex(c) for c in row.split(',')] for row in rows
+                    ])
 
 
 def _parse_complex(text: str) -> complex:
     try:
-        if (text.endswith('i') and
-                len(text) > 1 and
-                not text.endswith('+i') and
+        if (text.endswith('i') and len(text) > 1 and not text.endswith('+i') and
                 not text.endswith('-i')):
             text = text[:-1] + '*i'
         expr = sympy.parsing.sympy_parser.parse_expr(text)
         return complex(expr.subs({'i': 1j}))
     except Exception as ex:
-        raise ValueError('Failed to parse complex from {!r}'.format(text)
-                         ) from ex
+        raise ValueError(
+            'Failed to parse complex from {!r}'.format(text)) from ex

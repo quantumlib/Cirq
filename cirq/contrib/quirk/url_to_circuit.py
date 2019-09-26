@@ -96,11 +96,8 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     result = cirq.Circuit()
     for col in parsed_cols:
         basis_change = cirq.Circuit.from_ops(
-            cell.basis_change() for cell in col if cell is not None
-        )
-        body = (
-            cell.operations() for cell in col if cell is not None
-        )
+            cell.basis_change() for cell in col if cell is not None)
+        body = (cell.operations() for cell in col if cell is not None)
         result += basis_change
         result += body
         result += basis_change**-1
@@ -108,13 +105,14 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     return result
 
 
-def parse_col_cells(registry: Dict[str, CellType],
-                    col: int,
+def parse_col_cells(registry: Dict[str, CellType], col: int,
                     col_data: Any) -> List[Optional[Cell]]:
     if not isinstance(col_data, list):
         raise ValueError('col must be a list.\ncol: {!r}'.format(col_data))
-    return [parse_cell(registry, row, col, col_data[row])
-            for row in range(len(col_data))]
+    return [
+        parse_cell(registry, row, col, col_data[row])
+        for row in range(len(col_data))
+    ]
 
 
 def parse_cell(registry: Dict[str, CellType], row: int, col: int,
@@ -140,8 +138,8 @@ def parse_cell(registry: Dict[str, CellType], row: int, col: int,
 
 def _gate_registry() -> Iterator[CellType]:
     # Swap.
-    yield CellType(
-        "Swap", 1, lambda args: QuirkPseudoSwapOperation(args.qubits, []))
+    yield CellType("Swap",
+                   1, lambda args: QuirkPseudoSwapOperation(args.qubits, []))
 
     # Controls.
     yield from reg_control("•", None)
@@ -154,12 +152,11 @@ def _gate_registry() -> Iterator[CellType]:
     # Parity controls.
     yield CellType(
         "xpar", 1, lambda args: ParityControlCell(args.qubits, (ops.Y**0.5).
-                                                       on_each(args.qubits)))
+                                                  on_each(args.qubits)))
     yield CellType(
         "ypar", 1, lambda args: ParityControlCell(args.qubits, (cirq.X**-0.5).
-                                                       on_each(args.qubits)))
-    yield CellType("zpar",
-                   1, lambda args: ParityControlCell(args.qubits, []))
+                                                  on_each(args.qubits)))
+    yield CellType("zpar", 1, lambda args: ParityControlCell(args.qubits, []))
 
     # Input gates.
     yield from reg_input_family("inputA", "a")
@@ -314,14 +311,10 @@ def _gate_registry() -> Iterator[CellType]:
         "/A", lambda n: lambda x, a: x * mod_inv_else_1(a, 1 << n))
 
     # Modular arithmetic.
-    yield from reg_modular_arithmetic_family(
-        "incmodR", lambda x, r: x + 1)
-    yield from reg_modular_arithmetic_family(
-        "decmodR", lambda x, r: x - 1)
-    yield from reg_modular_arithmetic_family(
-        "+AmodR", lambda x, a, r: x + a)
-    yield from reg_modular_arithmetic_family(
-        "-AmodR", lambda x, a, r: x - a)
+    yield from reg_modular_arithmetic_family("incmodR", lambda x, r: x + 1)
+    yield from reg_modular_arithmetic_family("decmodR", lambda x, r: x - 1)
+    yield from reg_modular_arithmetic_family("+AmodR", lambda x, a, r: x + a)
+    yield from reg_modular_arithmetic_family("-AmodR", lambda x, a, r: x - a)
     yield from reg_modular_arithmetic_family(
         "+ABmodR", lambda x, a, b, r: x + a * b)
     yield from reg_modular_arithmetic_family(
@@ -372,8 +365,12 @@ def _gate_registry() -> Iterator[CellType]:
             num_qubits=n, exponent=-2**(n - 1) * sympy.Symbol('t')))
 
     # Bit level permutations.
-    yield from reg_bit_permutation_family("<<", 'left_rotate', lambda n, x: (x + 1) % n)
-    yield from reg_bit_permutation_family(">>", 'right_rotate', lambda n, x: (x - 1) % n)
-    yield from reg_bit_permutation_family("rev", 'reverse', lambda n, x: n - x - 1)
+    yield from reg_bit_permutation_family(
+        "<<", 'left_rotate', lambda n, x: (x + 1) % n)
+    yield from reg_bit_permutation_family(
+        ">>", 'right_rotate', lambda n, x: (x - 1) % n)
+    yield from reg_bit_permutation_family("rev",
+                                          'reverse', lambda n, x: n - x - 1)
     yield from reg_bit_permutation_family("weave", 'interleave', interleave_bit)
-    yield from reg_bit_permutation_family("split", 'deinterleave', deinterleave_bit)
+    yield from reg_bit_permutation_family("split", 'deinterleave',
+                                          deinterleave_bit)

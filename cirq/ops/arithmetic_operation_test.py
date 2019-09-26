@@ -152,7 +152,9 @@ def test_arithmetic_operation_qubits():
 
 
 def test_reshape_referencing():
+
     class Op1(cirq.ArithmeticOperation):
+
         def apply(self, *register_values: int):
             return register_values[0] + 1
 
@@ -163,7 +165,6 @@ def test_reshape_referencing():
             raise NotImplementedError()
 
     state = np.ones(4, dtype=np.complex64) / 2
-    output = cirq.final_wavefunction(
-        cirq.Circuit.from_ops(Op1()),
-        initial_state=state)
+    output = cirq.final_wavefunction(cirq.Circuit.from_ops(Op1()),
+                                     initial_state=state)
     np.testing.assert_allclose(state, output)

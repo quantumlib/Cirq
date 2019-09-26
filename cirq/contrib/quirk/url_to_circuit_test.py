@@ -61,10 +61,7 @@ def assert_url_to_circuit_returns(
         cirq.testing.assert_same_circuits(circuit, expected_circuit)
 
     if unitary is not None:
-        np.testing.assert_allclose(
-            cirq.unitary(circuit),
-            unitary,
-            atol=1e-8)
+        np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-8)
 
     if output_amplitudes_from_quirk is not None:
         expected = np.array([
@@ -83,17 +80,18 @@ def assert_url_to_circuit_returns(
 
     if maps:
         keys = sorted(maps.keys())
-        amps = [np.exp(1j * i / len(maps)) / len(maps)**0.5
-                for i in range(len(maps))]
+        amps = [
+            np.exp(1j * i / len(maps)) / len(maps)**0.5
+            for i in range(len(maps))
+        ]
 
         n = len(circuit.all_qubits())
         input_state = np.zeros(1 << n, dtype=np.complex128)
         for k, amp in zip(keys, amps):
             input_state[k] = amp
 
-        output_state = cirq.final_wavefunction(
-            circuit,
-            initial_state=input_state)
+        output_state = cirq.final_wavefunction(circuit,
+                                               initial_state=input_state)
 
         actual_map = {}
         for k, amp in zip(keys, amps):
@@ -119,31 +117,27 @@ def test_parse_simple_cases():
 
     assert quirk_url_to_circuit('http://algassert.com/quirk') == cirq.Circuit()
     assert quirk_url_to_circuit('https://algassert.com/quirk') == cirq.Circuit()
-    assert quirk_url_to_circuit('https://algassert.com/quirk#'
-                                ) == cirq.Circuit()
-    assert quirk_url_to_circuit('http://algassert.com/quirk#circuit={"cols":[]}'
-                                ) == cirq.Circuit()
+    assert quirk_url_to_circuit(
+        'https://algassert.com/quirk#') == cirq.Circuit()
+    assert quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[]}') == cirq.Circuit()
 
     assert quirk_url_to_circuit(
         'https://algassert.com/quirk#circuit={'
         '%22cols%22:[[%22H%22],[%22%E2%80%A2%22,%22X%22]]'
-        '}'
-    ) == cirq.Circuit(cirq.H(a), cirq.X(b).controlled_by(a))
+        '}') == cirq.Circuit(cirq.H(a),
+                             cirq.X(b).controlled_by(a))
 
 
 def test_parse_failures():
     with pytest.raises(ValueError, match='must start with'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#bad')
+        _ = quirk_url_to_circuit('http://algassert.com/quirk#bad')
     with pytest.raises(json.JSONDecodeError):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit=')
+        _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit=')
     with pytest.raises(ValueError, match='top-level dictionary'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit=[]')
+        _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit=[]')
     with pytest.raises(ValueError, match='"cols" entry'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={}')
+        _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit={}')
     with pytest.raises(ValueError, match='cols must be a list'):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": 1}')
@@ -160,41 +154,43 @@ def test_parse_failures():
 
 def test_gate_type_swap():
     a, b, c = cirq.LineQubit.range(3)
-    assert_url_to_circuit_returns(
-        '{"cols":[["Swap","Swap"]]}',
-        cirq.Circuit(cirq.SWAP(a, b)))
-    assert_url_to_circuit_returns(
-        '{"cols":[["Swap","X","Swap"]]}',
-        cirq.Circuit(cirq.SWAP(a, c), cirq.X(b)))
+    assert_url_to_circuit_returns('{"cols":[["Swap","Swap"]]}',
+                                  cirq.Circuit(cirq.SWAP(a, b)))
+    assert_url_to_circuit_returns('{"cols":[["Swap","X","Swap"]]}',
+                                  cirq.Circuit(cirq.SWAP(a, c), cirq.X(b)))
 
     with pytest.raises(ValueError, match='number of swap gates'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[['
-            '"Swap"]]}'
-        )
+            '"Swap"]]}')
     with pytest.raises(ValueError, match='number of swap gates'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[['
-            '"Swap","Swap","Swap"]]}'
-        )
+            '"Swap","Swap","Swap"]]}')
 
 
 def test_assert_url_to_circuit_returns():
     a, b = cirq.LineQubit.range(2)
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["X","X"],["X"]]}',
-        cirq.Circuit(
-            cirq.X(a),
-            cirq.X(b),
-            cirq.X(a),
-        ),
-        output_amplitudes_from_quirk=[
-            {"r": 0, "i": 0},
-            {"r": 0, "i": 0},
-            {"r": 1, "i": 0},
-            {"r": 0, "i": 0}
-        ])
+    assert_url_to_circuit_returns('{"cols":[["X","X"],["X"]]}',
+                                  cirq.Circuit(
+                                      cirq.X(a),
+                                      cirq.X(b),
+                                      cirq.X(a),
+                                  ),
+                                  output_amplitudes_from_quirk=[{
+                                      "r": 0,
+                                      "i": 0
+                                  }, {
+                                      "r": 0,
+                                      "i": 0
+                                  }, {
+                                      "r": 1,
+                                      "i": 0
+                                  }, {
+                                      "r": 0,
+                                      "i": 0
+                                  }])
 
     assert_url_to_circuit_returns(
         '{"cols":[["X","X"],["X"]]}',
@@ -205,19 +201,25 @@ def test_assert_url_to_circuit_returns():
         ))
 
     with pytest.raises(AssertionError, match='Not equal to tolerance'):
-        assert_url_to_circuit_returns(
-            '{"cols":[["X","X"],["X"]]}',
-            cirq.Circuit(
-                cirq.X(a),
-                cirq.X(b),
-                cirq.X(a),
-            ),
-            output_amplitudes_from_quirk=[
-                {"r": 0, "i": 0},
-                {"r": 0, "i": -1},
-                {"r": 0, "i": 0},
-                {"r": 0, "i": 0}
-            ])
+        assert_url_to_circuit_returns('{"cols":[["X","X"],["X"]]}',
+                                      cirq.Circuit(
+                                          cirq.X(a),
+                                          cirq.X(b),
+                                          cirq.X(a),
+                                      ),
+                                      output_amplitudes_from_quirk=[{
+                                          "r": 0,
+                                          "i": 0
+                                      }, {
+                                          "r": 0,
+                                          "i": -1
+                                      }, {
+                                          "r": 0,
+                                          "i": 0
+                                      }, {
+                                          "r": 0,
+                                          "i": 0
+                                      }])
 
     with pytest.raises(AssertionError, match='differs from expected circuit'):
         assert_url_to_circuit_returns(
@@ -232,11 +234,8 @@ def test_assert_url_to_circuit_returns():
 def test_gate_type_controls():
     a, b, c = cirq.LineQubit.range(3)
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["•","X"]]}',
-        cirq.Circuit(
-            cirq.X(b).controlled_by(a),
-        ))
+    assert_url_to_circuit_returns('{"cols":[["•","X"]]}',
+                                  cirq.Circuit(cirq.X(b).controlled_by(a),))
     assert_url_to_circuit_returns(
         '{"cols":[["◦","X"]]}',
         cirq.Circuit(
@@ -245,59 +244,103 @@ def test_gate_type_controls():
             cirq.X(a),
         ))
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["⊕","X"]]}',
-        cirq.Circuit(
-            cirq.Y(a)**0.5,
-            cirq.X(b).controlled_by(a),
-            cirq.Y(a)**-0.5,
-        ),
-        output_amplitudes_from_quirk=[
-            {"r":0.5,"i":0},
-            {"r":-0.5,"i":0},
-            {"r":0.5,"i":0},
-            {"r":0.5,"i":0},
-        ])
-    assert_url_to_circuit_returns(
-        '{"cols":[["⊖","X"]]}',
-        cirq.Circuit(
-            cirq.Y(a)**-0.5,
-            cirq.X(b).controlled_by(a),
-            cirq.Y(a)**+0.5,
-        ),
-        output_amplitudes_from_quirk=[
-            {"r":0.5,"i":0},
-            {"r":0.5,"i":0},
-            {"r":0.5,"i":0},
-            {"r":-0.5,"i":0},
-        ])
+    assert_url_to_circuit_returns('{"cols":[["⊕","X"]]}',
+                                  cirq.Circuit(
+                                      cirq.Y(a)**0.5,
+                                      cirq.X(b).controlled_by(a),
+                                      cirq.Y(a)**-0.5,
+                                  ),
+                                  output_amplitudes_from_quirk=[
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": -0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                  ])
+    assert_url_to_circuit_returns('{"cols":[["⊖","X"]]}',
+                                  cirq.Circuit(
+                                      cirq.Y(a)**-0.5,
+                                      cirq.X(b).controlled_by(a),
+                                      cirq.Y(a)**+0.5,
+                                  ),
+                                  output_amplitudes_from_quirk=[
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": -0.5,
+                                          "i": 0
+                                      },
+                                  ])
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["⊗","X"]]}',
-        cirq.Circuit(
-            cirq.X(a)**-0.5,
-            cirq.X(b).controlled_by(a),
-            cirq.X(a)**+0.5,
-        ),
-        output_amplitudes_from_quirk=[
-            {"r":0.5,"i":0},
-            {"r":0,"i":-0.5},
-            {"r":0.5,"i":0},
-            {"r":0,"i":0.5},
-        ])
-    assert_url_to_circuit_returns(
-        '{"cols":[["(/)","X"]]}',
-        cirq.Circuit(
-            cirq.X(a)**+0.5,
-            cirq.X(b).controlled_by(a),
-            cirq.X(a)**-0.5,
-        ),
-        output_amplitudes_from_quirk=[
-            {"r":0.5,"i":0},
-            {"r":0,"i":0.5},
-            {"r":0.5,"i":0},
-            {"r":0,"i":-0.5},
-        ])
+    assert_url_to_circuit_returns('{"cols":[["⊗","X"]]}',
+                                  cirq.Circuit(
+                                      cirq.X(a)**-0.5,
+                                      cirq.X(b).controlled_by(a),
+                                      cirq.X(a)**+0.5,
+                                  ),
+                                  output_amplitudes_from_quirk=[
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0,
+                                          "i": -0.5
+                                      },
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0,
+                                          "i": 0.5
+                                      },
+                                  ])
+    assert_url_to_circuit_returns('{"cols":[["(/)","X"]]}',
+                                  cirq.Circuit(
+                                      cirq.X(a)**+0.5,
+                                      cirq.X(b).controlled_by(a),
+                                      cirq.X(a)**-0.5,
+                                  ),
+                                  output_amplitudes_from_quirk=[
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0,
+                                          "i": 0.5
+                                      },
+                                      {
+                                          "r": 0.5,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0,
+                                          "i": -0.5
+                                      },
+                                  ])
 
     qs = cirq.LineQubit.range(8)
     assert_url_to_circuit_returns(
@@ -349,29 +392,23 @@ def test_non_physical_operations():
 def test_scalar_operations():
     a = cirq.LineQubit(0)
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["…"]]}',
-        cirq.Circuit(cirq.I.on(a)))
+    assert_url_to_circuit_returns('{"cols":[["…"]]}',
+                                  cirq.Circuit(cirq.I.on(a)))
+
+    assert_url_to_circuit_returns('{"cols":[["NeGate"]]}',
+                                  cirq.Circuit(cirq.GlobalPhaseOperation(-1)))
+
+    assert_url_to_circuit_returns('{"cols":[["i"]]}',
+                                  cirq.Circuit(cirq.GlobalPhaseOperation(1j)))
+
+    assert_url_to_circuit_returns('{"cols":[["-i"]]}',
+                                  cirq.Circuit(cirq.GlobalPhaseOperation(-1j)))
 
     assert_url_to_circuit_returns(
-        '{"cols":[["NeGate"]]}',
-        cirq.Circuit(cirq.GlobalPhaseOperation(-1)))
+        '{"cols":[["√i"]]}', cirq.Circuit(cirq.GlobalPhaseOperation(1j**0.5)))
 
     assert_url_to_circuit_returns(
-        '{"cols":[["i"]]}',
-        cirq.Circuit(cirq.GlobalPhaseOperation(1j)))
-
-    assert_url_to_circuit_returns(
-        '{"cols":[["-i"]]}',
-        cirq.Circuit(cirq.GlobalPhaseOperation(-1j)))
-
-    assert_url_to_circuit_returns(
-        '{"cols":[["√i"]]}',
-        cirq.Circuit(cirq.GlobalPhaseOperation(1j**0.5)))
-
-    assert_url_to_circuit_returns(
-        '{"cols":[["√-i"]]}',
-        cirq.Circuit(cirq.GlobalPhaseOperation(1j**-0.5)))
+        '{"cols":[["√-i"]]}', cirq.Circuit(cirq.GlobalPhaseOperation(1j**-0.5)))
 
 
 def test_fixed_single_qubit_rotations():
@@ -387,10 +424,18 @@ def test_fixed_single_qubit_rotations():
         '["X^-½","X^-⅓","X^-¼"],'
         '["X^-⅛","X^-⅟₁₆","X^-⅟₃₂"]]}',
         cirq.Circuit(
-            cirq.X(a)**(1/2), cirq.X(b)**(1/3), cirq.X(c)**(1/4),
-            cirq.X(a)**(1/8), cirq.X(b)**(1/16), cirq.X(c)**(1/32),
-            cirq.X(a) ** (-1 / 2), cirq.X(b) ** (-1 / 3), cirq.X(c) ** (-1 / 4),
-            cirq.X(a) ** (-1 / 8), cirq.X(b) ** (-1 / 16), cirq.X(c) ** (-1 / 32),
+            cirq.X(a)**(1 / 2),
+            cirq.X(b)**(1 / 3),
+            cirq.X(c)**(1 / 4),
+            cirq.X(a)**(1 / 8),
+            cirq.X(b)**(1 / 16),
+            cirq.X(c)**(1 / 32),
+            cirq.X(a)**(-1 / 2),
+            cirq.X(b)**(-1 / 3),
+            cirq.X(c)**(-1 / 4),
+            cirq.X(a)**(-1 / 8),
+            cirq.X(b)**(-1 / 16),
+            cirq.X(c)**(-1 / 32),
         ))
 
     assert_url_to_circuit_returns(
@@ -399,10 +444,18 @@ def test_fixed_single_qubit_rotations():
         '["Y^-½","Y^-⅓","Y^-¼"],'
         '["Y^-⅛","Y^-⅟₁₆","Y^-⅟₃₂"]]}',
         cirq.Circuit(
-            cirq.Y(a)**(1/2), cirq.Y(b)**(1/3), cirq.Y(c)**(1/4),
-            cirq.Y(a)**(1/8), cirq.Y(b)**(1/16), cirq.Y(c)**(1/32),
-            cirq.Y(a) ** (-1 / 2), cirq.Y(b) ** (-1 / 3), cirq.Y(c) ** (-1 / 4),
-            cirq.Y(a) ** (-1 / 8), cirq.Y(b) ** (-1 / 16), cirq.Y(c) ** (-1 / 32),
+            cirq.Y(a)**(1 / 2),
+            cirq.Y(b)**(1 / 3),
+            cirq.Y(c)**(1 / 4),
+            cirq.Y(a)**(1 / 8),
+            cirq.Y(b)**(1 / 16),
+            cirq.Y(c)**(1 / 32),
+            cirq.Y(a)**(-1 / 2),
+            cirq.Y(b)**(-1 / 3),
+            cirq.Y(c)**(-1 / 4),
+            cirq.Y(a)**(-1 / 8),
+            cirq.Y(b)**(-1 / 16),
+            cirq.Y(c)**(-1 / 32),
         ))
 
     assert_url_to_circuit_returns(
@@ -412,11 +465,19 @@ def test_fixed_single_qubit_rotations():
         '["Z^-½","Z^-⅓","Z^-¼"],'
         '["Z^-⅛","Z^-⅟₁₆"]]}',
         cirq.Circuit(
-            cirq.Z(a)**(1/2), cirq.Z(b)**(1/3), cirq.Z(c)**(1/4),
-            cirq.Z(a)**(1/8), cirq.Z(b)**(1/16), cirq.Z(c)**(1/32),
-            cirq.Z(a)**(1/64), cirq.Z(b)**(1/128),
-            cirq.Z(a) ** (-1 / 2), cirq.Z(b) ** (-1 / 3), cirq.Z(c) ** (-1 / 4),
-            cirq.Z(a) ** (-1 / 8), cirq.Z(b) ** (-1 / 16),
+            cirq.Z(a)**(1 / 2),
+            cirq.Z(b)**(1 / 3),
+            cirq.Z(c)**(1 / 4),
+            cirq.Z(a)**(1 / 8),
+            cirq.Z(b)**(1 / 16),
+            cirq.Z(c)**(1 / 32),
+            cirq.Z(a)**(1 / 64),
+            cirq.Z(b)**(1 / 128),
+            cirq.Z(a)**(-1 / 2),
+            cirq.Z(b)**(-1 / 3),
+            cirq.Z(c)**(-1 / 4),
+            cirq.Z(a)**(-1 / 8),
+            cirq.Z(b)**(-1 / 16),
         ))
 
 
@@ -428,8 +489,12 @@ def test_dynamic_single_qubit_rotations():
     assert_url_to_circuit_returns(
         '{"cols":[["X^t","Y^t","Z^t"],["X^-t","Y^-t","Z^-t"]]}',
         cirq.Circuit(
-            cirq.X(a)**t, cirq.Y(b)**t, cirq.Z(c)**t,
-            cirq.X(a)**-t, cirq.Y(b)**-t, cirq.Z(c)**-t,
+            cirq.X(a)**t,
+            cirq.Y(b)**t,
+            cirq.Z(c)**t,
+            cirq.X(a)**-t,
+            cirq.Y(b)**-t,
+            cirq.Z(c)**-t,
         ))
     assert_url_to_circuit_returns(
         '{"cols":[["e^iXt","e^iYt","e^iZt"],["e^-iXt","e^-iYt","e^-iZt"]]}',
@@ -461,8 +526,8 @@ def test_measurement_gates():
             cirq.measure(a, key='row=0,col=0'),
             cirq.measure(b, key='row=1,col=0'),
             cirq.measure(c, key='row=2,col=0'),
-            cirq.Y(a) ** -0.5,
-            cirq.X(b) ** 0.5,
+            cirq.Y(a)**-0.5,
+            cirq.X(b)**0.5,
         ))
 
 
@@ -474,19 +539,19 @@ def test_formulaic_gates():
         '{"cols":[["X^ft",{"id":"X^ft","arg":"t*t"}]]}',
         cirq.Circuit(
             cirq.X(a)**sympy.sin(sympy.pi * t),
-            cirq.X(b)**(t*t),
+            cirq.X(b)**(t * t),
         ))
     assert_url_to_circuit_returns(
         '{"cols":[["Y^ft",{"id":"Y^ft","arg":"t*t"}]]}',
         cirq.Circuit(
             cirq.Y(a)**sympy.sin(sympy.pi * t),
-            cirq.Y(b)**(t*t),
+            cirq.Y(b)**(t * t),
         ))
     assert_url_to_circuit_returns(
         '{"cols":[["Z^ft",{"id":"Z^ft","arg":"t*t"}]]}',
         cirq.Circuit(
             cirq.Z(a)**sympy.sin(sympy.pi * t),
-            cirq.Z(b)**(t*t),
+            cirq.Z(b)**(t * t),
         ))
     assert_url_to_circuit_returns(
         '{"cols":[["Rxft",{"id":"Rxft","arg":"t*t"}]]}',
@@ -526,66 +591,54 @@ def test_parameterized_single_qubit_rotations():
 2: ───A1──────────
         """,
         unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**0.5, 1j**1, 1j**1.5]))
-    assert_url_to_circuit_returns(
-        '{"cols":[["Z^(-A/2^n)","inputA1"]]}',
-        unitary=np.diag([1, 1, 1, -1j]))
+    assert_url_to_circuit_returns('{"cols":[["Z^(-A/2^n)","inputA1"]]}',
+                                  unitary=np.diag([1, 1, 1, -1j]))
 
     assert_url_to_circuit_returns(
         '{"cols":[["H"],["X^(A/2^n)","inputA2"],["H"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** 0.5, 1j ** 1, 1j ** 1.5]))
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**0.5, 1j**1, 1j**1.5]))
     assert_url_to_circuit_returns(
         '{"cols":[["H"],["X^(-A/2^n)","inputA2"],["H"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** -0.5, 1j ** -1, 1j ** -1.5]))
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**-0.5, 1j**-1, 1j**-1.5]))
 
     assert_url_to_circuit_returns(
         '{"cols":[["X^-½"],["Y^(A/2^n)","inputA2"],["X^½"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** 0.5, 1j ** 1, 1j ** 1.5]))
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**0.5, 1j**1, 1j**1.5]))
     assert_url_to_circuit_returns(
         '{"cols":[["X^-½"],["Y^(-A/2^n)","inputA2"],["X^½"]]}',
-        unitary=np.diag([1, 1, 1, 1, 1j ** 0, 1j ** -0.5, 1j ** -1, 1j ** -1.5]))
+        unitary=np.diag([1, 1, 1, 1, 1j**0, 1j**-0.5, 1j**-1, 1j**-1.5]))
 
 
 def test_frequency_space_gates():
     a, b, c = cirq.LineQubit.range(3)
 
+    assert_url_to_circuit_returns('{"cols":[["QFT3"]]}',
+                                  cirq.Circuit(cirq.QFT(a, b, c),))
     assert_url_to_circuit_returns(
-        '{"cols":[["QFT3"]]}',
-        cirq.Circuit(
-            cirq.QFT(a, b, c),
-        ))
-    assert_url_to_circuit_returns(
-        '{"cols":[["QFT†3"]]}',
-        cirq.Circuit(
-            cirq.inverse(cirq.QFT(a, b, c)),
-        ))
+        '{"cols":[["QFT†3"]]}', cirq.Circuit(cirq.inverse(cirq.QFT(a, b, c)),))
 
     assert_url_to_circuit_returns(
         '{"cols":[["PhaseGradient3"]]}',
         cirq.Circuit(
-            cirq.PhaseGradientGate(num_qubits=3, exponent=0.5)(a, b, c),
-        ))
+            cirq.PhaseGradientGate(num_qubits=3, exponent=0.5)(a, b, c),))
     assert_url_to_circuit_returns(
         '{"cols":[["PhaseUngradient3"]]}',
         cirq.Circuit(
-            cirq.PhaseGradientGate(num_qubits=3, exponent=-0.5)(a, b, c),
-        ))
+            cirq.PhaseGradientGate(num_qubits=3, exponent=-0.5)(a, b, c),))
 
     t = sympy.Symbol('t')
     assert_url_to_circuit_returns(
         '{"cols":[["grad^t2"]]}',
         cirq.Circuit(
-            cirq.PhaseGradientGate(num_qubits=2, exponent=2*t)(a, b),
-        ))
+            cirq.PhaseGradientGate(num_qubits=2, exponent=2 * t)(a, b),))
     assert_url_to_circuit_returns(
         '{"cols":[["grad^t3"]]}',
         cirq.Circuit(
-            cirq.PhaseGradientGate(num_qubits=3, exponent=4*t)(a, b, c),
-        ))
+            cirq.PhaseGradientGate(num_qubits=3, exponent=4 * t)(a, b, c),))
     assert_url_to_circuit_returns(
         '{"cols":[["grad^-t3"]]}',
         cirq.Circuit(
-            cirq.PhaseGradientGate(num_qubits=3, exponent=-4*t)(a, b, c),
-        ))
+            cirq.PhaseGradientGate(num_qubits=3, exponent=-4 * t)(a, b, c),))
 
 
 def test_displays():
@@ -593,17 +646,15 @@ def test_displays():
         '{"cols":[["Amps2"],[1,"Amps3"],["Chance"],'
         '["Chance2"],["Density"],["Density3"],'
         '["Sample4"],["Bloch"],["Sample2"]'
-        ']}',
-        cirq.Circuit())
+        ']}', cirq.Circuit())
 
 
 def test_arithmetic_comparison_gates():
     with pytest.raises(ValueError, match='Missing input'):
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":'
                                  '[["^A<B"]]}')
-    assert_url_to_circuit_returns(
-        '{"cols":[["^A<B","inputA2",1,"inputB2"]]}',
-        diagram="""
+    assert_url_to_circuit_returns('{"cols":[["^A<B","inputA2",1,"inputB2"]]}',
+                                  diagram="""
 0: ───Quirk(^A<B)───
       │
 1: ───A0────────────
@@ -614,81 +665,73 @@ def test_arithmetic_comparison_gates():
       │
 4: ───B1────────────
         """,
-        maps={
-            0b_0_00_10: 0b_1_00_10,
-            0b_1_00_10: 0b_0_00_10,
-            0b_0_11_10: 0b_0_11_10,
-            0b_0_10_10: 0b_0_10_10,
-            0b_0_01_10: 0b_1_01_10,
-        })
+                                  maps={
+                                      0b_0_00_10: 0b_1_00_10,
+                                      0b_1_00_10: 0b_0_00_10,
+                                      0b_0_11_10: 0b_0_11_10,
+                                      0b_0_10_10: 0b_0_10_10,
+                                      0b_0_01_10: 0b_1_01_10,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["^A>B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_1_11_10,
-            0b_0_10_10: 0b_0_10_10,
-            0b_0_01_10: 0b_0_01_10,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^A>B","inputA2",1,"inputB2"]]}',
+                                  maps={
+                                      0b_0_11_10: 0b_1_11_10,
+                                      0b_0_10_10: 0b_0_10_10,
+                                      0b_0_01_10: 0b_0_01_10,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["^A>=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_1_11_10,
-            0b_0_10_10: 0b_1_10_10,
-            0b_0_01_10: 0b_0_01_10,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^A>=B","inputA2",1,"inputB2"]]}',
+                                  maps={
+                                      0b_0_11_10: 0b_1_11_10,
+                                      0b_0_10_10: 0b_1_10_10,
+                                      0b_0_01_10: 0b_0_01_10,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["^A<=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_0_11_10,
-            0b_0_10_10: 0b_1_10_10,
-            0b_0_01_10: 0b_1_01_10,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^A<=B","inputA2",1,"inputB2"]]}',
+                                  maps={
+                                      0b_0_11_10: 0b_0_11_10,
+                                      0b_0_10_10: 0b_1_10_10,
+                                      0b_0_01_10: 0b_1_01_10,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["^A=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_0_11_10,
-            0b_0_10_10: 0b_1_10_10,
-            0b_0_01_10: 0b_0_01_10,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^A=B","inputA2",1,"inputB2"]]}',
+                                  maps={
+                                      0b_0_11_10: 0b_0_11_10,
+                                      0b_0_10_10: 0b_1_10_10,
+                                      0b_0_01_10: 0b_0_01_10,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["^A!=B","inputA2",1,"inputB2"]]}',
-        maps={
-            0b_0_11_10: 0b_1_11_10,
-            0b_0_10_10: 0b_0_10_10,
-            0b_0_01_10: 0b_1_01_10,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^A!=B","inputA2",1,"inputB2"]]}',
+                                  maps={
+                                      0b_0_11_10: 0b_1_11_10,
+                                      0b_0_10_10: 0b_0_10_10,
+                                      0b_0_01_10: 0b_1_01_10,
+                                  })
 
 
 def test_arithmetic_unlisted_misc_gates():
-    assert_url_to_circuit_returns(
-        '{"cols":[["^=A3",1,1,"inputA2"]]}',
-        maps={
-            0b_000_00: 0b_000_00,
-            0b_000_01: 0b_001_01,
-            0b_000_10: 0b_010_10,
-            0b_111_11: 0b_100_11,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^=A3",1,1,"inputA2"]]}',
+                                  maps={
+                                      0b_000_00: 0b_000_00,
+                                      0b_000_01: 0b_001_01,
+                                      0b_000_10: 0b_010_10,
+                                      0b_111_11: 0b_100_11,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["^=A2",1,"inputA3"]]}',
-        maps={
-            0b_00_000: 0b_00_000,
-            0b_00_001: 0b_01_001,
-            0b_00_010: 0b_10_010,
-            0b_00_100: 0b_00_100,
-            0b_11_111: 0b_00_111,
-        })
+    assert_url_to_circuit_returns('{"cols":[["^=A2",1,"inputA3"]]}',
+                                  maps={
+                                      0b_00_000: 0b_00_000,
+                                      0b_00_001: 0b_01_001,
+                                      0b_00_010: 0b_10_010,
+                                      0b_00_100: 0b_00_100,
+                                      0b_11_111: 0b_00_111,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":5}],["^=A4"]]}',
-        maps={
-            0b_0000: 0b_0101,
-            0b_1111: 0b_1010,
-        })
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":5}],["^=A4"]]}',
+                                  maps={
+                                      0b_0000: 0b_0101,
+                                      0b_1111: 0b_1010,
+                                  })
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setA","arg":11}],["+cntA4"]]}',
@@ -740,59 +783,53 @@ def test_arithmetic_unlisted_misc_gates():
 
 
 def test_arithmetic_addition_gates():
-    assert_url_to_circuit_returns(
-        '{"cols":[["inc3"]]}',
-        diagram="""
+    assert_url_to_circuit_returns('{"cols":[["inc3"]]}',
+                                  diagram="""
 0: ───Quirk(inc3)───
       │
 1: ───#2────────────
       │
 2: ───#3────────────
             """,
-        maps={
-            0: 1,
-            3: 4,
-            7: 0,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["dec3"]]}',
-        maps={
-            0: 7,
-            3: 2,
-            7: 6,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["+=A2",1,"inputA2"]]}',
-        maps={
-            0b_00_00: 0b_00_00,
-            0b_01_10: 0b_11_10,
-            0b_10_11: 0b_01_11,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["-=A2",1,"inputA2"]]}',
-        maps={
-            0b_00_00: 0b_00_00,
-            0b_01_10: 0b_11_10,
-            0b_10_11: 0b_11_11,
-        })
+                                  maps={
+                                      0: 1,
+                                      3: 4,
+                                      7: 0,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["dec3"]]}',
+                                  maps={
+                                      0: 7,
+                                      3: 2,
+                                      7: 6,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["+=A2",1,"inputA2"]]}',
+                                  maps={
+                                      0b_00_00: 0b_00_00,
+                                      0b_01_10: 0b_11_10,
+                                      0b_10_11: 0b_01_11,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["-=A2",1,"inputA2"]]}',
+                                  maps={
+                                      0b_00_00: 0b_00_00,
+                                      0b_01_10: 0b_11_10,
+                                      0b_10_11: 0b_11_11,
+                                  })
 
 
 def test_arithmetic_multiply_accumulate_gates():
-    assert_url_to_circuit_returns(
-        '{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
-        maps={
-            0b_0000_00: 0b_0000_00,
-            0b_0100_10: 0b_1000_10,
-            0b_1000_11: 0b_0001_11,
-        })
+    assert_url_to_circuit_returns('{"cols":[["+=AA4",1,1,1,"inputA2"]]}',
+                                  maps={
+                                      0b_0000_00: 0b_0000_00,
+                                      0b_0100_10: 0b_1000_10,
+                                      0b_1000_11: 0b_0001_11,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["-=AA4",1,1,1,"inputA2"]]}',
-        maps={
-            0b_0000_00: 0b_0000_00,
-            0b_0100_10: 0b_0000_10,
-            0b_1000_11: 0b_1111_11,
-        })
+    assert_url_to_circuit_returns('{"cols":[["-=AA4",1,1,1,"inputA2"]]}',
+                                  maps={
+                                      0b_0000_00: 0b_0000_00,
+                                      0b_0100_10: 0b_0000_10,
+                                      0b_1000_11: 0b_1111_11,
+                                  })
 
     assert_url_to_circuit_returns(
         '{"cols":[["+=AB3",1,1,"inputA2",1,"inputB2"]]}',
@@ -813,9 +850,8 @@ def test_arithmetic_multiply_accumulate_gates():
 
 def test_modular_arithmetic_modulus_size():
     with pytest.raises(ValueError, match='too small for modulus'):
-        _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":['
-            '[{"id":"setR","arg":17}],["incmodR4"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
+                                 '[{"id":"setR","arg":17}],["incmodR4"]]}')
 
     assert_url_to_circuit_returns(
         '{"cols":[[{"id":"setR","arg":16}],["incmodR4"]]}')
@@ -823,18 +859,14 @@ def test_modular_arithmetic_modulus_size():
         '{"cols":[[{"id":"setR","arg":15}],["incmodR4"]]}')
 
     with pytest.raises(ValueError, match='too small for modulus'):
-        _ = quirk_url_to_circuit(
-            'https://algassert.com/quirk#circuit={"cols":['
-            '["incmodR2",1,"inputR3"]]}')
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
+                                 '["incmodR2",1,"inputR3"]]}')
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["incmodR3",1,1,"inputR3"]]}')
+    assert_url_to_circuit_returns('{"cols":[["incmodR3",1,1,"inputR3"]]}')
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["incmodR4",1,1,1,"inputR3"]]}')
+    assert_url_to_circuit_returns('{"cols":[["incmodR4",1,1,1,"inputR3"]]}')
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["incmodR2",1,"inputR2"]]}')
+    assert_url_to_circuit_returns('{"cols":[["incmodR2",1,"inputR2"]]}')
 
 
 def test_arithmetic_modular_addition_gates():
@@ -924,51 +956,47 @@ def test_arithmetic_modular_multiply_accumulate_gates():
         '{"cols":[[{"id":"setR","arg":27},{"id":"setA","arg":3},'
         '{"id":"setB","arg":5}],["-ABmodR6"]]}',
         maps={
-            0: 27-15,
-            1: 27-14,
+            0: 27 - 15,
+            1: 27 - 14,
             15: 0,
             16: 1,
-            26: 26-15,
+            26: 26 - 15,
             27: 27,
             63: 63,
         })
 
 
 def test_arithmetic_multiply_gates():
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":3}],["*A4"]]}',
-        maps={
-            0: 0,
-            1: 3,
-            3: 9,
-            9: 11,
-            11: 1,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":3}],["/A4"]]}',
-        maps={
-            0: 0,
-            1: 11,
-            3: 1,
-            9: 3,
-            11: 9,
-        })
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":3}],["*A4"]]}',
+                                  maps={
+                                      0: 0,
+                                      1: 3,
+                                      3: 9,
+                                      9: 11,
+                                      11: 1,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":3}],["/A4"]]}',
+                                  maps={
+                                      0: 0,
+                                      1: 11,
+                                      3: 1,
+                                      9: 3,
+                                      11: 9,
+                                  })
 
     # Irreversible multipliers have no effect.
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":4}],["*A4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            3: 3,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":4}],["/A4"]]}',
-        maps={
-            0: 0,
-            1: 1,
-            3: 3,
-        })
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":4}],["*A4"]]}',
+                                  maps={
+                                      0: 0,
+                                      1: 1,
+                                      3: 3,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[[{"id":"setA","arg":4}],["/A4"]]}',
+                                  maps={
+                                      0: 0,
+                                      1: 1,
+                                      3: 3,
+                                  })
 
 
 def test_arithmetic_modular_multiply_gates():
@@ -1059,9 +1087,8 @@ def test_arithmetic_modular_exponentiation_gates():
 
 
 def test_qubit_permutation_gates():
-    assert_url_to_circuit_returns(
-        '{"cols":[["X",">>4",1,1,1,"X"]]}',
-        diagram="""
+    assert_url_to_circuit_returns('{"cols":[["X",">>4",1,1,1,"X"]]}',
+                                  diagram="""
 0: ───X───────────────────
 
 1: ───right_rotate[0>3]───
@@ -1074,99 +1101,92 @@ def test_qubit_permutation_gates():
 
 5: ───X───────────────────
         """,
-        maps={
-            0b_000000: 0b_100001,
-            0b_000010: 0b_100101,
-            0b_000100: 0b_101001,
-            0b_001000: 0b_110001,
-            0b_010000: 0b_100011,
-            0b_011110: 0b_111111,
-            0b_010100: 0b_101011,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["<<4"]]}',
-        maps={
-            0b_0000: 0b_0000,
-            0b_0001: 0b_1000,
-            0b_0010: 0b_0001,
-            0b_0100: 0b_0010,
-            0b_1000: 0b_0100,
-            0b_1111: 0b_1111,
-            0b_1010: 0b_0101,
-        })
+                                  maps={
+                                      0b_000000: 0b_100001,
+                                      0b_000010: 0b_100101,
+                                      0b_000100: 0b_101001,
+                                      0b_001000: 0b_110001,
+                                      0b_010000: 0b_100011,
+                                      0b_011110: 0b_111111,
+                                      0b_010100: 0b_101011,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["<<4"]]}',
+                                  maps={
+                                      0b_0000: 0b_0000,
+                                      0b_0001: 0b_1000,
+                                      0b_0010: 0b_0001,
+                                      0b_0100: 0b_0010,
+                                      0b_1000: 0b_0100,
+                                      0b_1111: 0b_1111,
+                                      0b_1010: 0b_0101,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["rev4"]]}',
-        maps={
-            0b_0000: 0b_0000,
-            0b_0001: 0b_1000,
-            0b_0010: 0b_0100,
-            0b_0100: 0b_0010,
-            0b_1000: 0b_0001,
-            0b_1111: 0b_1111,
-            0b_1010: 0b_0101,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["rev3"]]}',
-        maps={
-            0b_000: 0b_000,
-            0b_001: 0b_100,
-            0b_010: 0b_010,
-            0b_100: 0b_001,
-            0b_111: 0b_111,
-            0b_101: 0b_101,
-        })
+    assert_url_to_circuit_returns('{"cols":[["rev4"]]}',
+                                  maps={
+                                      0b_0000: 0b_0000,
+                                      0b_0001: 0b_1000,
+                                      0b_0010: 0b_0100,
+                                      0b_0100: 0b_0010,
+                                      0b_1000: 0b_0001,
+                                      0b_1111: 0b_1111,
+                                      0b_1010: 0b_0101,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["rev3"]]}',
+                                  maps={
+                                      0b_000: 0b_000,
+                                      0b_001: 0b_100,
+                                      0b_010: 0b_010,
+                                      0b_100: 0b_001,
+                                      0b_111: 0b_111,
+                                      0b_101: 0b_101,
+                                  })
 
-    assert_url_to_circuit_returns(
-        '{"cols":[["weave5"]]}',
-        maps={
-            0b_00000: 0b_00000,
-            0b_00001: 0b_00010,
-            0b_00010: 0b_01000,
-            0b_00100: 0b_00001,
-            0b_01000: 0b_00100,
-            0b_10000: 0b_10000,
-            0b_00011: 0b_01010,
-            0b_11111: 0b_11111,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["weave6"]]}',
-        maps={
-            0b_000000: 0b_000000,
-            0b_000001: 0b_000001,
-            0b_000010: 0b_000100,
-            0b_000100: 0b_010000,
-            0b_001000: 0b_000010,
-            0b_010000: 0b_001000,
-            0b_100000: 0b_100000,
-            0b_000111: 0b_010101,
-            0b_111111: 0b_111111,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["split5"]]}',
-        maps={
-            0b_00000: 0b_00000,
-            0b_00001: 0b_00100,
-            0b_00010: 0b_00001,
-            0b_00100: 0b_01000,
-            0b_01000: 0b_00010,
-            0b_10000: 0b_10000,
-            0b_01010: 0b_00011,
-            0b_11111: 0b_11111,
-        })
-    assert_url_to_circuit_returns(
-        '{"cols":[["split6"]]}',
-        maps={
-            0b_000000: 0b_000000,
-            0b_000001: 0b_000001,
-            0b_000010: 0b_001000,
-            0b_000100: 0b_000010,
-            0b_001000: 0b_010000,
-            0b_010000: 0b_000100,
-            0b_100000: 0b_100000,
-            0b_010101: 0b_000111,
-            0b_111111: 0b_111111,
-        })
+    assert_url_to_circuit_returns('{"cols":[["weave5"]]}',
+                                  maps={
+                                      0b_00000: 0b_00000,
+                                      0b_00001: 0b_00010,
+                                      0b_00010: 0b_01000,
+                                      0b_00100: 0b_00001,
+                                      0b_01000: 0b_00100,
+                                      0b_10000: 0b_10000,
+                                      0b_00011: 0b_01010,
+                                      0b_11111: 0b_11111,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["weave6"]]}',
+                                  maps={
+                                      0b_000000: 0b_000000,
+                                      0b_000001: 0b_000001,
+                                      0b_000010: 0b_000100,
+                                      0b_000100: 0b_010000,
+                                      0b_001000: 0b_000010,
+                                      0b_010000: 0b_001000,
+                                      0b_100000: 0b_100000,
+                                      0b_000111: 0b_010101,
+                                      0b_111111: 0b_111111,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["split5"]]}',
+                                  maps={
+                                      0b_00000: 0b_00000,
+                                      0b_00001: 0b_00100,
+                                      0b_00010: 0b_00001,
+                                      0b_00100: 0b_01000,
+                                      0b_01000: 0b_00010,
+                                      0b_10000: 0b_10000,
+                                      0b_01010: 0b_00011,
+                                      0b_11111: 0b_11111,
+                                  })
+    assert_url_to_circuit_returns('{"cols":[["split6"]]}',
+                                  maps={
+                                      0b_000000: 0b_000000,
+                                      0b_000001: 0b_000001,
+                                      0b_000010: 0b_001000,
+                                      0b_000100: 0b_000010,
+                                      0b_001000: 0b_010000,
+                                      0b_010000: 0b_000100,
+                                      0b_100000: 0b_100000,
+                                      0b_010101: 0b_000111,
+                                      0b_111111: 0b_111111,
+                                  })
 
 
 def test_not_implemented_gates():
@@ -1177,7 +1197,7 @@ def test_not_implemented_gates():
             _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={'
                                      '"cols":[["' + k + '"]]}')
 
-    for k in ["add3","sub3","c+=ab4","c-=ab4"]:
+    for k in ["add3", "sub3", "c+=ab4", "c-=ab4"]:
         with pytest.raises(NotImplementedError, match="deprecated"):
             _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={'
                                      '"cols":[["' + k + '"]]}')

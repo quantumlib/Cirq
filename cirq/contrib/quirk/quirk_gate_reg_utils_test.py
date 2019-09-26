@@ -20,23 +20,20 @@ from cirq.contrib.quirk.quirk_gate_reg_utils import parse_matrix, parse_formula
 
 def test_parse_matrix():
     s = np.sqrt(0.5)
-    np.testing.assert_allclose(
-        parse_matrix('{{√½,√½},{-√½,√½}}'),
-        np.array([[s, s], [-s, s]]),
-        atol=1e-8)
-    np.testing.assert_allclose(
-        parse_matrix('{{√½,√½i},{√½i,√½}}'),
-        np.array([[s, s*1j], [s*1j, s]]),
-        atol=1e-8)
-    np.testing.assert_allclose(
-        parse_matrix('{{1,-i},{i,1+i}}'),
-        np.array([[1, -1j], [1j, 1+1j]]),
-        atol=1e-8)
+    np.testing.assert_allclose(parse_matrix('{{√½,√½},{-√½,√½}}'),
+                               np.array([[s, s], [-s, s]]),
+                               atol=1e-8)
+    np.testing.assert_allclose(parse_matrix('{{√½,√½i},{√½i,√½}}'),
+                               np.array([[s, s * 1j], [s * 1j, s]]),
+                               atol=1e-8)
+    np.testing.assert_allclose(parse_matrix('{{1,-i},{i,1+i}}'),
+                               np.array([[1, -1j], [1j, 1 + 1j]]),
+                               atol=1e-8)
 
 
 def test_parse_formula():
     t = sympy.Symbol('t')
-    assert parse_formula('t*t + ln(t)') == t*t + sympy.ln(t)
+    assert parse_formula('t*t + ln(t)') == t * t + sympy.ln(t)
     assert parse_formula('cos(pi*t)') == sympy.cos(sympy.pi * t)
     np.testing.assert_allclose(parse_formula('cos(pi)'), -1, atol=1e-8)
     assert type(parse_formula('cos(pi)')) is float
