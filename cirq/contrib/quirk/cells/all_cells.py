@@ -24,6 +24,7 @@ from cirq.contrib.quirk.cells.cell import (
 from cirq.contrib.quirk.cells.control_cells import all_control_cells
 from cirq.contrib.quirk.cells.input_cells import (
     SetDefaultInputCell,
+    all_input_cells
 )
 from cirq.contrib.quirk.cells.swap_cell import (
     SwapCell,
@@ -32,7 +33,6 @@ from cirq.contrib.quirk.cells.swap_cell import (
 
 def generate_all_cells() -> Iterator[CellMaker]:
     from cirq.contrib.quirk.quirk_gate_reg_utils import (
-        reg_input_family,
         reg_unsupported_gates, reg_gate, reg_const, reg_formula_gate,
         reg_parameterized_gate, reg_ignored_family, reg_ignored_gate,
         reg_unsupported_family,
@@ -45,16 +45,7 @@ def generate_all_cells() -> Iterator[CellMaker]:
                    1, lambda args: SwapCell(args.qubits, []))
 
     yield from all_control_cells()
-
-    # Input gates.
-    yield from reg_input_family("inputA", "a")
-    yield from reg_input_family("inputB", "b")
-    yield from reg_input_family("inputR", "r")
-    yield from reg_input_family("revinputA", "a", rev=True)
-    yield from reg_input_family("revinputB", "b", rev=True)
-    yield CellMaker("setA", 2, lambda args: SetDefaultInputCell('a', args.value))
-    yield CellMaker("setB", 2, lambda args: SetDefaultInputCell('b', args.value))
-    yield CellMaker("setR", 2, lambda args: SetDefaultInputCell('r', args.value))
+    yield from all_input_cells()
 
     # Post selection.
     yield from reg_unsupported_gates(

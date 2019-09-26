@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List
+from typing import Optional, List, Iterator
 
 import cirq
-from cirq.contrib.quirk.cells.cell import Cell
+from cirq.contrib.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 
 
 class InputCell(Cell):
@@ -44,3 +44,25 @@ class SetDefaultInputCell(Cell):
             f'set_default_{self.letter}':
             lambda cell: cell.with_input(self.letter, self.value)
         }
+
+
+def all_input_cells():
+    # Quantum inputs.
+    yield from reg_input_family("inputA", "a")
+    yield from reg_input_family("inputB", "b")
+    yield from reg_input_family("inputR", "r")
+    yield from reg_input_family("revinputA", "a", rev=True)
+    yield from reg_input_family("revinputB", "b", rev=True)
+
+    # Classical inputs.
+    yield CellMaker("setA", 2, lambda args: SetDefaultInputCell('a', args.value))
+    yield CellMaker("setB", 2, lambda args: SetDefaultInputCell('b', args.value))
+    yield CellMaker("setR", 2, lambda args: SetDefaultInputCell('r', args.value))
+
+
+def reg_input_family(identifier_prefix: str, letter: str,
+                     rev: bool = False) -> Iterator[CellMaker]:
+    for i in CELL_SIZES:
+        yield CellMaker(
+            identifier_prefix + str(i), i, lambda args: InputCell(
+                args.qubits[::-1] if rev else args.qubits, letter))

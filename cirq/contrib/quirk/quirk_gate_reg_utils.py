@@ -104,14 +104,6 @@ def reg_unsupported_family(identifier_prefix: str,
         yield from reg_unsupported_gate(identifier_prefix + str(i), reason)
 
 
-def reg_input_family(identifier_prefix: str, letter: str,
-                     rev: bool = False) -> Iterator[CellMaker]:
-    for i in CELL_SIZES:
-        yield CellMaker(
-            identifier_prefix + str(i), i, lambda args: InputCell(
-                args.qubits[::-1] if rev else args.qubits, letter))
-
-
 def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
                            factor: float) -> Iterator[CellMaker]:
     yield CellMaker(
