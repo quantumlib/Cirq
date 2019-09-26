@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterable
+from typing import Optional, List, Iterable, Iterator
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells.cell import Cell
+from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 
 class ControlCell(Cell):
@@ -68,3 +68,41 @@ class ParityControlCell(Cell):
         # Temporarily move the ZZZ..Z parity observable onto a single qubit.
         for q in self.qubits[1:]:
             yield ops.CNOT(q, self.qubits[0])
+
+
+def all_control_cells():
+    # Controls.
+    yield _reg_control("•", basis_change=None)
+    yield _reg_control("◦", basis_change=ops.X)
+    yield _reg_control("⊕", basis_change=ops.Y ** 0.5)
+    yield _reg_control("⊖", basis_change=ops.Y ** -0.5)
+    yield _reg_control("⊗", basis_change=ops.X ** -0.5)
+    yield _reg_control("(/)", basis_change=ops.X ** 0.5)
+
+    # Parity controls.
+    yield _reg_parity_control("xpar", basis_change=ops.Y**0.5)
+    yield _reg_parity_control("ypar", basis_change=ops.X**-0.5)
+    yield _reg_parity_control("zpar", basis_change=None)
+
+
+def _reg_control(identifier: str,
+                 *,
+                 basis_change: Optional['cirq.Gate']) -> CellMaker:
+    return CellMaker(
+        identifier=identifier,
+        size=1,
+        func=lambda args: ControlCell(
+            args.qubits[0],
+            basis_change.on(args.qubits[0]) if basis_change else []))
+
+
+def _reg_parity_control(
+        identifier: str,
+        *,
+        basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
+    return CellMaker(
+        identifier=identifier,
+        size=1,
+        func=lambda args: ParityControlCell(
+            args.qubits,
+            () if basis_change is None else basis_change.on_each(args.qubits)))

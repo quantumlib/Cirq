@@ -15,6 +15,10 @@
 """This module defines building blocks for parsing Quirk circuits."""
 
 
+from cirq.contrib.quirk.cells.all_cells import (
+    generate_all_cells
+)
+
 from cirq.contrib.quirk.cells.arithmetic_cell import (
     ArithmeticCell,
     QuirkArithmeticOperation,
@@ -22,6 +26,9 @@ from cirq.contrib.quirk.cells.arithmetic_cell import (
 
 from cirq.contrib.quirk.cells.cell import (
     Cell,
+    CELL_SIZES,
+    CellMaker,
+    CellMakerArgs,
 )
 
 from cirq.contrib.quirk.cells.control_cells import (

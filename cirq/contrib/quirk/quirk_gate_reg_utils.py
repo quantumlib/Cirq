@@ -18,9 +18,7 @@ from typing import (
     Callable,
     Optional,
     Union,
-    List,
     Tuple,
-    NamedTuple,
     Iterator,
 )
 
@@ -29,35 +27,18 @@ import sympy.parsing.sympy_parser
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells import (
-    ArithmeticCell,
-    Cell,
-    ControlCell,
-    ExplicitOperationsCell,
-    InputCell,
-    InputRotationCell,
-    QuirkQubitPermutationOperation,
-)
-
-GATE_SIZES = range(1, 17)
-
-CellArgs = NamedTuple('CellArgs', [
-    ('qubits', List['cirq.Qid']),
-    ('value', Any),
-    ('row', int),
-    ('col', int),
-])
-
-CellType = NamedTuple('CellType', [
-    ('identifier', str),
-    ('size', int),
-    ('func', Callable[[CellArgs], Optional[Cell]]),
-])
+from cirq.contrib.quirk.cells.arithmetic_cell import ArithmeticCell
+from cirq.contrib.quirk.cells.control_cells import ControlCell
+from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
+from cirq.contrib.quirk.cells.input_cells import InputCell
+from cirq.contrib.quirk.cells.input_rotation_cell import InputRotationCell
+from cirq.contrib.quirk.cells.qubit_permutation_cell import QuirkQubitPermutationOperation
+from cirq.contrib.quirk.cells.cell import CellMaker, CELL_SIZES
 
 
 def reg_gate(identifier: str, gate: cirq.Gate,
-             basis_change: cirq.Gate = None) -> Iterator[CellType]:
-    yield CellType(
+             basis_change: cirq.Gate = None) -> Iterator[CellMaker]:
+    yield CellMaker(
         identifier, gate.num_qubits(), lambda args: ExplicitOperationsCell(
             [gate.on(*args.qubits)],
             basis_change=[basis_change.on(*args.qubits)]
@@ -65,7 +46,7 @@ def reg_gate(identifier: str, gate: cirq.Gate,
 
 
 def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
-    yield CellType(
+    yield CellMaker(
         identifier, 1, lambda args: ExplicitOperationsCell(
             [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
             basis_change=[basis_change.on(*args.qubits)]
@@ -73,18 +54,18 @@ def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
 
 
 def reg_family(identifier_prefix: str,
-               gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellType]:
+               gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellMaker]:
     f = lambda args: ExplicitOperationsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
-    yield CellType(identifier_prefix, 1, f)
-    for i in GATE_SIZES:
-        yield CellType(identifier_prefix + str(i), i, f)
+    yield CellMaker(identifier_prefix, 1, f)
+    for i in CELL_SIZES:
+        yield CellMaker(identifier_prefix + str(i), i, f)
 
 
 def reg_formula_gate(
         identifier: str, default_formula: str,
         gate_func: Callable[[Union[sympy.Symbol, float]], cirq.Gate]
-) -> Iterator[CellType]:
-    yield CellType(
+) -> Iterator[CellMaker]:
+    yield CellMaker(
         identifier,
         gate_func(0).num_qubits(), lambda args: ExplicitOperationsCell([
             gate_func(parse_formula(args.value, default_formula)).on(*args.
@@ -92,39 +73,39 @@ def reg_formula_gate(
         ]))
 
 
-def reg_ignored_family(identifier_prefix: str) -> Iterator[CellType]:
+def reg_ignored_family(identifier_prefix: str) -> Iterator[CellMaker]:
     yield from reg_ignored_gate(identifier_prefix)
-    for i in GATE_SIZES:
+    for i in CELL_SIZES:
         yield from reg_ignored_gate(identifier_prefix + str(i))
 
 
 def reg_ignored_gate(identifier: str):
-    yield CellType(identifier, 0, lambda _: None)
+    yield CellMaker(identifier, 0, lambda _: None)
 
 
-def reg_unsupported_gate(identifier: str, reason: str) -> Iterator[CellType]:
+def reg_unsupported_gate(identifier: str, reason: str) -> Iterator[CellMaker]:
 
     def fail(_):
         raise NotImplementedError(
             f'Converting the Quirk gate {identifier} is not implemented yet. '
             f'Reason: {reason}')
 
-    yield CellType(identifier, 0, fail)
+    yield CellMaker(identifier, 0, fail)
 
 
-def reg_unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellType]:
+def reg_unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellMaker]:
     for identifier in identifiers:
         yield from reg_unsupported_gate(identifier, reason)
 
 
 def reg_unsupported_family(identifier_prefix: str,
-                           reason: str) -> Iterator[CellType]:
-    for i in GATE_SIZES:
+                           reason: str) -> Iterator[CellMaker]:
+    for i in CELL_SIZES:
         yield from reg_unsupported_gate(identifier_prefix + str(i), reason)
 
 
 def reg_arithmetic_family(identifier_prefix: str,
-                          func: Callable[[Any], int]) -> Iterator[CellType]:
+                          func: Callable[[Any], int]) -> Iterator[CellMaker]:
     yield from reg_size_dependent_arithmetic_family(identifier_prefix,
                                                     func=lambda _: func,
                                                     is_modular=False)
@@ -132,7 +113,7 @@ def reg_arithmetic_family(identifier_prefix: str,
 
 def reg_modular_arithmetic_family(identifier_prefix: str,
                                   func: Callable[[Any], int]
-                                 ) -> Iterator[CellType]:
+                                 ) -> Iterator[CellMaker]:
     yield from reg_size_dependent_arithmetic_family(identifier_prefix,
                                                     func=lambda _: func,
                                                     is_modular=True)
@@ -141,8 +122,8 @@ def reg_modular_arithmetic_family(identifier_prefix: str,
 def reg_size_dependent_arithmetic_family(
         identifier_prefix: str,
         func: Callable[[int], Callable[[Any], int]],
-        is_modular: bool = False) -> Iterator[CellType]:
-    for i in GATE_SIZES:
+        is_modular: bool = False) -> Iterator[CellMaker]:
+    for i in CELL_SIZES:
         yield from reg_arithmetic_gate(identifier_prefix + str(i),
                                        size=i,
                                        func=func(i),
@@ -152,10 +133,10 @@ def reg_size_dependent_arithmetic_family(
 def reg_arithmetic_gate(identifier: str,
                         size: int,
                         func: Callable[[Any], int],
-                        is_modular: bool = False) -> Iterator[CellType]:
+                        is_modular: bool = False) -> Iterator[CellMaker]:
     param_names = list(inspect.signature(func).parameters)
     assert param_names[0] == 'x'
-    yield CellType(
+    yield CellMaker(
         identifier, size, lambda args: ArithmeticCell(
             identifier=identifier,
             registers=[args.qubits] + [None] * len(param_names[1:]),
@@ -164,25 +145,17 @@ def reg_arithmetic_gate(identifier: str,
             is_modular=is_modular))
 
 
-def reg_control(identifier: str,
-                basis_change: Optional['cirq.Gate']) -> Iterator[CellType]:
-    yield CellType(
-        identifier, 1, lambda args: ControlCell(
-            args.qubits[0],
-            basis_change.on(args.qubits[0]) if basis_change else []))
-
-
 def reg_input_family(identifier_prefix: str, letter: str,
-                     rev: bool = False) -> Iterator[CellType]:
-    for i in GATE_SIZES:
-        yield CellType(
+                     rev: bool = False) -> Iterator[CellMaker]:
+    for i in CELL_SIZES:
+        yield CellMaker(
             identifier_prefix + str(i), i, lambda args: InputCell(
                 args.qubits[::-1] if rev else args.qubits, letter))
 
 
 def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
-                           factor: float) -> Iterator[CellType]:
-    yield CellType(
+                           factor: float) -> Iterator[CellMaker]:
+    yield CellMaker(
         identifier, gate.num_qubits(), lambda args: InputRotationCell(
             identifier=identifier,
             register=None,
@@ -192,19 +165,19 @@ def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
 
 
 def reg_const(identifier: str,
-              operation: 'cirq.Operation') -> Iterator[CellType]:
-    yield CellType(identifier, 1, lambda _: ExplicitOperationsCell([operation]))
+              operation: 'cirq.Operation') -> Iterator[CellMaker]:
+    yield CellMaker(identifier, 1, lambda _: ExplicitOperationsCell([operation]))
 
 
 def reg_bit_permutation_family(identifier_prefix: str, name: str,
                                permutation: Callable[[int, int], int]
-                              ) -> Iterator[CellType]:
+                              ) -> Iterator[CellMaker]:
     f = lambda args: ExplicitOperationsCell([
         QuirkQubitPermutationOperation(name, args.qubits, lambda e: permutation(
             len(args.qubits), e))
     ])
-    for i in GATE_SIZES:
-        yield CellType(identifier_prefix + str(i), i, f)
+    for i in CELL_SIZES:
+        yield CellMaker(identifier_prefix + str(i), i, f)
 
 
 def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:

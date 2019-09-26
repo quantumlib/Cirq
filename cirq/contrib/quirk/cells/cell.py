@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, List, Dict
+from typing import Callable, Optional, Union, List, Dict, NamedTuple, Any
 
 import cirq
 
@@ -111,3 +111,19 @@ class Cell:
             later cell specifies a new modifier with the same key.
         """
         return {}
+
+
+CELL_SIZES = range(1, 17)
+
+CellMakerArgs = NamedTuple('CellMakerArgs', [
+    ('qubits', List['cirq.Qid']),
+    ('value', Any),
+    ('row', int),
+    ('col', int),
+])
+
+CellMaker = NamedTuple('CellMaker', [
+    ('identifier', str),
+    ('size', int),
+    ('func', Callable[[CellMakerArgs], Optional[Cell]]),
+])
