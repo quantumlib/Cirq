@@ -74,6 +74,56 @@ def test_product():
     assert _values(sweep, 'b') == [4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7]
 
 
+def test_slice_access_error():
+    sweep = cirq.Points('a', [1, 2, 3])
+    with pytest.raises(TypeError, match='<class \'str\'>'):
+        _ = sweep['junk']
+
+    with pytest.raises(IndexError):
+        _ = sweep[4]
+
+    with pytest.raises(IndexError):
+        _ = sweep[-4]
+
+
+def test_slice_sweep():
+    sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
+
+    first_two = sweep[:2]
+    assert list(first_two.param_tuples())[0] == (('a', 1), ('b', 4))
+    assert list(first_two.param_tuples())[1] == (('a', 1), ('b', 5))
+    assert len(list(first_two)) == 2
+
+    middle_three = sweep[5:8]
+    assert list(middle_three.param_tuples())[0] == (('a', 2), ('b', 5))
+    assert list(middle_three.param_tuples())[1] == (('a', 2), ('b', 6))
+    assert list(middle_three.param_tuples())[2] == (('a', 2), ('b', 7))
+    assert len(list(middle_three.param_tuples())) == 3
+
+    odd_elems = sweep[6:1:-2]
+    assert list(odd_elems.param_tuples())[2] == (('a', 1), ('b', 6))
+    assert list(odd_elems.param_tuples())[1] == (('a', 2), ('b', 4))
+    assert list(odd_elems.param_tuples())[0] == (('a', 2), ('b', 6))
+    assert len(list(odd_elems.param_tuples())) == 3
+
+    sweep_reversed = sweep[::-1]
+    assert list(sweep) == list(reversed(list(sweep_reversed)))
+
+    single_sweep = sweep[5:6]
+    assert list(single_sweep.param_tuples())[0] == (('a', 2), ('b', 5))
+    assert len(list(single_sweep.param_tuples())) == 1
+
+
+def test_access_sweep():
+    sweep = cirq.Points('a', [1, 2, 3]) * cirq.Points('b', [4, 5, 6, 7])
+
+    first_elem = sweep[-12]
+    assert first_elem == cirq.ParamResolver({'a': 1, 'b': 4})
+
+    sixth_elem = sweep[5]
+    assert sixth_elem == cirq.ParamResolver({'a': 2, 'b': 5})
+
+
 @pytest.mark.parametrize('r_list', [
     [{
         'a': a,

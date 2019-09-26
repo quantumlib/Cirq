@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union, \
-    TYPE_CHECKING
-
 import abc
+from typing import (cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union,
+                    TYPE_CHECKING)
 
 from cirq import circuits, ops, optimizers, protocols, value
 
 if TYPE_CHECKING:
     import cirq
+
 
 LogicalIndex = TypeVar('LogicalIndex', int, ops.Qid)
 LogicalIndexSequence = Union[Sequence[int], Sequence['cirq.Qid']]
@@ -62,8 +62,10 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         permutation = self.permutation()
         indices = tuple(permutation.keys())
         new_keys = [keys[permutation[i]] for i in indices]
-        old_elements = [mapping[keys[i]] for i in indices]
-        mapping.update(zip(new_keys, old_elements))
+        old_elements = [mapping.get(keys[i]) for i in indices]
+        for new_key, old_element in zip(new_keys, old_elements):
+            if old_element is not None:
+                mapping[new_key] = old_element
 
     @staticmethod
     def validate_permutation(permutation: Dict[int, int],

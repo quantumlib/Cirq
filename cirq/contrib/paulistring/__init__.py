@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Methods related to optimizing and transforming PauliStrings."""
+
 from cirq.contrib.paulistring.convert_to_pauli_string_phasors import (
     ConvertToPauliStringPhasors,)
 
