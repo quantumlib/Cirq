@@ -39,11 +39,12 @@ TDefault = TypeVar('TDefault')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
-    def __init__(self,
-                 qubit_paulis: Optional[Union[
-                     Mapping[raw_types.Qid, pauli_gates.Pauli],
-                    Sequence[raw_types.Operation]]] = None,
-                 coefficient: Union[int, float, complex] = 1) -> None:
+    def __init__(
+            self,
+            qubit_paulis: Optional[
+                Union[Mapping[raw_types.Qid, pauli_gates.
+                              Pauli], Sequence[raw_types.Operation]]] = None,
+            coefficient: Union[int, float, complex] = 1) -> None:
         if qubit_paulis is None:
             qubit_pauli_map = {}
         elif isinstance(qubit_paulis, Mapping):
@@ -100,8 +101,7 @@ class PauliString(raw_types.Operation):
 
     @classmethod
     def _from_json_dict_(cls, qubit_pauli_map, coefficient, **kwargs):
-        return cls(qubit_paulis=dict(qubit_pauli_map),
-                   coefficient=coefficient)
+        return cls(qubit_paulis=dict(qubit_pauli_map), coefficient=coefficient)
 
     def _value_equality_values_cls_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:

@@ -317,14 +317,14 @@ def test_zip_paulis(map1, map2, out):
 def test_commutes_with():
     q0, q1, q2 = _make_qubits(3)
 
-    assert cirq.PauliString([cirq.X.on(q0)]).commutes_with(
-           cirq.PauliString([cirq.X.on(q0)]))
+    assert cirq.PauliString([cirq.X.on(q0)
+                            ]).commutes_with(cirq.PauliString([cirq.X.on(q0)]))
     assert not cirq.PauliString([cirq.X.on(q0)]).commutes_with(
-               cirq.PauliString([cirq.Y.on(q0)]))
-    assert cirq.PauliString([cirq.X.on(q0)]).commutes_with(
-           cirq.PauliString([cirq.X.on(q1)]))
-    assert cirq.PauliString([cirq.X.on(q0)]).commutes_with(
-           cirq.PauliString([cirq.Y.on(q1)]))
+        cirq.PauliString([cirq.Y.on(q0)]))
+    assert cirq.PauliString([cirq.X.on(q0)
+                            ]).commutes_with(cirq.PauliString([cirq.X.on(q1)]))
+    assert cirq.PauliString([cirq.X.on(q0)
+                            ]).commutes_with(cirq.PauliString([cirq.Y.on(q1)]))
 
     assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
            cirq.PauliString({q0: cirq.X, q1: cirq.Y}))
