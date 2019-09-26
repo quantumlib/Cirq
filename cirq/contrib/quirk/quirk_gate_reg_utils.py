@@ -36,15 +36,6 @@ from cirq.contrib.quirk.cells.qubit_permutation_cells import QuirkQubitPermutati
 from cirq.contrib.quirk.cells.cell import CellMaker, CELL_SIZES
 
 
-def reg_gate(identifier: str, gate: cirq.Gate,
-             basis_change: cirq.Gate = None) -> Iterator[CellMaker]:
-    yield CellMaker(
-        identifier, gate.num_qubits(), lambda args: ExplicitOperationsCell(
-            [gate.on(*args.qubits)],
-            basis_change=[basis_change.on(*args.qubits)]
-            if basis_change else ()))
-
-
 def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
     yield CellMaker(
         identifier, 1, lambda args: ExplicitOperationsCell(
@@ -61,18 +52,6 @@ def reg_family(identifier_prefix: str,
         yield CellMaker(identifier_prefix + str(i), i, f)
 
 
-def reg_formula_gate(
-        identifier: str, default_formula: str,
-        gate_func: Callable[[Union[sympy.Symbol, float]], cirq.Gate]
-) -> Iterator[CellMaker]:
-    yield CellMaker(
-        identifier,
-        gate_func(0).num_qubits(), lambda args: ExplicitOperationsCell([
-            gate_func(parse_formula(args.value, default_formula)).on(*args.
-                                                                     qubits)
-        ]))
-
-
 def reg_ignored_family(identifier_prefix: str) -> Iterator[CellMaker]:
     yield from reg_ignored_gate(identifier_prefix)
     for i in CELL_SIZES:
@@ -81,27 +60,6 @@ def reg_ignored_family(identifier_prefix: str) -> Iterator[CellMaker]:
 
 def reg_ignored_gate(identifier: str):
     yield CellMaker(identifier, 0, lambda _: None)
-
-
-def reg_unsupported_gate(identifier: str, reason: str) -> Iterator[CellMaker]:
-
-    def fail(_):
-        raise NotImplementedError(
-            f'Converting the Quirk gate {identifier} is not implemented yet. '
-            f'Reason: {reason}')
-
-    yield CellMaker(identifier, 0, fail)
-
-
-def reg_unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellMaker]:
-    for identifier in identifiers:
-        yield from reg_unsupported_gate(identifier, reason)
-
-
-def reg_unsupported_family(identifier_prefix: str,
-                           reason: str) -> Iterator[CellMaker]:
-    for i in CELL_SIZES:
-        yield from reg_unsupported_gate(identifier_prefix + str(i), reason)
 
 
 def reg_parameterized_gate(identifier: str, gate: cirq.Gate,

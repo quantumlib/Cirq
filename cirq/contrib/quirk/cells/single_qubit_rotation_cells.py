@@ -11,19 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator
+from typing import Iterator, Callable, Union
 
 import sympy
 
+import cirq
 from cirq import ops
+from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
 from cirq.contrib.quirk.cells.cell import (
     CellMaker,
 )
 
 
 def generate_all_single_qubit_rotation_cells() -> Iterator[CellMaker]:
-    from cirq.contrib.quirk.quirk_gate_reg_utils import (
-        reg_gate, reg_formula_gate)
 
     # Fixed single qubit rotations.
     yield from reg_gate("H", gate=ops.H)
@@ -92,3 +92,25 @@ def generate_all_single_qubit_rotation_cells() -> Iterator[CellMaker]:
     yield from reg_formula_gate("Rxft", "pi*t*t", lambda e: ops.Rx(e))
     yield from reg_formula_gate("Ryft", "pi*t*t", lambda e: ops.Ry(e))
     yield from reg_formula_gate("Rzft", "pi*t*t", lambda e: ops.Rz(e))
+
+
+def reg_gate(identifier: str, gate: 'cirq.Gate',
+             basis_change: 'cirq.Gate' = None) -> Iterator[CellMaker]:
+    yield CellMaker(
+        identifier, gate.num_qubits(), lambda args: ExplicitOperationsCell(
+            [gate.on(*args.qubits)],
+            basis_change=[basis_change.on(*args.qubits)]
+            if basis_change else ()))
+
+
+def reg_formula_gate(
+        identifier: str, default_formula: str,
+        gate_func: Callable[[Union[sympy.Symbol, float]], cirq.Gate]
+) -> Iterator[CellMaker]:
+    from cirq.contrib.quirk.quirk_gate_reg_utils import parse_formula
+    yield CellMaker(
+        identifier,
+        gate_func(0).num_qubits(), lambda args: ExplicitOperationsCell([
+            gate_func(parse_formula(args.value, default_formula)).on(*args.
+                                                                     qubits)
+        ]))

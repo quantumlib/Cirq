@@ -21,9 +21,9 @@ from cirq.contrib.quirk.cells.arithmetic_cells import all_arithmetic_cells
 from cirq.contrib.quirk.cells.cell import (
     CellMaker,
 )
-from cirq.contrib.quirk.cells.control_cells import all_control_cells
+from cirq.contrib.quirk.cells.control_cells import generate_all_control_cells
 from cirq.contrib.quirk.cells.input_cells import (
-    all_input_cells
+    generate_all_input_cells
 )
 from cirq.contrib.quirk.cells.qubit_permutation_cells import \
     all_qubit_permutation_cells
@@ -32,13 +32,14 @@ from cirq.contrib.quirk.cells.single_qubit_rotation_cells import \
 from cirq.contrib.quirk.cells.swap_cell import (
     SwapCell,
 )
+from cirq.contrib.quirk.cells.unsupported_cells import \
+    generate_all_unsupported_cells
 
 
 def generate_all_cells() -> Iterator[CellMaker]:
     from cirq.contrib.quirk.quirk_gate_reg_utils import (
-        reg_unsupported_gates, reg_gate, reg_const, reg_formula_gate,
+        reg_const,
         reg_parameterized_gate, reg_ignored_family, reg_ignored_gate,
-        reg_unsupported_family,
         reg_family,
         CellMaker,
         reg_measurement)
@@ -47,27 +48,12 @@ def generate_all_cells() -> Iterator[CellMaker]:
     yield CellMaker("Swap",
                    1, lambda args: SwapCell(args.qubits, []))
 
-    yield from all_control_cells()
-    yield from all_input_cells()
-
-    # Post selection.
-    yield from reg_unsupported_gates(
-        "|0⟩⟨0|",
-        "|1⟩⟨1|",
-        "|+⟩⟨+|",
-        "|-⟩⟨-|",
-        "|X⟩⟨X|",
-        "|/⟩⟨/|",
-        "0",
-        reason='postselection is not implemented in Cirq')
-
-    # Non-physical operations.
-    yield from reg_unsupported_gates("__error__",
-                                     "__unstable__UniversalNot",
-                                     reason="Unphysical operation.")
+    yield from generate_all_control_cells()
+    yield from generate_all_input_cells()
+    yield from generate_all_unsupported_cells()
 
     # Scalars.
-    yield from reg_gate("…", gate=ops.IdentityGate(num_qubits=1))
+    yield from reg_ignored_gate("…")
     yield from reg_const("NeGate", ops.GlobalPhaseOperation(-1))
     yield from reg_const("i", ops.GlobalPhaseOperation(1j))
     yield from reg_const("-i", ops.GlobalPhaseOperation(-1j))
@@ -79,21 +65,8 @@ def generate_all_cells() -> Iterator[CellMaker]:
     yield from reg_measurement("ZDetector")
     yield from reg_measurement("YDetector", basis_change=ops.X**-0.5)
     yield from reg_measurement("XDetector", basis_change=ops.Y**0.5)
-    yield from reg_unsupported_gates(
-        "XDetectControlReset",
-        "YDetectControlReset",
-        "ZDetectControlReset",
-        reason="Classical feedback is not implemented in Cirq")
 
     yield from generate_all_single_qubit_rotation_cells()
-
-    # Classically parameterized single qubit rotations.
-    yield from reg_formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X**e)
-    yield from reg_formula_gate("Y^ft", "sin(pi*t)", lambda e: ops.Y**e)
-    yield from reg_formula_gate("Z^ft", "sin(pi*t)", lambda e: ops.Z**e)
-    yield from reg_formula_gate("Rxft", "pi*t*t", lambda e: ops.Rx(e))
-    yield from reg_formula_gate("Ryft", "pi*t*t", lambda e: ops.Ry(e))
-    yield from reg_formula_gate("Rzft", "pi*t*t", lambda e: ops.Rz(e))
 
     # Quantum parameterized single qubit rotations.
     yield from reg_parameterized_gate("X^(A/2^n)", ops.X, +1)
@@ -111,25 +84,6 @@ def generate_all_cells() -> Iterator[CellMaker]:
     yield from reg_ignored_gate("Bloch")
 
     yield from all_arithmetic_cells()
-
-    # Dynamic gates with discretized actions.
-    yield from reg_unsupported_gates("X^⌈t⌉",
-                                     "X^⌈t-¼⌉",
-                                     reason="discrete parameter")
-    yield from reg_unsupported_family("Counting", reason="discrete parameter")
-    yield from reg_unsupported_family("Uncounting", reason="discrete parameter")
-    yield from reg_unsupported_family(">>t", reason="discrete parameter")
-    yield from reg_unsupported_family("<<t", reason="discrete parameter")
-
-    # Gates that are no longer in the toolbox and have dominant replacements.
-    yield from reg_unsupported_family("add",
-                                      reason="deprecated; use +=A instead")
-    yield from reg_unsupported_family("sub",
-                                      reason="deprecated; use -=A instead")
-    yield from reg_unsupported_family("c+=ab",
-                                      reason="deprecated; use +=AB instead")
-    yield from reg_unsupported_family("c-=ab",
-                                      reason="deprecated; use -=AB instead")
 
     # Frequency space.
     yield from reg_family("QFT", lambda n: cirq.QuantumFourierTransformGate(n))
