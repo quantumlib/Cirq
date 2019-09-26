@@ -121,9 +121,9 @@ def sample_heavy_set(circuit: cirq.Circuit,
         output bit-strings were in the heaby set.
 
     """
-    # Add measure gates to the end of (a copy of) the circuit.
-    circuit_copy = circuit + cirq.Circuit.from_ops(
-        cirq.measure(*sorted(circuit.all_qubits())))
+    # Add measure gates to the end of the circpuit.
+    circuit_copy = circuit.copy()  # So we don't mutate the original circuit.
+    circuit_copy.append([cirq.measure(*sorted(circuit_copy.all_qubits()))])
 
     # Run the sampler to compare each output against the Heavy Set.
     repetitions = 1000
@@ -131,7 +131,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
 
     # Compute the number of outputs that are in the heavy set.
     num_in_heavy_set = 0
-    for m in measurements.data.iterrows():
+    for _, m in enumerate(measurements.data.iterrows()):
         if m[1].iloc[0] in heavy_set:
             num_in_heavy_set += 1
 
@@ -159,13 +159,14 @@ def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
         model_circuit = generate_model_circuit(
             num_qubits, depth, random_state=np.random.RandomState(seed))
         heavy_set = compute_heavy_set(model_circuit)
-        print(f"Heavy Set: {heavy_set}")
-        print(f"Ideal simulation probability: "
-              f"{sample_heavy_set(model_circuit, heavy_set)}")
-        noisy = cirq.DensityMatrixSimulator(noise=cirq.ConstantQubitNoiseModel(
-            qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
-        print(f"Noisy simulation probability: "
-              f"{sample_heavy_set(model_circuit, heavy_set, sampler=noisy)}")
+        print("Heavy Set:", heavy_set)
+        print("Ideal simulation probability: ",
+              sample_heavy_set(model_circuit, heavy_set))
+        noisy_sampler = cirq.DensityMatrixSimulator(
+            noise=cirq.ConstantQubitNoiseModel(
+                qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
+        print("Noisy simulation probability: ",
+              sample_heavy_set(model_circuit, heavy_set, sampler=noisy_sampler))
         # TODO(villela): Implement model circuit and run it.
 
 
