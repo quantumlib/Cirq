@@ -29,6 +29,7 @@ from cirq.ops import (
     op_tree,
     pauli_gates,
     raw_types,
+    swap_gates,
 )
 
 if TYPE_CHECKING:
@@ -475,11 +476,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         return protocols.apply_unitary(
-            controlled_gate.ControlledGate(common_gates.SWAP),
-            protocols.ApplyUnitaryArgs(
-                args.target_tensor,
-                args.available_buffer,
-                args.axes),
+            controlled_gate.ControlledGate(swap_gates.SWAP),
+            protocols.ApplyUnitaryArgs(args.target_tensor,
+                                       args.available_buffer, args.axes),
             default=NotImplemented)
 
     def _decompose_outside_control(self,

@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import common_gates, eigen_gate, op_tree, gate_features, raw_types
+from cirq.ops import eigen_gate, op_tree, gate_features, raw_types, swap_gates
 
 
 @value.value_equality(manual_cls=True)
@@ -61,7 +61,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
-        self._iswap = common_gates.ISwapPowGate(exponent=exponent)
+        self._iswap = swap_gates.ISwapPowGate(exponent=exponent)
         super().__init__(exponent=exponent)
 
     @property
@@ -77,7 +77,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:
-            return common_gates.ISwapPowGate
+            return swap_gates.ISwapPowGate
         return PhasedISwapPowGate
 
     def _value_equality_values_(self):
