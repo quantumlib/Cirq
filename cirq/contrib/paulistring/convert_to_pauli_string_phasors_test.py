@@ -20,10 +20,10 @@ from cirq.contrib.paulistring import ConvertToPauliStringPhasors
 
 def test_convert():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(q0),
-        cirq.Y(q1) ** 0.25,
-        cirq.Z(q0) ** 0.125,
+        cirq.Y(q1)**0.25,
+        cirq.Z(q0)**0.125,
         cirq.H(q1),
     )
     c_orig = cirq.Circuit(circuit)
@@ -41,10 +41,10 @@ def test_convert():
 
 def test_convert_keep_clifford():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(q0),
-        cirq.Y(q1) ** 0.25,
-        cirq.Z(q0) ** 0.125,
+        cirq.Y(q1)**0.25,
+        cirq.Z(q0)**0.125,
         cirq.SingleQubitCliffordGate.H(q1),
     )
     c_orig = cirq.Circuit(circuit)
@@ -62,7 +62,7 @@ def test_convert_keep_clifford():
 
 def test_already_converted():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X)),)
     c_orig = cirq.Circuit(circuit)
     ConvertToPauliStringPhasors().optimize_circuit(circuit)
@@ -75,9 +75,7 @@ def test_ignore_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
-        UnsupportedDummy()(q0, q1),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0, q1),)
     c_orig = cirq.Circuit(circuit)
     ConvertToPauliStringPhasors(ignore_failures=True
                                      ).optimize_circuit(circuit)
@@ -90,8 +88,6 @@ def test_fail_unsupported_gate():
         pass
 
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
-        UnsupportedDummy()(q0, q1),
-    )
+    circuit = cirq.Circuit(UnsupportedDummy()(q0, q1),)
     with pytest.raises(TypeError):
         ConvertToPauliStringPhasors().optimize_circuit(circuit)

@@ -23,22 +23,21 @@ from cirq.contrib.paulistring import (
 
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
-        cirq.X(q0) ** 0.25,
+    c_orig = cirq.Circuit(
+        cirq.X(q0)**0.25,
         cirq.H(q0),
         cirq.CZ(q0, q1),
         cirq.H(q0),
-        cirq.X(q0) ** 0.125,
+        cirq.X(q0)**0.125,
     )
-    c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
-            cirq.Y(q0) ** -0.5,
-            cirq.CZ(q0, q1),
-            cirq.Z(q0) ** -0.125,
-            cirq.X(q0) ** 0.5,
-            cirq.Z(q0) ** 0.5,
-        ),
-        no_clifford_gates=True)
+    c_expected = converted_gate_set(cirq.Circuit(
+        cirq.Y(q0)**-0.5,
+        cirq.CZ(q0, q1),
+        cirq.Z(q0)**-0.125,
+        cirq.X(q0)**0.5,
+        cirq.Z(q0)**0.5,
+    ),
+                                    no_clifford_gates=True)
 
     c_opt = pauli_string_optimized_circuit(c_orig)
 
@@ -59,15 +58,10 @@ def test_optimize():
 
 def test_handles_measurement_gate():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
-        cirq.X(q0) ** 0.25,
-        cirq.H(q0),
-        cirq.CZ(q0, q1),
-        cirq.H(q0),
-        cirq.X(q0) ** 0.125,
-        cirq.measure(q1, key='m1'),
-        cirq.measure(q0, key='m0')
-    )
+    c_orig = cirq.Circuit(
+        cirq.X(q0)**0.25, cirq.H(q0), cirq.CZ(q0, q1), cirq.H(q0),
+        cirq.X(q0)**0.125, cirq.measure(q1, key='m1'), cirq.measure(q0,
+                                                                    key='m0'))
     c_opt = pauli_string_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(

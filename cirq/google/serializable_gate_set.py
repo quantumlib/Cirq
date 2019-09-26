@@ -99,8 +99,11 @@ class SerializableGateSet:
         msg.language.gate_set = self.gate_set_name
         if isinstance(program, circuits.Circuit):
             self._serialize_circuit(program, msg.circuit)
-        else:
+        elif isinstance(program, schedules.Schedule):
             self._serialize_schedule(program, msg.schedule)
+        else:
+            raise NotImplementedError(
+                f'Unrecognized program type: {type(program)}')
         return msg
 
     def serialize_op_dict(self, op: 'cirq.Operation') -> Dict:

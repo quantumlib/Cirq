@@ -359,8 +359,8 @@ def test_y_rotation(gate, trans_y):
     (cirq.SingleQubitCliffordGate.Z_nsqrt, cirq.Z ** -0.5)))
 def test_decompose(gate, gate_equiv):
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit.from_ops(gate(q0)).unitary()
-    mat_check = cirq.Circuit.from_ops(gate_equiv(q0),).unitary()
+    mat = cirq.Circuit(gate(q0)).unitary()
+    mat_check = cirq.Circuit(gate_equiv(q0),).unitary()
     assert_allclose_up_to_global_phase(mat, mat_check, rtol=1e-7, atol=1e-7)
 
 
@@ -391,8 +391,8 @@ def test_inverse(gate):
 @pytest.mark.parametrize('gate', _all_clifford_gates())
 def test_inverse_matrix(gate):
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit.from_ops(gate(q0)).unitary()
-    mat_inv = cirq.Circuit.from_ops(cirq.inverse(gate)(q0)).unitary()
+    mat = cirq.Circuit(gate(q0)).unitary()
+    mat_inv = cirq.Circuit(cirq.inverse(gate)(q0)).unitary()
     assert_allclose_up_to_global_phase(mat, mat_inv.T.conj(),
                                        rtol=1e-7, atol=1e-7)
 
@@ -402,11 +402,11 @@ def test_inverse_matrix(gate):
                       _all_clifford_gates()))
 def test_commutes_with_single_qubit_gate(gate, other):
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit.from_ops(
+    mat = cirq.Circuit(
         gate(q0),
         other(q0),
     ).unitary()
-    mat_swap = cirq.Circuit.from_ops(
+    mat_swap = cirq.Circuit(
         other(q0),
         gate(q0),
     ).unitary()
@@ -422,11 +422,11 @@ def test_commutes_with_single_qubit_gate(gate, other):
 def test_commutes_with_pauli(gate, pauli, half_turns):
     pauli_gate = pauli ** half_turns
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit.from_ops(
+    mat = cirq.Circuit(
         gate(q0),
         pauli_gate(q0),
     ).unitary()
-    mat_swap = cirq.Circuit.from_ops(
+    mat_swap = cirq.Circuit(
         pauli_gate(q0),
         gate(q0),
     ).unitary()
@@ -440,11 +440,11 @@ def test_commutes_with_pauli(gate, pauli, half_turns):
                       _all_clifford_gates()))
 def test_single_qubit_gate_after_switching_order(gate, other):
     q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit.from_ops(
+    mat = cirq.Circuit(
         gate(q0),
         other(q0),
     ).unitary()
-    mat_swap = cirq.Circuit.from_ops(
+    mat_swap = cirq.Circuit(
         gate.equivalent_gate_before(other)(q0),
         gate(q0),
     ).unitary()

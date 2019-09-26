@@ -36,7 +36,7 @@ A simple example to get you up and running:
   qubit = cirq.GridQubit(0, 0)
 
   # Create a circuit
-  circuit = cirq.Circuit.from_ops(
+  circuit = cirq.Circuit(
       cirq.X(qubit)**0.5,  # Square root of NOT.
       cirq.measure(qubit, key='m')  # Measurement.
   )
