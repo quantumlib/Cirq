@@ -75,6 +75,7 @@ def test_reverse():
                                       0b_101: 0b_101,
                                   })
 
+
 def test_interleave():
     assert_url_to_circuit_returns('{"cols":[["weave5"]]}',
                                   maps={

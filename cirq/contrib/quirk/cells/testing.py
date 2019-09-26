@@ -89,7 +89,7 @@ def _sparse_computational_basis_map(inputs: Sequence[int],
                                     circuit: cirq.Circuit) -> Dict[int, int]:
     # Pick a unique amplitude for each computational basis input state.
     amps = [
-        np.exp(1j * i / len(inputs)) / len(inputs) ** 0.5
+        np.exp(1j * i / len(inputs)) / len(inputs)**0.5
         for i in range(len(inputs))
     ]
 

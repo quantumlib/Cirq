@@ -20,95 +20,81 @@ from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 
 def test_assert_url_to_circuit_returns_circuit():
-    assert_url_to_circuit_returns(
-        '{"cols":[["X"]]}',
-        circuit=cirq.Circuit(cirq.X(cirq.LineQubit(0))))
+    assert_url_to_circuit_returns('{"cols":[["X"]]}',
+                                  circuit=cirq.Circuit(cirq.X(
+                                      cirq.LineQubit(0))))
 
     with pytest.raises(AssertionError, match='circuit differs'):
-        assert_url_to_circuit_returns(
-            '{"cols":[["X"]]}',
-            circuit=cirq.Circuit(cirq.Y(cirq.LineQubit(0))))
+        assert_url_to_circuit_returns('{"cols":[["X"]]}',
+                                      circuit=cirq.Circuit(
+                                          cirq.Y(cirq.LineQubit(0))))
 
 
 def test_assert_url_to_circuit_returns_unitary():
-    assert_url_to_circuit_returns(
-        '{"cols":[["X"]]}',
-        unitary=cirq.unitary(cirq.X))
+    assert_url_to_circuit_returns('{"cols":[["X"]]}',
+                                  unitary=cirq.unitary(cirq.X))
 
     with pytest.raises(AssertionError, match='Not equal to tolerance'):
-        assert_url_to_circuit_returns(
-            '{"cols":[["X"]]}',
-            unitary=np.eye(2))
+        assert_url_to_circuit_returns('{"cols":[["X"]]}', unitary=np.eye(2))
 
 
 def test_assert_url_to_circuit_returns_diagram():
-    assert_url_to_circuit_returns(
-        '{"cols":[["X"]]}',
-        diagram='0: ───X───')
+    assert_url_to_circuit_returns('{"cols":[["X"]]}', diagram='0: ───X───')
 
     with pytest.raises(AssertionError, match='text diagram differs'):
-        assert_url_to_circuit_returns(
-            '{"cols":[["X"]]}',
-            diagram='not even close')
+        assert_url_to_circuit_returns('{"cols":[["X"]]}',
+                                      diagram='not even close')
 
 
 def test_assert_url_to_circuit_returns_maps():
-    assert_url_to_circuit_returns(
-        '{"cols":[["X"]]}',
-        maps={0: 1})
-    assert_url_to_circuit_returns(
-        '{"cols":[["X"]]}',
-        maps={0: 1, 1: 0})
+    assert_url_to_circuit_returns('{"cols":[["X"]]}', maps={0: 1})
+    assert_url_to_circuit_returns('{"cols":[["X"]]}', maps={0: 1, 1: 0})
 
     with pytest.raises(AssertionError, match='was mapped to'):
-        assert_url_to_circuit_returns(
-            '{"cols":[["X"]]}',
-            maps={0: 0})
+        assert_url_to_circuit_returns('{"cols":[["X"]]}', maps={0: 0})
 
 
 def test_assert_url_to_circuit_returns_output_amplitudes_from_quirk():
-    assert_url_to_circuit_returns(
-        '{"cols":[["X","Z"]]}',
-        output_amplitudes_from_quirk=[
-            {
-                "r": 0,
-                "i": 0
-            },
-            {
-                "r": 1,
-                "i": 0
-            },
-            {
-                "r": 0,
-                "i": 0
-            },
-            {
-                "r": 0,
-                "i": 0
-            },
-        ])
+    assert_url_to_circuit_returns('{"cols":[["X","Z"]]}',
+                                  output_amplitudes_from_quirk=[
+                                      {
+                                          "r": 0,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 1,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0,
+                                          "i": 0
+                                      },
+                                      {
+                                          "r": 0,
+                                          "i": 0
+                                      },
+                                  ])
 
     with pytest.raises(AssertionError, match='Not equal to tolerance'):
-        assert_url_to_circuit_returns(
-            '{"cols":[["X","Z"]]}',
-            output_amplitudes_from_quirk=[
-                {
-                    "r": 0,
-                    "i": 0
-                },
-                {
-                    "r": 0,
-                    "i": 0
-                },
-                {
-                    "r": 0,
-                    "i": 1
-                },
-                {
-                    "r": 0,
-                    "i": 0
-                },
-            ])
+        assert_url_to_circuit_returns('{"cols":[["X","Z"]]}',
+                                      output_amplitudes_from_quirk=[
+                                          {
+                                              "r": 0,
+                                              "i": 0
+                                          },
+                                          {
+                                              "r": 0,
+                                              "i": 0
+                                          },
+                                          {
+                                              "r": 0,
+                                              "i": 1
+                                          },
+                                          {
+                                              "r": 0,
+                                              "i": 0
+                                          },
+                                      ])
 
 
 def test_assert_url_to_circuit_misc():
