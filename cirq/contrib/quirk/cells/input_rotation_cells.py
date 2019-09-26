@@ -24,17 +24,17 @@ from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 class InputRotationCell(Cell):
     """Applies an operation that depends on an input gate."""
 
-    def __init__(self, identifier: str, register: Optional[List['cirq.Qid']],
+    def __init__(self, identifier: str, register: Optional[Sequence['cirq.Qid']],
                  register_letter: str, target: 'cirq.Qid',
                  op_maker: Callable[[int, int, Sequence['cirq.Qid']],
                                     'cirq.Operation']):
         self.identifier = identifier
-        self.register = register
+        self.register = None if register is None else tuple(register)
         self.register_letter = register_letter
         self.target = target
         self.op_maker = op_maker
 
-    def with_input(self, letter: str, register: Union[List[cirq.Qid], int]):
+    def with_input(self, letter, register):
         if self.register is None and self.register_letter == letter:
             if isinstance(register, int):
                 raise ValueError('Dependent operation requires known length '

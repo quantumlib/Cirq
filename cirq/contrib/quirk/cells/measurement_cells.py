@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, Optional
+from typing import Iterator, Optional, cast, Iterable
 
 import cirq
 from cirq import ops
@@ -28,7 +28,9 @@ def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:
 def reg_measurement(identifier: str,
                     basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
     return CellMaker(
-        identifier, 1, lambda args: ExplicitOperationsCell(
+        identifier=identifier,
+        size=1,
+        maker=lambda args: ExplicitOperationsCell(
             [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
-            basis_change=[basis_change.on(*args.qubits)]
-            if basis_change else ()))
+            basis_change=cast(Iterable['cirq.Operation'], [basis_change.on(*args.qubits)]
+            if basis_change else ())))

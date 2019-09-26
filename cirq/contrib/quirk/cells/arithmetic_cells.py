@@ -13,7 +13,7 @@
 # limitations under the License.
 import inspect
 from typing import (Callable, Optional, Union, Iterable, Sequence, Iterator,
-                    Tuple, Any, cast)
+                    Tuple, Any, cast, List)
 
 import cirq
 from cirq import ops
@@ -52,11 +52,17 @@ class ArithmeticCell(Cell):
             assert self._register_letters.index(None) == 0
             assert self._register_letters.index('r') == len(
                 self._register_letters) - 1
-            x = cast(Union[Sequence['cirq.Qid'], int], self._registers[0])
+            if isinstance(self._registers[0], int):
+                raise ValueError('Target register cannot be a constant.')
+            x = cast(Sequence['cirq.Qid'], self._registers[0])
             r = cast(Union[Sequence['cirq.Qid'], int], self._registers[-1])
             assert x is not None
             assert r is not None
-            if r > 1 << len(x) if isinstance(r, int) else len(r) > len(x):
+            if isinstance(r, int):
+                over = r > 1 << len(x)
+            else:
+                over = len(cast(Sequence[int], r)) > len(x)
+            if over:
                 raise ValueError('Target too small for modulus.\n'
                                  f'Target: {x}\n'
                                  f'Modulus: {r}')
@@ -105,7 +111,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         result = []
         for reg, letter in zip(self._registers, self._register_letters):
             if not isinstance(reg, int):
-                for i, q in enumerate(reg):
+                for i, q in enumerate(cast(Sequence['cirq.Qid'], reg)):
                     if letter is None:
                         if i:
                             label = f'#{i+1}'
@@ -188,13 +194,13 @@ def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
     return gcd, x - (b // a) * y, y
 
 
-def invertible_else_1(a: int, m: int) -> Optional[int]:
+def invertible_else_1(a: int, m: int) -> int:
     """Returns `a` if `a` has a multiplicative inverse, else 1."""
     i = mod_inv_else_1(a, m)
     return a if i != 1 else i
 
 
-def mod_inv_else_1(a: int, m: int) -> Optional[int]:
+def mod_inv_else_1(a: int, m: int) -> int:
     """Returns `a**-1` if `a` has a multiplicative inverse, else 1."""
     if m == 0:
         return 1
@@ -257,7 +263,7 @@ def reg_arithmetic_gate(identifier: str,
         size=size,
         maker=lambda args: ArithmeticCell(
             identifier=identifier,
-            registers=[args.qubits] + [None] * len(param_names[1:]),
-            register_letters=[None] + param_names[1:],
+            registers=cast(List[Optional[Sequence['cirq.Qid']]], [args.qubits]) + [None] * len(param_names[1:]),
+            register_letters=cast(List[Optional[str]], [None]) + cast(List[Optional[str]], param_names[1:]),
             operation=func,
             is_modular=is_modular))

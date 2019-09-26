@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterable
+from typing import Optional, List, Iterable, cast, TYPE_CHECKING, Union
 
-import cirq
 from cirq import ops
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ControlCell(Cell):
     """A modifier that adds controls to other cells in the column."""
 
-    def __init__(self, qubit: cirq.Qid, basis_change: List[cirq.Operation]):
+    def __init__(self, qubit: 'cirq.Qid',
+                 basis_change: Iterable['cirq.Operation']):
         self.qubit = qubit
-        self._basis_change = basis_change
+        self._basis_change = tuple(basis_change)
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
@@ -86,21 +89,30 @@ def generate_all_control_cell_makers():
 
 
 def _reg_control(identifier: str, *,
-                 basis_change: Optional['cirq.Gate']) -> CellMaker:
+                 basis_change: Optional['cirq.SingleQubitGate']) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,
         maker=lambda args: ControlCell(
-            args.qubits[0],
-            basis_change.on(args.qubits[0]) if basis_change else []))
+            qubit=args.qubits[0],
+            basis_change=_basis_else_empty(basis_change, args.qubits[0])))
 
 
 def _reg_parity_control(identifier: str,
                         *,
-                        basis_change: Optional['cirq.Gate'] = None
+                        basis_change: Optional['cirq.SingleQubitGate'] = None
                        ) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,
-        maker=lambda args: ParityControlCell(args.qubits, (
-        ) if basis_change is None else basis_change.on_each(args.qubits)))
+        maker=lambda args: ParityControlCell(
+            qubits=args.qubits,
+            basis_change=_basis_else_empty(basis_change, args.qubits)))
+
+
+def _basis_else_empty(basis_change: Optional['cirq.SingleQubitGate'],
+                      qureg: Union['cirq.Qid', Iterable['cirq.Qid']]
+                      ) -> Iterable['cirq.Operation']:
+    if basis_change is None:
+        return ()
+    return basis_change.on_each(qureg)

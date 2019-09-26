@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import Callable, Optional, Union, List, Dict, NamedTuple, Any, \
-    Iterable
+    Iterable, Sequence
 
 import cirq
 from cirq import ops
@@ -27,7 +27,9 @@ class Cell:
     `cirq.Circuit`.
     """
 
-    def with_input(self, letter: str, register: Union[List[cirq.Qid], int]):
+    def with_input(self,
+                   letter: str,
+                   register: Union[Sequence[cirq.Qid], int]):
         """The same cell, but linked to an explicit input register or constant.
 
         If the cell doesn't need the input, it is returned unchanged.
@@ -139,7 +141,7 @@ class ExplicitOperationsCell(Cell):
 CELL_SIZES = range(1, 17)
 
 CellMakerArgs = NamedTuple('CellMakerArgs', [
-    ('qubits', List['cirq.Qid']),
+    ('qubits', Sequence['cirq.Qid']),
     ('value', Any),
     ('row', int),
     ('col', int),

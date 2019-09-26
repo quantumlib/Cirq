@@ -119,7 +119,7 @@ def _gate_to_quirk_op(gate: ops.Gate) -> Optional[QuirkOp]:
     return None
 
 
-def xyz_to_known(axis: str, gate: ops.EigenGate) -> Optional[QuirkOp]:
+def xyz_to_known(axis: str, gate: ops.EigenGate) -> QuirkOp:
     d = axis.lower()
     u = axis.upper()
 
@@ -133,15 +133,15 @@ def xyz_to_known(axis: str, gate: ops.EigenGate) -> Optional[QuirkOp]:
     return QuirkOp({'id': f'{u}^ft', 'arg': f'{gate.exponent:.4f}'})
 
 
-def x_to_known(gate: ops.XPowGate) -> Optional[QuirkOp]:
+def x_to_known(gate: ops.XPowGate) -> QuirkOp:
     return xyz_to_known('x', gate)
 
 
-def y_to_known(gate: ops.YPowGate) -> Optional[QuirkOp]:
+def y_to_known(gate: ops.YPowGate) -> QuirkOp:
     return xyz_to_known('y', gate)
 
 
-def z_to_known(gate: ops.ZPowGate) -> Optional[QuirkOp]:
+def z_to_known(gate: ops.ZPowGate) -> QuirkOp:
     return xyz_to_known('z', gate)
 
 

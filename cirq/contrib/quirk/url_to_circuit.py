@@ -65,15 +65,16 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     registry = {
         entry.identifier: entry for entry in generate_all_quirk_cell_makers()
     }
-    parsed_cols: List[List[Cell]] = []
+    parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
         parsed_cols.append(parse_col_cells(registry, i, col))
 
     # Apply column modifiers (controls and inputs).
     for c in parsed_cols:
         for i in range(len(c)):
-            if c[i] is not None:
-                c[i].modify_column(c)
+            cell = c[i]
+            if cell is not None:
+                cell.modify_column(c)
 
     # Apply persistent modifiers (classical assignments).
     persistent_mods = {}
@@ -84,7 +85,9 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
                     persistent_mods[key] = modifier
         for i in range(len(c)):
             for modifier in persistent_mods.values():
-                c[i] = modifier(c[i])
+                cell = c[i]
+                if cell is not None:
+                    c[i] = modifier(cell)
 
     # Extract circuit operations from modified cells.
     result = cirq.Circuit()

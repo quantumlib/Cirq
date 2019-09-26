@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterator
+from typing import Optional, List, Iterator, Iterable
 
 import cirq
 from cirq.contrib.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
@@ -21,8 +21,8 @@ from cirq.contrib.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 class InputCell(Cell):
     """A modifier that provides a quantum input to gates in the same column."""
 
-    def __init__(self, qubits: List[cirq.Qid], letter: str):
-        self.qubits = qubits
+    def __init__(self, qubits: Iterable[cirq.Qid], letter: str):
+        self.qubits = tuple(qubits)
         self.letter = letter
 
     def modify_column(self, column: List[Optional['Cell']]):
@@ -65,7 +65,10 @@ def generate_all_input_cell_makers():
 
 def reg_input_family(identifier_prefix: str, letter: str,
                      rev: bool = False) -> Iterator[CellMaker]:
-    for i in CELL_SIZES:
+    for n in CELL_SIZES:
         yield CellMaker(
-            identifier_prefix + str(i), i, lambda args: InputCell(
-                args.qubits[::-1] if rev else args.qubits, letter))
+            identifier=identifier_prefix + str(n),
+            size=n,
+            maker=lambda args: InputCell(
+                qubits=args.qubits[::-1] if rev else args.qubits,
+                letter=letter))
