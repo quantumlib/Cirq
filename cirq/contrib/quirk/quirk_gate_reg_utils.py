@@ -52,27 +52,6 @@ def reg_family(identifier_prefix: str,
         yield CellMaker(identifier_prefix + str(i), i, f)
 
 
-def reg_ignored_family(identifier_prefix: str) -> Iterator[CellMaker]:
-    yield from reg_ignored_gate(identifier_prefix)
-    for i in CELL_SIZES:
-        yield from reg_ignored_gate(identifier_prefix + str(i))
-
-
-def reg_ignored_gate(identifier: str):
-    yield CellMaker(identifier, 0, lambda _: None)
-
-
-def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
-                           factor: float) -> Iterator[CellMaker]:
-    yield CellMaker(
-        identifier, gate.num_qubits(), lambda args: InputRotationCell(
-            identifier=identifier,
-            register=None,
-            register_letter='a',
-            target=args.qubits[0],
-            op_maker=lambda v, n, qs: gate**(factor * v / n)))
-
-
 def reg_const(identifier: str,
               operation: 'cirq.Operation') -> Iterator[CellMaker]:
     yield CellMaker(identifier, 1, lambda _: ExplicitOperationsCell([operation]))

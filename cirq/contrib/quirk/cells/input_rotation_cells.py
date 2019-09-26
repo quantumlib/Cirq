@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, Iterable, List, Sequence
+from typing import Callable, Optional, Union, Iterable, List, Sequence, Iterator
 
 import numpy as np
 
 import cirq
 from cirq import ops, linalg
-from cirq.contrib.quirk.cells.cell import Cell
+from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 
 class InputRotationCell(Cell):
@@ -114,3 +114,23 @@ class QuirkInputRotationOperation(ops.Operation):
                 sub_args.target_tensor[...] = sub_result
 
         return args.target_tensor
+
+
+def generate_all_input_rotation_cells() -> Iterator[CellMaker]:
+    yield reg_input_rotation_gate("X^(A/2^n)", ops.X, +1)
+    yield reg_input_rotation_gate("Y^(A/2^n)", ops.Y, +1)
+    yield reg_input_rotation_gate("Z^(A/2^n)", ops.Z, +1)
+    yield reg_input_rotation_gate("X^(-A/2^n)", ops.X, -1)
+    yield reg_input_rotation_gate("Y^(-A/2^n)", ops.Y, -1)
+    yield reg_input_rotation_gate("Z^(-A/2^n)", ops.Z, -1)
+
+
+def reg_input_rotation_gate(identifier: str, gate: cirq.Gate,
+                            factor: float) -> CellMaker:
+    return CellMaker(
+        identifier, gate.num_qubits(), lambda args: InputRotationCell(
+            identifier=identifier,
+            register=None,
+            register_letter='a',
+            target=args.qubits[0],
+            op_maker=lambda v, n, qs: gate**(factor * v / n)))

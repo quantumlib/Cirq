@@ -138,7 +138,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
             self._operation)
 
 
-def all_arithmetic_cells() -> Iterator[CellMaker]:
+def generate_all_arithmetic_cells() -> Iterator[CellMaker]:
     # Comparisons.
     yield reg_arithmetic_gate("^A<B", 1, lambda x, a, b: x ^ int(a < b))
     yield reg_arithmetic_gate("^A>B", 1, lambda x, a, b: x ^ int(a > b))

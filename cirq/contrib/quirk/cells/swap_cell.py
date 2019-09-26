@@ -16,7 +16,7 @@ from typing import Optional, Iterable, List
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells.cell import Cell
+from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 
 class SwapCell(Cell):
@@ -42,3 +42,7 @@ class SwapCell(Cell):
 
     def controlled_by(self, qubit: 'cirq.Qid'):
         return SwapCell(self._qubits, self._controls + [qubit])
+
+
+def generate_all_swap_cells():
+    yield CellMaker("Swap", 1, lambda args: SwapCell(args.qubits, []))
