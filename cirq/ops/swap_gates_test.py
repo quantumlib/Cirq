@@ -28,6 +28,25 @@ def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
         eigen_gate_type, ignoring_global_phase=True)
 
 
+def test_interchangeable_qubit_eq():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    eq = cirq.testing.EqualsTester()
+
+    eq.add_equality_group(cirq.SWAP(a, b), cirq.SWAP(b, a))
+    eq.add_equality_group(cirq.SWAP(a, c))
+
+    eq.add_equality_group(cirq.SWAP(a, b)**0.3, cirq.SWAP(b, a)**0.3)
+    eq.add_equality_group(cirq.SWAP(a, c)**0.3)
+
+    eq.add_equality_group(cirq.ISWAP(a, b), cirq.ISWAP(b, a))
+    eq.add_equality_group(cirq.ISWAP(a, c))
+
+    eq.add_equality_group(cirq.ISWAP(a, b)**0.3, cirq.ISWAP(b, a)**0.3)
+    eq.add_equality_group(cirq.ISWAP(a, c)**0.3)
+
+
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -92,11 +111,6 @@ def test_str():
     assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 
-def test_iswap_trace_distance():
-    for exp in np.linspace(0, 4, 20):
-        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
-
-
 def test_iswap_decompose_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -121,3 +135,9 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP**0.3),
                           np.sin(0.3 * np.pi / 2))
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)
+
+
+def test_trace_distance_over_range_of_exponents():
+    for exp in np.linspace(0, 4, 20):
+        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP**exp)
+        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
