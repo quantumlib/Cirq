@@ -10,7 +10,6 @@ import examples.phase_estimator
 import examples.basic_arithmetic
 import examples.quantum_teleportation
 import examples.superdense_coding
-import examples.noisy_simulation_example
 
 
 def test_example_runs_bernstein_vazirani_perf(benchmark):
