@@ -39,16 +39,16 @@ TDefault = TypeVar('TDefault')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
-    def __init__(
-            self,
-            qubit_paulis: Optional[
-                Union[Mapping[raw_types.Qid, pauli_gates.
-                              Pauli], Sequence[raw_types.Operation]]] = None,
-            coefficient: Union[int, float, complex] = 1) -> None:
+    def __init__(self,
+                 qubit_paulis: Optional[
+                     Union[Mapping[raw_types.Qid, pauli_gates.Pauli], Sequence[
+                         gate_operation.GateOperation]]] = None,
+                 coefficient: Union[int, float, complex] = 1) -> None:
         if qubit_paulis is None:
-            qubit_pauli_map = {}
+            qubit_pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli] = {}
         elif isinstance(qubit_paulis, Mapping):
-            qubit_pauli_map = qubit_paulis
+            qubit_pauli_map = cast(Dict[raw_types.Qid, pauli_gates.Pauli],
+                                   qubit_paulis)
         elif isinstance(qubit_paulis, Sequence):
             qubit_pauli_map = {}
             for op in qubit_paulis:
