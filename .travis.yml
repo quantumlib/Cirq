@@ -59,9 +59,9 @@ matrix:
     python: '3.6'
     language: generic
     install:
-      - python -m pip install -r requirements.txt
-      - python -m pip install -r cirq/contrib/contrib-requirements.txt
-      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - python3 -m pip install -r requirements.txt
+      - python3 -m pip install -r cirq/contrib/contrib-requirements.txt
+      - python3 -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - mkdir -p ~/.matplotlib && echo "backend:\ TkAgg" >> ~/.matplotlib/matplotlibrc
     script: 
       - check/pytest --benchmark-skip
