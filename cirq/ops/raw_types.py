@@ -417,8 +417,8 @@ class _InverseCompositeGate(Gate):
     def __init__(self, original: Gate) -> None:
         self._original = original
 
-    def _num_qubits_(self):
-        return protocols.num_qubits(self._original)
+    def _qid_shape_(self):
+        return protocols.qid_shape(self._original)
 
     def __pow__(self, power):
         if power == 1:
@@ -436,6 +436,7 @@ class _InverseCompositeGate(Gate):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         sub_info = protocols.circuit_diagram_info(self._original,
+                                                  args,
                                                   default=NotImplemented)
         if sub_info is NotImplemented:
             return NotImplemented
