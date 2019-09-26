@@ -20,14 +20,16 @@ import json
 import cirq
 from cirq import ops
 from cirq.contrib.quirk.quirk_parse_gates import (ParityControlCell, Cell,
-                                                  QuirkPseudoSwapOperation)
+                                                  QuirkPseudoSwapOperation,
+                                                  SetDefaultInputCell)
 from cirq.contrib.quirk.quirk_gate_reg_utils import (
-    popcnt, modular_multiplicative_inverse, reg_control, reg_input_family,
+    popcnt, mod_inv_else_1, reg_control, reg_input_family,
     reg_unsupported_gates, reg_gate, reg_const, reg_formula_gate,
     reg_parameterized_gate, reg_ignored_family, reg_ignored_gate,
     reg_arithmetic_gate, reg_arithmetic_family,
     reg_size_dependent_arithmetic_family, reg_unsupported_family, reg_family,
-    reg_bit_permutation_family, deinterleave_bit, interleave_bit, CellType)
+    reg_bit_permutation_family, deinterleave_bit, interleave_bit, CellType,
+    reg_modular_arithmetic_family, invertible_else_1, CellArgs, reg_measurement)
 
 
 def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
@@ -38,8 +40,8 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
 
     if not parsed_url.fragment.startswith('circuit='):
         raise ValueError('Not a valid quirk url. The URL fragment (the part '
-                          'after the #) must start with "circuit=".\n'
-                          f'URL={quirk_url}')
+                         'after the #) must start with "circuit=".\n'
+                         f'URL={quirk_url}')
 
     # URL parser may not have fixed escaped characters in the fragment.
     json_text = parsed_url.fragment[len('circuit='):]
@@ -49,7 +51,7 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     data = json.loads(json_text)
     if not isinstance(data, dict):
         raise ValueError('Circuit JSON must have a top-level dictionary.\n'
-                          f'URL={quirk_url}')
+                         f'URL={quirk_url}')
     if not data.keys() <= {'cols', 'gates', 'init'}:
         raise ValueError(f'Unrecognized Circuit JSON keys.\nURL={quirk_url}')
     if 'gates' in data:
@@ -60,25 +62,37 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
                                   f'URL={quirk_url}')
     if 'cols' not in data:
         raise ValueError('Circuit JSON dictionary must have a "cols" entry.\n'
-                          f'URL={quirk_url}')
+                         f'URL={quirk_url}')
 
     cols = data['cols']
     if not isinstance(cols, list):
         raise ValueError('Circuit JSON cols must be a list.\n'
-                          f'URL={quirk_url}')
+                         f'URL={quirk_url}')
 
-    registry = {}
-    for entry in _gate_registry():
-        registry[entry.identifier] = entry
+    # Parse column json into cells.
+    registry = {entry.identifier: entry for entry in _gate_registry()}
     parsed_cols: List[List[Cell]] = []
-    for col in cols:
-        parsed_cols.append(parse_col_cells(registry, col))
+    for i, col in enumerate(cols):
+        parsed_cols.append(parse_col_cells(registry, i, col))
 
+    # Apply column modifiers (controls and inputs).
     for c in parsed_cols:
         for i in range(len(c)):
             if c[i] is not None:
                 c[i].modify_column(c)
 
+    # Apply persistent modifiers (classical assignments).
+    persistent_mods = {}
+    for c in parsed_cols:
+        for cell in c:
+            if cell is not None:
+                for key, modifier in cell.persistent_modifiers().items():
+                    persistent_mods[key] = modifier
+        for i in range(len(c)):
+            for modifier in persistent_mods.values():
+                c[i] = modifier(c[i])
+
+    # Extract circuit operations from modified cells.
     result = cirq.Circuit()
     for col in parsed_cols:
         basis_change = cirq.Circuit.from_ops(
@@ -90,17 +104,20 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
         result += basis_change
         result += body
         result += basis_change**-1
+
     return result
 
 
 def parse_col_cells(registry: Dict[str, CellType],
-                    col: Any) -> List[Optional[Cell]]:
-    if not isinstance(col, list):
-        raise ValueError('col must be a list.\ncol: {!r}'.format(col))
-    return [parse_cell(registry, i, col[i]) for i in range(len(col))]
+                    col: int,
+                    col_data: Any) -> List[Optional[Cell]]:
+    if not isinstance(col_data, list):
+        raise ValueError('col must be a list.\ncol: {!r}'.format(col_data))
+    return [parse_cell(registry, row, col, col_data[row])
+            for row in range(len(col_data))]
 
 
-def parse_cell(registry: Dict[str, CellType], offset: int,
+def parse_cell(registry: Dict[str, CellType], row: int, col: int,
                entry: Any) -> Optional[Cell]:
     if entry == 1:
         return None
@@ -115,8 +132,8 @@ def parse_cell(registry: Dict[str, CellType], offset: int,
 
     if isinstance(key, str) and key in registry:
         _, size, func = registry[key]
-        qubits = cirq.LineQubit.range(offset, offset + size)
-        return func(qubits, arg)
+        qubits = cirq.LineQubit.range(row, row + size)
+        return func(CellArgs(qubits, arg, row=row, col=col))
 
     raise ValueError('Unrecognized column entry: {!r}'.format(entry))
 
@@ -124,7 +141,7 @@ def parse_cell(registry: Dict[str, CellType], offset: int,
 def _gate_registry() -> Iterator[CellType]:
     # Swap.
     yield CellType(
-        "Swap", 1, lambda qubits, _: QuirkPseudoSwapOperation(qubits, []))
+        "Swap", 1, lambda args: QuirkPseudoSwapOperation(args.qubits, []))
 
     # Controls.
     yield from reg_control("•", None)
@@ -136,13 +153,13 @@ def _gate_registry() -> Iterator[CellType]:
 
     # Parity controls.
     yield CellType(
-        "xpar", 1, lambda qubits, _: ParityControlCell(qubits, (ops.Y**0.5).
-                                                       on_each(qubits)))
+        "xpar", 1, lambda args: ParityControlCell(args.qubits, (ops.Y**0.5).
+                                                       on_each(args.qubits)))
     yield CellType(
-        "ypar", 1, lambda qubits, _: ParityControlCell(qubits, (cirq.X**-0.5).
-                                                       on_each(qubits)))
+        "ypar", 1, lambda args: ParityControlCell(args.qubits, (cirq.X**-0.5).
+                                                       on_each(args.qubits)))
     yield CellType("zpar",
-                   1, lambda qubits, _: ParityControlCell(qubits, []))
+                   1, lambda args: ParityControlCell(args.qubits, []))
 
     # Input gates.
     yield from reg_input_family("inputA", "a")
@@ -150,11 +167,9 @@ def _gate_registry() -> Iterator[CellType]:
     yield from reg_input_family("inputR", "r")
     yield from reg_input_family("revinputA", "a", rev=True)
     yield from reg_input_family("revinputB", "b", rev=True)
-
-    yield from reg_unsupported_gates("setA",
-                                     "setB",
-                                     "setR",
-                                     reason="Cross column effects.")
+    yield CellType("setA", 2, lambda args: SetDefaultInputCell('a', args.value))
+    yield CellType("setB", 2, lambda args: SetDefaultInputCell('b', args.value))
+    yield CellType("setR", 2, lambda args: SetDefaultInputCell('r', args.value))
 
     # Post selection.
     yield from reg_unsupported_gates(
@@ -181,14 +196,10 @@ def _gate_registry() -> Iterator[CellType]:
     yield from reg_const("√-i", ops.GlobalPhaseOperation((-1j)**0.5))
 
     # Measurement.
-    yield from reg_gate("Measure", gate=ops.MeasurementGate(num_qubits=1))
-    yield from reg_gate("ZDetector", gate=ops.MeasurementGate(num_qubits=1))
-    yield from reg_gate("YDetector",
-                        gate=ops.MeasurementGate(num_qubits=1),
-                        basis_change=ops.X**-0.5)
-    yield from reg_gate("XDetector",
-                        gate=ops.MeasurementGate(num_qubits=1),
-                        basis_change=ops.H)
+    yield from reg_measurement("Measure")
+    yield from reg_measurement("ZDetector")
+    yield from reg_measurement("YDetector", basis_change=ops.X**-0.5)
+    yield from reg_measurement("XDetector", basis_change=ops.Y**0.5)
     yield from reg_unsupported_gates(
         "XDetectControlReset",
         "YDetectControlReset",
@@ -287,20 +298,8 @@ def _gate_registry() -> Iterator[CellType]:
     yield from reg_arithmetic_gate("^A!=B", 1, lambda x, a, b: x ^ int(a != b))
     yield from reg_arithmetic_family("inc", lambda x: x + 1)
     yield from reg_arithmetic_family("dec", lambda x: x - 1)
-    yield from reg_arithmetic_family(
-        "incmodR", lambda x, r: (x + 1) % r if x < r else x)
-    yield from reg_arithmetic_family(
-        "decmodR", lambda x, r: (x - 1) % r if x < r else x)
     yield from reg_arithmetic_family("+=A", lambda x, a: x + a)
     yield from reg_arithmetic_family("-=A", lambda x, a: x - a)
-    yield from reg_arithmetic_family(
-        "+AmodR", lambda x, a, r: (x + a) % r if x < r else x)
-    yield from reg_arithmetic_family(
-        "-AmodR", lambda x, a, r: (x - a) % r if x < r else x)
-    yield from reg_arithmetic_family(
-        "+ABmodR", lambda x, a, b, r: (x + a * b) % r if x < r else x)
-    yield from reg_arithmetic_family(
-        "-ABmodR", lambda x, a, b, r: (x - a * b) % r if x < r else x)
     yield from reg_arithmetic_family("+=AA", lambda x, a: x + a * a)
     yield from reg_arithmetic_family("-=AA", lambda x, a: x - a * a)
     yield from reg_arithmetic_family("+=AB", lambda x, a, b: x + a * b)
@@ -310,23 +309,31 @@ def _gate_registry() -> Iterator[CellType]:
     yield from reg_arithmetic_family("-cntA", lambda x, a: x - popcnt(a))
     yield from reg_arithmetic_family(
         "Flip<A", lambda x, a: a - x - 1 if x < a else x)
-    yield from reg_arithmetic_family(
-        "*AmodR", lambda x, a, r: (x * a) % r
-        if x < r and modular_multiplicative_inverse(a, r) else x)
-    yield from reg_arithmetic_family(
-        "/AmodR", lambda x, a, r: (x * (modular_multiplicative_inverse(a, r) or
-                                        1)) % r if x < r else x)
-    yield from reg_arithmetic_family(
-        "*BToAmodR", lambda x, a, b, r: (x * pow(b, a, r)) % r
-        if x < r and modular_multiplicative_inverse(b, r) else x)
-    yield from reg_arithmetic_family(
-        "/BToAmodR", lambda x, a, b, r: (x * pow(
-            modular_multiplicative_inverse(b, r) or 1, a, r)) % r
-        if x < r else x)
     yield from reg_arithmetic_family("*A", lambda x, a: x * a if a & 1 else x)
     yield from reg_size_dependent_arithmetic_family(
-        "/A", lambda n: lambda x, a: x * modular_multiplicative_inverse(
-            a, 1 << n) if a & 1 else x)
+        "/A", lambda n: lambda x, a: x * mod_inv_else_1(a, 1 << n))
+
+    # Modular arithmetic.
+    yield from reg_modular_arithmetic_family(
+        "incmodR", lambda x, r: x + 1)
+    yield from reg_modular_arithmetic_family(
+        "decmodR", lambda x, r: x - 1)
+    yield from reg_modular_arithmetic_family(
+        "+AmodR", lambda x, a, r: x + a)
+    yield from reg_modular_arithmetic_family(
+        "-AmodR", lambda x, a, r: x - a)
+    yield from reg_modular_arithmetic_family(
+        "+ABmodR", lambda x, a, b, r: x + a * b)
+    yield from reg_modular_arithmetic_family(
+        "-ABmodR", lambda x, a, b, r: x - a * b)
+    yield from reg_modular_arithmetic_family(
+        "*AmodR", lambda x, a, r: x * invertible_else_1(a, r))
+    yield from reg_modular_arithmetic_family(
+        "/AmodR", lambda x, a, r: x * mod_inv_else_1(a, r))
+    yield from reg_modular_arithmetic_family(
+        "*BToAmodR", lambda x, a, b, r: x * pow(invertible_else_1(b, r), a, r))
+    yield from reg_modular_arithmetic_family(
+        "/BToAmodR", lambda x, a, b, r: x * pow(mod_inv_else_1(b, r), a, r))
 
     # Dynamic gates with discretized actions.
     yield from reg_unsupported_gates("X^⌈t⌉",
@@ -365,8 +372,8 @@ def _gate_registry() -> Iterator[CellType]:
             num_qubits=n, exponent=-2**(n - 1) * sympy.Symbol('t')))
 
     # Bit level permutations.
-    yield from reg_bit_permutation_family("<<", lambda n, x: (x + 1) % n)
-    yield from reg_bit_permutation_family(">>", lambda n, x: (x - 1) % n)
-    yield from reg_bit_permutation_family("rev", lambda n, x: n - x - 1)
-    yield from reg_bit_permutation_family("weave", interleave_bit)
-    yield from reg_bit_permutation_family("split", deinterleave_bit)
+    yield from reg_bit_permutation_family("<<", 'left_rotate', lambda n, x: (x + 1) % n)
+    yield from reg_bit_permutation_family(">>", 'right_rotate', lambda n, x: (x - 1) % n)
+    yield from reg_bit_permutation_family("rev", 'reverse', lambda n, x: n - x - 1)
+    yield from reg_bit_permutation_family("weave", 'interleave', interleave_bit)
+    yield from reg_bit_permutation_family("split", 'deinterleave', deinterleave_bit)

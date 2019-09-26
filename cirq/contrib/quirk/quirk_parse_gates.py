@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, Iterable, List, Sequence
+from typing import Callable, Optional, Union, Iterable, List, Sequence, Dict
 
 import numpy as np
 
 import cirq
-from cirq import ops
+from cirq import ops, linalg
 
 
 class Cell:
@@ -103,6 +103,18 @@ class Cell:
             Nothing. The `column` argument is mutated in place.
         """
 
+    def persistent_modifiers(self) -> Dict[str, Callable[['Cell'], 'Cell']]:
+        """Overridable modifications to apply to the rest of the circuit.
+
+        Persistent modifiers apply to all cells in the same column, not just to
+        future columns.
+
+        Returns:
+            A dictionary of keyed modifications. Each modifier lasts until a
+            later cell specifies a new modifier with the same key.
+        """
+        return {}
+
 
 class ControlCell(Cell):
     """A modifier that adds controls to other cells in the column."""
@@ -169,17 +181,39 @@ class InputCell(Cell):
                 column[i] = gate.with_input(self.letter, self.qubits)
 
 
+class SetDefaultInputCell(Cell):
+    """A persistent modifier that provides a fallback classical input."""
+
+    def __init__(self, letter: str, value: int):
+        self.letter = letter
+        self.value = value
+
+    def persistent_modifiers(self):
+        return {
+            f'set_default_{self.letter}':
+                lambda cell: cell.with_input(self.letter, self.value)
+        }
+
+
 class ArithmeticCell(ops.ArithmeticOperation, Cell):
 
-    def __init__(self, identifier: str,
+    def __init__(self,
+                 identifier: str,
                  registers: Sequence[
                      Optional[Union[Sequence['cirq.Qid'], int]]],
                  register_letters: Sequence[Optional[str]],
-                 operation: Callable):
+                 operation: Callable,
+                 is_modular: bool):
+        if is_modular:
+            f = operation
+            operation = (lambda *args:
+                f(*args) % args[-1] if args[0] < args[-1] else args[0])
+
         self.identifier = identifier
         self._registers = registers
         self._register_letters = register_letters
         self._operation = operation
+        self._is_modular = is_modular
 
     def with_input(self, letter, register):
         return self.with_registers(*[
@@ -189,6 +223,17 @@ class ArithmeticCell(ops.ArithmeticOperation, Cell):
         ])
 
     def operations(self) -> 'cirq.OP_TREE':
+        if self._is_modular:
+            assert self._register_letters.index(None) == 0
+            assert self._register_letters.index('r') == len(
+                self._register_letters) - 1
+            x = self._registers[0]
+            r = self._registers[-1]
+            if r > 1 << len(x) if isinstance(r, int) else len(r) > len(x):
+                raise ValueError('Target too small for modulus.\n'
+                                 f'Target: {x}\n'
+                                 f'Modulus: {r}')
+
         missing_inputs = [
             letter
             for reg, letter in zip(self._registers, self._register_letters)
@@ -206,23 +251,29 @@ class ArithmeticCell(ops.ArithmeticOperation, Cell):
         return ArithmeticCell(self.identifier,
                               new_registers,
                               self._register_letters,
-                              self._operation)
+                              self._operation,
+                              is_modular=self._is_modular)
 
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self._operation(*registers)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
-        if args.known_qubit_count is None or args.qubit_map is None:
-            return NotImplemented
-        name = f'Quirk({self.identifier})'
-        result = [''] * args.known_qubit_count
+        consts = ''.join(
+            f',{letter}={reg}'
+            for reg, letter in zip(self._registers, self._register_letters) \
+            if isinstance(reg, int))
+        result = []
         for reg, letter in zip(self._registers, self._register_letters):
-            for i, q in enumerate(reg):
-                if letter is None:
-                    label = f'#{i+1}' if i else name
-                else:
-                    label = letter.upper() + str(i)
-                result[args.qubit_map[q]] = label
+            if not isinstance(reg, int):
+                for i, q in enumerate(reg):
+                    if letter is None:
+                        if i:
+                            label = f'#{i+1}'
+                        else:
+                            label = f'Quirk({self.identifier}{consts})'
+                    else:
+                        label = letter.upper() + str(i)
+                    result.append(label)
         return tuple(result)
 
     def __str__(self):
@@ -280,73 +331,112 @@ class QuirkPseudoSwapOperation(Cell):
 class DependentCell(Cell):
     """Applies an operation that depends on an input gate."""
 
-    def __init__(self, register: Union[str, List['cirq.Qid']],
+    def __init__(self,
+                 identifier: str,
+                 register: Optional[List['cirq.Qid']],
+                 register_letter: str,
                  target: 'cirq.Qid',
                  op_maker: Callable[[int, int, Sequence['cirq.Qid']],
                                     'cirq.Operation']):
+        self.identifier = identifier
         self.register = register
+        self.register_letter = register_letter
         self.target = target
         self.op_maker = op_maker
 
     def with_input(self, letter: str, register: Union[List[cirq.Qid], int]):
-        if self.register == letter:
+        if self.register is None and self.register_letter == letter:
             if isinstance(register, int):
-                raise TypeError('Dependent operation requires known length '
-                                'input; classical constant not allowed.')
-            return DependentCell(register, self.target, self.op_maker)
+                raise ValueError('Dependent operation requires known length '
+                                 'input; classical constant not allowed.')
+            return DependentCell(self.identifier, register, self.register_letter, self.target, self.op_maker)
         return self
 
     def controlled_by(self, qubit: 'cirq.Qid'):
         return DependentCell(
-            self.register, self.target, lambda a, b, c: self.op_maker(a, b, c).
+            self.identifier,
+            self.register, self.register_letter, self.target, lambda a, b, c: self.op_maker(a, b, c).
             controlled_by(qubit))
 
     def operations(self) -> 'cirq.OP_TREE':
-        if isinstance(self.register, str):
-            raise ValueError(f'Missing input {self.register}')
-        return DependentOperation(self.register, self.op_maker, [self.target])
+        if self.register is None:
+            raise ValueError(f'Missing input {repr(self.register_letter)}')
+        return DependentOperation(self.identifier,
+                                  self.register,
+                                  self.register_letter,
+                                  self.op_maker,
+                                  [self.target])
 
 
 class DependentOperation(ops.Operation):
     """Operates on target qubits in a way that varies based on an input qureg.
     """
 
-    def __init__(self, register: Iterable['cirq.Qid'],
+    def __init__(self,
+                 identifier: str,
+                 register: Iterable['cirq.Qid'],
+                 register_letter: str,
                  op_maker: Callable[[int, int, Sequence['cirq.Qid']],
                                     'cirq.Operation'],
                  op_qubits: Iterable['cirq.Qid']):
+        self.identifier = identifier
         self.register = tuple(register)
+        self.register_letter = register_letter
         self.op_maker = op_maker
         self.op_qubits = tuple(op_qubits)
 
+    @property
     def qubits(self):
-        return self.register + self.op_qubits
+        return self.op_qubits + self.register
 
     def with_qubits(self, *new_qubits):
         new_op_qubits = new_qubits[:len(self.op_qubits)]
         new_register = new_qubits[len(self.op_qubits):]
-        return DependentOperation(new_register, self.op_maker, new_op_qubits)
+        return DependentOperation(self.identifier, new_register, self.register_letter, self.op_maker, new_op_qubits)
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+        result = [self.identifier.replace('n', str(len(self.register)))]
+        result.extend(f'#{i+1}' for i in range(1, len(self.op_qubits)))
+        result.extend(self.register_letter.upper() + str(i)
+                      for i in range(len(self.register)))
+        return tuple(result)
+
+    def _has_unitary_(self):
+        return True
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
-        # Get input register value.
         transposed_args = args.with_axes_transposed_to_start()
-        size = np.product(q.dimension for q in self.register)
-        value = transposed_args.target_tensor.reshape(
-            size, transposed_args.target_tensor // size)[0]
 
-        # Apply dependent operation.
-        operation = self.op_maker(value, size, self.op_qubits)
-        return cirq.apply_unitary(
-            operation,
-            cirq.ApplyUnitaryArgs(args.target_tensor, args.available_buffer,
-                                  args.axes[len(self.register):]))
+        target_axes = transposed_args.axes[:len(self.op_qubits)]
+        control_axes = transposed_args.axes[len(self.op_qubits):]
+        control_max = np.product([q.dimension for q in self.register]).item()
+
+        for i in range(control_max):
+            operation = self.op_maker(i,
+                                      control_max,
+                                      self.op_qubits)
+            control_index = linalg.slice_for_qubits_equal_to(
+                control_axes, big_endian_qureg_value=i)
+            sub_args = cirq.ApplyUnitaryArgs(
+                transposed_args.target_tensor[control_index],
+                transposed_args.available_buffer[control_index],
+                target_axes)
+            sub_result = cirq.apply_unitary(operation, sub_args)
+
+            if sub_result is not sub_args.target_tensor:
+                sub_args.target_tensor[...] = sub_result
+
+        return args.target_tensor
 
 
 class QubitPermutation(ops.Operation):
     """A qubit permutation operation specified by a permute function."""
 
-    def __init__(self, qubits: Iterable['cirq.Qid'],
+    def __init__(self,
+                 name: str,
+                 qubits: Iterable['cirq.Qid'],
                  permute: Callable[[int], int]):
+        self.name = name
         self._qubits = tuple(qubits)
         self.permute = permute
 
@@ -355,7 +445,7 @@ class QubitPermutation(ops.Operation):
         return self._qubits
 
     def with_qubits(self, *new_qubits):
-        return QubitPermutation(new_qubits, self.permute)
+        return QubitPermutation(self.name, new_qubits, self.permute)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
@@ -365,11 +455,15 @@ class QubitPermutation(ops.Operation):
             ai = args.axes[i]
             aj = args.axes[j]
             assert args.target_tensor.shape[ai] == args.target_tensor.shape[aj]
-            permuted_axes[ai] = aj
+            permuted_axes[aj] = ai
 
         # Delegate to numpy to do the permuted copy.
-        args.available_buffer[permuted_axes] = args.target_tensor
+        args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+        return tuple(f'{self.name}[{i}>{self.permute(i)}]'
+                     for i in range(len(self._qubits)))
 
     def __repr__(self):
         return 'cirq.quirk.QubitPermutation({!r}, {!r})'.format(

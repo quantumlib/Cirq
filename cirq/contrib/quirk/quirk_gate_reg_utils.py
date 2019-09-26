@@ -28,6 +28,7 @@ import numpy as np
 import sympy.parsing.sympy_parser
 
 import cirq
+from cirq import ops
 from cirq.contrib.quirk.quirk_parse_gates import (OpsCell, QubitPermutation,
                                                   InputCell, ControlCell,
                                                   DependentCell, ArithmeticCell,
@@ -35,24 +36,41 @@ from cirq.contrib.quirk.quirk_parse_gates import (OpsCell, QubitPermutation,
 
 GATE_SIZES = range(1, 17)
 
+CellArgs = NamedTuple('CellArgs', [
+    ('qubits', List['cirq.Qid']),
+    ('value', Any),
+    ('row', int),
+    ('col', int),
+])
+
+
 CellType = NamedTuple('CellType', [
     ('identifier', str),
     ('size', int),
-    ('func', Callable[[List['cirq.Qid'], Any], Optional[Cell]]),
+    ('func', Callable[[CellArgs], Optional[Cell]]),
 ])
 
 
 def reg_gate(identifier: str, gate: cirq.Gate,
              basis_change: cirq.Gate = None) -> Iterator[CellType]:
     yield CellType(
-        identifier, gate.num_qubits(), lambda qubits, _: OpsCell(
-            [gate.on(*qubits)],
-            basis_change=[basis_change.on(*qubits)] if basis_change else ()))
+        identifier, gate.num_qubits(), lambda args: OpsCell(
+            [gate.on(*args.qubits)],
+            basis_change=[basis_change.on(*args.qubits)] if basis_change else ()))
+
+
+def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
+    yield CellType(
+        identifier,
+        1,
+        lambda args: OpsCell(
+            [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
+            basis_change=[basis_change.on(*args.qubits)] if basis_change else ()))
 
 
 def reg_family(identifier_prefix: str, gate_maker: Callable[[int], cirq.Gate]
               ) -> Iterator[CellType]:
-    f = lambda qubits, _: OpsCell([gate_maker(len(qubits)).on(*qubits)])
+    f = lambda args: OpsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
     yield CellType(identifier_prefix, 1, f)
     for i in GATE_SIZES:
         yield CellType(identifier_prefix + str(i), i, f)
@@ -64,8 +82,8 @@ def reg_formula_gate(
 ) -> Iterator[CellType]:
     yield CellType(
         identifier,
-        gate_func(0).num_qubits(), lambda qubits, value: OpsCell(
-            [gate_func(parse_formula(value, default_formula)).on(*qubits)]))
+        gate_func(0).num_qubits(), lambda args: OpsCell(
+            [gate_func(parse_formula(args.value, default_formula)).on(*args.qubits)]))
 
 
 def reg_ignored_family(identifier_prefix: str) -> Iterator[CellType]:
@@ -75,13 +93,13 @@ def reg_ignored_family(identifier_prefix: str) -> Iterator[CellType]:
 
 
 def reg_ignored_gate(identifier: str):
-    yield CellType(identifier, 0, lambda a, b: None)
+    yield CellType(identifier, 0, lambda _: None)
 
 
 def reg_unsupported_gate(identifier: str,
                          reason: str) -> Iterator[CellType]:
 
-    def fail(qubits, value):
+    def fail(_):
         raise NotImplementedError(
             f'Converting the Quirk gate {identifier} is not implemented yet. '
             f'Reason: {reason}')
@@ -104,64 +122,85 @@ def reg_unsupported_family(identifier_prefix: str,
 def reg_arithmetic_family(identifier_prefix: str, func: Callable[[Any], int]
                          ) -> Iterator[CellType]:
     yield from reg_size_dependent_arithmetic_family(
-        identifier_prefix, lambda _: func)
+        identifier_prefix,
+        func=lambda _: func,
+        is_modular=False)
+
+
+def reg_modular_arithmetic_family(
+        identifier_prefix: str, func: Callable[[Any], int]
+                         ) -> Iterator[CellType]:
+    yield from reg_size_dependent_arithmetic_family(
+        identifier_prefix,
+        func=lambda _: func,
+        is_modular=True)
 
 
 def reg_size_dependent_arithmetic_family(
         identifier_prefix: str,
-        func: Callable[[int], Callable[[Any], int]]) -> Iterator[CellType]:
+        func: Callable[[int], Callable[[Any], int]],
+        is_modular: bool = False) -> Iterator[CellType]:
     for i in GATE_SIZES:
-        yield from reg_arithmetic_gate(identifier_prefix + str(i), i, func(i))
+        yield from reg_arithmetic_gate(identifier_prefix + str(i),
+                                       size=i,
+                                       func=func(i),
+                                       is_modular=is_modular)
 
 
-def reg_arithmetic_gate(identifier: str, size: int,
-                        func: Callable[[Any], int]) -> Iterator[CellType]:
+def reg_arithmetic_gate(identifier: str,
+                        size: int,
+                        func: Callable[[Any], int],
+                        is_modular: bool = False) -> Iterator[CellType]:
     param_names = list(inspect.signature(func).parameters)
     assert param_names[0] == 'x'
     yield CellType(
-        identifier, size, lambda qubits, _: ArithmeticCell(
+        identifier, size, lambda args: ArithmeticCell(
             identifier=identifier,
-            registers=[qubits] + [None] * len(param_names[1:]),
+            registers=[args.qubits] + [None] * len(param_names[1:]),
             register_letters=[None] + param_names[1:],
-            operation=func))
+            operation=func,
+            is_modular=is_modular))
 
 
 def reg_control(identifier: str,
                 basis_change: Optional['cirq.Gate']) -> Iterator[CellType]:
     yield CellType(
-        identifier, 1, lambda qubits, _: ControlCell(
-            qubits[0],
-            basis_change.on(qubits[0]) if basis_change else []))
+        identifier, 1, lambda args: ControlCell(
+            args.qubits[0],
+            basis_change.on(args.qubits[0]) if basis_change else []))
 
 
 def reg_input_family(identifier_prefix: str, letter: str,
                      rev: bool = False) -> Iterator[CellType]:
     for i in GATE_SIZES:
         yield CellType(
-            identifier_prefix + str(i), i, lambda qubits, _: InputCell(
-                qubits[::-1] if rev else qubits, letter))
+            identifier_prefix + str(i), i, lambda args: InputCell(
+                args.qubits[::-1] if rev else args.qubits, letter))
 
 
 def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
                            factor: float) -> Iterator[CellType]:
     yield CellType(
-        identifier, gate.num_qubits(), lambda qubits, _: DependentCell(
-            register='a',
-            target=qubits[0],
+        identifier, gate.num_qubits(), lambda args: DependentCell(
+            identifier=identifier,
+            register=None,
+            register_letter='a',
+            target=args.qubits[0],
             op_maker=lambda v, n, qs: gate**(factor * v / n)))
 
 
 def reg_const(identifier: str,
               operation: 'cirq.Operation') -> Iterator[CellType]:
     yield CellType(identifier,
-                   1, lambda qubits, value: OpsCell([operation]))
+                   1, lambda _: OpsCell([operation]))
 
 
-def reg_bit_permutation_family(identifier_prefix,
+def reg_bit_permutation_family(identifier_prefix: str,
+                               name: str,
                                permutation: Callable[[int, int], int]
                               ) -> Iterator[CellType]:
-    f = lambda qubits, _: OpsCell(
-        [QubitPermutation(qubits, lambda e: permutation(len(qubits), e))])
+    f = lambda args: OpsCell(
+        [QubitPermutation(name, args.qubits, lambda e: permutation(len(args.qubits), e))])
     for i in GATE_SIZES:
         yield CellType(identifier_prefix + str(i), i, f)
 
@@ -173,12 +212,18 @@ def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
     return gcd, x - (b // a) * y, y
 
 
-def modular_multiplicative_inverse(a: int, m: int) -> Optional[int]:
+def invertible_else_1(a: int, m: int) -> Optional[int]:
+    """Returns `a` if it has a multiplicative inverse, else 1."""
+    i = mod_inv_else_1(a, m)
+    return a if i != 1 else i
+
+
+def mod_inv_else_1(a: int, m: int) -> Optional[int]:
     if m == 0:
-        return None
+        return 1
     gcd, x, _ = _extended_gcd(a % m, m)
     if gcd != 1:
-        return None
+        return 1
     return x % m
 
 
