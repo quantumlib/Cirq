@@ -52,11 +52,6 @@ def reg_family(identifier_prefix: str,
         yield CellMaker(identifier_prefix + str(i), i, f)
 
 
-def reg_const(identifier: str,
-              operation: 'cirq.Operation') -> Iterator[CellMaker]:
-    yield CellMaker(identifier, 1, lambda _: ExplicitOperationsCell([operation]))
-
-
 def parse_formula(formula: Any,
                   default_formula: Any = None) -> Union[float, sympy.Basic]:
     if formula is None:
