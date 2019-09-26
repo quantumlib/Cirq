@@ -20,7 +20,6 @@ import examples.qubit_characterizations_example
 import examples.shor
 import examples.superdense_coding
 import examples.swap_networks
-import examples.noisy_simulation_example
 
 
 def test_example_runs_bernstein_vazirani():
@@ -93,10 +92,6 @@ def test_example_runs_qubit_characterizations():
 
 def test_example_swap_networks():
     examples.swap_networks.main()
-
-
-def test_example_noisy_simulation():
-    examples.noisy_simulation_example.main()
 
 
 def test_example_cross_entropy_benchmarking():
