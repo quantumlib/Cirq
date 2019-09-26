@@ -29,10 +29,15 @@ import sympy.parsing.sympy_parser
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.quirk_parse_gates import (OpsCell, QubitPermutation,
-                                                  InputCell, ControlCell,
-                                                  DependentCell, ArithmeticCell,
-                                                  Cell)
+from cirq.contrib.quirk.cells import (
+    ArithmeticCell,
+    Cell,
+    ControlCell,
+    ExplicitOperationsCell,
+    InputCell,
+    InputRotationCell,
+    QuirkQubitPermutationOperation,
+)
 
 GATE_SIZES = range(1, 17)
 
@@ -53,7 +58,7 @@ CellType = NamedTuple('CellType', [
 def reg_gate(identifier: str, gate: cirq.Gate,
              basis_change: cirq.Gate = None) -> Iterator[CellType]:
     yield CellType(
-        identifier, gate.num_qubits(), lambda args: OpsCell(
+        identifier, gate.num_qubits(), lambda args: ExplicitOperationsCell(
             [gate.on(*args.qubits)],
             basis_change=[basis_change.on(*args.qubits)]
             if basis_change else ()))
@@ -61,7 +66,7 @@ def reg_gate(identifier: str, gate: cirq.Gate,
 
 def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
     yield CellType(
-        identifier, 1, lambda args: OpsCell(
+        identifier, 1, lambda args: ExplicitOperationsCell(
             [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
             basis_change=[basis_change.on(*args.qubits)]
             if basis_change else ()))
@@ -69,7 +74,7 @@ def reg_measurement(identifier: str, basis_change: cirq.Gate = None):
 
 def reg_family(identifier_prefix: str,
                gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellType]:
-    f = lambda args: OpsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
+    f = lambda args: ExplicitOperationsCell([gate_maker(len(args.qubits)).on(*args.qubits)])
     yield CellType(identifier_prefix, 1, f)
     for i in GATE_SIZES:
         yield CellType(identifier_prefix + str(i), i, f)
@@ -81,7 +86,7 @@ def reg_formula_gate(
 ) -> Iterator[CellType]:
     yield CellType(
         identifier,
-        gate_func(0).num_qubits(), lambda args: OpsCell([
+        gate_func(0).num_qubits(), lambda args: ExplicitOperationsCell([
             gate_func(parse_formula(args.value, default_formula)).on(*args.
                                                                      qubits)
         ]))
@@ -178,7 +183,7 @@ def reg_input_family(identifier_prefix: str, letter: str,
 def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
                            factor: float) -> Iterator[CellType]:
     yield CellType(
-        identifier, gate.num_qubits(), lambda args: DependentCell(
+        identifier, gate.num_qubits(), lambda args: InputRotationCell(
             identifier=identifier,
             register=None,
             register_letter='a',
@@ -188,14 +193,14 @@ def reg_parameterized_gate(identifier: str, gate: cirq.Gate,
 
 def reg_const(identifier: str,
               operation: 'cirq.Operation') -> Iterator[CellType]:
-    yield CellType(identifier, 1, lambda _: OpsCell([operation]))
+    yield CellType(identifier, 1, lambda _: ExplicitOperationsCell([operation]))
 
 
 def reg_bit_permutation_family(identifier_prefix: str, name: str,
                                permutation: Callable[[int, int], int]
                               ) -> Iterator[CellType]:
-    f = lambda args: OpsCell([
-        QubitPermutation(name, args.qubits, lambda e: permutation(
+    f = lambda args: ExplicitOperationsCell([
+        QuirkQubitPermutationOperation(name, args.qubits, lambda e: permutation(
             len(args.qubits), e))
     ])
     for i in GATE_SIZES:

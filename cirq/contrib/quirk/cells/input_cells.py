@@ -1,0 +1,46 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import Optional, List
+
+import cirq
+from cirq.contrib.quirk.cells.cell import Cell
+
+
+class InputCell(Cell):
+    """A modifier that provides a quantum input to gates in the same column."""
+
+    def __init__(self, qubits: List[cirq.Qid], letter: str):
+        self.qubits = qubits
+        self.letter = letter
+
+    def modify_column(self, column: List[Optional['Cell']]):
+        for i in range(len(column)):
+            gate = column[i]
+            if gate is not None:
+                column[i] = gate.with_input(self.letter, self.qubits)
+
+
+class SetDefaultInputCell(Cell):
+    """A persistent modifier that provides a fallback classical input."""
+
+    def __init__(self, letter: str, value: int):
+        self.letter = letter
+        self.value = value
+
+    def persistent_modifiers(self):
+        return {
+            f'set_default_{self.letter}':
+            lambda cell: cell.with_input(self.letter, self.value)
+        }

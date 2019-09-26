@@ -139,16 +139,10 @@ def test_various_unknown_gate_types():
             [{"id":"?","matrix":"{{0.853553+0.146447i,0.353553-0.353553i},
                                   {0.353553-0.353553i,0.146447+0.853553i}}"}],
             [{"id":"?","matrix":"{{0.5+0.5i,0.5+0.5i},{0.5-0.5i,-0.5+0.5i}}"}],
-            [{"id":"?",
-              "matrix":"{{0.904508+0.293893i, 0.095492-0.293893i},
-                         {0.095492-0.293893i, 0.904508+0.293893i}}"}],
-            [{"id":"?",
-              "matrix":"{{0.904508+0.293893i, 0.293893+0.095492i},
-                         {-0.293893-0.095492i, 0.904508+0.293893i}}"}],
-            [{"id":"?",
-              "matrix":"{{1, 0},
-                         {0, 0.809017+0.587785i}}"}],
-            ["UNKNOWN", "UNKNOWN"],
+            [{"arg":"0.2000","id":"X^ft"}],
+            [{"arg":"0.2000","id":"Y^ft"}],
+            [{"arg":"0.2000","id":"Z^ft"}],
+            ["•",{"arg":"0.2000","id":"Z^ft"}],
             [{"id":"?",
               "matrix":"{{0, 0.707107+0.707107i},
                          {0.707107-0.707107i, 0}}"}],
@@ -162,7 +156,7 @@ def test_various_unknown_gate_types():
 
 def test_unrecognized_single_qubit_gate_with_matrix():
     a = cirq.NamedQubit('a')
-    circuit = cirq.Circuit(cirq.X(a)**0.2731,)
+    circuit = cirq.Circuit(cirq.PhasedXPowGate(phase_exponent=0).on(a)**0.2731)
     assert_links_to(circuit, """
         http://algassert.com/quirk#circuit={"cols":[[{
             "id":"?",

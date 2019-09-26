@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, List, Tuple, Iterator, Dict, Optional
+from typing import Any, List, Iterator, Dict, Optional
 
 import sympy
 import urllib.parse
@@ -19,9 +19,13 @@ import json
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.quirk_parse_gates import (ParityControlCell, Cell,
-                                                  QuirkPseudoSwapOperation,
-                                                  SetDefaultInputCell)
+from cirq.contrib.quirk.cells import (
+    ParityControlCell,
+    Cell,
+    SwapCell,
+    SetDefaultInputCell,
+)
+
 from cirq.contrib.quirk.quirk_gate_reg_utils import (
     popcnt, mod_inv_else_1, reg_control, reg_input_family,
     reg_unsupported_gates, reg_gate, reg_const, reg_formula_gate,
@@ -139,7 +143,7 @@ def parse_cell(registry: Dict[str, CellType], row: int, col: int,
 def _gate_registry() -> Iterator[CellType]:
     # Swap.
     yield CellType("Swap",
-                   1, lambda args: QuirkPseudoSwapOperation(args.qubits, []))
+                   1, lambda args: SwapCell(args.qubits, []))
 
     # Controls.
     yield from reg_control("•", None)
