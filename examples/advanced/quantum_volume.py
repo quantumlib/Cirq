@@ -1,7 +1,7 @@
 """Tool to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926.
-
-Usage:
+n
+sage:
     python examples/advanced/quantum_volume.py \
         --num_qubits=4 --depth=4 --num_repetitions=1 [--seed=int]
 
@@ -19,7 +19,6 @@ from typing import Optional, List, cast
 import numpy as np
 
 import cirq
-
 
 def generate_model_circuit(num_qubits: int,
                            depth: int,
@@ -85,10 +84,9 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     """
     # Classically compute the probabilities of each output bit-string through
     # simulation.
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(seed=1)
     results = cast(cirq.WaveFunctionTrialResult,
                    simulator.simulate(program=circuit))
-
     # Compute the median probability of the output bit-strings. Note that heavy
     # output is defined in terms of probabilities, where our wave function is in
     # terms of amplitudes. We convert it by using the Born rule: squaring each
@@ -102,6 +100,41 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
         idx for idx, amp in enumerate(results.state_vector())
         if np.abs(amp**2) > median
     ]
+
+
+def sample_heavy_set(circuit: cirq.Circuit,
+                     heavy_set: List[int],
+                     *,
+                     sampler: cirq.Sampler = cirq.Simulator()) -> float:
+    """Run a sampler over the given circuit and compute the percentage of its
+       outputs that are in the heavy set.
+
+    Args:
+        circuit: The circuit to sample.
+        heabv_set: The previously-computed heavy set for the given circuit.
+        sampler: The sampler to run on the given circuit.
+nn
+    Returns:
+        A probability percentage, from 0 to 1, representing how many of the
+        output bit-strings were in the heaby set.
+
+    """
+    # Add measure gates to the end of the circpuit.
+    circuit_copy = circuit.copy()  # So we don't mutate the original circuit.
+    circuit_copy.append([cirq.measure(*sorted(circuit_copy.all_qubits()))])
+
+    # Run the sampler to compare each output against the Heavy Set.
+    repetitions = 1000
+    measurements = sampler.run(program=circuit_copy, repetitions=repetitions)
+
+    # Compute the number of outputs that are in the heavy set.
+    num_in_heavy_set = 0
+    for _, m in enumerate(measurements.data.iterrows()):
+        if m[1].iloc[0] in heavy_set:
+            num_in_heavy_set += 1
+
+    # Return the number of Heavy outputs over the number of runs.
+    return num_in_heavy_set / repetitions
 
 
 def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
@@ -124,8 +157,14 @@ def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
         model_circuit = generate_model_circuit(
             num_qubits, depth, random_state=np.random.RandomState(seed))
         heavy_set = compute_heavy_set(model_circuit)
-        print(heavy_set)
-        # TODO(villela): Implement model circuit and run it.
+        print("Heavy Set:", heavy_set)
+        print("Ideal simulation probability: ",
+              sample_heavy_set(model_circuit, heavy_set))
+        noisy_sampler = cirq.DensityMatrixSimulator(
+            noise=cirq.ConstantQubitNoiseModel(
+                qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
+        print("Noisy simulation probability: ",
+              sample_heavy_set(model_circuit, heavy_set, sampler=noisy_sampler))
 
 
 def parse_arguments(args):
