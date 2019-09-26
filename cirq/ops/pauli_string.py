@@ -100,7 +100,7 @@ class PauliString(raw_types.Operation):
 
     @classmethod
     def _from_json_dict_(cls, qubit_pauli_map, coefficient, **kwargs):
-        return cls(qubit_pauli_map=dict(qubit_pauli_map),
+        return cls(qubit_paulis=dict(qubit_pauli_map),
                    coefficient=coefficient)
 
     def _value_equality_values_cls_(self):
