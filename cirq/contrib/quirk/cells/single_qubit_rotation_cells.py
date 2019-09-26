@@ -95,7 +95,7 @@ def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
     return CellMaker(
         identifier,
         size=gate.num_qubits(),
-        func=lambda args: ExplicitOperationsCell([gate.on(*args.qubits)]))
+        maker=lambda args: ExplicitOperationsCell([gate.on(*args.qubits)]))
 
 
 def _formula_gate(identifier: str, default_formula: str,
@@ -103,7 +103,7 @@ def _formula_gate(identifier: str, default_formula: str,
                  ) -> CellMaker:
     return CellMaker(identifier,
                      size=gate_func(0).num_qubits(),
-                     func=lambda args: ExplicitOperationsCell([
+                     maker=lambda args: ExplicitOperationsCell([
                          gate_func(parse_formula(args.value, default_formula)).
                          on(*args.qubits)
                      ]))

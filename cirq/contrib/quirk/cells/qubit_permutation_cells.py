@@ -101,7 +101,7 @@ def _permutation(
     return CellMaker(
         identifier,
         size=len(permutation),
-        func=lambda args: ExplicitOperationsCell([
+        maker=lambda args: ExplicitOperationsCell([
             QuirkQubitPermutationGate(identifier=identifier,
                                       name=name,
                                       permutation=permutation).on(*args.qubits)

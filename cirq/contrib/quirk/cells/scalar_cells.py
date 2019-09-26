@@ -31,4 +31,4 @@ def generate_all_scalar_cell_makers() -> Iterator[CellMaker]:
 def _scalar(identifier: str, operation: 'cirq.Operation') -> CellMaker:
     return CellMaker(identifier,
                      size=1,
-                     func=lambda _: ExplicitOperationsCell([operation]))
+                     maker=lambda _: ExplicitOperationsCell([operation]))

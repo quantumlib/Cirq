@@ -253,7 +253,9 @@ def reg_arithmetic_gate(identifier: str,
     if is_modular:
         assert param_names[-1] == 'r'
     return CellMaker(
-        identifier, size, lambda args: ArithmeticCell(
+        identifier=identifier,
+        size=size,
+        maker=lambda args: ArithmeticCell(
             identifier=identifier,
             registers=[args.qubits] + [None] * len(param_names[1:]),
             register_letters=[None] + param_names[1:],

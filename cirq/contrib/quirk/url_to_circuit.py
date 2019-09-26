@@ -123,8 +123,8 @@ def parse_cell(registry: Dict[str, CellMaker], row: int, col: int,
         key = entry
 
     if isinstance(key, str) and key in registry:
-        _, size, func = registry[key]
-        qubits = cirq.LineQubit.range(row, row + size)
-        return func(CellMakerArgs(qubits, arg, row=row, col=col))
+        entry = registry[key]
+        qubits = cirq.LineQubit.range(row, row + entry.size)
+        return entry.maker(CellMakerArgs(qubits, arg, row=row, col=col))
 
     raise ValueError('Unrecognized column entry: {!r}'.format(entry))

@@ -148,5 +148,5 @@ CellMakerArgs = NamedTuple('CellMakerArgs', [
 CellMaker = NamedTuple('CellMaker', [
     ('identifier', str),
     ('size', int),
-    ('func', Callable[[CellMakerArgs], Optional[Cell]]),
+    ('maker', Callable[[CellMakerArgs], Optional[Cell]]),
 ])

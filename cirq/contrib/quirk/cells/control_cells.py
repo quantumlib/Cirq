@@ -90,7 +90,7 @@ def _reg_control(identifier: str, *,
     return CellMaker(
         identifier=identifier,
         size=1,
-        func=lambda args: ControlCell(
+        maker=lambda args: ControlCell(
             args.qubits[0],
             basis_change.on(args.qubits[0]) if basis_change else []))
 
@@ -102,5 +102,5 @@ def _reg_parity_control(identifier: str,
     return CellMaker(
         identifier=identifier,
         size=1,
-        func=lambda args: ParityControlCell(args.qubits, (
+        maker=lambda args: ParityControlCell(args.qubits, (
         ) if basis_change is None else basis_change.on_each(args.qubits)))
