@@ -24,8 +24,9 @@ from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 class InputRotationCell(Cell):
     """Applies an operation that depends on an input gate."""
 
-    def __init__(self, identifier: str, register: Optional[Sequence['cirq.Qid']],
-                 register_letter: str, target: 'cirq.Qid',
+    def __init__(self, identifier: str,
+                 register: Optional[Sequence['cirq.Qid']], register_letter: str,
+                 target: 'cirq.Qid',
                  op_maker: Callable[[int, int, Sequence['cirq.Qid']],
                                     'cirq.Operation']):
         self.identifier = identifier

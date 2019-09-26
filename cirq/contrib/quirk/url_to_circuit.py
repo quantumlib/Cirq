@@ -92,9 +92,10 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     # Extract circuit operations from modified cells.
     result = cirq.Circuit()
     for col in parsed_cols:
-        basis_change = cirq.Circuit.from_ops(
+        basis_change = cirq.Circuit(
             cell.basis_change() for cell in col if cell is not None)
-        body = (cell.operations() for cell in col if cell is not None)
+        body = cirq.Circuit(
+            cell.operations() for cell in col if cell is not None)
         result += basis_change
         result += body
         result += basis_change**-1

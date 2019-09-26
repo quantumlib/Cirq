@@ -32,5 +32,6 @@ def reg_measurement(identifier: str,
         size=1,
         maker=lambda args: ExplicitOperationsCell(
             [ops.measure(*args.qubits, key=f'row={args.row},col={args.col}')],
-            basis_change=cast(Iterable['cirq.Operation'], [basis_change.on(*args.qubits)]
-            if basis_change else ())))
+            basis_change=cast(Iterable['cirq.Operation'], [
+                basis_change.on(*args.qubits)
+            ] if basis_change else ())))

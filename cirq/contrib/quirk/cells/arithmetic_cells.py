@@ -263,7 +263,9 @@ def reg_arithmetic_gate(identifier: str,
         size=size,
         maker=lambda args: ArithmeticCell(
             identifier=identifier,
-            registers=cast(List[Optional[Sequence['cirq.Qid']]], [args.qubits]) + [None] * len(param_names[1:]),
-            register_letters=cast(List[Optional[str]], [None]) + cast(List[Optional[str]], param_names[1:]),
+            registers=cast(List[Optional[Sequence['cirq.Qid']]], [args.qubits]
+                          ) + [None] * len(param_names[1:]),
+            register_letters=cast(List[Optional[str]], [None]) + cast(
+                List[Optional[str]], param_names[1:]),
             operation=func,
             is_modular=is_modular))

@@ -93,9 +93,9 @@ def _reg_control(identifier: str, *,
     return CellMaker(
         identifier=identifier,
         size=1,
-        maker=lambda args: ControlCell(
-            qubit=args.qubits[0],
-            basis_change=_basis_else_empty(basis_change, args.qubits[0])))
+        maker=lambda args: ControlCell(qubit=args.qubits[0],
+                                       basis_change=_basis_else_empty(
+                                           basis_change, args.qubits[0])))
 
 
 def _reg_parity_control(identifier: str,
@@ -105,14 +105,14 @@ def _reg_parity_control(identifier: str,
     return CellMaker(
         identifier=identifier,
         size=1,
-        maker=lambda args: ParityControlCell(
-            qubits=args.qubits,
-            basis_change=_basis_else_empty(basis_change, args.qubits)))
+        maker=lambda args: ParityControlCell(qubits=args.qubits,
+                                             basis_change=_basis_else_empty(
+                                                 basis_change, args.qubits)))
 
 
 def _basis_else_empty(basis_change: Optional['cirq.SingleQubitGate'],
                       qureg: Union['cirq.Qid', Iterable['cirq.Qid']]
-                      ) -> Iterable['cirq.Operation']:
+                     ) -> Iterable['cirq.Operation']:
     if basis_change is None:
         return ()
     return basis_change.on_each(qureg)
