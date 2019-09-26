@@ -1,7 +1,7 @@
 """Tool to run the Quantum Volume benchmark defined by IBM in
 https://arxiv.org/abs/1811.12926.
-n
-sage:
+
+Usage:
     python examples/advanced/quantum_volume.py \
         --num_qubits=4 --depth=4 --num_repetitions=1 [--seed=int]
 
@@ -19,6 +19,7 @@ from typing import Optional, List, cast
 import numpy as np
 
 import cirq
+
 
 def generate_model_circuit(num_qubits: int,
                            depth: int,
@@ -84,7 +85,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     """
     # Classically compute the probabilities of each output bit-string through
     # simulation.
-    simulator = cirq.Simulator(seed=1)
+    simulator = cirq.Simulator()
     results = cast(cirq.WaveFunctionTrialResult,
                    simulator.simulate(program=circuit))
     # Compute the median probability of the output bit-strings. Note that heavy
