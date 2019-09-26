@@ -21,14 +21,15 @@ if TYPE_CHECKING:
 
 
 def generate_all_scalar_cell_makers() -> Iterator[CellMaker]:
-    yield from reg_scalar("NeGate", ops.GlobalPhaseOperation(-1))
-    yield from reg_scalar("i", ops.GlobalPhaseOperation(1j))
-    yield from reg_scalar("-i", ops.GlobalPhaseOperation(-1j))
-    yield from reg_scalar("√i", ops.GlobalPhaseOperation(1j**0.5))
-    yield from reg_scalar("√-i", ops.GlobalPhaseOperation((-1j)**0.5))
+    yield reg_scalar("NeGate", ops.GlobalPhaseOperation(-1))
+    yield reg_scalar("i", ops.GlobalPhaseOperation(1j))
+    yield reg_scalar("-i", ops.GlobalPhaseOperation(-1j))
+    yield reg_scalar("√i", ops.GlobalPhaseOperation(1j**0.5))
+    yield reg_scalar("√-i", ops.GlobalPhaseOperation((-1j)**0.5))
 
 
 def reg_scalar(identifier: str,
-               operation: 'cirq.Operation') -> Iterator[CellMaker]:
-    yield CellMaker(identifier,
-                    1, lambda _: ExplicitOperationsCell([operation]))
+               operation: 'cirq.Operation') -> CellMaker:
+    return CellMaker(identifier,
+                    size=1,
+                    func=lambda _: ExplicitOperationsCell([operation]))

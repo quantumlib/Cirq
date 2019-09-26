@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
 from typing import (
     Any,
     Callable,
-    Optional,
     Union,
-    Tuple,
     Iterator,
 )
 
@@ -26,23 +23,8 @@ import numpy as np
 import sympy.parsing.sympy_parser
 
 import cirq
-from cirq import ops
-from cirq.contrib.quirk.cells.arithmetic_cells import ArithmeticCell
-from cirq.contrib.quirk.cells.control_cells import ControlCell
-from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
-from cirq.contrib.quirk.cells.input_cells import InputCell
-from cirq.contrib.quirk.cells.input_rotation_cells import InputRotationCell
-from cirq.contrib.quirk.cells.qubit_permutation_cells import QuirkQubitPermutationOperation
-from cirq.contrib.quirk.cells.cell import CellMaker, CELL_SIZES
-
-
-def reg_family(identifier_prefix: str,
-               gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellMaker]:
-    f = lambda args: ExplicitOperationsCell(
-        [gate_maker(len(args.qubits)).on(*args.qubits)])
-    yield CellMaker(identifier_prefix, 1, f)
-    for i in CELL_SIZES:
-        yield CellMaker(identifier_prefix + str(i), i, f)
+from cirq.contrib.quirk.cells.cell import (CellMaker, CELL_SIZES,
+    ExplicitOperationsCell,)
 
 
 def parse_formula(formula: Any,

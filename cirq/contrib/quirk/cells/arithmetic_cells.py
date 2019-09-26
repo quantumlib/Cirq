@@ -21,7 +21,7 @@ from typing import (
     Iterator,
     Tuple,
     Any,
-)
+    cast)
 
 import cirq
 from cirq import ops
@@ -48,17 +48,6 @@ class ArithmeticCell(Cell):
         ], self._register_letters, self._operation, self._is_modular)
 
     def operations(self) -> 'cirq.OP_TREE':
-        if self._is_modular:
-            assert self._register_letters.index(None) == 0
-            assert self._register_letters.index('r') == len(
-                self._register_letters) - 1
-            x = self._registers[0]
-            r = self._registers[-1]
-            if r > 1 << len(x) if isinstance(r, int) else len(r) > len(x):
-                raise ValueError('Target too small for modulus.\n'
-                                 f'Target: {x}\n'
-                                 f'Modulus: {r}')
-
         missing_inputs = [
             letter
             for reg, letter in zip(self._registers, self._register_letters)
@@ -66,6 +55,19 @@ class ArithmeticCell(Cell):
         ]
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
+
+        if self._is_modular:
+            assert self._register_letters.index(None) == 0
+            assert self._register_letters.index('r') == len(
+                self._register_letters) - 1
+            x = cast(Union[Sequence['cirq.Qid'], int], self._registers[0])
+            r = cast(Union[Sequence['cirq.Qid'], int], self._registers[-1])
+            assert x is not None
+            assert r is not None
+            if r > 1 << len(x) if isinstance(r, int) else len(r) > len(x):
+                raise ValueError('Target too small for modulus.\n'
+                                 f'Target: {x}\n'
+                                 f'Modulus: {r}')
 
         return QuirkArithmeticOperation(self.identifier, self._registers,
                                         self._register_letters, self._operation,
@@ -219,15 +221,23 @@ def popcnt(a: int) -> int:
     return t
 
 
+IntsToIntCallable = Union[
+    Callable[[int], int],
+    Callable[[int, int], int],
+    Callable[[int, int, int], int],
+    Callable[[int, int, int, int], int],
+]
+
+
 def reg_arithmetic_family(identifier_prefix: str,
-                          func: Callable[[Any], int]) -> Iterator[CellMaker]:
+                          func: IntsToIntCallable) -> Iterator[CellMaker]:
     yield from reg_size_dependent_arithmetic_family(identifier_prefix,
                                                     func=lambda _: func,
                                                     is_modular=False)
 
 
 def reg_modular_arithmetic_family(identifier_prefix: str,
-                                  func: Callable[[Any], int]
+                                  func: IntsToIntCallable
                                  ) -> Iterator[CellMaker]:
     yield from reg_size_dependent_arithmetic_family(identifier_prefix,
                                                     func=lambda _: func,
@@ -236,7 +246,7 @@ def reg_modular_arithmetic_family(identifier_prefix: str,
 
 def reg_size_dependent_arithmetic_family(
         identifier_prefix: str,
-        func: Callable[[int], Callable[[Any], int]],
+        func: Callable[[int], IntsToIntCallable],
         is_modular: bool = False) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
         yield reg_arithmetic_gate(identifier_prefix + str(i),
@@ -247,10 +257,12 @@ def reg_size_dependent_arithmetic_family(
 
 def reg_arithmetic_gate(identifier: str,
                         size: int,
-                        func: Callable[[Any], int],
+                        func: IntsToIntCallable,
                         is_modular: bool = False) -> CellMaker:
     param_names = list(inspect.signature(func).parameters)
     assert param_names[0] == 'x'
+    if is_modular:
+        assert param_names[-1] == 'r'
     return CellMaker(
         identifier, size, lambda args: ArithmeticCell(
             identifier=identifier,

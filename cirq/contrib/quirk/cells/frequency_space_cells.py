@@ -11,18 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator
+from typing import Iterator, Callable
 
 import sympy
 
 import cirq
-from cirq.contrib.quirk.cells.cell import (
-    CellMaker,)
+from cirq.contrib.quirk.cells.cell import (CellMaker, ExplicitOperationsCell,
+    CELL_SIZES,)
 
 
 def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:
-    from cirq.contrib.quirk.quirk_gate_reg_utils import (reg_family)
-
     # Frequency space.
     yield from reg_family("QFT", lambda n: cirq.QuantumFourierTransformGate(n))
     yield from reg_family(
@@ -39,3 +37,12 @@ def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:
     yield from reg_family(
         "grad^-t", lambda n: cirq.PhaseGradientGate(
             num_qubits=n, exponent=-2**(n - 1) * sympy.Symbol('t')))
+
+
+def reg_family(identifier_prefix: str,
+               gate_maker: Callable[[int], cirq.Gate]) -> Iterator[CellMaker]:
+    f = lambda args: ExplicitOperationsCell(
+        [gate_maker(len(args.qubits)).on(*args.qubits)])
+    yield CellMaker(identifier_prefix, 1, f)
+    for i in CELL_SIZES:
+        yield CellMaker(identifier_prefix + str(i), i, f)

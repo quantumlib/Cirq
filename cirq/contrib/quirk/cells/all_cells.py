@@ -15,8 +15,8 @@ from typing import Iterator
 
 from cirq.contrib.quirk.cells.arithmetic_cells import (
     generate_all_arithmetic_cell_makers)
-from cirq.contrib.quirk.cells.cell import (CellMaker)
-from cirq.contrib.quirk.cells.control_cells import generate_all_control_cell_makers
+from cirq.contrib.quirk.cells.cell import CellMaker
+from cirq.contrib.quirk.cells.control_cells import (generate_all_control_cell_makers)
 from cirq.contrib.quirk.cells.frequency_space_cells import (
     generate_all_frequency_space_cell_makers)
 from cirq.contrib.quirk.cells.ignored_cells import (
