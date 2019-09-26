@@ -67,7 +67,8 @@ def test_sample_heavy_set():
     circuit = cirq.Circuit.from_ops(cirq.measure(*cirq.LineQubit.range(2)))
 
     probability = quantum_volume.sample_heavy_set(circuit, [1, 2, 3],
-                                                  sampler=sampler)
+                                                  sampler=sampler,
+                                                  repetitions=1000)
     # The first 3 of our outputs are in the heavy set, and then the rest are
     # not.
     assert probability == .003
