@@ -26,22 +26,23 @@ def test_sample():
     q = cirq.NamedQubit('q')
 
     with pytest.raises(ValueError, match="no measurements"):
-        cirq.sample(cirq.Circuit.from_ops(cirq.X(q)))
+        cirq.sample(cirq.Circuit(cirq.X(q)))
     # Unitary.
-    results = cirq.sample(cirq.Circuit.from_ops(cirq.X(q), cirq.measure(q)))
+    results = cirq.sample(cirq.Circuit(cirq.X(q), cirq.measure(q)))
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Intermediate measurements.
-    results = cirq.sample(cirq.Circuit.from_ops(
-        cirq.measure(q, key='drop'),
-        cirq.X(q),
-        cirq.measure(q),
-    ))
+    results = cirq.sample(
+        cirq.Circuit(
+            cirq.measure(q, key='drop'),
+            cirq.X(q),
+            cirq.measure(q),
+        ))
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Overdamped everywhere.
-    results = cirq.sample(cirq.Circuit.from_ops(
+    results = cirq.sample(cirq.Circuit(
         cirq.measure(q, key='drop'),
         cirq.X(q),
         cirq.measure(q),
@@ -54,7 +55,7 @@ def test_sample():
 
 def test_sample_seed():
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit.from_ops(cirq.X(q)**0.5, cirq.measure(q))
+    circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     assert np.all(
         result.measurements['q'] == [[False], [True], [False], [True], [True],
@@ -63,10 +64,7 @@ def test_sample_seed():
 
 def test_sample_sweep():
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit.from_ops(
-        cirq.X(q),
-        cirq.Y(q)**sympy.Symbol('t'),
-        cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
 
     # Unitary.
     results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 2), repetitions=3)
@@ -75,11 +73,9 @@ def test_sample_sweep():
     assert results[1].histogram(key=q) == collections.Counter({0: 3})
 
     # Overdamped.
-    c = cirq.Circuit.from_ops(
-        cirq.X(q),
-        cirq.amplitude_damp(1).on(q),
-        cirq.Y(q)**sympy.Symbol('t'),
-        cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q),
+                     cirq.amplitude_damp(1).on(q),
+                     cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
     results = cirq.sample_sweep(
         c,
         cirq.Linspace('t', 0, 1, 2),
@@ -89,8 +85,7 @@ def test_sample_sweep():
     assert results[1].histogram(key=q) == collections.Counter({1: 3})
 
     # Overdamped everywhere.
-    c = cirq.Circuit.from_ops(cirq.X(q),
-                              cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
     results = cirq.sample_sweep(c,
                                 cirq.Linspace('t', 0, 1, 2),
                                 noise=cirq.ConstantQubitNoiseModel(
@@ -103,7 +98,7 @@ def test_sample_sweep():
 
 def test_sample_sweep_seed():
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit.from_ops(cirq.X(q)**0.5, cirq.measure(q))
+    circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
     results = cirq.sample_sweep(circuit,
                                 cirq.Linspace('t', 0, 1, 3),
                                 repetitions=2,
@@ -127,14 +122,14 @@ def test_final_wavefunction_different_program_types():
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.Circuit.from_ops(ops)),
+        cirq.final_wavefunction(cirq.Circuit(ops)),
         [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
         atol=1e-8)
 
     np.testing.assert_allclose(
         cirq.final_wavefunction(
             cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE,
-                                           cirq.Circuit.from_ops(ops))),
+                                           cirq.Circuit(ops))),
         [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
         atol=1e-8)
 

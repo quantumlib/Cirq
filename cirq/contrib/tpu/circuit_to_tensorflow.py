@@ -342,7 +342,7 @@ class _TensorCircuit:
                  circuit: circuits.Circuit,
                  initial_state: Union[int, np.ndarray]):
         self.grouping = _QubitGrouping(circuit)
-        self.circuit = circuits.Circuit.from_ops(
+        self.circuit = circuits.Circuit(
             protocols.decompose(
                 circuit,
                 intercepting_decomposer=self.grouping.intercept_decompose_func,
