@@ -65,6 +65,7 @@ class _ResolverCache:
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'PauliString': cirq.PauliString,
                 'PhaseGradientGate': cirq.PhaseGradientGate,
+                'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'SingleQubitPauliStringGateOperation':

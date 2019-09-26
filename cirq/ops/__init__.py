@@ -171,10 +171,18 @@ from cirq.ops.pauli_string import (
     PauliString,
     SingleQubitPauliStringGateOperation,
 )
+
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,)
+
 from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
+
+from cirq.ops.phased_iswap_gate import (
+    GivensRotation,
+    PhasedISwapPowGate,
+)
+
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
 
