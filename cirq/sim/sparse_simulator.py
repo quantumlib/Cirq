@@ -341,7 +341,7 @@ class Simulator(simulator.SimulatesSamples,
                               indices: List[int],
                               measurements: Dict[str, List[int]],
                               num_qubits: int) -> None:
-        """Simulate an op that is a measurement in the computataional basis."""
+        """Simulate an op that is a measurement in the computational basis."""
         meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         # TODO: support measurement outside computational basis.
         if meas:
