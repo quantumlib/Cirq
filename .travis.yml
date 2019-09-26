@@ -64,6 +64,7 @@ matrix:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - mkdir -p ~/.matplotlib && echo "backend:\ TkAgg" >> ~/.matplotlib/matplotlibrc
     script: 
       - check/pytest --benchmark-skip
   - stage: test
