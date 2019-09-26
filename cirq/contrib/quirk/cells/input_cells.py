@@ -55,9 +55,12 @@ def generate_all_input_cells():
     yield from reg_input_family("revinputB", "b", rev=True)
 
     # Classical inputs.
-    yield CellMaker("setA", 2, lambda args: SetDefaultInputCell('a', args.value))
-    yield CellMaker("setB", 2, lambda args: SetDefaultInputCell('b', args.value))
-    yield CellMaker("setR", 2, lambda args: SetDefaultInputCell('r', args.value))
+    yield CellMaker("setA",
+                    2, lambda args: SetDefaultInputCell('a', args.value))
+    yield CellMaker("setB",
+                    2, lambda args: SetDefaultInputCell('b', args.value))
+    yield CellMaker("setR",
+                    2, lambda args: SetDefaultInputCell('r', args.value))
 
 
 def reg_input_family(identifier_prefix: str, letter: str,

@@ -74,10 +74,10 @@ def generate_all_control_cells():
     # Controls.
     yield _reg_control("•", basis_change=None)
     yield _reg_control("◦", basis_change=ops.X)
-    yield _reg_control("⊕", basis_change=ops.Y ** 0.5)
-    yield _reg_control("⊖", basis_change=ops.Y ** -0.5)
-    yield _reg_control("⊗", basis_change=ops.X ** -0.5)
-    yield _reg_control("(/)", basis_change=ops.X ** 0.5)
+    yield _reg_control("⊕", basis_change=ops.Y**0.5)
+    yield _reg_control("⊖", basis_change=ops.Y**-0.5)
+    yield _reg_control("⊗", basis_change=ops.X**-0.5)
+    yield _reg_control("(/)", basis_change=ops.X**0.5)
 
     # Parity controls.
     yield _reg_parity_control("xpar", basis_change=ops.Y**0.5)
@@ -85,8 +85,7 @@ def generate_all_control_cells():
     yield _reg_parity_control("zpar", basis_change=None)
 
 
-def _reg_control(identifier: str,
-                 *,
+def _reg_control(identifier: str, *,
                  basis_change: Optional['cirq.Gate']) -> CellMaker:
     return CellMaker(
         identifier=identifier,
@@ -96,13 +95,12 @@ def _reg_control(identifier: str,
             basis_change.on(args.qubits[0]) if basis_change else []))
 
 
-def _reg_parity_control(
-        identifier: str,
-        *,
-        basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
+def _reg_parity_control(identifier: str,
+                        *,
+                        basis_change: Optional['cirq.Gate'] = None
+                       ) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,
-        func=lambda args: ParityControlCell(
-            args.qubits,
-            () if basis_change is None else basis_change.on_each(args.qubits)))
+        func=lambda args: ParityControlCell(args.qubits, (
+        ) if basis_change is None else basis_change.on_each(args.qubits)))

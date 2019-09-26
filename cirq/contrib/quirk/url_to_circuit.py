@@ -18,7 +18,10 @@ from typing import Any, List, Dict, Optional
 import cirq
 from cirq.contrib.quirk.cells import (
     Cell,
-    CellMaker, CellMakerArgs, generate_all_cells,)
+    CellMaker,
+    CellMakerArgs,
+    generate_all_cells,
+)
 
 
 def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':

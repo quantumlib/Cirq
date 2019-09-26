@@ -35,5 +35,6 @@ class ExplicitOperationsCell(Cell):
         return self._operations
 
     def controlled_by(self, qubit: 'cirq.Qid'):
-        return ExplicitOperationsCell([op.controlled_by(qubit) for op in self._operations],
-                       self._basis_change)
+        return ExplicitOperationsCell(
+            [op.controlled_by(qubit) for op in self._operations],
+            self._basis_change)

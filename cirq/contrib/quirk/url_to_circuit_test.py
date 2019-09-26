@@ -392,8 +392,7 @@ def test_non_physical_operations():
 def test_scalar_operations():
     a = cirq.LineQubit(0)
 
-    assert_url_to_circuit_returns('{"cols":[["…"]]}',
-                                  cirq.Circuit())
+    assert_url_to_circuit_returns('{"cols":[["…"]]}', cirq.Circuit())
 
     assert_url_to_circuit_returns('{"cols":[["NeGate"]]}',
                                   cirq.Circuit(cirq.GlobalPhaseOperation(-1)))

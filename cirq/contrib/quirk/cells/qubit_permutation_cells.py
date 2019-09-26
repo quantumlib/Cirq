@@ -34,7 +34,8 @@ class QuirkQubitPermutationOperation(ops.Operation):
         return self._qubits
 
     def with_qubits(self, *new_qubits):
-        return QuirkQubitPermutationOperation(self.name, new_qubits, self.permute)
+        return QuirkQubitPermutationOperation(self.name, new_qubits,
+                                              self.permute)
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         # Compute the permutation index list.
@@ -65,18 +66,19 @@ def generate_all_qubit_permutation_cells():
     yield from qubit_permutation_cell_family(
         ">>", 'right_rotate', lambda n, x: (x - 1) % n)
     yield from qubit_permutation_cell_family("rev",
-                                          'reverse', lambda n, x: n - x - 1)
-    yield from qubit_permutation_cell_family("weave", 'interleave', interleave_bit)
+                                             'reverse', lambda n, x: n - x - 1)
+    yield from qubit_permutation_cell_family("weave", 'interleave',
+                                             interleave_bit)
     yield from qubit_permutation_cell_family("split", 'deinterleave',
-                                          deinterleave_bit)
+                                             deinterleave_bit)
 
 
 def qubit_permutation_cell_family(identifier_prefix: str, name: str,
                                   permutation: Callable[[int, int], int]
-                                  ) -> Iterator[CellMaker]:
+                                 ) -> Iterator[CellMaker]:
     f = lambda args: ExplicitOperationsCell([
-        QuirkQubitPermutationOperation(name, args.qubits, lambda e: permutation(
-            len(args.qubits), e))
+        QuirkQubitPermutationOperation(
+            name, args.qubits, lambda e: permutation(len(args.qubits), e))
     ])
     for i in CELL_SIZES:
         yield CellMaker(identifier_prefix + str(i), i, f)

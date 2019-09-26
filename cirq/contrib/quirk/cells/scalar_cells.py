@@ -16,8 +16,7 @@ from typing import Iterator, TYPE_CHECKING
 from cirq import ops
 from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
 from cirq.contrib.quirk.cells.cell import (
-    CellMaker,
-)
+    CellMaker,)
 
 if TYPE_CHECKING:
     import cirq
@@ -27,10 +26,11 @@ def generate_all_scalar_cells() -> Iterator[CellMaker]:
     yield from reg_scalar("NeGate", ops.GlobalPhaseOperation(-1))
     yield from reg_scalar("i", ops.GlobalPhaseOperation(1j))
     yield from reg_scalar("-i", ops.GlobalPhaseOperation(-1j))
-    yield from reg_scalar("√i", ops.GlobalPhaseOperation(1j ** 0.5))
-    yield from reg_scalar("√-i", ops.GlobalPhaseOperation((-1j) ** 0.5))
+    yield from reg_scalar("√i", ops.GlobalPhaseOperation(1j**0.5))
+    yield from reg_scalar("√-i", ops.GlobalPhaseOperation((-1j)**0.5))
 
 
 def reg_scalar(identifier: str,
                operation: 'cirq.Operation') -> Iterator[CellMaker]:
-    yield CellMaker(identifier, 1, lambda _: ExplicitOperationsCell([operation]))
+    yield CellMaker(identifier,
+                    1, lambda _: ExplicitOperationsCell([operation]))

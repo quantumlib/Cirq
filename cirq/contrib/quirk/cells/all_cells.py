@@ -13,32 +13,27 @@
 # limitations under the License.
 from typing import Iterator
 
-from cirq import ops
-from cirq.contrib.quirk.cells.arithmetic_cells import \
-    generate_all_arithmetic_cells
+from cirq.contrib.quirk.cells.arithmetic_cells import (
+    generate_all_arithmetic_cells)
 from cirq.contrib.quirk.cells.cell import (
-    CellMaker,
-)
+    CellMaker)
 from cirq.contrib.quirk.cells.control_cells import generate_all_control_cells
-from cirq.contrib.quirk.cells.frequency_space_cells import \
-    generate_all_frequency_space_cells
-from cirq.contrib.quirk.cells.ignored_cells import generate_all_ignored_cells
-from cirq.contrib.quirk.cells.input_cells import (
-    generate_all_input_cells
-)
-from cirq.contrib.quirk.cells.input_rotation_cells import \
-    generate_all_input_rotation_cells
-from cirq.contrib.quirk.cells.measurement_cells import \
-    generate_all_measurement_cells
-from cirq.contrib.quirk.cells.qubit_permutation_cells import \
-    generate_all_qubit_permutation_cells
-from cirq.contrib.quirk.cells.scalar_cells import generate_all_scalar_cells
-from cirq.contrib.quirk.cells.single_qubit_rotation_cells import \
-    generate_all_single_qubit_rotation_cells
-from cirq.contrib.quirk.cells.swap_cell import (
-    generate_all_swap_cells)
-from cirq.contrib.quirk.cells.unsupported_cells import \
-    generate_all_unsupported_cells
+from cirq.contrib.quirk.cells.frequency_space_cells import (
+    generate_all_frequency_space_cells)
+from cirq.contrib.quirk.cells.ignored_cells import (generate_all_ignored_cells)
+from cirq.contrib.quirk.cells.input_cells import (generate_all_input_cells)
+from cirq.contrib.quirk.cells.input_rotation_cells import (
+    generate_all_input_rotation_cells)
+from cirq.contrib.quirk.cells.measurement_cells import (
+    generate_all_measurement_cells)
+from cirq.contrib.quirk.cells.qubit_permutation_cells import (
+    generate_all_qubit_permutation_cells)
+from cirq.contrib.quirk.cells.scalar_cells import (generate_all_scalar_cells)
+from cirq.contrib.quirk.cells.single_qubit_rotation_cells import (
+    generate_all_single_qubit_rotation_cells)
+from cirq.contrib.quirk.cells.swap_cell import (generate_all_swap_cells)
+from cirq.contrib.quirk.cells.unsupported_cells import (
+    generate_all_unsupported_cells)
 
 
 def generate_all_cells() -> Iterator[CellMaker]:

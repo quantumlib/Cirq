@@ -132,7 +132,8 @@ def test_various_unknown_gate_types():
         cirq.PhasedXPowGate(phase_exponent=0.25)(a),
         cirq.PhasedXPowGate(exponent=1, phase_exponent=sympy.Symbol('r'))(a),
         cirq.PhasedXPowGate(exponent=0.001, phase_exponent=0.1)(a))
-    assert_links_to(circuit, """
+    assert_links_to(circuit,
+                    """
         http://algassert.com/quirk#circuit={"cols":[
             [1,"UNKNOWN"],
             ["UNKNOWN", "UNKNOWN"],
@@ -151,7 +152,9 @@ def test_various_unknown_gate_types():
               "matrix":"{{0.999998+0.001571i,0.000488-0.001493i},
                          {-0.000483-0.001495i,0.999998+0.001571i}}"}]
         ]}
-    """, escape_url=False, prefer_unknown_gate_to_failure=True)
+    """,
+                    escape_url=False,
+                    prefer_unknown_gate_to_failure=True)
 
 
 def test_unrecognized_single_qubit_gate_with_matrix():

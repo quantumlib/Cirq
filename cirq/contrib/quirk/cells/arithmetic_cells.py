@@ -34,17 +34,10 @@ class ArithmeticCell(Cell):
         self._is_modular = is_modular
 
     def with_input(self, letter, register):
-        return ArithmeticCell(
-            self.identifier,
-            [
-                reg if letter != reg_letter else register
-                for reg, reg_letter in
-                zip(self._registers, self._register_letters)
-            ],
-            self._register_letters,
-            self._operation,
-            self._is_modular
-        )
+        return ArithmeticCell(self.identifier, [
+            reg if letter != reg_letter else register
+            for reg, reg_letter in zip(self._registers, self._register_letters)
+        ], self._register_letters, self._operation, self._is_modular)
 
     def operations(self) -> 'cirq.OP_TREE':
         if self._is_modular:
@@ -66,12 +59,9 @@ class ArithmeticCell(Cell):
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
 
-        return QuirkArithmeticOperation(
-            self.identifier,
-            self._registers,
-            self._register_letters,
-            self._operation,
-            self._is_modular)
+        return QuirkArithmeticOperation(self.identifier, self._registers,
+                                        self._register_letters, self._operation,
+                                        self._is_modular)
 
 
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
@@ -92,12 +82,9 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
     def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
                       ) -> 'cirq.ArithmeticOperation':
-        return QuirkArithmeticOperation(
-            self.identifier,
-            new_registers,
-            self._register_letters,
-            self._operation,
-            self._is_modular)
+        return QuirkArithmeticOperation(self.identifier, new_registers,
+                                        self._register_letters, self._operation,
+                                        self._is_modular)
 
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         if self._is_modular:
@@ -132,9 +119,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
     def __repr__(self):
         return 'cirq.quirk.QuirkArithmeticOperation({!r}, {!r}, {!r}, {!r})'.format(
-            self.identifier,
-            self._register_letters,
-            self.registers(),
+            self.identifier, self._register_letters, self.registers(),
             self._operation)
 
 
@@ -247,9 +232,9 @@ def reg_size_dependent_arithmetic_family(
         is_modular: bool = False) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
         yield reg_arithmetic_gate(identifier_prefix + str(i),
-                                       size=i,
-                                       func=func(i),
-                                       is_modular=is_modular)
+                                  size=i,
+                                  func=func(i),
+                                  is_modular=is_modular)
 
 
 def reg_arithmetic_gate(identifier: str,

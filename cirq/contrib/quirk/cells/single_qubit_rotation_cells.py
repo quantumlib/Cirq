@@ -19,8 +19,7 @@ import cirq
 from cirq import ops
 from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
 from cirq.contrib.quirk.cells.cell import (
-    CellMaker,
-)
+    CellMaker,)
 
 
 def generate_all_single_qubit_rotation_cells() -> Iterator[CellMaker]:
@@ -94,7 +93,8 @@ def generate_all_single_qubit_rotation_cells() -> Iterator[CellMaker]:
     yield from reg_formula_gate("Rzft", "pi*t*t", lambda e: ops.Rz(e))
 
 
-def reg_gate(identifier: str, gate: 'cirq.Gate',
+def reg_gate(identifier: str,
+             gate: 'cirq.Gate',
              basis_change: 'cirq.Gate' = None) -> Iterator[CellMaker]:
     yield CellMaker(
         identifier, gate.num_qubits(), lambda args: ExplicitOperationsCell(

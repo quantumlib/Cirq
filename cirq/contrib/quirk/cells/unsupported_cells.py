@@ -15,7 +15,8 @@ from typing import Iterator
 
 from cirq.contrib.quirk.cells.cell import (
     CellMaker,
-    CELL_SIZES,)
+    CELL_SIZES,
+)
 
 
 def generate_all_unsupported_cells() -> Iterator[CellMaker]:
@@ -72,7 +73,8 @@ def reg_unsupported_gate(identifier: str, reason: str) -> Iterator[CellMaker]:
     yield CellMaker(identifier, 0, fail)
 
 
-def reg_unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellMaker]:
+def reg_unsupported_gates(*identifiers: str,
+                          reason: str) -> Iterator[CellMaker]:
     for identifier in identifiers:
         yield from reg_unsupported_gate(identifier, reason)
 
