@@ -122,8 +122,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
 
     """
     # Add measure gates to the end of (a copy of) the circuit.
-    circuit_copy = circuit + cirq.Circuit.from_ops(
-        cirq.measure(*sorted(circuit.all_qubits())))
+    circuit_copy = circuit + [cirq.measure(*sorted(circuit.all_qubits()))]
 
     # Run the sampler to compare each output against the Heavy Set.
     repetitions = 1000
