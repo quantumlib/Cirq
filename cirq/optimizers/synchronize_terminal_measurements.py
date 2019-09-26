@@ -47,8 +47,7 @@ class SynchronizeTerminalMeasurements():
         qubits = circuit.all_qubits()
         for qubit in qubits:
             moment_index = cast(int, circuit.prev_moment_operating_on((qubit,)))
-            op = cast(ops.Operation,
-                      circuit.operation_at(qubit, moment_index))
+            op = cast(ops.Operation, circuit.operation_at(qubit, moment_index))
             if protocols.is_measurement(op):
                 deletions.append((moment_index, op))
                 terminal_measures.add(op)
