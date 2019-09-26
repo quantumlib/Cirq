@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def generate_all_scalar_cells() -> Iterator[CellMaker]:
+def generate_all_scalar_cell_makers() -> Iterator[CellMaker]:
     yield from reg_scalar("NeGate", ops.GlobalPhaseOperation(-1))
     yield from reg_scalar("i", ops.GlobalPhaseOperation(1j))
     yield from reg_scalar("-i", ops.GlobalPhaseOperation(-1j))

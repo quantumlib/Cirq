@@ -16,7 +16,7 @@ from typing import Iterator
 from cirq.contrib.quirk.cells.cell import (CellMaker, CELL_SIZES)
 
 
-def generate_all_ignored_cells() -> Iterator[CellMaker]:
+def generate_all_ignored_cell_makers() -> Iterator[CellMaker]:
     # Spacer.
     yield reg_ignored_gate("…")
 

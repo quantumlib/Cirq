@@ -19,7 +19,7 @@ from cirq.contrib.quirk.cells.cell import (
 )
 
 
-def generate_all_unsupported_cells() -> Iterator[CellMaker]:
+def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
     # Post selection.
     yield from reg_unsupported_gates(
         "|0⟩⟨0|",

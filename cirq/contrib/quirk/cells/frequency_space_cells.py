@@ -20,7 +20,7 @@ from cirq.contrib.quirk.cells.cell import (
     CellMaker,)
 
 
-def generate_all_frequency_space_cells() -> Iterator[CellMaker]:
+def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:
     from cirq.contrib.quirk.quirk_gate_reg_utils import (reg_family)
 
     # Frequency space.

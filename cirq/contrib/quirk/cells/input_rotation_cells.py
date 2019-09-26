@@ -116,7 +116,7 @@ class QuirkInputRotationOperation(ops.Operation):
         return args.target_tensor
 
 
-def generate_all_input_rotation_cells() -> Iterator[CellMaker]:
+def generate_all_input_rotation_cell_makers() -> Iterator[CellMaker]:
     yield reg_input_rotation_gate("X^(A/2^n)", ops.X, +1)
     yield reg_input_rotation_gate("Y^(A/2^n)", ops.Y, +1)
     yield reg_input_rotation_gate("Z^(A/2^n)", ops.Z, +1)

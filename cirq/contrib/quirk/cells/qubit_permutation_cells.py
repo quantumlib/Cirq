@@ -60,7 +60,7 @@ class QuirkQubitPermutationOperation(ops.Operation):
             self._qubits, self.permute)
 
 
-def generate_all_qubit_permutation_cells():
+def generate_all_qubit_permutation_cell_makers():
     yield from qubit_permutation_cell_family(
         "<<", 'left_rotate', lambda n, x: (x + 1) % n)
     yield from qubit_permutation_cell_family(

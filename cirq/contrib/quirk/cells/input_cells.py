@@ -46,7 +46,7 @@ class SetDefaultInputCell(Cell):
         }
 
 
-def generate_all_input_cells():
+def generate_all_input_cell_makers():
     # Quantum inputs.
     yield from reg_input_family("inputA", "a")
     yield from reg_input_family("inputB", "b")

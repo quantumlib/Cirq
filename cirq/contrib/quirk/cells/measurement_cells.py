@@ -20,7 +20,7 @@ from cirq.contrib.quirk.cells.arithmetic_cells import \
     generate_all_arithmetic_cells
 from cirq.contrib.quirk.cells.cell import (
     CellMaker,)
-from cirq.contrib.quirk.cells.control_cells import generate_all_control_cells
+from cirq.contrib.quirk.cells.control_cells import generate_all_control_cell_makers
 from cirq.contrib.quirk.cells.frequency_space_cells import \
     generate_all_frequency_space_cells
 from cirq.contrib.quirk.cells.ignored_cells import generate_all_ignored_cells
@@ -32,12 +32,12 @@ from cirq.contrib.quirk.cells.qubit_permutation_cells import \
 from cirq.contrib.quirk.cells.scalar_cells import generate_all_scalar_cells
 from cirq.contrib.quirk.cells.single_qubit_rotation_cells import \
     generate_all_single_qubit_rotation_cells
-from cirq.contrib.quirk.cells.swap_cell import (generate_all_swap_cells)
+from cirq.contrib.quirk.cells.swap_cell import (all_swap_cell_makers)
 from cirq.contrib.quirk.cells.unsupported_cells import \
     generate_all_unsupported_cells
 
 
-def generate_all_measurement_cells() -> Iterator[CellMaker]:
+def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:
     yield reg_measurement("Measure")
     yield reg_measurement("ZDetector")
     yield reg_measurement("YDetector", basis_change=ops.X**-0.5)

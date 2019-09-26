@@ -22,7 +22,7 @@ from cirq.contrib.quirk.cells.cell import (
     CellMaker,)
 
 
-def generate_all_single_qubit_rotation_cells() -> Iterator[CellMaker]:
+def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
 
     # Fixed single qubit rotations.
     yield from reg_gate("H", gate=ops.H)

@@ -70,7 +70,7 @@ class ParityControlCell(Cell):
             yield ops.CNOT(q, self.qubits[0])
 
 
-def generate_all_control_cells():
+def generate_all_control_cell_makers():
     # Controls.
     yield _reg_control("•", basis_change=None)
     yield _reg_control("◦", basis_change=ops.X)

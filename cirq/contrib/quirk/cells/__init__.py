@@ -13,40 +13,11 @@
 # limitations under the License.
 """This module defines building blocks for parsing Quirk circuits."""
 
-from cirq.contrib.quirk.cells.all_cells import (generate_all_cells)
-
-from cirq.contrib.quirk.cells.arithmetic_cells import (
-    ArithmeticCell,
-    QuirkArithmeticOperation,
-)
+from cirq.contrib.quirk.cells.all_cells import (
+    generate_all_cell_makers,)
 
 from cirq.contrib.quirk.cells.cell import (
     Cell,
-    CELL_SIZES,
     CellMaker,
     CellMakerArgs,
 )
-
-from cirq.contrib.quirk.cells.control_cells import (
-    ControlCell,
-    ParityControlCell,
-)
-
-from cirq.contrib.quirk.cells.explicit_operations_cell import (
-    ExplicitOperationsCell,)
-
-from cirq.contrib.quirk.cells.input_cells import (
-    InputCell,
-    SetDefaultInputCell,
-)
-
-from cirq.contrib.quirk.cells.input_rotation_cells import (
-    InputRotationCell,
-    QuirkInputRotationOperation,
-)
-
-from cirq.contrib.quirk.cells.qubit_permutation_cells import (
-    QuirkQubitPermutationOperation,)
-
-from cirq.contrib.quirk.cells.swap_cell import (
-    SwapCell,)
