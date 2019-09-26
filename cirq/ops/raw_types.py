@@ -263,11 +263,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def control(self,
-                num_controls: int = None,
-                control_values: Optional[Sequence[
-                    Union[int, Collection[int]]]] = None,
-                control_qid_shape: Optional[Tuple[int, ...]] = None) -> 'Gate':
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> 'Gate':
         """Returns a controlled version of this gate.
             num_controls: Total number of control qubits.
             control_values: For which control qubit values to apply the sub

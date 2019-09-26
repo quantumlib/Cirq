@@ -237,10 +237,10 @@ def test_control():
     g = cirq.SingleQubitGate()
 
     # Ignores empty.
-    assert g.control() == cirq.ControlledGate(g)
+    assert g.controlled() == cirq.ControlledGate(g)
 
     # Combined.
-    cg = g.control()
+    cg = g.controlled()
     assert isinstance(cg, cirq.ControlledGate)
     assert cg.sub_gate == g
     assert cg.num_controls() == 1
@@ -248,22 +248,22 @@ def test_control():
     # Equality ignores ordering but cares about set and quantity.
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(g)
-    eq.add_equality_group(g.control(), g.control(control_values=[1]),
-                          g.control(control_qid_shape=(2,)),
+    eq.add_equality_group(g.controlled(), g.controlled(control_values=[1]),
+                          g.controlled(control_qid_shape=(2,)),
                           cirq.ControlledGate(g, num_controls=1))
     eq.add_equality_group(cirq.ControlledGate(g, num_controls=2),
-                          g.control(control_values=[1, 1]),
-                          g.control(control_qid_shape=[2, 2]),
-                          g.control(num_controls=2),
-                          g.control().control())
+                          g.controlled(control_values=[1, 1]),
+                          g.controlled(control_qid_shape=[2, 2]),
+                          g.controlled(num_controls=2),
+                          g.controlled().controlled())
     eq.add_equality_group(
         cirq.ControlledGate(g, control_values=[0, 1]),
-        g.control(control_values=[0, 1]),
-        g.control(control_values=[0]).control(control_values=[1]))
+        g.controlled(control_values=[0, 1]),
+        g.controlled(control_values=[0]).controlled(control_values=[1]))
     eq.add_equality_group(
         cirq.ControlledGate(g, control_qid_shape=[4, 3]),
-        g.control(control_qid_shape=[4, 3]),
-        g.control(control_qid_shape=[4]).control(control_qid_shape=[3]))
+        g.controlled(control_qid_shape=[4, 3]),
+        g.controlled(control_qid_shape=[4]).controlled(control_qid_shape=[3]))
 
 
 def test_unitary():
