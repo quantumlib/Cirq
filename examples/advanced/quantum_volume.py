@@ -88,6 +88,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     simulator = cirq.Simulator()
     results = cast(cirq.WaveFunctionTrialResult,
                    simulator.simulate(program=circuit))
+
     # Compute the median probability of the output bit-strings. Note that heavy
     # output is defined in terms of probabilities, where our wave function is in
     # terms of amplitudes. We convert it by using the Born rule: squaring each
@@ -114,7 +115,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
         circuit: The circuit to sample.
         heabv_set: The previously-computed heavy set for the given circuit.
         sampler: The sampler to run on the given circuit.
-nn
+
     Returns:
         A probability percentage, from 0 to 1, representing how many of the
         output bit-strings were in the heaby set.
@@ -166,6 +167,7 @@ def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
                 qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
         print("Noisy simulation probability: ",
               sample_heavy_set(model_circuit, heavy_set, sampler=noisy_sampler))
+        # TODO(villela): Implement model circuit and run it.
 
 
 def parse_arguments(args):

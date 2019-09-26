@@ -72,7 +72,6 @@ def test_sample_heavy_set():
     # not.
     assert probability == .003
 
-
 def test_main_loop():
     """Test that the main loop is able to run without erring."""
     # Keep test from taking a long time by lowering repetitions.
