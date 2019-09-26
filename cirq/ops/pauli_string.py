@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast)
+                    Sequence, Tuple, TypeVar, Union, ValuesView, overload,
+                    Optional, cast)
 
 import cmath
 import math
@@ -38,11 +39,25 @@ TDefault = TypeVar('TDefault')
 class PauliString(raw_types.Operation):
 
     def __init__(self,
-                 qubit_pauli_map: Optional[
-                     Mapping[raw_types.Qid, pauli_gates.Pauli]] = None,
+                 qubit_paulis: Optional[Union[
+                     Mapping[raw_types.Qid, pauli_gates.Pauli],
+                    Sequence[raw_types.Operation]]] = None,
                  coefficient: Union[int, float, complex] = 1) -> None:
-        if qubit_pauli_map is None:
+        if qubit_paulis is None:
             qubit_pauli_map = {}
+        elif isinstance(qubit_paulis, Sequence):
+            qubit_pauli_map = {}
+            for op in qubit_paulis:
+                if len(op.qubits) > 1:
+                    raise ValueError(f"Op {op} cannot contain multiple qubits.")
+                q = op.qubits[0]
+                qubit_pauli_map[q] = op.gate
+        elif isinstance(qubit_paulis, Mapping):
+            qubit_pauli_map = qubit_paulis
+        else:
+            raise ValueError(
+                f"Unexpected type for qubit_paulis, got {qubit_paulis}.")
+
         qubit_pauli_map = {
             q: p
             for q, p in qubit_pauli_map.items()
