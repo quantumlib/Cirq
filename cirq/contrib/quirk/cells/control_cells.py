@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterable, Iterator
+from typing import Optional, List, Iterable
 
 import cirq
 from cirq import ops

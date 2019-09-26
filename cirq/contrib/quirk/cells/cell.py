@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, List, Dict, NamedTuple, Any
+from typing import Callable, Optional, Union, List, Dict, NamedTuple, Any, \
+    Iterable
 
 import cirq
+from cirq import ops
 
 
 class Cell:
@@ -111,6 +113,27 @@ class Cell:
             later cell specifies a new modifier with the same key.
         """
         return {}
+
+
+class ExplicitOperationsCell(Cell):
+    """A quirk cell with known body operations and basis change operations."""
+
+    def __init__(self,
+                 operations: Iterable[ops.Operation],
+                 basis_change: Iterable[ops.Operation] = ()):
+        self._operations = tuple(operations)
+        self._basis_change = tuple(basis_change)
+
+    def basis_change(self) -> 'cirq.OP_TREE':
+        return self._basis_change
+
+    def operations(self) -> 'cirq.OP_TREE':
+        return self._operations
+
+    def controlled_by(self, qubit: 'cirq.Qid'):
+        return ExplicitOperationsCell(
+            [op.controlled_by(qubit) for op in self._operations],
+            self._basis_change)
 
 
 CELL_SIZES = range(1, 17)

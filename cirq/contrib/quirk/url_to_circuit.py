@@ -20,7 +20,7 @@ from cirq.contrib.quirk.cells import (
     Cell,
     CellMaker,
     CellMakerArgs,
-    generate_all_cell_makers,
+    generate_all_quirk_cell_makers,
 )
 
 
@@ -62,7 +62,9 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
                          f'URL={quirk_url}')
 
     # Parse column json into cells.
-    registry = {entry.identifier: entry for entry in generate_all_cell_makers()}
+    registry = {
+        entry.identifier: entry for entry in generate_all_quirk_cell_makers()
+    }
     parsed_cols: List[List[Cell]] = []
     for i, col in enumerate(cols):
         parsed_cols.append(parse_col_cells(registry, i, col))

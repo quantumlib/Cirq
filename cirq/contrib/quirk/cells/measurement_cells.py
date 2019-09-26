@@ -15,26 +15,7 @@ from typing import Iterator, Optional
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
-from cirq.contrib.quirk.cells.arithmetic_cells import \
-    generate_all_arithmetic_cells
-from cirq.contrib.quirk.cells.cell import (
-    CellMaker,)
-from cirq.contrib.quirk.cells.control_cells import generate_all_control_cell_makers
-from cirq.contrib.quirk.cells.frequency_space_cells import \
-    generate_all_frequency_space_cells
-from cirq.contrib.quirk.cells.ignored_cells import generate_all_ignored_cells
-from cirq.contrib.quirk.cells.input_cells import (generate_all_input_cells)
-from cirq.contrib.quirk.cells.input_rotation_cells import \
-    generate_all_input_rotation_cells
-from cirq.contrib.quirk.cells.qubit_permutation_cells import \
-    generate_all_qubit_permutation_cells
-from cirq.contrib.quirk.cells.scalar_cells import generate_all_scalar_cells
-from cirq.contrib.quirk.cells.single_qubit_rotation_cells import \
-    generate_all_single_qubit_rotation_cells
-from cirq.contrib.quirk.cells.swap_cell import (all_swap_cell_makers)
-from cirq.contrib.quirk.cells.unsupported_cells import \
-    generate_all_unsupported_cells
+from cirq.contrib.quirk.cells.cell import CellMaker, ExplicitOperationsCell
 
 
 def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:

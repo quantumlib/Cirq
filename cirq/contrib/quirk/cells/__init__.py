@@ -14,7 +14,7 @@
 """This module defines building blocks for parsing Quirk circuits."""
 
 from cirq.contrib.quirk.cells.all_cells import (
-    generate_all_cell_makers,)
+    generate_all_quirk_cell_makers,)
 
 from cirq.contrib.quirk.cells.cell import (
     Cell,

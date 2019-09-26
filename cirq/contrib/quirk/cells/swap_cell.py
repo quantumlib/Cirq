@@ -44,5 +44,5 @@ class SwapCell(Cell):
         return SwapCell(self._qubits, self._controls + [qubit])
 
 
-def all_swap_cell_makers():
+def generate_all_swap_cell_makers():
     yield CellMaker("Swap", 1, lambda args: SwapCell(args.qubits, []))

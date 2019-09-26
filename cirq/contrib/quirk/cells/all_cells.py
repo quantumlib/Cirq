@@ -15,37 +15,40 @@ from typing import Iterator
 
 from cirq.contrib.quirk.cells.arithmetic_cells import (
     generate_all_arithmetic_cell_makers)
-from cirq.contrib.quirk.cells.cell import (
-    CellMaker)
+from cirq.contrib.quirk.cells.cell import (CellMaker)
 from cirq.contrib.quirk.cells.control_cells import generate_all_control_cell_makers
 from cirq.contrib.quirk.cells.frequency_space_cells import (
     generate_all_frequency_space_cell_makers)
-from cirq.contrib.quirk.cells.ignored_cells import (generate_all_ignored_cell_makers)
-from cirq.contrib.quirk.cells.input_cells import (generate_all_input_cell_makers)
+from cirq.contrib.quirk.cells.ignored_cells import (
+    generate_all_ignored_cell_makers)
+from cirq.contrib.quirk.cells.input_cells import (generate_all_input_cell_makers
+                                                 )
 from cirq.contrib.quirk.cells.input_rotation_cells import (
     generate_all_input_rotation_cell_makers)
 from cirq.contrib.quirk.cells.measurement_cells import (
     generate_all_measurement_cell_makers)
 from cirq.contrib.quirk.cells.qubit_permutation_cells import (
     generate_all_qubit_permutation_cell_makers)
-from cirq.contrib.quirk.cells.scalar_cells import (generate_all_scalar_cell_makers)
+from cirq.contrib.quirk.cells.scalar_cells import (
+    generate_all_scalar_cell_makers)
 from cirq.contrib.quirk.cells.single_qubit_rotation_cells import (
     generate_all_single_qubit_rotation_cell_makers)
-from cirq.contrib.quirk.cells.swap_cell import (all_swap_cell_makers)
+from cirq.contrib.quirk.cells.swap_cell import (generate_all_swap_cell_makers)
 from cirq.contrib.quirk.cells.unsupported_cells import (
     generate_all_unsupported_cell_makers)
 
 
-def generate_all_cell_makers() -> Iterator[CellMaker]:
-    yield from all_swap_cell_makers()
-    yield from generate_all_control_cell_makers()
-    yield from generate_all_input_cell_makers()
-    yield from generate_all_unsupported_cell_makers()
-    yield from generate_all_scalar_cell_makers()
-    yield from generate_all_measurement_cell_makers()
-    yield from generate_all_single_qubit_rotation_cell_makers()
-    yield from generate_all_input_rotation_cell_makers()
-    yield from generate_all_qubit_permutation_cell_makers()
-    yield from generate_all_ignored_cell_makers()
+def generate_all_quirk_cell_makers() -> Iterator[CellMaker]:
+    """Yields a `CellMaker` for every known Quirk gate, display, etc."""
     yield from generate_all_arithmetic_cell_makers()
+    yield from generate_all_control_cell_makers()
     yield from generate_all_frequency_space_cell_makers()
+    yield from generate_all_ignored_cell_makers()
+    yield from generate_all_input_cell_makers()
+    yield from generate_all_input_rotation_cell_makers()
+    yield from generate_all_measurement_cell_makers()
+    yield from generate_all_qubit_permutation_cell_makers()
+    yield from generate_all_scalar_cell_makers()
+    yield from generate_all_single_qubit_rotation_cell_makers()
+    yield from generate_all_swap_cell_makers()
+    yield from generate_all_unsupported_cell_makers()

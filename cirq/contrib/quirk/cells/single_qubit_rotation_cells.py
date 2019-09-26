@@ -17,9 +17,7 @@ import sympy
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
-from cirq.contrib.quirk.cells.cell import (
-    CellMaker,)
+from cirq.contrib.quirk.cells.cell import CellMaker, ExplicitOperationsCell
 
 
 def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:

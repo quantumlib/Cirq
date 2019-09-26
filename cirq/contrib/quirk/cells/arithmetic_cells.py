@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import inspect
-from typing import Callable, Optional, Union, Iterable, Sequence, Iterator, \
-    Tuple, Any
+from typing import (
+    Callable,
+    Optional,
+    Union,
+    Iterable,
+    Sequence,
+    Iterator,
+    Tuple,
+    Any,
+)
 
 import cirq
 from cirq import ops

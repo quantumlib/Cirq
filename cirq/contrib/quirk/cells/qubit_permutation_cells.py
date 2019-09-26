@@ -16,8 +16,11 @@ from typing import Callable, Iterable, Iterator
 
 import cirq
 from cirq import ops
-from cirq.contrib.quirk.cells.cell import CELL_SIZES, CellMaker
-from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
+from cirq.contrib.quirk.cells.cell import (
+    CELL_SIZES,
+    CellMaker,
+    ExplicitOperationsCell,
+)
 
 
 class QuirkQubitPermutationOperation(ops.Operation):
