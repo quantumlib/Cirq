@@ -95,7 +95,7 @@ class Circuit:
 
     @deprecated_parameter(
         deadline='v0.8',
-        fix='Pass contents positionally or using the "contents=" keyword.',
+        fix='Pass circuit contents positionally (without a keyword).',
         func_name='cirq.Circuit',
         parameter_desc='moments keyword',
         match=lambda args, kwargs: 'moments' in kwargs,
@@ -142,6 +142,7 @@ class Circuit:
         self._device = new_device
 
     @staticmethod
+    @deprecated(deadline='v0.8.0', fix='use `cirq.Circuit(*ops)` instead.')
     def from_ops(*operations: 'cirq.OP_TREE',
                  strategy: InsertStrategy = InsertStrategy.EARLIEST,
                  device: devices.Device = devices.UNCONSTRAINED_DEVICE
@@ -249,7 +250,7 @@ class Circuit:
 
     def __add__(self, other):
         if isinstance(other, list):
-            other = self.from_ops(other)
+            other = Circuit(other)
         if not isinstance(other, type(self)):
             return NotImplemented
         device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE
@@ -1451,9 +1452,12 @@ class Circuit:
         return result.reshape((state_len,))
 
     to_unitary_matrix = deprecated(
-        deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
+        func_name='Circuit.to_unitary_matrix',
+        deadline='v0.7.0',
+        fix='Use `Circuit.unitary()` instead.')(unitary)
 
     apply_unitary_effect_to_state = deprecated(
+        func_name='Circuit.apply_unitary_effect_to_state',
         deadline='v0.7.0',
         fix="Use `cirq.final_wavefunction(circuit)` or "
         "`Circuit.final_wavefunction()` instead")(final_wavefunction)
@@ -1667,7 +1671,7 @@ class Circuit:
         c_noisy = Circuit()
         for op_tree in noise.noisy_moments(self, qubits):
             # Keep moments aligned
-            c_noisy += Circuit.from_ops(op_tree)
+            c_noisy += Circuit(op_tree)
         return c_noisy
 
 

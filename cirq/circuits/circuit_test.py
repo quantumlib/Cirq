@@ -23,6 +23,7 @@ import sympy
 
 import cirq
 import cirq.google as cg
+from cirq._compat_test import capture_logging
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -1507,21 +1508,41 @@ def test_qid_shape_qudit():
 
 
 def test_deprecated_circuit_init_parameter_positional_device():
-    c = cirq.Circuit([], cirq.UNCONSTRAINED_DEVICE)
-    assert c == cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE)
+    with capture_logging() as log:
+        actual = cirq.Circuit([], cirq.UNCONSTRAINED_DEVICE)
+    assert len(log) == 1
+    assert 'positional device parameter' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
+
+    assert actual == cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE)
 
 
 def test_deprecated_circuit_init_parameter_moments_keywords():
     a = cirq.LineQubit(0)
-    # pylint: disable=unexpected-keyword-arg
-    c = cirq.Circuit(moments=[cirq.X(a)])
-    # pylint: enable=unexpected-keyword-arg
-    assert c == cirq.Circuit(cirq.X(a))
+    with capture_logging() as log:
+        # pylint: disable=unexpected-keyword-arg
+        actual = cirq.Circuit(moments=[cirq.X(a)])
+        # pylint: enable=unexpected-keyword-arg
+    assert len(log) == 1
+    assert 'moments keyword parameter' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
+
+    assert actual == cirq.Circuit(cirq.X(a))
 
 
-def test_from_ops():
+def test_deprecated_from_ops():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
+
+    with capture_logging() as log:
+        _ = cirq.Circuit.from_ops()
+    assert len(log) == 1
+    assert 'Circuit.from_ops' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.Circuit.from_ops()
+    assert len(log) == 0
 
     actual = cirq.Circuit.from_ops(
         cirq.X(a),
@@ -1530,8 +1551,7 @@ def test_from_ops():
         cirq.X(a),
         [cirq.Z(b), cirq.Y(a)],
     )
-
-    assert actual == cirq.Circuit.from_ops([
+    assert actual == cirq.Circuit([
         cirq.Moment([cirq.X(a), cirq.Z(b)]),
         cirq.Moment([cirq.Y(a)]),
         cirq.Moment([cirq.CZ(a, b)]),
@@ -3132,13 +3152,22 @@ def test_moment_groups():
 
 
 def test_deprecated_to_unitary_matrix():
-    np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
-                               cirq.Circuit().unitary())
+    with capture_logging() as log:
+        np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
+                                   cirq.Circuit().unitary())
+    assert len(log) == 1
+    assert 'to_unitary_matrix' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
 
 
 def test_deprecated_apply_unitary_effect_to_state():
-    np.testing.assert_allclose(cirq.Circuit().apply_unitary_effect_to_state(),
-                               cirq.Circuit().final_wavefunction())
+    with capture_logging() as log:
+        np.testing.assert_allclose(
+            cirq.Circuit().apply_unitary_effect_to_state(),
+            cirq.Circuit().final_wavefunction())
+    assert len(log) == 1
+    assert 'apply_unitary_effect_to_state' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
 
 
 def test_moments_property():
