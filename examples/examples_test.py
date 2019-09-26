@@ -100,7 +100,7 @@ def test_example_cross_entropy_benchmarking():
                                                      num_circuits=2,
                                                      cycles=[2, 3, 4])
 
-    
+
 def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
     
