@@ -176,6 +176,7 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    GivensRotation,
     GlobalPhaseOperation,
     H,
     HPowGate,
@@ -210,6 +211,7 @@ from cirq.ops import (
     phase_flip,
     PhaseDampingChannel,
     PhaseGradientGate,
+    PhasedISwapPowGate,
     PhasedXPowGate,
     PhaseFlipChannel,
     QFT,
@@ -267,6 +269,7 @@ from cirq.optimizers import (
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
     single_qubit_op_to_framed_phase_form,
+    SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
 )
 
