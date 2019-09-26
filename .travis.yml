@@ -57,10 +57,12 @@ matrix:
     os: osx
     env: NAME=pytest (macOS)
     python: '3.6'
-    install: 
-      - pip install -r requirements.txt
-      - pip install -r cirq/contrib/contrib-requirements.txt
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    language: generic
+    install:
+      - brew install python3
+      - python -m pip install -r requirements.txt
+      - python -m pip install -r cirq/contrib/contrib-requirements.txt
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - mkdir -p ~/.matplotlib && echo "backend:\ TkAgg" >> ~/.matplotlib/matplotlibrc
     script: 
       - check/pytest --benchmark-skip
