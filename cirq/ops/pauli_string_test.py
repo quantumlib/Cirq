@@ -172,14 +172,7 @@ def test_exponentiation_as_base():
 
 
 @pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
-def test_from_single(pauli):
-    q0, = _make_qubits(1)
-    assert (cirq.PauliString.from_single(q0, pauli)
-            == cirq.PauliString({q0: pauli}))
-
-
-@pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
-def test_list_op_constructor(pauli):
+def test_list_op_constructor_matches_mapping(pauli):
     q0, = _make_qubits(1)
     op = pauli.on(q0)
     assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
@@ -190,11 +183,6 @@ def test_constructor_fails_non_pauli():
     op = cirq.CZ.on(q0, q1)
     with pytest.raises(ValueError):
         cirq.PauliString([op])
-
-
-def test_bad_constructor_type():
-    with pytest.raises(ValueError):
-        cirq.PauliString("don't use a string here")
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
@@ -329,14 +317,14 @@ def test_zip_paulis(map1, map2, out):
 def test_commutes_with():
     q0, q1, q2 = _make_qubits(3)
 
-    assert cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-           cirq.PauliString.from_single(q0, cirq.X))
-    assert not cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-               cirq.PauliString.from_single(q0, cirq.Y))
-    assert cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-           cirq.PauliString.from_single(q1, cirq.X))
-    assert cirq.PauliString.from_single(q0, cirq.X).commutes_with(
-           cirq.PauliString.from_single(q1, cirq.Y))
+    assert cirq.PauliString([cirq.X.on(q0)]).commutes_with(
+           cirq.PauliString([cirq.X.on(q0)]))
+    assert not cirq.PauliString([cirq.X.on(q0)]).commutes_with(
+               cirq.PauliString([cirq.Y.on(q0)]))
+    assert cirq.PauliString([cirq.X.on(q0)]).commutes_with(
+           cirq.PauliString([cirq.X.on(q1)]))
+    assert cirq.PauliString([cirq.X.on(q0)]).commutes_with(
+           cirq.PauliString([cirq.Y.on(q1)]))
 
     assert cirq.PauliString({q0: cirq.X, q1: cirq.Y}).commutes_with(
            cirq.PauliString({q0: cirq.X, q1: cirq.Y}))
@@ -430,7 +418,7 @@ def test_op_equivalence():
     various_x = [
         cirq.X(a),
         cirq.PauliString({a: cirq.X}),
-        cirq.PauliString.from_single(a, cirq.X),
+        cirq.PauliString([cirq.X.on(a)]),
         cirq.SingleQubitPauliStringGateOperation(cirq.X, a),
         cirq.GateOperation(cirq.X, [a]),
     ]
