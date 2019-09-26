@@ -152,9 +152,7 @@ def test_decompose_general():
     # Decomposed circuit should be equivalent. The ordering should be correct.
     ops = cirq.TOFFOLI(a, b, c), cirq.H(a), cirq.CZ(a, c)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit.from_ops(ops),
-        cirq.Circuit.from_ops(cirq.decompose(ops)),
-        atol=1e-8)
+        cirq.Circuit(ops), cirq.Circuit(cirq.decompose(ops)), atol=1e-8)
 
 
 def test_decompose_keep():
@@ -167,9 +165,8 @@ def test_decompose_keep():
     ) == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]
 
     # Recursion continues down to CZ + single-qubit gates.
-    cirq.testing.assert_has_diagram(cirq.Circuit.from_ops(
-        cirq.decompose(cirq.SWAP(a, b))),
-        """
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.decompose(cirq.SWAP(a, b))), """
 0: ────────────@───Y^-0.5───@───Y^0.5────@───────────
                │            │            │
 1: ───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───

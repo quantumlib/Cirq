@@ -1287,11 +1287,6 @@ class ISwapPowGate(eigen_gate.EigenGate,
                              [0, 0, 0, 0]])),
         ]
 
-    def _trace_distance_bound_(self) -> Optional[float]:
-        if self._is_parameterized_():
-            return None
-        return abs(np.sin(self._exponent * 0.5 * np.pi))
-
     def _decompose_(self, qubits):
         a, b = qubits
 

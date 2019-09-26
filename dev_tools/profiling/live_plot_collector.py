@@ -26,7 +26,7 @@ class LivePlotCollector(cirq.Collector):
         self.next_index = 0
         self.circuit = circuit
         self.sweep = cirq.Points(parameter, values)
-        self.resolvers = cirq.to_resolvers(self.sweep)
+        self.resolvers = list(cirq.to_resolvers(self.sweep))
         self.reps = repetitions
 
         self.unstarted_xs = list(values)
@@ -83,7 +83,7 @@ def example():
 
     sampler = cirq.Simulator()
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.X(a)**sympy.Symbol('t'),
         cirq.CNOT(a, b)**sympy.Symbol('t'), cirq.measure(a, key='leader'),
         cirq.measure(b, key='follower'))

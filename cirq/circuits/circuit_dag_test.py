@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
+import itertools
+import random
 
+import pytest
 import networkx
 
 import cirq
@@ -103,9 +105,7 @@ def test_from_ops():
 
 def test_from_circuit():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(
-        cirq.X(q0),
-        cirq.Y(q0))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert len(dag.nodes()) == 2
@@ -116,10 +116,9 @@ def test_from_circuit():
 
 def test_from_circuit_with_device():
     q0 = cirq.GridQubit(5, 5)
-    circuit = cirq.Circuit.from_ops(
-        cirq.X(q0),
-        cirq.Y(q0),
-        device=cirq.google.Bristlecone)
+    circuit = cirq.Circuit(cirq.X(q0),
+                           cirq.Y(q0),
+                           device=cirq.google.Bristlecone)
     dag = cirq.CircuitDag.from_circuit(circuit)
     assert networkx.dag.is_directed_acyclic_graph(dag)
     assert dag.device == circuit.device
@@ -138,9 +137,7 @@ def test_to_empty_circuit():
 
 def test_to_circuit():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(
-        cirq.X(q0),
-        cirq.Y(q0))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.Y(q0))
     dag = cirq.CircuitDag.from_circuit(circuit)
 
     assert networkx.dag.is_directed_acyclic_graph(dag)
@@ -154,7 +151,7 @@ def test_to_circuit():
 
 def test_equality():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit1 = cirq.Circuit.from_ops(
+    circuit1 = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q1),
@@ -163,7 +160,7 @@ def test_equality():
         cirq.Y(q1),
         cirq.Z(q0),
     )
-    circuit2 = cirq.Circuit.from_ops(
+    circuit2 = cirq.Circuit(
         cirq.Z(q1),
         cirq.X(q0),
         cirq.Y(q0),
@@ -172,16 +169,16 @@ def test_equality():
         cirq.X(q1),
         cirq.Y(q1),
     )
-    circuit3 = cirq.Circuit.from_ops(
+    circuit3 = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q1),
         cirq.CZ(q0, q1),
         cirq.X(q1),
         cirq.Y(q1),
-        cirq.Z(q0) ** 0.5,
+        cirq.Z(q0)**0.5,
     )
-    circuit4 = cirq.Circuit.from_ops(
+    circuit4 = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q1),
@@ -207,19 +204,18 @@ def test_larger_circuit():
     q0, q1, q2, q3 = cirq.google.Bristlecone.col(5)[:4]
     # This circuit does not have CZ gates on adjacent qubits because the order
     # dag.to_circuit() would append them is non-deterministic.
-    circuit = cirq.Circuit.from_ops(
-        cirq.X(q0),
-        cirq.CZ(q1, q2),
-        cirq.CZ(q0, q1),
-        cirq.Y(q0),
-        cirq.Z(q0),
-        cirq.CZ(q1, q2),
-        cirq.X(q0),
-        cirq.Y(q0),
-        cirq.CZ(q0, q1),
-        cirq.T(q3),
-        strategy=cirq.InsertStrategy.EARLIEST,
-        device=cirq.google.Bristlecone)
+    circuit = cirq.Circuit(cirq.X(q0),
+                           cirq.CZ(q1, q2),
+                           cirq.CZ(q0, q1),
+                           cirq.Y(q0),
+                           cirq.Z(q0),
+                           cirq.CZ(q1, q2),
+                           cirq.X(q0),
+                           cirq.Y(q0),
+                           cirq.CZ(q0, q1),
+                           cirq.T(q3),
+                           strategy=cirq.InsertStrategy.EARLIEST,
+                           device=cirq.google.Bristlecone)
 
     dag = cirq.CircuitDag.from_circuit(circuit)
 
@@ -250,3 +246,34 @@ def test_is_maximalist(circuit):
     dag = cirq.CircuitDag.from_circuit(circuit)
     transitive_closure = networkx.dag.transitive_closure(dag)
     assert cirq.CircuitDag(incoming_graph_data=transitive_closure) == dag
+    assert not any(
+        dag.has_edge(b, a)
+        for a, b in itertools.combinations(dag.ordered_nodes(), 2))
+
+
+def _get_circuits_and_is_blockers():
+    qubits = cirq.LineQubit.range(10)
+    circuits = [cirq.testing.random_circuit(qubits, 10, 0.5) for _ in range(1)]
+    edges = [
+        set(qubit_pair)
+        for qubit_pair in itertools.combinations(qubits, 2)
+        if random.random() > 0.5
+    ]
+    not_on_edge = lambda op: len(op.qubits) > 1 and set(op.qubits) not in edges
+    is_blockers = [lambda op: False, not_on_edge]
+    return itertools.product(circuits, is_blockers)
+
+
+@pytest.mark.parametrize('circuit, is_blocker', _get_circuits_and_is_blockers())
+def test_findall_nodes_until_blocked(circuit, is_blocker):
+    dag = cirq.CircuitDag.from_circuit(circuit)
+    all_nodes = list(dag.ordered_nodes())
+    found_nodes = list(dag.findall_nodes_until_blocked(is_blocker))
+    assert not any(
+        dag.has_edge(b, a) for a, b in itertools.combinations(found_nodes, 2))
+
+    blocking_nodes = set(node for node in all_nodes if is_blocker(node.val))
+    blocked_nodes = blocking_nodes.union(*(dag.succ[node]
+                                           for node in blocking_nodes))
+    expected_nodes = set(all_nodes) - blocked_nodes
+    assert sorted(found_nodes) == sorted(expected_nodes)
