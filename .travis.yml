@@ -59,6 +59,7 @@ matrix:
     python: '3.6'
     language: generic
     install:
+      - export PATH="/Users/travis/Library/Python/3.6/bin"
       - pip3 install -r requirements.txt --user
       - pip3 install -r cirq/contrib/contrib-requirements.txt --user
       - pip3 install -r dev_tools/conf/pip-list-dev-tools.txt --user
