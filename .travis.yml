@@ -59,10 +59,11 @@ matrix:
     python: '3.6'
     language: generic
     install:
-      - export PATH="/Users/travis/Library/Python/3.6/bin"
-      - pip3 install -r requirements.txt --user
-      - pip3 install -r cirq/contrib/contrib-requirements.txt --user
-      - pip3 install -r dev_tools/conf/pip-list-dev-tools.txt --user
+      - python3 -m venv venv
+      - source venv/bin/activate
+      - pip install -r requirements.txt --user
+      - pip install -r cirq/contrib/contrib-requirements.txt --user
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt --user
       - mkdir -p ~/.matplotlib && echo "backend:\ TkAgg" >> ~/.matplotlib/matplotlibrc
     script: 
       - check/pytest --benchmark-skip
