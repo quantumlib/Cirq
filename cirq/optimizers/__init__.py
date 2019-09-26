@@ -48,5 +48,8 @@ from cirq.optimizers.decompositions import (
     single_qubit_op_to_framed_phase_form,
 )
 
+from cirq.optimizers.synchronize_terminal_measurements import (
+    SynchronizeTerminalMeasurements,)
+
 from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,)
