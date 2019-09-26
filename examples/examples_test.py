@@ -11,6 +11,7 @@ import examples.deutsch
 import examples.grover
 import examples.hello_qubit
 import examples.hhl
+import examples.noisy_simulation_example
 import examples.phase_estimator
 import examples.place_on_bristlecone
 import examples.qaoa
@@ -99,7 +100,11 @@ def test_example_cross_entropy_benchmarking():
                                                      num_circuits=2,
                                                      cycles=[2, 3, 4])
 
-
+    
+def test_example_noisy_simulation():
+    examples.noisy_simulation_example.main()
+    
+    
 @pytest.mark.parametrize('x, n', ((4, 7), (6, 49), (7, 810)))
 def test_example_shor_naive_order_finder(x, n):
     r = examples.shor.naive_order_finder(x, n)
