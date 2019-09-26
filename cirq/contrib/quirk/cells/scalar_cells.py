@@ -28,8 +28,7 @@ def generate_all_scalar_cell_makers() -> Iterator[CellMaker]:
     yield reg_scalar("√-i", ops.GlobalPhaseOperation((-1j)**0.5))
 
 
-def reg_scalar(identifier: str,
-               operation: 'cirq.Operation') -> CellMaker:
+def reg_scalar(identifier: str, operation: 'cirq.Operation') -> CellMaker:
     return CellMaker(identifier,
-                    size=1,
-                    func=lambda _: ExplicitOperationsCell([operation]))
+                     size=1,
+                     func=lambda _: ExplicitOperationsCell([operation]))

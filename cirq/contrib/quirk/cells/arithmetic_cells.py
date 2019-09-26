@@ -12,16 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import inspect
-from typing import (
-    Callable,
-    Optional,
-    Union,
-    Iterable,
-    Sequence,
-    Iterator,
-    Tuple,
-    Any,
-    cast)
+from typing import (Callable, Optional, Union, Iterable, Sequence, Iterator,
+                    Tuple, Any, cast)
 
 import cirq
 from cirq import ops
@@ -221,12 +213,9 @@ def popcnt(a: int) -> int:
     return t
 
 
-IntsToIntCallable = Union[
-    Callable[[int], int],
-    Callable[[int, int], int],
-    Callable[[int, int, int], int],
-    Callable[[int, int, int, int], int],
-]
+IntsToIntCallable = Union[Callable[[int], int], Callable[[int, int], int],
+                          Callable[[int, int, int], int],
+                          Callable[[int, int, int, int], int],]
 
 
 def reg_arithmetic_family(identifier_prefix: str,
