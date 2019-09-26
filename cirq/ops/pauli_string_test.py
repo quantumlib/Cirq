@@ -38,15 +38,16 @@ def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
-        lambda: cirq.PauliString({}),
-        lambda: cirq.PauliString({}, +1))
-    eq.add_equality_group(cirq.PauliString({}, -1))
+        lambda: cirq.PauliString(),
+        lambda: cirq.PauliString(qubit_pauli_map={}),
+        lambda: cirq.PauliString(qubit_pauli_map={}, coefficient=+1))
+    eq.add_equality_group(cirq.PauliString(qubit_pauli_map={}, coefficient=-1))
     for q, pauli in itertools.product((q0, q1), (cirq.X, cirq.Y, cirq.Z)):
-        eq.add_equality_group(cirq.PauliString({q: pauli}, +1))
-        eq.add_equality_group(cirq.PauliString({q: pauli}, -1))
+        eq.add_equality_group(cirq.PauliString(qubit_pauli_map={q: pauli}, coefficient=+1))
+        eq.add_equality_group(cirq.PauliString(qubit_pauli_map={q: pauli}, coefficient=-1))
     for q, p0, p1 in itertools.product((q0, q1), (cirq.X, cirq.Y, cirq.Z),
                                        (cirq.X, cirq.Y, cirq.Z)):
-        eq.add_equality_group(cirq.PauliString({q: p0, q2: p1}, +1))
+        eq.add_equality_group(cirq.PauliString(qubit_pauli_map={q: p0, q2: p1}, coefficient=+1))
 
 
 def test_equal_up_to_coefficient():
@@ -178,17 +179,33 @@ def test_list_op_constructor_matches_mapping(pauli):
     assert cirq.PauliString([op]) == cirq.PauliString({q0: pauli})
 
 
-def test_constructor_fails_non_pauli():
-    q0, q1 = _make_qubits(2)
-    op = cirq.CZ.on(q0, q1)
-    with pytest.raises(ValueError):
-        cirq.PauliString([op])
+def test_constructor_flexibility():
+    a, b, c = cirq.LineQubit.range(3)
+    with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
+        _ = cirq.PauliString(cirq.CZ(a, b))
+    with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
+        _ = cirq.PauliString('test')
+
+    assert cirq.PauliString(cirq.X(a)) == cirq.PauliString(
+        qubit_pauli_map={a: cirq.X})
+    assert cirq.PauliString([cirq.X(a)]) == cirq.PauliString(
+        qubit_pauli_map={a: cirq.X})
+    assert cirq.PauliString([[[cirq.X(a)]]]) == cirq.PauliString(
+        qubit_pauli_map={a: cirq.X})
+    assert cirq.PauliString([[[cirq.I(a)]]]) == cirq.PauliString()
+
+    assert cirq.PauliString(1, 2, 3, cirq.X(a), cirq.Y(a)) == cirq.PauliString(
+        qubit_pauli_map={a: cirq.Z}, coefficient=6j)
+
+    assert cirq.PauliString(1, 2, 3, {a: cirq.X}, cirq.Y(a)
+                            ) == cirq.PauliString(qubit_pauli_map={a: cirq.Z},
+                                                  coefficient=6j)
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_getitem(qubit_pauli_map):
     other = cirq.NamedQubit('other')
-    pauli_string = cirq.PauliString(qubit_pauli_map)
+    pauli_string = cirq.PauliString(qubit_pauli_map=qubit_pauli_map)
     for key in qubit_pauli_map:
         assert qubit_pauli_map[key] == pauli_string[key]
     with pytest.raises(KeyError):
@@ -371,9 +388,15 @@ def test_mul_scalar():
     assert -p == -1 * p == -1.0 * p == p * -1 == p * complex(-1)
     assert -p != 1j * p
     assert +p == 1 * p
-    with pytest.raises(TypeError):
+
+    assert p * cirq.I(a) == p
+    assert cirq.I(a) * p == p
+
+    with pytest.raises(TypeError,
+                       match="sequence by non-int of type 'PauliString'"):
         _ = p * 'test'
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError,
+                       match="sequence by non-int of type 'PauliString'"):
         _ = 'test' * p
 
 

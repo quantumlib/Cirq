@@ -19,6 +19,7 @@ from cirq.ops import common_gates, raw_types
 
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
 
@@ -56,10 +57,12 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-            self, other: 'Pauli'
-    ) -> Tuple[complex, Union['Pauli', 'common_gates.IdentityGate']]:
+            self, other: Union['cirq.Pauli', 'cirq.IdentityGate']
+    ) -> Tuple[complex, Union['cirq.Pauli', 'cirq.IdentityGate']]:
         if self == other:
             return 1, common_gates.I
+        if other == common_gates.I:
+            return 1, self
         return 1j**other.relative_index(self), self.third(other)
 
     def __gt__(self, other):

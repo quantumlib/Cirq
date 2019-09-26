@@ -31,7 +31,7 @@ from cirq import value
 from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
-    from cirq.ops import pauli_string
+    import cirq
 
 
 class SamplesDisplay(raw_types.Operation):
@@ -129,9 +129,9 @@ class ApproxPauliStringExpectation(SamplesDisplay):
     """Approximate expectation value of a Pauli string."""
 
     def __init__(self,
-                 pauli_string: 'pauli_string.PauliString',
+                 pauli_string: 'cirq.PauliString',
                  num_samples: int,
-                 key: Hashable=''):
+                 key: Hashable = ''):
         self._pauli_string = pauli_string
         self._num_samples = num_samples
         self._key = key
@@ -169,8 +169,11 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string, self._num_samples, self._key
 
 
-def approx_pauli_string_expectation(pauli_string: 'pauli_string.PauliString',
+def approx_pauli_string_expectation(pauli_string: 'cirq.PAULI_STRING_LIKE',
                                     num_samples: int,
                                     key: Hashable = ''
                                    ) -> ApproxPauliStringExpectation:
-    return ApproxPauliStringExpectation(pauli_string, num_samples, key=key)
+    return ApproxPauliStringExpectation(
+        cirq.PauliString(pauli_string),
+        num_samples,
+        key=key)
