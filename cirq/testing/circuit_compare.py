@@ -11,15 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Type, cast
 
 from collections import defaultdict
 import itertools
 import numpy as np
+import random
 import sympy
 
 from cirq import circuits, ops, linalg, protocols
+from cirq.testing import lin_alg_utils
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -260,6 +261,8 @@ def assert_has_consistent_apply_unitary(
         atol: Absolute error tolerance.
     """
 
+    _assert_apply_unitary_works_when_axes_transposed(val, atol=atol)
+
     expected = protocols.unitary(val, default=None)
 
     qubit_counts = [
@@ -303,6 +306,75 @@ def assert_has_consistent_apply_unitary(
             (2,) + qid_shape, dtype=int),) * 2),
                                    expected,
                                    atol=atol)
+
+
+def _assert_apply_unitary_works_when_axes_transposed(
+        val: Any,
+        *,
+        atol: float=1e-8) -> None:
+    """Tests whether a value's _apply_unitary_ handles out-of-order axes.
+
+    A common mistake to make when implementing `_apply_unitary_` is to assume
+    that the incoming axes will be contiguous, or ascending, or that they can be
+    flattened, or that other axes have a length of two, etc, etc ,etc. This
+    method checks that `_apply_unitary_` does the same thing to out-of-order
+    axes that it does to contiguous in-order axes.
+
+    Args:
+        val: The operation, gate, or other unitary object to test.
+        atol: Absolute error tolerance.
+    """
+
+    # Only test custom apply unitary methods.
+    if not hasattr(val, '_apply_unitary_') or not protocols.has_unitary(val):
+        return
+
+    # Pick sizes and shapes.
+    shape = protocols.qid_shape(val)
+    n = len(shape)
+    padded_shape = shape + (1, 2, 2, 3)
+    padded_n = len(padded_shape)
+    size = np.product(padded_shape).item()
+
+    # Shuffle the axes.
+    permutation = list(range(padded_n))
+    random.shuffle(permutation)
+    transposed_shape = [0] * padded_n
+    for i in range(padded_n):
+        transposed_shape[permutation[i]] = padded_shape[i]
+
+    # Prepare input states.
+    in_order_input = lin_alg_utils.random_superposition(size).reshape(
+        padded_shape)
+    in_order_input = np.array(range(1, size+1), dtype=np.complex128).reshape(
+        padded_shape)
+    out_of_order_input = np.empty(shape=transposed_shape, dtype=np.complex128)
+    out_of_order_input.transpose(permutation)[...] = in_order_input
+
+    # Apply to in-order and out-of-order axes.
+    in_order_output = protocols.apply_unitary(
+        val,
+        protocols.ApplyUnitaryArgs(
+            in_order_input,
+            np.empty_like(in_order_input),
+            axes=range(n)))
+    out_of_order_output = protocols.apply_unitary(
+        val,
+        protocols.ApplyUnitaryArgs(
+            target_tensor=out_of_order_input,
+            available_buffer=np.empty_like(out_of_order_input),
+            axes=permutation[:n]))
+
+    # Put the out of order output back into order, to enable comparison.
+    reordered_output = out_of_order_output.transpose(permutation)
+
+    # The results should be identical.
+    if not np.allclose(in_order_output, reordered_output, atol=atol):
+        raise AssertionError(
+            f'The _apply_unitary_ method of {repr(val)} acted differently on '
+            f'out-of-order axes than on in-order axes.\n'
+            f'\n'
+            f'The failing axis order: {repr(permutation[:n])}')
 
 
 def assert_eigen_gate_has_consistent_apply_unitary(
