@@ -776,6 +776,7 @@ def test_job_labels(build):
     assert body()['labels'] == {'b': '1'}
     assert body()['labelFingerprint'] == 'abcdef'
 
+
 @mock.patch.object(discovery, 'build')
 def test_implied_job_config_gcs_prefix(build):
     eng = cg.Engine(project_id='project_id')
