@@ -239,6 +239,14 @@ def test_add_op_tree():
         cirq.Moment([cirq.X(a), cirq.Y(b)]),
     ])
 
+    assert c + cirq.X(a) == cirq.Circuit(cirq.X(a))
+    assert c + [cirq.X(a)] == cirq.Circuit(cirq.X(a))
+    assert c + [[[cirq.X(a)], []]] == cirq.Circuit(cirq.X(a))
+    assert c + (cirq.X(a),) == cirq.Circuit(cirq.X(a))
+    assert c + (cirq.X(a) for _ in range(1)) == cirq.Circuit(cirq.X(a))
+    with pytest.raises(TypeError):
+        _ = c + cirq.X
+
 
 def test_bool():
     assert not cirq.Circuit()
