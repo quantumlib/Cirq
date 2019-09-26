@@ -120,31 +120,6 @@ def reg_const(identifier: str,
     yield CellMaker(identifier, 1, lambda _: ExplicitOperationsCell([operation]))
 
 
-def reg_bit_permutation_family(identifier_prefix: str, name: str,
-                               permutation: Callable[[int, int], int]
-                              ) -> Iterator[CellMaker]:
-    f = lambda args: ExplicitOperationsCell([
-        QuirkQubitPermutationOperation(name, args.qubits, lambda e: permutation(
-            len(args.qubits), e))
-    ])
-    for i in CELL_SIZES:
-        yield CellMaker(identifier_prefix + str(i), i, f)
-
-
-def interleave_bit(n: int, x: int) -> int:
-    h = (n + 1) // 2
-    group = x // h
-    stride = x % h
-    return stride * 2 + group
-
-
-def deinterleave_bit(n: int, x: int) -> int:
-    h = (n + 1) // 2
-    stride = x // 2
-    group = x % 2
-    return stride + group * h
-
-
 def parse_formula(formula: Any,
                   default_formula: Any = None) -> Union[float, sympy.Basic]:
     if formula is None:

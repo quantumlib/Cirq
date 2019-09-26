@@ -23,9 +23,12 @@ from cirq.contrib.quirk.cells.cell import (
 )
 from cirq.contrib.quirk.cells.control_cells import all_control_cells
 from cirq.contrib.quirk.cells.input_cells import (
-    SetDefaultInputCell,
     all_input_cells
 )
+from cirq.contrib.quirk.cells.qubit_permutation_cells import \
+    all_qubit_permutation_cells
+from cirq.contrib.quirk.cells.single_qubit_rotation_cells import \
+    generate_all_single_qubit_rotation_cells
 from cirq.contrib.quirk.cells.swap_cell import (
     SwapCell,
 )
@@ -37,7 +40,7 @@ def generate_all_cells() -> Iterator[CellMaker]:
         reg_parameterized_gate, reg_ignored_family, reg_ignored_gate,
         reg_unsupported_family,
         reg_family,
-        reg_bit_permutation_family, deinterleave_bit, interleave_bit, CellMaker,
+        CellMaker,
         reg_measurement)
 
     # Swap.
@@ -82,65 +85,7 @@ def generate_all_cells() -> Iterator[CellMaker]:
         "ZDetectControlReset",
         reason="Classical feedback is not implemented in Cirq")
 
-    # Fixed single qubit rotations.
-    yield from reg_gate("H", gate=ops.H)
-    yield from reg_gate("X", gate=ops.X)
-    yield from reg_gate("Y", gate=ops.Y)
-    yield from reg_gate("Z", gate=ops.Z)
-    yield from reg_gate("X^½", gate=ops.X**(1 / 2))
-    yield from reg_gate("X^⅓", gate=ops.X**(1 / 3))
-    yield from reg_gate("X^¼", gate=ops.X**(1 / 4))
-    yield from reg_gate("X^⅛", gate=ops.X**(1 / 8))
-    yield from reg_gate("X^⅟₁₆", gate=ops.X**(1 / 16))
-    yield from reg_gate("X^⅟₃₂", gate=ops.X**(1 / 32))
-    yield from reg_gate("X^-½", gate=ops.X**(-1 / 2))
-    yield from reg_gate("X^-⅓", gate=ops.X**(-1 / 3))
-    yield from reg_gate("X^-¼", gate=ops.X**(-1 / 4))
-    yield from reg_gate("X^-⅛", gate=ops.X**(-1 / 8))
-    yield from reg_gate("X^-⅟₁₆", gate=ops.X**(-1 / 16))
-    yield from reg_gate("X^-⅟₃₂", gate=ops.X**(-1 / 32))
-    yield from reg_gate("Y^½", gate=ops.Y**(1 / 2))
-    yield from reg_gate("Y^⅓", gate=ops.Y**(1 / 3))
-    yield from reg_gate("Y^¼", gate=ops.Y**(1 / 4))
-    yield from reg_gate("Y^⅛", gate=ops.Y**(1 / 8))
-    yield from reg_gate("Y^⅟₁₆", gate=ops.Y**(1 / 16))
-    yield from reg_gate("Y^⅟₃₂", gate=ops.Y**(1 / 32))
-    yield from reg_gate("Y^-½", gate=ops.Y**(-1 / 2))
-    yield from reg_gate("Y^-⅓", gate=ops.Y**(-1 / 3))
-    yield from reg_gate("Y^-¼", gate=ops.Y**(-1 / 4))
-    yield from reg_gate("Y^-⅛", gate=ops.Y**(-1 / 8))
-    yield from reg_gate("Y^-⅟₁₆", gate=ops.Y**(-1 / 16))
-    yield from reg_gate("Y^-⅟₃₂", gate=ops.Y**(-1 / 32))
-    yield from reg_gate("Z^½", gate=ops.Z**(1 / 2))
-    yield from reg_gate("Z^⅓", gate=ops.Z**(1 / 3))
-    yield from reg_gate("Z^¼", gate=ops.Z**(1 / 4))
-    yield from reg_gate("Z^⅛", gate=ops.Z**(1 / 8))
-    yield from reg_gate("Z^⅟₁₆", gate=ops.Z**(1 / 16))
-    yield from reg_gate("Z^⅟₃₂", gate=ops.Z**(1 / 32))
-    yield from reg_gate("Z^⅟₆₄", gate=ops.Z**(1 / 64))
-    yield from reg_gate("Z^⅟₁₂₈", gate=ops.Z**(1 / 128))
-    yield from reg_gate("Z^-½", gate=ops.Z**(-1 / 2))
-    yield from reg_gate("Z^-⅓", gate=ops.Z**(-1 / 3))
-    yield from reg_gate("Z^-¼", gate=ops.Z**(-1 / 4))
-    yield from reg_gate("Z^-⅛", gate=ops.Z**(-1 / 8))
-    yield from reg_gate("Z^-⅟₁₆", gate=ops.Z**(-1 / 16))
-
-    # Dynamic single qubit rotations.
-    yield from reg_gate("X^t", gate=ops.X**sympy.Symbol('t'))
-    yield from reg_gate("Y^t", gate=ops.Y**sympy.Symbol('t'))
-    yield from reg_gate("Z^t", gate=ops.Z**sympy.Symbol('t'))
-    yield from reg_gate("X^-t", gate=ops.X**-sympy.Symbol('t'))
-    yield from reg_gate("Y^-t", gate=ops.Y**-sympy.Symbol('t'))
-    yield from reg_gate("Z^-t", gate=ops.Z**-sympy.Symbol('t'))
-    yield from reg_gate("e^iXt", gate=ops.Rx(2 * sympy.pi * sympy.Symbol('t')))
-    yield from reg_gate("e^iYt", gate=ops.Ry(2 * sympy.pi * sympy.Symbol('t')))
-    yield from reg_gate("e^iZt", gate=ops.Rz(2 * sympy.pi * sympy.Symbol('t')))
-    yield from reg_gate("e^-iXt",
-                        gate=ops.Rx(-2 * sympy.pi * sympy.Symbol('t')))
-    yield from reg_gate("e^-iYt",
-                        gate=ops.Ry(-2 * sympy.pi * sympy.Symbol('t')))
-    yield from reg_gate("e^-iZt",
-                        gate=ops.Rz(-2 * sympy.pi * sympy.Symbol('t')))
+    yield from generate_all_single_qubit_rotation_cells()
 
     # Classically parameterized single qubit rotations.
     yield from reg_formula_gate("X^ft", "sin(pi*t)", lambda e: ops.X**e)
@@ -203,13 +148,4 @@ def generate_all_cells() -> Iterator[CellMaker]:
         "grad^-t", lambda n: cirq.PhaseGradientGate(
             num_qubits=n, exponent=-2**(n - 1) * sympy.Symbol('t')))
 
-    # Bit level permutations.
-    yield from reg_bit_permutation_family(
-        "<<", 'left_rotate', lambda n, x: (x + 1) % n)
-    yield from reg_bit_permutation_family(
-        ">>", 'right_rotate', lambda n, x: (x - 1) % n)
-    yield from reg_bit_permutation_family("rev",
-                                          'reverse', lambda n, x: n - x - 1)
-    yield from reg_bit_permutation_family("weave", 'interleave', interleave_bit)
-    yield from reg_bit_permutation_family("split", 'deinterleave',
-                                          deinterleave_bit)
+    yield from all_qubit_permutation_cells()

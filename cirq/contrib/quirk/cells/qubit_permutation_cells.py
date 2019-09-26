@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Iterator
 
 import cirq
 from cirq import ops
+from cirq.contrib.quirk.cells.cell import CELL_SIZES, CellMaker
+from cirq.contrib.quirk.cells.explicit_operations_cell import ExplicitOperationsCell
 
 
 class QuirkQubitPermutationOperation(ops.Operation):
@@ -55,3 +57,40 @@ class QuirkQubitPermutationOperation(ops.Operation):
     def __repr__(self):
         return 'cirq.quirk.QubitPermutation({!r}, {!r})'.format(
             self._qubits, self.permute)
+
+
+def all_qubit_permutation_cells():
+    yield from qubit_permutation_cell_family(
+        "<<", 'left_rotate', lambda n, x: (x + 1) % n)
+    yield from qubit_permutation_cell_family(
+        ">>", 'right_rotate', lambda n, x: (x - 1) % n)
+    yield from qubit_permutation_cell_family("rev",
+                                          'reverse', lambda n, x: n - x - 1)
+    yield from qubit_permutation_cell_family("weave", 'interleave', interleave_bit)
+    yield from qubit_permutation_cell_family("split", 'deinterleave',
+                                          deinterleave_bit)
+
+
+def qubit_permutation_cell_family(identifier_prefix: str, name: str,
+                                  permutation: Callable[[int, int], int]
+                                  ) -> Iterator[CellMaker]:
+    f = lambda args: ExplicitOperationsCell([
+        QuirkQubitPermutationOperation(name, args.qubits, lambda e: permutation(
+            len(args.qubits), e))
+    ])
+    for i in CELL_SIZES:
+        yield CellMaker(identifier_prefix + str(i), i, f)
+
+
+def interleave_bit(n: int, x: int) -> int:
+    h = (n + 1) // 2
+    group = x // h
+    stride = x % h
+    return stride * 2 + group
+
+
+def deinterleave_bit(n: int, x: int) -> int:
+    h = (n + 1) // 2
+    stride = x // 2
+    group = x % 2
+    return stride + group * h
