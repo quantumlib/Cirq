@@ -43,7 +43,6 @@ class SynchronizeTerminalMeasurements():
     def optimize_circuit(self, circuit: circuits.Circuit) -> None:
         deletions: List[Tuple[int, ops.Operation]] = []
         terminal_measures: Set[ops.Operation] = set()
-
         qubits = circuit.all_qubits()
         for qubit in qubits:
             moment_index = cast(int, circuit.prev_moment_operating_on((qubit,)))
