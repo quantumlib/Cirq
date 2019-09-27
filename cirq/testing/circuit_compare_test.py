@@ -197,7 +197,7 @@ def test_measuring_qubits():
 )
 def test_random_same_matrix(circuit):
     a, b = cirq.LineQubit.range(2)
-    same = cirq.Circuit.from_ops(
+    same = cirq.Circuit(
         cirq.TwoQubitMatrixGate(
             circuit.unitary(qubits_that_should_be_present=[a, b])).on(a, b))
 
@@ -213,36 +213,29 @@ def test_random_same_matrix(circuit):
 def test_correct_qubit_ordering():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit.from_ops(cirq.Z(a),
-                              cirq.Z(b),
-                              cirq.measure(b)),
-        cirq.Circuit.from_ops(cirq.Z(a),
-                              cirq.measure(b)),
+        cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
+        cirq.Circuit(cirq.Z(a), cirq.measure(b)),
         atol=1e-8)
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-            cirq.Circuit.from_ops(cirq.Z(a),
-                                  cirq.Z(b),
-                                  cirq.measure(b)),
-            cirq.Circuit.from_ops(cirq.Z(b),
-                                  cirq.measure(b)),
+            cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.measure(b)),
+            cirq.Circuit(cirq.Z(b), cirq.measure(b)),
             atol=1e-8)
 
 
 def test_known_old_failure():
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        actual=cirq.Circuit.from_ops(
+        actual=cirq.Circuit(
             cirq.PhasedXPowGate(exponent=0.61351656,
                                 phase_exponent=0.8034575038876517).on(b),
             cirq.measure(a, b)),
-        reference=cirq.Circuit.from_ops(
+        reference=cirq.Circuit(
             cirq.PhasedXPowGate(exponent=0.61351656,
                                 phase_exponent=0.8034575038876517).on(b),
             cirq.Z(a)**0.5,
-            cirq.Z(b)**0.1,
-            cirq.measure(a, b)),
+            cirq.Z(b)**0.1, cirq.measure(a, b)),
         atol=1e-8)
 
 
@@ -250,34 +243,34 @@ def test_assert_same_circuits():
     a, b = cirq.LineQubit.range(2)
 
     cirq.testing.assert_same_circuits(
-        cirq.Circuit.from_ops(cirq.H(a)),
-        cirq.Circuit.from_ops(cirq.H(a)),
+        cirq.Circuit(cirq.H(a)),
+        cirq.Circuit(cirq.H(a)),
     )
 
     with pytest.raises(AssertionError) as exc_info:
         cirq.testing.assert_same_circuits(
-            cirq.Circuit.from_ops(cirq.H(a)),
+            cirq.Circuit(cirq.H(a)),
             cirq.Circuit(),
         )
     assert 'differing moment:\n0\n' in exc_info.value.args[0]
 
     with pytest.raises(AssertionError) as exc_info:
         cirq.testing.assert_same_circuits(
-            cirq.Circuit.from_ops(cirq.H(a), cirq.H(a)),
-            cirq.Circuit.from_ops(cirq.H(a), cirq.CZ(a, b)),
+            cirq.Circuit(cirq.H(a), cirq.H(a)),
+            cirq.Circuit(cirq.H(a), cirq.CZ(a, b)),
         )
     assert 'differing moment:\n1\n' in exc_info.value.args[0]
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_same_circuits(
-            cirq.Circuit.from_ops(cirq.CNOT(a, b)),
-            cirq.Circuit.from_ops(cirq.ControlledGate(cirq.X).on(a, b)),
+            cirq.Circuit(cirq.CNOT(a, b)),
+            cirq.Circuit(cirq.ControlledGate(cirq.X).on(a, b)),
         )
 
 
 def test_assert_has_diagram():
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.CNOT(a, b))
+    circuit = cirq.Circuit(cirq.CNOT(a, b))
     cirq.testing.assert_has_diagram(circuit, """
 0: ───@───
       │

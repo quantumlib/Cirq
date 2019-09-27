@@ -72,7 +72,7 @@ def test_is_supported_gate_can_serialize_predicate():
 def test_serialize_deserialize_circuit():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
-    circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1), cirq.X(q0))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1), cirq.X(q0))
 
     proto = {
         'language': {
@@ -171,6 +171,11 @@ def test_deserialize_empty_moment():
         },
     }
     assert MY_GATE_SET.deserialize_dict(proto) == circuit
+
+
+def test_serialize_unrecognized():
+    with pytest.raises(NotImplementedError, match='program type'):
+        MY_GATE_SET.serialize("not quite right")
 
 
 def test_serialize_deserialize_schedule():

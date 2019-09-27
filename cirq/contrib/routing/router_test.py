@@ -78,11 +78,11 @@ def test_router_bad_args():
                           algo_name=algo_name,
                           router=ccr.ROUTERS[algo_name])
 
-    circuit = cirq.Circuit.from_ops(cirq.CCZ(*cirq.LineQubit.range(3)))
+    circuit = cirq.Circuit(cirq.CCZ(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError):
         ccr.route_circuit(circuit, device_graph, algo_name=algo_name)
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.CZ(cirq.LineQubit(i), cirq.LineQubit(i + 1)) for i in range(5))
     with pytest.raises(ValueError):
         ccr.route_circuit(circuit, device_graph, algo_name=algo_name)

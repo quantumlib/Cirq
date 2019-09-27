@@ -520,11 +520,16 @@ class Engine:
             parent=job_resource_name).execute()
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
-
         if result_type == 'cirq.api.google.v1.Result':
-            return self._get_job_results_v1(response['result'])
+            return self._get_job_results_v1(result)
         if result_type == 'cirq.api.google.v2.Result':
-            return self._get_job_results_v2(response['result'])
+            return self._get_job_results_v2(result)
+        if result_type == 'cirq.google.api.v1.Result':
+            return self._get_job_results_v1(result)
+        if result_type == 'cirq.google.api.v2.Result':
+            # Pretend the path is the other one until we switch over
+            result['@type'] = 'type.googleapis.com/cirq.api.google.v2.Result'
+            return self._get_job_results_v2(result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
 
@@ -553,7 +558,6 @@ class Engine:
         gp.json_format.ParseDict(result_dict, result_any)
         result = v2.result_pb2.Result()
         result_any.Unpack(result)
-
         sweep_results = api_v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
