@@ -69,8 +69,10 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         if _moment_is_measurements(moment):
             return moment
 
-        return [moment,
-                ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)]
+        return [
+            moment,
+            ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)
+        ]
 
 
 class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
@@ -122,9 +124,12 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         decay_prob: Probability of T1 decay during measurement.
     """
 
-    def __init__(self, depol_prob: float,
-                 bitflip_prob: float,
-                 decay_prob: float, ):
+    def __init__(
+            self,
+            depol_prob: float,
+            bitflip_prob: float,
+            decay_prob: float,
+    ):
         value.validate_probability(depol_prob, 'depol prob')
         value.validate_probability(bitflip_prob, 'bitflip prob')
         value.validate_probability(decay_prob, 'bitflip prob')

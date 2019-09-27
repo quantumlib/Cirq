@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import pytest
 
 import cirq
@@ -23,11 +22,9 @@ from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 
 def test_moment_is_measurements():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops([
-        cirq.X(q[0]),
-        cirq.X(q[1]),
-        cirq.measure(*q, key='z')
-    ])
+    circ = cirq.Circuit.from_ops(
+        [cirq.X(q[0]), cirq.X(q[1]),
+         cirq.measure(*q, key='z')])
     assert not _moment_is_measurements(circ[0])
     assert _moment_is_measurements(circ[1])
 
@@ -39,7 +36,6 @@ def test_moment_is_measurements_mixed1():
         cirq.X(q[1]),
         cirq.measure(q[0], key='z'),
         cirq.Z(q[1]),
-
     ])
     assert not _moment_is_measurements(circ[0])
     with pytest.raises(ValueError) as e:
@@ -54,7 +50,6 @@ def test_moment_is_measurements_mixed2():
         cirq.X(q[1]),
         cirq.Z(q[0]),
         cirq.measure(q[1], key='z'),
-
     ])
     assert not _moment_is_measurements(circ[0])
     with pytest.raises(ValueError) as e:
@@ -65,18 +60,21 @@ def test_moment_is_measurements_mixed2():
 def test_readout_noise_after_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
-    program.append([cirq.H(qubits[0]),
-                    cirq.CNOT(qubits[0], qubits[1]),
-                    cirq.CNOT(qubits[1], qubits[2])])
-    program.append([cirq.measure(qubits[0], key='q0'),
-                    cirq.measure(qubits[1], key='q1'),
-                    cirq.measure(qubits[2], key='q2')],
+    program.append([
+        cirq.H(qubits[0]),
+        cirq.CNOT(qubits[0], qubits[1]),
+        cirq.CNOT(qubits[1], qubits[2])
+    ])
+    program.append([
+        cirq.measure(qubits[0], key='q0'),
+        cirq.measure(qubits[1], key='q1'),
+        cirq.measure(qubits[2], key='q2')
+    ],
                    strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 
     # Use noise model to generate circuit
-    noise_model = ccn.DepolarizingWithReadoutNoiseModel(
-        depol_prob=0.01,
-        bitflip_prob=0.05)
+    noise_model = ccn.DepolarizingWithReadoutNoiseModel(depol_prob=0.01,
+                                                        bitflip_prob=0.05)
     noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
 
     # Insert channels explicitly
@@ -94,28 +92,33 @@ def test_readout_noise_after_moment():
         [cirq.DepolarizingChannel(0.01).on(q) for q in qubits],
         strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.BitFlipChannel(0.05).on(q) for q in qubits])
-    true_noisy_program.append([cirq.measure(qubits[0], key='q0'),
-                               cirq.measure(qubits[1], key='q1'),
-                               cirq.measure(qubits[2], key='q2')])
+    true_noisy_program.append([
+        cirq.measure(qubits[0], key='q0'),
+        cirq.measure(qubits[1], key='q1'),
+        cirq.measure(qubits[2], key='q2')
+    ])
     _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
 def test_decay_noise_after_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
-    program.append([cirq.H(qubits[0]),
-                    cirq.CNOT(qubits[0], qubits[1]),
-                    cirq.CNOT(qubits[1], qubits[2])])
-    program.append([cirq.measure(qubits[0], key='q0'),
-                    cirq.measure(qubits[1], key='q1'),
-                    cirq.measure(qubits[2], key='q2')],
+    program.append([
+        cirq.H(qubits[0]),
+        cirq.CNOT(qubits[0], qubits[1]),
+        cirq.CNOT(qubits[1], qubits[2])
+    ])
+    program.append([
+        cirq.measure(qubits[0], key='q0'),
+        cirq.measure(qubits[1], key='q1'),
+        cirq.measure(qubits[2], key='q2')
+    ],
                    strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
 
     # Use noise model to generate circuit
-    noise_model = ccn.DepolarizingWithDampedReadoutNoiseModel(
-        depol_prob=0.01,
-        decay_prob=0.02,
-        bitflip_prob=0.05)
+    noise_model = ccn.DepolarizingWithDampedReadoutNoiseModel(depol_prob=0.01,
+                                                              decay_prob=0.02,
+                                                              bitflip_prob=0.05)
     noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
 
     # Insert channels explicitly
@@ -135,7 +138,9 @@ def test_decay_noise_after_moment():
     true_noisy_program.append(
         [cirq.AmplitudeDampingChannel(0.02).on(q) for q in qubits])
     true_noisy_program.append([cirq.BitFlipChannel(0.05).on(q) for q in qubits])
-    true_noisy_program.append([cirq.measure(qubits[0], key='q0'),
-                               cirq.measure(qubits[1], key='q1'),
-                               cirq.measure(qubits[2], key='q2')])
+    true_noisy_program.append([
+        cirq.measure(qubits[0], key='q0'),
+        cirq.measure(qubits[1], key='q1'),
+        cirq.measure(qubits[2], key='q2')
+    ])
     _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
