@@ -108,7 +108,7 @@ class TrialResult:
                 converted_dict[key] = [
                     value.big_endian_bits_to_int(m_vals) for m_vals in val
                 ]
-            self._data = pd.DataFrame(converted_dict, dtype=np.int64)
+            self._data = pd.DataFrame(converted_dict, dtype=int)
         return self._data
 
     @staticmethod
