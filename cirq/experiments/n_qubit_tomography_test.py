@@ -5,7 +5,7 @@ import cirq.experiments.n_qubit_tomography as nqt
 
 
 def test_state_tomography_diagonal():
-    n = 3
+    n = 2
     qubits = cirq.LineQubit.range(n)
     for state in range(2**n):
         circuit = cirq.Circuit()
