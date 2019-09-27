@@ -87,7 +87,6 @@ def test_random_circuit_reproducible_with_seed(seed):
 
 def test_random_circuit_reproducible_between_runs():
     circuit = random_circuit(5, 8, 0.5, random_state=77)
-    print(circuit)
     expected_diagram = """
                   ┌──┐
 0: ────────────────S─────iSwap───────Y───X───
