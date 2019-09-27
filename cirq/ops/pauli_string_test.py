@@ -198,14 +198,11 @@ def test_constructor_flexibility():
     assert cirq.PauliString(1, 2, 3, cirq.X(a), cirq.Y(a)) == cirq.PauliString(
         qubit_pauli_map={a: cirq.Z}, coefficient=6j)
 
+    assert cirq.PauliString(0) == cirq.PauliString(coefficient=0)
+
     assert cirq.PauliString(1, 2, 3, {a: cirq.X}, cirq.Y(a)
                             ) == cirq.PauliString(qubit_pauli_map={a: cirq.Z},
                                                   coefficient=6j)
-
-
-def test_constructor_fails_bad_type():
-    with pytest.raises(ValueError):
-        cirq.PauliString(0)
 
 
 def test_deprecated_from_single():
