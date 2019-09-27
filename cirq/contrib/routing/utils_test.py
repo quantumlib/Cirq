@@ -24,3 +24,12 @@ def test_ops_are_consistent_with_device_graph():
         circuit.all_operations(), device_graph)
     assert not ccr.ops_are_consistent_with_device_graph(
         [cirq.X(cirq.GridQubit(0, 0))], device_graph)
+
+
+def test_is_valid_routing_on_unmapped_qubits():
+    p, q, r = cirq.LineQubit.range(3)
+    x, y = cirq.NamedQubit('x'), cirq.NamedQubit('y')
+    circuit = cirq.Circuit([cirq.CNOT(x, y), cirq.CZ(x, y)])
+    routed_circuit = cirq.Circuit([cirq.CNOT(p, q), cirq.CZ(q, r)])
+    swap_network = ccr.SwapNetwork(routed_circuit, initial_mapping)
+    assert not ccr.is_valid_routing(circuit, swap_network)

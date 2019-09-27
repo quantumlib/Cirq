@@ -73,4 +73,6 @@ def is_valid_routing(
     circuit_dag = circuits.CircuitDag.from_circuit(circuit,
                                                    can_reorder=can_reorder)
     logical_operations = swap_network.get_logical_operations()
+    if logical_operations is None:
+        return False
     return cca.is_topologically_sorted(circuit_dag, logical_operations, equals)
