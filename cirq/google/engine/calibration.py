@@ -134,8 +134,8 @@ class Calibration(abc.Mapping):
             A `cirq.Heatmap` for the metric.
 
         Raises:
-            AssertionError if the heatmap is not for single qubits or are
-            multivalued.
+            AssertionError if the heatmap is not for single qubits or the metric
+            values are not single floats.
         """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
