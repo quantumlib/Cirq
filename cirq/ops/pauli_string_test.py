@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq._compat_test import capture_logging
 
 
 def _make_qubits(n):
@@ -183,6 +184,21 @@ def test_constructor_fails_non_pauli():
     op = cirq.CZ.on(q0, q1)
     with pytest.raises(ValueError):
         cirq.PauliString([op])
+
+
+def test_constructor_fails_bad_type():
+    cirq.PauliString(None)
+
+
+def test_deprecated_from_single():
+    q0 = cirq.LineQubit(0)
+    with capture_logging() as log:
+        actual = cirq.PauliString.from_single(q0, cirq.X)
+    assert len(log) == 1  # May fail if deprecated thing is used elsewhere.
+    assert 'PauliString.from_single' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
+
+    assert actual == cirq.PauliString([cirq.X(q0)])
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
