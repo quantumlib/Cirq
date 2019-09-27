@@ -23,7 +23,6 @@ def test_foxtail_qubits():
 
 
 def test_foxtail_device_proto():
-    print(str(cirq.google.known_devices.FOXTAIL_PROTO))
     assert str(cirq.google.known_devices.FOXTAIL_PROTO) == """\
 valid_gate_sets {
   name: "xmon"

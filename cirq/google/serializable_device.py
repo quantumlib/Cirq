@@ -35,6 +35,11 @@ class _GateDefinition:
         self.is_permutation = is_permutation
         self.number_of_qubits = number_of_qubits
 
+        # Compute the set of all qubits in all target sets.
+        self.flattened_qubits = {
+            q for qubit_tuple in target_set for q in qubit_tuple
+        }
+
 
 class SerializableDevice(devices.Device):
     """Device object generated from a device specification proto.
@@ -71,7 +76,6 @@ class SerializableDevice(devices.Device):
                 of the qubit targets.  (e.g. measurement gates)
         """
         self.qubits = qubits
-
         self.gate_definitions = gate_definitions
 
     @classmethod
@@ -96,49 +100,43 @@ class SerializableDevice(devices.Device):
                 permutation_ids.add(ts.name)
 
         # Store gate definitions from proto
-        gate_defs: Dict[str, v2.device_pb2.GateDefinition] = {}
+        gate_definitions: Dict[str, _GateDefinition] = {}
         for gs in proto.valid_gate_sets:
             for gate_def in gs.valid_gates:
-                gate_defs[gate_def.id] = gate_def
-
-        # Loop through serializers and create dictionaries with keys as
-        # the python type of the cirq Gate and duration/targets from the proto
-        durations: Dict[Type['cirq.Gate'], Duration] = {}
-        target_sets: Dict[Type['cirq.Gate'], Set[
-            Tuple['cirq.Qid', ...]]] = dict()
-        permutation_gates: Set[Type['cirq.Gate']] = set()
-        gate_definitions: Dict[Type['cirq.Gate'], _GateDefinition] = {}
-        for gate_type in gate_set.supported_gate_types():
-            for serializer in gate_set.serializers[gate_type]:
-                gate_id = serializer.serialized_gate_id
-                if gate_id not in gate_defs:
-                    raise ValueError(f'Serializer has {gate_id} which is not '
-                                     'supported by the device specification')
-                gate_ts = gate_defs[gate_id].valid_targets
-                which_are_permutations = [t in permutation_ids for t in gate_ts]
-                if any(which_are_permutations):
+                # Combine all valid targets in the gate's listed target sets
+                gate_target_set = set([
+                    target for ts_name in gate_def.valid_targets
+                    for target in allowed_targets[ts_name]
+                ])
+                which_are_permutations = [
+                    t in permutation_ids for t in gate_def.valid_targets
+                ]
+                is_permutation = any(which_are_permutations)
+                if is_permutation:
                     if not all(which_are_permutations):
-                        msg = f'Id {gate_id} in {gate_set.gate_set_name} ' \
+                        msg = f'Id {gate_def.id} in {gate_set.gate_set_name} ' \
                             ' mixes SUBSET_PERMUTATION with other types which' \
                             ' is not currently allowed.'
                         raise NotImplementedError(msg)
-                    permutation_gates.add(gate_type)
-                gate_picos = gate_defs[gate_id].gate_duration_picos
-                durations[gate_type] = Duration(picos=gate_picos)
-                if gate_type not in target_sets:
-                    target_sets[gate_type] = set()
-                for target_set_name in gate_defs[gate_id].valid_targets:
-                    target_sets[gate_type] |= allowed_targets[target_set_name]
-        for gate_type in target_sets:
-            gate_definitions[gate_type] = _GateDefinition(
-                duration=durations[gate_type],
-                target_set=target_sets[gate_type],
-                is_permutation=(permutation_gates is not None and
-                                gate_type in permutation_gates),
-                number_of_qubits=gate_defs[gate_id].number_of_qubits)
+                gate_definitions[gate_def.id] = _GateDefinition(
+                    duration=Duration(picos=gate_def.duration),
+                    target_set=gate_target_set,
+                    is_permutation=is_permutation,
+                    number_of_qubits=gate_def.number_of_qubits)
+
+        # Loop through serializers and map gate_definitions to type
+        gates_by_type: Dict[Type['cirq.Gate'], _GateDefinition] = {}
+        for gate_type in gate_set.supported_gate_types():
+            for serializer in gate_set.serializers[gate_type]:
+                gate_id = serializer.serialized_gate_id
+                if gate_id not in gate_definitions:
+                    raise ValueError(f'Serializer has {gate_id} which is not '
+                                     'supported by the device specification')
+                gates_by_type[gate_type] = gate_definitions[gate_id]
+
         return SerializableDevice(
             qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
-            gate_definitions=gate_definitions,
+            gate_definitions=gates_by_type,
         )
 
     @staticmethod
@@ -211,12 +209,8 @@ class SerializableDevice(devices.Device):
                 # All qubits are valid
                 return
 
-            # flattens all qubits in all targets into one set
-            flattened_qubits = {
-                q for qubit_tuple in gate_def.target_set for q in qubit_tuple
-            }
-
-            if not all(q in flattened_qubits for q in operation.qubits):
+            if not all(
+                    q in gate_def.flattened_qubits for q in operation.qubits):
                 raise ValueError(
                     'Operation does not use valid qubits: {operation}.')
 
