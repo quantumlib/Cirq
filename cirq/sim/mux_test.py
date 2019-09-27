@@ -211,3 +211,13 @@ def test_final_wavefunction_seed():
     np.testing.assert_allclose(cirq.final_wavefunction(
         [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [0.707107 + 0.707107j, 0],
                                atol=1e-4)
+
+
+@pytest.mark.parametrize('repetitions', (0, 1, 100))
+def test_repetitions(repetitions):
+    a = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+    r = cirq.sample(c, repetitions=repetitions)
+    samples = r.data['m'].to_numpy()
+    assert samples.shape == (repetitions,)
+    assert np.issubdtype(samples.dtype, np.integer)
