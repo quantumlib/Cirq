@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
-
+import functools
 import time
 
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, Iterable, List, Optional, TYPE_CHECKING
 
 from cirq import study
 from cirq.google.engine import calibration
@@ -115,3 +115,69 @@ class EngineJob:
 
     def __str__(self):
         return str('EngineJob({})'.format(self.job_resource_name))
+
+
+class EngineJobBatch:
+    """A batch of jobs created via the Quantum Engine API.
+
+    A small manager class to expose the same behavior as an EngineJob for a
+    single program, however behind the scenes the job is broken down into many
+    smaller EngineJobs.
+
+    Attributes:
+        job_list: List of lists containing EngineJobs. Where each nested list
+            corresponds to a group of jobs who's TrialResults should be
+            merged together after running.
+    """
+
+    def __init__(self, batch_name, job_list):
+        # if not isinstance(job_list, Iterable) or isinstance(job_list, str):
+        #     raise TypeError("job_list must be a list.")
+
+        # for sub_list in job_list:
+        #     if not isinstance(sub_list, Iterable) or isinstance(sub_list, str):
+        #         raise TypeError('job_list must contain sublists of EngineJobs.')
+        #     if any(not isinstance(job, EngineJob) for job in sub_list):
+        #         raise TypeError('Elements of job_list are required to be'
+        #                         ' of type EngineJob.')
+        self._batch_name = batch_name
+        self._job_list = job_list
+
+    @property
+    def job_list(self):
+        return self._job_list
+
+    def status(self) -> List[List[str]]:
+        status: List[List[str]] = []
+        for sub_list in self.job_list:
+            batch_status = map(lambda x: x.status(), sub_list)
+            status.append(list(batch_status))
+        return status
+
+    def get_calibration(self) -> List[List[Optional[calibration.Calibration]]]:
+        calibrations: List[List[Optional[calibration.Calibration]]] = []
+        for sub_list in self.job_list:
+            batch_calibrations = map(lambda x: x.get_calibration(), sub_list)
+            calibrations.append(list(batch_calibrations))
+        return calibrations
+
+    def cancel(self):
+        for sub_list in self.job_list:
+            for job in sub_list:
+                job.cancel()
+
+    def results(self) -> List[study.TrialResult]:
+        trial_results: List[study.TrialResult] = []
+        for sub_list in self.job_list:
+            sub_list_results = map(lambda x: x.results(), sub_list)
+            merged_results = functools.reduce(lambda a, b: a + b,
+                                              sub_list_results)
+            trial_results.append(merged_results)
+
+        return trial_results
+
+    def __iter__(self):
+        return iter(self.results())
+
+    def __str__(self):
+        return 'EngineJobBatch({})'.format(self.batch_name)

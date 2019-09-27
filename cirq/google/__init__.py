@@ -38,6 +38,7 @@ from cirq.google.engine import (
     Engine,
     engine_from_environment,
     EngineJob,
+    EngineJobBatch,
     EngineProgram,
     JobConfig,
     ProtoVersion,

@@ -26,6 +26,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import base64
 import enum
+import math
 import random
 import re
 import string
@@ -46,6 +47,9 @@ from cirq.google.engine import (calibration, engine_job, engine_program,
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
+
+# TODO(mbbrough): figure out a better value for this.
+MAX_JOB_SIZE = 50000000
 
 
 class ProtoVersion(enum.Enum):
@@ -351,6 +355,59 @@ class Engine:
             parent=program_name, body=request).execute()
 
         return engine_job.EngineJob(job_config, response, self)
+
+    def create_job_batch(
+            self,
+            *,  # Force keyword args.
+            program_name: str,
+            job_config: Optional[JobConfig] = None,
+            params: study.Sweepable = None,
+            repetitions: int = 1,
+            priority: int = 500,
+            processor_ids: Sequence[str] = ('xmonsim',),
+            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+    ) -> engine_job.EngineJobBatch:
+
+        # Convert all params to a big sweep.
+        sweeps = study.to_resolvers(params or study.ParamResolver({}))
+        single_sweep = study.ListSweep(sweeps)
+
+        params_per_job = MAX_JOB_SIZE / repetitions
+        job_list = []
+        if params_per_job < 1:
+            # we need multiple jobs for one param setting.
+            jobs_needed = math.ceil(1. / params_per_job)
+            for i in range(len(single_sweep)):
+                sub_list = []
+                for j in range(0, jobs_needed):
+                    sub_list.append(
+                        self.create_job(
+                            program_name=program_name + '_{}, |{}/{}|'.format(
+                                str(single_sweep[i]), j, jobs_needed),
+                            job_config=job_config,
+                            params=single_sweep[i],
+                            repetitions=repetitions -
+                            j * MAX_JOB_SIZE if j == jobs_needed -
+                            1 else repetitions,
+                            priority=priority,
+                            processor_ids=processor_ids))
+                job_list.append(sub_list)
+
+        else:
+            params_per_job = math.floor(params_per_job)
+            for i in range(0, len(single_sweep), params_per_job):
+                param_vals = single_sweep[i:i + params_per_job]
+                job_list.append([
+                    self.create_job(program_name=program_name +
+                                    '_{}'.format(str(param_vals)),
+                                    job_config=job_config,
+                                    params=param_vals,
+                                    repetitions=repetitions,
+                                    priority=priority,
+                                    processor_ids=processor_ids)
+                ])
+
+        return engine_job.EngineJobBatch(program_name, job_list)
 
     def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
         implied_job_config = (JobConfig()

@@ -25,7 +25,8 @@ from cirq.google.engine.engine import (
 )
 
 from cirq.google.engine.engine_job import (
-    EngineJob,)
+    EngineJob,
+    EngineJobBatch,)
 
 from cirq.google.engine.engine_program import (
     EngineProgram,)
