@@ -14,8 +14,9 @@
 """Calibration wrapper for calibrations returned from the Quantum Engine."""
 
 from collections import abc, defaultdict
+import datetime
 
-from typing import Any, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterator, Optional, Tuple, TYPE_CHECKING
 
 from cirq import devices, vis
 
@@ -96,16 +97,46 @@ class Calibration(abc.Mapping):
             raise KeyError('Metric named {} not in calibration'.format(key))
         return self._metric_dict[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self._metric_dict)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._metric_dict)
 
-    def __str__(self):
+    def __str__(self) -> str:
+
         return 'Calibration(keys={})'.format(list(sorted(self.keys())))
 
+    def timestamp_str(self,
+                      tz: Optional[datetime.tzinfo] = None,
+                      timespec: str = 'auto') -> str:
+        """Return a string for the calibration timestamp.
+
+        Args:
+            tz: The timezone for the string. If None, the method uses the
+                platform's local date and time.
+            timespec: See datetime.isoformat for valid values.
+
+        Returns:
+            The string in ISO 8601 format YYYY-MM-DDTHH:MM:SS.ffffff.
+        """
+        dt = datetime.datetime.fromtimestamp(self.timestamp / 1000, tz)
+        dt += datetime.timedelta(microseconds=self.timestamp % 1000000)
+        return dt.isoformat(sep=' ', timespec=timespec)
+
     def heatmap(self, key: str) -> vis.Heatmap:
+        """Return a heatmap for metrics that target single qubits.
+
+        Args:
+            key: The metric key to return a heatmap for.
+
+        Returns:
+            A `cirq.Heatmap` for the metric.
+
+        Raises:
+            AssertionError if the heatmap is not for single qubits or the metric
+            values are not single floats.
+        """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
             'Heatmaps are only supported if all the targets in a metric'
