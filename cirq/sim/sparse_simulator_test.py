@@ -696,6 +696,19 @@ def test_measure_at_end_invert_mask_partial():
     np.testing.assert_equal(result.measurements['ac'], np.array([[1, 0]] * 4))
 
 
+def test_qudit_invert_mask():
+    q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
+    c = cirq.Circuit(
+        PlusGate(2, 1)(q0),
+        PlusGate(3, 1)(q2),
+        PlusGate(3, 2)(q3),
+        PlusGate(4, 3)(q4),
+        cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
+    )
+    assert np.all(
+        cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
+
+
 def test_compute_amplitudes():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(a), cirq.H(a), cirq.H(b))

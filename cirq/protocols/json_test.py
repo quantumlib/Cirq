@@ -287,6 +287,7 @@ SHOULDNT_BE_SERIALIZED = [
     'MergeInteractions',
     'MergeSingleQubitGates',
     'PointOptimizer',
+    'SynchronizeTerminalMeasurements',
 
     # global objects
     'CONTROL_TAG',
