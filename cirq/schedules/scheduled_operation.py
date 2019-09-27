@@ -15,7 +15,7 @@
 from datetime import timedelta
 from typing import Union
 
-from cirq import ops
+from cirq import ops, protocols
 from cirq.devices import Device
 from cirq.value import Duration, Timestamp
 
