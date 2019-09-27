@@ -186,7 +186,7 @@ def test_list_op_constructor_matches_mapping(pauli):
 
 
 def test_constructor_flexibility():
-    a, b, c = cirq.LineQubit.range(3)
+    a, b = cirq.LineQubit.range(2)
     with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
         _ = cirq.PauliString(cirq.CZ(a, b))
     with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
@@ -204,6 +204,8 @@ def test_constructor_flexibility():
         qubit_pauli_map={a: cirq.Z}, coefficient=6j)
 
     assert cirq.PauliString(cirq.X(a), cirq.X(a)) == cirq.PauliString()
+    assert cirq.PauliString(cirq.X(a), cirq.X(b)) == cirq.PauliString(
+        qubit_pauli_map={a: cirq.X, b: cirq.X})
 
     assert cirq.PauliString(0) == cirq.PauliString(coefficient=0)
 
