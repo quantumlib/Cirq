@@ -72,7 +72,6 @@ def test_swap_network_str():
     routed_circuit = cca.complete_acquaintance_strategy(phys_qubits, 2)
     execution_strategy(routed_circuit)
     swap_network = ccr.SwapNetwork(routed_circuit, initial_mapping)
-    print(swap_network)
     actual_str = str(swap_network)
     expected_str = """
 (0, 0): ───0───ZZ───0───╲0╱───1────────1─────────1───ZZ───1───╲0╱───3────────3─────────3───ZZ───3───╲0╱───4───
