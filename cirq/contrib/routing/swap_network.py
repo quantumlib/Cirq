@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, Optional, TYPE_CHECKING
+from typing import Dict, Iterable, List, Optional, TYPE_CHECKING
 
 from cirq import ops
 import cirq.contrib.acquaintance as cca
@@ -50,7 +50,7 @@ class SwapNetwork:
         cca.update_mapping(mapping, self.circuit.all_operations())
         return mapping
 
-    def get_logical_operations(self) -> Optional[Iterable[ops.Operation]]:
+    def get_logical_operations(self) -> Optional[List[ops.Operation]]:
         return cca.get_logical_operations(self.circuit.all_operations(),
                                           self.initial_mapping)
 

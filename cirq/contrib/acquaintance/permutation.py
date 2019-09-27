@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import abc
-from typing import (cast, Dict, Iterable, Optional, Sequence, Tuple,
+from typing import (cast, Dict, Iterable, List, Optional, Sequence, Tuple,
                     TYPE_CHECKING, TypeVar, Union)
 
 from cirq import circuits, ops, optimizers, protocols, value
@@ -64,7 +64,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         new_keys = [keys[permutation[i]] for i in indices]
         old_elements = [mapping.get(keys[i]) for i in indices]
         for new_key, old_element in zip(new_keys, old_elements):
-            if old_element is None:
+            if old_element is None and new_key in mapping:
                 del mapping[new_key]
             else:
                 mapping[new_key] = old_element
@@ -226,7 +226,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 
 def get_logical_operations(operations: 'cirq.OP_TREE',
                            initial_mapping: Dict[ops.Qid, ops.Qid]
-                          ) -> Optional[Iterable['cirq.Operation']]:
+                          ) -> Optional[List['cirq.Operation']]:
     """Gets the logical operations specified by the physical operations and
     initial mapping.
 
@@ -235,6 +235,7 @@ def get_logical_operations(operations: 'cirq.OP_TREE',
         initial_mapping: The initial mapping of physical to logical qubits.
     """
     mapping = initial_mapping.copy()
+    logical_ops = []
     for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(operations)):
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, PermutationGate)):
@@ -243,7 +244,9 @@ def get_logical_operations(operations: 'cirq.OP_TREE',
             for q in op.qubits:
                 if mapping.get(q) is None:
                     return None
-            yield op.transform_qubits(mapping.__getitem__)
+            logical_op = op.transform_qubits(mapping.__getitem__)
+            logical_ops.append(logical_op)
+    return logical_ops
 
 
 class DecomposePermutationGates(optimizers.ExpandComposite):
