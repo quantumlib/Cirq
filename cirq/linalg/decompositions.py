@@ -589,7 +589,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         >>> for y in np.linspace(0, 0.5, 4):
         ...     a, b = cirq.LineQubit.range(2)
         ...     circuits = [
-        ...         cirq.Circuit.from_ops(
+        ...         cirq.Circuit(
         ...             cirq.CZ(a, b)**0.5,
         ...             cirq.X(a)**y, cirq.X(b)**x,
         ...             cirq.CZ(a, b)**0.5,

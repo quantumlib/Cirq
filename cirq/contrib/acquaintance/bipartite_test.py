@@ -225,7 +225,7 @@ circuit_diagrams = {
 def test_circuit_diagrams(part_size, subgraph):
     qubits = cirq.LineQubit.range(2 * part_size)
     gate = cca.BipartiteSwapNetworkGate(subgraph, part_size)
-    circuit = cirq.Circuit.from_ops(gate(*qubits))
+    circuit = cirq.Circuit(gate(*qubits))
     diagram = circuit_diagrams['undecomposed', subgraph, part_size]
     cirq.testing.assert_has_diagram(circuit, diagram)
 

@@ -203,6 +203,7 @@ def test_default_inverse():
 
 
 def test_no_inverse_if_not_unitary():
+
     class TestGate(cirq.Gate):
 
         def _num_qubits_(self):
@@ -212,6 +213,20 @@ def test_no_inverse_if_not_unitary():
             return cirq.amplitude_damp(0.5).on(qubits[0])
 
     assert cirq.inverse(TestGate(), None) is None
+
+
+def test_default_qudit_inverse():
+
+    class TestGate(cirq.Gate):
+
+        def _qid_shape_(self):
+            return (1, 2, 3)
+
+        def _decompose_(self, qubits):
+            return (cirq.X**0.1).on(qubits[1])
+
+    assert cirq.qid_shape(cirq.inverse(TestGate(), None)) == (1, 2, 3)
+    cirq.testing.assert_has_consistent_qid_shape(cirq.inverse(TestGate()))
 
 
 @pytest.mark.parametrize('expression, expected_result', (
@@ -377,3 +392,32 @@ def test_gate_json_dict():
     assert g._json_dict_() == {
         'cirq_type': 'CSwapGate',
     }
+
+
+def test_inverse_composite_diagram_info():
+
+    class Gate(cirq.Gate):
+
+        def _decompose_(self, qubits):
+            return cirq.S.on(qubits[0])
+
+        def num_qubits(self) -> int:
+            return 1
+
+    c = cirq.inverse(Gate())
+    assert cirq.circuit_diagram_info(c, default=None) is None
+
+    class Gate2(cirq.Gate):
+
+        def _decompose_(self, qubits):
+            return cirq.S.on(qubits[0])
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _circuit_diagram_info_(self, args):
+            return 's!'
+
+    c = cirq.inverse(Gate2())
+    assert cirq.circuit_diagram_info(c) == cirq.CircuitDiagramInfo(
+        wire_symbols=('s!',), exponent=-1)

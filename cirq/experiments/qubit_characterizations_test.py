@@ -59,9 +59,9 @@ def test_single_qubit_state_tomography():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
 
-    circuit_1 = circuits.Circuit.from_ops(ops.X(qubit) ** 0.5)
-    circuit_2 = circuits.Circuit.from_ops(ops.Y(qubit) ** 0.5)
-    circuit_3 = circuits.Circuit.from_ops(ops.H(qubit), ops.Y(qubit))
+    circuit_1 = circuits.Circuit(ops.X(qubit)**0.5)
+    circuit_2 = circuits.Circuit(ops.Y(qubit)**0.5)
+    circuit_3 = circuits.Circuit(ops.H(qubit), ops.Y(qubit))
 
     act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1,
                                               1000).data
@@ -89,16 +89,14 @@ def test_two_qubit_state_tomography():
     q_0 = GridQubit(0, 0)
     q_1 = GridQubit(0, 1)
 
-    circuit_00 = circuits.Circuit.from_ops(ops.H(q_0), ops.CNOT(q_0, q_1))
-    circuit_01 = circuits.Circuit.from_ops(ops.X(q_1), ops.H(q_0),
-                                           ops.CNOT(q_0, q_1))
-    circuit_10 = circuits.Circuit.from_ops(ops.X(q_0), ops.H(q_0),
-                                           ops.CNOT(q_0, q_1))
-    circuit_11 = circuits.Circuit.from_ops(ops.X(q_0), ops.X(q_1), ops.H(q_0),
-                                           ops.CNOT(q_0, q_1))
-    circuit_hh = circuits.Circuit.from_ops(ops.H(q_0), ops.H(q_1))
-    circuit_xy = circuits.Circuit.from_ops(ops.X(q_0)**0.5, ops.Y(q_1)**0.5)
-    circuit_yx = circuits.Circuit.from_ops(ops.Y(q_0)**0.5, ops.X(q_1)**0.5)
+    circuit_00 = circuits.Circuit(ops.H(q_0), ops.CNOT(q_0, q_1))
+    circuit_01 = circuits.Circuit(ops.X(q_1), ops.H(q_0), ops.CNOT(q_0, q_1))
+    circuit_10 = circuits.Circuit(ops.X(q_0), ops.H(q_0), ops.CNOT(q_0, q_1))
+    circuit_11 = circuits.Circuit(ops.X(q_0), ops.X(q_1), ops.H(q_0),
+                                  ops.CNOT(q_0, q_1))
+    circuit_hh = circuits.Circuit(ops.H(q_0), ops.H(q_1))
+    circuit_xy = circuits.Circuit(ops.X(q_0)**0.5, ops.Y(q_1)**0.5)
+    circuit_yx = circuits.Circuit(ops.Y(q_0)**0.5, ops.X(q_1)**0.5)
 
     act_rho_00 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_00,
                                             1000).data

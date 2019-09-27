@@ -33,6 +33,7 @@ from typing import (
     Hashable,
     Iterator,
     List,
+    Sequence,
     Tuple,
     Union,
     Optional,
@@ -73,8 +74,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit)
-                   else program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
         if not circuit.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
@@ -147,8 +148,8 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             List of ComputeDisplaysResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
 
         compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
         for param_resolver in study.to_resolvers(params):
@@ -159,11 +160,9 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
                             if isinstance(op, ops.SamplesDisplay))
                 for display in displays:
                     measurement_key = str(display.key)
-                    measurement_circuit = circuits.Circuit.from_ops(
+                    measurement_circuit = circuits.Circuit(
                         display.measurement_basis_change(),
-                        ops.measure(*display.qubits,
-                                    key=measurement_key)
-                    )
+                        ops.measure(*display.qubits, key=measurement_key))
                     measurements = self._run(
                         preceding_circuit + measurement_circuit,
                         param_resolver,
@@ -191,10 +190,10 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     def compute_amplitudes(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            bitstrings: np.ndarray,
+            bitstrings: Sequence[int],
             param_resolver: 'study.ParamResolverOrSimilarType' = None,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> List[complex]:
+    ) -> Sequence[complex]:
         """Computes the desired amplitudes.
 
         The initial state is assumed to be the all zeros state.
@@ -202,9 +201,9 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         Args:
             program: The circuit or schedule to simulate.
             bitstrings: The bitstrings whose amplitudes are desired, input
-                as a two-dimensional array of bools. The first dimension
-                indexes the bitstrings and the second dimension indexes
-                the bits within a bitstring.
+                as an integer array where each integer is formed from measured
+                qubit values according to `qubit_order` from most to least
+                significant qubit, i.e. in big-endian ordering.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -221,10 +220,10 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     def compute_amplitudes_sweep(
             self,
             program: Union[circuits.Circuit, schedules.Schedule],
-            bitstrings: np.ndarray,
+            bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-    ) -> List[List[complex]]:
+    ) -> Sequence[Sequence[complex]]:
         """Computes the desired amplitudes.
 
         The initial state is assumed to be the all zeros state.
@@ -232,9 +231,9 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         Args:
             program: The circuit or schedule to simulate.
             bitstrings: The bitstrings whose amplitudes are desired, input
-                as a two-dimensional array of bools. The first dimension
-                indexes the bitstrings and the second dimension indexes
-                the bits within a bitstring.
+                as an integer array where each integer is formed from measured
+                qubit values according to `qubit_order` from most to least
+                significant qubit, i.e. in big-endian ordering.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -358,8 +357,8 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program if isinstance(program, circuits.Circuit) else
-                   program.to_circuit())
+        circuit = (program.to_circuit()
+                   if isinstance(program, schedules.Schedule) else program)
 
         trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)

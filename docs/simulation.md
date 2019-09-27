@@ -145,7 +145,7 @@ circuit that flips one qubit out of two:
 ```python
 q_stay = cirq.NamedQubit('q_stay')
 q_flip = cirq.NamedQubit('q_flip')
-c = cirq.Circuit.from_ops(cirq.X(q_flip))
+c = cirq.Circuit(cirq.X(q_flip))
 
 # first qubit in order flipped
 result = simulator.simulate(c, qubit_order=[q_flip, q_stay])
@@ -205,7 +205,7 @@ $\rho \rightarrow (1-p) \rho + p X \rho X$
 Lets see a use of this in a simulator
 ```python
 q = cirq.NamedQubit('a')
-circuit = cirq.Circuit.from_ops(cirq.bit_flip(p=0.2)(q), cirq.measure(q))
+circuit = cirq.Circuit(cirq.bit_flip(p=0.2)(q), cirq.measure(q))
 simulator = cirq.Simulator()
 result = simulator.run(circuit, repetitions=100)
 print(result.histogram(key='a'))
@@ -301,7 +301,7 @@ Here is a simple example of simulating a channel using the
 mixed state simulator
 ```python
 q = cirq.NamedQubit('a')
-circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.amplitude_damp(0.2)(q), cirq.measure(q))
+circuit = cirq.Circuit(cirq.H(q), cirq.amplitude_damp(0.2)(q), cirq.measure(q))
 simulator = cirq.DensityMatrixSimulator()
 result = simulator.run(circuit, repetitions=100)
 print(result.histogram(key='a'))
@@ -327,7 +327,7 @@ superposition followed by an amplitude damping channel with a
 gamma of 0.2 by
 ```
 q = cirq.NamedQubit('a')
-circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.amplitude_damp(0.2)(q))
+circuit = cirq.Circuit(cirq.H(q), cirq.amplitude_damp(0.2)(q))
 simulator = cirq.DensityMatrixSimulator()
 result = simulator.simulate(circuit)
 print(np.around(result.final_density_matrix, 3))
