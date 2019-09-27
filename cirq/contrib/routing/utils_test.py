@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 import cirq.contrib.routing as ccr
 
@@ -26,7 +28,7 @@ def test_ops_are_consistent_with_device_graph():
         [cirq.X(cirq.GridQubit(0, 0))], device_graph)
 
 
-def test_is_valid_routing_on_unmapped_qubits():
+def test_is_valid_routing_with_bad_args():
     p, q, r = cirq.LineQubit.range(3)
     x, y = cirq.NamedQubit('x'), cirq.NamedQubit('y')
     circuit = cirq.Circuit([cirq.CNOT(x, y), cirq.CZ(x, y)])
@@ -34,3 +36,9 @@ def test_is_valid_routing_on_unmapped_qubits():
     initial_mapping = {p: x, q: y}
     swap_network = ccr.SwapNetwork(routed_circuit, initial_mapping)
     assert not ccr.is_valid_routing(circuit, swap_network)
+
+    def equals(*args):
+        raise ValueError
+
+    with pytest.raises(ValueError):
+        ccr.is_valid_routing(circuit, swap_network, equals=equals)

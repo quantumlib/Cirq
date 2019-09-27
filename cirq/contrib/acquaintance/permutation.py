@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import abc
-from typing import (cast, Dict, Iterable, List, Optional, Sequence, Tuple,
-                    TYPE_CHECKING, TypeVar, Union)
+from typing import (cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
+                    TypeVar, Union)
 
 from cirq import circuits, ops, optimizers, protocols, value
 
@@ -227,19 +227,19 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 
 def get_logical_operations(operations: 'cirq.OP_TREE',
                            initial_mapping: Dict[ops.Qid, ops.Qid]
-                          ) -> Optional[List['cirq.Operation']]:
+                          ) -> Iterable['cirq.Operation']:
     """Gets the logical operations specified by the physical operations and
     initial mapping.
-
-    If a non-permutation physical operation acts on an unmapped qubit, returns
-    None.
 
     Args:
         operations: The physical operations.
         initial_mapping: The initial mapping of physical to logical qubits.
+
+    Raises:
+        ValueError: A non-permutation physical operation acts on an unmapped
+            qubit.
     """
     mapping = initial_mapping.copy()
-    logical_ops = []
     for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(operations)):
         if (isinstance(op, ops.GateOperation) and
                 isinstance(op.gate, PermutationGate)):
@@ -247,10 +247,9 @@ def get_logical_operations(operations: 'cirq.OP_TREE',
         else:
             for q in op.qubits:
                 if mapping.get(q) is None:
-                    return None
-            logical_op = op.transform_qubits(mapping.__getitem__)
-            logical_ops.append(logical_op)
-    return logical_ops
+                    raise ValueError(
+                        f'Operation {op} acts on unmapped qubit {q}.')
+            yield op.transform_qubits(mapping.__getitem__)
 
 
 class DecomposePermutationGates(optimizers.ExpandComposite):
