@@ -119,7 +119,7 @@ class SerializableDevice(devices.Device):
                             ' is not currently allowed.'
                         raise NotImplementedError(msg)
                 gate_definitions[gate_def.id] = _GateDefinition(
-                    duration=Duration(picos=gate_def.duration),
+                    duration=Duration(picos=gate_def.gate_duration_picos),
                     target_set=gate_target_set,
                     is_permutation=is_permutation,
                     number_of_qubits=gate_def.number_of_qubits)
