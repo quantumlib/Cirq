@@ -30,10 +30,10 @@ from cirq import ops, protocols
 from cirq.google import op_deserializer, op_serializer
 
 
-def _near_mod_2(e, t, n, atol=1e-8):
+def _near_mod_2(e, t, atol=1e-8):
     if isinstance(e, sympy.Symbol):
         return False
-    return abs((e - t + 1) % n - 1) <= atol
+    return abs((e - t + 1) % 2 - 1) <= atol
 
 
 """Single qubit serializers for arbitrary rotations"""
