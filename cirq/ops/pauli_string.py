@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView, overload,
-                    Optional, cast, TYPE_CHECKING)
+                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
+                    TYPE_CHECKING, SupportsComplex)
 
 import cmath
 import math
@@ -24,23 +24,15 @@ import numpy as np
 
 from cirq import value, protocols, linalg
 from cirq._compat import deprecated
-from cirq.ops import (
-    global_phase_op,
-    raw_types,
-    gate_operation,
-    common_gates,
-    pauli_gates,
-    clifford_gate,
-    pauli_interaction_gate)
+from cirq.ops import (global_phase_op, raw_types, gate_operation, common_gates,
+                      pauli_gates, clifford_gate, pauli_interaction_gate)
 
 if TYPE_CHECKING:
     import cirq
 
-
 # A value that can be unambiguously converted into a `cirq.PauliString`.
 PAULI_STRING_LIKE = Union[
-    complex,
-    'cirq.OP_TREE',
+    complex, 'cirq.OP_TREE',
     Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
@@ -51,10 +43,11 @@ TDefault = TypeVar('TDefault')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
-    def __init__(self,
-                 *contents: PAULI_STRING_LIKE,
-                 qubit_pauli_map: Optional[Dict['cirq.Qid', 'cirq.Pauli']] = None,
-                 coefficient: Union[int, float, complex] = 1):
+    def __init__(
+            self,
+            *contents: PAULI_STRING_LIKE,
+            qubit_pauli_map: Optional[Dict['cirq.Qid', 'cirq.Pauli']] = None,
+            coefficient: Union[int, float, complex] = 1):
         """Initializes a new PauliString.
 
         Args:
@@ -133,7 +126,8 @@ class PauliString(raw_types.Operation):
 
     @classmethod
     def _from_json_dict_(cls, qubit_pauli_map, coefficient, **kwargs):
-        return cls(qubit_pauli_map=dict(qubit_pauli_map), coefficient=coefficient)
+        return cls(qubit_pauli_map=dict(qubit_pauli_map),
+                   coefficient=coefficient)
 
     def _value_equality_values_cls_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
@@ -173,7 +167,8 @@ class PauliString(raw_types.Operation):
     def __rmul__(self, other) -> 'PauliString':
         if isinstance(other, numbers.Number):
             return PauliString(qubit_pauli_map=self._qubit_pauli_map,
-                               coefficient=self._coefficient * complex(other))
+                               coefficient=self._coefficient *
+                               complex(cast(SupportsComplex, other)))
 
         if gate_operation.op_gate_isinstance(other, common_gates.IdentityGate):
             return self
@@ -184,7 +179,8 @@ class PauliString(raw_types.Operation):
     def __truediv__(self, other):
         if isinstance(other, numbers.Number):
             return PauliString(qubit_pauli_map=self._qubit_pauli_map,
-                               coefficient=self._coefficient / complex(other))
+                               coefficient=self._coefficient /
+                               complex(cast(SupportsComplex, other)))
         return NotImplemented
 
     def __add__(self, other):
@@ -221,10 +217,9 @@ class PauliString(raw_types.Operation):
         return tuple(sorted(self.keys()))
 
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
-        return PauliString(
-            qubit_pauli_map=dict(zip(new_qubits,
-                                     (self[q] for q in self.qubits))),
-            coefficient=self._coefficient)
+        return PauliString(qubit_pauli_map=dict(
+            zip(new_qubits, (self[q] for q in self.qubits))),
+                           coefficient=self._coefficient)
 
     def values(self) -> ValuesView[pauli_gates.Pauli]:
         return self._qubit_pauli_map.values()
@@ -794,9 +789,8 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
 
 class _MutablePauliString:
-    def __init__(self,
-                 *,
-                 coef: complex,
+
+    def __init__(self, *, coef: complex,
                  paulis: Dict['cirq.Qid', 'cirq.Pauli']):
         self.coef = coef
         self.paulis = paulis
@@ -812,7 +806,7 @@ class _MutablePauliString:
         if new_pauli is common_gates.I:
             del self.paulis[qubit]
         else:
-            self.paulis[qubit] = new_pauli
+            self.paulis[qubit] = cast(pauli_gates.Pauli, new_pauli)
 
     def inline_times_pauli_string(self, other: 'cirq.PauliString'):
         for qubit, pauli in other.items():
@@ -820,9 +814,8 @@ class _MutablePauliString:
         self.coef *= other.coefficient
 
     def _inline_times_mapping(
-            self,
-            mapping: Mapping['cirq.Qid',
-                             Union['cirq.Pauli', 'cirq.IdentityGate']]):
+            self, mapping: Mapping['cirq.Qid',
+                                   Union['cirq.Pauli', 'cirq.IdentityGate']]):
         for qubit, pauli in mapping.items():
             if isinstance(pauli, common_gates.IdentityGate):
                 continue
@@ -845,10 +838,10 @@ class _MutablePauliString:
             self._inline_times_mapping(contents)
         elif isinstance(contents, Iterable) and not isinstance(contents, str):
             for item in contents:
-                self.inline_times_pauli_string_like(item)
+                self.inline_times_pauli_string_like(
+                    cast(PAULI_STRING_LIKE, item))
         elif isinstance(contents, numbers.Number):
-            self.coef *= complex(contents)
+            self.coef *= complex(cast(SupportsComplex, contents))
         else:
-            raise TypeError(
-                f"Not a `cirq.PAULI_STRING_LIKE`: "
-                f"{type(contents)}, {repr(contents)}")
+            raise TypeError(f"Not a `cirq.PAULI_STRING_LIKE`: "
+                            f"{type(contents)}, {repr(contents)}")

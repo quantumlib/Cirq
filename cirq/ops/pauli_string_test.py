@@ -39,16 +39,21 @@ def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(
-        lambda: cirq.PauliString(),
-        lambda: cirq.PauliString(qubit_pauli_map={}),
-        lambda: cirq.PauliString(qubit_pauli_map={}, coefficient=+1))
+        lambda: cirq.PauliString(), lambda: cirq.PauliString(qubit_pauli_map={
+        }), lambda: cirq.PauliString(qubit_pauli_map={}, coefficient=+1))
     eq.add_equality_group(cirq.PauliString(qubit_pauli_map={}, coefficient=-1))
     for q, pauli in itertools.product((q0, q1), (cirq.X, cirq.Y, cirq.Z)):
-        eq.add_equality_group(cirq.PauliString(qubit_pauli_map={q: pauli}, coefficient=+1))
-        eq.add_equality_group(cirq.PauliString(qubit_pauli_map={q: pauli}, coefficient=-1))
+        eq.add_equality_group(
+            cirq.PauliString(qubit_pauli_map={q: pauli}, coefficient=+1))
+        eq.add_equality_group(
+            cirq.PauliString(qubit_pauli_map={q: pauli}, coefficient=-1))
     for q, p0, p1 in itertools.product((q0, q1), (cirq.X, cirq.Y, cirq.Z),
                                        (cirq.X, cirq.Y, cirq.Z)):
-        eq.add_equality_group(cirq.PauliString(qubit_pauli_map={q: p0, q2: p1}, coefficient=+1))
+        eq.add_equality_group(
+            cirq.PauliString(qubit_pauli_map={
+                q: p0,
+                q2: p1
+            }, coefficient=+1))
 
 
 def test_equal_up_to_coefficient():
@@ -187,12 +192,12 @@ def test_constructor_flexibility():
     with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
         _ = cirq.PauliString('test')
 
-    assert cirq.PauliString(cirq.X(a)) == cirq.PauliString(
-        qubit_pauli_map={a: cirq.X})
-    assert cirq.PauliString([cirq.X(a)]) == cirq.PauliString(
-        qubit_pauli_map={a: cirq.X})
-    assert cirq.PauliString([[[cirq.X(a)]]]) == cirq.PauliString(
-        qubit_pauli_map={a: cirq.X})
+    assert cirq.PauliString(
+        cirq.X(a)) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
+    assert cirq.PauliString([cirq.X(a)
+                            ]) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
+    assert cirq.PauliString([[[cirq.X(a)]]
+                            ]) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
     assert cirq.PauliString([[[cirq.I(a)]]]) == cirq.PauliString()
 
     assert cirq.PauliString(1, 2, 3, cirq.X(a), cirq.Y(a)) == cirq.PauliString(
@@ -202,9 +207,9 @@ def test_constructor_flexibility():
 
     assert cirq.PauliString(0) == cirq.PauliString(coefficient=0)
 
-    assert cirq.PauliString(1, 2, 3, {a: cirq.X}, cirq.Y(a)
-                            ) == cirq.PauliString(qubit_pauli_map={a: cirq.Z},
-                                                  coefficient=6j)
+    assert cirq.PauliString(1, 2, 3, {a: cirq.X},
+                            cirq.Y(a)) == cirq.PauliString(
+                                qubit_pauli_map={a: cirq.Z}, coefficient=6j)
 
 
 def test_deprecated_from_single():

@@ -173,7 +173,6 @@ def approx_pauli_string_expectation(pauli_string: 'cirq.PAULI_STRING_LIKE',
                                     num_samples: int,
                                     key: Hashable = ''
                                    ) -> ApproxPauliStringExpectation:
-    return ApproxPauliStringExpectation(
-        cirq.PauliString(pauli_string),
-        num_samples,
-        key=key)
+    return ApproxPauliStringExpectation(cirq.PauliString(pauli_string),
+                                        num_samples,
+                                        key=key)

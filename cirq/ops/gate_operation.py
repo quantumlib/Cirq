@@ -189,8 +189,7 @@ class GateOperation(raw_types.Operation):
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 
-def op_gate_of_type(op: Any,
-                    gate_type: Type[TV]) -> Optional[TV]:
+def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     """Returns gate of given type, if op has that gate otherwise None."""
     return op.gate if op_gate_isinstance(op, gate_type) else None
 

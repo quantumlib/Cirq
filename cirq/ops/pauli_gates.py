@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, TYPE_CHECKING, Tuple
+from typing import Union, TYPE_CHECKING, Tuple, cast
 
 from cirq import value
 from cirq.ops import common_gates, raw_types
@@ -61,9 +61,10 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     ) -> Tuple[complex, Union['cirq.Pauli', 'cirq.IdentityGate']]:
         if self == other:
             return 1, common_gates.I
-        if other == common_gates.I:
+        if other is common_gates.I:
             return 1, self
-        return 1j**other.relative_index(self), self.third(other)
+        return 1j**cast(Pauli, other).relative_index(self), self.third(
+            cast(Pauli, other))
 
     def __gt__(self, other):
         if not isinstance(other, Pauli):
