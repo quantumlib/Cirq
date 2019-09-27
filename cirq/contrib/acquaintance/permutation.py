@@ -230,6 +230,9 @@ def get_logical_operations(operations: 'cirq.OP_TREE',
     """Gets the logical operations specified by the physical operations and
     initial mapping.
 
+    If a non-permutation physical operation acts on an unmapped qubit, returns
+    None.
+
     Args:
         operations: The physical operations.
         initial_mapping: The initial mapping of physical to logical qubits.
