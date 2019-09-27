@@ -187,7 +187,8 @@ def test_constructor_fails_non_pauli():
 
 
 def test_constructor_fails_bad_type():
-    cirq.PauliString(None)
+    with pytest.raises(ValueError):
+        cirq.PauliString(0)
 
 
 def test_deprecated_from_single():
