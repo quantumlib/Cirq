@@ -85,6 +85,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    linear_xeb_fidelity,
     generate_supremacy_circuit_google_v2,
     generate_supremacy_circuit_google_v2_bristlecone,
     generate_supremacy_circuit_google_v2_grid,
@@ -166,6 +167,8 @@ from cirq.ops import (
     DepolarizingChannel,
     EigenGate,
     flatten_op_tree,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     FREDKIN,
     freeze_op_tree,
     FSimGate,
@@ -173,6 +176,7 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    GivensRotation,
     GlobalPhaseOperation,
     H,
     HPowGate,
@@ -206,9 +210,13 @@ from cirq.ops import (
     phase_damp,
     phase_flip,
     PhaseDampingChannel,
+    PhaseGradientGate,
+    PhasedISwapPowGate,
     PhasedXPowGate,
     PhaseFlipChannel,
+    QFT,
     Qid,
+    QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
     reset,
@@ -261,6 +269,7 @@ from cirq.optimizers import (
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
     single_qubit_op_to_framed_phase_form,
+    SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
 )
 
@@ -390,6 +399,7 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
     SupportsMixture,

@@ -50,11 +50,8 @@ def test_MS_repr():
 def test_MS_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
-        cirq.SWAP(a, b),
-        cirq.X(a),
-        cirq.Y(a),
-        cirq.MS(np.pi).on(a, b))
+    circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.X(a), cirq.Y(a),
+                           cirq.MS(np.pi).on(a, b))
     cirq.testing.assert_has_diagram(circuit, """
 a: ───×───X───Y───MS(π)───
       │           │

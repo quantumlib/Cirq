@@ -14,7 +14,7 @@
 
 import operator
 import random
-from typing import Any, Callable, cast, Iterable, Optional, TYPE_CHECKING
+from typing import Any, Callable, cast, Iterable, TYPE_CHECKING
 
 import networkx
 

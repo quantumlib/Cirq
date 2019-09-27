@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Tuple
+from typing import Iterable
+
+import networkx as nx
 
 import cirq
-import networkx as nx
 
 
 def xmon_device_to_graph(device: cirq.google.XmonDevice) -> nx.Graph:

@@ -27,7 +27,6 @@ class ReturnsNotImplemented:
 
 p = cirq.NamedQubit('p')
 q = cirq.NamedQubit('q')
-dummy_gate = cirq.SingleQubitGate()
 dummy_op = cirq.GateOperation(cirq.X, [p])
 
 @pytest.mark.parametrize('controllee', (
@@ -50,10 +49,9 @@ def test_controlled_by_error():
         _ = cirq.protocols.control(NoMethod(), [p])
 
 
-@pytest.mark.parametrize('controllee,control_qubits,out', (
-    (dummy_gate, [p], cirq.ControlledGate(dummy_gate, [p])),
-    (dummy_op, [q], cirq.ControlledOperation([q], dummy_op)),
-))
+@pytest.mark.parametrize(
+    'controllee,control_qubits,out',
+    ((dummy_op, [q], cirq.ControlledOperation([q], dummy_op)),))
 def test_pow_with_result(controllee, control_qubits, out):
     assert (cirq.protocols.control(controllee, control_qubits) ==
             cirq.protocols.control(controllee, control_qubits, default=None) ==

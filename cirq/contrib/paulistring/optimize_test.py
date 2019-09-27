@@ -22,20 +22,20 @@ from cirq.contrib.paulistring import (
 
 def test_optimize():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    c_orig = cirq.Circuit.from_ops(
-        cirq.X(q0) ** 0.5,
+    c_orig = cirq.Circuit(
+        cirq.X(q0)**0.5,
         cirq.X(q1),
         cirq.CZ(q1, q2),
-        cirq.X(q2) ** 0.125,
-        cirq.Z(q1) ** 0.5,
-        cirq.Y(q1) ** 0.5,
+        cirq.X(q2)**0.125,
+        cirq.Z(q1)**0.5,
+        cirq.Y(q1)**0.5,
         cirq.CZ(q0, q1),
-        cirq.Z(q1) ** 0.5,
+        cirq.Z(q1)**0.5,
         cirq.CZ(q1, q2),
-        cirq.Z(q1) ** 0.5,
-        cirq.X(q2) ** 0.875,
+        cirq.Z(q1)**0.5,
+        cirq.X(q2)**0.875,
         cirq.CZ(q1, q2),
-        cirq.X(q2) ** 0.125,
+        cirq.X(q2)**0.125,
     )
     cirq.testing.assert_has_diagram(c_orig, """
 0: ───X^0.5─────────────────────────@───────────────────────────────────
