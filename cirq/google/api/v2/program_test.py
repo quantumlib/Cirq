@@ -11,30 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Data format v2 for google api."""
 
-from cirq.google.api.v2 import (
-    metrics_pb2,
-    program_pb2,
-    result_pb2,
-    run_context_pb2,
-)
+import cirq
+import cirq.google.api.v2 as v2
 
-from cirq.google.api.v2.program import (
-    qubit_from_proto_id,
-    qubit_to_proto_id,
-)
 
-from cirq.google.api.v2.results import (
-    MeasureInfo,
-    find_measurements,
-    pack_bits,
-    unpack_bits,
-    results_from_proto,
-    results_to_proto,
-)
+def test_qubit_to_proto_id():
+    assert v2.qubit_to_proto_id(cirq.GridQubit(1, 2)) == '1_2'
+    assert v2.qubit_to_proto_id(cirq.GridQubit(10, 2)) == '10_2'
 
-from cirq.google.api.v2.sweeps import (
-    sweep_from_proto,
-    sweep_to_proto,
-)
+
+def test_qubit_from_proto_id():
+    assert v2.qubit_from_proto_id('1_2') == cirq.GridQubit(1, 2)
+    assert v2.qubit_from_proto_id('10_2') == cirq.GridQubit(10, 2)
