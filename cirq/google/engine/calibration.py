@@ -127,7 +127,8 @@ class Calibration(abc.Mapping):
     def heatmap(self, key: str) -> vis.Heatmap:
         """Return a heatmap for metrics that target single qubits.
 
-
+        Args:
+            key: The metric key to return a heatmap for.
         """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
