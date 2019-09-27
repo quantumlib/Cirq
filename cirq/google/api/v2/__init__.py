@@ -22,7 +22,9 @@ from cirq.google.api.v2 import (
 )
 
 from cirq.google.api.v2.program import (
-    qubit_from_proto_id,
+    grid_qubit_from_proto_id,
+    line_qubit_from_proto_id,
+    named_qubit_from_proto_id,
     qubit_to_proto_id,
 )
 

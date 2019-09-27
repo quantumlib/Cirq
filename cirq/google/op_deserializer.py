@@ -104,7 +104,7 @@ class GateOpDeserializer:
     def from_proto(self,
                    proto: v2.program_pb2.Operation) -> 'cirq.GateOperation':
         """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
-        qubits = [api_v2.qubit_from_proto_id(q.id) for q in proto.qubits]
+        qubits = [api_v2.grid_qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto)
         if self.num_qubits_param is not None:
             args[self.num_qubits_param] = len(qubits)

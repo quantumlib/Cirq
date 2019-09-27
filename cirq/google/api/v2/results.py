@@ -221,7 +221,7 @@ def _trial_sweep_from_proto(
             qubit_results: OrderedDict[devices.GridQubit, np.
                                        ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
-                qubit = v2.qubit_from_proto_id(qmr.qubit.id)
+                qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
                     raise ValueError('qubit already exists: {}'.format(qubit))
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)
