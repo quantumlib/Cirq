@@ -99,5 +99,5 @@ def test_random_circuit_reproducible_between_runs():
           │         │
 4: ───────@─────────@────────────────────X───
                   └──┘
-"""
+    """
     cirq.testing.assert_has_diagram(circuit, expected_diagram)
