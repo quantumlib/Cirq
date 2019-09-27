@@ -17,6 +17,8 @@ import pytest
 import cirq
 import cirq.contrib.routing as ccr
 
+import networkx as nx
+
 
 def test_xmon_device_to_graph():
     foxtail_graph = ccr.xmon_device_to_graph(cirq.google.Foxtail)
@@ -39,3 +41,14 @@ def test_nx_qubit_layout():
     for k, (x, y) in pos.items():
         assert x == k.col
         assert y == -k.row
+
+
+def test_nx_qubit_layout_2():
+    g = nx.from_edgelist([
+        (cirq.LineQubit(0), cirq.LineQubit(1)),
+        (cirq.LineQubit(1), cirq.LineQubit(2)),
+    ])
+    pos = ccr.nx_qubit_layout(g)
+    for k, (x, y) in pos.items():
+        assert x == k.x
+        assert y == 0

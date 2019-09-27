@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable
+from typing import Iterable, Tuple, Union, Dict
 
 import networkx as nx
 
@@ -49,19 +49,23 @@ def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
 
 
-def nx_qubit_layout(graph: nx.Graph):
+def nx_qubit_layout(graph: nx.Graph) \
+        -> Dict[Union[cirq.GridQubit, cirq.LineQubit], Tuple[int, int]]:
     """Return a layout for a graph for nodes which are qubits.
 
     This can be used in place of nx.spring_layout or other networkx layouts.
     GridQubits are positioned according to their row/col. LineQubits are
     positioned in a line.
 
-    >>> g = xmon_device_to_graph(cirq.google.Foxtail)
-    >>> pos = nx_qubit_layout(g)
+    >>> import cirq.contrib.routing as ccr
+    >>> import networkx as nx
+    >>> g = ccr.xmon_device_to_graph(cirq.google.Foxtail)
+    >>> pos = ccr.nx_qubit_layout(g)
     >>> nx.draw_networkx(g, pos=pos)
 
     """
-    pos = {}
+    pos = {
+    }  # type: Dict[Union[cirq.GridQubit, cirq.LineQubit], Tuple[int, int]]
     for node in graph.nodes:
         if isinstance(node, cirq.GridQubit):
             pos[node] = (node.col, -node.row)
