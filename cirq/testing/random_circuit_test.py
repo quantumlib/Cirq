@@ -72,15 +72,17 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
 
 @pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
 def test_random_circuit_reproducible_with_seed(seed):
-    seeds = (seed, np.random.RandomState(seed))
+    wrappers = (lambda s: s, np.random.RandomState)
     circuits = [
         random_circuit(qubits=20,
                        n_moments=20,
                        op_density=0.7,
-                       random_state=seed) for seed in seeds for _ in range(2)
+                       random_state=wrapper(seed))
+        for wrapper in wrappers
+        for _ in range(2)
     ]
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(circuits)
+    eq.add_equality_group(*circuits)
 
 
 def test_random_circuit_reproducible_between_runs():
