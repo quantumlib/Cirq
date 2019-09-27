@@ -54,9 +54,9 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
 
     def _pauli_string_diagram_info(
             self,
-            args: protocols.CircuitDiagramInfoArgs,
+            args: 'protocols.CircuitDiagramInfoArgs',
             exponent: Any = 1,
-    ) -> protocols.CircuitDiagramInfo:
+    ) -> 'protocols.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
         syms = tuple(
             '[{}]'.format(self.pauli_string[qubit]) for qubit in qubits)

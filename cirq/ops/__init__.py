@@ -15,6 +15,9 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.arithmetic_operation import (
+    ArithmeticOperation,)
+
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
@@ -35,7 +38,7 @@ from cirq.ops.common_channels import (
     phase_flip,
     PhaseDampingChannel,
     PhaseFlipChannel,
-    RESET,
+    reset,
     ResetChannel,
 )
 
@@ -48,9 +51,8 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     I,
+    identity,
     IdentityGate,
-    ISWAP,
-    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -58,8 +60,6 @@ from cirq.ops.common_gates import (
     Ry,
     Rz,
     S,
-    SWAP,
-    SwapPowGate,
     T,
     XPowGate,
     YPowGate,
@@ -72,14 +72,19 @@ from cirq.ops.controlled_gate import (
 from cirq.ops.display import (
     ApproxPauliStringExpectation,
     DensityMatrixDisplay,
-    pauli_string_expectation,
-    PauliStringExpectation,
+    approx_pauli_string_expectation,
     SamplesDisplay,
     WaveFunctionDisplay,
 )
 
 from cirq.ops.eigen_gate import (
     EigenGate,)
+
+from cirq.ops.fourier_transform import (
+    PhaseGradientGate,
+    QFT,
+    QuantumFourierTransformGate,
+)
 
 from cirq.ops.fsim_gate import (
     FSimGate,)
@@ -133,7 +138,8 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
-    max_qid_shape,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     OP_TREE,
     transform_op_tree,
 )
@@ -161,10 +167,18 @@ from cirq.ops.pauli_string import (
     PauliString,
     SingleQubitPauliStringGateOperation,
 )
+
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,)
+
 from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
+
+from cirq.ops.phased_iswap_gate import (
+    GivensRotation,
+    PhasedISwapPowGate,
+)
+
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
 
@@ -172,6 +186,13 @@ from cirq.ops.raw_types import (
     Gate,
     Operation,
     Qid,
+)
+
+from cirq.ops.swap_gates import (
+    ISWAP,
+    ISwapPowGate,
+    SWAP,
+    SwapPowGate,
 )
 
 from cirq.ops.three_qubit_gates import (

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING, TypeVar, Union, Sequence, Iterable
+from typing import Any, TYPE_CHECKING, TypeVar, Sequence, Iterable
 
 from cirq.ops import op_tree
 
@@ -27,7 +27,7 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 TDefault = TypeVar('TDefault')
 
 
-def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
+def control(controllee: op_tree.OP_TREE,
             control_qubits: Sequence['cirq.Qid'] = None,
             default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns a Controlled version of the given value, if defined.
@@ -37,11 +37,12 @@ def control(controllee: Union['cirq.Gate', op_tree.OP_TREE],
     NotImplemented to indicate a particular controlling can't be done.
 
     Args:
-        controllee: The gate, operation or iterable of operations to control.
+        controllee: The operation or iterable of operations to control.
         control_qubits: A list of Qids that would control this controllee.
         default: Determines the fallback behavior when `controllee` doesn't
             have a controlling defined. If `default` is not set and the
             fallback occurs, a TypeError is raised instead.
+        TODO: add control_values and control_qid_shape
 
     Returns:
         If `controllee` has a controlled_by method that returns something

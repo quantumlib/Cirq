@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import FrozenSet, Sequence, Set
+from typing import FrozenSet, Sequence, Set, TYPE_CHECKING
 
-from cirq import circuits, devices, ops
+from cirq import circuits, devices
 
 from cirq.contrib.acquaintance.executor import (
         AcquaintanceOperation, ExecutionStrategy)
@@ -22,6 +22,10 @@ from cirq.contrib.acquaintance.mutation_utils import (
         expose_acquaintance_gates)
 from cirq.contrib.acquaintance.permutation import (
         LogicalIndex, LogicalMapping)
+
+if TYPE_CHECKING:
+    import cirq
+
 
 class LogicalAnnotator(ExecutionStrategy):
     """Realizes acquaintance opportunities.
@@ -41,20 +45,16 @@ class LogicalAnnotator(ExecutionStrategy):
         return self._initial_mapping
 
     @property
-    def device(self) -> devices.Device:
+    def device(self) -> 'cirq.Device':
         return devices.UNCONSTRAINED_DEVICE
 
-    def get_operations(self,
-                       indices: Sequence[LogicalIndex],
-                       qubits: Sequence[ops.Qid]
-                       ) -> ops.OP_TREE:
+    def get_operations(self, indices: Sequence[LogicalIndex],
+                       qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         yield AcquaintanceOperation(qubits, indices)
 
 
-def get_acquaintance_dag(
-        strategy: circuits.Circuit,
-        initial_mapping: LogicalMapping
-        ):
+def get_acquaintance_dag(strategy: 'cirq.Circuit',
+                         initial_mapping: LogicalMapping):
     strategy = strategy.copy()
     expose_acquaintance_gates(strategy)
     LogicalAnnotator(initial_mapping)(strategy)
@@ -65,10 +65,9 @@ def get_acquaintance_dag(
             acquaintance_ops, device=strategy.device)
 
 
-def get_logical_acquaintance_opportunities(
-        strategy: circuits.Circuit,
-        initial_mapping: LogicalMapping
-        ) -> Set[FrozenSet[LogicalIndex]]:
+def get_logical_acquaintance_opportunities(strategy: 'cirq.Circuit',
+                                           initial_mapping: LogicalMapping
+                                          ) -> Set[FrozenSet[LogicalIndex]]:
     acquaintance_dag = get_acquaintance_dag(strategy, initial_mapping)
     logical_acquaintance_opportunities = set()
     for op in acquaintance_dag.all_operations():

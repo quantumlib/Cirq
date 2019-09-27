@@ -155,7 +155,7 @@ class FSimGate(gate_features.TwoQubitGate,
                                                         proper_repr(self.phi))
 
     def _json_dict_(self):
-        return protocols.to_json_dict(self, ['theta', 'phi'])
+        return protocols.obj_to_dict_helper(self, ['theta', 'phi'])
 
 
 def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:

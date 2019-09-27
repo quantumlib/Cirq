@@ -54,7 +54,7 @@ class RabiResult:
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
         plt.ylabel('Excited State Probability', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 class RandomizedBenchMarkResult:
@@ -96,7 +96,7 @@ class RandomizedBenchMarkResult:
                  figure=fig, **plot_kwargs)
         plt.xlabel(r"Number of Cliffords", figure=fig)
         plt.ylabel('Ground State Probability', figure=fig)
-        fig.show()
+        fig.show(warn=False)
 
 
 class TomographyResult:
@@ -121,7 +121,7 @@ class TomographyResult:
         3D bar plots.
         """
         fig = _plot_density_matrix(self._density_matrix)
-        fig.show()
+        fig.show(warn=False)
 
 
 def rabi_oscillations(sampler: work.Sampler,
@@ -149,7 +149,7 @@ def rabi_oscillations(sampler: work.Sampler,
         A RabiResult object that stores and plots the result.
     """
     theta = sympy.Symbol('theta')
-    circuit = circuits.Circuit.from_ops(ops.X(qubit) ** theta)
+    circuit = circuits.Circuit(ops.X(qubit)**theta)
     circuit.append(ops.measure(qubit, key='z'))
     sweep = study.Linspace(key='theta', start=0.0, stop=max_angle / np.pi,
                            length=num_points)
@@ -301,18 +301,19 @@ def single_qubit_state_tomography(sampler: work.Sampler,
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    circuit_z = circuit + circuits.Circuit.from_ops(ops.measure(qubit, key='z'))
+    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key='z'))
     results = sampler.run(circuit_z, repetitions=repetitions)
     rho_11 = np.mean(results.measurements['z'])
     rho_00 = 1.0 - rho_11
 
-    circuit_x = circuits.Circuit.from_ops(circuit, ops.X(qubit) ** 0.5,
-                                          ops.measure(qubit, key='z'))
+    circuit_x = circuits.Circuit(circuit,
+                                 ops.X(qubit)**0.5, ops.measure(qubit, key='z'))
     results = sampler.run(circuit_x, repetitions=repetitions)
     rho_01_im = np.mean(results.measurements['z']) - 0.5
 
-    circuit_y = circuits.Circuit.from_ops(circuit, ops.Y(qubit) ** -0.5,
-                                          ops.measure(qubit, key='z'))
+    circuit_y = circuits.Circuit(circuit,
+                                 ops.Y(qubit)**-0.5, ops.measure(qubit,
+                                                                 key='z'))
     results = sampler.run(circuit_y, repetitions=repetitions)
     rho_01_re = 0.5 - np.mean(results.measurements['z'])
 
@@ -426,8 +427,7 @@ def two_qubit_state_tomography(sampler: work.Sampler,
         for j, rot_2 in enumerate(rots):
             m_idx, indices, signs = _indices_after_basis_rot(i, j)
             mat[m_idx: (m_idx + 3), indices] = s * np.tile(signs, (3, 1))
-            test_circuit = circuit + circuits.Circuit.from_ops(
-                rot_1(first_qubit))
+            test_circuit = circuit + circuits.Circuit(rot_1(first_qubit))
             test_circuit.append(rot_2(second_qubit))
             probs = np.concatenate((probs, _measurement(test_circuit)))
 
@@ -457,25 +457,20 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfds: Sequence[Sequence[ops.Gate]]
                              ) -> circuits.Circuit:
     clifford_group_size = 24
-    gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = []  # type: List[ops.Gate]
-    for gate_id in gate_ids:
-        gate_sequence.extend(cfds[gate_id])
-    gate_sequence.extend(protocols.inverse(gate_sequence))
-    circuit = circuits.Circuit.from_ops(gate(qubit) for gate in gate_sequence)
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit(
+        gate(qubit) for idx in idxs for gate in cfds[idx])
+    return circuit + protocols.inverse(circuit)
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
                            num_cfds: int,
                            cliffords: Cliffords) -> circuits.Circuit:
     clifford_group_size = 11520
-    idx_list = list(np.random.choice(clifford_group_size, num_cfds))
-    circuit = circuits.Circuit()
-    for idx in idx_list:
-        circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
-    circuit.append(protocols.inverse(circuit))
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit(
+        _two_qubit_clifford(q_0, q_1, idx, cliffords) for idx in idxs)
+    return circuit + protocols.inverse(circuit)
 
 
 def _matrix_bar_plot(mat: np.ndarray,
@@ -513,7 +508,7 @@ def _matrix_bar_plot(mat: np.ndarray,
 
 def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
     a, _ = mat.shape
-    num_qubits = int(np.sqrt(a))
+    num_qubits = int(np.log2(a))
     state_labels = [[0, 1]] * num_qubits
     kets = []
     for label in itertools.product(*state_labels):

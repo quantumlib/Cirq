@@ -22,7 +22,7 @@ from cirq.contrib.qasm_import import circuit_from_qasm
 def test_consistency_with_qasm_output_and_qiskit():
     qubits = [cirq.NamedQubit('q_{}'.format(i)) for i in range(4)]
     a, b, c, d = qubits
-    circuit1 = cirq.Circuit.from_ops(
+    circuit1 = cirq.Circuit(
         cirq.Rx(np.pi / 2).on(a),
         cirq.Ry(np.pi / 2).on(b),
         cirq.Rz(np.pi / 2).on(b),
