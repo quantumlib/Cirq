@@ -19,7 +19,12 @@ from typing import Optional, List, cast
 import numpy as np
 
 import cirq
-
+sys.path.insert(1, '/Users/villela/Projects/cirq-internal/')
+import cirq.contrib.routing as ccr
+import cirq_internal
+import cirq_internal.devices as cid
+from cirq.contrib.paulistring.convert_gate_set import (
+    converted_gate_set)
 
 def generate_model_circuit(num_qubits: int,
                            depth: int,
@@ -135,6 +140,26 @@ def sample_heavy_set(circuit: cirq.Circuit,
     # Return the number of Heavy outputs over the number of runs.
     return num_in_heavy_set / repetitions
 
+
+def compile_circuit(circuit: cirq.Circuit, device: cirq.Device) -> cirq.Circuit:
+    """Compile the given model circuit onto the given device. This follows a similar
+    compilation method as described in https://arxiv.org/pdf/1811.12926.pdf
+    Appendix A, although it does not use QisKit to do so.
+
+    """
+    compiled_circuit = circuit.copy()
+    # Step 1: Unrolling. Descend into each gate's hierarchical definition and
+    # rewrite it in terms of lower-level gates. These lower-level gates are
+    # always in the Cirq gate set.
+    cirq_internal.ConvertToSqrtIswapGates().optimize_circuit(compiled_circuit)
+    # Step 2: Swap Mapping (Routing). Ensure the gates can actually operate on
+    # the target qubits given our topology.
+    compiled_circuit = cirq.contrib.routing.route_circuit(compiled_circuit, ccr.xmon_device_to_graph(device), algo_name = 'greedy').circuit
+    # Step 3: In the paper, they unroll again, to convert SWAP gates to their
+    # native set. However, we don't have to do this, because our router already
+    # converts SWAP gates to their native gates.
+    compiled_circuit = converted_gate_set(circuit, no_clifford_gates=False)
+    return compiled_circuit;
 
 def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
     """Run the quantum volume algorithm.
