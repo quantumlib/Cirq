@@ -521,15 +521,15 @@ class Engine:
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
         if result_type == 'cirq.api.google.v1.Result':
-            return self._get_job_results_v1(response['result'])
+            return self._get_job_results_v1(result)
         if result_type == 'cirq.api.google.v2.Result':
-            return self._get_job_results_v2(response['result'])
+            return self._get_job_results_v2(result)
         if result_type == 'cirq.google.api.v1.Result':
-            return self._get_job_results_v1(response['result'])
+            return self._get_job_results_v1(result)
         if result_type == 'cirq.google.api.v2.Result':
             # Pretend the path is the other one until we switch over
             result['@type'] = 'type.googleapis.com/cirq.api.google.v2.Result'
-            return self._get_job_results_v2(response['result'])
+            return self._get_job_results_v2(result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
 
