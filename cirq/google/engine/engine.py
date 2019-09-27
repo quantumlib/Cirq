@@ -30,6 +30,7 @@ import json
 import random
 import re
 import string
+import sys
 import time
 from typing import Any, Dict, List, Optional, Sequence, Union
 import warnings
@@ -166,7 +167,8 @@ class Engine:
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
-                 service_args: Optional[Dict] = None) -> None:
+                 service_args: Optional[Dict] = None,
+                 verbose: Optional[bool] = True) -> None:
         """Engine service client.
 
         Args:
@@ -196,6 +198,7 @@ class Engine:
         self.default_gcs_prefix = default_gcs_prefix
         self.max_retry_delay = 3600  # 1 hour
         self.proto_version = proto_version
+        self.verbose = verbose
 
         if not service_args:
             service_args = {}
@@ -396,7 +399,7 @@ class Engine:
                                                         job_config.job_id)
 
     def _make_request(self, request: HttpRequest) -> Dict:
-        RETRYABLE_ERROR_CODES = [500, 503]
+        RETRYABLE_ERROR_CODES = [500, 503, 404]
         current_delay = 0.1  #100ms
 
         while True:
@@ -404,20 +407,21 @@ class Engine:
                 return request.execute()
             except ConnectionResetError:
                 message = "Lost connection to the engine."
-            except HttpError as rawErr:
-                err = json.loads(rawErr.content).get('error')
+            except HttpError as raw_err:
+                err = json.loads(raw_err.content).get('error')
                 message = err.get('message')
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
                 if not err.get('code') in RETRYABLE_ERROR_CODES:
-                    raise RuntimeError(message) from None
+                    raise RuntimeError(message) from raw_err
 
             current_delay *= 2
             if current_delay > self.max_retry_delay:
-                raise Exception('Reached max retry attempts for error: ' +
-                                message)
-            print(message)
-            print('Waiting ', current_delay, 'seconds before retrying.')
+                raise TimeoutError(
+                    'Reached max retry attempts for error: {}'.format(message))
+            if (self.verbose):
+                print(message, file=sys.stderr)
+                print('Waiting ', current_delay, 'seconds before retrying.', file=sys.stderr)
             time.sleep(current_delay)
 
     def _serialize_run_context(
