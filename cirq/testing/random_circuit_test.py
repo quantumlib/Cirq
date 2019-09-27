@@ -72,24 +72,31 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
 
 @pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
 def test_random_circuit_reproducible_with_seed(seed):
-    circuit1 = random_circuit(qubits=20,
-                              n_moments=20,
-                              op_density=0.7,
-                              random_state=seed)
-    circuit2 = random_circuit(qubits=20,
-                              n_moments=20,
-                              op_density=0.7,
-                              random_state=seed)
-    assert circuit1 == circuit2
+    seeds = (seed, np.random.RandomState(seed))
+    circuits = [
+        random_circuit(qubits=20,
+                       n_moments=20,
+                       op_density=0.7,
+                       random_state=seed) for seed in seeds for _ in range(2)
+    ]
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(circuits)
 
-    prng = np.random.RandomState(seed)
-    circuit1 = random_circuit(qubits=20,
-                              n_moments=20,
-                              op_density=0.7,
-                              random_state=prng)
-    prng = np.random.RandomState(seed)
-    circuit2 = random_circuit(qubits=20,
-                              n_moments=20,
-                              op_density=0.7,
-                              random_state=prng)
-    assert circuit1 == circuit2
+
+def test_random_circuit_reproducible_between_runs():
+    circuit = random_circuit(5, 8, 0.5, random_state=77)
+    print(circuit)
+    expected_diagram = """
+                  ┌──┐
+0: ────────────────S─────iSwap───────Y───X───
+                         │
+1: ───────────Y──────────iSwap───────Y───────
+
+2: ─────────────────X────T───────────S───S───
+                    │
+3: ───────@────────S┼────H───────────────Z───
+          │         │
+4: ───────@─────────@────────────────────X───
+                  └──┘
+"""
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
