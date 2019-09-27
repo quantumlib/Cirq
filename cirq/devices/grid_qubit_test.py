@@ -114,6 +114,21 @@ def test_grid_qubit_is_adjacent():
     assert not cirq.GridQubit(500, 999).is_adjacent(cirq.GridQubit(5034, 999))
 
 
+def test_grid_qubit_neighbors():
+    expected = {
+        cirq.GridQubit(1, 2),
+        cirq.GridQubit(2, 1),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0)
+    }
+    assert cirq.GridQubit(1, 1).neighbors() == expected
+
+    # Restrict to a list of qubits
+    restricted_qubits = [cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
+    expected2 = {cirq.GridQubit(2, 1)}
+    assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == expected2
+
+
 def test_grid_qubit_add_subtract():
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
