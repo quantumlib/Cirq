@@ -43,8 +43,6 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 @pytest.mark.parametrize('eigen_gate_type', [
     cirq.CNotPowGate,
     cirq.HPowGate,
-    cirq.ISwapPowGate,
-    cirq.SwapPowGate,
 ])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
@@ -398,9 +396,6 @@ def test_interchangeable_qubit_eq():
     c = cirq.NamedQubit('c')
     eq = cirq.testing.EqualsTester()
 
-    eq.add_equality_group(cirq.SWAP(a, b), cirq.SWAP(b, a))
-    eq.add_equality_group(cirq.SWAP(a, c))
-
     eq.add_equality_group(cirq.CZ(a, b), cirq.CZ(b, a))
     eq.add_equality_group(cirq.CZ(a, c))
 
@@ -412,25 +407,27 @@ def test_interchangeable_qubit_eq():
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.X(a), cirq.Y(a), cirq.Z(a),
+    circuit = cirq.Circuit(cirq.X(a), cirq.Y(a), cirq.Z(a),
                            cirq.Z(a)**sympy.Symbol('x'),
                            cirq.Rx(sympy.Symbol('x')).on(a), cirq.CZ(a, b),
                            cirq.CNOT(a, b), cirq.CNOT(b, a),
-                           cirq.H(a)**0.5,
-                           cirq.ISWAP(a, b)**-1, cirq.I(a),
+                           cirq.H(a)**0.5, cirq.I(a),
                            cirq.IdentityGate(2)(a, b))
 
-    cirq.testing.assert_has_diagram(circuit, """
-a: ───×───X───Y───Z───Z^x───Rx(x)───@───@───X───H^0.5───iSwap──────I───I───
-      │                             │   │   │           │              │
-b: ───×─────────────────────────────@───X───@───────────iSwap^-1───────I───
+    cirq.testing.assert_has_diagram(
+        circuit, """
+a: ───X───Y───Z───Z^x───Rx(x)───@───@───X───H^0.5───I───I───
+                                │   │   │               │
+b: ─────────────────────────────@───X───@───────────────I───
 """)
 
-    cirq.testing.assert_has_diagram(circuit, """
-a: ---swap---X---Y---Z---Z^x---Rx(x)---@---@---X---H^0.5---iSwap------I---I---
-      |                                |   |   |           |              |
-b: ---swap-----------------------------@---X---@-----------iSwap^-1-------I---
-""", use_unicode_characters=False)
+    cirq.testing.assert_has_diagram(circuit,
+                                    """
+a: ---X---Y---Z---Z^x---Rx(x)---@---@---X---H^0.5---I---I---
+                                |   |   |               |
+b: -----------------------------@---X---@---------------I---
+""",
+                                    use_unicode_characters=False)
 
 
 def test_cnot_unitary():
@@ -494,17 +491,6 @@ def test_cnot_decompose():
     assert cirq.decompose_once(cirq.CNOT(a, b)**sympy.Symbol('x')) is not None
 
 
-def test_swap_unitary():
-    np.testing.assert_almost_equal(
-        cirq.unitary(cirq.SWAP**0.5),
-        np.array([
-            [1, 0, 0, 0],
-            [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
-            [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
-            [0, 0, 0, 1]
-        ]))
-
-
 def test_repr():
     assert repr(cirq.X) == 'cirq.X'
     assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
@@ -526,12 +512,6 @@ def test_repr():
 
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
-
-    assert repr(cirq.SWAP) == 'cirq.SWAP'
-    assert repr(cirq.SWAP ** 0.5) == '(cirq.SWAP**0.5)'
-
-    assert repr(cirq.ISWAP) == 'cirq.ISWAP'
-    assert repr(cirq.ISWAP ** 0.5) == '(cirq.ISWAP**0.5)'
 
     cirq.testing.assert_equivalent_repr(
         cirq.X**(sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5))
@@ -575,11 +555,6 @@ def test_str():
     assert str(cirq.CX) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
 
-    assert str(cirq.SWAP) == 'SWAP'
-    assert str(cirq.SWAP**0.5) == 'SWAP**0.5'
-
-    assert str(cirq.ISWAP) == 'ISWAP'
-    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
 
 def test_measurement_gate_diagram():
     # Shows key.
@@ -722,37 +697,6 @@ def test_measure_each():
         cirq.measure(a, key='a!'),
         cirq.measure(b, key='b!')
     ]
-
-
-def test_iswap_str():
-    assert str(cirq.ISWAP) == 'ISWAP'
-    assert str(cirq.ISWAP**0.5) == 'ISWAP**0.5'
-
-
-def test_iswap_unitary():
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(cirq.ISWAP),
-        # Reference for the iswap gate's matrix using +i instead of -i:
-        # https://quantumcomputing.stackexchange.com/questions/2594/
-        np.array([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]]),
-        atol=1e-8)
-
-
-def test_iswap_trace_distance():
-    for exp in np.linspace(0, 4, 20):
-        cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
-
-
-def test_iswap_decompose_diagram():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
-    decomposed = cirq.Circuit(cirq.decompose_once(cirq.ISWAP(a, b)**0.5))
-    cirq.testing.assert_has_diagram(decomposed, """
-a: ───@───H───X───T───X───T^-1───H───@───
-      │       │       │              │
-b: ───X───────@───────@──────────────X───
-""")
 
 
 def test_rx_unitary():
@@ -941,16 +885,12 @@ def test_trace_distance():
     sh = cirq.H**foo
     scx = cirq.CX**foo
     scz = cirq.CZ**foo
-    sswap = cirq.SWAP**foo
-    siswap = cirq.ISWAP**foo
     # These values should have 1.0 or 0.0 directly returned
     assert cirq.trace_distance_bound(sx) == 1.0
     assert cirq.trace_distance_bound(sy) == 1.0
     assert cirq.trace_distance_bound(sz) == 1.0
     assert cirq.trace_distance_bound(scx) == 1.0
     assert cirq.trace_distance_bound(scz) == 1.0
-    assert cirq.trace_distance_bound(sswap) == 1.0
-    assert cirq.trace_distance_bound(siswap) == 1.0
     assert cirq.trace_distance_bound(sh) == 1.0
     assert cirq.trace_distance_bound(cirq.I) == 0.0
     # These values are calculated, so we use approx_eq
@@ -963,6 +903,3 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX**2), 0.0)
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ**(1 / 9)),
                           np.sin(np.pi / 18))
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.SWAP**0.3),
-                          np.sin(0.3 * np.pi / 2))
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ISWAP**0), 0.0)
