@@ -341,7 +341,7 @@ class Simulator(simulator.SimulatesSamples,
                               indices: List[int],
                               measurements: Dict[str, List[int]],
                               num_qubits: int) -> None:
-        """Simulate an op that is a measurement in the computataional basis."""
+        """Simulate an op that is a measurement in the computational basis."""
         meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         # TODO: support measurement outside computational basis.
         if meas:
@@ -349,7 +349,10 @@ class Simulator(simulator.SimulatesSamples,
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(
                 data.state, indices, out=data.state, qid_shape=data.state.shape)
-            corrected = [bit ^ mask for bit, mask in zip(bits, invert_mask)]
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
             key = protocols.measurement_key(meas)
             measurements[key].extend(corrected)
 

@@ -249,10 +249,12 @@ class Circuit:
         return self
 
     def __add__(self, other):
-        if isinstance(other, list):
-            other = Circuit(other)
         if not isinstance(other, type(self)):
-            return NotImplemented
+            if not isinstance(other, (ops.Operation, Iterable)):
+                return NotImplemented
+            # Auto wrap OP_TREE inputs into a circuit.
+            other = Circuit(other)
+
         device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE
                   else other.device)
         device_2 = (other.device if self._device is devices.UNCONSTRAINED_DEVICE

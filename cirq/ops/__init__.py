@@ -53,8 +53,6 @@ from cirq.ops.common_gates import (
     I,
     identity,
     IdentityGate,
-    ISWAP,
-    ISwapPowGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -62,8 +60,6 @@ from cirq.ops.common_gates import (
     Ry,
     Rz,
     S,
-    SWAP,
-    SwapPowGate,
     T,
     XPowGate,
     YPowGate,
@@ -191,6 +187,13 @@ from cirq.ops.raw_types import (
     Gate,
     Operation,
     Qid,
+)
+
+from cirq.ops.swap_gates import (
+    ISWAP,
+    ISwapPowGate,
+    SWAP,
+    SwapPowGate,
 )
 
 from cirq.ops.three_qubit_gates import (
