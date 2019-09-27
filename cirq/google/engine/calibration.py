@@ -115,7 +115,7 @@ class Calibration(abc.Mapping):
         Args:
             tz: The timezone for the string. If None, the method uses the
                 platform's local date and time.
-            timespec: See datetime.isoformat for valid args.
+            timespec: See datetime.isoformat for valid values.
 
         Returns:
             The string in ISO 8601 format YYYY-MM-DDTHH:MM:SS.ffffff.
