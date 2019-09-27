@@ -139,7 +139,8 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          serialized_type=float,
                                          gate_getter='phase_exponent'),
         ],
-        can_serialize_predicate=lambda x: _near_mod_2(x.exponent, 1)),
+        can_serialize_predicate=lambda x: _near_mod_2(
+            cast(ops.PhasedXPowGate, x).exponent, 1)),
     op_serializer.GateOpSerializer(
         gate_type=ops.XPowGate,
         serialized_gate_id='xy_pi',
@@ -149,7 +150,8 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                 serialized_type=float,
                 gate_getter=lambda x: (x.exponent - 1) / 2)
         ],
-        can_serialize_predicate=lambda x: _near_mod_2(x.exponent, 1)),
+        can_serialize_predicate=lambda x: _near_mod_2(
+            cast(ops.XPowGate, x).exponent, 1)),
     op_serializer.GateOpSerializer(
         gate_type=ops.YPowGate,
         serialized_gate_id='xy_pi',
@@ -158,7 +160,8 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          serialized_type=float,
                                          gate_getter=lambda x: x.exponent / 2)
         ],
-        can_serialize_predicate=lambda x: _near_mod_2(x.exponent, 1)),
+        can_serialize_predicate=lambda x: _near_mod_2(
+            cast(ops.YPowGate, x).exponent, 1)),
     op_serializer.GateOpSerializer(
         gate_type=ops.XPowGate,
         serialized_gate_id='xy_half_pi',
@@ -167,7 +170,8 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          serialized_type=float,
                                          gate_getter=lambda x: x.exponent - 0.5)
         ],
-        can_serialize_predicate=lambda x: _near_mod_2(x.exponent, 0.5)),
+        can_serialize_predicate=lambda x: _near_mod_2(
+            cast(ops.XPowGate, x).exponent, 0.5)),
     op_serializer.GateOpSerializer(
         gate_type=ops.YPowGate,
         serialized_gate_id='xy_half_pi',
@@ -176,7 +180,8 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          serialized_type=float,
                                          gate_getter=lambda x: x.exponent)
         ],
-        can_serialize_predicate=lambda x: _near_mod_2(x.exponent, 0.5)),
+        can_serialize_predicate=lambda x: _near_mod_2(
+            cast(ops.YPowGate, x).exponent, 0.5)),
     op_serializer.GateOpSerializer(
         gate_type=ops.PhasedXPowGate,
         serialized_gate_id='xy_half_pi',
@@ -185,7 +190,8 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          serialized_type=float,
                                          gate_getter='phase_exponent'),
         ],
-        can_serialize_predicate=lambda x: _near_mod_2(x.exponent, 0.5)),
+        can_serialize_predicate=lambda x: _near_mod_2(
+            cast(ops.PhasedXPowGate, x).exponent, 0.5)),
 ]
 """Deserializers for single qubit rotations confined to half-pi increments"""
 SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
