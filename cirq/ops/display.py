@@ -28,7 +28,7 @@ import abc
 import numpy as np
 
 from cirq import value
-from cirq.ops import op_tree, raw_types
+from cirq.ops import op_tree, raw_types, pauli_string
 
 if TYPE_CHECKING:
     import cirq
@@ -169,10 +169,10 @@ class ApproxPauliStringExpectation(SamplesDisplay):
         return self._pauli_string, self._num_samples, self._key
 
 
-def approx_pauli_string_expectation(pauli_string: 'cirq.PAULI_STRING_LIKE',
+def approx_pauli_string_expectation(observable: 'cirq.PAULI_STRING_LIKE',
                                     num_samples: int,
                                     key: Hashable = ''
                                    ) -> ApproxPauliStringExpectation:
-    return ApproxPauliStringExpectation(cirq.PauliString(pauli_string),
+    return ApproxPauliStringExpectation(pauli_string.PauliString(observable),
                                         num_samples,
                                         key=key)

@@ -191,6 +191,8 @@ def test_constructor_flexibility():
         _ = cirq.PauliString(cirq.CZ(a, b))
     with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
         _ = cirq.PauliString('test')
+    with pytest.raises(TypeError, match='S is not a Pauli'):
+        _ = cirq.PauliString(qubit_pauli_map={a: cirq.S})
 
     assert cirq.PauliString(
         cirq.X(a)) == cirq.PauliString(qubit_pauli_map={a: cirq.X})
@@ -204,8 +206,11 @@ def test_constructor_flexibility():
         qubit_pauli_map={a: cirq.Z}, coefficient=6j)
 
     assert cirq.PauliString(cirq.X(a), cirq.X(a)) == cirq.PauliString()
-    assert cirq.PauliString(cirq.X(a), cirq.X(b)) == cirq.PauliString(
-        qubit_pauli_map={a: cirq.X, b: cirq.X})
+    assert cirq.PauliString(cirq.X(a),
+                            cirq.X(b)) == cirq.PauliString(qubit_pauli_map={
+                                a: cirq.X,
+                                b: cirq.X
+                            })
 
     assert cirq.PauliString(0) == cirq.PauliString(coefficient=0)
 

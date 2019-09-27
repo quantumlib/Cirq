@@ -82,7 +82,7 @@ class PauliString(raw_types.Operation):
 
             >>> print(cirq.PauliString({a: cirq.Y},
             ...                        qubit_pauli_map={a: cirq.X}))
-            1j*Z(1)
+            1j*Z(0)
         """
         if qubit_pauli_map is not None:
             for v in qubit_pauli_map.values():
