@@ -72,5 +72,5 @@ def nx_qubit_layout(graph: nx.Graph) \
         elif isinstance(node, cirq.LineQubit):
             pos[node] = (node.x, 0)
         else:
-            raise ValueError(f"Unknown position for {node}")
+            raise ValueError(f"Unknown position for {node}")  # coverage: ignore
     return pos
