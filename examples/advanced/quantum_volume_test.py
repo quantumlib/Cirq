@@ -1,5 +1,6 @@
 """Tests for the Quantum Volume benchmarker."""
 
+from unittest.mock import Mock, MagicMock
 import numpy as np
 from examples.advanced import quantum_volume
 import cirq
@@ -52,6 +53,25 @@ def test_compute_heavy_set():
         cirq.Moment([cirq.Z(a), cirq.H(b)])
     ])
     assert quantum_volume.compute_heavy_set(model_circuit) == [5, 7]
+
+
+def test_sample_heavy_set():
+    """Test that we correctly sample a circuit's heavy set"""
+
+    sampler = Mock(spec=cirq.Simulator)
+    # Construct a result that returns "1", "2", "3", and then "0" indefinitely
+    result = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({}),
+        measurements={'mock': np.array([[0, 1], [1, 0], [1, 1], [0, 0]])})
+    sampler.run = MagicMock(return_value=result)
+    circuit = cirq.Circuit.from_ops(cirq.measure(*cirq.LineQubit.range(2)))
+
+    probability = quantum_volume.sample_heavy_set(circuit, [1, 2, 3],
+                                                  sampler=sampler,
+                                                  repetitions=1000)
+    # The first 3 of our outputs are in the heavy set, and then the rest are
+    # not.
+    assert probability == .003
 
 
 def test_main_loop():

@@ -104,6 +104,38 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     ]
 
 
+def sample_heavy_set(circuit: cirq.Circuit,
+                     heavy_set: List[int],
+                     *,
+                     repetitions=10000,
+                     sampler: cirq.Sampler = cirq.Simulator()) -> float:
+    """Run a sampler over the given circuit and compute the percentage of its
+       outputs that are in the heavy set.
+
+    Args:
+        circuit: The circuit to sample.
+        heavy_set: The previously-computed heavy set for the given circuit.
+        repetitions: The number of runs to sample the circuit.
+        sampler: The sampler to run on the given circuit.
+
+    Returns:
+        A probability percentage, from 0 to 1, representing how many of the
+        output bit-strings were in the heaby set.
+
+    """
+    # Add measure gates to the end of (a copy of) the circuit.
+    circuit_copy = circuit + cirq.measure(*sorted(circuit.all_qubits()))
+
+    # Run the sampler to compare each output against the Heavy Set.
+    measurements = sampler.run(program=circuit_copy, repetitions=repetitions)
+
+    # Compute the number of outputs that are in the heavy set.
+    num_in_heavy_set = np.sum(np.in1d(measurements.data.iloc[:, 0], heavy_set))
+
+    # Return the number of Heavy outputs over the number of runs.
+    return num_in_heavy_set / repetitions
+
+
 def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
     """Run the quantum volume algorithm.
 
@@ -124,7 +156,13 @@ def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
         model_circuit = generate_model_circuit(
             num_qubits, depth, random_state=np.random.RandomState(seed))
         heavy_set = compute_heavy_set(model_circuit)
-        print(heavy_set)
+        print(f"Heavy Set: {heavy_set}")
+        print(f"Ideal simulation probability: "
+              f"{sample_heavy_set(model_circuit, heavy_set)}")
+        noisy = cirq.DensityMatrixSimulator(noise=cirq.ConstantQubitNoiseModel(
+            qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
+        print(f"Noisy simulation probability: "
+              f"{sample_heavy_set(model_circuit, heavy_set, sampler=noisy)}")
         # TODO(villela): Implement model circuit and run it.
 
 
