@@ -64,8 +64,9 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         new_keys = [keys[permutation[i]] for i in indices]
         old_elements = [mapping.get(keys[i]) for i in indices]
         for new_key, old_element in zip(new_keys, old_elements):
-            if old_element is None and new_key in mapping:
-                del mapping[new_key]
+            if old_element is None:
+                if new_key in mapping:
+                    del mapping[new_key]
             else:
                 mapping[new_key] = old_element
 

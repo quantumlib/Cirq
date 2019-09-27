@@ -31,5 +31,6 @@ def test_is_valid_routing_on_unmapped_qubits():
     x, y = cirq.NamedQubit('x'), cirq.NamedQubit('y')
     circuit = cirq.Circuit([cirq.CNOT(x, y), cirq.CZ(x, y)])
     routed_circuit = cirq.Circuit([cirq.CNOT(p, q), cirq.CZ(q, r)])
+    initial_mapping = {p: x, q: y}
     swap_network = ccr.SwapNetwork(routed_circuit, initial_mapping)
     assert not ccr.is_valid_routing(circuit, swap_network)
