@@ -12,25 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-import sympy
-
 import numpy as np
+import sympy
 
 import cirq
 import cirq.google as cg
+import cirq.google.common_serializers as cgc
 
 SINGLE_QUBIT_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
     gate_set_name='test_half_pi',
-    serializers=([cg.MEASUREMENT_SERIALIZER] + cg.SINGLE_QUBIT_SERIALIZERS),
-    deserializers=([cg.MEASUREMENT_DESERIALIZER] +
-                   cg.SINGLE_QUBIT_DESERIALIZERS))
+    serializers=([cgc.MEASUREMENT_SERIALIZER] + cgc.SINGLE_QUBIT_SERIALIZERS),
+    deserializers=([cgc.MEASUREMENT_DESERIALIZER] +
+                   cgc.SINGLE_QUBIT_DESERIALIZERS))
 
 HALF_PI_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
     gate_set_name='test_half_pi',
-    serializers=([cg.MEASUREMENT_SERIALIZER] +
-                 cg.SINGLE_QUBIT_HALF_PI_SERIALIZERS),
-    deserializers=([cg.MEASUREMENT_DESERIALIZER] +
-                   cg.SINGLE_QUBIT_HALF_PI_DESERIALIZERS))
+    serializers=([cgc.MEASUREMENT_SERIALIZER] +
+                 cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS),
+    deserializers=([cgc.MEASUREMENT_DESERIALIZER] +
+                   cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS))
 
 
 @pytest.mark.parametrize('phase_exponent', (0, 0.25, 0.75))
@@ -217,6 +217,18 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
         cirq.unitary(op),
         atol=1e-7,
     )
+
+
+def test_half_pi_does_not_serialize_arbitrary_xy():
+    q = cirq.GridQubit(1, 2)
+    gate = cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25)
+    with pytest.raises(ValueError):
+        HALF_PI_GATE_SET.serialize_op_dict(gate(q))
+
+    gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('a'),
+                               phase_exponent=sympy.Symbol('b'))
+    with pytest.raises(ValueError):
+        HALF_PI_GATE_SET.serialize_op_dict(gate(q))
 
 
 @pytest.mark.parametrize(('qubits', 'qubit_ids', 'key', 'invert_mask'), [

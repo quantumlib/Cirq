@@ -30,15 +30,6 @@ from cirq.google.api.v1.programs import (
     xmon_op_from_proto_dict,
 )
 
-from cirq.google.common_serializers import (
-    MEASUREMENT_DESERIALIZER,
-    MEASUREMENT_SERIALIZER,
-    SINGLE_QUBIT_DESERIALIZERS,
-    SINGLE_QUBIT_SERIALIZERS,
-    SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-    SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-)
-
 from cirq.google.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 
