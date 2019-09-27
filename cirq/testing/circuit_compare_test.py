@@ -413,28 +413,27 @@ def test_assert_has_consistent_apply_unitary():
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-            BadExponent(1),
-            exponents=[1, 2])
+            BadExponent(1), exponents=[1, 2])
 
     class EffectWithoutUnitary:
+
         def _num_qubits_(self):
             return 1
 
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             return args.target_tensor
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        EffectWithoutUnitary())
+    cirq.testing.assert_has_consistent_apply_unitary(EffectWithoutUnitary())
 
     class NoEffect:
+
         def _num_qubits_(self):
             return 1
 
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             return NotImplemented
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        NoEffect())
+    cirq.testing.assert_has_consistent_apply_unitary(NoEffect())
 
     class UnknownCountEffect:
         pass
@@ -560,6 +559,7 @@ def test_assert_has_consistent_qid_shape():
 def test_assert_apply_unitary_works_when_axes_transposed_failure():
 
     class BadOp:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             # Get a more convenient view of the data.
             a, b = args.axes
@@ -568,7 +568,7 @@ def test_assert_apply_unitary_works_when_axes_transposed_failure():
             rest.remove(b)
             size = args.target_tensor.size
             view = args.target_tensor.transpose([a, b, *rest])
-            view = view.reshape((4, size//4))  # Oops. Reshape might copy.
+            view = view.reshape((4, size // 4))  # Oops. Reshape might copy.
 
             # Apply phase gradient.
             view[1, ...] *= 1j

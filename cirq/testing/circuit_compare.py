@@ -242,10 +242,8 @@ def assert_has_diagram(
     )
 
 
-def assert_has_consistent_apply_unitary(
-        val: Any,
-        *,
-        atol: float=1e-8) -> None:
+def assert_has_consistent_apply_unitary(val: Any, *,
+                                        atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
@@ -265,10 +263,11 @@ def assert_has_consistent_apply_unitary(
     eye = linalg.eye_tensor((2,) + qid_shape, dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
-        args=protocols.ApplyUnitaryArgs(
-            target_tensor=eye,
-            available_buffer=np.ones_like(eye) * float('nan'),
-            axes=list(range(1, len(qid_shape) + 1))),
+        args=protocols.ApplyUnitaryArgs(target_tensor=eye,
+                                        available_buffer=np.ones_like(eye) *
+                                        float('nan'),
+                                        axes=list(range(1,
+                                                        len(qid_shape) + 1))),
         default=None)
 
     # If you don't have a unitary, you shouldn't be able to apply a unitary.
@@ -285,10 +284,10 @@ def assert_has_consistent_apply_unitary(
                                    atol=atol)
 
 
-def _assert_apply_unitary_works_when_axes_transposed(
-        val: Any,
-        *,
-        atol: float=1e-8) -> None:
+def _assert_apply_unitary_works_when_axes_transposed(val: Any,
+                                                     *,
+                                                     atol: float = 1e-8
+                                                    ) -> None:
     """Tests whether a value's _apply_unitary_ handles out-of-order axes.
 
     A common mistake to make when implementing `_apply_unitary_` is to assume
@@ -330,8 +329,8 @@ def _assert_apply_unitary_works_when_axes_transposed(
     in_order_output = protocols.apply_unitary(
         val,
         protocols.ApplyUnitaryArgs(
-            in_order_input,
-            np.empty_like(in_order_input),
+            target_tensor=in_order_input,
+            available_buffer=np.empty_like(in_order_input),
             axes=range(n)))
     out_of_order_output = protocols.apply_unitary(
         val,
@@ -378,8 +377,7 @@ def assert_eigen_gate_has_consistent_apply_unitary(
 
 
 def assert_has_consistent_apply_unitary_for_various_exponents(
-        val: Any,
-        *,
+        val: Any, *,
         exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 

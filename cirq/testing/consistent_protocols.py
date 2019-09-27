@@ -57,10 +57,10 @@ def assert_implements_consistent_protocols(
         if p is not None:
             _assert_meets_standards_helper(
                 val**exponent,
-                                           ignoring_global_phase=ignoring_global_phase,
-                                           setup_code=setup_code,
-                                           global_vals=global_vals,
-                                           local_vals=local_vals)
+                ignoring_global_phase=ignoring_global_phase,
+                setup_code=setup_code,
+                global_vals=global_vals,
+                local_vals=local_vals)
 
 
 def assert_eigengate_implements_consistent_protocols(
@@ -79,11 +79,11 @@ def assert_eigengate_implements_consistent_protocols(
     for exponent in exponents:
         for shift in global_shifts:
             _assert_meets_standards_helper(
-                    eigen_gate_type(exponent=exponent, global_shift=shift),
-                    ignoring_global_phase=ignoring_global_phase,
-                    setup_code=setup_code,
-                    global_vals=global_vals,
-                    local_vals=local_vals)
+                eigen_gate_type(exponent=exponent, global_shift=shift),
+                ignoring_global_phase=ignoring_global_phase,
+                setup_code=setup_code,
+                global_vals=global_vals,
+                local_vals=local_vals)
 
 
 def assert_eigen_shifts_is_consistent_with_eigen_components(
@@ -109,13 +109,11 @@ def assert_has_consistent_trace_distance_bound(val: Any) -> None:
             val_from_trace, val_from_unitary)
 
 
-def _assert_meets_standards_helper(
-        val: Any,
-        *,
-        ignoring_global_phase: bool,
-        setup_code: str,
-        global_vals: Optional[Dict[str, Any]],
-        local_vals: Optional[Dict[str, Any]]) -> None:
+def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
+                                   setup_code: str,
+                                   global_vals: Optional[Dict[str, Any]],
+                                   local_vals: Optional[Dict[str, Any]]
+                                  ) -> None:
     assert_has_consistent_qid_shape(val)
     assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)
