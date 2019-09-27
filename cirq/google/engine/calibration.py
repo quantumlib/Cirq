@@ -129,6 +129,13 @@ class Calibration(abc.Mapping):
 
         Args:
             key: The metric key to return a heatmap for.
+
+        Returns:
+            A `cirq.Heatmap` for the metric.
+
+        Raises:
+            AttributeError if the heatmap is not for single qubits or are
+            multivalued.
         """
         metrics = self[key]
         assert all(len(k) == 1 for k in metrics.keys()), (
