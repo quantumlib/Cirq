@@ -31,3 +31,11 @@ def test_get_linear_device_graph(n_qubits):
     assert sorted(graph) == cirq.LineQubit.range(n_qubits)
     assert len(graph.edges()) == n_qubits - 1
     assert all(abs(a.x - b.x) == 1 for a, b in graph.edges())
+
+
+def test_nx_qubit_layout():
+    foxtail_graph = ccr.xmon_device_to_graph(cirq.google.Foxtail)
+    pos = ccr.nx_qubit_layout(foxtail_graph)
+    for k, (x, y) in pos.items():
+        assert x == k.col
+        assert y == -k.row

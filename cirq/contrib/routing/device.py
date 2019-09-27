@@ -47,3 +47,26 @@ def gridqubits_to_graph_device(qubits: Iterable[cirq.GridQubit]):
 
 def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
     return abs(qubit1.row - qubit2.row) + abs(qubit1.col - qubit2.col)
+
+
+def nx_qubit_layout(graph: nx.Graph):
+    """Return a layout for a graph for nodes which are qubits.
+
+    This can be used in place of nx.spring_layout or other networkx layouts.
+    GridQubits are positioned according to their row/col. LineQubits are
+    positioned in a line.
+
+    >>> g = xmon_device_to_graph(cirq.google.Foxtail)
+    >>> pos = nx_qubit_layout(g)
+    >>> nx.draw_networkx(g, pos=pos)
+
+    """
+    pos = {}
+    for node in graph.nodes:
+        if isinstance(node, cirq.GridQubit):
+            pos[node] = (node.col, -node.row)
+        elif isinstance(node, cirq.LineQubit):
+            pos[node] = (node.x, 0)
+        else:
+            raise ValueError(f"Unknown position for {node}")
+    return pos
