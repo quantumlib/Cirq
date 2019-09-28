@@ -146,6 +146,7 @@ def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
     return {'measurement': measurement}
 
 
+
 def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """Convert a schedule into an iterable of proto dictionaries.
 
@@ -354,7 +355,6 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
 
 def _qubit_from_proto_dict(proto_dict):
     """Proto dict must have 'row' and 'col' keys."""
-    # TODO: Deprecate v1 proto method.
     if 'row' not in proto_dict or 'col' not in proto_dict:
         raise ValueError(
             'Proto dict does not contain row or col: {}'.format(proto_dict))
