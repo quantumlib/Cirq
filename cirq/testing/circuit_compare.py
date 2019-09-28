@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Type
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from collections import defaultdict
 import itertools
-import numpy as np
 import random
+
+import numpy as np
 import sympy
 
 from cirq import circuits, ops, linalg, protocols
@@ -349,31 +350,6 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any,
             f'out-of-order axes than on in-order axes.\n'
             f'\n'
             f'The failing axis order: {repr(permutation[:n])}')
-
-
-def assert_eigen_gate_has_consistent_apply_unitary(
-        eigen_gate_type: Type[ops.EigenGate],
-        *,
-        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
-        global_shifts=(0, 0.5, -0.5, 0.1)) -> None:
-    """Tests whether an EigenGate type's _apply_unitary_ is correct.
-
-    Contrasts the effects of the gate's `_apply_unitary_` with the
-    matrix returned by the gate's `_unitary_` method, trying various values for
-    the gate exponent and global shift.
-
-    Args:
-        eigen_gate_type: The type of gate to test. The type must have an
-            __init__ method that takes an exponent and a global_shift.
-        exponents: The exponents to try. Defaults to a variety of special and
-            arbitrary angles, as well as a parameterized angle (a symbol).
-        global_shifts: The global shifts to try. Defaults to a variety of
-            special angles.
-    """
-    for exponent in exponents:
-        for shift in global_shifts:
-            assert_has_consistent_apply_unitary(
-                eigen_gate_type(exponent=exponent, global_shift=shift))
 
 
 def assert_has_consistent_apply_unitary_for_various_exponents(
