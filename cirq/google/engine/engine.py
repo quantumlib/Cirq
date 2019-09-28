@@ -168,7 +168,7 @@ class Engine:
                  default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
                  service_args: Optional[Dict] = None,
-                 verbose: Optional[bool] = True) -> None:
+                 verbose: bool = True) -> None:
         """Engine service client.
 
         Args:
@@ -185,6 +185,7 @@ class Engine:
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying apiclient. See
                 https://github.com/googleapis/google-api-python-client
+            verbose: Supresses stderr messages when set to False. Default is true. 
         """
         if discovery_url and version:
             raise ValueError("`version` and `discovery_url` are both "
@@ -399,7 +400,7 @@ class Engine:
                                                         job_config.job_id)
 
     def _make_request(self, request: HttpRequest) -> Dict:
-        RETRYABLE_ERROR_CODES = [500, 503, 404]
+        RETRYABLE_ERROR_CODES = [500, 503]
         current_delay = 0.1  #100ms
 
         while True:

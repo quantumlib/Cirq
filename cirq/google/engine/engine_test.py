@@ -15,7 +15,6 @@
 """Tests for engine."""
 import base64
 import copy
-import json
 import re
 from unittest import mock
 import numpy as np
@@ -1149,12 +1148,7 @@ def test_api_doesnt_retry_404_errors(build):
     service = mock.Mock()
     build.return_value = service
     getProgram = service.projects().programs().get()
-    content = json.dumps({
-        'error': {
-            'message': 'not found',
-            'code': 404
-        }
-    }).encode('utf-8')
+    content = '{"error": {"message": "not found", "code": 404}}'.encode('utf-8');
     getProgram.execute.side_effect = HttpError(mock.Mock(), content)
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(RuntimeError, match='not found'):
@@ -1167,12 +1161,7 @@ def test_api_retry_5xx_errors(build):
     service = mock.Mock()
     build.return_value = service
     getProgram = service.projects().programs().get()
-    content = json.dumps({
-        'error': {
-            'message': 'internal error',
-            'code': 503
-        }
-    }).encode('utf-8')
+    content = '{"error": {"message": "internal error", "code": 503}}'.encode('utf-8');
     getProgram.execute.side_effect = HttpError(mock.Mock(), content)
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(Exception,
@@ -1187,12 +1176,6 @@ def test_api_retry_connection_reset(build):
     service = mock.Mock()
     build.return_value = service
     getProgram = service.projects().programs().get()
-    content = json.dumps({
-        'error': {
-            'message': 'internal error',
-            'code': 503
-        }
-    }).encode('utf-8')
     getProgram.execute.side_effect = ConnectionResetError()
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(Exception,
