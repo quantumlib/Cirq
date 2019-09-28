@@ -1,7 +1,7 @@
 from cirq.experiments.google_v2_supremacy_circuit import (
-    generate_google_presupremacy_circuit_v2,
-    generate_google_presupremacy_circuit_v2_bristlecone,
-    generate_google_presupremacy_circuit_v2_grid,
+    generate_boixo_2018_supremacy_circuits_v2,
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
+    generate_boixo_2018_supremacy_circuits_v2_grid,
 )
 
 from cirq.experiments.qubit_characterizations import (

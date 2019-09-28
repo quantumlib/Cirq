@@ -86,9 +86,9 @@ from cirq.devices import (
 
 from cirq.experiments import (
     linear_xeb_fidelity,
-    generate_google_presupremacy_circuit_v2,
-    generate_google_presupremacy_circuit_v2_bristlecone,
-    generate_google_presupremacy_circuit_v2_grid,
+    generate_boixo_2018_supremacy_circuits_v2,
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
+    generate_boixo_2018_supremacy_circuits_v2_grid,
 )
 
 from cirq.linalg import (

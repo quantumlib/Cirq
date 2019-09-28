@@ -443,9 +443,9 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
-    generate_google_presupremacy_circuit_v2
-    generate_google_presupremacy_circuit_v2_bristlecone
-    generate_google_presupremacy_circuit_v2_grid
+    generate_boixo_2018_supremacy_circuits_v2
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone
+    generate_boixo_2018_supremacy_circuits_v2_grid
 
 
 Ion traps and neutral atoms
