@@ -17,7 +17,7 @@ from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 
 def test_controls():
-    a, b, c = cirq.LineQubit.range(3)
+    a, b = cirq.LineQubit.range(2)
 
     assert_url_to_circuit_returns('{"cols":[["•","X"]]}',
                                   cirq.Circuit(cirq.X(b).controlled_by(a),))

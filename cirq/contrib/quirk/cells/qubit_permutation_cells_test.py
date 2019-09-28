@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import cirq
-from cirq.contrib.quirk.cells.qubit_permutation_cells import (QuirkQubitPermutationGate)
+from cirq.contrib.quirk.cells.qubit_permutation_cells import (
+    QuirkQubitPermutationGate,)
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 

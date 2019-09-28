@@ -41,6 +41,4 @@ def test_explicit_operations_cell():
     assert v.operations() == (cirq.X(a),)
     assert v.basis_change() == (cirq.S(a),)
     assert v.controlled_by(b) == ExplicitOperationsCell(
-        [cirq.X(a).controlled_by(b)],
-        [cirq.S(a)]
-    )
+        [cirq.X(a).controlled_by(b)], [cirq.S(a)])
