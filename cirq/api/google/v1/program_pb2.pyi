@@ -10,6 +10,10 @@ from cirq.api.google.v1.params_pb2 import (
     ParameterSweep as cirq___api___google___v1___params_pb2___ParameterSweep,
 )
 
+from google.protobuf.descriptor import (
+    Descriptor as google___protobuf___descriptor___Descriptor,
+)
+
 from google.protobuf.internal.containers import (
     RepeatedCompositeFieldContainer as google___protobuf___internal___containers___RepeatedCompositeFieldContainer,
 )
@@ -30,6 +34,7 @@ from typing_extensions import (
 
 
 class Program(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
 
     @property
     def operations(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[cirq___api___google___v1___operations_pb2___Operation]: ...
@@ -38,6 +43,7 @@ class Program(google___protobuf___message___Message):
     def parameter_sweeps(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[cirq___api___google___v1___params_pb2___ParameterSweep]: ...
 
     def __init__(self,
+        *,
         operations : typing___Optional[typing___Iterable[cirq___api___google___v1___operations_pb2___Operation]] = None,
         parameter_sweeps : typing___Optional[typing___Iterable[cirq___api___google___v1___params_pb2___ParameterSweep]] = None,
         ) -> None: ...
@@ -48,14 +54,16 @@ class Program(google___protobuf___message___Message):
     if sys.version_info >= (3,):
         def ClearField(self, field_name: typing_extensions___Literal[u"operations",u"parameter_sweeps"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"operations",b"parameter_sweeps"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"operations",b"operations",u"parameter_sweeps",b"parameter_sweeps"]) -> None: ...
 
 class RunContext(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
 
     @property
     def parameter_sweeps(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[cirq___api___google___v1___params_pb2___ParameterSweep]: ...
 
     def __init__(self,
+        *,
         parameter_sweeps : typing___Optional[typing___Iterable[cirq___api___google___v1___params_pb2___ParameterSweep]] = None,
         ) -> None: ...
     @classmethod
@@ -65,15 +73,17 @@ class RunContext(google___protobuf___message___Message):
     if sys.version_info >= (3,):
         def ClearField(self, field_name: typing_extensions___Literal[u"parameter_sweeps"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"parameter_sweeps"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"parameter_sweeps",b"parameter_sweeps"]) -> None: ...
 
 class ParameterizedResult(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     measurement_results = ... # type: bytes
 
     @property
     def params(self) -> cirq___api___google___v1___params_pb2___ParameterDict: ...
 
     def __init__(self,
+        *,
         params : typing___Optional[cirq___api___google___v1___params_pb2___ParameterDict] = None,
         measurement_results : typing___Optional[bytes] = None,
         ) -> None: ...
@@ -86,15 +96,17 @@ class ParameterizedResult(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[u"measurement_results",u"params"]) -> None: ...
     else:
         def HasField(self, field_name: typing_extensions___Literal[u"params",b"params"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"measurement_results",b"params"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"measurement_results",b"measurement_results",u"params",b"params"]) -> None: ...
 
 class MeasurementKey(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     key = ... # type: typing___Text
 
     @property
     def qubits(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[cirq___api___google___v1___operations_pb2___Qubit]: ...
 
     def __init__(self,
+        *,
         key : typing___Optional[typing___Text] = None,
         qubits : typing___Optional[typing___Iterable[cirq___api___google___v1___operations_pb2___Qubit]] = None,
         ) -> None: ...
@@ -105,9 +117,10 @@ class MeasurementKey(google___protobuf___message___Message):
     if sys.version_info >= (3,):
         def ClearField(self, field_name: typing_extensions___Literal[u"key",u"qubits"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"key",b"qubits"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"qubits",b"qubits"]) -> None: ...
 
 class SweepResult(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     repetitions = ... # type: int
 
     @property
@@ -117,6 +130,7 @@ class SweepResult(google___protobuf___message___Message):
     def parameterized_results(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[ParameterizedResult]: ...
 
     def __init__(self,
+        *,
         repetitions : typing___Optional[int] = None,
         measurement_keys : typing___Optional[typing___Iterable[MeasurementKey]] = None,
         parameterized_results : typing___Optional[typing___Iterable[ParameterizedResult]] = None,
@@ -128,14 +142,16 @@ class SweepResult(google___protobuf___message___Message):
     if sys.version_info >= (3,):
         def ClearField(self, field_name: typing_extensions___Literal[u"measurement_keys",u"parameterized_results",u"repetitions"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"measurement_keys",b"parameterized_results",b"repetitions"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"measurement_keys",b"measurement_keys",u"parameterized_results",b"parameterized_results",u"repetitions",b"repetitions"]) -> None: ...
 
 class Result(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
 
     @property
     def sweep_results(self) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[SweepResult]: ...
 
     def __init__(self,
+        *,
         sweep_results : typing___Optional[typing___Iterable[SweepResult]] = None,
         ) -> None: ...
     @classmethod
@@ -145,4 +161,4 @@ class Result(google___protobuf___message___Message):
     if sys.version_info >= (3,):
         def ClearField(self, field_name: typing_extensions___Literal[u"sweep_results"]) -> None: ...
     else:
-        def ClearField(self, field_name: typing_extensions___Literal[b"sweep_results"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"sweep_results",b"sweep_results"]) -> None: ...
