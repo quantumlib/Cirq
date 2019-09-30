@@ -325,6 +325,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsUnitary',
 
     # mypy types:
+    'NOISE_MODEL_LIKE',
     'OP_TREE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',

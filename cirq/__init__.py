@@ -80,6 +80,7 @@ from cirq.devices import (
     LineQid,
     LineQubit,
     NO_NOISE,
+    NOISE_MODEL_LIKE,
     NoiseModel,
     UNCONSTRAINED_DEVICE,
 )
