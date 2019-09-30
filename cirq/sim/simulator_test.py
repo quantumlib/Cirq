@@ -147,7 +147,8 @@ class FakeStepResult(cirq.StepResult):
         pass
 
     def sample(self, qubits, repetitions):
-        return [[qubit in self._ones_qubits for qubit in qubits]] * repetitions
+        return np.array([[qubit in self._ones_qubits for qubit in qubits]] *
+                        repetitions)
 
 
 def test_step_sample_measurement_ops():
