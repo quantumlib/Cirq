@@ -30,3 +30,6 @@ docs/generated
 
 # From pytest-benchmark
 *.benchmarks/
+
+# Ignore generated Jupyter files
+*.ipynb_checkpoints/

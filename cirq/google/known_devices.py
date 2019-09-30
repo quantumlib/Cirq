@@ -15,8 +15,15 @@
 from typing import Dict, List, Set, Tuple
 
 from cirq.devices import GridQubit
+from cirq.google import gate_sets, serializable_gate_set
+from cirq.google.api.v2 import device_pb2
 from cirq.google.xmon_device import XmonDevice
+from cirq.ops import MeasurementGate, SingleQubitGate
 from cirq.value import Duration
+
+
+_2_QUBIT_TARGET_SET = "2_qubit_targets"
+_MEAS_TARGET_SET = "meas_targets"
 
 
 def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
@@ -45,6 +52,102 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
                 measurement_line = measurement_lines.setdefault(c, set())
                 measurement_line.add(qubit)
     return qubits, measurement_lines
+
+
+def create_device_proto_from_diagram(
+        ascii_grid: str,
+        gate_set: serializable_gate_set.SerializableGateSet = None,
+        durations_picos: Dict[str, int] = None,
+) -> device_pb2.DeviceSpecification:
+    """
+    Parse ASCIIart device layout into DeviceSpecification proto containing
+    information about qubits and targets.  Note that this does not populate
+    the gate set information of the proto.  This function also assumes that
+    only adjacent qubits can be targets.
+
+    Args:
+            ascii_grid: An ASCII version of the grid, see _parse_device for
+                    details
+            gate_set: A serializable gate_set object that is used to define
+                    the translation between gate ids and cirq Gate objects
+            durations_picos: A dictionary with keys of gate ids and values of
+                    the duration of that gate in picoseconds
+
+    """
+
+    qubits, _ = _parse_device(ascii_grid)
+    spec = device_pb2.DeviceSpecification()
+
+    # Create valid qubit list
+    qubit_set = frozenset(qubits)
+    spec.valid_qubits.extend([q.proto_id() for q in qubits])
+
+    # Set up a target set for measurement (any qubit permutation)
+    meas_targets = spec.valid_targets.add()
+    meas_targets.name = _MEAS_TARGET_SET
+    meas_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
+
+    # Set up a target set for 2 qubit gates (all adjacent pairs)
+    grid_targets = spec.valid_targets.add()
+    grid_targets.name = _2_QUBIT_TARGET_SET
+    grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
+
+    # Create the target set as all adjacent pairs on the grid
+    neighbor_set: Set[Tuple] = set()
+    for q in qubits:
+        for neighbor in sorted(q.neighbors(qubit_set)):
+            if (neighbor, q) not in neighbor_set:
+                # Don't add pairs twice
+                new_target = grid_targets.targets.add()
+                new_target.ids.extend((q.proto_id(), neighbor.proto_id()))
+                neighbor_set.add((q, neighbor))
+
+    # Create gate set
+    if gate_set is not None:
+        gs_proto = spec.valid_gate_sets.add()
+        gs_proto.name = gate_set.gate_set_name
+        gate_ids: Set[str] = set()
+        for gate_type in gate_set.serializers:
+            for serializer in gate_set.serializers[gate_type]:
+                gate_id = serializer.serialized_gate_id
+                if gate_id in gate_ids:
+                    # Only add each type once
+                    continue
+
+                gate_ids.add(gate_id)
+                gate = gs_proto.valid_gates.add()
+                gate.id = gate_id
+
+                # Choose target set and number of qubits based on gate type.
+
+                # Note: if it is not a measurement gate and doesn't inherit
+                # from SingleQubitGate, it is assumed to be a two qubit gate.
+                if gate_type == MeasurementGate:
+                    gate.valid_targets.extend([_MEAS_TARGET_SET])
+                elif issubclass(gate_type, SingleQubitGate):
+                    gate.number_of_qubits = 1
+                else:
+                    # This must be a two-qubit gate
+                    gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
+                    gate.number_of_qubits = 2
+
+                # Add gate duration
+                if durations_picos is not None and gate.id in durations_picos:
+                    gate.gate_duration_picos = durations_picos[gate.id]
+
+                # Add argument names and types for each gate.
+                for arg in serializer.args:
+                    new_arg = gate.valid_args.add()
+                    if arg.serialized_type == str:
+                        new_arg.type = device_pb2.ArgDefinition.STRING
+                    if arg.serialized_type == float:
+                        new_arg.type = device_pb2.ArgDefinition.FLOAT
+                    if arg.serialized_type == List[bool]:
+                        new_arg.type = device_pb2.ArgDefinition.REPEATED_BOOLEAN
+                    new_arg.name = arg.serialized_name
+                    # Note: this does not yet support adding allowed_ranges
+
+    return spec
 
 
 _FOXTAIL_GRID = """
@@ -80,6 +183,17 @@ Foxtail = _NamedConstantXmonDevice(
     qubits=_parse_device(_FOXTAIL_GRID)[0])
 
 
+# Duration dict in picoseconds
+_DURATIONS_FOR_XMON = {
+    'exp_11': 50_000,
+    'exp_w': 20_000,
+    'exp_z': 0,
+    'meas': 1_000_000,
+}
+
+FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID, gate_sets.XMON,
+                                                 _DURATIONS_FOR_XMON)
+
 _BRISTLECONE_GRID = """
 -----AB-----
 ----ABCD----
@@ -101,3 +215,7 @@ Bristlecone = _NamedConstantXmonDevice(
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
+
+BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
+                                                     gate_sets.XMON,
+                                                     _DURATIONS_FOR_XMON)
