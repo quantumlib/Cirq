@@ -82,6 +82,14 @@ def test_is_adjacent():
     assert not cirq.LineQubit(2).is_adjacent(cirq.LineQid(0, 3))
 
 
+def test_neighborhood():
+    assert cirq.LineQubit(1).neighbors() == {
+        cirq.LineQubit(0), cirq.LineQubit(2)
+    }
+    restricted_qubits = [cirq.LineQubit(2), cirq.LineQubit(3)]
+    assert cirq.LineQubit(1).neighbors(restricted_qubits) == {cirq.LineQubit(2)}
+
+
 def test_range():
     assert cirq.LineQubit.range(0) == []
     assert cirq.LineQubit.range(1) == [cirq.LineQubit(0)]

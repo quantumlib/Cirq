@@ -14,6 +14,7 @@
 """Data format v2 for google api."""
 
 from cirq.google.api.v2 import (
+    device_pb2,
     metrics_pb2,
     program_pb2,
     result_pb2,
