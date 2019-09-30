@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, List, NamedTuple, Any, Iterable, Sequence
+from typing import Callable, Optional, List, NamedTuple, Any, Iterable, \
+    Sequence, TYPE_CHECKING
 
-import cirq
 from cirq import ops, value
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Cell:
