@@ -125,7 +125,7 @@ def test_wrap():
     class Forget(cirq.NoiseModel):
 
         def noisy_operation(self, operation):
-            return []
+            raise NotImplementedError()
 
     forget = Forget()
 
