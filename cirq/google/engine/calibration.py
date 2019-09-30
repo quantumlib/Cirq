@@ -19,6 +19,7 @@ import datetime
 from typing import Any, Dict, Iterator, Optional, Tuple, TYPE_CHECKING
 
 from cirq import devices, vis
+from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
@@ -68,8 +69,7 @@ class Calibration(abc.Mapping):
                     t[1:] if t.startswith('q') else t for t in metric['targets']
                 ]
                 # TODO: Remove when calibrations don't prepend this.
-                qubits = tuple(
-                    devices.GridQubit.from_proto_id(t) for t in targets)
+                qubits = tuple(v2.grid_qubit_from_proto_id(t) for t in targets)
                 results[name][qubits] = flat_values
             else:
                 assert len(results[name]) == 0, (

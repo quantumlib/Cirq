@@ -19,9 +19,9 @@ from cirq.circuits import InsertStrategy
 from cirq import circuits, devices, google, ops
 
 
-def generate_supremacy_circuit_google_v2(qubits: Iterable[devices.GridQubit],
-                                         cz_depth: int,
-                                         seed: int) -> circuits.Circuit:
+def generate_boixo_2018_supremacy_circuits_v2(
+        qubits: Iterable[devices.GridQubit], cz_depth: int,
+        seed: int) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
@@ -81,9 +81,9 @@ def generate_supremacy_circuit_google_v2(qubits: Iterable[devices.GridQubit],
     return circuit
 
 
-def generate_supremacy_circuit_google_v2_grid(n_rows: int, n_cols: int,
-                                              cz_depth: int, seed: int
-                                              ) -> circuits.Circuit:
+def generate_boixo_2018_supremacy_circuits_v2_grid(n_rows: int, n_cols: int,
+                                                   cz_depth: int, seed: int
+                                                  ) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 as in github.com/sboixo/GRCS cz_v2.
     See also https://arxiv.org/abs/1807.10749
@@ -103,12 +103,11 @@ def generate_supremacy_circuit_google_v2_grid(n_rows: int, n_cols: int,
     """
     qubits = [devices.GridQubit(i, j) for i in range(n_rows)
               for j in range(n_cols)]
-    return generate_supremacy_circuit_google_v2(qubits, cz_depth, seed)
+    return generate_boixo_2018_supremacy_circuits_v2(qubits, cz_depth, seed)
 
 
-def generate_supremacy_circuit_google_v2_bristlecone(n_rows: int,
-                                                     cz_depth: int, seed: int
-                                                     ) -> circuits.Circuit:
+def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
+        n_rows: int, cz_depth: int, seed: int) -> circuits.Circuit:
     """
     Generates Google Random Circuits v2 in Bristlecone.
     See also https://arxiv.org/abs/1807.10749
@@ -146,7 +145,7 @@ def generate_supremacy_circuit_google_v2_bristlecone(n_rows: int,
         return qubits
 
     qubits = get_qubits(n_rows)
-    return generate_supremacy_circuit_google_v2(qubits, cz_depth, seed)
+    return generate_boixo_2018_supremacy_circuits_v2(qubits, cz_depth, seed)
 
 
 T = TypeVar('T')

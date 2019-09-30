@@ -48,8 +48,9 @@ from cirq import contrib
 contrib.circuit_to_latex_using_qcircuit(cirq.Circuit())
 ``` 
 
-Of course, if this import style fundamentally cannot be used, do not let this block submitting
-a pull request for the code as we will definitely grant exceptions.
+Of course, if this import style fundamentally cannot be used, do not let this
+block submitting a pull request for the code as we will definitely grant
+exceptions.
 
 #### Typing based import cycles
 
