@@ -261,6 +261,12 @@ def test_to_valid_state_vector():
                                    np.array([0.0, 1.0, 0.0, 0.0]))
 
 
+def test_to_valid_state_vector_creates_new_copy():
+    state = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64)
+    out = cirq.to_valid_state_vector(state, 2)
+    assert out is not state
+
+
 def test_invalid_to_valid_state_vector():
     with pytest.raises(ValueError):
         _ = cirq.to_valid_state_vector(
