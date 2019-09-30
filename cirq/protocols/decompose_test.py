@@ -21,12 +21,14 @@ class NoMethod:
 
 
 class DecomposeNotImplemented:
-    def _decompose_(self, **kwargs):
+
+    def _decompose_(self, qubits=None):
         return NotImplemented
 
 
 class DecomposeNone:
-    def _decompose_(self, **kwargs):
+
+    def _decompose_(self, qubits=None):
         return None
 
 
@@ -50,6 +52,12 @@ class DecomposeGenerated:
     def _decompose_(self):
         yield cirq.X(cirq.LineQubit(0))
         yield cirq.Y(cirq.LineQubit(1))
+
+
+class DecomposeQuditGate:
+
+    def _decompose_(self, qids):
+        yield cirq.identity(*qids)
 
 
 def test_decompose_once():
@@ -113,6 +121,12 @@ def test_decompose_once_with_qubits():
                 cirq.Y(cirq.LineQubit(1)),
                 cirq.Y(cirq.LineQubit(2))]
 
+    # Qudits, _decompose_ argument name is not 'qubits'.
+    assert cirq.decompose_once_with_qubits(
+        DecomposeQuditGate(), cirq.LineQid.for_qid_shape(
+            (1, 2,
+             3))) == [cirq.identity(*cirq.LineQid.for_qid_shape((1, 2, 3)))]
+
     # Works when qubits are generated.
     def use_qubits_twice(*qubits):
         a = list(qubits)
@@ -138,9 +152,7 @@ def test_decompose_general():
     # Decomposed circuit should be equivalent. The ordering should be correct.
     ops = cirq.TOFFOLI(a, b, c), cirq.H(a), cirq.CZ(a, c)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
-        cirq.Circuit.from_ops(ops),
-        cirq.Circuit.from_ops(cirq.decompose(ops)),
-        atol=1e-8)
+        cirq.Circuit(ops), cirq.Circuit(cirq.decompose(ops)), atol=1e-8)
 
 
 def test_decompose_keep():
@@ -153,9 +165,8 @@ def test_decompose_keep():
     ) == [cirq.CNOT(a, b), cirq.CNOT(b, a), cirq.CNOT(a, b)]
 
     # Recursion continues down to CZ + single-qubit gates.
-    cirq.testing.assert_has_diagram(cirq.Circuit.from_ops(
-        cirq.decompose(cirq.SWAP(a, b))),
-        """
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.decompose(cirq.SWAP(a, b))), """
 0: ────────────@───Y^-0.5───@───Y^0.5────@───────────
                │            │            │
 1: ───Y^-0.5───@───Y^0.5────@───Y^-0.5───@───Y^0.5───

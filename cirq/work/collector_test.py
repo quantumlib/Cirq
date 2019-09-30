@@ -18,7 +18,7 @@ import cirq
 def test_circuit_sample_job_equality():
     eq = cirq.testing.EqualsTester()
     c1 = cirq.Circuit()
-    c2 = cirq.Circuit.from_ops(cirq.measure(cirq.LineQubit(0)))
+    c2 = cirq.Circuit(cirq.measure(cirq.LineQubit(0)))
 
     eq.add_equality_group(cirq.CircuitSampleJob(c1, repetitions=10),
                           cirq.CircuitSampleJob(c1, repetitions=10, tag=None))
@@ -29,7 +29,7 @@ def test_circuit_sample_job_equality():
 
 def test_circuit_sample_job_repr():
     cirq.testing.assert_equivalent_repr(
-        cirq.CircuitSampleJob(cirq.Circuit.from_ops(cirq.H(cirq.LineQubit(0))),
+        cirq.CircuitSampleJob(cirq.Circuit(cirq.H(cirq.LineQubit(0))),
                               repetitions=10,
                               tag='guess'))
 
@@ -41,7 +41,7 @@ def test_async_collect():
 
         def next_job(self):
             q = cirq.LineQubit(0)
-            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
             return cirq.CircuitSampleJob(circuit=circuit,
                                          repetitions=10,
                                          tag='test')
@@ -63,7 +63,7 @@ def test_collect():
 
         def next_job(self):
             q = cirq.LineQubit(0)
-            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
             return cirq.CircuitSampleJob(circuit=circuit,
                                          repetitions=10,
                                          tag='test')
@@ -91,7 +91,7 @@ def test_collect_with_reaction():
             sent += 1
             events.append(sent)
             q = cirq.LineQubit(0)
-            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
             return cirq.CircuitSampleJob(circuit=circuit,
                                          repetitions=10,
                                          tag=sent)
@@ -124,7 +124,7 @@ def test_flatten_jobs_terminate_from_collector():
                 return
             sent = True
             q = cirq.LineQubit(0)
-            circuit = cirq.Circuit.from_ops(cirq.H(q), cirq.measure(q))
+            circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
             a = cirq.CircuitSampleJob(circuit=circuit,
                                       repetitions=10,
                                       tag='test')

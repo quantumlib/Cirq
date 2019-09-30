@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast
+from typing import Any, Callable, Dict, Generic, Iterator, TypeVar, cast, \
+    TYPE_CHECKING
 
 import functools
 import networkx
@@ -20,6 +21,8 @@ import networkx
 from cirq import ops, devices
 from cirq.circuits import circuit
 
+if TYPE_CHECKING:
+    import cirq
 
 T = TypeVar('T')
 
@@ -46,7 +49,7 @@ class Unique(Generic[T]):
         return id(self) < id(other)
 
 
-def _disjoint_qubits(op1: ops.Operation, op2: ops.Operation) -> bool:
+def _disjoint_qubits(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
     """Returns true only if the operations have qubits in common."""
     return not set(op1.qubits) & set(op2.qubits)
 
@@ -67,8 +70,8 @@ class CircuitDag(networkx.DiGraph):
     disjoint_qubits = staticmethod(_disjoint_qubits)
 
     def __init__(self,
-                 can_reorder: Callable[[ops.Operation, ops.
-                                        Operation], bool] = _disjoint_qubits,
+                 can_reorder: Callable[['cirq.Operation', 'cirq.Operation'],
+                                       bool] = _disjoint_qubits,
                  incoming_graph_data: Any = None,
                  device: devices.Device = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a CircuitDag.
@@ -90,22 +93,22 @@ class CircuitDag(networkx.DiGraph):
         self.device = device
 
     @staticmethod
-    def make_node(op: ops.Operation) -> Unique:
+    def make_node(op: 'cirq.Operation') -> Unique:
         return Unique(op)
 
     @staticmethod
     def from_circuit(circuit: circuit.Circuit,
-                     can_reorder: Callable[[ops.Operation, ops.Operation],
+                     can_reorder: Callable[['cirq.Operation', 'cirq.Operation'],
                                            bool] = _disjoint_qubits
-                     ) -> 'CircuitDag':
+                    ) -> 'CircuitDag':
         return CircuitDag.from_ops(circuit.all_operations(),
                                    can_reorder=can_reorder,
                                    device=circuit.device)
 
     @staticmethod
-    def from_ops(*operations: ops.OP_TREE,
-                 can_reorder: Callable[[ops.Operation, ops.
-                                        Operation], bool] = _disjoint_qubits,
+    def from_ops(*operations: 'cirq.OP_TREE',
+                 can_reorder: Callable[['cirq.Operation', 'cirq.Operation'],
+                                       bool] = _disjoint_qubits,
                  device: devices.Device = devices.UNCONSTRAINED_DEVICE
                 ) -> 'CircuitDag':
         dag = CircuitDag(can_reorder=can_reorder, device=device)
@@ -113,7 +116,7 @@ class CircuitDag(networkx.DiGraph):
             dag.append(cast(ops.Operation, op))
         return dag
 
-    def append(self, op: ops.Operation) -> None:
+    def append(self, op: 'cirq.Operation') -> None:
         new_node = self.make_node(op)
         for node in list(self.nodes()):
             if not self.can_reorder(node.val, op):
@@ -180,7 +183,27 @@ class CircuitDag(networkx.DiGraph):
         return frozenset(q for node in self.nodes for q in node.val.qubits)
 
     def to_circuit(self) -> circuit.Circuit:
-        return circuit.Circuit.from_ops(
-                    self.all_operations(),
-                    strategy=circuit.InsertStrategy.EARLIEST,
-                    device=self.device)
+        return circuit.Circuit(self.all_operations(),
+                               strategy=circuit.InsertStrategy.EARLIEST,
+                               device=self.device)
+
+    def findall_nodes_until_blocked(self,
+                                    is_blocker: Callable[[ops.Operation], bool]
+                                   ) -> Iterator[Unique[ops.Operation]]:
+        """Finds all nodes before blocking ones.
+
+        Args:
+            is_blocker: The predicate that indicates whether or not an
+            operation is blocking.
+        """
+        remaining_dag = self.copy()
+
+        for node in self.ordered_nodes():
+            if node not in remaining_dag:
+                continue
+            if is_blocker(node.val):
+                successors = list(remaining_dag.succ[node])
+                remaining_dag.remove_nodes_from(successors)
+                remaining_dag.remove_node(node)
+                continue
+            yield node

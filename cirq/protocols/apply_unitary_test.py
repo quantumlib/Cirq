@@ -266,9 +266,16 @@ def test_apply_unitary_args_tensor_manipulation():
         np.testing.assert_allclose(result, expected, atol=1e-8, verbose=True)
 
     for op in operations:
-        print('Testing', type(op).__name__)
         assert_is_swap_simple(op)
         assert_is_swap(op)
+
+
+def test_big_endian_subspace_index():
+    state = np.zeros(shape=(2, 3, 4, 5, 1, 6, 1, 1))
+    args = cirq.ApplyUnitaryArgs(state, np.empty_like(state), [1, 3])
+    s = slice(None)
+    assert args.subspace_index(little_endian_bits_int=1) == (s, 1, s, 0, ...)
+    assert args.subspace_index(big_endian_bits_int=1) == (s, 0, s, 1, ...)
 
 
 def test_apply_unitaries():
@@ -375,53 +382,53 @@ def test_apply_unitaries_mixed_qid_shapes():
                              [0, 1, 0, 0],
                              [0, 0, 1, 0]])  # yapf: disable
 
-    a, b = cirq.LineQubit.range(2)
+    a, b = cirq.LineQid.for_qid_shape((3, 4))
 
     result = cirq.apply_unitaries(unitary_values=[
-        PlusOneMod3Gate().on(a),
-        cirq.X(a),
-        cirq.CNOT(a, b),
-        cirq.CNOT(a, b),
-        cirq.X(a),
-        PlusOneMod3Gate().on(a),
-        PlusOneMod3Gate().on(a),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
+        cirq.X(a.with_dimension(2)),
+        cirq.CNOT(a.with_dimension(2), b.with_dimension(2)),
+        cirq.CNOT(a.with_dimension(2), b.with_dimension(2)),
+        cirq.X(a.with_dimension(2)),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
     ],
                                   qubits=[a, b])
-    np.testing.assert_allclose(result.reshape(6), [1] + [0] * 5, atol=1e-8)
+    np.testing.assert_allclose(result.reshape(12), [1] + [0] * 11, atol=1e-8)
 
     result = cirq.apply_unitaries(unitary_values=[
-        PlusOneMod3Gate().on(a),
-        cirq.X(a),
-        cirq.CNOT(a, b),
-        cirq.CNOT(a, b),
-        cirq.X(a),
-        PlusOneMod3Gate().on(a),
-        PlusOneMod3Gate().on(a),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
+        cirq.X(a.with_dimension(2)),
+        cirq.CNOT(a.with_dimension(2), b.with_dimension(2)),
+        cirq.CNOT(a.with_dimension(2), b.with_dimension(2)),
+        cirq.X(a.with_dimension(2)),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
     ],
                                   qubits=[a, b],
                                   args=cirq.ApplyUnitaryArgs(
                                       target_tensor=cirq.eye_tensor(
-                                          (3, 2), dtype=np.complex64),
+                                          (3, 4), dtype=np.complex64),
                                       available_buffer=cirq.eye_tensor(
-                                          (3, 2), dtype=np.complex64),
+                                          (3, 4), dtype=np.complex64),
                                       axes=(0, 1)))
-    np.testing.assert_allclose(result.reshape(6, 6), np.eye(6), atol=1e-8)
+    np.testing.assert_allclose(result.reshape(12, 12), np.eye(12), atol=1e-8)
 
     result = cirq.apply_unitaries(unitary_values=[
-        PlusOneMod3Gate().on(a),
-        cirq.X(a),
-        PlusOneMod4Gate().on(b),
-        PlusOneMod4Gate().on(b),
-        cirq.X(b),
-        PlusOneMod4Gate().on(b),
-        PlusOneMod4Gate().on(b),
-        cirq.CNOT(a, b),
-        PlusOneMod4Gate().on(b),
-        cirq.X(b),
-        cirq.CNOT(a, b),
-        cirq.X(a),
-        PlusOneMod3Gate().on(a),
-        PlusOneMod3Gate().on(a),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
+        cirq.X(a.with_dimension(2)),
+        PlusOneMod4Gate().on(b.with_dimension(4)),
+        PlusOneMod4Gate().on(b.with_dimension(4)),
+        cirq.X(b.with_dimension(2)),
+        PlusOneMod4Gate().on(b.with_dimension(4)),
+        PlusOneMod4Gate().on(b.with_dimension(4)),
+        cirq.CNOT(a.with_dimension(2), b.with_dimension(2)),
+        PlusOneMod4Gate().on(b.with_dimension(4)),
+        cirq.X(b.with_dimension(2)),
+        cirq.CNOT(a.with_dimension(2), b.with_dimension(2)),
+        cirq.X(a.with_dimension(2)),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
+        PlusOneMod3Gate().on(a.with_dimension(3)),
     ],
                                   qubits=[a, b],
                                   args=cirq.ApplyUnitaryArgs(
@@ -459,3 +466,20 @@ def test_incorporate_result_not_view():
 def test_default_method_arguments():
     with pytest.raises(TypeError, match='exactly one of'):
         cirq.ApplyUnitaryArgs.default(1, qid_shape=(2,))
+
+
+def test_apply_unitary_args_with_axes_transposed_to_start():
+    target = np.zeros((2, 3, 4, 5))
+    buffer = np.zeros((2, 3, 4, 5))
+    args = cirq.ApplyUnitaryArgs(target, buffer, [1, 3])
+
+    new_args = args.with_axes_transposed_to_start()
+    assert new_args.target_tensor.shape == (3, 5, 2, 4)
+    assert new_args.available_buffer.shape == (3, 5, 2, 4)
+    assert new_args.axes == (0, 1)
+
+    # Confirm aliasing.
+    new_args.target_tensor[2, 4, 1, 3] = 1
+    assert args.target_tensor[1, 2, 3, 4] == 1
+    new_args.available_buffer[2, 4, 1, 3] = 2
+    assert args.available_buffer[1, 2, 3, 4] == 2

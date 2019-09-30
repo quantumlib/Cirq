@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Optional, Dict, Sequence, Union, cast
-
 from random import randint, random, sample, choice
+
+import numpy as np
 import pytest
 
 import cirq
@@ -67,3 +68,36 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
     assert set(cast(cirq.GateOperation, op).gate
                for op in circuit.all_operations()
                ).issubset(gate_domain)
+
+
+@pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
+def test_random_circuit_reproducible_with_seed(seed):
+    wrappers = (lambda s: s, np.random.RandomState)
+    circuits = [
+        random_circuit(qubits=20,
+                       n_moments=20,
+                       op_density=0.7,
+                       random_state=wrapper(seed))
+        for wrapper in wrappers
+        for _ in range(2)
+    ]
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(*circuits)
+
+
+def test_random_circuit_reproducible_between_runs():
+    circuit = random_circuit(5, 8, 0.5, random_state=77)
+    expected_diagram = """
+                  ┌──┐
+0: ────────────────S─────iSwap───────Y───X───
+                         │
+1: ───────────Y──────────iSwap───────Y───────
+
+2: ─────────────────X────T───────────S───S───
+                    │
+3: ───────@────────S┼────H───────────────Z───
+          │         │
+4: ───────@─────────@────────────────────X───
+                  └──┘
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)

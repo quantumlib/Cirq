@@ -128,3 +128,14 @@ def test_calibration_from_job_with_no_calibration(build):
     calibration = job.get_calibration()
     assert not calibration
     assert not calibrations.get.called
+
+
+def test_str():
+    engine = mock.Mock()
+    job = {
+        'name': 'projects/a/programs/b/jobs/steve',
+    }
+    job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
+                       job=job,
+                       engine=engine)
+    assert str(job) == 'EngineJob(projects/a/programs/b/jobs/steve)'

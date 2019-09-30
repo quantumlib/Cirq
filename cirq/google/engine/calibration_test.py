@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import pytest
 
 import matplotlib as mpl
@@ -83,8 +84,23 @@ def test_calibration_metrics_dictionary():
 
     with pytest.raises(TypeError, match="was 1"):
         _ = calibration[1]
-    with pytest.raises(KeyError, match='notit'):
-        _ = calibration['notit']
+    with pytest.raises(KeyError, match='not-it'):
+        _ = calibration['not-it']
+
+
+def test_calibration_str():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    assert str(calibration) == ("Calibration(keys=['globalMetric', 't1', "
+                                "'xeb'])")
+
+
+def test_calibration_timestamp_str():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    assert (calibration.timestamp_str(
+        tz=datetime.timezone.utc) == '2019-07-08 00:00:00.021021+00:00')
+    assert (calibration.timestamp_str(
+        tz=datetime.timezone(datetime.timedelta(
+            hours=1))) == '2019-07-08 01:00:00.021021+01:00')
 
 
 def test_calibration_heatmap():

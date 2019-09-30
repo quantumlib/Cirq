@@ -41,7 +41,8 @@ from cirq.api.google import v1, v2
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
-from cirq.google.engine import calibration, engine_job, engine_program
+from cirq.google.engine import (calibration, engine_job, engine_program,
+                                engine_sampler)
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
@@ -519,11 +520,16 @@ class Engine:
             parent=job_resource_name).execute()
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
-
         if result_type == 'cirq.api.google.v1.Result':
-            return self._get_job_results_v1(response['result'])
+            return self._get_job_results_v1(result)
         if result_type == 'cirq.api.google.v2.Result':
-            return self._get_job_results_v2(response['result'])
+            return self._get_job_results_v2(result)
+        if result_type == 'cirq.google.api.v1.Result':
+            return self._get_job_results_v1(result)
+        if result_type == 'cirq.google.api.v2.Result':
+            # Pretend the path is the other one until we switch over
+            result['@type'] = 'type.googleapis.com/cirq.api.google.v2.Result'
+            return self._get_job_results_v2(result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
 
@@ -552,7 +558,6 @@ class Engine:
         gp.json_format.ParseDict(result_dict, result_any)
         result = v2.result_pb2.Result()
         result_any.Unpack(result)
-
         sweep_results = api_v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
@@ -692,3 +697,18 @@ class Engine:
         response = self.service.projects().processors().calibrations().get(
             name=calibration_name).execute()
         return calibration.Calibration(response['data']['data'])
+
+    def sampler(self, processor_id: Union[str, List[str]],
+                gate_set: serializable_gate_set.SerializableGateSet
+               ) -> engine_sampler.QuantumEngineSampler:
+        """Returns a sampler backed by the engine.
+
+        Args:
+            processor_id: String identifier, or list of string identifiers,
+                determining which processors may be used when sampling.
+            gate_set: Determines how to serialize circuits when requesting
+                samples.
+        """
+        return engine_sampler.QuantumEngineSampler(engine=self,
+                                                   processor_id=processor_id,
+                                                   gate_set=gate_set)

@@ -46,7 +46,9 @@ def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
 
 
 def _bitstring(vals: Iterable[Any]) -> str:
-    return ''.join('1' if v else '0' for v in vals)
+    str_list = [str(int(v)) for v in vals]
+    separator = '' if all(len(s) == 1 for s in str_list) else ' '
+    return separator.join(str_list)
 
 
 def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
@@ -106,7 +108,10 @@ class TrialResult:
                 converted_dict[key] = [
                     value.big_endian_bits_to_int(m_vals) for m_vals in val
                 ]
-            self._data = pd.DataFrame(converted_dict)
+            # Note that when a numpy array is produced from this data frame,
+            # Pandas will try to use np.int64 as dtype, but will upgrade to
+            # object if any value is too large to fit.
+            self._data = pd.DataFrame(converted_dict, dtype=np.int64)
         return self._data
 
     @staticmethod
@@ -269,3 +274,22 @@ class TrialResult:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.data.equals(other.data) and self.params == other.params
+
+    def _measurement_shape(self):
+        return self.params, {
+            k: v.shape[1] for k, v in self.measurements.items()
+        }
+
+    def __add__(self, other: 'cirq.TrialResult') -> 'cirq.TrialResult':
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if self._measurement_shape() != other._measurement_shape():
+            raise ValueError(
+                'TrialResults do not have the same parameters or do '
+                'not have the same measurement keys.')
+        all_measurements: Dict[str, np.ndarray] = {}
+        for key in other.measurements:
+            all_measurements[key] = np.append(self.measurements[key],
+                                              other.measurements[key],
+                                              axis=0)
+        return TrialResult(params=self.params, measurements=all_measurements)
