@@ -356,7 +356,7 @@ def to_valid_state_vector(
                 'initial state was of size {} '
                 'but expected state for {} qubits with qid shape {}'.format(
                     len(state_rep), num_qubits, qid_shape))
-        state = state_rep
+        state = state_rep.copy()
     elif isinstance(state_rep, int):
         if state_rep < 0:
             raise ValueError('initial_state must be positive')
