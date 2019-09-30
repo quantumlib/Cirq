@@ -37,10 +37,10 @@ def test_to_proto_id_unsupport_qid():
 
         @property
         def dimension(self):
-            return 2
+            pass
 
         def _comparison_key(self):
-            return self._name
+            pass
 
     with pytest.raises(ValueError, match='ValidQubit'):
         _ = v2.qubit_to_proto_id(ValidQubit('d'))
