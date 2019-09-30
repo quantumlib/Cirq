@@ -579,8 +579,8 @@ def test_assert_apply_unitary_works_when_axes_transposed_failure():
         def _num_qubits_(self):
             return 2
 
-    assert cirq.has_unitary(BadOp())
     bad_op = BadOp()
+    assert cirq.has_unitary(bad_op)
 
     # Appears to work.
     np.testing.assert_allclose(cirq.unitary(bad_op), np.diag([1, 1j, -1, -1j]))
