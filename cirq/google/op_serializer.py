@@ -21,6 +21,7 @@ from google.protobuf import json_format
 
 from cirq import devices, ops
 from cirq.api.google import v2
+from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs
 
 if TYPE_CHECKING:
@@ -136,7 +137,8 @@ class GateOpSerializer:
 
         msg.gate.id = self.serialized_gate_id
         for qubit in op.qubits:
-            msg.qubits.add().id = cast(devices.GridQubit, qubit).proto_id()
+            msg.qubits.add().id = api_v2.qubit_to_proto_id(
+                cast(devices.GridQubit, qubit))
         for arg in self.args:
             value = self._value_from_gate(gate, arg)
             if value is not None:

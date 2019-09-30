@@ -142,9 +142,9 @@ class SerializableDevice(devices.Device):
     @staticmethod
     def _qid_from_str(id_str: str) -> 'cirq.Qid':
         try:
-            return devices.GridQubit.from_proto_id(id_str)
+            return v2.grid_qubit_from_proto_id(id_str)
         except ValueError:
-            return ops.NamedQubit(id_str)
+            return v2.named_qubit_from_proto_id(id_str)
 
     @classmethod
     def _qubits_from_ids(cls, id_list) -> List['cirq.Qid']:

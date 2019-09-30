@@ -16,6 +16,7 @@ from typing import Dict, List, Set, Tuple
 
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
+from cirq.google.api import v2
 from cirq.google.api.v2 import device_pb2
 from cirq.google.xmon_device import XmonDevice
 from cirq.ops import MeasurementGate, SingleQubitGate
@@ -80,7 +81,7 @@ def create_device_proto_from_diagram(
 
     # Create valid qubit list
     qubit_set = frozenset(qubits)
-    spec.valid_qubits.extend([q.proto_id() for q in qubits])
+    spec.valid_qubits.extend([v2.qubit_to_proto_id(q) for q in qubits])
 
     # Set up a target set for measurement (any qubit permutation)
     meas_targets = spec.valid_targets.add()
@@ -99,7 +100,8 @@ def create_device_proto_from_diagram(
             if (neighbor, q) not in neighbor_set:
                 # Don't add pairs twice
                 new_target = grid_targets.targets.add()
-                new_target.ids.extend((q.proto_id(), neighbor.proto_id()))
+                new_target.ids.extend(
+                    (v2.qubit_to_proto_id(q), v2.qubit_to_proto_id(neighbor)))
                 neighbor_set.add((q, neighbor))
 
     # Create gate set

@@ -159,31 +159,6 @@ def test_grid_qubit_unsupported_add():
         _ = cirq.GridQubit(1, 1) - 1
 
 
-def test_to_proto():
-    q = cirq.GridQubit(5, 6)
-
-    # Create a new message.
-    proto = q.to_proto_dict()
-    assert proto == {'row': 5, 'col': 6}
-
-
-def test_from_proto():
-    q = cirq.GridQubit(5, 6)
-    q2 = cirq.GridQubit.from_proto_dict(q.to_proto_dict())
-    assert q2 == q
-
-
-def test_from_proto_bad_dict():
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({'row': 1})
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({'col': 1})
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({})
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({'nothing': 1})
-
-
 def test_to_json():
     q = cirq.GridQubit(5, 6)
     d = q._json_dict_()
