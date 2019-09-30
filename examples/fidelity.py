@@ -9,6 +9,7 @@ https://arxiv.org/abs/1104.3835
 """
 
 import cirq
+import itertools
 
 def build_circuit():
   qubits = [cirq.LineQubit(i) for i in range(3)]
@@ -20,21 +21,19 @@ def build_circuit():
   circuit.append(rot1(cirq.LineQubit(1)))
   circuit.append(rot2(cirq.LineQubit(2)))
 
-  circuit.append(cirq.measure(*qubits, key='measure'))
-
   return circuit, qubits
 
 def main():
   circuit, qubits = build_circuit()
 
-  # results = cirq.sample(program=circuit,
-  #                       # noise=cirq.ConstantQubitNoiseModel(
-  #                       #     cirq.amplitude_damp(1e-3)),
-  #                       repetitions=100)
-  # print(results.histogram(key='measure'))
+  n = len(qubits)
 
-  simulator = cirq.Simulator()
-  print(simulator.simulate(program=circuit))
+  for pauli_ops in itertools.product({cirq.I, cirq.X, cirq.Y, cirq.Z}, repeat=n):
+    op_dict = dict(zip(qubits, pauli_ops))
+
+    circuit_copy = circuit.copy()
+    circuit_copy.append(cirq.PauliString(op_dict))
+    circuit_copy.append(cirq.measure(*qubits, key='measure'))
 
 if __name__ == '__main__':
   main()
