@@ -80,9 +80,11 @@ def test_fixed_single_qubit_rotations():
             cirq.Z(c)**(1 / 32),
             cirq.Z(a)**(1 / 64),
             cirq.Z(b)**(1 / 128),
-            cirq.Z(a)**(-1 / 2),
-            cirq.Z(b)**(-1 / 3),
-            cirq.Z(c)**(-1 / 4),
+            cirq.Moment([
+                cirq.Z(a)**(-1 / 2),
+                cirq.Z(b)**(-1 / 3),
+                cirq.Z(c)**(-1 / 4),
+            ]),
             cirq.Z(a)**(-1 / 8),
             cirq.Z(b)**(-1 / 16),
         ))

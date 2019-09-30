@@ -13,13 +13,10 @@
 # limitations under the License.
 import json
 
-import numpy as np
 import pytest
-import sympy
 
 import cirq
-from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
-from cirq.contrib.quirk.url_to_circuit import quirk_url_to_circuit
+from cirq.contrib.quirk import quirk_url_to_circuit
 
 
 def test_parse_simple_cases():
@@ -40,23 +37,46 @@ def test_parse_simple_cases():
 
 
 def test_parse_failures():
-    with pytest.raises(ValueError, match='must start with'):
+    with pytest.raises(ValueError, match='must start with "circuit="'):
         _ = quirk_url_to_circuit('http://algassert.com/quirk#bad')
+
     with pytest.raises(json.JSONDecodeError):
         _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit=')
+
     with pytest.raises(ValueError, match='top-level dictionary'):
         _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit=[]')
+
     with pytest.raises(ValueError, match='"cols" entry'):
         _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit={}')
+
     with pytest.raises(ValueError, match='cols must be a list'):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": 1}')
+
     with pytest.raises(ValueError, match='col must be a list'):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": [0]}')
-    with pytest.raises(ValueError, match='Unrecognized'):
+
+    with pytest.raises(ValueError, match='Unrecognized column entry: 0'):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": [[0]]}')
-    with pytest.raises(ValueError, match='Unrecognized'):
+
+    with pytest.raises(ValueError, match='Unrecognized column entry: '):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": [["not a real"]]}')
+
+    with pytest.raises(ValueError, match='Unrecognized Circuit JSON keys'):
+        _ = quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols": [[]], "other": 1}')
+
+
+def test_parse_not_supported_yet():
+    with pytest.raises(NotImplementedError,
+                       match='Custom gates not supported yet'):
+        _ = quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols": [[]], "gates": []}')
+
+    with pytest.raises(NotImplementedError,
+                       match='initial states not supported yet'):
+        _ = quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols": [[]], "init": []}')

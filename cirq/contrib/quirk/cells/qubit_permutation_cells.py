@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterator, Tuple, Sequence
+from typing import Callable, Iterator, Tuple, Sequence, TYPE_CHECKING
 
-import cirq
 from cirq import ops, value
 from cirq.contrib.quirk.cells.cell import (
     CELL_SIZES,
     CellMaker,
     ExplicitOperationsCell,
 )
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -71,7 +73,7 @@ class QuirkQubitPermutationGate(ops.Gate):
                      for i in range(len(self.permutation)))
 
     def __repr__(self):
-        return ('cirq.quirk.QuirkQubitPermutationGate('
+        return ('cirq.contrib.quirk.QuirkQubitPermutationGate('
                 f'identifier={repr(self.identifier)},'
                 f'name={repr(self.name)},'
                 f'permutation={repr(self.permutation)})')

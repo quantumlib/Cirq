@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import sympy
 
 from cirq.contrib.quirk.cells.parse import parse_matrix, parse_formula
@@ -31,9 +32,36 @@ def test_parse_matrix():
                                atol=1e-8)
 
 
+def test_parse_matrix_failures():
+    with pytest.raises(ValueError, match='opening/closing braces'):
+        _ = parse_matrix('1')
+    with pytest.raises(ValueError, match='opening/closing braces'):
+        _ = parse_matrix('{{1}')
+    with pytest.raises(ValueError, match='opening/closing braces'):
+        _ = parse_matrix('{1}}')
+    with pytest.raises(ValueError, match='opening/closing braces'):
+        _ = parse_matrix('1}}')
+    with pytest.raises(ValueError, match='Failed to parse complex'):
+        _ = parse_matrix('{{x}}')
+
+
 def test_parse_formula():
     t = sympy.Symbol('t')
     assert parse_formula('t*t + ln(t)') == t * t + sympy.ln(t)
     assert parse_formula('cos(pi*t)') == sympy.cos(sympy.pi * t)
     np.testing.assert_allclose(parse_formula('cos(pi)'), -1, atol=1e-8)
     assert type(parse_formula('cos(pi)')) is float
+
+
+def test_parse_formula_failures():
+    with pytest.raises(TypeError, match='formula must be a string'):
+        _ = parse_formula(2)
+
+    with pytest.raises(TypeError, match='formula must be a string'):
+        _ = parse_formula([])
+
+    with pytest.raises(ValueError, match='Failed to parse the gate formula'):
+        _ = parse_formula('5*__**DSA **)SADD')
+
+    with pytest.raises(ValueError, match='variables besides time'):
+        _ = parse_formula('5*x')

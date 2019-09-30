@@ -22,26 +22,23 @@ import sympy
 from sympy.parsing.sympy_parser import parse_expr
 
 
-def parse_formula(formula: Any,
-                  default_formula: Any = None) -> Union[float, sympy.Basic]:
-    if formula is None:
-        formula = default_formula
+def parse_formula(formula: Any) -> Union[float, sympy.Basic]:
     if not isinstance(formula, str):
-        raise TypeError('Formula must be a string: {!r}'.format(formula))
+        raise TypeError('formula must be a string: {!r}'.format(formula))
 
     formula = expand_unicode_fractions(formula)
     try:
         result = parse_expr(formula)
-    except SyntaxError as ex:
-        raise SyntaxError(
-            'Failed to parse the gate formula {!r}.\n'
+    except Exception as ex:
+        raise ValueError(
+            f'Failed to parse the gate formula {repr(formula)}.\n'
             'This is likely due to differences in how sympy and Quirk parse.\n'
             'For example, Quirk allows "2 pi" whereas sympy requires "2*pi"\n'
             'Parsing of sympy-incompatible formulas is not supported yet.'
-            ''.format(formula)) from ex
+        ) from ex
     if not result.free_symbols <= {sympy.Symbol('t')}:
-        raise SyntaxError('Formula has variables besides time "t": {!r}'
-                          ''.format(formula))
+        raise ValueError(
+            f'Formula has variables besides time "t": {repr(formula)}')
     if not result.free_symbols:
         result = float(result)
     return result

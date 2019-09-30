@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, List, Dict, NamedTuple, Any, \
-    Iterable, Sequence
+from typing import Callable, Optional, List, NamedTuple, Any, Iterable, \
+    Sequence, TYPE_CHECKING, Union, Dict
 
-import cirq
-from cirq import ops
+from cirq import ops, value
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Cell:
@@ -67,7 +69,7 @@ class Cell:
                 The cell is not ready for conversion into operations, e.g. it
                 may still have unspecified inputs.
         """
-        return []
+        return ()
 
     def basis_change(self) -> 'cirq.OP_TREE':
         """Operations to conjugate a column with.
@@ -84,7 +86,7 @@ class Cell:
         Returns:
             A `cirq.OP_TREE` of basis change operations.
         """
-        return []
+        return ()
 
     def modify_column(self, column: List[Optional['Cell']]) -> None:
         """Applies this cell's modification to its column.
@@ -115,6 +117,8 @@ class Cell:
         return {}
 
 
+
+@value.value_equality
 class ExplicitOperationsCell(Cell):
     """A quirk cell with known body operations and basis change operations."""
 
@@ -123,6 +127,9 @@ class ExplicitOperationsCell(Cell):
                  basis_change: Iterable[ops.Operation] = ()):
         self._operations = tuple(operations)
         self._basis_change = tuple(basis_change)
+
+    def _value_equality_values_(self):
+        return self._operations, self._basis_change
 
     def basis_change(self) -> 'cirq.OP_TREE':
         return self._basis_change

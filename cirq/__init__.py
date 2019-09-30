@@ -86,9 +86,9 @@ from cirq.devices import (
 
 from cirq.experiments import (
     linear_xeb_fidelity,
-    generate_supremacy_circuit_google_v2,
-    generate_supremacy_circuit_google_v2_bristlecone,
-    generate_supremacy_circuit_google_v2_grid,
+    generate_boixo_2018_supremacy_circuits_v2,
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
+    generate_boixo_2018_supremacy_circuits_v2_grid,
 )
 
 from cirq.linalg import (
@@ -269,6 +269,7 @@ from cirq.optimizers import (
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
     single_qubit_op_to_framed_phase_form,
+    SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
 )
 

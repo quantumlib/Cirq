@@ -12,7 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cirq
+from cirq.contrib.quirk.cells.qubit_permutation_cells import (
+    QuirkQubitPermutationGate,)
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
+
+
+def test_equality():
+    eq = cirq.testing.EqualsTester()
+    eq.make_equality_group(lambda: QuirkQubitPermutationGate('a', 'b', [0, 1]))
+    eq.add_equality_group(QuirkQubitPermutationGate('x', 'b', [0, 1]))
+    eq.add_equality_group(QuirkQubitPermutationGate('a', 'X', [0, 1]))
+    eq.add_equality_group(QuirkQubitPermutationGate('a', 'b', [1, 0]))
+
+
+def test_repr():
+    cirq.testing.assert_equivalent_repr(
+        QuirkQubitPermutationGate('a', 'b', [0, 1]))
 
 
 def test_right_rotate():

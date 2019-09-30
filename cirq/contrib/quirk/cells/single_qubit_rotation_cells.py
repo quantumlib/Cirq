@@ -104,6 +104,7 @@ def _formula_gate(identifier: str, default_formula: str,
     return CellMaker(identifier=identifier,
                      size=gate_func(0).num_qubits(),
                      maker=lambda args: ExplicitOperationsCell([
-                         gate_func(parse_formula(args.value, default_formula)).
-                         on(*args.qubits)
+                         gate_func(
+                             parse_formula(default_formula if args.value is None
+                                           else args.value)).on(*args.qubits)
                      ]))

@@ -79,7 +79,7 @@ def assert_url_to_circuit_returns(
         keys = sorted(maps.keys())
         actual_map = _sparse_computational_basis_map(keys, parsed)
         for k in keys:
-            assert actual_map[k] == maps[k], (
+            assert actual_map.get(k) == maps[k], (
                 f'{_bin_dec(k)} was mapped to '
                 f'{_bin_dec(actual_map.get(k))} '
                 f'instead of {_bin_dec(maps[k])}.')

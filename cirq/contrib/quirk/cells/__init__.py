@@ -21,3 +21,6 @@ from cirq.contrib.quirk.cells.cell import (
     CellMaker,
     CellMakerArgs,
 )
+
+from cirq.contrib.quirk.cells.qubit_permutation_cells import (
+    QuirkQubitPermutationGate,)
