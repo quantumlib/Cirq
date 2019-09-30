@@ -406,6 +406,8 @@ class WeightedZPowGate(cirq.EigenGate, cirq.SingleQubitGate):
     (cirq.ZZ**1.9, cirq.ZZ**-0.1, True),
     (WeightedZPowGate(0), WeightedZPowGate(0.1), False),
     (WeightedZPowGate(0.3), WeightedZPowGate(0.3, global_shift=0.1), True),
+    (cirq.X, cirq.Z, False),
+    (cirq.X ** 0.3, cirq.Z ** 0.3, False),
 ])
 def test_equal_up_to_global_phase(gate1, gate2, eq_up_to_global_phase):
     assert cirq.equal_up_to_global_phase(gate1, gate2) == eq_up_to_global_phase
