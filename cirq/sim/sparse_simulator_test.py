@@ -622,9 +622,11 @@ def test_does_not_modify_initial_state():
     circuit = cirq.Circuit(InPlaceUnitary()(q0))
 
     initial_state = np.array([1, 0], dtype=np.complex64)
-    _ = simulator.simulate(circuit, initial_state=initial_state)
+    result = simulator.simulate(circuit, initial_state=initial_state)
     np.testing.assert_array_almost_equal(np.array([1, 0], dtype=np.complex64),
                                          initial_state)
+    np.testing.assert_array_almost_equal(result.state_vector(),
+                                         np.array([0, 1], dtype=np.complex64))
 
 
 def test_simulator_step_state_mixin():
