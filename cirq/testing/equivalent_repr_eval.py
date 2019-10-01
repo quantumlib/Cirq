@@ -28,6 +28,10 @@ def assert_equivalent_repr(
             code that produces an equivalent value.
         setup_code: Code that must be executed before the repr can be evaluated.
             Ideally this should just be a series of 'import' lines.
+        global_vals: Pre-defined values that should be in the global scope when
+            evaluating the repr.
+        local_vals: Pre-defined values that should be in the local scope when
+            evaluating the repr.
     """
     global_vals = global_vals or {}
     local_vals = local_vals or {}

@@ -20,7 +20,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
