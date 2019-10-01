@@ -26,27 +26,11 @@ def _homogeneous_moment_is_measurements(moment: 'cirq.Moment') -> bool:
     If a moment is a mixture of measurement and non-measurement gates
     this will throw a ValueError.
     """
-    is_measurements = None
-    for gate in moment:
-        if protocols.is_measurement(gate):
-            if is_measurements is None:
-                is_measurements = True
-            elif is_measurements:
-                # Check that *all* are measurements
-                pass
-            else:
-                raise ValueError("Moment must be all measurements "
-                                 "or all operations.")
-        else:
-            if is_measurements is None:
-                is_measurements = False
-            elif not is_measurements:
-                # Check that all are *not* measurements
-                pass
-            else:
-                raise ValueError("Moment must be all measurements "
-                                 "or all operations.")
-    return is_measurements
+    cases = {protocols.is_measurement(gate) for gate in moment}
+    if len(cases) == 2:
+        raise ValueError("Moment must be homogeneous: all measurements "
+                         "or all operations.")
+    return True in cases
 
 
 class DepolarizingNoiseModel(devices.NoiseModel):
