@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _moment_is_measurements(moment: 'cirq.Moment') -> bool:
+def _homogeneous_moment_is_measurements(moment: 'cirq.Moment') -> bool:
     """Whether the moment is nothing but measurement gates.
 
     If a moment is a mixture of measurement and non-measurement gates
@@ -66,7 +66,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        if _moment_is_measurements(moment):
+        if _homogeneous_moment_is_measurements(moment):
             return moment
 
         return [
@@ -97,7 +97,7 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        if _moment_is_measurements(moment):
+        if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(self.readout_noise_gate(q) for q in system_qubits),
                 moment,
@@ -139,7 +139,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        if _moment_is_measurements(moment):
+        if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(self.readout_decay_gate(q) for q in system_qubits),
                 ops.Moment(self.readout_noise_gate(q) for q in system_qubits),

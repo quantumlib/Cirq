@@ -16,7 +16,7 @@ import pytest
 
 import cirq
 import cirq.contrib.noise_models as ccn
-from cirq.contrib.noise_models.noise_models import _moment_is_measurements
+from cirq.contrib.noise_models.noise_models import _homogeneous_moment_is_measurements
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 
 
@@ -25,8 +25,8 @@ def test_moment_is_measurements():
     circ = cirq.Circuit.from_ops(
         [cirq.X(q[0]), cirq.X(q[1]),
          cirq.measure(*q, key='z')])
-    assert not _moment_is_measurements(circ[0])
-    assert _moment_is_measurements(circ[1])
+    assert not _homogeneous_moment_is_measurements(circ[0])
+    assert _homogeneous_moment_is_measurements(circ[1])
 
 
 def test_moment_is_measurements_mixed1():
@@ -37,9 +37,9 @@ def test_moment_is_measurements_mixed1():
         cirq.measure(q[0], key='z'),
         cirq.Z(q[1]),
     ])
-    assert not _moment_is_measurements(circ[0])
+    assert not _homogeneous_moment_is_measurements(circ[0])
     with pytest.raises(ValueError) as e:
-        _moment_is_measurements(circ[1])
+        _homogeneous_moment_is_measurements(circ[1])
     assert e.match(".*must be all measurements.*")
 
 
@@ -51,9 +51,9 @@ def test_moment_is_measurements_mixed2():
         cirq.Z(q[0]),
         cirq.measure(q[1], key='z'),
     ])
-    assert not _moment_is_measurements(circ[0])
+    assert not _homogeneous_moment_is_measurements(circ[0])
     with pytest.raises(ValueError) as e:
-        _moment_is_measurements(circ[1])
+        _homogeneous_moment_is_measurements(circ[1])
     assert e.match(".*must be all measurements.*")
 
 
