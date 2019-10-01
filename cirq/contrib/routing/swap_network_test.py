@@ -55,3 +55,10 @@ def test_swap_network_equality(circuits):
         for y in (0, 1):
             mapping = {cirq.GridQubit(x, y): q for x, q in enumerate(qubits)}
             et.add_equality_group(ccr.SwapNetwork(circuit, mapping))
+
+
+def test_repr():
+    a, b = cirq.LineQubit.range(2)
+    cirq.testing.assert_equivalent_repr(cirq.contrib.routing.SwapNetwork(
+        cirq.Circuit(cirq.CZ(a, b)),
+        {a: a, b: b}))

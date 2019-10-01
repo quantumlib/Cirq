@@ -60,6 +60,10 @@ class SwapNetwork:
         return (self.circuit == other.circuit and
                 self.initial_mapping == other.initial_mapping)
 
+    def __repr__(self):
+        return 'cirq.contrib.routing.SwapNetwork({!r}, {!r})'.format(
+            self.circuit, self.initial_mapping)
+
     @property
     def device(self):
         return self.circuit.device

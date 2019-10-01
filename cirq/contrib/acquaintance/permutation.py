@@ -64,8 +64,7 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         new_keys = [keys[permutation[i]] for i in indices]
         old_elements = [mapping.get(keys[i]) for i in indices]
         for new_key, old_element in zip(new_keys, old_elements):
-            if old_element is not None:
-                mapping[new_key] = old_element
+            mapping[new_key] = old_element
 
     @staticmethod
     def validate_permutation(permutation: Dict[int, int],
@@ -217,20 +216,27 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
         operations: The operations to update according to.
     """
     for op in ops.flatten_op_tree(operations):
-        if (isinstance(op, ops.GateOperation) and
-            isinstance(op.gate, PermutationGate)):
-            op.gate.update_mapping(mapping, op.qubits)
+        gate = ops.op_gate_of_type(op, PermutationGate)
+        if gate is not None:
+            gate.update_mapping(mapping, op.qubits)
 
 
 def get_logical_operations(operations: 'cirq.OP_TREE',
                            initial_mapping: Dict[ops.Qid, ops.Qid]
                           ) -> Iterable['cirq.Operation']:
     mapping = initial_mapping.copy()
-    for op in cast(Iterable['cirq.Operation'], ops.flatten_op_tree(operations)):
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, PermutationGate)):
-            op.gate.update_mapping(mapping, op.qubits)
+    for op in ops.flatten_to_ops(operations):
+        gate = ops.op_gate_of_type(op, PermutationGate)
+        if gate is not None:
+            gate.update_mapping(mapping, op.qubits)
         else:
+            if any(mapping.get(physical_qubit, None) is None
+                   for physical_qubit in op.qubits):
+                raise ValueError(
+                    'Operated on a physical qubit that was not currently '
+                    'mapped to a logical qubit.\n'
+                    'Logical operation: {!r}\n'
+                    'Current mapping: {!r}'.format(op, mapping))
             yield op.transform_qubits(mapping.__getitem__)
 
 

@@ -86,3 +86,30 @@ def test_router_bad_args():
         cirq.CZ(cirq.LineQubit(i), cirq.LineQubit(i + 1)) for i in range(5))
     with pytest.raises(ValueError):
         ccr.route_circuit(circuit, device_graph, algo_name=algo_name)
+
+
+def test_fail_when_operating_on_unmapped_qubits():
+    a, b, t = cirq.LineQubit.range(3)
+    swap = cirq.contrib.acquaintance.SwapPermutationGate()
+
+    # Works before swap.
+    swap_network = cirq.contrib.routing.SwapNetwork(
+        cirq.Circuit(cirq.CZ(a, t)),
+        {a: a, b: b})
+    with pytest.raises(ValueError, match='not currently mapped'):
+        _ = list(swap_network.get_logical_operations())
+
+    # Works after swap.
+    swap_network = cirq.contrib.routing.SwapNetwork(
+        cirq.Circuit(swap(b, t), cirq.CZ(a, b)),
+        {a: a, b: b})
+    with pytest.raises(ValueError, match='not currently mapped'):
+        _ = list(swap_network.get_logical_operations())
+
+    # This test case used to cause a CZ(a, a) to be created due to unmapped
+    # qubits being mapped to stale values.
+    swap_network = cirq.contrib.routing.SwapNetwork(
+        cirq.Circuit(swap(a, t), swap(b, t), cirq.CZ(a, b)),
+        {a: a, b: b})
+    with pytest.raises(ValueError, match='not currently mapped'):
+        _ = list(swap_network.get_logical_operations())
