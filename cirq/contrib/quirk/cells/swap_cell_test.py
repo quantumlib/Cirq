@@ -19,7 +19,7 @@ from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 from cirq.contrib.quirk.url_to_circuit import quirk_url_to_circuit
 
 
-def test_gate_type_swap():
+def test_swap():
     a, b, c = cirq.LineQubit.range(3)
     assert_url_to_circuit_returns('{"cols":[["Swap","Swap"]]}',
                                   cirq.Circuit(cirq.SWAP(a, b)))
@@ -34,3 +34,13 @@ def test_gate_type_swap():
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[['
             '"Swap","Swap","Swap"]]}')
+
+
+def test_controlled_swap():
+    a, b, c, d = cirq.LineQubit.range(4)
+    assert_url_to_circuit_returns(
+        '{"cols":[["Swap","•","Swap"]]}',
+        cirq.Circuit(cirq.SWAP(a, c).controlled_by(b)))
+    assert_url_to_circuit_returns(
+        '{"cols":[["Swap","•","Swap","•"]]}',
+        cirq.Circuit(cirq.SWAP(a, c).controlled_by(b, d)))

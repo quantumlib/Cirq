@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterator, Optional, cast, Iterable
+from typing import Iterator, Optional, cast, Iterable, TYPE_CHECKING
 
-import cirq
 from cirq import ops
 from cirq.contrib.quirk.cells.cell import CellMaker, ExplicitOperationsCell
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:
