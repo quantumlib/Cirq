@@ -326,6 +326,7 @@ SHOULDNT_BE_SERIALIZED = [
 
     # mypy types:
     'OP_TREE',
+    'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',

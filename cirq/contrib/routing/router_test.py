@@ -38,7 +38,8 @@ def test_route_circuit(circuit, device_graph, algo):
 
 @pytest.mark.parametrize(
     'circuit,device_graph,algo,make_bad', [(cirq.testing.random_circuit(
-        4, 8, 0.5), ccr.get_grid_device_graph(3, 2), 'greedy', make_bad)
+        4, 8, 0.5), ccr.get_grid_device_graph(3, 2), algo, make_bad)
+                                           for algo in ccr.ROUTERS
                                            for make_bad in (False, True)
                                            for _ in range(5)] +
     [(cirq.Circuit(), ccr.get_grid_device_graph(3, 2), 'greedy', False)])
