@@ -95,6 +95,13 @@ matrix:
     script: check/mypy
   - stage: test
     os: linux
+    env: NAME=validate-protos
+    python: '3.6'
+    install:
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/validate-protos
+  - stage: test
+    os: linux
     env: NAME=format
     python: '3.6'
     install:

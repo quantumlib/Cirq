@@ -15,7 +15,8 @@ bazel build //cirq/api/google/v1:operations_proto
 bazel build //cirq/api/google/v1:params_proto
 bazel build //cirq/api/google/v1:program_proto
 
+bazel build //cirq/api/google/v2:device_proto
 bazel build //cirq/api/google/v2:metrics_proto
 bazel build //cirq/api/google/v2:program_proto
-bazel build //cirq/api/google/v2:run_context_proto
 bazel build //cirq/api/google/v2:result_proto
+bazel build //cirq/api/google/v2:run_context_proto

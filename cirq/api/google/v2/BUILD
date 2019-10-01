@@ -1,6 +1,11 @@
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
+    name = "device_proto",
+    srcs = ["device.proto"],
+)
+
+proto_library(
     name = "metrics_proto",
     srcs = ["metrics.proto"],
 )
