@@ -226,7 +226,7 @@ def test_results_from_proto_qubit_ordering():
         (q(0, 0), 0b1111_0000),
     ]:
         qmr = mr.qubit_measurement_results.add()
-        qmr.qubit.id = qubit.proto_id()
+        qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
 
     trial_results = v2.results_from_proto(proto, measurements)
@@ -267,7 +267,7 @@ def test_results_from_proto_duplicate_qubit():
         (q(0, 1), 0b1111_0000),
     ]:
         qmr = mr.qubit_measurement_results.add()
-        qmr.qubit.id = qubit.proto_id()
+        qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
     with pytest.raises(ValueError, match='qubit already exists'):
         v2.results_from_proto(proto, measurements)
@@ -287,7 +287,7 @@ def test_results_from_proto_default_ordering():
         (q(0, 0), 0b1111_0000),
     ]:
         qmr = mr.qubit_measurement_results.add()
-        qmr.qubit.id = qubit.proto_id()
+        qmr.qubit.id = v2.qubit_to_proto_id(qubit)
         qmr.results = bytes([results])
 
     trial_results = v2.results_from_proto(proto)
