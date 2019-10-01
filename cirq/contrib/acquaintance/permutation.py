@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import abc
-from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union, TYPE_CHECKING)
+from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union,
+        TYPE_CHECKING)
 
 from cirq import circuits, ops, optimizers, protocols, value
 from cirq.type_workarounds import NotImplementedType
@@ -62,8 +63,10 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         permutation = self.permutation()
         indices = tuple(permutation.keys())
         new_keys = [keys[permutation[i]] for i in indices]
-        old_elements = [mapping[keys[i]] for i in indices]
-        mapping.update(zip(new_keys, old_elements))
+        old_elements = [mapping.get(keys[i]) for i in indices]
+        for new_key, old_element in zip(new_keys, old_elements):
+            if old_element is not None:
+                mapping[new_key] = old_element
 
     @staticmethod
     def validate_permutation(permutation: Dict[int, int],

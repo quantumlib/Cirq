@@ -104,7 +104,7 @@ def test_xx_matrix():
 def test_xx_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.XX(a, b),
         cirq.XX(a, b)**3,
         cirq.XX(a, b)**0.5,
@@ -181,7 +181,7 @@ def test_yy_matrix():
 def test_yy_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.YY(a, b),
         cirq.YY(a, b)**3,
         cirq.YY(a, b)**0.5,
@@ -258,7 +258,7 @@ def test_zz_matrix():
 def test_zz_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.ZZ(a, b),
         cirq.ZZ(a, b)**3,
         cirq.ZZ(a, b)**0.5,

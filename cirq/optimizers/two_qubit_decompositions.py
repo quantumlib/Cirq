@@ -111,13 +111,12 @@ def _xx_yy_zz_interaction_via_full_czs(q0: ops.Qid,
 
 
 def _cleanup_operations(operations: List[ops.Operation]):
-    circuit = circuits.Circuit.from_ops(operations)
+    circuit = circuits.Circuit(operations)
     merge_single_qubit_gates.merge_single_qubit_gates_into_phased_x_z(circuit)
     eject_phased_paulis.EjectPhasedPaulis().optimize_circuit(circuit)
     eject_z.EjectZ().optimize_circuit(circuit)
-    circuit = circuits.Circuit.from_ops(
-        circuit.all_operations(),
-        strategy=circuits.InsertStrategy.EARLIEST)
+    circuit = circuits.Circuit(circuit.all_operations(),
+                               strategy=circuits.InsertStrategy.EARLIEST)
     return list(circuit.all_operations())
 
 

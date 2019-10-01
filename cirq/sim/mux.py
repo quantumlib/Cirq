@@ -108,11 +108,11 @@ def final_wavefunction(
         # No change needed.
         pass
     elif isinstance(program, ops.Gate):
-        program = circuits.Circuit.from_ops(
+        program = circuits.Circuit(
             program.on(*devices.LineQid.for_gate(program)))
     else:
         # It should be an OP_TREE.
-        program = circuits.Circuit.from_ops(program)
+        program = circuits.Circuit(program)
 
     if not protocols.has_unitary(
             protocols.resolve_parameters(program, param_resolver)):
@@ -124,7 +124,7 @@ def final_wavefunction(
             "Program: {!r}".format(program))
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-        program=program,
+        program=cast(Union[circuits.Circuit, schedules.Schedule], program),
         initial_state=initial_state,
         qubit_order=qubit_order,
         param_resolver=param_resolver)
@@ -165,12 +165,11 @@ def sample_sweep(
     """
     if seed:
         np.random.seed(seed)
-    circuit = (program if isinstance(program, circuits.Circuit)
-               else program.to_circuit())
-    param_resolvers = study.to_resolvers(params)
+    circuit = (program.to_circuit()
+               if isinstance(program, schedules.Schedule) else program)
 
     trial_results = []  # type: List[study.TrialResult]
-    for param_resolver in param_resolvers:
+    for param_resolver in study.to_resolvers(params):
         measurements = sample(circuit,
                               noise=noise,
                               param_resolver=param_resolver,

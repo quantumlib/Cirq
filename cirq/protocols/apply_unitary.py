@@ -116,6 +116,27 @@ class ApplyUnitaryArgs:
                                dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
+    def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':
+        """Returns a transposed view of the same arguments.
+
+        Returns:
+            A view over the same target tensor and available workspace, but
+            with the numpy arrays transposed such that the axes field is
+            guaranteed to equal `range(len(result.axes))`. This allows one to
+            say e.g. `result.target_tensor[0, 1, 0, ...]` instead of
+            `result.target_tensor[result.subspace_index(0b010)]`.
+        """
+        axis_set = set(self.axes)
+        other_axes = [
+            axis for axis in range(len(self.target_tensor.shape))
+            if axis not in axis_set
+        ]
+        perm = (*self.axes, *other_axes)
+        target_tensor = self.target_tensor.transpose(*perm)
+        available_buffer = self.available_buffer.transpose(*perm)
+        return ApplyUnitaryArgs(target_tensor, available_buffer,
+                                range(len(self.axes)))
+
     def _for_operation_with_qid_shape(self, indices: Iterable[int],
                                       qid_shape: Tuple[int, ...]
                                      ) -> 'ApplyUnitaryArgs':
@@ -153,17 +174,24 @@ class ApplyUnitaryArgs:
         new_axes = range(len(other_axes), len(ordered_axes))
         return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes)
 
-    def subspace_index(
-            self,
-            little_endian_bits_int: int,
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    def subspace_index(self,
+                       little_endian_bits_int: int = 0,
+                       *,
+                       big_endian_bits_int: int = 0
+                      ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
             little_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The least significant
                 bit of the integer is the desired bit for the first axis, and
-                so forth in increasing order.
+                so forth in increasing order. Can't be specified at the same
+                time as `big_endian_bits_int`.
+            big_endian_bits_int: The desired value of the qubits at the
+                targeted `axes`, packed into an integer. The most significant
+                bit of the integer is the desired bit for the first axis, and
+                so forth in decreasing order. Can't be specified at the same
+                time as `little_endian_bits_int`.
             value_tuple: The desired value of the qids at the targeted `axes`,
                 packed into a tuple.  Specify either `little_endian_bits_int` or
                 `value_tuple`.
@@ -186,8 +214,10 @@ class ApplyUnitaryArgs:
 
                 args.target_tensor[:, 0, :, 1] += 1
         """
-        return linalg.slice_for_qubits_equal_to(self.axes,
-                                                little_endian_bits_int)
+        return linalg.slice_for_qubits_equal_to(
+            self.axes,
+            little_endian_qureg_value=little_endian_bits_int,
+            big_endian_qureg_value=big_endian_bits_int)
 
 
 class SupportsConsistentApplyUnitary(Protocol):

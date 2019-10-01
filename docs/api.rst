@@ -17,7 +17,6 @@ Classes for identifying the qubits and hardware you want to operate on.
     LineQubit
     NamedQubit
     Qid
-    UnconstrainedDevice
 
 
 Single Qubit Unitary Gates
@@ -444,9 +443,9 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
-    generate_supremacy_circuit_google_v2
-    generate_supremacy_circuit_google_v2_bristlecone
-    generate_supremacy_circuit_google_v2_grid
+    generate_boixo_2018_supremacy_circuits_v2
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone
+    generate_boixo_2018_supremacy_circuits_v2_grid
 
 
 Ion traps and neutral atoms

@@ -1,3 +1,17 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import itertools
 
 from typing import Sequence, Tuple, Iterator, Any, NamedTuple, List
@@ -149,7 +163,7 @@ def rabi_oscillations(sampler: work.Sampler,
         A RabiResult object that stores and plots the result.
     """
     theta = sympy.Symbol('theta')
-    circuit = circuits.Circuit.from_ops(ops.X(qubit) ** theta)
+    circuit = circuits.Circuit(ops.X(qubit)**theta)
     circuit.append(ops.measure(qubit, key='z'))
     sweep = study.Linspace(key='theta', start=0.0, stop=max_angle / np.pi,
                            length=num_points)
@@ -301,18 +315,19 @@ def single_qubit_state_tomography(sampler: work.Sampler,
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    circuit_z = circuit + circuits.Circuit.from_ops(ops.measure(qubit, key='z'))
+    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key='z'))
     results = sampler.run(circuit_z, repetitions=repetitions)
     rho_11 = np.mean(results.measurements['z'])
     rho_00 = 1.0 - rho_11
 
-    circuit_x = circuits.Circuit.from_ops(circuit, ops.X(qubit) ** 0.5,
-                                          ops.measure(qubit, key='z'))
+    circuit_x = circuits.Circuit(circuit,
+                                 ops.X(qubit)**0.5, ops.measure(qubit, key='z'))
     results = sampler.run(circuit_x, repetitions=repetitions)
     rho_01_im = np.mean(results.measurements['z']) - 0.5
 
-    circuit_y = circuits.Circuit.from_ops(circuit, ops.Y(qubit) ** -0.5,
-                                          ops.measure(qubit, key='z'))
+    circuit_y = circuits.Circuit(circuit,
+                                 ops.Y(qubit)**-0.5, ops.measure(qubit,
+                                                                 key='z'))
     results = sampler.run(circuit_y, repetitions=repetitions)
     rho_01_re = 0.5 - np.mean(results.measurements['z'])
 
@@ -426,8 +441,7 @@ def two_qubit_state_tomography(sampler: work.Sampler,
         for j, rot_2 in enumerate(rots):
             m_idx, indices, signs = _indices_after_basis_rot(i, j)
             mat[m_idx: (m_idx + 3), indices] = s * np.tile(signs, (3, 1))
-            test_circuit = circuit + circuits.Circuit.from_ops(
-                rot_1(first_qubit))
+            test_circuit = circuit + circuits.Circuit(rot_1(first_qubit))
             test_circuit.append(rot_2(second_qubit))
             probs = np.concatenate((probs, _measurement(test_circuit)))
 
@@ -457,25 +471,20 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfds: Sequence[Sequence[ops.Gate]]
                              ) -> circuits.Circuit:
     clifford_group_size = 24
-    gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = []  # type: List[ops.Gate]
-    for gate_id in gate_ids:
-        gate_sequence.extend(cfds[gate_id])
-    gate_sequence.extend(protocols.inverse(gate_sequence))
-    circuit = circuits.Circuit.from_ops(gate(qubit) for gate in gate_sequence)
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit(
+        gate(qubit) for idx in idxs for gate in cfds[idx])
+    return circuit + protocols.inverse(circuit)
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
                            num_cfds: int,
                            cliffords: Cliffords) -> circuits.Circuit:
     clifford_group_size = 11520
-    idx_list = list(np.random.choice(clifford_group_size, num_cfds))
-    circuit = circuits.Circuit()
-    for idx in idx_list:
-        circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
-    circuit.append(protocols.inverse(circuit))
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit(
+        _two_qubit_clifford(q_0, q_1, idx, cliffords) for idx in idxs)
+    return circuit + protocols.inverse(circuit)
 
 
 def _matrix_bar_plot(mat: np.ndarray,

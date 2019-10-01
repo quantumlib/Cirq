@@ -1,10 +1,25 @@
-from typing import (Dict, Iterable, Iterator, List, NamedTuple, Optional, Set,
-                    Union, cast, TYPE_CHECKING)
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import (cast, Dict, Iterable, Iterator, List, NamedTuple, Optional,
+                    Set, Union, TYPE_CHECKING)
 
 from collections import OrderedDict
 import numpy as np
 
 from cirq.api.google.v2 import result_pb2
+from cirq.google.api import v2
 from cirq import circuits
 from cirq import devices
 from cirq import ops
@@ -49,8 +64,10 @@ def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
 
     if isinstance(program, circuits.Circuit):
         measure_iter = _circuit_measurements(program)
-    else:
+    elif isinstance(program, schedules.Schedule):
         measure_iter = _schedule_measurements(program)
+    else:
+        raise NotImplementedError(f'Unrecognized program type: {type(program)}')
 
     for m in measure_iter:
         if m.key in keys:
@@ -152,7 +169,7 @@ def results_to_proto(
                 m_data = trial_result.measurements[m.key]
                 for i, qubit in enumerate(m.qubits):
                     qmr = mr.qubit_measurement_results.add()
-                    qmr.qubit.id = qubit.proto_id()
+                    qmr.qubit.id = v2.qubit_to_proto_id(qubit)
                     qmr.results = pack_bits(m_data[:, i])
     return out
 
@@ -204,7 +221,7 @@ def _trial_sweep_from_proto(
             qubit_results: OrderedDict[devices.GridQubit, np.
                                        ndarray] = OrderedDict()
             for qmr in mr.qubit_measurement_results:
-                qubit = devices.GridQubit.from_proto_id(qmr.qubit.id)
+                qubit = v2.grid_qubit_from_proto_id(qmr.qubit.id)
                 if qubit in qubit_results:
                     raise ValueError('qubit already exists: {}'.format(qubit))
                 qubit_results[qubit] = unpack_bits(qmr.results, msg.repetitions)

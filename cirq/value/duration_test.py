@@ -138,3 +138,8 @@ def test_div():
     assert Duration(picos=6) / Duration(picos=2) == 3
     with pytest.raises(TypeError):
         _ = 4 / Duration(picos=3)
+
+
+def test_json_dict():
+    d = Duration(picos=6)
+    assert d._json_dict_() == {'cirq_type': 'Duration', 'picos': 6}
