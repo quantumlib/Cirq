@@ -86,8 +86,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             trans = remaining_cliff_gate.transform(pauli)
             pauli = trans.to
             quarter_turns *= -1 if trans.flip else 1
-            string_op = ops.PauliStringPhasor(ops.PauliString.from_single(
-                cliff_op.qubits[0], pauli),
+            string_op = ops.PauliStringPhasor(ops.PauliString(
+                pauli(cliff_op.qubits[0])),
                                               exponent_neg=quarter_turns / 2)
 
             merge_i, merge_op, num_passed = find_merge_point(start_i, string_op,
