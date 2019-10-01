@@ -72,9 +72,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                     out_ops.append(
                         cliff_gate(qubit))
             else:
-                pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    ops.PauliStringPhasor(pauli_string,
+                    ops.PauliStringPhasor(ops.PauliString(pauli.on(qubit)),
                                           exponent_neg=round(half_turns, 10)))
         return out_ops
 
