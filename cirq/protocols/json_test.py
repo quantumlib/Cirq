@@ -327,6 +327,7 @@ SHOULDNT_BE_SERIALIZED = [
     # mypy types:
     'NOISE_MODEL_LIKE',
     'OP_TREE',
+    'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
