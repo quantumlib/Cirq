@@ -11,15 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Type, cast
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from collections import defaultdict
 import itertools
+import random
+
 import numpy as np
 import sympy
 
 from cirq import circuits, ops, linalg, protocols
+from cirq.testing import lin_alg_utils
 
 
 def highlight_text_differences(actual: str, expected: str) -> str:
@@ -241,11 +243,8 @@ def assert_has_diagram(
     )
 
 
-def assert_has_consistent_apply_unitary(
-        val: Any,
-        *,
-        qubit_count: Optional[int] = None,
-        atol: float=1e-8) -> None:
+def assert_has_consistent_apply_unitary(val: Any, *,
+                                        atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
@@ -253,42 +252,23 @@ def assert_has_consistent_apply_unitary(
 
     Args:
         val: The value under test. Should have a `__pow__` method.
-        qubit_count: Usually inferred. The number of qubits the value acts on.
-            This argument isn't needed if the gate has a unitary matrix or
-            implements `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/
-            `cirq.ThreeQubitGate`.
         atol: Absolute error tolerance.
     """
 
+    _assert_apply_unitary_works_when_axes_transposed(val, atol=atol)
+
     expected = protocols.unitary(val, default=None)
 
-    qubit_counts = [
-        qubit_count,
-        # Only fall back to using the unitary size if num_qubits or qid_shape
-        # protocols are not defined.
-        protocols.num_qubits(val,
-                             default=expected.shape[0].bit_length() -
-                             1 if expected is not None else None),
-        _infer_qubit_count(val)
-    ]
-    qubit_counts = [e for e in qubit_counts if e is not None]
-    if not qubit_counts:
-        raise NotImplementedError(
-            'Failed to infer qubit count of <{!r}>. Specify it.'.format(
-                val))
-    assert len(set(qubit_counts)) == 1, (
-        'Inconsistent qubit counts from different methods: {}'.format(
-            qubit_counts))
-    n = cast(int, qubit_counts[0])
-    qid_shape = protocols.qid_shape(val, default=(2,) * n)
+    qid_shape = protocols.qid_shape(val)
 
     eye = linalg.eye_tensor((2,) + qid_shape, dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
-        args=protocols.ApplyUnitaryArgs(
-            target_tensor=eye,
-            available_buffer=np.ones_like(eye) * float('nan'),
-            axes=list(range(1, n + 1))),
+        args=protocols.ApplyUnitaryArgs(target_tensor=eye,
+                                        available_buffer=np.ones_like(eye) *
+                                        float('nan'),
+                                        axes=list(range(1,
+                                                        len(qid_shape) + 1))),
         default=None)
 
     # If you don't have a unitary, you shouldn't be able to apply a unitary.
@@ -305,42 +285,76 @@ def assert_has_consistent_apply_unitary(
                                    atol=atol)
 
 
-def assert_eigen_gate_has_consistent_apply_unitary(
-        eigen_gate_type: Type[ops.EigenGate],
-        *,
-        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
-        global_shifts=(0, 0.5, -0.5, 0.1),
-        qubit_count: Optional[int] = None) -> None:
-    """Tests whether an EigenGate type's _apply_unitary_ is correct.
+def _assert_apply_unitary_works_when_axes_transposed(val: Any,
+                                                     *,
+                                                     atol: float = 1e-8
+                                                    ) -> None:
+    """Tests whether a value's _apply_unitary_ handles out-of-order axes.
 
-    Contrasts the effects of the gate's `_apply_unitary_` with the
-    matrix returned by the gate's `_unitary_` method, trying various values for
-    the gate exponent and global shift.
+    A common mistake to make when implementing `_apply_unitary_` is to assume
+    that the incoming axes will be contiguous, or ascending, or that they can be
+    flattened, or that other axes have a length of two, etc, etc ,etc. This
+    method checks that `_apply_unitary_` does the same thing to out-of-order
+    axes that it does to contiguous in-order axes.
 
     Args:
-        eigen_gate_type: The type of gate to test. The type must have an
-            __init__ method that takes an exponent and a global_shift.
-        exponents: The exponents to try. Defaults to a variety of special and
-            arbitrary angles, as well as a parameterized angle (a symbol).
-        global_shifts: The global shifts to try. Defaults to a variety of
-            special angles.
-        qubit_count: The qubit count to use for the gate. This argument isn't
-            needed if the gate has a unitary matrix or implements
-            `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/`cirq.ThreeQubitGate`; it
-            will be inferred.
+        val: The operation, gate, or other unitary object to test.
+        atol: Absolute error tolerance.
     """
-    for exponent in exponents:
-        for shift in global_shifts:
-            assert_has_consistent_apply_unitary(
-                eigen_gate_type(exponent=exponent, global_shift=shift),
-                qubit_count=qubit_count)
+
+    # Only test custom apply unitary methods.
+    if not hasattr(val, '_apply_unitary_') or not protocols.has_unitary(val):
+        return
+
+    # Pick sizes and shapes.
+    shape = protocols.qid_shape(val)
+    n = len(shape)
+    padded_shape = shape + (1, 2, 2, 3)
+    padded_n = len(padded_shape)
+    size = np.product(padded_shape).item()
+
+    # Shuffle the axes.
+    permutation = list(range(padded_n))
+    random.shuffle(permutation)
+    transposed_shape = [0] * padded_n
+    for i in range(padded_n):
+        transposed_shape[permutation[i]] = padded_shape[i]
+
+    # Prepare input states.
+    in_order_input = lin_alg_utils.random_superposition(size).reshape(
+        padded_shape)
+    out_of_order_input = np.empty(shape=transposed_shape, dtype=np.complex128)
+    out_of_order_input.transpose(permutation)[...] = in_order_input
+
+    # Apply to in-order and out-of-order axes.
+    in_order_output = protocols.apply_unitary(
+        val,
+        protocols.ApplyUnitaryArgs(
+            target_tensor=in_order_input,
+            available_buffer=np.empty_like(in_order_input),
+            axes=range(n)))
+    out_of_order_output = protocols.apply_unitary(
+        val,
+        protocols.ApplyUnitaryArgs(
+            target_tensor=out_of_order_input,
+            available_buffer=np.empty_like(out_of_order_input),
+            axes=permutation[:n]))
+
+    # Put the out of order output back into order, to enable comparison.
+    reordered_output = out_of_order_output.transpose(permutation)
+
+    # The results should be identical.
+    if not np.allclose(in_order_output, reordered_output, atol=atol):
+        raise AssertionError(
+            f'The _apply_unitary_ method of {repr(val)} acted differently on '
+            f'out-of-order axes than on in-order axes.\n'
+            f'\n'
+            f'The failing axis order: {repr(permutation[:n])}')
 
 
 def assert_has_consistent_apply_unitary_for_various_exponents(
-        val: Any,
-        *,
-        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
-        qubit_count: Optional[int] = None) -> None:
+        val: Any, *,
+        exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
 
     Contrasts the effects of the value's `_apply_unitary_` with the
@@ -353,21 +367,14 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
             arbitrary angles, as well as a parameterized angle (a symbol). If
             the value's `__pow__` returns `NotImplemented` for any of these,
             they are skipped.
-        qubit_count: A minimum qubit count for the test system. This argument
-            isn't needed if the gate has a unitary matrix or implements
-            `cirq.SingleQubitGate`/`cirq.TwoQubitGate`/`cirq.ThreeQubitGate`; it
-            will be inferred.
     """
     for exponent in exponents:
         gate = protocols.pow(val, exponent, default=None)
         if gate is not None:
-            assert_has_consistent_apply_unitary(
-                gate,
-                qubit_count=qubit_count)
+            assert_has_consistent_apply_unitary(gate)
 
 
-def assert_has_consistent_qid_shape(val: Any,
-                                    qubit_count: Optional[int] = None) -> None:
+def assert_has_consistent_qid_shape(val: Any) -> None:
     """Tests whether a value's `_qid_shape_` and `_num_qubits_` are correct and
     consistent.
 
@@ -378,7 +385,6 @@ def assert_has_consistent_qid_shape(val: Any,
     Args:
         val: The value under test. Should have `_qid_shape_` and/or
             `num_qubits_` methods. Can optionally have a `qubits` property.
-        qubit_count: The expected number of qubits val should use.
     """
     default = (-1,)
     qid_shape = protocols.qid_shape(val, default)
@@ -390,20 +396,8 @@ def assert_has_consistent_qid_shape(val: Any,
     assert len(qid_shape) == num_qubits, (
         f'Length of qid_shape and num_qubits disagree: {qid_shape}, '
         f'{num_qubits}')
-    if qubit_count is not None:
-        assert qubit_count == num_qubits, (
-            f'Expected qubits and num_qubits disagree: {qubit_count}, '
-            f'{num_qubits}')
-    infer_qubit_count = _infer_qubit_count(val)
-    if infer_qubit_count is not None:
-        assert infer_qubit_count == num_qubits, (
-            f'Length of qubits and num_qubits disagree: {infer_qubit_count}, '
-            f'{num_qubits}')
 
-
-def _infer_qubit_count(val: Any) -> Optional[int]:
     if isinstance(val, ops.Operation):
-        return len(val.qubits)
-    if isinstance(val, ops.Gate):
-        return protocols.num_qubits(val)
-    return None
+        assert num_qubits == len(val.qubits), (
+            f'Length of num_qubits and val.qubits disagrees: {num_qubits}, '
+            f'{len(val.qubits)}')
