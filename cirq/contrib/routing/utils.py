@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import operator
+import re
 from typing import Callable, Iterable, List
 
 import networkx as nx
@@ -73,4 +74,10 @@ def is_valid_routing(
     circuit_dag = circuits.CircuitDag.from_circuit(circuit,
                                                    can_reorder=can_reorder)
     logical_operations = swap_network.get_logical_operations()
-    return cca.is_topologically_sorted(circuit_dag, logical_operations, equals)
+    try:
+        return cca.is_topologically_sorted(circuit_dag, logical_operations,
+                                           equals)
+    except ValueError as err:
+        if re.match(r'Operation .* acts on unmapped qubit .*\.', str(err)):
+            return False
+        raise
