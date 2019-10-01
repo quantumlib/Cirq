@@ -38,7 +38,8 @@ def test_route_circuit(circuit, device_graph, algo):
 
 @pytest.mark.parametrize(
     'circuit,device_graph,algo,make_bad', [(cirq.testing.random_circuit(
-        4, 8, 0.5), ccr.get_grid_device_graph(3, 2), 'greedy', make_bad)
+        4, 8, 0.5), ccr.get_grid_device_graph(3, 2), algo, make_bad)
+                                           for algo in ccr.ROUTERS
                                            for make_bad in (False, True)
                                            for _ in range(5)] +
     [(cirq.Circuit(), ccr.get_grid_device_graph(3, 2), 'greedy', False)])
@@ -96,14 +97,14 @@ def test_fail_when_operating_on_unmapped_qubits():
     swap_network = cirq.contrib.routing.SwapNetwork(
         cirq.Circuit(cirq.CZ(a, t)),
         {a: a, b: b})
-    with pytest.raises(ValueError, match='not currently mapped'):
+    with pytest.raises(ValueError, match='acts on unmapped qubit'):
         _ = list(swap_network.get_logical_operations())
 
     # Works after swap.
     swap_network = cirq.contrib.routing.SwapNetwork(
         cirq.Circuit(swap(b, t), cirq.CZ(a, b)),
         {a: a, b: b})
-    with pytest.raises(ValueError, match='not currently mapped'):
+    with pytest.raises(ValueError, match='acts on unmapped qubit'):
         _ = list(swap_network.get_logical_operations())
 
     # This test case used to cause a CZ(a, a) to be created due to unmapped
@@ -111,5 +112,5 @@ def test_fail_when_operating_on_unmapped_qubits():
     swap_network = cirq.contrib.routing.SwapNetwork(
         cirq.Circuit(swap(a, t), swap(b, t), cirq.CZ(a, b)),
         {a: a, b: b})
-    with pytest.raises(ValueError, match='not currently mapped'):
+    with pytest.raises(ValueError, match='acts on unmapped qubit'):
         _ = list(swap_network.get_logical_operations())

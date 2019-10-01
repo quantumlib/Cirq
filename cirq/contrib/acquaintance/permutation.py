@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import abc
-from typing import (cast, Dict, Iterable, Sequence, Tuple, TypeVar, Union,
-                    TYPE_CHECKING)
+from typing import (cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
+                    TypeVar, Union)
 
 from cirq import circuits, ops, optimizers, protocols, value
 
@@ -64,7 +64,11 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
         new_keys = [keys[permutation[i]] for i in indices]
         old_elements = [mapping.get(keys[i]) for i in indices]
         for new_key, old_element in zip(new_keys, old_elements):
-            mapping[new_key] = old_element
+            if old_element is None:
+                if new_key in mapping:
+                    del mapping[new_key]
+            else:
+                mapping[new_key] = old_element
 
     @staticmethod
     def validate_permutation(permutation: Dict[int, int],
@@ -224,19 +228,27 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
 def get_logical_operations(operations: 'cirq.OP_TREE',
                            initial_mapping: Dict[ops.Qid, ops.Qid]
                           ) -> Iterable['cirq.Operation']:
+    """Gets the logical operations specified by the physical operations and
+    initial mapping.
+
+    Args:
+        operations: The physical operations.
+        initial_mapping: The initial mapping of physical to logical qubits.
+
+    Raises:
+        ValueError: A non-permutation physical operation acts on an unmapped
+            qubit.
+    """
     mapping = initial_mapping.copy()
     for op in ops.flatten_to_ops(operations):
         gate = ops.op_gate_of_type(op, PermutationGate)
         if gate is not None:
             gate.update_mapping(mapping, op.qubits)
         else:
-            if any(mapping.get(physical_qubit, None) is None
-                   for physical_qubit in op.qubits):
-                raise ValueError(
-                    'Operated on a physical qubit that was not currently '
-                    'mapped to a logical qubit.\n'
-                    'Logical operation: {!r}\n'
-                    'Current mapping: {!r}'.format(op, mapping))
+            for q in op.qubits:
+                if mapping.get(q) is None:
+                    raise ValueError(
+                        f'Operation {op} acts on unmapped qubit {q}.')
             yield op.transform_qubits(mapping.__getitem__)
 
 
