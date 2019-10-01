@@ -14,17 +14,14 @@ Output:
 
 import argparse
 import sys
-from typing import Optional, List, cast
+from typing import Optional, List, cast, Callable
 
 import numpy as np
+import random
 
+sys.path.insert(1, '/Users/villela/Projects/cirq/') # TODO remove
 import cirq
-sys.path.insert(1, '/Users/villela/Projects/cirq-internal/')
 import cirq.contrib.routing as ccr
-import cirq_internal
-import cirq_internal.devices as cid
-from cirq.contrib.paulistring.convert_gate_set import (
-    converted_gate_set)
 
 def generate_model_circuit(num_qubits: int,
                            depth: int,
@@ -113,7 +110,8 @@ def sample_heavy_set(circuit: cirq.Circuit,
                      heavy_set: List[int],
                      *,
                      repetitions=10000,
-                     sampler: cirq.Sampler = cirq.Simulator()) -> float:
+                     sampler: cirq.Sampler = cirq.Simulator(),
+                     mapping = None) -> float:
     """Run a sampler over the given circuit and compute the percentage of its
        outputs that are in the heavy set.
 
@@ -122,14 +120,22 @@ def sample_heavy_set(circuit: cirq.Circuit,
         heavy_set: The previously-computed heavy set for the given circuit.
         repetitions: The number of runs to sample the circuit.
         sampler: The sampler to run on the given circuit.
+        mapping: An optional mapping from compiled qubits to original qubits,
+            to maintain the ordering between the model and compiled circuits.
 
     Returns:
         A probability percentage, from 0 to 1, representing how many of the
         output bit-strings were in the heaby set.
 
     """
-    # Add measure gates to the end of (a copy of) the circuit.
-    circuit_copy = circuit + cirq.measure(*sorted(circuit.all_qubits()))
+    # Add measure gates to the end of (a copy of) the circuit. Ensure that those
+    # gates measure those in the given mapping, preserving this order.
+    qubits = circuit.all_qubits()
+    key = None
+    if mapping:
+        key = lambda q: mapping[q]
+        qubits = [compiled for compiled, model in mapping.items()]
+    circuit_copy = circuit + cirq.measure(*sorted(qubits, key=key))
 
     # Run the sampler to compare each output against the Heavy Set.
     measurements = sampler.run(program=circuit_copy, repetitions=repetitions)
@@ -141,25 +147,47 @@ def sample_heavy_set(circuit: cirq.Circuit,
     return num_in_heavy_set / repetitions
 
 
-def compile_circuit(circuit: cirq.Circuit, device: cirq.Device) -> cirq.Circuit:
+def compile_circuit(circuit: cirq.Circuit, *, device: cirq.Device, deconstruct: Callable[[cirq.Circuit], cirq.Circuit] = None, optimize: Callable[[cirq.Circuit], cirq.Circuit] = None) -> [cirq.Circuit, ccr.SwapNetwork]:
     """Compile the given model circuit onto the given device. This follows a similar
     compilation method as described in https://arxiv.org/pdf/1811.12926.pdf
-    Appendix A, although it does not use QisKit to do so.
+    Appendix A, although it does not necessarily use QisKit to do so.
+
+    Args:
+        circuit: The model circuit to compile.
+        device: The device to compile onto.
+        deconstruct: An optional function to deconstruct the model circuit's
+            gates down to the targer devices gate set.
+        optimize: An optional functio nto optimize the circuit's gates
+            after routing.
+
+    Returns:
+        A tuple where the first value is the compiled circuit and the second
+        value is the swap network from the model circuit to the compiled
+        circuit. This swap network is necessary in order to preserve the
+        measurement order.
 
     """
     compiled_circuit = circuit.copy()
     # Step 1: Unrolling. Descend into each gate's hierarchical definition and
-    # rewrite it in terms of lower-level gates. These lower-level gates are
-    # always in the Cirq gate set.
-    cirq_internal.ConvertToSqrtIswapGates().optimize_circuit(compiled_circuit)
+    # rewrite it in terms of lower-level gates that are in the target device
+    # gate set.
+    if deconstruct:
+        compiled_circuit = deconstruct(compiled_circuit)
     # Step 2: Swap Mapping (Routing). Ensure the gates can actually operate on
     # the target qubits given our topology.
-    compiled_circuit = cirq.contrib.routing.route_circuit(compiled_circuit, ccr.xmon_device_to_graph(device), algo_name = 'greedy').circuit
-    # Step 3: In the paper, they unroll again, to convert SWAP gates to their
-    # native set. However, we don't have to do this, because our router already
-    # converts SWAP gates to their native gates.
-    compiled_circuit = converted_gate_set(circuit, no_clifford_gates=False)
-    return compiled_circuit;
+    swap_network = ccr.route_circuit(compiled_circuit, ccr.xmon_device_to_graph(device), algo_name = 'greedy')
+    compiled_circuit = swap_network.circuit
+    # Step 3: Optimize. The paper uses various optimization techniques - because
+    # Quantum Volume is intended to test those as well, we allow this to be
+    # passed in. This optimizer is not allowed to change the order of the qubits.
+    if optimize:
+        compiled_circuit = optimize(compiled_circuit)
+
+    # Return the initial mapping because the final mapping can contain multiple
+    # compiled qubits mapped to the same model qubit.
+    print(len(swap_network.initial_mapping))
+    print(len(swap_network.final_mapping()))
+    return [compiled_circuit, swap_network.initial_mapping];
 
 def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
     """Run the quantum volume algorithm.
@@ -188,7 +216,16 @@ def main(num_qubits: int, depth: int, num_repetitions: int, seed: int):
             qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
         print(f"Noisy simulation probability: "
               f"{sample_heavy_set(model_circuit, heavy_set, sampler=noisy)}")
-        # TODO(villela): Implement model circuit and run it.
+
+        [compiled_circuit, mapping] = compile_circuit(model_circuit, device=cirq.google.Bristlecone
+        , optimize= lambda circuit:  cirq.google.optimized_for_xmon(
+        circuit=circuit,
+        new_device=cirq.google.Bristlecone))
+        print(f"Compiled ideal simulation probability: "
+              f"{sample_heavy_set(compiled_circuit, heavy_set, mapping=mapping)}")
+        print(f"Compiled noisy simulation probability: "
+              f"{sample_heavy_set(compiled_circuit, heavy_set, sampler=noisy, mapping=mapping)}")
+        
 
 
 def parse_arguments(args):
