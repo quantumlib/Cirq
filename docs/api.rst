@@ -504,7 +504,6 @@ general testing utilities.
     testing.assert_allclose_up_to_global_phase
     testing.assert_circuits_with_terminal_measurements_are_equivalent
     testing.assert_decompose_is_consistent_with_unitary
-    testing.assert_eigen_gate_has_consistent_apply_unitary
     testing.assert_eigengate_implements_consistent_protocols
     testing.assert_equivalent_repr
     testing.assert_has_consistent_apply_unitary
