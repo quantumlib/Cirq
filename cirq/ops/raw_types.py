@@ -21,7 +21,7 @@ import abc
 import functools
 
 from cirq import linalg, protocols, value
-from cirq.protocols import decompose, inverse, qid_shape_protocol
+from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:

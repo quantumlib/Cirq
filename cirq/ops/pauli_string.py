@@ -34,7 +34,6 @@ from cirq.ops import (
 )
 from cirq.type_workarounds import NotImplementedType
 
-
 TDefault = TypeVar('TDefault')
 
 
