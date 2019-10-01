@@ -114,6 +114,9 @@ def test_arithmetic_operation_apply_unitary():
 
     np.testing.assert_allclose(cirq.unitary(Add(1, 0)), np.eye(1))
 
+    cirq.testing.assert_has_consistent_apply_unitary(
+        Add(cirq.LineQubit.range(2), cirq.LineQubit.range(2)))
+
 
 def test_arithmetic_operation_qubits():
 

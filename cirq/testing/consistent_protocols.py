@@ -47,21 +47,20 @@ def assert_implements_consistent_protocols(
     local_vals = local_vals or {}
 
     _assert_meets_standards_helper(val,
-                                   qubit_count,
-                                   ignoring_global_phase,
-                                   setup_code,
-                                   global_vals,
-                                   local_vals)
+                                   ignoring_global_phase=ignoring_global_phase,
+                                   setup_code=setup_code,
+                                   global_vals=global_vals,
+                                   local_vals=local_vals)
 
     for exponent in exponents:
         p = protocols.pow(val, exponent, None)
         if p is not None:
-            _assert_meets_standards_helper(val**exponent,
-                                           qubit_count,
-                                           ignoring_global_phase,
-                                           setup_code,
-                                           global_vals,
-                                           local_vals)
+            _assert_meets_standards_helper(
+                val**exponent,
+                ignoring_global_phase=ignoring_global_phase,
+                setup_code=setup_code,
+                global_vals=global_vals,
+                local_vals=local_vals)
 
 
 def assert_eigengate_implements_consistent_protocols(
@@ -80,12 +79,11 @@ def assert_eigengate_implements_consistent_protocols(
     for exponent in exponents:
         for shift in global_shifts:
             _assert_meets_standards_helper(
-                    eigen_gate_type(exponent=exponent, global_shift=shift),
-                    qubit_count,
-                    ignoring_global_phase,
-                    setup_code,
-                    global_vals,
-                    local_vals)
+                eigen_gate_type(exponent=exponent, global_shift=shift),
+                ignoring_global_phase=ignoring_global_phase,
+                setup_code=setup_code,
+                global_vals=global_vals,
+                local_vals=local_vals)
 
 
 def assert_eigen_shifts_is_consistent_with_eigen_components(
@@ -111,15 +109,13 @@ def assert_has_consistent_trace_distance_bound(val: Any) -> None:
             val_from_trace, val_from_unitary)
 
 
-def _assert_meets_standards_helper(
-        val: Any,
-        qubit_count: Optional[int],
-        ignoring_global_phase,
-        setup_code: str,
-        global_vals: Optional[Dict[str, Any]],
-        local_vals: Optional[Dict[str, Any]]) -> None:
-    assert_has_consistent_qid_shape(val, qubit_count=qubit_count)
-    assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
+def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
+                                   setup_code: str,
+                                   global_vals: Optional[Dict[str, Any]],
+                                   local_vals: Optional[Dict[str, Any]]
+                                  ) -> None:
+    assert_has_consistent_qid_shape(val)
+    assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val,
