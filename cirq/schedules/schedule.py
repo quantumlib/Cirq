@@ -203,6 +203,9 @@ class Schedule:
                                strategy=InsertStrategy.INLINE)
         return circuit
 
+    def _qid_shape_(self):
+        return protocols.qid_shape(self.to_circuit())
+
     def _has_unitary_(self):
         return protocols.has_unitary(self.to_circuit())
 
