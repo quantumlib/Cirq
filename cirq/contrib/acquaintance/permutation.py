@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import abc
-from typing import (cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    TypeVar, Union)
+from typing import (Dict, Iterable, Sequence, Tuple, TYPE_CHECKING, TypeVar,
+                    Union)
 
 from cirq import circuits, ops, optimizers, protocols, value
 
@@ -220,9 +220,11 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
         operations: The operations to update according to.
     """
     for op in ops.flatten_op_tree(operations):
-        gate = ops.op_gate_of_type(op, PermutationGate)
+        # Ignoring type warning about passing an abstract type into Type[...].
+        gate = ops.op_gate_of_type(op, PermutationGate)  # type: ignore
         if gate is not None:
-            gate.update_mapping(mapping, op.qubits)
+            # Ignoring type warning about op.qubits not being a tuple.
+            gate.update_mapping(mapping, op.qubits)  # type: ignore
 
 
 def get_logical_operations(operations: 'cirq.OP_TREE',
@@ -241,7 +243,8 @@ def get_logical_operations(operations: 'cirq.OP_TREE',
     """
     mapping = initial_mapping.copy()
     for op in ops.flatten_to_ops(operations):
-        gate = ops.op_gate_of_type(op, PermutationGate)
+        # Ignoring type warning about passing an abstract type into Type[...].
+        gate = ops.op_gate_of_type(op, PermutationGate)  # type: ignore
         if gate is not None:
             gate.update_mapping(mapping, op.qubits)
         else:

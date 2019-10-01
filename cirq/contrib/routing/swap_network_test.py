@@ -61,9 +61,11 @@ def test_swap_network_equality(circuits):
 
 def test_repr():
     a, b = cirq.LineQubit.range(2)
-    cirq.testing.assert_equivalent_repr(cirq.contrib.routing.SwapNetwork(
-        cirq.Circuit(cirq.CZ(a, b)),
-        {a: a, b: b}))
+    cirq.testing.assert_equivalent_repr(
+        cirq.contrib.routing.SwapNetwork(cirq.Circuit(cirq.CZ(a, b)), {
+            a: a,
+            b: b
+        }))
 
 
 def test_swap_network_str():

@@ -94,23 +94,29 @@ def test_fail_when_operating_on_unmapped_qubits():
     swap = cirq.contrib.acquaintance.SwapPermutationGate()
 
     # Works before swap.
-    swap_network = cirq.contrib.routing.SwapNetwork(
-        cirq.Circuit(cirq.CZ(a, t)),
-        {a: a, b: b})
+    swap_network = cirq.contrib.routing.SwapNetwork(cirq.Circuit(cirq.CZ(a, t)),
+                                                    {
+                                                        a: a,
+                                                        b: b
+                                                    })
     with pytest.raises(ValueError, match='acts on unmapped qubit'):
         _ = list(swap_network.get_logical_operations())
 
     # Works after swap.
     swap_network = cirq.contrib.routing.SwapNetwork(
-        cirq.Circuit(swap(b, t), cirq.CZ(a, b)),
-        {a: a, b: b})
+        cirq.Circuit(swap(b, t), cirq.CZ(a, b)), {
+            a: a,
+            b: b
+        })
     with pytest.raises(ValueError, match='acts on unmapped qubit'):
         _ = list(swap_network.get_logical_operations())
 
     # This test case used to cause a CZ(a, a) to be created due to unmapped
     # qubits being mapped to stale values.
     swap_network = cirq.contrib.routing.SwapNetwork(
-        cirq.Circuit(swap(a, t), swap(b, t), cirq.CZ(a, b)),
-        {a: a, b: b})
+        cirq.Circuit(swap(a, t), swap(b, t), cirq.CZ(a, b)), {
+            a: a,
+            b: b
+        })
     with pytest.raises(ValueError, match='acts on unmapped qubit'):
         _ = list(swap_network.get_logical_operations())
