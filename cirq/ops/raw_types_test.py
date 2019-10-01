@@ -129,7 +129,8 @@ def test_op():
     a, b, c = cirq.LineQubit.range(3)
     g = ValiGate()
     op = g(a)
-    assert op.controlled_by() is op
+    with pytest.raises(ValueError, match='cannot be empty'):
+        _ = op.controlled_by()
     controlled_op = op.controlled_by(b, c)
     assert controlled_op.sub_operation == op
     assert controlled_op.controls == (b, c)

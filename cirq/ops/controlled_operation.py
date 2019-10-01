@@ -29,6 +29,8 @@ class ControlledOperation(raw_types.Operation):
                  sub_operation: raw_types.Operation,
                  control_values: Optional[Sequence[
                      Union[int, Collection[int]]]] = None):
+        if len(controls) == 0:
+            raise ValueError('controls cannot be empty.')
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):

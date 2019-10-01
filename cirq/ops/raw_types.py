@@ -390,8 +390,6 @@ class Operation(metaclass=abc.ABCMeta):
         """
         # Avoids circular import.
         from cirq.ops import ControlledOperation
-        if len(control_qubits) == 0:
-            return self
         return ControlledOperation(control_qubits, self, control_values)
 
     def validate_args(self, qubits: Sequence[Qid]):

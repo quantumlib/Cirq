@@ -95,6 +95,10 @@ def test_controlled_operation_init():
     assert c.control_values == ((1,),)
     assert cirq.qid_shape(c) == (3, 2)
 
+    with pytest.raises(ValueError, match='controls cannot be empty'):
+        _ = cirq.ControlledOperation((), v)
+    with pytest.raises(ValueError, match='controls cannot be empty'):
+        _ = cirq.ControlledOperation((), v, control_values=[1])
     with pytest.raises(ValueError,
                        match=r'len\(control_values\) != len\(controls\)'):
         _ = cirq.ControlledOperation([cb], v, control_values=[1, 1])
