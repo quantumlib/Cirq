@@ -61,8 +61,7 @@ matrix:
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
       - pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script:
-      - check/pytest --benchmark-skip
+    script: check/pytest --benchmark-skip
   - stage: test
     os: linux
     env: NAME=pytest (without contrib)
