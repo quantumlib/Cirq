@@ -114,6 +114,9 @@ def test_arithmetic_operation_apply_unitary():
 
     np.testing.assert_allclose(cirq.unitary(Add(1, 0)), np.eye(1))
 
+    cirq.testing.assert_has_consistent_apply_unitary(
+        Add(cirq.LineQubit.range(2), cirq.LineQubit.range(2)))
+
 
 def test_arithmetic_operation_qubits():
 
@@ -149,3 +152,22 @@ def test_arithmetic_operation_qubits():
     op4 = op3.with_qubits(q0, q1, q2, q3)
     assert op4.registers() == ([q0, q1, q2], [q3], 1)
     assert op4.qubits == (q0, q1, q2, q3)
+
+
+def test_reshape_referencing():
+
+    class Op1(cirq.ArithmeticOperation):
+
+        def apply(self, *register_values: int):
+            return register_values[0] + 1
+
+        def registers(self):
+            return [cirq.LineQubit.range(2)[::-1]]
+
+        def with_registers(self, *new_registers):
+            raise NotImplementedError()
+
+    state = np.ones(4, dtype=np.complex64) / 2
+    output = cirq.final_wavefunction(cirq.Circuit.from_ops(Op1()),
+                                     initial_state=state)
+    np.testing.assert_allclose(state, output)
