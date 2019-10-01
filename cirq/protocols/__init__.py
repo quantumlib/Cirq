@@ -33,9 +33,6 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
-from cirq.protocols.control import (
-    control,
-)
 from cirq.protocols.circuit_diagram_info import (
     circuit_diagram_info,
     CircuitDiagramInfo,

@@ -364,7 +364,6 @@ from cirq.protocols import (
     ApplyChannelArgs,
     ApplyUnitaryArgs,
     approx_eq,
-    control,
     channel,
     circuit_diagram_info,
     CircuitDiagramInfo,
