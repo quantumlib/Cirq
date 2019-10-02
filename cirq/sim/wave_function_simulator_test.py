@@ -29,8 +29,14 @@ def test_wave_function_trial_result_repr():
                "params=cirq.ParamResolver({'s': 1}), "
                "measurements={'m': array([[1]])}, "
                "final_simulator_state=cirq.WaveFunctionSimulatorState("
-                   "state_vector=array([0, 1]), "
+                   "state_vector=np.array([0, 1]), "
                    "qubit_map={cirq.NamedQubit('a'): 0}))")
+
+
+def test_wave_function_simulator_state_repr():
+    final_simulator_state = cirq.WaveFunctionSimulatorState(
+        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1]))
+    cirq.testing.assert_equivalent_repr(final_simulator_state)
 
 
 def test_wave_function_trial_result_equality():

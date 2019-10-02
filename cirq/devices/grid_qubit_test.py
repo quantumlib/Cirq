@@ -47,6 +47,11 @@ def test_square():
     ]
 
 
+def test_repr():
+    a = cirq.GridQubit(0, 1)
+    cirq.testing.assert_equivalent_repr(a)
+
+
 def test_rec():
     assert cirq.GridQubit.rect(
         1, 2, top=5, left=6) == [cirq.GridQubit(5, 6),
