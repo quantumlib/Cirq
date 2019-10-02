@@ -83,7 +83,7 @@ def test_exponent():
 
 def test_repr():
     cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
-    cirq.testing.assert_equivalent_repr(cnot);    
+    cirq.testing.assert_equivalent_repr(cnot)
 
 
 def test_decomposes_despite_symbol():
