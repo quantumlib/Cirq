@@ -105,6 +105,7 @@ def create_device_proto_from_diagram(
                 neighbor_set.add((q, neighbor))
 
     # Create gate sets
+    arg_def = device_pb2.ArgDefinition
     if gate_sets is not None:
         for gate_set in gate_sets:
             gs_proto = spec.valid_gate_sets.add()
@@ -135,18 +136,19 @@ def create_device_proto_from_diagram(
                         gate.number_of_qubits = 2
 
                     # Add gate duration
-                    if durations_picos is not None and gate.id in durations_picos:
+                    if (durations_picos is not None and
+                            gate.id in durations_picos):
                         gate.gate_duration_picos = durations_picos[gate.id]
 
                     # Add argument names and types for each gate.
                     for arg in serializer.args:
                         new_arg = gate.valid_args.add()
                         if arg.serialized_type == str:
-                            new_arg.type = device_pb2.ArgDefinition.STRING
+                            new_arg.type = arg_def.STRING
                         if arg.serialized_type == float:
-                            new_arg.type = device_pb2.ArgDefinition.FLOAT
+                            new_arg.type = arg_def.FLOAT
                         if arg.serialized_type == List[bool]:
-                            new_arg.type = device_pb2.ArgDefinition.REPEATED_BOOLEAN
+                            new_arg.type = arg_def.REPEATED_BOOLEAN
                         new_arg.name = arg.serialized_name
                         # Note: this does not yet support adding allowed_ranges
 
