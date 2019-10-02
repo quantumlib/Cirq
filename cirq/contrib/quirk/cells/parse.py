@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from typing import (
     Any,
     Union,
-)
+    Dict)
 
 import numpy as np
 import sympy
@@ -26,22 +27,92 @@ def parse_formula(formula: Any) -> Union[float, sympy.Basic]:
     if not isinstance(formula, str):
         raise TypeError('formula must be a string: {!r}'.format(formula))
 
-    formula = expand_unicode_fractions(formula)
     try:
-        result = parse_expr(formula)
+        result = _parse_scalar(formula, t=sympy.Symbol('t'))
     except Exception as ex:
         raise ValueError(
-            f'Failed to parse the gate formula {repr(formula)}.\n'
-            'This is likely due to differences in how sympy and Quirk parse.\n'
-            'For example, Quirk allows "2 pi" whereas sympy requires "2*pi"\n'
-            'Parsing of sympy-incompatible formulas is not supported yet.'
+            f"Failed to parse the gate formula {repr(formula)}.\n"
+            "This is likely due to a bug where cirq fails to exactly emulate "
+            "Quirk's parsing. Please report it."
         ) from ex
     if not result.free_symbols <= {sympy.Symbol('t')}:
         raise ValueError(
             f'Formula has variables besides time "t": {repr(formula)}')
     if not result.free_symbols:
-        result = float(result)
+        result = complex(result)
+        if abs(np.imag(result)) > 1e-8:
+            raise ValueError(
+                'Expected a real value formula but got {!r}'.format(formula))
+        result = float(np.real(result))
     return result
+
+
+def parse_matrix(text: str) -> np.ndarray:
+    if not text.startswith('{{') or not text.endswith('}}'):
+        raise ValueError('No opening/closing braces.\ntext: {!r}'.format(text))
+    text = text[2:-2]
+    rows = text.split('},{')
+    return np.array([[parse_complex(c) for c in row.split(',')] for row in rows
+                     ])
+
+
+def parse_complex(text: str) -> complex:
+    try:
+        return complex(_parse_scalar(text))
+    except Exception as ex:
+        raise ValueError(
+            'Failed to parse complex from {!r}'.format(text)) from ex
+
+
+def _parse_scalar(text: str, **extras) -> sympy.Basic:
+    text = _expand_unicode_fractions(text)
+
+    # Convert number suffixing into implicit action.
+    text = re.sub(r'([0123456789)])([a-df-zA-DF-Z])', r'\1 \2', text)
+
+    # Canonicalize redundant function names.
+    text = text.replace('√', ' sqrt')
+    text = text.replace('arcsin', 'asin')
+    text = text.replace('arccos', 'acos')
+    text = text.replace('arctan', 'atan')
+
+    # Convert implicit function application into explicit application.
+    # TODO(craiggidney): support nested implicit function application.
+    text = re.sub(r'(a?(cos|sin|tan)|exp|ln|sqrt)\s*([^-\s(+*/^)]+)',
+                  r'\1(\3)',
+                  text)
+
+    # Convert implicit multiplication into explicit multiplication.
+    text = re.sub(r'([^-^+*/])\s([^-^+*/])', r'\1*\2', text)
+
+    # Translate exponentiation notation.
+    text = text.replace('^', '**')
+
+    return sympy.parsing.sympy_parser.parse_expr(
+        text,
+        transformations=[],
+        local_dict={},
+        global_dict={
+            'sqrt': sympy.sqrt,
+            'exp': sympy.exp,
+            'ln': sympy.ln,
+            'cos': sympy.cos,
+            'sin': sympy.sin,
+            'tan': sympy.tan,
+            'acos': sympy.acos,
+            'asin': sympy.asin,
+            'atan': sympy.atan,
+            'i': sympy.I,
+            'e': sympy.E,
+            'pi': sympy.pi,
+            **extras,
+        })
+
+
+def _expand_unicode_fractions(text: str) -> str:
+    for k, v in UNICODE_FRACTIONS.items():
+        text = text.replace(k, v)
+    return text
 
 
 UNICODE_FRACTIONS = {
@@ -64,31 +135,3 @@ UNICODE_FRACTIONS = {
     "⅑": "(1/9)",
     "⅒": "(1/10)",
 }
-
-
-def expand_unicode_fractions(text: str) -> str:
-    for k, v in UNICODE_FRACTIONS.items():
-        text = text.replace('√' + k, f'(sqrt{v})')
-        text = text.replace(k, v)
-    return text
-
-
-def parse_matrix(text: str) -> np.ndarray:
-    if not text.startswith('{{') or not text.endswith('}}'):
-        raise ValueError('No opening/closing braces.\ntext: {!r}'.format(text))
-    text = expand_unicode_fractions(text[2:-2])
-    rows = text.split('},{')
-    return np.array([[_parse_complex(c) for c in row.split(',')] for row in rows
-                    ])
-
-
-def _parse_complex(text: str) -> complex:
-    try:
-        if (text.endswith('i') and len(text) > 1 and not text.endswith('+i') and
-                not text.endswith('-i')):
-            text = text[:-1] + '*i'
-        expr = sympy.parsing.sympy_parser.parse_expr(text)
-        return complex(expr.subs({'i': 1j}))
-    except Exception as ex:
-        raise ValueError(
-            'Failed to parse complex from {!r}'.format(text)) from ex

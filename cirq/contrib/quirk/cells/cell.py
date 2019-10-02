@@ -109,7 +109,7 @@ class ExplicitOperationsCell(Cell):
     def operations(self) -> 'cirq.OP_TREE':
         return self._operations
 
-    def controlled_by(self, qubit: 'cirq.Qid'):
+    def controlled_by(self, qubit: 'cirq.Qid') -> 'ExplicitOperationsCell':
         return ExplicitOperationsCell(
             [op.controlled_by(qubit) for op in self._operations],
             self._basis_change)

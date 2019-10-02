@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -138,11 +138,11 @@ def test_controls():
             cirq.X(qs[6])**0.5,
             cirq.X(qs[0]).controlled_by(*qs[1:7]),
             cirq.Z(qs[7]).controlled_by(*qs[1:7]),
-            cirq.X(qs[2]),
-            cirq.Y(qs[3])**-0.5,
-            cirq.Y(qs[4])**0.5,
-            cirq.X(qs[5])**0.5,
             cirq.X(qs[6])**-0.5,
+            cirq.X(qs[5])**0.5,
+            cirq.Y(qs[4])**0.5,
+            cirq.Y(qs[3])**-0.5,
+            cirq.X(qs[2]),
         ))
 
 

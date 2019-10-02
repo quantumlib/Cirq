@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterable, TYPE_CHECKING, Union
+from typing import Optional, List, Iterable, TYPE_CHECKING, Union, Iterator
 
 from cirq import ops
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
@@ -73,7 +73,7 @@ class ParityControlCell(Cell):
             yield ops.CNOT(q, self.qubits[0])
 
 
-def generate_all_control_cell_makers():
+def generate_all_control_cell_makers() -> Iterator[CellMaker]:
     # Controls.
     yield _reg_control("•", basis_change=None)
     yield _reg_control("◦", basis_change=ops.X)

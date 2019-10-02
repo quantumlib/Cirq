@@ -22,7 +22,7 @@ def test_cell_defaults():
     assert c.basis_change() == ()
     assert c.controlled_by(cirq.LineQubit(0)) is c
     x = []
-    c.modify_column([])
+    c.modify_column(x)
     assert x == []
 
 
