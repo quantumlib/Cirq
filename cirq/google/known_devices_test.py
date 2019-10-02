@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
+import cirq.google.common_serializers as cgc
 
 
 def test_foxtail_qubits():
@@ -223,6 +224,139 @@ valid_targets {
   targets {
     ids: "1_9"
     ids: "1_10"
+  }
+}
+"""
+
+
+def test_multiple_gate_sets():
+    halfPiGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='half_pi_gateset',
+        serializers=[
+            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER
+        ],
+        deserializers=[
+            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+            cgc.MEASUREMENT_DESERIALIZER
+        ],
+    )
+    durations_dict = {
+        'xy_pi': 20_000,
+        'xy_half_pi': 10_000,
+        'exp_w': 53_000,
+        'exp_11': 11_000,
+        'meas': 14_141
+    }
+    test_proto = cirq.google.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [cirq.google.gate_sets.XMON, halfPiGateSet], durations_dict)
+    assert str(test_proto) == """\
+valid_gate_sets {
+  name: "xmon"
+  valid_gates {
+    id: "exp_w"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 53000
+  }
+  valid_gates {
+    id: "exp_z"
+    number_of_qubits: 1
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+  }
+  valid_gates {
+    id: "exp_11"
+    number_of_qubits: 2
+    valid_args {
+      name: "half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 11000
+    valid_targets: "2_qubit_targets"
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 14141
+    valid_targets: "meas_targets"
+  }
+}
+valid_gate_sets {
+  name: "half_pi_gateset"
+  valid_gates {
+    id: "xy_pi"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 20000
+  }
+  valid_gates {
+    id: "xy_half_pi"
+    number_of_qubits: 1
+    valid_args {
+      name: "axis_half_turns"
+      type: FLOAT
+    }
+    gate_duration_picos: 10000
+  }
+  valid_gates {
+    id: "meas"
+    valid_args {
+      name: "key"
+      type: STRING
+    }
+    valid_args {
+      name: "invert_mask"
+      type: REPEATED_BOOLEAN
+    }
+    gate_duration_picos: 14141
+    valid_targets: "meas_targets"
+  }
+}
+valid_qubits: "0_0"
+valid_qubits: "0_1"
+valid_qubits: "1_0"
+valid_qubits: "1_1"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "0_1"
+  }
+  targets {
+    ids: "0_0"
+    ids: "1_0"
+  }
+  targets {
+    ids: "0_1"
+    ids: "1_1"
+  }
+  targets {
+    ids: "1_0"
+    ids: "1_1"
   }
 }
 """
