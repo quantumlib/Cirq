@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, Tuple, TYPE_CHECKING, Union
+from typing import cast, Any, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
 from cirq._compat import deprecated
@@ -20,6 +20,7 @@ from cirq.ops import common_gates, raw_types
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
 
@@ -64,11 +65,14 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-            self, other: 'Pauli'
-    ) -> Tuple[complex, Union['Pauli', 'common_gates.IdentityGate']]:
+            self, other: Union['cirq.Pauli', 'cirq.IdentityGate']
+    ) -> Tuple[complex, Union['cirq.Pauli', 'cirq.IdentityGate']]:
         if self == other:
             return 1, common_gates.I
-        return 1j**other.relative_index(self), self.third(other)
+        if other is common_gates.I:
+            return 1, self
+        return 1j**cast(Pauli, other).relative_index(self), self.third(
+            cast(Pauli, other))
 
     def __gt__(self, other):
         if not isinstance(other, Pauli):

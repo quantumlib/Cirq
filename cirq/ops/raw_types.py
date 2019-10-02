@@ -400,7 +400,6 @@ class Operation(metaclass=abc.ABCMeta):
                 where that control is enabled.  When all controls are enabled,
                 the operation is applied.  If unspecified, control values
                 default to 1.
-            TODO: add control_qid_shape
         """
         # Avoids circular import.
         from cirq.ops import ControlledOperation
