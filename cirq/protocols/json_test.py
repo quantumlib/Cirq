@@ -234,7 +234,7 @@ TEST_OBJECTS = {
     'SerializableDevice':
     cirq.google.SerializableDevice.from_proto(
         proto=cirq.google.known_devices.FOXTAIL_PROTO,
-        gate_set=cirq.google.XMON),
+        gate_sets=cirq.google.XMON),
     'SWAP':
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
