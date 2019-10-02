@@ -17,7 +17,9 @@ import pytest
 
 import cirq
 import cirq.google as cg
+import cirq.google.api.v2 as v2
 import cirq.google.api.v2.device_pb2 as device_pb2
+
 
 _JUST_CZ = cg.SerializableGateSet(
     gate_set_name='cz_gate_set',
@@ -127,15 +129,16 @@ def test_assymetric_gate():
     spec = device_pb2.DeviceSpecification()
     for row in range(5):
         for col in range(2):
-            spec.valid_qubits.extend([cirq.GridQubit(row, col).proto_id()])
+            spec.valid_qubits.extend(
+                [v2.qubit_to_proto_id(cirq.GridQubit(row, col))])
     grid_targets = spec.valid_targets.add()
     grid_targets.name = 'left_to_right'
     grid_targets.target_ordering = device_pb2.TargetSet.ASYMMETRIC
     for row in range(5):
         new_target = grid_targets.targets.add()
         new_target.ids.extend([
-            cirq.GridQubit(row, 0).proto_id(),
-            cirq.GridQubit(row, 1).proto_id()
+            v2.qubit_to_proto_id(cirq.GridQubit(row, 0)),
+            v2.qubit_to_proto_id(cirq.GridQubit(row, 1))
         ])
 
     gs_proto = spec.valid_gate_sets.add()
@@ -159,7 +162,8 @@ def test_unconstrained_gate():
     spec = device_pb2.DeviceSpecification()
     for row in range(5):
         for col in range(5):
-            spec.valid_qubits.extend([cirq.GridQubit(row, col).proto_id()])
+            spec.valid_qubits.extend(
+                [v2.qubit_to_proto_id(cirq.GridQubit(row, col))])
     grid_targets = spec.valid_targets.add()
     grid_targets.name = '2_qubit_anywhere'
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
@@ -181,9 +185,10 @@ def test_unconstrained_gate():
 
 def test_number_of_qubits_cz():
     spec = device_pb2.DeviceSpecification()
-    spec.valid_qubits.extend(
-        [cirq.GridQubit(0, 0).proto_id(),
-         cirq.GridQubit(0, 1).proto_id()])
+    spec.valid_qubits.extend([
+        v2.qubit_to_proto_id(cirq.GridQubit(0, 0)),
+        v2.qubit_to_proto_id(cirq.GridQubit(0, 1))
+    ])
     grid_targets = spec.valid_targets.add()
     grid_targets.name = '2_qubit_anywhere'
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
@@ -207,13 +212,15 @@ def test_constrained_permutations():
     spec = device_pb2.DeviceSpecification()
     for row in range(5):
         for col in range(2):
-            spec.valid_qubits.extend([cirq.GridQubit(row, col).proto_id()])
+            spec.valid_qubits.extend(
+                [v2.qubit_to_proto_id(cirq.GridQubit(row, col))])
 
     grid_targets = spec.valid_targets.add()
     grid_targets.name = 'meas_on_first_line'
     grid_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
     new_target = grid_targets.targets.add()
-    new_target.ids.extend([cirq.GridQubit(i, 0).proto_id() for i in range(5)])
+    new_target.ids.extend(
+        [v2.qubit_to_proto_id(cirq.GridQubit(i, 0)) for i in range(5)])
 
     gs_proto = spec.valid_gate_sets.add()
     gs_proto.name = 'meas_set'

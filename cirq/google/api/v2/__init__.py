@@ -21,6 +21,13 @@ from cirq.google.api.v2 import (
     run_context_pb2,
 )
 
+from cirq.google.api.v2.program import (
+    grid_qubit_from_proto_id,
+    line_qubit_from_proto_id,
+    named_qubit_from_proto_id,
+    qubit_to_proto_id,
+)
+
 from cirq.google.api.v2.results import (
     MeasureInfo,
     find_measurements,

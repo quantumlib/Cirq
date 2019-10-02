@@ -63,3 +63,8 @@ class SwapNetwork:
     @property
     def device(self):
         return self.circuit.device
+
+    def __str__(self):
+        circuit = self.circuit.copy()
+        cca.display_mapping(circuit, self.initial_mapping)
+        return str(circuit)
