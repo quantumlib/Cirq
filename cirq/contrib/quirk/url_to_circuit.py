@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,14 +67,14 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     }
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
-        parsed_cols.append(parse_col_cells(registry, i, col))
+        parsed_cols.append(_parse_col_cells(registry, i, col))
 
     # Apply column modifiers (controls and inputs).
-    for c in parsed_cols:
-        for i in range(len(c)):
-            cell = c[i]
+    for col in parsed_cols:
+        for i in range(len(col)):
+            cell = col[i]
             if cell is not None:
-                cell.modify_column(c)
+                cell.modify_column(col)
 
     # Extract circuit operations from modified cells.
     result = cirq.Circuit()
@@ -90,18 +90,18 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
     return result
 
 
-def parse_col_cells(registry: Dict[str, CellMaker], col: int,
-                    col_data: Any) -> List[Optional[Cell]]:
+def _parse_col_cells(registry: Dict[str, CellMaker], col: int,
+                     col_data: Any) -> List[Optional[Cell]]:
     if not isinstance(col_data, list):
         raise ValueError('col must be a list.\ncol: {!r}'.format(col_data))
     return [
-        parse_cell(registry, row, col, col_data[row])
+        _parse_cell(registry, row, col, col_data[row])
         for row in range(len(col_data))
     ]
 
 
-def parse_cell(registry: Dict[str, CellMaker], row: int, col: int,
-               entry: Any) -> Optional[Cell]:
+def _parse_cell(registry: Dict[str, CellMaker], row: int, col: int,
+                entry: Any) -> Optional[Cell]:
     if entry == 1:
         return None
 
