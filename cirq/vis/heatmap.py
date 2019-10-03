@@ -13,7 +13,7 @@
 # limitations under the License.
 """Heatmap class.
 
-See cirq/vis/examples/bristlecone_heatmap_example.py for an example usage in
+See examples/bristlecone_heatmap_example.py for an example usage in
 an interactive session.
 """
 
