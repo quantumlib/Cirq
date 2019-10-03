@@ -13,14 +13,16 @@
 # limitations under the License.
 import json
 import urllib.parse
-from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING
+from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING, \
+    Iterable
 
-from cirq import devices, circuits
+from cirq import devices, circuits, ops
 from cirq.contrib.quirk.cells import (
     Cell,
     CellMaker,
     CellMakerArgs,
     generate_all_quirk_cell_makers,
+    ExplicitOperationsCell,
 )
 
 if TYPE_CHECKING:
@@ -29,7 +31,10 @@ if TYPE_CHECKING:
 
 def quirk_url_to_circuit(
         quirk_url: str,
-        qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.Circuit':
+        *,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        extra_recognized: Iterable['cirq.contrib.quirk.cells.CellMaker'] = ()
+) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
     Args:
@@ -41,6 +46,17 @@ def quirk_url_to_circuit(
             qubits). The maximum number of qubits in a Quirk circuit is 16.
             This argument defaults to `cirq.LineQubit.range(16)` when not
             specified.
+        extra_recognized: A list of non-standard Quirk cell makers. This can be
+            used to parse URLs that come from a modified version of Quirk that
+            includes gates that Quirk doesn't define. Each entry must be a
+            `cirq.contrib.quirk.cells.CellMaker`, which is a `NamedTuple` with
+            an `identifier` (the string that identifies the gate type), a `size`
+            (the height of the operation; the number of qubits it covers), and
+            a `maker` function which takes a
+            `cirq.contrib.quirk.cells.CellMakerArgs` and returns a
+            `cirq.Operation` or a `cirq.contrib.quirk.cells.Cell`. The cell is
+            more flexible (it can modify other cells in the same column before
+            producing operations).
 
     Examples:
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
@@ -57,6 +73,18 @@ def quirk_url_to_circuit(
         Alice: ───H───@───
                       │
         Bob: ─────────X───
+
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        ...     extra_recognized=[
+        ...         cirq.contrib.quirk.cells.CellMaker(
+        ...             identifier='iswap',
+        ...             size=2,
+        ...             maker=lambda args: cirq.ISWAP(*args.qubits))
+        ...     ]))
+        0: ───iSwap───
+              │
+        1: ───iSwap───
 
     Returns:
         The parsed circuit.
@@ -99,7 +127,8 @@ def quirk_url_to_circuit(
 
     # Parse column json into cells.
     registry = {
-        entry.identifier: entry for entry in generate_all_quirk_cell_makers()
+        entry.identifier: entry
+        for entry in [*generate_all_quirk_cell_makers(), *extra_recognized]
     }
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
@@ -137,6 +166,7 @@ def quirk_url_to_circuit(
         result += basis_change**-1
 
     if qubits is not None:
+
         def map_qubit(qubit: 'cirq.Qid') -> 'cirq.Qid':
             q = cast(devices.LineQubit, qubit)
             if q.x >= len(qubits):
@@ -145,6 +175,7 @@ def quirk_url_to_circuit(
                     f'circuit used the qubit at offset {q.x}. Provide more '
                     f'qubits.')
             return qubits[q.x]
+
         result = result.transform_qubits(map_qubit)
 
     return result
@@ -176,6 +207,9 @@ def _parse_cell(registry: Dict[str, CellMaker], row: int, col: int,
     if isinstance(key, str) and key in registry:
         entry = registry[key]
         qubits = devices.LineQubit.range(row, row + entry.size)
-        return entry.maker(CellMakerArgs(qubits, arg, row=row, col=col))
+        result = entry.maker(CellMakerArgs(qubits, arg, row=row, col=col))
+        if isinstance(result, ops.Operation):
+            return ExplicitOperationsCell([result])
+        return result
 
     raise ValueError('Unrecognized column entry: {!r}'.format(entry))

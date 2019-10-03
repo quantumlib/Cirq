@@ -485,16 +485,17 @@ def test_with_registers():
         _ = op.with_registers(1, 2, 3)
 
     op2 = op.with_registers([], 5, 5)
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.Circuit(op2)),
-        np.array([[1]]),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(op2)),
+                               np.array([[1]]),
+                               atol=1e-8)
 
     op2 = op.with_registers([*cirq.LineQubit.range(3)], 5, 5)
-    np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.Circuit(op2), initial_state=0),
-        cirq.one_hot(index=25 % 8, shape=8, dtype=np.complex64),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.final_wavefunction(cirq.Circuit(op2),
+                                                       initial_state=0),
+                               cirq.one_hot(index=25 % 8,
+                                            shape=8,
+                                            dtype=np.complex64),
+                               atol=1e-8)
 
 
 def test_helpers():

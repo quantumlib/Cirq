@@ -103,11 +103,9 @@ def _permutation(
     return CellMaker(
         identifier,
         size=len(permutation),
-        maker=lambda args: ExplicitOperationsCell([
-            QuirkQubitPermutationGate(identifier=identifier,
-                                      name=name,
-                                      permutation=permutation).on(*args.qubits)
-        ]))
+        maker=lambda args: QuirkQubitPermutationGate(
+            identifier=identifier, name=name, permutation=permutation).on(
+                *args.qubits))
 
 
 def _interleave_bit(n: int, x: int) -> int:
