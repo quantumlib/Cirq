@@ -473,6 +473,10 @@ class Circuit:
                          new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
         """Returns the same circuit, but with different qubits.
 
+        Note that this method does essentially the same thing as
+        `cirq.Circuit.with_device`. It is included regardless because there are
+        also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
+
         Args:
             func: The function to use to turn each current qubit into a desired
                 new qubit.
@@ -484,8 +488,9 @@ class Circuit:
             The receiving circuit but with qubits transformed by the given
                 function, and with an updated device (if specified).
         """
-        return Circuit([moment.transform_qubits(func) for moment in self],
-                       device=self.device if new_device is None else new_device)
+        return self.with_device(
+            new_device=self.device if new_device is None else new_device,
+            qubit_mapping=func)
 
     def _prev_moment_available(self, op: 'cirq.Operation',
                                end_moment_index: int) -> Optional[int]:
