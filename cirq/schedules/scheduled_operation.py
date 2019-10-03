@@ -66,5 +66,5 @@ class ScheduledOperation:
             self.operation, self.time, self.time + self.duration)
 
     def __repr__(self):
-        return 'ScheduledOperation({}, {}, {})'.format(
-            repr(self.time), repr(self.duration), repr(self.operation))
+        return 'cirq.ScheduledOperation({!r}, {!r}, {!r})'.format(
+            self.time, self.duration, self.operation)
