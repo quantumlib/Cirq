@@ -191,61 +191,60 @@ def _indented_list_lines_repr(items: Sequence[Any]) -> str:
 
 def generate_all_arithmetic_cell_makers() -> Iterator[CellMaker]:
     # Comparisons.
-    yield _reg_arithmetic_gate("^A<B", 1, "lambda x, a, b: x ^ int(a < b)")
-    yield _reg_arithmetic_gate("^A>B", 1, "lambda x, a, b: x ^ int(a > b)")
-    yield _reg_arithmetic_gate("^A<=B", 1, "lambda x, a, b: x ^ int(a <= b)")
-    yield _reg_arithmetic_gate("^A>=B", 1, "lambda x, a, b: x ^ int(a >= b)")
-    yield _reg_arithmetic_gate("^A=B", 1, "lambda x, a, b: x ^ int(a == b)")
-    yield _reg_arithmetic_gate("^A!=B", 1, "lambda x, a, b: x ^ int(a != b)")
+    yield _arithmetic_gate("^A<B", 1, "lambda x, a, b: x ^ int(a < b)")
+    yield _arithmetic_gate("^A>B", 1, "lambda x, a, b: x ^ int(a > b)")
+    yield _arithmetic_gate("^A<=B", 1, "lambda x, a, b: x ^ int(a <= b)")
+    yield _arithmetic_gate("^A>=B", 1, "lambda x, a, b: x ^ int(a >= b)")
+    yield _arithmetic_gate("^A=B", 1, "lambda x, a, b: x ^ int(a == b)")
+    yield _arithmetic_gate("^A!=B", 1, "lambda x, a, b: x ^ int(a != b)")
 
     # Addition.
-    yield from _reg_arithmetic_family("inc", "lambda x: x + 1")
-    yield from _reg_arithmetic_family("dec", "lambda x: x - 1")
-    yield from _reg_arithmetic_family("+=A", "lambda x, a: x + a")
-    yield from _reg_arithmetic_family("-=A", "lambda x, a: x - a")
+    yield from _arithmetic_family("inc", "lambda x: x + 1")
+    yield from _arithmetic_family("dec", "lambda x: x - 1")
+    yield from _arithmetic_family("+=A", "lambda x, a: x + a")
+    yield from _arithmetic_family("-=A", "lambda x, a: x - a")
 
     # Multiply-accumulate.
-    yield from _reg_arithmetic_family("+=AA", "lambda x, a: x + a * a")
-    yield from _reg_arithmetic_family("-=AA", "lambda x, a: x - a * a")
-    yield from _reg_arithmetic_family("+=AB", "lambda x, a, b: x + a * b")
-    yield from _reg_arithmetic_family("-=AB", "lambda x, a, b: x - a * b")
+    yield from _arithmetic_family("+=AA", "lambda x, a: x + a * a")
+    yield from _arithmetic_family("-=AA", "lambda x, a: x - a * a")
+    yield from _arithmetic_family("+=AB", "lambda x, a, b: x + a * b")
+    yield from _arithmetic_family("-=AB", "lambda x, a, b: x - a * b")
 
     # Misc.
-    yield from _reg_arithmetic_family(
+    yield from _arithmetic_family(
         "+cntA", "lambda x, a: x + cirq.contrib.quirk.popcnt(a)")
-    yield from _reg_arithmetic_family(
+    yield from _arithmetic_family(
         "-cntA", "lambda x, a: x - cirq.contrib.quirk.popcnt(a)")
-    yield from _reg_arithmetic_family("^=A", "lambda x, a: x ^ a")
-    yield from _reg_arithmetic_family("Flip<A",
-                                      "lambda x, a: a - x - 1 if x < a else x")
+    yield from _arithmetic_family("^=A", "lambda x, a: x ^ a")
+    yield from _arithmetic_family("Flip<A",
+                                  "lambda x, a: a - x - 1 if x < a else x")
 
     # Multiplication.
-    yield from _reg_arithmetic_family("*A",
-                                      "lambda x, a: x * a if a & 1 else x")
-    yield from _reg_size_dependent_arithmetic_family(
+    yield from _arithmetic_family("*A", "lambda x, a: x * a if a & 1 else x")
+    yield from _size_dependent_arithmetic_family(
         "/A", lambda n:
         f"lambda x, a: x * cirq.contrib.quirk.mod_inv_else_1(a, 1 << {n})")
 
     # Modular addition.
-    yield from _reg_arithmetic_family("incmodR", "lambda x, r: x + 1")
-    yield from _reg_arithmetic_family("decmodR", "lambda x, r: x - 1")
-    yield from _reg_arithmetic_family("+AmodR", "lambda x, a, r: x + a")
-    yield from _reg_arithmetic_family("-AmodR", "lambda x, a, r: x - a")
+    yield from _arithmetic_family("incmodR", "lambda x, r: x + 1")
+    yield from _arithmetic_family("decmodR", "lambda x, r: x - 1")
+    yield from _arithmetic_family("+AmodR", "lambda x, a, r: x + a")
+    yield from _arithmetic_family("-AmodR", "lambda x, a, r: x - a")
 
     # Modular multiply-accumulate.
-    yield from _reg_arithmetic_family("+ABmodR", "lambda x, a, b, r: x + a * b")
-    yield from _reg_arithmetic_family("-ABmodR", "lambda x, a, b, r: x - a * b")
+    yield from _arithmetic_family("+ABmodR", "lambda x, a, b, r: x + a * b")
+    yield from _arithmetic_family("-ABmodR", "lambda x, a, b, r: x - a * b")
 
     # Modular multiply.
-    yield from _reg_arithmetic_family(
+    yield from _arithmetic_family(
         "*AmodR",
         "lambda x, a, r: x * cirq.contrib.quirk.invertible_else_1(a, r)")
-    yield from _reg_arithmetic_family(
+    yield from _arithmetic_family(
         "/AmodR", "lambda x, a, r: x * cirq.contrib.quirk.mod_inv_else_1(a, r)")
-    yield from _reg_arithmetic_family(
+    yield from _arithmetic_family(
         "*BToAmodR", "lambda x, a, b, r: "
         "x * pow(cirq.contrib.quirk.invertible_else_1(b, r), a, r)")
-    yield from _reg_arithmetic_family(
+    yield from _arithmetic_family(
         "/BToAmodR", "lambda x, a, b, r: "
         "x * pow(cirq.contrib.quirk.mod_inv_else_1(b, r), a, r)")
 
@@ -282,23 +281,23 @@ def popcnt(a: int) -> int:
     return t
 
 
-def _reg_arithmetic_family(identifier_prefix: str,
-                           func: str) -> Iterator[CellMaker]:
-    yield from _reg_size_dependent_arithmetic_family(
-        identifier_prefix, size_to_func=lambda _: func)
+def _arithmetic_family(identifier_prefix: str,
+                       func: str) -> Iterator[CellMaker]:
+    yield from _size_dependent_arithmetic_family(identifier_prefix,
+                                                 size_to_func=lambda _: func)
 
 
-def _reg_size_dependent_arithmetic_family(
+def _size_dependent_arithmetic_family(
         identifier_prefix: str,
         size_to_func: Callable[[int], str],
 ) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
-        yield _reg_arithmetic_gate(identifier_prefix + str(i),
-                                   size=i,
-                                   func=size_to_func(i))
+        yield _arithmetic_gate(identifier_prefix + str(i),
+                               size=i,
+                               func=size_to_func(i))
 
 
-def _reg_arithmetic_gate(identifier: str, size: int, func: str) -> CellMaker:
+def _arithmetic_gate(identifier: str, size: int, func: str) -> CellMaker:
     operation = QuirkArithmeticLambda(func)
     return CellMaker(identifier=identifier,
                      size=size,
