@@ -23,13 +23,13 @@ def test_missing_input_cell():
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
                                  '["+=A2"]]}')
 
+
 def test_input_cell():
-    assert_url_to_circuit_returns(
-        '{"cols":[["inputA4",1,1,1,"+=A4"]]}',
-        maps={
-            0x_0_0: 0x_0_0,
-            0x_2_3: 0x_2_5,
-        })
+    assert_url_to_circuit_returns('{"cols":[["inputA4",1,1,1,"+=A4"]]}',
+                                  maps={
+                                      0x_0_0: 0x_0_0,
+                                      0x_2_3: 0x_2_5,
+                                  })
 
     assert_url_to_circuit_returns(
         '{"cols":[["inputA3",1,1,"inputB3",1,1,"+=AB3"]]}',
@@ -47,12 +47,12 @@ def test_input_cell():
 
 
 def test_reversed_input_cell():
-    assert_url_to_circuit_returns(
-        '{"cols":[["inputA4",1,1,1,"+=A4"]]}',
-        maps={
-            0x_0_0: 0x_0_0,
-            0x_2_3: 0x_2_5,
-        })
+    assert_url_to_circuit_returns('{"cols":[["revinputA4",1,1,1,"+=A4"]]}',
+                                  maps={
+                                      0x_0_0: 0x_0_0,
+                                      0x_2_3: 0x_2_7,
+                                      0x_1_3: 0x_1_B,
+                                  })
 
     assert_url_to_circuit_returns(
         '{"cols":[["revinputA3",1,1,"revinputB3",1,1,"+=AB3"]]}',
