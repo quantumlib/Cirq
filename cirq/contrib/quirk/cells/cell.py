@@ -29,7 +29,7 @@ class Cell:
     `cirq.Circuit`.
     """
 
-    def controlled_by(self, qubit: 'cirq.Qid'):
+    def controlled_by(self, qubit: 'cirq.Qid') -> 'Cell':
         """The same cell, but with an explicit control on its main operations.
 
         Cells with effects that do not need to be controlled are permitted to
