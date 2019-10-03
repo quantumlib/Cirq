@@ -12,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Converts cirq circuits into quirk circuits."""
+import cirq
+from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
-# Imports from cells are only to ensure operation reprs work correctly.
-from cirq.contrib.quirk.cells import (
-    invertible_else_1,
-    mod_inv_else_1,
-    popcnt,
-    QuirkQubitPermutationGate,
-    QuirkArithmeticOperation,
-    QuirkArithmeticLambda,
-)
 
-from cirq.contrib.quirk.export_to_quirk import (
-    circuit_to_quirk_url,)
-
-from cirq.contrib.quirk.url_to_circuit import (
-    quirk_url_to_circuit,)
+def test_displays():
+    assert_url_to_circuit_returns(
+        '{"cols":[["Amps2"],[1,"Amps3"],["Chance"],'
+        '["Chance2"],["Density"],["Density3"],'
+        '["Sample4"],["Bloch"],["Sample2"]'
+        ']}', cirq.Circuit())

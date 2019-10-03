@@ -24,3 +24,11 @@ from cirq.contrib.quirk.cells.cell import (
 
 from cirq.contrib.quirk.cells.qubit_permutation_cells import (
     QuirkQubitPermutationGate,)
+
+from cirq.contrib.quirk.cells.arithmetic_cells import (
+    invertible_else_1,
+    mod_inv_else_1,
+    popcnt,
+    QuirkArithmeticLambda,
+    QuirkArithmeticOperation,
+)
