@@ -14,6 +14,7 @@
 
 import pytest
 
+import cirq
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 from cirq.contrib.quirk.url_to_circuit import quirk_url_to_circuit
 
@@ -453,3 +454,14 @@ def test_arithmetic_modular_exponentiation_gates():
             2: 2,
             15: 15,
         })
+
+
+def test_repr():
+    circuit = quirk_url_to_circuit(
+        'https://algassert.com/quirk#circuit={"cols":'
+        '['
+        '[{"id":"setA","arg":3}],'
+        '["+=AB3",1,1,"inputB2"]'
+        ']}')
+    op = list(circuit.all_operations())[0]
+    cirq.testing.assert_equivalent_repr(op)

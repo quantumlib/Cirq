@@ -21,7 +21,7 @@ from cirq.contrib.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
 class InputCell(Cell):
     """A modifier that provides a quantum input to gates in the same column."""
 
-    def __init__(self, qubits: Iterable[cirq.Qid], letter: str):
+    def __init__(self, qubits: Iterable['cirq.Qid'], letter: str):
         self.qubits = tuple(qubits)
         self.letter = letter
 
@@ -46,13 +46,13 @@ class SetDefaultInputCell(Cell):
         }
 
 
-def generate_all_input_cell_makers():
+def generate_all_input_cell_makers() -> Iterator[CellMaker]:
     # Quantum inputs.
-    yield from reg_input_family("inputA", "a")
-    yield from reg_input_family("inputB", "b")
-    yield from reg_input_family("inputR", "r")
-    yield from reg_input_family("revinputA", "a", rev=True)
-    yield from reg_input_family("revinputB", "b", rev=True)
+    yield from _reg_input_family("inputA", "a")
+    yield from _reg_input_family("inputB", "b")
+    yield from _reg_input_family("inputR", "r")
+    yield from _reg_input_family("revinputA", "a", rev=True)
+    yield from _reg_input_family("revinputB", "b", rev=True)
 
     # Classical inputs.
     yield CellMaker("setA",
@@ -63,8 +63,8 @@ def generate_all_input_cell_makers():
                     2, lambda args: SetDefaultInputCell('r', args.value))
 
 
-def reg_input_family(identifier_prefix: str, letter: str,
-                     rev: bool = False) -> Iterator[CellMaker]:
+def _reg_input_family(identifier_prefix: str, letter: str,
+                      rev: bool = False) -> Iterator[CellMaker]:
     for n in CELL_SIZES:
         yield CellMaker(identifier=identifier_prefix + str(n),
                         size=n,
