@@ -33,7 +33,7 @@ def test_init():
 
 
 def test_repr():
-    a = Timestamp(picos=1000,nanos=1000)
+    a = Timestamp(picos=1000, nanos=1000)
     cirq.testing.assert_equivalent_repr(a)
     b = Timestamp(nanos=5.0)
     cirq.testing.assert_equivalent_repr(b)
