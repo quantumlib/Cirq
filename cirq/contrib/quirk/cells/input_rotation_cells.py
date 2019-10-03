@@ -126,7 +126,7 @@ def generate_all_input_rotation_cell_makers() -> Iterator[CellMaker]:
     yield reg_input_rotation_gate("Z^(-A/2^n)", ops.Z, -1)
 
 
-def reg_input_rotation_gate(identifier: str, gate: cirq.Gate,
+def reg_input_rotation_gate(identifier: str, gate: 'cirq.Gate',
                             factor: float) -> CellMaker:
     return CellMaker(
         identifier, gate.num_qubits(), lambda args: InputRotationCell(

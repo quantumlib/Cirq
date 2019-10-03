@@ -467,6 +467,14 @@ class Circuit:
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
+    def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid'],
+                         *,
+                         new_device: 'cirq.Device' = None
+                         ) -> 'cirq.Circuit':
+        return Circuit(
+            [moment.transform_qubits(func) for moment in self],
+            device=self.device if new_device is None else new_device)
+
     def _prev_moment_available(self, op: 'cirq.Operation',
                                end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index

@@ -13,9 +13,9 @@
 # limitations under the License.
 import json
 import urllib.parse
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING
 
-import cirq
+from cirq import devices, circuits
 from cirq.contrib.quirk.cells import (
     Cell,
     CellMaker,
@@ -23,12 +23,48 @@ from cirq.contrib.quirk.cells import (
     generate_all_quirk_cell_makers,
 )
 
+if TYPE_CHECKING:
+    import cirq
 
-def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
+
+def quirk_url_to_circuit(
+        quirk_url: str,
+        qubits: Optional[Sequence['cirq.Qid']] = None) -> 'cirq.Circuit':
+    """Parses a Cirq circuit out of a Quirk URL.
+
+    Args:
+        quirk_url: The URL of a bookmarked Quirk circuit. It is not required
+            that the domain be "algassert.com/quirk". The only important part of
+            the URL is the fragment (the part after the #).
+        qubits: Qubits to use in the circuit. The length of the list must be
+            at least the number of qubits in the Quirk circuit (including unused
+            qubits). The maximum number of qubits in a Quirk circuit is 16.
+            This argument defaults to `cirq.LineQubit.range(16)` when not
+            specified.
+
+    Examples:
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}'
+        ... ))
+        0: ───H───@───
+                  │
+        1: ───────X───
+
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+        ...     qubits=[cirq.NamedQubit('Alice'), cirq.NamedQubit('Bob')]
+        ... ))
+        Alice: ───H───@───
+                      │
+        Bob: ─────────X───
+
+    Returns:
+        The parsed circuit.
+    """
 
     parsed_url = urllib.parse.urlparse(quirk_url)
     if not parsed_url.fragment:
-        return cirq.Circuit()
+        return circuits.Circuit()
 
     if not parsed_url.fragment.startswith('circuit='):
         raise ValueError('Not a valid quirk url. The URL fragment (the part '
@@ -90,15 +126,26 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
                     c[i] = modifier(cell)
 
     # Extract circuit operations from modified cells.
-    result = cirq.Circuit()
+    result = circuits.Circuit()
     for col in parsed_cols:
-        basis_change = cirq.Circuit(
+        basis_change = circuits.Circuit(
             cell.basis_change() for cell in col if cell is not None)
-        body = cirq.Circuit(
+        body = circuits.Circuit(
             cell.operations() for cell in col if cell is not None)
         result += basis_change
         result += body
         result += basis_change**-1
+
+    if qubits is not None:
+        def map_qubit(qubit: 'cirq.Qid') -> 'cirq.Qid':
+            q = cast(devices.LineQubit, qubit)
+            if q.x >= len(qubits):
+                raise IndexError(
+                    f'Only {len(qubits)} qubits specified, but the given quirk '
+                    f'circuit used the qubit at offset {q.x}. Provide more '
+                    f'qubits.')
+            return qubits[q.x]
+        result = result.transform_qubits(map_qubit)
 
     return result
 
@@ -128,7 +175,7 @@ def _parse_cell(registry: Dict[str, CellMaker], row: int, col: int,
 
     if isinstance(key, str) and key in registry:
         entry = registry[key]
-        qubits = cirq.LineQubit.range(row, row + entry.size)
+        qubits = devices.LineQubit.range(row, row + entry.size)
         return entry.maker(CellMakerArgs(qubits, arg, row=row, col=col))
 
     raise ValueError('Unrecognized column entry: {!r}'.format(entry))
