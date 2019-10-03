@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,21 +18,22 @@ from cirq.contrib.quirk.cells.cell import (CellMaker, CELL_SIZES)
 
 def generate_all_ignored_cell_makers() -> Iterator[CellMaker]:
     # Spacer.
-    yield reg_ignored_gate("…")
+    yield _ignored_gate("…")
 
     # Displays.
-    yield reg_ignored_gate("Bloch")
-    yield from reg_ignored_family("Amps")
-    yield from reg_ignored_family("Chance")
-    yield from reg_ignored_family("Sample")
-    yield from reg_ignored_family("Density")
+    yield _ignored_gate("Bloch")
+    yield from _ignored_family("Amps")
+    yield from _ignored_family("Chance")
+    yield from _ignored_family("Sample")
+    yield from _ignored_family("Density")
 
 
-def reg_ignored_family(identifier_prefix: str) -> Iterator[CellMaker]:
-    yield reg_ignored_gate(identifier_prefix)
+def _ignored_family(identifier_prefix: str) -> Iterator[CellMaker]:
+    yield _ignored_gate(identifier_prefix)
     for i in CELL_SIZES:
-        yield reg_ignored_gate(identifier_prefix + str(i))
+        yield _ignored_gate(identifier_prefix + str(i))
 
 
-def reg_ignored_gate(identifier: str) -> CellMaker:
-    return CellMaker(identifier, 0, lambda _: None)
+def _ignored_gate(identifier: str) -> CellMaker:
+    # No matter the arguments (qubit, position, etc), map to nothing.
+    return CellMaker(identifier, size=0, maker=lambda _: None)

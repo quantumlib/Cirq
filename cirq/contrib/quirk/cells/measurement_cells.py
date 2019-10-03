@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ if TYPE_CHECKING:
 
 
 def generate_all_measurement_cell_makers() -> Iterator[CellMaker]:
-    yield reg_measurement("Measure")
-    yield reg_measurement("ZDetector")
-    yield reg_measurement("YDetector", basis_change=ops.X**-0.5)
-    yield reg_measurement("XDetector", basis_change=ops.Y**0.5)
+    yield _measurement("Measure")
+    yield _measurement("ZDetector")
+    yield _measurement("YDetector", basis_change=ops.X**-0.5)
+    yield _measurement("XDetector", basis_change=ops.Y**0.5)
 
 
-def reg_measurement(identifier: str,
-                    basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
+def _measurement(identifier: str,
+                 basis_change: Optional['cirq.Gate'] = None) -> CellMaker:
     return CellMaker(
         identifier=identifier,
         size=1,
