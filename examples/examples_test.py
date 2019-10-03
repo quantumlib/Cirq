@@ -75,6 +75,7 @@ def test_example_runs_bristlecone_heatmap():
     plt.switch_backend('agg')
     examples.bristlecone_heatmap_example.main()
 
+
 def test_example_runs_qaoa():
     examples.qaoa.main(repetitions=10, maxiter=5)
 
