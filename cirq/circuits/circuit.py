@@ -467,6 +467,26 @@ class Circuit:
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
+    def transform_qubits(self,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid'],
+                         *,
+                         new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
+        """Returns the same circuit, but with different qubits.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+            new_device: The device to use for the new circuit, if different.
+                If this is not set, the new device defaults to the current
+                device.
+
+        Returns:
+            The receiving circuit but with qubits transformed by the given
+                function, and with an updated device (if specified).
+        """
+        return Circuit([moment.transform_qubits(func) for moment in self],
+                       device=self.device if new_device is None else new_device)
+
     def _prev_moment_available(self, op: 'cirq.Operation',
                                end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
