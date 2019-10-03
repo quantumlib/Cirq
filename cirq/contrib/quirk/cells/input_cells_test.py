@@ -12,14 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterator, Iterable
-
 import pytest
 
-import cirq
 from cirq.contrib.quirk import quirk_url_to_circuit
-from cirq.contrib.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
-from cirq.contrib.quirk.cells.input_cells import InputCell, SetDefaultInputCell
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 

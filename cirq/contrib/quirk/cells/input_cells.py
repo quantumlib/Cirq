@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterator, Iterable
+from typing import Optional, List, Iterator, Iterable, TYPE_CHECKING
 
-import cirq
 from cirq.contrib.quirk.cells.cell import Cell, CELL_SIZES, CellMaker
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class InputCell(Cell):
