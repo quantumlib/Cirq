@@ -553,7 +553,7 @@ class StepResult(metaclass=abc.ABCMeta):
 
         results = {}
         for k, (s, e) in bounds.items():
-            before_invert_mask = np.array([x[s:e] for x in indexed_sample])
+            before_invert_mask = indexed_sample[:, s:e]
             results[k] = before_invert_mask ^ (np.logical_and(
                 before_invert_mask < 2, meas_ops[k].full_invert_mask()))
         return results

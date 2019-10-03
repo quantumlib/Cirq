@@ -510,7 +510,7 @@ def test_scatter_plot_normalized_kak_interaction_coefficients():
         cirq.kak_decomposition(cirq.unitary(cirq.CZ)),
         cirq.unitary(cirq.CZ),
         cirq.CZ,
-        cirq.Circuit.from_ops(cirq.H(a), cirq.CNOT(a, b)),
+        cirq.Circuit(cirq.H(a), cirq.CNOT(a, b)),
     ]
     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
     assert ax is not None

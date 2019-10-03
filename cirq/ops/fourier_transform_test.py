@@ -47,6 +47,16 @@ def test_str():
     assert str(cirq.PhaseGradientGate(num_qubits=2, exponent=1)) == 'Grad[2]'
 
 
+def test_phase_gradient_gate_repr():
+    a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
+    cirq.testing.assert_equivalent_repr(a)
+
+
+def test_quantum_fourier_transform_gate_repr():
+    b = cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=False)
+    cirq.testing.assert_equivalent_repr(b)
+
+
 def test_pow():
     a = cirq.PhaseGradientGate(num_qubits=2, exponent=0.5)
     assert a**0.5 == cirq.PhaseGradientGate(num_qubits=2, exponent=0.25)
@@ -109,8 +119,8 @@ def test_inverse():
 
 def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
-            cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))), """
+        cirq.Circuit(cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))),
+        """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────×───
           │              │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────×───┼───
@@ -121,7 +131,7 @@ def test_circuit_diagram():
         """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.decompose_once(
                 cirq.QFT(*cirq.LineQubit.range(4), without_reverse=True))), """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────
@@ -134,9 +144,8 @@ def test_circuit_diagram():
         """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit.from_ops(cirq.QFT(*cirq.LineQubit.range(4)),
-                              cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))),
-        """
+        cirq.Circuit(cirq.QFT(*cirq.LineQubit.range(4)),
+                     cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))), """
 0: ───QFT───QFT^-1───
       │     │
 1: ───#2────#2───────

@@ -17,6 +17,8 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq.testing.circuit_compare import (
+    _assert_apply_unitary_works_when_axes_transposed,)
 
 
 def test_sensitive_to_phase():
@@ -313,18 +315,26 @@ def test_assert_has_consistent_apply_unitary():
         def _unitary_(self):
             return np.eye(2)
 
+        def _num_qubits_(self):
+            return 1
+
     with pytest.raises(AssertionError):
         cirq.testing.assert_has_consistent_apply_unitary(
             IdentityReturningUnalteredWorkspace())
 
     class DifferentEffect:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
-            args.available_buffer[0] = args.target_tensor[1]
-            args.available_buffer[1] = args.target_tensor[0]
+            o = args.subspace_index(0)
+            i = args.subspace_index(1)
+            args.available_buffer[o] = args.target_tensor[i]
+            args.available_buffer[i] = args.target_tensor[o]
             return args.available_buffer
 
         def _unitary_(self):
             return np.eye(2, dtype=np.complex128)
+
+        def _num_qubits_(self):
+            return 1
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_has_consistent_apply_unitary(
@@ -332,14 +342,18 @@ def test_assert_has_consistent_apply_unitary():
 
     class IgnoreAxisEffect:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
-            args.available_buffer[0] = args.target_tensor[1]
-            args.available_buffer[1] = args.target_tensor[0]
+            if args.target_tensor.shape[0] > 1:
+                args.available_buffer[0] = args.target_tensor[1]
+                args.available_buffer[1] = args.target_tensor[0]
             return args.available_buffer
 
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
 
-    with pytest.raises(AssertionError, match='Not equal'):
+        def _num_qubits_(self):
+            return 1
+
+    with pytest.raises(AssertionError, match='Not equal|acted differently'):
         cirq.testing.assert_has_consistent_apply_unitary(
             IgnoreAxisEffect())
 
@@ -353,6 +367,9 @@ def test_assert_has_consistent_apply_unitary():
 
         def _unitary_(self):
             return np.array([[0, 1], [1, 0]])
+
+        def _num_qubits_(self):
+            return 1
 
     cirq.testing.assert_has_consistent_apply_unitary(
         SameEffect())
@@ -380,6 +397,9 @@ def test_assert_has_consistent_apply_unitary():
         def __pow__(self, power):
             return BadExponent(self.power * power)
 
+        def _num_qubits_(self):
+            return 1
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             i = args.subspace_index(1)
             args.target_tensor[i] *= self.power * 2
@@ -393,35 +413,32 @@ def test_assert_has_consistent_apply_unitary():
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents(
-            BadExponent(1),
-            exponents=[1, 2],
-            qubit_count=1)
+            BadExponent(1), exponents=[1, 2])
 
     class EffectWithoutUnitary:
+
+        def _num_qubits_(self):
+            return 1
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             return args.target_tensor
 
-    with pytest.raises(AssertionError):
-        cirq.testing.assert_has_consistent_apply_unitary(
-            EffectWithoutUnitary(),
-            qubit_count=1)
+    cirq.testing.assert_has_consistent_apply_unitary(EffectWithoutUnitary())
 
     class NoEffect:
+
+        def _num_qubits_(self):
+            return 1
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             return NotImplemented
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        NoEffect(),
-        qubit_count=1)
+    cirq.testing.assert_has_consistent_apply_unitary(NoEffect())
 
     class UnknownCountEffect:
         pass
 
-    cirq.testing.assert_has_consistent_apply_unitary(
-        UnknownCountEffect(),
-        qubit_count=1)
-
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError, match="no _num_qubits_ or _qid_shape_"):
         cirq.testing.assert_has_consistent_apply_unitary(
             UnknownCountEffect())
 
@@ -432,12 +449,6 @@ def test_assert_has_consistent_apply_unitary():
         cirq.X.on(cirq.NamedQubit('q')))
 
 
-def test_inconsistent_qubit_count():
-    with pytest.raises(AssertionError, match='Inconsistent'):
-        cirq.testing.assert_has_consistent_apply_unitary(
-            cirq.X, qubit_count=2)
-
-
 def test_assert_has_consistent_qid_shape():
 
     class ConsistentGate(cirq.Gate):
@@ -446,7 +457,7 @@ def test_assert_has_consistent_qid_shape():
             return 4
 
         def _qid_shape_(self):
-            return (1, 2, 3, 4)
+            return 1, 2, 3, 4
 
     class InconsistentGate(cirq.Gate):
 
@@ -454,7 +465,7 @@ def test_assert_has_consistent_qid_shape():
             return 2
 
         def _qid_shape_(self):
-            return (1, 2, 3, 4)
+            return 1, 2, 3, 4
 
     class BadShapeGate(cirq.Gate):
 
@@ -462,7 +473,7 @@ def test_assert_has_consistent_qid_shape():
             return 4
 
         def _qid_shape_(self):
-            return (1, 2, 0, 4)
+            return 1, 2, 0, 4
 
     class ConsistentOp(cirq.Operation):
 
@@ -525,7 +536,7 @@ def test_assert_has_consistent_qid_shape():
             return 4  # coverage: ignore
 
         def _qid_shape_(self):
-            return (1, 2)
+            return 1, 2
 
     class NoProtocol:
         pass
@@ -543,3 +554,38 @@ def test_assert_has_consistent_qid_shape():
     with pytest.raises(AssertionError, match='disagree'):
         cirq.testing.assert_has_consistent_qid_shape(InconsistentOp3())
     cirq.testing.assert_has_consistent_qid_shape(NoProtocol())
+
+
+def test_assert_apply_unitary_works_when_axes_transposed_failure():
+
+    class BadOp:
+
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
+            # Get a more convenient view of the data.
+            a, b = args.axes
+            rest = list(range(len(args.target_tensor.shape)))
+            rest.remove(a)
+            rest.remove(b)
+            size = args.target_tensor.size
+            view = args.target_tensor.transpose([a, b, *rest])
+            view = view.reshape((4, size // 4))  # Oops. Reshape might copy.
+
+            # Apply phase gradient.
+            view[1, ...] *= 1j
+            view[2, ...] *= -1
+            view[3, ...] *= -1j
+            return args.target_tensor
+
+        def _num_qubits_(self):
+            return 2
+
+    bad_op = BadOp()
+    assert cirq.has_unitary(bad_op)
+
+    # Appears to work.
+    np.testing.assert_allclose(cirq.unitary(bad_op), np.diag([1, 1j, -1, -1j]))
+    # But fails the more discerning test.
+    with pytest.raises(AssertionError,
+                       match='acted differently on out-of-order axes'):
+        for _ in range(100):  # Axis orders chosen at random. Brute force a hit.
+            _assert_apply_unitary_works_when_axes_transposed(bad_op)
