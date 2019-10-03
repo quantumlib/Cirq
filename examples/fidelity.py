@@ -10,6 +10,7 @@ https://arxiv.org/abs/1104.3835
 import cirq
 import heapq
 import itertools
+import numpy
 
 
 def build_circuit():
@@ -36,40 +37,56 @@ def build_noisy_circuit(circuit, qubits):
 
   return noisy_circuit
 
+def average_measurements(results):
+  x = results.measurements['x']
+  return numpy.mean([numpy.prod([2 * y - 1 for y in row]) for row in x])
+
 def main():
+  simulator = cirq.DensityMatrixSimulator()
+
   circuit, qubits = build_circuit()
   wavefunction = circuit.final_wavefunction()
 
   n = len(qubits)
   d = 2**n
 
-  highest_rho_s = []
+  highest_probs = []
 
   for i, pauli_ops in enumerate(
       itertools.product({cirq.I, cirq.X, cirq.Y, cirq.Z}, repeat=n)):
     pauli_string = cirq.PauliString(dict(zip(qubits, pauli_ops)))
-    q_map = dict(zip(qubits, range(n)))
+    display = cirq.approx_pauli_string_expectation(pauli_string, num_samples=n)
 
-    rho_i = pauli_string.expectation_from_wavefunction(wavefunction, q_map).real
+    circuit_copy = circuit.copy()
+    circuit_copy.append(display.measurement_basis_change())
+    circuit_copy.append(cirq.measure(*qubits, key='x'))
 
-    if rho_i > 0:
-      heapq.heappush(highest_rho_s, (rho_i, i, pauli_ops))
-    if len(highest_rho_s) > n:
-      heapq.heappop(highest_rho_s)
+    results = simulator.run(circuit_copy, repetitions=n)
+    rho_i = average_measurements(results)
+    Pr_i = rho_i * rho_i / d
+
+    if Pr_i > 0:
+      heapq.heappush(highest_probs, (Pr_i, rho_i, i, pauli_ops))
+    if len(highest_probs) > n:
+      heapq.heappop(highest_probs)
 
   noisy_circuit = build_noisy_circuit(circuit, qubits)
-  noisy_wavefunction = noisy_circuit.final_wavefunction()
 
   fidelity = 0.0
-  for rho_tuple in highest_rho_s:
-    rho_i = rho_tuple[0]
-    pauli_ops = rho_tuple[2]
+  for prob_tuple in highest_probs:
+    Pr_i = prob_tuple[0]
+    rho_i = prob_tuple[1]
+    pauli_ops = prob_tuple[3]
 
     pauli_string = cirq.PauliString(dict(zip(qubits, pauli_ops)))
 
-    Pr_i = rho_i * rho_i / d
+    circuit_copy = noisy_circuit.copy()
+    circuit_copy.append(display.measurement_basis_change())
+    circuit_copy.append(cirq.measure(*qubits, key='x'))
 
-    sigma_i = pauli_string.expectation_from_wavefunction(noisy_wavefunction, q_map).real
+    results = simulator.run(circuit_copy, repetitions=n)
+    sigma_i = average_measurements(results)
+
     fidelity += Pr_i * sigma_i / rho_i
 
   print(fidelity)
