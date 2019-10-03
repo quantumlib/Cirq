@@ -66,7 +66,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         return [self.target, *self.inputs]
 
     def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
-                      ) -> 'cirq.QuirkArithmeticOperation':
+                      ) -> 'QuirkArithmeticOperation':
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError('Wrong number of registers.\n'
                              f'New registers: {repr(new_registers)}\n'
