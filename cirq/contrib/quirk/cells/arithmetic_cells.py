@@ -22,11 +22,38 @@ from cirq.contrib.quirk.cells.cell import Cell, CellMaker, CELL_SIZES
 
 @value.value_equality
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
+    """Applies an arithmetic to a target and some inputs.
+
+    Uses quirk-specific implicit effects like assuming that the presence of an
+    'r' input implies modular arithmetic (meaning that e.g. values larger than
+    the modulus will not be affected).
+    """
 
     def __init__(self, identifier: str,
                  operation: 'cirq.contrib.quirk.QuirkArithmeticLambda',
                  target: Sequence['cirq.Qid'],
                  inputs: Sequence[Optional[Union[Sequence['cirq.Qid'], int]]]):
+        """
+        Args:
+            identifier: The quirk identifier string for this operation.
+            operation: A repr-able lambda that determines the new value of the
+                target based on its current value and the values of the inputs.
+            target: The target qubit register.
+            inputs: Qubit registers (or classical constants) that
+                determine what happens to the target.
+        """
+        if operation.is_modular:
+            r = cast(Union[Sequence['cirq.Qid'], int], inputs[-1])
+            assert r is not None
+            if isinstance(r, int):
+                over = r > 1 << len(target)
+            else:
+                over = len(cast(Sequence, r)) > len(target)
+            if over:
+                raise ValueError('Target too small for modulus.\n'
+                                 f'Target: {target}\n'
+                                 f'Modulus: {r}')
+
         self.identifier = identifier
         self.target = target
         self.inputs = inputs
@@ -39,7 +66,12 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         return [self.target, *self.inputs]
 
     def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
-                      ) -> 'cirq.ArithmeticOperation':
+                      ) -> 'cirq.QuirkArithmeticOperation':
+        if len(new_registers) != len(self.inputs) + 1:
+            raise ValueError('Wrong number of registers.\n'
+                             f'New registers: {repr(new_registers)}\n'
+                             f'Operation: {repr(self)}')
+
         if isinstance(new_registers[0], int):
             raise ValueError('The first register is the mutable target. '
                              'It must be a list of qubits, not the constant '
@@ -70,9 +102,6 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
         return result
 
-    def __str__(self):
-        return f'Quirk({self.identifier})'
-
     def __repr__(self):
         return ('cirq.contrib.quirk.QuirkArithmeticOperation(\n'
                 f'    {repr(self.identifier)},\n'
@@ -84,7 +113,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
 @value.value_equality
 class QuirkArithmeticLambda:
-    """A callable with parameter name dependent behavior."""
+    """A callable with parameter-name-dependent behavior."""
 
     def __init__(self, code: str):
         """
@@ -149,18 +178,6 @@ class ArithmeticCell(Cell):
         ]
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
-
-        if self.operation.is_modular:
-            r = cast(Union[Sequence['cirq.Qid'], int], self.inputs[-1])
-            assert r is not None
-            if isinstance(r, int):
-                over = r > 1 << len(self.target)
-            else:
-                over = len(cast(Sequence, r)) > len(self.target)
-            if over:
-                raise ValueError('Target too small for modulus.\n'
-                                 f'Target: {self.target}\n'
-                                 f'Modulus: {r}')
 
         return QuirkArithmeticOperation(self.identifier, self.operation,
                                         self.target, self.inputs)
