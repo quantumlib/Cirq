@@ -511,6 +511,14 @@ def test_helpers():
     assert f(9) == 2
 
     g = cirq.contrib.quirk.invertible_else_1
+    assert g(0, 0) == 1
+    assert g(0, 1) == 0
+    assert g(0, 2) == 1
+    assert g(2, 0) == 1
+    assert g(0, 15) == 1
+    assert g(1, 15) == 1
+    assert g(2, 15) == 2
+    assert g(3, 15) == 1
     assert g(0, 16) == 1
     assert g(1, 16) == 1
     assert g(2, 16) == 1
@@ -519,8 +527,17 @@ def test_helpers():
     assert g(5, 16) == 5
     assert g(6, 16) == 1
     assert g(7, 16) == 7
+    assert g(51, 16) == 51
 
     h = cirq.contrib.quirk.mod_inv_else_1
+    assert h(0, 0) == 1
+    assert h(0, 1) == 0
+    assert h(0, 2) == 1
+    assert h(2, 0) == 1
+    assert h(0, 15) == 1
+    assert h(1, 15) == 1
+    assert h(2, 15) == 8
+    assert h(3, 15) == 1
     assert h(0, 16) == 1
     assert h(1, 16) == 1
     assert h(2, 16) == 1
