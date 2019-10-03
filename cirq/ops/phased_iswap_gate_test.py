@@ -37,6 +37,13 @@ def test_phased_iswap_equality():
                                     exponent=0.4) == cirq.ISWAP**0.4)
 
 
+def test_repr():
+    p = -0.25
+    t = 0.75
+    gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
+    cirq.testing.assert_equivalent_repr(gate)
+
+
 def test_phased_iswap_unitary():
     p = 0.3
     t = 0.4
