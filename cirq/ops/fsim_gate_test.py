@@ -236,6 +236,11 @@ def test_fsim_iswap_cphase(theta, phi):
     assert np.allclose(cirq.unitary(iswap_cphase), cirq.unitary(fsim))
 
 
+def test_repr():
+    f = cirq.FSimGate(sympy.Symbol('a'), sympy.Symbol('b'))
+    cirq.testing.assert_equivalent_repr(f)
+
+
 def test_fsim_json_dict():
     assert cirq.FSimGate(theta=0.123, phi=0.456)._json_dict_() == {
         'cirq_type': 'FSimGate',
