@@ -92,10 +92,9 @@ def generate_all_single_qubit_rotation_cell_makers() -> Iterator[CellMaker]:
 
 
 def _gate(identifier: str, gate: 'cirq.Gate') -> CellMaker:
-    return CellMaker(
-        identifier=identifier,
-        size=gate.num_qubits(),
-        maker=lambda args: ExplicitOperationsCell([gate.on(*args.qubits)]))
+    return CellMaker(identifier=identifier,
+                     size=gate.num_qubits(),
+                     maker=lambda args: gate.on(*args.qubits))
 
 
 def _formula_gate(identifier: str, default_formula: str,
@@ -103,8 +102,6 @@ def _formula_gate(identifier: str, default_formula: str,
                  ) -> CellMaker:
     return CellMaker(identifier=identifier,
                      size=gate_func(0).num_qubits(),
-                     maker=lambda args: ExplicitOperationsCell([
-                         gate_func(
-                             parse_formula(default_formula if args.value is None
-                                           else args.value)).on(*args.qubits)
-                     ]))
+                     maker=lambda args: gate_func(
+                         parse_formula(default_formula if args.value is None
+                                       else args.value)).on(*args.qubits))

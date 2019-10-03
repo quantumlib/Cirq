@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import Callable, Optional, List, NamedTuple, Any, Iterable, \
-    Sequence, TYPE_CHECKING
+    Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, value
 
@@ -127,5 +127,7 @@ CellMakerArgs = NamedTuple('CellMakerArgs', [
 CellMaker = NamedTuple('CellMaker', [
     ('identifier', str),
     ('size', int),
-    ('maker', Callable[[CellMakerArgs], Optional[Cell]]),
+    ('maker',
+     Callable[[CellMakerArgs],
+              Union[None, 'cirq.contrib.quirk.cells.Cell', 'cirq.Operation']]),
 ])

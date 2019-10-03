@@ -20,6 +20,7 @@ from cirq.contrib.quirk.cells.cell import (
     Cell,
     CellMaker,
     CellMakerArgs,
+    ExplicitOperationsCell,
 )
 
 from cirq.contrib.quirk.cells.qubit_permutation_cells import (
