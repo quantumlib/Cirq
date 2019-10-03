@@ -17,8 +17,6 @@ from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 
 def test_scalar_operations():
-    a = cirq.LineQubit(0)
-
     assert_url_to_circuit_returns('{"cols":[["…"]]}', cirq.Circuit())
 
     assert_url_to_circuit_returns('{"cols":[["NeGate"]]}',
