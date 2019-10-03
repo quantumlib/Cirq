@@ -18,14 +18,26 @@ from cirq.contrib.quirk import quirk_url_to_circuit
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 
+def test_missing_input_cell():
+    with pytest.raises(ValueError, match='Missing input'):
+        _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
+                                 '["+=A2"]]}')
+
 def test_input_cell():
-    # Overlaps.
     assert_url_to_circuit_returns(
-        '{"cols":[[{"id":"setA","arg":11}],["+=A4"]]}',
+        '{"cols":[["inputA4",1,1,1,"+=A4"]]}',
         maps={
-            0: 11,
-            4: 15,
-            5: 0,
+            0x_0_0: 0x_0_0,
+            0x_2_3: 0x_2_5,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["inputA3",1,1,"inputB3",1,1,"+=AB3"]]}',
+        maps={
+            0o_0_0_0: 0o_0_0_0,
+            0o_2_3_1: 0o_2_3_7,
+            0o_1_1_0: 0o_1_1_1,
+            0o_4_4_0: 0o_4_4_0,
         })
 
     # Overlaps with effect.
@@ -33,10 +45,28 @@ def test_input_cell():
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
                                  '["+=A3","inputA3"]]}')
 
-    # Not present.
-    with pytest.raises(ValueError, match='Missing input'):
+
+def test_reversed_input_cell():
+    assert_url_to_circuit_returns(
+        '{"cols":[["inputA4",1,1,1,"+=A4"]]}',
+        maps={
+            0x_0_0: 0x_0_0,
+            0x_2_3: 0x_2_5,
+        })
+
+    assert_url_to_circuit_returns(
+        '{"cols":[["revinputA3",1,1,"revinputB3",1,1,"+=AB3"]]}',
+        maps={
+            0o_0_0_0: 0o_0_0_0,
+            0o_2_6_1: 0o_2_6_7,
+            0o_1_1_0: 0o_1_1_0,
+            0o_4_4_0: 0o_4_4_1,
+        })
+
+    # Overlaps with effect.
+    with pytest.raises(ValueError, match='Overlapping operations'):
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
-                                 '["+=A2"]]}')
+                                 '["+=A3","revinputA3"]]}')
 
 
 def test_set_default_input_cell():
