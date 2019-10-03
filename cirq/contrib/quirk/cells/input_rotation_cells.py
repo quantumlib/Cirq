@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -118,16 +118,16 @@ class QuirkInputRotationOperation(ops.Operation):
 
 
 def generate_all_input_rotation_cell_makers() -> Iterator[CellMaker]:
-    yield _reg_input_rotation_gate("X^(A/2^n)", ops.X, +1)
-    yield _reg_input_rotation_gate("Y^(A/2^n)", ops.Y, +1)
-    yield _reg_input_rotation_gate("Z^(A/2^n)", ops.Z, +1)
-    yield _reg_input_rotation_gate("X^(-A/2^n)", ops.X, -1)
-    yield _reg_input_rotation_gate("Y^(-A/2^n)", ops.Y, -1)
-    yield _reg_input_rotation_gate("Z^(-A/2^n)", ops.Z, -1)
+    yield _input_rotation_gate("X^(A/2^n)", ops.X, +1)
+    yield _input_rotation_gate("Y^(A/2^n)", ops.Y, +1)
+    yield _input_rotation_gate("Z^(A/2^n)", ops.Z, +1)
+    yield _input_rotation_gate("X^(-A/2^n)", ops.X, -1)
+    yield _input_rotation_gate("Y^(-A/2^n)", ops.Y, -1)
+    yield _input_rotation_gate("Z^(-A/2^n)", ops.Z, -1)
 
 
-def _reg_input_rotation_gate(identifier: str, gate: cirq.Gate,
-                             factor: float) -> CellMaker:
+def _input_rotation_gate(identifier: str, gate: 'cirq.Gate',
+                         factor: float) -> CellMaker:
     return CellMaker(
         identifier, gate.num_qubits(), lambda args: InputRotationCell(
             identifier=identifier,
