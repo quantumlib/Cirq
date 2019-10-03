@@ -16,7 +16,7 @@ from typing import Iterator, Callable, Union, TYPE_CHECKING
 import sympy
 
 from cirq import ops
-from cirq.contrib.quirk.cells.cell import CellMaker, ExplicitOperationsCell
+from cirq.contrib.quirk.cells.cell import CellMaker
 from cirq.contrib.quirk.cells.parse import parse_formula
 
 if TYPE_CHECKING:

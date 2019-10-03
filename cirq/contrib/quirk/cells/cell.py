@@ -129,5 +129,5 @@ CellMaker = NamedTuple('CellMaker', [
     ('size', int),
     ('maker',
      Callable[[CellMakerArgs],
-              Union[None, 'cirq.contrib.quirk.cells.Cell', 'cirq.Operation']]),
+              Union[None, 'Cell', 'cirq.Operation']]),
 ])

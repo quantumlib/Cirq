@@ -154,15 +154,16 @@ def quirk_url_to_circuit(
 
     # Remap qubits if requested.
     if qubits is not None:
+        qs = cast(Sequence['cirq.Qid'], qubits)
 
         def map_qubit(qubit: 'cirq.Qid') -> 'cirq.Qid':
             q = cast(devices.LineQubit, qubit)
-            if q.x >= len(qubits):
+            if q.x >= len(qs):
                 raise IndexError(
-                    f'Only {len(qubits)} qubits specified, but the given quirk '
+                    f'Only {len(qs)} qubits specified, but the given quirk '
                     f'circuit used the qubit at offset {q.x}. Provide more '
                     f'qubits.')
-            return qubits[q.x]
+            return qs[q.x]
 
         result = result.transform_qubits(map_qubit)
 
