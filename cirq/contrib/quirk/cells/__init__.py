@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""This module defines building blocks for parsing Quirk circuits."""
 
-"""Converts cirq circuits into quirk circuits."""
+from cirq.contrib.quirk.cells.all_cells import (
+    generate_all_quirk_cell_makers,)
 
-from cirq.contrib.quirk.cells import (
+from cirq.contrib.quirk.cells.cell import (
+    Cell,
+    CellMaker,
+    CellMakerArgs,
+)
+
+from cirq.contrib.quirk.cells.qubit_permutation_cells import (
     QuirkQubitPermutationGate,)
-
-from cirq.contrib.quirk.export_to_quirk import (
-    circuit_to_quirk_url,)
-
-from cirq.contrib.quirk.url_to_circuit import (
-    quirk_url_to_circuit,)
