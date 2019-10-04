@@ -74,11 +74,55 @@ def test_sample_heavy_set():
     assert probability == .003
 
 
+def test_compile_circuit():
+    """Tests that we are able to compile a model circuit."""
+    deconstruct_mock = MagicMock(side_effect=lambda circuit: circuit)
+    optimize_mock = MagicMock(side_effect=lambda circuit: circuit)
+    a, b, c = cirq.LineQubit.range(3)
+    model_circuit = cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
+    ])
+    [compiled_circuit,
+     mapping] = quantum_volume.compile_circuit(model_circuit,
+                                               device=cirq.google.Bristlecone,
+                                               optimize=optimize_mock,
+                                               deconstruct=deconstruct_mock)
+
+    assert len(mapping) == 3
+    assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
+        compiled_circuit.all_operations(),
+        cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone))
+    deconstruct_mock.assert_called_with(model_circuit)
+    optimize_mock.assert_called()
+
+
+def test_main_result():
+    """Test that running the main loop returns the desired result"""
+    results = quantum_volume.main(num_qubits=3,
+                                  depth=3,
+                                  num_repetitions=1,
+                                  device=cirq.google.Bristlecone,
+                                  samplers=[cirq.Simulator()],
+                                  seed=1)
+
+    model_circuit = quantum_volume.generate_model_circuit(
+        3, 3, random_state=np.random.RandomState(1))
+    assert results.model_circuits == [model_circuit]
+    assert results.heavy_sets == [
+        quantum_volume.compute_heavy_set(model_circuit)
+    ]
+    assert len(results.compiled_circuits) == 1
+    assert len(results.sampler_results) == 1
+    assert len(results.sampler_results[0]) == 1
+
+
 def test_main_loop():
     """Test that the main loop is able to run without erring."""
     # Keep test from taking a long time by lowering repetitions.
     args = '--num_qubits 5 --depth 5 --num_repetitions 1'.split()
-    quantum_volume.main(**quantum_volume.parse_arguments(args))
+    quantum_volume.main(**quantum_volume.parse_arguments(args),
+                        device=cirq.google.Bristlecone,
+                        samplers=[cirq.Simulator()])
 
 
 def test_parse_args():
