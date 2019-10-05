@@ -39,7 +39,12 @@ def build_noisy_circuit(circuit, qubits):
 
 def average_measurements(results):
   x = results.measurements['x']
-  return numpy.mean([numpy.prod([2 * y - 1 for y in row]) for row in x])
+  # NOTE(tonybruguier): mpharrigan@ mentionned doing an XOR, but I don't
+  # quite understand why. It makes more sense to look only at one coordinate and
+  # treat all the other qubits as ancillas? Ask him.
+  #return numpy.mean([numpy.prod([2 * y - 1 for y in row]) for row in x])
+  print(x)  # DO NOT SUBMIT
+  return numpy.mean([row[0] for row in x])
 
 def main():
   simulator = cirq.DensityMatrixSimulator()
