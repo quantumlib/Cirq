@@ -10,7 +10,7 @@ https://arxiv.org/abs/1104.3835
 import cirq
 import heapq
 import itertools
-import numpy
+import math
 
 
 def build_circuit():
@@ -37,18 +37,14 @@ def build_noisy_circuit(circuit, qubits):
 
   return noisy_circuit
 
-def average_measurements(results):
-  x = results.measurements['x']
-  # NOTE(tonybruguier): mpharrigan@ mentionned doing an XOR, but I don't
-  # quite understand why. It makes more sense to look only at one coordinate and
-  # treat all the other qubits as ancillas? Ask him.
-  #return numpy.mean([numpy.prod([2 * y - 1 for y in row]) for row in x])
-  print(x)  # DO NOT SUBMIT
-  return numpy.mean([row[0] for row in x])
+
+def measure_normalized_trace(circuit, n):
+  simulator = cirq.DensityMatrixSimulator()
+  diagonal = [simulator.simulate(circuit, initial_state=i).measurements['x'][i] for i in range(n)]
+  return sum(diagonal) * 2**(n * 0.5) / (n ** 1.5)
+
 
 def main():
-  simulator = cirq.DensityMatrixSimulator()
-
   circuit, qubits = build_circuit()
   wavefunction = circuit.final_wavefunction()
 
@@ -66,8 +62,7 @@ def main():
     circuit_copy.append(display.measurement_basis_change())
     circuit_copy.append(cirq.measure(*qubits, key='x'))
 
-    results = simulator.run(circuit_copy, repetitions=n)
-    rho_i = average_measurements(results)
+    rho_i = measure_normalized_trace(circuit_copy, n)
     Pr_i = rho_i * rho_i / d
 
     if Pr_i > 0:
@@ -89,8 +84,7 @@ def main():
     circuit_copy.append(display.measurement_basis_change())
     circuit_copy.append(cirq.measure(*qubits, key='x'))
 
-    results = simulator.run(circuit_copy, repetitions=n)
-    sigma_i = average_measurements(results)
+    sigma_i = measure_normalized_trace(circuit_copy, n)
 
     fidelity += Pr_i * sigma_i / rho_i
 
