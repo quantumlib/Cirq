@@ -56,7 +56,6 @@ py_proto_library(
     ],
 )
 
-
 cc_proto_library(
     name = "program_cc_proto",
     deps = [
