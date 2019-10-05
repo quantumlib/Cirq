@@ -97,7 +97,7 @@ py_proto_library(
 )
 
 cc_proto_library(
-    name = "run_context_py_proto",
+    name = "run_context_cc_proto",
     deps = [
         ":run_context_proto",
     ],
