@@ -1,6 +1,5 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
 
 proto_library(
@@ -11,18 +10,34 @@ proto_library(
 py_proto_library(
     name = "operations_py_proto",
     deps = [
-         ":operations"
+        ":operations_proto"
     ],
 )
 
 cc_proto_library(
     name = "operations_cc_proto",
-    srcs = ["operations.proto"],
+    deps = [
+        ":operations_proto"
+    ],
 )
 
 proto_library(
     name = "params_proto",
     srcs = ["params.proto"],
+)
+
+py_proto_library(
+    name = "params_py_proto",
+    deps = [
+        ":params_proto"
+    ],
+)
+
+cc_proto_library(
+    name = "params_cc_proto",
+    deps = [
+        ":params_proto"
+    ],
 )
 
 proto_library(
@@ -31,5 +46,20 @@ proto_library(
     deps = [
         ":operations_proto",
         ":params_proto",
+    ],
+)
+
+py_proto_library(
+    name = "program_py_proto",
+    deps = [
+        ":program_proto",
+    ],
+)
+
+
+cc_proto_library(
+    name = "program_cc_proto",
+    deps = [
+        ":program_proto",
     ],
 )
