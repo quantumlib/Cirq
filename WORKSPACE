@@ -30,7 +30,7 @@ http_archive(
     sha256 = "1dde365491125a3db70731e25658dfdd3bc5dbdfd11b840b3e987ecf043c7ca0",
 )
 
-# Pythonh compatibility.
+# Python compatibility.
 http_archive(
     name = "six_archive",
     build_file = "@com_google_protobuf//:six.BUILD",
