@@ -9,9 +9,7 @@ proto_library(
 
 py_proto_library(
     name = "device_py_proto",
-    deps = [
-        ":device_proto"
-    ],
+    srcs = ["device.proto"],
 )
 
 cc_proto_library(
@@ -28,9 +26,7 @@ proto_library(
 
 py_proto_library(
     name = "metrics_py_proto",
-    deps = [
-        ":metrics_proto"
-    ],
+    srcs = ["metrics.proto"],
 )
 
 cc_proto_library(
@@ -47,9 +43,7 @@ proto_library(
 
 py_proto_library(
     name = "program_py_proto",
-    deps = [
-        ":program_proto"
-    ],
+    srcs = ["program.proto"],
 )
 
 cc_proto_library(
@@ -69,8 +63,9 @@ proto_library(
 
 py_proto_library(
     name = "result_py_proto",
+    srcs = ["result.proto"],
     deps = [
-        ":result_proto",
+        ":program_py_proto",
     ],
 )
 
@@ -91,8 +86,9 @@ proto_library(
 
 py_proto_library(
     name = "run_context_py_proto",
+    srcs = ["run_context.proto"],
     deps = [
-        ":run_context_proto",
+        ":program_py_proto",
     ],
 )
 

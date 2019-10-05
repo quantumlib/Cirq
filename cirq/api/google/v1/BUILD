@@ -9,9 +9,7 @@ proto_library(
 
 py_proto_library(
     name = "operations_py_proto",
-    deps = [
-        ":operations_proto"
-    ],
+    srcs = ["operations.proto"],
 )
 
 cc_proto_library(
@@ -28,9 +26,7 @@ proto_library(
 
 py_proto_library(
     name = "params_py_proto",
-    deps = [
-        ":params_proto"
-    ],
+    srcs = ["params.proto"],
 )
 
 cc_proto_library(
@@ -51,8 +47,10 @@ proto_library(
 
 py_proto_library(
     name = "program_py_proto",
+    srcs = ["program.proto"],
     deps = [
-        ":program_proto",
+        ":operations_py_proto",
+        ":params_py_proto",
     ],
 )
 
