@@ -5,11 +5,7 @@ matplotlib~=3.0
 networkx~=2.1
 numpy~=1.16
 pandas
-
-# This protobuf version must match the one used by the grpcio-tools version
-# listed under dev_tools/conf/pip-list-dev-tools.txt
 protobuf~=3.8.0
-
 requests~=2.18
 sortedcontainers~=2.0
 scipy
