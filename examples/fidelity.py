@@ -11,6 +11,7 @@ import cirq
 import heapq
 import itertools
 import math
+import numpy
 
 
 def build_circuit():
@@ -38,10 +39,15 @@ def build_noisy_circuit(circuit, qubits):
   return noisy_circuit
 
 
-def measure_normalized_trace(circuit, n):
+def simulate_trace(circuit, n):
   simulator = cirq.DensityMatrixSimulator()
-  diagonal = [simulator.simulate(circuit, initial_state=i).measurements['x'][i] for i in range(n)]
-  return sum(diagonal) * 2**(n * 0.5) / (n ** 1.5)
+
+  trace = 0
+  for x in range(2 ** n):
+    y = simulator.simulate(circuit, initial_state=x).measurements['y']
+    xbin = numpy.binary_repr(x, width=n)
+    trace += sum([int(xbin[i]) == y[i] for i in range(n)])
+  return trace
 
 
 def main():
@@ -60,9 +66,9 @@ def main():
 
     circuit_copy = circuit.copy()
     circuit_copy.append(display.measurement_basis_change())
-    circuit_copy.append(cirq.measure(*qubits, key='x'))
+    circuit_copy.append(cirq.measure(*qubits, key='y'))
 
-    rho_i = measure_normalized_trace(circuit_copy, n)
+    rho_i = simulate_trace(circuit_copy, n)
     Pr_i = rho_i * rho_i / d
 
     if Pr_i > 0:
@@ -82,9 +88,9 @@ def main():
 
     circuit_copy = noisy_circuit.copy()
     circuit_copy.append(display.measurement_basis_change())
-    circuit_copy.append(cirq.measure(*qubits, key='x'))
+    circuit_copy.append(cirq.measure(*qubits, key='y'))
 
-    sigma_i = measure_normalized_trace(circuit_copy, n)
+    sigma_i = simulate_trace(circuit_copy, n)
 
     fidelity += Pr_i * sigma_i / rho_i
 
