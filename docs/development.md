@@ -115,7 +115,7 @@ See the previous section for instructions.
 [Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google) and may need to be changed or extended from time to time.
 
-If any protos are updated, their dependents can be rebuild by calling the script .
+If any protos are updated, their dependents can be rebuild by calling the script [cirq/dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
 This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
 
 Additionally, for workflows that use bazel (relevant for C/C++ code depending on Cirq), we have made available bazel rulesets for generating both python and C/C++ proto apis.
