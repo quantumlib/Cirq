@@ -636,11 +636,11 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ]
         ax.plot(*coord_transform(envelope), c='black', linewidth=1)
 
-    points = []
-    for obj in interactions:
-        kak = kak_decomposition(obj)
-        normalized = np.array(kak.interaction_coefficients) * 4 / np.pi
-        points.append(normalized)
+    # parse input and extract KAK vector
+    if not isinstance(interactions, np.ndarray):
+        interactions = [a if isinstance(a, np.ndarray) else protocols.unitary(a)
+                        for a in interactions]
+    points = kak_vector(interactions) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
