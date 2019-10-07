@@ -18,7 +18,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.linalg.decompositions import kak_vector
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -599,13 +598,13 @@ _random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100)
 
 
 def test_kak_vector_matches_vectorized():
-    actual = kak_vector(_random_unitaries)
-    expected = np.array([kak_vector(u) for u in _random_unitaries])
+    actual = cirq.kak_vector(_random_unitaries)
+    expected = np.array([cirq.kak_vector(u) for u in _random_unitaries])
     np.testing.assert_almost_equal(actual, expected)
 
 
 def test_KAK_vector_local_invariants_random_input():
-    actual = _local_invariants_from_kak(kak_vector(_random_unitaries))
+    actual = _local_invariants_from_kak(cirq.kak_vector(_random_unitaries))
     expected = _local_invariants_from_kak(_kak_vecs)
 
     np.testing.assert_almost_equal(actual, expected)
@@ -620,7 +619,7 @@ def test_kak_vector_on_weyl_chamber_face():
     unitary = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals),
                         evecs.conj())
 
-    actual = _local_invariants_from_kak(kak_vector(unitary))
+    actual = _local_invariants_from_kak(cirq.kak_vector(unitary))
     expected = _local_invariants_from_kak(k_vec)
     np.testing.assert_almost_equal(actual, expected)
 
@@ -632,5 +631,5 @@ def test_kak_vector_on_weyl_chamber_face():
                           (CZ @ SWAP, [np.pi / 4, np.pi / 4, 0]),
                           (np.kron(X, X), (0, 0, 0))))
 def test_KAK_vector_weyl_chamber_vertices(unitary, expected):
-    actual = kak_vector(unitary)
+    actual = cirq.kak_vector(unitary)
     np.testing.assert_almost_equal(actual, expected)
