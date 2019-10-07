@@ -585,8 +585,8 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
     ky = vector[..., 1]
     kz = vector[..., 2]
     cos, sin = np.cos, np.sin
-    G1R = (cos(2 * kx) * cos(2 * ky) * cos(2 * kz)) ** 2
-    G1R -= (sin(2 * kx) * sin(2 * ky) * sin(2 * kz)) ** 2
+    G1R = (cos(2 * kx) * cos(2 * ky) * cos(2 * kz))**2
+    G1R -= (sin(2 * kx) * sin(2 * ky) * sin(2 * kz))**2
 
     G1I = 0.25 * sin(4 * kx) * sin(4 * ky) * sin(4 * kz)
 
