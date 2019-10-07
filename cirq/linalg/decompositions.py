@@ -935,34 +935,42 @@ def _canonicalize_kak_vector(k_vec: np.ndarray) -> np.ndarray:
     This implementation is vectorized but does produce the single qubit
     unitaries required to bring the KAK vector into canonical form.
 
-    The vector entries are ordered such that
-    $$ \pi/2 - k_y \geq k_x \geq k_y \geq z \geq 0 $$
-
     Args:
-        k_vec: THe KAK vector to be canonicalized. Shape (...,3).
+        k_vec: THe KAK vector to be canonicalized. This input may be vectorized,
+            with shape (...,3), where the final axis denotes the k_vector and
+            all other axes are broadcast.
 
     Returns:
-        The locally equivalent KAK vector within the Weyl chamber, as specified
-        in arxiv:quant-ph/0507171. Its shape matches the input, k_vec.
+        The canonicalized decomposition, with vector coefficients (x2, y2, z2)
+        satisfying:
+
+            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
+            if x2 = π/4, z2 >= 0
+        The output is vectorized, with shape k_vec.shape[:-1] + (3,).
     """
 
-    # Follow canonicalization procedure as in arxiv:quant-ph/0507171
-    k_vec = np.mod(k_vec, np.pi / 2)
-    k_vec = np.sort(k_vec, axis=-1)[..., ::-1]
+    # Get all strengths to (-¼π, ¼π]
+    k_vec = np.mod(k_vec + np.pi / 4, np.pi / 2) - np.pi / 4
 
-    too_big = k_vec[..., 0] + k_vec[..., 1] > np.pi / 2
-    if np.any(too_big):
-        k_vec[too_big, :2] = np.pi / 2 - k_vec[too_big, ::-1][..., 1:]
-        k_vec = np.sort(k_vec, axis=-1)[..., ::-1]
+    # Sort in descending order with respect to absolute value.
+    order = np.argsort(np.abs(k_vec), axis=-1)
+    k_vec = np.take_along_axis(k_vec, order, axis=-1)[..., ::-1]
 
-    # The final step of the canonicalization only occurs if the last KAK vector
-    # is zero. Instead we apply this step if kz is epsilon close to zero. In
-    # pathological cases this may produce KAK vectors that are infinitesimally
-    # outside the Weyl chamber.
-    is_zero = np.isclose(k_vec[..., 2], 0, atol=1e-8)
-    too_big = k_vec[..., 0] > np.pi / 4
-    need_diff = np.logical_and(is_zero, too_big)
-    if np.any(need_diff):
-        k_vec[need_diff, 0] = np.pi / 2 - k_vec[need_diff, 0]
+    # Multiply x,z and y,z components by -1 to fix x,y sign.
+    x_negative = k_vec[..., 0] < 0
+    if np.any(x_negative):
+        k_vec[x_negative, 0] *= -1
+        k_vec[x_negative, 2] *= -1
+    y_negative = k_vec[..., 1] < 0
+    if np.any(y_negative):
+        k_vec[y_negative, 1] *= -1
+        k_vec[y_negative, 2] *= -1
+
+    # If x = π/4, force z to be positive.
+    x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=1e-8)
+    z_is_negative = k_vec[..., 2] < 0
+    need_diff = np.logical_and(x_is_pi_over_4, z_is_negative)
+    if np.any(need_diff):  # -1 to x and z components, then shift x up by pi/4
+        k_vec[need_diff, 2] *= -1
 
     return k_vec
