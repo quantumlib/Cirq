@@ -16,12 +16,13 @@ import numpy as np
 import cirq
 import cirq.testing as ct
 from cirq.testing import consistent_qasm as cq
+from cirq.contrib.qasm_import import circuit_from_qasm
 
 
 def test_consistency_with_qasm_output_and_qiskit():
     qubits = [cirq.NamedQubit('q_{}'.format(i)) for i in range(4)]
     a, b, c, d = qubits
-    circuit1 = cirq.Circuit.from_ops(
+    circuit1 = cirq.Circuit(
         cirq.Rx(np.pi / 2).on(a),
         cirq.Ry(np.pi / 2).on(b),
         cirq.Rz(np.pi / 2).on(b),
@@ -47,7 +48,7 @@ def test_consistency_with_qasm_output_and_qiskit():
 
     qasm = cirq.qasm(circuit1)
 
-    circuit2 = cirq.contrib.qasm_import.qasm.QasmCircuitParser().parse(qasm)
+    circuit2 = circuit_from_qasm(qasm)
 
     cirq_unitary = cirq.unitary(circuit2)
     ct.assert_allclose_up_to_global_phase(cirq_unitary,

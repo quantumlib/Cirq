@@ -254,7 +254,7 @@ def test_validate_circuit_errors():
 
 def test_validate_scheduled_operation_errors():
     d = square_device(2, 2)
-    s = cirq.Schedule(device=cirq.UnconstrainedDevice)
+    s = cirq.Schedule(device=cirq.UNCONSTRAINED_DEVICE)
     q00 = cirq.GridQubit(0, 0)
     so = cirq.ScheduledOperation(cirq.Timestamp(), cirq.Duration(nanos=1),
                                  cirq.X.on(q00))
@@ -264,7 +264,7 @@ def test_validate_scheduled_operation_errors():
 
 def test_validate_schedule_errors():
     d = square_device(2, 2, max_controls=3)
-    s = cirq.Schedule(device=cirq.UnconstrainedDevice)
+    s = cirq.Schedule(device=cirq.UNCONSTRAINED_DEVICE)
     q00 = cirq.GridQubit(0, 0)
     q01 = cirq.GridQubit(0, 1)
     q10 = cirq.GridQubit(1, 0)

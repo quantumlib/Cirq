@@ -231,14 +231,38 @@ def test_kak_canonicalize_vector(x, y, z):
     SWAP * 1j,
     CZ,
     CNOT,
-    SWAP.dot(CZ),
-] + [
-    cirq.testing.random_unitary(4)
-    for _ in range(10)
-])
+    SWAP @ CZ,
+] + [cirq.testing.random_unitary(4) for _ in range(10)])
 def test_kak_decomposition(target):
     kak = cirq.kak_decomposition(target)
     np.testing.assert_allclose(cirq.unitary(kak), target, atol=1e-8)
+
+
+def test_kak_decomposition_unitary_object():
+    op = cirq.ISWAP(*cirq.LineQubit.range(2))**0.5
+    kak = cirq.kak_decomposition(op)
+    np.testing.assert_allclose(cirq.unitary(kak), cirq.unitary(op), atol=1e-8)
+    assert cirq.kak_decomposition(kak) is kak
+
+
+def test_kak_decomposition_invalid_object():
+    with pytest.raises(TypeError, match='unitary effect'):
+        _ = cirq.kak_decomposition('test')
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.eye(3))
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.eye(8))
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.ones((4, 4)))
+
+    with pytest.raises(ValueError, match='4x4 unitary matrix'):
+        _ = cirq.kak_decomposition(np.zeros((4, 4)))
+
+    nil = cirq.kak_decomposition(np.zeros((4, 4)), check_preconditions=False)
+    np.testing.assert_allclose(cirq.unitary(nil), np.eye(4), atol=1e-8)
 
 
 def test_kak_decomposition_eq():
@@ -286,22 +310,23 @@ def test_kak_repr():
         single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
     ))
 
-    assert repr(cirq.KakDecomposition(
-        global_phase=1,
-        single_qubit_operations_before=(cirq.unitary(cirq.X),
-                                        cirq.unitary(cirq.Y)),
-        interaction_coefficients=(0.5, 0.25, 0),
-        single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
-    )) == """
+    assert repr(
+        cirq.KakDecomposition(
+            global_phase=1,
+            single_qubit_operations_before=(cirq.unitary(cirq.X),
+                                            cirq.unitary(cirq.Y)),
+            interaction_coefficients=(0.5, 0.25, 0),
+            single_qubit_operations_after=(np.eye(2), cirq.unitary(cirq.Z)),
+        )) == """
 cirq.KakDecomposition(
     interaction_coefficients=(0.5, 0.25, 0),
     single_qubit_operations_before=(
-        np.array([[0j, (1+0j)], [(1+0j), 0j]]),
-        np.array([[0j, -1j], [1j, 0j]]),
+        np.array([[0j, (1+0j)], [(1+0j), 0j]], dtype=np.complex128),
+        np.array([[0j, -1j], [1j, 0j]], dtype=np.complex128),
     ),
     single_qubit_operations_after=(
-        np.array([[1.0, 0.0], [0.0, 1.0]]),
-        np.array([[(1+0j), 0j], [0j, (-1+0j)]]),
+        np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float64),
+        np.array([[(1+0j), 0j], [0j, (-1+0j)]], dtype=np.complex128),
     ),
     global_phase=1)
 """.strip()
@@ -316,7 +341,6 @@ def test_kak_str():
         single_qubit_operations_after=(cirq.unitary(cirq.Y),
                                        cirq.unitary(cirq.Z)),
         global_phase=1j)
-    print(v)
     assert str(v) == """KAK {
     xyz*(4/π): 0.3, 0.2, 0.1
     before: (0*π around X) ⊗ (1*π around X)
@@ -478,3 +502,18 @@ def test_axis_angle_init():
 
     with pytest.raises(ValueError, match='normalize'):
         cirq.AxisAngleDecomposition(angle=1, axis=(0, 0.5, 0), global_phase=1)
+
+
+def test_scatter_plot_normalized_kak_interaction_coefficients():
+    a, b = cirq.LineQubit.range(2)
+    data = [
+        cirq.kak_decomposition(cirq.unitary(cirq.CZ)),
+        cirq.unitary(cirq.CZ),
+        cirq.CZ,
+        cirq.Circuit(cirq.H(a), cirq.CNOT(a, b)),
+    ]
+    ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(data)
+    assert ax is not None
+    ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
+        data, s=1, c='blue', ax=ax, include_frame=False, label=f'test')
+    assert ax2 is ax

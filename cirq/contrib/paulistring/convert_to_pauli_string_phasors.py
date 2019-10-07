@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, cast, TYPE_CHECKING
+from typing import List, Optional, cast
 
 import numpy as np
 
@@ -22,10 +22,6 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
 
 
 class ConvertToPauliStringPhasors(PointOptimizer):
@@ -76,9 +72,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                     out_ops.append(
                         cliff_gate(qubit))
             else:
-                pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    ops.PauliStringPhasor(pauli_string,
+                    ops.PauliStringPhasor(ops.PauliString(pauli.on(qubit)),
                                           exponent_neg=round(half_turns, 10)))
         return out_ops
 

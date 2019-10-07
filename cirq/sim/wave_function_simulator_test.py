@@ -25,12 +25,18 @@ def test_wave_function_trial_result_repr():
         measurements={'m': np.array([[1]])},
         final_simulator_state=final_simulator_state)
     assert repr(trial_result) == (
-               "cirq.WaveFunctionTrialResult("
-               "params=cirq.ParamResolver({'s': 1}), "
-               "measurements={'m': array([[1]])}, "
-               "final_simulator_state=cirq.WaveFunctionSimulatorState("
-                   "state_vector=array([0, 1]), "
-                   "qubit_map={cirq.NamedQubit('a'): 0}))")
+        "cirq.WaveFunctionTrialResult("
+        "params=cirq.ParamResolver({'s': 1}), "
+        "measurements={'m': array([[1]])}, "
+        "final_simulator_state=cirq.WaveFunctionSimulatorState("
+        "state_vector=np.array([0, 1]), "
+        "qubit_map={cirq.NamedQubit('a'): 0}))")
+
+
+def test_wave_function_simulator_state_repr():
+    final_simulator_state = cirq.WaveFunctionSimulatorState(
+        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1]))
+    cirq.testing.assert_equivalent_repr(final_simulator_state)
 
 
 def test_wave_function_trial_result_equality():
@@ -86,6 +92,30 @@ def test_wave_function_trial_result_state_mixin():
     assert result.dirac_notation() == '|01⟩'
 
 
+def test_wave_function_trial_result_qid_shape():
+    final_simulator_state = cirq.WaveFunctionSimulatorState(
+        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=np.array([0, 1]))
+    trial_result = cirq.WaveFunctionTrialResult(
+        params=cirq.ParamResolver({'s': 1}),
+        measurements={'m': np.array([[1]])},
+        final_simulator_state=final_simulator_state)
+    assert cirq.qid_shape(final_simulator_state) == (2,)
+    assert cirq.qid_shape(trial_result) == (2,)
+
+    q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
+    final_simulator_state = cirq.WaveFunctionSimulatorState(
+        qubit_map={
+            q0: 1,
+            q1: 0
+        }, state_vector=np.array([0, 0, 0, 0, 1, 0]))
+    trial_result = cirq.WaveFunctionTrialResult(
+        params=cirq.ParamResolver({'s': 1}),
+        measurements={'m': np.array([[2, 0]])},
+        final_simulator_state=final_simulator_state)
+    assert cirq.qid_shape(final_simulator_state) == (3, 2)
+    assert cirq.qid_shape(trial_result) == (3, 2)
+
+
 def test_str_big():
     qs = cirq.LineQubit.range(20)
     result = cirq.WaveFunctionTrialResult(
@@ -97,10 +127,9 @@ def test_str_big():
 
 
 def test_pretty_print():
-    q = cirq.NamedQubit('a')
     result = cirq.WaveFunctionTrialResult(
         cirq.ParamResolver(), {},
-        cirq.WaveFunctionSimulatorState(np.array([1]), {q: 0}))
+        cirq.WaveFunctionSimulatorState(np.array([1]), {}))
 
     # Test Jupyter console output from
     class FakePrinter:

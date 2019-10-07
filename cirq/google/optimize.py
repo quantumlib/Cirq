@@ -13,24 +13,22 @@
 # limitations under the License.
 
 """A combination of several optimizations targeting XmonDevice."""
-from typing import Optional, Callable, cast, TYPE_CHECKING
+from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, optimizers
 from cirq.google import convert_to_xmon_gates, xmon_device
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
-
+    import cirq
 
 _TOLERANCE = 1e-5
 
 
-def _merge_rots(c: circuits.Circuit):
+def _merge_rots(c: 'cirq.Circuit'):
     return optimizers.merge_single_qubit_gates_into_phased_x_z(c, _TOLERANCE)
 
 
-_OPTIMIZERS = [
+_OPTIMIZERS: List[Callable[['cirq.Circuit'], None]] = [
     convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
     optimizers.MergeInteractions(tolerance=_TOLERANCE,
                                  allow_partial_czs=False).optimize_circuit,
@@ -38,10 +36,9 @@ _OPTIMIZERS = [
     optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]  # type: List[Callable[[circuits.Circuit], None]]
+]
 
-
-_OPTIMIZERS_PART_CZ = [
+_OPTIMIZERS_PART_CZ: List[Callable[['cirq.Circuit'], None]] = [
     convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
     optimizers.MergeInteractions(tolerance=_TOLERANCE,
                                  allow_partial_czs=True).optimize_circuit,
@@ -49,16 +46,16 @@ _OPTIMIZERS_PART_CZ = [
     optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
     optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]  # type: List[Callable[[circuits.Circuit], None]]
+]
 
 
 def optimized_for_xmon(
-        circuit: circuits.Circuit,
+        circuit: 'cirq.Circuit',
         new_device: Optional[xmon_device.XmonDevice] = None,
-        qubit_map: Callable[[ops.Qid], devices.GridQubit] =
-            lambda e: cast(devices.GridQubit, e),
+        qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
+            devices.GridQubit, e),
         allow_partial_czs: bool = False,
-) -> circuits.Circuit:
+) -> 'cirq.Circuit':
     """Optimizes a circuit with XmonDevice in mind.
 
     Starts by converting the circuit's operations to the xmon gate set, then
@@ -83,7 +80,7 @@ def optimized_for_xmon(
     for optimizer in opts:
         optimizer(copy)
 
-    return circuits.Circuit.from_ops(
+    return circuits.Circuit(
         (op.transform_qubits(qubit_map) for op in copy.all_operations()),
         strategy=circuits.InsertStrategy.EARLIEST,
         device=new_device or copy.device)

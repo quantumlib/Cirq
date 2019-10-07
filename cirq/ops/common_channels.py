@@ -19,7 +19,7 @@ from typing import Iterable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import common_gates, pauli_gates, gate_features, identity
+from cirq.ops import raw_types, common_gates, pauli_gates, gate_features, identity
 
 
 @value.value_equality
@@ -81,9 +81,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             self._p_x, self._p_y, self._p_z
         )
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'A({},{},{})'.format(f, f, f).format(self._p_x, self._p_y,
@@ -161,9 +160,8 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'depolarize(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'D({!r})'.format(self._p)
 
 
@@ -287,9 +285,8 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             self._p, self._gamma
         )
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'GAD({!r},{!r})'.format(self._p, self._gamma)
 
 
@@ -405,9 +402,8 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'amplitude_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'AD({!r})'.format(self._gamma)
 
 
@@ -444,6 +440,84 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
         ValueError: if gamma is not a valid probability.
     """
     return AmplitudeDampingChannel(gamma)
+
+
+@value.value_equality
+class ResetChannel(gate_features.SingleQubitGate):
+    """Reset a qubit back to its |0⟩ state.
+
+    The reset channel is equivalent to performing an unobserved measurement
+    which then controls a bit flip onto the targeted qubit.
+    """
+
+    def __init__(self, dimension=2) -> None:
+        r"""The reset channel.
+
+        Construct a channel that resets the qubit.
+
+        This channel evolves a density matrix as follows:
+
+            $$
+            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+            $$
+
+        With:
+
+            $$
+            \begin{aligned}
+            M_0 =& \begin{bmatrix}
+                    1 & 0  \\
+                    0 & 0
+                  \end{bmatrix}
+            \\
+            M_1 =& \begin{bmatrix}
+                    0 & 1 \\
+                    0 & 0
+                  \end{bmatrix}
+            \end{aligned}
+            $$
+
+        Args:
+            dimension: Specify this argument when resetting a qudit.  There will
+                be `dimension` number of dimension by dimension matrices
+                describing the channel, each with a 1 at a different position in
+                the top row.
+        """
+        self._dimension = dimension
+
+    def _qid_shape_(self):
+        return (self._dimension,)
+
+    def _channel_(self) -> Iterable[np.ndarray]:
+        # The first axis is over the list of channel matrices
+        channel = np.zeros((self._dimension,) * 3, dtype=np.complex64)
+        channel[:, 0, :] = np.eye(self._dimension)
+        return channel
+
+    def _has_channel_(self) -> bool:
+        return True
+
+    def _value_equality_values_(self):
+        return self._dimension
+
+    def __repr__(self) -> str:
+        if self._dimension == 2:
+            return 'cirq.ResetChannel()'
+        else:
+            return 'cirq.ResetChannel(dimension={!r})'.format(self._dimension)
+
+    def __str__(self) -> str:
+        return 'reset'
+
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        return 'R'
+
+
+def reset(qubit: raw_types.Qid) -> raw_types.Operation:
+    """Returns a `ResetChannel` on the given qubit.
+    """
+    return ResetChannel(qubit.dimension).on(qubit)
 
 
 @value.value_equality
@@ -507,9 +581,8 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'PD({!r})'.format(self._gamma)
 
 
@@ -605,9 +678,8 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'PF({!r})'.format(self._p)
 
 
@@ -751,9 +823,8 @@ class BitFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'bit_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'BF({!r})'.format(self._p)
 
 

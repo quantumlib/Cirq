@@ -25,14 +25,17 @@ def test_equals():
 
 
 def test_phased_pauli_product():
+    assert cirq.X.phased_pauli_product(cirq.I) == (1, cirq.X)
     assert cirq.X.phased_pauli_product(cirq.X) == (1, cirq.I)
     assert cirq.X.phased_pauli_product(cirq.Y) == (1j, cirq.Z)
     assert cirq.X.phased_pauli_product(cirq.Z) == (-1j, cirq.Y)
 
+    assert cirq.Y.phased_pauli_product(cirq.I) == (1, cirq.Y)
     assert cirq.Y.phased_pauli_product(cirq.X) == (-1j, cirq.Z)
     assert cirq.Y.phased_pauli_product(cirq.Y) == (1, cirq.I)
     assert cirq.Y.phased_pauli_product(cirq.Z) == (1j, cirq.X)
 
+    assert cirq.Z.phased_pauli_product(cirq.I) == (1, cirq.Z)
     assert cirq.Z.phased_pauli_product(cirq.X) == (1j, cirq.Y)
     assert cirq.Z.phased_pauli_product(cirq.Y) == (-1j, cirq.X)
     assert cirq.Z.phased_pauli_product(cirq.Z) == (1, cirq.I)
@@ -207,3 +210,15 @@ def test_identity_multiplication():
         _ = cirq.X(a) * cirq.Y(b) * cirq.H(c)
     with pytest.raises(TypeError):
         _ = cirq.I(a) * str(cirq.Y(b))
+
+
+def test_powers():
+    assert isinstance(cirq.X, cirq.Pauli)
+    assert isinstance(cirq.Y, cirq.Pauli)
+    assert isinstance(cirq.Z, cirq.Pauli)
+    assert not isinstance(cirq.X**-0.5, cirq.Pauli)
+    assert not isinstance(cirq.Y**0.2, cirq.Pauli)
+    assert not isinstance(cirq.Z**0.5, cirq.Pauli)
+    assert isinstance(cirq.X**-0.5, cirq.XPowGate)
+    assert isinstance(cirq.Y**0.2, cirq.YPowGate)
+    assert isinstance(cirq.Z**0.5, cirq.ZPowGate)

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Sequence, Type, Union
+from typing import Any, Dict, Optional, Sequence, Type
 
+import numpy as np
 import sympy
 
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
                                           assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
@@ -46,31 +47,30 @@ def assert_implements_consistent_protocols(
     local_vals = local_vals or {}
 
     _assert_meets_standards_helper(val,
-                                   qubit_count,
-                                   ignoring_global_phase,
-                                   setup_code,
-                                   global_vals,
-                                   local_vals)
+                                   ignoring_global_phase=ignoring_global_phase,
+                                   setup_code=setup_code,
+                                   global_vals=global_vals,
+                                   local_vals=local_vals)
 
     for exponent in exponents:
         p = protocols.pow(val, exponent, None)
         if p is not None:
-            _assert_meets_standards_helper(val**exponent,
-                                           qubit_count,
-                                           ignoring_global_phase,
-                                           setup_code,
-                                           global_vals,
-                                           local_vals)
+            _assert_meets_standards_helper(
+                val**exponent,
+                ignoring_global_phase=ignoring_global_phase,
+                setup_code=setup_code,
+                global_vals=global_vals,
+                local_vals=local_vals)
 
 
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
-        exponents: Sequence[Union[sympy.Basic, float]] = (
-            0, 1, -1, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+        exponents: Sequence[value.TParamVal] = (0, 1, -1, 0.25, -0.5, 0.1,
+                                                sympy.Symbol('s')),
         global_shifts: Sequence[float] = (0, -0.5, 0.1),
         qubit_count: Optional[int] = None,
-        ignoring_global_phase: bool=False,
+        ignoring_global_phase: bool = False,
         setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
@@ -79,29 +79,45 @@ def assert_eigengate_implements_consistent_protocols(
     for exponent in exponents:
         for shift in global_shifts:
             _assert_meets_standards_helper(
-                    eigen_gate_type(exponent=exponent, global_shift=shift),
-                    qubit_count,
-                    ignoring_global_phase,
-                    setup_code,
-                    global_vals,
-                    local_vals)
+                eigen_gate_type(exponent=exponent, global_shift=shift),
+                ignoring_global_phase=ignoring_global_phase,
+                setup_code=setup_code,
+                global_vals=global_vals,
+                local_vals=local_vals)
 
 
 def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
-    assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
+    if not protocols.is_parameterized(val):
+        assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
 
 
-def _assert_meets_standards_helper(
-        val: Any,
-        qubit_count: Optional[int],
-        ignoring_global_phase,
-        setup_code: str,
-        global_vals: Optional[Dict[str, Any]],
-        local_vals: Optional[Dict[str, Any]]) -> None:
-    assert_has_consistent_qid_shape(val, qubit_count=qubit_count)
-    assert_has_consistent_apply_unitary(val, qubit_count=qubit_count)
+def assert_has_consistent_trace_distance_bound(val: Any) -> None:
+    u = protocols.unitary(val, default=None)
+    val_from_trace = protocols.trace_distance_bound(val)
+    assert 0.0 <= val_from_trace <= 1.0
+    if u is not None:
+
+        class Unitary:
+
+            def _unitary_(self):
+                return u
+
+        val_from_unitary = protocols.trace_distance_bound(Unitary())
+
+        assert val_from_trace >= val_from_unitary or np.isclose(
+            val_from_trace, val_from_unitary)
+
+
+def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
+                                   setup_code: str,
+                                   global_vals: Optional[Dict[str, Any]],
+                                   local_vals: Optional[Dict[str, Any]]
+                                  ) -> None:
+    assert_has_consistent_qid_shape(val)
+    assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)
+    assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val,
         ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)

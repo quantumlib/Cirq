@@ -14,7 +14,7 @@
 
 from typing import Callable
 
-from cirq import ops, circuits, line
+from cirq import circuits, devices, ops
 
 
 class QubitMapper():
@@ -38,6 +38,5 @@ def linearize_circuit_qubits(
         ) -> None:
     qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
         circuit.all_qubits())
-    qubit_map = {q: line.LineQubit(i)
-                 for i, q in enumerate(qubits)}
+    qubit_map = {q: devices.LineQubit(i) for i, q in enumerate(qubits)}
     QubitMapper(qubit_map.__getitem__).optimize_circuit(circuit)

@@ -53,6 +53,15 @@ def test_total_nanoseconds():
     assert Duration(nanos=5).total_nanos() == 5
 
 
+def test_repr():
+    a = Duration(picos=1000, nanos=1000)
+    cirq.testing.assert_equivalent_repr(a)
+    b = Duration(picos=5000)
+    cirq.testing.assert_equivalent_repr(b)
+    c = Duration(nanos=1.0)
+    cirq.testing.assert_equivalent_repr(c)
+
+
 def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(Duration(), Duration(picos=0), Duration(nanos=0.0))
@@ -138,3 +147,8 @@ def test_div():
     assert Duration(picos=6) / Duration(picos=2) == 3
     with pytest.raises(TypeError):
         _ = 4 / Duration(picos=3)
+
+
+def test_json_dict():
+    d = Duration(picos=6)
+    assert d._json_dict_() == {'cirq_type': 'Duration', 'picos': 6}

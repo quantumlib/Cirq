@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from datetime import timedelta
-from typing import Iterable, List, TYPE_CHECKING, Union, cast
+from typing import Iterable, List, Optional, Union, cast
 
 from sortedcontainers import SortedListWithKey
 
@@ -24,11 +24,6 @@ from cirq.devices import Device
 from cirq.ops import Qid
 from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.value import Duration, Timestamp
-
-if TYPE_CHECKING:
-    from typing import Optional  # pylint: disable=unused-import
-
-    from cirq.ops import Operation  # pylint: disable=unused-import
 
 
 class Schedule:
@@ -197,7 +192,7 @@ class Schedule:
         operations that are scheduled at the same time in the same Moment.
         """
         circuit = Circuit(device=self.device)
-        time = None  # type: Optional[Timestamp]
+        time: Optional[Timestamp] = None
         for so in self.scheduled_operations:
             if so.time != time:
                 circuit.append(so.operation,
@@ -207,6 +202,9 @@ class Schedule:
                 circuit.append(so.operation,
                                strategy=InsertStrategy.INLINE)
         return circuit
+
+    def _qid_shape_(self):
+        return protocols.qid_shape(self.to_circuit())
 
     def _has_unitary_(self):
         return protocols.has_unitary(self.to_circuit())

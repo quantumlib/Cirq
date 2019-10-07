@@ -78,9 +78,8 @@ def pauli_string_half(circuit: circuits.Circuit) -> circuits.Circuit:
     Returns:
         A Circuit with only PauliStringPhasor operations.
     """
-    return circuits.Circuit.from_ops(
-            _pull_non_clifford_before(circuit),
-            strategy=circuits.InsertStrategy.EARLIEST)
+    return circuits.Circuit(_pull_non_clifford_before(circuit),
+                            strategy=circuits.InsertStrategy.EARLIEST)
 
 
 def _pull_non_clifford_before(circuit: circuits.Circuit) -> ops.OP_TREE:

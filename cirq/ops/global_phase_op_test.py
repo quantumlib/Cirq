@@ -44,6 +44,11 @@ def test_str():
     assert str(cirq.GlobalPhaseOperation(1j)) == '1j'
 
 
+def test_repr():
+    op = cirq.GlobalPhaseOperation(1j)
+    cirq.testing.assert_equivalent_repr(op)
+
+
 def test_diagram():
     a, b = cirq.LineQubit.range(2)
     x, y = cirq.LineQubit.range(10, 12)
@@ -182,3 +187,10 @@ global phase:   0.5pi   -0.5pi
         ]), """
 global phase:   -0.5π
         """)
+
+
+def test_global_phase_op_json_dict():
+    assert cirq.GlobalPhaseOperation(-1j)._json_dict_() == {
+        'cirq_type': 'GlobalPhaseOperation',
+        'coefficient': -1j,
+    }

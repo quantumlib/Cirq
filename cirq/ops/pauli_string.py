@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast)
+                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
+                    TYPE_CHECKING, SupportsComplex)
 
 import cmath
 import math
@@ -22,6 +23,7 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
+<<<<<<< HEAD
 from cirq.ops import (
     global_phase_op,
     raw_types,
@@ -32,6 +34,21 @@ from cirq.ops import (
     pauli_interaction_gate,
     identity,
 )
+=======
+from cirq._compat import deprecated
+from cirq.ops import (global_phase_op, raw_types, gate_operation, common_gates,
+                      pauli_gates, clifford_gate, pauli_interaction_gate)
+
+if TYPE_CHECKING:
+    import cirq
+
+# A value that can be unambiguously converted into a `cirq.PauliString`.
+PAULI_STRING_LIKE = Union[
+    complex, 'cirq.OP_TREE',
+    Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
+    Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
+]
+>>>>>>> master
 
 TDefault = TypeVar('TDefault')
 
@@ -39,20 +56,65 @@ TDefault = TypeVar('TDefault')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
-    def __init__(self,
-                 qubit_pauli_map: Optional[
-                     Mapping[raw_types.Qid, pauli_gates.Pauli]] = None,
-                 coefficient: Union[int, float, complex] = 1) -> None:
-        if qubit_pauli_map is None:
-            qubit_pauli_map = {}
-        self._qubit_pauli_map = dict(qubit_pauli_map)
-        self._coefficient = complex(coefficient)
+    def __init__(
+            self,
+            *contents: PAULI_STRING_LIKE,
+            qubit_pauli_map: Optional[Dict['cirq.Qid', 'cirq.Pauli']] = None,
+            coefficient: Union[int, float, complex] = 1):
+        """Initializes a new PauliString.
+
+        Args:
+            *contents: A value or values to convert into a pauli string. This
+                can be a number, a pauli operation, a dictionary from qubit to
+                pauli/identity gates, or collections thereof. If a list of
+                values is given, they are each individually converted and then
+                multiplied from left to right in order.
+            qubit_pauli_map: Initial dictionary mapping qubits to pauli
+                operations. Defaults to the empty dictionary. Note that, unlike
+                dictionaries passed to contents, this dictionary must not
+                contain any identity gate values. Further note that this
+                argument specifies values that are logically *before* factors
+                specified in `contents`; `contents` are *right* multiplied onto
+                the values in this dictionary.
+            coefficient: Initial scalar coefficient. Defaults to 1.
+
+        Examples:
+            >>> a, b, c = cirq.LineQubit.range(3)
+
+            >>> print(cirq.PauliString([cirq.X(a), cirq.X(a)]))
+            I
+
+            >>> print(cirq.PauliString(-1, cirq.X(a), cirq.Y(b), cirq.Z(c)))
+            -X(0)*Y(1)*Z(2)
+
+            >>> print(cirq.PauliString({a: cirq.X}, [-2, 3, cirq.Y(a)]))
+            -6j*Z(0)
+
+            >>> print(cirq.PauliString({a: cirq.I, b: cirq.X}))
+            X(1)
+
+            >>> print(cirq.PauliString({a: cirq.Y},
+            ...                        qubit_pauli_map={a: cirq.X}))
+            1j*Z(0)
+        """
+        if qubit_pauli_map is not None:
+            for v in qubit_pauli_map.values():
+                if not isinstance(v, pauli_gates.Pauli):
+                    raise TypeError(f'{v} is not a Pauli')
+
+        p = _MutablePauliString(coef=complex(coefficient),
+                                paulis=dict(qubit_pauli_map or {}))
+        p.inline_times_pauli_string_like(contents)
+        self._qubit_pauli_map = p.paulis
+        self._coefficient = p.coef
 
     @staticmethod
+    @deprecated(deadline="v0.7.0",
+                fix="call cirq.PauliString(pauli(qubit)) instead")
     def from_single(qubit: raw_types.Qid,
                     pauli: pauli_gates.Pauli) -> 'PauliString':
         """Creates a PauliString with a single qubit."""
-        return PauliString({qubit: pauli})
+        return PauliString(qubit_pauli_map={qubit: pauli})
 
     @property
     def coefficient(self) -> complex:
@@ -66,6 +128,19 @@ class PauliString(raw_types.Operation):
 
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            # JSON requires mappings to have string keys.
+            'qubit_pauli_map': list(self._qubit_pauli_map.items()),
+            'coefficient': self.coefficient,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_pauli_map, coefficient, **kwargs):
+        return cls(qubit_pauli_map=dict(qubit_pauli_map),
+                   coefficient=coefficient)
 
     def _value_equality_values_cls_(self):
         if len(self._qubit_pauli_map) == 1 and self.coefficient == 1:
@@ -92,38 +167,33 @@ class PauliString(raw_types.Operation):
         return self._qubit_pauli_map.get(key, default)
     # pylint: enable=function-redefined
 
-    def __mul__(self, other):
-        if isinstance(other, numbers.Number):
-            return PauliString(self._qubit_pauli_map,
-                               self._coefficient * complex(other))
-        if isinstance(other, PauliString):
-            s1 = set(self.keys())
-            s2 = set(other.keys())
-            extra_phase = 1
-            terms = {}
-            for c in s1 - s2:
-                terms[c] = self[c]
-            for c in s2 - s1:
-                terms[c] = other[c]
-            for c in s1 & s2:
-                f, p = self[c].phased_pauli_product(other[c])
-                extra_phase *= f
-                if p != identity.I:
-                    terms[c] = p
-            return PauliString(
-                terms, self.coefficient * other.coefficient * extra_phase)
-        return NotImplemented
+    def __mul__(self, other) -> 'PauliString':
+        if not (isinstance(other, (PauliString, numbers.Number)) or
+                gate_operation.op_gate_isinstance(other,
+                                                  common_gates.IdentityGate)):
+            return NotImplemented
 
-    def __rmul__(self, other):
+        return PauliString(other,
+                           qubit_pauli_map=self._qubit_pauli_map,
+                           coefficient=self.coefficient)
+
+    def __rmul__(self, other) -> 'PauliString':
         if isinstance(other, numbers.Number):
-            return PauliString(self._qubit_pauli_map,
-                               self._coefficient * complex(other))
+            return PauliString(qubit_pauli_map=self._qubit_pauli_map,
+                               coefficient=self._coefficient *
+                               complex(cast(SupportsComplex, other)))
+
+        if gate_operation.op_gate_isinstance(other, common_gates.IdentityGate):
+            return self
+
+        # Note: PauliString case handled by __mul__.
         return NotImplemented
 
     def __truediv__(self, other):
         if isinstance(other, numbers.Number):
-            return PauliString(self._qubit_pauli_map,
-                               self._coefficient / complex(other))
+            return PauliString(qubit_pauli_map=self._qubit_pauli_map,
+                               coefficient=self._coefficient /
+                               complex(cast(SupportsComplex, other)))
         return NotImplemented
 
     def __add__(self, other):
@@ -160,9 +230,9 @@ class PauliString(raw_types.Operation):
         return tuple(sorted(self.keys()))
 
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
-        return PauliString(dict(zip(new_qubits,
-                                    (self[q] for q in self.qubits))),
-                           self._coefficient)
+        return PauliString(qubit_pauli_map=dict(
+            zip(new_qubits, (self[q] for q in self.qubits))),
+                           coefficient=self._coefficient)
 
     def values(self) -> ValuesView[pauli_gates.Pauli]:
         return self._qubit_pauli_map.values()
@@ -225,13 +295,200 @@ class PauliString(raw_types.Operation):
         return linalg.kron(self.coefficient,
                            *[protocols.unitary(self[q]) for q in self.qubits])
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs):
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
             return None
         if self.coefficient != 1:
             args.target_tensor *= self.coefficient
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
+
+    def expectation_from_wavefunction(self,
+                                      state: np.ndarray,
+                                      qubit_map: Mapping[raw_types.Qid, int],
+                                      atol: float = 1e-7) -> float:
+        r"""Evaluate the expectation of this PauliString given a wavefunction.
+
+        Compute the expectation value of this PauliString with respect to a
+        wavefunction. By convention expectation values are defined for Hermitian
+        operators, and so this method will fail if this PauliString is
+        non-Hermitian.
+
+        `state` must be an array representation of a wavefunction and have
+        shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
+        expressed over n qubits.
+
+        `qubit_map` must assign an integer index to each qubit in this
+        PauliString that determines which bit position of a computational basis
+        state that qubit corresponds to. For example if `state` represents
+        $|0\rangle |+\rangle$ and `q0, q1 = cirq.LineQubit.range(2)` then:
+
+            cirq.X(q0).expectation(state, qubit_map={q0: 0, q1: 1}) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
+
+        Args:
+            state: An array representing a valid wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+
+        Raises:
+            NotImplementedError if this PauliString is non-Hermitian.
+        """
+        if abs(self.coefficient.imag) > 0.0001:
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        # FIXME: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
+        size = state.size
+        num_qubits = size.bit_length() - 1
+        if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
+            raise ValueError("Input array does not represent a wavefunction "
+                             "with shape `(2 ** n,)` or `(2, ..., 2)`.")
+
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
+        # HACK: avoid circular import
+        from cirq.sim.wave_function import validate_normalized_state
+        validate_normalized_state(state=state,
+                                  qid_shape=(2,) * num_qubits,
+                                  dtype=state.dtype,
+                                  atol=atol)
+        return self._expectation_from_wavefunction_no_validation(
+            state, qubit_map)
+
+    def _expectation_from_wavefunction_no_validation(
+            self, state: np.ndarray,
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
+        """Evaluate the expectation of this PauliString given a wavefunction.
+
+        This method does not provide input validation. See
+        `PauliString.expectation_from_wavefunction` for function description.
+
+        Args:
+            state: An array representing a valid wavefunction.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+        """
+        if len(state.shape) == 1:
+            num_qubits = state.shape[0].bit_length() - 1
+            state = np.reshape(state, (2,) * num_qubits)
+
+        ket = np.copy(state)
+        for qubit, pauli in self.items():
+            buffer = np.empty(ket.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(target_tensor=ket,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
+            ket = protocols.apply_unitary(pauli, args)
+
+        return self.coefficient * (np.tensordot(
+            state.conj(), ket, axes=len(ket.shape)).item())
+
+    def expectation_from_density_matrix(self,
+                                        state: np.ndarray,
+                                        qubit_map: Mapping[raw_types.Qid, int],
+                                        atol: float = 1e-7) -> float:
+        r"""Evaluate the expectation of this PauliString given a density matrix.
+
+        Compute the expectation value of this PauliString with respect to an
+        array representing a density matrix. By convention expectation values
+        are defined for Hermitian operators, and so this method will fail if
+        this PauliString is non-Hermitian.
+
+        `state` must be an array representation of a density matrix and have
+        shape `(2 ** n, 2 ** n)` or `(2, 2, ..., 2)` (2*n entries), where
+        `state` is expressed over n qubits.
+
+        `qubit_map` must assign an integer index to each qubit in this
+        PauliString that determines which bit position of a computational basis
+        state that qubit corresponds to. For example if `state` represents
+        $|0\rangle |+\rangle$ and `q0, q1 = cirq.LineQubit.range(2)` then:
+
+            cirq.X(q0).expectation(state, qubit_map={q0: 0, q1: 1}) = 0
+            cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+
+        Raises:
+            NotImplementedError if this PauliString is non-Hermitian.
+        """
+        if abs(self.coefficient.imag) > 0.0001:
+            raise NotImplementedError(
+                "Cannot compute expectation value of a non-Hermitian "
+                "PauliString <{}>. Coefficient must be real.".format(self))
+
+        # FIXME: Avoid enforcing specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug (Issue #2041).
+        if state.dtype.kind != 'c':
+            raise TypeError("Input state dtype must be np.complex64 or "
+                            "np.complex128")
+
+        size = state.size
+        num_qubits = int(np.sqrt(size)).bit_length() - 1
+        dim = 1 << num_qubits
+        if state.shape != (dim, dim) and state.shape != (2, 2) * num_qubits:
+            raise ValueError("Input array does not represent a density matrix "
+                             "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
+
+        _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
+        # HACK: avoid circular import
+        from cirq.sim.density_matrix_utils import to_valid_density_matrix
+        # Do not enforce reshaping if the state all axes are dimension 2.
+        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
+                                    num_qubits=num_qubits,
+                                    dtype=state.dtype,
+                                    atol=atol)
+        return self._expectation_from_density_matrix_no_validation(
+            state, qubit_map)
+
+    def _expectation_from_density_matrix_no_validation(
+            self, state: np.ndarray,
+            qubit_map: Mapping[raw_types.Qid, int]) -> float:
+        """Evaluate the expectation of this PauliString given a density matrix.
+
+        This method does not provide input validation. See
+        `PauliString.expectation_from_density_matrix` for function description.
+
+        Args:
+            state: An array representing a valid  density matrix.
+            qubit_map: A map from all qubits used in this PauliString to the
+            indices of the qubits that `state` is defined over.
+
+        Returns:
+            The expectation value of the input state.
+        """
+        result = np.copy(state)
+        if len(state.shape) == 2:
+            num_qubits = state.shape[0].bit_length() - 1
+            result = np.reshape(result, (2,) * num_qubits * 2)
+
+        for qubit, pauli in self.items():
+            buffer = np.empty(result.shape, dtype=state.dtype)
+            args = protocols.ApplyUnitaryArgs(target_tensor=result,
+                                              available_buffer=buffer,
+                                              axes=(qubit_map[qubit],))
+            result = protocols.apply_unitary(pauli, args)
+
+        while any(result.shape):
+            result = np.trace(result, axis1=0, axis2=len(result.shape) // 2)
+        return result * self.coefficient
 
     def zip_items(self, other: 'PauliString') -> Iterator[
             Tuple[raw_types.Qid, Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]]:
@@ -249,7 +506,8 @@ class PauliString(raw_types.Operation):
                    ) % 2 == 0
 
     def __neg__(self) -> 'PauliString':
-        return PauliString(self._qubit_pauli_map, -self._coefficient)
+        return PauliString(qubit_pauli_map=self._qubit_pauli_map,
+                           coefficient=-self._coefficient)
 
     def __pos__(self) -> 'PauliString':
         return self
@@ -264,7 +522,8 @@ class PauliString(raw_types.Operation):
         if power == 1:
             return self
         if power == -1:
-            return PauliString(self._qubit_pauli_map, self.coefficient**-1)
+            return PauliString(qubit_pauli_map=self._qubit_pauli_map,
+                               coefficient=self.coefficient**-1)
         if isinstance(power, (int, float)):
             r, i = cmath.polar(self.coefficient)
             if abs(r - 1) > 0.0001:
@@ -285,7 +544,7 @@ class PauliString(raw_types.Operation):
             # HACK: Avoid circular dependency.
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
-                PauliString(self._qubit_pauli_map),
+                PauliString(qubit_pauli_map=self._qubit_pauli_map),
                 exponent_neg=global_half_turns + power,
                 exponent_pos=global_half_turns)
         return NotImplemented
@@ -294,7 +553,7 @@ class PauliString(raw_types.Operation):
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
-                    "Exponentiated to a non-hermitian PauliString <{}**{}>. "
+                    "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
                     "Coefficient must be imaginary.".format(base, self))
 
             half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
@@ -311,7 +570,7 @@ class PauliString(raw_types.Operation):
             # HACK: Avoid circular dependency.
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
-                PauliString(self._qubit_pauli_map),
+                PauliString(qubit_pauli_map=self._qubit_pauli_map),
                 exponent_neg=+half_turns / 2,
                 exponent_pos=-half_turns / 2)
         return NotImplemented
@@ -320,7 +579,8 @@ class PauliString(raw_types.Operation):
                    ) -> 'PauliString':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
                                for qubit, pauli in self.items()}
-        return PauliString(new_qubit_pauli_map, self._coefficient)
+        return PauliString(qubit_pauli_map=new_qubit_pauli_map,
+                           coefficient=self._coefficient)
 
     def to_z_basis_ops(self) -> Iterator[raw_types.Operation]:
         """Returns operations to convert the qubits to the computational basis.
@@ -370,7 +630,7 @@ class PauliString(raw_types.Operation):
                                                               op,
                                                               after_to_before)
         coef = -self._coefficient if should_negate else self.coefficient
-        return PauliString(pauli_map, coef)
+        return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 
     @staticmethod
     def _pass_operation_over(pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
@@ -450,6 +710,37 @@ class PauliString(raw_types.Operation):
         return quarter_kickback % 4 == 2
 
 
+def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
+                            pauli_qubits: Tuple[raw_types.Qid, ...],
+                            num_state_qubits: int) -> None:
+    """Validates that a qubit map is a valid mapping.
+
+    This will enforce that all elements of `pauli_qubits` appear in `qubit_map`,
+    and that the integers in `qubit_map` correspond to valid positions in a
+    representation of a state over `num_state_qubits`.
+
+    Args:
+        qubit_map: A map from qubits to integers.
+        pauli_qubits: The qubits that must be contained in `qubit_map`.
+        num_state_qubits: The number of qubits over which a state is expressed.
+    """
+    if not isinstance(qubit_map, Mapping) or not all(
+            isinstance(k, raw_types.Qid) and isinstance(v, int)
+            for k, v in qubit_map.items()):
+        raise TypeError("Input qubit map must be a valid mapping from "
+                        "Qubit ID's to integer indices.")
+
+    if not set(qubit_map.keys()) >= set(pauli_qubits):
+        raise ValueError("Input qubit map must be a complete mapping over all "
+                         " of this PauliString's qubits.")
+
+    used_inds = [qubit_map[q] for q in pauli_qubits]
+    if len(used_inds) != len(set(used_inds)) or not set(
+            range(num_state_qubits)) >= set(sorted(used_inds)):
+        raise ValueError("Input qubit map indices must be valid for a state "
+                         "over {} qubits.".format(num_state_qubits))
+
+
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
 class SingleQubitPauliStringGateOperation(  # type: ignore
         gate_operation.GateOperation, PauliString):
@@ -472,8 +763,17 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return SingleQubitPauliStringGateOperation(
             cast(pauli_gates.Pauli, self.gate), new_qubits[0])
 
+    @property
+    def pauli(self) -> pauli_gates.Pauli:
+        return cast(pauli_gates.Pauli, self.gate)
+
+    @property
+    def qubit(self) -> raw_types.Qid:
+        assert len(self.qubits) == 1
+        return self.qubits[0]
+
     def _as_pauli_string(self) -> PauliString:
-        return PauliString({self.qubits[0]: cast(pauli_gates.Pauli, self.gate)})
+        return PauliString(qubit_pauli_map={self.qubit: self.pauli})
 
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
@@ -489,3 +789,72 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     def __neg__(self):
         return -self._as_pauli_string()
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
+
+    @classmethod
+    def _from_json_dict_(  # type: ignore
+            cls, pauli: pauli_gates.Pauli, qubit: raw_types.Qid, **kwargs):
+        # Note, this method is required or else superclasses' deserialization
+        # would be used
+        return cls(pauli=pauli, qubit=qubit)
+
+
+class _MutablePauliString:
+
+    def __init__(self, *, coef: complex,
+                 paulis: Dict['cirq.Qid', 'cirq.Pauli']):
+        self.coef = coef
+        self.paulis = paulis
+
+    def _inline_times_pauli(self, qubit: 'cirq.Qid', pauli: 'cirq.Pauli'):
+        cur_pauli = self.paulis.get(qubit, None)
+        if cur_pauli is None:
+            self.paulis[qubit] = pauli
+            return
+
+        phase, new_pauli = cur_pauli.phased_pauli_product(pauli)
+        self.coef *= phase
+        if new_pauli is common_gates.I:
+            del self.paulis[qubit]
+        else:
+            self.paulis[qubit] = cast(pauli_gates.Pauli, new_pauli)
+
+    def inline_times_pauli_string(self, other: 'cirq.PauliString'):
+        for qubit, pauli in other.items():
+            self._inline_times_pauli(qubit, pauli)
+        self.coef *= other.coefficient
+
+    def _inline_times_mapping(
+            self, mapping: Mapping['cirq.Qid',
+                                   Union['cirq.Pauli', 'cirq.IdentityGate']]):
+        for qubit, pauli in mapping.items():
+            if isinstance(pauli, common_gates.IdentityGate):
+                continue
+
+            if not isinstance(pauli, pauli_gates.Pauli):
+                raise TypeError(
+                    f'{repr(pauli)} is not a Pauli or identity gate.')
+
+            self._inline_times_pauli(qubit, pauli)
+
+    def inline_times_pauli_string_like(self,
+                                       contents: 'cirq.PAULI_STRING_LIKE'):
+        if isinstance(contents, PauliString):
+            # Note: cirq.X/Y/Z(qubit) are PauliString instances.
+            self.inline_times_pauli_string(contents)
+        elif gate_operation.op_gate_isinstance(contents,
+                                               common_gates.IdentityGate):
+            pass  # No effect.
+        elif isinstance(contents, Mapping):
+            self._inline_times_mapping(contents)
+        elif isinstance(contents, Iterable) and not isinstance(contents, str):
+            for item in contents:
+                self.inline_times_pauli_string_like(
+                    cast(PAULI_STRING_LIKE, item))
+        elif isinstance(contents, numbers.Number):
+            self.coef *= complex(cast(SupportsComplex, contents))
+        else:
+            raise TypeError(f"Not a `cirq.PAULI_STRING_LIKE`: "
+                            f"{type(contents)}, {repr(contents)}")

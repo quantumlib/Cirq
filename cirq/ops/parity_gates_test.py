@@ -16,6 +16,7 @@
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -28,7 +29,7 @@ import cirq
 )
 def test_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-            eigen_gate_type)
+        eigen_gate_type)
 
 
 def test_xx_init():
@@ -103,7 +104,7 @@ def test_xx_matrix():
 def test_xx_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.XX(a, b),
         cirq.XX(a, b)**3,
         cirq.XX(a, b)**0.5,
@@ -180,7 +181,7 @@ def test_yy_matrix():
 def test_yy_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.YY(a, b),
         cirq.YY(a, b)**3,
         cirq.YY(a, b)**0.5,
@@ -257,7 +258,7 @@ def test_zz_matrix():
 def test_zz_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.ZZ(a, b),
         cirq.ZZ(a, b)**3,
         cirq.ZZ(a, b)**0.5,
@@ -267,3 +268,14 @@ a: ───ZZ───ZZ───ZZ───────
       │    │    │
 b: ───ZZ───ZZ───ZZ^0.5───
 """)
+
+
+def test_trace_distance():
+    foo = sympy.Symbol('foo')
+    assert cirq.trace_distance_bound(cirq.XX**foo) == 1.0
+    assert cirq.trace_distance_bound(cirq.YY**foo) == 1.0
+    assert cirq.trace_distance_bound(cirq.ZZ**foo) == 1.0
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.XX), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.YY**0), 0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.ZZ**(1 / 3)),
+                          np.sin(np.pi / 6))
