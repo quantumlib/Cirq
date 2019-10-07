@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import Any, Union, Iterable
 from fractions import Fraction
 from decimal import Decimal
 
@@ -96,16 +96,17 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
         if result is not NotImplemented:
             return result
 
-    # Try to compare source and target recursively, assuming they're iterable.
-    result = _approx_eq_iterables(val, other, atol=atol)
-
-    # Fallback to __eq__() when anything else fails.
-    if result is NotImplemented:
+    if isinstance(val, str):
         return val == other
-    return result
+
+    # If the values are iterable, try comparing recursively on items.
+    if isinstance(val, Iterable) and isinstance(other, Iterable):
+        return _approx_eq_iterables(val, other, atol=atol)
+
+    return val == other
 
 
-def _approx_eq_iterables(val: Any, other: Any, *,
+def _approx_eq_iterables(val: Iterable, other: Iterable, *,
                          atol: Union[int, float]) -> bool:
     """Iterates over arguments and calls approx_eq recursively.
 
@@ -126,36 +127,25 @@ def _approx_eq_iterables(val: Any, other: Any, *,
         types.
     """
 
-    def get_iter(iterable):
+    iter1 = iter(val)
+    iter2 = iter(other)
+    done = object()
+    cur_item1 = None
+
+    while cur_item1 is not done:
         try:
-            return iter(iterable)
-        except TypeError:
-            return None
+            cur_item1 = next(iter1)
+        except StopIteration:
+            cur_item1 = done
+        try:
+            cur_item2 = next(iter2)
+        except StopIteration:
+            cur_item2 = done
 
-    val_it = get_iter(val)
-    other_it = get_iter(other)
+        if not approx_eq(cur_item1, cur_item2, atol=atol):
+            return False
 
-    if val_it is not None and other_it is not None:
-        while True:
-            try:
-                val_next = next(val_it)
-            except StopIteration:
-                try:
-                    next(other_it)
-                    return False
-                except StopIteration:
-                    return True
-
-            try:
-                other_next = next(other_it)
-            except StopIteration:
-                return False
-
-            result = approx_eq(val_next, other_next, atol=atol)
-            if result is not True:
-                return result
-
-    return NotImplemented
+    return True
 
 
 def _isclose(a: Any, b: Any, *, atol: Union[int, float]) -> bool:

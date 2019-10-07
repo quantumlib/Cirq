@@ -308,3 +308,19 @@ def test_op_gate_isinstance():
 
     assert not cirq.op_gate_isinstance(NonGateOperation(), cirq.XPowGate)
     assert not cirq.op_gate_isinstance(NonGateOperation(), NonGateOperation)
+
+
+def test_gate_on_operation_besides_gate_operation():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.op_gate_of_type(
+        -1j * cirq.X(a) * cirq.Y(b),
+        cirq.DensePauliString) == cirq.DensePauliString.from_text('-1j*XY')
+
+    assert cirq.op_gate_isinstance(
+        -1j * cirq.X(a) * cirq.Y(b),
+        cirq.DensePauliString)
+
+    assert not cirq.op_gate_isinstance(
+        -1j * cirq.X(a) * cirq.Y(b),
+        cirq.XPowGate)
