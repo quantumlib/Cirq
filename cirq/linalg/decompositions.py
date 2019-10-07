@@ -859,8 +859,8 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         single_qubit_operations_after=(a1, a0))
 
 
-def kak_vector(unitary: np.ndarray):
-    r"""Compute the KAK vectors of a two qubit unitary.
+def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray]) -> np.ndarray:
+    r"""Compute the KAK vectors of one or more two qubit unitaries.
 
     Any 2 qubit unitary may be expressed as
 
@@ -875,15 +875,29 @@ def kak_vector(unitary: np.ndarray):
     $$ \pi/2 - k_y \geq k_x \geq k_y \geq z \geq 0 $$
 
     Args:
-        unitary: Shape (...,4,4) unitary numpy.ndarray.
+        unitary: A unitary matrix, or a multi-dimensional array of unitary
+            matrices. Must have shape (..., 4, 4), where the last two axes are
+            for the unitary matrix and other axes are for broadcasting the kak
+            vector computation.
 
     Returns:
-        The KAK vector of the unitary, output shape (...,3).
+        The KAK vector of the given unitary or unitaries. The output shape is
+        the same as the input shape, except the two unitary matrix axes are
+        replaced by the kak vector axis (i.e. the output has shape
+        `unitary.shape[:-2] + (3,)`).
 
     References:
         The appendix section of "Lower bounds on the complexity of simulating
         quantum gates".
         http://arxiv.org/abs/quant-ph/0307190v1
+
+    Examples:
+        >>> cirq.kak_vector(np.eye(4))
+        array([0., 0., 0.])
+        >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
+        >>> cirq.kak_vector(unitaries) * 4/np.pi
+        array([[1., 0., 0.],
+               [1., 1., 0.]])
     """
     unitary = np.asarray(unitary)
 
