@@ -642,7 +642,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
                         for a in interactions]
     points = kak_vector(interactions) * 4 / np.pi
 
-    ax.scatter(*coord_transform(points), **kwargs)
+    ax.scatter(*np.moveaxis(points[..., (0, 2, 1)], -1, 0), **kwargs)
     ax.set_xlim(0, +1)
     ax.set_ylim(-1, +1)
     ax.set_zlim(0, +1)
