@@ -13,8 +13,7 @@
 # limitations under the License.
 import numbers
 from typing import (Union, List, Optional, Sequence, TYPE_CHECKING, Any, Tuple,
-                    TypeVar, Type, Iterable, SupportsComplex, \
-                    cast, Callable)
+                    TypeVar, Type, Iterable, cast, Callable)
 import abc
 
 import numpy as np
@@ -68,14 +67,15 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 values are supported.
 
         Examples:
-            >>> cirq.DensePauliString('XXIY')
+            >>> print(cirq.DensePauliString('XXIY'))
             +XXIY
 
-            >>> cirq.MutableDensePauliString('IIII', coefficient=-1)
-            -IIII (mutable)
+            >>> print(cirq.MutableDensePauliString('IZII', coefficient=-1))
+            -IZII (mutable)
 
-            >>> cirq.DensePauliString([0, 1, 2, 3], coefficient=2)
-            2*IXZY
+            >>> print(cirq.DensePauliString([0, 1, 2, 3],
+            ...                             coefficient=sympy.Symbol('t')))
+            t*IXZY
         """
         self.pauli_mask = _as_pauli_mask(pauli_mask)
         self.coefficient = (coefficient if isinstance(coefficient, sympy.Basic)
@@ -273,8 +273,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             coef = '+'
         elif self.coefficient == -1:
             coef = '-'
+        elif isinstance(self.coefficient, (complex, sympy.Symbol)):
+            coef = f'{self.coefficient}*'
         else:
-            coef = proper_repr(self.coefficient) + '*'
+            coef = f'({self.coefficient})*'
         mask = ''.join(PAULI_CHARS[p] for p in self.pauli_mask)
         return coef + mask
 

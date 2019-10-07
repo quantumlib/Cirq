@@ -163,6 +163,11 @@ def test_mul():
     assert f('X') * f('XXX') == f('IXX')
     assert f('XXX') * f('X') == f('IXX')
 
+    with pytest.raises(TypeError):
+        _ = f('I') * object()
+    with pytest.raises(TypeError):
+        _ = object() * f('I')
+
 
 def test_imul():
     f = cirq.DensePauliString
@@ -199,6 +204,8 @@ def test_imul():
 
     with pytest.raises(ValueError, match='smaller than'):
         p *= f('XXXXXXXXXXXX')
+    with pytest.raises(TypeError):
+        p *= object()
 
 
 def test_pos_neg():
@@ -286,6 +293,8 @@ def test_str():
     assert str((1 + 1j) * f('XXX')) == '(1+1j)*XXX'
     assert str(1j * f('XXX')) == '1j*XXX'
     assert str(-f('IXYZ')) == '-IXYZ'
+    assert str(f('XX', coefficient=sympy.Symbol('t') + 2)) == '(t + 2)*XX'
+    assert str(f('XX', coefficient=sympy.Symbol('t'))) == 't*XX'
 
 
 def test_repr():
@@ -337,6 +346,8 @@ def test_one_hot():
 
 
 def test_protocols():
+    t = sympy.Symbol('t')
+
     cirq.testing.assert_implements_consistent_protocols(
         cirq.DensePauliString('Y'))
     cirq.testing.assert_implements_consistent_protocols(
@@ -345,16 +356,29 @@ def test_protocols():
         1j * cirq.DensePauliString('X'))
     cirq.testing.assert_implements_consistent_protocols(
         2 * cirq.DensePauliString('X'))
-
+    cirq.testing.assert_implements_consistent_protocols(
+        t * cirq.DensePauliString('XYIZ'))
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.DensePauliString('XYIZ', coefficient=t + 2))
     cirq.testing.assert_implements_consistent_protocols(
         -cirq.DensePauliString('XYIZ'))
     cirq.testing.assert_implements_consistent_protocols(
         cirq.MutableDensePauliString('XYIZ', coefficient=-1))
 
+    # Unitarity and shape.
     assert cirq.has_unitary(1j * cirq.DensePauliString('X'))
     assert not cirq.has_unitary(2j * cirq.DensePauliString('X'))
+    assert not cirq.has_unitary(cirq.DensePauliString('X') * t)
     p = -cirq.DensePauliString('XYIZ')
     assert cirq.num_qubits(p) == len(p) == 4
+
+    # Parameterization.
+    x = cirq.DensePauliString('X')
+    assert not cirq.is_parameterized(x)
+    assert not cirq.is_parameterized(x * 2)
+    assert cirq.is_parameterized(x * t)
+    assert cirq.resolve_parameters(x * t, {'t': 2}) == x * 2
+    assert cirq.resolve_parameters(x * 3, {'t': 2}) == x * 3
 
 
 def test_item_immutable():
@@ -365,6 +389,8 @@ def test_item_immutable():
     assert p[2] == cirq.I
     assert p[3] == cirq.Z
 
+    with pytest.raises(TypeError):
+        _ = p["test"]
     with pytest.raises(IndexError):
         _ = p[4]
     with pytest.raises(TypeError):
@@ -387,8 +413,11 @@ def test_item_mutable():
     assert p[3] == cirq.Z
     with pytest.raises(IndexError):
         _ = p[4]
+    with pytest.raises(TypeError):
+        _ = p["test"]
+    with pytest.raises(TypeError):
+        p["test"] = _
 
-    # Mutable.
     p[2] = cirq.X
     assert p == m('XYXZ', coefficient=-1)
     p[3] = 'X'
