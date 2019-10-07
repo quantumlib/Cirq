@@ -39,58 +39,66 @@ def build_noisy_circuit(circuit, qubits):
   return noisy_circuit
 
 
-def simulate_trace(circuit, n):
+def simulate_trace(circuit, Pi):
   simulator = cirq.DensityMatrixSimulator()
 
+  n = len(Pi)
+  d = 2**n
+
+  rot = numpy.asarray([1], numpy.complex64)
+  for op in Pi:
+    if op == 'I':
+      rot = numpy.kron(rot, numpy.asarray([[1, 0], [0, 1]], numpy.complex64))
+    elif op == 'X':
+      rot = numpy.kron(rot, numpy.asarray([[0, 1], [1, 0]], numpy.complex64))
+    elif op == 'Y':
+      rot = numpy.kron(rot, numpy.asarray([[0, -1j], [1j, 0]], numpy.complex64))
+    elif op == 'Z':
+      rot = numpy.kron(rot, numpy.asarray([[1, 0], [0, -1]], numpy.complex64))
+
   trace = 0
-  for x in range(2 ** n):
-    y = simulator.simulate(circuit, initial_state=x).measurements['y']
+  for x in range(d):
     xbin = numpy.binary_repr(x, width=n)
+
+    xvec = numpy.zeros([d], numpy.complex64)
+    xvec[x] = 1
+
+    initial_state = numpy.matmul(rot, xvec)
+
+    y = simulator.simulate(circuit, initial_state=xvec).measurements['y']
     trace += sum([int(xbin[i]) == y[i] for i in range(n)])
+
   return trace
 
 
 def main():
   circuit, qubits = build_circuit()
-  wavefunction = circuit.final_wavefunction()
+  noisy_circuit = build_noisy_circuit(circuit, qubits)
+
+  circuit.append(cirq.measure(*qubits, key='y'))
+  noisy_circuit.append(cirq.measure(*qubits, key='y'))
 
   n = len(qubits)
   d = 2**n
 
   highest_probs = []
+  for i, Pi in enumerate(itertools.product({'I', 'X', 'Y', 'Z'}, repeat=n)):
+    rho_i = simulate_trace(circuit, Pi)
 
-  for i, pauli_ops in enumerate(
-      itertools.product({cirq.I, cirq.X, cirq.Y, cirq.Z}, repeat=n)):
-    pauli_string = cirq.PauliString(dict(zip(qubits, pauli_ops)))
-    display = cirq.approx_pauli_string_expectation(pauli_string, num_samples=n)
-
-    circuit_copy = circuit.copy()
-    circuit_copy.append(display.measurement_basis_change())
-    circuit_copy.append(cirq.measure(*qubits, key='y'))
-
-    rho_i = simulate_trace(circuit_copy, n)
     Pr_i = rho_i * rho_i / d
 
     if Pr_i > 0:
-      heapq.heappush(highest_probs, (Pr_i, rho_i, i, pauli_ops))
+      heapq.heappush(highest_probs, (Pr_i, rho_i, i, Pi))
     if len(highest_probs) > n:
       heapq.heappop(highest_probs)
-
-  noisy_circuit = build_noisy_circuit(circuit, qubits)
 
   fidelity = 0.0
   for prob_tuple in highest_probs:
     Pr_i = prob_tuple[0]
     rho_i = prob_tuple[1]
-    pauli_ops = prob_tuple[3]
+    Pi = prob_tuple[3]
 
-    pauli_string = cirq.PauliString(dict(zip(qubits, pauli_ops)))
-
-    circuit_copy = noisy_circuit.copy()
-    circuit_copy.append(display.measurement_basis_change())
-    circuit_copy.append(cirq.measure(*qubits, key='y'))
-
-    sigma_i = simulate_trace(circuit_copy, n)
+    sigma_i = simulate_trace(noisy_circuit, Pi)
 
     fidelity += Pr_i * sigma_i / rho_i
 
