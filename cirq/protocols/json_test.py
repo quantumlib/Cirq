@@ -153,6 +153,10 @@ TEST_OBJECTS = {
     ],
     'Duration':
     cirq.Duration(picos=6),
+    'DensePauliString':
+    cirq.DensePauliString.from_text('1j*XYZI'),
+    'MutableDensePauliString':
+    cirq.MutableDensePauliString.from_text('1j*XXZZ'),
     'FREDKIN':
     cirq.FREDKIN,
     'FSimGate':

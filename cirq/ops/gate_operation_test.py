@@ -317,10 +317,8 @@ def test_gate_on_operation_besides_gate_operation():
         -1j * cirq.X(a) * cirq.Y(b),
         cirq.DensePauliString) == cirq.DensePauliString.from_text('-1j*XY')
 
-    assert cirq.op_gate_isinstance(
-        -1j * cirq.X(a) * cirq.Y(b),
-        cirq.DensePauliString)
+    assert cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                   cirq.DensePauliString)
 
-    assert not cirq.op_gate_isinstance(
-        -1j * cirq.X(a) * cirq.Y(b),
-        cirq.XPowGate)
+    assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                       cirq.XPowGate)

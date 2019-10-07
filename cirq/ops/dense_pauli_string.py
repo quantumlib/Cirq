@@ -12,26 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numbers
-from typing import Union, List, Optional, Sequence, TYPE_CHECKING, Any, Tuple, TypeVar, Type, Iterable, SupportsComplex, \
-    cast
+from typing import (Union, List, Optional, Sequence, TYPE_CHECKING, Any, Tuple,
+                    TypeVar, Type, Iterable, SupportsComplex, \
+                    cast, Callable)
 import abc
+
+import numpy as np
 
 from cirq import protocols, linalg, value
 from cirq.ops import (raw_types, common_gates, pauli_gates, global_phase_op,
                       pauli_string, gate_operation)
-import numpy as np
-
 if TYPE_CHECKING:
     import cirq
 
 # Order is important! Index equals numeric value.
 PAULI_CHARS = 'IXZY'
 PAULI_GATES: List['cirq.Gate'] = [
-    common_gates.I, pauli_gates.X, pauli_gates.Z, pauli_gates.Y
+    # mypy false positive "Cannot determine type of 'I'"
+    common_gates.I,  # type: ignore
+    pauli_gates.X,
+    pauli_gates.Z,
+    pauli_gates.Y
 ]
 
-
 TCls = TypeVar('TCls', bound='BaseDensePauliString')
+
+
+def x():
+    y: DensePauliString = DensePauliString.from_text('test')
 
 
 @value.value_equality(approximate=True, distinct_child_types=True)
@@ -60,6 +68,9 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         self.pauli_mask = np.asarray(pauli_mask, dtype=np.uint8)
         self.coefficient = complex(coefficient)
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
+
     def _value_equality_values_(self):
         # Note: can't use pauli_mask directly.
         # Would cause approx_eq to false positive when atol > 1.
@@ -78,7 +89,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         mask = np.zeros(length, dtype=np.uint8)
         mask[index] = _pauli_index(pauli)
-        concrete_cls = DensePauliString if cls is BaseDensePauliString else cls
+        concrete_cls = cast(
+            Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(pauli_mask=mask)
 
     @classmethod
@@ -88,7 +100,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Args:
             length: The length of the dense pauli string.
         """
-        concrete_cls = DensePauliString if cls is BaseDensePauliString else cls
+        concrete_cls = cast(
+            Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(pauli_mask=np.zeros(length, dtype=np.uint8))
 
     def _num_qubits_(self):
@@ -96,7 +109,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def _has_unitary_(self):
         return not self._is_parameterized_() and (
-                abs(abs(self.coefficient) - 1) < 1e-8)
+            abs(abs(self.coefficient) - 1) < 1e-8)
 
     def _unitary_(self):
         if not self._has_unitary_():
@@ -118,7 +131,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             PAULI_GATES[p].on(q) for p, q in zip(self.pauli_mask, qubits) if p
         ]
         if self.coefficient != 1:
-            result.append(global_phase_op.GlobalPhaseOperation(self.coefficient))
+            result.append(global_phase_op.GlobalPhaseOperation(
+                self.coefficient))
         return result
 
     def _is_parameterized_(self):
@@ -170,13 +184,15 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             c = pauli_text[i]
             try:
                 pauli_mask[i] = PAULI_CHARS.index(c)
-            except IndexError:
+            except ValueError:
                 raise ValueError(
                     f'Text contains non-Pauli-character {repr(c)} in Pauli '
-                    f'part.  Valid Pauli characters are upper case IXYZ.\n'
+                    f'part. Use a * to separate coefficient prefix from the '
+                    f'Pauli part. Valid Pauli characters are upper case IXYZ.\n'
                     f'text={repr(text)}.')
 
-        concrete_cls = DensePauliString if cls is BaseDensePauliString else cls
+        concrete_cls = cast(
+            Callable, DensePauliString if cls is BaseDensePauliString else cls)
         return concrete_cls(coefficient=coefficient, pauli_mask=pauli_mask)
 
     def __getitem__(self, item):
@@ -207,24 +223,25 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             new_mask[:len(self.pauli_mask)] ^= self.pauli_mask
             new_mask[:len(other.pauli_mask)] ^= other.pauli_mask
             tweak = _vectorized_pauli_mul_phase(self.pauli_mask[:min_len],
-                                     other.pauli_mask[:min_len])
+                                                other.pauli_mask[:min_len])
             return DensePauliString(pauli_mask=new_mask,
                                     coefficient=self.coefficient *
                                     other.coefficient * tweak)
 
         if isinstance(other, numbers.Number):
-            return DensePauliString(
-                pauli_mask=self.pauli_mask,
-                coefficient=self.coefficient * complex(cast(SupportsComplex, other)))
+            return DensePauliString(pauli_mask=self.pauli_mask,
+                                    coefficient=self.coefficient *
+                                    complex(cast(SupportsComplex, other)))
 
         split = _attempt_value_to_pauli_index(other)
         if split is not None:
             p, i = split
             mask = np.copy(self.pauli_mask)
             mask[i] ^= p
-            return DensePauliString(pauli_mask=mask,
-                                    coefficient=self.coefficient *
-                                                _vectorized_pauli_mul_phase(self.pauli_mask[i], p))
+            return DensePauliString(
+                pauli_mask=mask,
+                coefficient=self.coefficient *
+                _vectorized_pauli_mul_phase(self.pauli_mask[i], p))
 
         return NotImplemented
 
@@ -237,9 +254,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             p, i = split
             mask = np.copy(self.pauli_mask)
             mask[i] ^= p
-            return DensePauliString(pauli_mask=mask,
-                                    coefficient=self.coefficient *
-                                                _vectorized_pauli_mul_phase(p, self.pauli_mask[i]))
+            return DensePauliString(
+                pauli_mask=mask,
+                coefficient=self.coefficient *
+                _vectorized_pauli_mul_phase(p, self.pauli_mask[i]))
 
         return NotImplemented
 
@@ -281,7 +299,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def _commutes_(self, other):
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
-            phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n], other.pauli_mask[:n])
+            phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n],
+                                                other.pauli_mask[:n])
             return phase == 1 or phase == -1
 
         # Single qubit Pauli operation.
@@ -304,7 +323,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def copy(self,
              coefficient: Optional[complex] = None,
-             pauli_mask: Union[None, Iterable[int], np.ndarray] = None) -> 'BaseDensePauliString':
+             pauli_mask: Union[None, Iterable[int], np.ndarray] = None
+            ) -> 'BaseDensePauliString':
         pass
 
 
@@ -322,7 +342,8 @@ class DensePauliString(BaseDensePauliString):
 
     def copy(self,
              coefficient: Optional[complex] = None,
-             pauli_mask: Union[None, Iterable[int], np.ndarray] = None) -> 'DensePauliString':
+             pauli_mask: Union[None, Iterable[int], np.ndarray] = None
+            ) -> 'DensePauliString':
         if pauli_mask is None and (coefficient is None or
                                    coefficient == self.coefficient):
             return self
@@ -368,7 +389,8 @@ class MutableDensePauliString(BaseDensePauliString):
                     f"self={repr(self)}\n"
                     f"other={repr(other)}")
             self_mask = self.pauli_mask[:len(other.pauli_mask)]
-            self.coefficient *= _vectorized_pauli_mul_phase(self_mask, other.pauli_mask)
+            self.coefficient *= _vectorized_pauli_mul_phase(
+                self_mask, other.pauli_mask)
             self.coefficient *= other.coefficient
             self_mask ^= other.pauli_mask
             return self
@@ -380,7 +402,8 @@ class MutableDensePauliString(BaseDensePauliString):
         split = _attempt_value_to_pauli_index(other)
         if split is not None:
             p, i = split
-            self.coefficient *= _vectorized_pauli_mul_phase(self.pauli_mask[i], p)
+            self.coefficient *= _vectorized_pauli_mul_phase(
+                self.pauli_mask[i], p)
             self.pauli_mask[i] ^= p
             return self
 
@@ -409,23 +432,16 @@ class MutableDensePauliString(BaseDensePauliString):
         if not rows:
             return
 
-        def sig(product: 'BaseDensePauliString') -> int:
-            t = 0
-            for p in product.pauli_mask:
-                t |= p
-            return t
-
         height = len(rows)
         width = len(rows[0])
         next_row = 0
+        xz = DensePauliString.X_MASK, DensePauliString.Z_MASK
 
-        for _ in range(width):
-            for pauli_base in [
-                    BaseDensePauliString.X_MASK, BaseDensePauliString.Z_MASK
-            ]:
+        for col in range(width):
+            for pauli_base in xz:
                 # Locate pivot row.
                 for k in range(next_row, height):
-                    if sig(rows[k]) & pauli_base:
+                    if rows[k].pauli_mask[col] & pauli_base:
                         pivot_row = k
                         break
                 else:
@@ -433,7 +449,7 @@ class MutableDensePauliString(BaseDensePauliString):
 
                 # Eliminate column entry in other rows.
                 for k in range(height):
-                    if pivot_row != k and sig(rows[k]) & pauli_base:
+                    if pivot_row != k and rows[k].pauli_mask[col] & pauli_base:
                         rows[k].__imul__(rows[pivot_row])
 
                 # Keep it sorted.
@@ -445,7 +461,8 @@ class MutableDensePauliString(BaseDensePauliString):
 
 
 def _pauli_index(val: Union[str, 'cirq.Gate']):
-    matcher = PAULI_CHARS if isinstance(val, str) else PAULI_GATES
+    matcher = cast(Sequence,
+                   PAULI_CHARS if isinstance(val, str) else PAULI_GATES)
     return matcher.index(val)
 
 
@@ -455,7 +472,7 @@ def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
         return None
 
     q = v.qubits[0]
-    from cirq import  devices
+    from cirq import devices
     if not isinstance(q, devices.LineQubit):
         raise ValueError(
             'Got a Pauli operation, but it was applied to a qubit type '

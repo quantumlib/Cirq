@@ -14,7 +14,7 @@
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
-                    TYPE_CHECKING, SupportsComplex)
+                    TYPE_CHECKING, SupportsComplex, List)
 
 import cmath
 import math
@@ -166,7 +166,9 @@ class PauliString(raw_types.Operation):
 
     @property
     def gate(self) -> 'cirq.DensePauliString':
-        order = [None, pauli_gates.X, pauli_gates.Z, pauli_gates.Y]
+        order: List[Optional[pauli_gates.Pauli]] = [
+            None, pauli_gates.X, pauli_gates.Z, pauli_gates.Y
+        ]
         from cirq.ops.dense_pauli_string import DensePauliString
         return DensePauliString(
             coefficient=self.coefficient,
