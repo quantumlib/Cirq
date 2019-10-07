@@ -486,17 +486,51 @@ class PauliSum:
         factory = type(self)
         return factory(-self._linear_dict)
 
-    def __imul__(self, a: value.Scalar):
-        self._linear_dict *= a
-        return self
+    # TODO: For all mul's, check that _every_ PauliSumLike type is supported
+    def __imul__(self, other: PauliSumLike):
+        if isinstance(other, (float, int, complex)):
+            self._linear_dict *= other
+            return self
+        # No convenient way to mutate paulistring members.
+        return self.__mul__(other)
 
-    def __mul__(self, a: value.Scalar):
-        result = self.copy()
-        result *= a
-        return result
+    def __mul__(self, other: PauliSumLike):
+        if isinstance(other, (float, int, complex)):
+            result = self.copy()
+            result *= other
+            return result
+        elif isinstance(other, PauliString):
+            return PauliSum.from_pauli_strings([term * other
+                                                for term in iter(self)])
+        elif isinstance(other, PauliSum):
+            return PauliSum.from_pauli_strings(
+                [term * other_term for term in iter(self)
+                 for other_term in iter(other)])
 
-    def __rmul__(self, a: value.Scalar):
-        return self.__mul__(a)
+        return NotImplemented
+
+    def __rmul__(self, other: PauliSumLike):
+        if isinstance(other, (float, int, complex)):
+            return self.__mul__(other)
+        elif isinstance(other, PauliString):
+            return PauliSum.from_pauli_strings([other * term
+                                                for term in iter(self)])
+        return NotImplemented
+
+    def __pow__(self, power: int):
+        if not isinstance(power, int):
+            # TODO: check if this actually is doable, via PauliStringPhasor interface?
+            raise TypeError("PauliSum exponentiation is only supported for "
+                            "int type. Instead, got {}".format(type(power)))
+        if power > 0:
+            base = self.copy()
+            for p in range(power - 1):
+                base *= base
+            return base
+
+        if power == -1:
+            # TODO: checkme... is pauli self-inverse?
+            return NotImplemented
 
     def __truediv__(self, a: value.Scalar):
         return self.__mul__(1 / a)

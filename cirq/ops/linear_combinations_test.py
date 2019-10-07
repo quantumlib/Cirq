@@ -967,6 +967,26 @@ def test_bad_arithmetic():
     with pytest.raises(TypeError):
         _ = psum / [1, 2, 3]
 
+    with pytest.raises(TypeError):
+        _ = psum ** 1.2
+
+    with pytest.raises(TypeError):
+        _ = psum ** "string"
+
+
+def test_mul_paulistring():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+
+    psum1 = cirq.X(q0) + 2 * cirq.Y(q0) + 3 * cirq.Z(q0)
+    assert psum1 * cirq.PauliString(cirq.X(q0)) == 
+    return
+
+def test_mul_paulisum():
+    return
+
+def test_pauli_sum_pow():
+    return
+
 
 def test_expectation_from_wavefunction_invalid_input():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
