@@ -117,6 +117,7 @@ from cirq.linalg import (
     is_unitary,
     kak_canonicalize_vector,
     kak_decomposition,
+    kak_vector,
     KakDecomposition,
     subwavefunction,
     kron,
