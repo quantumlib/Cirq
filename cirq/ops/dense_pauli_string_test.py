@@ -416,7 +416,7 @@ def test_item_mutable():
     with pytest.raises(TypeError):
         _ = p["test"]
     with pytest.raises(TypeError):
-        p["test"] = _
+        p["test"] = 'X'
 
     p[2] = cirq.X
     assert p == m('XYXZ', coefficient=-1)
@@ -479,23 +479,27 @@ def test_copy():
     p = -cirq.DensePauliString('XYZ')
     m = cirq.MutableDensePauliString('XYZ', coefficient=-1)
 
+    # Immutable copies.
     assert p.copy() is p
     assert p.frozen() is p
     assert p.mutable_copy() is not p
     assert p.mutable_copy() == m
 
+    # Mutable copies.
     assert m.copy() is not m
     assert m.copy() == m
     assert m.frozen() == p
     assert m.mutable_copy() is not m
     assert m.mutable_copy() == m
 
+    # Copy immutable with modifications.
     assert p.copy(coefficient=-1) is p
     assert p.copy(coefficient=-2) is not p
     assert p.copy(coefficient=-2) == -2 * cirq.DensePauliString('XYZ')
     assert p.copy(coefficient=-2,
                   pauli_mask=[2]) == -2 * cirq.DensePauliString('Z')
 
+    # Copy mutable with modifications.
     assert m.copy(coefficient=-1) is not m
     assert m.copy(coefficient=-2) is not m
     assert m.copy(coefficient=-2) == cirq.MutableDensePauliString(
@@ -504,6 +508,14 @@ def test_copy():
                   pauli_mask=[2
                              ]) == cirq.MutableDensePauliString('Z',
                                                                 coefficient=-2)
+
+    # Aliasing of the mask attribute when copying with modifications.
+    mask = np.array([1, 2, 3], dtype=np.uint8)
+    assert cirq.MutableDensePauliString(mask).copy().pauli_mask is not mask
+    assert cirq.MutableDensePauliString(mask).copy(
+        pauli_mask=mask).pauli_mask is mask
+    assert cirq.MutableDensePauliString('XYZ').copy(
+        pauli_mask=mask).pauli_mask is mask
 
 
 def test_gaussian_elimination():

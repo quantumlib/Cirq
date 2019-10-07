@@ -180,7 +180,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if isinstance(item, slice):
             return type(self)(coefficient=1, pauli_mask=self.pauli_mask[item])
 
-        return NotImplemented
+        raise TypeError(f'indices must be integers or slices, not {type(item)}')
 
     def __len__(self):
         return len(self.pauli_mask)
@@ -245,6 +245,15 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     def tensor_product(self,
                        other: 'BaseDensePauliString') -> 'DensePauliString':
+        """Concatenates dense pauli strings and multiplies their coefficients.
+
+        Args:
+            other: The dense pauli string to place after the end of this one.
+
+        Returns:
+            A dense pauli string with the concatenation of the paulis from the
+            two input pauli strings, and the product of their coefficients.
+        """
         return DensePauliString(
             coefficient=self.coefficient * other.coefficient,
             pauli_mask=np.concatenate([self.pauli_mask, other.pauli_mask]))
@@ -253,8 +262,21 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return DensePauliString(coefficient=abs(self.coefficient),
                                 pauli_mask=self.pauli_mask)
 
+    def on(self, *qubits) -> 'cirq.PauliString':
+        return self.sparse(qubits)
+
     def sparse(self, qubits: Optional[Sequence['cirq.Qid']] = None
               ) -> 'cirq.PauliString':
+        """A `cirq.PauliString` version of this dense pauli string.
+
+        Args:
+            qubits: The qubits to apply the Paulis to. Defaults to
+                `cirq.LineQubit.range(len(self))`.
+
+        Returns:
+            A `cirq.PauliString` with the non-identity operations from
+            this dense pauli string applied to appropriate qubits.
+        """
         if qubits is None:
             from cirq import devices
             qubits = devices.LineQubit.range(len(self))
@@ -302,18 +324,31 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def frozen(self) -> 'DensePauliString':
+        """A `cirq.DensePauliString` with the same contents."""
         return DensePauliString(coefficient=self.coefficient,
                                 pauli_mask=self.pauli_mask)
 
     def mutable_copy(self) -> 'MutableDensePauliString':
+        """A `cirq.MutableDensePauliString` with the same contents."""
         return MutableDensePauliString(coefficient=self.coefficient,
                                        pauli_mask=np.copy(self.pauli_mask))
 
     @abc.abstractmethod
     def copy(self,
              coefficient: Optional[complex] = None,
-             pauli_mask: Union[None, Iterable[int], np.ndarray] = None
+             pauli_mask: Union[None, str, Iterable[int], np.ndarray] = None
             ) -> 'BaseDensePauliString':
+        """Returns a copy with possibly modified contents.
+
+        Args:
+            coefficient: The new coefficient value. If not specified, defaults
+                to the current `coefficient` value.
+            pauli_mask: The new `pauli_mask` value. If not specified, defaults
+                to the current pauli mask value.
+
+        Returns:
+            A copied instance.
+        """
         pass
 
 
@@ -340,9 +375,8 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
-            if isinstance(value, (str, raw_types.Gate)):
-                self.pauli_mask[key] = _pauli_index(value)
-                return self
+            self.pauli_mask[key] = _pauli_index(value)
+            return self
 
         if isinstance(key, slice):
             if isinstance(value, BaseDensePauliString):
@@ -357,7 +391,7 @@ class MutableDensePauliString(BaseDensePauliString):
                 self.pauli_mask[key] = _as_pauli_mask(value)
             return self
 
-        return NotImplemented
+        raise TypeError(f'indices must be integers or slices, not {type(key)}')
 
     def __itruediv__(self, other):
         if isinstance(other, (sympy.Basic, numbers.Number)):
@@ -400,11 +434,10 @@ class MutableDensePauliString(BaseDensePauliString):
              coefficient: Optional[complex] = None,
              pauli_mask: Union[None, Iterable[int], np.ndarray] = None
             ) -> 'MutableDensePauliString':
-        return MutableDensePauliString(
-            coefficient=self.coefficient
-            if coefficient is None else coefficient,
-            pauli_mask=np.copy(
-                self.pauli_mask if pauli_mask is None else pauli_mask))
+        return MutableDensePauliString(coefficient=self.coefficient
+                                       if coefficient is None else coefficient,
+                                       pauli_mask=np.copy(self.pauli_mask)
+                                       if pauli_mask is None else pauli_mask)
 
     def __str__(self):
         return super().__str__() + ' (mutable)'
@@ -443,10 +476,13 @@ class MutableDensePauliString(BaseDensePauliString):
                 next_row += 1
 
 
-def _pauli_index(val: Union[str, 'cirq.Gate']):
-    matcher = cast(Sequence,
-                   PAULI_CHARS if isinstance(val, str) else PAULI_GATES)
-    return matcher.index(val)
+def _pauli_index(val: Any):
+    if isinstance(val, str):
+        return PAULI_CHARS.index(val)
+    if isinstance(val, raw_types.Gate):
+        return PAULI_GATES.index(val)
+    raise TypeError(f'Expected a Pauli character (IXYZ) or gate but '
+                    f'got {repr(val)}.')
 
 
 def _as_pauli_mask(val: Union[str, Iterable[int], np.ndarray]) -> np.ndarray:
