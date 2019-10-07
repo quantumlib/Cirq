@@ -859,7 +859,8 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         single_qubit_operations_after=(a1, a0))
 
 
-def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray]) -> np.ndarray:
+def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
+               atol: float = 1e-9) -> np.ndarray:
     r"""Compute the KAK vectors of one or more two qubit unitaries.
 
     Any 2 qubit unitary may be expressed as
@@ -868,17 +869,16 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray]) -> np.ndarray:
     where $k_l, k_r$ are single qubit (local) unitaries and
     $$A= \exp\left(i\sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma{s}^{(0)}\right)$$
 
-    where $(k_x,k_y,k_z)$ is in the Weyl chamber, a tetrahedron with corners
-    $$ (0,0,0), (\pi/2,0,0), (\pi/4, \pi/4 ,0), (\pi/4, \pi/4, \pi/4) $$
-
     The vector entries are ordered such that
-    $$ \pi/2 - k_y \geq k_x \geq k_y \geq z \geq 0 $$
+        $$ 0 ≤ abs(k_z) ≤ k_y ≤ k_x ≤ π/4 $$
+            if $k_x$ = π/4, $k_z \geq 0$
 
     Args:
         unitary: A unitary matrix, or a multi-dimensional array of unitary
             matrices. Must have shape (..., 4, 4), where the last two axes are
             for the unitary matrix and other axes are for broadcasting the kak
             vector computation.
+        atol: How close $k_x$ must be to π/4 to guarantee $k_z$ >= 0.
 
     Returns:
         The KAK vector of the given unitary or unitaries. The output shape is
@@ -926,10 +926,10 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray]) -> np.ndarray:
 
     k_vec = (np.einsum('ab,...b', KAK_GAMMA, S2))[..., 1:] / 2
 
-    return _canonicalize_kak_vector(k_vec)
+    return _canonicalize_kak_vector(k_vec, atol)
 
 
-def _canonicalize_kak_vector(k_vec: np.ndarray) -> np.ndarray:
+def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     r"""Map a KAK vector into its Weyl chamber equivalent vector.
 
     This implementation is vectorized but does produce the single qubit
@@ -939,6 +939,7 @@ def _canonicalize_kak_vector(k_vec: np.ndarray) -> np.ndarray:
         k_vec: THe KAK vector to be canonicalized. This input may be vectorized,
             with shape (...,3), where the final axis denotes the k_vector and
             all other axes are broadcast.
+        atol: How close x2 must be to π/4 to guarantee z2 >= 0.
 
     Returns:
         The canonicalized decomposition, with vector coefficients (x2, y2, z2)
@@ -967,7 +968,7 @@ def _canonicalize_kak_vector(k_vec: np.ndarray) -> np.ndarray:
         k_vec[y_negative, 2] *= -1
 
     # If x = π/4, force z to be positive.
-    x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=1e-8)
+    x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=atol)
     z_is_negative = k_vec[..., 2] < 0
     need_diff = np.logical_and(x_is_pi_over_4, z_is_negative)
     if np.any(need_diff):  # -1 to x and z components, then shift x up by pi/4
