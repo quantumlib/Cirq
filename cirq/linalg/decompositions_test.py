@@ -613,12 +613,12 @@ def test_KAK_vector_local_invariants_random_input():
 
 @pytest.mark.parametrize('unitary,expected',
                          ((np.eye(4), (0, 0, 0)),
-                          (SWAP, np.ones((3,)) * np.pi / 4),
-                          (SWAP * 1j, np.ones((3,)) * np.pi / 4),
+                          (SWAP, [np.pi / 4] * 3),
+                          (SWAP * 1j, [np.pi / 4] * 3),
                           (CNOT, [np.pi / 4, 0, 0]),
                           (CZ, [np.pi / 4, 0, 0]),
-                          (CZ @ SWAP, [np.pi / 4, np.pi / 4, 0])
-                          ))
-def test_KAK_vector_common_unitaries(unitary, expected):
+                          (CZ @ SWAP, [np.pi / 4, np.pi / 4, 0]),
+                          (np.kron(X, X), (0, 0, 0))))
+def test_KAK_vector_weyl_chamber_vertices(unitary, expected):
     actual = kak_vector(unitary)
     np.testing.assert_almost_equal(actual, expected)
