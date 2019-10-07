@@ -854,3 +854,98 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         global_phase=g * inner_cannon.global_phase,
         single_qubit_operations_before=(b1, b0),
         single_qubit_operations_after=(a1, a0))
+
+
+def kak_vector(unitary: np.ndarray):
+    r"""Compute the KAK vectors of a two qubit unitary.
+
+    Any 2 qubit unitary may be expressed as
+
+    $$ U = k_l A k_r $$
+    where $k_l, k_r$ are single qubit (local) unitaries and
+    $$ A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{j,0}\sigma{j,1} ) $$
+
+    where $(k_x,k_y,k_z)$ is in the Weyl chamber, a tetrahedron with corners
+    $$(0,0,0), (\pi/2,0,0), (\pi/4,pi/4,0), (\pi/4,\pi/4,\pi/4)$$
+
+    The vector entries are ordered such that
+    $$ \pi/2 - k_y \geq k_x \geq k_y \geq z \geq 0 $$
+
+    Args:
+        unitary: Shape (...,4,4) unitary numpy.ndarray.
+
+    Returns:
+        The KAK vector of the unitary, output shape (...,3).
+
+    References:
+        The appendix section of "Lower bounds on the complexity of simulating
+        quantum gates".
+        http://arxiv.org/abs/quant-ph/0307190v1
+    """
+    unitary = np.asarray(unitary)
+
+    UB = np.einsum('...ab,...bc,...cd', MAGIC_CONJ_T, unitary, MAGIC)
+
+    m = np.einsum('...ab,...cb', UB, UB)
+
+    evals, _ = np.linalg.eig(m)
+
+    # The algorithm in the appendix mentioned above is slightly incorrect in
+    # that it only works for elements of SU(4). A phase correction must be
+    # added to deal with U(4).
+    phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
+    evals *= np.exp(-1j * phases / 2)[..., np.newaxis]
+
+    # The following steps follow the appendix exactly.
+    S2 = np.log(-1j * evals).imag + np.pi / 2
+    S2 = np.sort(S2, axis=-1)[..., ::-1]
+
+    n_shifted = (np.round(S2.sum(axis=-1) / (2 * np.pi))).astype(int)
+    for n in range(1, 5):
+        S2[n_shifted == n, :n] -= 2 * np.pi
+
+    # Fix pathological case of SWAP gate
+    S2[n_shifted == -1, :3] += 2 * np.pi
+
+    k_vec = (np.einsum('ab,...b', KAK_GAMMA, S2))[..., 1:] / 2
+
+    return _canonicalize_kak_vector(k_vec)
+
+
+def _canonicalize_kak_vector(k_vec: np.ndarray) -> np.ndarray:
+    r"""Map a KAK vector into its Weyl chamber equivalent vector.
+
+    This implementation is vectorized but does produce the single qubit
+    unitaries required to bring the KAK vector into canonical form.
+
+    The vector entries are ordered such that
+    $$ \pi/2 - k_y \geq k_x \geq k_y \geq z \geq 0 $$
+
+    Args:
+        k_vec: THe KAK vector to be canonicalized. Shape (...,3).
+
+    Returns:
+        The locally equivalent KAK vector within the Weyl chamber, as specified
+        in arxiv:quant-ph/0507171. Its shape matches the input, k_vec.
+    """
+
+    # Follow canonicalization procedure as in arxiv:quant-ph/0507171
+    k_vec = np.mod(k_vec, np.pi / 2)
+    k_vec = np.sort(k_vec, axis=-1)[..., ::-1]
+
+    too_big = k_vec[..., 0] + k_vec[..., 1] > np.pi / 2
+    if np.any(too_big):
+        k_vec[too_big, :2] = np.pi / 2 - k_vec[too_big, ::-1][..., 1:]
+        k_vec = np.sort(k_vec, axis=-1)[..., ::-1]
+
+    # The final step of the canonicalization only occurs if the last KAK vector
+    # is zero. Instead we apply this step if kz is epsilon close to zero. In
+    # pathological cases this may produce KAK vectors that are infinitesimally
+    # outside the Weyl chamber.
+    is_zero = np.isclose(k_vec[..., 2], 0, atol=1e-8)
+    too_big = k_vec[..., 0] > np.pi / 4
+    need_diff = np.logical_and(is_zero, too_big)
+    if np.any(need_diff):
+        k_vec[need_diff, 0] = np.pi / 2 - k_vec[need_diff, 0]
+
+    return k_vec
