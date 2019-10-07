@@ -164,6 +164,14 @@ class PauliString(raw_types.Operation):
                            qubit_pauli_map=self._qubit_pauli_map,
                            coefficient=self.coefficient)
 
+    @property
+    def gate(self) -> 'cirq.DensePauliString':
+        order = [None, pauli_gates.X, pauli_gates.Z, pauli_gates.Y]
+        from cirq.ops.dense_pauli_string import DensePauliString
+        return DensePauliString(
+            coefficient=self.coefficient,
+            pauli_mask=[order.index(self[q]) for q in self.qubits])
+
     def __rmul__(self, other) -> 'PauliString':
         if isinstance(other, numbers.Number):
             return PauliString(qubit_pauli_map=self._qubit_pauli_map,
