@@ -50,11 +50,6 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    ISWAP,
-    ISwapPowGate,
-    I,
-    identity,
-    IdentityGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -106,6 +101,7 @@ from cirq.ops.gate_operation import (
 
 from cirq.ops.identity import (
     I,
+    identity,
     IdentityGate,
     IdentityOperation,
 )
