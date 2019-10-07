@@ -866,10 +866,10 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray]) -> np.ndarray:
 
     $$ U = k_l A k_r $$
     where $k_l, k_r$ are single qubit (local) unitaries and
-    $$ A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{j,0}\sigma{j,1} ) $$
+    $$A= \exp\left(i\sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma{s}^{(0)}\right)$$
 
     where $(k_x,k_y,k_z)$ is in the Weyl chamber, a tetrahedron with corners
-    $$(0,0,0), (\pi/2,0,0), (\pi/4,pi/4,0), (\pi/4,\pi/4,\pi/4)$$
+    $$ (0,0,0), (\pi/2,0,0), (\pi/4, \pi/4 ,0), (\pi/4, \pi/4, \pi/4) $$
 
     The vector entries are ordered such that
     $$ \pi/2 - k_y \geq k_x \geq k_y \geq z \geq 0 $$
