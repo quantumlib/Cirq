@@ -18,8 +18,10 @@ from typing import (Union, List, Optional, Sequence, TYPE_CHECKING, Any, Tuple,
 import abc
 
 import numpy as np
+import sympy
 
 from cirq import protocols, linalg, value
+from cirq._compat import proper_repr
 from cirq.ops import (raw_types, common_gates, pauli_gates, global_phase_op,
                       pauli_string, gate_operation)
 if TYPE_CHECKING:
@@ -38,10 +40,6 @@ PAULI_GATES: List['cirq.Gate'] = [
 TCls = TypeVar('TCls', bound='BaseDensePauliString')
 
 
-def x():
-    y: DensePauliString = DensePauliString.from_text('test')
-
-
 @value.value_equality(approximate=True, distinct_child_types=True)
 class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     """Parent class for `DensePauliString` and `MutableDensePauliString`."""
@@ -52,21 +50,38 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     Y_MASK = X_MASK | Z_MASK
 
     def __init__(self,
+                 pauli_mask: Union[str, Iterable[int], np.ndarray],
                  *,
-                 pauli_mask: Union[Iterable[int], np.ndarray],
-                 coefficient: Union[int, float, complex] = 1):
+                 coefficient: Union[sympy.Basic, int, float, complex] = 1):
         """Initializes a new dense pauli string.
 
         Args:
-            pauli_mask: A compact representation of the Pauli gates to use.
-                Each entry in the array is a Pauli, with 0=I, 1=X, 2=Z, 3=Y.
-                Must be a 1-dimensional uint8 numpy array containing no value
-                larger than 3.
+            pauli_mask: A specification of the Pauli gates to use. This argument
+                can be a string like "IXYYZ", or a numeric list like
+                [0, 1, 3, 2] with I=0, X=1, Z=2, Y=3=X|Z.
+
+                The internal representation is a 1-dimensional uint8 numpy array
+                containing numeric values. If such a numpy array is given, and
+                the pauli string is mutable, the argument will be used directly
+                instead of being copied.
             coefficient: A complex number. Usually +1, -1, 1j, or -1j but other
                 values are supported.
+
+        Examples:
+            >>> cirq.DensePauliString('XXIY')
+            +XXIY
+
+            >>> cirq.MutableDensePauliString('IIII', coefficient=-1)
+            -IIII (mutable)
+
+            >>> cirq.DensePauliString([0, 1, 2, 3], coefficient=2)
+            2*IXZY
         """
-        self.pauli_mask = np.asarray(pauli_mask, dtype=np.uint8)
-        self.coefficient = complex(coefficient)
+        self.pauli_mask = _as_pauli_mask(pauli_mask)
+        self.coefficient = (coefficient if isinstance(coefficient, sympy.Basic)
+                            else complex(coefficient))
+        if type(self) != MutableDensePauliString:
+            self.pauli_mask = np.copy(self.pauli_mask)
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
@@ -158,43 +173,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                                     pauli_mask=self.pauli_mask)
         return NotImplemented
 
-    @classmethod
-    def from_text(cls: Type[TCls], text: str) -> TCls:
-        # Separate into coefficient and pauli text.
-        if '*' in text:
-            parts = text.split('*')
-            if len(parts) != 2:
-                raise ValueError(
-                    f'Pauli strings text cannot contain two "*"s.\n'
-                    f'text={repr(text)}.')
-            coefficient = complex(parts[0])
-            pauli_text = parts[1]
-        elif text.startswith('+'):
-            coefficient = 1
-            pauli_text = text[1:]
-        elif text.startswith('-'):
-            coefficient = -1
-            pauli_text = text[1:]
-        else:
-            coefficient = 1
-            pauli_text = text
-
-        pauli_mask = np.zeros(len(pauli_text), dtype=np.uint8)
-        for i in range(len(pauli_text)):
-            c = pauli_text[i]
-            try:
-                pauli_mask[i] = PAULI_CHARS.index(c)
-            except ValueError:
-                raise ValueError(
-                    f'Text contains non-Pauli-character {repr(c)} in Pauli '
-                    f'part. Use a * to separate coefficient prefix from the '
-                    f'Pauli part. Valid Pauli characters are upper case IXYZ.\n'
-                    f'text={repr(text)}.')
-
-        concrete_cls = cast(
-            Callable, DensePauliString if cls is BaseDensePauliString else cls)
-        return concrete_cls(coefficient=coefficient, pauli_mask=pauli_mask)
-
     def __getitem__(self, item):
         if isinstance(item, int):
             return PAULI_GATES[self.pauli_mask[item]]
@@ -212,8 +190,10 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                                 pauli_mask=self.pauli_mask)
 
     def __truediv__(self, other):
-        if isinstance(other, numbers.Number):
+        if isinstance(other, (sympy.Basic, numbers.Number)):
             return self.__mul__(1 / other)
+
+        return NotImplemented
 
     def __mul__(self, other):
         if isinstance(other, BaseDensePauliString):
@@ -228,10 +208,12 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                                     coefficient=self.coefficient *
                                     other.coefficient * tweak)
 
-        if isinstance(other, numbers.Number):
+        if isinstance(other, (sympy.Basic, numbers.Number)):
+            new_coef = protocols.mul(self.coefficient, other, default=None)
+            if new_coef is None:
+                return NotImplemented
             return DensePauliString(pauli_mask=self.pauli_mask,
-                                    coefficient=self.coefficient *
-                                    complex(cast(SupportsComplex, other)))
+                                    coefficient=new_coef)
 
         split = _attempt_value_to_pauli_index(other)
         if split is not None:
@@ -246,7 +228,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, numbers.Number):
+        if isinstance(other, (sympy.Basic, numbers.Number)):
             return self.__mul__(other)
 
         split = _attempt_value_to_pauli_index(other)
@@ -292,9 +274,14 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         elif self.coefficient == -1:
             coef = '-'
         else:
-            coef = repr(self.coefficient) + '*'
+            coef = proper_repr(self.coefficient) + '*'
         mask = ''.join(PAULI_CHARS[p] for p in self.pauli_mask)
         return coef + mask
+
+    def __repr__(self):
+        paulis = ''.join(PAULI_CHARS[p] for p in self.pauli_mask)
+        return (f'cirq.{type(self).__name__}({repr(paulis)}, '
+                f'coefficient={proper_repr(self.coefficient)})')
 
     def _commutes_(self, other):
         if isinstance(other, BaseDensePauliString):
@@ -330,13 +317,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class DensePauliString(BaseDensePauliString):
 
-    def __init__(self,
-                 *,
-                 pauli_mask: Union[Iterable[int], np.ndarray],
-                 coefficient: Union[int, float, complex] = 1):
-        super().__init__(coefficient=coefficient,
-                         pauli_mask=np.array(pauli_mask, dtype=np.uint8))
-
     def frozen(self) -> 'DensePauliString':
         return self
 
@@ -352,9 +332,6 @@ class DensePauliString(BaseDensePauliString):
             if coefficient is None else coefficient,
             pauli_mask=self.pauli_mask if pauli_mask is None else pauli_mask)
 
-    def __repr__(self):
-        return f'cirq.DensePauliString.from_text({repr(str(self))})'
-
 
 @value.value_equality(unhashable=True, approximate=True)
 class MutableDensePauliString(BaseDensePauliString):
@@ -366,8 +343,6 @@ class MutableDensePauliString(BaseDensePauliString):
                 return self
 
         if isinstance(key, slice):
-            if isinstance(value, str):
-                value = BaseDensePauliString.from_text(value)
             if isinstance(value, BaseDensePauliString):
                 if value.coefficient != 1:
                     raise ValueError(
@@ -376,8 +351,15 @@ class MutableDensePauliString(BaseDensePauliString):
                         "\nWorkaround: If you just want to ignore the "
                         "coefficient, do `= value[:]` instead of `= value`.")
                 self.pauli_mask[key] = value.pauli_mask
-                return self
+            else:
+                self.pauli_mask[key] = _as_pauli_mask(value)
+            return self
 
+        return NotImplemented
+
+    def __itruediv__(self, other):
+        if isinstance(other, (sympy.Basic, numbers.Number)):
+            return self.__imul__(1 / other)
         return NotImplemented
 
     def __imul__(self, other):
@@ -395,8 +377,11 @@ class MutableDensePauliString(BaseDensePauliString):
             self_mask ^= other.pauli_mask
             return self
 
-        if isinstance(other, numbers.Number):
-            self.coefficient *= complex(cast(SupportsComplex, other))
+        if isinstance(other, (sympy.Basic, numbers.Number)):
+            new_coef = protocols.mul(self.coefficient, other, default=None)
+            if new_coef is None:
+                return NotImplemented
+            self.coefficient = new_coef
             return self
 
         split = _attempt_value_to_pauli_index(other)
@@ -421,10 +406,6 @@ class MutableDensePauliString(BaseDensePauliString):
 
     def __str__(self):
         return super().__str__() + ' (mutable)'
-
-    def __repr__(self):
-        return f'cirq.MutableDensePauliString.from_text' \
-               f'({repr(BaseDensePauliString.__str__(self))})'
 
     @classmethod
     def inline_gaussian_elimination(cls, rows: 'List[MutableDensePauliString]'
@@ -464,6 +445,25 @@ def _pauli_index(val: Union[str, 'cirq.Gate']):
     matcher = cast(Sequence,
                    PAULI_CHARS if isinstance(val, str) else PAULI_GATES)
     return matcher.index(val)
+
+
+def _as_pauli_mask(val: Union[str, Iterable[int], np.ndarray]) -> np.ndarray:
+    if isinstance(val, str):
+        return _str_to_pauli_mask(val)
+    return np.asarray(val, dtype=np.uint8)
+
+
+def _str_to_pauli_mask(text: str) -> np.ndarray:
+    result = np.zeros(len(text), dtype=np.uint8)
+    for i in range(len(text)):
+        c = text[i]
+        try:
+            result[i] = PAULI_CHARS.index(c)
+        except ValueError:
+            raise ValueError(
+                f'Not a Pauli character: {repr(c)}. Valid Pauli characters are '
+                f'upper case IXYZ.\ntext={repr(text)}.')
+    return result
 
 
 def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:

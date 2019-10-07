@@ -315,7 +315,7 @@ def test_gate_on_operation_besides_gate_operation():
 
     assert cirq.op_gate_of_type(
         -1j * cirq.X(a) * cirq.Y(b),
-        cirq.DensePauliString) == cirq.DensePauliString.from_text('-1j*XY')
+        cirq.DensePauliString) == -1j * cirq.DensePauliString('XY')
 
     assert cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
                                    cirq.DensePauliString)
