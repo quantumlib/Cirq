@@ -36,3 +36,6 @@ docs/generated
 
 # Ignore Bazel files
 /bazel-*
+
+# Default pycharm virtual env
+.venv/
