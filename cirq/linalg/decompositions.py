@@ -869,11 +869,12 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray], *,
 
     $$ U = k_l A k_r $$
     where $k_l, k_r$ are single qubit (local) unitaries and
-    $$A= \exp\left(i\sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma{s}^{(0)}\right)$$
+    $$A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)}
+                                         \sigma_{s}^{(0)}\right)$$
 
     The vector entries are ordered such that
-        $$ 0 ≤ abs(k_z) ≤ k_y ≤ k_x ≤ π/4 $$
-            if $k_x$ = π/4, $k_z \geq 0$
+        $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
+    if $k_x$ = π/4, $k_z \geq 0$
 
     Args:
         unitary: A unitary matrix, or a multi-dimensional array of unitary
@@ -903,7 +904,7 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray], *,
         >>> cirq.kak_vector(np.eye(4))
         array([0., 0., 0.])
         >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
-        >>> cirq.kak_vector(unitaries) * 4/np.pi
+        >>> cirq.kak_vector(unitaries) * 4 / np.pi
         array([[ 1.,  0., -0.],
                [ 1.,  1.,  0.]])
     """
