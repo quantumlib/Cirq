@@ -636,11 +636,14 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ]
         ax.plot(*coord_transform(envelope), c='black', linewidth=1)
 
-    points = []
-    for obj in interactions:
-        kak = kak_decomposition(obj)
-        normalized = np.array(kak.interaction_coefficients) * 4 / np.pi
-        points.append(normalized)
+    # parse input and extract KAK vector
+    if not isinstance(interactions, np.ndarray):
+        interactions = [
+            a if isinstance(a, np.ndarray) else protocols.unitary(a)
+            for a in interactions
+        ]
+
+    points = kak_vector(interactions) * 4 / np.pi
 
     ax.scatter(*coord_transform(points), **kwargs)
     ax.set_xlim(0, +1)
@@ -854,3 +857,145 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         global_phase=g * inner_cannon.global_phase,
         single_qubit_operations_before=(b1, b0),
         single_qubit_operations_after=(a1, a0))
+
+
+def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
+               *,
+               rtol: float = 1e-5,
+               atol: float = 1e-8,
+               check_preconditions: bool = True) -> np.ndarray:
+    r"""Compute the KAK vectors of one or more two qubit unitaries.
+
+    Any 2 qubit unitary may be expressed as
+
+    $$ U = k_l A k_r $$
+    where $k_l, k_r$ are single qubit (local) unitaries and
+
+    $$ A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma_{s}^{(1)}
+                 \right) $$
+
+    The vector entries are ordered such that
+        $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
+    if $k_x$ = π/4, $k_z \geq 0$.
+
+    Args:
+        unitary: A unitary matrix, or a multi-dimensional array of unitary
+            matrices. Must have shape (..., 4, 4), where the last two axes are
+            for the unitary matrix and other axes are for broadcasting the kak
+            vector computation.
+        rtol: Per-matrix-entry relative tolerance on equality. Used in unitarity
+            check of input.
+        atol: Per-matrix-entry absolute tolerance on equality. Used in unitarity
+            check of input. This also determines how close $k_x$ must be to π/4
+            to guarantee $k_z$ ≥ 0. Must be non-negative.
+        check_preconditions: When set to False, skips verifying that the input
+            is unitary in order to increase performance.
+
+    Returns:
+        The KAK vector of the given unitary or unitaries. The output shape is
+        the same as the input shape, except the two unitary matrix axes are
+        replaced by the kak vector axis (i.e. the output has shape
+        `unitary.shape[:-2] + (3,)`).
+
+    References:
+        The appendix section of "Lower bounds on the complexity of simulating
+        quantum gates".
+        http://arxiv.org/abs/quant-ph/0307190v1
+
+    Examples:
+        >>> cirq.kak_vector(np.eye(4))
+        array([0., 0., 0.])
+        >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
+        >>> cirq.kak_vector(unitaries) * 4 / np.pi
+        array([[ 1.,  0., -0.],
+               [ 1.,  1.,  0.]])
+    """
+    unitary = np.asarray(unitary)
+
+    if unitary.ndim < 2 or unitary.shape[-2:] != (4, 4):
+        raise ValueError(f'Expected input unitary to have shape (...,4,4), but'
+                         f'got {unitary.shape}.')
+
+    if atol < 0:
+        raise ValueError(f'Input atol must be positive, got {atol}.')
+
+    if check_preconditions:
+        actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
+        if not np.allclose(actual, np.zeros_like(actual), rtol, atol):
+            raise ValueError(
+                'Input must correspond to a 4x4 unitary matrix or tensor of '
+                f'unitary matrices. Received input:\n{unitary}')
+
+    UB = np.einsum('...ab,...bc,...cd', MAGIC_CONJ_T, unitary, MAGIC)
+
+    m = np.einsum('...ab,...cb', UB, UB)
+
+    evals, _ = np.linalg.eig(m)
+
+    # The algorithm in the appendix mentioned above is slightly incorrect in
+    # that it only works for elements of SU(4). A phase correction must be
+    # added to deal with U(4).
+    phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
+    evals *= np.exp(-1j * phases / 2)[..., np.newaxis]
+
+    # The following steps follow the appendix exactly.
+    S2 = np.log(-1j * evals).imag + np.pi / 2
+    S2 = np.sort(S2, axis=-1)[..., ::-1]
+
+    n_shifted = (np.round(S2.sum(axis=-1) / (2 * np.pi))).astype(int)
+    for n in range(1, 5):
+        S2[n_shifted == n, :n] -= 2 * np.pi
+
+    # Fix pathological case of SWAP gate
+    S2[n_shifted == -1, :3] += 2 * np.pi
+
+    k_vec = (np.einsum('ab,...b', KAK_GAMMA, S2))[..., 1:] / 2
+
+    return _canonicalize_kak_vector(k_vec, atol)
+
+
+def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
+    r"""Map a KAK vector into its Weyl chamber equivalent vector.
+
+    This implementation is vectorized but does not produce the single qubit
+    unitaries required to bring the KAK vector into canonical form.
+
+    Args:
+        k_vec: THe KAK vector to be canonicalized. This input may be vectorized,
+            with shape (...,3), where the final axis denotes the k_vector and
+            all other axes are broadcast.
+        atol: How close x2 must be to π/4 to guarantee z2 >= 0.
+
+    Returns:
+        The canonicalized decomposition, with vector coefficients (x2, y2, z2)
+        satisfying:
+
+            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
+            if x2 = π/4, z2 >= 0
+        The output is vectorized, with shape k_vec.shape[:-1] + (3,).
+    """
+
+    # Get all strengths to (-¼π, ¼π]
+    k_vec = np.mod(k_vec + np.pi / 4, np.pi / 2) - np.pi / 4
+
+    # Sort in descending order with respect to absolute value.
+    order = np.argsort(np.abs(k_vec), axis=-1)
+    k_vec = np.take_along_axis(k_vec, order, axis=-1)[..., ::-1]
+
+    # Multiply x,z and y,z components by -1 to fix x,y sign.
+    x_negative = k_vec[..., 0] < 0
+    k_vec[x_negative, 0] *= -1
+    k_vec[x_negative, 2] *= -1
+    y_negative = k_vec[..., 1] < 0
+    k_vec[y_negative, 1] *= -1
+    k_vec[y_negative, 2] *= -1
+
+    # If x = π/4, force z to be positive.
+    x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=atol)
+    z_is_negative = k_vec[..., 2] < 0
+    need_diff = np.logical_and(x_is_pi_over_4, z_is_negative)
+    # -1 to x and z components, then shift x up by pi/2. Since x is pi/4, we
+    # actually do nothing to that index.
+    k_vec[need_diff, 2] *= -1
+
+    return k_vec
