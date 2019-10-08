@@ -75,7 +75,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
             >>> print(cirq.DensePauliString([0, 1, 2, 3],
             ...                             coefficient=sympy.Symbol('t')))
-            t*IXZY
+            t*IXYZ
         """
         self.pauli_mask = _as_pauli_mask(pauli_mask)
         self.coefficient = (coefficient if isinstance(coefficient, sympy.Basic)
@@ -349,7 +349,6 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Returns:
             A copied instance.
         """
-        pass
 
 
 class DensePauliString(BaseDensePauliString):

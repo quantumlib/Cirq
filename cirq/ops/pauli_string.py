@@ -167,7 +167,7 @@ class PauliString(raw_types.Operation):
     @property
     def gate(self) -> 'cirq.DensePauliString':
         order: List[Optional[pauli_gates.Pauli]] = [
-            None, pauli_gates.X, pauli_gates.Z, pauli_gates.Y
+            None, pauli_gates.X, pauli_gates.Y, pauli_gates.Z
         ]
         from cirq.ops.dense_pauli_string import DensePauliString
         return DensePauliString(

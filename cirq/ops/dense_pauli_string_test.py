@@ -672,6 +672,15 @@ def test_gaussian_elimination():
     )
 
 
+def test_idiv():
+    p = cirq.MutableDensePauliString('XYZ', coefficient=2)
+    p /= 2
+    assert p == cirq.MutableDensePauliString('XYZ')
+
+    with pytest.raises(TypeError):
+        p /= object()
+
+
 def test_symbolic():
     t = sympy.Symbol('t')
     r = sympy.Symbol('r')
