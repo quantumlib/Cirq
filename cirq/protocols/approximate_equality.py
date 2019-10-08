@@ -103,6 +103,7 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     if isinstance(val, Iterable) and isinstance(other, Iterable):
         return _approx_eq_iterables(val, other, atol=atol)
 
+    # Last resort: exact equality.
     return val == other
 
 
