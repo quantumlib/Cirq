@@ -888,8 +888,8 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
         atol: Per-matrix-entry absolute tolerance on equality. Used in unitarity
             check of input. This also determines how close $k_x$ must be to π/4
             to guarantee $k_z$ ≥ 0. Must be non-negative.
-        check_preconditions: If set, verifies that the input corresponds to a
-            4x4 unitary (or tensor of unitaries) before decomposing.
+        check_preconditions: When set to False, skips verifying that the input
+            is unitary in order to increase performance.
 
     Returns:
         The KAK vector of the given unitary or unitaries. The output shape is
