@@ -940,7 +940,7 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
 def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     r"""Map a KAK vector into its Weyl chamber equivalent vector.
 
-    This implementation is vectorized but does produce the single qubit
+    This implementation is vectorized but does not produce the single qubit
     unitaries required to bring the KAK vector into canonical form.
 
     Args:
