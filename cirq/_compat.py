@@ -30,7 +30,8 @@ def proper_repr(value: Any) -> str:
         # HACK: work around https://github.com/sympy/sympy/issues/16074
         # (only handles a few cases)
         fixed_tokens = [
-            'Symbol', 'pi', 'Mul', 'Add', 'Mod', 'Integer', 'Float', 'Rational'
+            'Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float',
+            'Rational'
         ]
         for token in fixed_tokens:
             result = result.replace(token, 'sympy.' + token)
