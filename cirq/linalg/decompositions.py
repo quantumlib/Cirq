@@ -897,8 +897,8 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
         array([0., 0., 0.])
         >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
         >>> cirq.kak_vector(unitaries) * 4/np.pi
-        array([[1., 0., 0.],
-               [1., 1., 0.]])
+        array([[ 1.,  0., -0.],
+               [ 1.,  1.,  0.]])
     """
     unitary = np.asarray(unitary)
 
