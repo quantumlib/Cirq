@@ -633,3 +633,16 @@ def test_kak_vector_on_weyl_chamber_face():
 def test_KAK_vector_weyl_chamber_vertices(unitary, expected):
     actual = cirq.kak_vector(unitary)
     np.testing.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.parametrize('bad_input', [np.eye(3), SWAP.reshape((2, 8)),
+                                       SWAP.ravel()])
+def test_kak_vector_wrong_matrix_shape(bad_input):
+    with pytest.raises(ValueError, match='to have shape'):
+        cirq.kak_vector(bad_input)
+
+
+@pytest.mark.parametrize('bad_input', [-1.0, 0])
+def test_kak_vector_non_positive_atol(bad_input):
+    with pytest.raises(ValueError, match='must be positive'):
+        cirq.kak_vector(np.eye(4), bad_input)
