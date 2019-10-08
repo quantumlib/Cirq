@@ -23,7 +23,7 @@ from cirq._compat import proper_repr, deprecated
 if TYPE_CHECKING:
     import cirq
 
-# 0 is also a DURATION_LIKE also, but would be misleading to include `int`.
+# 0 is also a DURATION_LIKE, but it would be misleading to include `int`.
 DURATION_LIKE = Union[None, datetime.timedelta, 'cirq.Duration']
 
 
@@ -52,7 +52,7 @@ class Duration:
 
         Examples:
             >>> print(cirq.Duration(nanos=100))
-            100ns
+            100 ns
             >>> print(cirq.Duration(micros=1.5 * sympy.Symbol('t')))
             (1500.0*t) ns
         """

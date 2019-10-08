@@ -40,6 +40,9 @@ def test_init():
     assert Duration(timedelta(0, 5), millis=4, micros=3, nanos=2,
                     picos=1).total_picos() == 5004003002001
 
+    with pytest.raises(TypeError):
+        _ = Duration(object())
+
 
 def test_init_timedelta():
     assert Duration(timedelta(microseconds=0)).total_picos() == 0
