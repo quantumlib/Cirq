@@ -870,7 +870,7 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
 
     $$ U = k_l A k_r $$
     where $k_l, k_r$ are single qubit (local) unitaries and
-    $$A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma_{s}^{(0)}\right)$$
+    $$ A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma_{s}^{(1)} \right) $$
 
     The vector entries are ordered such that
         $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
