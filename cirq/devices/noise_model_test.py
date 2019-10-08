@@ -107,9 +107,9 @@ def test_constant_qubit_noise():
     damp_all = cirq.ConstantQubitNoiseModel(damp)
     assert damp_all.noisy_moments(
         [cirq.Moment([cirq.X(a)]), cirq.Moment()],
-        [a, b, c]) == [[damp(a), damp(b), damp(c),
-                        cirq.X(a)], [damp(a), damp(b),
-                                     damp(c)]]
+        [a, b, c]) == [[cirq.X(a), damp(a),
+                        damp(b), damp(c)], [damp(a), damp(b),
+                                            damp(c)]]
 
     with pytest.raises(ValueError, match='num_qubits'):
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
