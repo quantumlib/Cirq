@@ -859,7 +859,8 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         single_qubit_operations_after=(a1, a0))
 
 
-def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray], *,
+def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
+               *,
                rtol: float = 1e-5,
                atol: float = 1e-8,
                check_preconditions: bool = True) -> np.ndarray:
@@ -869,12 +870,11 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray], *,
 
     $$ U = k_l A k_r $$
     where $k_l, k_r$ are single qubit (local) unitaries and
-    $$A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)}
-                                         \sigma_{s}^{(0)}\right)$$
+    $$A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma_{s}^{(0)}\right)$$
 
     The vector entries are ordered such that
         $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
-    if $k_x$ = π/4, $k_z \geq 0$
+    if $k_x$ = π/4, $k_z \geq 0$.
 
     Args:
         unitary: A unitary matrix, or a multi-dimensional array of unitary
@@ -920,9 +920,9 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray], *,
     if check_preconditions:
         actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
         if not np.allclose(actual, np.zeros_like(actual), rtol, atol):
-            raise ValueError('Input must correspond to a 4x4 unitary matrix or'
-                             'tensor of unitary matrices. Received input:\n'
-                             + str(unitary))
+            raise ValueError(
+                'Input must correspond to a 4x4 unitary matrix or tensor of '
+                f'unitary matrices. Received input:\n{unitary}')
 
     UB = np.einsum('...ab,...bc,...cd', MAGIC_CONJ_T, unitary, MAGIC)
 
