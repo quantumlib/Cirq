@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numbers
 from typing import List
 
 import numpy as np
@@ -43,6 +44,29 @@ def test_init():
     assert p2.pauli_mask.dtype == m2.pauli_mask.dtype == np.uint8
     assert list(p2.pauli_mask) == list(m2.pauli_mask) == [1, 2, 3]
 
+    # Mixed types.
+    assert cirq.DensePauliString([1, 'X',
+                                  cirq.X]) == cirq.DensePauliString('XXX')
+    with pytest.raises(TypeError, match='Expected a Pauli'):
+        _ = cirq.DensePauliString([object()])
+
+
+def test_value_to_char_correspondence():
+    d = cirq.DensePauliString
+    assert [d.I_VAL, d.X_VAL, d.Y_VAL, d.Z_VAL] == [0, 1, 2, 3]
+    assert list(d([cirq.I, cirq.X, cirq.Y, cirq.Z]).pauli_mask) == [0, 1, 2, 3]
+    assert list(d("IXYZ").pauli_mask) == [0, 1, 2, 3]
+    assert list(d([d.I_VAL, d.X_VAL, d.Y_VAL,
+                   d.Z_VAL]).pauli_mask) == [0, 1, 2, 3]
+
+    assert d('Y') * d('Z') == 1j * d('X')
+    assert d('Z') * d('X') == 1j * d('Y')
+    assert d('X') * d('Y') == 1j * d('Z')
+
+    assert d('Y') * d('X') == -1j * d('Z')
+    assert d('X') * d('Z') == -1j * d('Y')
+    assert d('Z') * d('Y') == -1j * d('X')
+
 
 def test_from_text():
     d = cirq.DensePauliString
@@ -51,10 +75,10 @@ def test_from_text():
     assert d('') == d(pauli_mask=[])
     assert m('') == m(pauli_mask=[])
 
-    assert d('YYXYY') == d([3, 3, 1, 3, 3])
-    assert d('XYZI') == d([1, 3, 2, 0])
+    assert d('YYXYY') == d([2, 2, 1, 2, 2])
+    assert d('XYZI') == d([1, 2, 3, 0])
     assert d('III', coefficient=-1) == d([0, 0, 0], coefficient=-1)
-    assert d('XXY', coefficient=1j) == d([1, 1, 3], coefficient=1j)
+    assert d('XXY', coefficient=1j) == d([1, 1, 2], coefficient=1j)
     with pytest.raises(ValueError, match='Not a Pauli character'):
         _ = d('2')
 
@@ -107,7 +131,7 @@ def test_sparse():
 
 def test_mul_vectorized_pauli_mul_phase():
     f = _vectorized_pauli_mul_phase
-    paulis = [cirq.I, cirq.X, cirq.Z, cirq.Y]
+    paulis = [cirq.I, cirq.X, cirq.Y, cirq.Z]
     q = cirq.LineQubit(0)
 
     # Check single qubit cases.
@@ -118,8 +142,8 @@ def test_mul_vectorized_pauli_mul_phase():
             assert f(i, j) == (sparse1 * sparse2).coefficient
 
     # Check a vector case.
-    assert _vectorized_pauli_mul_phase(np.array([0, 1, 2, 3], dtype=np.uint8),
-                                       np.array([0, 1, 3, 0],
+    assert _vectorized_pauli_mul_phase(np.array([0, 1, 3, 2], dtype=np.uint8),
+                                       np.array([0, 1, 2, 0],
                                                 dtype=np.uint8)) == -1j
     assert _vectorized_pauli_mul_phase(np.array([], dtype=np.uint8),
                                        np.array([], dtype=np.uint8)) == 1
@@ -168,6 +192,13 @@ def test_mul():
     with pytest.raises(TypeError):
         _ = object() * f('I')
 
+    # Unknown number type
+    class UnknownNumber(numbers.Number):
+        pass
+
+    with pytest.raises(TypeError):
+        _ = UnknownNumber() * f('I')
+
 
 def test_imul():
     f = cirq.DensePauliString
@@ -206,6 +237,13 @@ def test_imul():
         p *= f('XXXXXXXXXXXX')
     with pytest.raises(TypeError):
         p *= object()
+
+    # Unknown number type
+    class UnknownNumber(numbers.Number):
+        pass
+
+    with pytest.raises(TypeError):
+        p *= UnknownNumber()
 
 
 def test_pos_neg():
@@ -279,7 +317,11 @@ def test_pow():
 
 def test_div():
     f = cirq.DensePauliString
+    t = sympy.Symbol('t')
     assert f('X') / 2 == 0.5 * f('X')
+    assert f('X') / t == (1 / t) * f('X')
+    with pytest.raises(TypeError):
+        _ = f('X') / object()
 
 
 def test_str():
@@ -462,7 +504,8 @@ def test_commutes():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
     # TODO(craiggidney,bryano): use commutes protocol instead
-    commutes = cirq.BaseDensePauliString._commutes_
+    commutes = lambda a, b, default=None: cirq.BaseDensePauliString._commutes_(
+        a, b)
     assert cirq.commutes is cirq.linalg.commutes
 
     assert commutes(f('XX'), m('ZZ'))
@@ -473,6 +516,8 @@ def test_commutes():
     assert commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)))
     assert not commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
     assert commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
+
+    assert commutes(f('XX'), "test", default=NotImplemented) is NotImplemented
 
 
 def test_copy():
@@ -497,7 +542,7 @@ def test_copy():
     assert p.copy(coefficient=-2) is not p
     assert p.copy(coefficient=-2) == -2 * cirq.DensePauliString('XYZ')
     assert p.copy(coefficient=-2,
-                  pauli_mask=[2]) == -2 * cirq.DensePauliString('Z')
+                  pauli_mask=[3]) == -2 * cirq.DensePauliString('Z')
 
     # Copy mutable with modifications.
     assert m.copy(coefficient=-1) is not m
@@ -506,7 +551,7 @@ def test_copy():
         'XYZ', coefficient=-2)
     assert m.copy(coefficient=-2,
                   pauli_mask=[2
-                             ]) == cirq.MutableDensePauliString('Z',
+                             ]) == cirq.MutableDensePauliString('Y',
                                                                 coefficient=-2)
 
     # Aliasing of the mask attribute when copying with modifications.

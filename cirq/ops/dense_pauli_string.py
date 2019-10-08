@@ -27,13 +27,13 @@ if TYPE_CHECKING:
     import cirq
 
 # Order is important! Index equals numeric value.
-PAULI_CHARS = 'IXZY'
+PAULI_CHARS = 'IXYZ'
 PAULI_GATES: List['cirq.Gate'] = [
     # mypy false positive "Cannot determine type of 'I'"
     common_gates.I,  # type: ignore
     pauli_gates.X,
+    pauli_gates.Y,
     pauli_gates.Z,
-    pauli_gates.Y
 ]
 
 TCls = TypeVar('TCls', bound='BaseDensePauliString')
@@ -43,10 +43,10 @@ TCls = TypeVar('TCls', bound='BaseDensePauliString')
 class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     """Parent class for `DensePauliString` and `MutableDensePauliString`."""
 
-    I_MASK = 0
-    X_MASK = 1
-    Z_MASK = 2
-    Y_MASK = X_MASK | Z_MASK
+    I_VAL = 0
+    X_VAL = 1
+    Y_VAL = 2
+    Z_VAL = 3
 
     def __init__(self,
                  pauli_mask: Union[str, Iterable[int], np.ndarray],
@@ -57,7 +57,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         Args:
             pauli_mask: A specification of the Pauli gates to use. This argument
                 can be a string like "IXYYZ", or a numeric list like
-                [0, 1, 3, 2] with I=0, X=1, Z=2, Y=3=X|Z.
+                [0, 1, 3, 2] with I=0, X=1, Y=2, Z=3=X|Y.
 
                 The internal representation is a 1-dimensional uint8 numpy array
                 containing numeric values. If such a numpy array is given, and
@@ -417,7 +417,8 @@ class MutableDensePauliString(BaseDensePauliString):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
-            self.coefficient = new_coef
+            self.coefficient = (new_coef if isinstance(new_coef, sympy.Basic)
+                                else complex(new_coef))
             return self
 
         split = _attempt_value_to_pauli_index(other)
@@ -451,13 +452,12 @@ class MutableDensePauliString(BaseDensePauliString):
         height = len(rows)
         width = len(rows[0])
         next_row = 0
-        xz = DensePauliString.X_MASK, DensePauliString.Z_MASK
 
         for col in range(width):
-            for pauli_base in xz:
+            for held in [DensePauliString.Z_VAL, DensePauliString.X_VAL]:
                 # Locate pivot row.
                 for k in range(next_row, height):
-                    if rows[k].pauli_mask[col] & pauli_base:
+                    if (rows[k].pauli_mask[col] or held) != held:
                         pivot_row = k
                         break
                 else:
@@ -465,8 +465,9 @@ class MutableDensePauliString(BaseDensePauliString):
 
                 # Eliminate column entry in other rows.
                 for k in range(height):
-                    if pivot_row != k and rows[k].pauli_mask[col] & pauli_base:
-                        rows[k].__imul__(rows[pivot_row])
+                    if k != pivot_row:
+                        if (rows[k].pauli_mask[col] or held) != held:
+                            rows[k].__imul__(rows[pivot_row])
 
                 # Keep it sorted.
                 if pivot_row != next_row:
@@ -481,14 +482,20 @@ def _pauli_index(val: Any):
         return PAULI_CHARS.index(val)
     if isinstance(val, raw_types.Gate):
         return PAULI_GATES.index(val)
-    raise TypeError(f'Expected a Pauli character (IXYZ) or gate but '
+    if isinstance(val, int) and 0 <= val < 4:
+        return val
+    raise TypeError(f'Expected a Pauli character (IXYZ), gate, or index but '
                     f'got {repr(val)}.')
 
 
 def _as_pauli_mask(val: Union[str, Iterable[int], np.ndarray]) -> np.ndarray:
+    if isinstance(val, np.ndarray):
+        return np.asarray(val, dtype=np.uint8)
+
     if isinstance(val, str):
         return _str_to_pauli_mask(val)
-    return np.asarray(val, dtype=np.uint8)
+
+    return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
 
 
 def _str_to_pauli_mask(text: str) -> np.ndarray:
@@ -535,13 +542,13 @@ def _vectorized_pauli_mul_phase(lhs: Union[int, np.ndarray],
     """
 
     # Vectorized computation of per-term phase exponents.
-    t = np.array(lhs, dtype=np.int8)
-    t *= rhs != 0
-    t -= rhs * (lhs != 0)
+    t = np.array(rhs, dtype=np.int8)
+    t *= lhs != 0
+    t -= lhs * (rhs != 0)
     t += 1
     t %= 3
     t -= 1
 
     # Result is i raised to the sum of the per-term phase exponents.
-    s = np.sum(t, dtype=np.uint8) & 3
+    s = int(np.sum(t, dtype=np.uint8) & 3)
     return 1j**s
