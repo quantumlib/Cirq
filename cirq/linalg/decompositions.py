@@ -878,7 +878,8 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
             matrices. Must have shape (..., 4, 4), where the last two axes are
             for the unitary matrix and other axes are for broadcasting the kak
             vector computation.
-        atol: How close $k_x$ must be to π/4 to guarantee $k_z$ >= 0.
+        atol: How close $k_x$ must be to π/4 to guarantee $k_z$ >= 0. Must be
+            positive.
 
     Returns:
         The KAK vector of the given unitary or unitaries. The output shape is
@@ -900,6 +901,13 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
                [1., 1., 0.]])
     """
     unitary = np.asarray(unitary)
+
+    if unitary.ndim < 2 or unitary.shape[-2:] != (4, 4):
+        raise ValueError(f'Expected input unitary to have shape (...,4,4), but'
+                         'got {unitary.shape}.')
+
+    if atol <= 0:
+        raise ValueError(f'Input atol must be positive, got {atol}.')
 
     UB = np.einsum('...ab,...bc,...cd', MAGIC_CONJ_T, unitary, MAGIC)
 
