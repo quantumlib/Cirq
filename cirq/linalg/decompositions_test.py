@@ -652,3 +652,8 @@ def test_kak_vector_wrong_matrix_shape(bad_input):
 def test_kak_vector_negative_atol():
     with pytest.raises(ValueError, match='must be positive'):
         cirq.kak_vector(np.eye(4), atol=-1.0)
+
+
+def test_kak_vector_input_not_unitary():
+    with pytest.raises(ValueError, match='must correspond to'):
+        cirq.kak_vector(np.zeros((4, 4)))
