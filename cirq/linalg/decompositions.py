@@ -859,8 +859,10 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         single_qubit_operations_after=(a1, a0))
 
 
-def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
-               atol: float = 1e-9) -> np.ndarray:
+def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray], *,
+               rtol: float = 1e-5,
+               atol: float = 1e-8,
+               check_preconditions: bool = True) -> np.ndarray:
     r"""Compute the KAK vectors of one or more two qubit unitaries.
 
     Any 2 qubit unitary may be expressed as
@@ -878,8 +880,13 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
             matrices. Must have shape (..., 4, 4), where the last two axes are
             for the unitary matrix and other axes are for broadcasting the kak
             vector computation.
-        atol: How close $k_x$ must be to π/4 to guarantee $k_z$ >= 0. Must be
-            positive.
+        rtol: Per-matrix-entry relative tolerance on equality. Used in unitarity
+            check of input.
+        atol: Per-matrix-entry absolute tolerance on equality. Used in unitarity
+            check of input. This also determines how close $k_x$ must be to π/4
+            to guarantee $k_z$ ≥ 0. Must be non-negative.
+        check_preconditions: If set, verifies that the input corresponds to a
+            4x4 unitary (or tensor of unitaries) before decomposing.
 
     Returns:
         The KAK vector of the given unitary or unitaries. The output shape is
@@ -904,10 +911,17 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
 
     if unitary.ndim < 2 or unitary.shape[-2:] != (4, 4):
         raise ValueError(f'Expected input unitary to have shape (...,4,4), but'
-                         'got {unitary.shape}.')
+                         f'got {unitary.shape}.')
 
-    if atol <= 0:
+    if atol < 0:
         raise ValueError(f'Input atol must be positive, got {atol}.')
+
+    if check_preconditions:
+        actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
+        if not np.allclose(actual, np.zeros_like(actual), rtol, atol):
+            raise ValueError('Input must correspond to a 4x4 unitary matrix or'
+                             'tensor of unitary matrices. Received input:\n'
+                             + str(unitary))
 
     UB = np.einsum('...ab,...bc,...cd', MAGIC_CONJ_T, unitary, MAGIC)
 
@@ -967,19 +981,18 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
 
     # Multiply x,z and y,z components by -1 to fix x,y sign.
     x_negative = k_vec[..., 0] < 0
-    if np.any(x_negative):
-        k_vec[x_negative, 0] *= -1
-        k_vec[x_negative, 2] *= -1
+    k_vec[x_negative, 0] *= -1
+    k_vec[x_negative, 2] *= -1
     y_negative = k_vec[..., 1] < 0
-    if np.any(y_negative):
-        k_vec[y_negative, 1] *= -1
-        k_vec[y_negative, 2] *= -1
+    k_vec[y_negative, 1] *= -1
+    k_vec[y_negative, 2] *= -1
 
     # If x = π/4, force z to be positive.
     x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=atol)
     z_is_negative = k_vec[..., 2] < 0
     need_diff = np.logical_and(x_is_pi_over_4, z_is_negative)
-    if np.any(need_diff):  # -1 to x and z components, then shift x up by pi/4
-        k_vec[need_diff, 2] *= -1
+    # -1 to x and z components, then shift x up by pi/2. Since x is pi/4, we
+    # actually do nothing to that index.
+    k_vec[need_diff, 2] *= -1
 
     return k_vec
