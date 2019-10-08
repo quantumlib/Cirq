@@ -639,8 +639,10 @@ def test_KAK_vector_weyl_chamber_vertices(unitary, expected):
     np.testing.assert_almost_equal(actual, expected)
 
 
-@pytest.mark.parametrize('bad_input', [np.eye(3), SWAP.reshape((2, 8)),
-                                       SWAP.ravel()])
+cases = [np.eye(3), SWAP.reshape((2, 8)), SWAP.ravel()]
+
+
+@pytest.mark.parametrize('bad_input', cases)
 def test_kak_vector_wrong_matrix_shape(bad_input):
     with pytest.raises(ValueError, match='to have shape'):
         cirq.kak_vector(bad_input)
