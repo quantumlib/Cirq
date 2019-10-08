@@ -649,7 +649,6 @@ def test_kak_vector_wrong_matrix_shape(bad_input):
         cirq.kak_vector(bad_input)
 
 
-@pytest.mark.parametrize('bad_input', [-1.0, 0])
-def test_kak_vector_non_positive_atol(bad_input):
+def test_kak_vector_negative_atol():
     with pytest.raises(ValueError, match='must be positive'):
-        cirq.kak_vector(np.eye(4), bad_input)
+        cirq.kak_vector(np.eye(4), atol=-1.0)
