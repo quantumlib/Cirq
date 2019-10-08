@@ -612,16 +612,20 @@ def test_KAK_vector_local_invariants_random_input():
 
 def test_kak_vector_on_weyl_chamber_face():
     # unitaries with KAK vectors from I to ISWAP
-    k_vec = np.zeros((10, 3))
-    k_vec[:, (0, 1)] = np.linspace(0, np.pi / 4, 10)[:, np.newaxis]
-    gen = np.einsum('ta,abc->tbc', k_vec, _kak_gens)
-    evals, evecs = np.linalg.eigh(gen)
-    unitary = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals),
-                        evecs.conj())
+    theta_swap = np.linspace(0, np.pi / 4, 10)
+    k_vecs = np.zeros((10, 3))
+    k_vecs[:, (0, 1)] = theta_swap[:, np.newaxis]
 
-    actual = _local_invariants_from_kak(cirq.kak_vector(unitary))
-    expected = _local_invariants_from_kak(k_vec)
-    np.testing.assert_almost_equal(actual, expected)
+    kwargs = dict(global_phase=1j, single_qubit_operations_before=(X, Y),
+                  single_qubit_operations_after=(Z, 1j * X))
+    unitaries = np.array([
+        cirq.unitary(cirq.KakDecomposition(interaction_coefficients=(t, t, 0),
+                                           **kwargs))
+        for t in theta_swap
+    ])
+
+    actual = cirq.kak_vector(unitaries)
+    np.testing.assert_almost_equal(actual, k_vecs)
 
 
 @pytest.mark.parametrize('unitary,expected',
