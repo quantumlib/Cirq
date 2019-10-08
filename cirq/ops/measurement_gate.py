@@ -11,24 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Quantum gates that are commonly used in the literature.
 
-This module creates Gate instances for the following gates:
-    X,Y,Z: Pauli gates.
-    H,S: Clifford gates.
-    T: A non-Clifford gate.
-    CZ: Controlled phase gate.
-    CNOT: Controlled not gate.
-
-Each of these are implemented as EigenGates, which means that they can be
-raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
-
-In addition MeasurementGate is defined and convenience methods for
-measurements are provided
-    measure
-    measure_each
-"""
-from typing import Callable, Iterable, List, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 import numpy as np
 
@@ -200,60 +184,3 @@ class MeasurementGate(raw_types.Gate):
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
-
-
-def measure(*qubits: raw_types.Qid,
-            key: Optional[str] = None,
-            invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
-    """Returns a single MeasurementGate applied to all the given qubits.
-
-    The qubits are measured in the computational basis.
-
-    Args:
-        *qubits: The qubits that the measurement gate should measure.
-        key: The string key of the measurement. If this is None, it defaults
-            to a comma-separated list of the target qubits' str values.
-        invert_mask: A list of Truthy or Falsey values indicating whether
-            the corresponding qubits should be flipped. None indicates no
-            inverting should be done.
-
-    Returns:
-        An operation targeting the given qubits with a measurement.
-
-    Raises:
-        ValueError if the qubits are not instances of Qid.
-    """
-    for qubit in qubits:
-        if isinstance(qubit, np.ndarray):
-            raise ValueError(
-                'measure() was called a numpy ndarray. Perhaps you meant '
-                'to call measure_state_vector on numpy array?')
-        elif not isinstance(qubit, raw_types.Qid):
-            raise ValueError(
-                'measure() was called with type different than Qid.')
-
-    if key is None:
-        key = _default_measurement_key(qubits)
-    qid_shape = protocols.qid_shape(qubits)
-    return MeasurementGate(len(qubits), key, invert_mask, qid_shape).on(*qubits)
-
-
-def measure_each(*qubits: raw_types.Qid,
-                 key_func: Callable[[raw_types.Qid], str] = str
-                ) -> List[raw_types.Operation]:
-    """Returns a list of operations individually measuring the given qubits.
-
-    The qubits are measured in the computational basis.
-
-    Args:
-        *qubits: The qubits to measure.
-        key_func: Determines the key of the measurements of each qubit. Takes
-            the qubit and returns the key for that qubit. Defaults to str.
-
-    Returns:
-        A list of operations individually measuring the given qubits.
-    """
-    return [
-        MeasurementGate(1, key_func(q), qid_shape=(q.dimension,)).on(q)
-        for q in qubits
-    ]

@@ -11,23 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Quantum gates that are commonly used in the literature.
 
-This module creates Gate instances for the following gates:
-    X,Y,Z: Pauli gates.
-    H,S: Clifford gates.
-    T: A non-Clifford gate.
-    CZ: Controlled phase gate.
-    CNOT: Controlled not gate.
-
-Each of these are implemented as EigenGates, which means that they can be
-raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
-
-In addition MeasurementGate is defined and convenience methods for
-measurements are provided
-    measure
-    measure_each
-"""
 from typing import Callable, Iterable, List, Optional, Tuple
 
 import numpy as np
