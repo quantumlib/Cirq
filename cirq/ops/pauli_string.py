@@ -839,8 +839,7 @@ class _MutablePauliString:
         if isinstance(contents, PauliString):
             # Note: cirq.X/Y/Z(qubit) are PauliString instances.
             self.inline_times_pauli_string(contents)
-        elif gate_operation.op_gate_isinstance(contents,
-                                               identity.IdentityGate):
+        elif isinstance(contents, identity.IdentityOperation):
             pass  # No effect.
         elif isinstance(contents, Mapping):
             self._inline_times_mapping(contents)

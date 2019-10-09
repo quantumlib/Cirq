@@ -127,7 +127,7 @@ class IdentityGate(raw_types.Gate):
         return 'I({})'.format(self.num_qubits())
 
     def _value_equality_values_(self):
-        return self.num_qubits(),
+        return self._qid_shape
 
     def _trace_distance_bound_(self):
         return 0.0
