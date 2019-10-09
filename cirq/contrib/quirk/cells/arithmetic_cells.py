@@ -22,17 +22,19 @@ from cirq.contrib.quirk.cells.cell import Cell, CellMaker, CELL_SIZES
 
 @value.value_equality
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
-    """Applies an arithmetic to a target and some inputs.
+    """Applies arithmetic to a target and some inputs.
 
     Uses quirk-specific implicit effects like assuming that the presence of an
     'r' input implies modular arithmetic (meaning that e.g. values larger than
-    the modulus will not be affected).
+    the modulus will not be affected). This convention is used because it makes
+    implementing each additional arithmetic operation significantly less
+    verbose, since they all share this common behavior.
     """
 
     def __init__(self, identifier: str,
                  operation: 'cirq.contrib.quirk.QuirkArithmeticLambda',
                  target: Sequence['cirq.Qid'],
-                 inputs: Sequence[Optional[Union[Sequence['cirq.Qid'], int]]]):
+                 inputs: Sequence[Union[Sequence['cirq.Qid'], int]]):
         """
         Args:
             identifier: The quirk identifier string for this operation.
@@ -43,8 +45,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                 determine what happens to the target.
         """
         if operation.is_modular:
-            r = cast(Union[Sequence['cirq.Qid'], int], inputs[-1])
-            assert r is not None
+            r = inputs[-1]
             if isinstance(r, int):
                 over = r > 1 << len(target)
             else:
@@ -179,8 +180,9 @@ class ArithmeticCell(Cell):
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
 
-        return QuirkArithmeticOperation(self.identifier, self.operation,
-                                        self.target, self.inputs)
+        return QuirkArithmeticOperation(
+            self.identifier, self.operation, self.target,
+            cast(Sequence[Union[Sequence['cirq.Qid'], int]], self.inputs))
 
 
 def _indented_list_lines_repr(items: Sequence[Any]) -> str:
