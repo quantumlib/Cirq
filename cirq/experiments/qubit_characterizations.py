@@ -54,21 +54,18 @@ class RabiResult:
         return [(angle, prob) for angle, prob in zip(self._rabi_angles,
                                                      self._excited_state_probs)]
 
-    def plot(self, **plot_kwargs: Any) -> None:
+    def plot(self, ax: plt.Axes, **plot_kwargs: Any) -> None:
         """Plots excited state probability vs the Rabi angle (angle of rotation
         around the x-axis).
 
         Args:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
-        fig = plt.figure()
-        ax = plt.gca()
         ax.set_ylim([0, 1])
-        plt.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
-                 figure=fig, **plot_kwargs)
-        plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
-        plt.ylabel('Excited State Probability', figure=fig)
-        fig.show(warn=False)
+        ax.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
+                **plot_kwargs)
+        ax.set_xlabel(r"Rabi Angle (Radian)")
+        ax.set_ylabel('Excited State Probability')
 
 
 class RandomizedBenchMarkResult:
@@ -95,22 +92,18 @@ class RandomizedBenchMarkResult:
         return [(num, prob) for num, prob in zip(self._num_cfds_seq,
                                                  self._gnd_state_probs)]
 
-    def plot(self, **plot_kwargs: Any) -> None:
+    def plot(self, ax: plt.Axes, **plot_kwargs: Any) -> None:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
 
         Args:
             **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
         """
-        fig = plt.figure()
-        ax = plt.gca()
         ax.set_ylim([0, 1])
 
-        plt.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
-                 figure=fig, **plot_kwargs)
-        plt.xlabel(r"Number of Cliffords", figure=fig)
-        plt.ylabel('Ground State Probability', figure=fig)
-        fig.show(warn=False)
+        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
+        ax.set_xlabel(r"Number of Cliffords")
+        ax.set_ylabel('Ground State Probability')
 
 
 class TomographyResult:

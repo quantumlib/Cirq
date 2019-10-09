@@ -44,7 +44,7 @@ class CrossEntropyResult:
         """
         return self._data
 
-    def plot(self, **plot_kwargs: Any) -> None:
+    def plot(self, ax: plt.Axes, **plot_kwargs: Any) -> None:
         """Plots the average XEB fidelity vs the number of cycles.
 
         Args:
@@ -52,13 +52,10 @@ class CrossEntropyResult:
         """
         num_cycles = [d.num_cycle for d in self._data]
         fidelities = [d.xeb_fidelity for d in self._data]
-        fig = plt.figure()
-        ax = plt.gca()
         ax.set_ylim([0, 1.1])
-        plt.plot(num_cycles, fidelities, 'ro-', figure=fig, **plot_kwargs)
-        plt.xlabel('Number of Cycles', figure=fig)
-        plt.ylabel('XEB Fidelity', figure=fig)
-        fig.show(warn=False)
+        ax.plot(num_cycles, fidelities, 'ro-', **plot_kwargs)
+        ax.set_xlabel('Number of Cycles')
+        ax.set_ylabel('XEB Fidelity')
 
 
 def cross_entropy_benchmarking(

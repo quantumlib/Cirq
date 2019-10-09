@@ -1,3 +1,4 @@
+import matplotlib as mpl
 import numpy as np
 import cirq
 
@@ -10,21 +11,24 @@ def main():
     q_0 = cirq.GridQubit(0, 0)
     q_1 = cirq.GridQubit(0, 1)
 
+    figure = mpl.figure.Figure()
+    ax = figure.add_subplot(111)
+
     # Measure Rabi oscillation of q_0.
     rabi_results = cirq.experiments.rabi_oscillations(simulator, q_0, 4 * np.pi)
-    rabi_results.plot()
+    rabi_results.plot(ax)
 
     num_cfds = range(5, 20, 5)
 
     # Clifford-based randomized benchmarking of single-qubit gates on q_0.
     rb_result_1q = cirq.experiments.single_qubit_randomized_benchmarking(
         simulator, q_0, num_clifford_range=num_cfds, repetitions=100)
-    rb_result_1q.plot()
+    rb_result_1q.plot(ax)
 
     # Clifford-based randomized benchmarking of two-qubit gates on q_0 and q_1.
     rb_result_2q = cirq.experiments.two_qubit_randomized_benchmarking(
         simulator, q_0, q_1, num_clifford_range=num_cfds, repetitions=100)
-    rb_result_2q.plot()
+    rb_result_2q.plot(ax)
 
     # State-tomography of q_0 after application of an X/2 rotation.
     cir_1q = cirq.Circuit(cirq.X(q_0)**0.5)

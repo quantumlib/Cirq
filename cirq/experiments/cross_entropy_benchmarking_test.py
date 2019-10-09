@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import matplotlib as mpl
 import numpy as np
 
 import cirq
@@ -78,4 +79,6 @@ def test_cross_entropy_benchmarking():
     assert len(fidelities_3) == 1
 
     # Sanity test that plot runs.
-    results_1.plot()
+    figure = mpl.figure.Figure()
+    ax = figure.add_subplot(111)
+    results_1.plot(ax)
