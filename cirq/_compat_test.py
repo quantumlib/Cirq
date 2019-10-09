@@ -16,6 +16,7 @@ import logging
 from typing import ContextManager, List
 
 import numpy as np
+import pandas as pd
 import sympy
 
 from cirq._compat import proper_repr, deprecated, deprecated_parameter
@@ -30,6 +31,16 @@ def test_proper_repr():
     v2 = eval(proper_repr(v))
     np.testing.assert_array_equal(v2, v)
     assert v2.dtype == v.dtype
+
+
+def test_proper_repr_data_frame():
+    df = pd.DataFrame(index=[1, 2, 3],
+                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                      columns=['a', 'b'])
+    df2 = eval(proper_repr(df))
+    assert df2['a'].dtype == np.int64
+    assert df2['b'].dtype == np.float
+    assert df2.equals(df)
 
 
 def test_deprecated():
