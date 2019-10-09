@@ -24,13 +24,30 @@ def test_repr():
 
 
 def test_str():
-    assert str(
-        cirq.SampleResult(data=pd.DataFrame(
-            data=[[1, 2, 3], [4, 5, 6]], index=[7, 8],
-            columns=['a', 'b', 'c']))) == ("SampleResult with data:\n"
-                                           "   a  b  c\n"
-                                           "7  1  2  3\n"
-                                           "8  4  5  6")
+    result = cirq.SampleResult(data=pd.DataFrame(
+        data=[[1, 2, 3], [4, 5, 6]], index=[7, 8], columns=['a', 'b', 'c']))
+
+    assert str(result) == ("SampleResult with data:\n"
+                           "   a  b  c\n"
+                           "7  1  2  3\n"
+                           "8  4  5  6")
+
+    # Test Jupyter console output from
+    class FakePrinter:
+
+        def __init__(self):
+            self.text_pretty = ''
+
+        def text(self, to_print):
+            self.text_pretty += to_print
+
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == str(result)
+
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'SampleResult(...)'
 
 
 def test_equals():

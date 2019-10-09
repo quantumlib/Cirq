@@ -19,6 +19,7 @@ from cirq.ops import raw_types
 if TYPE_CHECKING:
     import cirq
 
+
 @value.value_equality
 class WaitGate(raw_types.Gate):
     """A single-qubit idle gate that represents waiting.

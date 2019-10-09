@@ -207,9 +207,10 @@ class CirqEncoder(json.JSONEncoder):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
         if isinstance(o, pd.DataFrame):
+            items = [o[col].tolist() for col in o.columns]
             return {
                 'cirq_type': 'pandas.DataFrame',
-                'data': o.values,
+                'data': list(zip(*items)),
                 'columns': list(o.columns),
                 'index': list(o.index),
             }

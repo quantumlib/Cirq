@@ -19,6 +19,7 @@ import sympy
 from matplotlib import pyplot as plt
 
 from cirq import circuits, devices, ops, study, work, value
+from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
     import cirq
@@ -69,7 +70,7 @@ def t1_decay(sampler: work.Sampler,
     true_counts = df[output == 1]['count'].to_frame('true_count')
 
     # Merge into a common table with delay_ns, false_count, true_count cols.
-    merged = false_counts.join(true_counts).reset_index()
+    merged = false_counts.join(true_counts, how='outer').reset_index()
     filled = merged.fillna(0).astype({
         'false_count': 'int64',
         'true_count': 'int64'
@@ -121,3 +122,22 @@ class T1DecayResult:
 
     def __str__(self):
         return f'T1DecayResult with data:\n{self.data}'
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.data.equals(other.data)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return f'cirq.experiments.T1DecayResult(data={proper_repr(self.data)})'
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Text output in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('T1DecayResult(...)')
+        else:
+            p.text(str(self))

@@ -79,7 +79,7 @@ def test_sampler_sample_multiple_params():
 
 
 def test_sampler_sample_sweep():
-    a, b = cirq.LineQubit.range(2)
+    a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.X(a)**t, cirq.measure(a, key='out'))
