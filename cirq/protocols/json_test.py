@@ -17,6 +17,7 @@ import inspect
 import io
 import os
 import textwrap
+from typing import Tuple, Any, Iterator, Type
 
 import pytest
 
@@ -41,6 +42,8 @@ def assert_roundtrip(obj, text_should_be=None):
     obj2 = cirq.protocols.read_json(buffer)
     if isinstance(obj, np.ndarray):
         np.testing.assert_equal(obj, obj2)
+    elif isinstance(obj, pd.DataFrame):
+        pd.testing.assert_frame_equal(obj, obj2)
     else:
         assert obj == obj2
 
@@ -114,6 +117,19 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 TEST_OBJECTS = {
+    '[builtin]complex': [1 + 2j],
+    '[builtin]dict': {
+        'test': [123, 5.5],
+        'key2': 'asdf'
+    },
+    '[external]numpy.ndarray': [np.ones((11, 5)),
+                                np.arange(3)],
+    '[external]pandas.DataFrame':
+    pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
+                 columns=['x', 'y', 'z'],
+                 index=[2, 5]),
+    '[external]sympy.Symbol':
+    sympy.Symbol('theta'),
     'Bristlecone':
     cirq.google.Bristlecone,
     'CCNOT':
@@ -171,8 +187,6 @@ TEST_OBJECTS = {
         cirq.CSWAP(*cirq.LineQubit.range(3)),
         cirq.CZ(*cirq.LineQubit.range(2))
     ],
-    'GivensRotation':
-    cirq.GivensRotation,
     'GlobalPhaseOperation':
     cirq.GlobalPhaseOperation(-1j),
     'GridQubit':
@@ -248,8 +262,6 @@ TEST_OBJECTS = {
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
-    'Symbol':
-    sympy.Symbol('theta'),
     'T':
     cirq.T,
     'TOFFOLI':
@@ -277,12 +289,6 @@ TEST_OBJECTS = {
     'ZZ':
     cirq.ZZ,
     'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
-    'complex': [1 + 2j],
-    'ndarray': [np.ones((11, 5)), np.arange(3)],
-    'dict': {
-        'test': [123, 5.5],
-        'key2': 'asdf'
-    }
 }
 
 SHOULDNT_BE_SERIALIZED = [
@@ -365,7 +371,7 @@ SHOULDNT_BE_SERIALIZED = [
 ]
 
 
-def _get_all_public_classes(module):
+def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
     for name, obj in inspect.getmembers(module):
         if inspect.isfunction(obj) or inspect.ismodule(obj):
             continue
@@ -387,7 +393,7 @@ def _get_all_public_classes(module):
         yield name, obj
 
 
-def _get_all_names():
+def _get_all_names() -> Iterator[str]:
 
     def not_module_or_function(x):
         return not (inspect.ismodule(x) or inspect.isfunction(x))
@@ -493,17 +499,31 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-def _roundtrip_test_classes():
+def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
     yield from _get_all_public_classes(cirq)
     yield from _get_all_public_classes(cirq.google)
 
-    # extra
-    yield 'complex', complex
-    yield 'ndarray', np.ndarray
-    yield 'Symbol', sympy.Symbol
+    # Objects not listed at top level.
+    yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
 
     # test coverage for `default` paths
-    yield 'dict', dict
+    yield '[builtin]dict', dict
+
+    # extra
+    yield '[builtin]complex', complex
+    yield '[external]numpy.ndarray', np.ndarray
+    yield '[external]sympy.Symbol', sympy.Symbol
+    yield '[external]pandas.DataFrame', pd.DataFrame
+
+
+def test_no_missed_test_objects():
+    seen = {name for name, _ in _roundtrip_test_classes()}
+    missed = TEST_OBJECTS.keys() - seen
+    assert not missed, (
+        "An entry in cirq.protocols.json_test.TEST_OBJECTS was not used when "
+        "checking the serializability of all objects yielded by "
+        "cirq.protocols.json_test._roundtrip_test_classes."
+        f"\n\nMissed keys: {repr(missed)}")
 
 
 @pytest.mark.parametrize('cirq_obj_name,cls', _roundtrip_test_classes())

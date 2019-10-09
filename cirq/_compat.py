@@ -43,11 +43,12 @@ def proper_repr(value: Any) -> str:
         return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
 
     if isinstance(value, pd.DataFrame):
-        items = [value[col].tolist() for col in value.columns]
+        cols = [value[col].tolist() for col in value.columns]
+        rows = list(zip(*cols))
         return (f'pd.DataFrame.from_records('
                 f'columns={repr(list(value.columns))}, '
                 f'index={repr(list(value.index))}, '
-                f'data={repr(list(zip(*items)))})')
+                f'data={repr(rows)})')
 
     return repr(value)
 
