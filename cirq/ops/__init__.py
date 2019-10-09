@@ -214,3 +214,6 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.wait_gate import (
+    WaitGate,)
