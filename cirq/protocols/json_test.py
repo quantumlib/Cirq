@@ -329,6 +329,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsUnitary',
 
     # mypy types:
+    'DURATION_LIKE',
     'OP_TREE',
     'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
