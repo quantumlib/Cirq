@@ -517,3 +517,143 @@ def test_scatter_plot_normalized_kak_interaction_coefficients():
     ax2 = cirq.scatter_plot_normalized_kak_interaction_coefficients(
         data, s=1, c='blue', ax=ax, include_frame=False, label=f'test')
     assert ax2 is ax
+
+
+def _vector_kron(first: np.ndarray, second: np.ndarray) -> np.ndarray:
+    """Vectorized implementation of kron for square matrices."""
+    s_0, s_1 = first.shape[-2:], second.shape[-2:]
+    assert s_0[0] == s_0[1]
+    assert s_1[0] == s_1[1]
+    out = np.einsum('...ab,...cd->...acbd', first, second)
+    s_v = out.shape[:-4]
+    return out.reshape(s_v + (s_0[0] * s_1[0],) * 2)
+
+
+def _local_two_qubit_unitaries(samples):
+    kl_0 = np.array([cirq.testing.random_unitary(2) for _ in range(samples)])
+    kl_1 = np.array([cirq.testing.random_unitary(2) for _ in range(samples)])
+
+    return _vector_kron(kl_0, kl_1)
+
+
+_kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
+
+
+def _random_two_qubit_unitaries(num_samples):
+    # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
+    kl = _local_two_qubit_unitaries(num_samples)
+    kr = _local_two_qubit_unitaries(num_samples)
+
+    # Generate the non-local part by explict matrix exponentiation.
+    kak_vecs = np.random.rand(num_samples, 3) * np.pi
+    gens = np.einsum('...a,abc->...bc', kak_vecs, _kak_gens)
+    evals, evecs = np.linalg.eigh(gens)
+    A = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals), evecs.conj())
+
+    return np.einsum('...ab,...bc,...cd', kl, A, kr), kak_vecs
+
+
+def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
+    r"""Local invariants of a two-qubit unitary from its KAK vector.
+
+    Any 2 qubit unitary may be expressed as
+
+    U = k_l A k_r
+    where k_l, k_r are single qubit (local) unitaries and
+
+    A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{j,0}\sigma{j,1} )
+
+    Here (k_x,k_y,k_z) is the KAK vector.
+
+    Args:
+        vector: Shape (...,3) tensor representing different KAK vectors.
+
+    Returns:
+        The local invariants associated with the given KAK vector. Shape
+        (..., 3), where first two elements are the real and imaginary parts
+        of G1 and the third is G2.
+
+    References:
+        "A geometric theory of non-local two-qubit operations"
+        https://arxiv.org/abs/quant-ph/0209120
+    """
+    vector = np.asarray(vector)
+    # See equation 30 in the above reference. Compared to their notation, the k
+    # vector equals c/2.
+    kx = vector[..., 0]
+    ky = vector[..., 1]
+    kz = vector[..., 2]
+    cos, sin = np.cos, np.sin
+    G1R = (cos(2 * kx) * cos(2 * ky) * cos(2 * kz))**2
+    G1R -= (sin(2 * kx) * sin(2 * ky) * sin(2 * kz))**2
+
+    G1I = 0.25 * sin(4 * kx) * sin(4 * ky) * sin(4 * kz)
+
+    G2 = cos(4 * kx) + cos(4 * ky) + cos(4 * kz)
+    return np.moveaxis(np.array([G1R, G1I, G2]), 0, -1)
+
+
+np.random.seed(11)  # for deterministic tests
+_random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100)
+
+
+def test_kak_vector_matches_vectorized():
+    actual = cirq.kak_vector(_random_unitaries)
+    expected = np.array([cirq.kak_vector(u) for u in _random_unitaries])
+    np.testing.assert_almost_equal(actual, expected)
+
+
+def test_KAK_vector_local_invariants_random_input():
+    actual = _local_invariants_from_kak(cirq.kak_vector(_random_unitaries))
+    expected = _local_invariants_from_kak(_kak_vecs)
+
+    np.testing.assert_almost_equal(actual, expected)
+
+
+def test_kak_vector_on_weyl_chamber_face():
+    # unitaries with KAK vectors from I to ISWAP
+    theta_swap = np.linspace(0, np.pi / 4, 10)
+    k_vecs = np.zeros((10, 3))
+    k_vecs[:, (0, 1)] = theta_swap[:, np.newaxis]
+
+    kwargs = dict(global_phase=1j,
+                  single_qubit_operations_before=(X, Y),
+                  single_qubit_operations_after=(Z, 1j * X))
+    unitaries = np.array([
+        cirq.unitary(
+            cirq.KakDecomposition(interaction_coefficients=(t, t, 0), **kwargs))
+        for t in theta_swap
+    ])
+
+    actual = cirq.kak_vector(unitaries)
+    np.testing.assert_almost_equal(actual, k_vecs)
+
+
+@pytest.mark.parametrize('unitary,expected',
+                         ((np.eye(4), (0, 0, 0)), (SWAP, [np.pi / 4] * 3),
+                          (SWAP * 1j, [np.pi / 4] * 3),
+                          (CNOT, [np.pi / 4, 0, 0]), (CZ, [np.pi / 4, 0, 0]),
+                          (CZ @ SWAP, [np.pi / 4, np.pi / 4, 0]),
+                          (np.kron(X, X), (0, 0, 0))))
+def test_KAK_vector_weyl_chamber_vertices(unitary, expected):
+    actual = cirq.kak_vector(unitary)
+    np.testing.assert_almost_equal(actual, expected)
+
+
+cases = [np.eye(3), SWAP.reshape((2, 8)), SWAP.ravel()]
+
+
+@pytest.mark.parametrize('bad_input', cases)
+def test_kak_vector_wrong_matrix_shape(bad_input):
+    with pytest.raises(ValueError, match='to have shape'):
+        cirq.kak_vector(bad_input)
+
+
+def test_kak_vector_negative_atol():
+    with pytest.raises(ValueError, match='must be positive'):
+        cirq.kak_vector(np.eye(4), atol=-1.0)
+
+
+def test_kak_vector_input_not_unitary():
+    with pytest.raises(ValueError, match='must correspond to'):
+        cirq.kak_vector(np.zeros((4, 4)))

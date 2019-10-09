@@ -3300,3 +3300,19 @@ def test_init_contents():
     )
 
     cirq.Circuit()
+
+
+def test_transform_qubits():
+    a, b, c = cirq.LineQubit.range(3)
+    c = cirq.Circuit(cirq.X(a), cirq.CNOT(a, b), cirq.Moment(),
+                     cirq.Moment([cirq.CNOT(b, c)]))
+    x, y, z = cirq.GridQubit.rect(3, 1, 10, 20)
+    desired = cirq.Circuit(cirq.X(x), cirq.CNOT(x, y), cirq.Moment(),
+                           cirq.Moment([cirq.CNOT(y, z)]))
+    assert c.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
+
+    # Device
+    c = cirq.Circuit(device=cg.Foxtail)
+    assert c.transform_qubits(lambda q: q).device is cg.Foxtail
+    assert c.transform_qubits(lambda q: q, new_device=cg.Bristlecone
+                             ).device is cg.Bristlecone
