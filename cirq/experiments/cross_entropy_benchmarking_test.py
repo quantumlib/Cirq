@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import matplotlib as mpl
 import numpy as np
 
+import matplotlib as mpl
 import cirq
 
 from cirq.experiments import cross_entropy_benchmarking, build_entangling_layers
