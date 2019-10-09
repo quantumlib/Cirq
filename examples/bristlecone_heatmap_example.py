@@ -1,7 +1,7 @@
 """The script that produces bristlecone_heatmap_example.png."""
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 import cirq
 
 

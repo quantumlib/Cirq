@@ -81,6 +81,11 @@ def test_exponent():
         ]))
 
 
+def test_repr():
+    cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
+    cirq.testing.assert_equivalent_repr(cnot)
+
+
 def test_decomposes_despite_symbol():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     gate = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False,
