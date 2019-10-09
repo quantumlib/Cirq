@@ -20,7 +20,8 @@ matrix:
     language: sh
     python: '3.7.3'
     before_install:
-      - powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
+      - # TODO(craiggidney): re-enable after https://github.com/quantumlib/Cirq/issues/2283 is resolved
+      - # powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
       - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
       - powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
       - choco install python --version 3.7.3

@@ -352,6 +352,7 @@ from cirq.value import (
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
     Duration,
+    DURATION_LIKE,
     LinearDict,
     PeriodicValue,
     Timestamp,
