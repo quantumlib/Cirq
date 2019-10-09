@@ -17,6 +17,7 @@ from typing import Union, Any, Dict, Optional, List, Callable, Type, cast, \
     TYPE_CHECKING, Iterable
 
 import numpy as np
+import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
@@ -70,12 +71,15 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'SampleResult': cirq.SampleResult,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
                 'sympy.Symbol': sympy.Symbol,
+                'pandas.DataFrame': pd.DataFrame,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'WaitGate': cirq.WaitGate,
                 '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
@@ -201,6 +205,15 @@ class CirqEncoder(json.JSONEncoder):
         #       https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
+
+        if isinstance(o, pd.DataFrame):
+            return {
+                'cirq_type': 'pandas.DataFrame',
+                'data': o.values,
+                'columns': list(o.columns),
+                'index': list(o.index),
+            }
+
         return super().default(o)  # coverage: ignore
 
 

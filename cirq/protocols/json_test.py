@@ -21,6 +21,7 @@ import textwrap
 import pytest
 
 import numpy as np
+import pandas as pd
 import sympy
 
 import cirq
@@ -235,6 +236,9 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
+    'SampleResult':
+    cirq.SampleResult(data=pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
+                                        columns=['x', 'y', 'z'])),
     'SerializableDevice':
     cirq.google.SerializableDevice.from_proto(
         proto=cirq.google.known_devices.FOXTAIL_PROTO,
@@ -252,6 +256,8 @@ TEST_OBJECTS = {
     cirq.TOFFOLI,
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
+    'WaitGate':
+    cirq.WaitGate(cirq.Duration(nanos=10)),
     '_QubitAsQid': [
         cirq.NamedQubit('a').with_dimension(5),
         cirq.GridQubit(1, 2).with_dimension(1)

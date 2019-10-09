@@ -18,6 +18,8 @@ import abc
 import asyncio
 import threading
 
+import pandas as pd
+
 from cirq import study
 
 if TYPE_CHECKING:
@@ -48,6 +50,89 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
+
+    def sample(
+            self,
+            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            *,
+            repetitions: int = 1,
+            params: 'cirq.Sweepable' = None,
+    ) -> 'cirq.SampleResult':
+        """Samples from the given Circuit or Schedule.
+
+        By default, the `run_async` method invokes this method on another
+        thread. So this method is supposed to be thread safe.
+
+        Args:
+            program: The circuit or schedule to sample from.
+            repetitions: The number of times to sample the program, for each
+                parameter mapping.
+            params: Maps symbols to one or more values. This argument can be
+                a dictionary, a list of dictionaries, a `cirq.Sweep`, a list of
+                `cirq.Sweep`, etc. The program will be sampled `repetition`
+                times for each mapping. Defaults to a single empty mapping.
+
+        Returns:
+            A SampleResult containing all of the results and associted parameter
+            mappings concatenated into a pandas data frame.
+
+        Examples:
+            >>> a, b, c = cirq.LineQubit.range(3)
+            >>> sampler = cirq.Simulator()
+            >>> circuit = cirq.Circuit(cirq.X(a),
+            ...                        cirq.measure(a, key='out'))
+            >>> print(sampler.sample(circuit, repetitions=4))
+            SampleResult with data:
+               out
+            0    1
+            1    1
+            2    1
+            3    1
+
+            >>> circuit = cirq.Circuit(cirq.X(a),
+            ...                        cirq.CNOT(a, b),
+            ...                        cirq.measure(a, b, c, key='out'))
+            >>> print(sampler.sample(circuit, repetitions=4))
+            SampleResult with data:
+               out
+            0    6
+            1    6
+            2    6
+            3    6
+
+            >>> circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
+            ...                        cirq.measure(a, key='out'))
+            >>> print(sampler.sample(
+            ...     circuit,
+            ...     repetitions=3,
+            ...     params=[{'t': 0}, {'t': 1}]))
+            SampleResult with data:
+               t  out
+            0  0    0
+            1  0    0
+            2  0    0
+            0  1    1
+            1  1    1
+            2  1    1
+        """
+
+        sweeps_list = study.to_sweeps(params)
+        results = []
+        param_keys = sorted(sweeps_list[0].keys) if sweeps_list else []
+        for sweep in sweeps_list:
+            sweep_results = self.run_sweep(program,
+                                           params=sweep,
+                                           repetitions=repetitions)
+            for resolver, result in zip(sweep, sweep_results):
+                param_values_once = [
+                    resolver.value_of(key) for key in param_keys
+                ]
+                param_table = pd.DataFrame(data=[param_values_once] *
+                                           repetitions,
+                                           columns=param_keys)
+                results.append(pd.concat([param_table, result.data], axis=1))
+
+        return study.SampleResult(data=pd.concat(results))
 
     @abc.abstractmethod
     def run_sweep(
@@ -102,7 +187,24 @@ class Sampler(metaclass=abc.ABCMeta):
         the result via the asyncio event loop. However, child classes are free
         to override it to use other strategies.
 
-        Args:
+        Args:, '
+                f'columns={repr(value.columns)}, '
+                columns=['s', 't', 'out'],
+            index=[0, 1, 2] * 4,
+            data=[
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 1, 1],
+                [0, 1, 1],
+                [0, 1, 1],
+                [1, 0, 2],
+                [1, 0, 2],
+                [1, 0, 2],
+                [1, 1, 3],
+                [1, 1, 3],
+                [1, 1, 3],
+            ])
             program: The circuit or schedule to sample from.
             params: One or more mappings from parameter keys to parameter values
                 to use. For each parameter assignment, `repetitions` samples

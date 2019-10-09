@@ -18,6 +18,7 @@ import logging
 from typing import Any, Callable, Optional, Dict, Tuple
 
 import numpy as np
+import pandas as pd
 import sympy
 
 
@@ -40,6 +41,14 @@ def proper_repr(value: Any) -> str:
 
     if isinstance(value, np.ndarray):
         return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
+
+    if isinstance(value, pd.DataFrame):
+        items = ', '.join(proper_repr(value[col]) for col in value.columns)
+        return (f'pd.DataFrame('
+                f'columns={repr(list(value.columns))}, '
+                f'index={repr(list(value.index))}, '
+                f'data={proper_repr(value.values)})')
+
     return repr(value)
 
 
