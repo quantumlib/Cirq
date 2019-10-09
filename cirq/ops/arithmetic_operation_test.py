@@ -168,6 +168,6 @@ def test_reshape_referencing():
             raise NotImplementedError()
 
     state = np.ones(4, dtype=np.complex64) / 2
-    output = cirq.final_wavefunction(cirq.Circuit.from_ops(Op1()),
+    output = cirq.final_wavefunction(cirq.Circuit(Op1()),
                                      initial_state=state)
     np.testing.assert_allclose(state, output)
