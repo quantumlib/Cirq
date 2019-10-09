@@ -610,7 +610,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     """
     if ax is None:
         fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
 
     def coord_transform(
             pts: Iterable[Tuple[float, float, float]]
