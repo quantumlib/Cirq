@@ -27,6 +27,7 @@ User Documentation
     circuits
     gates
     noise
+    plotting
     simulation
     schedules
     qudits
