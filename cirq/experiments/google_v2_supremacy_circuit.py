@@ -132,7 +132,7 @@ def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
                 ]
             return len(list(e for e in possibles if e in qubits))
 
-        assert 1 <= n_rows <= 11
+        assert 2 <= n_rows <= 11
         max_row = n_rows - 1
         dev = google.Bristlecone
         # we need a consistent order of qubits
