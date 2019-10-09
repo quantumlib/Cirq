@@ -22,8 +22,8 @@ matrix:
     before_install:
       - # TODO(craiggidney): re-enable after https://github.com/quantumlib/Cirq/issues/2283 is resolved
       - # powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
-      - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
-      - powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
+      - # powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
+      - # powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
       - choco install python --version 3.7.3
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
       - python -m pip install --upgrade pip wheel
