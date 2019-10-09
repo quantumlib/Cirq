@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for cirq.Sampler."""
-import pandas as pd
 import pytest
+
+import pandas as pd
 import sympy
 
 import cirq
@@ -124,9 +125,12 @@ def test_sampler_sample_inconsistent_keys():
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.measure(q, key='out'))
     with pytest.raises(ValueError, match='Inconsistent sweep parameters'):
-        _ = sampler.sample(
-            circuit,
-            params=[
-                {'a': 1},
-                {'a': 1, 'b': 2},
-            ])
+        _ = sampler.sample(circuit, params=[
+            {
+                'a': 1
+            },
+            {
+                'a': 1,
+                'b': 2
+            },
+        ])
