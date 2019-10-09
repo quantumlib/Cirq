@@ -18,6 +18,7 @@ import datetime
 
 import sympy
 
+from cirq import protocols
 from cirq._compat import proper_repr, deprecated
 
 if TYPE_CHECKING:
@@ -78,11 +79,9 @@ class Duration:
         return Duration(duration)
 
     def _is_parameterized_(self):
-        from cirq import protocols
         return protocols.is_parameterized(self._picos)
 
     def _resolve_parameters_(self, param_resolver):
-        from cirq import protocols
         return Duration(
             picos=protocols.resolve_parameters(self._picos, param_resolver))
 
