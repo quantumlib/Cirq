@@ -29,11 +29,11 @@ class Foo:
     def plot(self, ax: plt.Axes=None, **plot_kwargs: Any) -> plt.Axes:
         show_plot = not ax
         if show_plot:
-            _, ax = plt.subplots(1, 1)  # or your favorite figure setup
+            fig, ax = plt.subplots(1, 1)  # or your favorite figure setup
         # Call methods of the ax instance like ax.plot to plot on it.
         ...
         if show_plot:
-            plt.show()
+            fig.show()
         return ax
 ```
 
@@ -44,7 +44,9 @@ on the screen. When absent, the code is in *interactive* mode, and it creates
 a figure and shows it.
 
 The returned `ax` instance can be used to further customize the plot if the
-user wants to.
+user wants to. Note that if we were to call `plt.show` instead of `fig.show`,
+the customizations on the returned `ax` does not show up on subsequent call to
+`plt.show`.
 
 To satisfy requirement number 3, unit test codes should create an `ax` object
 and pass it into the `plot` method like the following example.
@@ -57,7 +59,7 @@ def test_foo_plot():
     # assert on the content of ax here if necessary.
 ```
 
-This does not produce a pop-up window because `plt.show` is not called.
+This does not produce a pop-up window because `fig.show` is not called.
 
 
 ## Classes that produce multi-axes plot
@@ -78,7 +80,7 @@ class Foo:
         # Call methods of the axes[i] objects to plot on it.
         ...
         if show_plot:
-            plt.show()
+            fig.show()
         return axes
 ```
 
