@@ -58,7 +58,7 @@ import sys
 from typing import Any, Dict, List, Pattern, Tuple, Iterator
 
 import os
-from pathlib import Path
+import pathlib
 import re
 
 import pytest
@@ -76,7 +76,7 @@ def test_can_run_readme_code_snippets():
 
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
-    docs_folder = Path(__file__).parent
+    docs_folder = pathlib.Path(__file__).parent
     for filename in docs_folder.rglob('*.md'):
         yield str(filename.relative_to(docs_folder))
     for filename in docs_folder.rglob('*.rst'):
