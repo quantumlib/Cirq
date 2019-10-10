@@ -67,7 +67,7 @@ class EngineException(Exception):
         super().__init__(message)
 
 
-#  programs to run can be specified as circuits or schedules.
+# Quantum programs to run can be specified as circuits or schedules.
 TProgram = Union[circuits.Circuit, schedules.Schedule]
 
 
