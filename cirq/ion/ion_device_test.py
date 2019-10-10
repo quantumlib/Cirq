@@ -91,9 +91,9 @@ def test_repr():
     d = ion_device(3)
 
     assert repr(d) == ("IonDevice("
-                       "measurement_duration=cirq.Duration(picos=100000000), "
-                       "twoq_gates_duration=cirq.Duration(picos=200000000), "
-                       "oneq_gates_duration=cirq.Duration(picos=10000000) "
+                       "measurement_duration=cirq.Duration(micros=100), "
+                       "twoq_gates_duration=cirq.Duration(micros=200), "
+                       "oneq_gates_duration=cirq.Duration(micros=10) "
                        "qubits=[cirq.LineQubit(0), cirq.LineQubit(1), "
                        "cirq.LineQubit(2)])")
 
