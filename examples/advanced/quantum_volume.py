@@ -155,7 +155,7 @@ def compile_circuit(
         *,
         device: cirq.google.xmon_device.XmonDevice,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
-        routing_algo_name: Optional[str] = 'greedy',
+        routing_algo_name: Optional[str] = None,
         router: Optional[Callable[..., ccr.SwapNetwork]] = None,
 ) -> Tuple[cirq.Circuit, Dict[cirq.ops.Qid, cirq.ops.Qid]]:
     """Compile the given model circuit onto the given device. This uses a

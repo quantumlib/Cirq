@@ -54,10 +54,10 @@ matrix:
   - stage: test
     os: osx
     env: NAME=pytest (macOS)
-    python: '3.7.3'
+    python: '3.7'
     language: generic
     install:
-      - python3.7.3 -m venv venv
+      - python3.7 -m venv venv
       - source venv/bin/activate
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt

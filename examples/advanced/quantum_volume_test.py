@@ -1,6 +1,7 @@
 """Tests for the Quantum Volume benchmarker."""
 
 from unittest.mock import Mock, MagicMock
+import io
 import numpy as np
 from examples.advanced import quantum_volume
 import cirq
@@ -74,6 +75,15 @@ def test_sample_heavy_set():
     assert probability == .003
 
 
+def test_compile_circuit_router():
+    """Tests that the given router is used."""
+    router_mock = MagicMock()
+    quantum_volume.compile_circuit(cirq.Circuit(),
+                                   device=cirq.google.Bristlecone,
+                                   router=router_mock)
+    router_mock.assert_called()
+
+
 def test_compile_circuit():
     """Tests that we are able to compile a model circuit."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
@@ -110,6 +120,9 @@ def test_calculate_quantum_volume_result():
     assert results[0].heavy_set == quantum_volume.compute_heavy_set(
         model_circuit)
     assert len(results[0].sampler_result) == 1
+    # Ensure that calling to_json on the results does not err.
+    buffer = io.StringIO()
+    cirq.to_json(results, buffer)
 
 
 def test_main_loop():
