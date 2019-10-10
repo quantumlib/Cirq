@@ -18,6 +18,7 @@ import logging
 from typing import Any, Callable, Optional, Dict, Tuple
 
 import numpy as np
+import pandas as pd
 import sympy
 
 
@@ -30,7 +31,8 @@ def proper_repr(value: Any) -> str:
         # HACK: work around https://github.com/sympy/sympy/issues/16074
         # (only handles a few cases)
         fixed_tokens = [
-            'Symbol', 'pi', 'Mul', 'Add', 'Mod', 'Integer', 'Float', 'Rational'
+            'Symbol', 'pi', 'Mul', 'Pow', 'Add', 'Mod', 'Integer', 'Float',
+            'Rational'
         ]
         for token in fixed_tokens:
             result = result.replace(token, 'sympy.' + token)
@@ -39,6 +41,15 @@ def proper_repr(value: Any) -> str:
 
     if isinstance(value, np.ndarray):
         return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
+
+    if isinstance(value, pd.DataFrame):
+        cols = [value[col].tolist() for col in value.columns]
+        rows = list(zip(*cols))
+        return (f'pd.DataFrame.from_records('
+                f'columns={repr(list(value.columns))}, '
+                f'index={repr(list(value.index))}, '
+                f'data={repr(rows)})')
+
     return repr(value)
 
 
