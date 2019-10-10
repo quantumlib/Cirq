@@ -192,7 +192,8 @@ class Engine:
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying apiclient. See
                 https://github.com/googleapis/google-api-python-client
-            verbose: Supresses stderr messages when set to False. Default is true. 
+            verbose: Supresses stderr messages when set to False. Default is
+                true.
         """
         if discovery_url and version:
             raise ValueError("`version` and `discovery_url` are both "
