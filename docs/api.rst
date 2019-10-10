@@ -178,20 +178,6 @@ Pauli and Clifford Group Concepts
     SingleQubitCliffordGate
 
 
-Displays
-''''''''
-
-
-.. autosummary::
-    :toctree: generated/
-
-    ApproxPauliStringExpectation
-    approx_pauli_string_expectation
-    DensityMatrixDisplay
-    SamplesDisplay
-    WaveFunctionDisplay
-
-
 Circuits and Schedules
 ''''''''''''''''''''''
 

@@ -16,8 +16,7 @@
 
 import abc
 
-from typing import (Any, Dict, Iterator, Hashable, List, Optional, Sequence,
-                    Union, cast)
+from typing import Any, cast, Dict, Iterator, Sequence, Union
 
 import numpy as np
 

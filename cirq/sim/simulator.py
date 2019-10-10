@@ -30,7 +30,6 @@ Simulator types include:
 from typing import (
     Any,
     Dict,
-    Hashable,
     Iterator,
     List,
     Sequence,
