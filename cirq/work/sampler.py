@@ -75,24 +75,6 @@ class Sampler(metaclass=abc.ABCMeta):
             parameter. There is an also index column containing the repetition
             number, for each parameter assignment.
 
-            For example, if you sample from a circuit with a single measurement
-            result called 'out', then the table will look like:
-
-                   out
-                0    1
-                1    1
-                2    1
-                3    1
-
-            and if you sample from a circuit with a 't' parameter and two
-            measurement results 'a' and 'b', then the table will look like:
-
-                      t a b
-                0  0.25 1 1
-                1  0.50 1 1
-                2  0.75 0 1
-                3  1.00 0 0
-
         Examples:
             >>> a, b, c = cirq.LineQubit.range(3)
             >>> sampler = cirq.Simulator()
