@@ -20,8 +20,7 @@ from typing import (Dict, Iterator, List, Optional, Type, Union)
 
 import numpy as np
 
-from cirq import (circuits, linalg, ops, protocols, schedules, study, value,
-                  devices)
+from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 
 

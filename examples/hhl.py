@@ -21,9 +21,9 @@ REFERENCE section below. The following description uses variables defined
 in the HHL paper.
 
 This example is an implementation of the HHL algorithm for arbitrary 2x2
-Hermitian matrices. The output of the algorithm is a display of Pauli
-observables of |x>. Note that the accuracy of the result depends on the
-following factors:
+Hermitian matrices. The output of the algorithm are the expectation values
+of Pauli observables of |x>. Note that the accuracy of the result depends
+on the following factors:
 * Register size
 * Choice of parameters C and t
 
@@ -245,23 +245,6 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
             phase_exponent=sympy.Symbol('phase_exponent'))(memory),
         cirq.measure(memory, key='m')
     ])
-
-    # # Pauli observable display
-    # c.append([
-    #     cirq.approx_pauli_string_expectation(cirq.Z(ancilla),
-    #                                          num_samples=5000,
-    #                                          key='a'),
-    #     cirq.approx_pauli_string_expectation(cirq.X(memory),
-    #                                          num_samples=5000,
-    #                                          key='x'),
-    #     cirq.approx_pauli_string_expectation(cirq.Y(memory),
-    #                                          num_samples=5000,
-    #                                          key='y'),
-    #     cirq.approx_pauli_string_expectation(cirq.Z(memory),
-    #                                          num_samples=5000,
-    #                                          key='z'),
-    # ])
-    #
 
     return c
 
