@@ -265,6 +265,8 @@ TEST_OBJECTS = {
     cirq.TOFFOLI,
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
+    'WaitGate':
+    cirq.WaitGate(cirq.Duration(nanos=10)),
     '_QubitAsQid': [
         cirq.NamedQubit('a').with_dimension(5),
         cirq.GridQubit(1, 2).with_dimension(1)
