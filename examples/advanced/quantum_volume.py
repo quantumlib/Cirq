@@ -26,7 +26,6 @@ import numpy as np
 
 import cirq
 import cirq.contrib.routing as ccr
-from cirq.circuits.optimization_pass import PointOptimizer
 
 
 def generate_model_circuit(num_qubits: int,
@@ -69,10 +68,8 @@ def generate_model_circuit(num_qubits: int,
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.
             circuit.append(
-                cirq.two_qubit_matrix_to_operations(qubits[permuted_indices[0]],
-                                                    qubits[permuted_indices[1]],
-                                                    special_unitary,
-                                                    allow_partial_czs=False))
+                cirq.TwoQubitMatrixGate(special_unitary).on(
+                    qubits[permuted_indices[0]], qubits[permuted_indices[1]]))
 
     # Don't measure all of the qubits at the end of the circuit because we will
     # need to classically simulate it to compute its heavy set.
@@ -153,24 +150,26 @@ def sample_heavy_set(circuit: cirq.Circuit,
     return num_in_heavy_set / repetitions
 
 
-def compile_circuit(circuit: cirq.Circuit,
-                    *,
-                    device: cirq.google.xmon_device.XmonDevice,
-                    deconstruct: PointOptimizer = None,
-                    optimize: Callable[[cirq.Circuit], cirq.Circuit] = None
-                   ) -> Tuple[cirq.Circuit, Dict[cirq.ops.Qid, cirq.ops.Qid]]:
-    """Compile the given model circuit onto the given device. This follows a
-    similar compilation method as described in
-    https://arxiv.org/pdf/1811.12926.pdf Appendix A, although it does not
-    necessarily use QisKit to do so.
+def compile_circuit(
+        circuit: cirq.Circuit,
+        *,
+        device: cirq.google.xmon_device.XmonDevice,
+        compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+        routing_algo_name: Optional[str] = 'greedy',
+        router: Optional[Callable[..., ccr.SwapNetwork]] = None,
+) -> Tuple[cirq.Circuit, Dict[cirq.ops.Qid, cirq.ops.Qid]]:
+    """Compile the given model circuit onto the given device. This uses a
+    different compilation method than described in
+    https://arxiv.org/pdf/1811.12926.pdf Appendix A. The latter goes through a
+    7-step process involving various decompositions, routing, and optimization
+    steps. We route the model circuit and then run a series of optimizers on it
+    (which can be passed into this function).
 
     Args:
         circuit: The model circuit to compile.
         device: The device to compile onto.
-        deconstruct: An optional function to deconstruct the model circuit's
-            gates down to the targer devices gate set.
-        optimize: An optional function to optimize the circuit's gates
-            after routing.
+        compiler: An optional function to deconstruct the model circuit's
+            gates down to the target devices gate set and then optimize it.
 
     Returns: A tuple where the first value is the compiled circuit and the
         second value is the final mapping from the model circuit to the compiled
@@ -179,25 +178,25 @@ def compile_circuit(circuit: cirq.Circuit,
 
     """
     compiled_circuit = circuit.copy()
-    # Step 1: Unrolling. Descend into each gate's hierarchical definition and
-    # rewrite it in terms of lower-level gates that are in the target device
-    # gate set.
-    if deconstruct:
-        deconstruct(compiled_circuit)
-    # Step 2: Swap Mapping (Routing). Ensure the gates can actually operate on
-    # the target qubits given our topology.
+    # Swap Mapping (Routing). Ensure the gates can actually operate on the
+    # target qubits given our topology.
+    if router is None and routing_algo_name is None:
+        routing_algo_name = 'greedy'
     swap_network = ccr.route_circuit(compiled_circuit,
                                      ccr.xmon_device_to_graph(device),
-                                     algo_name='greedy')
+                                     router=router,
+                                     algo_name=routing_algo_name)
     compiled_circuit = swap_network.circuit
-    # Step 3: Optimize. The paper uses various optimization techniques - because
-    # Quantum Volume is intended to test those as well, we allow this to be
-    # passed in. This optimizer is not allowed to change the order of the
-    # qubits.
-    if optimize:
-        compiled_circuit = optimize(compiled_circuit)
 
-    return (compiled_circuit, swap_network.final_mapping())
+    # Compile. This should decompose the routed circuit down to a gate set that
+    # our device supports, and then optimize. The paper uses various
+    # compiling techniques - because Quantum Volume is intended to test those
+    # as well, we allow this to be passed in. This compiler is not allowed to
+    # change the order of the qubits.
+    if compiler:
+        compiled_circuit = compiler(compiled_circuit)
+
+    return compiled_circuit, swap_network.final_mapping()
 
 
 class QuantumVolumeResult:
@@ -223,20 +222,19 @@ class QuantumVolumeResult:
         ])
 
 
-def main(*,
-         num_qubits: int,
-         depth: int,
-         num_repetitions: int,
-         seed: int,
-         device: cirq.google.xmon_device.XmonDevice,
-         samplers: List[cirq.Sampler],
-         deconstruct: PointOptimizer = None,
-         optimize: Callable[[cirq.Circuit], cirq.Circuit] = None
-        ) -> QuantumVolumeResult:
+def calculate_quantum_volume(
+        *,
+        num_qubits: int,
+        depth: int,
+        num_repetitions: int,
+        seed: int,
+        device: cirq.google.xmon_device.XmonDevice,
+        samplers: List[cirq.Sampler],
+        compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+) -> QuantumVolumeResult:
     """Run the quantum volume algorithm.
 
-    The Quantum Volume benchmark is fairly straightforward. This algorithm will
-    follow the same format as Algorithm 1 in
+    This algorithm will follow the same format as Algorithm 1 in
     https://arxiv.org/abs/1811.12926. To summarize, we generate a random model
     circuit, compute its heavy set, then transpile an implementation onto our
     architecture. This implementation is run a series of times and if the
@@ -247,11 +245,15 @@ def main(*,
         num_qubits: The number of qubits for the circuit.
         depth: The number of gate layers to generate.
         num_repetitions: The number of times to run the algorithm.
+        seed: A seed to pass into the RandomState.
+        device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
-        deconstruct: An optional function to deconstruct the model circuit's
-            gates down to the targer devices gate set.
-        optimize: An optional function to optimize the circuit's gates
-            after routing.
+        compiler: An optional function to compiler the model circuit's
+            gates down to the target devices gate set and the optimize it.
+
+    Returns: A QuantumVolumeResult that contains all of the information for
+        running the algorithm and its results.
+
     """
     result = QuantumVolumeResult()
     for repetition in range(num_repetitions):
@@ -266,8 +268,7 @@ def main(*,
 
         [compiled_circuit, mapping] = compile_circuit(model_circuit,
                                                       device=device,
-                                                      deconstruct=deconstruct,
-                                                      optimize=optimize)
+                                                      compiler=compiler)
         result.compiled_circuits.append(compiled_circuit)
         for idx, sampler in enumerate(samplers):
             prob = sample_heavy_set(compiled_circuit,
@@ -277,6 +278,39 @@ def main(*,
             print(f"  Compiled HOG probability #{idx + 1}: {prob}")
             result.sampler_results[idx].append(prob)
     return result
+
+
+def main(
+        *,
+        num_qubits: int,
+        depth: int,
+        num_repetitions: int,
+        seed: int,
+) -> QuantumVolumeResult:
+    """Run the quantum volume algorithm with a preset configuration.
+
+    See the calculate_quantum_volume documentation for more details.
+
+    Args:
+        num_qubits: Pass-through to calculate_quantum_volume.
+        depth: Pass-through to calculate_quantum_volume
+        num_repetitions: Pass-through to calculate_quantum_volume
+        seed: Pass-through to calculate_quantum_volume
+
+    Returns: Pass-through from calculate_quantum_volume.
+    """
+    device = cirq.google.Bristlecone
+    compiler = lambda circuit: cirq.google.optimized_for_xmon(circuit=circuit,
+                                                              new_device=device)
+    noisy = cirq.DensityMatrixSimulator(noise=cirq.ConstantQubitNoiseModel(
+        qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
+    return calculate_quantum_volume(num_qubits=num_qubits,
+                                    depth=depth,
+                                    num_repetitions=num_repetitions,
+                                    seed=seed,
+                                    device=device,
+                                    samplers=[cirq.Simulator(), noisy],
+                                    compiler=compiler)
 
 
 def parse_arguments(args):
@@ -304,14 +338,4 @@ def parse_arguments(args):
 
 
 if __name__ == '__main__':
-    device = cirq.google.Bristlecone
-    optimize = lambda circuit: cirq.google.optimized_for_xmon(circuit=circuit,
-                                                              new_device=device)
-    ideal = cirq.Simulator()
-    noisy = cirq.DensityMatrixSimulator(noise=cirq.ConstantQubitNoiseModel(
-        qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
-    main(device=device,
-         samplers=[cirq.Simulator(), noisy],
-         optimize=optimize,
-         deconstruct=None,
-         **parse_arguments(sys.argv[1:]))
+    main(**parse_arguments(sys.argv[1:]))
