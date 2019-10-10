@@ -182,6 +182,8 @@ def test_identity_global():
     qubits = cirq.LineQubit.range(3)
     assert cirq.identity_each(*qubits) == cirq.IdentityGate(3).on(*qubits)
     qids = cirq.LineQid.for_qid_shape((1, 2, 3))
-    assert cirq.identity_each(*qids) == cirq.IdentityGate(3, (1, 2, 3)).on(*qids)
+    assert cirq.identity_each(*qids) == cirq.IdentityGate(3,
+                                                          (1, 2, 3)).on(*qids)
     with pytest.raises(ValueError, match='type different'):
-        cirq.identity_each(qubits)  # The user forgot to expand the list for example.
+        cirq.identity_each(
+            qubits)  # The user forgot to expand the list for example.

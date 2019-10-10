@@ -123,9 +123,9 @@ def test_decompose_once_with_qubits():
 
     # Qudits, _decompose_ argument name is not 'qubits'.
     assert cirq.decompose_once_with_qubits(
-        DecomposeQuditGate(), cirq.LineQid.for_qid_shape(
-            (1, 2,
-             3))) == [cirq.identity_each(*cirq.LineQid.for_qid_shape((1, 2, 3)))]
+        DecomposeQuditGate(), cirq.LineQid.for_qid_shape((1, 2, 3))) == [
+            cirq.identity_each(*cirq.LineQid.for_qid_shape((1, 2, 3)))
+        ]
 
     # Works when qubits are generated.
     def use_qubits_twice(*qubits):
