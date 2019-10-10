@@ -28,6 +28,8 @@ interactive session. The recommended way to achieve that is illustrated in the
 example below.
 
 ```python
+import matplotlib.pyplot as plt
+
 class Foo:
     ...
     def plot(self, ax: plt.Axes=None, **plot_kwargs: Any) -> plt.Axes:
