@@ -75,7 +75,15 @@ class _ResolverCache:
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
                 'sympy.Symbol': sympy.Symbol,
+                'sympy.Add': lambda args: sympy.Add(*args),
+                'sympy.Mul': lambda args: sympy.Mul(*args),
+                'sympy.Pow': lambda args: sympy.Pow(*args),
+                'sympy.Float': lambda approx: sympy.Float(approx),
+                'sympy.Integer': sympy.Integer,
+                'sympy.Rational': sympy.Rational,
                 'pandas.DataFrame': pd.DataFrame,
+                'pandas.Index': pd.Index,
+                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,
@@ -205,14 +213,44 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
+        if isinstance(o, (sympy.Add, sympy.Mul, sympy.Pow)):
+            return obj_to_dict_helper(o, ['args'], namespace='sympy')
+
+        if isinstance(o, sympy.Integer):
+            return {'cirq_type': 'sympy.Integer', 'i': o.p}
+
+        if isinstance(o, sympy.Float):
+            return {'cirq_type': 'sympy.Float', 'approx': float(o)}
+
+        if isinstance(o, sympy.Rational):
+            return {
+                'cirq_type': 'sympy.Rational',
+                'p': o.p,
+                'q': o.q,
+            }
+
+        if isinstance(o, pd.MultiIndex):
+            return {
+                'cirq_type': 'pandas.MultiIndex',
+                'tuples': list(o),
+                'names': list(o.names),
+            }
+
+        if isinstance(o, pd.Index):
+            return {
+                'cirq_type': 'pandas.Index',
+                'data': list(o),
+                'name': o.name,
+            }
+
         if isinstance(o, pd.DataFrame):
             cols = [o[col].tolist() for col in o.columns]
             rows = list(zip(*cols))
             return {
                 'cirq_type': 'pandas.DataFrame',
                 'data': rows,
-                'columns': list(o.columns),
-                'index': list(o.index),
+                'columns': o.columns,
+                'index': o.index,
             }
 
         return super().default(o)  # coverage: ignore
