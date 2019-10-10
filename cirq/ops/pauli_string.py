@@ -32,7 +32,7 @@ from cirq.ops import (
     pauli_gates,
     clifford_gate,
     pauli_interaction_gate,
-    identity,
+    identity as identity,
 )
 
 if TYPE_CHECKING:

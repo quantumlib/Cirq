@@ -107,7 +107,7 @@ from cirq.ops.gate_operation import (
 
 from cirq.ops.identity import (
     I,
-    identity,
+    identity_each,
     IdentityGate,
     IdentityOperation,
 )

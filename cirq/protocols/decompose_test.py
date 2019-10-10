@@ -57,7 +57,7 @@ class DecomposeGenerated:
 class DecomposeQuditGate:
 
     def _decompose_(self, qids):
-        yield cirq.identity(*qids)
+        yield cirq.identity_each(*qids)
 
 
 def test_decompose_once():
@@ -125,7 +125,7 @@ def test_decompose_once_with_qubits():
     assert cirq.decompose_once_with_qubits(
         DecomposeQuditGate(), cirq.LineQid.for_qid_shape(
             (1, 2,
-             3))) == [cirq.identity(*cirq.LineQid.for_qid_shape((1, 2, 3)))]
+             3))) == [cirq.identity_each(*cirq.LineQid.for_qid_shape((1, 2, 3)))]
 
     # Works when qubits are generated.
     def use_qubits_twice(*qubits):

@@ -16,7 +16,7 @@ from typing import Union, TYPE_CHECKING, Tuple, cast
 
 import sympy
 from cirq import value
-from cirq.ops import common_gates, raw_types, identity
+from cirq.ops import common_gates, raw_types, identity as identity
 
 
 if TYPE_CHECKING:

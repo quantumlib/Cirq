@@ -65,6 +65,7 @@ def test_identity_unitary(num_qubits):
     i3 = cirq.IdentityGate(num_qubits, (3,) * num_qubits)
     assert np.allclose(cirq.unitary(i3), np.identity(3**num_qubits))
 
+
 def test_identity_str():
     assert str(cirq.IdentityGate(1)) == 'I'
     assert str(cirq.IdentityGate(2)) == 'I(2)'
@@ -165,6 +166,10 @@ def test_identity_operation_str():
     assert str(cirq.IdentityOperation((a, b))) == ('I(0, 1)')
 
 
+def test_pauli_expansion_notimplemented():
+    assert cirq.IdentityGate(1, (3,))._pauli_expansion_() == NotImplemented
+
+
 @pytest.mark.parametrize('gate_type, num_qubits',
                          itertools.product((cirq.IdentityGate,), range(1, 5)))
 def test_consistent_protocols(gate_type, num_qubits):
@@ -175,8 +180,8 @@ def test_consistent_protocols(gate_type, num_qubits):
 
 def test_identity_global():
     qubits = cirq.LineQubit.range(3)
-    assert cirq.identity(*qubits) == cirq.IdentityGate(3).on(*qubits)
+    assert cirq.identity_each(*qubits) == cirq.IdentityGate(3).on(*qubits)
     qids = cirq.LineQid.for_qid_shape((1, 2, 3))
-    assert cirq.identity(*qids) == cirq.IdentityGate(3, (1, 2, 3)).on(*qids)
+    assert cirq.identity_each(*qids) == cirq.IdentityGate(3, (1, 2, 3)).on(*qids)
     with pytest.raises(ValueError, match='type different'):
-        cirq.identity(qubits)  # The user forgot to expand the list for example.
+        cirq.identity_each(qubits)  # The user forgot to expand the list for example.

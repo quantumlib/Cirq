@@ -13,7 +13,8 @@
 # limitations under the License.
 """IdentityGate and IdentityOperation."""
 
-from typing import (Any, Iterable, FrozenSet, List, Optional, Sequence, Tuple, Union)
+from typing import (Any, Iterable, FrozenSet, List, Optional, Sequence, Tuple,
+                    Union)
 
 import numpy as np
 import sympy
@@ -57,7 +58,7 @@ class IdentityGate(raw_types.Gate):
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
-    
+
     def num_qubits(self) -> int:
         return len(self._qid_shape)
 
@@ -241,7 +242,7 @@ class IdentityOperation(raw_types.Operation):
 I = IdentityGate(num_qubits=1)
 
 
-def identity(*qubits: raw_types.Qid) -> raw_types.Operation:
+def identity_each(*qubits: raw_types.Qid) -> raw_types.Operation:
     """Returns a single IdentityGate applied to all the given qubits.
 
     Args:

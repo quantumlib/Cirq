@@ -184,7 +184,7 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
-    identity,
+    identity_each,
     IdentityGate,
     IdentityOperation,
     InterchangeableQubitsGate,
