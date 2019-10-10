@@ -328,6 +328,7 @@ SHOULDNT_BE_SERIALIZED = [
 
     # mypy types:
     'DURATION_LIKE',
+    'NOISE_MODEL_LIKE',
     'OP_TREE',
     'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
