@@ -1148,10 +1148,10 @@ def test_api_doesnt_retry_404_errors(build):
     service = mock.Mock()
     build.return_value = service
     getProgram = service.projects().programs().get()
-    content = '{"error": {"message": "not found", "code": 404}}'.encode('utf-8');
+    content = '{"error": {"message": "not found", "code": 404}}'.encode('utf-8')
     getProgram.execute.side_effect = HttpError(mock.Mock(), content)
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(RuntimeError, match='not found'):
+    with pytest.raises(cg.engine.engine.EngineException, match='not found'):
         engine.get_program('foo')
         assert getProgram.execute.call_count == 1
 
@@ -1161,10 +1161,11 @@ def test_api_retry_5xx_errors(build):
     service = mock.Mock()
     build.return_value = service
     getProgram = service.projects().programs().get()
-    content = '{"error": {"message": "internal error", "code": 503}}'.encode('utf-8');
+    content = '{"error": {"message": "internal error", "code": 503}}'.encode(
+        'utf-8')
     getProgram.execute.side_effect = HttpError(mock.Mock(), content)
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(Exception,
+    with pytest.raises(TimeoutError,
                        match='Reached max retry attempts.*internal error'):
         engine.max_retry_delay = 1  # 1 second
         engine.get_program('foo')
@@ -1178,7 +1179,7 @@ def test_api_retry_connection_reset(build):
     getProgram = service.projects().programs().get()
     getProgram.execute.side_effect = ConnectionResetError()
     engine = cg.Engine(project_id='project-id')
-    with pytest.raises(Exception,
+    with pytest.raises(TimeoutError,
                        match='Reached max retry attempts.*Lost connection'):
         engine.max_retry_delay = 1  # 1 second
         engine.get_program('foo')

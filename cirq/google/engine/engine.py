@@ -60,7 +60,14 @@ class ProtoVersion(enum.Enum):
     V2 = 2
 
 
-# Quantum programs to run can be specified as circuits or schedules.
+class EngineException(Exception):
+
+    def __init__(self, message):
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+
+
+#  programs to run can be specified as circuits or schedules.
 TProgram = Union[circuits.Circuit, schedules.Schedule]
 
 
@@ -400,7 +407,7 @@ class Engine:
                                                         job_config.job_id)
 
     def _make_request(self, request: HttpRequest) -> Dict:
-        RETRYABLE_ERROR_CODES = [500, 503]
+        retryable_error_codes = [500, 503]
         current_delay = 0.1  #100ms
 
         while True:
@@ -413,8 +420,8 @@ class Engine:
                 message = err.get('message')
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
-                if not err.get('code') in RETRYABLE_ERROR_CODES:
-                    raise RuntimeError(message) from raw_err
+                if not err.get('code') in retryable_error_codes:
+                    raise EngineException(message) from raw_err
 
             current_delay *= 2
             if current_delay > self.max_retry_delay:
@@ -422,7 +429,10 @@ class Engine:
                     'Reached max retry attempts for error: {}'.format(message))
             if (self.verbose):
                 print(message, file=sys.stderr)
-                print('Waiting ', current_delay, 'seconds before retrying.', file=sys.stderr)
+                print('Waiting ',
+                      current_delay,
+                      'seconds before retrying.',
+                      file=sys.stderr)
             time.sleep(current_delay)
 
     def _serialize_run_context(
