@@ -14,6 +14,7 @@
 """Check protobuf modules initialize successfully."""
 
 # pylint: disable=unused-import
+from cirq.api.google.v2 import device_pb2
 from cirq.api.google.v2 import metrics_pb2
 from cirq.api.google.v2 import program_pb2
 from cirq.api.google.v2 import result_pb2
