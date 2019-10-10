@@ -106,8 +106,7 @@ def test_constant_qubit_noise():
     damp = cirq.amplitude_damp(0.5)
     damp_all = cirq.ConstantQubitNoiseModel(damp)
     actual = damp_all.noisy_moments(
-        [cirq.Moment([cirq.X(a)]), cirq.Moment()],
-        [a, b, c])
+        [cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
     expected = [
         [
             cirq.Moment([cirq.X(a)]),
