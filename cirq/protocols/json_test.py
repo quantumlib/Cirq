@@ -499,8 +499,8 @@ def test_builtins():
         '3': None,
         '0.0': [],
     })
-    assert_roundtrip(np.ones((11, 5))),
-    assert_roundtrip(np.arange(3)),
+    assert_roundtrip(np.ones((11, 5)))
+    assert_roundtrip(np.arange(3))
 
 
 def test_pandas():
