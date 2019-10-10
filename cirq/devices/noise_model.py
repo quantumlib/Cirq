@@ -200,6 +200,12 @@ class ConstantQubitNoiseModel(NoiseModel):
         return 'cirq.ConstantQubitNoiseModel({!r})'.format(
             self.qubit_noise_gate)
 
+    def _value_equality_values_(self):
+        return self.qubit_noise_gate
+
+    def __repr__(self):
+        return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
+
 
 NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
 """An object which can be unambiguously converted into a noise model."""
