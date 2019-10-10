@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.contrib.quirk.cells import arithmetic_cells
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 from cirq.contrib.quirk.url_to_circuit import quirk_url_to_circuit
 
@@ -499,7 +500,7 @@ def test_with_registers():
 
 
 def test_helpers():
-    f = cirq.contrib.quirk.popcnt
+    f = arithmetic_cells._popcnt
     assert f(0) == 0
     assert f(1) == 1
     assert f(2) == 1
@@ -511,7 +512,7 @@ def test_helpers():
     assert f(8) == 1
     assert f(9) == 2
 
-    g = cirq.contrib.quirk.invertible_else_1
+    g = arithmetic_cells._invertible_else_1
     assert g(0, 0) == 1
     assert g(0, 1) == 0
     assert g(0, 2) == 1
@@ -530,7 +531,7 @@ def test_helpers():
     assert g(7, 16) == 7
     assert g(51, 16) == 51
 
-    h = cirq.contrib.quirk.mod_inv_else_1
+    h = arithmetic_cells._mod_inv_else_1
     assert h(0, 0) == 1
     assert h(0, 1) == 0
     assert h(0, 2) == 1
