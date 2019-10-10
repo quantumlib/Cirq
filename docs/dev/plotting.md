@@ -28,6 +28,7 @@ interactive session. The recommended way to achieve that is illustrated in the
 example below.
 
 ```python
+from typing import Any, List
 import matplotlib.pyplot as plt
 
 class Foo:

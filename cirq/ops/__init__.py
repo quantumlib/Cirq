@@ -59,9 +59,6 @@ from cirq.ops.common_gates import (
     I,
     identity,
     IdentityGate,
-    measure,
-    measure_each,
-    MeasurementGate,
     Rx,
     Ry,
     Rz,
@@ -134,6 +131,14 @@ from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
+
+from cirq.ops.measure_util import (
+    measure,
+    measure_each,
+)
+
+from cirq.ops.measurement_gate import (
+    MeasurementGate,)
 
 from cirq.ops.moment import (
     Moment,)
