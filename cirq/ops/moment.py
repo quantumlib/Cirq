@@ -163,6 +163,16 @@ class Moment:
     def transform_qubits(self: TSelf_Moment,
                          func: Callable[[raw_types.Qid], raw_types.Qid]
                          ) -> TSelf_Moment:
+        """Returns the same moment, but with different qubits.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+
+        Returns:
+            The receiving moment but with qubits transformed by the given
+                function.
+        """
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
 

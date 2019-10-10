@@ -294,53 +294,53 @@ DESCRIPTOR.message_types_by_name['QubitMeasurementResult'] = _QUBITMEASUREMENTRE
 DESCRIPTOR.message_types_by_name['ParameterDict'] = _PARAMETERDICT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Result = _reflection.GeneratedProtocolMessageType('Result', (_message.Message,), {
-  'DESCRIPTOR' : _RESULT,
-  '__module__' : 'cirq.api.google.v2.result_pb2'
+Result = _reflection.GeneratedProtocolMessageType('Result', (_message.Message,), dict(
+  DESCRIPTOR = _RESULT,
+  __module__ = 'cirq.api.google.v2.result_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.Result)
-  })
+  ))
 _sym_db.RegisterMessage(Result)
 
-SweepResult = _reflection.GeneratedProtocolMessageType('SweepResult', (_message.Message,), {
-  'DESCRIPTOR' : _SWEEPRESULT,
-  '__module__' : 'cirq.api.google.v2.result_pb2'
+SweepResult = _reflection.GeneratedProtocolMessageType('SweepResult', (_message.Message,), dict(
+  DESCRIPTOR = _SWEEPRESULT,
+  __module__ = 'cirq.api.google.v2.result_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.SweepResult)
-  })
+  ))
 _sym_db.RegisterMessage(SweepResult)
 
-ParameterizedResult = _reflection.GeneratedProtocolMessageType('ParameterizedResult', (_message.Message,), {
-  'DESCRIPTOR' : _PARAMETERIZEDRESULT,
-  '__module__' : 'cirq.api.google.v2.result_pb2'
+ParameterizedResult = _reflection.GeneratedProtocolMessageType('ParameterizedResult', (_message.Message,), dict(
+  DESCRIPTOR = _PARAMETERIZEDRESULT,
+  __module__ = 'cirq.api.google.v2.result_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ParameterizedResult)
-  })
+  ))
 _sym_db.RegisterMessage(ParameterizedResult)
 
-MeasurementResult = _reflection.GeneratedProtocolMessageType('MeasurementResult', (_message.Message,), {
-  'DESCRIPTOR' : _MEASUREMENTRESULT,
-  '__module__' : 'cirq.api.google.v2.result_pb2'
+MeasurementResult = _reflection.GeneratedProtocolMessageType('MeasurementResult', (_message.Message,), dict(
+  DESCRIPTOR = _MEASUREMENTRESULT,
+  __module__ = 'cirq.api.google.v2.result_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.MeasurementResult)
-  })
+  ))
 _sym_db.RegisterMessage(MeasurementResult)
 
-QubitMeasurementResult = _reflection.GeneratedProtocolMessageType('QubitMeasurementResult', (_message.Message,), {
-  'DESCRIPTOR' : _QUBITMEASUREMENTRESULT,
-  '__module__' : 'cirq.api.google.v2.result_pb2'
+QubitMeasurementResult = _reflection.GeneratedProtocolMessageType('QubitMeasurementResult', (_message.Message,), dict(
+  DESCRIPTOR = _QUBITMEASUREMENTRESULT,
+  __module__ = 'cirq.api.google.v2.result_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.QubitMeasurementResult)
-  })
+  ))
 _sym_db.RegisterMessage(QubitMeasurementResult)
 
-ParameterDict = _reflection.GeneratedProtocolMessageType('ParameterDict', (_message.Message,), {
+ParameterDict = _reflection.GeneratedProtocolMessageType('ParameterDict', (_message.Message,), dict(
 
-  'AssignmentsEntry' : _reflection.GeneratedProtocolMessageType('AssignmentsEntry', (_message.Message,), {
-    'DESCRIPTOR' : _PARAMETERDICT_ASSIGNMENTSENTRY,
-    '__module__' : 'cirq.api.google.v2.result_pb2'
+  AssignmentsEntry = _reflection.GeneratedProtocolMessageType('AssignmentsEntry', (_message.Message,), dict(
+    DESCRIPTOR = _PARAMETERDICT_ASSIGNMENTSENTRY,
+    __module__ = 'cirq.api.google.v2.result_pb2'
     # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ParameterDict.AssignmentsEntry)
-    })
+    ))
   ,
-  'DESCRIPTOR' : _PARAMETERDICT,
-  '__module__' : 'cirq.api.google.v2.result_pb2'
+  DESCRIPTOR = _PARAMETERDICT,
+  __module__ = 'cirq.api.google.v2.result_pb2'
   # @@protoc_insertion_point(class_scope:cirq.api.google.v2.ParameterDict)
-  })
+  ))
 _sym_db.RegisterMessage(ParameterDict)
 _sym_db.RegisterMessage(ParameterDict.AssignmentsEntry)
 
