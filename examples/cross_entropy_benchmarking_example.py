@@ -9,8 +9,6 @@ See documentation in `cirq.experiments.cross_entropy_benchmarking` for
 details of this experiments.
 """
 
-import matplotlib as mpl
-
 import cirq
 
 
@@ -41,9 +39,7 @@ def main(repetitions=5000, num_circuits=20, cycles=range(2, 103, 10)):
         repetitions=repetitions)
 
     # Plot XEB fidelity vs number of cycles.
-    figure = mpl.figure.Figure()
-    ax = figure.add_subplot(111)
-    xeb_result.plot(ax)
+    xeb_result.plot()
 
 
 if __name__ == '__main__':

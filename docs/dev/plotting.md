@@ -32,9 +32,9 @@ import matplotlib.pyplot as plt
 
 class Foo:
     ...
-    def plot(self, ax: plt.Axes=None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: Optional[plt.Axes]=None, **plot_kwargs: Any) -> plt.Axes:
         show_plot = not ax
-        if show_plot:
+        if not ax:
             fig, ax = plt.subplots(1, 1)  # or your favorite figure setup
         # Call methods of the ax instance like ax.plot to plot on it.
         ...
@@ -77,10 +77,11 @@ not sufficient. The `plot` method of such a class should take an optional
 ```python
 class Foo:
     ...
-    def plot(self, axes: List[plt.Axes]=None, **plot_kwargs: Any) -> List[plt.Axes]:
+    def plot(self, axes: Optional[List[plt.Axes]]=None,
+             **plot_kwargs: Any) -> List[plt.Axes]:
         show_plot = not axes
-        if show_plot:
-            _, axes = plt.subplots(1, 2)  # or your favorite figure setup
+        if not axes:
+            fig, axes = plt.subplots(1, 2)  # or your favorite figure setup
         elif len(axes) != 2:  # your required number of axes
             raise ValueError('your error message')
         # Call methods of the axes[i] objects to plot on it.
