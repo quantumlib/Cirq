@@ -20,7 +20,7 @@ Output:
 import argparse
 import sys
 from typing import Optional, List, cast, Callable, Dict, Tuple
-from collections import defaultdict
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -199,26 +199,24 @@ def compile_circuit(
     return compiled_circuit, swap_network.final_mapping()
 
 
+@dataclass
 class QuantumVolumeResult:
-    """Stores all of the results and test information used when running the
+    """Stores one run of the results and test information used when running the
     quantum volume benchmark so it may be analyzed in detail afterwards.
 
     """
-
-    def __init__(self):
-        # All of the model circuits used.
-        self.model_circuits: [cirq.Circuit] = []
-        # All of the heavy sets computed from the give model circuits.
-        self.heavy_sets: [List[int]] = []
-        # All of the model circuits after being compiled.
-        self.compiled_circuits: [cirq.Circuit] = []
-        # A map from each sampler index top a list of its HOG probabilities.
-        self.sampler_results: Dict[int, [float]] = defaultdict(list)
+    # The model circuit used.
+    model_circuit: cirq.Circuit
+    # The heavy set computed from the above model circuit.
+    heavy_set: List[int]
+    # The mdel circuit after being compiled.
+    compiled_circuit: cirq.Circuit
+    # The sampler's list of probabilities.
+    sampler_result: List[float]
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, [
-            'model_circuits', 'heavy_sets', 'compiled_circuits',
-            'sampler_results'
+            'model_circuit', 'heavy_set', 'compiled_circuit', 'sampler_result'
         ])
 
 
@@ -231,7 +229,7 @@ def calculate_quantum_volume(
         device: cirq.google.xmon_device.XmonDevice,
         samplers: List[cirq.Sampler],
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
-) -> QuantumVolumeResult:
+) -> List[QuantumVolumeResult]:
     """Run the quantum volume algorithm.
 
     This algorithm will follow the same format as Algorithm 1 in
@@ -251,33 +249,38 @@ def calculate_quantum_volume(
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
 
-    Returns: A QuantumVolumeResult that contains all of the information for
-        running the algorithm and its results.
+    Returns: A list of QuantumVolumeResults that contains all of the information
+        for running the algorithm and its results.
 
     """
-    result = QuantumVolumeResult()
+    results = []
+    random_state = np.random.RandomState(seed)
     for repetition in range(num_repetitions):
         print(f"Repetition {repetition + 1}")
-        model_circuit = generate_model_circuit(
-            num_qubits, depth, random_state=np.random.RandomState(seed))
-        result.model_circuits.append(model_circuit)
+        model_circuit = generate_model_circuit(num_qubits,
+                                               depth,
+                                               random_state=random_state)
 
         heavy_set = compute_heavy_set(model_circuit)
-        result.heavy_sets.append(heavy_set)
         print(f"  Heavy Set: {heavy_set}")
 
-        [compiled_circuit, mapping] = compile_circuit(model_circuit,
-                                                      device=device,
-                                                      compiler=compiler)
-        result.compiled_circuits.append(compiled_circuit)
+        compiled_circuit, mapping = compile_circuit(model_circuit,
+                                                    device=device,
+                                                    compiler=compiler)
+        sampler_result = []
         for idx, sampler in enumerate(samplers):
             prob = sample_heavy_set(compiled_circuit,
                                     heavy_set,
                                     sampler=sampler,
                                     mapping=mapping)
             print(f"  Compiled HOG probability #{idx + 1}: {prob}")
-            result.sampler_results[idx].append(prob)
-    return result
+            sampler_result.append(prob)
+        results.append(
+            QuantumVolumeResult(model_circuit=model_circuit,
+                                heavy_set=heavy_set,
+                                compiled_circuit=compiled_circuit,
+                                sampler_result=sampler_result))
+    return results
 
 
 def main(
@@ -286,7 +289,7 @@ def main(
         depth: int,
         num_repetitions: int,
         seed: int,
-) -> QuantumVolumeResult:
+) -> List[QuantumVolumeResult]:
     """Run the quantum volume algorithm with a preset configuration.
 
     See the calculate_quantum_volume documentation for more details.

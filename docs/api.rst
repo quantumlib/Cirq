@@ -413,6 +413,7 @@ operations and decompositions.
     is_unitary
     kak_canonicalize_vector
     kak_decomposition
+    kak_vector
     KakDecomposition
     kron
     kron_factor_4x4_to_2x2s

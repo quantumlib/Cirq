@@ -105,13 +105,11 @@ def test_calculate_quantum_volume_result():
 
     model_circuit = quantum_volume.generate_model_circuit(
         3, 3, random_state=np.random.RandomState(1))
-    assert results.model_circuits == [model_circuit]
-    assert results.heavy_sets == [
-        quantum_volume.compute_heavy_set(model_circuit)
-    ]
-    assert len(results.compiled_circuits) == 1
-    assert len(results.sampler_results) == 1
-    assert len(results.sampler_results[0]) == 1
+    assert len(results) == 1
+    assert results[0].model_circuit == model_circuit
+    assert results[0].heavy_set == quantum_volume.compute_heavy_set(
+        model_circuit)
+    assert len(results[0].sampler_result) == 1
 
 
 def test_main_loop():

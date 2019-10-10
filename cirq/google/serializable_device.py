@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Device object for converting from device specification protos"""
-from typing import Any, cast, Dict, Optional, List
-from typing import Set, Tuple, Type, TYPE_CHECKING
+
+from typing import cast, Dict, Optional, List, Set, Tuple, Type, TYPE_CHECKING
 
 from cirq import devices, ops
 from cirq.google import serializable_gate_set
@@ -27,10 +27,10 @@ if TYPE_CHECKING:
 class _GateDefinition:
     """Class for keeping track of gate definitions within SerializableDevice"""
 
-    def __init__(self, duration: Duration,
+    def __init__(self, duration: 'cirq.DURATION_LIKE',
                  target_set: Set[Tuple['cirq.Qid', ...]], number_of_qubits: int,
                  is_permutation: bool):
-        self.duration = duration
+        self.duration = Duration(duration)
         self.target_set = target_set
         self.is_permutation = is_permutation
         self.number_of_qubits = number_of_qubits
