@@ -57,13 +57,13 @@ matrix:
     env: NAME=pytest (macOS)
     python: '3.7'
     language: generic
-    before_install: python --version ; pip --version
+    before_install: python3.7 --version ; pip3 --version
     install:
       - python3.7 -m venv venv
       - source venv/bin/activate
-      - pip install -r requirements.txt
-      - pip install -r cirq/contrib/contrib-requirements.txt
-      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - pip3 install -r requirements.txt
+      - pip3 install -r cirq/contrib/contrib-requirements.txt
+      - pip3 install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip
   - stage: test
     os: linux
