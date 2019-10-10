@@ -1153,7 +1153,7 @@ def test_api_doesnt_retry_404_errors(build):
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(cg.engine.engine.EngineException, match='not found'):
         engine.get_program('foo')
-        assert getProgram.execute.call_count == 1
+    assert getProgram.execute.call_count == 1
 
 
 @mock.patch.object(discovery, 'build')
@@ -1169,7 +1169,7 @@ def test_api_retry_5xx_errors(build):
                        match='Reached max retry attempts.*internal error'):
         engine.max_retry_delay = 1  # 1 second
         engine.get_program('foo')
-        assert getProgram.execute.call_count > 1
+    assert getProgram.execute.call_count > 1
 
 
 @mock.patch.object(discovery, 'build')
@@ -1183,4 +1183,4 @@ def test_api_retry_connection_reset(build):
                        match='Reached max retry attempts.*Lost connection'):
         engine.max_retry_delay = 1  # 1 second
         engine.get_program('foo')
-        assert getProgram.execute.call_count > 1
+    assert getProgram.execute.call_count > 1
