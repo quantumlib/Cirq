@@ -53,11 +53,13 @@ matrix:
     script: dev_tools/build-docs.sh
   - stage: test
     os: osx
+    osx_image: xcode11  # Python 3.7.2 running on macOS 10.14.3
     env: NAME=pytest (macOS)
-    python: '3.7.3'
+    python: '3.7'
     language: generic
+    before_install: python --version ; pip --version
     install:
-      - python3.7.3 -m venv venv
+      - python3.7 -m venv venv
       - source venv/bin/activate
       - pip install -r requirements.txt
       - pip install -r cirq/contrib/contrib-requirements.txt
