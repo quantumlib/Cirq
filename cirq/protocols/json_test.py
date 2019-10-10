@@ -153,6 +153,10 @@ TEST_OBJECTS = {
     ],
     'Duration':
     cirq.Duration(picos=6),
+    'DensePauliString':
+    cirq.DensePauliString('XYZI', coefficient=1j),
+    'MutableDensePauliString':
+    cirq.MutableDensePauliString('XXZZ', coefficient=-2),
     'FREDKIN':
     cirq.FREDKIN,
     'FSimGate':
@@ -325,6 +329,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsUnitary',
 
     # mypy types:
+    'DURATION_LIKE',
     'OP_TREE',
     'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',

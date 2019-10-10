@@ -48,6 +48,8 @@ class _ResolverCache:
                 'Circuit': cirq.Circuit,
                 'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
+                'DensePauliString': cirq.DensePauliString,
+                'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridQubit': cirq.GridQubit,
