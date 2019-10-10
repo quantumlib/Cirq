@@ -189,22 +189,15 @@ class ConstantQubitNoiseModel(NoiseModel):
     def _value_equality_values_(self):
         return self.qubit_noise_gate
 
+    def __repr__(self):
+        return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
+
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
         return [
             moment,
             ops.Moment([self.qubit_noise_gate(q) for q in system_qubits])
         ]
-
-    def __repr__(self):
-        return 'cirq.ConstantQubitNoiseModel({!r})'.format(
-            self.qubit_noise_gate)
-
-    def _value_equality_values_(self):
-        return self.qubit_noise_gate
-
-    def __repr__(self):
-        return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
 
 NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
