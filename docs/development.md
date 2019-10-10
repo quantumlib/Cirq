@@ -77,9 +77,7 @@ See the previous section for instructions.
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
-    If you change protocol buffers you will need to regenerate the proto files, so you should
-    install the protocol buffer compiler. Instructions for this can be found
-    [here](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md).
+    There are some extra steps if protocol buffers are changed; see the next section.
 
 2. Prepare a virtual environment including the dev tools (such as mypy).
 
@@ -112,6 +110,17 @@ See the previous section for instructions.
     add2virtualenv ./
     ```
 
+### Protocol buffers
+
+[Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
+Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google) and may need to be changed or extended from time to time.
+
+If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
+This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
+
+Additionally, for workflows that use bazel (relevant for C/C++ code depending on Cirq), we have made available bazel rulesets for generating both python and C/C++ proto apis.
+These rules live in the BUILD files [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v1) and [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v2).
+Downstream projects should load Cirq as an [external dependency](https://docs.bazel.build/versions/master/external.html), allowing rules from those BUILD files to be used directly.
 
 ### Continuous integration and local testing
 
