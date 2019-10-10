@@ -78,6 +78,7 @@ class _ResolverCache:
                 'pandas.DataFrame': pd.DataFrame,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'WaitGate': cirq.WaitGate,
                 '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
