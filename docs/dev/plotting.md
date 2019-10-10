@@ -10,6 +10,10 @@ Here we recommend the input arguments, return value, and behavior of the
     more complicated plots or other purposes), the `plot` method is mainly
     used in interactive sessions like ipython, jupyther, colab, PyCharm,
     and python interpreter.
+1. **Plot is customizable.** The plot should be customizable by the user after
+    `plot` returns. This is important because user may need to change the look
+    for presentation, paper, or just the style they prefer. One plot style does
+    not fit all.
 1. **No unnecessary messages in interactive sessions.** It should not produce
     any warning/error messages in normal usages in an interactive sessions.
     See [#1890](https://github.com/quantumlib/Cirq/issues/1890#issue-473510953)
@@ -48,7 +52,7 @@ user wants to. Note that if we were to call `plt.show` instead of `fig.show`,
 the customizations on the returned `ax` does not show up on subsequent call to
 `plt.show`.
 
-To satisfy requirement number 3, unit test codes should create an `ax` object
+To satisfy requirement number 4, unit test codes should create an `ax` object
 and pass it into the `plot` method like the following example.
 
 ```python
@@ -90,6 +94,13 @@ there are more `plt.Axes` in the figure than what the method needs. The caller
 is responsible for passing in correct number of `Axes` instances.
 
 The `plot` method can be tested similarly.
+
+## PyCharm issue
+
+As of this writing in October 2019, running a script calling a `plot` method
+in PyCharm does not pop up a window with the figure. A call to `plt.show()`
+is needed to show it. We believe this is a PyCharm-specific issue because
+the same code works in Python interpreter.
 
 ## References
 * Issue #1890 "Plotting code should not call `show`"

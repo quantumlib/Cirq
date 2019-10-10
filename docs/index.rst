@@ -27,12 +27,12 @@ User Documentation
     circuits
     gates
     noise
-    plotting
     simulation
     schedules
     qudits
     development
     examples
+    dev/plotting
 
 
 API Reference
