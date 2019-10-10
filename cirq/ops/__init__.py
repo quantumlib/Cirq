@@ -23,6 +23,12 @@ from cirq.ops.clifford_gate import (
     SingleQubitCliffordGate,
 )
 
+from cirq.ops.dense_pauli_string import (
+    BaseDensePauliString,
+    DensePauliString,
+    MutableDensePauliString,
+)
+
 from cirq.ops.common_channels import (
     amplitude_damp,
     AmplitudeDampingChannel,
@@ -213,3 +219,6 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.wait_gate import (
+    WaitGate,)

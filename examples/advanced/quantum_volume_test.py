@@ -64,7 +64,7 @@ def test_sample_heavy_set():
         params=cirq.ParamResolver({}),
         measurements={'mock': np.array([[0, 1], [1, 0], [1, 1], [0, 0]])})
     sampler.run = MagicMock(return_value=result)
-    circuit = cirq.Circuit.from_ops(cirq.measure(*cirq.LineQubit.range(2)))
+    circuit = cirq.Circuit(cirq.measure(*cirq.LineQubit.range(2)))
 
     probability = quantum_volume.sample_heavy_set(circuit, [1, 2, 3],
                                                   sampler=sampler,
