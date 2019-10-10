@@ -86,9 +86,8 @@ def find_docs_code_snippets_paths() -> Iterator[str]:
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
 def test_can_run_docs_code_snippets(path):
     docs_folder = os.path.dirname(__file__)
-    assert_file_has_working_code_snippets(
-        os.path.join(docs_folder, path),
-        assume_import=True)
+    assert_file_has_working_code_snippets(os.path.join(docs_folder, path),
+                                          assume_import=True)
 
 
 def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
