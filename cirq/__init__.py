@@ -245,6 +245,7 @@ from cirq.ops import (
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,
+    WaitGate,
     WaveFunctionDisplay,
     X,
     XPowGate,
