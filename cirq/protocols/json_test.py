@@ -17,7 +17,7 @@ import inspect
 import io
 import os
 import textwrap
-from typing import Tuple, Any, Iterator, Type
+from typing import Tuple, Iterator, Type
 
 import pytest
 
@@ -39,13 +39,15 @@ def assert_roundtrip(obj, text_should_be=None):
         assert text == text_should_be
 
     buffer.seek(0)
-    obj2 = cirq.protocols.read_json(buffer)
+    restored_obj = cirq.protocols.read_json(buffer)
     if isinstance(obj, np.ndarray):
-        np.testing.assert_equal(obj, obj2)
+        np.testing.assert_equal(restored_obj, obj)
     elif isinstance(obj, pd.DataFrame):
-        pd.testing.assert_frame_equal(obj, obj2)
+        pd.testing.assert_frame_equal(restored_obj, obj)
+    elif isinstance(obj, pd.Index):
+        pd.testing.assert_index_equal(restored_obj, obj)
     else:
-        assert obj == obj2
+        assert restored_obj == obj
 
 
 def test_line_qubit_roundtrip():
@@ -117,19 +119,6 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 TEST_OBJECTS = {
-    '[builtin]complex': [1 + 2j],
-    '[builtin]dict': {
-        'test': [123, 5.5],
-        'key2': 'asdf'
-    },
-    '[external]numpy.ndarray': [np.ones((11, 5)),
-                                np.arange(3)],
-    '[external]pandas.DataFrame':
-    pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
-                 columns=['x', 'y', 'z'],
-                 index=[2, 5]),
-    '[external]sympy.Symbol':
-    sympy.Symbol('theta'),
     'Bristlecone':
     cirq.google.Bristlecone,
     'CCNOT':
@@ -503,14 +492,59 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
     # Objects not listed at top level.
     yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
 
-    # test coverage for `default` paths
-    yield '[builtin]dict', dict
 
-    # extra
-    yield '[builtin]complex', complex
-    yield '[external]numpy.ndarray', np.ndarray
-    yield '[external]sympy.Symbol', sympy.Symbol
-    yield '[external]pandas.DataFrame', pd.DataFrame
+def test_builtins():
+    assert_roundtrip(1 + 2j)
+    assert_roundtrip({
+        'test': [123, 5.5],
+        'key2': 'asdf',
+        '3': None,
+        '0.0': [],
+    })
+    assert_roundtrip(np.ones((11, 5)))
+    assert_roundtrip(np.arange(3))
+
+
+def test_pandas():
+    assert_roundtrip(
+        pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
+                     columns=['x', 'y', 'z'],
+                     index=[2, 5]))
+    assert_roundtrip(pd.Index([1, 2, 3], name='test'))
+    assert_roundtrip(
+        pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)],
+                                  names=['alice', 'bob']))
+
+    assert_roundtrip(
+        pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
+                     data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                     columns=['a', 'b']))
+    assert_roundtrip(
+        pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
+                                                     names=['x', 'y']),
+                     data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                     columns=pd.Index(['a', 'b'], name='c')))
+
+
+def test_sympy():
+    # Raw values.
+    assert_roundtrip(sympy.Symbol('theta'))
+    assert_roundtrip(sympy.Integer(5))
+    assert_roundtrip(sympy.Rational(2, 3))
+    assert_roundtrip(sympy.Float(1.1))
+
+    # Basic operations.
+    s = sympy.Symbol('s')
+    t = sympy.Symbol('t')
+    assert_roundtrip(t + s)
+    assert_roundtrip(t * s)
+    assert_roundtrip(t / s)
+    assert_roundtrip(t - s)
+    assert_roundtrip(t**s)
+
+    # Linear combinations.
+    assert_roundtrip(t * 2)
+    assert_roundtrip(4 * t + 3 * s + 2)
 
 
 def test_no_missed_test_objects():
