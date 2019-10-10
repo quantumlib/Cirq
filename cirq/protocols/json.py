@@ -77,6 +77,8 @@ class _ResolverCache:
                 'SwapPowGate': cirq.SwapPowGate,
                 'sympy.Symbol': sympy.Symbol,
                 'pandas.DataFrame': pd.DataFrame,
+                'pandas.Index': pd.Index,
+                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,
@@ -205,6 +207,20 @@ class CirqEncoder(json.JSONEncoder):
         #       https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
+
+        if isinstance(o, pd.MultiIndex):
+            return {
+                'cirq_type': 'pandas.MultiIndex',
+                'tuples': list(o),
+                'names': list(o.names),
+            }
+
+        if isinstance(o, pd.Index):
+            return {
+                'cirq_type': 'pandas.Index',
+                'data': list(o),
+                'name': o.name,
+            }
 
         if isinstance(o, pd.DataFrame):
             cols = [o[col].tolist() for col in o.columns]

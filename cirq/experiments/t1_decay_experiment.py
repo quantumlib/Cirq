@@ -58,24 +58,14 @@ def t1_decay(sampler: work.Sampler,
         ops.measure(qubit, key='output'),
     )
 
-    results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
+    results = sampler.sample(circuit, params=sweep, repetitions=repetitions).data
 
-    # Count by combined (delay_ns, output) pairs.
-    pair_counts = results.data.groupby(['delay_ns', 'output']).size()
+    # Cross tabulate into a delay_ns, false_count, true_count table.
+    tab = pd.crosstab(results.delay_ns, results.output)
+    del tab.columns.name
+    tab = tab.rename(columns={0: 'false_count', 1: 'true_count'}).reset_index()
 
-    # Filter false counts and true counts into separate data frames.
-    df = pair_counts.to_frame('count').reset_index('output')
-    output = df['output']
-    false_counts = df[output == 0]['count'].to_frame('false_count')
-    true_counts = df[output == 1]['count'].to_frame('true_count')
-
-    # Merge into a common table with delay_ns, false_count, true_count cols.
-    merged = false_counts.join(true_counts, how='outer').reset_index()
-    filled = merged.fillna(0).astype({
-        'false_count': 'int64',
-        'true_count': 'int64'
-    })
-    return T1DecayResult(filled)
+    return T1DecayResult(tab)
 
 
 class T1DecayResult:

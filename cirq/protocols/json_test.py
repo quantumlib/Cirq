@@ -17,7 +17,7 @@ import inspect
 import io
 import os
 import textwrap
-from typing import Tuple, Any, Iterator, Type
+from typing import Tuple, Iterator, Type
 
 import pytest
 
@@ -44,6 +44,8 @@ def assert_roundtrip(obj, text_should_be=None):
         np.testing.assert_equal(obj, obj2)
     elif isinstance(obj, pd.DataFrame):
         pd.testing.assert_frame_equal(obj, obj2)
+    elif isinstance(obj, pd.Index):
+        pd.testing.assert_index_equal(obj, obj2)
     else:
         assert obj == obj2
 
@@ -128,6 +130,10 @@ TEST_OBJECTS = {
     pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
                  columns=['x', 'y', 'z'],
                  index=[2, 5]),
+    '[external]pandas.Int64Index':
+    pd.Index([1, 2, 3], name='test'),
+    '[external]pandas.MultiIndex':
+    pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)], names=['alice', 'bob']),
     '[external]sympy.Symbol':
     sympy.Symbol('theta'),
     'Bristlecone':
@@ -514,6 +520,8 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
     yield '[external]numpy.ndarray', np.ndarray
     yield '[external]sympy.Symbol', sympy.Symbol
     yield '[external]pandas.DataFrame', pd.DataFrame
+    yield '[external]pandas.Int64Index', pd.Int64Index
+    yield '[external]pandas.MultiIndex', pd.MultiIndex
 
 
 def test_no_missed_test_objects():

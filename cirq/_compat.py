@@ -42,13 +42,23 @@ def proper_repr(value: Any) -> str:
     if isinstance(value, np.ndarray):
         return 'np.array({!r}, dtype=np.{})'.format(value.tolist(), value.dtype)
 
+    if isinstance(value, pd.MultiIndex):
+        return (f'pd.MultiIndex.from_tuples({repr(list(value))}, '
+                f'names={repr(list(value.names))})')
+
+    if isinstance(value, pd.Index):
+        return (f'pd.Index({repr(list(value))}, '
+                f'name={repr(value.name)}, '
+                f'dtype={repr(str(value.dtype))})')
+
     if isinstance(value, pd.DataFrame):
         cols = [value[col].tolist() for col in value.columns]
         rows = list(zip(*cols))
-        return (f'pd.DataFrame.from_records('
-                f'columns={repr(list(value.columns))}, '
-                f'index={repr(list(value.index))}, '
-                f'data={repr(rows)})')
+        return (f'pd.DataFrame('
+                f'\n    columns={proper_repr(value.columns)}, '
+                f'\n    index={proper_repr(value.index)}, '
+                f'\n    data={repr(rows)}'
+                f'\n)')
 
     return repr(value)
 

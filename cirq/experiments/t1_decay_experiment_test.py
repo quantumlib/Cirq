@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import pandas as pd
+import sympy
 
 import cirq
 from cirq.experiments.t1_decay_experiment import t1_decay
