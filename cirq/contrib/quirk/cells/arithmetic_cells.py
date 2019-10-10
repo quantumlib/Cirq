@@ -13,22 +13,27 @@
 # limitations under the License.
 import inspect
 from typing import (Callable, Optional, Union, Iterable, Sequence, Iterator,
-                    Tuple, Any, cast, List, Dict)
+                    Tuple, Any, cast, List, Dict, TYPE_CHECKING)
 
-import cirq
 from cirq import ops, value
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker, CELL_SIZES
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
     """Applies arithmetic to a target and some inputs.
 
-    Uses quirk-specific implicit effects like assuming that the presence of an
-    'r' input implies modular arithmetic (meaning that e.g. values larger than
-    the modulus will not be affected). This convention is used because it makes
-    implementing each additional arithmetic operation significantly less
-    verbose, since they all share this common behavior.
+    Implements Quirk-specific implicit effects like assuming that the presence
+    of an 'r' input implies modular arithmetic.
+
+    In Quirk, modular operations have no effect on values larger than the
+    modulus. This convention is used because unitarity forces *some* convention
+    on out-of-range values (they cannot simply disappear or raise exceptions),
+    and the simplest is to do nothing. This calls handles ensuring that happens,
+    and ensuring the new target register value is normalized modulo the modulus.
     """
 
     def __init__(self, identifier: str, target: Sequence['cirq.Qid'],
