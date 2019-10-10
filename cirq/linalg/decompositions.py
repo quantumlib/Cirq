@@ -15,17 +15,8 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import (
-    Callable,
-    List,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-    Iterable,
-    Optional,
-    TYPE_CHECKING,
-)
+from typing import (Callable, List, Set, Tuple, TypeVar, Union, Iterable,
+                    Optional, TYPE_CHECKING, Sequence)
 
 import math
 import cmath
@@ -613,8 +604,10 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
     def coord_transform(
-            pts: Iterable[Tuple[float, float, float]]
+            pts: Sequence[Tuple[float, float, float]]
     ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
+        if len(pts) == 0:
+            return [], [], []
         xs, ys, zs = zip(*pts)
         return xs, zs, ys
 
@@ -911,6 +904,8 @@ def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
                [ 1.,  1.,  0.]])
     """
     unitary = np.asarray(unitary)
+    if len(unitary) == 0:
+        return np.zeros(shape=(0, 3), dtype=np.float64)
 
     if unitary.ndim < 2 or unitary.shape[-2:] != (4, 4):
         raise ValueError(f'Expected input unitary to have shape (...,4,4), but'
