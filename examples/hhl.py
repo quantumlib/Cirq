@@ -224,7 +224,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 
     ancilla = cirq.LineQubit(0)
     # to store eigenvalues of the matrix
-    register = [cirq.LineQubit(i+1) for i in range(register_size)]
+    register = [cirq.LineQubit(i + 1) for i in range(register_size)]
     # to store input and output vectors
     memory = cirq.LineQubit(register_size + 1)
 
@@ -234,18 +234,17 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     c.append([gate(memory) for gate in input_prep_gates])
     c.append([
         pe(*(register + [memory])),
-        EigenRotation(register_size+1, C, t)(*(register+[ancilla])),
+        EigenRotation(register_size + 1, C, t)(*(register + [ancilla])),
         pe(*(register + [memory]))**-1,
         cirq.measure(ancilla, key='a')
     ])
 
     c.append([
-        cirq.PhasedXPowGate(exponent=sympy.Symbol('exponent'),
-                            phase_exponent=sympy.Symbol('phase_exponent'))(
-            memory),
+        cirq.PhasedXPowGate(
+            exponent=sympy.Symbol('exponent'),
+            phase_exponent=sympy.Symbol('phase_exponent'))(memory),
         cirq.measure(memory, key='m')
     ])
-
 
     # # Pauli observable display
     # c.append([
@@ -270,38 +269,26 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 def simulate(circuit):
     simulator = cirq.Simulator()
 
-    # TODO optimize using amplitude amplification algorithm
-    ancilla_expectation = 0.0
+    # Cases for measurring X, Y, and Z (respectively) on the memory qubit.
+    params = [{
+        'exponent': 0.5,
+        'phase_exponent': -0.5
+    }, {
+        'exponent': 0.5,
+        'phase_exponent': 0
+    }, {
+        'exponent': 0,
+        'phase_exponent': 0
+    }]
 
-    result = simulator.run_sweep(circuit, {'exponent': 0, 'phase_exponent': 0},
-                                 repetitions=5000)[0]
-    print('A = {}'.format(1 - 2 * np.mean(result.measurements['a'])))
+    results = simulator.run_sweep(circuit, params, repetitions=5000)
 
-
-    result = simulator.run_sweep(circuit, {'exponent': 0.5, 'phase_exponent': 0},
-                                 repetitions=5000)[0]
-    print('X = {}'.format(1 - 2 * np.mean(result.measurements['m'])))
-
-
-    result = simulator.run_sweep(circuit, {'exponent': 0.5, 'phase_exponent': 0.5},
-                                 repetitions=5000)[0]
-    print('Y = {}'.format(1 - 2 * np.mean(result.measurements['m'])))
-
-    result = simulator.run_sweep(circuit, {'exponent': 0, 'phase_exponent': 0},
-                                 repetitions=5000)[0]
-    print('Z = {}'.format(1 - 2 * np.mean(result.measurements['m'])))
-
-
-
-    # z_pauli = cirq.PauliString(cirq.Z(ancilla)).expectation_from_wavefunction()
-    #
-    # while ancilla_expectation != -1.0:
-    #     ancilla_expectation = round(result.measurements['a'])
-    #
-    # # Compute displays
-    # print('X = {}'.format(result.display_values['x']))
-    # print('Y = {}'.format(result.display_values['y']))
-    # print('Z = {}'.format(result.display_values['z']))
+    for label, result in zip(('X', 'Y', 'Z'), list(results)):
+        # Only select cases where the ancilla is 1.
+        # TODO optimize using amplitude amplification algorithm
+        expectation = 1 - 2 * np.mean(
+            result.measurements['m'][result.measurements['a'] == 1])
+        print('{} = {}'.format(label, expectation))
 
 
 def main():
