@@ -221,6 +221,16 @@ class IdentityOperation(raw_types.Operation):
             return self
         return NotImplemented
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'qubits': self._qubits,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubits, **kwargs):
+        return cls(qubits=qubits)
+
 
 # The one qubit identity gate.
 #
