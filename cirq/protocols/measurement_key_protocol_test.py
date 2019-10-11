@@ -18,9 +18,12 @@ import cirq
 
 
 def test_measurement_key():
+
     class ReturnsStr():
+
         def _measurement_key_(self):
             return 'door locker'
+
     assert cirq.measurement_key(ReturnsStr()) == 'door locker'
 
     assert cirq.measurement_key(ReturnsStr(), None) == 'door locker'
@@ -29,6 +32,7 @@ def test_measurement_key():
 
 
 def test_measurement_key_no_method():
+
     class NoMethod():
         pass
 
@@ -41,7 +45,9 @@ def test_measurement_key_no_method():
 
 
 def test_measurement_key_not_implemented():
+
     class ReturnsNotImplemented():
+
         def _measurement_key_(self):
             return NotImplemented
 
@@ -64,10 +70,12 @@ def test_is_measurement():
     assert not cirq.is_measurement(cirq.bit_flip(1))
 
     class NotImplementedOperation(cirq.Operation):
+
         def with_qubits(self, *new_qubits) -> 'NotImplementedOperation':
             raise NotImplementedError()
 
         @property
         def qubits(self):
             raise NotImplementedError()
+
     assert not cirq.is_measurement(NotImplementedOperation())
