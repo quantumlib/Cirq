@@ -123,6 +123,13 @@ def tdd_to_svg(
 
 
 class SVGCircuit:
+    """A wrapper around cirq.Circuit to enable rich display in a Jupyter
+    notebook.
+
+    Jupyter will display the result of the last line in a cell. Often,
+    this is repr(o) for an object. This class defines a magic method
+    which will cause the circuit to be displayed as an SVG image.
+    """
 
     def __init__(self, circuit: 'cirq.Circuit'):
         # coverage: ignore
@@ -134,6 +141,7 @@ class SVGCircuit:
         return tdd_to_svg(tdd)
 
 
-def svg_circuit(circuit: 'cirq.Circuit') -> str:
+def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
+    """Render a circuit as SVG."""
     tdd = circuit.to_text_diagram_drawer(transpose=False)
     return tdd_to_svg(tdd)

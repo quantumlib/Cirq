@@ -1,11 +1,11 @@
 import cirq
-from cirq.contrib.svg import svg_circuit
+from cirq.contrib.svg import circuit_to_svg
 
 
 def test_svg():
     a, b, c = cirq.LineQubit.range(3)
 
-    svg_text = svg_circuit(
+    svg_text = circuit_to_svg(
         cirq.Circuit(
             cirq.CNOT(a, b), cirq.CZ(b, c), cirq.SWAP(a, c),
             cirq.PhasedXPowGate(exponent=0.123, phase_exponent=0.456).on(c),
