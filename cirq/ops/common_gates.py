@@ -37,32 +37,13 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
+from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
+from cirq.ops.measurement_gate import MeasurementGate
 
-def SWAP(*args, **kwargs):
-    # coverage: ignore
-    warnings.warn(
-        "SWAP has been moved. Please always use top-level "
-        "cirq objects i.e. `cirq.SWAP`", DeprecationWarning)
-    from cirq import ops
-    return ops.SWAP(*args, **kwargs)
-
-
-def MeasurementGate(*args, **kwargs):
-    # coverage: ignore
-    warnings.warn(
-        "MeasurementGate has been moved. Please always use top-level "
-        "cirq objects i.e. `cirq.MeasurementGate`", DeprecationWarning)
-    from cirq import ops
-    return ops.MeasurementGate(*args, **kwargs)
-
-
-def ISwapPowGate(*args, **kwargs):
-    # coverage: ignore
-    warnings.warn(
-        "ISwapPowGate has been moved. Please always use top-level "
-        "cirq objects i.e. `cirq.ISwapPowGate`", DeprecationWarning)
-    from cirq import ops
-    return ops.ISwapPowGate(*args, **kwargs)
+assert all([ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]), """
+Included for compatibility. Please continue to use top-level cirq.{thing}
+imports.
+"""
 
 
 @value.value_equality
