@@ -31,7 +31,8 @@ class CircuitDiagramInfo:
                  wire_symbols: Tuple[str, ...],
                  exponent: Any = 1,
                  connected: bool = True,
-                 exponent_qubit_index: Optional[int] = None) -> None:
+                 exponent_qubit_index: Optional[int] = None,
+                 auto_exponent_parens: bool = True) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -46,6 +47,10 @@ class CircuitDiagramInfo:
             exponent_qubit_index: The qubit to put the exponent on. (The k'th
                 qubit is the k'th target of the gate.) Defaults to the bottom
                 qubit in the diagram.
+            auto_exponent_parens: When this is True, diagram making code will
+                add parentheses around exponents whose contents could look
+                ambiguous (e.g. if the exponent contains a dash character that
+                could be mistaken for an identity wire). Defaults to True.
         """
         if isinstance(wire_symbols, str):
             raise ValueError(
@@ -54,6 +59,7 @@ class CircuitDiagramInfo:
         self.exponent = exponent
         self.connected = connected
         self.exponent_qubit_index = exponent_qubit_index
+        self.auto_exponent_parens = auto_exponent_parens
 
     def _value_equality_values_(self):
         return (
@@ -61,6 +67,7 @@ class CircuitDiagramInfo:
             self.exponent,
             self.connected,
             self.exponent_qubit_index,
+            self.auto_exponent_parens,
         )
 
     def __repr__(self):
@@ -68,10 +75,12 @@ class CircuitDiagramInfo:
                 'wire_symbols={!r}, '
                 'exponent={!r}, '
                 'connected={!r}, '
-                'exponent_qubit_index={!r})'.format(self.wire_symbols,
+                'exponent_qubit_index={!r}, '
+                'auto_exponent_parens={!r})'.format(self.wire_symbols,
                                                     self.exponent,
                                                     self.connected,
-                                                    self.exponent_qubit_index))
+                                                    self.exponent_qubit_index,
+                                                    self.auto_exponent_parens))
 
 
 @value.value_equality

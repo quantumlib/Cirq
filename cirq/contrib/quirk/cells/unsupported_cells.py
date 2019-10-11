@@ -33,7 +33,7 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
 
     # Non-physical operations.
     yield from _unsupported_gates("__error__",
-                                     "__unstable__UniversalNot",
+                                  "__unstable__UniversalNot",
                                   reason="Unphysical operation.")
 
     # Measurement.
@@ -45,7 +45,7 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
 
     # Dynamic gates with discretized actions.
     yield from _unsupported_gates("X^⌈t⌉",
-                                     "X^⌈t-¼⌉",
+                                  "X^⌈t-¼⌉",
                                   reason="discrete parameter")
     yield from _unsupported_family("Counting", reason="discrete parameter")
     yield from _unsupported_family("Uncounting", reason="discrete parameter")
@@ -53,10 +53,8 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
     yield from _unsupported_family("<<t", reason="discrete parameter")
 
     # Gates that are no longer in the toolbox and have dominant replacements.
-    yield from _unsupported_family("add",
-                                   reason="deprecated; use +=A instead")
-    yield from _unsupported_family("sub",
-                                   reason="deprecated; use -=A instead")
+    yield from _unsupported_family("add", reason="deprecated; use +=A instead")
+    yield from _unsupported_family("sub", reason="deprecated; use -=A instead")
     yield from _unsupported_family("c+=ab",
                                    reason="deprecated; use +=AB instead")
     yield from _unsupported_family("c-=ab",
@@ -73,8 +71,7 @@ def _unsupported_gate(identifier: str, reason: str) -> CellMaker:
     return CellMaker(identifier, 0, fail)
 
 
-def _unsupported_gates(*identifiers: str,
-                       reason: str) -> Iterator[CellMaker]:
+def _unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellMaker]:
     for identifier in identifiers:
         yield _unsupported_gate(identifier, reason)
 
