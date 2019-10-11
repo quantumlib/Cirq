@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import random
 from unittest import mock
 import numpy as np
 import pytest
@@ -776,11 +777,64 @@ def test_simulate_sweep_parameters_not_resolved():
 
 
 def test_random_seed():
-    sim = cirq.Simulator(seed=1234)
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
     result = sim.run(circuit, repetitions=10)
-    print(result.measurements['a'])
     assert np.all(
         result.measurements['a'] == [[False], [True], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
+
+    sim = cirq.Simulator(seed=np.random.RandomState(1234))
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_random_seed_does_not_modify_global_state_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a),
+        cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_mixture():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(a), cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
