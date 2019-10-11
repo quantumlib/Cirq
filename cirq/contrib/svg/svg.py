@@ -66,7 +66,7 @@ def tdd_to_svg(
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" ' \
              f'stroke="black" stroke-width="1" />'
 
-    for xi, yi1, yi2, emphasize in tdd.vertical_lines:
+    for xi, yi1, yi2, _ in tdd.vertical_lines:
         y1 = yi1 * ref_rowheight + y_top_pad + ref_boxheight / 2
         y2 = yi2 * ref_rowheight + y_top_pad + ref_boxheight / 2
 
