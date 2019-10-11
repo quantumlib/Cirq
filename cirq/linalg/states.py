@@ -21,8 +21,8 @@ import numpy as np
 def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,
             shape: Union[int, Sequence[int]],
-            dtype: Type[np.number],
-            value: int = 1) -> np.ndarray:
+            value: int = 1,
+            dtype: Type[np.number]) -> np.ndarray:
     """Returns a numpy array with a single 1 entry, and 0 everywhere else.
 
     Args:
@@ -30,7 +30,7 @@ def one_hot(*,
             If not specified, defaults to the start of the array.
         shape: The shape of the array.
         dtype: The dtype of the array.
-        value: The value of the integer.
+        value: the value of the integer.
 
     Returns:
         The created numpy array.
