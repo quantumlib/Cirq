@@ -16,6 +16,7 @@ import logging
 from typing import ContextManager, List
 
 import numpy as np
+import pandas as pd
 import sympy
 
 from cirq._compat import proper_repr, deprecated, deprecated_parameter
@@ -30,6 +31,29 @@ def test_proper_repr():
     v2 = eval(proper_repr(v))
     np.testing.assert_array_equal(v2, v)
     assert v2.dtype == v.dtype
+
+
+def test_proper_repr_data_frame():
+    df = pd.DataFrame(index=[1, 2, 3],
+                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                      columns=['a', 'b'])
+    df2 = eval(proper_repr(df))
+    assert df2['a'].dtype == np.int64
+    assert df2['b'].dtype == np.float
+    pd.testing.assert_frame_equal(df2, df)
+
+    df = pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
+                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                      columns=['a', 'b'])
+    df2 = eval(proper_repr(df))
+    pd.testing.assert_frame_equal(df2, df)
+
+    df = pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
+                                                      names=['x', 'y']),
+                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                      columns=pd.Index(['a', 'b'], name='c'))
+    df2 = eval(proper_repr(df))
+    pd.testing.assert_frame_equal(df2, df)
 
 
 def test_deprecated():

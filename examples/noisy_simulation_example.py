@@ -8,7 +8,7 @@ def noisy_circuit_demo(amplitude_damp):
     """Demonstrates a noisy circuit simulation.
     """
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.measure(q, key='initial_state'),
         cirq.X(q),
         cirq.measure(q, key='after_not_gate'),

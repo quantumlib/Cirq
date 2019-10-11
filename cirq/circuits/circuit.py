@@ -467,6 +467,31 @@ class Circuit:
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
+    def transform_qubits(self,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid'],
+                         *,
+                         new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
+        """Returns the same circuit, but with different qubits.
+
+        Note that this method does essentially the same thing as
+        `cirq.Circuit.with_device`. It is included regardless because there are
+        also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+            new_device: The device to use for the new circuit, if different.
+                If this is not set, the new device defaults to the current
+                device.
+
+        Returns:
+            The receiving circuit but with qubits transformed by the given
+                function, and with an updated device (if specified).
+        """
+        return self.with_device(
+            new_device=self.device if new_device is None else new_device,
+            qubit_mapping=func)
+
     def _prev_moment_available(self, op: 'cirq.Operation',
                                end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
@@ -1659,7 +1684,7 @@ class Circuit:
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, device=device)
 
-    def with_noise(self, noise: 'cirq.NoiseModel') -> 'cirq.Circuit':
+    def with_noise(self, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.Circuit':
         """Make a noisy version of the circuit.
 
         Args:
@@ -1671,9 +1696,10 @@ class Circuit:
             inserted where needed when more than one noisy operation is
             generated for an input operation.  Emptied moments are removed.
         """
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
         qubits = sorted(self.all_qubits())
         c_noisy = Circuit()
-        for op_tree in noise.noisy_moments(self, qubits):
+        for op_tree in noise_model.noisy_moments(self, qubits):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy
