@@ -56,8 +56,8 @@ class SupportsExplicitQidShape(Protocol):
         `qubits` attribute.
 
         Returns:
-            A unitary matrix describing this value, or NotImplemented if the
-            shape is unknown.
+            The qid shape of this value, or NotImplemented if the shape is
+            unknown.
         """
 
 

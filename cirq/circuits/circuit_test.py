@@ -239,6 +239,14 @@ def test_add_op_tree():
         cirq.Moment([cirq.X(a), cirq.Y(b)]),
     ])
 
+    assert c + cirq.X(a) == cirq.Circuit(cirq.X(a))
+    assert c + [cirq.X(a)] == cirq.Circuit(cirq.X(a))
+    assert c + [[[cirq.X(a)], []]] == cirq.Circuit(cirq.X(a))
+    assert c + (cirq.X(a),) == cirq.Circuit(cirq.X(a))
+    assert c + (cirq.X(a) for _ in range(1)) == cirq.Circuit(cirq.X(a))
+    with pytest.raises(TypeError):
+        _ = c + cirq.X
+
 
 def test_bool():
     assert not cirq.Circuit()
@@ -3257,6 +3265,18 @@ def test_with_noise():
     c_noisy = c.with_noise(Noise())
     assert c_noisy == c_expected
 
+    # Accepts NOISE_MODEL_LIKE.
+    assert c.with_noise(None) == c
+    assert c.with_noise(cirq.depolarize(0.1)) == cirq.Circuit(
+        cirq.X(q0),
+        cirq.Y(q1),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Z(q1),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Moment([cirq.X(q0)]),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+    )
+
 
 def test_init_contents():
     a, b = cirq.LineQubit.range(2)
@@ -3292,3 +3312,19 @@ def test_init_contents():
     )
 
     cirq.Circuit()
+
+
+def test_transform_qubits():
+    a, b, c = cirq.LineQubit.range(3)
+    c = cirq.Circuit(cirq.X(a), cirq.CNOT(a, b), cirq.Moment(),
+                     cirq.Moment([cirq.CNOT(b, c)]))
+    x, y, z = cirq.GridQubit.rect(3, 1, 10, 20)
+    desired = cirq.Circuit(cirq.X(x), cirq.CNOT(x, y), cirq.Moment(),
+                           cirq.Moment([cirq.CNOT(y, z)]))
+    assert c.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
+
+    # Device
+    c = cirq.Circuit(device=cg.Foxtail)
+    assert c.transform_qubits(lambda q: q).device is cg.Foxtail
+    assert c.transform_qubits(lambda q: q, new_device=cg.Bristlecone
+                             ).device is cg.Bristlecone

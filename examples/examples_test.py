@@ -1,16 +1,19 @@
 import numpy as np
 import pytest
+import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
+import examples.bristlecone_heatmap_example
 import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
 import examples.hello_qubit
 import examples.hhl
+import examples.noisy_simulation_example
 import examples.phase_estimator
 import examples.place_on_bristlecone
 import examples.qaoa
@@ -69,13 +72,18 @@ def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
+def test_example_runs_bristlecone_heatmap():
+    plt.switch_backend('agg')
+    examples.bristlecone_heatmap_example.main()
+
+
 def test_example_runs_qaoa():
     examples.qaoa.main(repetitions=10, maxiter=5)
 
 
 def test_example_runs_quantum_teleportation():
     expected, teleported = examples.quantum_teleportation.main()
-    assert np.all(np.isclose(expected, teleported, rtol=1e-4))
+    assert np.all(np.isclose(expected, teleported, atol=1e-4))
 
 
 def test_example_runs_superdense_coding():
@@ -98,6 +106,10 @@ def test_example_cross_entropy_benchmarking():
     examples.cross_entropy_benchmarking_example.main(repetitions=10,
                                                      num_circuits=2,
                                                      cycles=[2, 3, 4])
+
+
+def test_example_noisy_simulation():
+    examples.noisy_simulation_example.main()
 
 
 @pytest.mark.parametrize('x, n', ((4, 7), (6, 49), (7, 810)))

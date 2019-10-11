@@ -44,6 +44,11 @@ def test_str():
     assert str(cirq.GlobalPhaseOperation(1j)) == '1j'
 
 
+def test_repr():
+    op = cirq.GlobalPhaseOperation(1j)
+    cirq.testing.assert_equivalent_repr(op)
+
+
 def test_diagram():
     a, b = cirq.LineQubit.range(2)
     x, y = cirq.LineQubit.range(10, 12)

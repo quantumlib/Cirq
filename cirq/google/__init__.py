@@ -72,6 +72,9 @@ from cirq.google.op_serializer import (
     SerializingArg,
 )
 
+from cirq.google.serializable_device import (
+    SerializableDevice,)
+
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
 
