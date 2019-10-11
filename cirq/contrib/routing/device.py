@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import Iterable, Tuple, Union, Dict
+from typing import Iterable, Tuple, Dict
 
 import networkx as nx
 
