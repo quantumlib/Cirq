@@ -1,6 +1,22 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
 
-from cirq import ops, sim, devices
+import matplotlib.pyplot as plt
+import cirq
+
 from cirq.experiments import cross_entropy_benchmarking, build_entangling_layers
 
 
@@ -8,21 +24,16 @@ def test_cross_entropy_benchmarking():
     # Check that the fidelities returned from a four-qubit XEB simulation are
     # close to 1 (deviations from 1 is expected due to finite number of
     # measurements).
-    simulator = sim.Simulator()
-    qubits = [
-        devices.GridQubit(0, 0),
-        devices.GridQubit(0, 1),
-        devices.GridQubit(1, 0),
-        devices.GridQubit(1, 1)
-    ]
+    simulator = cirq.Simulator()
+    qubits = cirq.GridQubit.square(2)
 
     # Build a sequence of CZ gates.
-    interleaved_ops = build_entangling_layers(qubits, ops.CZ**0.91)
+    interleaved_ops = build_entangling_layers(qubits, cirq.CZ**0.91)
 
     # Specify a set of single-qubit rotations. Pick prime numbers for the
     # exponent to avoid evolving the system into a basis state.
-    single_qubit_rots = [[ops.X**0.37], [ops.Y**0.73, ops.X**0.53],
-                         [ops.Z**0.61, ops.X**0.43], [ops.Y**0.19]]
+    single_qubit_rots = [[cirq.X**0.37], [cirq.Y**0.73, cirq.X**0.53],
+                         [cirq.Z**0.61, cirq.X**0.43], [cirq.Y**0.19]]
 
     # Simulate XEB using the default single-qubit gate set without two-qubit
     # gates, XEB using the specified single-qubit gate set without two-qubit
@@ -32,30 +43,30 @@ def test_cross_entropy_benchmarking():
     # is specified.
     results_0 = cross_entropy_benchmarking(simulator,
                                            qubits,
-                                           num_circuits=5,
-                                           repetitions=5000,
+                                           num_circuits=3,
+                                           repetitions=1000,
                                            cycles=range(4, 30, 5))
     results_1 = cross_entropy_benchmarking(
         simulator,
         qubits,
-        num_circuits=5,
-        repetitions=5000,
+        num_circuits=3,
+        repetitions=1000,
         cycles=range(4, 30, 5),
         scrambling_gates_per_cycle=single_qubit_rots)
     results_2 = cross_entropy_benchmarking(
         simulator,
         qubits,
         benchmark_ops=interleaved_ops,
-        num_circuits=5,
-        repetitions=5000,
+        num_circuits=3,
+        repetitions=1000,
         cycles=range(4, 30, 5),
         scrambling_gates_per_cycle=single_qubit_rots)
     results_3 = cross_entropy_benchmarking(
         simulator,
         qubits,
         benchmark_ops=interleaved_ops,
-        num_circuits=5,
-        repetitions=5000,
+        num_circuits=3,
+        repetitions=1000,
         cycles=20,
         scrambling_gates_per_cycle=single_qubit_rots)
     fidelities_0 = [datum.xeb_fidelity for datum in results_0.data]
@@ -68,4 +79,5 @@ def test_cross_entropy_benchmarking():
     assert len(fidelities_3) == 1
 
     # Sanity test that plot runs.
-    results_1.plot()
+    ax = plt.subplot()
+    results_1.plot(ax)

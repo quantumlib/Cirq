@@ -53,12 +53,22 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({0: 1})
 
 
-def test_sample_seed():
+def test_sample_seed_unitary():
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     assert np.all(
         result.measurements['q'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_sample_seed_non_unitary():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
+    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    print(result.measurements)
+    assert np.all(
+        result.measurements['q'] == [[False], [False], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
 
 
@@ -211,3 +221,13 @@ def test_final_wavefunction_seed():
     np.testing.assert_allclose(cirq.final_wavefunction(
         [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [0.707107 + 0.707107j, 0],
                                atol=1e-4)
+
+
+@pytest.mark.parametrize('repetitions', (0, 1, 100))
+def test_repetitions(repetitions):
+    a = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+    r = cirq.sample(c, repetitions=repetitions)
+    samples = r.data['m'].to_numpy()
+    assert samples.shape == (repetitions,)
+    assert np.issubdtype(samples.dtype, np.integer)

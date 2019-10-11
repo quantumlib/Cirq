@@ -80,15 +80,16 @@ from cirq.devices import (
     LineQid,
     LineQubit,
     NO_NOISE,
+    NOISE_MODEL_LIKE,
     NoiseModel,
     UNCONSTRAINED_DEVICE,
 )
 
 from cirq.experiments import (
     linear_xeb_fidelity,
-    generate_supremacy_circuit_google_v2,
-    generate_supremacy_circuit_google_v2_bristlecone,
-    generate_supremacy_circuit_google_v2_grid,
+    generate_boixo_2018_supremacy_circuits_v2,
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
+    generate_boixo_2018_supremacy_circuits_v2_grid,
 )
 
 from cirq.linalg import (
@@ -117,6 +118,7 @@ from cirq.linalg import (
     is_unitary,
     kak_canonicalize_vector,
     kak_decomposition,
+    kak_vector,
     KakDecomposition,
     subwavefunction,
     kron,
@@ -146,6 +148,7 @@ from cirq.ops import (
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
+    BaseDensePauliString,
     bit_flip,
     BitFlipChannel,
     CCX,
@@ -162,6 +165,7 @@ from cirq.ops import (
     CX,
     CZ,
     CZPowGate,
+    DensePauliString,
     DensityMatrixDisplay,
     depolarize,
     DepolarizingChannel,
@@ -192,6 +196,7 @@ from cirq.ops import (
     measure_each,
     MeasurementGate,
     Moment,
+    MutableDensePauliString,
     NamedQubit,
     op_gate_isinstance,
     op_gate_of_type,
@@ -200,6 +205,7 @@ from cirq.ops import (
     ParallelGateOperation,
     Pauli,
     approx_pauli_string_expectation,
+    PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
     PauliStringGateOperation,
@@ -239,6 +245,7 @@ from cirq.ops import (
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,
+    WaitGate,
     WaveFunctionDisplay,
     X,
     XPowGate,
@@ -269,6 +276,7 @@ from cirq.optimizers import (
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
     single_qubit_op_to_framed_phase_form,
+    SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
 )
 
@@ -346,6 +354,7 @@ from cirq.value import (
     chosen_angle_to_canonical_half_turns,
     chosen_angle_to_half_turns,
     Duration,
+    DURATION_LIKE,
     LinearDict,
     PeriodicValue,
     Timestamp,
@@ -362,7 +371,6 @@ from cirq.protocols import (
     ApplyChannelArgs,
     ApplyUnitaryArgs,
     approx_eq,
-    control,
     channel,
     circuit_diagram_info,
     CircuitDiagramInfo,

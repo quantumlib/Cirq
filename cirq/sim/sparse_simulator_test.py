@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import random
 from unittest import mock
 import numpy as np
 import pytest
@@ -605,6 +606,30 @@ def test_allocates_new_state():
     assert not initial_state is result.state_vector()
 
 
+def test_does_not_modify_initial_state():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+
+    class InPlaceUnitary(cirq.SingleQubitGate):
+
+        def _has_unitary_(self):
+            return True
+
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
+            args.target_tensor[0], args.target_tensor[1] = (
+                args.target_tensor[1], args.target_tensor[0])
+            return args.target_tensor
+
+    circuit = cirq.Circuit(InPlaceUnitary()(q0))
+
+    initial_state = np.array([1, 0], dtype=np.complex64)
+    result = simulator.simulate(circuit, initial_state=initial_state)
+    np.testing.assert_array_almost_equal(np.array([1, 0], dtype=np.complex64),
+                                         initial_state)
+    np.testing.assert_array_almost_equal(result.state_vector(),
+                                         np.array([0, 1], dtype=np.complex64))
+
+
 def test_simulator_step_state_mixin():
     qubits = cirq.LineQubit.range(2)
     qubit_map = {qubits[i]: i for i in range(2)}
@@ -696,6 +721,19 @@ def test_measure_at_end_invert_mask_partial():
     np.testing.assert_equal(result.measurements['ac'], np.array([[1, 0]] * 4))
 
 
+def test_qudit_invert_mask():
+    q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
+    c = cirq.Circuit(
+        PlusGate(2, 1)(q0),
+        PlusGate(3, 1)(q2),
+        PlusGate(3, 2)(q3),
+        PlusGate(4, 3)(q4),
+        cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
+    )
+    assert np.all(
+        cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
+
+
 def test_compute_amplitudes():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(a), cirq.H(a), cirq.H(b))
@@ -739,11 +777,64 @@ def test_simulate_sweep_parameters_not_resolved():
 
 
 def test_random_seed():
-    sim = cirq.Simulator(seed=1234)
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
     result = sim.run(circuit, repetitions=10)
-    print(result.measurements['a'])
     assert np.all(
         result.measurements['a'] == [[False], [True], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
+
+    sim = cirq.Simulator(seed=np.random.RandomState(1234))
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_random_seed_does_not_modify_global_state_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a),
+        cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_mixture():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(a), cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2

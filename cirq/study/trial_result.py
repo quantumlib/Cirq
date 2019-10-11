@@ -108,7 +108,10 @@ class TrialResult:
                 converted_dict[key] = [
                     value.big_endian_bits_to_int(m_vals) for m_vals in val
                 ]
-            self._data = pd.DataFrame(converted_dict)
+            # Note that when a numpy array is produced from this data frame,
+            # Pandas will try to use np.int64 as dtype, but will upgrade to
+            # object if any value is too large to fit.
+            self._data = pd.DataFrame(converted_dict, dtype=np.int64)
         return self._data
 
     @staticmethod

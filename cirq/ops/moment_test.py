@@ -227,6 +227,13 @@ def test_bool():
     assert Moment([cirq.X(a)])
 
 
+def test_repr():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = Moment([cirq.CZ(a, b)])
+    cirq.testing.assert_equivalent_repr(original)
+
+
 def test_json_dict():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
