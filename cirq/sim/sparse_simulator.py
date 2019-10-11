@@ -372,7 +372,7 @@ class Simulator(simulator.SimulatesSamples,
         # We work around numpy barfing on choosing from a list of
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
-        prng = self.prng if self.prng is not None else np.random
+        prng = self.prng or np.random
         index = prng.choice(range(len(unitaries)), p=probs)
         shape = protocols.qid_shape(op) * 2
         unitary = unitaries[index].astype(self._dtype).reshape(shape)
