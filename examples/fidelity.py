@@ -15,57 +15,32 @@ import numpy
 
 
 def build_circuit():
-  qubits = [cirq.LineQubit(i) for i in range(3)]
-
-  rot0 = cirq.ZPowGate(exponent=0.250)  # T-Gate, non Clifford.
-  rot1 = cirq.XPowGate(exponent=0.123)
-  rot2 = cirq.XPowGate(exponent=0.456)
-
-  circuit = cirq.Circuit()
-  circuit.append(rot0(cirq.LineQubit(0)))
-  circuit.append(rot1(cirq.LineQubit(1)))
-  circuit.append(rot2(cirq.LineQubit(2)))
-
+  qubits = cirq.LineQubit.range(3)
+  circuit = cirq.Circuit(
+      cirq.Z(qubits[0])**0.25,  # T-Gate, non Clifford.
+      cirq.X(qubits[1])**0.123,
+      cirq.X(qubits[2])**0.456)
   return circuit, qubits
 
 
-def build_noisy_circuit(circuit, qubits):
-  noisy_circuit = circuit.copy()
-
-  noisy_gate = cirq.amplitude_damp(0.01)
-  for qubit in qubits:
-    noisy_circuit.append(noisy_gate(qubit))
-
-  return noisy_circuit
-
-
-def simulate_trace(circuit, Pi):
+def simulate_trace(circuit, pauli_gates):
   simulator = cirq.DensityMatrixSimulator()
 
-  n = len(Pi)
+  n = len(pauli_gates)
   d = 2**n
-
-  rot = numpy.asarray([1], numpy.complex64)
-  for op in Pi:
-    if op == 'I':
-      rot = numpy.kron(rot, numpy.asarray([[1, 0], [0, 1]], numpy.complex64))
-    elif op == 'X':
-      rot = numpy.kron(rot, numpy.asarray([[0, 1], [1, 0]], numpy.complex64))
-    elif op == 'Y':
-      rot = numpy.kron(rot, numpy.asarray([[0, -1j], [1j, 0]], numpy.complex64))
-    elif op == 'Z':
-      rot = numpy.kron(rot, numpy.asarray([[1, 0], [0, -1]], numpy.complex64))
 
   trace = 0
   for x in range(d):
     xbin = numpy.binary_repr(x, width=n)
 
-    xvec = numpy.zeros([d], numpy.complex64)
-    xvec[x] = 1
+    rotated_initial_state = cirq.final_wavefunction(
+        cirq.DensePauliString(pauli_gates),
+        initial_state=x)
 
-    initial_state = numpy.matmul(rot, xvec)
+    print('TONYBOOM rotated_initial_state=%s pauli_gates=%s' % (rotated_initial_state, list(pauli_gates)))  # DO NOT SUBMIT
+    return 1.0  # DO NOT SUBMIT
 
-    y = simulator.simulate(circuit, initial_state=xvec).measurements['y']
+    y = simulator.simulate(circuit, initial_state=rotated_initial_state).measurements['y']
     trace += sum([int(xbin[i]) == y[i] for i in range(n)])
 
   return trace
@@ -73,7 +48,7 @@ def simulate_trace(circuit, Pi):
 
 def main():
   circuit, qubits = build_circuit()
-  noisy_circuit = build_noisy_circuit(circuit, qubits)
+  noisy_circuit = circuit.with_noise(cirq.amplitude_damp(0.01))
 
   circuit.append(cirq.measure(*qubits, key='y'))
   noisy_circuit.append(cirq.measure(*qubits, key='y'))
@@ -82,23 +57,23 @@ def main():
   d = 2**n
 
   highest_probs = []
-  for i, Pi in enumerate(itertools.product({'I', 'X', 'Y', 'Z'}, repeat=n)):
-    rho_i = simulate_trace(circuit, Pi)
+  for i, pauli_gates in enumerate(itertools.product({cirq.I, cirq.X, cirq.Y, cirq.Z}, repeat=n)):
+    rho_i = simulate_trace(circuit, pauli_gates)
 
     Pr_i = rho_i * rho_i / d
 
     if Pr_i > 0:
-      heapq.heappush(highest_probs, (Pr_i, rho_i, i, Pi))
+      heapq.heappush(highest_probs, (Pr_i, rho_i, i, pauli_gates))
     if len(highest_probs) > n:
       heapq.heappop(highest_probs)
-
+  return  # DO NOT SUBMIT
   fidelity = 0.0
   for prob_tuple in highest_probs:
     Pr_i = prob_tuple[0]
     rho_i = prob_tuple[1]
-    Pi = prob_tuple[3]
+    pauli_gates = prob_tuple[3]
 
-    sigma_i = simulate_trace(noisy_circuit, Pi)
+    sigma_i = simulate_trace(noisy_circuit, pauli_gates)
 
     fidelity += Pr_i * sigma_i / rho_i
 
