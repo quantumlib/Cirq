@@ -17,13 +17,16 @@
 import collections
 
 from typing import (Any, cast, Dict, Hashable, Iterator, List, Optional, Type,
-                    Sequence, Union)
+                    Sequence, Union, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import (circuits, linalg, ops, protocols, schedules, study, value,
                   devices)
 from cirq.sim import density_matrix_utils, simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class _StateAndBuffers:
@@ -118,7 +121,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
     def __init__(self,
                  *,
                  dtype: Type[np.number] = np.complex64,
-                 noise: devices.NoiseModel = devices.NO_NOISE,
+                 noise: 'cirq.NOISE_MODEL_LIKE' = None,
                  seed: Optional[int] = None):
         """Density matrix simulator.
 
@@ -135,7 +138,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 'dtype must be complex64 or complex128, was {}'.format(dtype))
 
         self._dtype = dtype
-        self.noise = noise
+        self.noise = devices.NoiseModel.from_noise_model_like(noise)
         if seed:
             np.random.seed(seed)
 
