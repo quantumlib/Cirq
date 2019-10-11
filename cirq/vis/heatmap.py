@@ -187,7 +187,7 @@ class Heatmap:
         return self
 
     def plot(self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
-            ) -> Tuple[mpl_collections.Collection, pd.DataFrame]:
+            ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
 
         Args:
