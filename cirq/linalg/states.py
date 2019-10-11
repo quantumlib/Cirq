@@ -23,7 +23,8 @@ def one_hot(*,
             shape: Union[int, Sequence[int]],
             value: int = 1,
             dtype: Type[np.number]) -> np.ndarray:
-    """Returns a numpy array with a single non-zero entry (default 1), and 0 everywhere else.
+    """Returns a numpy array with a single non-zero entry (default 1),
+       and 0 everywhere else.
 
     Args:
         index: The index that should store 1 instead of 0.
