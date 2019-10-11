@@ -50,7 +50,7 @@ def _manhattan_distance(qubit1: cirq.GridQubit, qubit2: cirq.GridQubit) -> int:
 
 
 def nx_qubit_layout(graph: nx.Graph) \
-        -> Dict[Union[cirq.GridQubit, cirq.LineQubit], Tuple[int, int]]:
+        -> Dict[cirq.Qid, Tuple[int, int]]:
     """Return a layout for a graph for nodes which are qubits.
 
     This can be used in place of nx.spring_layout or other networkx layouts.
@@ -64,13 +64,19 @@ def nx_qubit_layout(graph: nx.Graph) \
     >>> nx.draw_networkx(g, pos=pos)
 
     """
-    pos = {
-    }  # type: Dict[Union[cirq.GridQubit, cirq.LineQubit], Tuple[int, int]]
+    pos: Dict[cirq.Qid, Tuple[int, int]] = {}
+
+    _node_to_i_cache = None
     for node in graph.nodes:
         if isinstance(node, cirq.GridQubit):
             pos[node] = (node.col, -node.row)
         elif isinstance(node, cirq.LineQubit):
-            pos[node] = (node.x, 0)
+            # Offset to avoid overlap with gridqubits
+            pos[node] = (node.x, 0.5)
         else:
-            raise ValueError(f"Unknown position for {node}")  # coverage: ignore
+            if _node_to_i_cache is None:
+                _node_to_i_cache = {n: i for i, n in enumerate(sorted(graph.nodes))}
+            # Position in a line according to sort order
+            # Offset to avoid overlap with gridqubits
+            pos[node] = (0.5, _node_to_i_cache[node] + 1)
     return pos

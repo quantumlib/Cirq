@@ -38,6 +38,7 @@ def test_get_linear_device_graph(n_qubits):
 def test_nx_qubit_layout():
     foxtail_graph = ccr.xmon_device_to_graph(cirq.google.Foxtail)
     pos = ccr.nx_qubit_layout(foxtail_graph)
+    assert len(pos) == len(foxtail_graph)
     for k, (x, y) in pos.items():
         assert x == k.col
         assert y == -k.row
@@ -51,4 +52,22 @@ def test_nx_qubit_layout_2():
     pos = ccr.nx_qubit_layout(g)
     for k, (x, y) in pos.items():
         assert x == k.x
-        assert y == 0
+        assert y == 0.5
+
+
+def test_nx_qubit_layout_3():
+    g = nx.from_edgelist([
+        (cirq.NamedQubit('a'), cirq.NamedQubit('b')),
+        (cirq.NamedQubit('b'), cirq.NamedQubit('c')),
+    ])
+    node_to_i = {
+        cirq.NamedQubit('a'): 0,
+        cirq.NamedQubit('b'): 1,
+        cirq.NamedQubit('c'): 2,
+
+    }
+
+    pos = ccr.nx_qubit_layout(g)
+    for k, (x, y) in pos.items():
+        assert x == 0.5
+        assert y == node_to_i[k] + 1
