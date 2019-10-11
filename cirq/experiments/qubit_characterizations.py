@@ -19,6 +19,7 @@ import numpy as np
 import sympy
 
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # type: ignore # pylint: disable=unused-import
 from cirq import circuits, devices, ops, protocols, study, work
 
 Cliffords = NamedTuple('Cliffords',
