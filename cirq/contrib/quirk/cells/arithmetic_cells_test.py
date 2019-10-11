@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.contrib.quirk.cells import arithmetic_cells
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 from cirq.contrib.quirk.url_to_circuit import quirk_url_to_circuit
 
@@ -485,20 +486,21 @@ def test_with_registers():
         _ = op.with_registers(1, 2, 3)
 
     op2 = op.with_registers([], 5, 5)
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.Circuit(op2)),
-        np.array([[1]]),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.Circuit(op2)),
+                               np.array([[1]]),
+                               atol=1e-8)
 
     op2 = op.with_registers([*cirq.LineQubit.range(3)], 5, 5)
-    np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.Circuit(op2), initial_state=0),
-        cirq.one_hot(index=25 % 8, shape=8, dtype=np.complex64),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.final_wavefunction(cirq.Circuit(op2),
+                                                       initial_state=0),
+                               cirq.one_hot(index=25 % 8,
+                                            shape=8,
+                                            dtype=np.complex64),
+                               atol=1e-8)
 
 
 def test_helpers():
-    f = cirq.contrib.quirk.popcnt
+    f = arithmetic_cells._popcnt
     assert f(0) == 0
     assert f(1) == 1
     assert f(2) == 1
@@ -510,7 +512,15 @@ def test_helpers():
     assert f(8) == 1
     assert f(9) == 2
 
-    g = cirq.contrib.quirk.invertible_else_1
+    g = arithmetic_cells._invertible_else_1
+    assert g(0, 0) == 1
+    assert g(0, 1) == 0
+    assert g(0, 2) == 1
+    assert g(2, 0) == 1
+    assert g(0, 15) == 1
+    assert g(1, 15) == 1
+    assert g(2, 15) == 2
+    assert g(3, 15) == 1
     assert g(0, 16) == 1
     assert g(1, 16) == 1
     assert g(2, 16) == 1
@@ -519,8 +529,17 @@ def test_helpers():
     assert g(5, 16) == 5
     assert g(6, 16) == 1
     assert g(7, 16) == 7
+    assert g(51, 16) == 51
 
-    h = cirq.contrib.quirk.mod_inv_else_1
+    h = arithmetic_cells._mod_inv_else_1
+    assert h(0, 0) == 1
+    assert h(0, 1) == 0
+    assert h(0, 2) == 1
+    assert h(2, 0) == 1
+    assert h(0, 15) == 1
+    assert h(1, 15) == 1
+    assert h(2, 15) == 8
+    assert h(3, 15) == 1
     assert h(0, 16) == 1
     assert h(1, 16) == 1
     assert h(2, 16) == 1

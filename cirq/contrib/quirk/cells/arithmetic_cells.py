@@ -13,38 +13,44 @@
 # limitations under the License.
 import inspect
 from typing import (Callable, Optional, Union, Iterable, Sequence, Iterator,
-                    Tuple, Any, cast, List)
+                    Tuple, Any, cast, List, Dict, TYPE_CHECKING)
 
-import cirq
 from cirq import ops, value
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker, CELL_SIZES
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
 class QuirkArithmeticOperation(ops.ArithmeticOperation):
-    """Applies an arithmetic to a target and some inputs.
+    """Applies arithmetic to a target and some inputs.
 
-    Uses quirk-specific implicit effects like assuming that the presence of an
-    'r' input implies modular arithmetic (meaning that e.g. values larger than
-    the modulus will not be affected).
+    Implements Quirk-specific implicit effects like assuming that the presence
+    of an 'r' input implies modular arithmetic.
+
+    In Quirk, modular operations have no effect on values larger than the
+    modulus. This convention is used because unitarity forces *some* convention
+    on out-of-range values (they cannot simply disappear or raise exceptions),
+    and the simplest is to do nothing. This call handles ensuring that happens,
+    and ensuring the new target register value is normalized modulo the modulus.
     """
 
-    def __init__(self, identifier: str,
-                 operation: 'cirq.contrib.quirk.QuirkArithmeticLambda',
-                 target: Sequence['cirq.Qid'],
-                 inputs: Sequence[Optional[Union[Sequence['cirq.Qid'], int]]]):
+    def __init__(self, identifier: str, target: Sequence['cirq.Qid'],
+                 inputs: Sequence[Union[Sequence['cirq.Qid'], int]]):
         """
         Args:
             identifier: The quirk identifier string for this operation.
-            operation: A repr-able lambda that determines the new value of the
-                target based on its current value and the values of the inputs.
             target: The target qubit register.
             inputs: Qubit registers (or classical constants) that
                 determine what happens to the target.
         """
-        if operation.is_modular:
-            r = cast(Union[Sequence['cirq.Qid'], int], inputs[-1])
-            assert r is not None
+        self.identifier = identifier
+        self.target = target
+        self.inputs = inputs
+
+        if self.operation.is_modular:
+            r = inputs[-1]
             if isinstance(r, int):
                 over = r > 1 << len(target)
             else:
@@ -54,19 +60,18 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                                  f'Target: {target}\n'
                                  f'Modulus: {r}')
 
-        self.identifier = identifier
-        self.target = target
-        self.inputs = inputs
-        self.operation = operation
+    @property
+    def operation(self) -> '_QuirkArithmeticCallable':
+        return ARITHMETIC_OP_TABLE[self.identifier]
 
-    def _value_equality_values_(self):
-        return self.identifier, self.operation, self.target, self.inputs
+    def _value_equality_values_(self) -> Any:
+        return self.identifier, self.target, self.inputs
 
-    def registers(self):
+    def registers(self) -> Sequence[Union[int, Sequence['cirq.Qid']]]:
         return [self.target, *self.inputs]
 
     def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
-                      ) -> 'cirq.QuirkArithmeticOperation':
+                      ) -> 'QuirkArithmeticOperation':
         if len(new_registers) != len(self.inputs) + 1:
             raise ValueError('Wrong number of registers.\n'
                              f'New registers: {repr(new_registers)}\n'
@@ -77,16 +82,17 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                              'It must be a list of qubits, not the constant '
                              f'{new_registers[0]}.')
 
-        return QuirkArithmeticOperation(self.identifier, self.operation,
-                                        new_registers[0], new_registers[1:])
+        return QuirkArithmeticOperation(self.identifier, new_registers[0],
+                                        new_registers[1:])
 
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self.operation(*registers)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> List[str]:
         lettered_args = list(zip(self.operation.letters, self.inputs))
 
-        result = []
+        result: List[str] = []
 
         # Target register labels.
         consts = ''.join(f',{letter}={reg}' for letter, reg in lettered_args
@@ -102,31 +108,31 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.quirk.QuirkArithmeticOperation(\n'
                 f'    {repr(self.identifier)},\n'
-                f'    operation={repr(self.operation)},\n'
                 f'    target={repr(self.target)},\n'
                 f'    inputs={_indented_list_lines_repr(self.inputs)},\n'
                 ')')
 
 
-@value.value_equality
-class QuirkArithmeticLambda:
+_IntsToIntCallable = Union[Callable[[int], int], Callable[[int, int], int],
+                           Callable[[int, int, int], int],
+                           Callable[[int, int, int, int], int],]
+
+
+class _QuirkArithmeticCallable:
     """A callable with parameter-name-dependent behavior."""
 
-    def __init__(self, code: str):
+    def __init__(self, func: _IntsToIntCallable):
         """
         Args:
-            code: A string containing a python lambda expression using only
-                values built into python or cirq. The lambda expression is
-                passed as a string to guarantee it has a `repr`.
+            func: Maps target int to its output value based on other input ints.
         """
-        self.code = code
-        self._func: Callable = eval(code, {'cirq': cirq}, {})
+        self.func = func
 
         # The lambda parameter names indicate the input letter to match.
-        letters: List[str] = list(inspect.signature(self._func).parameters)
+        letters: List[str] = list(inspect.signature(self.func).parameters)
         # The target is always first, and should be ignored.
         assert letters and letters[0] == 'x'
         self.letters = tuple(letters[1:])
@@ -134,42 +140,37 @@ class QuirkArithmeticLambda:
         # The last argument is the modulus r for modular arithmetic.
         self.is_modular = letters[-1] == 'r'
 
-    def _value_equality_values_(self):
-        return self.code
-
     def __call__(self, *args, **kwargs):
         assert not kwargs
         if self.is_modular:
             if args[0] >= args[-1]:
                 return args[0]
 
-        result = self._func(*args)
+        result = self.func(*args)
         if self.is_modular:
             result %= args[-1]
         return result
 
-    def __repr__(self):
-        return 'cirq.contrib.quirk.QuirkArithmeticLambda({!r})'.format(
-            self.code)
-
 
 class ArithmeticCell(Cell):
 
-    def __init__(self, identifier: str, operation: QuirkArithmeticLambda,
-                 target: Sequence['cirq.Qid'],
+    def __init__(self, identifier: str, target: Sequence['cirq.Qid'],
                  inputs: Sequence[Union[None, Sequence['cirq.Qid'], int]]):
         self.identifier = identifier
-        self.operation = operation
         self.target = target
         self.inputs = inputs
 
-    def with_input(self, letter, register):
+    @property
+    def operation(self):
+        return ARITHMETIC_OP_TABLE[self.identifier]
+
+    def with_input(self, letter: str, register: Union[Sequence['cirq.Qid'], int]
+                  ) -> 'ArithmeticCell':
         new_inputs = [
             reg if letter != reg_letter else register
             for reg, reg_letter in zip(self.inputs, self.operation.letters)
         ]
-        return ArithmeticCell(self.identifier, self.operation, self.target,
-                              new_inputs)
+        return ArithmeticCell(self.identifier, self.target, new_inputs)
 
     def operations(self) -> 'cirq.OP_TREE':
         missing_inputs = [
@@ -179,8 +180,9 @@ class ArithmeticCell(Cell):
         if missing_inputs:
             raise ValueError(f'Missing input: {sorted(missing_inputs)}')
 
-        return QuirkArithmeticOperation(self.identifier, self.operation,
-                                        self.target, self.inputs)
+        return QuirkArithmeticOperation(
+            self.identifier, self.target,
+            cast(Sequence[Union[Sequence['cirq.Qid'], int]], self.inputs))
 
 
 def _indented_list_lines_repr(items: Sequence[Any]) -> str:
@@ -189,65 +191,58 @@ def _indented_list_lines_repr(items: Sequence[Any]) -> str:
     return '[\n{}\n    ]'.format(indented)
 
 
-def generate_all_arithmetic_cell_makers() -> Iterator[CellMaker]:
+def _generate_helper() -> Iterator[CellMaker]:
     # Comparisons.
-    yield _reg_arithmetic_gate("^A<B", 1, "lambda x, a, b: x ^ int(a < b)")
-    yield _reg_arithmetic_gate("^A>B", 1, "lambda x, a, b: x ^ int(a > b)")
-    yield _reg_arithmetic_gate("^A<=B", 1, "lambda x, a, b: x ^ int(a <= b)")
-    yield _reg_arithmetic_gate("^A>=B", 1, "lambda x, a, b: x ^ int(a >= b)")
-    yield _reg_arithmetic_gate("^A=B", 1, "lambda x, a, b: x ^ int(a == b)")
-    yield _reg_arithmetic_gate("^A!=B", 1, "lambda x, a, b: x ^ int(a != b)")
+    yield _arithmetic_gate("^A<B", 1, lambda x, a, b: x ^ int(a < b))
+    yield _arithmetic_gate("^A>B", 1, lambda x, a, b: x ^ int(a > b))
+    yield _arithmetic_gate("^A<=B", 1, lambda x, a, b: x ^ int(a <= b))
+    yield _arithmetic_gate("^A>=B", 1, lambda x, a, b: x ^ int(a >= b))
+    yield _arithmetic_gate("^A=B", 1, lambda x, a, b: x ^ int(a == b))
+    yield _arithmetic_gate("^A!=B", 1, lambda x, a, b: x ^ int(a != b))
 
     # Addition.
-    yield from _reg_arithmetic_family("inc", "lambda x: x + 1")
-    yield from _reg_arithmetic_family("dec", "lambda x: x - 1")
-    yield from _reg_arithmetic_family("+=A", "lambda x, a: x + a")
-    yield from _reg_arithmetic_family("-=A", "lambda x, a: x - a")
+    yield from _arithmetic_family("inc", lambda x: x + 1)
+    yield from _arithmetic_family("dec", lambda x: x - 1)
+    yield from _arithmetic_family("+=A", lambda x, a: x + a)
+    yield from _arithmetic_family("-=A", lambda x, a: x - a)
 
     # Multiply-accumulate.
-    yield from _reg_arithmetic_family("+=AA", "lambda x, a: x + a * a")
-    yield from _reg_arithmetic_family("-=AA", "lambda x, a: x - a * a")
-    yield from _reg_arithmetic_family("+=AB", "lambda x, a, b: x + a * b")
-    yield from _reg_arithmetic_family("-=AB", "lambda x, a, b: x - a * b")
+    yield from _arithmetic_family("+=AA", lambda x, a: x + a * a)
+    yield from _arithmetic_family("-=AA", lambda x, a: x - a * a)
+    yield from _arithmetic_family("+=AB", lambda x, a, b: x + a * b)
+    yield from _arithmetic_family("-=AB", lambda x, a, b: x - a * b)
 
     # Misc.
-    yield from _reg_arithmetic_family(
-        "+cntA", "lambda x, a: x + cirq.contrib.quirk.popcnt(a)")
-    yield from _reg_arithmetic_family(
-        "-cntA", "lambda x, a: x - cirq.contrib.quirk.popcnt(a)")
-    yield from _reg_arithmetic_family("^=A", "lambda x, a: x ^ a")
-    yield from _reg_arithmetic_family("Flip<A",
-                                      "lambda x, a: a - x - 1 if x < a else x")
+    yield from _arithmetic_family("+cntA", lambda x, a: x + _popcnt(a))
+    yield from _arithmetic_family("-cntA", lambda x, a: x - _popcnt(a))
+    yield from _arithmetic_family("^=A", lambda x, a: x ^ a)
+    yield from _arithmetic_family(
+        "Flip<A", lambda x, a: a - x - 1 if x < a else x)
 
     # Multiplication.
-    yield from _reg_arithmetic_family("*A",
-                                      "lambda x, a: x * a if a & 1 else x")
-    yield from _reg_size_dependent_arithmetic_family(
-        "/A", lambda n:
-        f"lambda x, a: x * cirq.contrib.quirk.mod_inv_else_1(a, 1 << {n})")
+    yield from _arithmetic_family("*A", lambda x, a: x * a if a & 1 else x)
+    yield from _size_dependent_arithmetic_family(
+        "/A", lambda n: lambda x, a: x * _mod_inv_else_1(a, 1 << n))
 
     # Modular addition.
-    yield from _reg_arithmetic_family("incmodR", "lambda x, r: x + 1")
-    yield from _reg_arithmetic_family("decmodR", "lambda x, r: x - 1")
-    yield from _reg_arithmetic_family("+AmodR", "lambda x, a, r: x + a")
-    yield from _reg_arithmetic_family("-AmodR", "lambda x, a, r: x - a")
+    yield from _arithmetic_family("incmodR", lambda x, r: x + 1)
+    yield from _arithmetic_family("decmodR", lambda x, r: x - 1)
+    yield from _arithmetic_family("+AmodR", lambda x, a, r: x + a)
+    yield from _arithmetic_family("-AmodR", lambda x, a, r: x - a)
 
     # Modular multiply-accumulate.
-    yield from _reg_arithmetic_family("+ABmodR", "lambda x, a, b, r: x + a * b")
-    yield from _reg_arithmetic_family("-ABmodR", "lambda x, a, b, r: x - a * b")
+    yield from _arithmetic_family("+ABmodR", lambda x, a, b, r: x + a * b)
+    yield from _arithmetic_family("-ABmodR", lambda x, a, b, r: x - a * b)
 
     # Modular multiply.
-    yield from _reg_arithmetic_family(
-        "*AmodR",
-        "lambda x, a, r: x * cirq.contrib.quirk.invertible_else_1(a, r)")
-    yield from _reg_arithmetic_family(
-        "/AmodR", "lambda x, a, r: x * cirq.contrib.quirk.mod_inv_else_1(a, r)")
-    yield from _reg_arithmetic_family(
-        "*BToAmodR", "lambda x, a, b, r: "
-        "x * pow(cirq.contrib.quirk.invertible_else_1(b, r), a, r)")
-    yield from _reg_arithmetic_family(
-        "/BToAmodR", "lambda x, a, b, r: "
-        "x * pow(cirq.contrib.quirk.mod_inv_else_1(b, r), a, r)")
+    yield from _arithmetic_family(
+        "*AmodR", lambda x, a, r: x * _invertible_else_1(a, r))
+    yield from _arithmetic_family(
+        "/AmodR", lambda x, a, r: x * _mod_inv_else_1(a, r))
+    yield from _arithmetic_family(
+        "*BToAmodR", lambda x, a, b, r: x * pow(_invertible_else_1(b, r), a, r))
+    yield from _arithmetic_family(
+        "/BToAmodR", lambda x, a, b, r: x * pow(_mod_inv_else_1(b, r), a, r))
 
 
 def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
@@ -257,13 +252,13 @@ def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
     return gcd, x - (b // a) * y, y
 
 
-def invertible_else_1(a: int, m: int) -> int:
+def _invertible_else_1(a: int, m: int) -> int:
     """Returns `a` if `a` has a multiplicative inverse, else 1."""
-    i = mod_inv_else_1(a, m)
+    i = _mod_inv_else_1(a, m)
     return a if i != 1 else i
 
 
-def mod_inv_else_1(a: int, m: int) -> int:
+def _mod_inv_else_1(a: int, m: int) -> int:
     """Returns `a**-1` if `a` has a multiplicative inverse, else 1."""
     if m == 0:
         return 1
@@ -273,7 +268,7 @@ def mod_inv_else_1(a: int, m: int) -> int:
     return x % m
 
 
-def popcnt(a: int) -> int:
+def _popcnt(a: int) -> int:
     """Returns the Hamming weight of the given non-negative integer."""
     t = 0
     while a > 0:
@@ -282,28 +277,42 @@ def popcnt(a: int) -> int:
     return t
 
 
-def _reg_arithmetic_family(identifier_prefix: str,
-                           func: str) -> Iterator[CellMaker]:
-    yield from _reg_size_dependent_arithmetic_family(
-        identifier_prefix, size_to_func=lambda _: func)
+def _arithmetic_family(identifier_prefix: str,
+                       func: _IntsToIntCallable) -> Iterator[CellMaker]:
+    yield from _size_dependent_arithmetic_family(identifier_prefix,
+                                                 size_to_func=lambda _: func)
 
 
-def _reg_size_dependent_arithmetic_family(
+def _size_dependent_arithmetic_family(
         identifier_prefix: str,
-        size_to_func: Callable[[int], str],
+        size_to_func: Callable[[int], _IntsToIntCallable],
 ) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
-        yield _reg_arithmetic_gate(identifier_prefix + str(i),
-                                   size=i,
-                                   func=size_to_func(i))
+        yield _arithmetic_gate(identifier_prefix + str(i),
+                               size=i,
+                               func=size_to_func(i))
 
 
-def _reg_arithmetic_gate(identifier: str, size: int, func: str) -> CellMaker:
-    operation = QuirkArithmeticLambda(func)
+def _arithmetic_gate(identifier: str, size: int,
+                     func: _IntsToIntCallable) -> CellMaker:
+    operation = _QuirkArithmeticCallable(func)
+    assert identifier not in ARITHMETIC_OP_TABLE
+    ARITHMETIC_OP_TABLE[identifier] = operation
     return CellMaker(identifier=identifier,
                      size=size,
                      maker=lambda args: ArithmeticCell(identifier=identifier,
                                                        target=args.qubits,
                                                        inputs=[None] * len(
-                                                           operation.letters),
-                                                       operation=operation))
+                                                           operation.letters)))
+
+
+ARITHMETIC_OP_TABLE: Dict[str, _QuirkArithmeticCallable] = {}
+# Caching is necessary in order to avoid overwriting entries in the table.
+_cached_cells: Optional[Tuple[CellMaker, ...]] = None
+
+
+def generate_all_arithmetic_cell_makers() -> Iterable[CellMaker]:
+    global _cached_cells
+    if _cached_cells is None:
+        _cached_cells = tuple(_generate_helper())
+    return _cached_cells
