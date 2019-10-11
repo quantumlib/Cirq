@@ -90,7 +90,8 @@ def sample_density_matrix(
         indices: List[int],
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
-        repetitions: int = 1) -> np.ndarray:
+        repetitions: int = 1,
+        seed: Optional[Union[int, np.random.RandomState]] = None) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the density_matrix.
@@ -107,6 +108,7 @@ def sample_density_matrix(
         qid_shape: The qid shape of the density matrix.  Specify this argument
             when using qudits.
         repetitions: The number of times to sample the density matrix.
+        seed: A seed for the pseudorandom number generator.
 
     Returns:
         Measurement results with True corresponding to the ``|1⟩`` state.
@@ -134,13 +136,20 @@ def sample_density_matrix(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
 
+    if seed is None:
+        prng = np.random
+    elif isinstance(seed, np.random.RandomState):
+        prng = seed
+    else:
+        prng = np.random.RandomState(seed)
+
     # Calculate the measurement probabilities.
     probs = _probs(density_matrix, indices, qid_shape)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
     # choosing from a list of tuples or list of lists.
-    result = np.random.choice(len(probs), size=repetitions, p=probs)
+    result = prng.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
     return np.array([
         value.big_endian_int_to_digits(result[i], base=meas_shape)
@@ -149,11 +158,13 @@ def sample_density_matrix(
                     dtype=np.int8)
 
 
-def measure_density_matrix(density_matrix: np.ndarray,
-                           indices: List[int],
-                           qid_shape: Optional[Tuple[int, ...]] = None,
-                           out: np.ndarray = None
-                          ) -> Tuple[List[int], np.ndarray]:
+def measure_density_matrix(
+        density_matrix: np.ndarray,
+        indices: List[int],
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        out: np.ndarray = None,
+        seed: Optional[Union[int, np.random.RandomState]] = None
+) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
     This does not modify `density_matrix` unless the optional `out` is
@@ -177,6 +188,7 @@ def measure_density_matrix(density_matrix: np.ndarray,
             method. The shape and dtype of `out` will match that of
             `density_matrix` if `out` is None, otherwise it will match the
             shape and dtype of `out`.
+        seed: A seed for the pseudorandom number generator.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
@@ -206,12 +218,19 @@ def measure_density_matrix(density_matrix: np.ndarray,
         return ([], out)
         # Final else: if out is matrix then matrix will be modified in place.
 
+    if seed is None:
+        prng = np.random
+    elif isinstance(seed, np.random.RandomState):
+        prng = seed
+    else:
+        prng = np.random.RandomState(seed)
+
     # Cache initial shape.
     initial_shape = density_matrix.shape
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(density_matrix, indices, qid_shape)
-    result = np.random.choice(len(probs), p=probs)
+    result = prng.choice(len(probs), p=probs)
     measurement_bits = value.big_endian_int_to_digits(result, base=meas_shape)
 
     # Calculate the slice for the measurement result.
