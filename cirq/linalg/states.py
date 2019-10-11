@@ -21,6 +21,7 @@ import numpy as np
 def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,
             shape: Union[int, Sequence[int]],
+            value: int = 1,
             dtype: Type[np.number]) -> np.ndarray:
     """Returns a numpy array with a single 1 entry, and 0 everywhere else.
 
@@ -29,6 +30,7 @@ def one_hot(*,
             If not specified, defaults to the start of the array.
         shape: The shape of the array.
         dtype: The dtype of the array.
+        value: The value of the integer.
 
     Returns:
         The created numpy array.
@@ -36,7 +38,7 @@ def one_hot(*,
     if index is None:
         index = 0 if isinstance(shape, int) else (0,) * len(shape)
     result = np.zeros(shape=shape, dtype=dtype)
-    result[index] = 1
+    result[index] = value
     return result
 
 
