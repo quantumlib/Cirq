@@ -32,6 +32,7 @@ User Documentation
     qudits
     development
     examples
+    dev/plotting
 
 
 API Reference

@@ -21,6 +21,7 @@ from cirq import protocols, value
 from cirq.linalg import operator_spaces
 from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
+from cirq.value.linear_dict import _format_terms
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
@@ -511,8 +512,7 @@ class PauliSum:
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
-        return value.linear_dict._format_terms(terms=terms,
-                                               format_spec=format_spec)
+        return _format_terms(terms=terms, format_spec=format_spec)
 
     def __str__(self):
         return self.__format__('.3f')

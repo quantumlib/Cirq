@@ -13,6 +13,9 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
+
+import matplotlib.pyplot as plt
 
 from cirq import GridQubit
 from cirq import circuits, ops, sim
@@ -142,3 +145,16 @@ def test_two_qubit_state_tomography():
     np.testing.assert_almost_equal(act_rho_hh, tar_rho_hh, decimal=1)
     np.testing.assert_almost_equal(act_rho_xy, tar_rho_xy, decimal=1)
     np.testing.assert_almost_equal(act_rho_yx, tar_rho_yx, decimal=1)
+
+
+def test_tomography_plot_raises_for_incorrect_number_of_axes():
+    simulator = sim.Simulator()
+    qubit = GridQubit(0, 0)
+    circuit = circuits.Circuit(ops.X(qubit)**0.5)
+    result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
+    with pytest.raises(TypeError):  # ax is not a List[plt.Axes]
+        ax = plt.subplot()
+        result.plot(ax)
+    with pytest.raises(ValueError):
+        _, axes = plt.subplots(1, 3)
+        result.plot(axes)
