@@ -279,7 +279,7 @@ def test_unitary():
     schedule = cirq.Schedule(device=UNCONSTRAINED_DEVICE,
                              scheduled_operations=[op])
 
-    cirq.testing.assert_has_consistent_apply_unitary(schedule, qubit_count=1)
+    cirq.testing.assert_has_consistent_apply_unitary(schedule)
     np.testing.assert_allclose(cirq.unitary(schedule), cirq.unitary(cirq.H))
     assert cirq.has_unitary(schedule)
 

@@ -518,6 +518,21 @@ def test_invalid_to_proto_dict_qubit_number():
             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
 
 
+def test_invalid_qubit_from_proto():
+    with pytest.raises(ValueError, match='does not contain row or col'):
+        proto_dict = {
+            'exp_z': {
+                'target': {
+                    'row': 2,
+                },
+                'half_turns': {
+                    'raw': 1
+                },
+            }
+        }
+        _ = cg.xmon_op_from_proto_dict(proto_dict)
+
+
 def test_parameterized_value_from_proto():
     from_proto = _parameterized_value_from_proto_dict
 

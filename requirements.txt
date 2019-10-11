@@ -5,7 +5,7 @@ matplotlib~=3.0
 networkx~=2.1
 numpy~=1.16
 pandas
-protobuf~=3.5
+protobuf==3.8.0
 requests~=2.18
 sortedcontainers~=2.0
 scipy

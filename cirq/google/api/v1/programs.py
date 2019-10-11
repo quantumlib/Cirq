@@ -73,7 +73,7 @@ def gate_to_proto_dict(gate: 'cirq.Gate',
 
 def _x_to_proto_dict(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'axis_half_turns': _parameterized_value_to_proto_dict(0),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
@@ -82,7 +82,7 @@ def _x_to_proto_dict(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> Dict:
 
 def _y_to_proto_dict(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'axis_half_turns': _parameterized_value_to_proto_dict(0.5),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
@@ -91,7 +91,7 @@ def _y_to_proto_dict(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> Dict:
 
 def _phased_x_to_proto_dict(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'axis_half_turns':
         _parameterized_value_to_proto_dict(gate.phase_exponent),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
@@ -101,7 +101,7 @@ def _phased_x_to_proto_dict(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> Dict:
 
 def _z_to_proto_dict(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> Dict:
     exp_z = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent),
     }
     return {'exp_z': exp_z}
@@ -110,11 +110,18 @@ def _z_to_proto_dict(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> Dict:
 def _cz_to_proto_dict(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
                       q: 'cirq.Qid') -> Dict:
     exp_11 = {
-        'target1': cast(devices.GridQubit, p).to_proto_dict(),
-        'target2': cast(devices.GridQubit, q).to_proto_dict(),
+        'target1': _qubit_to_proto_dict(p),
+        'target2': _qubit_to_proto_dict(q),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_11': exp_11}
+
+
+def _qubit_to_proto_dict(qubit):
+    return {
+        'row': qubit.row,
+        'col': qubit.col,
+    }
 
 
 def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
@@ -131,12 +138,13 @@ def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
         raise ValueError('Measurement gate had invert mask of length '
                          'different than number of qubits it acts on.')
     measurement = {
-        'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
+        'targets': [_qubit_to_proto_dict(q) for q in qubits],
         'key': protocols.measurement_key(gate),
     }
     if invert_mask:
         measurement['invert_mask'] = [json.dumps(x) for x in invert_mask]
     return {'measurement': measurement}
+
 
 
 def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
@@ -308,7 +316,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
             gate_name, proto_dict))
 
     param = _parameterized_value_from_proto_dict
-    qubit = devices.GridQubit.from_proto_dict
+    qubit = _qubit_from_proto_dict
     if 'exp_w' in proto_dict:
         exp_w = proto_dict['exp_w']
         if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w or
@@ -343,6 +351,14 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
             invert_mask=invert_mask).on(*[qubit(q) for q in meas['targets']])
 
     raise ValueError('invalid operation: {}'.format(proto_dict))
+
+
+def _qubit_from_proto_dict(proto_dict):
+    """Proto dict must have 'row' and 'col' keys."""
+    if 'row' not in proto_dict or 'col' not in proto_dict:
+        raise ValueError(
+            'Proto dict does not contain row or col: {}'.format(proto_dict))
+    return devices.GridQubit(row=proto_dict['row'], col=proto_dict['col'])
 
 
 def _parameterized_value_from_proto_dict(message: Dict) -> value.TParamVal:

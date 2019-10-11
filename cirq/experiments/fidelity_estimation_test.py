@@ -1,3 +1,17 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import itertools
 
 from typing import Sequence
@@ -19,12 +33,9 @@ def sample_noisy_bitstrings(circuit: cirq.Circuit,
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
     circuit_with_measurements = cirq.Circuit(
         circuit, cirq.measure(*qubit_order, key='m'))
-    # TODO(viathor): Remove conditional after #2114.
-    if n_coherent > 0:
-        r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
-        coherent_samples = r.data['m'].to_numpy()
-        return np.concatenate((coherent_samples, incoherent_samples))
-    return incoherent_samples
+    r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
+    coherent_samples = r.data['m'].to_numpy()
+    return np.concatenate((coherent_samples, incoherent_samples))
 
 
 def make_random_quantum_circuit(qubits: Sequence[cirq.Qid],
