@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING, List, Tuple, cast
 
 import matplotlib.textpath
 
@@ -12,8 +12,12 @@ def _get_text_width(t: str) -> float:
     return bb.width + 10
 
 
-def _rect(x: float, y: float, boxwidth: float, boxheight: float,
-          fill: str = 'white', strokewidth: float = 1):
+def _rect(x: float,
+          y: float,
+          boxwidth: float,
+          boxheight: float,
+          fill: str = 'white',
+          strokewidth: float = 1):
     """Draw an SVG <rect> rectangle."""
     return f'<rect x="{x}" y="{y}" width="{boxwidth}" height="{boxheight}" ' \
            f'stroke="black" fill="{fill}" stroke-width="{strokewidth}" />'
@@ -35,8 +39,9 @@ def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
         col_widths: a list of each column's width in pixels
     """
     max_xi = max(xi for xi, _ in tdd.entries.keys())
-    max_xi = max(max_xi, max(xi2 for _, _, xi2, _ in tdd.horizontal_lines))
-    col_widths = [0] * (max_xi + 2)
+    max_xi = max(max_xi,
+                 max(cast(int, xi2) for _, _, xi2, _ in tdd.horizontal_lines))
+    col_widths = [0.0] * (max_xi + 2)
     for (xi, _), v in tdd.entries.items():
         tw = _get_text_width(v.text)
         if tw > col_widths[xi]:
@@ -48,7 +53,7 @@ def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
         padding = tdd.horizontal_padding.get(i, col_padding)
         col_widths[i] += padding
 
-    col_starts = [0]
+    col_starts = [0.0]
     for i in range(1, max_xi + 3):
         col_starts.append(col_starts[i - 1] + col_widths[i - 1])
 
@@ -71,6 +76,8 @@ def tdd_to_svg(
     t = f'<svg width="{col_starts[-1]}" height="{height}">'
 
     for yi, xi1, xi2, _ in tdd.horizontal_lines:
+        xi1 = cast(int, xi1)
+        xi2 = cast(int, xi2)
         y = yi * ref_rowheight + y_top_pad + ref_boxheight / 2
         x1 = col_starts[xi1] + col_widths[xi1] / 2
         x2 = col_starts[xi2] + col_widths[xi2] / 2
@@ -81,6 +88,7 @@ def tdd_to_svg(
         y1 = yi1 * ref_rowheight + y_top_pad + ref_boxheight / 2
         y2 = yi2 * ref_rowheight + y_top_pad + ref_boxheight / 2
 
+        xi = cast(int, xi)
         x = col_starts[xi] + col_widths[xi] / 2
         t += f'<line x1="{x}" x2="{x}" y1="{y1}" y2="{y2}" ' \
              f'stroke="black" stroke-width="3" />'
@@ -115,6 +123,7 @@ def tdd_to_svg(
 
 
 class SVGCircuit:
+
     def __init__(self, circuit: 'cirq.Circuit'):
         # coverage: ignore
         self.circuit = circuit
