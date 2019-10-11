@@ -23,7 +23,7 @@ def build_circuit():
   return circuit, qubits
 
 
-def simulate_trace(circuit, pauli_gates):
+def simulate_trace(circuit, pauli_gates, qubits):
   simulator = cirq.DensityMatrixSimulator()
 
   n = len(pauli_gates)
@@ -35,10 +35,8 @@ def simulate_trace(circuit, pauli_gates):
 
     rotated_initial_state = cirq.final_wavefunction(
         cirq.DensePauliString(pauli_gates),
+        qubit_order=qubits,
         initial_state=x)
-
-    print('TONYBOOM rotated_initial_state=%s pauli_gates=%s' % (rotated_initial_state, list(pauli_gates)))  # DO NOT SUBMIT
-    return 1.0  # DO NOT SUBMIT
 
     y = simulator.simulate(circuit, initial_state=rotated_initial_state).measurements['y']
     trace += sum([int(xbin[i]) == y[i] for i in range(n)])
@@ -58,7 +56,7 @@ def main():
 
   highest_probs = []
   for i, pauli_gates in enumerate(itertools.product({cirq.I, cirq.X, cirq.Y, cirq.Z}, repeat=n)):
-    rho_i = simulate_trace(circuit, pauli_gates)
+    rho_i = simulate_trace(circuit, pauli_gates, qubits)
 
     Pr_i = rho_i * rho_i / d
 
@@ -66,14 +64,14 @@ def main():
       heapq.heappush(highest_probs, (Pr_i, rho_i, i, pauli_gates))
     if len(highest_probs) > n:
       heapq.heappop(highest_probs)
-  return  # DO NOT SUBMIT
+
   fidelity = 0.0
   for prob_tuple in highest_probs:
     Pr_i = prob_tuple[0]
     rho_i = prob_tuple[1]
     pauli_gates = prob_tuple[3]
 
-    sigma_i = simulate_trace(noisy_circuit, pauli_gates)
+    sigma_i = simulate_trace(noisy_circuit, pauli_gates, qubits)
 
     fidelity += Pr_i * sigma_i / rho_i
 
