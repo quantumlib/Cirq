@@ -33,7 +33,7 @@ def quirk_url_to_circuit(
         quirk_url: str,
         *,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        extra_recognized: Iterable['cirq.contrib.quirk.cells.CellMaker'] = ()
+        extra_cell_makers: Iterable['cirq.contrib.quirk.cells.CellMaker'] = ()
 ) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
@@ -46,17 +46,10 @@ def quirk_url_to_circuit(
             qubits). The maximum number of qubits in a Quirk circuit is 16.
             This argument defaults to `cirq.LineQubit.range(16)` when not
             specified.
-        extra_recognized: A list of non-standard Quirk cell makers. This can be
+        extra_cell_makers: A list of non-standard Quirk cell makers. This can be
             used to parse URLs that come from a modified version of Quirk that
-            includes gates that Quirk doesn't define. Each entry must be a
-            `cirq.contrib.quirk.cells.CellMaker`, which is a `NamedTuple` with
-            an `identifier` (the string that identifies the gate type), a `size`
-            (the height of the operation; the number of qubits it covers), and
-            a `maker` function which takes a
-            `cirq.contrib.quirk.cells.CellMakerArgs` and returns a
-            `cirq.Operation` or a `cirq.contrib.quirk.cells.Cell`. The cell is
-            more flexible (it can modify other cells in the same column before
-            producing operations).
+            includes gates that Quirk doesn't define. See
+            `cirq.contrib.quirk.cells.CellMaker`.
 
     Examples:
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
@@ -128,7 +121,7 @@ def quirk_url_to_circuit(
     # Parse column json into cells.
     registry = {
         entry.identifier: entry
-        for entry in [*generate_all_quirk_cell_makers(), *extra_recognized]
+        for entry in [*generate_all_quirk_cell_makers(), *extra_cell_makers]
     }
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
