@@ -57,12 +57,12 @@ def test_executor_explicit():
         executor(cirq.Circuit())
 
     with pytest.raises(TypeError):
-        bad_strategy = cirq.Circuit.from_ops(cirq.X(qubits[0]))
+        bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
         executor(bad_strategy)
 
     with pytest.raises(TypeError):
         op = cirq.X(qubits[0])
-        bad_strategy = cirq.Circuit.from_ops(op)
+        bad_strategy = cirq.Circuit(op)
         executor.optimization_at(bad_strategy, 0, op)
 
     executor(circuit)
@@ -130,7 +130,7 @@ def test_diagonal_gate():
 
     qubits = cirq.LineQubit.range(2)
     gate = DiagonalGate.random(2)
-    circuit = cirq.Circuit.from_ops([gate(*qubits)])
+    circuit = cirq.Circuit([gate(*qubits)])
     actual_text_diagram = circuit.to_text_diagram()
     expected_text_diagram = """
 0: ───Diag───
@@ -165,14 +165,14 @@ def test_executor_random(num_qubits: int,
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
 
-    logical_circuit = cirq.Circuit.from_ops([g(*Q) for Q, g in gates.items()])
-    expected_unitary = logical_circuit.to_unitary_matrix()
+    logical_circuit = cirq.Circuit([g(*Q) for Q, g in gates.items()])
+    expected_unitary = logical_circuit.unitary()
 
     initial_mapping = {q: q for q in qubits}
     final_mapping = cca.GreedyExecutionStrategy(gates, initial_mapping)(circuit)
     permutation = {q.x: qq.x for q, qq in final_mapping.items()}
     circuit.append(cca.LinearPermutationGate(num_qubits, permutation)(*qubits))
-    actual_unitary = circuit.to_unitary_matrix()
+    actual_unitary = circuit.unitary()
 
     np.testing.assert_allclose(
             actual=actual_unitary,

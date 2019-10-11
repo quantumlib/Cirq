@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package cirq.google.api.v1;
+
+option java_package = "com.google.cirq.google.api.v1";
+option java_outer_classname = "OperationsProto";
+option java_multiple_files = true;
+
+// Identifies a qubit.
+message Qubit {
+  // row number in grid.
+  int32 row = 1;
+
+  // column number in grid.
+  int32 col = 2;
+}
+
+// A number specified as a constant plus an optional parameter lookup.
+message ParameterizedFloat {
+  // Constant or parameter.
+  oneof value {
+    // A constant value.
+    float raw = 1;
+
+    // A variable value stored under some parameter key.
+    // This cannot be the empty string.
+    string parameter_key = 2;
+  }
+}
+
+// A single-qubit rotation around an axis on the XY equator of the Bloch sphere.
+//
+// This gate is exp(-i * pi * W(theta) * t / 2) where
+//   W(theta) = cos(pi * theta) X + sin(pi * theta) Y
+// or in matrix form
+//   W(theta) = [[0, cos(pi * theta) - i sin(pi * theta)],
+//               [cos(pi * theta) + i sin(pi * theta), 0]]
+message ExpW {
+  // The qubit to rotate.
+  Qubit target = 1;
+  // The angle of the rotation axis' facing in the XY plane, expressed in
+  // units of pi. In other words, this is the theta in exp(i pi W(theta) t / 2).
+  //    - 0 is positive-ward along X.
+  //    - 0.5 is positive-ward along Y.
+  //    - 1.0 is negative-ward along X.
+  //    - 1.5 is negative-ward along Y.
+  // Note that this is periodic with period 2.
+  ParameterizedFloat axis_half_turns = 2;
+
+  // The amount to rotate by expressed in units of pi / 2, i.e. the t in
+  // exp(i pi W(theta) t / 2).
+  // Note that this is periodic with period 4 (or 2 when ignoring global phase).
+  ParameterizedFloat half_turns = 3;
+}
+
+// A single-qubit rotation around the Z axis of the Bloch sphere.
+//
+// This gate is exp(-i * pi * Z * t / 2) where Z is the Pauli Z matrix,
+//   Z = [[1, 0], [0, -1]]
+message ExpZ {
+  // The qubit to rotate.
+  Qubit target = 1;
+  // The amount of the rotation in radians, i.e. the t in
+  // exp(i * pi * Z * t / 2).
+  // Note that this is periodic with period 4 (or 2 when ignoring global phase).
+  ParameterizedFloat half_turns = 2;
+}
+
+// A two qubit rotation which acts to phase only the |11> state.
+//
+// This gate is exp(i * pi * H  * t) where H = |11><11| or in matrix form
+//   H = diag(0, 0, 0, 1)
+message Exp11 {
+  // The first qubit to interact.
+  Qubit target1 = 1;
+  // The other qubit to interact.
+  Qubit target2 = 2;
+  // The amount of the rotation in units of pi, i.e. the t in
+  // exp(i * pi * |11><11| * t).
+  // Note that this is periodic with period 2 (including global phase).
+  ParameterizedFloat half_turns = 3;
+}
+
+// A multi-qubit measurement in the computational basis (|0>, |1>).
+message Measurement {
+  // The qubits to measure.
+  repeated Qubit targets = 1;
+
+  // The key that this measurement's bit will be grouped under.
+  // Measurement keys must be unique across the circuit.
+  string key = 2;
+
+  // If not empty, a list of booleans describing whether the results should
+  // be flipped for each of the qubits above. The length of this vector must
+  // match the length of the qubits, and the interpretation of whether to
+  // invert or not matches component-wise this list and the qubits' list.
+  repeated bool invert_mask = 3;
+}
+
+// An operation to apply: either a gate or a measurement.
+message Operation {
+  // When this operation should be done, relative to the previous operation.
+  // Use a delay of 0 to apply simultaneous with previous operation.
+  // (Implies operations must be sorted by application order.)
+  uint64 incremental_delay_picoseconds = 1;
+
+  // The operation to apply.
+  oneof operation {
+    // A single-qubit rotation around an axis on the XY equator.
+    ExpW exp_w = 10;
+    // A single-qubit rotation around the Z axis.
+    ExpZ exp_z = 11;
+    // An operation that interacts two qubits, phasing only the 11 state.
+    Exp11 exp_11 = 12;
+    // Measures a qubit and indicates where to store the result.
+    Measurement measurement = 13;
+  }
+}

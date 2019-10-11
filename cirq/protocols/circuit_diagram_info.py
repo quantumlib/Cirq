@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import collections
+
 from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple,
                     TypeVar, Dict, overload, Iterable)
 
@@ -20,7 +20,6 @@ from typing_extensions import Protocol
 from cirq import value
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
@@ -31,7 +30,8 @@ class CircuitDiagramInfo:
     def __init__(self,
                  wire_symbols: Tuple[str, ...],
                  exponent: Any = 1,
-                 connected: bool = True) -> None:
+                 connected: bool = True,
+                 exponent_qubit_index: Optional[int] = None) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -43,6 +43,9 @@ class CircuitDiagramInfo:
                 has a text diagram exponent of 0.5 and symbol of 'X' so it is
                 drawn as 'X^0.5'.
             connected: Whether or not to draw a line connecting the qubits.
+            exponent_qubit_index: The qubit to put the exponent on. (The k'th
+                qubit is the k'th target of the gate.) Defaults to the bottom
+                qubit in the diagram.
         """
         if isinstance(wire_symbols, str):
             raise ValueError(
@@ -50,16 +53,25 @@ class CircuitDiagramInfo:
         self.wire_symbols = wire_symbols
         self.exponent = exponent
         self.connected = connected
+        self.exponent_qubit_index = exponent_qubit_index
 
     def _value_equality_values_(self):
-        return self.wire_symbols, self.exponent, self.connected
+        return (
+            self.wire_symbols,
+            self.exponent,
+            self.connected,
+            self.exponent_qubit_index,
+        )
 
     def __repr__(self):
-        return ('cirq.CircuitDiagramInfo(' +
-                'wire_symbols={!r}, '.format(self.wire_symbols) +
-                'exponent={!r}, '.format(self.exponent) +
-                'connected={!r})'.format(self.connected)
-                )
+        return ('cirq.CircuitDiagramInfo('
+                'wire_symbols={!r}, '
+                'exponent={!r}, '
+                'connected={!r}, '
+                'exponent_qubit_index={!r})'.format(self.wire_symbols,
+                                                    self.exponent,
+                                                    self.connected,
+                                                    self.exponent_qubit_index))
 
 
 @value.value_equality
@@ -232,7 +244,7 @@ def circuit_diagram_info(val: Any,
     # Success?
     if isinstance(result, str):
         return CircuitDiagramInfo(wire_symbols=(result,))
-    if isinstance(result, collections.Iterable):
+    if isinstance(result, Iterable):
         return CircuitDiagramInfo(wire_symbols=tuple(result))
     if result is not NotImplemented:
         return result

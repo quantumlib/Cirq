@@ -25,6 +25,7 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, 1j, -1, -1j],
                  [1, -1, 1, -1],
                  [1, -1j, -1, 1j]]) * 0.5
+PLUS_ONE = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
 
 
 def test_single_qubit_init():
@@ -32,6 +33,21 @@ def test_single_qubit_init():
     x2 = cirq.SingleQubitMatrixGate(m)
     assert cirq.has_unitary(x2)
     assert np.alltrue(cirq.unitary(x2) == m)
+    assert cirq.qid_shape(x2) == (2,)
+
+    x2 = cirq.SingleQubitMatrixGate(PLUS_ONE)
+    assert cirq.has_unitary(x2)
+    assert np.alltrue(cirq.unitary(x2) == PLUS_ONE)
+    assert cirq.qid_shape(x2) == (3,)
+
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(np.zeros((2, 2)))
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(cirq.eye_tensor((2, 2), dtype=float))
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(np.ones((3, 4)))
+    with pytest.raises(ValueError, match='Not a .*unitary matrix'):
+        cirq.SingleQubitMatrixGate(np.ones((2, 2, 2)))
 
 
 def test_single_qubit_eq():
@@ -41,6 +57,7 @@ def test_single_qubit_eq():
         lambda: cirq.SingleQubitMatrixGate(np.array([[0, 1], [1, 0]])))
     x2 = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     eq.make_equality_group(lambda: cirq.SingleQubitMatrixGate(x2))
+    eq.add_equality_group(cirq.SingleQubitMatrixGate(PLUS_ONE))
 
 
 def test_single_qubit_trace_distance_bound():
@@ -131,9 +148,7 @@ def test_single_qubit_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     m = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
-    c = cirq.Circuit.from_ops(
-        cirq.SingleQubitMatrixGate(m).on(a),
-        cirq.CZ(a, b))
+    c = cirq.Circuit(cirq.SingleQubitMatrixGate(m).on(a), cirq.CZ(a, b))
 
     assert re.match(r"""
       ┌[          ]+┐
@@ -161,7 +176,7 @@ def test_two_qubit_diagram():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(a, b),
         cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CZ)).on(c, a))
     assert re.match(r"""
@@ -217,3 +232,15 @@ def test_two_qubit_consistent():
     u = cirq.testing.random_unitary(4)
     g = cirq.TwoQubitMatrixGate(u)
     cirq.testing.assert_implements_consistent_protocols(g)
+
+
+def test_two_qubit_matrix_gate():
+    u = cirq.testing.random_unitary(4)
+    g = cirq.TwoQubitMatrixGate(u)
+    cirq.testing.assert_equivalent_repr(g)
+
+
+def test_single_qubit_matrix_gate():
+    u = cirq.testing.random_unitary(2)
+    g = cirq.SingleQubitMatrixGate(u)
+    cirq.testing.assert_equivalent_repr(g)

@@ -86,8 +86,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             trans = remaining_cliff_gate.transform(pauli)
             pauli = trans.to
             quarter_turns *= -1 if trans.flip else 1
-            string_op = ops.PauliStringPhasor(ops.PauliString.from_single(
-                cliff_op.qubits[0], pauli),
+            string_op = ops.PauliStringPhasor(ops.PauliString(
+                pauli(cliff_op.qubits[0])),
                                               exponent_neg=quarter_turns / 2)
 
             merge_i, merge_op, num_passed = find_merge_point(start_i, string_op,
@@ -142,9 +142,8 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
         if remaining_cliff_gate == ops.SingleQubitCliffordGate.I:
             all_ops.pop(start_i)
             return True
-        else:
-            all_ops[start_i] = remaining_cliff_gate(orig_qubit)
-            return False
+        all_ops[start_i] = remaining_cliff_gate(orig_qubit)
+        return False
 
     def try_merge_cz(cz_op: ops.GateOperation, start_i: int) -> int:
         """Returns the number of operations removed at or before start_i."""
@@ -186,6 +185,4 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
             i -= num_rm
         i += 1
 
-    return circuits.Circuit.from_ops(
-                all_ops,
-                strategy=circuits.InsertStrategy.EARLIEST)
+    return circuits.Circuit(all_ops, strategy=circuits.InsertStrategy.EARLIEST)

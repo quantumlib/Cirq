@@ -32,14 +32,18 @@ from cirq.linalg.decompositions import (
     deconstruct_single_qubit_matrix_into_angles,
     kak_canonicalize_vector,
     kak_decomposition,
+    kak_vector,
     KakDecomposition,
     kron_factor_4x4_to_2x2s,
     map_eigenvalues,
+    scatter_plot_normalized_kak_interaction_coefficients,
     so4_to_magic_su2s,
 )
 
 from cirq.linalg.states import (
-    one_hot,)
+    one_hot,
+    eye_tensor,
+)
 
 from cirq.linalg.diagonalize import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
@@ -54,6 +58,7 @@ from cirq.linalg.operator_spaces import (
     kron_bases,
     matrix_from_basis_coefficients,
     PAULI_BASIS,
+    pow_pauli_combination,
 )
 
 from cirq.linalg.predicates import (

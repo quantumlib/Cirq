@@ -29,8 +29,10 @@ User Documentation
     noise
     simulation
     schedules
+    qudits
     development
     examples
+    dev/plotting
 
 
 API Reference

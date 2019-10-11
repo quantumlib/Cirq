@@ -13,15 +13,15 @@ circuits and running them against quantum computers and simulators.
 .. image:: https://badge.fury.io/py/cirq.svg
     :target: https://badge.fury.io/py/cirq
 
-.. image:: https://readthedocs.org/projects/cirq/badge/?version=master
-    :target: https://cirq.readthedocs.io/en/master/?badge=master
+.. image:: https://readthedocs.org/projects/cirq/badge/?version=latest
+    :target: https://readthedocs.org/projects/cirq/versions/
     :alt: Documentation Status
 
 Installation
 ------------
 
 Follow these
-`instructions <https://cirq.readthedocs.io/en/latest/install.html>`__.
+`instructions <https://cirq.readthedocs.io/en/stable/install.html>`__.
 
 Hello Qubit
 -----------
@@ -36,7 +36,7 @@ A simple example to get you up and running:
   qubit = cirq.GridQubit(0, 0)
 
   # Create a circuit
-  circuit = cirq.Circuit.from_ops(
+  circuit = cirq.Circuit(
       cirq.X(qubit)**0.5,  # Square root of NOT.
       cirq.measure(qubit, key='m')  # Measurement.
   )
@@ -63,9 +63,9 @@ Documentation
 -------------
 
 See
-`here <https://cirq.readthedocs.io/en/latest/>`__
+`here <https://cirq.readthedocs.io/en/stable/>`__
 or jump into the
-`tutorial <https://cirq.readthedocs.io/en/latest/tutorial.html>`__.
+`tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`__.
 
 Contributing
 ------------
@@ -77,6 +77,7 @@ We use
 `Github issues <https://github.com/quantumlib/Cirq/issues>`__
 for tracking requests and bugs. Please post questions to the
 `Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with a 'cirq' tag.
+For informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev>`__ Gitter channel.
 
 See Also
 --------

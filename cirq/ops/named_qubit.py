@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from cirq import protocols
 from cirq.ops import raw_types
 
 
@@ -25,16 +25,25 @@ class NamedQubit(raw_types.Qid):
     """
 
     def __init__(self, name: str) -> None:
-        self.name = name
+        self._name = name
+        self._comp_key = _pad_digits(name)
 
     def _comparison_key(self):
-        return _pad_digits(self.name)
+        return self._comp_key
+
+    @property
+    def dimension(self) -> int:
+        return 2
 
     def __str__(self):
-        return self.name
+        return self._name
+
+    @property
+    def name(self):
+        return self._name
 
     def __repr__(self):
-        return 'cirq.NamedQubit({})'.format(repr(self.name))
+        return 'cirq.NamedQubit({})'.format(repr(self._name))
 
     @staticmethod
     def range(*args, prefix: str):
@@ -54,6 +63,9 @@ class NamedQubit(raw_types.Qid):
             A list of NamedQubits.
         """
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['name'])
 
 
 def _pad_digits(text: str) -> str:

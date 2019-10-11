@@ -79,14 +79,13 @@ def test_init_timedelta():
     assert d.duration_of(cirq.CZ(q00, q01)) == 3 * microsecond
 
 
-
 def test_repr():
     d = square_device(2, 2, holes=[])
 
     assert repr(d) == ("XmonDevice("
-                       "measurement_duration=cirq.Duration(picos=1000), "
-                       "exp_w_duration=cirq.Duration(picos=2000), "
-                       "exp_11_duration=cirq.Duration(picos=3000) "
+                       "measurement_duration=cirq.Duration(nanos=1), "
+                       "exp_w_duration=cirq.Duration(nanos=2), "
+                       "exp_11_duration=cirq.Duration(nanos=3) "
                        "qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), "
                        "cirq.GridQubit(1, 0), "
                        "cirq.GridQubit(1, 1)])")
@@ -234,7 +233,7 @@ def test_validate_circuit_repeat_measurement_keys():
     circuit.append([cirq.measure(cirq.GridQubit(0, 0), key='a'),
                     cirq.measure(cirq.GridQubit(0, 1), key='a')])
 
-    with pytest.raises(ValueError, message='Measurement key a repeated'):
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
         d.validate_circuit(circuit)
 
 
@@ -248,7 +247,7 @@ def test_validate_schedule_repeat_measurement_keys():
             cirq.measure(cirq.GridQubit(0, 1), key='a'), cirq.Timestamp(), d),
     ])
 
-    with pytest.raises(ValueError, message='Measurement key a repeated'):
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
         d.validate_schedule(s)
 
 

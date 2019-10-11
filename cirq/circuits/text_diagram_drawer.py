@@ -26,11 +26,9 @@ from cirq.circuits._box_drawing_character_data import (
     ASCII_BOX_CHARS,
 )
 
-
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from typing import Tuple, DefaultDict, Dict, Optional
-
 
 _HorizontalLine = NamedTuple('HorizontalLine', [
     ('y', Union[int, float]),
@@ -98,7 +96,7 @@ class TextDiagramDrawer:
               x: int,
               y: int,
               text: str,
-              transposed_text: 'Optional[str]' = None):
+              transposed_text: Optional[str] = None):
         """Adds text to the given location.
 
         Args:

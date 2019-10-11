@@ -85,7 +85,6 @@ class PhaseEstimation(cirq.Gate):
     """
 
     def __init__(self, num_qubits, unitary):
-        super(PhaseEstimation, self)
         self._num_qubits = num_qubits
         self.U = unitary
 
@@ -96,7 +95,7 @@ class PhaseEstimation(cirq.Gate):
         qubits = list(qubits)
         yield cirq.H.on_each(*qubits[:-1])
         yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
-        yield Qft(self._num_qubits-1)(*qubits[:-1])**-1
+        yield cirq.QFT(*qubits[:-1], without_reverse=True)**-1
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
@@ -151,30 +150,6 @@ class PhaseKickback(cirq.Gate):
         memory = qubits.pop()
         for i, qubit in enumerate(qubits):
             yield cirq.ControlledGate(self.U**(2**i))(qubit, memory)
-
-
-class Qft(cirq.Gate):
-    """
-    Quantum gate for the Quantum Fourier Transformation.
-
-    Swaps are omitted here because it's done implicitly in the PhaseKickback
-    gate by reversing the control qubit order.
-    """
-
-    def __init__(self, num_qubits):
-        super(Qft, self)
-        self._num_qubits = num_qubits
-
-    def num_qubits(self):
-        return self._num_qubits
-
-    def _decompose_(self, qubits):
-        processed_qubits = []
-        for q_head in qubits:
-            for i, qubit in enumerate(processed_qubits):
-                yield cirq.CZ(qubit, q_head)**(1/2.0**(i+1))
-            yield cirq.H(q_head)
-            processed_qubits.insert(0, q_head)
 
 
 class EigenRotation(cirq.Gate):
@@ -255,22 +230,18 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 
     # Pauli observable display
     c.append([
-        cirq.pauli_string_expectation(
-            cirq.PauliString({ancilla: cirq.Z}),
-            key='a'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({memory: cirq.X}),
-            key='x'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({memory: cirq.Y}),
-            key='y'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({memory: cirq.Z}),
-            key='z'
-        ),
+        cirq.approx_pauli_string_expectation(cirq.Z(ancilla),
+                                             num_samples=5000,
+                                             key='a'),
+        cirq.approx_pauli_string_expectation(cirq.X(memory),
+                                             num_samples=5000,
+                                             key='x'),
+        cirq.approx_pauli_string_expectation(cirq.Y(memory),
+                                             num_samples=5000,
+                                             key='y'),
+        cirq.approx_pauli_string_expectation(cirq.Z(memory),
+                                             num_samples=5000,
+                                             key='z'),
     ])
 
     return c

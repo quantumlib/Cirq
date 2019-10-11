@@ -17,7 +17,6 @@ Classes for identifying the qubits and hardware you want to operate on.
     LineQubit
     NamedQubit
     Qid
-    UnconstrainedDevice
 
 
 Single Qubit Unitary Gates
@@ -137,6 +136,8 @@ the more general concept of a noisy open system quantum evolution.
     DepolarizingChannel
     generalized_amplitude_damp
     GeneralizedAmplitudeDampingChannel
+    reset
+    ResetChannel
     phase_damp
     phase_flip
     PhaseDampingChannel
@@ -185,9 +186,8 @@ Displays
     :toctree: generated/
 
     ApproxPauliStringExpectation
-    pauli_string_expectation
+    approx_pauli_string_expectation
     DensityMatrixDisplay
-    PauliStringExpectation
     SamplesDisplay
     WaveFunctionDisplay
 
@@ -291,7 +291,6 @@ operations, and other types.
     apply_unitary
     approx_eq
     channel
-    control
     circuit_diagram_info
     decompose
     decompose_once
@@ -307,10 +306,12 @@ operations, and other types.
     mixture
     mixture_channel
     mul
+    num_qubits
     pauli_expansion
     phase_by
     pow
     qasm
+    qid_shape
     resolve_parameters
     trace_distance_bound
     unitary
@@ -331,12 +332,15 @@ Classes defining and used by the magic method protocols.
     QasmArgs
     QasmOutput
     SupportsApplyChannel
-    SupportsApplyUnitary
+    SupportsConsistentApplyUnitary
     SupportsApproximateEquality
     SupportsChannel
     SupportsCircuitDiagramInfo
     SupportsDecompose
     SupportsDecomposeWithQubits
+    SupportsExplicitHasUnitary
+    SupportsExplicitNumQubits
+    SupportsExplicitQidShape
     SupportsMixture
     SupportsParameterization
     SupportsPhase
@@ -409,6 +413,7 @@ operations and decompositions.
     is_unitary
     kak_canonicalize_vector
     kak_decomposition
+    kak_vector
     KakDecomposition
     kron
     kron_factor_4x4_to_2x2s
@@ -438,9 +443,9 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
-    generate_supremacy_circuit_google_v2
-    generate_supremacy_circuit_google_v2_bristlecone
-    generate_supremacy_circuit_google_v2_grid
+    generate_boixo_2018_supremacy_circuits_v2
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone
+    generate_boixo_2018_supremacy_circuits_v2_grid
 
 
 Ion traps and neutral atoms
@@ -486,10 +491,6 @@ Functionality specific to quantum hardware and services from Google.
     google.schedule_to_proto_dicts
     google.unpack_results
     google.xmon_op_from_proto_dict
-    google.XmonDevice
-    google.XmonOptions
-    google.XmonSimulator
-    google.XmonStepResult
 
 
 Testing
@@ -504,7 +505,6 @@ general testing utilities.
     testing.assert_allclose_up_to_global_phase
     testing.assert_circuits_with_terminal_measurements_are_equivalent
     testing.assert_decompose_is_consistent_with_unitary
-    testing.assert_eigen_gate_has_consistent_apply_unitary
     testing.assert_eigengate_implements_consistent_protocols
     testing.assert_equivalent_repr
     testing.assert_has_consistent_apply_unitary
@@ -525,8 +525,6 @@ general testing utilities.
     testing.random_special_unitary
     testing.random_superposition
     testing.random_unitary
-    testing.TempDirectoryPath
-    testing.TempFilePath
 
 
 Contrib

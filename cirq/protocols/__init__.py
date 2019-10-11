@@ -17,7 +17,7 @@ from cirq.protocols.apply_unitary import (
     apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
-    SupportsApplyUnitary,
+    SupportsConsistentApplyUnitary,
 )
 from cirq.protocols.apply_channel import (
     apply_channel,
@@ -32,9 +32,6 @@ from cirq.protocols.channel import (
     channel,
     has_channel,
     SupportsChannel,
-)
-from cirq.protocols.control import (
-    control,
 )
 from cirq.protocols.circuit_diagram_info import (
     circuit_diagram_info,
@@ -51,8 +48,12 @@ from cirq.protocols.decompose import (
 )
 from cirq.protocols.equal_up_to_global_phase import (
     equal_up_to_global_phase,)
-from cirq.protocols.inverse import (
-    inverse,
+from cirq.protocols.inverse_protocol import (
+    inverse,)
+from cirq.protocols.json import (
+    to_json,
+    read_json,
+    obj_to_dict_helper,
 )
 from cirq.protocols.measurement_key import (
     is_measurement,
@@ -87,6 +88,7 @@ from cirq.protocols.qasm import (
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,
+    trace_distance_from_angle_list,
 )
 from cirq.protocols.resolve_parameters import (
     is_parameterized,
@@ -97,8 +99,17 @@ from cirq.protocols.phase import (
     phase_by,
     SupportsPhase,
 )
+from cirq.protocols.qid_shape_protocol import (
+    num_qubits,
+    qid_shape,
+    SupportsExplicitQidShape,
+    SupportsExplicitNumQubits,
+)
 from cirq.protocols.unitary import (
-    has_unitary,
     SupportsUnitary,
     unitary,
+)
+from cirq.protocols.has_unitary import (
+    has_unitary,
+    SupportsExplicitHasUnitary,
 )

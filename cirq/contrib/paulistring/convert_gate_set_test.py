@@ -29,126 +29,118 @@ from cirq.contrib.paulistring import converted_gate_set
     (cirq.X(q0)**-0.5, cirq.SingleQubitCliffordGate.X_nsqrt(q0)),
     (cirq.Y(q0)**-0.5, cirq.SingleQubitCliffordGate.Y_nsqrt(q0)),
     (cirq.Z(q0)**-0.5, cirq.SingleQubitCliffordGate.Z_nsqrt(q0)),
-    (cirq.X(q0)**0.25,
-     cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.X))**0.25),
-    (cirq.Y(q0)**0.25,
-     cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Y))**0.25),
-    (cirq.Z(q0)**0.25,
-     cirq.PauliStringPhasor(cirq.PauliString.from_single(q0, cirq.Z))**0.25),
+    (cirq.X(q0)**0.25, cirq.PauliStringPhasor(cirq.PauliString([cirq.X.on(q0)]))
+     **0.25),
+    (cirq.Y(q0)**0.25, cirq.PauliStringPhasor(cirq.PauliString([cirq.Y.on(q0)]))
+     **0.25),
+    (cirq.Z(q0)**0.25, cirq.PauliStringPhasor(cirq.PauliString([cirq.Z.on(q0)]))
+     **0.25),
     (cirq.X(q0)**0, ()),
     (cirq.CZ(q0, q1), cirq.CZ(q0, q1)),
     (cirq.measure(q0, q1, key='key'), cirq.measure(q0, q1, key='key')),
 ))(cirq.LineQubit(0), cirq.LineQubit(1)))
 def test_converts_various_ops(op, expected_ops):
-    before = cirq.Circuit.from_ops(op)
-    expected = cirq.Circuit.from_ops(expected_ops,
-                                     strategy=cirq.InsertStrategy.EARLIEST)
+    before = cirq.Circuit(op)
+    expected = cirq.Circuit(expected_ops, strategy=cirq.InsertStrategy.EARLIEST)
 
     after = converted_gate_set(before)
     assert after == expected
     cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(qubits_that_should_be_present=op.qubits),
-            atol=1e-7)
+        before.unitary(),
+        after.unitary(qubits_that_should_be_present=op.qubits),
+        atol=1e-7)
     cirq.testing.assert_allclose_up_to_global_phase(
-            after.to_unitary_matrix(qubits_that_should_be_present=op.qubits),
-            expected.to_unitary_matrix(qubits_that_should_be_present=op.qubits),
-            atol=1e-7)
+        after.unitary(qubits_that_should_be_present=op.qubits),
+        expected.unitary(qubits_that_should_be_present=op.qubits),
+        atol=1e-7)
 
 
 def test_degenerate_single_qubit_decompose():
     q0 = cirq.LineQubit(0)
 
-    before = cirq.Circuit.from_ops(
-        cirq.Z(q0) ** 0.1,
-        cirq.X(q0) ** 1.0000000001,
-        cirq.Z(q0) ** 0.1,
+    before = cirq.Circuit(
+        cirq.Z(q0)**0.1,
+        cirq.X(q0)**1.0000000001,
+        cirq.Z(q0)**0.1,
     )
-    expected = cirq.Circuit.from_ops(
-        cirq.SingleQubitCliffordGate.X(q0),
-    )
+    expected = cirq.Circuit(cirq.SingleQubitCliffordGate.X(q0),)
 
     after = converted_gate_set(before)
     assert after == expected
-    cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
-            atol=1e-7)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            after.to_unitary_matrix(),
-            expected.to_unitary_matrix(),
-            atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(before.unitary(),
+                                                    after.unitary(),
+                                                    atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(after.unitary(),
+                                                    expected.unitary(),
+                                                    atol=1e-7)
 
 
 def test_converts_single_qubit_series():
     q0 = cirq.LineQubit(0)
 
-    before = cirq.Circuit.from_ops(
+    before = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q0),
-        cirq.X(q0) ** 0.5,
-        cirq.Y(q0) ** 0.5,
-        cirq.Z(q0) ** 0.5,
-        cirq.X(q0) ** -0.5,
-        cirq.Y(q0) ** -0.5,
-        cirq.Z(q0) ** -0.5,
-        cirq.X(q0) ** 0.25,
-        cirq.Y(q0) ** 0.25,
-        cirq.Z(q0) ** 0.25,
+        cirq.X(q0)**0.5,
+        cirq.Y(q0)**0.5,
+        cirq.Z(q0)**0.5,
+        cirq.X(q0)**-0.5,
+        cirq.Y(q0)**-0.5,
+        cirq.Z(q0)**-0.5,
+        cirq.X(q0)**0.25,
+        cirq.Y(q0)**0.25,
+        cirq.Z(q0)**0.25,
     )
 
     after = converted_gate_set(before)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
-            atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(before.unitary(),
+                                                    after.unitary(),
+                                                    atol=1e-7)
 
 
 def test_converts_single_qubit_then_two():
     q0, q1 = cirq.LineQubit.range(2)
 
-    before = cirq.Circuit.from_ops(
+    before = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
         cirq.CZ(q0, q1),
     )
 
     after = converted_gate_set(before)
-    cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
-            atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(before.unitary(),
+                                                    after.unitary(),
+                                                    atol=1e-7)
 
 
 def test_converts_large_circuit():
     q0, q1, q2 = cirq.LineQubit.range(3)
 
-    before = cirq.Circuit.from_ops(
+    before = cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q0),
         cirq.Z(q0),
-        cirq.X(q0) ** 0.5,
-        cirq.Y(q0) ** 0.5,
-        cirq.Z(q0) ** 0.5,
-        cirq.X(q0) ** -0.5,
-        cirq.Y(q0) ** -0.5,
-        cirq.Z(q0) ** -0.5,
+        cirq.X(q0)**0.5,
+        cirq.Y(q0)**0.5,
+        cirq.Z(q0)**0.5,
+        cirq.X(q0)**-0.5,
+        cirq.Y(q0)**-0.5,
+        cirq.Z(q0)**-0.5,
         cirq.H(q0),
         cirq.CZ(q0, q1),
         cirq.CZ(q1, q2),
-        cirq.X(q0) ** 0.25,
-        cirq.Y(q0) ** 0.25,
-        cirq.Z(q0) ** 0.25,
+        cirq.X(q0)**0.25,
+        cirq.Y(q0)**0.25,
+        cirq.Z(q0)**0.25,
         cirq.CZ(q0, q1),
     )
 
     after = converted_gate_set(before)
 
-    cirq.testing.assert_allclose_up_to_global_phase(
-            before.to_unitary_matrix(),
-            after.to_unitary_matrix(),
-            atol=1e-7)
+    cirq.testing.assert_allclose_up_to_global_phase(before.unitary(),
+                                                    after.unitary(),
+                                                    atol=1e-7)
 
     cirq.testing.assert_has_diagram(after, '''
 0: ───Y^0.5───@───[Z]^-0.304───[X]^(1/3)───[Z]^0.446───@───

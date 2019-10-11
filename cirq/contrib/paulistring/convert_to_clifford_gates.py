@@ -56,12 +56,12 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
         quarter_turns = round(half_turns * 2) % 4
         if quarter_turns == 1:
             return ops.SingleQubitCliffordGate.from_pauli(pauli, True)
-        elif quarter_turns == 2:
+        if quarter_turns == 2:
             return ops.SingleQubitCliffordGate.from_pauli(pauli)
-        elif quarter_turns == 3:
+        if quarter_turns == 3:
             return ops.SingleQubitCliffordGate.from_pauli(pauli, True)**-1
-        else:
-            return ops.SingleQubitCliffordGate.I
+
+        return ops.SingleQubitCliffordGate.I
 
     def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.Qid
                                ) -> Optional[ops.Operation]:

@@ -23,27 +23,27 @@ from cirq.contrib.paulistring import (
 
 def test_optimize():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
-        cirq.X(q1) ** 0.5,
+    c_orig = cirq.Circuit(
+        cirq.X(q1)**0.5,
         cirq.CZ(q0, q1),
-        cirq.Z(q0) ** 0.25,
-        cirq.X(q1) ** 0.25,
+        cirq.Z(q0)**0.25,
+        cirq.X(q1)**0.25,
         cirq.CZ(q0, q1),
-        cirq.X(q1) ** -0.5,
+        cirq.X(q1)**-0.5,
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.CZ(q0, q1),
-            cirq.Z(q0) ** 0.25,
-            cirq.X(q1) ** 0.25,
+            cirq.Z(q0)**0.25,
+            cirq.X(q1)**0.25,
             cirq.CZ(q0, q1),
         ))
 
     c_opt = clifford_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(),
+        c_orig.unitary(),
+        c_opt.unitary(),
         atol=1e-7,
     )
 
@@ -58,21 +58,18 @@ def test_optimize():
 
 def test_remove_czs():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.CZ(q0, q1),
-        cirq.Z(q0) ** 0.5,
+        cirq.Z(q0)**0.5,
         cirq.CZ(q0, q1),
     )
-    c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
-            cirq.Z(q0) ** 0.5,
-        ))
+    c_expected = converted_gate_set(cirq.Circuit(cirq.Z(q0)**0.5,))
 
     c_opt = clifford_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(qubits_that_should_be_present=(q0, q1)),
+        c_orig.unitary(),
+        c_opt.unitary(qubits_that_should_be_present=(q0, q1)),
         atol=1e-7,
     )
 
@@ -85,21 +82,18 @@ def test_remove_czs():
 
 def test_remove_staggered_czs():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.CZ(q0, q1),
         cirq.CZ(q1, q2),
         cirq.CZ(q0, q1),
     )
-    c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
-            cirq.CZ(q1, q2),
-        ))
+    c_expected = converted_gate_set(cirq.Circuit(cirq.CZ(q1, q2),))
 
     c_opt = clifford_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(qubits_that_should_be_present=(q0, q1, q2)),
+        c_orig.unitary(),
+        c_opt.unitary(qubits_that_should_be_present=(q0, q1, q2)),
         atol=1e-7,
     )
 
@@ -114,13 +108,13 @@ def test_remove_staggered_czs():
 
 def test_with_measurements():
     q0, q1 = cirq.LineQubit.range(2)
-    c_orig = cirq.Circuit.from_ops(
+    c_orig = cirq.Circuit(
         cirq.X(q0),
         cirq.CZ(q0, q1),
         cirq.measure(q0, q1, key='m'),
     )
     c_expected = converted_gate_set(
-        cirq.Circuit.from_ops(
+        cirq.Circuit(
             cirq.CZ(q0, q1),
             cirq.X(q0),
             cirq.Z(q1),
@@ -130,8 +124,8 @@ def test_with_measurements():
     c_opt = clifford_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(),
+        c_orig.unitary(),
+        c_opt.unitary(),
         atol=1e-7,
     )
 
@@ -151,7 +145,7 @@ def test_optimize_large_circuit():
     c_opt = clifford_optimized_circuit(c_orig)
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        c_orig.to_unitary_matrix(),
-        c_opt.to_unitary_matrix(),
+        c_orig.unitary(),
+        c_opt.unitary(),
         atol=1e-7,
     )

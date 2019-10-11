@@ -37,6 +37,13 @@ def test_init_timedelta():
     assert r.operation == cirq.H(cirq.NamedQubit('a'))
 
 
+def test_repr():
+    a = ScheduledOperation(time=Timestamp(picos=5),
+                           duration=timedelta(microseconds=7),
+                           operation=cirq.H(cirq.NamedQubit('a')))
+    cirq.testing.assert_equivalent_repr(a)
+
+
 def test_eq():
     q0 = cirq.NamedQubit('q0')
 
