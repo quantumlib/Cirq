@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.protocols.apply_unitary import _incorporate_result_into_target
+from cirq.protocols.apply_unitary_protocol import _incorporate_result_into_target
 
 
 def test_apply_unitary_presence_absence():
