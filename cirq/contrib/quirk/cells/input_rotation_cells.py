@@ -17,7 +17,7 @@ from typing import Callable, Optional, Union, Iterable, List, Sequence, Iterator
 import numpy as np
 
 import cirq
-from cirq import ops, linalg
+from cirq import ops, linalg, value
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 
@@ -54,6 +54,7 @@ class InputRotationCell(Cell):
                                            self.exponent_sign)
 
 
+@value.value_equality
 class QuirkInputRotationOperation(ops.Operation):
     """Operates on target qubits in a way that varies based on an input qureg.
     """
@@ -64,6 +65,14 @@ class QuirkInputRotationOperation(ops.Operation):
         self.register = tuple(register)
         self.base_operation = base_operation
         self.exponent_sign = exponent_sign
+
+    def _value_equality_values_(self):
+        return (
+            self.identifier,
+            self.register,
+            self.base_operation,
+            self.exponent_sign,
+        )
 
     @property
     def qubits(self):
@@ -113,6 +122,13 @@ class QuirkInputRotationOperation(ops.Operation):
                 sub_args.target_tensor[...] = sub_result
 
         return args.target_tensor
+
+    def __repr__(self):
+        return (f'cirq.contrib.quirk.QuirkInputRotationOperation('
+                f'identifier={self.identifier!r}, '
+                f'register={self.register!r}, '
+                f'base_operation={self.base_operation!r}, '
+                f'exponent_sign={self.exponent_sign!r})')
 
 
 def generate_all_input_rotation_cell_makers() -> Iterator[CellMaker]:
