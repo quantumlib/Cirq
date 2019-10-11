@@ -303,6 +303,7 @@ class PauliString(raw_types.Operation):
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
+                                      *,
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
@@ -328,7 +329,10 @@ class PauliString(raw_types.Operation):
         Args:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
+            check_preconditions: Whether to check that `state` represents a
+                valid wavefunction.
 
         Returns:
             The expectation value of the input state.
@@ -398,6 +402,7 @@ class PauliString(raw_types.Operation):
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
+                                        *,
                                         atol: float = 1e-7,
                                         check_preconditions: bool = True
                                        ) -> float:
@@ -423,7 +428,10 @@ class PauliString(raw_types.Operation):
         Args:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
+            check_preconditions: Whether to check that `state` represents a
+                valid density matrix.
 
         Returns:
             The expectation value of the input state.

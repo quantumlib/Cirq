@@ -345,6 +345,7 @@ class PauliSum:
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
+                                      *,
                                       check_preconditions: bool = True
                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
@@ -354,7 +355,9 @@ class PauliSum:
         Args:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliSum to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            check_preconditions: Whether to check that `state` represents a
+                valid wavefunction.
 
         Returns:
             The expectation value of the input state.
@@ -391,6 +394,7 @@ class PauliSum:
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
+                                        *,
                                         check_preconditions: bool = True
                                        ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
@@ -400,7 +404,9 @@ class PauliSum:
         Args:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliSum to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            check_preconditions: Whether to check that `state` represents a
+                valid density matrix.
 
         Returns:
             The expectation value of the input state.
