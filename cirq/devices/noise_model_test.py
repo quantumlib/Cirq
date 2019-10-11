@@ -105,12 +105,49 @@ def test_constant_qubit_noise():
     a, b, c = cirq.LineQubit.range(3)
     damp = cirq.amplitude_damp(0.5)
     damp_all = cirq.ConstantQubitNoiseModel(damp)
-    assert damp_all.noisy_moments(
-        [cirq.Moment([cirq.X(a)]), cirq.Moment()],
-        [a, b, c]) == [[cirq.X(a), damp(a),
-                        damp(b), damp(c)], [damp(a), damp(b),
-                                            damp(c)]]
+    actual = damp_all.noisy_moments(
+        [cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
+    expected = [
+        [
+            cirq.Moment([cirq.X(a)]),
+            cirq.Moment([damp(a), damp(b), damp(c)]),
+        ],
+        [
+            cirq.Moment(),
+            cirq.Moment([damp(a), damp(b), damp(c)]),
+        ],
+    ]
+    assert actual == expected
     cirq.testing.assert_equivalent_repr(damp_all)
 
     with pytest.raises(ValueError, match='num_qubits'):
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
+
+
+def test_constant_qubit_noise_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.ConstantQubitNoiseModel(cirq.X**0.01))
+
+
+def test_wrap():
+
+    class Forget(cirq.NoiseModel):
+
+        def noisy_operation(self, operation):
+            raise NotImplementedError()
+
+    forget = Forget()
+
+    assert cirq.NoiseModel.from_noise_model_like(None) is cirq.NO_NOISE
+    assert (cirq.NoiseModel.from_noise_model_like(
+        cirq.depolarize(0.1)) == cirq.ConstantQubitNoiseModel(
+            cirq.depolarize(0.1)))
+    assert (cirq.NoiseModel.from_noise_model_like(
+        cirq.Z**0.01) == cirq.ConstantQubitNoiseModel(cirq.Z**0.01))
+    assert cirq.NoiseModel.from_noise_model_like(forget) is forget
+
+    with pytest.raises(TypeError, match='Expected a NOISE_MODEL_LIKE'):
+        _ = cirq.NoiseModel.from_noise_model_like('test')
+
+    with pytest.raises(ValueError, match='Multi-qubit gate'):
+        _ = cirq.NoiseModel.from_noise_model_like(cirq.CZ**0.01)
