@@ -32,7 +32,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     In Quirk, modular operations have no effect on values larger than the
     modulus. This convention is used because unitarity forces *some* convention
     on out-of-range values (they cannot simply disappear or raise exceptions),
-    and the simplest is to do nothing. This calls handles ensuring that happens,
+    and the simplest is to do nothing. This call handles ensuring that happens,
     and ensuring the new target register value is normalized modulo the modulus.
     """
 
@@ -61,13 +61,13 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                                  f'Modulus: {r}')
 
     @property
-    def operation(self):
+    def operation(self) -> '_QuirkArithmeticCallable':
         return ARITHMETIC_OP_TABLE[self.identifier]
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.identifier, self.target, self.inputs
 
-    def registers(self):
+    def registers(self) -> Sequence[Union[int, Sequence['cirq.Qid']]]:
         return [self.target, *self.inputs]
 
     def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
@@ -88,10 +88,11 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
     def apply(self, *registers: int) -> Union[int, Iterable[int]]:
         return self.operation(*registers)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> List[str]:
         lettered_args = list(zip(self.operation.letters, self.inputs))
 
-        result = []
+        result: List[str] = []
 
         # Target register labels.
         consts = ''.join(f',{letter}={reg}' for letter, reg in lettered_args
@@ -107,7 +108,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.quirk.QuirkArithmeticOperation(\n'
                 f'    {repr(self.identifier)},\n'
                 f'    target={repr(self.target)},\n'
@@ -163,7 +164,8 @@ class ArithmeticCell(Cell):
     def operation(self):
         return ARITHMETIC_OP_TABLE[self.identifier]
 
-    def with_input(self, letter, register):
+    def with_input(self, letter: str, register: Union[Sequence['cirq.Qid'], int]
+                  ) -> 'ArithmeticCell':
         new_inputs = [
             reg if letter != reg_letter else register
             for reg, reg_letter in zip(self.inputs, self.operation.letters)

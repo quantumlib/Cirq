@@ -29,9 +29,9 @@ class InputCell(Cell):
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
-            gate = column[i]
-            if gate is not None:
-                column[i] = gate.with_input(self.letter, self.qubits)
+            cell = column[i]
+            if cell is not None:
+                column[i] = cell.with_input(self.letter, self.qubits)
 
 
 class SetDefaultInputCell(Cell):
