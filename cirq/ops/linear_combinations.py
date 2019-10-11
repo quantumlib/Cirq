@@ -342,8 +342,10 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def expectation_from_wavefunction(self, state: np.ndarray,
-                                      qubit_map: Mapping[raw_types.Qid, int]
+    def expectation_from_wavefunction(self,
+                                      state: np.ndarray,
+                                      qubit_map: Mapping[raw_types.Qid, int],
+                                      check_preconditions: bool = True
                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
 
@@ -376,17 +378,20 @@ class PauliSum:
             raise ValueError("Input array does not represent a wavefunction "
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
-        # HACK: avoid circular import
-        from cirq.sim.wave_function import validate_normalized_state
-        validate_normalized_state(state=state,
-                                  qid_shape=(2,) * num_qubits,
-                                  dtype=state.dtype)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.wave_function import validate_normalized_state
+            validate_normalized_state(state=state,
+                                      qid_shape=(2,) * num_qubits,
+                                      dtype=state.dtype)
         return sum(
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
 
-    def expectation_from_density_matrix(self, state: np.ndarray,
-                                        qubit_map: Mapping[raw_types.Qid, int]
+    def expectation_from_density_matrix(self,
+                                        state: np.ndarray,
+                                        qubit_map: Mapping[raw_types.Qid, int],
+                                        check_preconditions: bool = True
                                        ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
@@ -420,12 +425,14 @@ class PauliSum:
             raise ValueError("Input array does not represent a density matrix "
                              "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
-        # HACK: avoid circular import
-        from cirq.sim.density_matrix_utils import to_valid_density_matrix
-        # Do not enforce reshaping if the state all axes are dimension 2.
-        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
-                                    num_qubits=num_qubits,
-                                    dtype=state.dtype)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.density_matrix_utils import to_valid_density_matrix
+            # Do not enforce reshaping if the state all axes are dimension 2.
+            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+                dim, dim),
+                                        num_qubits=num_qubits,
+                                        dtype=state.dtype)
         return sum(
             p._expectation_from_density_matrix_no_validation(state, qubit_map)
             for p in self)
