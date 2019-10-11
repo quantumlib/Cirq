@@ -146,7 +146,7 @@ class FakeStepResult(cirq.StepResult):
     def __setstate__(self, state):
         pass
 
-    def sample(self, qubits, repetitions):
+    def sample(self, qubits, repetitions, seed):
         return np.array([[qubit in self._ones_qubits for qubit in qubits]] *
                         repetitions)
 

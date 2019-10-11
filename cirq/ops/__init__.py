@@ -56,9 +56,6 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    measure,
-    measure_each,
-    MeasurementGate,
     Rx,
     Ry,
     Rz,
@@ -139,6 +136,14 @@ from cirq.ops.matrix_gates import (
     TwoQubitMatrixGate,
 )
 
+from cirq.ops.measure_util import (
+    measure,
+    measure_each,
+)
+
+from cirq.ops.measurement_gate import (
+    MeasurementGate,)
+
 from cirq.ops.moment import (
     Moment,)
 
@@ -218,3 +223,6 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.wait_gate import (
+    WaitGate,)

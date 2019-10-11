@@ -80,6 +80,7 @@ from cirq.devices import (
     LineQid,
     LineQubit,
     NO_NOISE,
+    NOISE_MODEL_LIKE,
     NoiseModel,
     UNCONSTRAINED_DEVICE,
 )
@@ -245,6 +246,7 @@ from cirq.ops import (
     transform_op_tree,
     TwoQubitGate,
     TwoQubitMatrixGate,
+    WaitGate,
     WaveFunctionDisplay,
     X,
     XPowGate,
