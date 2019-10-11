@@ -28,6 +28,7 @@ from cirq.devices.unconstrained_device import (
 
 from cirq.devices.noise_model import (
     NO_NOISE,
+    NOISE_MODEL_LIKE,
     NoiseModel,
     ConstantQubitNoiseModel,
 )
