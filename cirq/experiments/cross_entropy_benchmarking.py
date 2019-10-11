@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Set, Tuple, Sequence, Dict, Any, NamedTuple, Union
-from typing import Iterable
+from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
+                    Set, Tuple, Union)
 import numpy as np
 from matplotlib import pyplot as plt
 from cirq import devices, ops, circuits, sim, work
@@ -44,21 +44,29 @@ class CrossEntropyResult:
         """
         return self._data
 
-    def plot(self, **plot_kwargs: Any) -> None:
+    def plot(self, ax: Optional[plt.Axes] = None,
+             **plot_kwargs: Any) -> plt.Axes:
         """Plots the average XEB fidelity vs the number of cycles.
 
         Args:
-            **plot_kwargs: Arguments to be passed to 'matplotlib.pyplot.plot'.
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        Returns:
+            The plt.Axes containing the plot.
         """
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         num_cycles = [d.num_cycle for d in self._data]
         fidelities = [d.xeb_fidelity for d in self._data]
-        fig = plt.figure()
-        ax = plt.gca()
         ax.set_ylim([0, 1.1])
-        plt.plot(num_cycles, fidelities, 'ro-', figure=fig, **plot_kwargs)
-        plt.xlabel('Number of Cycles', figure=fig)
-        plt.ylabel('XEB Fidelity', figure=fig)
-        fig.show(warn=False)
+        ax.plot(num_cycles, fidelities, 'ro-', **plot_kwargs)
+        ax.set_xlabel('Number of Cycles')
+        ax.set_ylabel('XEB Fidelity')
+        if show_plot:
+            fig.show()
+        return ax
 
 
 def cross_entropy_benchmarking(
