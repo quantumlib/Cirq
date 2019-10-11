@@ -26,14 +26,17 @@ def test_apply_unitary_presence_absence():
         pass
 
     class HasUnitary:
+
         def _unitary_(self) -> np.ndarray:
             return m
 
     class HasApplyReturnsNotImplemented:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             return NotImplemented
 
     class HasApplyReturnsNotImplementedButHasUnitary:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             return NotImplemented
 
@@ -41,6 +44,7 @@ def test_apply_unitary_presence_absence():
             return m
 
     class HasApplyOutputInBuffer:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             zero = args.subspace_index(0)
             one = args.subspace_index(1)
@@ -49,6 +53,7 @@ def test_apply_unitary_presence_absence():
             return args.available_buffer
 
     class HasApplyMutateInline:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             one = args.subspace_index(1)
             args.target_tensor[one] *= -1
@@ -83,27 +88,22 @@ def test_apply_unitary_presence_absence():
     for f in fails:
         with pytest.raises(TypeError, match='failed to satisfy'):
             _ = cirq.apply_unitary(
-                f,
-                cirq.ApplyUnitaryArgs(make_input(), buf, [0]))
-        assert cirq.apply_unitary(
-            f,
-            cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-            default=None) is None
-        assert cirq.apply_unitary(
-            f,
-            cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-            default=NotImplemented) is NotImplemented
-        assert cirq.apply_unitary(
-            f,
-            cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-            default=1) == 1
+                f, cirq.ApplyUnitaryArgs(make_input(), buf, [0]))
+        assert cirq.apply_unitary(f,
+                                  cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
+                                  default=None) is None
+        assert cirq.apply_unitary(f,
+                                  cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
+                                  default=NotImplemented) is NotImplemented
+        assert cirq.apply_unitary(f,
+                                  cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
+                                  default=1) == 1
 
     for s in passes:
         assert_works(s)
-        assert cirq.apply_unitary(
-            s,
-            cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
-            default=None) is not None
+        assert cirq.apply_unitary(s,
+                                  cirq.ApplyUnitaryArgs(make_input(), buf, [0]),
+                                  default=None) is not None
 
 
 def test_apply_unitary_args_tensor_manipulation():
