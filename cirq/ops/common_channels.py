@@ -90,15 +90,18 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return 'A({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z)
 
     @property
-    def p_x(self):
+    def p_x(self) -> float:
+        """The probability that a Pauli X and no other gate occurs."""
         return self._p_x
 
     @property
-    def p_y(self):
+    def p_y(self) -> float:
+        """The probability that a Pauli Y and no other gate occurs."""
         return self._p_y
 
     @property
-    def p_z(self):
+    def p_z(self) -> float:
+        """The probability that a Pauli Z and no other gate occurs."""
         return self._p_z
 
     def _json_dict_(self):
@@ -132,7 +135,7 @@ def asymmetric_depolarize(
 class DepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes a qubit."""
 
-    def __init__(self, p) -> None:
+    def __init__(self, p: float) -> None:
         r"""The symmetric depolarizing channel.
 
         This channel applies one of four disjoint possibilities: nothing (the
@@ -180,7 +183,11 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         return 'D({!r})'.format(self._p)
 
     @property
-    def p(self):
+    def p(self) -> float:
+        """The probability that one of the Pauli gates is applied.
+
+        Each of the Pauli gates is applied independently with probability p / 3.
+        """
         return self._p
 
     def _json_dict_(self):
@@ -312,11 +319,13 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return 'GAD({!r},{!r})'.format(self._p, self._gamma)
 
     @property
-    def p(self):
+    def p(self) -> float:
+        """The probability of the qubit and environment exchanging energy."""
         return self._p
 
     @property
-    def gamma(self):
+    def gamma(self) -> float:
+        """The probability of the interaction being dissipative."""
         return self._gamma
 
     def _json_dict_(self):
@@ -440,7 +449,8 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         return 'AD({!r})'.format(self._gamma)
 
     @property
-    def gamma(self):
+    def gamma(self) -> float:
+        """The probability of the interaction being dissipative."""
         return self._gamma
 
     def _json_dict_(self):
@@ -490,7 +500,7 @@ class ResetChannel(gate_features.SingleQubitGate):
     which then controls a bit flip onto the targeted qubit.
     """
 
-    def __init__(self, dimension=2) -> None:
+    def __init__(self, dimension: int = 2) -> None:
         r"""The reset channel.
 
         Construct a channel that resets the qubit.
@@ -554,7 +564,8 @@ class ResetChannel(gate_features.SingleQubitGate):
         return 'R'
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
+        """The dimension of the qudit being reset."""
         return self._dimension
 
     def _json_dict_(self):
@@ -575,7 +586,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     information without the loss of energy.
     """
 
-    def __init__(self, gamma) -> None:
+    def __init__(self, gamma: float) -> None:
         r"""The phase damping channel.
 
         Construct a channel that enacts a phase damping constant gamma.
@@ -633,7 +644,8 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         return 'PD({!r})'.format(self._gamma)
 
     @property
-    def gamma(self):
+    def gamma(self) -> float:
+        """The damping constant."""
         return self._gamma
 
     def _json_dict_(self):
@@ -679,7 +691,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 class PhaseFlipChannel(gate_features.SingleQubitGate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
-    def __init__(self, p) -> None:
+    def __init__(self, p: float) -> None:
         r"""The phase flip channel.
 
         Construct a channel to flip the phase with probability p.
@@ -737,7 +749,8 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         return 'PF({!r})'.format(self._p)
 
     @property
-    def p(self):
+    def p(self) -> float:
+        """The probability of a phase flip."""
         return self._p
 
     def _json_dict_(self):
@@ -831,7 +844,7 @@ def phase_flip(
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
-    def __init__(self, p) -> None:
+    def __init__(self, p: float) -> None:
         r"""The bit flip channel.
 
         Construct a channel that flips a qubit with probability p.
@@ -889,7 +902,8 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         return 'BF({!r})'.format(self._p)
 
     @property
-    def p(self):
+    def p(self) -> float:
+        """The probability of a bit flip."""
         return self._p
 
     def _json_dict_(self):
