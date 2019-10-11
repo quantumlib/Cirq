@@ -34,7 +34,8 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: Optional[int] = None) -> study.TrialResult:
+           seed: Optional[Union[int, np.random.RandomState]] = None
+          ) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
@@ -72,7 +73,8 @@ def final_wavefunction(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: Optional[int] = None) -> 'np.ndarray':
+        seed: Optional[Union[int, np.random.RandomState]] = None
+) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which

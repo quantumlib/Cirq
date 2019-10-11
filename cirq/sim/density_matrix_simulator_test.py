@@ -987,9 +987,16 @@ def test_simulate_sweep_parameters_not_resolved():
 
 
 def test_random_seed():
-    sim = cirq.DensityMatrixSimulator(seed=1234)
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234))
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a'] == [[False], [True], [False], [True], [True],
