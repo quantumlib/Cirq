@@ -53,6 +53,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
         if _homogeneous_moment_is_measurements(moment):
+            # coverage: ignore
             return moment
 
         return [
