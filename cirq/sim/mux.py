@@ -34,7 +34,8 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: Optional[int] = None) -> study.TrialResult:
+           seed: Optional[Union[int, np.random.RandomState]] = None
+          ) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
@@ -45,9 +46,7 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
-        seed: The random seed to use for this simulator. Sets numpy's
-            random seed. Setting numpy's seed different in between
-            use of this class will lead to non-seeded behavior.
+        seed: The random seed to use for this simulator.
     """
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
 
@@ -59,9 +58,10 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
             repetitions=repetitions)
 
     return density_matrix_simulator.DensityMatrixSimulator(
-        dtype=dtype, noise=noise_model).run(program=program,
-                                            param_resolver=param_resolver,
-                                            repetitions=repetitions)
+        dtype=dtype, noise=noise_model,
+        seed=seed).run(program=program,
+                       param_resolver=param_resolver,
+                       repetitions=repetitions)
 
 
 def final_wavefunction(
@@ -73,7 +73,8 @@ def final_wavefunction(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: Optional[int] = None) -> 'np.ndarray':
+        seed: Optional[Union[int, np.random.RandomState]] = None
+) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -93,9 +94,7 @@ def final_wavefunction(
             be safely castable to an appropriate dtype for the simulator.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
-        seed: The random seed to use for this simulator. Sets numpy's
-            random seed. Setting numpy's seed different in between
-            use of this class will lead to non-seeded behavior.
+        seed: The random seed to use for this simulator.
 
     Returns:
         The wavefunction resulting from applying the given unitary operations to
@@ -159,9 +158,7 @@ def sample_sweep(
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
-        seed: The random seed to use for this simulator. Sets numpy's
-            random seed. Setting numpy's seed different in between
-            use of this class will lead to non-seeded behavior.
+        seed: The random seed to use for this simulator.
 
     Returns:
         TrialResult list for this run; one for each possible parameter

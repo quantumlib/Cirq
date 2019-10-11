@@ -53,12 +53,22 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({0: 1})
 
 
-def test_sample_seed():
+def test_sample_seed_unitary():
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     assert np.all(
         result.measurements['q'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_sample_seed_non_unitary():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
+    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    print(result.measurements)
+    assert np.all(
+        result.measurements['q'] == [[False], [False], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
 
 
