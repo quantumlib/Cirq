@@ -23,14 +23,14 @@ def one_hot(*,
             shape: Union[int, Sequence[int]],
             value: int = 1,
             dtype: Type[np.number]) -> np.ndarray:
-    """Returns a numpy array with a single 1 entry, and 0 everywhere else.
+    """Returns a numpy array with a single non-zero entry (default 1), and 0 everywhere else.
 
     Args:
         index: The index that should store 1 instead of 0.
             If not specified, defaults to the start of the array.
         shape: The shape of the array.
-        dtype: The dtype of the array.
         value: The value of the integer.
+        dtype: The dtype of the array.
 
     Returns:
         The created numpy array.
