@@ -5,4 +5,6 @@ from cirq.work.collector import (
 from cirq.work.pauli_sum_collector import (
     PauliSumCollector,)
 from cirq.work.sampler import (
-    Sampler,)
+    AsyncSampler,
+    Sampler,
+)

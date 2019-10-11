@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import asyncio
 
 import cirq
 
@@ -34,6 +35,14 @@ def test_circuit_sample_job_repr():
                               tag='guess'))
 
 
+class DelayedSampler(cirq.AsyncSampler):
+
+    async def run_sweep_async(self, program, params, repetitions=1):
+        result = cirq.Simulator().run_sweep(program, params, repetitions)
+        await asyncio.sleep(0.001)
+        return result
+
+
 def test_async_collect():
     received = []
 
@@ -49,7 +58,7 @@ def test_async_collect():
         def on_job_result(self, job, result):
             received.append(job.tag)
 
-    completion = TestCollector().collect_async(sampler=cirq.Simulator(),
+    completion = TestCollector().collect_async(async_sampler=DelayedSampler(),
                                                max_total_samples=100,
                                                concurrency=5)
     cirq.testing.assert_asyncio_will_have_result(completion, None)
@@ -71,7 +80,7 @@ def test_collect():
         def on_job_result(self, job, result):
             received.append(job.tag)
 
-    TestCollector().collect(sampler=cirq.Simulator(),
+    TestCollector().collect(async_sampler=DelayedSampler(),
                             max_total_samples=100,
                             concurrency=5)
     assert received == ['test'] * 10
@@ -101,7 +110,7 @@ def test_collect_with_reaction():
             received += 1
             events.append(-job.tag)
 
-    TestCollector().collect(sampler=cirq.Simulator(),
+    TestCollector().collect(async_sampler=DelayedSampler(),
                             max_total_samples=100,
                             concurrency=5)
     # Expected sends and receives are present.
@@ -136,5 +145,5 @@ def test_flatten_jobs_terminate_from_collector():
         def on_job_result(self, job, result):
             received.append(job.tag)
 
-    TestCollector().collect(sampler=cirq.Simulator(), concurrency=5)
+    TestCollector().collect(async_sampler=DelayedSampler(), concurrency=5)
     assert received == ['test'] * 2

@@ -16,7 +16,6 @@
 from typing import List, Union, TYPE_CHECKING
 import abc
 import asyncio
-import threading
 
 from cirq import study
 
@@ -71,6 +70,13 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
+
+class AsyncSampler(Sampler, metaclass=abc.ABCMeta):
+
+    def run_sweep(self, program, params, repetitions=1):
+        return asyncio.get_event_loop().run_until_complete(
+            self.run_sweep_async(program, params, repetitions))
+
     async def run_async(self, program: Union['cirq.Circuit', 'cirq.Schedule'],
                         *, repetitions: int) -> 'cirq.TrialResult':
         """Asynchronously samples from the given Circuit or Schedule.
@@ -90,6 +96,7 @@ class Sampler(metaclass=abc.ABCMeta):
                                              repetitions)
         return results[0]
 
+    @abc.abstractmethod
     async def run_sweep_async(
             self,
             program: Union['cirq.Circuit', 'cirq.Schedule'],
@@ -112,22 +119,3 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        return await run_on_thread_async(lambda: self.run_sweep(
-            program, params=params, repetitions=repetitions))
-
-
-async def run_on_thread_async(func):
-    loop = asyncio.get_event_loop()
-    done = loop.create_future()  # type: asyncio.Future['cirq.TrialResult']
-
-    def run():
-        try:
-            result = func()
-        except Exception as exc:
-            loop.call_soon_threadsafe(done.set_exception, exc)
-        else:
-            loop.call_soon_threadsafe(done.set_result, result)
-
-    t = threading.Thread(target=run)
-    t.start()
-    return await done

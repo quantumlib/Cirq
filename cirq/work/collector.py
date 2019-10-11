@@ -103,7 +103,7 @@ class Collector(metaclass=abc.ABCMeta):
         """
 
     def collect(self,
-                sampler: 'cirq.Sampler',
+                async_sampler: 'cirq.AsyncSampler',
                 *,
                 concurrency: int = 2,
                 max_total_samples: Optional[int] = None) -> None:
@@ -123,7 +123,7 @@ class Collector(metaclass=abc.ABCMeta):
             https://docs.python.org/3/library/asyncio-task.html
 
         Args:
-            sampler: The simulator or service to collect samples from.
+            async_sampler: The simulator or service to collect samples from.
             concurrency: Desired number of sampling jobs to have in flight at
                 any given time.
             max_total_samples: Optional limit on the maximum number of samples
@@ -134,12 +134,12 @@ class Collector(metaclass=abc.ABCMeta):
             collected.
         """
         return asyncio.get_event_loop().run_until_complete(
-            self.collect_async(sampler,
+            self.collect_async(async_sampler,
                                concurrency=concurrency,
                                max_total_samples=max_total_samples))
 
     async def collect_async(self,
-                            sampler: 'cirq.Sampler',
+                            async_sampler: 'cirq.AsyncSampler',
                             *,
                             concurrency: int = 2,
                             max_total_samples: Optional[int] = None) -> None:
@@ -159,7 +159,7 @@ class Collector(metaclass=abc.ABCMeta):
             https://docs.python.org/3/library/asyncio-task.html
 
         Args:
-            sampler: The simulator or service to collect samples from.
+            async_sampler: The simulator or service to collect samples from.
             concurrency: Desired number of sampling jobs to have in flight at
                 any given time.
             max_total_samples: Optional limit on the maximum number of samples
@@ -175,8 +175,8 @@ class Collector(metaclass=abc.ABCMeta):
                              max_total_samples)
 
         async def _start_async_job(job):
-            return job, await sampler.run_async(job.circuit,
-                                                repetitions=job.repetitions)
+            return job, await async_sampler.run_async(
+                job.circuit, repetitions=job.repetitions)
 
         # Keep dispatching and processing work.
         while True:

@@ -23,7 +23,7 @@ def test_pauli_string_sample_collector():
                                16 * cirq.Y(a) * cirq.Y(b) +
                                4 * cirq.Z(a) * cirq.Z(b),
                                samples_per_term=100)
-    completion = p.collect_async(sampler=cirq.Simulator())
+    completion = p.collect_async(async_sampler=cirq.Simulator())
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert p.estimated_energy() == 11
 
@@ -34,7 +34,7 @@ def test_pauli_string_sample_single():
                                                     cirq.X(a), cirq.Z(b)),
                                observable=cirq.X(a) * cirq.X(b),
                                samples_per_term=100)
-    completion = p.collect_async(sampler=cirq.Simulator())
+    completion = p.collect_async(async_sampler=cirq.Simulator())
     cirq.testing.assert_asyncio_will_have_result(completion, None)
     assert p.estimated_energy() == -1
 

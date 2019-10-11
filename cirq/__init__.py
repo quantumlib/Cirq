@@ -441,6 +441,7 @@ from cirq.vis import (
     Heatmap,)
 
 from cirq.work import (
+    AsyncSampler,
     CircuitSampleJob,
     PauliSumCollector,
     Sampler,

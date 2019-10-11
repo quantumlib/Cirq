@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for cirq.Sampler."""
+import asyncio
 
 import cirq
 
 
-def test_sampler_fail():
+def test_async_sampler_fail():
 
-    class FailingSampler(cirq.Sampler):
+    class FailingSampler(cirq.AsyncSampler):
 
-        def run_sweep(self, program, params, repetitions: int = 1):
+        async def run_sweep_async(self, program, params, repetitions: int = 1):
+            await asyncio.sleep(0.01)
             raise ValueError('test')
 
     cirq.testing.assert_asyncio_will_raise(FailingSampler().run_async(
