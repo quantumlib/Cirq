@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Tuple
 
 import matplotlib.textpath
 
@@ -6,23 +6,34 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _get_text_width(t: str):
+def _get_text_width(t: str) -> float:
     tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop='Arial')
     bb = tp.get_extents()
     return bb.width + 10
 
 
-def _rect(x, y, boxwidth, boxheight, fill='white', strokewidth=1):
+def _rect(x: float, y: float, boxwidth: float, boxheight: float,
+          fill: str = 'white', strokewidth: float = 1):
+    """Draw an SVG <rect> rectangle."""
     return f'<rect x="{x}" y="{y}" width="{boxwidth}" height="{boxheight}" ' \
            f'stroke="black" fill="{fill}" stroke-width="{strokewidth}" />'
 
 
-def _text(tx, ty, text, fontsize=14):
-    return f'<text x="{tx}" y="{ty}" dominant-baseline="middle" ' \
+def _text(x: float, y: float, text: str, fontsize: int = 14):
+    """Draw SVG <text> text."""
+    return f'<text x="{x}" y="{y}" dominant-baseline="middle" ' \
            f'text-anchor="middle" font-size="{fontsize}px">{text}</text>'
 
 
-def _fit_horizontal(tdd, ref_boxwidth, col_padding):
+def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
+                    ref_boxwidth: float, col_padding: float) \
+        -> Tuple[List[float], List[float]]:
+    """Figure out the horizontal spacing of columns to fit everything in.
+
+    Returns:
+        col_starts: a list of where (in pixels) each column starts.
+        col_widths: a list of each column's width in pixels
+    """
     max_xi = max(xi for xi, _ in tdd.entries.keys())
     max_xi = max(max_xi, max(xi2 for _, _, xi2, _ in tdd.horizontal_lines))
     col_widths = [0] * (max_xi + 2)
@@ -46,12 +57,12 @@ def _fit_horizontal(tdd, ref_boxwidth, col_padding):
 
 def tdd_to_svg(
         tdd: 'cirq.TextDiagramDrawer',
-        ref_rowheight=60,
-        ref_boxwidth=40,
-        ref_boxheight=40,
-        col_padding=20,
-        y_top_pad=5,
-):
+        ref_rowheight: float = 60,
+        ref_boxwidth: float = 40,
+        ref_boxheight: float = 40,
+        col_padding: float = 20,
+        y_top_pad: float = 5,
+) -> str:
     height = tdd.height() * ref_rowheight
     col_starts, col_widths = _fit_horizontal(tdd=tdd,
                                              ref_boxwidth=ref_boxwidth,
@@ -104,17 +115,16 @@ def tdd_to_svg(
 
 
 class SVGCircuit:
-
-    def __init__(self, circuit):
+    def __init__(self, circuit: 'cirq.Circuit'):
         # coverage: ignore
         self.circuit = circuit
 
-    def _repr_svg_(self):
+    def _repr_svg_(self) -> str:
         # coverage: ignore
         tdd = self.circuit.to_text_diagram_drawer(transpose=False)
         return tdd_to_svg(tdd)
 
 
-def svg_circuit(circuit):
+def svg_circuit(circuit: 'cirq.Circuit') -> str:
     tdd = circuit.to_text_diagram_drawer(transpose=False)
     return tdd_to_svg(tdd)
