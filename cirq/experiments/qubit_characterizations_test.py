@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+
+import matplotlib.pyplot as plt
 
 from cirq import GridQubit
 from cirq import circuits, ops, sim

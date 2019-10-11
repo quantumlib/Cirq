@@ -54,7 +54,8 @@ class RabiResult:
         return [(angle, prob) for angle, prob in zip(self._rabi_angles,
                                                      self._excited_state_probs)]
 
-    def plot(self, ax: Optional[plt.Axes]=None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: Optional[plt.Axes] = None,
+             **plot_kwargs: Any) -> plt.Axes:
         """Plots excited state probability vs the Rabi angle (angle of rotation
         around the x-axis).
 
@@ -102,7 +103,8 @@ class RandomizedBenchMarkResult:
         return [(num, prob) for num, prob in zip(self._num_cfds_seq,
                                                  self._gnd_state_probs)]
 
-    def plot(self, ax: Optional[plt.Axes]=None, **plot_kwargs: Any) -> plt.Axes:
+    def plot(self, ax: Optional[plt.Axes] = None,
+             **plot_kwargs: Any) -> plt.Axes:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
 
@@ -142,7 +144,7 @@ class TomographyResult:
         """
         return self._density_matrix
 
-    def plot(self, axes: Optional[List[plt.Axes]]=None,
+    def plot(self, axes: Optional[List[plt.Axes]] = None,
              **plot_kwargs: Any) -> List[plt.Axes]:
         """Plots the real and imaginary parts of the density matrix as two
         3D bar plots.
@@ -159,7 +161,9 @@ class TomographyResult:
         """
         show_plot = axes is None
         if axes is None:
-            fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.0),
+            fig, axes = plt.subplots(1,
+                                     2,
+                                     figsize=(12.0, 5.0),
                                      subplot_kw={'projection': '3d'})
         elif len(axes) != 2:
             raise ValueError('A TomographyResult needs 2 axes to plot.')
@@ -556,8 +560,15 @@ def _matrix_bar_plot(mat: np.ndarray,
     dx = np.ones(mat.size) * 0.3
     dy = np.ones(mat.size) * 0.3
     dz = mat.flatten()
-    ax.bar3d(x_indices, y_indices, z_indices, dx, dy, dz, color='#ff0080',
-             alpha=1.0, **bar3d_kwargs)
+    ax.bar3d(x_indices,
+             y_indices,
+             z_indices,
+             dx,
+             dy,
+             dz,
+             color='#ff0080',
+             alpha=1.0,
+             **bar3d_kwargs)
 
     ax.set_zlabel(z_label)
     ax.set_zlim3d(ylim[0], ylim[1])
