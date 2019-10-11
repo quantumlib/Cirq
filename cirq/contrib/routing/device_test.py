@@ -64,7 +64,6 @@ def test_nx_qubit_layout_3():
         cirq.NamedQubit('a'): 0,
         cirq.NamedQubit('b'): 1,
         cirq.NamedQubit('c'): 2,
-
     }
 
     pos = ccr.nx_qubit_layout(g)
