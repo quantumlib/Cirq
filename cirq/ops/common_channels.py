@@ -89,6 +89,21 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                                                         self._p_z)
         return 'A({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z)
 
+    @property
+    def p_x(self):
+        return self._p_x
+
+    @property
+    def p_y(self):
+        return self._p_y
+
+    @property
+    def p_z(self):
+        return self._p_z
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p_x', 'p_y', 'p_z'])
+
 
 def asymmetric_depolarize(
     p_x: float, p_y: float, p_z: float
@@ -163,6 +178,13 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'D({!r})'.format(self._p)
+
+    @property
+    def p(self):
+        return self._p
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p'])
 
 
 def depolarize(p: float) -> DepolarizingChannel:
@@ -289,6 +311,17 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'GAD({!r},{!r})'.format(self._p, self._gamma)
 
+    @property
+    def p(self):
+        return self._p
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
+
 
 def generalized_amplitude_damp(
     p: float, gamma: float
@@ -348,7 +381,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     surrounding environment.
     """
 
-    def __init__(self, gamma) -> None:
+    def __init__(self, gamma: float) -> None:
         r"""The amplitude damping channel.
 
         Construct a channel that dissipates energy. The probability of
@@ -405,6 +438,13 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'AD({!r})'.format(self._gamma)
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
@@ -513,6 +553,13 @@ class ResetChannel(gate_features.SingleQubitGate):
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'R'
 
+    @property
+    def dimension(self):
+        return self._dimension
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['dimension'])
+
 
 def reset(qubit: raw_types.Qid) -> raw_types.Operation:
     """Returns a `ResetChannel` on the given qubit.
@@ -584,6 +631,13 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'PD({!r})'.format(self._gamma)
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
@@ -681,6 +735,13 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'PF({!r})'.format(self._p)
+
+    @property
+    def p(self):
+        return self._p
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p'])
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
@@ -826,6 +887,13 @@ class BitFlipChannel(gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         return 'BF({!r})'.format(self._p)
+
+    @property
+    def p(self):
+        return self._p
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p'])
 
 
 def _bit_flip(p: float) -> BitFlipChannel:
