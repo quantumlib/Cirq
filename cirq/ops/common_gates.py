@@ -39,24 +39,28 @@ from cirq.type_workarounds import NotImplementedType
 
 
 def SWAP(*args, **kwargs):
-    warnings.warn("SWAP has been moved. Please always use top-level "
-                  "cirq objects i.e. `cirq.SWAP`", DeprecationWarning)
+    # coverage: ignore
+    warnings.warn(
+        "SWAP has been moved. Please always use top-level "
+        "cirq objects i.e. `cirq.SWAP`", DeprecationWarning)
     from cirq import ops
     return ops.SWAP(*args, **kwargs)
 
 
 def MeasurementGate(*args, **kwargs):
-    warnings.warn("MeasurementGate has been moved. Please always use top-level "
-                  "cirq objects i.e. `cirq.MeasurementGate`",
-                  DeprecationWarning)
+    # coverage: ignore
+    warnings.warn(
+        "MeasurementGate has been moved. Please always use top-level "
+        "cirq objects i.e. `cirq.MeasurementGate`", DeprecationWarning)
     from cirq import ops
     return ops.MeasurementGate(*args, **kwargs)
 
 
 def ISwapPowGate(*args, **kwargs):
-    warnings.warn("ISwapPowGate has been moved. Please always use top-level "
-                  "cirq objects i.e. `cirq.ISwapPowGate`",
-                  DeprecationWarning)
+    # coverage: ignore
+    warnings.warn(
+        "ISwapPowGate has been moved. Please always use top-level "
+        "cirq objects i.e. `cirq.ISwapPowGate`", DeprecationWarning)
     from cirq import ops
     return ops.ISwapPowGate(*args, **kwargs)
 
