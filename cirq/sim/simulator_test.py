@@ -147,7 +147,8 @@ class FakeStepResult(cirq.StepResult):
         pass
 
     def sample(self, qubits, repetitions):
-        return [[qubit in self._ones_qubits for qubit in qubits]] * repetitions
+        return np.array([[qubit in self._ones_qubits for qubit in qubits]] *
+                        repetitions)
 
 
 def test_step_sample_measurement_ops():
@@ -286,20 +287,18 @@ def test_async_sample():
             return m
 
     q = cirq.LineQubit(0)
-    f = MockSimulator().run_async(cirq.Circuit.from_ops(cirq.measure(q)),
-                                  repetitions=10)
+    f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)), repetitions=10)
     result = cirq.testing.assert_asyncio_will_have_result(f)
     np.testing.assert_equal(result.measurements, m)
 
 
 def test_simulation_trial_result_qubit_map():
     q = cirq.LineQubit.range(2)
-    result = cirq.Simulator().simulate(
-        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+    result = cirq.Simulator().simulate(cirq.Circuit([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
     result = cirq.DensityMatrixSimulator().simulate(
-        cirq.Circuit.from_ops([cirq.CZ(q[0], q[1])]))
+        cirq.Circuit([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
 
 
@@ -323,7 +322,7 @@ def test_simulate_with_invert_mask():
             return u
 
     q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
-    c = cirq.Circuit.from_ops(
+    c = cirq.Circuit(
         PlusGate(2, 1)(q0),
         PlusGate(3, 1)(q2),
         PlusGate(3, 2)(q3),

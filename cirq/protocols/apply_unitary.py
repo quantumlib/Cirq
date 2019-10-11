@@ -174,17 +174,24 @@ class ApplyUnitaryArgs:
         new_axes = range(len(other_axes), len(ordered_axes))
         return ApplyUnitaryArgs(target_tensor, available_buffer, new_axes)
 
-    def subspace_index(
-            self,
-            little_endian_bits_int: int,
-    ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
+    def subspace_index(self,
+                       little_endian_bits_int: int = 0,
+                       *,
+                       big_endian_bits_int: int = 0
+                      ) -> Tuple[Union[slice, int, 'ellipsis'], ...]:
         """An index for the subspace where the target axes equal a value.
 
         Args:
             little_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The least significant
                 bit of the integer is the desired bit for the first axis, and
-                so forth in increasing order.
+                so forth in increasing order. Can't be specified at the same
+                time as `big_endian_bits_int`.
+            big_endian_bits_int: The desired value of the qubits at the
+                targeted `axes`, packed into an integer. The most significant
+                bit of the integer is the desired bit for the first axis, and
+                so forth in decreasing order. Can't be specified at the same
+                time as `little_endian_bits_int`.
             value_tuple: The desired value of the qids at the targeted `axes`,
                 packed into a tuple.  Specify either `little_endian_bits_int` or
                 `value_tuple`.
@@ -207,8 +214,10 @@ class ApplyUnitaryArgs:
 
                 args.target_tensor[:, 0, :, 1] += 1
         """
-        return linalg.slice_for_qubits_equal_to(self.axes,
-                                                little_endian_bits_int)
+        return linalg.slice_for_qubits_equal_to(
+            self.axes,
+            little_endian_qureg_value=little_endian_bits_int,
+            big_endian_qureg_value=big_endian_bits_int)
 
 
 class SupportsConsistentApplyUnitary(Protocol):

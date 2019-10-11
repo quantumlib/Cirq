@@ -30,7 +30,7 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto_dict: Dict,
 
 def test_protobuf_round_trip():
     device = cg.Foxtail
-    circuit = cirq.Circuit.from_ops([cirq.X(q)**0.5 for q in device.qubits], [
+    circuit = cirq.Circuit([cirq.X(q)**0.5 for q in device.qubits], [
         cirq.CZ(q, q2)
         for q in [cirq.GridQubit(0, 0)]
         for q2 in device.neighbors_of(q)
@@ -516,6 +516,21 @@ def test_invalid_to_proto_dict_qubit_number():
         cg.gate_to_proto_dict(
             cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
+
+
+def test_invalid_qubit_from_proto():
+    with pytest.raises(ValueError, match='does not contain row or col'):
+        proto_dict = {
+            'exp_z': {
+                'target': {
+                    'row': 2,
+                },
+                'half_turns': {
+                    'raw': 1
+                },
+            }
+        }
+        _ = cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_parameterized_value_from_proto():

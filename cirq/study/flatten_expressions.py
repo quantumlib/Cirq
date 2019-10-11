@@ -45,7 +45,7 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     Example:
         >>> qubit = cirq.LineQubit(0)
         >>> a = sympy.Symbol('a')
-        >>> circuit = cirq.Circuit.from_ops(
+        >>> circuit = cirq.Circuit(
         ...     cirq.X(qubit) ** (a/4),
         ...     cirq.Y(qubit) ** (1-a/2),
         ... )

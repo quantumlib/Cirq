@@ -1,11 +1,25 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import itertools
 
-from typing import Sequence, Tuple, Iterator, Any, NamedTuple, List
+from typing import Any, Iterator, List, NamedTuple, Optional, Sequence, Tuple
 import numpy as np
 import sympy
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # type: ignore
+from mpl_toolkits.mplot3d import Axes3D  # type: ignore # pylint: disable=unused-import
 from cirq import circuits, devices, ops, protocols, study, work
 
 Cliffords = NamedTuple('Cliffords',
@@ -40,21 +54,29 @@ class RabiResult:
         return [(angle, prob) for angle, prob in zip(self._rabi_angles,
                                                      self._excited_state_probs)]
 
-    def plot(self, **plot_kwargs: Any) -> None:
+    def plot(self, ax: Optional[plt.Axes] = None,
+             **plot_kwargs: Any) -> plt.Axes:
         """Plots excited state probability vs the Rabi angle (angle of rotation
         around the x-axis).
 
         Args:
-            **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        Returns:
+            The plt.Axes containing the plot.
         """
-        fig = plt.figure()
-        ax = plt.gca()
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         ax.set_ylim([0, 1])
-        plt.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
-                 figure=fig, **plot_kwargs)
-        plt.xlabel(r"Rabi Angle (Radian)", figure=fig)
-        plt.ylabel('Excited State Probability', figure=fig)
-        fig.show(warn=False)
+        ax.plot(self._rabi_angles, self._excited_state_probs, 'ro-',
+                **plot_kwargs)
+        ax.set_xlabel(r"Rabi Angle (Radian)")
+        ax.set_ylabel('Excited State Probability')
+        if show_plot:
+            fig.show()
+        return ax
 
 
 class RandomizedBenchMarkResult:
@@ -81,22 +103,28 @@ class RandomizedBenchMarkResult:
         return [(num, prob) for num, prob in zip(self._num_cfds_seq,
                                                  self._gnd_state_probs)]
 
-    def plot(self, **plot_kwargs: Any) -> None:
+    def plot(self, ax: Optional[plt.Axes] = None,
+             **plot_kwargs: Any) -> plt.Axes:
         """Plots the average ground state probability vs the number of
         Cliffords in the RB study.
 
         Args:
-            **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+        Returns:
+            The plt.Axes containing the plot.
         """
-        fig = plt.figure()
-        ax = plt.gca()
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
         ax.set_ylim([0, 1])
-
-        plt.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-',
-                 figure=fig, **plot_kwargs)
-        plt.xlabel(r"Number of Cliffords", figure=fig)
-        plt.ylabel('Ground State Probability', figure=fig)
-        fig.show(warn=False)
+        ax.plot(self._num_cfds_seq, self._gnd_state_probs, 'ro-', **plot_kwargs)
+        ax.set_xlabel(r"Number of Cliffords")
+        ax.set_ylabel('Ground State Probability')
+        if show_plot:
+            fig.show()
+        return ax
 
 
 class TomographyResult:
@@ -116,12 +144,55 @@ class TomographyResult:
         """
         return self._density_matrix
 
-    def plot(self) -> None:
+    def plot(self, axes: Optional[List[plt.Axes]] = None,
+             **plot_kwargs: Any) -> List[plt.Axes]:
         """Plots the real and imaginary parts of the density matrix as two
         3D bar plots.
+
+        Args:
+            axes: a list of 2 `plt.Axes` instances. Note that they must be in
+                3d projections. If not given, a new figure is created with 2
+                axes and the plotted figure is shown.
+            plot_kwargs: the optional kwargs passed to bar3d.
+        Returns:
+            the list of `plt.Axes` being plotted on.
+        Raises:
+            ValueError if axes is a list with length != 2.
         """
-        fig = _plot_density_matrix(self._density_matrix)
-        fig.show(warn=False)
+        show_plot = axes is None
+        if axes is None:
+            fig, axes = plt.subplots(1,
+                                     2,
+                                     figsize=(12.0, 5.0),
+                                     subplot_kw={'projection': '3d'})
+        elif len(axes) != 2:
+            raise ValueError('A TomographyResult needs 2 axes to plot.')
+        mat = self._density_matrix
+        a, _ = mat.shape
+        num_qubits = int(np.log2(a))
+        state_labels = [[0, 1]] * num_qubits
+        kets = []
+        for label in itertools.product(*state_labels):
+            kets.append('|' + str(list(label))[1:-1] + '>')
+        mat_re = np.real(mat)
+        mat_im = np.imag(mat)
+        _matrix_bar_plot(mat_re,
+                         r'Real($\rho$)',
+                         axes[0],
+                         kets,
+                         'Density Matrix (Real Part)',
+                         ylim=(-1, 1),
+                         **plot_kwargs)
+        _matrix_bar_plot(mat_im,
+                         r'Imaginary($\rho$)',
+                         axes[1],
+                         kets,
+                         'Density Matrix (Imaginary Part)',
+                         ylim=(-1, 1),
+                         **plot_kwargs)
+        if show_plot:
+            fig.show()
+        return axes
 
 
 def rabi_oscillations(sampler: work.Sampler,
@@ -149,7 +220,7 @@ def rabi_oscillations(sampler: work.Sampler,
         A RabiResult object that stores and plots the result.
     """
     theta = sympy.Symbol('theta')
-    circuit = circuits.Circuit.from_ops(ops.X(qubit) ** theta)
+    circuit = circuits.Circuit(ops.X(qubit)**theta)
     circuit.append(ops.measure(qubit, key='z'))
     sweep = study.Linspace(key='theta', start=0.0, stop=max_angle / np.pi,
                            length=num_points)
@@ -301,18 +372,19 @@ def single_qubit_state_tomography(sampler: work.Sampler,
     Returns:
         A TomographyResult object that stores and plots the density matrix.
     """
-    circuit_z = circuit + circuits.Circuit.from_ops(ops.measure(qubit, key='z'))
+    circuit_z = circuit + circuits.Circuit(ops.measure(qubit, key='z'))
     results = sampler.run(circuit_z, repetitions=repetitions)
     rho_11 = np.mean(results.measurements['z'])
     rho_00 = 1.0 - rho_11
 
-    circuit_x = circuits.Circuit.from_ops(circuit, ops.X(qubit) ** 0.5,
-                                          ops.measure(qubit, key='z'))
+    circuit_x = circuits.Circuit(circuit,
+                                 ops.X(qubit)**0.5, ops.measure(qubit, key='z'))
     results = sampler.run(circuit_x, repetitions=repetitions)
     rho_01_im = np.mean(results.measurements['z']) - 0.5
 
-    circuit_y = circuits.Circuit.from_ops(circuit, ops.Y(qubit) ** -0.5,
-                                          ops.measure(qubit, key='z'))
+    circuit_y = circuits.Circuit(circuit,
+                                 ops.Y(qubit)**-0.5, ops.measure(qubit,
+                                                                 key='z'))
     results = sampler.run(circuit_y, repetitions=repetitions)
     rho_01_re = 0.5 - np.mean(results.measurements['z'])
 
@@ -426,8 +498,7 @@ def two_qubit_state_tomography(sampler: work.Sampler,
         for j, rot_2 in enumerate(rots):
             m_idx, indices, signs = _indices_after_basis_rot(i, j)
             mat[m_idx: (m_idx + 3), indices] = s * np.tile(signs, (3, 1))
-            test_circuit = circuit + circuits.Circuit.from_ops(
-                rot_1(first_qubit))
+            test_circuit = circuit + circuits.Circuit(rot_1(first_qubit))
             test_circuit.append(rot_2(second_qubit))
             probs = np.concatenate((probs, _measurement(test_circuit)))
 
@@ -457,34 +528,29 @@ def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
                               cfds: Sequence[Sequence[ops.Gate]]
                              ) -> circuits.Circuit:
     clifford_group_size = 24
-    gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = []  # type: List[ops.Gate]
-    for gate_id in gate_ids:
-        gate_sequence.extend(cfds[gate_id])
-    gate_sequence.extend(protocols.inverse(gate_sequence))
-    circuit = circuits.Circuit.from_ops(gate(qubit) for gate in gate_sequence)
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit(
+        gate(qubit) for idx in idxs for gate in cfds[idx])
+    return circuit + protocols.inverse(circuit)
 
 
 def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
                            num_cfds: int,
                            cliffords: Cliffords) -> circuits.Circuit:
     clifford_group_size = 11520
-    idx_list = list(np.random.choice(clifford_group_size, num_cfds))
-    circuit = circuits.Circuit()
-    for idx in idx_list:
-        circuit.append(_two_qubit_clifford(q_0, q_1, idx, cliffords))
-    circuit.append(protocols.inverse(circuit))
-    return circuit
+    idxs = np.random.choice(clifford_group_size, num_cfds)
+    circuit = circuits.Circuit(
+        _two_qubit_clifford(q_0, q_1, idx, cliffords) for idx in idxs)
+    return circuit + protocols.inverse(circuit)
 
 
 def _matrix_bar_plot(mat: np.ndarray,
                      z_label: str,
-                     fig: plt.Figure,
-                     plt_position: int,
+                     ax: plt.Axes,
                      kets: Sequence[str] = None,
                      title: str = None,
-                     ylim: Tuple[int, int] = (-1, 1)) -> None:
+                     ylim: Tuple[int, int] = (-1, 1),
+                     **bar3d_kwargs: Any) -> None:
     num_rows, num_cols = mat.shape
     indices = np.meshgrid(range(num_cols), range(num_rows))
     x_indices = np.array(indices[1]).flatten()
@@ -493,49 +559,26 @@ def _matrix_bar_plot(mat: np.ndarray,
 
     dx = np.ones(mat.size) * 0.3
     dy = np.ones(mat.size) * 0.3
-
-    ax1 = fig.add_subplot(plt_position, projection='3d')  # type: Axes3D
-
     dz = mat.flatten()
-    ax1.bar3d(x_indices, y_indices, z_indices, dx, dy, dz, color='#ff0080',
-              alpha=1.0)
+    ax.bar3d(x_indices,
+             y_indices,
+             z_indices,
+             dx,
+             dy,
+             dz,
+             color='#ff0080',
+             alpha=1.0,
+             **bar3d_kwargs)
 
-    ax1.set_zlabel(z_label)
-    ax1.set_zlim3d(ylim[0], ylim[1])
+    ax.set_zlabel(z_label)
+    ax.set_zlim3d(ylim[0], ylim[1])
 
     if kets is not None:
         plt.xticks(np.arange(num_cols) + 0.15, kets)
         plt.yticks(np.arange(num_rows) + 0.15, kets)
 
     if title is not None:
-        ax1.set_title(title)
-
-
-def _plot_density_matrix(mat: np.ndarray) -> plt.Figure:
-    a, _ = mat.shape
-    num_qubits = int(np.log2(a))
-    state_labels = [[0, 1]] * num_qubits
-    kets = []
-    for label in itertools.product(*state_labels):
-        kets.append('|' + str(list(label))[1:-1] + '>')
-    mat_re = np.real(mat)
-    mat_im = np.imag(mat)
-    fig = plt.figure(figsize=(12.0, 5.0))
-    _matrix_bar_plot(mat_re,
-                     r'Real($\rho$)',
-                     fig,
-                     121,
-                     kets,
-                     'Density Matrix (Real Part)',
-                     ylim=(-1, 1))
-    _matrix_bar_plot(mat_im,
-                     r'Imaginary($\rho$)',
-                     fig,
-                     122,
-                     kets,
-                     'Density Matrix (Imaginary Part)',
-                     ylim=(-1, 1))
-    return fig
+        ax.set_title(title)
 
 
 def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,

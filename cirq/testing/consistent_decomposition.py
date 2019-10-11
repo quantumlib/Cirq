@@ -39,7 +39,7 @@ def assert_decompose_is_consistent_with_unitary(
         # If there's no decomposition, it's vacuously consistent.
         return
 
-    actual = circuits.Circuit.from_ops(dec).unitary(qubit_order=qubits)
+    actual = circuits.Circuit(dec).unitary(qubit_order=qubits)
 
     if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual,

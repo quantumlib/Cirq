@@ -17,10 +17,12 @@ import inspect
 import io
 import os
 import textwrap
+from typing import Tuple, Iterator, Type
 
 import pytest
 
 import numpy as np
+import pandas as pd
 import sympy
 
 import cirq
@@ -37,11 +39,15 @@ def assert_roundtrip(obj, text_should_be=None):
         assert text == text_should_be
 
     buffer.seek(0)
-    obj2 = cirq.protocols.read_json(buffer)
+    restored_obj = cirq.protocols.read_json(buffer)
     if isinstance(obj, np.ndarray):
-        np.testing.assert_equal(obj, obj2)
+        np.testing.assert_equal(restored_obj, obj)
+    elif isinstance(obj, pd.DataFrame):
+        pd.testing.assert_frame_equal(restored_obj, obj)
+    elif isinstance(obj, pd.Index):
+        pd.testing.assert_index_equal(restored_obj, obj)
     else:
-        assert obj == obj2
+        assert restored_obj == obj
 
 
 def test_line_qubit_roundtrip():
@@ -113,6 +119,8 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 TEST_OBJECTS = {
+    'Bristlecone':
+    cirq.google.Bristlecone,
     'CCNOT':
     cirq.CCNOT,
     'CCX':
@@ -138,23 +146,29 @@ TEST_OBJECTS = {
     'CZPowGate':
     cirq.CZPowGate(exponent=0.123, global_shift=0.456),
     'Circuit': [
-        cirq.Circuit.from_ops(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
-        cirq.Circuit.from_ops(cirq.CCNOT(Q0, Q1, Q2),
-                              cirq.X(Q0)**0.123),
-        cirq.Circuit.from_ops(
+        cirq.Circuit(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
+        cirq.Circuit(cirq.CCNOT(Q0, Q1, Q2),
+                     cirq.X(Q0)**0.123),
+        cirq.Circuit(
             cirq.XPowGate(exponent=sympy.Symbol('theta'),
                           global_shift=0).on(Q0)),
         # TODO: even the following doesn't work because theta gets
         #       multiplied by 1/pi.
         #       https://github.com/quantumlib/Cirq/issues/2014
-        # cirq.Circuit.from_ops(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
+        # cirq.Circuit(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
     ],
     'Duration':
     cirq.Duration(picos=6),
+    'DensePauliString':
+    cirq.DensePauliString('XYZI', coefficient=1j),
+    'MutableDensePauliString':
+    cirq.MutableDensePauliString('XXZZ', coefficient=-2),
     'FREDKIN':
     cirq.FREDKIN,
     'FSimGate':
     cirq.FSimGate(theta=0.123, phi=.456),
+    'Foxtail':
+    cirq.google.Foxtail,
     'GateOperation': [
         cirq.CCNOT(*cirq.LineQubit.range(3)),
         cirq.CCZ(*cirq.LineQubit.range(3)),
@@ -207,10 +221,16 @@ TEST_OBJECTS = {
         }),
         cirq.X(Q0) * cirq.Y(Q1) * 123
     ],
+    'PhaseGradientGate':
+    cirq.PhaseGradientGate(num_qubits=3, exponent=0.235),
+    'PhasedISwapPowGate':
+    cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.2),
     'PhasedXPowGate':
     cirq.PhasedXPowGate(phase_exponent=0.123,
                         exponent=0.456,
                         global_shift=0.789),
+    'QuantumFourierTransformGate':
+    cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
     'X':
     cirq.X,
     'Y':
@@ -219,19 +239,23 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
+    'SerializableDevice':
+    cirq.google.SerializableDevice.from_proto(
+        proto=cirq.google.known_devices.FOXTAIL_PROTO,
+        gate_set=cirq.google.XMON),
     'SWAP':
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
-    'Symbol':
-    sympy.Symbol('theta'),
     'T':
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
+    'WaitGate':
+    cirq.WaitGate(cirq.Duration(nanos=10)),
     '_QubitAsQid': [
         cirq.NamedQubit('a').with_dimension(5),
         cirq.GridQubit(1, 2).with_dimension(1)
@@ -251,12 +275,6 @@ TEST_OBJECTS = {
     'ZZ':
     cirq.ZZ,
     'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
-    'complex': [1 + 2j],
-    'ndarray': [np.ones((11, 5)), np.arange(3)],
-    'dict': {
-        'test': [123, 5.5],
-        'key2': 'asdf'
-    }
 }
 
 SHOULDNT_BE_SERIALIZED = [
@@ -266,6 +284,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
+    'ConvertToXmonGates',
     'DropEmptyMoments',
     'DropNegligible',
     'EjectPhasedPaulis',
@@ -274,6 +293,7 @@ SHOULDNT_BE_SERIALIZED = [
     'MergeInteractions',
     'MergeSingleQubitGates',
     'PointOptimizer',
+    'SynchronizeTerminalMeasurements',
 
     # global objects
     'CONTROL_TAG',
@@ -294,6 +314,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
     'SupportsMixture',
@@ -306,7 +327,10 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsUnitary',
 
     # mypy types:
+    'DURATION_LIKE',
+    'NOISE_MODEL_LIKE',
     'OP_TREE',
+    'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
@@ -315,56 +339,68 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamDictType',
 
     # utility:
+    'AnnealSequenceSearchStrategy',
+    'DeserializingArg',
+    'GateOpDeserializer',
+    'GateOpSerializer',
+    'GreedySequenceSearchStrategy',
+    'SerializingArg',
     'Unique',
+
+    # Quantum Engine
+    'Engine',
+    'EngineJob',
+    'EngineProgram',
+    'QuantumEngineSampler',
+
+    # enums
+    'ProtoVersion'
 ]
 
 
-def _get_all_public_classes():
-    for cls_name, cls_cls in inspect.getmembers(cirq):
-        if inspect.isfunction(cls_cls) or inspect.ismodule(cls_cls):
+def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
+    for name, obj in inspect.getmembers(module):
+        if inspect.isfunction(obj) or inspect.ismodule(obj):
             continue
 
-        if cls_name in SHOULDNT_BE_SERIALIZED:
+        if name in SHOULDNT_BE_SERIALIZED:
             continue
 
-        if not inspect.isclass(cls_cls):
+        if not inspect.isclass(obj):
             # singletons, for instance
-            cls_cls = cls_cls.__class__
+            obj = obj.__class__
 
-        if cls_name.startswith('_'):
+        if name.startswith('_'):
             continue
 
-        if (inspect.isclass(cls_cls) and
-            (inspect.isabstract(cls_cls) or issubclass(cls_cls, abc.ABCMeta))):
+        if (inspect.isclass(obj) and
+            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta))):
             continue
 
-        yield cls_name, cls_cls
+        yield name, obj
 
-    # extra
-    yield 'complex', complex
-    yield 'ndarray', np.ndarray
-    yield 'Symbol', sympy.Symbol
 
-    # test coverage for `default` paths
-    yield 'dict', dict
+def _get_all_names() -> Iterator[str]:
+
+    def not_module_or_function(x):
+        return not (inspect.ismodule(x) or inspect.isfunction(x))
+
+    for name, _ in inspect.getmembers(cirq, not_module_or_function):
+        yield name
+    for name, _ in inspect.getmembers(cirq.google, not_module_or_function):
+        yield name
 
 
 def test_shouldnt_be_serialized_no_superfluous():
     # everything in the list should be ignored for a reason
-    names = [
-        name for name, _ in inspect.getmembers(
-            cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))
-    ]
+    names = set(_get_all_names())
     for name in SHOULDNT_BE_SERIALIZED:
         assert name in names
 
 
 def test_not_yet_serializable_no_superfluous():
     # everything in the list should be ignored for a reason
-    names = [
-        name for name, _ in inspect.getmembers(
-            cirq, lambda x: not (inspect.ismodule(x) or inspect.isfunction(x)))
-    ]
+    names = set(_get_all_names())
     for name in NOT_YET_SERIALIZABLE:
         assert name in names
 
@@ -381,6 +417,7 @@ NOT_YET_SERIALIZABLE = [
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'BitFlipChannel',
+    'Calibration',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
@@ -399,6 +436,7 @@ NOT_YET_SERIALIZABLE = [
     'Heatmap',
     'InsertStrategy',
     'IonDevice',
+    'JobConfig',
     'KakDecomposition',
     'LinearCombinationOfGates',
     'LinearCombinationOfOperations',
@@ -426,6 +464,8 @@ NOT_YET_SERIALIZABLE = [
     'ResetChannel',
     'Schedule',
     'ScheduledOperation',
+    'SerializableDevice',
+    'SerializableGateSet',
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
@@ -440,29 +480,103 @@ NOT_YET_SERIALIZABLE = [
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
+    'XmonDevice',
+    'XMON',
     'Zip',
 ]
 
 
-@pytest.mark.parametrize('cirq_type,cls', _get_all_public_classes())
-def test_all_roundtrip(cirq_type: str, cls):
-    if cirq_type in NOT_YET_SERIALIZABLE:
+def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
+    yield from _get_all_public_classes(cirq)
+    yield from _get_all_public_classes(cirq.google)
+
+    # Objects not listed at top level.
+    yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
+
+
+def test_builtins():
+    assert_roundtrip(1 + 2j)
+    assert_roundtrip({
+        'test': [123, 5.5],
+        'key2': 'asdf',
+        '3': None,
+        '0.0': [],
+    })
+    assert_roundtrip(np.ones((11, 5)))
+    assert_roundtrip(np.arange(3))
+
+
+def test_pandas():
+    assert_roundtrip(
+        pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
+                     columns=['x', 'y', 'z'],
+                     index=[2, 5]))
+    assert_roundtrip(pd.Index([1, 2, 3], name='test'))
+    assert_roundtrip(
+        pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)],
+                                  names=['alice', 'bob']))
+
+    assert_roundtrip(
+        pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
+                     data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                     columns=['a', 'b']))
+    assert_roundtrip(
+        pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
+                                                     names=['x', 'y']),
+                     data=[[11, 21.0], [12, 22.0], [13, 23.0]],
+                     columns=pd.Index(['a', 'b'], name='c')))
+
+
+def test_sympy():
+    # Raw values.
+    assert_roundtrip(sympy.Symbol('theta'))
+    assert_roundtrip(sympy.Integer(5))
+    assert_roundtrip(sympy.Rational(2, 3))
+    assert_roundtrip(sympy.Float(1.1))
+
+    # Basic operations.
+    s = sympy.Symbol('s')
+    t = sympy.Symbol('t')
+    assert_roundtrip(t + s)
+    assert_roundtrip(t * s)
+    assert_roundtrip(t / s)
+    assert_roundtrip(t - s)
+    assert_roundtrip(t**s)
+
+    # Linear combinations.
+    assert_roundtrip(t * 2)
+    assert_roundtrip(4 * t + 3 * s + 2)
+
+
+def test_no_missed_test_objects():
+    seen = {name for name, _ in _roundtrip_test_classes()}
+    missed = TEST_OBJECTS.keys() - seen
+    assert not missed, (
+        "An entry in cirq.protocols.json_test.TEST_OBJECTS was not used when "
+        "checking the serializability of all objects yielded by "
+        "cirq.protocols.json_test._roundtrip_test_classes."
+        f"\n\nMissed keys: {repr(missed)}")
+
+
+@pytest.mark.parametrize('cirq_obj_name,cls', _roundtrip_test_classes())
+def test_all_roundtrip(cirq_obj_name: str, cls):
+    if cirq_obj_name in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
 
     try:
-        objs = TEST_OBJECTS[cirq_type]
+        objs = TEST_OBJECTS[cirq_obj_name]
     except KeyError:  # coverage: ignore
         # coverage: ignore
         raise NotImplementedError(
             textwrap.fill(
-                f"Hello intrepid developer. There is a public class named "
-                f"'{cirq_type}' that does not have a test case for JSON "
-                f"roundtripability. Add an entry to TEST_OBJECTS that "
-                f"constructs an instance of `{cirq_type}` which will be "
-                f"tested for serialization and deserialization. For more "
+                f"Hello intrepid developer. There is a public object or class "
+                f"named '{cirq_obj_name}' that does not have a test case for "
+                f"JSON roundtripability. Add an entry to TEST_OBJECTS that "
+                f"constructs the object or an instance of the class which will "
+                f"be tested for serialization and deserialization. For more "
                 f"information on JSON serialization, please read the "
-                f"docstring for protocols.SupportsJSON. If this type is not "
-                f"appropriate for serialization, add its name to "
+                f"docstring for protocols.SupportsJSON. If this object or "
+                f"class is not appropriate for serialization, add its name to "
                 f"SHOULDNT_BE_SERIALIZED."))
 
     if not isinstance(objs, list):

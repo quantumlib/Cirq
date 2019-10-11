@@ -1,4 +1,21 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
+import pytest
+
+import matplotlib.pyplot as plt
 
 from cirq import GridQubit
 from cirq import circuits, ops, sim
@@ -59,9 +76,9 @@ def test_single_qubit_state_tomography():
     simulator = sim.Simulator()
     qubit = GridQubit(0, 0)
 
-    circuit_1 = circuits.Circuit.from_ops(ops.X(qubit) ** 0.5)
-    circuit_2 = circuits.Circuit.from_ops(ops.Y(qubit) ** 0.5)
-    circuit_3 = circuits.Circuit.from_ops(ops.H(qubit), ops.Y(qubit))
+    circuit_1 = circuits.Circuit(ops.X(qubit)**0.5)
+    circuit_2 = circuits.Circuit(ops.Y(qubit)**0.5)
+    circuit_3 = circuits.Circuit(ops.H(qubit), ops.Y(qubit))
 
     act_rho_1 = single_qubit_state_tomography(simulator, qubit, circuit_1,
                                               1000).data
@@ -89,16 +106,14 @@ def test_two_qubit_state_tomography():
     q_0 = GridQubit(0, 0)
     q_1 = GridQubit(0, 1)
 
-    circuit_00 = circuits.Circuit.from_ops(ops.H(q_0), ops.CNOT(q_0, q_1))
-    circuit_01 = circuits.Circuit.from_ops(ops.X(q_1), ops.H(q_0),
-                                           ops.CNOT(q_0, q_1))
-    circuit_10 = circuits.Circuit.from_ops(ops.X(q_0), ops.H(q_0),
-                                           ops.CNOT(q_0, q_1))
-    circuit_11 = circuits.Circuit.from_ops(ops.X(q_0), ops.X(q_1), ops.H(q_0),
-                                           ops.CNOT(q_0, q_1))
-    circuit_hh = circuits.Circuit.from_ops(ops.H(q_0), ops.H(q_1))
-    circuit_xy = circuits.Circuit.from_ops(ops.X(q_0)**0.5, ops.Y(q_1)**0.5)
-    circuit_yx = circuits.Circuit.from_ops(ops.Y(q_0)**0.5, ops.X(q_1)**0.5)
+    circuit_00 = circuits.Circuit(ops.H(q_0), ops.CNOT(q_0, q_1))
+    circuit_01 = circuits.Circuit(ops.X(q_1), ops.H(q_0), ops.CNOT(q_0, q_1))
+    circuit_10 = circuits.Circuit(ops.X(q_0), ops.H(q_0), ops.CNOT(q_0, q_1))
+    circuit_11 = circuits.Circuit(ops.X(q_0), ops.X(q_1), ops.H(q_0),
+                                  ops.CNOT(q_0, q_1))
+    circuit_hh = circuits.Circuit(ops.H(q_0), ops.H(q_1))
+    circuit_xy = circuits.Circuit(ops.X(q_0)**0.5, ops.Y(q_1)**0.5)
+    circuit_yx = circuits.Circuit(ops.Y(q_0)**0.5, ops.X(q_1)**0.5)
 
     act_rho_00 = two_qubit_state_tomography(simulator, q_0, q_1, circuit_00,
                                             1000).data
@@ -130,3 +145,16 @@ def test_two_qubit_state_tomography():
     np.testing.assert_almost_equal(act_rho_hh, tar_rho_hh, decimal=1)
     np.testing.assert_almost_equal(act_rho_xy, tar_rho_xy, decimal=1)
     np.testing.assert_almost_equal(act_rho_yx, tar_rho_yx, decimal=1)
+
+
+def test_tomography_plot_raises_for_incorrect_number_of_axes():
+    simulator = sim.Simulator()
+    qubit = GridQubit(0, 0)
+    circuit = circuits.Circuit(ops.X(qubit)**0.5)
+    result = single_qubit_state_tomography(simulator, qubit, circuit, 1000)
+    with pytest.raises(TypeError):  # ax is not a List[plt.Axes]
+        ax = plt.subplot()
+        result.plot(ax)
+    with pytest.raises(ValueError):
+        _, axes = plt.subplots(1, 3)
+        result.plot(axes)

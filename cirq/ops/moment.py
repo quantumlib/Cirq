@@ -137,6 +137,17 @@ class Moment:
     def __iter__(self):
         return iter(self.operations)
 
+    def __pow__(self, power):
+        if power == 1:
+            return self
+        new_ops = []
+        for op in self.operations:
+            new_op = protocols.pow(op, power, default=None)
+            if new_op is None:
+                return NotImplemented
+            new_ops.append(new_op)
+        return Moment(new_ops)
+
     def __len__(self):
         return len(self.operations)
 
@@ -152,6 +163,16 @@ class Moment:
     def transform_qubits(self: TSelf_Moment,
                          func: Callable[[raw_types.Qid], raw_types.Qid]
                          ) -> TSelf_Moment:
+        """Returns the same moment, but with different qubits.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+
+        Returns:
+            The receiving moment but with qubits transformed by the given
+                function.
+        """
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
 

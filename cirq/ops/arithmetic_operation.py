@@ -59,7 +59,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                [1, 0, 0, 0],
                [0, 1, 0, 0],
                [0, 0, 1, 0]], dtype=int32)
-        >>> c = cirq.Circuit.from_ops(
+        >>> c = cirq.Circuit(
         ...    cirq.X(cirq.LineQubit(3)),
         ...    cirq.X(cirq.LineQubit(2)),
         ...    cirq.X(cirq.LineQubit(6)),
@@ -221,9 +221,13 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             # Copy amplitude to new location.
             cast(List[Union[int, slice]], outputs).append(slice(None))
             cast(List[Union[int, slice]], inputs).append(slice(None))
-            dst[outputs] = src[inputs]
+            dst[tuple(outputs)] = src[tuple(inputs)]
 
-        return args.available_buffer
+        # In case the reshaped arrays were copies instead of views.
+        dst.shape = transposed_args.available_buffer.shape
+        transposed_args.target_tensor[...] = dst
+
+        return args.target_tensor
 
 
 def _describe_bad_arithmetic_changed_const(
