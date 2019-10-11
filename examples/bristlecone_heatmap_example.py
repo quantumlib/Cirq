@@ -1,7 +1,6 @@
 """The script that produces bristlecone_heatmap_example.png."""
 
 import numpy as np
-import matplotlib.pyplot as plt
 import cirq
 
 
@@ -10,9 +9,7 @@ def main():
                  for qubit in cirq.google.known_devices.Bristlecone.qubits}
 
     heatmap = cirq.Heatmap(value_map)
-    fig, ax = plt.subplots(figsize=(9, 9))
-    heatmap.plot(ax)
-    fig.show(warn=False)
+    heatmap.plot()
 
 
 if __name__ == '__main__':
