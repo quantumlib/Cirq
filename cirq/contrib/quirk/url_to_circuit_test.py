@@ -105,7 +105,7 @@ def test_parse_with_qubits():
             qubits=[cirq.GridQubit(0, 0)])
 
 
-def test_extra_recognized():
+def test_extra_cell_makers():
     assert cirq.contrib.quirk.quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
         extra_cell_makers=[

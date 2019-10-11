@@ -69,7 +69,7 @@ def quirk_url_to_circuit(
 
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
         ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-        ...     extra_recognized=[
+        ...     extra_cell_makers=[
         ...         cirq.contrib.quirk.cells.CellMaker(
         ...             identifier='iswap',
         ...             size=2,
