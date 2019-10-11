@@ -1,4 +1,3 @@
-sudo: false
 language: python
 cache:
   directories:
@@ -6,12 +5,6 @@ cache:
 branches:
   only:
   - master
-before_install:
-- pip install --upgrade pip setuptools wheel
-stages:
-- test
-- name: deploy
-  if: type = push AND branch = master
 matrix:
   include:
   - stage: test
@@ -31,4 +24,4 @@ matrix:
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    script: check/pytest --benchmark-skip --actually-quiet
+    script: check/pytest --benchmark-skip
