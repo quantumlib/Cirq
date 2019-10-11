@@ -13,6 +13,7 @@
 # limitations under the License.
 from unittest import mock
 import itertools
+import random
 import numpy as np
 import pytest
 import sympy
@@ -986,13 +987,52 @@ def test_simulate_sweep_parameters_not_resolved():
 
 
 def test_random_seed():
-    sim = cirq.DensityMatrixSimulator(seed=1234)
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.DensityMatrixSimulator(seed=1234)
     result = sim.run(circuit, repetitions=10)
     assert np.all(
         result.measurements['a'] == [[False], [True], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
+
+    sim = cirq.DensityMatrixSimulator(seed=np.random.RandomState(1234))
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_random_seed_does_not_modify_global_state_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a),
+        cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
 
 
 def test_simulate_with_invert_mask():
