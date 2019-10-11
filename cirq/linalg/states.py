@@ -30,6 +30,7 @@ def one_hot(*,
             If not specified, defaults to the start of the array.
         shape: The shape of the array.
         dtype: The dtype of the array.
+        value: The value of the integer.
 
     Returns:
         The created numpy array.
