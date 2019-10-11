@@ -1,15 +1,14 @@
 from typing import TYPE_CHECKING
 
 import matplotlib.textpath
-import numpy as np
 
 if TYPE_CHECKING:
     import cirq
 
 
 def _get_text_width(t: str):
-    t = matplotlib.textpath.TextPath((0, 0), t, size=14, prop='Arial')
-    bb = t.get_extents()
+    tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop='Arial')
+    bb = tp.get_extents()
     return bb.width + 10
 
 
@@ -27,7 +26,7 @@ def _fit_horizontal(tdd, ref_boxwidth, col_padding):
     max_xi = max(xi for xi, _ in tdd.entries.keys())
     max_xi = max(max_xi, max(xi2 for _, _, xi2, _ in tdd.horizontal_lines))
     col_widths = [0] * (max_xi + 2)
-    for (xi, yi), v in tdd.entries.items():
+    for (xi, _), v in tdd.entries.items():
         tw = _get_text_width(v.text)
         if tw > col_widths[xi]:
             col_widths[xi] = max(ref_boxwidth, tw)
@@ -45,20 +44,22 @@ def _fit_horizontal(tdd, ref_boxwidth, col_padding):
     return col_starts, col_widths
 
 
-def tdd_to_svg(tdd: 'cirq.TextDiagramDrawer',
-               ref_rowheight=60,
-               ref_boxwidth=40,
-               ref_boxheight=40,
-               col_padding=20,
-               y_top_pad=5,
-               ):
+def tdd_to_svg(
+        tdd: 'cirq.TextDiagramDrawer',
+        ref_rowheight=60,
+        ref_boxwidth=40,
+        ref_boxheight=40,
+        col_padding=20,
+        y_top_pad=5,
+):
     height = tdd.height() * ref_rowheight
-    col_starts, col_widths = _fit_horizontal(
-        tdd=tdd, ref_boxwidth=ref_boxwidth, col_padding=col_padding)
+    col_starts, col_widths = _fit_horizontal(tdd=tdd,
+                                             ref_boxwidth=ref_boxwidth,
+                                             col_padding=col_padding)
 
     t = f'<svg width="{col_starts[-1]}" height="{height}">'
 
-    for yi, xi1, xi2, emphasize in tdd.horizontal_lines:
+    for yi, xi1, xi2, _ in tdd.horizontal_lines:
         y = yi * ref_rowheight + y_top_pad + ref_boxheight / 2
         x1 = col_starts[xi1] + col_widths[xi1] / 2
         x2 = col_starts[xi2] + col_widths[xi2] / 2
@@ -103,10 +104,13 @@ def tdd_to_svg(tdd: 'cirq.TextDiagramDrawer',
 
 
 class SVGCircuit:
+
     def __init__(self, circuit):
+        # coverage: ignore
         self.circuit = circuit
 
     def _repr_svg_(self):
+        # coverage: ignore
         tdd = self.circuit.to_text_diagram_drawer(transpose=False)
         return tdd_to_svg(tdd)
 
