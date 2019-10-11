@@ -24,6 +24,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
+import warnings
 from typing import Any, cast, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -35,6 +36,29 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
+
+
+def SWAP(*args, **kwargs):
+    warnings.warn("SWAP has been moved. Please always use top-level "
+                  "cirq objects i.e. `cirq.SWAP`", DeprecationWarning)
+    from cirq import ops
+    return ops.SWAP(*args, **kwargs)
+
+
+def MeasurementGate(*args, **kwargs):
+    warnings.warn("MeasurementGate has been moved. Please always use top-level "
+                  "cirq objects i.e. `cirq.MeasurementGate`",
+                  DeprecationWarning)
+    from cirq import ops
+    return ops.MeasurementGate(*args, **kwargs)
+
+
+def ISwapPowGate(*args, **kwargs):
+    warnings.warn("ISwapPowGate has been moved. Please always use top-level "
+                  "cirq objects i.e. `cirq.ISwapPowGate`",
+                  DeprecationWarning)
+    from cirq import ops
+    return ops.ISwapPowGate(*args, **kwargs)
 
 
 @value.value_equality
