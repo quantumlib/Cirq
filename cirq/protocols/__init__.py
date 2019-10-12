@@ -19,7 +19,7 @@ from cirq.protocols.apply_unitary_protocol import (
     ApplyUnitaryArgs,
     SupportsConsistentApplyUnitary,
 )
-from cirq.protocols.apply_channel import (
+from cirq.protocols.apply_channel_protocol import (
     apply_channel,
     ApplyChannelArgs,
     SupportsApplyChannel,
@@ -39,7 +39,7 @@ from cirq.protocols.circuit_diagram_info_protocol import (
     CircuitDiagramInfoArgs,
     SupportsCircuitDiagramInfo,
 )
-from cirq.protocols.decompose import (
+from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
@@ -55,7 +55,7 @@ from cirq.protocols.json import (
     read_json,
     obj_to_dict_helper,
 )
-from cirq.protocols.measurement_key import (
+from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
 )

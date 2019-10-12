@@ -186,19 +186,24 @@ class Heatmap:
         self.vmax = vmax
         return self
 
-    def plot(self, ax: plt.Axes, **pcolor_options: Any
-            ) -> Tuple[mpl_collections.Collection, pd.DataFrame]:
+    def plot(self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
+            ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
 
         Args:
-            ax: the Axes to draw on.
+            ax: the Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
             pcolor_options: keyword arguments passed to ax.pcolor().
 
-        Returns: a 2-tuple (mesh, value_table)
+        Returns: a 3-tuple (ax, mesh, value_table)
+            ax: the `plt.Axes` that is plotted on.
             mesh: the collection of paths drawn and filled.
             value_table: the 2-D pandas DataFrame of values constructed from
                 the value_map.
         """
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(figsize=(8, 8))
         # Find the boundary and size of the heatmap.
         coordinate_list = [
             _get_qubit_row_col(qubit) for qubit in self.value_map.keys()
@@ -251,7 +256,10 @@ class Heatmap:
         if self.annot_map:
             self._write_annotations(mesh, ax)
 
-        return mesh, value_table
+        if show_plot:
+            fig.show()
+
+        return ax, mesh, value_table
 
     def _plot_colorbar(self, mappable: mpl.cm.ScalarMappable,
                        ax: plt.Axes) -> mpl.colorbar.Colorbar:
