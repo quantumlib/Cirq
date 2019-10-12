@@ -14,7 +14,7 @@
 from typing import Iterator, TYPE_CHECKING
 
 from cirq import ops
-from cirq.contrib.quirk.cells.cell import CellMaker, ExplicitOperationsCell
+from cirq.contrib.quirk.cells.cell import CellMaker
 
 if TYPE_CHECKING:
     import cirq

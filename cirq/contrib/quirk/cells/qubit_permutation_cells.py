@@ -18,7 +18,6 @@ from cirq import ops, value
 from cirq.contrib.quirk.cells.cell import (
     CELL_SIZES,
     CellMaker,
-    ExplicitOperationsCell,
 )
 
 if TYPE_CHECKING:
