@@ -68,15 +68,13 @@ from cirq.protocols.mixture import (
     validate_mixture,
 )
 from cirq.protocols.mul_protocol import (
-    mul,
-)
+    mul,)
 from cirq.protocols.pauli_expansion import (
     pauli_expansion,
 )
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow_protocol import (
-    pow,
-)
+    pow,)
 # pylint: enable=redefined-builtin
 from cirq.protocols.qasm import (
     qasm,
