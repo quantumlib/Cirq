@@ -42,18 +42,25 @@ class _ResolverCache:
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.known_devices import _NamedConstantXmonDevice
             self._crd = {
+                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+                'AsymmetricDepolarizingChannel':
+                cirq.AsymmetricDepolarizingChannel,
+                'BitFlipChannel': cirq.BitFlipChannel,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
+                'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GeneralizedAmplitudeDampingChannel':
+                cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
@@ -70,10 +77,13 @@ class _ResolverCache:
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'PauliString': cirq.PauliString,
+                'PhaseDampingChannel': cirq.PhaseDampingChannel,
+                'PhaseFlipChannel': cirq.PhaseFlipChannel,
                 'PhaseGradientGate': cirq.PhaseGradientGate,
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'ResetChannel': cirq.ResetChannel,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
