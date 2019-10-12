@@ -15,8 +15,8 @@
 import itertools
 from typing import cast, Dict, Hashable, List, Optional, Set, Union
 
-import networkx as nx
 import numpy as np
+import networkx as nx
 from sortedcontainers import SortedDict, SortedSet
 
 from cirq import ops
