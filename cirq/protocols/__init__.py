@@ -24,7 +24,7 @@ from cirq.protocols.apply_channel_protocol import (
     ApplyChannelArgs,
     SupportsApplyChannel,
 )
-from cirq.protocols.approximate_equality import (
+from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
