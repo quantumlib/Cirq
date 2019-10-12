@@ -13,22 +13,79 @@
 # limitations under the License.
 import json
 import urllib.parse
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING, \
+    Iterable
 
-import cirq
+from cirq import devices, circuits, ops
 from cirq.contrib.quirk.cells import (
     Cell,
     CellMaker,
     CellMakerArgs,
     generate_all_quirk_cell_makers,
+    ExplicitOperationsCell,
 )
 
+if TYPE_CHECKING:
+    import cirq
 
-def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
+
+def quirk_url_to_circuit(
+        quirk_url: str,
+        *,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        extra_cell_makers: Iterable['cirq.contrib.quirk.cells.CellMaker'] = ()
+) -> 'cirq.Circuit':
+    """Parses a Cirq circuit out of a Quirk URL.
+
+    Args:
+        quirk_url: The URL of a bookmarked Quirk circuit. It is not required
+            that the domain be "algassert.com/quirk". The only important part of
+            the URL is the fragment (the part after the #).
+        qubits: Qubits to use in the circuit. The length of the list must be
+            at least the number of qubits in the Quirk circuit (including unused
+            qubits). The maximum number of qubits in a Quirk circuit is 16.
+            This argument defaults to `cirq.LineQubit.range(16)` when not
+            specified.
+        extra_cell_makers: A list of non-standard Quirk cell makers. This can be
+            used to parse URLs that come from a modified version of Quirk that
+            includes gates that Quirk doesn't define. See
+            `cirq.contrib.quirk.cells.CellMaker`.
+
+    Examples:
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}'
+        ... ))
+        0: ───H───@───
+                  │
+        1: ───────X───
+
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+        ...     qubits=[cirq.NamedQubit('Alice'), cirq.NamedQubit('Bob')]
+        ... ))
+        Alice: ───H───@───
+                      │
+        Bob: ─────────X───
+
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        ...     extra_cell_makers=[
+        ...         cirq.contrib.quirk.cells.CellMaker(
+        ...             identifier='iswap',
+        ...             size=2,
+        ...             maker=lambda args: cirq.ISWAP(*args.qubits))
+        ...     ]))
+        0: ───iSwap───
+              │
+        1: ───iSwap───
+
+    Returns:
+        The parsed circuit.
+    """
 
     parsed_url = urllib.parse.urlparse(quirk_url)
     if not parsed_url.fragment:
-        return cirq.Circuit()
+        return circuits.Circuit()
 
     if not parsed_url.fragment.startswith('circuit='):
         raise ValueError('Not a valid quirk url. The URL fragment (the part '
@@ -63,7 +120,8 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
 
     # Parse column json into cells.
     registry = {
-        entry.identifier: entry for entry in generate_all_quirk_cell_makers()
+        entry.identifier: entry
+        for entry in [*generate_all_quirk_cell_makers(), *extra_cell_makers]
     }
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
@@ -90,15 +148,30 @@ def quirk_url_to_circuit(quirk_url: str) -> 'cirq.Circuit':
                     c[i] = modifier(cell)
 
     # Extract circuit operations from modified cells.
-    result = cirq.Circuit()
+    result = circuits.Circuit()
     for col in parsed_cols:
-        basis_change = cirq.Circuit(
+        basis_change = circuits.Circuit(
             cell.basis_change() for cell in col if cell is not None)
-        body = cirq.Circuit(
+        body = circuits.Circuit(
             cell.operations() for cell in col if cell is not None)
         result += basis_change
         result += body
         result += basis_change**-1
+
+    # Remap qubits if requested.
+    if qubits is not None:
+        qs = cast(Sequence['cirq.Qid'], qubits)
+
+        def map_qubit(qubit: 'cirq.Qid') -> 'cirq.Qid':
+            q = cast(devices.LineQubit, qubit)
+            if q.x >= len(qs):
+                raise IndexError(
+                    f'Only {len(qs)} qubits specified, but the given quirk '
+                    f'circuit used the qubit at offset {q.x}. Provide more '
+                    f'qubits.')
+            return qs[q.x]
+
+        result = result.transform_qubits(map_qubit)
 
     return result
 
@@ -128,7 +201,10 @@ def _parse_cell(registry: Dict[str, CellMaker], row: int, col: int,
 
     if isinstance(key, str) and key in registry:
         entry = registry[key]
-        qubits = cirq.LineQubit.range(row, row + entry.size)
-        return entry.maker(CellMakerArgs(qubits, arg, row=row, col=col))
+        qubits = devices.LineQubit.range(row, row + entry.size)
+        result = entry.maker(CellMakerArgs(qubits, arg, row=row, col=col))
+        if isinstance(result, ops.Operation):
+            return ExplicitOperationsCell([result])
+        return result
 
     raise ValueError('Unrecognized column entry: {!r}'.format(entry))

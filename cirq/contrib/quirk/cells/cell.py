@@ -12,8 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, List, NamedTuple, Any, Iterable, \
-    Sequence, TYPE_CHECKING, Union, Dict
+from typing import (
+    Callable,
+    Optional,
+    List,
+    NamedTuple,
+    Any,
+    Iterable,
+    Sequence,
+    TYPE_CHECKING,
+    Union,
+    Dict,
+)
 
 from cirq import ops, value
 
@@ -156,5 +166,16 @@ CellMakerArgs = NamedTuple('CellMakerArgs', [
 CellMaker = NamedTuple('CellMaker', [
     ('identifier', str),
     ('size', int),
-    ('maker', Callable[[CellMakerArgs], Optional[Cell]]),
+    ('maker', Callable[[CellMakerArgs], Union[None, 'Cell', 'cirq.Operation']]),
 ])
+CellMaker.__doc__ = """Turns Quirk identifiers into Cirq operations.
+
+Attributes:
+    identifier: A string that identifies the cell type, such as "X" or "QFT3".
+    size: The height of the operation. The number of qubits it covers.
+    maker: A function that takes a `cirq.contrib.quirk.cells.CellMakerArgs` and
+        returns either a `cirq.Operation` or a `cirq.contrib.quirk.cells.Cell`.
+        Returning a cell is more flexible, because cells can modify other cells
+        in the same column before producing operations, whereas returning an
+        operation is simple.
+"""
