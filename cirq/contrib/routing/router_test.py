@@ -27,14 +27,22 @@ def random_seed():
     return random.randint(0, 2**32)
 
 
-@pytest.mark.parametrize(
-    'n_moments,algo,seed',
-    [(30, algo, random_seed()) for algo in ccr.ROUTERS for _ in range(5)] +
-    [(0, 'greedy', random_seed())] + [(10, 'greedy', None)])
-def test_route_circuit(n_moments, algo, seed):
-    circuit = cirq.testing.random_circuit(10, n_moments, 0.5, random_state=seed)
+@pytest.mark.parametrize('n_moments,algo,circuit_seed,routing_seed',
+                         [(30, algo, random_seed(), random_seed())
+                          for algo in ccr.ROUTERS
+                          for _ in range(5)] +
+                         [(0, 'greedy', random_seed(), random_seed())] +
+                         [(10, 'greedy', random_seed(), None)])
+def test_route_circuit(n_moments, algo, circuit_seed, routing_seed):
+    circuit = cirq.testing.random_circuit(10,
+                                          n_moments,
+                                          0.5,
+                                          random_state=circuit_seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
-    swap_network = ccr.route_circuit(circuit, device_graph, algo_name=algo)
+    swap_network = ccr.route_circuit(circuit,
+                                     device_graph,
+                                     algo_name=algo,
+                                     random_state=routing_seed)
     assert set(swap_network.initial_mapping).issubset(device_graph)
     assert (sorted(swap_network.initial_mapping.values()) == sorted(
         circuit.all_qubits()))

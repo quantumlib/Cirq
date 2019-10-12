@@ -50,7 +50,8 @@ def get_initial_mapping(
     """
     if random_state is None:
         prng = np.random
-    elif isinstance(random_state, np.random.RandomState):
+    elif (isinstance(random_state, np.random.RandomState) or
+          random_state == np.random):
         prng = random_state
     else:
         prng = np.random.RandomState(random_state)
