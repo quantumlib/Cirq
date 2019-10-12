@@ -18,7 +18,6 @@ from cirq import ops, value
 from cirq.contrib.quirk.cells.cell import (
     CELL_SIZES,
     CellMaker,
-    ExplicitOperationsCell,
 )
 
 if TYPE_CHECKING:
@@ -76,7 +75,7 @@ class QuirkQubitPermutationGate(ops.Gate):
                 f'permutation={repr(self.permutation)})')
 
 
-def generate_all_qubit_permutation_cell_makers():
+def generate_all_qubit_permutation_cell_makers() -> Iterator[CellMaker]:
     yield from _permutation_family("<<", 'left_rotate', lambda _, x: x + 1)
     yield from _permutation_family(">>", 'right_rotate', lambda _, x: x - 1)
     yield from _permutation_family("rev", 'reverse', lambda _, x: ~x)
@@ -100,11 +99,9 @@ def _permutation(
     return CellMaker(
         identifier,
         size=len(permutation),
-        maker=lambda args: ExplicitOperationsCell([
-            QuirkQubitPermutationGate(identifier=identifier,
-                                      name=name,
-                                      permutation=permutation).on(*args.qubits)
-        ]))
+        maker=lambda args: QuirkQubitPermutationGate(
+            identifier=identifier, name=name, permutation=permutation).on(
+                *args.qubits))
 
 
 def _interleave_bit(n: int, x: int) -> int:
