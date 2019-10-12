@@ -13,7 +13,7 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from typing import Sequence, Union, Tuple, Type
+from typing import Sequence, Union, Tuple, Type, Any
 
 import numpy as np
 
@@ -21,15 +21,15 @@ import numpy as np
 def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,
             shape: Union[int, Sequence[int]],
-            value: int = 1,
+            value: Any = 1,
             dtype: Type[np.number]) -> np.ndarray:
     """Returns a numpy array with all 0s and a single non-zero entry(default 1).
 
     Args:
-        index: The index that should store 1 instead of 0.
+        index: The index that should store the `value` argument instead of 0.
             If not specified, defaults to the start of the array.
         shape: The shape of the array.
-        value: The value of the integer.
+        value: The hot value to place at `index` in the result.
         dtype: The dtype of the array.
 
     Returns:
