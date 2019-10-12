@@ -19,23 +19,24 @@ import cirq
 
 
 def make_buffers(shape, dtype):
-    return (
-        np.empty(shape, dtype=dtype),
-        np.empty(shape, dtype=dtype),
-        np.empty(shape, dtype=dtype))
+    return (np.empty(shape, dtype=dtype), np.empty(shape, dtype=dtype),
+            np.empty(shape, dtype=dtype))
 
 
-def apply_channel(val, rho, left_axes, right_axes,
-        assert_result_is_out_buf=False):
+def apply_channel(val,
+                  rho,
+                  left_axes,
+                  right_axes,
+                  assert_result_is_out_buf=False):
     out_buf, buf0, buf1 = make_buffers(rho.shape, rho.dtype)
-    result = cirq.apply_channel(
-            val,
-            args=cirq.ApplyChannelArgs(target_tensor=rho,
-                                       left_axes=left_axes,
-                                       right_axes=right_axes,
-                                       out_buffer=out_buf,
-                                       auxiliary_buffer0=buf0,
-                                       auxiliary_buffer1=buf1))
+    result = cirq.apply_channel(val,
+                                args=cirq.ApplyChannelArgs(
+                                    target_tensor=rho,
+                                    left_axes=left_axes,
+                                    right_axes=right_axes,
+                                    out_buffer=out_buf,
+                                    auxiliary_buffer0=buf0,
+                                    auxiliary_buffer1=buf1))
     if assert_result_is_out_buf:
         assert result is out_buf
     else:
@@ -69,29 +70,28 @@ def test_apply_channel_simple():
             zero_left = cirq.slice_for_qubits_equal_to(args.left_axes, 0)
             one_left = cirq.slice_for_qubits_equal_to(args.left_axes, 1)
             zero_right = cirq.slice_for_qubits_equal_to(args.right_axes, 0)
-            one_right= cirq.slice_for_qubits_equal_to(args.right_axes, 1)
+            one_right = cirq.slice_for_qubits_equal_to(args.right_axes, 1)
             args.out_buffer[:] = 0
             np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
-            for krauss_op in [np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
-                              np.sqrt(0.5) * x]:
-                np.copyto(dst=args.target_tensor,
-                          src=args.auxiliary_buffer0)
-                cirq.apply_matrix_to_slices(
-                        args.target_tensor,
-                        krauss_op,
-                        [zero_left, one_left],
-                        out=args.auxiliary_buffer1)
+            for krauss_op in [
+                    np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
+                    np.sqrt(0.5) * x
+            ]:
+                np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
+                cirq.apply_matrix_to_slices(args.target_tensor,
+                                            krauss_op, [zero_left, one_left],
+                                            out=args.auxiliary_buffer1)
 
-                cirq.apply_matrix_to_slices(
-                        args.auxiliary_buffer1,
-                        np.conjugate(krauss_op),
-                        [zero_right, one_right],
-                        out=args.target_tensor)
+                cirq.apply_matrix_to_slices(args.auxiliary_buffer1,
+                                            np.conjugate(krauss_op),
+                                            [zero_right, one_right],
+                                            out=args.target_tensor)
                 args.out_buffer += args.target_tensor
             return args.out_buffer
 
     rho = np.copy(x)
-    result = apply_channel(HasApplyChannel(), rho, [0], [1],
+    result = apply_channel(HasApplyChannel(),
+                           rho, [0], [1],
                            assert_result_is_out_buf=True)
     np.testing.assert_almost_equal(result, x)
 
@@ -118,6 +118,7 @@ def test_apply_channel_returns_aux_buffer():
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
             return args.auxiliary_buffer0
+
     with pytest.raises(AssertionError, match='ReturnsAuxBuffer0'):
         _ = apply_channel(ReturnsAuxBuffer0(), rho, [0], [1])
 
@@ -125,6 +126,7 @@ def test_apply_channel_returns_aux_buffer():
 
         def _apply_channel_(self, args: cirq.ApplyChannelArgs):
             return args.auxiliary_buffer1
+
     with pytest.raises(AssertionError, match='ReturnsAuxBuffer1'):
         _ = apply_channel(ReturnsAuxBuffer1(), rho, [0], [1])
 
@@ -135,11 +137,12 @@ def test_apply_channel_channel_fallback_simple():
     class HasChannel():
 
         def _channel_(self):
-            return (
-            np.sqrt(0.5) * np.eye(2, dtype=np.complex128), np.sqrt(0.5) * x)
+            return (np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
+                    np.sqrt(0.5) * x)
 
     rho = np.copy(x)
-    result = apply_channel(HasChannel(), rho, [0], [1],
+    result = apply_channel(HasChannel(),
+                           rho, [0], [1],
                            assert_result_is_out_buf=True)
     np.testing.assert_almost_equal(result, x)
 
@@ -157,13 +160,12 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_qubit():
         class HasChannel():
 
             def _channel_(self):
-                return (
-                    np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
-                    np.sqrt(0.5) * u)
+                return (np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
+                        np.sqrt(0.5) * u)
 
-        result = apply_channel(HasChannel(), rho, [0], [1],
+        result = apply_channel(HasChannel(),
+                               rho, [0], [1],
                                assert_result_is_out_buf=True)
-
 
         np.testing.assert_almost_equal(result, expected)
 
@@ -182,17 +184,15 @@ def test_apply_channel_channel_fallback_one_qubit_random_on_two_qubits():
         rho.shape = (2, 2, 2, 2)
         expected.shape = (2, 2, 2, 2)
 
-
         class HasChannel():
 
             def _channel_(self):
-                return (
-                    np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
-                    np.sqrt(0.5) * u)
+                return (np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
+                        np.sqrt(0.5) * u)
 
-        result = apply_channel(HasChannel(), rho, [0], [2],
+        result = apply_channel(HasChannel(),
+                               rho, [0], [2],
                                assert_result_is_out_buf=True)
-
 
         np.testing.assert_almost_equal(result, expected)
 
@@ -213,29 +213,29 @@ def test_apply_channel_channel_fallback_two_qubit_random():
         class HasChannel():
 
             def _channel_(self):
-                return (
-                    np.sqrt(0.5) * np.eye(4, dtype=np.complex128),
-                    np.sqrt(0.5) * u)
+                return (np.sqrt(0.5) * np.eye(4, dtype=np.complex128),
+                        np.sqrt(0.5) * u)
 
-        result = apply_channel(HasChannel(), rho, [0, 1], [2, 3],
+        result = apply_channel(HasChannel(),
+                               rho, [0, 1], [2, 3],
                                assert_result_is_out_buf=True)
-
 
         np.testing.assert_almost_equal(result, expected)
 
 
 def test_apply_channel_no_protocols_implemented():
+
     class NoProtocols:
         pass
 
     rho = np.ones((2, 2, 2, 2), dtype=np.complex128)
-
 
     with pytest.raises(TypeError):
         apply_channel(NoProtocols(), rho, left_axes=[1], right_axes=[1])
 
 
 def test_apply_channel_no_protocols_implemented_default():
+
     class NoProtocols:
         pass
 
@@ -256,19 +256,25 @@ def test_apply_channel_unitary():
     rho = np.ones(shape, dtype=np.complex128)
 
     class HasUnitary:
+
         def _unitary_(self) -> np.ndarray:
             return m
 
     class HasUnitaryButReturnsNotImplemented(HasUnitary):
+
         def _apply_unitary_(self, args: cirq.ApplyChannelArgs):
             return NotImplemented
 
     for val in (HasUnitary(), HasUnitaryButReturnsNotImplemented()):
-        result = apply_channel(val, rho, left_axes=[1], right_axes=[3],
+        result = apply_channel(val,
+                               rho,
+                               left_axes=[1],
+                               right_axes=[3],
                                assert_result_is_out_buf=True)
         np.testing.assert_almost_equal(
-                result,
-                np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape),)
+            result,
+            np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape),
+        )
 
 
 def test_apply_channel_apply_unitary():
@@ -276,6 +282,7 @@ def test_apply_channel_apply_unitary():
     rho = np.ones(shape, dtype=np.complex128)
 
     class HasApplyUnitaryOutputInBuffer:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             zero = args.subspace_index(0)
             one = args.subspace_index(1)
@@ -284,23 +291,28 @@ def test_apply_channel_apply_unitary():
             return args.available_buffer
 
     class HasApplyUnitaryMutateInline:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:
             one = args.subspace_index(1)
             args.target_tensor[one] *= 1j
             return args.target_tensor
 
     for val in (HasApplyUnitaryOutputInBuffer(), HasApplyUnitaryMutateInline()):
-        result_is_out_buf = isinstance(val,
-                                              HasApplyUnitaryOutputInBuffer)
-        result = apply_channel(val, rho, left_axes=[1], right_axes=[3],
+        result_is_out_buf = isinstance(val, HasApplyUnitaryOutputInBuffer)
+        result = apply_channel(val,
+                               rho,
+                               left_axes=[1],
+                               right_axes=[3],
                                assert_result_is_out_buf=result_is_out_buf)
         np.testing.assert_almost_equal(
-                result,
-                np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape))
+            result, np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]),
+                               shape))
 
 
 def test_apply_channel_apply_unitary_not_implemented():
+
     class ApplyUnitaryNotImplemeneted:
+
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             return NotImplemented
 
@@ -308,11 +320,11 @@ def test_apply_channel_apply_unitary_not_implemented():
     out_buf, aux_buf0, aux_buf1 = make_buffers((2, 2, 2, 2), dtype=rho.dtype)
 
     with pytest.raises(TypeError):
-        cirq.apply_channel(
-                ApplyUnitaryNotImplemeneted(),
-                args=cirq.ApplyChannelArgs(target_tensor=rho,
-                                           left_axes=[1],
-                                           right_axes=[3],
-                                           out_buffer=out_buf,
-                                           auxiliary_buffer0=aux_buf0,
-                                           auxiliary_buffer1=aux_buf1))
+        cirq.apply_channel(ApplyUnitaryNotImplemeneted(),
+                           args=cirq.ApplyChannelArgs(
+                               target_tensor=rho,
+                               left_axes=[1],
+                               right_axes=[3],
+                               out_buffer=out_buf,
+                               auxiliary_buffer0=aux_buf0,
+                               auxiliary_buffer1=aux_buf1))
