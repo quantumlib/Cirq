@@ -80,3 +80,37 @@ def test_parse_not_supported_yet():
                        match='initial states not supported yet'):
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": [[]], "init": []}')
+
+
+def test_parse_with_qubits():
+    a = cirq.GridQubit(0, 0)
+    b = cirq.GridQubit(0, 1)
+    c = cirq.GridQubit(0, 2)
+
+    assert quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+        qubits=cirq.GridQubit.rect(4, 4)) == cirq.Circuit(
+            cirq.H(a),
+            cirq.X(b).controlled_by(a))
+
+    assert quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["H"],["•",1,"X"]]}',
+        qubits=cirq.GridQubit.rect(4, 4)) == cirq.Circuit(
+            cirq.H(a),
+            cirq.X(c).controlled_by(a))
+
+    with pytest.raises(IndexError, match="qubits specified"):
+        _ = quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
+            qubits=[cirq.GridQubit(0, 0)])
+
+
+def test_extra_cell_makers():
+    assert cirq.contrib.quirk.quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        extra_cell_makers=[
+            cirq.contrib.quirk.cells.CellMaker(
+                identifier='iswap',
+                size=2,
+                maker=lambda args: cirq.ISWAP(*args.qubits))
+        ]) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
