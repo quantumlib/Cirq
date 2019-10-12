@@ -1,11 +1,13 @@
 import numpy as np
 import pytest
+import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
+import examples.bristlecone_heatmap_example
 import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
@@ -70,13 +72,18 @@ def test_example_runs_phase_estimator():
     examples.phase_estimator.main(qnums=(2,), repetitions=2)
 
 
+def test_example_runs_bristlecone_heatmap():
+    plt.switch_backend('agg')
+    examples.bristlecone_heatmap_example.main()
+
+
 def test_example_runs_qaoa():
     examples.qaoa.main(repetitions=10, maxiter=5)
 
 
 def test_example_runs_quantum_teleportation():
     expected, teleported = examples.quantum_teleportation.main()
-    assert np.all(np.isclose(expected, teleported, rtol=1e-4))
+    assert np.all(np.isclose(expected, teleported, atol=1e-4))
 
 
 def test_example_runs_superdense_coding():

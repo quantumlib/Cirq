@@ -329,3 +329,17 @@ def test_equal_up_to_global_phase_on_gates(gate1, gate2, eq_up_to_global_phase):
 def test_equal_up_to_global_phase_on_diff_types():
     op = cirq.X(cirq.LineQubit(0))
     assert not cirq.equal_up_to_global_phase(op, 3)
+
+
+def test_gate_on_operation_besides_gate_operation():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.op_gate_of_type(
+        -1j * cirq.X(a) * cirq.Y(b),
+        cirq.DensePauliString) == -1j * cirq.DensePauliString('XY')
+
+    assert cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                   cirq.DensePauliString)
+
+    assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                       cirq.XPowGate)
