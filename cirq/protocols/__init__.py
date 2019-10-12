@@ -71,8 +71,7 @@ from cirq.protocols.mul import (
     mul,
 )
 from cirq.protocols.pauli_expansion_protocol import (
-    pauli_expansion,
-)
+    pauli_expansion,)
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow import (
     pow,
