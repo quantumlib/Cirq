@@ -39,7 +39,7 @@ from cirq.protocols.circuit_diagram_info import (
     CircuitDiagramInfoArgs,
     SupportsCircuitDiagramInfo,
 )
-from cirq.protocols.decompose import (
+from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
@@ -55,7 +55,7 @@ from cirq.protocols.json import (
     read_json,
     obj_to_dict_helper,
 )
-from cirq.protocols.measurement_key import (
+from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
 )
