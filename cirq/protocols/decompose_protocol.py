@@ -36,7 +36,6 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
 
-
 TValue = TypeVar('TValue')
 
 TDefault = TypeVar('TDefault')
@@ -47,9 +46,8 @@ RaiseTypeErrorIfNotProvided: Any = ([],)
 
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
-    return ValueError(
-        "Operation doesn't satisfy the given `keep` "
-        "but can't be decomposed: {!r}".format(op))
+    return ValueError("Operation doesn't satisfy the given `keep` "
+                      "but can't be decomposed: {!r}".format(op))
 
 
 class SupportsDecompose(Protocol):
@@ -115,71 +113,59 @@ class SupportsDecomposeWithQubits(Protocol):
     """
 
     def _decompose_(self, qubits: Tuple['cirq.Qid', ...]
-                    ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
+                   ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
         pass
 
 
 def _default_decomposer(op: 'cirq.Operation'
-                        ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
+                       ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
     return decompose_once(op, default=NotImplemented)
 
 
 # pylint: disable=function-redefined
 @overload
-def decompose(
-    val: Any,
-    *,
-    intercepting_decomposer: Callable[['cirq.Operation'],
-                                      Union[None,
-                                            NotImplementedType,
-                                            'cirq.OP_TREE']] = None,
-    fallback_decomposer: Callable[['cirq.Operation'],
-                                  Union[None,
-                                        NotImplementedType,
-                                        'cirq.OP_TREE']] = None,
-    keep: Callable[['cirq.Operation'], bool] = None
-) -> List['cirq.Operation']:
+def decompose(val: Any,
+              *,
+              intercepting_decomposer: Callable[[
+                  'cirq.Operation'
+              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
+              fallback_decomposer: Callable[[
+                  'cirq.Operation'
+              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
+              keep: Callable[['cirq.Operation'], bool] = None
+             ) -> List['cirq.Operation']:
     pass
 
 
 @overload
-def decompose(
-    val: Any,
-    *,
-    intercepting_decomposer: Callable[['cirq.Operation'],
-                                      Union[None,
-                                            NotImplementedType,
-                                            'cirq.OP_TREE']] = None,
-    fallback_decomposer: Callable[['cirq.Operation'],
-                                  Union[None,
-                                        NotImplementedType,
-                                        'cirq.OP_TREE']] = None,
-    keep: Callable[['cirq.Operation'], bool] = None,
-    on_stuck_raise: Optional[Union[
-        TError,
-        Callable[['cirq.Operation'], TError]]
-    ]
-) -> List['cirq.Operation']:
+def decompose(val: Any,
+              *,
+              intercepting_decomposer: Callable[[
+                  'cirq.Operation'
+              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
+              fallback_decomposer: Callable[[
+                  'cirq.Operation'
+              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
+              keep: Callable[['cirq.Operation'], bool] = None,
+              on_stuck_raise: Optional[
+                  Union[TError, Callable[['cirq.Operation'], TError]]]
+             ) -> List['cirq.Operation']:
     pass
 
 
 def decompose(
-    val: TValue,
-    *,
-    intercepting_decomposer: Callable[['cirq.Operation'],
-                                      Union[None,
-                                            NotImplementedType,
-                                            'cirq.OP_TREE']] = None,
-    fallback_decomposer: Callable[['cirq.Operation'],
-                                  Union[None,
-                                        NotImplementedType,
-                                        'cirq.OP_TREE']] = None,
-    keep: Callable[['cirq.Operation'], bool] = None,
-    on_stuck_raise: Union[None,
-                          Exception,
-                          Callable[['cirq.Operation'],
-                                   Union[None, Exception]]]
-    = _value_error_describing_bad_operation
+        val: TValue,
+        *,
+        intercepting_decomposer: Callable[[
+            'cirq.Operation'
+        ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
+        fallback_decomposer: Callable[[
+            'cirq.Operation'
+        ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
+        keep: Callable[['cirq.Operation'], bool] = None,
+        on_stuck_raise: Union[None, Exception, Callable[[
+            'cirq.Operation'
+        ], Union[None, Exception]]] = _value_error_describing_bad_operation
 ) -> List['cirq.Operation']:
     """Recursively decomposes a value into `cirq.Operation`s meeting a criteria.
 
@@ -235,11 +221,10 @@ def decompose(
             "not possible to get stuck if you don't have a criteria on what's "
             "acceptable to keep.")
 
-    decomposers = [d
-                   for d in [intercepting_decomposer,
-                             _default_decomposer,
-                             fallback_decomposer]
-                   if d]
+    decomposers = [
+        d for d in
+        [intercepting_decomposer, _default_decomposer, fallback_decomposer] if d
+    ]
 
     def decomposer(op):
         for d in decomposers:
@@ -337,20 +322,20 @@ def decompose_once(val: Any,
 
 
 @overload
-def decompose_once_with_qubits(val: Any,
-                               qubits: Iterable['cirq.Qid']
-                               ) -> List['cirq.Operation']:
+def decompose_once_with_qubits(val: Any, qubits: Iterable['cirq.Qid']
+                              ) -> List['cirq.Operation']:
     pass
 
 
 @overload
-def decompose_once_with_qubits(val: Any,
-                               qubits: Iterable['cirq.Qid'],
-                               # NOTE: should be TDefault instead of Any, but
-                               # mypy has false positive errors when setting
-                               # default to None.
-                               default: Any,
-                               ) -> Union[TDefault, List['cirq.Operation']]:
+def decompose_once_with_qubits(
+        val: Any,
+        qubits: Iterable['cirq.Qid'],
+        # NOTE: should be TDefault instead of Any, but
+        # mypy has false positive errors when setting
+        # default to None.
+        default: Any,
+) -> Union[TDefault, List['cirq.Operation']]:
     pass
 
 
@@ -383,6 +368,8 @@ def decompose_once_with_qubits(val: Any,
         `NotImplemented` or `None`) and `default` wasn't set.
     """
     return decompose_once(val, default, tuple(qubits))
+
+
 # pylint: enable=function-redefined
 
 
