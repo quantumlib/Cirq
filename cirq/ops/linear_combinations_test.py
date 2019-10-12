@@ -978,14 +978,55 @@ def test_mul_paulistring():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
 
     psum1 = cirq.X(q0) + 2 * cirq.Y(q0) + 3 * cirq.Z(q0)
-    assert psum1 * cirq.PauliString(cirq.X(q0)) == 
-    return
+    x0 = cirq.PauliString(cirq.X(q0))
+    y1 = cirq.PauliString(cirq.Y(q1))
+    assert x0 * psum1 == cirq.PauliString(cirq.I(q0)) \
+                         + 2j * cirq.PauliString(cirq.Z(q0)) \
+                         - 3j * cirq.PauliString(cirq.Y(q0))
+    assert y1 * psum1 == cirq.PauliString(cirq.X(q0) * cirq.Y(q1)) \
+                         + 2 * cirq.PauliString(cirq.Y(q0) * cirq.Y(q1)) \
+                         + 3 * cirq.PauliString(cirq.Z(q0) * cirq.Y(q1))
+    assert cirq.PauliString(cirq.I(q0)) * psum1 == psum1
+    assert psum1 * x0 == cirq.PauliString(cirq.I(q0)) \
+                         - 2j * cirq.PauliString(cirq.Z(q0)) \
+                         + 3j * cirq.PauliString(cirq.Y(q0))
+    assert psum1 * y1 == y1 * psum1
+
+    psum1 *= cirq.Z(q0)
+    assert psum1 == -1j * cirq.Y(q0) + 2j * cirq.X(q0) + 3
+
 
 def test_mul_paulisum():
-    return
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+
+    psum1 = cirq.X(q0) + 2 * cirq.Y(q0) * cirq.Y(q1)
+    psum2 = cirq.X(q0) * cirq.X(q1) + 3 * cirq.Y(q2)
+    assert psum1 * psum2 == cirq.X(q1) + 3 * cirq.X(q0) * cirq.Y(q2) \
+                            - 2 * cirq.Z(q0) * cirq.Z(q1) \
+                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Y(q2)
+    assert psum2 * psum1 == cirq.X(q1) + 2 * cirq.Z(q0) * cirq.Z(q1) \
+                            + 3 * cirq.X(q0) * cirq.Y(q2) \
+                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Y(q2)
+    psum3 = cirq.X(q1) + cirq.X(q2)
+    psum1 *= psum3
+    assert psum1 == cirq.X(q0) * cirq.X(q1) + 2j * cirq.Y(q0) * cirq.Z(q1) \
+        + cirq.X(q0)  * cirq.X(q2)+ 2 * cirq.Y(q0) * cirq.Y(q1) * cirq.X(q2)
+
 
 def test_pauli_sum_pow():
-    return
+    psum1 = cirq.X(q0) + cirq.Y(q0)
+    assert psum1 ** 2 == psum1 * psum1
+    print(psum1 ** 2)
+    # FIXME: some kind of type bug between different kinds of instantiation...
+    print(2. * cirq.PauliString(cirq.I(q0)))
+    assert psum1 ** 2 == 2 * cirq.PauliString(cirq.I(q0))
+
+    psum2 = cirq.X(q0) + cirq.Y(q1)
+    print(psum1 ** 2)
+    assert psum2 ** 2 == cirq.I(q0) + cirq.I(q1)
+
+    psum2 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q0)
+    assert psum2 ** 2 == 3.69
 
 
 def test_expectation_from_wavefunction_invalid_input():

@@ -529,9 +529,7 @@ class PauliSum:
                 base *= base
             return base
 
-        if power == -1:
-            # TODO: checkme... is pauli self-inverse?
-            return NotImplemented
+        return NotImplemented
 
     def __truediv__(self, a: value.Scalar):
         return self.__mul__(1 / a)
