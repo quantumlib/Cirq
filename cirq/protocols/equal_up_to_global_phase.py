@@ -19,7 +19,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.approximate_equality import approx_eq
+from cirq.protocols.approximate_equality_protocol import approx_eq
 
 
 class SupportsEqualUpToGlobalPhase(Protocol):

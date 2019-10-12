@@ -24,7 +24,7 @@ from cirq.protocols.apply_channel_protocol import (
     ApplyChannelArgs,
     SupportsApplyChannel,
 )
-from cirq.protocols.approximate_equality import (
+from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
@@ -33,7 +33,7 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
-from cirq.protocols.circuit_diagram_info import (
+from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
