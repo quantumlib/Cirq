@@ -88,9 +88,29 @@ def test_input_rotation_cells():
 3: ───A1───────────
         """)
 
+    assert_url_to_circuit_returns(
+        '{"cols":[["Z^(A/2^n)","inputA1","inputB1"],[1,1,"Z"],[1,1,"Z"]]}',
+        unitary=np.diag([1, 1, 1, 1, 1, 1, 1j, 1j]))
+
 
 def test_input_rotation_cells_repr():
     circuit = quirk_url_to_circuit('http://algassert.com/quirk#circuit='
                                    '{"cols":[["•","X^(-A/2^n)","inputA2"]]}')
     op = circuit[0].operations[0]
     cirq.testing.assert_equivalent_repr(op)
+
+
+def test_input_rotation_with_qubits():
+    a, b, c, d, e = cirq.LineQubit.range(5)
+    x, y, z, t, w = cirq.LineQubit.range(10, 15)
+    op = cirq.contrib.quirk.QuirkInputRotationOperation(
+        identifier='test',
+        register=[a, b, c],
+        base_operation=cirq.X(d).controlled_by(e),
+        exponent_sign=-1)
+    assert op.with_qubits(x, y, z, t,
+                          w) == (cirq.contrib.quirk.QuirkInputRotationOperation(
+                              identifier='test',
+                              register=[z, t, w],
+                              base_operation=cirq.X(y).controlled_by(x),
+                              exponent_sign=-1))

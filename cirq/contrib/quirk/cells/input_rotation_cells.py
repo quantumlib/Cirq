@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, Iterable, List, Sequence, Iterator
+from typing import Optional, Iterable, Sequence, Iterator
 
 import numpy as np
 
@@ -79,11 +79,12 @@ class QuirkInputRotationOperation(ops.Operation):
         return tuple(self.base_operation.qubits) + self.register
 
     def with_qubits(self, *new_qubits):
-        new_op_qubits = new_qubits[:len(self.base_operation.qubits)]
-        new_register = new_qubits[len(self.base_operation.qubits):]
-        return QuirkInputRotationOperation(self.identifier, new_register,
-                                           self.base_operation,
-                                           self.exponent_sign)
+        k = len(self.base_operation.qubits)
+        new_op_qubits = new_qubits[:k]
+        new_register = new_qubits[k:]
+        return QuirkInputRotationOperation(
+            self.identifier, new_register,
+            self.base_operation.with_qubits(*new_op_qubits), self.exponent_sign)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         sub_result = cirq.circuit_diagram_info(self.base_operation)
