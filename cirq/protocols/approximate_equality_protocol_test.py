@@ -145,7 +145,9 @@ def test_approx_eq_list():
     assert not cirq.approx_eq([], [[]], atol=0.0)
     assert cirq.approx_eq([1, 1], [1, 1], atol=0.0)
     assert not cirq.approx_eq([1, 1], [1, 1, 1], atol=0.0)
-    assert not cirq.approx_eq([1, 1], [1,], atol=0.0)
+    assert not cirq.approx_eq([1, 1], [
+        1,
+    ], atol=0.0)
     assert cirq.approx_eq([1.1, 1.2, 1.3], [1, 1, 1], atol=0.4)
     assert not cirq.approx_eq([1.1, 1.2, 1.3], [1, 1, 1], atol=0.2)
 
@@ -158,9 +160,11 @@ def test_approx_eq_default():
 
 
 def test_approx_eq_iterables():
+
     def gen_1_1():
         yield 1
         yield 1
+
     assert cirq.approx_eq((1, 1), [1, 1], atol=0.0)
     assert cirq.approx_eq((1, 1), gen_1_1(), atol=0.0)
     assert cirq.approx_eq(gen_1_1(), [1, 1], atol=0.0)

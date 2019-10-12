@@ -135,15 +135,14 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-def sample_sweep(
-        program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable,
-        *,
-        noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        repetitions: int = 1,
-        dtype: Type[np.number] = np.complex64,
-        seed: Optional[int] = None,
-) -> List[study.TrialResult]:
+def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
+                 params: study.Sweepable,
+                 *,
+                 noise: 'cirq.NOISE_MODEL_LIKE' = None,
+                 repetitions: int = 1,
+                 dtype: Type[np.number] = np.complex64,
+                 seed: Optional[Union[int, np.random.RandomState]] = None
+                ) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -164,8 +163,13 @@ def sample_sweep(
         TrialResult list for this run; one for each possible parameter
         resolver.
     """
-    if seed:
-        np.random.seed(seed)
+    if seed is None:
+        prng = None
+    elif isinstance(seed, np.random.RandomState):
+        prng = seed
+    else:
+        prng = np.random.RandomState(seed)
+
     circuit = (program.to_circuit()
                if isinstance(program, schedules.Schedule) else program)
 
@@ -175,6 +179,7 @@ def sample_sweep(
                               noise=noise,
                               param_resolver=param_resolver,
                               repetitions=repetitions,
-                              dtype=dtype)
+                              dtype=dtype,
+                              seed=prng)
         trial_results.append(measurements)
     return trial_results
