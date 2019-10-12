@@ -32,7 +32,8 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq.protocols import qid_shape_protocol
-from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,)
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
