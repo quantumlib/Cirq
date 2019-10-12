@@ -67,14 +67,14 @@ from cirq.protocols.mixture import (
     SupportsMixture,
     validate_mixture,
 )
-from cirq.protocols.mul import (
+from cirq.protocols.mul_protocol import (
     mul,
 )
 from cirq.protocols.pauli_expansion import (
     pauli_expansion,
 )
 # pylint: disable=redefined-builtin
-from cirq.protocols.pow import (
+from cirq.protocols.pow_protocol import (
     pow,
 )
 # pylint: enable=redefined-builtin
@@ -95,7 +95,7 @@ from cirq.protocols.resolve_parameters import (
     resolve_parameters,
     SupportsParameterization,
 )
-from cirq.protocols.phase import (
+from cirq.protocols.phase_protocol import (
     phase_by,
     SupportsPhase,
 )
