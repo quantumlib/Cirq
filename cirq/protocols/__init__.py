@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from cirq.protocols.apply_unitary import (
+from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
