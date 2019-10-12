@@ -39,6 +39,7 @@ class _ResolverCache:
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
+            from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.known_devices import _NamedConstantXmonDevice
             self._crd = {
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
@@ -52,6 +53,7 @@ class _ResolverCache:
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
+                'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
@@ -69,6 +71,7 @@ class _ResolverCache:
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+                '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,

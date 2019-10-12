@@ -163,6 +163,8 @@ TEST_OBJECTS = {
         #       https://github.com/quantumlib/Cirq/issues/2014
         # cirq.Circuit(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
     ],
+    'ConstantQubitNoiseModel':
+    cirq.ConstantQubitNoiseModel(cirq.X),
     'Duration':
     cirq.Duration(picos=6),
     'DensePauliString':
@@ -221,6 +223,8 @@ TEST_OBJECTS = {
         cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1),
                                 cirq.Z(Q2)]),
     ],
+    'NO_NOISE':
+    cirq.NO_NOISE,
     'NamedQubit':
     cirq.NamedQubit('hi mom'),
     'PauliString': [
@@ -436,7 +440,6 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
     'ComputeDisplaysResult',
-    'ConstantQubitNoiseModel',
     'ControlledGate',
     'ControlledOperation',
     'DensityMatrixSimulator',
@@ -454,7 +457,6 @@ NOT_YET_SERIALIZABLE = [
     'LinearDict',
     'Linspace',
     'ListSweep',
-    'NO_NOISE',
     'NeutralAtomDevice',
     'ParallelGateOperation',
     'ParamResolver',
