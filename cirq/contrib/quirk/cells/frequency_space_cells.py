@@ -18,8 +18,8 @@ import sympy
 import cirq
 from cirq.contrib.quirk.cells.cell import (
     CellMaker,
-    ExplicitOperationsCell,
     CELL_SIZES,
+    ExplicitOperationsCell,
 )
 
 
