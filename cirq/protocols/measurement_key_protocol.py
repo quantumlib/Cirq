@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Protocol for object that have measurement keys."""
 
 from typing import Any
@@ -48,9 +47,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
 
-def measurement_key(
-        val: Any,
-        default: Any = RaiseTypeErrorIfNotProvided):
+def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     """Get the measurement key for the given value.
 
     Args:
@@ -79,8 +76,8 @@ def measurement_key(
 
     if getter is None:
         raise TypeError(
-                "object of type '{}' has no _measurement_key_ method."
-                    .format(type(val)))
+            "object of type '{}' has no _measurement_key_ method.".format(
+                type(val)))
 
     raise TypeError("object of type '{}' does have a _measurement_key_ method, "
                     "but it returned NotImplemented.".format(type(val)))

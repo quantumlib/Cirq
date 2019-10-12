@@ -24,7 +24,8 @@ from typing_extensions import Protocol
 
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary import ApplyUnitaryArgs
-from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,)
 from cirq import linalg
 
 if TYPE_CHECKING:

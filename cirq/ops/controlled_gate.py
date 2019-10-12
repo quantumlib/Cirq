@@ -34,7 +34,8 @@ class ControlledGate(raw_types.Gate):
                 Union[int, Collection[int]]]] = None,
             control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> None:
-        """Initializes the controlled gate.
+        """Initializes the controlled gate. If no arguments are specified for
+           the controls, defaults to a single qubit control.
 
         Args:
             sub_gate: The gate to add a control qubit to.

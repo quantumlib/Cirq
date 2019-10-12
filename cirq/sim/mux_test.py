@@ -108,11 +108,18 @@ def test_sample_sweep():
 
 def test_sample_sweep_seed():
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
-    results = cirq.sample_sweep(circuit,
-                                cirq.Linspace('t', 0, 1, 3),
+    circuit = cirq.Circuit(cirq.X(q)**sympy.Symbol('t'), cirq.measure(q))
+
+    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
                                 repetitions=2,
                                 seed=1234)
+    assert np.all(results[0].measurements['q'] == [[False], [True]])
+    assert np.all(results[1].measurements['q'] == [[False], [True]])
+    assert np.all(results[2].measurements['q'] == [[True], [False]])
+
+    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
+                                repetitions=2,
+                                seed=np.random.RandomState(1234))
     assert np.all(results[0].measurements['q'] == [[False], [True]])
     assert np.all(results[1].measurements['q'] == [[False], [True]])
     assert np.all(results[2].measurements['q'] == [[True], [False]])
