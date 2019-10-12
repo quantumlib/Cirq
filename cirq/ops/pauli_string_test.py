@@ -966,7 +966,7 @@ def test_pauli_string_expectation_from_wavefunction_pure_state_with_coef():
         cirq.X(qs[3]),
         cirq.H(qs[3]),
     )
-    wf = circuit.apply_unitary_effect_to_state(qubit_order=qs)
+    wf = circuit.final_wavefunction(qubit_order=qs)
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
@@ -1192,7 +1192,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state_with_coef():
         cirq.X(qs[3]),
         cirq.H(qs[3]),
     )
-    wavefunction = circuit.apply_unitary_effect_to_state(qubit_order=qs)
+    wavefunction = circuit.final_wavefunction(qubit_order=qs)
     rho = np.outer(wavefunction, np.conj(wavefunction))
 
     z0z1 = cirq.Z(qs[0]) * cirq.Z(qs[1]) * .123

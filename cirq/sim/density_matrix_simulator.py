@@ -17,13 +17,16 @@
 import collections
 
 from typing import (Any, cast, Dict, Hashable, Iterator, List, Optional, Type,
-                    Sequence, Union)
+                    Sequence, Union, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import (circuits, linalg, ops, protocols, schedules, study, value,
                   devices)
 from cirq.sim import density_matrix_utils, simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class _StateAndBuffers:
@@ -118,26 +121,29 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
     def __init__(self,
                  *,
                  dtype: Type[np.number] = np.complex64,
-                 noise: devices.NoiseModel = devices.NO_NOISE,
-                 seed: Optional[int] = None):
+                 noise: 'cirq.NOISE_MODEL_LIKE' = None,
+                 seed: Optional[Union[int, np.random.RandomState]] = None):
         """Density matrix simulator.
 
          Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
-            seed: The random seed to use for this simulator. Sets numpy's
-                random seed. Setting numpy's seed different in between
-                use of this class will lead to non-seeded behavior.
+            seed: The random seed to use for this simulator.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
                 'dtype must be complex64 or complex128, was {}'.format(dtype))
 
         self._dtype = dtype
-        self.noise = noise
-        if seed:
-            np.random.seed(seed)
+        self.noise = devices.NoiseModel.from_noise_model_like(noise)
+
+        if seed is None:
+            self.prng = None
+        elif isinstance(seed, np.random.RandomState):
+            self.prng = seed
+        else:
+            self.prng = np.random.RandomState(seed)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -164,7 +170,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
                                ops.MeasurementGate)]
-        return step_result.sample_measurement_ops(measurement_ops, repetitions)
+        return step_result.sample_measurement_ops(measurement_ops,
+                                                  repetitions,
+                                                  seed=self.prng)
 
     def _run_sweep_repeat(self,
                           circuit: circuits.Circuit,
@@ -289,7 +297,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             state.tensor,
                             indices,
                             qid_shape=qid_shape,
-                            out=state.tensor)
+                            out=state.tensor,
+                            seed=self.prng)
                         corrected = [
                             bit ^ (bit < 2 and mask)
                             for bit, mask in zip(bits, invert_mask)
@@ -552,14 +561,17 @@ class DensityMatrixStepResult(simulator.StepResult):
         return np.reshape(self._density_matrix, (size, size))
 
     def sample(self,
-            qubits: List[ops.Qid],
-            repetitions: int = 1) -> np.ndarray:
+               qubits: List[ops.Qid],
+               repetitions: int = 1,
+               seed: Optional[Union[int, np.random.RandomState]] = None
+              ) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,
             indices,
             qid_shape=self._qid_shape,
-            repetitions=repetitions)
+            repetitions=repetitions,
+            seed=seed)
 
 
 @value.value_equality(unhashable=True)

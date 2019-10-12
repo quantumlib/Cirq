@@ -31,7 +31,9 @@ from cirq.value.digits import (
 )
 
 from cirq.value.duration import (
-    Duration,)
+    Duration,
+    DURATION_LIKE,
+)
 
 from cirq.value.linear_dict import (
     LinearDict,
