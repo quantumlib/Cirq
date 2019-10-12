@@ -95,7 +95,7 @@ def test_route_circuit_reproducible_between_runs(algo):
 @pytest.mark.parametrize('n_moments,algo,seed,make_bad',
                          [(8, algo, random_seed(), make_bad)
                           for algo in ccr.ROUTERS for make_bad in (False, True)
-                          for _ in range(10**3)] +
+                          for _ in range(5)] +
                          [(0, 'greedy', random_seed(), False)])
 def test_route_circuit_via_unitaries(n_moments, algo, seed, make_bad):
     circuit = cirq.testing.random_circuit(4, n_moments, 0.5, random_state=seed)
