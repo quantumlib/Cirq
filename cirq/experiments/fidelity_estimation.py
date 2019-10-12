@@ -13,7 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import Dict, Optional, Sequence
+from typing import Mapping, Optional, Sequence
 
 import numpy as np
 
@@ -26,7 +26,7 @@ def linear_xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
-        amplitudes: Optional[Dict[int, complex]] = None,
+        amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
 
@@ -90,6 +90,6 @@ def linear_xeb_fidelity(
         output_probabilities = np.abs(output_state)**2
         bitstring_probabilities = output_probabilities[bitstrings]
     else:
-        bitstring_probabilities = np.array(
-            [np.abs(amplitudes[bitstring])**2 for bitstring in bitstrings])
+        bitstring_probabilities = np.abs(
+            [amplitudes[bitstring] for bitstring in bitstrings])**2
     return dim * np.mean(bitstring_probabilities) - 1
