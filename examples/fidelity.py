@@ -35,12 +35,18 @@ def simulate_trace(circuit, pauli_gates, qubits, noise):
   for x in range(d):
     xbin = numpy.binary_repr(x, width=n)
 
-    rotated_initial_state = cirq.final_wavefunction(
-        cirq.DensePauliString(pauli_gates),
-        qubit_order=qubits,
-        initial_state=x)
+    pauli_string = cirq.PauliString(dict(zip(qubits, pauli_gates)))
+    display = cirq.approx_pauli_string_expectation(pauli_string, num_samples=n)
+    y = cirq.sample(cirq.Circuit(
+        pauli_string,
+        circuit)).measurements['y'][0]
 
-    y = simulator.simulate(circuit, initial_state=rotated_initial_state).measurements['y']
+    # rotated_initial_state = cirq.final_wavefunction(
+    #     cirq.DensePauliString(pauli_gates),
+    #     qubit_order=qubits,
+    #     initial_state=x)
+    # y = simulator.simulate(circuit, initial_state=rotated_initial_state).measurements['y']
+
     trace += sum([int(xbin[i]) == y[i] for i in range(n)])
 
   prob = trace * trace / d
