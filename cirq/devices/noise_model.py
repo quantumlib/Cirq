@@ -14,7 +14,7 @@
 
 from typing import TYPE_CHECKING, Sequence, Union
 
-from cirq import ops, value
+from cirq import ops, protocols, value
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -176,6 +176,9 @@ class _NoNoiseModel(NoiseModel):
     def __repr__(self):
         return 'cirq.NO_NOISE'
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, [])
+
 
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
@@ -198,6 +201,9 @@ class ConstantQubitNoiseModel(NoiseModel):
             moment,
             ops.Moment([self.qubit_noise_gate(q) for q in system_qubits])
         ]
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
 
 NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
