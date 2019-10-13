@@ -15,6 +15,8 @@ import numpy
 
 
 def build_circuit():
+  # Builds an arbitrary circuit to test. The circuit is non Clifford to show the
+  # use of simulators.
   qubits = cirq.LineQubit.range(3)
   circuit = cirq.Circuit(
       cirq.Z(qubits[0])**0.25,  # T-Gate, non Clifford.
@@ -23,8 +25,8 @@ def build_circuit():
   return circuit, qubits
 
 
-def simulate_trace(circuit, pauli_gates, qubits):
-  simulator = cirq.DensityMatrixSimulator()
+def simulate_trace(circuit, pauli_gates, qubits, noise):
+  simulator = cirq.DensityMatrixSimulator(noise=noise)
 
   n = len(pauli_gates)
   d = 2**n
@@ -41,37 +43,33 @@ def simulate_trace(circuit, pauli_gates, qubits):
     y = simulator.simulate(circuit, initial_state=rotated_initial_state).measurements['y']
     trace += sum([int(xbin[i]) == y[i] for i in range(n)])
 
-  return trace
+  prob = trace * trace / d
+
+  return trace, prob
 
 
 def main():
   circuit, qubits = build_circuit()
-  noisy_circuit = circuit.with_noise(cirq.amplitude_damp(0.01))
-
   circuit.append(cirq.measure(*qubits, key='y'))
-  noisy_circuit.append(cirq.measure(*qubits, key='y'))
+
+  noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
 
   n = len(qubits)
-  d = 2**n
 
-  highest_probs = []
-  for i, pauli_gates in enumerate(itertools.product({cirq.I, cirq.X, cirq.Y, cirq.Z}, repeat=n)):
-    rho_i = simulate_trace(circuit, pauli_gates, qubits)
-
-    Pr_i = rho_i * rho_i / d
-
-    if Pr_i > 0:
-      heapq.heappush(highest_probs, (Pr_i, rho_i, i, pauli_gates))
-    if len(highest_probs) > n:
-      heapq.heappop(highest_probs)
+  pauli_traces = [
+      simulate_trace(circuit, pauli_gates, qubits, noise=None) + (pauli_gates,)
+      for pauli_gates in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
+                                           repeat=n)
+  ]
+  highest_probs = heapq.nlargest(n, pauli_traces, key=lambda e: e[1])
 
   fidelity = 0.0
   for prob_tuple in highest_probs:
-    Pr_i = prob_tuple[0]
-    rho_i = prob_tuple[1]
-    pauli_gates = prob_tuple[3]
+    rho_i, Pr_i, pauli_gates = prob_tuple
+    if Pr_i == 0:
+      break
 
-    sigma_i = simulate_trace(noisy_circuit, pauli_gates, qubits)
+    sigma_i, _ = simulate_trace(circuit, pauli_gates, qubits, noise)
 
     fidelity += Pr_i * sigma_i / rho_i
 
