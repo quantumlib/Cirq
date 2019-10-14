@@ -45,11 +45,20 @@ def t1_decay(sampler: work.Sampler,
     Returns:
         A T1DecayResult object that stores and can plot the data.
     """
+    min_delay_dur = value.Duration(min_delay)
+    max_delay_dur = value.Duration(max_delay)
+
+    if repetitions <= 0:
+        raise ValueError('repetitions <= 0')
+    if max_delay_dur < min_delay_dur:
+        raise ValueError('max_delay < min_delay')
+    if min_delay_dur < 0:
+        raise ValueError('min_delay < 0')
     var = sympy.Symbol('delay_ns')
 
     sweep = study.Linspace(var,
-                           start=value.Duration(min_delay).total_nanos(),
-                           stop=value.Duration(max_delay).total_nanos(),
+                           start=min_delay_dur.total_nanos(),
+                           stop=max_delay_dur.total_nanos(),
                            length=num_points)
 
     circuit = circuits.Circuit(
@@ -58,12 +67,15 @@ def t1_decay(sampler: work.Sampler,
         ops.measure(qubit, key='output'),
     )
 
-    results = sampler.sample(circuit, params=sweep, repetitions=repetitions).data
+    results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
 
     # Cross tabulate into a delay_ns, false_count, true_count table.
     tab = pd.crosstab(results.delay_ns, results.output)
     del tab.columns.name
     tab = tab.rename(columns={0: 'false_count', 1: 'true_count'}).reset_index()
+    for col_index, name in [(1, 'false_count'), (2, 'true_count')]:
+        if name not in tab:
+            tab.insert(col_index, name, [0] * tab.shape[0])
 
     return T1DecayResult(tab)
 
