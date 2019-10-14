@@ -27,13 +27,14 @@ def linear_xeb_fidelity_estimator(hilbert_space_dimension: int,
     """Linear XEB fidelity estimator.
 
     Estimates fidelity from ideal probabilities of observed bitstrings.
-    The variance of this estimator is
+    The mean of this estimator is the true fidelity f and the variance is
 
         (1 + 2f - f^2) / M
 
     where f is the fidelity and M the number of observations, equal to
     len(probabilities). This is better than logarithmic XEB (see below)
-    when fidelity is f < 0.32.
+    when fidelity is f < 0.32. Since this estimator is unbiased, the
+    variance is equal to the mean squared error of the estimator.
 
     The estimator is intended for use with xeb_fidelity() below.
 
@@ -54,13 +55,14 @@ def log_xeb_fidelity_estimator(hilbert_space_dimension: int,
     """Logarithmic XEB fidelity estimator.
 
     Estimates fidelity from ideal probabilities of observed bitstrings.
-    The variance of this estimator is
+    The mean of this estimator is the true fidelity f and the variance is
 
         (pi^2/6 - f^2) / M
 
     where f is the fidelity and M the number of observations, equal to
     len(probabilities). This is better than linear XEB (see above) when
-    fidelity is f > 0.32.
+    fidelity is f > 0.32. Since this estimator is unbiased, the variance
+    is equal to the mean squared error of the estimator.
 
     The estimator is intended for use with xeb_fidelity() below.
 
