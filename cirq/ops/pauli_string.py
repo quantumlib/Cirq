@@ -303,7 +303,10 @@ class PauliString(raw_types.Operation):
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
-                                      atol: float = 1e-7) -> float:
+                                      *,
+                                      atol: float = 1e-7,
+                                      check_preconditions: bool = True
+                                     ) -> float:
         r"""Evaluate the expectation of this PauliString given a wavefunction.
 
         Compute the expectation value of this PauliString with respect to a
@@ -326,7 +329,10 @@ class PauliString(raw_types.Operation):
         Args:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
+            check_preconditions: Whether to check that `state` represents a
+                valid wavefunction.
 
         Returns:
             The expectation value of the input state.
@@ -352,12 +358,13 @@ class PauliString(raw_types.Operation):
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-        # HACK: avoid circular import
-        from cirq.sim.wave_function import validate_normalized_state
-        validate_normalized_state(state=state,
-                                  qid_shape=(2,) * num_qubits,
-                                  dtype=state.dtype,
-                                  atol=atol)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.wave_function import validate_normalized_state
+            validate_normalized_state(state=state,
+                                      qid_shape=(2,) * num_qubits,
+                                      dtype=state.dtype,
+                                      atol=atol)
         return self._expectation_from_wavefunction_no_validation(
             state, qubit_map)
 
@@ -395,7 +402,10 @@ class PauliString(raw_types.Operation):
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
-                                        atol: float = 1e-7) -> float:
+                                        *,
+                                        atol: float = 1e-7,
+                                        check_preconditions: bool = True
+                                       ) -> float:
         r"""Evaluate the expectation of this PauliString given a density matrix.
 
         Compute the expectation value of this PauliString with respect to an
@@ -418,7 +428,10 @@ class PauliString(raw_types.Operation):
         Args:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
+            check_preconditions: Whether to check that `state` represents a
+                valid density matrix.
 
         Returns:
             The expectation value of the input state.
@@ -445,13 +458,15 @@ class PauliString(raw_types.Operation):
                              "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-        # HACK: avoid circular import
-        from cirq.sim.density_matrix_utils import to_valid_density_matrix
-        # Do not enforce reshaping if the state all axes are dimension 2.
-        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
-                                    num_qubits=num_qubits,
-                                    dtype=state.dtype,
-                                    atol=atol)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.density_matrix_utils import to_valid_density_matrix
+            # Do not enforce reshaping if the state all axes are dimension 2.
+            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+                dim, dim),
+                                        num_qubits=num_qubits,
+                                        dtype=state.dtype,
+                                        atol=atol)
         return self._expectation_from_density_matrix_no_validation(
             state, qubit_map)
 

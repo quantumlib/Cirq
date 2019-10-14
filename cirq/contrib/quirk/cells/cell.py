@@ -12,8 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, List, NamedTuple, Any, Iterable, \
-    Sequence, TYPE_CHECKING
+from typing import (
+    Callable,
+    Optional,
+    List,
+    NamedTuple,
+    Any,
+    Iterable,
+    Sequence,
+    TYPE_CHECKING,
+    Union,
+    Dict,
+)
 
 from cirq import ops, value
 
@@ -28,6 +38,22 @@ class Cell:
     operations ultimately necessary to transform a grid of these cells into a
     `cirq.Circuit`.
     """
+
+    def with_input(self, letter: str,
+                   register: Union[Sequence['cirq.Qid'], int]):
+        """The same cell, but linked to an explicit input register or constant.
+
+        If the cell doesn't need the input, it is returned unchanged.
+
+        Args:
+            letter: The input variable name ('a', 'b', or 'r').
+            register: The list of qubits to use as the input, or else a
+                classical constant to use as the input.
+
+        Returns:
+            The same cell, but with the specified input made explicit.
+        """
+        return self
 
     def controlled_by(self, qubit: 'cirq.Qid') -> 'Cell':
         """The same cell, but with an explicit control on its main operations.
@@ -89,6 +115,19 @@ class Cell:
             Nothing. The `column` argument is mutated in place.
         """
 
+    def persistent_modifiers(self) -> Dict[str, Callable[['Cell'], 'Cell']]:
+        """Overridable modifications to apply to the rest of the circuit.
+
+        Persistent modifiers apply to all cells in the same column and also to
+        all cells in future columns (until a column overrides the modifier with
+        another one using the same key).
+
+        Returns:
+            A dictionary of keyed modifications. Each modifier lasts until a
+            later cell specifies a new modifier with the same key.
+        """
+        return {}
+
 
 @value.value_equality
 class ExplicitOperationsCell(Cell):
@@ -127,5 +166,16 @@ CellMakerArgs = NamedTuple('CellMakerArgs', [
 CellMaker = NamedTuple('CellMaker', [
     ('identifier', str),
     ('size', int),
-    ('maker', Callable[[CellMakerArgs], Optional[Cell]]),
+    ('maker', Callable[[CellMakerArgs], Union[None, 'Cell', 'cirq.Operation']]),
 ])
+CellMaker.__doc__ = """Turns Quirk identifiers into Cirq operations.
+
+Attributes:
+    identifier: A string that identifies the cell type, such as "X" or "QFT3".
+    size: The height of the operation. The number of qubits it covers.
+    maker: A function that takes a `cirq.contrib.quirk.cells.CellMakerArgs` and
+        returns either a `cirq.Operation` or a `cirq.contrib.quirk.cells.Cell`.
+        Returning a cell is more flexible, because cells can modify other cells
+        in the same column before producing operations, whereas returning an
+        operation is simple.
+"""

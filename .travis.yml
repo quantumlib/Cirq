@@ -96,6 +96,15 @@ matrix:
     script: check/mypy
   - stage: test
     os: linux
+    env: NAME=build-protos
+    python: '3.6'
+    install:
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
+      - sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
+    script: check/build-protos
+  - stage: test
+    os: linux
     env: NAME=format
     python: '3.6'
     install:

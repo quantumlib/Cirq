@@ -39,19 +39,28 @@ class _ResolverCache:
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
+            from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.known_devices import _NamedConstantXmonDevice
             self._crd = {
+                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+                'AsymmetricDepolarizingChannel':
+                cirq.AsymmetricDepolarizingChannel,
+                'BitFlipChannel': cirq.BitFlipChannel,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
+                'DepolarizingChannel': cirq.DepolarizingChannel,
+                'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GeneralizedAmplitudeDampingChannel':
+                cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
@@ -62,20 +71,30 @@ class _ResolverCache:
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+                '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'PauliString': cirq.PauliString,
+                'PhaseDampingChannel': cirq.PhaseDampingChannel,
+                'PhaseFlipChannel': cirq.PhaseFlipChannel,
                 'PhaseGradientGate': cirq.PhaseGradientGate,
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'ResetChannel': cirq.ResetChannel,
                 'SampleResult': cirq.SampleResult,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
                 'sympy.Symbol': sympy.Symbol,
+                'sympy.Add': lambda args: sympy.Add(*args),
+                'sympy.Mul': lambda args: sympy.Mul(*args),
+                'sympy.Pow': lambda args: sympy.Pow(*args),
+                'sympy.Float': lambda approx: sympy.Float(approx),
+                'sympy.Integer': sympy.Integer,
+                'sympy.Rational': sympy.Rational,
                 'pandas.DataFrame': pd.DataFrame,
                 'pandas.Index': pd.Index,
                 'pandas.MultiIndex': pd.MultiIndex.from_tuples,
@@ -208,6 +227,22 @@ class CirqEncoder(json.JSONEncoder):
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
+        if isinstance(o, (sympy.Add, sympy.Mul, sympy.Pow)):
+            return obj_to_dict_helper(o, ['args'], namespace='sympy')
+
+        if isinstance(o, sympy.Integer):
+            return {'cirq_type': 'sympy.Integer', 'i': o.p}
+
+        if isinstance(o, sympy.Float):
+            return {'cirq_type': 'sympy.Float', 'approx': float(o)}
+
+        if isinstance(o, sympy.Rational):
+            return {
+                'cirq_type': 'sympy.Rational',
+                'p': o.p,
+                'q': o.q,
+            }
+
         if isinstance(o, pd.MultiIndex):
             return {
                 'cirq_type': 'pandas.MultiIndex',
@@ -228,8 +263,8 @@ class CirqEncoder(json.JSONEncoder):
             return {
                 'cirq_type': 'pandas.DataFrame',
                 'data': rows,
-                'columns': list(o.columns),
-                'index': list(o.index),
+                'columns': o.columns,
+                'index': o.index,
             }
 
         return super().default(o)  # coverage: ignore
