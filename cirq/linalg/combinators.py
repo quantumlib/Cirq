@@ -94,7 +94,7 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]
 
 
 def multi_dot(*values: Union[float, complex, np.ndarray]
-        ) -> Union[float, complex, np.ndarray]:
+             ) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
 
     A *args version of np.linalg.multi_dot.  Note that this uses
@@ -115,7 +115,7 @@ def multi_dot(*values: Union[float, complex, np.ndarray]
 
 
 def dot(*values: Union[float, complex, np.ndarray]
-) -> Union[float, complex, np.ndarray]:
+       ) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
 
     Performs the computation in serial order without regard to the matrix
@@ -137,7 +137,6 @@ def dot(*values: Union[float, complex, np.ndarray]
     for value in values[1:]:
         result = np.dot(result, value)
     return result
-
 
 
 def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]
