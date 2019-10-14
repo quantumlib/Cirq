@@ -182,7 +182,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = np.product([q.dimension for q in register]).item()
+                size = int(np.product([q.dimension for q in register]).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)

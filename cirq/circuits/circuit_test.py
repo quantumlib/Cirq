@@ -3265,6 +3265,18 @@ def test_with_noise():
     c_noisy = c.with_noise(Noise())
     assert c_noisy == c_expected
 
+    # Accepts NOISE_MODEL_LIKE.
+    assert c.with_noise(None) == c
+    assert c.with_noise(cirq.depolarize(0.1)) == cirq.Circuit(
+        cirq.X(q0),
+        cirq.Y(q1),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Z(q1),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Moment([cirq.X(q0)]),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+    )
+
 
 def test_init_contents():
     a, b = cirq.LineQubit.range(2)
