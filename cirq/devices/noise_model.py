@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Sequence, Union
 
-from cirq import ops, value
+from cirq import ops, protocols, value
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -36,6 +36,37 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     Simulators told to use a noise model will use these methods in order to
     dynamically rewrite the program they are simulating.
     """
+
+    @classmethod
+    def from_noise_model_like(cls, noise: 'cirq.NOISE_MODEL_LIKE'
+                             ) -> 'cirq.NoiseModel':
+        """Transforms an object into a noise model if umambiguously possible.
+
+        Args:
+            noise: `None`, a `cirq.NoiseModel`, or a single qubit operation.
+
+        Returns:
+            When given `None`: returns `cirq.NO_NOISE`.
+            When given a single qubit operation: returns
+                `cirq.ConstantQubitNoiseModel(gate)`, which applies the gate to
+                every qubit before every moment.
+            When given a `cirq.NoiseModel`: just returns the input.
+        """
+        if noise is None:
+            return NO_NOISE
+        if isinstance(noise, NoiseModel):
+            return noise
+        if isinstance(noise, ops.Gate):
+            if noise.num_qubits() != 1:
+                raise ValueError(
+                    'Multi-qubit gates cannot be implicitly wrapped into a '
+                    'noise model. Please use a single qubit gate (which will '
+                    'be wrapped with `cirq.ConstantQubitNoiseModel`) or '
+                    'an instance of `cirq.NoiseModel`.')
+            return ConstantQubitNoiseModel(noise)
+
+        raise TypeError('Expected a NOISE_MODEL_LIKE (None, a cirq.NoiseModel, '
+                        'or a single qubit gate). Got {!r}'.format(noise))
 
     def _noisy_moments_impl_moment(self, moments: 'Iterable[cirq.Moment]',
                                    system_qubits: Sequence['cirq.Qid']
@@ -145,19 +176,18 @@ class _NoNoiseModel(NoiseModel):
     def __repr__(self):
         return 'cirq.NO_NOISE'
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, [])
+
 
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
-    """Applies noise to each qubit individually at the end of every moment."""
+    """Applies noise to each qubit individually at the start of every moment."""
 
     def __init__(self, qubit_noise_gate: 'cirq.Gate'):
         if qubit_noise_gate.num_qubits() != 1:
             raise ValueError('noise.num_qubits() != 1')
         self.qubit_noise_gate = qubit_noise_gate
-
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
-        return list(moment) + [self.qubit_noise_gate(q) for q in system_qubits]
 
     def _value_equality_values_(self):
         return self.qubit_noise_gate
@@ -165,5 +195,17 @@ class ConstantQubitNoiseModel(NoiseModel):
     def __repr__(self):
         return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
+        return [
+            moment,
+            ops.Moment([self.qubit_noise_gate(q) for q in system_qubits])
+        ]
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
+
 
 NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
+"""An object which can be unambiguously converted into a noise model."""
+NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.SingleQubitGate']
