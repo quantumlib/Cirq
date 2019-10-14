@@ -85,7 +85,7 @@ def xeb_fidelity(
                             float] = linear_xeb_fidelity_estimator,
         amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
-    """Computes fidelity estimate from one circuit using linear XEB estimator.
+    """Computes XEB fidelity estimate from one circuit.
 
     Fidelity quantifies the similarity of two quantum states. Here, we estimate
     the fidelity between the theoretically predicted output state of circuit and
