@@ -103,11 +103,11 @@ def xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
         estimator: Callable[[int, Sequence[float]],
                             float] = linear_xeb_fidelity_from_probabilities,
-        amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
-    """Computes XEB fidelity estimate from one circuit.
+    """Estimates XEB fidelity from one circuit using user-supplied estimator.
 
     Fidelity quantifies the similarity of two quantum states. Here, we estimate
     the fidelity between the theoretically predicted output state of circuit and
@@ -132,11 +132,11 @@ def xeb_fidelity(
             `cirq.final_wavefunction`.
         qubit_order: Qubit order used to construct bitstrings enumerating
             qubits starting with the most sigificant qubit.
-        estimator: Fidelity estimator to use, see above. Defaults to the
-            linear XEB fidelity estimator.
         amplitudes: Optional mapping from bitstring to output amplitude.
             If provided, simulation is skipped. Useful for large circuits
             when an offline simulation had already been peformed.
+        estimator: Fidelity estimator to use, see above. Defaults to the
+            linear XEB fidelity estimator.
     Returns:
         Estimate of fidelity associated with an experimental realization of
         circuit which yielded measurements in bitstrings.
@@ -163,3 +163,31 @@ def xeb_fidelity(
         bitstring_probabilities = np.abs(
             [amplitudes[bitstring] for bitstring in bitstrings])**2
     return estimator(dim, bitstring_probabilities)
+
+
+def linear_xeb_fidelity(
+        circuit: Circuit,
+        bitstrings: Sequence[int],
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
+) -> float:
+    """Estimates XEB fidelity from one circuit using linear estimator."""
+    return xeb_fidelity(circuit,
+                        bitstrings,
+                        qubit_order,
+                        amplitudes,
+                        estimator=linear_xeb_fidelity_from_probabilities)
+
+
+def log_xeb_fidelity(
+        circuit: Circuit,
+        bitstrings: Sequence[int],
+        qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
+) -> float:
+    """Estimates XEB fidelity from one circuit using logarithmic estimator."""
+    return xeb_fidelity(circuit,
+                        bitstrings,
+                        qubit_order,
+                        amplitudes,
+                        estimator=log_xeb_fidelity_from_probabilities)
