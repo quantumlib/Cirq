@@ -29,6 +29,18 @@ def linear_xeb_fidelity_from_probabilities(
     """Linear XEB fidelity estimator.
 
     Estimates fidelity from ideal probabilities of observed bitstrings.
+
+    This estimator makes two assumptions. First, it assumes that the circuit
+    used in experiment is sufficiently scrambling that its output probabilities
+    follow the Porter-Thomas distribution. This assumption holds for typical
+    instances of random quantum circuits of sufficient depth. Second, it assumes
+    that the circuit uses enough qubits so that the Porter-Thomas distribution
+    can be approximated with the exponential distribution.
+
+    In practice the validity of these assumptions can be confirmed by plotting
+    a histogram of output probabilities and comparing it to the exponential
+    distribution.
+
     The mean of this estimator is the true fidelity f and the variance is
 
         (1 + 2f - f^2) / M
@@ -59,6 +71,10 @@ def log_xeb_fidelity_from_probabilities(
     """Logarithmic XEB fidelity estimator.
 
     Estimates fidelity from ideal probabilities of observed bitstrings.
+
+    See `linear_xeb_fidelity_from_probabilities` for the assumptions made
+    by this estimator.
+
     The mean of this estimator is the true fidelity f and the variance is
 
         (pi^2/6 - f^2) / M
@@ -98,17 +114,6 @@ def xeb_fidelity(
     the state producted in its experimental realization. Note that we don't know
     the latter state. Nevertheless, we can estimate the fidelity between the two
     states from the knowledge of the bitstrings observed in the experiment.
-
-    This estimation procedure makes two assumptions. First, it assumes that the
-    circuit is sufficiently scrambling that its output probabilities follow the
-    Porter-Thomas distribution. This assumption holds for typical instances of
-    random quantum circuits of sufficient depth. Second, it assumes that the
-    circuit uses enough qubits so that the Porter-Thomas distribution can be
-    approximated with the exponential distribution.
-
-    In practice the validity of these assumptions can be confirmed by plotting
-    a histogram of output probabilities and comparing it to the exponential
-    distribution.
 
     In order to make the estimate more robust one should average the estimates
     over many random circuits. The API supports per-circuit fidelity estimation
