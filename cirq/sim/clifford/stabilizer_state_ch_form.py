@@ -18,18 +18,24 @@ import numpy as np
 import cirq
 
 
-class CH_Form():
-    r"""
-    A representation of stabilizer states using the CH form,
+class StabilizerStateChForm():
+    r"""A representation of stabilizer states using the CH form,
 
         $|\psi> = \omega U_C U_H |s>$
 
     This representation keeps track of overall phase.
 
-    See Bravyi et al, arXiv:1808.00128 for details.
+    Reference: https://arxiv.org/abs/1808.00128
     """
 
-    def __init__(self, num_qubits, initial_state=0):
+    def __init__(self, num_qubits: int, initial_state: Union[int, np.ndarray] = 0):
+        """Initializes StabilizerStateChForm
+        Args:
+            num_qubits: The number of qubits in the system
+            initial_state: If an int, the state is set to the computational
+            basis state corresponding to this state.
+            If an np.ndarray it is the full initial state.
+            """
         self.n = num_qubits
 
         # The state is represented by a set of binary matrices and vectors.
@@ -56,7 +62,7 @@ class CH_Form():
                 self._X(self.n - i - 1)
 
     def copy(self):
-        copy = CH_Form(self.n)
+        copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()
         copy.F = self.F.copy()
@@ -86,7 +92,7 @@ class CH_Form():
 
         return string
 
-    def inner_product_of_state_and_x(self, x) -> Union[float, complex]:
+    def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of
          the wavefunction, i.e. <x|psi> """
         if type(x) == int:
@@ -102,7 +108,7 @@ class CH_Form():
         return self.omega * 2**(-sum(self.v) / 2) * 1j**mu * (
             -1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s))
 
-    def wave_function(self):
+    def wave_function(self) -> np.ndarray:
         wf = np.zeros(2**self.n, dtype=complex)
 
         for x in range(2**self.n):

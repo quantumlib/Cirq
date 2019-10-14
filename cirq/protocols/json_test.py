@@ -404,7 +404,7 @@ NOT_YET_SERIALIZABLE = [
     'AxisAngleDecomposition',
     'BitFlipChannel',
     'Calibration',
-    'CH_Form',
+    'StabilizerStateChForm',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',

@@ -34,7 +34,7 @@ import collections
 import numpy as np
 import cirq
 from cirq.sim import simulator
-from cirq.sim.clifford import clifford_tableau, ch_form
+from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq import circuits, study, ops, protocols
 
 
@@ -226,53 +226,53 @@ class CliffordState():
         self.n = len(qubit_map)
 
         self.tableau = clifford_tableau.CliffordTableau(self.n, initial_state)
-        self.CH_form = ch_form.CH_Form(self.n, initial_state)
+        self.ch_form = stabilizer_state_ch_form.StabilizerStateChForm(self.n, initial_state)
 
     def copy(self):
         state = CliffordState(self.qubit_map)
         state.tableau = self.tableau.copy()
-        state.CH_form = self.CH_form.copy()
+        state.StabilizerStateChForm = self.StabilizerStateChForm.copy()
 
         return state
 
     def __repr__(self):
-        return self.CH_form.__repr__()
+        return self.StabilizerStateChForm.__repr__()
 
     def to_numpy(self):
-        return self.CH_form.to_state_vector()
+        return self.StabilizerStateChForm.to_state_vector()
 
     def stabilizers(self):
         return self.tableau.stabilizers()
 
     def wave_function(self):
-        return self.CH_form.wave_function()
+        return self.StabilizerStateChForm.wave_function()
 
     def apply_unitary(self, op: ops.GateOperation):
         if op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
-            self.CH_form._CNOT(self.qubit_map[op.qubits[0]],
+            self.StabilizerStateChForm._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
         elif op.gate == cirq.CZ:
             self.tableau._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
-            self.CH_form._CZ(self.qubit_map[op.qubits[0]],
+            self.StabilizerStateChForm._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
         elif op.gate == cirq.Z:
             self.tableau._Z(self.qubit_map[op.qubits[0]])
-            self.CH_form._Z(self.qubit_map[op.qubits[0]])
+            self.StabilizerStateChForm._Z(self.qubit_map[op.qubits[0]])
         elif op.gate == cirq.X:
             self.tableau._X(self.qubit_map[op.qubits[0]])
-            self.CH_form._X(self.qubit_map[op.qubits[0]])
+            self.StabilizerStateChForm._X(self.qubit_map[op.qubits[0]])
         elif op.gate == cirq.Y:
             self.tableau._Y(self.qubit_map[op.qubits[0]])
-            self.CH_form._Y(self.qubit_map[op.qubits[0]])
+            self.StabilizerStateChForm._Y(self.qubit_map[op.qubits[0]])
         elif op.gate == cirq.S:
             self.tableau._S(self.qubit_map[op.qubits[0]])
-            self.CH_form._S(self.qubit_map[op.qubits[0]])
+            self.StabilizerStateChForm._S(self.qubit_map[op.qubits[0]])
         elif op.gate == cirq.H:
             self.tableau._H(self.qubit_map[op.qubits[0]])
-            self.CH_form._H(self.qubit_map[op.qubits[0]])
+            self.StabilizerStateChForm._H(self.qubit_map[op.qubits[0]])
         else:
             raise ValueError('%s cannot be run with Clifford simulator' %
                              str(op.gate))
@@ -289,7 +289,7 @@ class CliffordState():
 
         for qubit in qubits:
             result = state.tableau._measure(self.qubit_map[qubit])
-            state.CH_form.project_Z(self.qubit_map[qubit], result)
+            state.StabilizerStateChForm.project_Z(self.qubit_map[qubit], result)
             results.append(result)
 
         return results
