@@ -30,9 +30,6 @@ from cirq.study.resolver import (
     ParamResolverOrSimilarType,
 )
 
-from cirq.study.sample_result import (
-    SampleResult,)
-
 from cirq.study.sweepable import (
     Sweepable,
     to_resolvers,

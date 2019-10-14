@@ -334,7 +334,6 @@ from cirq.study import (
     plot_state_histogram,
     Points,
     Product,
-    SampleResult,
     Sweep,
     Sweepable,
     to_resolvers,

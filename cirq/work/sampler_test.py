@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for cirq.Sampler."""
+import pytest
+
 import pandas as pd
 import sympy
 
@@ -59,23 +61,24 @@ def test_sampler_sample_multiple_params():
                                      't': 1
                                  },
                              ])
-    assert results == cirq.SampleResult(
-        data=pd.DataFrame(columns=['s', 't', 'out'],
-                          index=[0, 1, 2] * 4,
-                          data=[
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 0, 0],
-                              [0, 1, 1],
-                              [0, 1, 1],
-                              [0, 1, 1],
-                              [1, 0, 2],
-                              [1, 0, 2],
-                              [1, 0, 2],
-                              [1, 1, 3],
-                              [1, 1, 3],
-                              [1, 1, 3],
-                          ]))
+    pd.testing.assert_frame_equal(
+        results,
+        pd.DataFrame(columns=['s', 't', 'out'],
+                     index=[0, 1, 2] * 4,
+                     data=[
+                         [0, 0, 0],
+                         [0, 0, 0],
+                         [0, 0, 0],
+                         [0, 1, 1],
+                         [0, 1, 1],
+                         [0, 1, 1],
+                         [1, 0, 2],
+                         [1, 0, 2],
+                         [1, 0, 2],
+                         [1, 1, 3],
+                         [1, 1, 3],
+                         [1, 1, 3],
+                     ]))
 
 
 def test_sampler_sample_sweep():
@@ -86,19 +89,21 @@ def test_sampler_sample_sweep():
     results = sampler.sample(circuit,
                              repetitions=3,
                              params=cirq.Linspace('t', 0, 2, 3))
-    assert results == cirq.SampleResult(data=pd.DataFrame(columns=['t', 'out'],
-                                                          index=[0, 1, 2] * 3,
-                                                          data=[
-                                                              [0.0, 0],
-                                                              [0.0, 0],
-                                                              [0.0, 0],
-                                                              [1.0, 1],
-                                                              [1.0, 1],
-                                                              [1.0, 1],
-                                                              [2.0, 0],
-                                                              [2.0, 0],
-                                                              [2.0, 0],
-                                                          ]))
+    pd.testing.assert_frame_equal(
+        results,
+        pd.DataFrame(columns=['t', 'out'],
+                     index=[0, 1, 2] * 3,
+                     data=[
+                         [0.0, 0],
+                         [0.0, 0],
+                         [0.0, 0],
+                         [1.0, 1],
+                         [1.0, 1],
+                         [1.0, 1],
+                         [2.0, 0],
+                         [2.0, 0],
+                         [2.0, 0],
+                     ]))
 
 
 def test_sampler_sample_no_params():
@@ -106,9 +111,26 @@ def test_sampler_sample_no_params():
     sampler = cirq.Simulator()
     circuit = cirq.Circuit(cirq.X(a), cirq.measure(a, b, key='out'))
     results = sampler.sample(circuit, repetitions=3)
-    assert results == cirq.SampleResult(data=pd.DataFrame(
-        columns=['out'], index=[0, 1, 2], data=[
+    pd.testing.assert_frame_equal(
+        results,
+        pd.DataFrame(columns=['out'], index=[0, 1, 2], data=[
             [2],
             [2],
             [2],
         ]))
+
+
+def test_sampler_sample_inconsistent_keys():
+    q = cirq.LineQubit(0)
+    sampler = cirq.Simulator()
+    circuit = cirq.Circuit(cirq.measure(q, key='out'))
+    with pytest.raises(ValueError, match='Inconsistent sweep parameters'):
+        _ = sampler.sample(circuit, params=[
+            {
+                'a': 1
+            },
+            {
+                'a': 1,
+                'b': 2
+            },
+        ])

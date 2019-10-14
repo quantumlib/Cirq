@@ -259,9 +259,6 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
-    'SampleResult':
-    cirq.SampleResult(data=pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
-                                        columns=['x', 'y', 'z'])),
     'SerializableDevice':
     cirq.google.SerializableDevice.from_proto(
         proto=cirq.google.known_devices.FOXTAIL_PROTO,
