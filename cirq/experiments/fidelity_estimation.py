@@ -13,7 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import Mapping, Optional, Sequence
+from typing import Callable, Mapping, Optional, Sequence
 
 import numpy as np
 
@@ -22,10 +22,67 @@ from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_wavefunction
 
 
-def linear_xeb_fidelity(
+def linear_xeb_fidelity_estimator(hilbert_space_dimension: int,
+                                  probabilities: Sequence[float]) -> float:
+    """Linear XEB fidelity estimator.
+
+    Estimates fidelity from ideal probabilities of observed bitstrings.
+    The variance of this estimator is
+
+        (1 + 2f - f^2) / M
+
+    where f is the fidelity and M the number of observations, equal to
+    len(probabilities). This is better than logarithmic XEB (see below)
+    when fidelity is f < 0.32.
+
+    The estimator is intended for use with xeb_fidelity() below.
+
+    Args:
+        hilbert_space_dimension: Dimension of the Hilbert space on which
+           the channel whose fidelity is being estimated is defined.
+        probabilities: Ideal probabilities of bitstrings observed in
+            experiment.
+    Returns:
+        Estimate of fidelity associated with an experimental realization
+        of a quantum circuit.
+    """
+    return hilbert_space_dimension * np.mean(probabilities) - 1
+
+
+def log_xeb_fidelity_estimator(hilbert_space_dimension: int,
+                               probabilities: Sequence[float]) -> float:
+    """Logarithmic XEB fidelity estimator.
+
+    Estimates fidelity from ideal probabilities of observed bitstrings.
+    The variance of this estimator is
+
+        (pi^2/6 - f^2) / M
+
+    where f is the fidelity and M the number of observations, equal to
+    len(probabilities). This is better than linear XEB (see above) when
+    fidelity is f > 0.32.
+
+    The estimator is intended for use with xeb_fidelity() below.
+
+    Args:
+        hilbert_space_dimension: Dimension of the Hilbert space on which
+           the channel whose fidelity is being estimated is defined.
+        probabilities: Ideal probabilities of bitstrings observed in
+            experiment.
+    Returns:
+        Estimate of fidelity associated with an experimental realization
+        of a quantum circuit.
+    """
+    return (np.log(hilbert_space_dimension) + np.euler_gamma +
+            np.mean(np.log(probabilities)))
+
+
+def xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        estimator: Callable[[int, Sequence[float]],
+                            float] = linear_xeb_fidelity_estimator,
         amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
@@ -56,14 +113,16 @@ def linear_xeb_fidelity(
 
     Args:
         circuit: Random quantum circuit which has been executed on quantum
-            processor under test
+            processor under test.
         bitstrings: Results of terminal all-qubit measurements performed after
             each circuit execution as integer array where each integer is
             formed from measured qubit values according to `qubit_order` from
             most to least significant qubit, i.e. in the order consistent with
             `cirq.final_wavefunction`.
         qubit_order: Qubit order used to construct bitstrings enumerating
-            qubits starting with the most sigificant qubit
+            qubits starting with the most sigificant qubit.
+        estimator: Fidelity estimator to use, see above. Defaults to the
+            linear XEB fidelity estimator.
         amplitudes: Optional mapping from bitstring to output amplitude.
             If provided, simulation is skipped. Useful for large circuits
             when an offline simulation had already been peformed.
@@ -92,4 +151,4 @@ def linear_xeb_fidelity(
     else:
         bitstring_probabilities = np.abs(
             [amplitudes[bitstring] for bitstring in bitstrings])**2
-    return dim * np.mean(bitstring_probabilities) - 1
+    return estimator(dim, bitstring_probabilities)
