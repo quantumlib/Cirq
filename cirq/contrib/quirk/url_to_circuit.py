@@ -127,7 +127,7 @@ def quirk_url_to_circuit(
         raise ValueError('Circuit JSON cols must be a list.\n'
                          f'URL={quirk_url}')
 
-    # Parse column json into cells.
+    # Collect registry of quirk cell types.
     if isinstance(extra_cell_makers, Mapping):
         extra_makers = [
             CellMaker(identifier=identifier,
@@ -141,6 +141,8 @@ def quirk_url_to_circuit(
         entry.identifier: entry
         for entry in [*generate_all_quirk_cell_makers(), *extra_makers]
     }
+
+    # Parse column json into cells.
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
         parsed_cols.append(_parse_col_cells(registry, i, col))
