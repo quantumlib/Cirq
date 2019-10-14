@@ -22,8 +22,10 @@ from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_wavefunction
 
 
-def linear_xeb_fidelity_estimator(hilbert_space_dimension: int,
-                                  probabilities: Sequence[float]) -> float:
+def linear_xeb_fidelity_from_probabilities(
+        hilbert_space_dimension: int,
+        probabilities: Sequence[float],
+) -> float:
     """Linear XEB fidelity estimator.
 
     Estimates fidelity from ideal probabilities of observed bitstrings.
@@ -50,8 +52,10 @@ def linear_xeb_fidelity_estimator(hilbert_space_dimension: int,
     return hilbert_space_dimension * np.mean(probabilities) - 1
 
 
-def log_xeb_fidelity_estimator(hilbert_space_dimension: int,
-                               probabilities: Sequence[float]) -> float:
+def log_xeb_fidelity_from_probabilities(
+        hilbert_space_dimension: int,
+        probabilities: Sequence[float],
+) -> float:
     """Logarithmic XEB fidelity estimator.
 
     Estimates fidelity from ideal probabilities of observed bitstrings.
@@ -84,7 +88,7 @@ def xeb_fidelity(
         bitstrings: Sequence[int],
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
         estimator: Callable[[int, Sequence[float]],
-                            float] = linear_xeb_fidelity_estimator,
+                            float] = linear_xeb_fidelity_from_probabilities,
         amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Computes XEB fidelity estimate from one circuit.
