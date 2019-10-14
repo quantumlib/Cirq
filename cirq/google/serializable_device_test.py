@@ -20,7 +20,6 @@ import cirq.google as cg
 import cirq.google.api.v2 as v2
 import cirq.google.api.v2.device_pb2 as device_pb2
 
-
 _JUST_CZ = cg.SerializableGateSet(
     gate_set_name='cz_gate_set',
     serializers=[
