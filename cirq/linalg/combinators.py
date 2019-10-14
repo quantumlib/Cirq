@@ -107,7 +107,9 @@ def multi_dot(*values: Union[float, complex, np.ndarray]
     Returns:
         The resulting value or matrix.
     """
-    if len(values) == 1:
+    if len(values) <= 1:
+        if len(values) == 0:
+            raise ValueError("cirq.multi_dot must be called with arguments")
         if isinstance(values[0], np.ndarray):
             return np.array(values[0])
         return values[0]
@@ -129,7 +131,9 @@ def dot(*values: Union[float, complex, np.ndarray]
         The resulting value or matrix.
     """
 
-    if len(values) == 1:
+    if len(values) <= 1:
+        if len(values) == 0:
+            raise ValueError("cirq.dot must be called with arguments")
         if isinstance(values[0], np.ndarray):
             return np.array(values[0])
         return values[0]
