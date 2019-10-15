@@ -14,9 +14,9 @@
 import json
 import urllib.parse
 from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING, \
-    Iterable
+    Iterable, Union, Mapping
 
-from cirq import devices, circuits, ops
+from cirq import devices, circuits, ops, protocols
 from cirq.contrib.quirk.cells import (
     Cell,
     CellMaker,
@@ -33,8 +33,8 @@ def quirk_url_to_circuit(
         quirk_url: str,
         *,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        extra_cell_makers: Iterable['cirq.contrib.quirk.cells.CellMaker'] = ()
-) -> 'cirq.Circuit':
+        extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
+            'cirq.contrib.quirk.cells.CellMaker']] = ()) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
     Args:
@@ -46,10 +46,12 @@ def quirk_url_to_circuit(
             qubits). The maximum number of qubits in a Quirk circuit is 16.
             This argument defaults to `cirq.LineQubit.range(16)` when not
             specified.
-        extra_cell_makers: A list of non-standard Quirk cell makers. This can be
+        extra_cell_makers: Non-standard Quirk cells to accept. This can be
             used to parse URLs that come from a modified version of Quirk that
-            includes gates that Quirk doesn't define. See
-            `cirq.contrib.quirk.cells.CellMaker`.
+            includes gates that Quirk doesn't define. This can be specified
+            as either a list of `cirq.contrib.quirk.cells.CellMaker` instances,
+            or for more simple cases as a dictionary from a Quirk id string
+            to a cirq Gate.
 
     Examples:
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
@@ -66,6 +68,13 @@ def quirk_url_to_circuit(
         Alice: ───H───@───
                       │
         Bob: ─────────X───
+
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        ...     extra_cell_makers={'iswap': cirq.ISWAP}))
+        0: ───iSwap───
+              │
+        1: ───iSwap───
 
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
         ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
@@ -118,11 +127,22 @@ def quirk_url_to_circuit(
         raise ValueError('Circuit JSON cols must be a list.\n'
                          f'URL={quirk_url}')
 
-    # Parse column json into cells.
+    # Collect registry of quirk cell types.
+    if isinstance(extra_cell_makers, Mapping):
+        extra_makers = [
+            CellMaker(identifier=identifier,
+                      size=protocols.num_qubits(gate),
+                      maker=lambda args: gate(*args.qubits))
+            for identifier, gate in extra_cell_makers.items()
+        ]
+    else:
+        extra_makers = list(extra_cell_makers)
     registry = {
         entry.identifier: entry
-        for entry in [*generate_all_quirk_cell_makers(), *extra_cell_makers]
+        for entry in [*generate_all_quirk_cell_makers(), *extra_makers]
     }
+
+    # Parse column json into cells.
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
         parsed_cols.append(_parse_col_cells(registry, i, col))

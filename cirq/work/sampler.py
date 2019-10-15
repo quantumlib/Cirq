@@ -18,6 +18,8 @@ import abc
 import asyncio
 import threading
 
+import pandas as pd
+
 from cirq import study
 
 if TYPE_CHECKING:
@@ -48,6 +50,90 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
+
+    def sample(
+            self,
+            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            *,
+            repetitions: int = 1,
+            params: 'cirq.Sweepable' = None,
+    ) -> 'pd.DataFrame':
+        """Samples the given Circuit or Schedule, producing a pandas data frame.
+
+        Args:
+            program: The circuit or schedule to sample from.
+            repetitions: The number of times to sample the program, for each
+                parameter mapping.
+            params: Maps symbols to one or more values. This argument can be
+                a dictionary, a list of dictionaries, a `cirq.Sweep`, a list of
+                `cirq.Sweep`, etc. The program will be sampled `repetition`
+                times for each mapping. Defaults to a single empty mapping.
+
+        Returns:
+            A `pandas.DataFrame` with a row for each sample, and a column for
+            each measurement result as well as a column for each symbolic
+            parameter. There is an also index column containing the repetition
+            number, for each parameter assignment.
+
+        Examples:
+            >>> a, b, c = cirq.LineQubit.range(3)
+            >>> sampler = cirq.Simulator()
+            >>> circuit = cirq.Circuit(cirq.X(a),
+            ...                        cirq.measure(a, key='out'))
+            >>> print(sampler.sample(circuit, repetitions=4))
+               out
+            0    1
+            1    1
+            2    1
+            3    1
+
+            >>> circuit = cirq.Circuit(cirq.X(a),
+            ...                        cirq.CNOT(a, b),
+            ...                        cirq.measure(a, b, c, key='out'))
+            >>> print(sampler.sample(circuit, repetitions=4))
+               out
+            0    6
+            1    6
+            2    6
+            3    6
+
+            >>> circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
+            ...                        cirq.measure(a, key='out'))
+            >>> print(sampler.sample(
+            ...     circuit,
+            ...     repetitions=3,
+            ...     params=[{'t': 0}, {'t': 1}]))
+               t  out
+            0  0    0
+            1  0    0
+            2  0    0
+            0  1    1
+            1  1    1
+            2  1    1
+        """
+
+        sweeps_list = study.to_sweeps(params)
+        keys = sorted(sweeps_list[0].keys) if sweeps_list else []
+        for sweep in sweeps_list:
+            if sweep and set(sweep.keys) != set(keys):
+                raise ValueError(
+                    'Inconsistent sweep parameters. '
+                    f'One sweep had {repr(keys)} '
+                    f'while another had {repr(sorted(sweep.keys))}.')
+
+        results = []
+        for sweep in sweeps_list:
+            sweep_results = self.run_sweep(program,
+                                           params=sweep,
+                                           repetitions=repetitions)
+            for resolver, result in zip(sweep, sweep_results):
+                param_values_once = [resolver.value_of(key) for key in keys]
+                param_table = pd.DataFrame(data=[param_values_once] *
+                                           repetitions,
+                                           columns=keys)
+                results.append(pd.concat([param_table, result.data], axis=1))
+
+        return pd.concat(results)
 
     @abc.abstractmethod
     def run_sweep(
