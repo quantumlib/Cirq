@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import pytest
 import numpy as np
 
 import cirq
@@ -33,6 +33,32 @@ def test_dot():
     np.testing.assert_allclose(cirq.dot(a, b, a),
                                np.dot(np.dot(a, b), a),
                                atol=1e-8)
+
+    # Invalid use
+    with pytest.raises(ValueError):
+        cirq.dot()
+
+
+def test_multi_dot():
+    assert cirq.linalg.multi_dot(2) == 2
+    assert cirq.linalg.multi_dot(2.5, 2.5) == 6.25
+
+    a = np.array([[1, 2], [3, 4]])
+    b = np.array([[5, 6], [7, 8]])
+    assert cirq.linalg.multi_dot(a) is not a
+    np.testing.assert_allclose(cirq.linalg.multi_dot(a),
+                           a,
+                           atol=1e-8)
+    np.testing.assert_allclose(cirq.linalg.multi_dot(a, b),
+                           np.dot(a, b),
+                           atol=1e-8)
+    np.testing.assert_allclose(cirq.linalg.multi_dot(a, b, a),
+                           np.dot(np.dot(a, b), a),
+                           atol=1e-8)
+
+    #Invalid uses
+    with pytest.raises(ValueError):
+        cirq.linalg.multi_dot()
 
 
 def test_kron_multiplies_sizes():

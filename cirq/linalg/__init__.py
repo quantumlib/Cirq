@@ -24,6 +24,7 @@ from cirq.linalg.combinators import (
     dot,
     kron,
     kron_with_controls,
+    multi_dot
 )
 
 from cirq.linalg.decompositions import (
