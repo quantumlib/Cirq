@@ -14,7 +14,7 @@
 
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
-                    TYPE_CHECKING, SupportsComplex, List)
+                    TYPE_CHECKING, SupportsComplex, List, Sequence)
 
 import cmath
 import math
@@ -25,7 +25,8 @@ import numpy as np
 from cirq import value, protocols, linalg
 from cirq._compat import deprecated
 from cirq.ops import (global_phase_op, raw_types, gate_operation, common_gates,
-                      pauli_gates, clifford_gate, pauli_interaction_gate)
+                      pauli_gates, clifford_gate, pauli_interaction_gate,
+                      op_tree)
 
 if TYPE_CHECKING:
     import cirq
@@ -601,8 +602,103 @@ class PauliString(raw_types.Operation):
             yield clifford_gate.SingleQubitCliffordGate.from_single_map(
                 {pauli: (pauli_gates.Z, False)})(qubit)
 
+    def dense(self, qubits: 'Sequence[cirq.Qid]') -> 'cirq.DensePauliString':
+        """Returns a `cirq.DensePauliString` version of this Pauli string.
+
+        This method satisfies the invariant `P.dense(qubits).on(*qubits) == P`.
+
+        Args:
+            qubits: The implicit sequence of qubits used by the dense pauli
+                string. Specifically, if the returned dense Pauli string was
+                applied to these qubits (via its `on` method) then the result
+                would be a Pauli string equivalent to the receiving Pauli
+                string.
+
+        Returns:
+            A `cirq.DensePauliString` instance `D` such that `D.on(*qubits)`
+            equals the receiving `cirq.PauliString` instance `P`.
+        """
+        from cirq.ops.dense_pauli_string import DensePauliString
+        if not self.keys() <= set(qubits):
+            raise ValueError('not self.keys() <= set(qubits)')
+        return DensePauliString([self.get(q, common_gates.I) for q in qubits],
+                                coefficient=self.coefficient)
+
+    def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliString':
+        r"""Returns the Pauli string conjugated by a clifford operation.
+
+        The product-of-Paulis $P$ conjugated by the Clifford operation $C$ is
+
+            $$
+            C^\dagger P C
+            $$
+
+        For example, conjugating a +Y operation by an S operation results in a
+        +X operation.
+
+        In a circuit diagram where `P` is a pauli string observable immediately
+        after a Clifford operation `C`, the pauli string `P.conjugated_by(C)` is
+        the equivalent pauli string observable just before `C`.
+
+            --------------------------C---P---
+
+            = ---C---P------------------------
+
+            = ---C---P---------C^-1---C-------
+
+            = ---C---P---C^-1---------C-------
+
+            = --(C^-1 · P · C)--------C-------
+
+            = ---P.conjugated_by(C)---C-------
+
+        Analogously, a Pauli product P can be moved from before a Clifford C in
+        a circuit diagram to after the Clifford C by conjugating P by the
+        inverse of C:
+
+            ---P---C---------------------------
+
+            = -----C---P.conjugated_by(C^-1)---
+
+        Args:
+            clifford: The Clifford operation to conjugate by. This can be an
+                individual operation, or a tree of operations.
+
+                Note that the composite Clifford operation defined by a sequence
+                of operations is equivalent to a circuit containing those
+                operations in the given order. Somewhat counter-intuitively,
+                this means that the operations in the sequence are conjugated
+                onto the Pauli string in reverse order. For example,
+                `P.conjugated_by([C1, C2])` is equivalent to
+                `P.conjugated_by(C2).conjugated_by(C1)`.
+
+        Examples:
+            >>> a, b = cirq.LineQubit.range(2)
+            >>> print(cirq.X(a).conjugated_by(cirq.CZ(a, b)))
+            X(0)*Z(1)
+            >>> print(cirq.X(a).conjugated_by(cirq.S(a)))
+            -Y(0)
+            >>> print(cirq.X(a).conjugated_by(cirq.H(a), cirq.CNOT(a, b)))
+            Z(0)*Z(1)
+
+        Returns:
+            The Pauli string conjugated by the given Clifford operation.
+        """
+        pauli_map = dict(self._qubit_pauli_map)
+        should_negate = False
+        for op in list(op_tree.flatten_to_ops(clifford))[::-1]:
+            if not set(op.qubits) & set(pauli_map.keys()):
+                continue
+            for clifford_op in _decompose_into_cliffords(op)[::-1]:
+                if not set(clifford_op.qubits) & set(pauli_map.keys()):
+                    continue
+                should_negate ^= PauliString._pass_operation_over(
+                    pauli_map, clifford_op, False)
+        coef = -self._coefficient if should_negate else self.coefficient
+        return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
+
     def pass_operations_over(self,
-                             ops: Iterable[raw_types.Operation],
+                             ops: Iterable['cirq.Operation'],
                              after_to_before: bool = False) -> 'PauliString':
         """Determines how the Pauli string changes when conjugated by Cliffords.
 
@@ -634,13 +730,15 @@ class PauliString(raw_types.Operation):
         should_negate = False
         for op in ops:
             if not set(op.qubits) & set(pauli_map.keys()):
-                # op operates on an independent set of qubits from the Pauli
-                # string.  The order can be switched with no change no matter
-                # what op is.
                 continue
-            should_negate ^= PauliString._pass_operation_over(pauli_map,
-                                                              op,
-                                                              after_to_before)
+            decomposed = _decompose_into_cliffords(op)
+            if not after_to_before:
+                decomposed = decomposed[::-1]
+            for c in decomposed:
+                if not set(c.qubits) & set(pauli_map.keys()):
+                    continue
+                should_negate ^= PauliString._pass_operation_over(
+                    pauli_map, c, after_to_before)
         coef = -self._coefficient if should_negate else self.coefficient
         return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 
@@ -652,10 +750,10 @@ class PauliString(raw_types.Operation):
             gate = op.gate
             if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
                 return PauliString._pass_single_clifford_gate_over(
-                    pauli_map, gate, op.qubits[0],
+                    pauli_map,
+                    gate,
+                    op.qubits[0],
                     after_to_before=after_to_before)
-            if isinstance(gate, common_gates.CZPowGate):
-                gate = pauli_interaction_gate.PauliInteractionGate.CZ
             if isinstance(gate, pauli_interaction_gate.PauliInteractionGate):
                 return PauliString._pass_pauli_interaction_gate_over(
                     pauli_map, gate, op.qubits[0], op.qubits[1],
@@ -870,3 +968,33 @@ class _MutablePauliString:
         else:
             raise TypeError(f"Not a `cirq.PAULI_STRING_LIKE`: "
                             f"{type(contents)}, {repr(contents)}")
+
+
+def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
+    # An operation that can be ignored?
+    if isinstance(op, global_phase_op.GlobalPhaseOperation):
+        return []
+
+    # Already a Clifford?
+    if gate_operation.op_gate_isinstance(
+            op, (clifford_gate.SingleQubitCliffordGate,
+                 pauli_interaction_gate.PauliInteractionGate)):
+        return [op]
+
+    # Specifies a decomposition into Cliffords?
+    v = getattr(op, '_decompose_into_clifford_', None)
+    if v is not None:
+        result = v()
+        if result is not None and result is not NotImplemented:
+            return list(op_tree.flatten_to_ops(result))
+
+    # Specifies a decomposition that happens to contain only Cliffords?
+    decomposed = protocols.decompose_once(op, None)
+    if decomposed is not None:
+        return [
+            out for sub_op in decomposed
+            for out in _decompose_into_cliffords(sub_op)
+        ]
+
+    raise TypeError(f'Operation is not a known Clifford and did not decompose '
+                    f'into known Cliffords: {op!r}')

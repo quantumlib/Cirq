@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
-                    TypeVar, Union)
+                    TypeVar, Union, Iterable)
 
 import numpy as np
 
@@ -145,6 +145,12 @@ class GateOperation(raw_types.Operation):
                                               args,
                                               NotImplemented)
 
+    def _decompose_into_clifford_(self):
+        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
+        if sub is None:
+            return NotImplemented
+        return sub(self.qubits)
+
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.gate)
 
@@ -195,7 +201,7 @@ def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     return gate if isinstance(gate, gate_type) else None
 
 
-def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
+def op_gate_isinstance(op: Any, gate_type: Union[Type, Iterable[Type]]) -> bool:
     """Determines if op is a GateOperation with a gate of the given type."""
     gate = getattr(op, 'gate', None)
     return isinstance(gate, gate_type)
