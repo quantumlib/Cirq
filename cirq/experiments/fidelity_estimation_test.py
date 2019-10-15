@@ -71,8 +71,17 @@ def test_linear_xeb_fidelity(depolarization):
                                              qubits,
                                              depolarization,
                                              repetitions=5000)
+
         f = cirq.linear_xeb_fidelity(circuit, bitstrings, qubits)
+        amplitudes = cirq.final_wavefunction(circuit)
+        f2 = cirq.linear_xeb_fidelity(circuit,
+                                      bitstrings,
+                                      qubits,
+                                      amplitudes=amplitudes)
+        assert np.abs(f - f2) < 1e-6
+
         fs.append(f)
+
     estimated_fidelity = np.mean(fs)
     expected_fidelity = 1 - depolarization
     assert np.isclose(estimated_fidelity, expected_fidelity, atol=0.09)

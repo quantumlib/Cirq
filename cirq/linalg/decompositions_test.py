@@ -225,6 +225,14 @@ def test_kak_canonicalize_vector(x, y, z):
     assert np.allclose(m, m2)
 
 
+def test_kak_vector_empty():
+    assert len(cirq.kak_vector([])) == 0
+
+
+def test_kak_plot_empty():
+    cirq.scatter_plot_normalized_kak_interaction_coefficients([])
+
+
 @pytest.mark.parametrize('target', [
     np.eye(4),
     SWAP,

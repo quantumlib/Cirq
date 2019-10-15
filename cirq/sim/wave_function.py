@@ -402,7 +402,8 @@ def sample_state_vector(
         indices: List[int],
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
-        repetitions: int = 1) -> np.ndarray:
+        repetitions: int = 1,
+        seed: Optional[Union[int, np.random.RandomState]] = None) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the passed in state.
@@ -418,6 +419,7 @@ def sample_state_vector(
         qid_shape: The qid shape of the state vector.  Specify this argument
             when using qudits.
         repetitions: The number of times to sample the state.
+        seed: A seed for the pseudorandom number generator.
 
     Returns:
         Measurement results with True corresponding to the ``|1⟩`` state.
@@ -441,13 +443,20 @@ def sample_state_vector(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
+    if seed is None:
+        prng = np.random
+    elif isinstance(seed, np.random.RandomState):
+        prng = seed
+    else:
+        prng = np.random.RandomState(seed)
+
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, qid_shape)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
     # choosing from a list of tuples or list of lists.
-    result = np.random.choice(len(probs), size=repetitions, p=probs)
+    result = prng.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
     return np.array([
@@ -462,7 +471,9 @@ def measure_state_vector(
         indices: List[int],
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
-        out: np.ndarray = None) -> Tuple[List[int], np.ndarray]:
+        out: np.ndarray = None,
+        seed: Optional[Union[int, np.random.RandomState]] = None
+) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
 
     This does not modify `state` unless the optional `out` is `state`.
@@ -483,6 +494,7 @@ def measure_state_vector(
             same as the returned ndarray of the method. The shape and dtype of
             `out` will match that of state if `out` is None, otherwise it will
             match the shape and dtype of `out`.
+        seed: A seed for the pseudorandom number generator.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
@@ -507,12 +519,19 @@ def measure_state_vector(
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
+    if seed is None:
+        prng = np.random
+    elif isinstance(seed, np.random.RandomState):
+        prng = seed
+    else:
+        prng = np.random.RandomState(seed)
+
     # Cache initial shape.
     initial_shape = state.shape
 
     # Calculate the measurement probabilities and then make the measurement.
     probs = _probs(state, indices, qid_shape)
-    result = np.random.choice(len(probs), p=probs)
+    result = prng.choice(len(probs), p=probs)
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.
     meas_shape = tuple(qid_shape[i] for i in indices)
