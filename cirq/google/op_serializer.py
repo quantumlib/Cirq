@@ -164,7 +164,7 @@ class GateOpSerializer:
                 'Argument {} is required, but could not get from gate {!r}'.
                 format(arg.serialized_name, gate))
 
-        if isinstance(value, sympy.Symbol):
+        if isinstance(value, (sympy.Symbol, sympy.Add, sympy.Mul)):
             return value
 
         if value is not None:
@@ -191,7 +191,8 @@ class GateOpSerializer:
 
     def _arg_value_to_proto(self, value: arg_func_langs.ArgValue,
                             msg: v2.program_pb2.Arg) -> None:
-        if isinstance(value, (float, int)):
+        if isinstance(value,
+                      (float, int, sympy.Integer, sympy.Float, sympy.Rational)):
             msg.arg_value.float_value = float(value)
         elif isinstance(value, str):
             msg.arg_value.string_value = value
@@ -200,6 +201,14 @@ class GateOpSerializer:
             msg.arg_value.bool_values.values.extend(value)
         elif isinstance(value, sympy.Symbol):
             msg.symbol = str(value.free_symbols.pop())
+        elif isinstance(value, sympy.Add):
+            msg.func.type = 'add'
+            for arg in value.args:
+                self._arg_value_to_proto(arg, msg.func.args.add())
+        elif isinstance(value, sympy.Mul):
+            msg.func.type = 'mul'
+            for arg in value.args:
+                self._arg_value_to_proto(arg, msg.func.args.add())
         else:
             raise ValueError('Unsupported type of arg value: {}'.format(
                 type(value)))

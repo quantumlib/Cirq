@@ -17,4 +17,5 @@ from typing import List, Union
 import sympy
 
 # Argument types for gates. ArgFunction's are not currently supported.
-ArgValue = Union[int, float, List[bool], str, sympy.Symbol]
+ArgValue = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.
+                 Mul]

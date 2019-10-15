@@ -97,6 +97,29 @@ TEST_CASES = (
     (sympy.Symbol, sympy.Symbol('x'), {
         'symbol': 'x'
     }),
+    (float, sympy.Symbol('x'), {
+        'symbol': 'x'
+    }),
+    (float, sympy.Symbol('x') - sympy.Symbol('y'), {
+        'func': {
+            'type':
+            'add',
+            'args': [{
+                'symbol': 'x'
+            }, {
+                'func': {
+                    'type': 'mul',
+                    'args': [{
+                        'arg_value': {
+                            'float_value': -1.0
+                        }
+                    }, {
+                        'symbol': 'y'
+                    }]
+                }
+            }]
+        }
+    }),
 )
 
 

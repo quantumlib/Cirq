@@ -120,26 +120,10 @@ class GateOpDeserializer:
                     'Argument {} not in deserializing args, but is required.'.
                     format(arg.serialized_name))
 
-            value = None  # type: Optional[arg_func_langs.ArgValue]
-            if arg.serialized_name in proto.args:
-                arg_proto = proto.args[arg.serialized_name]
-                which = arg_proto.WhichOneof('arg')
-                if which == 'arg_value':
-                    arg_value = arg_proto.arg_value
-                    which_val = arg_value.WhichOneof('arg_value')
-                    if which_val == 'float_value':
-                        value = float(arg_value.float_value)
-                    elif which_val == 'bool_values':
-                        value = arg_value.bool_values.values
-                    elif which_val == 'string_value':
-                        value = str(arg_value.string_value)
-                elif which == 'symbol':
-                    value = sympy.Symbol(arg_proto.symbol)
-
-            if value is None and arg.required:
-                raise ValueError(
-                    'Could not get arg {} from arg_proto {}'.format(
-                        arg.serialized_name, proto.args))
+            value = self._value_from_arg_proto(
+                proto.args[arg.serialized_name],
+                fail_on_none_name=None
+                if not arg.required else arg.serialized_name)
 
             if arg.value_func is not None:
                 value = arg.value_func(value)
@@ -147,3 +131,48 @@ class GateOpDeserializer:
             if value is not None:
                 return_args[arg.constructor_arg_name] = value
         return return_args
+
+    def _value_from_arg_proto(
+            self,
+            arg_proto: v2.program_pb2.Arg,
+            *,
+            fail_on_none_name: Optional[str],
+    ) -> Optional[arg_func_langs.ArgValue]:
+        which = arg_proto.WhichOneof('arg')
+        if which == 'arg_value':
+            arg_value = arg_proto.arg_value
+            which_val = arg_value.WhichOneof('arg_value')
+            if which_val == 'float_value':
+                return float(arg_value.float_value)
+            if which_val == 'bool_values':
+                return list(arg_value.bool_values.values)
+            if which_val == 'string_value':
+                return str(arg_value.string_value)
+            raise ValueError(f'Unrecognized value type: {which_val!r}')
+
+        if which == 'symbol':
+            return sympy.Symbol(arg_proto.symbol)
+
+        if which == 'func':
+            func = arg_proto.func
+            if func.type == 'add':
+                return sympy.Add(*[
+                    self._value_from_arg_proto(
+                        a, fail_on_none_name='An addition argument')
+                    for a in func.args
+                ])
+            elif func.type == 'mul':
+                return sympy.Mul(*[
+                    self._value_from_arg_proto(
+                        a, fail_on_none_name='A multiplication argument')
+                    for a in func.args
+                ])
+            else:
+                raise ValueError(f'Unrecognized function type: {func.type!r}')
+
+        if fail_on_none_name is not None:
+            raise ValueError(
+                f'{fail_on_none_name} is missing or has an unrecognized '
+                f'argument type (WhichOneof("arg")={which!r}).')
+
+        return None
