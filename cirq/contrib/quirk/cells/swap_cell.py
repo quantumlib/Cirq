@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Iterable, List, TYPE_CHECKING
+from typing import Optional, Iterable, List, TYPE_CHECKING, Iterator
 
 from cirq import ops
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
@@ -46,5 +46,5 @@ class SwapCell(Cell):
         return SwapCell(self._qubits, self._controls + [qubit])
 
 
-def generate_all_swap_cell_makers():
+def generate_all_swap_cell_makers() -> Iterator[CellMaker]:
     yield CellMaker("Swap", 1, lambda args: SwapCell(args.qubits, []))

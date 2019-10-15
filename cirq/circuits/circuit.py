@@ -762,9 +762,11 @@ class Circuit:
         frontier = dict(start_frontier)
         if not frontier:
             return op_list
-        start_index = min(frontier.values())
-        for index, moment in enumerate(self[start_index:], start_index):
+        index = min(frontier.values())
+        for moment in self._moments[index:]:
             active_qubits = set(q for q, s in frontier.items() if s <= index)
+            if len(active_qubits) <= 0:
+                return op_list
             for op in moment.operations:
                 active_op_qubits = active_qubits.intersection(op.qubits)
                 if active_op_qubits:
@@ -773,6 +775,7 @@ class Circuit:
                             del frontier[q]
                     else:
                         op_list.append((index, op))
+            index += 1
         return op_list
 
     def operation_at(self, qubit: 'cirq.Qid',
@@ -1684,7 +1687,7 @@ class Circuit:
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, device=device)
 
-    def with_noise(self, noise: 'cirq.NoiseModel') -> 'cirq.Circuit':
+    def with_noise(self, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.Circuit':
         """Make a noisy version of the circuit.
 
         Args:
@@ -1696,9 +1699,10 @@ class Circuit:
             inserted where needed when more than one noisy operation is
             generated for an input operation.  Emptied moments are removed.
         """
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
         qubits = sorted(self.all_qubits())
         c_noisy = Circuit()
-        for op_tree in noise.noisy_moments(self, qubits):
+        for op_tree in noise_model.noisy_moments(self, qubits):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy

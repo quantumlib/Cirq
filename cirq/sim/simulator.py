@@ -485,7 +485,9 @@ class StepResult(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def sample(self,
                qubits: List[ops.Qid],
-               repetitions: int = 1) -> np.ndarray:
+               repetitions: int = 1,
+               seed: Optional[Union[int, np.random.RandomState]] = None
+              ) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -494,6 +496,7 @@ class StepResult(metaclass=abc.ABCMeta):
             qubits: The qubits to be sampled in an order that influence the
                 returned measurement results.
             repetitions: The number of samples to take.
+            seed: A seed for the pseudorandom number generator.
 
         Returns:
             Measurement results with True corresponding to the ``|1⟩`` state.
@@ -506,7 +509,9 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample_measurement_ops(
             self,
             measurement_ops: List[ops.GateOperation],
-            repetitions: int = 1) -> Dict[str, np.ndarray]:
+            repetitions: int = 1,
+            seed: Optional[Union[int, np.random.RandomState]] = None
+    ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -521,6 +526,7 @@ class StepResult(metaclass=abc.ABCMeta):
             measurement_ops: `GateOperation` instances whose gates are
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
+            seed: A seed for the pseudorandom number generator.
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
@@ -549,7 +555,7 @@ class StepResult(metaclass=abc.ABCMeta):
             bounds[key] = (current_index, current_index + len(op.qubits))
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
-        indexed_sample = self.sample(all_qubits, repetitions)
+        indexed_sample = self.sample(all_qubits, repetitions, seed=seed)
 
         results = {}
         for k, (s, e) in bounds.items():

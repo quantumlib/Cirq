@@ -65,7 +65,7 @@ def test_phased_iswap_equivalent_circuit():
     t = -0.4
     gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
     q0, q1 = cirq.LineQubit.range(2)
-    equivalent_circuit = cirq.Circuit.from_ops([
+    equivalent_circuit = cirq.Circuit([
         cirq.Z(q0)**p,
         cirq.Z(q1)**-p,
         cirq.ISWAP(q0, q1)**t,
@@ -138,7 +138,7 @@ def test_givens_rotation_equivalent_circuit():
     t = 2 * angle_rads / np.pi
     gate = cirq.GivensRotation(angle_rads)
     q0, q1 = cirq.LineQubit.range(2)
-    equivalent_circuit = cirq.Circuit.from_ops([
+    equivalent_circuit = cirq.Circuit([
         cirq.T(q0),
         cirq.T(q1)**-1,
         cirq.ISWAP(q0, q1)**t,

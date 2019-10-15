@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Tuple, Type, Union
+from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
@@ -145,22 +145,25 @@ class Simulator(simulator.SimulatesSamples,
     def __init__(self,
                  *,
                  dtype: Type[np.number] = np.complex64,
-                 seed: int = None):
+                 seed: Optional[Union[int, np.random.RandomState]] = None):
         """A sparse matrix simulator.
 
         Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
-            seed: The random seed to use for this simulator. Sets numpy's
-                random seed. Setting numpy's seed different in between
-                use of this class will lead to non-seeded behavior.
+            seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(
                 'dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
-        if seed:
-            np.random.seed(seed)
+
+        if seed is None:
+            self.prng = None
+        elif isinstance(seed, np.random.RandomState):
+            self.prng = seed
+        else:
+            self.prng = np.random.RandomState(seed)
 
     def _run(
         self,
@@ -193,7 +196,9 @@ class Simulator(simulator.SimulatesSamples,
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
                                    ops.MeasurementGate)]
-        return step_result.sample_measurement_ops(measurement_ops, repetitions)
+        return step_result.sample_measurement_ops(measurement_ops,
+                                                  repetitions,
+                                                  seed=self.prng)
 
     def _run_sweep_repeat(
         self,
@@ -348,7 +353,11 @@ class Simulator(simulator.SimulatesSamples,
             invert_mask = meas.full_invert_mask()
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(
-                data.state, indices, out=data.state, qid_shape=data.state.shape)
+                data.state,
+                indices,
+                out=data.state,
+                qid_shape=data.state.shape,
+                seed=self.prng)
             corrected = [
                 bit ^ (bit < 2 and mask)
                 for bit, mask in zip(bits, invert_mask)
@@ -363,7 +372,8 @@ class Simulator(simulator.SimulatesSamples,
         # We work around numpy barfing on choosing from a list of
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
-        index = np.random.choice(range(len(unitaries)), p=probs)
+        prng = self.prng or np.random
+        index = prng.choice(range(len(unitaries)), p=probs)
         shape = protocols.qid_shape(op) * 2
         unitary = unitaries[index].astype(self._dtype).reshape(shape)
         result = linalg.targeted_left_multiply(unitary, data.state, indices,
@@ -445,11 +455,15 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
             dtype=self._dtype)
         np.copyto(self._state_vector, update_state)
 
-    def sample(self, qubits: List[ops.Qid],
-               repetitions: int = 1) -> np.ndarray:
+    def sample(self,
+               qubits: List[ops.Qid],
+               repetitions: int = 1,
+               seed: Optional[Union[int, np.random.RandomState]] = None
+              ) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state_vector,
                                                  indices,
                                                  qid_shape=protocols.qid_shape(
                                                      self, None),
-                                                 repetitions=repetitions)
+                                                 repetitions=repetitions,
+                                                 seed=seed)

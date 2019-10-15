@@ -53,12 +53,22 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({0: 1})
 
 
-def test_sample_seed():
+def test_sample_seed_unitary():
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
     result = cirq.sample(circuit, repetitions=10, seed=1234)
     assert np.all(
         result.measurements['q'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_sample_seed_non_unitary():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
+    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    print(result.measurements)
+    assert np.all(
+        result.measurements['q'] == [[False], [False], [False], [True], [True],
                                      [False], [False], [True], [True], [True]])
 
 
@@ -98,11 +108,18 @@ def test_sample_sweep():
 
 def test_sample_sweep_seed():
     q = cirq.NamedQubit('q')
-    circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
-    results = cirq.sample_sweep(circuit,
-                                cirq.Linspace('t', 0, 1, 3),
+    circuit = cirq.Circuit(cirq.X(q)**sympy.Symbol('t'), cirq.measure(q))
+
+    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
                                 repetitions=2,
                                 seed=1234)
+    assert np.all(results[0].measurements['q'] == [[False], [True]])
+    assert np.all(results[1].measurements['q'] == [[False], [True]])
+    assert np.all(results[2].measurements['q'] == [[True], [False]])
+
+    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
+                                repetitions=2,
+                                seed=np.random.RandomState(1234))
     assert np.all(results[0].measurements['q'] == [[False], [True]])
     assert np.all(results[1].measurements['q'] == [[False], [True]])
     assert np.all(results[2].measurements['q'] == [[True], [False]])
