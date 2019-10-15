@@ -1014,6 +1014,20 @@ def test_expectation_from_wavefunction_invalid_input():
         psum.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map_2)
 
 
+def test_expectation_from_wavefunction_check_preconditions():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
+    q_map = {q0: 0, q1: 1, q2: 2, q3: 3}
+
+    with pytest.raises(ValueError, match='normalized'):
+        psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                           q_map)
+
+    _ = psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                           q_map,
+                                           check_preconditions=False)
+
+
 def test_expectation_from_wavefunction_basis_states():
     q = cirq.LineQubit.range(2)
     psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
@@ -1129,6 +1143,22 @@ def test_expectation_from_density_matrix_invalid_input():
         psum.expectation_from_density_matrix(rho.reshape((8, 8, 1)), q_map)
     with pytest.raises(ValueError, match='shape'):
         psum.expectation_from_density_matrix(rho.reshape((-1)), q_map)
+
+
+def test_expectation_from_density_matrix_check_preconditions():
+    q0, q1, _, q3 = cirq.LineQubit.range(4)
+    psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
+    q_map = {q0: 0, q1: 1, q3: 2}
+    not_psd = np.zeros((8, 8), dtype=np.complex64)
+    not_psd[0, 0] = 1.1
+    not_psd[1, 1] = -0.1
+
+    with pytest.raises(ValueError, match='semidefinite'):
+        psum.expectation_from_density_matrix(not_psd, q_map)
+
+    _ = psum.expectation_from_density_matrix(not_psd,
+                                             q_map,
+                                             check_preconditions=False)
 
 
 def test_expectation_from_density_matrix_basis_states():
