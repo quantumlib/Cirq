@@ -25,12 +25,7 @@ from typing_extensions import Protocol
 class SupportsApproximateEquality(Protocol):
     """Object which can be compared approximately."""
 
-    def _approx_eq_(
-            self,
-            other: Any,
-            *,
-            atol: Union[int, float]
-        ) -> bool:
+    def _approx_eq_(self, other: Any, *, atol: Union[int, float]) -> bool:
         """Approximate comparator.
 
         Types implementing this protocol define their own logic for approximate
