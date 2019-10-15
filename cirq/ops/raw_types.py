@@ -269,7 +269,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                        Union[int, Collection[int]]]] = None,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> 'Gate':
-        """Returns a controlled version of this gate.
+        """Returns a controlled version of this gate. If no arguments are
+           specified, defaults to a single qubit control.
+
             num_controls: Total number of control qubits.
             control_values: For which control qubit values to apply the sub
                 gate.  A sequence of length `num_controls` where each
@@ -376,7 +378,8 @@ class Operation(metaclass=abc.ABCMeta):
                       *control_qubits: Qid,
                       control_values: Optional[Sequence[
                           Union[int, Collection[int]]]] = None) -> 'Operation':
-        """Returns a controlled version of this operation.
+        """Returns a controlled version of this operation. If no control_qubits
+           are specified, returns self.
 
         Args:
             control_qubits: Qubits to control the operation by. Required.

@@ -34,5 +34,8 @@ docs/generated
 # Ignore generated Jupyter files
 *.ipynb_checkpoints/
 
+# Ignore Bazel files
+/bazel-*
+
 # Default pycharm virtual env
 .venv/
