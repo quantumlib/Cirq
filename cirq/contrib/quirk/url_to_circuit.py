@@ -49,9 +49,9 @@ def quirk_url_to_circuit(
         extra_cell_makers: Non-standard Quirk cells to accept. This can be
             used to parse URLs that come from a modified version of Quirk that
             includes gates that Quirk doesn't define. This can be specified
-             as either a list of `cirq.contrib.quirk.cells.CellMaker` instances,
-             or for more simple cases as a dictionary from a Quirk id string
-             to a cirq Gate.
+            as either a list of `cirq.contrib.quirk.cells.CellMaker` instances,
+            or for more simple cases as a dictionary from a Quirk id string
+            to a cirq Gate.
 
     Examples:
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
