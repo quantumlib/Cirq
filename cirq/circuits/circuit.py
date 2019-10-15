@@ -762,9 +762,11 @@ class Circuit:
         frontier = dict(start_frontier)
         if not frontier:
             return op_list
-        start_index = min(frontier.values())
-        for index, moment in enumerate(self[start_index:], start_index):
+        index = min(frontier.values())
+        for moment in self._moments[index:]:
             active_qubits = set(q for q, s in frontier.items() if s <= index)
+            if len(active_qubits) <= 0:
+                return op_list
             for op in moment.operations:
                 active_op_qubits = active_qubits.intersection(op.qubits)
                 if active_op_qubits:
@@ -773,6 +775,7 @@ class Circuit:
                             del frontier[q]
                     else:
                         op_list.append((index, op))
+            index += 1
         return op_list
 
     def operation_at(self, qubit: 'cirq.Qid',
