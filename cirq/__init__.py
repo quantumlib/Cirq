@@ -242,7 +242,6 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     WaitGate,
-    WaveFunctionDisplay,
     X,
     XPowGate,
     XX,
