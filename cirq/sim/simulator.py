@@ -598,7 +598,8 @@ class SimulationTrialResult:
 
     def __str__(self):
         def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
+            separator = ' ' if np.max(vals) >= 10 else ''
+            return separator.join(str(int(v)) for v in vals)
 
         results = sorted(
             [(key, bitstring(val)) for key, val in self.measurements.items()])
