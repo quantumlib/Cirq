@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import (Any, Dict, Iterator, List, Optional, Type, Union, 
+from typing import (Any, Dict, Iterator, List, Optional, Type, Union,
                     TYPE_CHECKING)
 
 import numpy as np
