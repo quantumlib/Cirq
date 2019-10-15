@@ -122,7 +122,7 @@ def dot(*values: Union[float, complex, np.ndarray]
 
     Performs the computation in serial order without regard to the matrix
     sizes.  If you are using this for matrices of large and differing sizes,
-    consider using multi_dot for better performance
+    consider using multi_dot for better performance.
 
     Args:
         *values: The values to combine with the dot/matrix product.
