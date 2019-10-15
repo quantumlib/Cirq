@@ -14,7 +14,7 @@
 from typing import Iterator, TYPE_CHECKING
 
 from cirq import ops
-from cirq.contrib.quirk.cells.cell import CellMaker, ExplicitOperationsCell
+from cirq.contrib.quirk.cells.cell import CellMaker
 
 if TYPE_CHECKING:
     import cirq
@@ -29,6 +29,4 @@ def generate_all_scalar_cell_makers() -> Iterator[CellMaker]:
 
 
 def _scalar(identifier: str, operation: 'cirq.Operation') -> CellMaker:
-    return CellMaker(identifier,
-                     size=1,
-                     maker=lambda _: ExplicitOperationsCell([operation]))
+    return CellMaker(identifier, size=1, maker=lambda _: operation)

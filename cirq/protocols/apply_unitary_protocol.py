@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A protocol for implementing high performance unitary left-multiplies."""
-
 
 from typing import (
     Any,
@@ -32,12 +30,12 @@ from typing_extensions import Protocol
 
 from cirq import linalg
 from cirq.protocols import qid_shape_protocol
-from cirq.protocols.decompose import _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,)
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-
 
 # This is a special indicator value used by the apply_unitary method
 # to determine whether or not the caller provided a 'default' argument. It must
@@ -224,7 +222,7 @@ class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
 
     def _apply_unitary_(self, args: ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, None, NotImplementedType]:
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         """Left-multiplies a unitary effect onto a tensor with good performance.
 
         This method is given both the target tensor and workspace of the same
@@ -270,7 +268,7 @@ class SupportsConsistentApplyUnitary(Protocol):
 def apply_unitary(unitary_value: Any,
                   args: ApplyUnitaryArgs,
                   default: TDefault = RaiseTypeErrorIfNotProvided
-                  ) -> Union[np.ndarray, TDefault]:
+                 ) -> Union[np.ndarray, TDefault]:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
     Applies the unitary effect of `unitary_value` to the tensor specified in
