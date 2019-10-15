@@ -119,6 +119,12 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 TEST_OBJECTS = {
+    'AmplitudeDampingChannel':
+    cirq.AmplitudeDampingChannel(0.5),
+    'AsymmetricDepolarizingChannel':
+    cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3),
+    'BitFlipChannel':
+    cirq.BitFlipChannel(0.5),
     'Bristlecone':
     cirq.google.Bristlecone,
     'CCNOT':
@@ -157,10 +163,14 @@ TEST_OBJECTS = {
         #       https://github.com/quantumlib/Cirq/issues/2014
         # cirq.Circuit(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
     ],
+    'ConstantQubitNoiseModel':
+    cirq.ConstantQubitNoiseModel(cirq.X),
     'Duration':
     cirq.Duration(picos=6),
     'DensePauliString':
     cirq.DensePauliString('XYZI', coefficient=1j),
+    'DepolarizingChannel':
+    cirq.DepolarizingChannel(0.5),
     'MutableDensePauliString':
     cirq.MutableDensePauliString('XXZZ', coefficient=-2),
     'FREDKIN':
@@ -176,6 +186,8 @@ TEST_OBJECTS = {
         cirq.CSWAP(*cirq.LineQubit.range(3)),
         cirq.CZ(*cirq.LineQubit.range(2))
     ],
+    'GeneralizedAmplitudeDampingChannel':
+    cirq.GeneralizedAmplitudeDampingChannel(0.1, 0.2),
     'GlobalPhaseOperation':
     cirq.GlobalPhaseOperation(-1j),
     'GridQubit':
@@ -211,6 +223,8 @@ TEST_OBJECTS = {
         cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1),
                                 cirq.Z(Q2)]),
     ],
+    'NO_NOISE':
+    cirq.NO_NOISE,
     'NamedQubit':
     cirq.NamedQubit('hi mom'),
     'PauliString': [
@@ -221,6 +235,10 @@ TEST_OBJECTS = {
         }),
         cirq.X(Q0) * cirq.Y(Q1) * 123
     ],
+    'PhaseDampingChannel':
+    cirq.PhaseDampingChannel(0.5),
+    'PhaseFlipChannel':
+    cirq.PhaseFlipChannel(0.5),
     'PhaseGradientGate':
     cirq.PhaseGradientGate(num_qubits=3, exponent=0.235),
     'PhasedISwapPowGate':
@@ -231,6 +249,8 @@ TEST_OBJECTS = {
                         global_shift=0.789),
     'QuantumFourierTransformGate':
     cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
+    'ResetChannel':
+    cirq.ResetChannel(),
     'X':
     cirq.X,
     'Y':
@@ -410,12 +430,10 @@ def test_mutually_exclusive_blacklist():
 
 
 NOT_YET_SERIALIZABLE = [
-    'AmplitudeDampingChannel',
     'ApplyChannelArgs',
     'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
-    'BitFlipChannel',
     'Calibration',
     'CircuitDag',
     'CircuitDiagramInfo',
@@ -428,9 +446,7 @@ NOT_YET_SERIALIZABLE = [
     'DensityMatrixSimulatorState',
     'DensityMatrixStepResult',
     'DensityMatrixTrialResult',
-    'DepolarizingChannel',
     'ExpressionMap',
-    'GeneralizedAmplitudeDampingChannel',
     'Heatmap',
     'InsertStrategy',
     'IonDevice',
@@ -441,7 +457,6 @@ NOT_YET_SERIALIZABLE = [
     'LinearDict',
     'Linspace',
     'ListSweep',
-    'NO_NOISE',
     'NeutralAtomDevice',
     'ParallelGateOperation',
     'ParamResolver',
@@ -451,15 +466,12 @@ NOT_YET_SERIALIZABLE = [
     'PauliSumCollector',
     'PauliTransform',
     'PeriodicValue',
-    'PhaseDampingChannel',
-    'PhaseFlipChannel',
     'PointOptimizationSummary',
     'Points',
     'Product',
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
-    'ResetChannel',
     'Schedule',
     'ScheduledOperation',
     'SerializableDevice',
