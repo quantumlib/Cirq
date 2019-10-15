@@ -51,6 +51,7 @@ def test_parse_matrix_failures():
 
 def test_parse_real_formula():
     t = sympy.Symbol('t')
+    assert parse_formula('1/2') == 0.5
     assert parse_formula('t*t + ln(t)') == t * t + sympy.ln(t)
     assert parse_formula('cos(pi*t)') == sympy.cos(sympy.pi * t)
     assert parse_formula('5t') == 5 * t
