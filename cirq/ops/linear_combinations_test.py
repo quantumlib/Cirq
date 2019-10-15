@@ -968,10 +968,10 @@ def test_bad_arithmetic():
         _ = psum / [1, 2, 3]
 
     with pytest.raises(TypeError):
-        _ = psum ** 1.2
+        _ = psum**1.2
 
     with pytest.raises(TypeError):
-        _ = psum ** "string"
+        _ = psum**"string"
 
 
 def test_mul_paulistring():
@@ -1010,23 +1010,28 @@ def test_mul_paulisum():
     psum3 = cirq.X(q1) + cirq.X(q2)
     psum1 *= psum3
     assert psum1 == cirq.X(q0) * cirq.X(q1) + 2j * cirq.Y(q0) * cirq.Z(q1) \
-        + cirq.X(q0)  * cirq.X(q2)+ 2 * cirq.Y(q0) * cirq.Y(q1) * cirq.X(q2)
+        + cirq.X(q0) * cirq.X(q2)+ 2 * cirq.Y(q0) * cirq.Y(q1) * cirq.X(q2)
 
 
 def test_pauli_sum_pow():
     psum1 = cirq.X(q0) + cirq.Y(q0)
-    assert psum1 ** 2 == psum1 * psum1
-    print(psum1 ** 2)
-    # FIXME: some kind of type bug between different kinds of instantiation...
-    print(2. * cirq.PauliString(cirq.I(q0)))
-    assert psum1 ** 2 == 2 * cirq.PauliString(cirq.I(q0))
+    assert psum1**2 == psum1 * psum1
+    assert psum1**2 == 2 * cirq.PauliSum.from_pauli_strings(
+        [cirq.PauliString(cirq.I(q0))])
 
     psum2 = cirq.X(q0) + cirq.Y(q1)
-    print(psum1 ** 2)
-    assert psum2 ** 2 == cirq.I(q0) + cirq.I(q1)
+    assert psum2**2 == cirq.PauliString(
+        cirq.I(q0)) + 2 * cirq.X(q0) * cirq.Y(q1) + cirq.PauliString(cirq.I(q1))
 
-    psum2 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q0)
-    assert psum2 ** 2 == 3.69
+    psum3 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q0)
+    sqd = cirq.PauliSum.from_pauli_strings(
+        [2.69 * cirq.PauliString(cirq.I(q0))])
+    assert cirq.approx_eq(psum3 ** 2, sqd, atol=1e-8)
+
+    psum4 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q1)
+    sqd2 = cirq.PauliSum.from_pauli_strings(
+        [2.69 * cirq.PauliString(cirq.I(q0)), 2.6 * cirq.X(q0)])
+    assert cirq.approx_eq(psum4 ** 2, sqd2, atol=1e-8)
 
 
 def test_expectation_from_wavefunction_invalid_input():

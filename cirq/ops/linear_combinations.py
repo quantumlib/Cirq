@@ -487,7 +487,6 @@ class PauliSum:
         factory = type(self)
         return factory(-self._linear_dict)
 
-    # TODO: For all mul's, check that _every_ PauliSumLike type is supported
     def __imul__(self, other: PauliSumLike):
         if isinstance(other, (float, int, complex)):
             self._linear_dict *= other
@@ -501,12 +500,14 @@ class PauliSum:
             result *= other
             return result
         elif isinstance(other, PauliString):
-            return PauliSum.from_pauli_strings([term * other
-                                                for term in iter(self)])
+            return PauliSum.from_pauli_strings(
+                [term * other for term in iter(self)])
         elif isinstance(other, PauliSum):
             return PauliSum.from_pauli_strings(
-                [term * other_term for term in iter(self)
-                 for other_term in iter(other)])
+                [term * other_term
+                 for term in iter(self)
+                 for other_term in iter(other)
+            ])
 
         return NotImplemented
 
@@ -514,8 +515,8 @@ class PauliSum:
         if isinstance(other, (float, int, complex)):
             return self.__mul__(other)
         elif isinstance(other, PauliString):
-            return PauliSum.from_pauli_strings([other * term
-                                                for term in iter(self)])
+            return PauliSum.from_pauli_strings(
+                [other * term for term in iter(self)])
         return NotImplemented
 
     def __pow__(self, power: int):
