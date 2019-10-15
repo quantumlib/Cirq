@@ -17,11 +17,11 @@ from typing_extensions import Protocol
 
 import numpy as np
 
-
 RANDOM_STATE_LIKE = Optional[Union[np.random.RandomState, int]]
 
 
 class PseudoRandNumGen(Protocol):
+
     def choice(self, *args, **kwargs):
         pass
 

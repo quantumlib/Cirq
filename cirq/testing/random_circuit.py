@@ -14,8 +14,6 @@
 
 from typing import List, Union, Sequence, Dict, Optional
 
-import numpy as np
-
 from cirq import ops, value
 from cirq.circuits import Circuit
 
