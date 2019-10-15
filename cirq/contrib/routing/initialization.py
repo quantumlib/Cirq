@@ -19,7 +19,7 @@ import numpy as np
 import networkx as nx
 from sortedcontainers import SortedDict, SortedSet
 
-from cirq import ops
+from cirq import ops, value
 
 
 def get_center(graph: nx.Graph) -> Hashable:
@@ -27,11 +27,10 @@ def get_center(graph: nx.Graph) -> Hashable:
     return max(centralities, key=centralities.get)
 
 
-def get_initial_mapping(
-        logical_graph: nx.Graph,
-        device_graph: nx.Graph,
-        random_state: Optional[Union[np.random.RandomState, int]] = None
-) -> Dict[ops.Qid, ops.Qid]:
+def get_initial_mapping(logical_graph: nx.Graph,
+                        device_graph: nx.Graph,
+                        random_state: value.RANDOM_STATE_LIKE = None
+                       ) -> Dict[ops.Qid, ops.Qid]:
     """Gets an initial mapping of logical to physical qubits for routing.
 
     Args:
@@ -48,13 +47,7 @@ def get_initial_mapping(
     qubits that minimizes the average distance to already mapped logical
     neighbors is selected.
     """
-    if random_state is None:
-        prng = np.random
-    elif (isinstance(random_state, np.random.RandomState) or
-          random_state == np.random):
-        prng = random_state
-    else:
-        prng = np.random.RandomState(random_state)
+    prng = value.parse_random_state(random_state)
 
     unplaced_vertices = set(logical_graph)
 

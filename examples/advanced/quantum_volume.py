@@ -24,7 +24,7 @@ import cirq
 def generate_model_circuit(num_qubits: int,
                            depth: int,
                            *,
-                           random_state: Optional[np.random.RandomState] = None
+                           random_state: cirq.value.RANDOM_STATE_LIKE = None
                           ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -43,8 +43,7 @@ def generate_model_circuit(num_qubits: int,
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    if random_state is None:
-        random_state = np.random
+    random_state = cirq.value.parse_random_state(random_state)
 
     # For each layer.
     for _ in range(depth):
