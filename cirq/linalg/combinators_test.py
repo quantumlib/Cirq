@@ -46,15 +46,13 @@ def test_multi_dot():
     a = np.array([[1, 2], [3, 4]])
     b = np.array([[5, 6], [7, 8]])
     assert cirq.linalg.multi_dot(a) is not a
-    np.testing.assert_allclose(cirq.linalg.multi_dot(a),
-                           a,
-                           atol=1e-8)
+    np.testing.assert_allclose(cirq.linalg.multi_dot(a), a, atol=1e-8)
     np.testing.assert_allclose(cirq.linalg.multi_dot(a, b),
-                           np.dot(a, b),
-                           atol=1e-8)
+                               np.dot(a, b),
+                               atol=1e-8)
     np.testing.assert_allclose(cirq.linalg.multi_dot(a, b, a),
-                           np.dot(np.dot(a, b), a),
-                           atol=1e-8)
+                               np.dot(np.dot(a, b), a),
+                               atol=1e-8)
 
     #Invalid uses
     with pytest.raises(ValueError):
