@@ -167,7 +167,9 @@ class Circuit:
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, device=self._device)
+        copied_circuit = Circuit(device=self._device)
+        copied_circuit._moments = self._moments[:]
+        return copied_circuit
 
     def __bool__(self):
         return bool(self._moments)
@@ -211,7 +213,9 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key], device=self.device)
+            sliced_circuit = Circuit(device=self.device)
+            sliced_circuit._moments = self._moments[key]
+            return sliced_circuit
         if isinstance(key, int):
             return self._moments[key]
 
@@ -264,7 +268,7 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        result = Circuit(self._moments, device=device)
+        result = self.copy()
         return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
