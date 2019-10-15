@@ -35,7 +35,7 @@ matrix:
   - stage: test
     os: linux
     env: NAME=pytest-and-incremental-coverage
-    python: '3.6'
+    python: '3.8'
     install:
     - pip install -r requirements.txt
     - pip install -r cirq/contrib/contrib-requirements.txt
