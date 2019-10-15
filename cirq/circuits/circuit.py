@@ -765,7 +765,6 @@ class Circuit:
         index = min(frontier.values())
         for moment in self._moments[index:]:
             active_qubits = set(q for q, s in frontier.items() if s <= index)
-            index += 1
             if len(active_qubits) <= 0:
                 return op_list
             for op in moment.operations:
@@ -776,6 +775,7 @@ class Circuit:
                             del frontier[q]
                     else:
                         op_list.append((index, op))
+            index += 1
         return op_list
 
     def operation_at(self, qubit: 'cirq.Qid',
