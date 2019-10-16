@@ -93,29 +93,6 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]
     return product
 
 
-def multi_dot(*values: Union[float, complex, np.ndarray]
-             ) -> Union[float, complex, np.ndarray]:
-    """Computes the dot/matrix product of a sequence of values.
-
-    A *args version of np.linalg.multi_dot.  Note that this uses
-    np.linalg.multi_dot's functionality to determine the optimal order of the
-    operations
-
-    Args:
-        *values: The values to combine with the dot/matrix product.
-
-    Returns:
-        The resulting value or matrix.
-    """
-    if len(values) <= 1:
-        if len(values) == 0:
-            raise ValueError("cirq.multi_dot must be called with arguments")
-        if isinstance(values[0], np.ndarray):
-            return np.array(values[0])
-        return values[0]
-    return np.linalg.multi_dot(values)
-
-
 def dot(*values: Union[float, complex, np.ndarray]
        ) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
