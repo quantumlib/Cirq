@@ -1,4 +1,4 @@
-"""Simulates the fidelity estimation.
+"""Implements direct fidelity estimation.
 
 Direct Fidelity Estimation from Few Pauli Measurements
 https://arxiv.org/abs/1104.4695
@@ -25,31 +25,23 @@ def build_circuit():
   return circuit, qubits
 
 
-def simulate_trace(circuit, pauli_gates, qubits, noise):
-  simulator = cirq.DensityMatrixSimulator(noise=noise)
-
-  n = len(pauli_gates)
+def compute_characteristic_function(circuit, P_i, qubits, noise):
+  n = len(P_i)
   d = 2**n
 
-  trace = 0
+  trace = 0  # rho_i / sigma_i in https://arxiv.org/pdf/1104.3835.pdf
   for x in range(d):
     xbin = numpy.binary_repr(x, width=n)
 
-    pauli_string = cirq.PauliString(dict(zip(qubits, pauli_gates)))
-    display = cirq.approx_pauli_string_expectation(pauli_string, num_samples=n)
+    pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
+    display = cirq.approx_pauli_string_expectation(pauli_string, num_samples=1)
     y = cirq.sample(cirq.Circuit(
         pauli_string,
         circuit)).measurements['y'][0]
 
-    # rotated_initial_state = cirq.final_wavefunction(
-    #     cirq.DensePauliString(pauli_gates),
-    #     qubit_order=qubits,
-    #     initial_state=x)
-    # y = simulator.simulate(circuit, initial_state=rotated_initial_state).measurements['y']
-
     trace += sum([int(xbin[i]) == y[i] for i in range(n)])
 
-  prob = trace * trace / d
+  prob = trace * trace / d  # Pr(i) in https://arxiv.org/pdf/1104.3835.pdf
 
   return trace, prob
 
@@ -62,24 +54,28 @@ def main():
 
   n = len(qubits)
 
+  # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
+  # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
+  # inside the variable 'pauli_traces'.
   pauli_traces = [
-      simulate_trace(circuit, pauli_gates, qubits, noise=None) + (pauli_gates,)
-      for pauli_gates in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
+      compute_characteristic_function(circuit, P_i, qubits, noise=None) + (P_i,)
+      for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
                                            repeat=n)
   ]
   highest_probs = heapq.nlargest(n, pauli_traces, key=lambda e: e[1])
 
   fidelity = 0.0
-  for prob_tuple in highest_probs:
-    rho_i, Pr_i, pauli_gates = prob_tuple
+  N = 0
+  for rho_i, Pr_i, P_i in highest_probs:
     if Pr_i == 0:
       break
 
-    sigma_i, _ = simulate_trace(circuit, pauli_gates, qubits, noise)
+    sigma_i, _ = compute_characteristic_function(circuit, P_i, qubits, noise)
 
     fidelity += Pr_i * sigma_i / rho_i
+    N += 1
 
-  print(fidelity)
+  print(fidelity / N)
 
 
 if __name__ == '__main__':
