@@ -24,6 +24,11 @@ from cirq.protocols.apply_channel_protocol import (
     ApplyChannelArgs,
     SupportsApplyChannel,
 )
+from cirq.protocols.apply_mixture_protocol import (
+    apply_mixture,
+    ApplyMixtureArgs,
+    SupportsApplyMixture,
+)
 from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
