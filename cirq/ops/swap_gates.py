@@ -54,7 +54,8 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
         """See base class."""
         a, b = qubits
         yield common_gates.CNOT(a, b)
-        yield common_gates.CNOT(b, a)**self._exponent
+        yield common_gates.CNotPowGate(exponent=self._exponent,
+                                       global_shift=self.global_shift).on(b, a)
         yield common_gates.CNOT(a, b)
 
     def _eigen_components(self):
@@ -186,9 +187,11 @@ class ISwapPowGate(eigen_gate.EigenGate,
         yield common_gates.CNOT(a, b)
         yield common_gates.H(a)
         yield common_gates.CNOT(b, a)
-        yield common_gates.S(a)**self._exponent
+        yield common_gates.ZPowGate(exponent=self._exponent / 2,
+                                    global_shift=self.global_shift).on(a)
         yield common_gates.CNOT(b, a)
-        yield common_gates.S(a)**-self._exponent
+        yield common_gates.ZPowGate(exponent=-self._exponent / 2,
+                                    global_shift=-self.global_shift).on(a)
         yield common_gates.H(a)
         yield common_gates.CNOT(a, b)
 
