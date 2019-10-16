@@ -22,8 +22,8 @@ matrix:
     before_install:
       - # TODO(craiggidney): re-enable after https://github.com/quantumlib/Cirq/issues/2283 is resolved
       - # powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
-      - powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
-      - powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
+      - # powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
+      - # powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
       - choco install python --version 3.7.3
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
       - python -m pip install --upgrade pip wheel
@@ -35,7 +35,7 @@ matrix:
   - stage: test
     os: linux
     env: NAME=pytest-and-incremental-coverage
-    python: '3.7.3'
+    python: '3.6'
     install:
     - pip install -r requirements.txt
     - pip install -r cirq/contrib/contrib-requirements.txt
@@ -53,17 +53,15 @@ matrix:
     script: dev_tools/build-docs.sh
   - stage: test
     os: osx
-    osx_image: xcode11  # Python 3.7.2 running on macOS 10.14.3
     env: NAME=pytest (macOS)
-    python: '3.7'
+    python: '3.6'
     language: generic
-    before_install: python3.7 --version ; pip3 --version
     install:
-      - python3.7 -m venv venv
+      - python3.6 -m venv venv
       - source venv/bin/activate
-      - pip3 install -r requirements.txt
-      - pip3 install -r cirq/contrib/contrib-requirements.txt
-      - pip3 install -r dev_tools/conf/pip-list-dev-tools.txt
+      - pip install -r requirements.txt
+      - pip install -r cirq/contrib/contrib-requirements.txt
+      - pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/pytest --benchmark-skip
   - stage: test
     os: linux
@@ -96,6 +94,15 @@ matrix:
     install:
       - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
     script: check/mypy
+  - stage: test
+    os: linux
+    env: NAME=build-protos
+    python: '3.6'
+    install:
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
+      - sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
+    script: check/build-protos
   - stage: test
     os: linux
     env: NAME=format
