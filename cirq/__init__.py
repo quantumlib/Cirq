@@ -148,7 +148,6 @@ from cirq.linalg import (
 from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
-    ApproxPauliStringExpectation,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
@@ -170,7 +169,6 @@ from cirq.ops import (
     CZ,
     CZPowGate,
     DensePauliString,
-    DensityMatrixDisplay,
     depolarize,
     DepolarizingChannel,
     EigenGate,
@@ -208,7 +206,6 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    approx_pauli_string_expectation,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
@@ -235,7 +232,6 @@ from cirq.ops import (
     Ry,
     Rz,
     S,
-    SamplesDisplay,
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
@@ -250,7 +246,6 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     WaitGate,
-    WaveFunctionDisplay,
     X,
     XPowGate,
     XX,
@@ -325,7 +320,6 @@ from cirq.sim import (
 )
 
 from cirq.study import (
-    ComputeDisplaysResult,
     ExpressionMap,
     flatten,
     flatten_with_params,
