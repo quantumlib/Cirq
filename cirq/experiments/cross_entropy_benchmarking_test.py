@@ -14,6 +14,7 @@
 
 import numpy as np
 
+import matplotlib.pyplot as plt
 import cirq
 
 from cirq.experiments import cross_entropy_benchmarking, build_entangling_layers
@@ -78,4 +79,5 @@ def test_cross_entropy_benchmarking():
     assert len(fidelities_3) == 1
 
     # Sanity test that plot runs.
-    results_1.plot()
+    ax = plt.subplot()
+    results_1.plot(ax)

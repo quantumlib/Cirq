@@ -167,7 +167,9 @@ class Circuit:
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, device=self._device)
+        copied_circuit = Circuit(device=self._device)
+        copied_circuit._moments = self._moments[:]
+        return copied_circuit
 
     def __bool__(self):
         return bool(self._moments)
@@ -211,7 +213,9 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key], device=self.device)
+            sliced_circuit = Circuit(device=self.device)
+            sliced_circuit._moments = self._moments[key]
+            return sliced_circuit
         if isinstance(key, int):
             return self._moments[key]
 
@@ -264,7 +268,7 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        result = Circuit(self._moments, device=device)
+        result = self.copy()
         return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
@@ -466,6 +470,31 @@ class Circuit:
         return self._first_moment_operating_on(qubits,
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
+
+    def transform_qubits(self,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid'],
+                         *,
+                         new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
+        """Returns the same circuit, but with different qubits.
+
+        Note that this method does essentially the same thing as
+        `cirq.Circuit.with_device`. It is included regardless because there are
+        also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+            new_device: The device to use for the new circuit, if different.
+                If this is not set, the new device defaults to the current
+                device.
+
+        Returns:
+            The receiving circuit but with qubits transformed by the given
+                function, and with an updated device (if specified).
+        """
+        return self.with_device(
+            new_device=self.device if new_device is None else new_device,
+            qubit_mapping=func)
 
     def _prev_moment_available(self, op: 'cirq.Operation',
                                end_moment_index: int) -> Optional[int]:
@@ -737,9 +766,11 @@ class Circuit:
         frontier = dict(start_frontier)
         if not frontier:
             return op_list
-        start_index = min(frontier.values())
-        for index, moment in enumerate(self[start_index:], start_index):
+        index = min(frontier.values())
+        for moment in self._moments[index:]:
             active_qubits = set(q for q, s in frontier.items() if s <= index)
+            if len(active_qubits) <= 0:
+                return op_list
             for op in moment.operations:
                 active_op_qubits = active_qubits.intersection(op.qubits)
                 if active_op_qubits:
@@ -748,6 +779,7 @@ class Circuit:
                             del frontier[q]
                     else:
                         op_list.append((index, op))
+            index += 1
         return op_list
 
     def operation_at(self, qubit: 'cirq.Qid',
@@ -1659,7 +1691,7 @@ class Circuit:
     def _from_json_dict_(cls, moments, device, **kwargs):
         return cls(moments, device=device)
 
-    def with_noise(self, noise: 'cirq.NoiseModel') -> 'cirq.Circuit':
+    def with_noise(self, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.Circuit':
         """Make a noisy version of the circuit.
 
         Args:
@@ -1671,9 +1703,10 @@ class Circuit:
             inserted where needed when more than one noisy operation is
             generated for an input operation.  Emptied moments are removed.
         """
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
         qubits = sorted(self.all_qubits())
         c_noisy = Circuit()
-        for op_tree in noise.noisy_moments(self, qubits):
+        for op_tree in noise_model.noisy_moments(self, qubits):
             # Keep moments aligned
             c_noisy += Circuit(op_tree)
         return c_noisy

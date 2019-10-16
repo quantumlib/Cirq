@@ -23,6 +23,12 @@ from cirq.ops.clifford_gate import (
     SingleQubitCliffordGate,
 )
 
+from cirq.ops.dense_pauli_string import (
+    BaseDensePauliString,
+    DensePauliString,
+    MutableDensePauliString,
+)
+
 from cirq.ops.common_channels import (
     amplitude_damp,
     AmplitudeDampingChannel,
@@ -53,9 +59,6 @@ from cirq.ops.common_gates import (
     I,
     identity,
     IdentityGate,
-    measure,
-    measure_each,
-    MeasurementGate,
     Rx,
     Ry,
     Rz,
@@ -68,14 +71,6 @@ from cirq.ops.common_gates import (
 
 from cirq.ops.controlled_gate import (
     ControlledGate,)
-
-from cirq.ops.display import (
-    ApproxPauliStringExpectation,
-    DensityMatrixDisplay,
-    approx_pauli_string_expectation,
-    SamplesDisplay,
-    WaveFunctionDisplay,
-)
 
 from cirq.ops.eigen_gate import (
     EigenGate,)
@@ -128,6 +123,14 @@ from cirq.ops.matrix_gates import (
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
+
+from cirq.ops.measure_util import (
+    measure,
+    measure_each,
+)
+
+from cirq.ops.measurement_gate import (
+    MeasurementGate,)
 
 from cirq.ops.moment import (
     Moment,)
@@ -208,3 +211,6 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.wait_gate import (
+    WaitGate,)
