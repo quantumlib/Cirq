@@ -18,6 +18,7 @@ Output:
 """
 
 import argparse
+import sys
 from typing import Optional, List, cast, Callable, Dict, Tuple
 
 from cirq.contrib.quantum_volume import calculate_quantum_volume
