@@ -24,4 +24,5 @@ from cirq.contrib.quirk.export_to_quirk import (
     circuit_to_quirk_url,)
 
 from cirq.contrib.quirk.url_to_circuit import (
+    quirk_json_to_circuit,
     quirk_url_to_circuit,)
