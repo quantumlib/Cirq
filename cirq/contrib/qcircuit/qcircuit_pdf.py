@@ -53,7 +53,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(circuit: circuits.Circuit,
     try:
         tex = tex.encode('ascii')
     except UnicodeEncodeError:
-        doc.preamble.append(Package ('inputenc', options = ['utf8']))
+        doc.preamble.append(Package('inputenc', options=['utf8']))
     doc.append(NoEscape(tex))
     doc.generate_pdf(filepath, **pdf_kwargs)
     for ext in clean_ext:
