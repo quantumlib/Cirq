@@ -87,9 +87,13 @@ from cirq.devices import (
 
 from cirq.experiments import (
     linear_xeb_fidelity,
+    linear_xeb_fidelity_from_probabilities,
+    log_xeb_fidelity,
+    log_xeb_fidelity_from_probabilities,
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    xeb_fidelity,
 )
 
 from cirq.linalg import (
