@@ -52,7 +52,9 @@ def test_compute_heavy_set():
         cirq.Moment([cirq.CNOT(a, c)]),
         cirq.Moment([cirq.Z(a), cirq.H(b)])
     ])
-    assert cirq.contrib.quantum_volume.compute_heavy_set(model_circuit) == [5, 7]
+    assert cirq.contrib.quantum_volume.compute_heavy_set(model_circuit) == [
+        5, 7
+    ]
 
 
 def test_sample_heavy_set():
@@ -66,9 +68,10 @@ def test_sample_heavy_set():
     sampler.run = MagicMock(return_value=result)
     circuit = cirq.Circuit(cirq.measure(*cirq.LineQubit.range(2)))
 
-    probability = cirq.contrib.quantum_volume.sample_heavy_set(circuit, [1, 2, 3],
-                                                  sampler=sampler,
-                                                  repetitions=1000)
+    probability = cirq.contrib.quantum_volume.sample_heavy_set(circuit,
+                                                               [1, 2, 3],
+                                                               sampler=sampler,
+                                                               repetitions=1000)
     # The first 3 of our outputs are in the heavy set, and then the rest are
     # not.
     assert probability == .003
@@ -78,8 +81,8 @@ def test_compile_circuit_router():
     """Tests that the given router is used."""
     router_mock = MagicMock()
     cirq.contrib.quantum_volume.compile_circuit(cirq.Circuit(),
-                                   device=cirq.google.Bristlecone,
-                                   router=router_mock)
+                                                device=cirq.google.Bristlecone,
+                                                router=router_mock)
     router_mock.assert_called()
 
 
@@ -90,10 +93,8 @@ def test_compile_circuit():
     model_circuit = cirq.Circuit([
         cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
     ])
-    [compiled_circuit,
-     mapping] = cirq.contrib.quantum_volume.compile_circuit(model_circuit,
-                                               device=cirq.google.Bristlecone,
-                                               compiler=compiler_mock)
+    [compiled_circuit, mapping] = cirq.contrib.quantum_volume.compile_circuit(
+        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock)
 
     assert len(mapping) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
@@ -116,8 +117,9 @@ def test_calculate_quantum_volume_result():
         3, 3, random_state=np.random.RandomState(1))
     assert len(results) == 1
     assert results[0].model_circuit == model_circuit
-    assert results[0].heavy_set == cirq.contrib.quantum_volume.compute_heavy_set(
-        model_circuit)
+    assert results[
+        0].heavy_set == cirq.contrib.quantum_volume.compute_heavy_set(
+            model_circuit)
     assert len(results[0].sampler_result) == 1
     # Ensure that calling to_json on the results does not err.
     buffer = io.StringIO()
@@ -127,9 +129,10 @@ def test_calculate_quantum_volume_result():
 def test_calculate_quantum_volume_loop():
     """Test that calculate_quantum_volume is able to run without erring."""
     # Keep test from taking a long time by lowering repetitions.
-    cirq.contrib.quantum_volume.calculate_quantum_volume(num_qubits=5,
-                                            depth=5,
-                                            num_repetitions=1,
-                                            seed=1,
-                                            device=cirq.google.Bristlecone,
-                                            samplers=[cirq.Simulator()])
+    cirq.contrib.quantum_volume.calculate_quantum_volume(
+        num_qubits=5,
+        depth=5,
+        num_repetitions=1,
+        seed=1,
+        device=cirq.google.Bristlecone,
+        samplers=[cirq.Simulator()])

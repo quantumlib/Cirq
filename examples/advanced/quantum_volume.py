@@ -23,12 +23,8 @@ from typing import Optional, List, cast, Callable, Dict, Tuple
 from cirq.contrib.quantum_volume import calculate_quantum_volume
 import cirq
 
-def main(
-        *,
-        num_qubits: int,
-        depth: int,
-        num_repetitions: int,
-        seed: int):
+
+def main(*, num_qubits: int, depth: int, num_repetitions: int, seed: int):
     """Run the quantum volume algorithm with a preset configuration.
 
     See the calculate_quantum_volume documentation for more details.
@@ -47,12 +43,12 @@ def main(
     noisy = cirq.DensityMatrixSimulator(noise=cirq.ConstantQubitNoiseModel(
         qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
     calculate_quantum_volume(num_qubits=num_qubits,
-                                    depth=depth,
-                                    num_repetitions=num_repetitions,
-                                    seed=seed,
-                                    device=device,
-                                    samplers=[cirq.Simulator(), noisy],
-                                    compiler=compiler)
+                             depth=depth,
+                             num_repetitions=num_repetitions,
+                             seed=seed,
+                             device=device,
+                             samplers=[cirq.Simulator(), noisy],
+                             compiler=compiler)
 
 
 def parse_arguments(args):

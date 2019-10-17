@@ -203,14 +203,15 @@ class QuantumVolumeResult:
         ])
 
 
-def prepare_circuits(*,
+def prepare_circuits(
+        *,
         num_qubits: int,
         depth: int,
         num_repetitions: int,
         random_state: Optional[np.random.RandomState] = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
-    
+
     Args:
         num_qubits: The number of qubits in the generated circuits.
         depth: The number of layers in the circuits.
@@ -231,22 +232,26 @@ def prepare_circuits(*,
         circuits.append((model_circuit, heavy_set))
     return circuits
 
+
 def execute_circuits(*,
                      device: cirq.google.xmon_device.XmonDevice,
                      samplers: List[cirq.Sampler],
                      compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
-                     circuits: List[Tuple[cirq.Circuit, List[int]]]) -> List[QuantumVolumeResult]:
+                     circuits: List[Tuple[cirq.Circuit, List[int]]]
+                    ) -> List[QuantumVolumeResult]:
     """Executes the given circuits on the given samplers.
-    
+
     Args
         device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
-        circuits: The circuits to sampler from.
+        circuits: The circuits to sample from.
 
-    Returns: A list of QuantumVolumeResults that contains all of the information
-        for running the algorithm and its results.
+    Returns:
+        A list of QuantumVolumeResults that contains all of the information for
+        running the algorithm and its results.
+
     """
     results = []
     for model_circuit, heavy_set in circuits:
@@ -261,11 +266,13 @@ def execute_circuits(*,
                                     mapping=mapping)
             print(f"  Compiled HOG probability #{idx + 1}: {prob}")
             sampler_result.append(prob)
-            results.append(QuantumVolumeResult(model_circuit=model_circuit,
-                                heavy_set=heavy_set,
-                                compiled_circuit=compiled_circuit,
-                                sampler_result=sampler_result))
+            results.append(
+                QuantumVolumeResult(model_circuit=model_circuit,
+                                    heavy_set=heavy_set,
+                                    compiled_circuit=compiled_circuit,
+                                    sampler_result=sampler_result))
     return results
+
 
 def calculate_quantum_volume(
         *,
@@ -279,7 +286,7 @@ def calculate_quantum_volume(
 ) -> List[QuantumVolumeResult]:
     """Run the quantum volume algorithm.
 
-    This algorithm will follow the same format as Algorithm 1 in
+    This algorithm should compute the same values as Algorithm 1 in
     https://arxiv.org/abs/1811.12926. To summarize, we generate a random model
     circuit, compute its heavy set, then transpile an implementation onto our
     architecture. This implementation is run a series of times and if the
@@ -301,5 +308,11 @@ def calculate_quantum_volume(
 
     """
     random_state = np.random.RandomState(seed)
-    circuits = prepare_circuits(num_qubits=num_qubits, depth=depth, num_repetitions=num_repetitions, random_state=random_state)
-    return execute_circuits(circuits=circuits, device=device, compiler=compiler, samplers=samplers)
+    circuits = prepare_circuits(num_qubits=num_qubits,
+                                depth=depth,
+                                num_repetitions=num_repetitions,
+                                random_state=random_state)
+    return execute_circuits(circuits=circuits,
+                            device=device,
+                            compiler=compiler,
+                            samplers=samplers)
