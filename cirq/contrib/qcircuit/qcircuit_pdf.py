@@ -51,7 +51,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(circuit: circuits.Circuit,
     doc.packages.append(Package('amsmath'))
     doc.packages.append(Package('qcircuit'))
     try:
-        tex = tex.encode('ascii')
+        tex.encode('ascii')
     except UnicodeEncodeError:
         doc.preamble.append(Package('inputenc', options=['utf8']))
     doc.append(NoEscape(tex))
