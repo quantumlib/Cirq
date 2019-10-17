@@ -3,7 +3,7 @@
 dataclasses
 google-api-python-client~=1.6
 matplotlib~=3.0
-networkx~=2.1
+networkx==2.3
 numpy~=1.16
 pandas
 protobuf==3.8.0
