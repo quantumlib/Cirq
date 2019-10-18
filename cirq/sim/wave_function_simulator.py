@@ -70,11 +70,11 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             final_simulator_state=final_simulator_state)
 
     def compute_displays(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        param_resolver: study.ParamResolver = study.ParamResolver({}),
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            param_resolver: study.ParamResolver = study.ParamResolver({}),
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     ) -> study.ComputeDisplaysResult:
         """Computes displays in the supplied Circuit or Schedule.
 
@@ -96,11 +96,11 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
             program, [param_resolver], qubit_order, initial_state)[0]
 
     def compute_displays_sweep(
-        self,
-        program: Union[circuits.Circuit, schedules.Schedule],
-        params: Optional[study.Sweepable] = None,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Union[int, np.ndarray] = 0,
+            self,
+            program: Union[circuits.Circuit, schedules.Schedule],
+            params: Optional[study.Sweepable] = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
     ) -> List[study.ComputeDisplaysResult]:
         """Computes displays in the supplied Circuit or Schedule.
 
