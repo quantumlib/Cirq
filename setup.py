@@ -70,6 +70,7 @@ setup(name=name,
       long_description=long_description,
       packages=cirq_packages,
       package_data={
+          'cirq': ['py.typed'],
           'cirq.api.google.v1': ['*.proto'],
           'cirq.api.google.v2': ['*.proto'],
           'cirq.google.api.v1': ['*.proto'],
