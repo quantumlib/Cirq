@@ -41,9 +41,9 @@ STATE_VECTOR_LIKE = Union[
     # Full big-endian computational basis state index.
     int,
     # Per-qudit computational basis values.
-    Sequence[Union[int, bool]],
+    Sequence[int],
     # Explicit state vector or state tensor.
-    np.ndarray, Sequence[Union[int, float, complex]],]
+    np.ndarray, Sequence[Union[int, float, complex]]]
 
 
 class StateVectorMixin():
