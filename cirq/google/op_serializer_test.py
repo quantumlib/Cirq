@@ -134,7 +134,8 @@ def test_to_proto_attribute(val_type, val, arg_value):
                                              gate_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto_dict(GateWithAttribute(val)(q))
+    result = serializer.to_proto_dict(GateWithAttribute(val)(q),
+                                      arg_function_language='linear')
     expected = {
         'gate': {
             'id': 'my_gate'
@@ -160,7 +161,8 @@ def test_to_proto_property(val_type, val, arg_value):
                                              gate_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto_dict(GateWithProperty(val)(q))
+    result = serializer.to_proto_dict(GateWithProperty(val)(q),
+                                      arg_function_language='linear')
     expected = {
         'gate': {
             'id': 'my_gate'
@@ -186,7 +188,8 @@ def test_to_proto_callable(val_type, val, arg_value):
                                              gate_getter=get_val)
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto_dict(GateWithMethod(val)(q))
+    result = serializer.to_proto_dict(GateWithMethod(val)(q),
+                                      arg_function_language='linear')
     expected = {
         'gate': {
             'id': 'my_gate'

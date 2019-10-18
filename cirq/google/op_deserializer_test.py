@@ -103,7 +103,8 @@ def test_from_proto(val_type, val, arg_value):
         }]
     }
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto_dict(serialized)
+    result = deserializer.from_proto_dict(serialized,
+                                          arg_function_language='linear')
     assert result == GateWithAttribute(val)(q)
 
 
@@ -231,7 +232,8 @@ def test_from_proto_function_argument_not_set():
     }
     with pytest.raises(ValueError,
                        match='A multiplication argument is missing'):
-        _ = deserializer.from_proto_dict(serialized)
+        _ = deserializer.from_proto_dict(serialized,
+                                         arg_function_language='linear')
 
 
 def test_from_proto_unknown_arg_type():

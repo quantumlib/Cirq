@@ -31,7 +31,7 @@ class DeserializingArg(
         NamedTuple('DeserializingArg', [
             ('serialized_name', str),
             ('constructor_arg_name', str),
-            ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
+            ('value_func', Optional[Callable[[arg_func_langs.ARG_LIKE], Any]]),
             ('required', bool),
         ])):
     """Specification of the arguments to deserialize an argument to a gate.
@@ -95,24 +95,29 @@ class GateOpDeserializer:
         self.args = args
         self.num_qubits_param = num_qubits_param
 
-    def from_proto_dict(self, proto: Dict) -> 'cirq.GateOperation':
+    def from_proto_dict(self, proto: Dict, *, arg_function_language: str = ''
+                       ) -> 'cirq.GateOperation':
         """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
         msg = v2.program_pb2.Operation()
         json_format.ParseDict(proto, msg)
-        return self.from_proto(msg)
+        return self.from_proto(msg, arg_function_language=arg_function_language)
 
     def from_proto(self,
-                   proto: v2.program_pb2.Operation) -> 'cirq.GateOperation':
+                   proto: v2.program_pb2.Operation,
+                   *,
+                   arg_function_language: str = '') -> 'cirq.GateOperation':
         """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
         qubits = [api_v2.grid_qubit_from_proto_id(q.id) for q in proto.qubits]
-        args = self._args_from_proto(proto)
+        args = self._args_from_proto(
+            proto, arg_function_language=arg_function_language)
         if self.num_qubits_param is not None:
             args[self.num_qubits_param] = len(qubits)
         gate = self.gate_constructor(**args)
         return gate.on(*qubits)
 
-    def _args_from_proto(self, proto: v2.program_pb2.Operation
-                        ) -> Dict[str, arg_func_langs.ArgValue]:
+    def _args_from_proto(self, proto: v2.program_pb2.Operation, *,
+                         arg_function_language: str
+                        ) -> Dict[str, arg_func_langs.ARG_LIKE]:
         return_args = {}
         for arg in self.args:
             if arg.serialized_name not in proto.args and arg.required:
@@ -120,9 +125,10 @@ class GateOpDeserializer:
                     'Argument {} not in deserializing args, but is required.'.
                     format(arg.serialized_name))
 
-            value = self._value_from_arg_proto(
+            value = arg_func_langs._arg_from_proto(
                 proto.args[arg.serialized_name],
-                fail_on_none_name=None
+                arg_function_language=arg_function_language,
+                required_arg_name=None
                 if not arg.required else arg.serialized_name)
 
             if arg.value_func is not None:
@@ -131,48 +137,3 @@ class GateOpDeserializer:
             if value is not None:
                 return_args[arg.constructor_arg_name] = value
         return return_args
-
-    def _value_from_arg_proto(
-            self,
-            arg_proto: v2.program_pb2.Arg,
-            *,
-            fail_on_none_name: Optional[str],
-    ) -> Optional[arg_func_langs.ArgValue]:
-        which = arg_proto.WhichOneof('arg')
-        if which == 'arg_value':
-            arg_value = arg_proto.arg_value
-            which_val = arg_value.WhichOneof('arg_value')
-            if which_val == 'float_value':
-                return float(arg_value.float_value)
-            if which_val == 'bool_values':
-                return list(arg_value.bool_values.values)
-            if which_val == 'string_value':
-                return str(arg_value.string_value)
-            raise ValueError(f'Unrecognized value type: {which_val!r}')
-
-        if which == 'symbol':
-            return sympy.Symbol(arg_proto.symbol)
-
-        if which == 'func':
-            func = arg_proto.func
-            if func.type == 'add':
-                return sympy.Add(*[
-                    self._value_from_arg_proto(
-                        a, fail_on_none_name='An addition argument')
-                    for a in func.args
-                ])
-            elif func.type == 'mul':
-                return sympy.Mul(*[
-                    self._value_from_arg_proto(
-                        a, fail_on_none_name='A multiplication argument')
-                    for a in func.args
-                ])
-            else:
-                raise ValueError(f'Unrecognized function type: {func.type!r}')
-
-        if fail_on_none_name is not None:
-            raise ValueError(
-                f'{fail_on_none_name} is missing or has an unrecognized '
-                f'argument type (WhichOneof("arg")={which!r}).')
-
-        return None
