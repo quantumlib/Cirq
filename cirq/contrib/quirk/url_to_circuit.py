@@ -132,7 +132,7 @@ def quirk_json_to_circuit(
             described in quirk_url_to_circuit.
     """
 
-    def msg(error, cls=ValueError):
+    def msg(error):
         if quirk_url is not None:
             return f'{error}\nURL={quirk_url}\nJSON={data}'
         else:
