@@ -174,7 +174,7 @@ Here is an example docstring:
 
 ```
 def some_method(a: int, b: str) -> float:
-    """One line summary of method.
+    r"""One line summary of method.
 
     Additional information about the method, perhaps with some sort of latex
     equation to make it clearer:
