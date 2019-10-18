@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import urllib
 
 import pytest
 
 import cirq
-from cirq.contrib.quirk import quirk_url_to_circuit
+from cirq.contrib.quirk import quirk_url_to_circuit, quirk_json_to_circuit
 
 
 def test_parse_simple_cases():
@@ -36,38 +37,37 @@ def test_parse_simple_cases():
                              cirq.X(b).controlled_by(a))
 
 
-def test_parse_failures():
-    with pytest.raises(ValueError, match='must start with "circuit="'):
-        _ = quirk_url_to_circuit('http://algassert.com/quirk#bad')
+@pytest.mark.parametrize('url,error_cls,msg', [
+    ('http://algassert.com/quirk#bad', ValueError,
+     'must start with "circuit="'),
+    ('http://algassert.com/quirk#circuit=', json.JSONDecodeError, None),
+])
+def test_parse_url_failures(url, error_cls, msg):
+    with pytest.raises(error_cls, match=msg):
+        _ = quirk_url_to_circuit(url)
 
-    with pytest.raises(json.JSONDecodeError):
-        _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit=')
 
-    with pytest.raises(ValueError, match='top-level dictionary'):
-        _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit=[]')
+@pytest.mark.parametrize(
+    'url,msg',
+    [('http://algassert.com/quirk#circuit=[]', 'top-level dictionary'),
+     ('http://algassert.com/quirk#circuit={}', '"cols" entry'),
+     ('http://algassert.com/quirk#circuit={"cols": 1}', 'cols must be a list'),
+     ('http://algassert.com/quirk#circuit={"cols": [0]}', 'col must be a list'),
+     ('http://algassert.com/quirk#circuit={"cols": [[0]]}',
+      'Unrecognized column entry: 0'),
+     ('http://algassert.com/quirk#circuit={"cols": [["not a real"]]}',
+      'Unrecognized column entry: '),
+     ('http://algassert.com/quirk#circuit={"cols": [[]], "other": 1}',
+      'Unrecognized Circuit JSON keys')])
+def test_parse_failures(url, msg):
+    parsed_url = urllib.parse.urlparse(url)
+    data = json.loads(parsed_url.fragment[len('circuit='):])
 
-    with pytest.raises(ValueError, match='"cols" entry'):
-        _ = quirk_url_to_circuit('http://algassert.com/quirk#circuit={}')
+    with pytest.raises(ValueError, match=msg):
+        _ = quirk_url_to_circuit(url)
 
-    with pytest.raises(ValueError, match='cols must be a list'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": 1}')
-
-    with pytest.raises(ValueError, match='col must be a list'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": [0]}')
-
-    with pytest.raises(ValueError, match='Unrecognized column entry: 0'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": [[0]]}')
-
-    with pytest.raises(ValueError, match='Unrecognized column entry: '):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": [["not a real"]]}')
-
-    with pytest.raises(ValueError, match='Unrecognized Circuit JSON keys'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": [[]], "other": 1}')
+    with pytest.raises(ValueError, match=msg):
+        _ = quirk_json_to_circuit(data)
 
 
 def test_parse_not_supported_yet():
