@@ -329,7 +329,7 @@ class SerializableGateSet:
                     scheduled_op_proto))
             scheduled_op = schedules.ScheduledOperation.op_at_on(
                 operation=self.deserialize_op(scheduled_op_proto.operation,
-                                              arg_function_language=''),
+                                              arg_function_language=arg_function_language),
                 time=value.Timestamp(picos=scheduled_op_proto.start_time_picos),
                 device=device)
             scheduled_ops.append(scheduled_op)
