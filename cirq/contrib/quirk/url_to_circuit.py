@@ -107,25 +107,52 @@ def quirk_url_to_circuit(
         json_text = urllib.parse.unquote(json_text)
 
     data = json.loads(json_text)
+
+    return quirk_json_to_circuit(data,
+                                 qubits=qubits,
+                                 extra_cell_makers=extra_cell_makers,
+                                 quirk_url=quirk_url)
+
+
+def quirk_json_to_circuit(
+        data: dict,
+        *,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
+            'cirq.contrib.quirk.cells.CellMaker']] = (),
+        quirk_url: Optional[str] = None) -> 'cirq.Circuit':
+    """Constructs a Cirq circuit from Quirk's JSON format.
+
+    Args:
+        data: Data parsed from quirk's JSON representation.
+        qubits: Qubits to use in the circuit. See quirk_url_to_circuit.
+        extra_cell_makers: Non-standard Quirk cells to accept. See
+            quirk_url_to_circuit.
+        quirk_url: If given, the original URL from which the JSON was parsed, as
+            described in quirk_url_to_circuit.
+    """
+
+    def msg(error):
+        if quirk_url is not None:
+            return f'{error}\nURL={quirk_url}\nJSON={data}'
+        else:
+            return f'{error}\nJSON={data}'
+
     if not isinstance(data, dict):
-        raise ValueError('Circuit JSON must have a top-level dictionary.\n'
-                         f'URL={quirk_url}')
+        raise ValueError(msg('Circuit JSON must have a top-level dictionary.'))
     if not data.keys() <= {'cols', 'gates', 'init'}:
-        raise ValueError(f'Unrecognized Circuit JSON keys.\nURL={quirk_url}')
+        raise ValueError(msg('Unrecognized Circuit JSON keys.'))
     if 'gates' in data:
-        raise NotImplementedError('Custom gates not supported yet.\n'
-                                  f'URL={quirk_url}')
+        raise NotImplementedError(msg('Custom gates not supported yet.'))
     if 'init' in data:
-        raise NotImplementedError('Custom initial states not supported yet.\n'
-                                  f'URL={quirk_url}')
+        raise NotImplementedError(
+            msg('Custom initial states not supported yet.'))
     if 'cols' not in data:
-        raise ValueError('Circuit JSON dictionary must have a "cols" entry.\n'
-                         f'URL={quirk_url}')
+        raise ValueError(msg('Circuit JSON dict must have a "cols" entry.'))
 
     cols = data['cols']
     if not isinstance(cols, list):
-        raise ValueError('Circuit JSON cols must be a list.\n'
-                         f'URL={quirk_url}')
+        raise ValueError(msg('Circuit JSON cols must be a list.'))
 
     # Collect registry of quirk cell types.
     if isinstance(extra_cell_makers, Mapping):
