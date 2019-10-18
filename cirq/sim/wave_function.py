@@ -15,8 +15,18 @@
 
 import itertools
 
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Type, Union, \
-    TYPE_CHECKING
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    TYPE_CHECKING,
+    cast,
+)
 
 import abc
 import numpy as np
@@ -362,7 +372,7 @@ def to_valid_state_vector(
     if num_qubits is None and qid_shape is None:
         raise ValueError('Must specify `num_qubits` or `qid_shape`.')
     if qid_shape is None:
-        qid_shape = (2,) * num_qubits
+        qid_shape = (2,) * cast(int, num_qubits)
     else:
         qid_shape = tuple(qid_shape)
     if num_qubits is None:
@@ -380,7 +390,8 @@ def to_valid_state_vector(
 
 def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                 qid_shape: Tuple[int, ...],
-                                dtype: Type[np.number], atol) -> np.ndarray:
+                                dtype: Type[np.number],
+                                atol: float) -> np.ndarray:
 
     if isinstance(state_like, int):
         return _computational_basis_state_to_state_tensor(state=state_like,

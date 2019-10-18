@@ -1484,8 +1484,9 @@ class Circuit:
         state_len = np.product(qid_shape, dtype=int)
 
         from cirq import sim
-        state = sim.to_valid_state_vector(
-            initial_state, qid_shape=qid_shape).reshape(qid_shape)
+        state = sim.to_valid_state_vector(initial_state,
+                                          qid_shape=qid_shape,
+                                          dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
 
