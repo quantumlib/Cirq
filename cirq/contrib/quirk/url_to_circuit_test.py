@@ -119,5 +119,3 @@ def test_extra_cell_makers():
         'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
         extra_cell_makers={'iswap': cirq.ISWAP}) == cirq.Circuit(
             cirq.ISWAP(*cirq.LineQubit.range(2)))
-
-    assert False
