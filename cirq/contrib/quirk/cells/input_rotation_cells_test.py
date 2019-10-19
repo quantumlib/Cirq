@@ -100,6 +100,15 @@ def test_input_rotation_cells_repr():
     cirq.testing.assert_equivalent_repr(op)
 
 
+def test_validation():
+    with pytest.raises(ValueError, match='sign'):
+        _ = cirq.contrib.quirk.QuirkInputRotationOperation(
+            identifier='xxx',
+            register=cirq.LineQubit.range(4),
+            base_operation=cirq.X.on(cirq.LineQubit(5)),
+            exponent_sign=2)
+
+
 def test_input_rotation_with_qubits():
     a, b, c, d, e = cirq.LineQubit.range(5)
     x, y, z, t, w = cirq.LineQubit.range(10, 15)

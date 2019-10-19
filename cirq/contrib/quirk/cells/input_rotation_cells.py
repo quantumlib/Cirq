@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Iterable, Sequence, Iterator
+from typing import Iterable, Iterator, Optional, Sequence, Union
 
 import numpy as np
 
@@ -32,7 +32,9 @@ class InputRotationCell(Cell):
         self.base_operation = base_operation
         self.exponent_sign = exponent_sign
 
-    def with_input(self, letter, register):
+    def with_input(self, letter: str,
+                   register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
+        # Parameterized rotations use input A as their parameter.
         if self.register is None and letter == 'a':
             if isinstance(register, int):
                 raise ValueError('Dependent operation requires known length '
@@ -61,6 +63,8 @@ class QuirkInputRotationOperation(ops.Operation):
 
     def __init__(self, identifier: str, register: Iterable['cirq.Qid'],
                  base_operation: 'cirq.Operation', exponent_sign: int):
+        if exponent_sign not in [-1, +1]:
+            raise ValueError('exponent_sign not in [-1, +1]')
         self.identifier = identifier
         self.register = tuple(register)
         self.base_operation = base_operation
@@ -142,10 +146,10 @@ def generate_all_input_rotation_cell_makers() -> Iterator[CellMaker]:
 
 
 def _input_rotation_gate(identifier: str, gate: 'cirq.Gate',
-                         factor: int) -> CellMaker:
+                         exponent_sign: int) -> CellMaker:
     return CellMaker(
         identifier, gate.num_qubits(), lambda args: InputRotationCell(
             identifier=identifier,
             register=None,
             base_operation=gate.on(args.qubits[0]),
-            exponent_sign=factor))
+            exponent_sign=exponent_sign))

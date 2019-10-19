@@ -34,14 +34,14 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
     # Non-physical operations.
     yield from _unsupported_gates("__error__",
                                   "__unstable__UniversalNot",
-                                  reason="Unphysical operation.")
+                                  reason="unphysical operation.")
 
     # Measurement.
     yield from _unsupported_gates(
         "XDetectControlReset",
         "YDetectControlReset",
         "ZDetectControlReset",
-        reason="Classical feedback is not implemented in Cirq")
+        reason="classical feedback is not implemented in Cirq.")
 
     # Dynamic gates with discretized actions.
     yield from _unsupported_gates("X^⌈t⌉",
