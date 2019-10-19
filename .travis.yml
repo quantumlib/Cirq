@@ -9,6 +9,7 @@ branches:
 before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
+- quick_test
 - test
 - name: deploy
   if: type = push AND branch = master
