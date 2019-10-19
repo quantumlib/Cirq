@@ -57,11 +57,11 @@ class Moment:
                 'Overlapping operations: {}'.format(self.operations))
 
     @property
-    def operations(self) -> tuple:
+    def operations(self) -> Tuple[raw_types.Operation]:
         return self._operations
 
     @property
-    def qubits(self):
+    def qubits(self) -> Tuple[Qid, ...]:
         return self._qubits
 
     def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
