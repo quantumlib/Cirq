@@ -28,6 +28,6 @@ cat dev_tools/conf/pip-list-dev-tools.txt | grep pytest | xargs pip install
 
 # Install contrib requirements only if needed.
 changed=$(git diff --name-only origin/master | grep "cirq/contrib")
-if [ -z "${changed}" ]; then
+if [ ! -z "${changed}" ]; then
     pip install -r cirq/contrib/contrib-requirements.txt
 fi
