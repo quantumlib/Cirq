@@ -86,6 +86,8 @@ def test_circuit_diagram_info_eq():
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 2))
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z', 'Z'), 2))
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 3))
+    eq.add_equality_group(
+        cirq.CircuitDiagramInfo(('Z',), 3, auto_exponent_parens=False))
 
 
 def test_circuit_diagram_info_pass_fail():
