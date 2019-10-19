@@ -14,8 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Any, Callable, Iterable, Sequence, TypeVar, Union,Tuple
-
+from typing import Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple, FrozenSet
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -57,11 +56,11 @@ class Moment:
                 'Overlapping operations: {}'.format(self.operations))
 
     @property
-    def operations(self) -> Tuple[raw_types.Operation]:
+    def operations(self) -> Tuple[raw_types.Operation, ...]:
         return self._operations
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> FrozenSet[raw_types.Qid]:
         return self._qubits
 
     def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
