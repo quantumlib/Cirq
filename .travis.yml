@@ -20,9 +20,7 @@ matrix:
     env: NAME=pytest-changed-files
     python: '3.6'
     install:
-    - pip install -r requirements.txt
-    - pip install -r cirq/contrib/contrib-requirements.txt
-    - cat dev_tools/conf/pip-list-dev-tools.txt | grep pytest | xargs pip install
+    - dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
     script: check/pytest-changed-files
   - stage: quick_test
     os: linux
