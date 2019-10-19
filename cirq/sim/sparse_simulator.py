@@ -129,16 +129,6 @@ class Simulator(simulator.SimulatesSamples,
     where the results of the measurement are recorded.  This can also
     occur when the circuit has mixtures of unitaries.
 
-    Finally, one can compute the values of displays (instances of
-    `SamplesDisplay` or `WaveFunctionDisplay`) in the circuit:
-
-        compute_displays(circuit, param_resolver, qubit_order, initial_state)
-
-        compute_displays_sweep(circuit, params, qubit_order, initial_state)
-
-    The result of computing display values is stored in a
-    `ComputeDisplaysResult`.
-
     See `Simulator` for the definitions of the supported methods.
     """
 
@@ -282,15 +272,8 @@ class Simulator(simulator.SimulatesSamples,
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[int]]
 
-            non_display_ops = (op for op in moment
-                               if not isinstance(op, (ops.SamplesDisplay,
-                                                      ops.WaveFunctionDisplay,
-                                                      ops.DensityMatrixDisplay
-                                                      )))
             unitary_ops_and_measurements = protocols.decompose(
-                non_display_ops,
-                keep=keep,
-                on_stuck_raise=on_stuck)
+                moment, keep=keep, on_stuck_raise=on_stuck)
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
