@@ -31,3 +31,5 @@ changed=$(git diff --name-only origin/master | grep "cirq/contrib")
 if [ ! -z "${changed}" ]; then
     pip install -r cirq/contrib/contrib-requirements.txt
 fi
+
+exit 0  # Instead of 1 due to condition above being false.
