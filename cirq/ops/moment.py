@@ -37,7 +37,7 @@ class Moment:
         qubits: A set of the qubits acted upon by this Moment.
     """
 
-    def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
+    def __init__(self, _operations: Iterable[raw_types.Operation] = ()) -> None:
         """Constructs a moment with the given operations.
 
         Args:
@@ -48,7 +48,7 @@ class Moment:
             ValueError: A qubit appears more than once.
         """
 
-        self._operations = tuple(operations)
+        self._operations = tuple(_operations)
         # Check that operations don't overlap.
         affected_qubits = [q for op in self.operations for q in op.qubits]
         self._qubits = frozenset(affected_qubits)
