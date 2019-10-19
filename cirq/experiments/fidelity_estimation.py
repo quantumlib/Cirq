@@ -119,7 +119,8 @@ def hog_score_xeb_fidelity_from_probabilities(
     Since this estimator is unbiased, the variance is equal to the mean
     squared error of the estimator.
 
-    The estimator is intended for use with xeb_fidelity() below.
+    The estimator is intended for use with xeb_fidelity() below. It is
+    based on the HOG problem defined in https://arxiv.org/abs/1612.05903.
 
     Args:
         hilbert_space_dimension: Dimension of the Hilbert space on which
