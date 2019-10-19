@@ -1328,8 +1328,8 @@ def test_conjugated_by_clifford_composite():
         def _decompose_(self, qubits):
             # Involved.
             yield cirq.SWAP(qubits[0], qubits[1])
-            # Uninvolved. Non-Clifford.
-            yield cirq.SWAP(qubits[2], qubits[3])**0.1
+            # Uninvolved.
+            yield cirq.SWAP(qubits[2], qubits[3])
 
     a, b, c, d = cirq.LineQubit.range(4)
     p = cirq.X(a) * cirq.Z(b)
