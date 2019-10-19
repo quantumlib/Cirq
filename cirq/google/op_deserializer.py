@@ -18,7 +18,6 @@ from typing import Any, Callable, Dict, NamedTuple, Optional, Sequence, \
 import sympy
 from google.protobuf import json_format
 
-from cirq import devices
 from cirq.api.google import v2
 from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs

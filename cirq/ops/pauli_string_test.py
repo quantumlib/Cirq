@@ -18,6 +18,7 @@ from typing import List, cast
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 from cirq._compat_test import capture_logging
@@ -1280,6 +1281,74 @@ def test_dense():
     assert p.dense([d, e, a, b, c]) == cirq.DensePauliString('IIXYZ')
     assert -p.dense([a, b, c, d]) == -cirq.DensePauliString('XYZI')
 
+    with pytest.raises(ValueError, match=r'not self.keys\(\) <= set\(qubits\)'):
+        _ = p.dense([a, b])
+    with pytest.raises(ValueError, match=r'not self.keys\(\) <= set\(qubits\)'):
+        _ = p.dense([a, b, d])
+
+
+def test_conjugated_by_incorrectly_powered_cliffords():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.PauliString([cirq.X(a), cirq.Z(b)])
+    cliffords = [
+        cirq.H(a),
+        cirq.X(a),
+        cirq.Y(a),
+        cirq.Z(a),
+        cirq.H(a),
+        cirq.CNOT(a, b),
+        cirq.CZ(a, b),
+        cirq.SWAP(a, b),
+        cirq.ISWAP(a, b),
+        cirq.XX(a, b),
+        cirq.YY(a, b),
+        cirq.ZZ(a, b),
+    ]
+    for c in cliffords:
+        with pytest.raises(TypeError, match='not a known Clifford'):
+            _ = p.conjugated_by(c**0.1)
+        with pytest.raises(TypeError, match='not a known Clifford'):
+            _ = p.conjugated_by(c**sympy.Symbol('t'))
+
+
+def test_conjugated_by_global_phase():
+    a = cirq.LineQubit(0)
+    assert cirq.X(a).conjugated_by(cirq.GlobalPhaseOperation(1j)) == cirq.X(a)
+    assert cirq.Z(a).conjugated_by(cirq.GlobalPhaseOperation(
+        np.exp(1.1j))) == cirq.Z(a)
+
+
+def test_conjugated_by_clifford_composite():
+
+    class UnknownGate(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 4
+
+        def _decompose_(self, qubits):
+            # Involved.
+            yield cirq.SWAP(qubits[0], qubits[1])
+            # Uninvolved. Non-Clifford.
+            yield cirq.SWAP(qubits[2], qubits[3])**0.1
+
+    a, b, c, d = cirq.LineQubit.range(4)
+    p = cirq.X(a) * cirq.Z(b)
+    u = UnknownGate()
+    assert p.conjugated_by(u(a, b, c, d)) == cirq.Z(a) * cirq.X(b)
+
+
+def test_conjugated_by_move_into_uninvolved():
+    a, b, c, d = cirq.LineQubit.range(4)
+    p = cirq.X(a) * cirq.Z(b)
+    assert p.conjugated_by([
+        cirq.SWAP(c, d),
+        cirq.SWAP(b, c),
+    ]) == cirq.X(a) * cirq.Z(d)
+    assert p.conjugated_by([
+        cirq.SWAP(b, c),
+        cirq.SWAP(c, d),
+    ]) == cirq.X(a) * cirq.Z(c)
+
 
 def test_conjugated_by_common_single_qubit_gates():
     a, b = cirq.LineQubit.range(2)
@@ -1339,6 +1408,7 @@ def test_conjugated_by_common_two_qubit_gates():
 
 
 def test_conjugated_by_ordering():
+
     class OrderSensitiveGate(cirq.Gate):
 
         def num_qubits(self):
@@ -1356,6 +1426,7 @@ def test_conjugated_by_ordering():
 
 
 def test_pass_operations_over_ordering():
+
     class OrderSensitiveGate(cirq.Gate):
 
         def num_qubits(self):
@@ -1368,12 +1439,13 @@ def test_pass_operations_over_ordering():
     inp = cirq.Z(b)
     out1 = inp.pass_operations_over([OrderSensitiveGate().on(a, b)])
     out2 = inp.pass_operations_over([cirq.CNOT(a, b), cirq.Y(a)**-0.5])
-    out3 = inp.pass_operations_over([cirq.CNOT(a, b)]).pass_operations_over(
-        [cirq.Y(a)**-0.5])
+    out3 = inp.pass_operations_over([cirq.CNOT(a, b)
+                                    ]).pass_operations_over([cirq.Y(a)**-0.5])
     assert out1 == out2 == out3 == cirq.X(a) * cirq.Z(b)
 
 
 def test_pass_operations_over_ordering_reversed():
+
     class OrderSensitiveGate(cirq.Gate):
 
         def num_qubits(self):
@@ -1386,8 +1458,9 @@ def test_pass_operations_over_ordering_reversed():
     inp = cirq.X(a) * cirq.Z(b)
     out1 = inp.pass_operations_over([OrderSensitiveGate().on(a, b)],
                                     after_to_before=True)
-    out2 = inp.pass_operations_over([cirq.Y(a)**-0.5, cirq.CNOT(a, b)],
-                                    after_to_before=True)
-    out3 = inp.pass_operations_over([cirq.Y(a)**-0.5], after_to_before=True).pass_operations_over(
-        [cirq.CNOT(a, b)], after_to_before=True)
+    out2 = inp.pass_operations_over(
+        [cirq.Y(a)**-0.5, cirq.CNOT(a, b)], after_to_before=True)
+    out3 = inp.pass_operations_over([cirq.Y(a)**-0.5],
+                                    after_to_before=True).pass_operations_over(
+                                        [cirq.CNOT(a, b)], after_to_before=True)
     assert out1 == out2 == out3 == cirq.Z(b)

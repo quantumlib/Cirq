@@ -602,7 +602,7 @@ class PauliString(raw_types.Operation):
             yield clifford_gate.SingleQubitCliffordGate.from_single_map(
                 {pauli: (pauli_gates.Z, False)})(qubit)
 
-    def dense(self, qubits: 'Sequence[cirq.Qid]') -> 'cirq.DensePauliString':
+    def dense(self, qubits: Sequence['cirq.Qid']) -> 'cirq.DensePauliString':
         """Returns a `cirq.DensePauliString` version of this Pauli string.
 
         This method satisfies the invariant `P.dense(qubits).on(*qubits) == P`.
@@ -621,8 +621,10 @@ class PauliString(raw_types.Operation):
         from cirq.ops.dense_pauli_string import DensePauliString
         if not self.keys() <= set(qubits):
             raise ValueError('not self.keys() <= set(qubits)')
-        return DensePauliString([self.get(q, common_gates.I) for q in qubits],
-                                coefficient=self.coefficient)
+        # pylint: disable=too-many-function-args
+        pauli_mask = [self.get(q, common_gates.I) for q in qubits]
+        # pylint: enable=too-many-function-args
+        return DensePauliString(pauli_mask, coefficient=self.coefficient)
 
     def conjugated_by(self, clifford: 'cirq.OP_TREE') -> 'PauliString':
         r"""Returns the Pauli string conjugated by a clifford operation.
@@ -678,7 +680,7 @@ class PauliString(raw_types.Operation):
             X(0)*Z(1)
             >>> print(cirq.X(a).conjugated_by(cirq.S(a)))
             -Y(0)
-            >>> print(cirq.X(a).conjugated_by(cirq.H(a), cirq.CNOT(a, b)))
+            >>> print(cirq.X(a).conjugated_by([cirq.H(a), cirq.CNOT(a, b)]))
             Z(0)*Z(1)
 
         Returns:
@@ -687,10 +689,10 @@ class PauliString(raw_types.Operation):
         pauli_map = dict(self._qubit_pauli_map)
         should_negate = False
         for op in list(op_tree.flatten_to_ops(clifford))[::-1]:
-            if not set(op.qubits) & set(pauli_map.keys()):
+            if pauli_map.keys().isdisjoint(op.qubits):
                 continue
             for clifford_op in _decompose_into_cliffords(op)[::-1]:
-                if not set(clifford_op.qubits) & set(pauli_map.keys()):
+                if pauli_map.keys().isdisjoint(clifford_op.qubits):
                     continue
                 should_negate ^= PauliString._pass_operation_over(
                     pauli_map, clifford_op, False)
@@ -729,16 +731,16 @@ class PauliString(raw_types.Operation):
         pauli_map = dict(self._qubit_pauli_map)
         should_negate = False
         for op in ops:
-            if not set(op.qubits) & set(pauli_map.keys()):
+            if pauli_map.keys().isdisjoint(op.qubits):
                 continue
             decomposed = _decompose_into_cliffords(op)
             if not after_to_before:
                 decomposed = decomposed[::-1]
-            for c in decomposed:
-                if not set(c.qubits) & set(pauli_map.keys()):
+            for clifford_op in decomposed:
+                if pauli_map.keys().isdisjoint(c.qubits):
                     continue
                 should_negate ^= PauliString._pass_operation_over(
-                    pauli_map, c, after_to_before)
+                    pauli_map, clifford_op, after_to_before)
         coef = -self._coefficient if should_negate else self.coefficient
         return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 

@@ -14,8 +14,18 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
-                    TypeVar, Union, Iterable)
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 
@@ -201,7 +211,10 @@ def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     return gate if isinstance(gate, gate_type) else None
 
 
-def op_gate_isinstance(op: Any, gate_type: Union[Type, Iterable[Type]]) -> bool:
+def op_gate_isinstance(
+        op: Any,
+        gate_type: Union[type, Tuple[Union[type, Tuple[Any, ...]], ...]]
+) -> bool:
     """Determines if op is a GateOperation with a gate of the given type."""
     gate = getattr(op, 'gate', None)
     return isinstance(gate, gate_type)
