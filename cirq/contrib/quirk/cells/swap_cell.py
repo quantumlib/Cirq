@@ -28,6 +28,10 @@ class SwapCell(Cell):
         self._qubits = list(qubits)
         self._controls = list(controls)
 
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return SwapCell(qubits=Cell._replace_qubits(self._qubits, qubits),
+                        controls=self._controls)
+
     def modify_column(self, column: List[Optional['Cell']]):
         # Swallow other swap cells.
         for i in range(len(column)):

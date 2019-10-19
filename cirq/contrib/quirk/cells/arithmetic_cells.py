@@ -46,8 +46,8 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                 determine what happens to the target.
         """
         self.identifier = identifier
-        self.target = target
-        self.inputs = inputs
+        self.target = tuple(target)
+        self.inputs = tuple(tuple(e) for e in inputs)
 
         if self.operation.is_modular:
             r = inputs[-1]
@@ -159,6 +159,15 @@ class ArithmeticCell(Cell):
         self.identifier = identifier
         self.target = target
         self.inputs = inputs
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ArithmeticCell(
+            identifier=self.identifier,
+            target=Cell._replace_qubits(self.target, qubits),
+            inputs=[
+                None if e is None else Cell._replace_qubits(e, qubits)
+                for e in self.inputs
+            ])
 
     @property
     def operation(self):
