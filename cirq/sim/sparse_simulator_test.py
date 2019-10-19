@@ -540,42 +540,6 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
             np.testing.assert_almost_equal(step.state_vector(), expected)
 
 
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_compute_samples_displays(dtype):
-    a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        cirq.X(a),
-        cirq.H(b),
-        cirq.X(c),
-        cirq.H(c),
-        cirq.approx_pauli_string_expectation(cirq.PauliString({c: cirq.X}),
-                                             num_samples=10,
-                                             key='approx_x3'),
-        cirq.approx_pauli_string_expectation(cirq.PauliString({
-            a: cirq.Z,
-            b: cirq.X
-        }),
-                                             num_samples=10,
-                                             key='approx_z1x2'),
-        cirq.approx_pauli_string_expectation(cirq.PauliString({
-            a: cirq.Z,
-            c: cirq.X
-        }),
-                                             num_samples=10,
-                                             key='approx_z1x3'),
-    )
-    simulator = cirq.Simulator(dtype=dtype)
-    result = simulator.compute_samples_displays(circuit)
-
-    np.testing.assert_allclose(result.display_values['approx_x3'],
-                               -1,
-                               atol=1e-7)
-    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
-                               atol=1e-7)
-    np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
-                               atol=1e-7)
-
-
 def test_invalid_run_no_unitary():
     class NoUnitary(cirq.SingleQubitGate):
         pass

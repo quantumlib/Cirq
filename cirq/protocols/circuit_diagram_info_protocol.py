@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple,
-                    TypeVar, Dict, overload, Iterable)
+from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict,
+                    overload, Iterable)
 
 from typing_extensions import Protocol
 
@@ -96,49 +96,41 @@ class CircuitDiagramInfoArgs:
 
     UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
 
-    def __init__(self,
-                 known_qubits: Optional[Iterable['cirq.Qid']],
-                 known_qubit_count: Optional[int],
-                 use_unicode_characters: bool,
+    def __init__(self, known_qubits: Optional[Iterable['cirq.Qid']],
+                 known_qubit_count: Optional[int], use_unicode_characters: bool,
                  precision: Optional[int],
                  qubit_map: Optional[Dict['cirq.Qid', int]]) -> None:
-        self.known_qubits = (None if known_qubits is None
-                             else tuple(known_qubits))
+        self.known_qubits = (None
+                             if known_qubits is None else tuple(known_qubits))
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
         self.qubit_map = qubit_map
 
     def _value_equality_values_(self):
-        return (self.known_qubits,
-                self.known_qubit_count,
-                self.use_unicode_characters,
-                self.precision,
-                None
-                if self.qubit_map is None else
-                tuple(sorted(self.qubit_map.items(), key=lambda e: e[0])))
+        return (self.known_qubits, self.known_qubit_count,
+                self.use_unicode_characters, self.precision,
+                None if self.qubit_map is None else tuple(
+                    sorted(self.qubit_map.items(), key=lambda e: e[0])))
 
     def __repr__(self):
-        return (
-            'cirq.CircuitDiagramInfoArgs('
-            'known_qubits={!r}, '
-            'known_qubit_count={!r}, '
-            'use_unicode_characters={!r}, '
-            'precision={!r}, '
-            'qubit_map={!r})'.format(
-                self.known_qubits,
-                self.known_qubit_count,
-                self.use_unicode_characters,
-                self.precision,
-                self.qubit_map))
+        return ('cirq.CircuitDiagramInfoArgs('
+                'known_qubits={!r}, '
+                'known_qubit_count={!r}, '
+                'use_unicode_characters={!r}, '
+                'precision={!r}, '
+                'qubit_map={!r})'.format(self.known_qubits,
+                                         self.known_qubit_count,
+                                         self.use_unicode_characters,
+                                         self.precision, self.qubit_map))
 
     def copy(self):
         return self.__class__(
-            known_qubits= self.known_qubits,
-            known_qubit_count= self.known_qubit_count,
-            use_unicode_characters= self.use_unicode_characters,
-            precision= self.precision,
-            qubit_map= self.qubit_map)
+            known_qubits=self.known_qubits,
+            known_qubit_count=self.known_qubit_count,
+            use_unicode_characters=self.use_unicode_characters,
+            precision=self.precision,
+            qubit_map=self.qubit_map)
 
     def with_args(self, **kwargs):
         args = self.copy()
@@ -158,10 +150,9 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
 class SupportsCircuitDiagramInfo(Protocol):
     """A diagrammable operation on qubits."""
 
-    def _circuit_diagram_info_(self, args: CircuitDiagramInfoArgs
-                               ) -> Union[str,
-                                          Iterable[str],
-                                          CircuitDiagramInfo]:
+    def _circuit_diagram_info_(
+            self, args: CircuitDiagramInfoArgs
+    ) -> Union[str, Iterable[str], CircuitDiagramInfo]:
         """Describes how to draw an operation in a circuit diagram.
 
         This method is used by the global `cirq.diagram_info` method. If this
@@ -184,25 +175,23 @@ RaiseTypeErrorIfNotProvided = CircuitDiagramInfo(())
 
 # pylint: disable=function-redefined
 @overload
-def circuit_diagram_info(val: Any,
-                         args: Optional[CircuitDiagramInfoArgs] = None,
-                         ) -> CircuitDiagramInfo:
+def circuit_diagram_info(
+        val: Any,
+        args: Optional[CircuitDiagramInfoArgs] = None,
+) -> CircuitDiagramInfo:
     pass
 
 
 @overload
-def circuit_diagram_info(val: Any,
-                         args: Optional[CircuitDiagramInfoArgs],
+def circuit_diagram_info(val: Any, args: Optional[CircuitDiagramInfoArgs],
                          default: TDefault
-                         ) -> Union[CircuitDiagramInfo, TDefault]:
+                        ) -> Union[CircuitDiagramInfo, TDefault]:
     pass
 
 
 @overload
-def circuit_diagram_info(val: Any,
-                         *,
-                         default: TDefault
-                         ) -> Union[CircuitDiagramInfo, TDefault]:
+def circuit_diagram_info(val: Any, *, default: TDefault
+                        ) -> Union[CircuitDiagramInfo, TDefault]:
     pass
 
 
@@ -253,9 +242,11 @@ def circuit_diagram_info(val: Any,
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     if getter is None:
-        raise TypeError(
-            "object of type '{}' "
-            "has no _circuit_diagram_info_ method.".format(type(val)))
+        raise TypeError("object of type '{}' "
+                        "has no _circuit_diagram_info_ method.".format(
+                            type(val)))
     raise TypeError("object of type '{}' does have a _circuit_diagram_info_ "
                     "method, but it returned NotImplemented.".format(type(val)))
+
+
 # pylint: enable=function-redefined

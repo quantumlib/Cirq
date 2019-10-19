@@ -19,7 +19,10 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq.protocols.apply_unitary import apply_unitary, ApplyUnitaryArgs
+from cirq.protocols.apply_unitary_protocol import (
+    apply_unitary,
+    ApplyUnitaryArgs,
+)
 from cirq.protocols.channel import channel
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
