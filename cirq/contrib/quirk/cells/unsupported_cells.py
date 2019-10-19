@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from cirq.contrib.quirk.cells.cell import (
 
 def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
     # Post selection.
-    yield from reg_unsupported_gates(
+    yield from _unsupported_gates(
         "|0⟩⟨0|",
         "|1⟩⟨1|",
         "|+⟩⟨+|",
@@ -32,54 +32,51 @@ def generate_all_unsupported_cell_makers() -> Iterator[CellMaker]:
         reason='postselection is not implemented in Cirq')
 
     # Non-physical operations.
-    yield from reg_unsupported_gates("__error__",
-                                     "__unstable__UniversalNot",
-                                     reason="Unphysical operation.")
+    yield from _unsupported_gates("__error__",
+                                  "__unstable__UniversalNot",
+                                  reason="unphysical operation.")
 
     # Measurement.
-    yield from reg_unsupported_gates(
+    yield from _unsupported_gates(
         "XDetectControlReset",
         "YDetectControlReset",
         "ZDetectControlReset",
-        reason="Classical feedback is not implemented in Cirq")
+        reason="classical feedback is not implemented in Cirq.")
 
     # Dynamic gates with discretized actions.
-    yield from reg_unsupported_gates("X^⌈t⌉",
-                                     "X^⌈t-¼⌉",
-                                     reason="discrete parameter")
-    yield from reg_unsupported_family("Counting", reason="discrete parameter")
-    yield from reg_unsupported_family("Uncounting", reason="discrete parameter")
-    yield from reg_unsupported_family(">>t", reason="discrete parameter")
-    yield from reg_unsupported_family("<<t", reason="discrete parameter")
+    yield from _unsupported_gates("X^⌈t⌉",
+                                  "X^⌈t-¼⌉",
+                                  reason="discrete parameter")
+    yield from _unsupported_family("Counting", reason="discrete parameter")
+    yield from _unsupported_family("Uncounting", reason="discrete parameter")
+    yield from _unsupported_family(">>t", reason="discrete parameter")
+    yield from _unsupported_family("<<t", reason="discrete parameter")
 
     # Gates that are no longer in the toolbox and have dominant replacements.
-    yield from reg_unsupported_family("add",
-                                      reason="deprecated; use +=A instead")
-    yield from reg_unsupported_family("sub",
-                                      reason="deprecated; use -=A instead")
-    yield from reg_unsupported_family("c+=ab",
-                                      reason="deprecated; use +=AB instead")
-    yield from reg_unsupported_family("c-=ab",
-                                      reason="deprecated; use -=AB instead")
+    yield from _unsupported_family("add", reason="deprecated; use +=A instead")
+    yield from _unsupported_family("sub", reason="deprecated; use -=A instead")
+    yield from _unsupported_family("c+=ab",
+                                   reason="deprecated; use +=AB instead")
+    yield from _unsupported_family("c-=ab",
+                                   reason="deprecated; use -=AB instead")
 
 
-def reg_unsupported_gate(identifier: str, reason: str) -> Iterator[CellMaker]:
+def _unsupported_gate(identifier: str, reason: str) -> CellMaker:
 
     def fail(_):
         raise NotImplementedError(
             f'Converting the Quirk gate {identifier} is not implemented yet. '
             f'Reason: {reason}')
 
-    yield CellMaker(identifier, 0, fail)
+    return CellMaker(identifier, 0, fail)
 
 
-def reg_unsupported_gates(*identifiers: str,
-                          reason: str) -> Iterator[CellMaker]:
+def _unsupported_gates(*identifiers: str, reason: str) -> Iterator[CellMaker]:
     for identifier in identifiers:
-        yield from reg_unsupported_gate(identifier, reason)
+        yield _unsupported_gate(identifier, reason)
 
 
-def reg_unsupported_family(identifier_prefix: str,
-                           reason: str) -> Iterator[CellMaker]:
+def _unsupported_family(identifier_prefix: str,
+                        reason: str) -> Iterator[CellMaker]:
     for i in CELL_SIZES:
-        yield from reg_unsupported_gate(identifier_prefix + str(i), reason)
+        yield _unsupported_gate(identifier_prefix + str(i), reason)

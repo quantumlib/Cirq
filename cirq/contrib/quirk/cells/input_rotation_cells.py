@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union, Iterable, List, Sequence, Iterator
+from typing import Iterable, Iterator, Optional, Sequence, Union
 
 import numpy as np
 
 import cirq
-from cirq import ops, linalg
+from cirq import ops, linalg, value
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 
@@ -25,72 +25,83 @@ class InputRotationCell(Cell):
     """Applies an operation that depends on an input gate."""
 
     def __init__(self, identifier: str,
-                 register: Optional[Sequence['cirq.Qid']], register_letter: str,
-                 target: 'cirq.Qid',
-                 op_maker: Callable[[int, int, Sequence['cirq.Qid']],
-                                    'cirq.Operation']):
+                 register: Optional[Sequence['cirq.Qid']],
+                 base_operation: 'cirq.Operation', exponent_sign: int):
         self.identifier = identifier
         self.register = None if register is None else tuple(register)
-        self.register_letter = register_letter
-        self.target = target
-        self.op_maker = op_maker
+        self.base_operation = base_operation
+        self.exponent_sign = exponent_sign
 
-    def with_input(self, letter, register):
-        if self.register is None and self.register_letter == letter:
+    def with_input(self, letter: str,
+                   register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
+        # Parameterized rotations use input A as their parameter.
+        if self.register is None and letter == 'a':
             if isinstance(register, int):
                 raise ValueError('Dependent operation requires known length '
                                  'input; classical constant not allowed.')
             return InputRotationCell(self.identifier, register,
-                                     self.register_letter, self.target,
-                                     self.op_maker)
+                                     self.base_operation, self.exponent_sign)
         return self
 
     def controlled_by(self, qubit: 'cirq.Qid'):
-        return InputRotationCell(
-            self.identifier, self.register,
-            self.register_letter, self.target, lambda a, b, c: self.op_maker(
-                a, b, c).controlled_by(qubit))
+        return InputRotationCell(self.identifier, self.register,
+                                 self.base_operation.controlled_by(qubit),
+                                 self.exponent_sign)
 
     def operations(self) -> 'cirq.OP_TREE':
         if self.register is None:
-            raise ValueError(f'Missing input {repr(self.register_letter)}')
+            raise ValueError(f"Missing input 'a'")
         return QuirkInputRotationOperation(self.identifier, self.register,
-                                           self.register_letter, self.op_maker,
-                                           [self.target])
+                                           self.base_operation,
+                                           self.exponent_sign)
 
 
+@value.value_equality
 class QuirkInputRotationOperation(ops.Operation):
     """Operates on target qubits in a way that varies based on an input qureg.
     """
 
     def __init__(self, identifier: str, register: Iterable['cirq.Qid'],
-                 register_letter: str,
-                 op_maker: Callable[[int, int, Sequence['cirq.Qid']],
-                                    'cirq.Operation'],
-                 op_qubits: Iterable['cirq.Qid']):
+                 base_operation: 'cirq.Operation', exponent_sign: int):
+        if exponent_sign not in [-1, +1]:
+            raise ValueError('exponent_sign not in [-1, +1]')
         self.identifier = identifier
         self.register = tuple(register)
-        self.register_letter = register_letter
-        self.op_maker = op_maker
-        self.op_qubits = tuple(op_qubits)
+        self.base_operation = base_operation
+        self.exponent_sign = exponent_sign
+
+    def _value_equality_values_(self):
+        return (
+            self.identifier,
+            self.register,
+            self.base_operation,
+            self.exponent_sign,
+        )
 
     @property
     def qubits(self):
-        return self.op_qubits + self.register
+        return tuple(self.base_operation.qubits) + self.register
 
     def with_qubits(self, *new_qubits):
-        new_op_qubits = new_qubits[:len(self.op_qubits)]
-        new_register = new_qubits[len(self.op_qubits):]
-        return QuirkInputRotationOperation(self.identifier, new_register,
-                                           self.register_letter, self.op_maker,
-                                           new_op_qubits)
+        k = len(self.base_operation.qubits)
+        new_op_qubits = new_qubits[:k]
+        new_register = new_qubits[k:]
+        return QuirkInputRotationOperation(
+            self.identifier, new_register,
+            self.base_operation.with_qubits(*new_op_qubits), self.exponent_sign)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
-        result = [self.identifier.replace('n', str(len(self.register)))]
-        result.extend(f'#{i+1}' for i in range(1, len(self.op_qubits)))
-        result.extend(self.register_letter.upper() + str(i)
-                      for i in range(len(self.register)))
-        return tuple(result)
+        sub_result = cirq.circuit_diagram_info(self.base_operation)
+        sign_char = '-' if self.exponent_sign == -1 else ''
+        symbols = list(sub_result.wire_symbols)
+        symbols.extend(f'A{i}' for i in range(len(self.register)))
+        qubit_index = (len(self.base_operation.controls) if isinstance(
+            self.base_operation, ops.ControlledOperation) else 0)
+        return cirq.CircuitDiagramInfo(
+            tuple(symbols),
+            exponent=f'({sign_char}A/2^{len(self.register)})',
+            exponent_qubit_index=qubit_index,
+            auto_exponent_parens=False)
 
     def _has_unitary_(self):
         return True
@@ -98,12 +109,13 @@ class QuirkInputRotationOperation(ops.Operation):
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
         transposed_args = args.with_axes_transposed_to_start()
 
-        target_axes = transposed_args.axes[:len(self.op_qubits)]
-        control_axes = transposed_args.axes[len(self.op_qubits):]
+        target_axes = transposed_args.axes[:len(self.base_operation.qubits)]
+        control_axes = transposed_args.axes[len(self.base_operation.qubits):]
         control_max = np.product([q.dimension for q in self.register]).item()
 
         for i in range(control_max):
-            operation = self.op_maker(i, control_max, self.op_qubits)
+            operation = self.base_operation**(self.exponent_sign * i /
+                                              control_max)
             control_index = linalg.slice_for_qubits_equal_to(
                 control_axes, big_endian_qureg_value=i)
             sub_args = cirq.ApplyUnitaryArgs(
@@ -116,22 +128,28 @@ class QuirkInputRotationOperation(ops.Operation):
 
         return args.target_tensor
 
+    def __repr__(self):
+        return (f'cirq.contrib.quirk.QuirkInputRotationOperation('
+                f'identifier={self.identifier!r}, '
+                f'register={self.register!r}, '
+                f'base_operation={self.base_operation!r}, '
+                f'exponent_sign={self.exponent_sign!r})')
+
 
 def generate_all_input_rotation_cell_makers() -> Iterator[CellMaker]:
-    yield reg_input_rotation_gate("X^(A/2^n)", ops.X, +1)
-    yield reg_input_rotation_gate("Y^(A/2^n)", ops.Y, +1)
-    yield reg_input_rotation_gate("Z^(A/2^n)", ops.Z, +1)
-    yield reg_input_rotation_gate("X^(-A/2^n)", ops.X, -1)
-    yield reg_input_rotation_gate("Y^(-A/2^n)", ops.Y, -1)
-    yield reg_input_rotation_gate("Z^(-A/2^n)", ops.Z, -1)
+    yield _input_rotation_gate("X^(A/2^n)", ops.X, +1)
+    yield _input_rotation_gate("Y^(A/2^n)", ops.Y, +1)
+    yield _input_rotation_gate("Z^(A/2^n)", ops.Z, +1)
+    yield _input_rotation_gate("X^(-A/2^n)", ops.X, -1)
+    yield _input_rotation_gate("Y^(-A/2^n)", ops.Y, -1)
+    yield _input_rotation_gate("Z^(-A/2^n)", ops.Z, -1)
 
 
-def reg_input_rotation_gate(identifier: str, gate: 'cirq.Gate',
-                            factor: float) -> CellMaker:
+def _input_rotation_gate(identifier: str, gate: 'cirq.Gate',
+                         exponent_sign: int) -> CellMaker:
     return CellMaker(
         identifier, gate.num_qubits(), lambda args: InputRotationCell(
             identifier=identifier,
             register=None,
-            register_letter='a',
-            target=args.qubits[0],
-            op_maker=lambda v, n, qs: gate**(factor * v / n)))
+            base_operation=gate.on(args.qubits[0]),
+            exponent_sign=exponent_sign))

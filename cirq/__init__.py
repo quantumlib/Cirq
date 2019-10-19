@@ -86,6 +86,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
     log_xeb_fidelity,
