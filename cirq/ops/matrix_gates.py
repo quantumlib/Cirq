@@ -14,13 +14,13 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any, Tuple
+from typing import cast, Any, Tuple, Optional, Iterable
 
 import numpy as np
 
 from cirq import linalg, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features
+from cirq.ops import gate_features, raw_types
 
 
 def _phase_matrix(turns: float) -> np.ndarray:
@@ -204,3 +204,80 @@ def _matrix_to_diagram_symbol(matrix: np.ndarray,
         lines.append('└' + ' ' * w + '┘')
         result = '\n'.join(lines)
     return result
+
+
+class MatrixGate(raw_types.Gate):
+    """A unitary qubit or qudit gate defined entirely by its matrix."""
+
+    def __init__(self,
+                 matrix: np.ndarray,
+                 *,
+                 qid_shape: Optional[Iterable[int]] = None) -> None:
+        """Initializes a matrix gate.
+
+        Args:
+            matrix: The matrix that defines the gate.
+            qid_shape: The shape of state tensor that the matrix applies to.
+                If not specified, this value is inferred by assuming that the
+                matrix is supposed to apply to qubits.
+        """
+        if qid_shape is None:
+            if len(matrix.shape) != 2 or not matrix.shape[0]:
+                raise ValueError('`matrix` must be a 2d numpy array.')
+            n = int(np.round(np.log2(matrix.shape[0])))
+            if 2**n != matrix.shape[0]:
+                raise ValueError('Matrix width is not a power of 2 and '
+                                 'qid_shape is not specified.')
+            qid_shape = (2,) * n
+
+        self._matrix = matrix
+        self._qid_shape = tuple(qid_shape)
+        m = int(np.prod(self._qid_shape))
+        if self._matrix.shape != (m, m):
+            raise ValueError('Wrong matrix shape for qid_shape.\n'
+                             f'Matrix shape: {self._matrix.shape}\n'
+                             f'qid_shape: {self._qid_shape}\n')
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._qid_shape
+
+    def __pow__(self, exponent: Any) -> 'MatrixGate':
+        if not isinstance(exponent, (int, float)):
+            return NotImplemented
+        e = cast(float, exponent)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
+        return MatrixGate(new_mat)
+
+    def _has_unitary_(self) -> bool:
+        return True
+
+    def _unitary_(self) -> np.ndarray:
+        return np.copy(self._matrix)
+
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
+
+    def __hash__(self):
+        vals = tuple(v for _, v in np.ndenumerate(self._matrix))
+        return hash((MatrixGate, vals))
+
+    def _approx_eq_(self, other: Any, atol) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return np.array_equal(self._matrix, other._matrix)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return 'cirq.MatrixGate({})'.format(proper_repr(self._matrix))
+
+    def __str__(self):
+        return str(self._matrix.round(3))

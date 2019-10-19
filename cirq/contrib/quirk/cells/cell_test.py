@@ -17,7 +17,13 @@ from cirq.contrib.quirk.cells.cell import Cell, ExplicitOperationsCell
 
 
 def test_cell_defaults():
-    c = Cell()
+
+    class BasicCell(Cell):
+
+        def with_qubits(self, qubits):
+            return self
+
+    c = BasicCell()
     assert c.operations() == ()
     assert c.basis_change() == ()
     assert c.controlled_by(cirq.LineQubit(0)) is c

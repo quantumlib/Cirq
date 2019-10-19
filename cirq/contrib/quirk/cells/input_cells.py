@@ -27,6 +27,10 @@ class InputCell(Cell):
         self.qubits = tuple(qubits)
         self.letter = letter
 
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return InputCell(qubits=Cell._replace_qubits(self.qubits, qubits),
+                         letter=self.letter)
+
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
             cell = column[i]
@@ -40,6 +44,9 @@ class SetDefaultInputCell(Cell):
     def __init__(self, letter: str, value: int):
         self.letter = letter
         self.value = value
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return self
 
     def persistent_modifiers(self):
         return {

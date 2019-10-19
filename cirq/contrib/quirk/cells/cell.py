@@ -11,27 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import abc
+from typing import (Callable, Optional, List, NamedTuple, Any, Iterable,
+                    Sequence, TYPE_CHECKING, Union, Dict, Tuple)
 
-from typing import (
-    Callable,
-    Optional,
-    List,
-    NamedTuple,
-    Any,
-    Iterable,
-    Sequence,
-    TYPE_CHECKING,
-    Union,
-    Dict,
-)
-
-from cirq import ops, value
+from cirq import ops, value, devices
 
 if TYPE_CHECKING:
     import cirq
 
 
-class Cell:
+class Cell(metaclass=abc.ABCMeta):
     """A gate, operation, display, operation modifier, etc from Quirk.
 
     Represents something that can go into a column in Quirk, and supports the
@@ -39,8 +29,38 @@ class Cell:
     `cirq.Circuit`.
     """
 
+    @classmethod
+    def _replace_qubit(cls, old_qubit: 'cirq.Qid',
+                       qubits: List['cirq.Qid']) -> 'cirq.Qid':
+        if not isinstance(old_qubit, devices.LineQubit):
+            raise ValueError('????')
+        if old_qubit.x >= len(qubits):
+            raise ValueError(f'???? {old_qubit}, {len(qubits)}')
+        return qubits[old_qubit.x]
+
+    @classmethod
+    def _replace_qubits(cls, old_qubits: Iterable['cirq.Qid'],
+                        qubits: List['cirq.Qid']) -> Tuple['cirq.Qid', ...]:
+        return tuple(Cell._replace_qubit(e, qubits) for e in old_qubits)
+
+    @abc.abstractmethod
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        """Returns the same cell, but targeting different qubits.
+
+        It is assumed that the cell is currently targeting `LineQubit`
+        instances, where the x coordinate indicates the qubit to take from the
+        list.
+
+        Args:
+            qubits: The new qubits. The qubit at offset `x` will replace
+                `cirq.LineQubit(x)`.
+
+        Returns:
+            The same cell, but with new qubits.
+        """
+
     def with_input(self, letter: str,
-                   register: Union[Sequence['cirq.Qid'], int]):
+                   register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
         """The same cell, but linked to an explicit input register or constant.
 
         If the cell doesn't need the input, it is returned unchanged.
@@ -138,6 +158,15 @@ class ExplicitOperationsCell(Cell):
                  basis_change: Iterable[ops.Operation] = ()):
         self._operations = tuple(operations)
         self._basis_change = tuple(basis_change)
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ExplicitOperationsCell(
+            operations=tuple(
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
+                for op in self._operations),
+            basis_change=tuple(
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
+                for op in self._basis_change))
 
     def _value_equality_values_(self):
         return self._operations, self._basis_change
