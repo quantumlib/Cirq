@@ -47,14 +47,22 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self.operations = tuple(operations)
 
+        self._operations = tuple(operations)
         # Check that operations don't overlap.
         affected_qubits = [q for op in self.operations for q in op.qubits]
-        self.qubits = frozenset(affected_qubits)
-        if len(affected_qubits) != len(self.qubits):
+        self._qubits = frozenset(affected_qubits)
+        if len(affected_qubits) != len(self._qubits):
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
+
+    @property
+    def operations(self) -> tuple:
+        return self._operations
+
+    @property
+    def qubits(self):
+        return self._qubits
 
     def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
         """Determines if the moment has operations touching the given qubit.
