@@ -84,10 +84,7 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
             with pytest.raises(ValueError,
                                match='not supported by arg_function_language'):
                 _ = _arg_to_proto(value, arg_function_language=lang)
-            with pytest.raises(
-                    ValueError,
-                    match='Unrecognized function type.+for arg_function_language'
-            ):
+            with pytest.raises(ValueError, match='Unrecognized function type'):
                 _ = _arg_from_proto(msg, arg_function_language=lang)
         else:
             parsed = _arg_from_proto(msg, arg_function_language=lang)
@@ -99,6 +96,13 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
 
             assert parsed == value
             assert packed == proto
+
+
+def test_unsupported_function_language():
+    with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
+        _ = _arg_to_proto(1, arg_function_language='NEVER GONNAH APPEN')
+    with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
+        _ = _arg_from_proto(None, arg_function_language='NEVER GONNAH APPEN')
 
 
 @pytest.mark.parametrize('value,proto', [
@@ -120,7 +124,6 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
 def test_serialize_conversion(value: ARG_LIKE, proto: v2.program_pb2.Arg):
     msg = v2.program_pb2.Arg()
     json_format.ParseDict(proto, msg)
-    parsed = _arg_from_proto(msg, arg_function_language='')
     packed = json_format.MessageToDict(_arg_to_proto(value,
                                                      arg_function_language=''),
                                        including_default_value_fields=True,

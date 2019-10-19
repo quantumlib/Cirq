@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Optional, Iterator, Iterable, cast
+from typing import List, Union, Optional, Iterator, Iterable, cast, Set
 
 import numpy as np
 import sympy
@@ -55,7 +55,8 @@ def _infer_function_language_from_schedule(value: v2.program_pb2.Schedule
     })
 
 
-def _function_languages_from_operation(value: v2.program_pb2.Operation) -> str:
+def _function_languages_from_operation(value: v2.program_pb2.Operation
+                                      ) -> Iterator[str]:
     for arg in value.args.values():
         yield from _function_languages_from_arg(arg)
 
@@ -98,7 +99,7 @@ def _arg_to_proto(value: ARG_LIKE,
     msg = v2.program_pb2.Arg() if out is None else out
 
     def check_support(func_type: str) -> str:
-        if func_type not in supported:
+        if func_type not in cast(Set[str], supported):
             lang = (repr(arg_function_language)
                     if arg_function_language is not None else '[any]')
             raise ValueError(f'Function type {func_type!r} not supported by '
@@ -177,7 +178,7 @@ def _arg_from_proto(
     if which == 'func':
         func = arg_proto.func
 
-        if func.type not in supported:
+        if func.type not in cast(Set[str], supported):
             raise ValueError(
                 f'Unrecognized function type {func.type!r} '
                 f'for arg_function_language={arg_function_language!r}')

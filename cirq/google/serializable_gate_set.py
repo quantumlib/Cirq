@@ -15,8 +15,17 @@
 
 from collections import defaultdict
 
-from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union, \
-    TYPE_CHECKING
+from typing import (
+    cast,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    TYPE_CHECKING,
+)
 
 from google.protobuf import json_format
 
@@ -106,16 +115,18 @@ class SerializableGateSet:
                                     msg.circuit,
                                     arg_function_language=arg_function_language)
             if arg_function_language is None:
-                arg_function_language = arg_func_langs._infer_function_language_from_circuit(
-                    msg.circuit)
+                arg_function_language = (
+                    arg_func_langs._infer_function_language_from_circuit(
+                        msg.circuit))
         elif isinstance(program, schedules.Schedule):
             self._serialize_schedule(
                 program,
                 msg.schedule,
                 arg_function_language=arg_function_language)
             if arg_function_language is None:
-                arg_function_language = arg_func_langs._infer_function_language_from_schedule(
-                    msg.schedule)
+                arg_function_language = (
+                    arg_func_langs._infer_function_language_from_schedule(
+                        msg.schedule))
         else:
             raise NotImplementedError(
                 f'Unrecognized program type: {type(program)}')
@@ -328,8 +339,9 @@ class SerializableGateSet:
                 raise ValueError('Scheduled op missing an operation {}'.format(
                     scheduled_op_proto))
             scheduled_op = schedules.ScheduledOperation.op_at_on(
-                operation=self.deserialize_op(scheduled_op_proto.operation,
-                                              arg_function_language=arg_function_language),
+                operation=self.deserialize_op(
+                    scheduled_op_proto.operation,
+                    arg_function_language=arg_function_language),
                 time=value.Timestamp(picos=scheduled_op_proto.start_time_picos),
                 device=device)
             scheduled_ops.append(scheduled_op)
