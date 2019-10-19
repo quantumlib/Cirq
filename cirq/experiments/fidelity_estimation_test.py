@@ -61,7 +61,8 @@ def make_random_quantum_circuit(qubits: Sequence[cirq.Qid],
 @pytest.mark.parametrize('depolarization, estimator',
                          itertools.product(
                              (0.0, 0.2, 0.7, 1.0),
-                             (cirq.linear_xeb_fidelity_from_probabilities,
+                             (cirq.hog_score_xeb_fidelity_from_probabilities,
+                              cirq.linear_xeb_fidelity_from_probabilities,
                               cirq.log_xeb_fidelity_from_probabilities)))
 def test_xeb_fidelity(depolarization, estimator):
     prng_state = np.random.get_state()
