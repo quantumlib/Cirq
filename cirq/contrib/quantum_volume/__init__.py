@@ -13,4 +13,10 @@
 # limitations under the License.
 """Utilities running the Quantum Volume benchmark on devices"""
 
-from examples.advanced import (quantum_volume)
+from cirq.contrib.quantum_volume.quantum_volume import (
+    generate_model_circuit,
+    compute_heavy_set,
+    sample_heavy_set,
+    compile_circuit,
+    calculate_quantum_volume,
+)
