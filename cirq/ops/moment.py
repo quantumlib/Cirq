@@ -14,7 +14,7 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
+from typing import Any, Callable, Iterable, Sequence, TypeVar, Union,Tuple
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -61,7 +61,7 @@ class Moment:
         return self._operations
 
     @property
-    def qubits(self) -> Tuple[Qid, ...]:
+    def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return self._qubits
 
     def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
