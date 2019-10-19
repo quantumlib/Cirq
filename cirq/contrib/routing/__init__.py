@@ -18,10 +18,12 @@ from cirq.contrib.routing.device import (
     get_linear_device_graph,
     get_grid_device_graph,
     gridqubits_to_graph_device,
+    nx_qubit_layout,
 )
 from cirq.contrib.routing.router import (route_circuit, ROUTERS)
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (
+    get_circuit_connectivity,
     is_valid_routing,
     ops_are_consistent_with_device_graph,
 )
