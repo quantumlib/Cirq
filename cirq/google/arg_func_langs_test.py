@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from google.protobuf import json_format
 import numpy as np
 import pytest
 import sympy
+
+from google.protobuf import json_format
 
 import cirq
 from cirq.google.arg_func_langs import (
