@@ -34,9 +34,9 @@ class GridQubit(ops.Qid):
         >>> cirq.GridQubit(2, 3) - (1, 2)
         cirq.GridQubit(1, 1)
     """
-    def __init__(self, row: int, col: int) -> None:
-        object.__setattr__(self, 'row', row)
-        object.__setattr__(self, 'col', col)
+
+    row: int
+    col: int
 
     def _comparison_key(self):
         return self.row, self.col

@@ -27,6 +27,10 @@ TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 class _BaseLineQid(ops.Qid):
     """The base class for `LineQid` and `LineQubit`."""
 
+    def __init__(self, x: int) -> None:
+        """Initializes a line qubit at the given x coordinate."""
+        self.x = x
+
     def _comparison_key(self):
         return self.x
 
@@ -181,9 +185,8 @@ class LineQubit(_BaseLineQid):
         >>> cirq.LineQubit(2) - 1
         cirq.LineQubit(1)
     """
-    def __init__(self, x: int) -> None:
-        """Initializes a line qubit at the given x coordinate."""
-        object.__setattr__(self, 'x', x)
+
+    x: int
 
     @property
     def dimension(self) -> int:
