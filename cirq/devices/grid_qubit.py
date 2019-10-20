@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from cirq import ops, protocols
 
 
+@dataclass(frozen=True)
 class GridQubit(ops.Qid):
     """A qubit on a 2d square lattice.
 
@@ -33,10 +34,9 @@ class GridQubit(ops.Qid):
         >>> cirq.GridQubit(2, 3) - (1, 2)
         cirq.GridQubit(1, 1)
     """
-
-    def __init__(self, row: int, col: int):
-        self.row = row
-        self.col = col
+    def __init__(self, row: int, col: int) -> None:
+        object.__setattr__(self, 'row', row)
+        object.__setattr__(self, 'col', col)
 
     def _comparison_key(self):
         return self.row, self.col

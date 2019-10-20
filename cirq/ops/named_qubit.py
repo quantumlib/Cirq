@@ -11,10 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from dataclasses import dataclass
+
 from cirq import protocols
 from cirq.ops import raw_types
 
 
+@dataclass(frozen=True)
 class NamedQubit(raw_types.Qid):
     """A qubit identified by name.
 
@@ -25,8 +28,8 @@ class NamedQubit(raw_types.Qid):
     """
 
     def __init__(self, name: str) -> None:
-        self._name = name
-        self._comp_key = _pad_digits(name)
+        object.__setattr__(self, '_name', name)
+        object.__setattr__(self, '_comp_key ', _pad_digits(name))
 
     def _comparison_key(self):
         return self._comp_key

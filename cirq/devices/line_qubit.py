@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import functools
+from dataclasses import dataclass
 from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar
 
 import abc
@@ -25,10 +26,6 @@ TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 @functools.total_ordering
 class _BaseLineQid(ops.Qid):
     """The base class for `LineQid` and `LineQubit`."""
-
-    def __init__(self, x: int) -> None:
-        """Initializes a line qubit at the given x coordinate."""
-        self.x = x
 
     def _comparison_key(self):
         return self.x
@@ -168,6 +165,7 @@ class LineQid(_BaseLineQid):
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
 
 
+@dataclass(frozen=True)
 class LineQubit(_BaseLineQid):
     """A qubit on a 1d lattice with nearest-neighbor connectivity.
 
@@ -183,6 +181,9 @@ class LineQubit(_BaseLineQid):
         >>> cirq.LineQubit(2) - 1
         cirq.LineQubit(1)
     """
+    def __init__(self, x: int) -> None:
+        """Initializes a line qubit at the given x coordinate."""
+        object.__setattr__(self, 'x', x)
 
     @property
     def dimension(self) -> int:
