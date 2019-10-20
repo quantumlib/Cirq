@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Protocol for objects that are mixtures (probabilistic combinations)."""
 
 from typing import Any, Sequence, Tuple, Union
@@ -19,7 +18,7 @@ from typing import Any, Sequence, Tuple, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols.has_unitary import has_unitary
+from cirq.protocols.has_unitary_protocol import has_unitary
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -32,8 +31,8 @@ class SupportsMixture(Protocol):
     """An object that may be describable as a probabilistic combination.
     """
 
-    def _mixture_(self) -> Union[
-        Sequence[Tuple[float, Any]], NotImplementedType]:
+    def _mixture_(self
+                 ) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
         """Return the probabilistic mixture.
 
         A mixture is described by an iterable of tuples of the form
@@ -59,9 +58,8 @@ class SupportsMixture(Protocol):
         """
 
 
-def mixture(
-    val: Any,
-    default: Any = RaiseTypeErrorIfNotProvided) -> Sequence[Tuple[float, Any]]:
+def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
+           ) -> Sequence[Tuple[float, Any]]:
     """Return a sequence of tuples representing a probabilistic combination.
 
     A mixture is described by an iterable of tuples of the form
@@ -90,8 +88,8 @@ def mixture(
         return default
 
     if getter is None:
-        raise TypeError(
-            "object of type '{}' has no _mixture_ method.".format(type(val)))
+        raise TypeError("object of type '{}' has no _mixture_ method.".format(
+            type(val)))
 
     raise TypeError("object of type '{}' does have a _mixture_ method, "
                     "but it returned NotImplemented.".format(type(val)))
@@ -115,10 +113,8 @@ def has_mixture(val: Any) -> bool:
     return mixture(val, None) is not None
 
 
-def mixture_channel(
-    val: Any,
-    default: Any = RaiseTypeErrorIfNotProvided) -> Sequence[
-    Tuple[float, np.ndarray]]:
+def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
+                   ) -> Sequence[Tuple[float, np.ndarray]]:
     """Return a sequence of tuples for a channel that is a mixture of unitaries.
 
     In contrast to `mixture` this method falls back to `unitary` if `_mixture_`
@@ -155,8 +151,8 @@ def mixture_channel(
 
     if mixture_getter is None and unitary_getter is None:
         raise TypeError(
-            "object of type '{}' has no _mixture_ or _unitary_ method."
-                .format(type(val)))
+            "object of type '{}' has no _mixture_ or _unitary_ method.".format(
+                type(val)))
 
     raise TypeError("object of type '{}' does have a _mixture_ or _unitary_ "
                     "method, but it returned NotImplemented.".format(type(val)))

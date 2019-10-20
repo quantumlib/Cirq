@@ -1791,7 +1791,7 @@ def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
 
     # If the exponent is any other object, use its string representation.
     s = str(info.exponent)
-    if '+' in s or ' ' in s or '-' in s[1:]:
+    if info.auto_exponent_parens and ('+' in s or ' ' in s or '-' in s[1:]):
         # The string has confusing characters. Put parens around it.
         return '({})'.format(info.exponent)
     return s
