@@ -16,8 +16,9 @@
 
 # Imports from cells are only to ensure operation reprs work correctly.
 from cirq.contrib.quirk.cells import (
-    QuirkQubitPermutationGate,
     QuirkArithmeticOperation,
+    QuirkInputRotationOperation,
+    QuirkQubitPermutationGate,
 )
 
 from cirq.contrib.quirk.export_to_quirk import (
