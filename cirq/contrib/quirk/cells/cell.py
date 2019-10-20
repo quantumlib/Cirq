@@ -40,7 +40,7 @@ class Cell:
     """
 
     def with_input(self, letter: str,
-                   register: Union[Sequence['cirq.Qid'], int]):
+                   register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
         """The same cell, but linked to an explicit input register or constant.
 
         If the cell doesn't need the input, it is returned unchanged.
