@@ -26,13 +26,10 @@ class NamedQubit(raw_types.Qid):
     containing `cirq.NamedQubit('qubit22')` and `cirq.NamedQubit('qubit3')`, the
     wire for 'qubit3' will correctly come before 'qubit22'.
     """
-
-    def __init__(self, name: str) -> None:
-        object.__setattr__(self, '_name', name)
-        object.__setattr__(self, '_comp_key ', _pad_digits(name))
+    _name: str
 
     def _comparison_key(self):
-        return self._comp_key
+        return _pad_digits(self._name)
 
     @property
     def dimension(self) -> int:
