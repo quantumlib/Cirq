@@ -29,17 +29,16 @@ def compute_characteristic_function(circuit, P_i, qubits, noise):
   n = len(P_i)
   d = 2**n
 
-  trace = 0  # rho_i / sigma_i in https://arxiv.org/pdf/1104.3835.pdf
-  for x in range(d):
-    xbin = numpy.binary_repr(x, width=n)
+  simulator = cirq.DensityMatrixSimulator()
+  density_matrix = 0  #  rho or sigma in https://arxiv.org/pdf/1104.3835.pdf
+  for step in simulator.simulate_moment_steps(circuit):
+    density_matrix = step.density_matrix()
 
-    pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
-    display = cirq.approx_pauli_string_expectation(pauli_string, num_samples=1)
-    y = cirq.sample(cirq.Circuit(
-        pauli_string,
-        circuit)).measurements['y'][0]
-
-    trace += sum([int(xbin[i]) == y[i] for i in range(n)])
+  pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
+  qubit_map = dict(zip(qubits, range(n)))
+  # rho_i or sigma_i in https://arxiv.org/pdf/1104.3835.pdf
+  trace = pauli_string.expectation_from_density_matrix(density_matrix,
+                                                       qubit_map).real
 
   prob = trace * trace / d  # Pr(i) in https://arxiv.org/pdf/1104.3835.pdf
 
@@ -57,25 +56,31 @@ def main():
   # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
   # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
   # inside the variable 'pauli_traces'.
-  pauli_traces = [
-      compute_characteristic_function(circuit, P_i, qubits, noise=None) + (P_i,)
-      for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
-                                           repeat=n)
-  ]
-  highest_probs = heapq.nlargest(n, pauli_traces, key=lambda e: e[1])
+  pauli_traces = []
+  for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z], repeat=n):
+    rho_i, Pr_i = compute_characteristic_function(
+        circuit, P_i, qubits, noise=None)
+    pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
+
+  assert len(pauli_traces) == 4**n
+
+  p = [x['Pr_i'] for x in pauli_traces]
+  assert numpy.isclose(sum(p), 1.0, 1e-6)
 
   fidelity = 0.0
-  N = 0
-  for rho_i, Pr_i, P_i in highest_probs:
-    if Pr_i == 0:
-      break
+  for iter in range(n):
+    # Randomly sample as per probability.
+    i = numpy.random.choice(range(4**n), p=p)
+
+    Pr_i = pauli_traces[i]['Pr_i']
+    P_i = pauli_traces[i]['P_i']
+    rho_i = pauli_traces[i]['rho_i']
 
     sigma_i, _ = compute_characteristic_function(circuit, P_i, qubits, noise)
 
     fidelity += Pr_i * sigma_i / rho_i
-    N += 1
 
-  print(fidelity / N)
+  print(fidelity / n)
 
 
 if __name__ == '__main__':
