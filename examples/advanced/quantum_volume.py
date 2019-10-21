@@ -45,7 +45,7 @@ def main(*, num_qubits: int, depth: int, num_repetitions: int, seed: int):
         qubit_noise_gate=cirq.DepolarizingChannel(p=0.005)))
     calculate_quantum_volume(num_qubits=num_qubits,
                              depth=depth,
-                             num_repetitions=num_repetitions,
+                             num_circuits=num_repetitions,
                              seed=seed,
                              device=device,
                              samplers=[cirq.Simulator(), noisy],
