@@ -104,7 +104,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
     Args:
         circuit: The circuit to sample.
         heavy_set: The previously-computed heavy set for the given circuit.
-        repetitions: The number of runs to sample the circuit.
+        repetitions: The number of times to sample the circuit.
         sampler: The sampler to run on the given circuit.
         mapping: An optional mapping from compiled qubits to original qubits,
             to maintain the ordering between the model and compiled circuits.
@@ -223,12 +223,12 @@ def prepare_circuits(
         circuit and the second element is the heavy set for that circuit.
     """
     circuits = []
-    for repetition in range(num_circuits):
+    for circuit_i in range(num_circuits):
         model_circuit = generate_model_circuit(num_qubits,
                                                depth,
                                                random_state=random_state)
         heavy_set = compute_heavy_set(model_circuit)
-        print(f"Repetition {repetition + 1} Heavy Set: {heavy_set}")
+        print(f"Circuit {circuit_i + 1} Heavy Set: {heavy_set}")
         circuits.append((model_circuit, heavy_set))
     return circuits
 
@@ -249,6 +249,7 @@ def execute_circuits(
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
         circuits: The circuits to sample from.
+        repetitions: The number of bitstrings to sample per circuit.
 
     Returns:
         A list of QuantumVolumeResults that contains all of the information for
@@ -300,12 +301,13 @@ def calculate_quantum_volume(
     Args:
         num_qubits: The number of qubits for the circuit.
         depth: The number of gate layers to generate.
-        num_circuits: The number of times to run the algorithm.
+        num_circuits: The number of random circuits to run.
         seed: A seed to pass into the RandomState.
         device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
+        repetitions: The number of bitstrings to sample per circuit.
 
     Returns: A list of QuantumVolumeResults that contains all of the information
         for running the algorithm and its results.
