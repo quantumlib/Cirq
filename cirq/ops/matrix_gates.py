@@ -18,9 +18,9 @@ from typing import cast, Any, Tuple, Optional, Iterable
 
 import numpy as np
 
-from cirq import linalg, protocols, _compat
+from cirq import linalg, protocols
 from cirq._compat import proper_repr, deprecated
-from cirq.ops import gate_features, raw_types, pauli_gates
+from cirq.ops import gate_features, raw_types
 
 
 class MatrixGate(raw_types.Gate):
@@ -37,10 +37,11 @@ class MatrixGate(raw_types.Gate):
                 If not specified, this value is inferred by assuming that the
                 matrix is supposed to apply to qubits.
         """
+        if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
+            raise ValueError('`matrix` must be a square 2d numpy array.')
+
         if qid_shape is None:
-            if len(matrix.shape) != 2 or not matrix.shape[0]:
-                raise ValueError('`matrix` must be a 2d numpy array.')
-            n = int(np.round(np.log2(matrix.shape[0])))
+            n = int(np.round(np.log2(matrix.shape[0] or 1)))
             if 2**n != matrix.shape[0]:
                 raise ValueError('Matrix width is not a power of 2 and '
                                  'qid_shape is not specified.')
@@ -56,6 +57,18 @@ class MatrixGate(raw_types.Gate):
 
         if not linalg.is_unitary(matrix):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'matrix': self._matrix.tolist(),
+            'qid_shape': self._qid_shape,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
+        return cls(matrix=np.array(matrix),
+                   qid_shape=qid_shape)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -73,7 +86,6 @@ class MatrixGate(raw_types.Gate):
             return NotImplemented
         if self._qid_shape[qubit_index] != 2:
             return NotImplemented
-        gate = pauli_gates.Z**(phase_turns * 2)
         result = np.copy(self._matrix).reshape(self._qid_shape * 2)
 
         p = np.exp(2j * np.pi * phase_turns)
@@ -108,7 +120,8 @@ class MatrixGate(raw_types.Gate):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return np.array_equal(self._matrix, other._matrix)
+        return (self._qid_shape == other._qid_shape
+                and np.array_equal(self._matrix, other._matrix))
 
     def __ne__(self, other):
         return not self == other

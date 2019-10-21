@@ -209,6 +209,10 @@ TEST_OBJECTS = {
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
                 cirq.LineQid(-4, 5)],
+    'MatrixGate': [
+        cirq.MatrixGate(matrix=np.diag([1, -1, 1j, 1j, -1j, -1]),
+                        qid_shape=(2, 3)),
+    ],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
         cirq.MeasurementGate(num_qubits=3,

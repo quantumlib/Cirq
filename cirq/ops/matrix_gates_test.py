@@ -244,3 +244,33 @@ def test_single_qubit_matrix_gate():
     u = cirq.testing.random_unitary(2)
     g = cirq.SingleQubitMatrixGate(u)
     cirq.testing.assert_equivalent_repr(g)
+
+
+def test_matrix_gate_init_validation():
+    with pytest.raises(ValueError, match='square 2d numpy array'):
+        _ = cirq.MatrixGate(np.ones(shape=(1, 1, 1)))
+    with pytest.raises(ValueError, match='square 2d numpy array'):
+        _ = cirq.MatrixGate(np.ones(shape=(2, 1)))
+    with pytest.raises(ValueError, match='not a power of 2'):
+        _ = cirq.MatrixGate(np.ones(shape=(0, 0)))
+    with pytest.raises(ValueError, match='not a power of 2'):
+        _ = cirq.MatrixGate(np.eye(3))
+    with pytest.raises(ValueError, match='matrix shape for qid_shape'):
+        _ = cirq.MatrixGate(np.eye(3), qid_shape=(4,))
+
+
+def test_matrix_gate_eq():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(cirq.MatrixGate(np.eye(1)))
+    eq.add_equality_group(cirq.MatrixGate(-np.eye(1)))
+    eq.add_equality_group(cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]),
+                                          qid_shape=(2, 3)))
+    eq.add_equality_group(cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]),
+                                          qid_shape=(3, 2)))
+
+
+def test_matrix_gate_pow():
+    t = sympy.Symbol('t')
+    assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), t, default=None) is None
+    assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), 2) == cirq.MatrixGate(
+        -np.eye(1))

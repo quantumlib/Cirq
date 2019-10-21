@@ -68,6 +68,7 @@ class _ResolverCache:
                 'IdentityGate': cirq.IdentityGate,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
+                'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
