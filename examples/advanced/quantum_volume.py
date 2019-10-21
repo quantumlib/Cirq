@@ -71,7 +71,7 @@ def parse_arguments(args):
         '--num_circuits',
         default=100,
         type=int,
-        help='The number of times to run the circuit on the quantum computer.'
+        help='The number of random circuits to run on the quantum computer.'
         ' According to the source paper, this should be at least 100.')
     return vars(parser.parse_args(args))
 
