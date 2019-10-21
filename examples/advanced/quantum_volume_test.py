@@ -14,8 +14,7 @@ def test_main_loop():
 
 def test_parse_args():
     """Test that an argument string is parsed correctly."""
-    args = (
-        '--num_qubits 5 --depth 5 --num_circuits 200 --seed 1234').split()
+    args = ('--num_qubits 5 --depth 5 --num_circuits 200 --seed 1234').split()
     kwargs = quantum_volume.parse_arguments(args)
     assert kwargs == {
         'num_qubits': 5,
