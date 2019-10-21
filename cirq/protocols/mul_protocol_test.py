@@ -23,26 +23,31 @@ class Neither:
 
 
 class MulReturnsNotImplemented:
+
     def __mul__(self, other):
         return NotImplemented
 
 
 class RMulReturnsNotImplemented:
+
     def __rmul__(self, other):
         return NotImplemented
 
 
 class MulReturnsFive:
+
     def __mul__(self, other):
         return 5
 
 
 class RMulReturnsSix:
+
     def __rmul__(self, other):
         return 6
 
 
 class MulSevenRMulEight:
+
     def __mul__(self, other):
         return 7
 
@@ -52,7 +57,10 @@ class MulSevenRMulEight:
 
 def test_equivalent_to_builtin_mul():
     test_vals = [
-        0, 1, 1j, -2.5,
+        0,
+        1,
+        1j,
+        -2.5,
         Neither(),
         MulReturnsNotImplemented(),
         RMulReturnsNotImplemented(),
@@ -82,3 +90,5 @@ def test_symbol_special_case():
     x = sympy.Symbol('x')
     assert cirq.mul(x, 1.0) is x
     assert cirq.mul(1.0, x) is x
+    assert str(cirq.mul(-1.0, x)) == '-x'
+    assert str(cirq.mul(x, -1.0)) == '-x'
