@@ -22,11 +22,13 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
+
     def __pow__(self, exponent):
         return NotImplemented
 
 
 class ReturnsExponent:
+
     def __pow__(self, exponent) -> int:
         return exponent
 
@@ -58,7 +60,5 @@ def test_pow_error():
     (2, 3, 8),
 ))
 def test_pow_with_result(val, exponent, out):
-    assert (cirq.pow(val, exponent) ==
-            cirq.pow(val, exponent, default=None) ==
-            val**exponent ==
-            out)
+    assert (cirq.pow(val, exponent) == cirq.pow(val, exponent, default=None) ==
+            val**exponent == out)
