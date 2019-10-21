@@ -87,6 +87,7 @@ class _ResolverCache:
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
+                'SycamoreGate': cirq.SycamoreGate,
                 'sympy.Symbol': sympy.Symbol,
                 'sympy.Add': lambda args: sympy.Add(*args),
                 'sympy.Mul': lambda args: sympy.Mul(*args),
