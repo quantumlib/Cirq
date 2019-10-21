@@ -79,7 +79,7 @@ ABCDEFGHIJKL
 -----KL-----
 """
     assert (cirq.GridQubit.from_diagram(s) ==
-            cirq.google.known_devices._parse_device(s)[0])
+            cirq.google.devices.known_devices._parse_device(s)[0])
     with pytest.raises(ValueError, match="Input string has invalid character"):
         cirq.GridQubit.from_diagram('@')
 

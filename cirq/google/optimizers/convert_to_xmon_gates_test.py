@@ -18,6 +18,7 @@ import cirq
 
 
 class OtherX(cirq.SingleQubitGate):
+
     def _unitary_(self) -> np.ndarray:
         return np.array([[0, 1], [1, 0]])
 
@@ -26,6 +27,7 @@ class OtherX(cirq.SingleQubitGate):
 
 
 class OtherOtherX(cirq.SingleQubitGate):
+
     def _decompose_(self, qubits):
         return OtherX().on(*qubits)
 

@@ -40,7 +40,7 @@ class _ResolverCache:
         if self._crd is None:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
-            from cirq.google.known_devices import _NamedConstantXmonDevice
+            from cirq.google.devices.known_devices import _NamedConstantXmonDevice
             self._crd = {
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
