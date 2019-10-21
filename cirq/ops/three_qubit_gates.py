@@ -15,9 +15,11 @@
 """Common quantum gates that target three qubits."""
 
 from typing import Any, List, Optional, Tuple, TYPE_CHECKING
+import numbers
 
 import numpy as np
 import sympy
+
 
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
@@ -214,7 +216,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> 'ThreeQubitDiagonalGate':
-        if not isinstance(exponent, (int, float, sympy.Basic)):
+        if not isinstance(exponent, (numbers.Real, sympy.Basic)):
             return NotImplemented
         return ThreeQubitDiagonalGate([
             protocols.mul(angle, exponent, NotImplemented)

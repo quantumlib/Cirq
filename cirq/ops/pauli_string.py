@@ -521,7 +521,7 @@ class PauliString(raw_types.Operation):
         if power == -1:
             return PauliString(qubit_pauli_map=self._qubit_pauli_map,
                                coefficient=self.coefficient**-1)
-        if isinstance(power, (int, float)):
+        if isinstance(power, numbers.Real):
             r, i = cmath.polar(self.coefficient)
             if abs(r - 1) > 0.0001:
                 # Raising non-unitary PauliStrings to a power is not supported.
@@ -547,7 +547,7 @@ class PauliString(raw_types.Operation):
         return NotImplemented
 
     def __rpow__(self, base):
-        if isinstance(base, (int, float)) and base > 0:
+        if isinstance(base, numbers.Real) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
                     "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
@@ -722,7 +722,7 @@ def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
         num_state_qubits: The number of qubits over which a state is expressed.
     """
     if not isinstance(qubit_map, Mapping) or not all(
-            isinstance(k, raw_types.Qid) and isinstance(v, int)
+            isinstance(k, raw_types.Qid) and isinstance(v, numbers.Integral)
             for k, v in qubit_map.items()):
         raise TypeError("Input qubit map must be a valid mapping from "
                         "Qubit ID's to integer indices.")
@@ -775,12 +775,12 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def __mul__(self, other):
         if isinstance(other, SingleQubitPauliStringGateOperation):
             return self._as_pauli_string() * other._as_pauli_string()
-        if isinstance(other, (PauliString, complex, float, int)):
+        if isinstance(other, (PauliString, numbers.Complex)):
             return self._as_pauli_string() * other
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (PauliString, complex, float, int)):
+        if isinstance(other, (PauliString, numbers.Complex)):
             return other * self._as_pauli_string()
         return NotImplemented
 

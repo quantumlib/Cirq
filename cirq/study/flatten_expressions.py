@@ -14,7 +14,7 @@
 """Resolves symbolic expressions to unique symbols."""
 
 from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
-
+import numbers
 import sympy
 
 from cirq import protocols, value
@@ -261,7 +261,7 @@ class _ParamFlattener(resolver.ParamResolver):
             The unique symbol or value of the parameter as resolved by this
             resolver.
         """
-        if isinstance(value, (int, float)):
+        if isinstance(value, numbers.Real):
             return value
         if isinstance(value, str):
             value = sympy.Symbol(value)
