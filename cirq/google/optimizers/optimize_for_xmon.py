@@ -50,7 +50,7 @@ _OPTIMIZERS_PART_CZ: List[Callable[['cirq.Circuit'], None]] = [
 
 def optimized_for_xmon(
         circuit: 'cirq.Circuit',
-        new_device: Optional['cirq.XmonDevice'] = None,
+        new_device: Optional['cirq.google.XmonDevice'] = None,
         qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
             devices.GridQubit, e),
         allow_partial_czs: bool = False,
