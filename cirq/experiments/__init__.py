@@ -18,6 +18,7 @@ from cirq.experiments.cross_entropy_benchmarking import (
 )
 
 from cirq.experiments.fidelity_estimation import (
+    hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
     log_xeb_fidelity,
