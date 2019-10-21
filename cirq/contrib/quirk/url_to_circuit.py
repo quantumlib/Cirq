@@ -225,7 +225,7 @@ def quirk_json_to_circuit(
     return result
 
 
-def _init_ops(data) -> 'cirq.OP_TREE':
+def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
     if 'init' not in data:
         return []
     init = data['init']

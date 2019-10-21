@@ -119,7 +119,7 @@ def test_extra_cell_makers():
 
 
 def test_init():
-    a, b, c, d, e, f = cirq.LineQubit.range(6)
+    b, c, d, e, f = cirq.LineQubit.range(1, 6)
     assert_url_to_circuit_returns(
         '{"cols":[],"init":[0,1,"+","-","i","-i"]}',
         cirq.Circuit(cirq.X(b),
@@ -147,3 +147,11 @@ def test_init():
                                       "i":
                                       0.7071067690849304
                                   }])
+
+    with pytest.raises(ValueError, match="init must be a list"):
+        _ = cirq.contrib.quirk.quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[],"init":0}')
+
+    with pytest.raises(ValueError, match="Unrecognized init state"):
+        _ = cirq.contrib.quirk.quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[],"init":[2]}')
