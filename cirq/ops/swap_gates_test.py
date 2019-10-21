@@ -25,7 +25,7 @@ import cirq
 ])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-        eigen_gate_type, ignoring_global_phase=True)
+        eigen_gate_type)
 
 
 def test_interchangeable_qubit_eq():

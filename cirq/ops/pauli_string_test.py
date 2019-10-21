@@ -814,6 +814,20 @@ def test_expectation_from_wavefunction_invalid_input():
         ps.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map_2)
 
 
+def test_expectation_from_wavefunction_check_preconditions():
+    q0, q1, q2, q3 = _make_qubits(4)
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
+    q_map = {q0: 0, q1: 1, q2: 2, q3: 3}
+
+    with pytest.raises(ValueError, match='normalized'):
+        ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                         q_map)
+
+    _ = ps.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                         q_map,
+                                         check_preconditions=False)
+
+
 def test_expectation_from_wavefunction_basis_states():
     q0 = cirq.LineQubit(0)
     x0 = cirq.PauliString({q0: cirq.X})
@@ -1045,6 +1059,24 @@ def test_expectation_from_density_matrix_invalid_input():
     # This also throws an unrelated warning, which is a bug. See #2041.
     rho_or_wf = 0.25 * np.ones((4, 4), dtype=np.complex64)
     _ = ps.expectation_from_density_matrix(rho_or_wf, q_map)
+
+
+def test_expectation_from_density_matrix_check_preconditions():
+    q0, q1 = _make_qubits(2)
+    ps = cirq.PauliString({q0: cirq.X, q1: cirq.Y})
+    q_map = {q0: 0, q1: 1}
+
+    with pytest.raises(ValueError, match='semidefinite'):
+        ps.expectation_from_density_matrix(
+            np.array(
+                [[1.1, 0, 0, 0], [0, -.1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.complex64), q_map)
+
+    _ = ps.expectation_from_density_matrix(np.array(
+        [[1.1, 0, 0, 0], [0, -.1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+        dtype=np.complex64),
+                                           q_map,
+                                           check_preconditions=False)
 
 
 def test_expectation_from_density_matrix_basis_states():

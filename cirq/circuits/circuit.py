@@ -167,7 +167,9 @@ class Circuit:
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, device=self._device)
+        copied_circuit = Circuit(device=self._device)
+        copied_circuit._moments = self._moments[:]
+        return copied_circuit
 
     def __bool__(self):
         return bool(self._moments)
@@ -211,7 +213,9 @@ class Circuit:
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key], device=self.device)
+            sliced_circuit = Circuit(device=self.device)
+            sliced_circuit._moments = self._moments[key]
+            return sliced_circuit
         if isinstance(key, int):
             return self._moments[key]
 
@@ -264,7 +268,7 @@ class Circuit:
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        result = Circuit(self._moments, device=device)
+        result = self.copy()
         return result.__iadd__(other)
 
     def __imul__(self, repetitions: int):
@@ -762,9 +766,11 @@ class Circuit:
         frontier = dict(start_frontier)
         if not frontier:
             return op_list
-        start_index = min(frontier.values())
-        for index, moment in enumerate(self[start_index:], start_index):
+        index = min(frontier.values())
+        for moment in self._moments[index:]:
             active_qubits = set(q for q, s in frontier.items() if s <= index)
+            if len(active_qubits) <= 0:
+                return op_list
             for op in moment.operations:
                 active_op_qubits = active_qubits.intersection(op.qubits)
                 if active_op_qubits:
@@ -773,6 +779,7 @@ class Circuit:
                             del frontier[q]
                     else:
                         op_list.append((index, op))
+            index += 1
         return op_list
 
     def operation_at(self, qubit: 'cirq.Qid',
@@ -1784,7 +1791,7 @@ def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
 
     # If the exponent is any other object, use its string representation.
     s = str(info.exponent)
-    if '+' in s or ' ' in s or '-' in s[1:]:
+    if info.auto_exponent_parens and ('+' in s or ' ' in s or '-' in s[1:]):
         # The string has confusing characters. Put parens around it.
         return '({})'.format(info.exponent)
     return s
