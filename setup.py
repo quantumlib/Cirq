@@ -71,8 +71,8 @@ setup(name=name,
       packages=cirq_packages,
       package_data={
           'cirq': ['py.typed'],
-          'cirq.api.google.v1': ['*.proto'],
-          'cirq.api.google.v2': ['*.proto'],
-          'cirq.google.api.v1': ['*.proto'],
-          'cirq.google.api.v2': ['*.proto'],
+          'cirq.api.google.v1': ['*.proto', '*.pyi'],
+          'cirq.api.google.v2': ['*.proto', '*.pyi'],
+          'cirq.google.api.v1': ['*.proto', '*.pyi'],
+          'cirq.google.api.v2': ['*.proto', '*.pyi'],
       })
