@@ -160,3 +160,27 @@ def test_parse_complex_expression_cases_from_quirk():
                                atol=1e-8)
     np.testing.assert_allclose(parse_complex("sin(asin(0.5))"), 0.5, atol=1e-8)
     np.testing.assert_allclose(parse_complex("cos(acos(0.5))"), 0.5, atol=1e-8)
+
+
+def test_parse_complex_expression_failures():
+    with pytest.raises(ValueError, match='Incomplete expression'):
+        _ = parse_formula('(')
+    with pytest.raises(ValueError, match='unmatched'):
+        _ = parse_formula(')')
+    with pytest.raises(ValueError, match='binary op in bad spot'):
+        _ = parse_formula('5+(/)')
+    with pytest.raises(ValueError, match='operated on nothing'):
+        _ = parse_formula('(5+)')
+    with pytest.raises(ValueError, match='operated on nothing'):
+        _ = parse_formula('(5/)')
+    with pytest.raises(ValueError, match='binary op in bad spot'):
+        _ = parse_formula('5-/2')
+    with pytest.raises(ValueError, match='binary op in bad spot'):
+        _ = parse_formula('/2')
+
+    # Quirk silently ignores partial operations that show up while typing.
+    assert parse_formula('2/ ') == 2
+    assert parse_formula('2* ') == 2
+    assert parse_formula('2+ ') == 2
+    assert parse_formula('2- ') == 2
+    assert parse_formula('2^ ') == 2

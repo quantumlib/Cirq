@@ -15,10 +15,11 @@
 from typing import (List, TypeVar, Callable, Any, Iterator, Iterable, Union,
                     Dict, Optional, cast, SupportsFloat, Mapping)
 
-import numpy as np
-import sympy
 import cmath
 import re
+
+import numpy as np
+import sympy
 
 
 def _merge_scientific_float_tokens(tokens: Iterable[str]) -> List[str]:
