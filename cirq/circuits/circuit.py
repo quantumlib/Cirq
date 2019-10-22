@@ -189,13 +189,13 @@ class Circuit:
             atol=atol
         ) and self._device == other._device
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._moments)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['cirq.Moment']:
         return iter(self._moments)
 
     def _decompose_(self) -> 'cirq.OP_TREE':
