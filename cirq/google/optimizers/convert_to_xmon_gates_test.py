@@ -48,7 +48,6 @@ def test_avoids_infinite_cycle_when_matrix_available():
 
 
 def test_bad_operation():
-    optimizer = cirq.google.ConvertToXmonGates()
     qubits = cirq.GridQubit.rect(1, 3)
     c = cirq.Circuit(NonNativeGate().on(qubits[0]))
     with pytest.raises(TypeError):
