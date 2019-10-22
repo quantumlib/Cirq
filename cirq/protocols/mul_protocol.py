@@ -70,4 +70,6 @@ def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
         return default
     raise TypeError("unsupported operand type(s) for *: '{}' and '{}'".format(
         type(lhs), type(rhs)))
+
+
 # pylint: enable=function-redefined, redefined-builtin
