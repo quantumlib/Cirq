@@ -19,6 +19,9 @@ from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
 from cirq import protocols
 from cirq.ops import raw_types
 
+if TYPE_CHECKING:
+    import cirq
+
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 
