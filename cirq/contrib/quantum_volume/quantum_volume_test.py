@@ -4,6 +4,7 @@ from unittest.mock import Mock, MagicMock
 import io
 import numpy as np
 import cirq
+import cirq.contrib.routing as ccr
 
 
 def test_generate_model_circuit():
@@ -83,7 +84,7 @@ def test_compile_circuit_router():
     cirq.contrib.quantum_volume.compile_circuit(cirq.Circuit(),
                                                 device=cirq.google.Bristlecone,
                                                 router=router_mock,
-                                                router_attempts=1)
+                                                routing_attempts=1)
     router_mock.assert_called()
 
 
@@ -95,13 +96,40 @@ def test_compile_circuit():
         cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
     ])
     [compiled_circuit, mapping] = cirq.contrib.quantum_volume.compile_circuit(
-        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock, router_attempts=1)
+        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock, routing_attempts=1)
 
     assert len(mapping) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
         compiled_circuit.all_operations(),
         cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone))
     compiler_mock.assert_called_with(compiled_circuit)
+
+def test_compile_circuit_multiple_routing_attempts():
+    """Tests that we make multiple attempts at r
+    outing and keep the best one."""
+    qubits = cirq.LineQubit.range(3)
+    initial_mapping = dict(zip(qubits, qubits))
+    badly_routed = cirq.Circuit([
+            cirq.X.on_each(qubits), cirq.Y.on_each(qubits),
+        ])
+    well_routed = cirq.Circuit([
+            cirq.X.on_each(qubits),
+        ])
+    router_mock = MagicMock(side_effect = [
+        ccr.SwapNetwork(badly_routed, initial_mapping),
+        ccr.SwapNetwork(well_routed, initial_mapping),
+    ])
+    compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
+    model_circuit = cirq.Circuit([
+        cirq.X.on_each(qubits)
+    ])
+
+    [compiled_circuit, mapping] = cirq.contrib.quantum_volume.compile_circuit(
+        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock, router=router_mock,routing_attempts=2)
+
+    assert mapping == initial_mapping
+    assert router_mock.call_count == 2
+    compiler_mock.assert_called_with(well_routed)
 
 
 def test_calculate_quantum_volume_result():
@@ -112,6 +140,7 @@ def test_calculate_quantum_volume_result():
         num_circuits=1,
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()],
+        routing_attempts=2,
         seed=1)
 
     model_circuit = cirq.contrib.quantum_volume.generate_model_circuit(
@@ -128,11 +157,13 @@ def test_calculate_quantum_volume_result():
 
 def test_calculate_quantum_volume_loop():
     """Test that calculate_quantum_volume is able to run without erring."""
-    # Keep test from taking a long time by lowering repetitions.
+    # Keep test from taking a long time by lowering circuits and routing
+    # attempts.
     cirq.contrib.quantum_volume.calculate_quantum_volume(
         num_qubits=5,
         depth=5,
         num_circuits=1,
+        routing_attempts=2,
         seed=1,
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()])

@@ -27,7 +27,7 @@ import sympy
 
 import cirq
 import cirq.protocols
-import cirq.contrib.quantum_volume
+from cirq.contrib.quantum_volume import QuantumVolumeResult
 
 
 def assert_roundtrip(obj, text_should_be=None):
@@ -251,7 +251,7 @@ TEST_OBJECTS = {
     'QuantumFourierTransformGate':
     cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
     'QuantumVolumeResult':
-    cirq.contrib.quantum_volume.QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+    QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
                                                     heavy_set=[1,2,3],
                                                     compiled_circuit=cirq.H.on_each(QUBITS),
                                                     sampler_result=[.1, .2]),
@@ -509,7 +509,7 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
     # Objects not listed at top level.
     yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
-    yield 'QuantumVolumeResult', type(cirq.contrib.quantum_volume.QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+    yield 'QuantumVolumeResult', type(QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
                                                     heavy_set=[1,2,3],
                                                     compiled_circuit=cirq.H.on_each(QUBITS),
                                                     sampler_result=[.1, .2]),)

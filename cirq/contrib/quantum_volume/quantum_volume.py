@@ -176,6 +176,7 @@ def compile_circuit(
                                      router=router,
                                      algo_name=routing_algo_name)
         score = len(swap_network.circuit)
+        print(f'hi {score}')
         if score < best_score or i == 0:
             best_swap_network = swap_network
             best_score = score
