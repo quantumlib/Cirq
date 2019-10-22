@@ -36,6 +36,14 @@ from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
+from cirq.ops.swap_gates import ISWAP, SWAP, ISwapPowGate, SwapPowGate
+from cirq.ops.measurement_gate import MeasurementGate
+
+assert all([ISWAP, SWAP, ISwapPowGate, SwapPowGate, MeasurementGate]), """
+Included for compatibility. Please continue to use top-level cirq.{thing}
+imports.
+"""
+
 
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,

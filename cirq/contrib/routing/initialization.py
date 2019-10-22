@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import itertools
-import random
-from typing import cast, Dict, Hashable, List, Set
+from typing import cast, Dict, Hashable, List, Optional, Set, Union
 
+import numpy as np
 import networkx as nx
+from sortedcontainers import SortedDict, SortedSet
 
 from cirq import ops
 
@@ -26,14 +27,18 @@ def get_center(graph: nx.Graph) -> Hashable:
     return max(centralities, key=centralities.get)
 
 
-def get_initial_mapping(logical_graph: nx.Graph,
-                        device_graph: nx.Graph) -> Dict[ops.Qid, ops.Qid]:
+def get_initial_mapping(
+        logical_graph: nx.Graph,
+        device_graph: nx.Graph,
+        random_state: Optional[Union[np.random.RandomState, int]] = None
+) -> Dict[ops.Qid, ops.Qid]:
     """Gets an initial mapping of logical to physical qubits for routing.
 
     Args:
         logical_graph: The graph whose edges correspond to pairs of qubits that
             should be mapped to nearby physical qubits.
         device_graph: The graph of the device.
+        random_state: Random state or random state seed.
 
     The mapping starts by mapping the center of the logical graph to the center
     of the physical graph. Subsequent logical qubits are mapped to physical
@@ -43,6 +48,14 @@ def get_initial_mapping(logical_graph: nx.Graph,
     qubits that minimizes the average distance to already mapped logical
     neighbors is selected.
     """
+    if random_state is None:
+        prng = np.random
+    elif (isinstance(random_state, np.random.RandomState) or
+          random_state == np.random):
+        prng = random_state
+    else:
+        prng = np.random.RandomState(random_state)
+
     unplaced_vertices = set(logical_graph)
 
     logical_center = cast(ops.Qid, get_center(logical_graph))
@@ -68,11 +81,9 @@ def get_initial_mapping(logical_graph: nx.Graph,
             if n == max_num_placed_neighbors
         ]
 
-        border = cast(
-            Set[ops.Qid],
-            set().union(*(device_graph[v]
-                          for v in mapping)).difference(mapping))
-        total_distances = {}
+        border = SortedSet().union(*(device_graph[v]
+                                     for v in mapping)).difference(mapping)
+        total_distances = SortedDict()
         for l, p in itertools.product(candidates, border):
             total_distance = 0
             for pp, ll in mapping.items():
@@ -83,7 +94,8 @@ def get_initial_mapping(logical_graph: nx.Graph,
         best_candidates = [
             lp for lp, d in total_distances.items() if d == min_total_distance
         ]
-        l, p = random.choice(best_candidates)
+        choice = prng.choice(len(best_candidates))
+        l, p = best_candidates[choice]
         assert p not in mapping
         assert l not in mapping.values()
         mapping[p] = l

@@ -32,13 +32,13 @@ def parse_formula(formula: Any) -> Union[float, sympy.Basic]:
             f"Failed to parse the gate formula {repr(formula)}.\n"
             "This is likely due to a bug where cirq fails to exactly emulate "
             "Quirk's parsing. Please report it.") from ex
-    assert result.free_symbols <= {sympy.Symbol('t')}
-    if not result.free_symbols:
+    if isinstance(result, (float, int, complex)) or not result.free_symbols:
         result = complex(result)
         if abs(np.imag(result)) > 1e-8:
             raise ValueError(
                 'Expected a real value formula but got {!r}'.format(formula))
-        result = float(np.real(result))
+        return float(np.real(result))
+    assert result.free_symbols <= {sympy.Symbol('t')}
     return result
 
 

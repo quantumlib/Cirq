@@ -20,7 +20,14 @@ from cirq.contrib.quirk.cells.cell import (
     Cell,
     CellMaker,
     CellMakerArgs,
+    ExplicitOperationsCell,
 )
 
 from cirq.contrib.quirk.cells.qubit_permutation_cells import (
     QuirkQubitPermutationGate,)
+
+from cirq.contrib.quirk.cells.arithmetic_cells import (
+    QuirkArithmeticOperation,)
+
+from cirq.contrib.quirk.cells.input_rotation_cells import (
+    QuirkInputRotationOperation,)
