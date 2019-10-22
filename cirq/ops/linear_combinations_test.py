@@ -954,7 +954,6 @@ def test_bad_arithmetic():
 
     with pytest.raises(TypeError):
         _ = psum - 'hi mom'
-
     with pytest.raises(TypeError):
         psum *= [1, 2, 3]
 
@@ -974,8 +973,8 @@ def test_bad_arithmetic():
         _ = psum**"string"
 
 
-def test_mul_paulistring():
-    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+def test_paulisum_mul_paulistring():
+    q0, q1 = cirq.LineQubit.range(2)
 
     psum1 = cirq.X(q0) + 2 * cirq.Y(q0) + 3 * cirq.Z(q0)
     x0 = cirq.PauliString(cirq.X(q0))
@@ -996,28 +995,38 @@ def test_mul_paulistring():
     assert psum1 == -1j * cirq.Y(q0) + 2j * cirq.X(q0) + 3
 
 
-def test_mul_paulisum():
-    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+def test_paulisum_mul_paulisum():
+    q0, q1, q2 = cirq.LineQubit.range(3)
 
     psum1 = cirq.X(q0) + 2 * cirq.Y(q0) * cirq.Y(q1)
-    psum2 = cirq.X(q0) * cirq.X(q1) + 3 * cirq.Y(q2)
-    assert psum1 * psum2 == cirq.X(q1) + 3 * cirq.X(q0) * cirq.Y(q2) \
-                            - 2 * cirq.Z(q0) * cirq.Z(q1) \
-                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Y(q2)
-    assert psum2 * psum1 == cirq.X(q1) + 2 * cirq.Z(q0) * cirq.Z(q1) \
-                            + 3 * cirq.X(q0) * cirq.Y(q2) \
-                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Y(q2)
+    psum2 = cirq.X(q0) * cirq.Y(q1) + 3 * cirq.Z(q2)
+    assert psum1 * psum2 == cirq.Y(q1) + 3 * cirq.X(q0) * cirq.Z(q2) \
+                            - 2j * cirq.Z(q0) \
+                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Z(q2)
+    assert psum2 * psum1 == cirq.Y(q1) + 3 * cirq.X(q0) * cirq.Z(q2) \
+                            + 2j * cirq.Z(q0) \
+                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Z(q2)
     psum3 = cirq.X(q1) + cirq.X(q2)
     psum1 *= psum3
-    assert psum1 == cirq.X(q0) * cirq.X(q1) + 2j * cirq.Y(q0) * cirq.Z(q1) \
-        + cirq.X(q0) * cirq.X(q2)+ 2 * cirq.Y(q0) * cirq.Y(q1) * cirq.X(q2)
+    assert psum1 == cirq.X(q0) * cirq.X(q1) - 2j * cirq.Y(q0) * cirq.Z(q1) \
+        + cirq.X(q0) * cirq.X(q2) + 2 * cirq.Y(q0) * cirq.Y(q1) * cirq.X(q2)
+
+    psum4 = cirq.X(q0) + cirq.Y(q0) + cirq.Z(q1)
+    psum5 = cirq.Z(q0) + cirq.Y(q0) + cirq.PauliString(coefficient=1.2)
+    assert psum4 * psum5 == -1j * cirq.Y(q0) + 1j * (cirq.X(q0) + cirq.Z(q0)) \
+                            + (cirq.Z(q0) + cirq.Y(q0)) * cirq.Z(q1) + 1 \
+                            + 1.2 * psum4
+    assert psum5 * psum4 == 1j * cirq.Y(q0) + -1j * (cirq.X(q0) + cirq.Z(q0)) \
+                            + (cirq.Z(q0) + cirq.Y(q0)) * cirq.Z(q1) + 1 \
+                            + 1.2 * psum4
 
 
 def test_pauli_sum_pow():
+    identity = cirq.PauliSum.from_pauli_strings(
+        [cirq.PauliString(coefficient=1)])
     psum1 = cirq.X(q0) + cirq.Y(q0)
     assert psum1**2 == psum1 * psum1
-    assert psum1**2 == 2 * cirq.PauliSum.from_pauli_strings(
-        [cirq.PauliString(cirq.I(q0))])
+    assert psum1**2 == 2 * identity
 
     psum2 = cirq.X(q0) + cirq.Y(q1)
     assert psum2**2 == cirq.PauliString(
@@ -1026,23 +1035,24 @@ def test_pauli_sum_pow():
     psum3 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q0)
     sqd = cirq.PauliSum.from_pauli_strings(
         [2.69 * cirq.PauliString(cirq.I(q0))])
-    assert cirq.approx_eq(psum3 ** 2, sqd, atol=1e-8)
+    assert cirq.approx_eq(psum3**2, sqd, atol=1e-8)
 
     psum4 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q1)
     sqd2 = cirq.PauliSum.from_pauli_strings(
         [2.69 * cirq.PauliString(cirq.I(q0)), 2.6 * cirq.X(q0)])
-    assert cirq.approx_eq(psum4 ** 2, sqd2, atol=1e-8)
+    assert cirq.approx_eq(psum4**2, sqd2, atol=1e-8)
+
+    for psum in [psum1, psum2, psum3, psum4]:
+        assert cirq.approx_eq(psum**0, identity)
 
 
 def test_imul_aliasing():
-    q0, q1, q2, q3 = cirq.LineQubit.range(4)
-    psum1 = cirq.X(q0) + cirq.Y(q0)
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    psum1 = cirq.X(q0) + cirq.Y(q1)
     psum2 = psum1
     psum2 *= (cirq.X(q0) * cirq.Y(q2))
-    print(psum1 == psum2)
-    print(psum1 is psum2)
+    assert psum1 is psum2
     assert psum1 == psum2
-
 
 
 def test_expectation_from_wavefunction_invalid_input():
