@@ -15,7 +15,7 @@
 """Quantum gates defined by a matrix."""
 
 from typing import cast, Any, Tuple
-
+import numbers
 import numpy as np
 
 from cirq import linalg, protocols
@@ -59,7 +59,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
                     self, qubits))
 
     def __pow__(self, exponent: Any) -> 'SingleQubitMatrixGate':
-        if not isinstance(exponent, (int, float)):
+        if not isinstance(exponent, numbers.Real):
             return NotImplemented
         e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
@@ -67,7 +67,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
 
     def _phase_by_(self, phase_turns: float,
                    qubit_index: int) -> 'SingleQubitMatrixGate':
-        if not isinstance(phase_turns, (int, float)):
+        if not isinstance(phase_turns, numbers.Real):
             return NotImplemented
         z = _phase_matrix(phase_turns)
         phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
@@ -137,7 +137,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
                     self, qubits))
 
     def __pow__(self, exponent: Any) -> 'TwoQubitMatrixGate':
-        if not isinstance(exponent, (int, float)):
+        if not isinstance(exponent, numbers.Real):
             return NotImplemented
         e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
@@ -145,7 +145,7 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
 
     def _phase_by_(self, phase_turns: float,
                    qubit_index: int) -> 'TwoQubitMatrixGate':
-        if not isinstance(phase_turns, (int, float)):
+        if not isinstance(phase_turns, numbers.Real):
             return NotImplemented
         i = np.eye(2)
         z = _phase_matrix(phase_turns)

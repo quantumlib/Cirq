@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
+import numbers
 from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
     Iterable
 
@@ -158,7 +159,7 @@ class EigenGate(raw_types.Gate):
         Returns:
             A rounded canonicalized exponent.
         """
-        if not isinstance(self._exponent, (int, float)):
+        if not isinstance(self._exponent, numbers.Real):
             return self._exponent
         result = float(self._exponent)
 

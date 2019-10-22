@@ -14,7 +14,7 @@
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
 from typing import Union, Sequence, Tuple, Optional, cast
-
+import numbers
 import math
 import numpy as np
 import sympy
@@ -154,7 +154,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         if (isinstance(self.phase_exponent, sympy.Basic) or
                 args.precision is None):
             s = 'PhasedX({})'.format(self.phase_exponent)
-        elif isinstance(self.phase_exponent, int):
+        elif isinstance(self.phase_exponent, numbers.Integral):
             s = 'PhasedX({})'.format(self.phase_exponent)
         else:
             s = 'PhasedX({{:.{}}})'.format(args.precision).format(

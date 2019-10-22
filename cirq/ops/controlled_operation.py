@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import cast, Any, Collection, List, Optional, Sequence, Tuple, Union
-
+import numbers
 import itertools
 import numpy as np
 
@@ -36,7 +36,7 @@ class ControlledOperation(raw_types.Operation):
         # Convert to sorted tuples
         self.control_values = cast(
             Tuple[Tuple[int, ...], ...],
-            tuple((val,) if isinstance(val, int) else tuple(sorted(val))
+            tuple((val,) if isinstance(val, numbers.Integral) else tuple(sorted(val))
                   for val in control_values))
         # Verify control values not out of bounds
         for q, val in zip(controls, self.control_values):

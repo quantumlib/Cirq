@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import numbers
 import itertools
 import random
 from typing import (Any, Dict, FrozenSet, Hashable, Iterable, Mapping, Optional,
@@ -123,7 +123,7 @@ class UndirectedHypergraph:
                 mean that it is always included.
         """
 
-        if isinstance(vertices, int):
+        if isinstance(vertices, numbers.Integral):
             vertices = range(vertices)
 
         edges = []

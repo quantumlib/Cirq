@@ -15,7 +15,7 @@
 from typing import Any, Callable, Dict, List, NamedTuple, Tuple, TypeVar, Union
 
 from collections import namedtuple
-
+import numbers
 import numpy as np
 import tensorflow as tf
 
@@ -403,7 +403,7 @@ class _TensorCircuit:
             self,
             state: Union[int, np.ndarray]
             ) -> Callable[[], tf.Tensor]:
-        if isinstance(state, int):
+        if isinstance(state, numbers.Integral):
             secret_index = tf.placeholder(
                 name='initial_computational_basis_state',
                 dtype=tf.int32,
