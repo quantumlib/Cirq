@@ -82,7 +82,8 @@ def test_compile_circuit_router():
     router_mock = MagicMock()
     cirq.contrib.quantum_volume.compile_circuit(cirq.Circuit(),
                                                 device=cirq.google.Bristlecone,
-                                                router=router_mock)
+                                                router=router_mock,
+                                                router_attempts=1)
     router_mock.assert_called()
 
 
@@ -94,7 +95,7 @@ def test_compile_circuit():
         cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
     ])
     [compiled_circuit, mapping] = cirq.contrib.quantum_volume.compile_circuit(
-        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock)
+        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock, router_attempts=1)
 
     assert len(mapping) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
@@ -120,7 +121,6 @@ def test_calculate_quantum_volume_result():
     assert results[
         0].heavy_set == cirq.contrib.quantum_volume.compute_heavy_set(
             model_circuit)
-    assert len(results[0].sampler_result) == 1
     # Ensure that calling to_json on the results does not err.
     buffer = io.StringIO()
     cirq.to_json(results, buffer)
