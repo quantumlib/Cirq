@@ -1034,6 +1034,17 @@ def test_pauli_sum_pow():
     assert cirq.approx_eq(psum4 ** 2, sqd2, atol=1e-8)
 
 
+def test_imul_aliasing():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    psum1 = cirq.X(q0) + cirq.Y(q0)
+    psum2 = psum1
+    psum2 *= (cirq.X(q0) * cirq.Y(q2))
+    print(psum1 == psum2)
+    print(psum1 is psum2)
+    assert psum1 == psum2
+
+
+
 def test_expectation_from_wavefunction_invalid_input():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)

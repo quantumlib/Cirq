@@ -501,39 +501,41 @@ class PauliSum:
         return factory(-self._linear_dict)
 
     def __imul__(self, other: PauliSumLike):
+        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+            return NotImplemented
         if isinstance(other, (float, int, complex)):
             self._linear_dict *= other
-            return self
-        # No convenient way to mutate paulistring members.
-        return self.__mul__(other)
+        elif isinstance(other, PauliString):
+            temp = PauliSum.from_pauli_strings(
+                [term * other for term in self])
+            self._linear_dict = temp._linear_dict
+
+        elif isinstance(other, PauliSum):
+            temp = PauliSum.from_pauli_strings(
+                    [term * other_term
+                     for term in self
+                     for other_term in iter(other)
+            ])
+            self._linear_dict = temp._linear_dict
+
+        return self
 
     def __mul__(self, other: PauliSumLike):
-        if isinstance(other, (float, int, complex)):
-            result = self.copy()
-            result *= other
-            return result
-        elif isinstance(other, PauliString):
-            return PauliSum.from_pauli_strings(
-                [term * other for term in iter(self)])
-        elif isinstance(other, PauliSum):
-            return PauliSum.from_pauli_strings(
-                [term * other_term
-                 for term in iter(self)
-                 for other_term in iter(other)
-            ])
-
-        return NotImplemented
+        result = self.copy()
+        result *= other
+        return result
 
     def __rmul__(self, other: PauliSumLike):
         if isinstance(other, (float, int, complex)):
             return self.__mul__(other)
         elif isinstance(other, PauliString):
-            return PauliSum.from_pauli_strings(
-                [other * term for term in iter(self)])
+            result = self.copy()
+            return PauliSum.from_pauli_strings([other]) * result
         return NotImplemented
 
     def __pow__(self, power: int):
         if not isinstance(power, int):
+            # FIXME: implement in terms of LinearCombinationOfGates.__pow__?
             # TODO: check if this actually is doable, via PauliStringPhasor interface?
             raise TypeError("PauliSum exponentiation is only supported for "
                             "int type. Instead, got {}".format(type(power)))
