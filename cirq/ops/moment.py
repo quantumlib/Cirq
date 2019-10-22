@@ -14,10 +14,14 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import Any, Callable, Iterable, Sequence, TypeVar, Union
+from typing import (Any, Callable, Iterable, Iterator, Sequence, TypeVar,
+                    TYPE_CHECKING, Union)
 
 from cirq import protocols
 from cirq.ops import raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
@@ -106,10 +110,10 @@ class Moment:
     def __copy__(self):
         return type(self)(self.operations)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.operations)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
 
@@ -127,14 +131,14 @@ class Moment:
                                           key=lambda op: op.qubits),
                                    atol=atol)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
     def __hash__(self):
         return hash(
             (Moment, tuple(sorted(self.operations, key=lambda op: op.qubits))))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['cirq.Operation']:
         return iter(self.operations)
 
     def __pow__(self, power):
