@@ -252,9 +252,9 @@ TEST_OBJECTS = {
     cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
     'QuantumVolumeResult':
     QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
-                                                    heavy_set=[1,2,3],
-                                                    compiled_circuit=cirq.H.on_each(QUBITS),
-                                                    sampler_result=[.1, .2]),
+                        heavy_set=[1, 2, 3],
+                        compiled_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+                        sampler_result=.1),
     'ResetChannel':
     cirq.ResetChannel(),
     'X':
@@ -509,10 +509,12 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
     # Objects not listed at top level.
     yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
-    yield 'QuantumVolumeResult', type(QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
-                                                    heavy_set=[1,2,3],
-                                                    compiled_circuit=cirq.H.on_each(QUBITS),
-                                                    sampler_result=[.1, .2]),)
+    yield 'QuantumVolumeResult', type(
+        QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+                            heavy_set=[1, 2, 3],
+                            compiled_circuit=cirq.Circuit(
+                                cirq.H.on_each(QUBITS)),
+                            sampler_result=.1))
 
 
 def test_builtins():

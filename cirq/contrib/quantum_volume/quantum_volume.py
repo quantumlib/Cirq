@@ -2,7 +2,7 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple
+from typing import Optional, List, cast, Callable, Dict, Tuple, Union
 from dataclasses import dataclass
 
 import numpy as np
@@ -141,7 +141,7 @@ def compile_circuit(
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         routing_algo_name: Optional[str] = None,
         router: Optional[Callable[..., ccr.SwapNetwork]] = None,
-) -> Tuple[cirq.Circuit, Dict[cirq.ops.Qid, cirq.ops.Qid]]:
+) -> ccr.SwapNetwork:
     """Compile the given model circuit onto the given device. This uses a
     different compilation method than described in
     https://arxiv.org/pdf/1811.12926.pdf Appendix A. The latter goes through a
@@ -168,29 +168,29 @@ def compile_circuit(
     if router is None and routing_algo_name is None:
         routing_algo_name = 'greedy'
 
-    best_swap_network = None
+    best_swap_network: Union[ccr.SwapNetwork, None] = None
     best_score = -1
     for i in range(routing_attempts):
         swap_network = ccr.route_circuit(compiled_circuit,
-                                     ccr.xmon_device_to_graph(device),
-                                     router=router,
-                                     algo_name=routing_algo_name)
+                                         ccr.xmon_device_to_graph(device),
+                                         router=router,
+                                         algo_name=routing_algo_name)
         score = len(swap_network.circuit)
-        print(f'hi {score}')
         if score < best_score or i == 0:
             best_swap_network = swap_network
             best_score = score
-        
-    compiled_circuit = best_swap_network.circuit
+    if best_swap_network is None:
+        raise AssertionError('Unable to get routing for circuit')
+
     # Compile. This should decompose the routed circuit down to a gate set that
     # our device supports, and then optimize. The paper uses various
     # compiling techniques - because Quantum Volume is intended to test those
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
     if compiler:
-        compiled_circuit = compiler(compiled_circuit)
+        best_swap_network.circuit = compiler(best_swap_network.circuit)
 
-    return compiled_circuit, best_swap_network.final_mapping()
+    return best_swap_network
 
 
 @dataclass
@@ -207,7 +207,7 @@ class QuantumVolumeResult:
     compiled_circuit: cirq.Circuit
     # The percentage of outputs that this sampler had that were in the heavy
     # set.
-    sampler_result: List[float]
+    sampler_result: float
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, [
@@ -273,20 +273,23 @@ def execute_circuits(
     """
     # First, compile all of the model circuits.
     print("Compiling model circuits")
-    compiled_circuits: List[Tuple[cirq.Circuit, ccr.SwapNetwork]] = []
+    compiled_circuits: List[ccr.SwapNetwork] = []
     for idx, (model_circuit, heavy_set) in enumerate(circuits):
         print(f"  Compiling model circuit #{idx + 1}")
-        compiled_circuits.append(compile_circuit(model_circuit,
-                                                 device=device,
-                                                 compiler=compiler,
-                                                 routing_attempts=routing_attempts))
+        compiled_circuits.append(
+            compile_circuit(model_circuit,
+                            device=device,
+                            compiler=compiler,
+                            routing_attempts=routing_attempts))
 
     # Next, run the compiled circuits on each sampler.
     results = []
     print("Running samplers over compiled circuits")
     for sampler_i, sampler in enumerate(samplers):
         print(f"  Running sampler #{sampler_i + 1}")
-        for circuit_i, (compiled_circuit, mapping) in enumerate(compiled_circuits):
+        for circuit_i, swap_network in enumerate(compiled_circuits):
+            compiled_circuit = swap_network.circuit
+            mapping = swap_network.final_mapping()
             model_circuit, heavy_set = circuits[circuit_i]
             prob = sample_heavy_set(compiled_circuit,
                                     heavy_set,

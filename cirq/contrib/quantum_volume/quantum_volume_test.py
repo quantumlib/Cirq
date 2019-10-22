@@ -95,14 +95,18 @@ def test_compile_circuit():
     model_circuit = cirq.Circuit([
         cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
     ])
-    [compiled_circuit, mapping] = cirq.contrib.quantum_volume.compile_circuit(
-        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock, routing_attempts=1)
+    swap_network = cirq.contrib.quantum_volume.compile_circuit(
+        model_circuit,
+        device=cirq.google.Bristlecone,
+        compiler=compiler_mock,
+        routing_attempts=1)
 
-    assert len(mapping) == 3
+    assert len(swap_network.final_mapping()) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
-        compiled_circuit.all_operations(),
+        swap_network.circuit.all_operations(),
         cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone))
-    compiler_mock.assert_called_with(compiled_circuit)
+    compiler_mock.assert_called_with(swap_network.circuit)
+
 
 def test_compile_circuit_multiple_routing_attempts():
     """Tests that we make multiple attempts at r
@@ -110,24 +114,27 @@ def test_compile_circuit_multiple_routing_attempts():
     qubits = cirq.LineQubit.range(3)
     initial_mapping = dict(zip(qubits, qubits))
     badly_routed = cirq.Circuit([
-            cirq.X.on_each(qubits), cirq.Y.on_each(qubits),
-        ])
+        cirq.X.on_each(qubits),
+        cirq.Y.on_each(qubits),
+    ])
     well_routed = cirq.Circuit([
-            cirq.X.on_each(qubits),
-        ])
-    router_mock = MagicMock(side_effect = [
+        cirq.X.on_each(qubits),
+    ])
+    router_mock = MagicMock(side_effect=[
         ccr.SwapNetwork(badly_routed, initial_mapping),
         ccr.SwapNetwork(well_routed, initial_mapping),
     ])
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
-    model_circuit = cirq.Circuit([
-        cirq.X.on_each(qubits)
-    ])
+    model_circuit = cirq.Circuit([cirq.X.on_each(qubits)])
 
-    [compiled_circuit, mapping] = cirq.contrib.quantum_volume.compile_circuit(
-        model_circuit, device=cirq.google.Bristlecone, compiler=compiler_mock, router=router_mock,routing_attempts=2)
+    swap_network = cirq.contrib.quantum_volume.compile_circuit(
+        model_circuit,
+        device=cirq.google.Bristlecone,
+        compiler=compiler_mock,
+        router=router_mock,
+        routing_attempts=2)
 
-    assert mapping == initial_mapping
+    assert swap_network.final_mapping() == initial_mapping
     assert router_mock.call_count == 2
     compiler_mock.assert_called_with(well_routed)
 

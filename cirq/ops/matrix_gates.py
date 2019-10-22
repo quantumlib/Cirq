@@ -192,9 +192,9 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, matrix: List,
-                         **kwargs):
+    def _from_json_dict_(cls, matrix: List, **kwargs):
         return cls(np.asarray(matrix))
+
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,
                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
