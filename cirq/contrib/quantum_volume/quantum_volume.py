@@ -95,7 +95,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 def sample_heavy_set(circuit: cirq.Circuit,
                      heavy_set: List[int],
                      *,
-                     repetitions=10000,
+                     repetitions=10_000,
                      sampler: cirq.Sampler = cirq.Simulator(),
                      mapping: Dict[cirq.ops.Qid, cirq.ops.Qid] = None) -> float:
     """Run a sampler over the given circuit and compute the percentage of its
@@ -104,7 +104,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
     Args:
         circuit: The circuit to sample.
         heavy_set: The previously-computed heavy set for the given circuit.
-        repetitions: The number of runs to sample the circuit.
+        repetitions: The number of times to sample the circuit.
         sampler: The sampler to run on the given circuit.
         mapping: An optional mapping from compiled qubits to original qubits,
             to maintain the ordering between the model and compiled circuits.
@@ -207,7 +207,7 @@ def prepare_circuits(
         *,
         num_qubits: int,
         depth: int,
-        num_repetitions: int,
+        num_circuits: int,
         random_state: Optional[np.random.RandomState] = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
@@ -215,7 +215,7 @@ def prepare_circuits(
     Args:
         num_qubits: The number of qubits in the generated circuits.
         depth: The number of layers in the circuits.
-        num_repetitions: The number of circuits to create.
+        num_circuits: The number of circuits to create.
         random_state: A way to seed the RandomState.
 
     Returns:
@@ -223,22 +223,24 @@ def prepare_circuits(
         circuit and the second element is the heavy set for that circuit.
     """
     circuits = []
-    for repetition in range(num_repetitions):
+    for circuit_i in range(num_circuits):
         model_circuit = generate_model_circuit(num_qubits,
                                                depth,
                                                random_state=random_state)
         heavy_set = compute_heavy_set(model_circuit)
-        print(f"Repetition {repetition + 1} Heavy Set: {heavy_set}")
+        print(f"Circuit {circuit_i + 1} Heavy Set: {heavy_set}")
         circuits.append((model_circuit, heavy_set))
     return circuits
 
 
-def execute_circuits(*,
-                     device: cirq.google.xmon_device.XmonDevice,
-                     samplers: List[cirq.Sampler],
-                     compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
-                     circuits: List[Tuple[cirq.Circuit, List[int]]]
-                    ) -> List[QuantumVolumeResult]:
+def execute_circuits(
+        *,
+        device: cirq.google.xmon_device.XmonDevice,
+        samplers: List[cirq.Sampler],
+        compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+        circuits: List[Tuple[cirq.Circuit, List[int]]],
+        repetitions: int = 10_000,
+) -> List[QuantumVolumeResult]:
     """Executes the given circuits on the given samplers.
 
     Args
@@ -247,6 +249,7 @@ def execute_circuits(*,
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
         circuits: The circuits to sample from.
+        repetitions: The number of bitstrings to sample per circuit.
 
     Returns:
         A list of QuantumVolumeResults that contains all of the information for
@@ -262,6 +265,7 @@ def execute_circuits(*,
         for idx, sampler in enumerate(samplers):
             prob = sample_heavy_set(compiled_circuit,
                                     heavy_set,
+                                    repetitions=repetitions,
                                     sampler=sampler,
                                     mapping=mapping)
             print(f"  Compiled HOG probability #{idx + 1}: {prob}")
@@ -278,11 +282,12 @@ def calculate_quantum_volume(
         *,
         num_qubits: int,
         depth: int,
-        num_repetitions: int,
+        num_circuits: int,
         seed: int,
         device: cirq.google.xmon_device.XmonDevice,
         samplers: List[cirq.Sampler],
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+        repetitions=10_000,
 ) -> List[QuantumVolumeResult]:
     """Run the quantum volume algorithm.
 
@@ -296,12 +301,13 @@ def calculate_quantum_volume(
     Args:
         num_qubits: The number of qubits for the circuit.
         depth: The number of gate layers to generate.
-        num_repetitions: The number of times to run the algorithm.
+        num_circuits: The number of random circuits to run.
         seed: A seed to pass into the RandomState.
         device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
+        repetitions: The number of bitstrings to sample per circuit.
 
     Returns: A list of QuantumVolumeResults that contains all of the information
         for running the algorithm and its results.
@@ -310,9 +316,12 @@ def calculate_quantum_volume(
     random_state = np.random.RandomState(seed)
     circuits = prepare_circuits(num_qubits=num_qubits,
                                 depth=depth,
-                                num_repetitions=num_repetitions,
+                                num_circuits=num_circuits,
                                 random_state=random_state)
-    return execute_circuits(circuits=circuits,
-                            device=device,
-                            compiler=compiler,
-                            samplers=samplers)
+    return execute_circuits(
+        circuits=circuits,
+        device=device,
+        compiler=compiler,
+        samplers=samplers,
+        repetitions=repetitions,
+    )
