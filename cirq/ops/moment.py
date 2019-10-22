@@ -31,10 +31,6 @@ class Moment:
     occur at the same time. However the topological quantum circuit ordering
     will be preserved, and many schedulers or consumers will attempt to
     maximize the moment representation.
-
-    Attributes:
-        operations: A tuple of the Operations for this Moment.
-        qubits: A set of the qubits acted upon by this Moment.
     """
 
     def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
