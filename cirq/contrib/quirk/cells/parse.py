@@ -71,6 +71,7 @@ def _segment_by(seq: Iterable[T], *,
 
 
 def _tokenize(text: str) -> List[str]:
+
     def classify(e: str) -> str:
         assert e.strip() != ''  # Because _segment_by drops empty entries.
         if re.match(r'[.0-9]', e):

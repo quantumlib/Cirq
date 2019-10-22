@@ -47,9 +47,9 @@ from cirq.protocols.decompose_protocol import (
     SupportsDecomposeWithQubits,
 )
 from cirq.protocols.equal_up_to_global_phase_protocol import (
-    equal_up_to_global_phase,)
+    equal_up_to_global_phase, )
 from cirq.protocols.inverse_protocol import (
-    inverse,)
+    inverse, )
 from cirq.protocols.json import (
     to_json,
     read_json,
@@ -70,7 +70,7 @@ from cirq.protocols.mixture_protocol import (
 from cirq.protocols.mul_protocol import (
     mul, )
 from cirq.protocols.pauli_expansion_protocol import (
-    pauli_expansion,)
+    pauli_expansion, )
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow_protocol import (
     pow, )
