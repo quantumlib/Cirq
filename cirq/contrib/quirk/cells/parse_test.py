@@ -113,6 +113,11 @@ def test_parse_complex_raw_cases_from_quirk():
     assert parse_complex("2.5e-10") == 0.00000000025
     assert parse_complex("2.5E-10") == 0.00000000025
     assert parse_complex("2.5e+10") == 25000000000
+    assert parse_complex("2.e+10") == 20000000000
+    np.testing.assert_allclose(parse_complex("e"), np.e)
+    np.testing.assert_allclose(parse_complex("pi e"), np.pi * np.e)
+    np.testing.assert_allclose(parse_complex("pi e 2"), np.pi * np.e * 2)
+    np.testing.assert_allclose(parse_complex("2       pi"), 2 * np.pi)
 
 
 def test_parse_complex_expression_cases_from_quirk():
@@ -165,7 +170,7 @@ def test_parse_complex_expression_cases_from_quirk():
 def test_parse_complex_expression_failures():
     with pytest.raises(ValueError, match='Incomplete expression'):
         _ = parse_formula('(')
-    with pytest.raises(ValueError, match='unmatched'):
+    with pytest.raises(ValueError, match=r"unmatched '\)'"):
         _ = parse_formula(')')
     with pytest.raises(ValueError, match='binary op in bad spot'):
         _ = parse_formula('5+(/)')

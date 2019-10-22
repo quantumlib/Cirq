@@ -59,18 +59,17 @@ def _segment_by(seq: Iterable[T], *,
 
 
 def _tokenize(text: str) -> List[str]:
+
+    def classify(e: str) -> str:
+        assert e.strip() != ''  # Because _segment_by drops empty entries.
+        if re.match(r'[.0-9]', e):
+            return "#"
+        if re.match(r'[_a-z]', e):
+            return "a"
+        return np.nan  # Always split.
+
     result = []
     for part in re.split(r'\s', text.lower()):
-
-        def classify(e: str) -> str:
-            if e.strip() == '':
-                return " "
-            if re.match(r'[.0-9]', e):
-                return "#"
-            if re.match(r'[_a-z]', e):
-                return "a"
-            return np.nan  # Always split.
-
         for group in _segment_by(part, key=classify):
             result.append(''.join(group))
 
@@ -142,8 +141,7 @@ def _parse_formula_using_token_map(text: str,
         return len(vals) == 1 and len(ops) == 0
 
     def apply(op: Union[str, _HangingNode]) -> None:
-        if op == "(":
-            raise ValueError("Bad expression: unmatched '('.\ntext={text!r}")
+        assert isinstance(op, _HangingNode)
         if len(vals) < 2:
             raise ValueError(
                 "Bad expression: operated on nothing.\ntext={text!r}")
