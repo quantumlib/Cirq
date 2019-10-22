@@ -28,7 +28,7 @@ class ControlledOperation(raw_types.Operation):
                  controls: Sequence[raw_types.Qid],
                  sub_operation: raw_types.Operation,
                  control_values: Optional[Sequence[
-                     Union[numbers.integral, Collection[int]]]] = None):
+                     Union[int, Collection[int]]]] = None):
         if control_values is None:
             control_values = ((1,),) * len(controls)
         if len(control_values) != len(controls):

@@ -31,7 +31,7 @@ class ControlledGate(raw_types.Gate):
             sub_gate: raw_types.Gate,
             num_controls: int = None,
             control_values: Optional[Sequence[
-                Union[numbers.Integral, Collection[int]]]] = None,
+                Union[int, Collection[int]]]] = None,
             control_qid_shape: Optional[Tuple[int, ...]] = None,
     ) -> None:
         """Initializes the controlled gate. If no arguments are specified for

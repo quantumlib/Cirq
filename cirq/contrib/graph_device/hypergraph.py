@@ -108,7 +108,7 @@ class UndirectedHypergraph:
         return sum_hypergraph
 
     @classmethod
-    def random(cls, vertices: Union[numbers.Integral, Iterable],
+    def random(cls, vertices: Union[int, Iterable],
                edge_probs: Mapping[int, float]) -> 'UndirectedHypergraph':
         """A random hypergraph.
 
