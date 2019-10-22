@@ -108,7 +108,7 @@ def test_calculate_quantum_volume_result():
     results = cirq.contrib.quantum_volume.calculate_quantum_volume(
         num_qubits=3,
         depth=3,
-        num_repetitions=1,
+        num_circuits=1,
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()],
         seed=1)
@@ -132,7 +132,7 @@ def test_calculate_quantum_volume_loop():
     cirq.contrib.quantum_volume.calculate_quantum_volume(
         num_qubits=5,
         depth=5,
-        num_repetitions=1,
+        num_circuits=1,
         seed=1,
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()])
