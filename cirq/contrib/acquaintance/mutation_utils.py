@@ -51,9 +51,8 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit',
         gate_type_to_ops: Dict[bool, List[
             ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
-            if not isinstance(op, ops.GateOperation):
-                raise TypeError(f'expected GateOperation, got: {op}')
-            is_acquaintance = isinstance(op.gate, AcquaintanceOpportunityGate)
+            is_acquaintance = ops.op_gate_isinstance(
+                op, AcquaintanceOpportunityGate)
             gate_type_to_ops[is_acquaintance].append(op)
         if len(gate_type_to_ops) == 1:
             rectified_moments.append(moment)
@@ -101,8 +100,7 @@ def replace_acquaintance_with_swap_network(circuit: 'cirq.Circuit',
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)
         if all(
-                isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, AcquaintanceOpportunityGate)
+                ops.op_gate_isinstance(op, AcquaintanceOpportunityGate)
                 for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
                     qubit_order, moment.operations,
