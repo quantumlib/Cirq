@@ -15,7 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
-                    FrozenSet)
+                    FrozenSet, TYPE_CHECKING)
 from cirq import protocols
 from cirq.ops import raw_types
 
