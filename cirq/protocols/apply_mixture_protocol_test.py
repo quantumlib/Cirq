@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Any, cast, Iterable, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -23,11 +24,12 @@ def make_buffers(shape, dtype):
             np.empty(shape, dtype=dtype))
 
 
-def apply_mixture(val,
-                  rho,
-                  left_axes,
-                  right_axes,
-                  assert_result_is_out_buf=False):
+def apply_mixture(val: Any,
+                  rho: np.ndarray,
+                  left_axes: Iterable[int],
+                  right_axes: Optional[Iterable[int]],
+                  assert_result_is_out_buf: bool = False
+                 ) -> Optional[np.ndarray]:
     out_buf, buf0, buf1 = make_buffers(rho.shape, rho.dtype)
     result = cirq.apply_mixture(val,
                                 args=cirq.ApplyMixtureArgs(
@@ -36,7 +38,8 @@ def apply_mixture(val,
                                     right_axes=right_axes,
                                     out_buffer=out_buf,
                                     auxiliary_buffer0=buf0,
-                                    auxiliary_buffer1=buf1))
+                                    auxiliary_buffer1=buf1),
+                                default=np.array([]))
     if assert_result_is_out_buf:
         assert result is out_buf
     else:
@@ -47,18 +50,20 @@ def apply_mixture(val,
 def test_apply_mixture_bad_args():
     target = np.zeros((3,) + (1, 2, 3) + (3, 1, 2) + (3,))
     with pytest.raises(ValueError, match='Invalid target_tensor shape'):
-        cirq.apply_mixture(
-            cirq.IdentityGate(3, (1, 2, 3)),
-            cirq.ApplyMixtureArgs(target, np.zeros_like(target),
-                                  np.zeros_like(target), np.zeros_like(target),
-                                  (1, 2, 3), (4, 5, 6)))
+        cirq.apply_mixture(cirq.IdentityGate(3, (1, 2, 3)),
+                           cirq.ApplyMixtureArgs(target, np.zeros_like(target),
+                                                 np.zeros_like(target),
+                                                 np.zeros_like(target),
+                                                 (1, 2, 3), (4, 5, 6)),
+                           default=np.array([]))
     target = np.zeros((2, 3, 2, 3))
     with pytest.raises(ValueError, match='Invalid mixture qid shape'):
-        cirq.apply_mixture(
-            cirq.IdentityGate(2, (2, 9)),
-            cirq.ApplyMixtureArgs(target, np.zeros_like(target),
-                                  np.zeros_like(target), np.zeros_like(target),
-                                  (0, 1), (2, 3)))
+        cirq.apply_mixture(cirq.IdentityGate(2, (2, 9)),
+                           cirq.ApplyMixtureArgs(target, np.zeros_like(target),
+                                                 np.zeros_like(target),
+                                                 np.zeros_like(target), (0, 1),
+                                                 (2, 3)),
+                           default=np.array([]))
 
 
 def test_apply_mixture_simple():
@@ -69,8 +74,10 @@ def test_apply_mixture_simple():
         def _apply_mixture_(self, args: cirq.ApplyMixtureArgs):
             zero_left = cirq.slice_for_qubits_equal_to(args.left_axes, 0)
             one_left = cirq.slice_for_qubits_equal_to(args.left_axes, 1)
-            zero_right = cirq.slice_for_qubits_equal_to(args.right_axes, 0)
-            one_right = cirq.slice_for_qubits_equal_to(args.right_axes, 1)
+            zero_right = cirq.slice_for_qubits_equal_to(
+                cast(Tuple[int], args.right_axes), 0)
+            one_right = cirq.slice_for_qubits_equal_to(
+                cast(Tuple[int], args.right_axes), 1)
             args.out_buffer[:] = 0
             np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
             for krauss_op in [
@@ -131,14 +138,36 @@ def test_apply_mixture_returns_aux_buffer():
         _ = apply_mixture(ReturnsAuxBuffer1(), rho, [0], [1])
 
 
+def test_apply_mixture_simple_wavefunction():
+    for _ in range(25):
+        state = cirq.testing.random_superposition(2)
+        u1 = cirq.testing.random_unitary(2)
+        u2 = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        p1 = np.random.random()
+        p2 = 1 - p1
+
+        expected = p1 * np.dot(u1, state) + p2 * np.dot(u2, state)
+
+        class HasMixture():
+
+            def _mixture_(self):
+                return ((p1, u1), (p2, cirq.X))
+
+        result = apply_mixture(HasMixture(),
+                               state, [0],
+                               None,
+                               assert_result_is_out_buf=True)
+
+        np.testing.assert_almost_equal(result, expected)
+
+
 def test_apply_mixture_simple_split_fallback():
     x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
     class HasMixture():
 
         def _mixture_(self):
-            return ((0.5, np.eye(2, dtype=np.complex128)),
-                    (0.5, cirq.X))
+            return ((0.5, np.eye(2, dtype=np.complex128)), (0.5, cirq.X))
 
     rho = np.copy(x)
     result = apply_mixture(HasMixture(),
@@ -160,8 +189,7 @@ def test_apply_mixture_fallback_one_qubit_random_on_qubit():
         class HasMixture():
 
             def _mixture_(self):
-                return ((0.5, np.eye(2, dtype=np.complex128)),
-                        (0.5, u))
+                return ((0.5, np.eye(2, dtype=np.complex128)), (0.5, u))
 
         result = apply_mixture(HasMixture(),
                                rho, [0], [1],
@@ -186,8 +214,7 @@ def test_apply_mixture_fallback_two_qubit_random():
         class HasMixture():
 
             def _mixture_(self):
-                return ((0.5, np.eye(4, dtype=np.complex128)),
-                        (0.5, u))
+                return ((0.5, np.eye(4, dtype=np.complex128)), (0.5, u))
 
         result = apply_mixture(HasMixture(),
                                rho, [0, 1], [2, 3],
@@ -218,7 +245,7 @@ def test_apply_mixture_no_protocols_implemented_default():
                                  out_buffer=None,
                                  auxiliary_buffer0=None,
                                  auxiliary_buffer1=None)
-    result = cirq.apply_mixture(NoProtocols(), args, 'cirq')
+    result = cirq.apply_mixture(NoProtocols(), args, default='cirq')
     assert result == 'cirq'
 
 
@@ -244,7 +271,7 @@ def test_apply_mixture_unitary():
                                left_axes=[1],
                                right_axes=[3],
                                assert_result_is_out_buf=False)
-        print(result)
+
         np.testing.assert_almost_equal(
             result,
             np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape),

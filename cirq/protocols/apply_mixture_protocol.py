@@ -13,7 +13,7 @@
 # limitations under the License.
 """A protocol for implementing high performance mixture evolutions."""
 
-from typing import Any, Iterable, Optional, TypeVar, Union
+from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 from typing_extensions import Protocol
@@ -43,21 +43,18 @@ class ApplyMixtureArgs:
     """Arguments for performing a mixture of unitaries.
 
     The receiving object is expected to mutate `target_tensor` so that it
-    contains the density matrix after applying the mixture then return
-    `target_tensor`. Alternatively, if workspace is required,
-    the receiving object can overwrite `out_buffer` with the results
+    contains the state (wavefunction or density matrix) after applying the
+    mixture then return `target_tensor`. Alternatively, if workspace is
+    required, the receiving object can overwrite `out_buffer` with the results
     and return `out_buffer`. Or, if the receiving object is attempting to
     be simple instead of fast, it can create an entirely new array and
     return that.
 
     Attributes:
-        target_tensor: The input tensor that needs to be left and right
-            multiplied and summed, representing the effect of the mixture.
-            The tensor will have the shape (2, 2, 2, ..., 2). It usually
-            corresponds to a multi-qubit density matrix, with the first
-            n indices corresponding to the rows of the density matrix and
-            the last n indices corresponding to the columns of the density
-            matrix.
+        target_tensor: The input tensor that needs to be left (and potentially
+            right) multiplied and summed, representing the effect of the
+            mixture. The tensor will have the shape (2, 2, 2, ..., 2). It can
+            correspond to a wavefunction or a density matrix.
         out_buffer: Pre-allocated workspace with the same shape and
             dtype as the target tensor. If buffers are used, the result should
             end up in this buffer. It is the responsibility of calling code
@@ -68,21 +65,25 @@ class ApplyMixtureArgs:
             and dtype as the target tensor.
         left_axes: Which axes to multiply the left action of the mixture upon.
         right_axes: Which axes to multiply the right action of the mixture upon.
+            If provided we will assume `target_tensor` is a density matrix,
+            otherwise it will be assuemd `target_tensor` is a wavefunction.
     """
 
-    def __init__(self, target_tensor: np.ndarray, out_buffer: np.ndarray,
-                 auxiliary_buffer0: np.ndarray, auxiliary_buffer1: np.ndarray,
-                 left_axes: Iterable[int], right_axes: Iterable[int]):
+    def __init__(self,
+                 target_tensor: np.ndarray,
+                 out_buffer: np.ndarray,
+                 auxiliary_buffer0: np.ndarray,
+                 auxiliary_buffer1: np.ndarray,
+                 left_axes: Iterable[int],
+                 right_axes: Optional[Iterable[int]] = None):
         """Args for apply mixture.
 
         Args:
-            target_tensor: The input tensor that needs to be left and right
-                multiplied and summed representing the effect of the mixture.
-                The tensor will have the shape (2, 2, 2, ..., 2). It usually
-                corresponds to a multi-qubit density matrix, with the first
-                n indices corresponding to the rows of the density matrix and
-                the last n indices corresponding to the columns of the density
-                matrix.
+            target_tensor: The input tensor that needs to be left (and
+                potentially right) multiplied and summed, representing the
+                effect of the mixture. The tensor will have the shape
+                (2, 2, 2, ..., 2). It can  correspond to a wavefunction or a
+                density matrix.
             out_buffer: Pre-allocated workspace with the same shape and
                 dtype as the target tensor. If buffers are used, the result
                 should end up in this buffer. It is the responsibility of
@@ -94,21 +95,25 @@ class ApplyMixtureArgs:
             left_axes: Which axes to multiply the left action of the mixture
                 upon.
             right_axes: Which axes to multiply the right action of the mixture
-                upon.
+                upon. If provided we will assume `target_tensor` is a density
+                matrix, otherwise it will be assuemd `target_tensor` is a
+                wavefunction.
         """
         self.target_tensor = target_tensor
         self.out_buffer = out_buffer
         self.auxiliary_buffer0 = auxiliary_buffer0
         self.auxiliary_buffer1 = auxiliary_buffer1
         self.left_axes = tuple(left_axes)
-        self.right_axes = tuple(right_axes)
+        self.right_axes = None
+        if right_axes is not None:
+            self.right_axes = tuple(right_axes)
 
 
 class SupportsApplyMixture(Protocol):
     """An object that can efficiently implement a mixture."""
 
     def _apply_mixture_(self, args: ApplyMixtureArgs
-        ) -> Union[np.ndarray, None, NotImplementedType]:
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         """Efficiently applies a mixture.
 
         This method is given both the target tensor and workspace of the same
@@ -149,17 +154,42 @@ class SupportsApplyMixture(Protocol):
 
 def apply_mixture(val: Any,
                   args: ApplyMixtureArgs,
+                  *,
                   default: TDefault = RaiseTypeErrorIfNotProvided
                  ) -> Union[np.ndarray, TDefault]:
     """High performance evolution under a mixture of unitaries evolution.
 
-    If `val` defines an `_apply_mixture_` method, that method will be
-    used to apply `val`'s mixture effect to the target tensor. Failing that
-    if `val` defines an `_apply_unitary_` method, that will be used to apply
-    val's mixture effect. Otherwise, the information returned from `_mixture_`
-    will be used to implement the mixture effect to the target tensor. If none
-    of these cases apply, an exception is raised or the specified default value
-    is returned.
+    Follows the steps below to attempt to apply a mixture:
+
+    A. Try to use `val._apply_mixture_(args)`.
+        1. If `_apply_mixture_` is not present or returns NotImplemented
+            go to step B.
+        2. If '_apply_mixture_' is present and returns None conclude that
+            `val` has no effect and return.
+        3. If '_apply_mixture_' is present and returns a numpy array conclude
+            that the mixture was applied successfully and forward result to
+            caller.
+
+    B. Construct an ApplyUnitaryArgs object `uargs` from `args` and then
+        try to use `cirq.apply_unitary(val, uargs, None)`.
+        1. If `None` is returned then go to step C.
+        2. If a numpy array is returned forward this result back to the caller
+            and return.
+
+    C. Try to use `val._mixture_()`.
+        1. If '_mixture_' is not present or returns NotImplemented
+            go to step D.
+        2. If '_mixture_' is present and returns None conclude that `val` has
+            no effect and return.
+        3. If '_mixture_' returns a list of tuples, loop over the list and
+            examine each tuple. If the tuple is of the form
+            `(probability, np.ndarray)` use matrix multiplication to apply it.
+            If the tuple is of the form `(probability, op)` where op is any op,
+            attempt to use `cirq.apply_unitary(op, uargs, None)`. If this
+            operation returns None go to step D. Otherwise return the resulting
+            state after all of the tuples have been applied.
+
+    D. Raise TypeError or return `default`.
 
 
     Args:
@@ -203,22 +233,9 @@ def apply_mixture(val: Any,
 
     # Verify that val has the same qid shape as the selected axes of the density
     # matrix tensor.
-    val_qid_shape = qid_shape_protocol.qid_shape(val,
-                                                 (2,) * len(args.left_axes))
-    left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
-    right_shape = tuple(args.target_tensor.shape[i] for i in args.right_axes)
-    if left_shape != right_shape:
-        raise ValueError('Invalid target_tensor shape or selected axes. '
-                         'The selected left and right shape of target_tensor '
-                         'are not equal. Got {!r} and {!r}.'.format(
-                             left_shape, right_shape))
-    if val_qid_shape != left_shape:
-        raise ValueError('Invalid mixture qid shape is not equal to the '
-                         'selected left and right shape of target_tensor. '
-                         'Got {!r} but expected {!r}.'.format(
-                             val_qid_shape, left_shape))
+    val, args, is_dm = _validate_input(val, args)
 
-    # Check if the specialized method is present.
+    # Check if the specialized method is present. (STEP A)
     func = getattr(val, '_apply_mixture_', None)
     if func is not None:
         result = func(args)
@@ -234,17 +251,18 @@ def apply_mixture(val: Any,
             assert result is not args.auxiliary_buffer1, err_str('1')
             return result
 
-    # Possibly use `apply_unitary`.
-    result = _apply_unitary(val, args)
+    # Possibly use `cirq.apply_unitary`. (STEP B)
+    result = _apply_unitary_strat(val, args, is_dm)
     if result is not None:
         return result
 
-    # Fallback to using the object's `_mixture_` matrices.
+    # Fallback to using the object's `_mixture_` matrices. (STEP C)
     prob_mix = mixture(val, None)
     if prob_mix is not None:
-        return _apply_mixture(prob_mix, args)
+        return _mixture_strat(prob_mix, args, is_dm)
 
     # Don't know how to apply mixture. Fallback to specified default behavior.
+    # (STEP D)
     if default is not RaiseTypeErrorIfNotProvided:
         return default
     raise TypeError(
@@ -253,7 +271,39 @@ def apply_mixture(val: Any,
         "NotImplemented).".format(type(val)))
 
 
-def _apply_unitary(val: Any, args: 'ApplyMixtureArgs') -> Optional[np.ndarray]:
+def _validate_input(val: Any, args: 'ApplyMixtureArgs'
+                   ) -> Tuple[Any, 'ApplyMixtureArgs', bool]:
+    """Validate args input and determine if we are operating on a
+    density matrix or a wavefunction.
+    """
+
+    is_dm = False
+    val_qid_shape = qid_shape_protocol.qid_shape(val,
+                                                 (2,) * len(args.left_axes))
+    left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
+    if val_qid_shape != left_shape:
+        raise ValueError('Invalid mixture qid shape is not equal to the '
+                         'selected left and right shape of target_tensor. '
+                         'Got {!r} but expected {!r}.'.format(
+                             val_qid_shape, left_shape))
+
+    if args.right_axes is not None:
+        is_dm = True
+
+        right_shape = tuple(
+            args.target_tensor.shape[i] for i in args.right_axes)
+        if left_shape != right_shape:
+            raise ValueError(
+                'Invalid target_tensor shape or selected axes. '
+                'The selected left and right shape of '
+                'target_tensor are not equal. Got {!r} and {!r}.'.format(
+                    left_shape, right_shape))
+
+    return val, args, is_dm
+
+
+def _apply_unitary_strat(val: Any, args: 'ApplyMixtureArgs',
+                         is_dm: bool) -> Optional[np.ndarray]:
     """Attempt to use `apply_unitary` and return the result.
 
     If `val` does not support `apply_unitary` returns None.
@@ -264,17 +314,22 @@ def _apply_unitary(val: Any, args: 'ApplyMixtureArgs') -> Optional[np.ndarray]:
     left_result = apply_unitary(val, left_args, None)
     if left_result is None:
         return None
+
+    if not is_dm:
+        return left_result
+
+    # cast is ok to do since is_dm being false tells us right_axes isn't None.
     right_args = ApplyUnitaryArgs(target_tensor=np.conjugate(left_result),
                                   available_buffer=args.auxiliary_buffer0,
-                                  axes=args.right_axes)
+                                  axes=cast(Tuple[int], args.right_axes))
     right_result = apply_unitary(val, right_args)
     np.conjugate(right_result, out=right_result)
     return right_result
 
 
-def _apply_unitary_fallback(
-    val: np.ndarray, args: 'ApplyMixtureArgs') -> Optional[np.ndarray]:
-    """Use regular linalg matrix multiplication.
+def _apply_unitary_from_matrix_strat(val: np.ndarray, args: 'ApplyMixtureArgs',
+                                     is_dm: bool) -> Optional[np.ndarray]:
+    """Used to enact mixture tuples that are given as (probability, np.ndarray)
 
     If `val` does not support `apply_unitary` returns None.
     """
@@ -285,24 +340,28 @@ def _apply_unitary_fallback(
                                   args.target_tensor,
                                   args.left_axes,
                                   out=args.auxiliary_buffer0)
+
+    if not is_dm:
+        return args.auxiliary_buffer0
     # No need to transpose as we are acting on the tensor
     # representation of matrix, so transpose is done for us.
     linalg.targeted_left_multiply(np.conjugate(matrix_tensor),
                                   args.auxiliary_buffer0,
-                                  args.right_axes,
+                                  cast(Tuple[int], args.right_axes),
                                   out=args.target_tensor)
     return args.target_tensor
 
 
-def _apply_mixture(val: Any, args: 'ApplyMixtureArgs') -> Optional[np.ndarray]:
+def _mixture_strat(val: Any, args: 'ApplyMixtureArgs',
+                   is_dm: bool) -> Optional[np.ndarray]:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     args.out_buffer[:] = 0
     np.copyto(dst=args.auxiliary_buffer1, src=args.target_tensor)
     for prob, op in val:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
-        right_result = _apply_unitary(op, args)
+        right_result = _apply_unitary_strat(op, args, is_dm)
         if right_result is None:
-            right_result = _apply_unitary_fallback(op, args)
+            right_result = _apply_unitary_from_matrix_strat(op, args, is_dm)
 
         args.out_buffer += prob * right_result
 
