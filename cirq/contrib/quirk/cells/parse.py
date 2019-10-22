@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (List, TypeVar, Callable, Any, Iterator, Iterable, Union,
-                    Dict, Optional, cast, SupportsFloat, Mapping)
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Union,
+    SupportsFloat,
+    TypeVar,
+)
 
 import cmath
 import re
