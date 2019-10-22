@@ -14,9 +14,8 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import (Any, Callable, Iterable, Iterator, Sequence, TypeVar,
-                    TYPE_CHECKING, Union)
-
+from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
+                    FrozenSet, TYPE_CHECKING)
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -35,10 +34,6 @@ class Moment:
     occur at the same time. However the topological quantum circuit ordering
     will be preserved, and many schedulers or consumers will attempt to
     maximize the moment representation.
-
-    Attributes:
-        operations: A tuple of the Operations for this Moment.
-        qubits: A set of the qubits acted upon by this Moment.
     """
 
     def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
@@ -51,14 +46,22 @@ class Moment:
         Raises:
             ValueError: A qubit appears more than once.
         """
-        self.operations = tuple(operations)
 
+        self._operations = tuple(operations)
         # Check that operations don't overlap.
         affected_qubits = [q for op in self.operations for q in op.qubits]
-        self.qubits = frozenset(affected_qubits)
-        if len(affected_qubits) != len(self.qubits):
+        self._qubits = frozenset(affected_qubits)
+        if len(affected_qubits) != len(self._qubits):
             raise ValueError(
                 'Overlapping operations: {}'.format(self.operations))
+
+    @property
+    def operations(self) -> Tuple[raw_types.Operation, ...]:
+        return self._operations
+
+    @property
+    def qubits(self) -> FrozenSet[raw_types.Qid]:
+        return self._qubits
 
     def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
         """Determines if the moment has operations touching the given qubit.
@@ -110,10 +113,10 @@ class Moment:
     def __copy__(self):
         return type(self)(self.operations)
 
-    def __bool__(self) -> bool:
+    def __bool__(self):
         return bool(self.operations)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
 
@@ -131,14 +134,14 @@ class Moment:
                                           key=lambda op: op.qubits),
                                    atol=atol)
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
         return hash(
             (Moment, tuple(sorted(self.operations, key=lambda op: op.qubits))))
 
-    def __iter__(self) -> Iterator['cirq.Operation']:
+    def __iter__(self):
         return iter(self.operations)
 
     def __pow__(self, power):
