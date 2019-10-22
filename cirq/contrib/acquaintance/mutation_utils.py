@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Dict, List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, optimizers
 
@@ -51,9 +51,10 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit',
         gate_type_to_ops: Dict[bool, List[
             ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
-            is_acquaintance = ops.op_gate_isinstance(
-                op, AcquaintanceOpportunityGate)
-            gate_type_to_ops[is_acquaintance].append(op)
+            gate_op = cast(ops.GateOperation, op)
+            is_acquaintance = isinstance(gate_op.gate,
+                                         AcquaintanceOpportunityGate)
+            gate_type_to_ops[is_acquaintance].append(gate_op)
         if len(gate_type_to_ops) == 1:
             rectified_moments.append(moment)
             continue
