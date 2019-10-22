@@ -19,4 +19,5 @@ from cirq.contrib.quantum_volume.quantum_volume import (
     sample_heavy_set,
     compile_circuit,
     calculate_quantum_volume,
+    QuantumVolumeResult,
 )
