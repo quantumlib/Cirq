@@ -3,6 +3,7 @@
 from unittest.mock import Mock, MagicMock
 import io
 import numpy as np
+import pytest
 import cirq
 import cirq.contrib.routing as ccr
 
@@ -137,6 +138,19 @@ def test_compile_circuit_multiple_routing_attempts():
     assert swap_network.final_mapping() == initial_mapping
     assert router_mock.call_count == 2
     compiler_mock.assert_called_with(well_routed)
+
+
+def test_compile_circuit_no_routing_attempts():
+    """Tests that setting no routing attempts throws an error."""
+    a, b, c = cirq.LineQubit.range(3)
+    model_circuit = cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
+    ])
+
+    with pytest.raises(AssertionError) as e:
+        cirq.contrib.quantum_volume.compile_circuit(
+            model_circuit, device=cirq.google.Bristlecone, routing_attempts=0)
+    assert e.match('Unable to get routing for circuit')
 
 
 def test_calculate_quantum_volume_result():
