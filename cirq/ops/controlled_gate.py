@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from typing import cast, Any, Collection, Union, Sequence, Optional, Tuple
-
-import numpy as np
 import numbers
+import numpy as np
+
 import cirq
 from cirq import protocols, value
 from cirq.ops import raw_types, controlled_operation as cop
@@ -72,7 +72,8 @@ class ControlledGate(raw_types.Gate):
         # Convert to sorted tuples
         self.control_values = cast(
             Tuple[Tuple[int, ...], ...],
-            tuple((val,) if isinstance(val, numbers.Integral) else tuple(sorted(val))
+            tuple((val,
+                  ) if isinstance(val, numbers.Integral) else tuple(sorted(val))
                   for val in control_values))
         # Verify control values not out of bounds
         for i, (val, dimension) in enumerate(
