@@ -38,7 +38,8 @@ def quirk_url_to_circuit(
         *,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
-            'cirq.contrib.quirk.cells.CellMaker']] = ()) -> 'cirq.Circuit':
+            'cirq.contrib.quirk.cells.CellMaker']] = (),
+        max_operation_count: Optional[int] = None) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
     Args:
@@ -56,6 +57,11 @@ def quirk_url_to_circuit(
             as either a list of `cirq.contrib.quirk.cells.CellMaker` instances,
             or for more simple cases as a dictionary from a Quirk id string
             to a cirq Gate.
+        max_operation_count: If the number of operations in the circuit would
+            exceed this value, the method raises a `ValueError` instead of
+            attempting to construct the circuit. This is important to specify
+            for servers parsing unknown input, because Quirk's format allows for
+            a billion laughs attack in the form of nested custom gates.
 
     Examples:
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
@@ -94,6 +100,10 @@ def quirk_url_to_circuit(
 
     Returns:
         The parsed circuit.
+
+    Raises:
+        ValueError: Invalid circuit URL, or circuit would be larger than
+            `max_operations_count`.
     """
 
     parsed_url = urllib.parse.urlparse(quirk_url)
@@ -115,7 +125,8 @@ def quirk_url_to_circuit(
     return quirk_json_to_circuit(data,
                                  qubits=qubits,
                                  extra_cell_makers=extra_cell_makers,
-                                 quirk_url=quirk_url)
+                                 quirk_url=quirk_url,
+                                 max_operation_count=max_operation_count)
 
 
 def quirk_json_to_circuit(
@@ -124,7 +135,8 @@ def quirk_json_to_circuit(
         qubits: Optional[Sequence['cirq.Qid']] = None,
         extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
             'cirq.contrib.quirk.cells.CellMaker']] = (),
-        quirk_url: Optional[str] = None) -> 'cirq.Circuit':
+        quirk_url: Optional[str] = None,
+        max_operation_count: Optional[int] = None) -> 'cirq.Circuit':
     """Constructs a Cirq circuit from Quirk's JSON format.
 
     Args:
@@ -134,6 +146,26 @@ def quirk_json_to_circuit(
             quirk_url_to_circuit.
         quirk_url: If given, the original URL from which the JSON was parsed, as
             described in quirk_url_to_circuit.
+        max_operation_count: If the number of operations in the circuit would
+            exceed this value, the method raises a `ValueError` instead of
+            attempting to construct the circuit. This is important to specify
+            for servers parsing unknown input, because Quirk's format allows for
+            a billion laughs attack in the form of nested custom gates.
+
+    Examples:
+        >>> print(cirq.contrib.quirk.quirk_json_to_circuit(
+        ...     {"cols":[["H"], ["•", "X"]]}
+        ... ))
+        0: ───H───@───
+                  │
+        1: ───────X───
+
+    Returns:
+        The parsed circuit.
+
+    Raises:
+        ValueError: Invalid circuit URL, or circuit would be larger than
+            `max_operations_count`.
     """
 
     def msg(error):
@@ -168,7 +200,13 @@ def quirk_json_to_circuit(
             _register_custom_gate(custom_gate, registry)
 
     # Parse out the circuit.
-    circuit = _parse_cols_into_composite_cell(data, registry).circuit()
+    comp = _parse_cols_into_composite_cell(data, registry)
+    if (max_operation_count is not None and comp.gate_count() > max_operation_count):
+        raise ValueError(
+            f'Quirk URL specifies a circuit with {comp.gate_count()} '
+            f'operations, but max_operation_count={max_operation_count}.')
+    circuit = comp.circuit()
+
 
     # Convert state initialization into operations.
     circuit.insert(0, _init_ops(data))
@@ -229,7 +267,11 @@ def _parse_cols_into_composite_cell(data: Dict[str, Any],
                 if cell is not None:
                     c[i] = modifier(cell)
 
-    return CompositeCell(height, parsed_cols)
+    gate_count = sum(0 if cell is None else cell.gate_count()
+                     for col in parsed_cols
+                     for cell in col)
+
+    return CompositeCell(height, parsed_cols, weight=gate_count)
 
 
 def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):

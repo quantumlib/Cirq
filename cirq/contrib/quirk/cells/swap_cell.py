@@ -28,6 +28,9 @@ class SwapCell(Cell):
         self._qubits = list(qubits)
         self._controls = list(controls)
 
+    def gate_count(self) -> int:
+        return 1
+
     def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
         return SwapCell(qubits=Cell._replace_qubits(self._qubits, qubits),
                         controls=self._controls)

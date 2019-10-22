@@ -27,6 +27,9 @@ class InputCell(Cell):
         self.qubits = tuple(qubits)
         self.letter = letter
 
+    def gate_count(self) -> int:
+        return 0
+
     def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
         return InputCell(qubits=Cell._replace_qubits(self.qubits, qubits),
                          letter=self.letter)
@@ -44,6 +47,9 @@ class SetDefaultInputCell(Cell):
     def __init__(self, letter: str, value: int):
         self.letter = letter
         self.value = value
+
+    def gate_count(self) -> int:
+        return 0
 
     def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
         return self

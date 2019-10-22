@@ -59,6 +59,15 @@ class Cell(metaclass=abc.ABCMeta):
             The same cell, but with new qubits.
         """
 
+    @abc.abstractmethod
+    def gate_count(self) -> int:
+        """Cheaply determines how many gates may be produced/touched.
+
+         This method exists in order to defend against billion laugh type
+         attacks. It is important that counting is fast and efficient even in
+         extremely adversarial conditions.
+         """
+
     def with_input(self, letter: str,
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
         """The same cell, but linked to an explicit input register or constant.
@@ -158,6 +167,9 @@ class ExplicitOperationsCell(Cell):
                  basis_change: Iterable[ops.Operation] = ()):
         self._operations = tuple(operations)
         self._basis_change = tuple(basis_change)
+
+    def gate_count(self) -> int:
+        return len(self._operations) + 2 * len(self._basis_change)
 
     def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ExplicitOperationsCell(

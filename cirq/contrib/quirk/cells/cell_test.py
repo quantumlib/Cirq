@@ -23,6 +23,9 @@ def test_cell_defaults():
         def with_qubits(self, qubits):
             return self
 
+        def gate_count(self) -> int:
+            return 0
+
     c = BasicCell()
     assert c.operations() == ()
     assert c.basis_change() == ()

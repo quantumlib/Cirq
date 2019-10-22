@@ -47,7 +47,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         """
         self.identifier = identifier
         self.target = tuple(target)
-        self.inputs = tuple(tuple(e) for e in inputs)
+        self.inputs = tuple(e if isinstance(e, int) else tuple(e) for e in inputs)
 
         if self.operation.is_modular:
             r = inputs[-1]
@@ -159,6 +159,9 @@ class ArithmeticCell(Cell):
         self.identifier = identifier
         self.target = target
         self.inputs = inputs
+
+    def gate_count(self) -> int:
+        return 1
 
     def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ArithmeticCell(
