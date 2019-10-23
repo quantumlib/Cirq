@@ -583,8 +583,8 @@ def test_serialize_deserialize_syc():
     q0 = cirq.GridQubit(1, 2)
     q1 = cirq.GridQubit(1, 3)
     op = cirq.SYC(q0, q1)
-    assert cg.SYCAMORE_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SYCAMORE_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
 
 
 def test_serialize_fails_on_other_fsim_gates():
@@ -592,7 +592,7 @@ def test_serialize_fails_on_other_fsim_gates():
     b = cirq.GridQubit(2, 2)
     op = cirq.FSimGate(phi=0.5, theta=-0.2)(a, b)
     with pytest.raises(ValueError, match='Cannot serialize'):
-        _ = cg.SYCAMORE_GATESET.serialize_op_dict(op)
+        _ = cg.SYC_GATESET.serialize_op_dict(op)
 
 
 def test_serialize_fails_on_symbols():
@@ -600,7 +600,7 @@ def test_serialize_fails_on_symbols():
     b = cirq.GridQubit(2, 2)
     op = cirq.FSimGate(phi=np.pi / 2, theta=sympy.Symbol('t'))(a, b)
     with pytest.raises(ValueError, match='Cannot serialize'):
-        _ = cg.SYCAMORE_GATESET.serialize_op_dict(op)
+        _ = cg.SYC_GATESET.serialize_op_dict(op)
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -634,8 +634,8 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
             'id': '1_2'
         }]
     }
-    assert cg.SYCAMORE_GATESET.serialize_op_dict(op) == expected
-    deserialized_op = cg.SYCAMORE_GATESET.deserialize_op_dict(expected)
+    assert cg.SYC_GATESET.serialize_op_dict(op) == expected
+    deserialized_op = cg.SYC_GATESET.deserialize_op_dict(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(deserialized_op),
         cirq.unitary(op),
@@ -673,5 +673,5 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     }
     for qubit_id in qubit_ids:
         proto_dict['qubits'].append({'id': qubit_id})
-    assert cg.SYCAMORE_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SYCAMORE_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op

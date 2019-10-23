@@ -46,7 +46,7 @@ from cirq.google.engine import (
 
 from cirq.google.gate_sets import (
     XMON,
-    SYCAMORE_GATESET,
+    SYC_GATESET,
 )
 
 from cirq.google.known_devices import (

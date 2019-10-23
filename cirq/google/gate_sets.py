@@ -36,7 +36,7 @@ def _near_mod_2pi(e, t, atol=1e-8):
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
-_SYCAMORE_SERIALIZER = op_serializer.GateOpSerializer(
+_SYC_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.FSimGate,
     serialized_gate_id='syc',
     args=[],
@@ -44,20 +44,24 @@ _SYCAMORE_SERIALIZER = op_serializer.GateOpSerializer(
         lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 2) and
         _near_mod_2pi(cast(ops.FSimGate, e).phi, np.pi / 6)))
 
-_SYCAMORE_DESERIALIZER = op_deserializer.GateOpDeserializer(
+_SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='syc',
     gate_constructor=lambda: ops.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
     args=[])
 
-SYCAMORE_GATESET = serializable_gate_set.SerializableGateSet(
+SYC_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sycamore',
     serializers=[
-        _SYCAMORE_SERIALIZER, *SINGLE_QUBIT_SERIALIZERS,
-        *SINGLE_QUBIT_HALF_PI_SERIALIZERS, MEASUREMENT_SERIALIZER
+        _SYC_SERIALIZER,
+        *SINGLE_QUBIT_SERIALIZERS,
+        *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+        MEASUREMENT_SERIALIZER,
     ],
     deserializers=[
-        _SYCAMORE_DESERIALIZER, *SINGLE_QUBIT_DESERIALIZERS,
-        *SINGLE_QUBIT_HALF_PI_DESERIALIZERS, MEASUREMENT_DESERIALIZER
+        _SYC_DESERIALIZER,
+        *SINGLE_QUBIT_DESERIALIZERS,
+        *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+        MEASUREMENT_DESERIALIZER,
     ],
 )
 
