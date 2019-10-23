@@ -169,14 +169,14 @@ def compile_circuit(
         routing_algo_name = 'greedy'
 
     best_swap_network: Union[ccr.SwapNetwork, None] = None
-    best_score = -1
-    for i in range(routing_attempts):
+    best_score = None
+    for _ in range(routing_attempts):
         swap_network = ccr.route_circuit(compiled_circuit,
                                          ccr.xmon_device_to_graph(device),
                                          router=router,
                                          algo_name=routing_algo_name)
         score = len(swap_network.circuit)
-        if score < best_score or i == 0:
+        if best_score is None or score < best_score:
             best_swap_network = swap_network
             best_score = score
     if best_swap_network is None:
