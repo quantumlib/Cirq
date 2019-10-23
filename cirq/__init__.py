@@ -86,10 +86,15 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
+    linear_xeb_fidelity_from_probabilities,
+    log_xeb_fidelity,
+    log_xeb_fidelity_from_probabilities,
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    xeb_fidelity,
 )
 
 from cirq.linalg import (
@@ -144,7 +149,6 @@ from cirq.linalg import (
 from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
-    ApproxPauliStringExpectation,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
@@ -166,7 +170,6 @@ from cirq.ops import (
     CZ,
     CZPowGate,
     DensePauliString,
-    DensityMatrixDisplay,
     depolarize,
     DepolarizingChannel,
     EigenGate,
@@ -204,7 +207,6 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    approx_pauli_string_expectation,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
@@ -231,7 +233,6 @@ from cirq.ops import (
     Ry,
     Rz,
     S,
-    SamplesDisplay,
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
@@ -246,7 +247,6 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     WaitGate,
-    WaveFunctionDisplay,
     X,
     XPowGate,
     XX,
@@ -321,7 +321,6 @@ from cirq.sim import (
 )
 
 from cirq.study import (
-    ComputeDisplaysResult,
     ExpressionMap,
     flatten,
     flatten_with_params,

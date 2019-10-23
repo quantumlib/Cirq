@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Dict, List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, optimizers
 
@@ -51,8 +51,10 @@ def rectify_acquaintance_strategy(circuit: 'cirq.Circuit',
         gate_type_to_ops: Dict[bool, List[
             ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
-            gate_type_to_ops[isinstance(op.gate, AcquaintanceOpportunityGate)
-                    ].append(op)
+            gate_op = cast(ops.GateOperation, op)
+            is_acquaintance = isinstance(gate_op.gate,
+                                         AcquaintanceOpportunityGate)
+            gate_type_to_ops[is_acquaintance].append(gate_op)
         if len(gate_type_to_ops) == 1:
             rectified_moments.append(moment)
             continue
@@ -98,7 +100,8 @@ def replace_acquaintance_with_swap_network(circuit: 'cirq.Circuit',
     for moment_index, moment in enumerate(circuit):
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)
-        if all(isinstance(op.gate, AcquaintanceOpportunityGate)
+        if all(
+                ops.op_gate_isinstance(op, AcquaintanceOpportunityGate)
                 for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
                     qubit_order, moment.operations,

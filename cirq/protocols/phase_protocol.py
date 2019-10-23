@@ -44,7 +44,9 @@ class SupportsPhase(Protocol):
         """
 
 
-def phase_by(val: Any, phase_turns: float, qubit_index: int,
+def phase_by(val: Any,
+             phase_turns: float,
+             qubit_index: int,
              default: TDefault = RaiseTypeErrorIfNotProvided):
     """Returns a phased version of the effect.
 

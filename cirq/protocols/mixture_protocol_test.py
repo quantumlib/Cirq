@@ -24,6 +24,7 @@ class NoMethod:
 
 
 class ReturnsNotImplemented:
+
     def _mixture_(self):
         return NotImplemented
 
@@ -32,6 +33,7 @@ class ReturnsNotImplemented:
 
 
 class ReturnsValidTuple(cirq.SupportsMixture):
+
     def _mixture_(self):
         return ((0.4, 'a'), (0.6, 'b'))
 
@@ -40,26 +42,31 @@ class ReturnsValidTuple(cirq.SupportsMixture):
 
 
 class ReturnsNonnormalizedTuple():
+
     def _mixture_(self):
         return ((0.4, 'a'), (0.4, 'b'))
 
 
 class ReturnsNegativeProbability():
+
     def _mixture_(self):
         return ((0.4, 'a'), (-0.4, 'b'))
 
 
 class ReturnsGreaterThanUnityProbability():
+
     def _mixture_(self):
         return ((1.2, 'a'), (0.4, 'b'))
 
 
 class ReturnsMixtureButNoHasMixture():
+
     def _mixture_(self):
         return ((0.4, 'a'), (0.6, 'b'))
 
 
 class ReturnsUnitary():
+
     def _unitary_(self):
         return np.ones((2, 2))
 
@@ -68,13 +75,18 @@ class ReturnsUnitary():
 
 
 class ReturnsNotImplementedUnitary():
+
     def _unitary_(self):
         return NotImplemented
 
     def _has_unitary_(self):
         return NotImplemented
 
-@pytest.mark.parametrize('val', (NoMethod(), ReturnsNotImplemented(),))
+
+@pytest.mark.parametrize('val', (
+    NoMethod(),
+    ReturnsNotImplemented(),
+))
 def test_objects_with_no_mixture(val):
     with pytest.raises(TypeError, match="mixture"):
         _ = cirq.mixture(val)
@@ -93,11 +105,11 @@ def test_objects_with_mixture(val, mixture):
     assert cirq.mixture(val, ((0.3, 'a'), (0.7, 'b'))) == mixture
 
 
-@pytest.mark.parametrize('val,mixture', (
-    (ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
-    (ReturnsNonnormalizedTuple(), ((0.4, 'a'), (0.4, 'b'))),
-    (ReturnsUnitary(), ((1.0, np.ones((2, 2))),))
-))
+@pytest.mark.parametrize('val,mixture',
+                         ((ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
+                          (ReturnsNonnormalizedTuple(), ((0.4, 'a'),
+                                                         (0.4, 'b'))),
+                          (ReturnsUnitary(), ((1.0, np.ones((2, 2))),))))
 def test_objects_with_mixture_channel(val, mixture):
     expected_keys, expected_values = zip(*mixture)
     keys, values = zip(*cirq.mixture_channel(val))
@@ -109,8 +121,9 @@ def test_objects_with_mixture_channel(val, mixture):
     np.testing.assert_equal(values, expected_values)
 
 
-@pytest.mark.parametrize('val', (
-NoMethod(), ReturnsNotImplemented(), ReturnsNotImplementedUnitary()))
+@pytest.mark.parametrize(
+    'val',
+    (NoMethod(), ReturnsNotImplemented(), ReturnsNotImplementedUnitary()))
 def test_objects_with_no_mixture_channel(val):
     with pytest.raises(TypeError, match="mixture"):
         _ = cirq.mixture_channel(val)
@@ -139,11 +152,10 @@ def test_valid_mixture():
     cirq.validate_mixture(ReturnsValidTuple())
 
 
-@pytest.mark.parametrize('val,message', (
-    (ReturnsNonnormalizedTuple(), '1.0'),
-    (ReturnsNegativeProbability(), 'less than 0'),
-    (ReturnsGreaterThanUnityProbability(), 'greater than 1')
-))
+@pytest.mark.parametrize(
+    'val,message', ((ReturnsNonnormalizedTuple(), '1.0'),
+                    (ReturnsNegativeProbability(), 'less than 0'),
+                    (ReturnsGreaterThanUnityProbability(), 'greater than 1')))
 def test_invalid_mixture(val, message):
     with pytest.raises(ValueError, match=message):
         cirq.validate_mixture(val)

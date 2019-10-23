@@ -14,9 +14,11 @@
 import json
 import urllib.parse
 from typing import Any, List, Dict, Optional, Sequence, cast, TYPE_CHECKING, \
-    Iterable
+    Iterable, Union, Mapping
 
-from cirq import devices, circuits, ops
+import numpy as np
+
+from cirq import devices, circuits, ops, protocols
 from cirq.contrib.quirk.cells import (
     Cell,
     CellMaker,
@@ -33,8 +35,8 @@ def quirk_url_to_circuit(
         quirk_url: str,
         *,
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        extra_cell_makers: Iterable['cirq.contrib.quirk.cells.CellMaker'] = ()
-) -> 'cirq.Circuit':
+        extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
+            'cirq.contrib.quirk.cells.CellMaker']] = ()) -> 'cirq.Circuit':
     """Parses a Cirq circuit out of a Quirk URL.
 
     Args:
@@ -46,10 +48,12 @@ def quirk_url_to_circuit(
             qubits). The maximum number of qubits in a Quirk circuit is 16.
             This argument defaults to `cirq.LineQubit.range(16)` when not
             specified.
-        extra_cell_makers: A list of non-standard Quirk cell makers. This can be
+        extra_cell_makers: Non-standard Quirk cells to accept. This can be
             used to parse URLs that come from a modified version of Quirk that
-            includes gates that Quirk doesn't define. See
-            `cirq.contrib.quirk.cells.CellMaker`.
+            includes gates that Quirk doesn't define. This can be specified
+            as either a list of `cirq.contrib.quirk.cells.CellMaker` instances,
+            or for more simple cases as a dictionary from a Quirk id string
+            to a cirq Gate.
 
     Examples:
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
@@ -66,6 +70,13 @@ def quirk_url_to_circuit(
         Alice: ───H───@───
                       │
         Bob: ─────────X───
+
+        >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
+        ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
+        ...     extra_cell_makers={'iswap': cirq.ISWAP}))
+        0: ───iSwap───
+              │
+        1: ───iSwap───
 
         >>> print(cirq.contrib.quirk.quirk_url_to_circuit(
         ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
@@ -98,31 +109,66 @@ def quirk_url_to_circuit(
         json_text = urllib.parse.unquote(json_text)
 
     data = json.loads(json_text)
+
+    return quirk_json_to_circuit(data,
+                                 qubits=qubits,
+                                 extra_cell_makers=extra_cell_makers,
+                                 quirk_url=quirk_url)
+
+
+def quirk_json_to_circuit(
+        data: dict,
+        *,
+        qubits: Optional[Sequence['cirq.Qid']] = None,
+        extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
+            'cirq.contrib.quirk.cells.CellMaker']] = (),
+        quirk_url: Optional[str] = None) -> 'cirq.Circuit':
+    """Constructs a Cirq circuit from Quirk's JSON format.
+
+    Args:
+        data: Data parsed from quirk's JSON representation.
+        qubits: Qubits to use in the circuit. See quirk_url_to_circuit.
+        extra_cell_makers: Non-standard Quirk cells to accept. See
+            quirk_url_to_circuit.
+        quirk_url: If given, the original URL from which the JSON was parsed, as
+            described in quirk_url_to_circuit.
+    """
+
+    def msg(error):
+        if quirk_url is not None:
+            return f'{error}\nURL={quirk_url}\nJSON={data}'
+        else:
+            return f'{error}\nJSON={data}'
+
     if not isinstance(data, dict):
-        raise ValueError('Circuit JSON must have a top-level dictionary.\n'
-                         f'URL={quirk_url}')
+        raise ValueError(msg('Circuit JSON must have a top-level dictionary.'))
     if not data.keys() <= {'cols', 'gates', 'init'}:
-        raise ValueError(f'Unrecognized Circuit JSON keys.\nURL={quirk_url}')
+        raise ValueError(msg('Unrecognized Circuit JSON keys.'))
     if 'gates' in data:
-        raise NotImplementedError('Custom gates not supported yet.\n'
-                                  f'URL={quirk_url}')
-    if 'init' in data:
-        raise NotImplementedError('Custom initial states not supported yet.\n'
-                                  f'URL={quirk_url}')
+        raise NotImplementedError(msg('Custom gates not supported yet.'))
     if 'cols' not in data:
-        raise ValueError('Circuit JSON dictionary must have a "cols" entry.\n'
-                         f'URL={quirk_url}')
+        raise ValueError(msg('Circuit JSON dict must have a "cols" entry.'))
 
     cols = data['cols']
     if not isinstance(cols, list):
-        raise ValueError('Circuit JSON cols must be a list.\n'
-                         f'URL={quirk_url}')
+        raise ValueError(msg('Circuit JSON cols must be a list.'))
 
-    # Parse column json into cells.
+    # Collect registry of quirk cell types.
+    if isinstance(extra_cell_makers, Mapping):
+        extra_makers = [
+            CellMaker(identifier=identifier,
+                      size=protocols.num_qubits(gate),
+                      maker=lambda args: gate(*args.qubits))
+            for identifier, gate in extra_cell_makers.items()
+        ]
+    else:
+        extra_makers = list(extra_cell_makers)
     registry = {
         entry.identifier: entry
-        for entry in [*generate_all_quirk_cell_makers(), *extra_cell_makers]
+        for entry in [*generate_all_quirk_cell_makers(), *extra_makers]
     }
+
+    # Parse column json into cells.
     parsed_cols: List[List[Optional[Cell]]] = []
     for i, col in enumerate(cols):
         parsed_cols.append(_parse_col_cells(registry, i, col))
@@ -158,6 +204,9 @@ def quirk_url_to_circuit(
         result += body
         result += basis_change**-1
 
+    # Convert state initialization into operations.
+    result.insert(0, _init_ops(data))
+
     # Remap qubits if requested.
     if qubits is not None:
         qs = cast(Sequence['cirq.Qid'], qubits)
@@ -174,6 +223,33 @@ def quirk_url_to_circuit(
         result = result.transform_qubits(map_qubit)
 
     return result
+
+
+def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
+    if 'init' not in data:
+        return []
+    init = data['init']
+    if not isinstance(init, List):
+        raise ValueError(f'Circuit JSON init must be a list but was {init!r}.')
+    init_ops = []
+    for i in range(len(init)):
+        state = init[i]
+        q = devices.LineQubit(i)
+        if state == 0:
+            pass
+        elif state == 1:
+            init_ops.append(ops.X(q))
+        elif state == '+':
+            init_ops.append(ops.Ry(np.pi / 2).on(q))
+        elif state == '-':
+            init_ops.append(ops.Ry(-np.pi / 2).on(q))
+        elif state == 'i':
+            init_ops.append(ops.Rx(-np.pi / 2).on(q))
+        elif state == '-i':
+            init_ops.append(ops.Rx(np.pi / 2).on(q))
+        else:
+            raise ValueError(f'Unrecognized init state: {state!r}')
+    return ops.Moment(init_ops)
 
 
 def _parse_col_cells(registry: Dict[str, CellMaker], col: int,
