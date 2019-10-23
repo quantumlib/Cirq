@@ -511,7 +511,10 @@ def _str_to_pauli_mask(text: str) -> np.ndarray:
 
 
 def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
-    pauli_gate = gate_operation.op_gate_of_type(v, pauli_gates.Pauli)
+    if not isinstance(v, raw_types.Operation):
+        return None
+
+    pauli_gate = v.gate if isinstance(v.gate, pauli_gates.Pauli) else None
     if pauli_gate is None:
         return None
 

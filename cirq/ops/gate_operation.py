@@ -184,18 +184,3 @@ class GateOperation(raw_types.Operation):
                               args=args,
                               qubits=self.qubits,
                               default=None)
-
-
-TV = TypeVar('TV', bound=raw_types.Gate)
-
-
-def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
-    """Returns gate of given type, if op has that gate otherwise None."""
-    gate = getattr(op, 'gate', None)
-    return gate if isinstance(gate, gate_type) else None
-
-
-def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
-    """Determines if op is a GateOperation with a gate of the given type."""
-    gate = getattr(op, 'gate', None)
-    return isinstance(gate, gate_type)

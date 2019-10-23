@@ -260,8 +260,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_channel(potential_op) or (ops.op_gate_of_type(
-                potential_op, ops.MeasurementGate) is not None))
+            return (protocols.has_channel(potential_op) or
+                    isinstance(potential_op.gate, ops.MeasurementGate))
 
         noisy_moments = self.noise.noisy_moments(circuit,
                                                  sorted(circuit.all_qubits()))
@@ -276,7 +276,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
-                meas = ops.op_gate_of_type(op, ops.MeasurementGate)
+                meas = op.gate if isinstance(op.gate,
+                                             ops.MeasurementGate) else None
                 if meas:
                     if perform_measurements:
                         invert_mask = meas.full_invert_mask()

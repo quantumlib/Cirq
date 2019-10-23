@@ -28,17 +28,14 @@ def _is_integer(n):
 
 
 def _is_swaplike(op: ops.Operation):
-    gate1 = ops.op_gate_of_type(op, ops.SwapPowGate)
-    if gate1:
-        return gate1.exponent == 1
+    if isinstance(op.gate, ops.SwapPowGate):
+        return op.gate.exponent == 1
 
-    gate2 = ops.op_gate_of_type(op, ops.ISwapPowGate)
-    if gate2:
-        return _is_integer((gate2.exponent - 1) / 2)
+    if isinstance(op.gate, ops.ISwapPowGate):
+        return _is_integer((op.gate.exponent - 1) / 2)
 
-    gate3 = ops.op_gate_of_type(op, ops.FSimGate)
-    if gate3:
-        return _is_integer((gate3.theta - (np.pi / 2)) / np.pi)
+    if isinstance(op.gate, ops.FSimGate):
+        return _is_integer(op.gate.theta / np.pi - 1 / 2)
 
     return False
 
@@ -93,7 +90,7 @@ class EjectZ():
                     continue
 
                 # Z gate before measurement is a no-op. Drop tracked phase.
-                if ops.op_gate_of_type(op, ops.MeasurementGate):
+                if isinstance(op.gate, ops.MeasurementGate):
                     for q in op.qubits:
                         qubit_phase[q] = 0
 
