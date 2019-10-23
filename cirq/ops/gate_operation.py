@@ -14,11 +14,13 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union
+from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
+                    TypeVar, Union)
 
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
@@ -183,3 +185,21 @@ class GateOperation(raw_types.Operation):
                               args=args,
                               qubits=self.qubits,
                               default=None)
+
+
+TV = TypeVar('TV', bound=raw_types.Gate)
+
+
+@deprecated(deadline='v0.7.0',
+            fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
+def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
+    """Returns gate of given type, if op has that gate otherwise None."""
+    gate = getattr(op, 'gate', None)
+    return gate if isinstance(gate, gate_type) else None
+
+
+@deprecated(deadline='v0.7.0', fix='use: `isinstance(op.gate, gate_type)`')
+def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
+    """Determines if op is a GateOperation with a gate of the given type."""
+    gate = getattr(op, 'gate', None)
+    return isinstance(gate, gate_type)
