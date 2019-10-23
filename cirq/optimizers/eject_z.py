@@ -64,7 +64,7 @@ class EjectZ():
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
-        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.Qid, float]
+        qubit_phase: Dict[ops.Qid, float] = defaultdict(lambda: 0)
 
         def dump_tracked_phase(qubits: Iterable[ops.Qid],
                                index: int) -> None:
@@ -76,9 +76,9 @@ class EjectZ():
                     insertions.append((index, dump_op))
                 qubit_phase[q] = 0
 
-        deletions = []  # type: List[Tuple[int, ops.Operation]]
-        inline_intos = []  # type: List[Tuple[int, ops.Operation]]
-        insertions = []  # type: List[Tuple[int, ops.Operation]]
+        deletions: List[Tuple[int, ops.Operation]] = []
+        inline_intos: List[Tuple[int, ops.Operation]] = []
+        insertions: List[Tuple[int, ops.Operation]] = []
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
                 # Move Z gates into tracked qubit phases.

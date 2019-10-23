@@ -211,7 +211,7 @@ class NeutralAtomDevice(devices.Device):
                         )
         }
 
-        categorized_ops = collections.defaultdict(list) #type: DefaultDict
+        categorized_ops: DefaultDict = collections.defaultdict(list)
         for op in moment.operations:
             assert isinstance(op,
                               (ops.GateOperation, ops.ParallelGateOperation))
