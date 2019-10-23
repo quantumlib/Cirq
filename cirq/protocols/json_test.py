@@ -486,7 +486,7 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitMatrixGate',
     'SparseSimulatorStep',
     'StateVectorMixin',
-    'SYCAMORE_GATESET',
+    'SYC_GATESET',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
