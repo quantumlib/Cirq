@@ -358,10 +358,8 @@ class NeutralAtomDevice(devices.Device):
             self.validate_scheduled_operation(schedule, so)
             if (isinstance(so.operation.gate, ops.MeasurementGate) and
                     not measurement_check_performed):
-                later_ops = (
-                    so2 for so2 in schedule.scheduled_operations
-                    if so2.time + so2.duration > so.time + so.duration
-                )
+                later_ops = (so2 for so2 in schedule.scheduled_operations
+                             if so2.time + so2.duration > so.time + so.duration)
                 for so2 in later_ops:
                     if not isinstance(so2.operation.gate, ops.MeasurementGate):
                         raise ValueError("Non-measurement operation after"

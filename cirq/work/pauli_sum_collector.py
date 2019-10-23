@@ -56,8 +56,8 @@ class PauliSumCollector(collector.Collector):
 
         self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(
             lambda: 0)
-        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(
-            lambda: 0)
+        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda:
+                                                                         0)
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 

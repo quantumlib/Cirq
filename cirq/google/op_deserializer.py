@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (Any, Callable, Dict, NamedTuple, Optional, Sequence,
-    TYPE_CHECKING)
+                    TYPE_CHECKING)
 
 import sympy
 from google.protobuf import json_format
