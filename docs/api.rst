@@ -195,7 +195,6 @@ Circuits, Operations, and Moments.
     InsertStrategy
     Moment
     moment_by_moment_schedule
-    op_gate_of_type
     OP_TREE
     Operation
     ParallelGateOperation
