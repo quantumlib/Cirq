@@ -92,7 +92,10 @@ from cirq.ops.gate_features import (
 )
 
 from cirq.ops.gate_operation import (
-    GateOperation,)
+    GateOperation,
+    op_gate_isinstance,
+    op_gate_of_type,
+)
 
 from cirq.ops.global_phase_op import (
     GlobalPhaseOperation,)

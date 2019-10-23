@@ -271,5 +271,54 @@ def test_repr():
         def on(self, *qubits):
             return cirq.GateOperation(Inconsistent(), qubits)
 
-    s = 'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])'
-    assert repr(cirq.GateOperation(Inconsistent(), [a])) == s
+    assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
+            'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
+
+
+def test_op_gate_of_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
+    assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
+
+    class NonGateOperation(cirq.Operation):
+
+        def qubits(self):
+            pass
+
+        def with_qubits(self, *new_qubits):
+            pass
+
+    assert cirq.op_gate_of_type(NonGateOperation(), cirq.XPowGate) is None
+
+
+def test_op_gate_isinstance():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    assert cirq.op_gate_isinstance(op, cirq.XPowGate)
+    assert not cirq.op_gate_isinstance(op, cirq.YPowGate)
+
+    class NonGateOperation(cirq.Operation):
+
+        def qubits(self):
+            pass
+
+        def with_qubits(self, *new_qubits):
+            pass
+
+    assert not cirq.op_gate_isinstance(NonGateOperation(), cirq.XPowGate)
+    assert not cirq.op_gate_isinstance(NonGateOperation(), NonGateOperation)
+
+
+def test_gate_on_operation_besides_gate_operation():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.op_gate_of_type(
+        -1j * cirq.X(a) * cirq.Y(b),
+        cirq.DensePauliString) == -1j * cirq.DensePauliString('XY')
+
+    assert cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                   cirq.DensePauliString)
+
+    assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                       cirq.XPowGate)

@@ -201,6 +201,8 @@ from cirq.ops import (
     Moment,
     MutableDensePauliString,
     NamedQubit,
+    op_gate_isinstance,
+    op_gate_of_type,
     OP_TREE,
     Operation,
     ParallelGateOperation,
