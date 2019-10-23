@@ -2,60 +2,44 @@
 
 ################ Example output
 
-# 0: ────H───H───M───────
+# 0: ────X───H───H───M───
 
-# 1: ────X───M───────────
+# 1: ────M───────────────
 
 # 2: ────X───H───M───────
 
-# 3: ────M───────────────
+# 3: ────H───M───────────
 
-# 4: ────H───M───────────
+# 4: ────X───H───M───────
 
-# 5: ────H───H───M───────
+# 5: ────H───M───────────
 
-# 6: ────X───H───M───────
+# 6: ────M───────────────
 
-# 7: ────X───H───M───────
+# 7: ────X───H───H───M───
 
-# 8: ────H───H───M───────
+# 8: ────X───H───M───────
 
 # 9: ────M───────────────
 
-# 10: ───X───H───H───M───
+# 10: ───H───H───M───────
 
-# 11: ───H───M───────────
+# 11: ───X───H───H───M───
 
 # 12: ───X───M───────────
 
-# 13: ───X───H───M───────
+# 13: ───H───M───────────
 
-# 14: ───M───────────────
+# 14: ───H───H───M───────
 
 # 15: ───X───M───────────
-
-# 16: ───X───H───M───────
-
-# 17: ───X───M───────────
-
-# 18: ───H───M───────────
-
-# 19: ───H───M───────────
-
-# 20: ───H───M───────────
-
-# 21: ───H───M───────────
-
-# 22: ───X───H───M───────
-
-# 23: ───H───H───M───────
 # Simulating 5 repetitions...
-# Alice's Encoding basis: HCHCHHHHHCHCCCCCHCCHHCHH
-# Bob's Encoding basis:   HCCCCHCCHCHHCHCCCCHCCHCH
-# Alice's sent bits:      011000110010110111000010
-# Both bases Match::      XX_X_X__XXX_X_XX_X_____X
-# Expected key bits:      01_0_0__001_1_01_1_____0
-# Actual key bits:        010000110110
+# Alice's basis:  HCCCHCCHHCHHCHHC
+# Bob's basis:    HCHHCHCHCCHHCCHC
+# Alice's bits:   1010100110011001
+# Bases match::   XX____XX_XXXX_XX
+# Expected key:   10____01_0011_01
+# Actual key:     1001001101
 
 ################
 
@@ -63,15 +47,13 @@ import numpy as np
 import cirq
 
 
-def main():
-
-    num_qubits = 24
+def main(num_qubits=16):
 
     alice_basis = np.random.randint(2, size=num_qubits)
     alice_state = np.random.randint(2, size=num_qubits)
     bob_basis = np.random.randint(2, size=num_qubits)
 
-    circuit = build_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state)
+    circuit = make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state)
     print(circuit)
 
     # Run simulations.
@@ -95,7 +77,7 @@ def main():
     print_results(alice_basis, bob_basis, alice_state, key_bitstr)
 
 
-def build_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state):
+def make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state):
 
     qubits = [cirq.LineQubit(i) for i in range(num_qubits)]
 
@@ -132,16 +114,16 @@ def print_results(alice_basis, bob_basis, alice_state, key_bitstr):
         key_expected += str(char) if alice_basis[i] == bob_basis[i] else '_'
 
     print(
-        f'Alice\'s Encoding basis:\t{"".join(np.where(alice_basis==0, "C","H"))}'
+        f'Alice\'s basis:\t{"".join(np.where(alice_basis==0, "C","H"))}'
     )
     print(
-        f'Bob\'s Encoding basis:\t{"".join(np.where(bob_basis==0, "C", "H"))}')
+        f'Bob\'s basis:\t{"".join(np.where(bob_basis==0, "C", "H"))}')
     print(
-        f'Alice\'s sent bits:\t{np.array2string(alice_state, separator="")[1:-1]}'
+        f'Alice\'s bits:\t{np.array2string(alice_state, separator="")[1:-1]}'
     )
-    print(f'Both bases Match::\t{basis_match}')
-    print(f'Expected key bits:\t{key_expected}')
-    print(f'Actual key bits:\t{np.unique(key_bitstr)[0]}')
+    print(f'Bases match::\t{basis_match}')
+    print(f'Expected key:\t{key_expected}')
+    print(f'Actual key:\t{np.unique(key_bitstr)[0]}')
 
 
 if __name__ == "__main__":
