@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
+import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
@@ -24,7 +25,7 @@ import examples.shor
 import examples.superdense_coding
 import examples.swap_networks
 
-
+    
 def test_example_runs_bernstein_vazirani():
     examples.bernstein_vazirani.main(qubit_count=3)
 
@@ -51,6 +52,8 @@ def test_example_runs_hello_qubit():
 def test_example_runs_bell_inequality():
     examples.bell_inequality.main()
 
+def test_example_runs_bb84():
+    examples.bb84.main()
 
 def test_example_runs_quantum_fourier_transform():
     examples.quantum_fourier_transform.main()
