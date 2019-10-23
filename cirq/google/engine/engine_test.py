@@ -31,7 +31,7 @@ _SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -55,7 +55,7 @@ _A_RESULT = {
 
 _RESULTS = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -86,7 +86,7 @@ _RESULTS = {
 
 _RESULTS_V2 = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v2.Result',
+    'type.googleapis.com/cirq.google.api.v2.Result',
     'sweepResults': [
         {
             'repetitions':
@@ -242,7 +242,7 @@ def test_run_circuit(build):
                 }
             },
             'run_context': {
-                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
+                '@type': 'type.googleapis.com/cirq.google.api.v1.RunContext',
                 'parameter_sweeps': [{
                     'repetitions': 1
                 }]

@@ -18,8 +18,8 @@ from typing import (cast, Dict, Iterable, Iterator, List, NamedTuple, Optional,
 from collections import OrderedDict
 import numpy as np
 
-from cirq.api.google.v2 import result_pb2
 from cirq.google.api import v2
+from cirq.google.api.v2 import result_pb2
 from cirq import circuits
 from cirq import devices
 from cirq import ops

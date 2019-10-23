@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.api.google.v2 import result_pb2
 from cirq.google.api import v2
+from cirq.google.api.v2 import result_pb2
 
 
 @pytest.mark.parametrize('reps', range(1, 100, 7))
