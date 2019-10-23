@@ -13,37 +13,20 @@
 # limitations under the License.
 
 from typing import cast, Optional, Union
-from typing_extensions import Protocol
 
 import numpy as np
+
 
 RANDOM_STATE_LIKE = Optional[Union[np.random.RandomState, int]]
 
 
-class PseudoRandNumGen(Protocol):
-
-    def choice(self, *args, **kwargs):
-        pass
-
-    def permutation(self, *args, **kwargs):
-        pass
-
-    def rand(self, *args, **kwargs):
-        pass
-
-    def randint(self, *args, **kwargs):
-        pass
-
-    def randn(self, *args, **kwargs):
-        pass
-
-
-def parse_random_state(random_state: RANDOM_STATE_LIKE) -> PseudoRandNumGen:
+def parse_random_state(random_state: RANDOM_STATE_LIKE
+                      ) -> np.random.RandomState:
     if random_state is None:
-        return np.random
+        return cast(np.random.RandomState, np.random)
     elif (isinstance(random_state, np.random.RandomState) or
           random_state == np.random):
-        return cast(PseudoRandNumGen, random_state)
+        return cast(np.random.RandomState, random_state)
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
-    raise TypeError(f'Argument must be of type cirq.value.SEED.')
+    raise TypeError(f'Argument must be of type cirq.value.RANDOM_STATE_LIKE.')

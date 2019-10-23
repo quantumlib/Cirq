@@ -48,7 +48,6 @@ from cirq.value.periodic_value import (
 
 from cirq.value.random_state import (
     parse_random_state,
-    PseudoRandNumGen,
     RANDOM_STATE_LIKE,
 )
 
