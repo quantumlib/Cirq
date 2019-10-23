@@ -109,21 +109,24 @@ def make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state):
 def print_results(alice_basis, bob_basis, alice_state, key_bitstr):
     basis_match = ''
     key_expected = ''
+
     for i, char in enumerate(alice_state):
         basis_match += 'X' if alice_basis[i] == bob_basis[i] else '_'
         key_expected += str(char) if alice_basis[i] == bob_basis[i] else '_'
 
-    print(
-        f'Alice\'s basis:\t{"".join(np.where(alice_basis==0, "C","H"))}'
-    )
-    print(
-        f'Bob\'s basis:\t{"".join(np.where(bob_basis==0, "C", "H"))}')
-    print(
-        f'Alice\'s bits:\t{np.array2string(alice_state, separator="")[1:-1]}'
-    )
-    print(f'Bases match::\t{basis_match}')
-    print(f'Expected key:\t{key_expected}')
-    print(f'Actual key:\t{np.unique(key_bitstr)[0]}')
+    alice_basis_str = "".join(np.where(alice_basis == 0, "C", "H"))
+    bob_basis_str = "".join(np.where(bob_basis == 0, "C", "H"))
+    alice_bitstr = np.array2string(alice_state, separator="")[1:-1]
+    key_bitstr = str(np.unique(key_bitstr)[0])
+
+    print('Alice\'s basis:\t{}'.format(alice_basis_str))
+    print('Bob\'s basis:\t{}'.format(bob_basis_str))
+    print('Alice\'s bits:\t{}'.format(alice_bitstr))
+    print('Bases match::\t{}'.format(basis_match))
+    print('Expected key:\t{}'.format(key_expected))
+    print('Actual key:\t{}'.format(key_bitstr))
+
+    assert key_expected.replace('_', '') == key_bitstr, "Keys don't match"
 
 
 if __name__ == "__main__":
