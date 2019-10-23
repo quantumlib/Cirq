@@ -1,9 +1,8 @@
 """Gates for Google's Sycamore architecture."""
 
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
-import sympy
 
 from cirq import ops, protocols
 
