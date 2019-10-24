@@ -31,8 +31,8 @@ class ParallelGateOperation(raw_types.Operation):
                  qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
-            gate: the gate to apply
-            qubits: lists of lists of qubits to apply the gate to.
+            gate: the gate to apply.
+            qubits: list of qubits to apply the gate to.
         """
         if gate.num_qubits() != 1:
             raise ValueError("gate must be a single qubit gate")
@@ -87,7 +87,7 @@ class ParallelGateOperation(raw_types.Operation):
         """
         if not protocols.has_unitary(self.gate):
             return NotImplemented
-        return protocols.apply_unitaries((self.gate(q) for q in self.qubits),
+        return protocols.apply_unitaries((self.gate.on(q) for q in self.qubits),
                                          self.qubits, args)
 
     def _has_unitary_(self) -> bool:

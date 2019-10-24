@@ -1294,7 +1294,7 @@ def test_are_all_measurements_terminal():
 
 def test_all_terminal():
     def is_x_pow_gate(op):
-        return cirq.op_gate_of_type(op, cirq.XPowGate) is not None
+        return isinstance(op.gate, cirq.XPowGate)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
