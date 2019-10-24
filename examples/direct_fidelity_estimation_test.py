@@ -10,5 +10,9 @@ def test_direct_fidelity_estimation():
 
     noise = None
 
-    estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(circuit, qubits, noise, n_trials=10)
+    estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
+        circuit, qubits, noise, n_trials=10)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
+
+def test_calling_main():
+    direct_fidelity_estimation.main()
