@@ -41,6 +41,7 @@ class _ResolverCache:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.known_devices import _NamedConstantXmonDevice
+            from cirq.contrib.quantum_volume import QuantumVolumeResult
             self._crd = {
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
@@ -84,6 +85,7 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'QuantumVolumeResult': QuantumVolumeResult,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
@@ -98,6 +100,7 @@ class _ResolverCache:
                 'pandas.DataFrame': pd.DataFrame,
                 'pandas.Index': pd.Index,
                 'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,
