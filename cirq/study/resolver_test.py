@@ -55,6 +55,29 @@ def test_param_dict_iter():
     assert list(r) == ['a', 'b']
 
 
+def test_formulas_in_param_dict():
+    """
+    Param dicts are allowed to have str or sympy.Symbol as keys and
+    floats or sympy.Symbol as values.  This should not be a common use case,
+    but this tests makes sure something reasonable is returned when
+    mixing these types and using formulas in ParamResolvers.
+
+    Note that sympy orders expressions for deterministic resolution, so
+    depending on the operands sent to sub(), the expression may not fully
+    resolve if it needs to take several iterations of resolution.
+    """
+    a = sympy.Symbol('a')
+    b = sympy.Symbol('b')
+    c = sympy.Symbol('c')
+    e = sympy.Symbol('e')
+    r = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
+    assert r.value_of('a') == 3
+    assert r.value_of('b') == 2
+    assert r.value_of(b + c) == 101
+    assert r.value_of('c') == c
+    assert r.value_of('d') == 2 * e
+
+
 def test_equals():
     et = cirq.testing.EqualsTester()
     et.add_equality_group(cirq.ParamResolver(),
