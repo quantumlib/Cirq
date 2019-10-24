@@ -30,15 +30,15 @@ def compute_characteristic_function(circuit: cirq.Circuit,
                                     P_i: Tuple[cirq.Gate, ...],
                                     qubits: List[cirq.Qid],
                                     noise: cirq.NoiseModel):
-    n = len(P_i)
-    d = 2**n
+    n_qubits = len(P_i)
+    d = 2**n_qubits
 
     simulator = cirq.DensityMatrixSimulator()
     # rho or sigma in https://arxiv.org/pdf/1104.3835.pdf
     density_matrix = simulator.simulate(circuit).final_density_matrix
 
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
-    qubit_map = dict(zip(qubits, range(n)))
+    qubit_map = dict(zip(qubits, range(n_qubits)))
     # rho_i or sigma_i in https://arxiv.org/pdf/1104.3835.pdf
     trace = pauli_string.expectation_from_density_matrix(density_matrix,
                                                          qubit_map)
@@ -57,28 +57,29 @@ def main():
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
-    n = len(qubits)
+    n_qubits = len(qubits)
     # Number of trials, upper-case N in https://arxiv.org/pdf/1104.3835.pdf
-    N = 10
+    n_trials = 10
 
     # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
     # inside the variable 'pauli_traces'.
     pauli_traces = []
-    for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z], repeat=n):
+    for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
+                                 repeat=n_qubits):
         rho_i, Pr_i = compute_characteristic_function(
             circuit, P_i, qubits, noise=None)
         pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
 
-    assert len(pauli_traces) == 4**n
+    assert len(pauli_traces) == 4**n_qubits
 
     p = [x['Pr_i'] for x in pauli_traces]
     assert np.isclose(sum(p), 1.0, atol=1e-6)
 
     fidelity = 0.0
-    for _ in range(n):
+    for _ in range(n_trials):
         # Randomly sample as per probability.
-        i = np.random.choice(range(4**n), p=p)
+        i = np.random.choice(range(4**n_qubits), p=p)
 
         Pr_i = pauli_traces[i]['Pr_i']
         P_i = pauli_traces[i]['P_i']
@@ -89,7 +90,7 @@ def main():
 
         fidelity += Pr_i * sigma_i / rho_i
 
-    print(fidelity / n)
+    print(fidelity / n_trials)
 
 
 if __name__ == '__main__':
