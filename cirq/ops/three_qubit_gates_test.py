@@ -152,6 +152,14 @@ def test_gate_equality():
     eq.add_equality_group(cirq.CCZPowGate(), cirq.CCZPowGate())
 
 
+def test_identity_multiplication():
+    a, b, c = cirq.LineQubit.range(3)
+    assert cirq.CCX(a, b, c) * cirq.I(a) == cirq.CCX(a, b, c)
+    assert cirq.CCX(a, b, c) * cirq.I(b) == cirq.CCX(a, b, c)
+    assert cirq.CCX(a, b, c)**0.5 * cirq.I(c) == cirq.CCX(a, b, c)**0.5
+    assert cirq.I(c) * cirq.CCZ(a, b, c)**0.5 == cirq.CCZ(a, b, c)**0.5
+
+
 @pytest.mark.parametrize('op,max_two_cost', [
     (cirq.CCZ(*cirq.LineQubit.range(3)), 8),
     (cirq.CCX(*cirq.LineQubit.range(3)), 8),
