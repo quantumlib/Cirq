@@ -35,7 +35,6 @@ def test_parse_random_state():
     eq.add_equality_group(*vals)
 
     seed = np.random.randint(2**31)
-    np.random.RandomState(seed)
     prngs = [
         np.random.RandomState(seed),
         cirq.value.parse_random_state(np.random.RandomState(seed)),
