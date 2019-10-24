@@ -15,7 +15,7 @@ import abc
 from typing import Union, TYPE_CHECKING, Tuple, cast
 
 from cirq import value
-from cirq.ops import common_gates, raw_types
+from cirq.ops import common_gates, raw_types, identity
 
 
 if TYPE_CHECKING:
@@ -57,11 +57,11 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-            self, other: Union['cirq.Pauli', 'cirq.IdentityGate']
-    ) -> Tuple[complex, Union['cirq.Pauli', 'cirq.IdentityGate']]:
+            self, other: Union['cirq.Pauli', 'identity.IdentityGate']
+    ) -> Tuple[complex, Union['cirq.Pauli', 'identity.IdentityGate']]:
         if self == other:
-            return 1, common_gates.I
-        if other is common_gates.I:
+            return 1, identity.I
+        if other is identity.I:
             return 1, self
         return 1j**cast(Pauli, other).relative_index(self), self.third(
             cast(Pauli, other))

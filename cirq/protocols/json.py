@@ -66,6 +66,7 @@ class _ResolverCache:
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
+                'IdentityOperation': cirq.IdentityOperation,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MeasurementGate': cirq.MeasurementGate,

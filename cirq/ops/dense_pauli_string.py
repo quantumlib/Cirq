@@ -21,7 +21,7 @@ import sympy
 
 from cirq import protocols, linalg, value
 from cirq._compat import proper_repr
-from cirq.ops import (raw_types, common_gates, pauli_gates, global_phase_op,
+from cirq.ops import (raw_types, identity, pauli_gates, global_phase_op,
                       pauli_string, gate_operation)
 if TYPE_CHECKING:
     import cirq
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 PAULI_CHARS = 'IXYZ'
 PAULI_GATES: List['cirq.Gate'] = [
     # mypy false positive "Cannot determine type of 'I'"
-    common_gates.I,  # type: ignore
+    identity.I,  # type: ignore
     pauli_gates.X,
     pauli_gates.Y,
     pauli_gates.Z,
