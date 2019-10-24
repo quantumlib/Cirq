@@ -15,7 +15,7 @@
 """A combination of several optimizations targeting XmonDevice."""
 from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
-from cirq import circuits, devices, ops, optimizers
+from cirq import circuits, devices, optimizers
 from cirq.google import convert_to_xmon_gates, xmon_device
 
 if TYPE_CHECKING:

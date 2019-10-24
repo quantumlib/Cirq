@@ -163,12 +163,12 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other) -> 'PauliString':
-        if not (isinstance(other, (PauliString, numbers.Number)) or
-                gate_operation.op_gate_isinstance(other,
-                                                  identity.IdentityGate)):
+        if not isinstance(
+                other,
+            (PauliString, numbers.Number, identity.IdentityOperation)):
             return NotImplemented
 
-        return PauliString(other,
+        return PauliString(cast(PAULI_STRING_LIKE, other),
                            qubit_pauli_map=self._qubit_pauli_map,
                            coefficient=self.coefficient)
 
@@ -188,7 +188,7 @@ class PauliString(raw_types.Operation):
                                coefficient=self._coefficient *
                                complex(cast(SupportsComplex, other)))
 
-        if gate_operation.op_gate_isinstance(other, identity.IdentityGate):
+        if isinstance(other, identity.IdentityOperation):
             return self
 
         # Note: PauliString case handled by __mul__.

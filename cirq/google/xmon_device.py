@@ -59,15 +59,14 @@ class XmonDevice(devices.Device):
         return [e for e in possibles if e in self.qubits]
 
     def duration_of(self, operation):
-        if ops.op_gate_of_type(operation, ops.CZPowGate):
+        if isinstance(operation.gate, ops.CZPowGate):
             return self._exp_z_duration
-        if ops.op_gate_of_type(operation, ops.MeasurementGate):
+        if isinstance(operation.gate, ops.MeasurementGate):
             return self._measurement_duration
-        if (ops.op_gate_of_type(operation, ops.XPowGate) or
-                ops.op_gate_of_type(operation, ops.YPowGate) or
-                ops.op_gate_of_type(operation, ops.PhasedXPowGate)):
+        if isinstance(operation.gate,
+                      (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate)):
             return self._exp_w_duration
-        if ops.op_gate_of_type(operation, ops.ZPowGate):
+        if isinstance(operation.gate, ops.ZPowGate):
             # Z gates are performed in the control software.
             return value.Duration()
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
@@ -147,7 +146,7 @@ class XmonDevice(devices.Device):
     def validate_moment(self, moment: 'cirq.Moment'):
         super().validate_moment(moment)
         for op in moment.operations:
-            if ops.op_gate_of_type(op, ops.CZPowGate):
+            if isinstance(op.gate, ops.CZPowGate):
                 for other in moment.operations:
                     if (other is not op and
                             self._check_if_exp11_operation_interacts(
@@ -162,7 +161,7 @@ class XmonDevice(devices.Device):
 
         if not super().can_add_operation_into_moment(operation, moment):
             return False
-        if ops.op_gate_of_type(operation, ops.CZPowGate):
+        if isinstance(operation.gate, ops.CZPowGate):
             return not self._check_if_exp11_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
                 cast(Iterable['cirq.GateOperation'], moment.operations))

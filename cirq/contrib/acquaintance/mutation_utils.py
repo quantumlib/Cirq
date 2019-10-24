@@ -101,7 +101,7 @@ def replace_acquaintance_with_swap_network(circuit: 'cirq.Circuit',
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)
         if all(
-                ops.op_gate_isinstance(op, AcquaintanceOpportunityGate)
+                isinstance(op.gate, AcquaintanceOpportunityGate)
                 for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
                     qubit_order, moment.operations,
@@ -119,7 +119,7 @@ class ExposeAcquaintanceGates(optimizers.ExpandComposite):
     def __init__(self):
         circuits.PointOptimizer.__init__(self)
         self.no_decomp = lambda op: (not get_acquaintance_size(
-            op) or ops.op_gate_of_type(op, AcquaintanceOpportunityGate))
+            op) or isinstance(op.gate, AcquaintanceOpportunityGate))
 
 
 expose_acquaintance_gates = ExposeAcquaintanceGates()
