@@ -255,14 +255,14 @@ def test_stabilizerStateChForm_H():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
     with pytest.raises(ValueError, match="|y> is equal to |z>"):
-        state.StabilizerStateChForm._H_decompose(0, 1, 1, 0)
+        state.ch_form._H_decompose(0, 1, 1, 0)
 
 
 def test_clifford_stabilizerStateChForm_repr_full():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
 
-    assert (state.StabilizerStateChForm._repr_full() == "omega: 1.00\n"
+    assert (state.ch_form._repr_full() == "omega: 1.00\n"
             "G:\n"
             "[[1 0]\n"
             " [0 1]]\n"

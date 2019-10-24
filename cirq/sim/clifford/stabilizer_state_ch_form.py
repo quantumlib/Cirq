@@ -28,7 +28,9 @@ class StabilizerStateChForm():
     Reference: https://arxiv.org/abs/1808.00128
     """
 
-    def __init__(self, num_qubits: int, initial_state: Union[int, np.ndarray] = 0):
+    def __init__(self,
+                 num_qubits: int,
+                 initial_state: Union[int, np.ndarray] = 0):
         """Initializes StabilizerStateChForm
         Args:
             num_qubits: The number of qubits in the system
