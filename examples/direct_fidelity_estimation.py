@@ -12,6 +12,8 @@ import heapq
 import itertools
 import math
 import numpy
+from typing import List
+from typing import Tuple
 
 
 def build_circuit():
@@ -25,14 +27,16 @@ def build_circuit():
   return circuit, qubits
 
 
-def compute_characteristic_function(circuit, P_i, qubits, noise):
+def compute_characteristic_function(circuit: cirq.Circuit,
+                                    P_i: Tuple[cirq.Gate, ...],
+                                    qubits: List[cirq.Qid],
+                                    noise: cirq.NoiseModel):
   n = len(P_i)
   d = 2**n
 
   simulator = cirq.DensityMatrixSimulator()
-  density_matrix = 0  #  rho or sigma in https://arxiv.org/pdf/1104.3835.pdf
-  for step in simulator.simulate_moment_steps(circuit):
-    density_matrix = step.density_matrix()
+  # rho or sigma in https://arxiv.org/pdf/1104.3835.pdf
+  density_matrix = simulator.simulate(circuit).final_density_matrix
 
   pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
   qubit_map = dict(zip(qubits, range(n)))
@@ -65,10 +69,10 @@ def main():
   assert len(pauli_traces) == 4**n
 
   p = [x['Pr_i'] for x in pauli_traces]
-  assert numpy.isclose(sum(p), 1.0, 1e-6)
+  assert numpy.isclose(sum(p), 1.0, atol=1e-6)
 
   fidelity = 0.0
-  for iter in range(n):
+  for _ in range(n):
     # Randomly sample as per probability.
     i = numpy.random.choice(range(4**n), p=p)
 
