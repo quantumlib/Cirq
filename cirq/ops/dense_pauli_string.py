@@ -22,7 +22,8 @@ import sympy
 from cirq import protocols, linalg, value
 from cirq._compat import proper_repr
 from cirq.ops import (raw_types, identity, pauli_gates, global_phase_op,
-                      pauli_string, gate_operation)
+                      pauli_string)
+
 if TYPE_CHECKING:
     import cirq
 
@@ -511,8 +512,10 @@ def _str_to_pauli_mask(text: str) -> np.ndarray:
 
 
 def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
-    pauli_gate = gate_operation.op_gate_of_type(v, pauli_gates.Pauli)
-    if pauli_gate is None:
+    if not isinstance(v, raw_types.Operation):
+        return None
+
+    if not isinstance(v.gate, pauli_gates.Pauli):
         return None
 
     q = v.qubits[0]
@@ -522,7 +525,7 @@ def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
             'Got a Pauli operation, but it was applied to a qubit type '
             'other than `cirq.LineQubit` so its dense index is ambiguous.\n'
             f'v={repr(v)}.')
-    return PAULI_GATES.index(pauli_gate), q.x
+    return PAULI_GATES.index(v.gate), q.x
 
 
 def _vectorized_pauli_mul_phase(lhs: Union[int, np.ndarray],
