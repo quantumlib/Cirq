@@ -18,23 +18,26 @@ import cirq
 
 
 def test_phase_by():
+
     class NoMethod:
         pass
 
     class ReturnsNotImplemented:
+
         def _phase_by_(self, phase_turns, qubit_on):
             return NotImplemented
 
     class PhaseIsAddition:
+
         def __init__(self, num_qubits):
             self.phase = [0] * num_qubits
             self.num_qubits = num_qubits
+
         def _phase_by_(self, phase_turns, qubit_on):
             if qubit_on >= self.num_qubits:
                 return self
             self.phase[qubit_on] += phase_turns
             return self
-
 
     n = NoMethod()
     rin = ReturnsNotImplemented()
@@ -60,4 +63,3 @@ def test_phase_by():
     assert test.phase == [0.50, 0.40, 0]
     test = cirq.phase_by(test, 0.40, 4)
     assert test.phase == [0.50, 0.40, 0]
-
