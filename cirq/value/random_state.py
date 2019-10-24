@@ -16,6 +16,7 @@ from typing import cast, Optional, Union
 
 import numpy as np
 
+
 RANDOM_STATE_LIKE = Optional[Union[np.random.RandomState, int]]
 
 
