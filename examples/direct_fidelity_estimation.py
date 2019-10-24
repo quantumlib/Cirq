@@ -49,16 +49,13 @@ def compute_characteristic_function(circuit: cirq.Circuit,
     return trace, prob
 
 
-def main():
-    circuit, qubits = build_circuit()
-    circuit.append(cirq.measure(*qubits, key='y'))
-
-    noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
+def direct_fidelity_estimation(
+        circuit: cirq.Circuit, qubits: List[cirq.Qid], noise: cirq.NoiseModel,
+        n_trials : int):
+    # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
     n_qubits = len(qubits)
-    # Number of trials, upper-case N in https://arxiv.org/pdf/1104.3835.pdf
-    n_trials = 10
 
     # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
@@ -77,10 +74,16 @@ def main():
     p = [x['Pr_i'] for x in pauli_traces]
     assert np.isclose(sum(p), 1.0, atol=1e-6)
 
+    # The package np.random.choice() is quite sensitive to probabilities not
+    # summing up to 1.0. Even an absolute difference below 1e-6 (as checked just
+    # above) does bother it, so we re-normalize the probs.
+    inv_sum_p = 1 / sum(p)
+    norm_p = [x * inv_sum_p for x in p]
+
     fidelity = 0.0
     for _ in range(n_trials):
         # Randomly sample as per probability.
-        i = np.random.choice(range(4**n_qubits), p=p)
+        i = np.random.choice(range(4**n_qubits), p=norm_p)
 
         Pr_i = pauli_traces[i]['Pr_i']
         P_i = pauli_traces[i]['P_i']
@@ -91,7 +94,17 @@ def main():
 
         fidelity += Pr_i * sigma_i / rho_i
 
-    print(fidelity / n_trials)
+    return fidelity / n_trials
+
+
+def main():
+    circuit, qubits = build_circuit()
+    circuit.append(cirq.measure(*qubits, key='y'))
+
+    noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
+
+    estimated_fidelity = direct_fidelity_estimation(circuit, qubits, noise, n_trials=10)
+    print(estimated_fidelity)
 
 
 if __name__ == '__main__':
