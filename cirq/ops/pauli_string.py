@@ -163,7 +163,9 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other) -> 'PauliString':
-        if not isinstance(other, (PauliString, numbers.Number, identity.IdentityOperation)):
+        if not isinstance(
+                other,
+            (PauliString, numbers.Number, identity.IdentityOperation)):
             return NotImplemented
 
         return PauliString(cast(PAULI_STRING_LIKE, other),
