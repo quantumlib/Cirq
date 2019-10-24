@@ -448,7 +448,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordState',
     'CliffordTableau',
     'CliffordTrialResult',
-    'ComputeDisplaysResult',
     'ConstantQubitNoiseModel',
     'ControlledGate',
     'ControlledOperation',
