@@ -29,12 +29,13 @@ The quantum state is specified in two forms:
     to wavefunction amplitudes.
 """
 
-from typing import Dict, List, Iterator, Any, Union, Optional
+from typing import Dict, List, Iterator, Union, Optional, Sequence
 import collections
 import numpy as np
 import cirq
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
+from cirq.ops import raw_types
 from cirq import circuits, study, ops, protocols
 
 
@@ -79,6 +80,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     list)  # type: Dict[str, List[np.ndarray]]
 
                 for op in moment:
+                    print(type(op))
                     if protocols.has_unitary(op):
                         state.apply_unitary(op)
                     elif protocols.is_measurement(op):
@@ -256,38 +258,38 @@ class CliffordState():
     def wave_function(self):
         return self.ch_form.wave_function()
 
-    def apply_unitary(self, op: ops.GateOperation):
-        if op.gate == cirq.CNOT:
+    def apply_unitary(self, op: raw_types.Operation):
+        if op.gate == cirq.CNOT:  # type: ignore
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
             self.ch_form._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.CZ:
+        elif op.gate == cirq.CZ:  # type: ignore
             self.tableau._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
             self.ch_form._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.Z:
+        elif op.gate == cirq.Z:  # type: ignore
             self.tableau._Z(self.qubit_map[op.qubits[0]])
             self.ch_form._Z(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.X:
+        elif op.gate == cirq.X:  # type: ignore
             self.tableau._X(self.qubit_map[op.qubits[0]])
             self.ch_form._X(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.Y:
+        elif op.gate == cirq.Y:  # type: ignore
             self.tableau._Y(self.qubit_map[op.qubits[0]])
             self.ch_form._Y(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.S:
+        elif op.gate == cirq.S:  # type: ignore
             self.tableau._S(self.qubit_map[op.qubits[0]])
             self.ch_form._S(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.H:
+        elif op.gate == cirq.H:  # type: ignore
             self.tableau._H(self.qubit_map[op.qubits[0]])
             self.ch_form._H(self.qubit_map[op.qubits[0]])
         else:
             raise ValueError('%s cannot be run with Clifford simulator' %
-                             str(op.gate))
+                             str(op.gate))  # type: ignore
 
     def perform_measurement(self,
-                            qubits: List[ops.Qid],
+                            qubits: Sequence[ops.Qid],
                             collapse_wavefunction=True):
         results = []
 
