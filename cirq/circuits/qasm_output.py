@@ -148,12 +148,11 @@ class QasmOutput:
                  header: str = '',
                  precision: int = 10,
                  version: str = '2.0') -> None:
-        self.operations = tuple(ops.flatten_op_tree(operations))
+        self.operations = tuple(ops.flatten_to_ops(operations))
         self.qubits = qubits
         self.header = header
-        self.measurements = tuple(
-            op for op in self.operations
-            if ops.op_gate_of_type(op, ops.MeasurementGate))  # type: ignore
+        self.measurements = tuple(op for op in self.operations
+                                  if isinstance(op.gate, ops.MeasurementGate))
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()
