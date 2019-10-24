@@ -1,6 +1,19 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import Sequence
+from typing import Mapping, Optional, Sequence
 
 import numpy as np
 
@@ -13,6 +26,7 @@ def linear_xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],
         qubit_order: QubitOrderOrList = QubitOrder.DEFAULT,
+        amplitudes: Optional[Mapping[int, complex]] = None,
 ) -> float:
     """Computes fidelity estimate from one circuit using linear XEB estimator.
 
@@ -50,6 +64,9 @@ def linear_xeb_fidelity(
             `cirq.final_wavefunction`.
         qubit_order: Qubit order used to construct bitstrings enumerating
             qubits starting with the most sigificant qubit
+        amplitudes: Optional mapping from bitstring to output amplitude.
+            If provided, simulation is skipped. Useful for large circuits
+            when an offline simulation had already been peformed.
     Returns:
         Estimate of fidelity associated with an experimental realization of
         circuit which yielded measurements in bitstrings.
@@ -68,6 +85,11 @@ def linear_xeb_fidelity(
                 f'Bitstring {bitstring} could not have been observed '
                 f'on {len(circuit.qid_shape())} qubits.')
 
-    output_state = final_wavefunction(circuit, qubit_order=qubit_order)
-    output_probabilities = np.abs(output_state)**2
-    return dim * np.mean(output_probabilities[bitstrings]) - 1
+    if amplitudes is None:
+        output_state = final_wavefunction(circuit, qubit_order=qubit_order)
+        output_probabilities = np.abs(output_state)**2
+        bitstring_probabilities = output_probabilities[bitstrings]
+    else:
+        bitstring_probabilities = np.abs(
+            [amplitudes[bitstring] for bitstring in bitstrings])**2
+    return dim * np.mean(bitstring_probabilities) - 1

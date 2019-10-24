@@ -13,18 +13,18 @@
 # limitations under the License.
 
 
-from cirq.protocols.apply_unitary import (
+from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
     SupportsConsistentApplyUnitary,
 )
-from cirq.protocols.apply_channel import (
+from cirq.protocols.apply_channel_protocol import (
     apply_channel,
     ApplyChannelArgs,
     SupportsApplyChannel,
 )
-from cirq.protocols.approximate_equality import (
+from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
@@ -33,16 +33,13 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
-from cirq.protocols.control import (
-    control,
-)
-from cirq.protocols.circuit_diagram_info import (
+from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     SupportsCircuitDiagramInfo,
 )
-from cirq.protocols.decompose import (
+from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
@@ -58,7 +55,7 @@ from cirq.protocols.json import (
     read_json,
     obj_to_dict_helper,
 )
-from cirq.protocols.measurement_key import (
+from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
 )

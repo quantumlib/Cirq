@@ -107,5 +107,5 @@ elif (( only_print == 1 )); then
     echo -e "\033[31mSome formatting needed on changed lines\033[0m."
     exit 1
 else
-    echo -e "\033[32mReformatted changed lines\033[0m."
+    echo -e "\033[33mReformatted changed lines\033[0m."
 fi

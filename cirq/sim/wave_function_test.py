@@ -261,6 +261,12 @@ def test_to_valid_state_vector():
                                    np.array([0.0, 1.0, 0.0, 0.0]))
 
 
+def test_to_valid_state_vector_creates_new_copy():
+    state = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64)
+    out = cirq.to_valid_state_vector(state, 2)
+    assert out is not state
+
+
 def test_invalid_to_valid_state_vector():
     with pytest.raises(ValueError):
         _ = cirq.to_valid_state_vector(
@@ -368,6 +374,20 @@ def test_sample_state_repetitions():
             np.testing.assert_equal(result, expected)
 
 
+def test_sample_state_seed():
+    state = np.ones(2) / np.sqrt(2)
+
+    samples = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
+    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
+                                    [False], [False], [True], [True], [True]])
+
+    samples = cirq.sample_state_vector(state, [0],
+                                       repetitions=10,
+                                       seed=np.random.RandomState(1234))
+    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
+                                    [False], [False], [True], [True], [True]])
+
+
 def test_sample_state_negative_repetitions():
     state = cirq.to_valid_state_vector(0, 3)
     with pytest.raises(ValueError, match='-1'):
@@ -473,6 +493,25 @@ def test_measure_state_collapse():
         bits, state = cirq.measure_state_vector(initial_state, [0])
         np.testing.assert_almost_equal(state, initial_state)
         assert bits == [False]
+
+
+def test_measure_state_seed():
+    n = 10
+    initial_state = np.ones(2**n) / 2**(n / 2)
+
+    bits, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
+    np.testing.assert_equal(
+        bits,
+        [False, False, True, True, False, False, False, True, False, False])
+
+    bits, state2 = cirq.measure_state_vector(initial_state,
+                                             range(n),
+                                             seed=np.random.RandomState(1234))
+    np.testing.assert_equal(
+        bits,
+        [False, False, True, True, False, False, False, True, False, False])
+
+    np.testing.assert_allclose(state1, state2)
 
 
 def test_measure_state_out_is_state():

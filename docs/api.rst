@@ -242,6 +242,7 @@ Classes for simulations and results.
     sample_density_matrix
     sample_state_vector
     sample_sweep
+    Sampler
     SimulatesFinalState
     SimulatesIntermediateState
     SimulatesIntermediateWaveFunction
@@ -291,7 +292,6 @@ operations, and other types.
     apply_unitary
     approx_eq
     channel
-    control
     circuit_diagram_info
     decompose
     decompose_once
@@ -414,6 +414,7 @@ operations and decompositions.
     is_unitary
     kak_canonicalize_vector
     kak_decomposition
+    kak_vector
     KakDecomposition
     kron
     kron_factor_4x4_to_2x2s
@@ -443,9 +444,9 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
-    generate_supremacy_circuit_google_v2
-    generate_supremacy_circuit_google_v2_bristlecone
-    generate_supremacy_circuit_google_v2_grid
+    generate_boixo_2018_supremacy_circuits_v2
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone
+    generate_boixo_2018_supremacy_circuits_v2_grid
 
 
 Ion traps and neutral atoms
@@ -505,7 +506,6 @@ general testing utilities.
     testing.assert_allclose_up_to_global_phase
     testing.assert_circuits_with_terminal_measurements_are_equivalent
     testing.assert_decompose_is_consistent_with_unitary
-    testing.assert_eigen_gate_has_consistent_apply_unitary
     testing.assert_eigengate_implements_consistent_protocols
     testing.assert_equivalent_repr
     testing.assert_has_consistent_apply_unitary
