@@ -87,7 +87,7 @@ class ParallelGateOperation(raw_types.Operation):
         """
         if not protocols.has_unitary(self.gate):
             return NotImplemented
-        return protocols.apply_unitaries((self.gate(q) for q in self.qubits),
+        return protocols.apply_unitaries((self.gate.on(q) for q in self.qubits),
                                          self.qubits, args)
 
     def _has_unitary_(self) -> bool:

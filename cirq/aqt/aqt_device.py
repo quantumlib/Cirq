@@ -37,17 +37,17 @@ def get_op_string(op_obj: ops.Operation):
     """Find the string representation for a given gate
     Params:
         op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
-    if isinstance(op_obj, ops.XXPowGate) or ops.op_gate_of_type(
-            op_obj, ops.XXPowGate):
+    if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate,
+                                                       ops.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, ops.XPowGate) or ops.op_gate_of_type(
-            op_obj, ops.XPowGate):
+    elif isinstance(op_obj, ops.XPowGate) or isinstance(op_obj.gate,
+                                                        ops.XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, ops.YPowGate) or ops.op_gate_of_type(
-            op_obj, ops.YPowGate):
+    elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate,
+                                                        ops.YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, ops.MeasurementGate) or ops.op_gate_of_type(
-            op_obj, ops.MeasurementGate):
+    elif isinstance(op_obj, ops.MeasurementGate) or isinstance(
+            op_obj.gate, ops.MeasurementGate):
         op_str = 'Meas'
     else:
         raise ValueError('Got unknown gate:', op_obj)
