@@ -259,29 +259,29 @@ class CliffordState():
         return self.ch_form.wave_function()
 
     def apply_unitary(self, op: raw_types.Operation):
-        if op.gate == cirq.CNOT:  # type: ignore
+        if op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
             self.ch_form._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.CZ:  # type: ignore
+        elif op.gate == cirq.CZ:
             self.tableau._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
             self.ch_form._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.Z:  # type: ignore
+        elif op.gate == cirq.Z:
             self.tableau._Z(self.qubit_map[op.qubits[0]])
             self.ch_form._Z(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.X:  # type: ignore
+        elif op.gate == cirq.X:
             self.tableau._X(self.qubit_map[op.qubits[0]])
             self.ch_form._X(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.Y:  # type: ignore
+        elif op.gate == cirq.Y:
             self.tableau._Y(self.qubit_map[op.qubits[0]])
             self.ch_form._Y(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.S:  # type: ignore
+        elif op.gate == cirq.S:
             self.tableau._S(self.qubit_map[op.qubits[0]])
             self.ch_form._S(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.H:  # type: ignore
+        elif op.gate == cirq.H:
             self.tableau._H(self.qubit_map[op.qubits[0]])
             self.ch_form._H(self.qubit_map[op.qubits[0]])
         else:
