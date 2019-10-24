@@ -39,6 +39,7 @@ class StabilizerStateChForm():
             If an np.ndarray it is the full initial state.
             """
         self.n = num_qubits
+        self.initial_state = initial_state
 
         # The state is represented by a set of binary matrices and vectors.
         # See Section IVa of Bravyi et al
@@ -63,7 +64,7 @@ class StabilizerStateChForm():
             if val:
                 self._X(self.n - i - 1)
 
-    def copy(self):
+    def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()
@@ -76,23 +77,14 @@ class StabilizerStateChForm():
 
         return copy
 
-    def __repr__(self):
-        """Return the wavefunction representation of the state."""
+    def __str__(self):
+        """Return the wavefunction string representation of the state."""
         return cirq.dirac_notation(self.to_state_vector())
 
-    def _repr_full(self):
+    def __repr__(self):
         """Return the CH form representation of the state. """
-        string = ""
-
-        string += "omega: {:.2f}\n".format(self.omega)
-        string += "G:\n{}\n".format(np.array(self.G, dtype=int))
-        string += "F:\n{}\n".format(np.array(self.F, dtype=int))
-        string += "M:\n{}\n".format(np.array(self.M, dtype=int))
-        string += "gamma: {}\n".format(np.array(self.gamma, dtype=int))
-        string += "v: {}\n".format(np.array(self.v, dtype=int))
-        string += "s: {}\n".format(np.array(self.s, dtype=int))
-
-        return string
+        return ('StabilizerStateChForm(num_qubits={!r}, '
+                'initial_state={!r})').format(self.n, self.initial_state)
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of

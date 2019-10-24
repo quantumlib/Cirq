@@ -156,14 +156,14 @@ def test_simulate_moment_steps_intermediate_measurement():
 def test_clifford_trial_result_repr():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})
-
     assert (repr(
         cirq.CliffordTrialResult(params=cirq.ParamResolver({}),
                                  measurements={'m': np.array([[1]])},
                                  final_simulator_state=final_simulator_state))
             == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
             "measurements={'m': array([[1]])}, "
-            "final_simulator_state=|0⟩)")
+            "final_simulator_state=StabilizerStateChForm(num_qubits=1, "
+            "initial_state=0))")
 
 
 def test_clifford_trial_result_str():
@@ -258,23 +258,10 @@ def test_stabilizerStateChForm_H():
         state.ch_form._H_decompose(0, 1, 1, 0)
 
 
-def test_clifford_stabilizerStateChForm_repr_full():
+def test_clifford_stabilizerStateChForm_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-
-    assert (state.ch_form._repr_full() == "omega: 1.00\n"
-            "G:\n"
-            "[[1 0]\n"
-            " [0 1]]\n"
-            "F:\n"
-            "[[1 0]\n"
-            " [0 1]]\n"
-            "M:\n"
-            "[[0 0]\n"
-            " [0 0]]\n"
-            "gamma: [0 0]\n"
-            "v: [0 0]\n"
-            "s: [0 0]\n")
+    assert repr(state) == 'StabilizerStateChForm(num_qubits=2, initial_state=0)'
 
 
 def test_clifford_circuit():

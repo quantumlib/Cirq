@@ -46,8 +46,8 @@ class CliffordSimulator(simulator.SimulatesSamples,
         self.init = True
 
     def _base_iterator(self, circuit: circuits.Circuit,
-                       qubit_order: ops.QubitOrderOrList,
-                       initial_state: int) -> Iterator['cirq.CliffordSimulatorStepResult']:
+                       qubit_order: ops.QubitOrderOrList, initial_state: int
+                      ) -> Iterator['cirq.CliffordSimulatorStepResult']:
         """Iterator over CliffordSimulatorStepResult from Moments of a Circuit
 
         Args:
@@ -241,7 +241,11 @@ class CliffordState():
         return state
 
     def __repr__(self):
-        return self.ch_form.__repr__()
+        return repr(self.ch_form)
+
+    def __str__(self):
+        """Return the wavefunction string representation of the state."""
+        return str(self.ch_form)
 
     def to_numpy(self):
         return self.ch_form.to_state_vector()
