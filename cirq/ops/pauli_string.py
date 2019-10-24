@@ -24,8 +24,16 @@ import numpy as np
 
 from cirq import value, protocols, linalg
 from cirq._compat import deprecated
-from cirq.ops import (global_phase_op, raw_types, gate_operation, common_gates,
-                      pauli_gates, clifford_gate, pauli_interaction_gate)
+from cirq.ops import (
+    global_phase_op,
+    raw_types,
+    gate_operation,
+    common_gates,
+    pauli_gates,
+    clifford_gate,
+    pauli_interaction_gate,
+    identity,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -155,9 +163,7 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other) -> 'PauliString':
-        if not (isinstance(other, (PauliString, numbers.Number)) or
-                (isinstance(other, raw_types.Operation) and
-                 isinstance(other.gate, common_gates.IdentityGate))):
+        if not isinstance(other, (PauliString, numbers.Number, identity.IdentityOperation)):
             return NotImplemented
 
         return PauliString(cast(PAULI_STRING_LIKE, other),
@@ -180,8 +186,7 @@ class PauliString(raw_types.Operation):
                                coefficient=self._coefficient *
                                complex(cast(SupportsComplex, other)))
 
-        if (isinstance(other, raw_types.Operation) and
-                isinstance(other.gate, common_gates.IdentityGate)):
+        if isinstance(other, identity.IdentityOperation):
             return self
 
         # Note: PauliString case handled by __mul__.
@@ -829,7 +834,7 @@ class _MutablePauliString:
 
         phase, new_pauli = cur_pauli.phased_pauli_product(pauli)
         self.coef *= phase
-        if new_pauli is common_gates.I:
+        if new_pauli is identity.I:
             del self.paulis[qubit]
         else:
             self.paulis[qubit] = cast(pauli_gates.Pauli, new_pauli)
@@ -843,7 +848,7 @@ class _MutablePauliString:
             self, mapping: Mapping['cirq.Qid',
                                    Union['cirq.Pauli', 'cirq.IdentityGate']]):
         for qubit, pauli in mapping.items():
-            if isinstance(pauli, common_gates.IdentityGate):
+            if isinstance(pauli, identity.IdentityGate):
                 continue
 
             if not isinstance(pauli, pauli_gates.Pauli):
@@ -857,8 +862,7 @@ class _MutablePauliString:
         if isinstance(contents, PauliString):
             # Note: cirq.X/Y/Z(qubit) are PauliString instances.
             self.inline_times_pauli_string(contents)
-        elif (isinstance(contents, raw_types.Operation) and
-              isinstance(contents.gate, common_gates.IdentityGate)):
+        elif isinstance(contents, identity.IdentityOperation):
             pass  # No effect.
         elif isinstance(contents, Mapping):
             self._inline_times_mapping(contents)
