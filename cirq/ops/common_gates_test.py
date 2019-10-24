@@ -130,6 +130,10 @@ def test_z_init():
     assert cirq.Z**0.5 != cirq.Z**-0.5
     assert (cirq.Z**-1)**0.5 == cirq.Z**-0.5
     assert cirq.Z**-1 == cirq.Z
+    assert cirq.Z.controlled(num_controls=2) == cirq.ControlledGate(
+        cirq.Z, num_controls=2)
+    assert cirq.Z.controlled() == cirq.CZ
+    assert z.controlled() == cirq.CZPowGate(exponent=5)
 
 
 def test_rot_gates_eq():
