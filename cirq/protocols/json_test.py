@@ -205,6 +205,10 @@ TEST_OBJECTS = {
         cirq.IdentityGate(num_qubits=5),
         cirq.IdentityGate(num_qubits=5, qid_shape=(3,) * 5)
     ],
+    'IdentityOperation': [
+        cirq.IdentityOperation(cirq.LineQubit.range(2)),
+        cirq.IdentityOperation(cirq.LineQubit.range(5))
+    ],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
