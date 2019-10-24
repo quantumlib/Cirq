@@ -42,7 +42,9 @@ def compute_characteristic_function(circuit: cirq.Circuit,
   qubit_map = dict(zip(qubits, range(n)))
   # rho_i or sigma_i in https://arxiv.org/pdf/1104.3835.pdf
   trace = pauli_string.expectation_from_density_matrix(density_matrix,
-                                                       qubit_map).real
+                                                       qubit_map)
+  assert numpy.isclose(trace.imag, 0.0, atol=1e-6)
+  trace = trace.real
 
   prob = trace * trace / d  # Pr(i) in https://arxiv.org/pdf/1104.3835.pdf
 
