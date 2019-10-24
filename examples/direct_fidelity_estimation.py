@@ -40,8 +40,8 @@ def compute_characteristic_function(circuit: cirq.Circuit,
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
     qubit_map = dict(zip(qubits, range(n_qubits)))
     # rho_i or sigma_i in https://arxiv.org/pdf/1104.3835.pdf
-    trace = pauli_string.expectation_from_density_matrix(density_matrix,
-                                                         qubit_map)
+    trace = pauli_string.expectation_from_density_matrix(
+        density_matrix, qubit_map)
     assert np.isclose(trace.imag, 0.0, atol=1e-6)
     trace = trace.real
 
@@ -67,8 +67,10 @@ def main():
     pauli_traces = []
     for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
                                  repeat=n_qubits):
-        rho_i, Pr_i = compute_characteristic_function(
-            circuit, P_i, qubits, noise=None)
+        rho_i, Pr_i = compute_characteristic_function(circuit,
+                                                      P_i,
+                                                      qubits,
+                                                      noise=None)
         pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
 
     assert len(pauli_traces) == 4**n_qubits
@@ -94,4 +96,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+    main()
