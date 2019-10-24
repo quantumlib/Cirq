@@ -7,12 +7,11 @@ Practical characterization of quantum devices without tomography
 https://arxiv.org/abs/1104.3835
 """
 
-import cirq
 import itertools
-import math
-import numpy as np
 from typing import List
 from typing import Tuple
+import numpy as np
+import cirq
 
 
 def build_circuit():
