@@ -185,8 +185,8 @@ class IonDevice(devices.Device):
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     seen: Set[str] = set()
     for op in operations:
-        meas = op.gate if isinstance(op.gate, ops.MeasurementGate) else None
-        if meas:
+        if isinstance(op.gate, ops.MeasurementGate):
+            meas = op.gate
             key = protocols.measurement_key(meas)
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))

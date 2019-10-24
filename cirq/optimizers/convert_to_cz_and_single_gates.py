@@ -49,9 +49,9 @@ class ConvertToCzAndSingleGates(circuits.PointOptimizer):
     def _keep(self, op: ops.Operation) -> bool:
         # Check if this is a CZ
         # Only keep partial CZ gates if allow_partial_czs
-        cz_gate = op.gate if isinstance(op.gate, ops.CZPowGate) else None
-        if cz_gate and (self.allow_partial_czs or
-                        value.canonicalize_half_turns(cz_gate.exponent) == 1):
+        if (isinstance(op.gate, ops.CZPowGate) and
+            (self.allow_partial_czs or
+             value.canonicalize_half_turns(op.gate.exponent) == 1)):
             return True
 
         # Measurement in Z basis?

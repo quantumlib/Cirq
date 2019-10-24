@@ -313,8 +313,8 @@ class Simulator(simulator.SimulatesSamples,
     def _simulate_reset(self, op: ops.Operation, data: _StateAndBuffer,
                         indices: List[int]) -> None:
         """Simulate an op that is a reset to the |0> state."""
-        reset = op.gate if isinstance(op.gate, ops.ResetChannel) else None
-        if reset:
+        if isinstance(op.gate, ops.ResetChannel):
+            reset = op.gate
             # Do a silent measurement.
             bits, _ = wave_function.measure_state_vector(
                 data.state, indices, out=data.state, qid_shape=data.state.shape)
@@ -330,9 +330,9 @@ class Simulator(simulator.SimulatesSamples,
                               measurements: Dict[str, List[int]],
                               num_qubits: int) -> None:
         """Simulate an op that is a measurement in the computational basis."""
-        meas = op.gate if isinstance(op.gate, ops.MeasurementGate) else None
         # TODO: support measurement outside computational basis.
-        if meas:
+        if isinstance(op.gate, ops.MeasurementGate):
+            meas = op.gate
             invert_mask = meas.full_invert_mask()
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(

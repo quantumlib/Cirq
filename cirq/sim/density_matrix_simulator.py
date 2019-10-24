@@ -275,9 +275,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
-                meas = op.gate if isinstance(op.gate,
-                                             ops.MeasurementGate) else None
-                if meas:
+                if isinstance(op.gate, ops.MeasurementGate):
+                    meas = op.gate
                     if perform_measurements:
                         invert_mask = meas.full_invert_mask()
                         # Measure updates inline.
