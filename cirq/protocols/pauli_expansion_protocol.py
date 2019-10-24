@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
 from typing import Any, TypeVar, Union
@@ -23,17 +22,16 @@ from cirq.protocols.unitary import unitary
 
 TDefault = TypeVar('TDefault')
 
-RaiseTypeErrorIfNotProvided = (
-        value.LinearDict({}))  # type: value.LinearDict[str]
+RaiseTypeErrorIfNotProvided = (value.LinearDict({})
+                              )  # type: value.LinearDict[str]
 
 
 def pauli_expansion(
-    val: Any,
-    *,
-    default: Union[value.LinearDict[str], TDefault]
-        = RaiseTypeErrorIfNotProvided,
-    atol: float = 1e-9
-) -> Union[value.LinearDict[str], TDefault]:
+        val: Any,
+        *,
+        default: Union[value.
+                       LinearDict[str], TDefault] = RaiseTypeErrorIfNotProvided,
+        atol: float = 1e-9) -> Union[value.LinearDict[str], TDefault]:
     """Returns coefficients of the expansion of val in the Pauli basis.
 
     Args:
@@ -71,8 +69,9 @@ def pauli_expansion(
     matrix = unitary(val, default=None)
     if matrix is None:
         if default is RaiseTypeErrorIfNotProvided:
-            raise TypeError('No Pauli expansion for object {} of type {}'
-                    .format(val, type(val)))
+            raise TypeError(
+                'No Pauli expansion for object {} of type {}'.format(
+                    val, type(val)))
         return default
 
     num_qubits = matrix.shape[0].bit_length() - 1
