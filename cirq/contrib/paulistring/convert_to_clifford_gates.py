@@ -78,7 +78,7 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
     def _keep(self, op: ops.Operation) -> bool:
         # Don't change if it's already a SingleQubitCliffordGate
-        return bool(ops.op_gate_of_type(op, ops.SingleQubitCliffordGate))
+        return isinstance(op.gate, ops.SingleQubitCliffordGate)
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         # Single qubit gate with known matrix?
