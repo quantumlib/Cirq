@@ -8,6 +8,7 @@ https://arxiv.org/abs/1104.3835
 """
 
 import itertools
+from typing import cast
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -35,8 +36,8 @@ def compute_characteristic_function(circuit: cirq.Circuit,
 
     simulator = cirq.DensityMatrixSimulator()
     # rho or sigma in https://arxiv.org/pdf/1104.3835.pdf
-    trial_results: cirq.SimulationTrialResult = simulator.simulate(circuit)
-    density_matrix = trial_results.final_density_matrix
+    density_matrix = cast(cirq.DensityMatrixTrialResult,
+                          simulator.simulate(circuit)).final_density_matrix
 
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
     qubit_map = dict(zip(qubits, range(n_qubits)))
