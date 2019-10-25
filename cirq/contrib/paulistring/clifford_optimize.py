@@ -40,10 +40,10 @@ def clifford_optimized_circuit(circuit: circuits.Circuit,
         def continue_condition(op: ops.Operation,
                                current_string: ops.PauliStringPhasor,
                                is_first: bool) -> int:
-            if ops.op_gate_of_type(op, ops.SingleQubitCliffordGate):
+            if isinstance(op.gate, ops.SingleQubitCliffordGate):
                 return (CONTINUE if len(current_string.pauli_string) != 1
                                  else STOP)
-            if ops.op_gate_of_type(op, ops.CZPowGate):
+            if isinstance(op.gate, ops.CZPowGate):
                 return STOP if stop_at_cz else CONTINUE
             if (isinstance(op, ops.PauliStringPhasor) and
                     len(op.qubits) == 1 and

@@ -69,7 +69,7 @@ def test_depol_noise():
     assert len(noisy_mom) == 2
     assert noisy_mom[0] == moment
     for g in noisy_mom[1]:
-        assert cirq.op_gate_of_type(g, cirq.DepolarizingChannel)
+        assert isinstance(g.gate, cirq.DepolarizingChannel)
 
 
 def test_readout_noise_after_moment():
