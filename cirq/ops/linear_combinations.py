@@ -543,7 +543,6 @@ class PauliSum:
             for _ in range(exponent - 1):
                 base *= base
             return base
-
         return NotImplemented
 
     def __truediv__(self, a: value.Scalar):
