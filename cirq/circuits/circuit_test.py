@@ -1802,7 +1802,7 @@ def test_diagram_wgate():
         exponent=0.12341234, phase_exponent=0.43214321)
     c = cirq.Circuit([cirq.Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43)^(1/8)---
+a: ---PhX(0.43)^(1/8)---
 """, use_unicode_characters=False, precision=2)
 
 
@@ -1812,7 +1812,7 @@ def test_diagram_wgate_none_precision():
         exponent=0.12341234, phase_exponent=0.43214321)
     c = cirq.Circuit([cirq.Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43214321)^0.12341234---
+a: ---PhX(0.43214321)^0.12341234---
 """, use_unicode_characters=False, precision=None)
 
 

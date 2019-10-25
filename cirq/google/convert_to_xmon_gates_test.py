@@ -35,4 +35,4 @@ def test_avoids_infinite_cycle_when_matrix_available():
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
     cirq.google.ConvertToXmonGates().optimize_circuit(c)
     cirq.testing.assert_has_diagram(
-        c, '(0, 0): ───PhasedX(1.0)───PhasedX(1.0)───')
+        c, '(0, 0): ───PhX(1.0)───PhX(1.0)───')
