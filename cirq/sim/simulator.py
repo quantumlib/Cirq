@@ -514,6 +514,8 @@ class SimulationTrialResult:
             results. Measurement results are a numpy ndarray of actual boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
+        final_density_matrix: A np.ndarray containing the final density matrix
+            (only for some simulators).
     """
 
     def __init__(self,
@@ -523,6 +525,7 @@ class SimulationTrialResult:
         self.params = params
         self.measurements = measurements
         self._final_simulator_state = final_simulator_state
+        self.final_density_matrix = None
 
     def __repr__(self):
         return ('cirq.SimulationTrialResult(params={!r}, '
