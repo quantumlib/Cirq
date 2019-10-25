@@ -421,3 +421,48 @@ def test_inverse_composite_diagram_info():
     c = cirq.inverse(Gate2())
     assert cirq.circuit_diagram_info(c) == cirq.CircuitDiagramInfo(
         wire_symbols=('s!',), exponent=-1)
+
+
+def test_tag_equality():
+
+    class SuperDuperTag(cirq.Tag):
+        pass
+
+    eq = cirq.testing.EqualsTester()
+
+    eq.add_equality_group(SuperDuperTag(), SuperDuperTag())
+    eq.add_equality_group(cirq.Tag(), cirq.Tag())
+    eq.add_equality_group(cirq.Tag("foo"), cirq.Tag("foo"))
+    eq.add_equality_group(cirq.Tag("bar"), cirq.Tag("bar"))
+
+
+def test_tags_on_gates():
+
+    class TestGate(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+    class CoolGate(cirq.Tag):
+        pass
+
+    no_tags = TestGate()
+    tagged_with_strings = TestGate()
+    tagged_with_class = TestGate()
+    multi_tags = TestGate()
+
+    tagged_with_strings.add_tag(cirq.Tag("zen"))
+    tagged_with_class.add_tag(CoolGate())
+
+    multi_tags.add_tag(CoolGate())
+    multi_tags.add_tag(cirq.Tag("zen"))
+    multi_tags.add_tag(cirq.Tag("totally chill"))
+
+    assert TestGate().num_qubits() == 1
+    assert no_tags.tags() == []
+    assert tagged_with_strings.tags() == [cirq.Tag("zen")]
+    assert tagged_with_class.tags() == [CoolGate()]
+    assert multi_tags.tags() == [
+        CoolGate(), cirq.Tag("zen"),
+        cirq.Tag("totally chill")
+    ]

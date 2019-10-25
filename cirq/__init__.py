@@ -241,6 +241,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    Tag,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,

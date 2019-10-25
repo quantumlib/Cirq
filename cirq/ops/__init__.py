@@ -194,6 +194,7 @@ from cirq.ops.raw_types import (
     Gate,
     Operation,
     Qid,
+    Tag,
 )
 
 from cirq.ops.swap_gates import (

@@ -98,6 +98,7 @@ class _ResolverCache:
                 'pandas.DataFrame': pd.DataFrame,
                 'pandas.Index': pd.Index,
                 'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'Tag': cirq.Tag,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,

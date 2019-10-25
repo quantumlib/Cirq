@@ -274,6 +274,8 @@ TEST_OBJECTS = {
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
     'T':
     cirq.T,
+    'Tag':
+    cirq.Tag("load_bearing_qubit"),
     'TOFFOLI':
     cirq.TOFFOLI,
     'UNCONSTRAINED_DEVICE':

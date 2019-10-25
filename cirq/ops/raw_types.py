@@ -153,6 +153,38 @@ class _QubitAsQid(Qid):
         return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
 
 
+class Tag:
+    """A wrapper around string that can be user to differentiate gates.
+
+    This can be instantiated using a string value or sub-classed to
+    differentiate or tag specific instances of gates.
+
+    For instance,
+    cirq.X().add_tag(Tag('do_not_touch')
+
+    or
+    class NoTouchy(Tag):
+         pass
+
+    cirq.X().addTag(NoTouchy())
+
+    Tags can then be accessed using a Gate's tag() function to allow for
+    special processing of certain instances of gates (for instance, to
+    prevent optimization or decomposing special gates).
+    """
+
+    def __init__(self, value: Optional[str] = None):
+        self.value = value
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                isinstance(self, other.__class__) and self.value == other.value)
+
+    def _json_dict_(self):
+        # TODO(dstrain): Properly json serialize tags that are added on gates.
+        return protocols.obj_to_dict_helper(self, ['value'])
+
+
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     """An operation type that can be applied to a collection of qubits.
 
@@ -205,6 +237,13 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
             ) -> 'linear_combinations.LinearCombinationOfGates':
         from cirq.ops import linear_combinations
         return linear_combinations.LinearCombinationOfGates({self: coefficient})
+
+    def add_tag(self, tag: Tag):
+        self._tags = getattr(self, '_tags', [])
+        self._tags.append(tag)
+
+    def tags(self):
+        return getattr(self, '_tags', [])
 
     def __add__(self,
                 other: Union['Gate',
