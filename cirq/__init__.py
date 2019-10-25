@@ -289,6 +289,12 @@ from cirq.schedules import (
 
 from cirq.sim import (
     bloch_vector_from_state_vector,
+    StabilizerStateChForm,
+    CliffordSimulator,
+    CliffordState,
+    CliffordSimulatorStepResult,
+    CliffordTableau,
+    CliffordTrialResult,
     density_matrix_from_state_vector,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
