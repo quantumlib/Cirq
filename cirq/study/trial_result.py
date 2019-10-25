@@ -14,8 +14,8 @@
 
 """Defines trial results."""
 
-from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
-                    TYPE_CHECKING, Union, Optional)
+from typing import (Iterable, Callable, List, Tuple, TypeVar, Dict,
+                    Any, TYPE_CHECKING, Union, Optional)
 
 import collections
 import numpy as np
@@ -115,6 +115,10 @@ class TrialResult:
             self._data = pd.DataFrame(converted_dict, dtype=np.int64)
         return self._data
 
+    @property
+    def keys(self) -> List[str]:
+        return list(self.measurements.keys())
+ 
     @staticmethod
     def from_single_parameter_set(
             *,  # Forces keyword args.
