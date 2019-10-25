@@ -1,9 +1,11 @@
-from typing import TYPE_CHECKING, List, Tuple, cast
+from typing import TYPE_CHECKING, List, Tuple, cast, Dict
 
 import matplotlib.textpath
 
 if TYPE_CHECKING:
     import cirq
+
+QBLUE = '#1967d2'
 
 
 def _get_text_width(t: str) -> float:
@@ -60,33 +62,89 @@ def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
     return col_starts, col_widths
 
 
+def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
+                  ref_boxheight: float, row_padding: float) \
+        -> Tuple[List[float], List[float], Dict[float, int]]:
+    # Note: y values come as half integers. Map to integers
+    all_yis = sorted({yi for _, yi in tdd.entries.keys()}
+                     | {yi1 for _, yi1, _, _ in tdd.vertical_lines}
+                     | {yi2 for _, _, yi2, _ in tdd.vertical_lines}
+                     | {yi for yi, _, _, _ in tdd.horizontal_lines})
+    yi_map = {yi: i for i, yi in enumerate(all_yis)}
+
+    max_yi = max(yi_map[yi] for yi in all_yis)
+    row_heights = [0.0] * (max_yi + 2)
+    for (_, yi), v in tdd.entries.items():
+        yi = yi_map[yi]
+        row_heights[yi] = max(ref_boxheight, row_heights[yi])
+
+    for yi in all_yis:
+        row_heights[yi_map[yi]] += row_padding
+
+    row_starts = [0.0]
+    for i in range(1, max_yi + 3):
+        row_starts.append(row_starts[i - 1] + row_heights[i - 1])
+
+    return row_starts, row_heights, yi_map
+
+
+def _debug_spacing(col_starts, row_starts):
+    t = ''
+    for i, cs in enumerate(col_starts):
+        t += f'<line id="cs-{i}" ' \
+             f'x1="{cs}" x2="{cs}" y1="0" y2="{row_starts[-1]}" ' \
+             f'stroke="green" stroke-width="1" />'
+    for i, rs in enumerate(row_starts):
+        t += f'<line id="rs-{i}" ' \
+             f'x1="0" x2="{col_starts[-1]}" y1="{rs}" y2="{rs}" ' \
+             f'stroke="green" stroke-width="1" />'
+    return t
+
+
 def tdd_to_svg(
         tdd: 'cirq.TextDiagramDrawer',
-        ref_rowheight: float = 60,
         ref_boxwidth: float = 40,
         ref_boxheight: float = 40,
         col_padding: float = 20,
-        y_top_pad: float = 5,
+        row_padding: float = 10,
 ) -> str:
-    height = tdd.height() * ref_rowheight
-    col_starts, col_widths = _fit_horizontal(tdd=tdd,
-                                             ref_boxwidth=ref_boxwidth,
-                                             col_padding=col_padding)
+    row_starts, row_heights, yi_map = _fit_vertical(
+        tdd=tdd,
+        ref_boxheight=ref_boxheight,
+        row_padding=row_padding)
+    col_starts, col_widths = _fit_horizontal(
+        tdd=tdd,
+        ref_boxwidth=ref_boxwidth,
+        col_padding=col_padding)
 
-    t = f'<svg width="{col_starts[-1]}" height="{height}">'
+    t = f'<svg xmlns="http://www.w3.org/2000/svg" ' \
+        f'width="{col_starts[-1]}" height="{row_starts[-1]}">'
+    DEBUG = False
+    if DEBUG:
+        t += _debug_spacing(col_starts, row_starts)
 
     for yi, xi1, xi2, _ in tdd.horizontal_lines:
         xi1 = cast(int, xi1)
         xi2 = cast(int, xi2)
-        y = yi * ref_rowheight + y_top_pad + ref_boxheight / 2
         x1 = col_starts[xi1] + col_widths[xi1] / 2
         x2 = col_starts[xi2] + col_widths[xi2] / 2
+
+        yi = yi_map[yi]
+        y = row_starts[yi] + row_heights[yi] / 2
+
+        if xi1 == 0:
+            # qubits start at far left and their wires shall be blue
+            stroke = QBLUE
+        else:
+            stroke = 'black'
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" ' \
-             f'stroke="black" stroke-width="1" />'
+             f'stroke="{stroke}" stroke-width="1" />'
 
     for xi, yi1, yi2, _ in tdd.vertical_lines:
-        y1 = yi1 * ref_rowheight + y_top_pad + ref_boxheight / 2
-        y2 = yi2 * ref_rowheight + y_top_pad + ref_boxheight / 2
+        yi1 = yi_map[yi1]
+        yi2 = yi_map[yi2]
+        y1 = row_starts[yi1] + row_heights[yi1] / 2
+        y2 = row_starts[yi2] + row_heights[yi2] / 2
 
         xi = cast(int, xi)
         x = col_starts[xi] + col_widths[xi] / 2
@@ -94,11 +152,14 @@ def tdd_to_svg(
              f'stroke="black" stroke-width="3" />'
 
     for (xi, yi), v in tdd.entries.items():
+        xi = cast(int, xi)
+        yi = yi_map[yi]
+
         x = col_starts[xi] + col_widths[xi] / 2
-        y = yi * ref_rowheight + y_top_pad + ref_boxheight / 2
+        y = row_starts[yi] + row_heights[yi] / 2
 
         boxheight = ref_boxheight
-        boxwidth = max(ref_boxwidth, _get_text_width(v.text))
+        boxwidth = col_widths[xi] - tdd.horizontal_padding.get(xi, col_padding)
         boxx = x - boxwidth / 2
         boxy = y - boxheight / 2
 
