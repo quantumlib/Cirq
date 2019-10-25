@@ -9,6 +9,7 @@ https://arxiv.org/abs/1104.3835
 
 import itertools
 from typing import List
+from typing import Optional
 from typing import Tuple
 import numpy as np
 import cirq
@@ -28,7 +29,7 @@ def build_circuit():
 def compute_characteristic_function(circuit: cirq.Circuit,
                                     P_i: Tuple[cirq.Gate, ...],
                                     qubits: List[cirq.Qid],
-                                    noise: cirq.NoiseModel):
+                                    noise: Optional[cirq.NoiseModel]):
     n_qubits = len(P_i)
     d = 2**n_qubits
 
