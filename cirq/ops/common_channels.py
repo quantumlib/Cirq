@@ -19,7 +19,8 @@ from typing import Iterable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, common_gates, pauli_gates, gate_features
+from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
+                      identity)
 
 
 @value.value_equality
@@ -60,7 +61,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                                                    'p_x + p_y + p_z')
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        return ((self._p_i, protocols.unitary(common_gates.I)),
+        return ((self._p_i, protocols.unitary(identity.I)),
                 (self._p_x, protocols.unitary(pauli_gates.X)),
                 (self._p_y, protocols.unitary(pauli_gates.Y)),
                 (self._p_z, protocols.unitary(pauli_gates.Z)))
