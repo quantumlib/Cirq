@@ -56,8 +56,19 @@ class ParamResolver(object):
 
     def value_of(self,
                  value: Union[sympy.Basic, float, str]) -> value.TParamVal:
-        """Attempt to resolve a Symbol or name or float to its assigned value.
+        """Attempt to resolve a Symbol, string, or float to its assigned value.
 
+        Floats are returned without modification.  Strings are resolved via
+        the parameter dictionary with exact match only.  Otherwise, strings
+        are considered to be sympy.Symbols with the name as the input string.
+
+        sympy.Symbols are first checked for exact match in the parameter
+        dictionary.  Otherwise, the symbol is resolved using sympy substitution.
+
+        Note that passing a formula to this resolver can be slow due to the
+        underlying sympy library.  For circuits relying on quick performance,
+        it is recommended that all formulas are flattened before-hand using
+        cirq.flatten or other means so that formula resolution is avoided.
         If unable to resolve a sympy.Symbol, returns it unchanged.
         If unable to resolve a name, returns a sympy.Symbol with that name.
 
@@ -68,8 +79,38 @@ class ParamResolver(object):
         Returns:
             The value of the parameter as resolved by this resolver.
         """
+
+        # Input is a float, no resolution needed: return early
+        if isinstance(value, float):
+            return value
+
+        # Handles 2 cases:
+        # Input is a string and maps to a number in the dictionary
+        # Input is a symbol and maps to a number in the dictionary
+        # In both cases, return it directly.
+        if value in self.param_dict:
+            param_value = self.param_dict[value]
+            if isinstance(param_value, (float, int)):
+                return param_value
+
+        # Input is a string and is not in the dictionary.
+        # Treat it as a symbol instead.
         if isinstance(value, str):
-            return self.param_dict.get(value, sympy.Symbol(value))
+            # If the string is in the param_dict as a value, return it.
+            # Otherwise, try using the symbol instead.
+            return self.value_of(sympy.Symbol(value))
+
+        # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
+        # in the dictionary ({'a': 1.0}).  Return it.
+        if isinstance(value, sympy.Symbol) and str(value) in self.param_dict:
+            param_value = self.param_dict[str(value)]
+            if isinstance(param_value, (float, int)):
+                return param_value
+
+        # Input is either a sympy formula or the dictionary maps to a
+        # formula.  Use sympy to resolve the value.
+        # Note that sympy.subs() is slow, so we want to avoid this and
+        # only use it for cases that require complicated resolution.
         if isinstance(value, sympy.Basic):
             v = value.subs(self.param_dict)
             if v.free_symbols:
@@ -78,6 +119,8 @@ class ParamResolver(object):
                 return complex(v)
             else:
                 return float(v)
+
+        # No known way to resolve this variable, return unchanged.
         return value
 
     def __iter__(self):
