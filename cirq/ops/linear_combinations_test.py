@@ -970,6 +970,9 @@ def test_bad_arithmetic():
         _ = psum**1.2
 
     with pytest.raises(TypeError):
+        _ = psum**-2
+
+    with pytest.raises(TypeError):
         _ = psum**"string"
 
 
