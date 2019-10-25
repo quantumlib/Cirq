@@ -50,7 +50,7 @@ def compute_characteristic_function(circuit: cirq.Circuit,
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               noise: cirq.NoiseModel, n_trials : int):
+                               noise: cirq.NoiseModel, n_trials: int):
     # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
