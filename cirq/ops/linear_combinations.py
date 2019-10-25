@@ -14,6 +14,7 @@
 from collections import defaultdict
 from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
                     DefaultDict)
+import numbers
 
 import numpy as np
 
@@ -451,7 +452,7 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings(
                 [PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
@@ -464,7 +465,7 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result += other
@@ -477,7 +478,7 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings(
                 [PauliString(coefficient=other)])
         if isinstance(other, PauliString):
@@ -490,7 +491,7 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result -= other
@@ -501,9 +502,9 @@ class PauliSum:
         return factory(-self._linear_dict)
 
     def __imul__(self, other: PauliSumLike):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             self._linear_dict *= other
         elif isinstance(other, PauliString):
             temp = PauliSum.from_pauli_strings([term * other for term in self])
@@ -516,14 +517,14 @@ class PauliSum:
         return self
 
     def __mul__(self, other: PauliSumLike):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result *= other
         return result
 
     def __rmul__(self, other: PauliSumLike):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             result = self.copy()
             result *= other
             return result
@@ -533,7 +534,7 @@ class PauliSum:
         return NotImplemented
 
     def __pow__(self, exponent: int):
-        if not isinstance(exponent, int):
+        if not isinstance(exponent, numbers.Integral):
             return NotImplemented
         if exponent == 0:
             return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
