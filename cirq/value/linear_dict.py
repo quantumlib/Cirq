@@ -92,7 +92,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
                 are valid.
         """
         self._is_valid = validator
-        self._terms = dict()  # type: Dict[TVector, Scalar]
+        self._terms: Dict[TVector, Scalar] = {}
         if terms is not None:
             self.update(terms)
 

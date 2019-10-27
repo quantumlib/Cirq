@@ -523,7 +523,6 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         *,
         include_frame: bool = True,
         ax: Optional[plt.Axes] = None,
-        show: bool = False,
         **kwargs):
     r"""Plots the interaction coefficients of many two-qubit operations.
 
@@ -563,9 +562,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         include_frame: Determines whether or not to draw the kak space
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
-            figure is created.
-        show: Whether or not to call `matplotlib.pyplot.show()`. Defaults to
-            `False`.
+            figure is created, plotted, and shown.
         kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
             labelling `label="theta=pi/4"`, etc. For reference see the
@@ -591,15 +588,16 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ...     ]
         ...     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(
         ...         circuits,
-        ...         s=1,
-        ...         ax=ax,
         ...         include_frame=ax is None,
+        ...         ax=ax,
+        ...         s=1,
         ...         label=f'y={y:0.2f}')
         >>> _ = ax.legend()
         >>> import matplotlib.pyplot as plt
         >>> plt.show()
     """
-    if ax is None:
+    show_plot = not ax
+    if not ax:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
@@ -643,8 +641,8 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     ax.set_ylim(-1, +1)
     ax.set_zlim(0, +1)
 
-    if show:
-        plt.show()
+    if show_plot:
+        fig.show()
 
     return ax
 

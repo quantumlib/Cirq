@@ -53,14 +53,13 @@ class IonDevice(devices.Device):
         return convert_to_ion_gates.ConvertToIonGates().convert_circuit(circuit)
 
     def duration_of(self, operation):
-        if ops.op_gate_of_type(operation, ops.XXPowGate):
+        if isinstance(operation.gate, ops.XXPowGate):
             return self._twoq_gates_duration
-        if (ops.op_gate_of_type(operation, ops.XPowGate) or
-                ops.op_gate_of_type(operation, ops.YPowGate) or
-                ops.op_gate_of_type(operation, ops.ZPowGate) or
-                ops.op_gate_of_type(operation, ops.PhasedXPowGate)):
+        if isinstance(
+                operation.gate,
+            (ops.XPowGate, ops.YPowGate, ops.ZPowGate, ops.PhasedXPowGate)):
             return self._oneq_gates_duration
-        if ops.op_gate_of_type(operation, ops.MeasurementGate):
+        if isinstance(operation.gate, ops.MeasurementGate):
             return self._measurement_duration
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
@@ -128,7 +127,7 @@ class IonDevice(devices.Device):
 
         if not super().can_add_operation_into_moment(operation, moment):
             return False
-        if ops.op_gate_of_type(operation, ops.XXPowGate):
+        if isinstance(operation.gate, ops.XXPowGate):
             return not self._check_if_XXPow_operation_interacts_with_any(
                 cast(ops.GateOperation, operation),
                 cast(Iterable[ops.GateOperation], moment.operations))
@@ -186,8 +185,8 @@ class IonDevice(devices.Device):
 def _verify_unique_measurement_keys(operations: Iterable[ops.Operation]):
     seen: Set[str] = set()
     for op in operations:
-        meas = ops.op_gate_of_type(op, ops.MeasurementGate)
-        if meas:
+        if isinstance(op.gate, ops.MeasurementGate):
+            meas = op.gate
             key = protocols.measurement_key(meas)
             if key in seen:
                 raise ValueError('Measurement key {} repeated'.format(key))

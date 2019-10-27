@@ -39,38 +39,54 @@ class _ResolverCache:
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
             import cirq
+            from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.known_devices import _NamedConstantXmonDevice
+            from cirq.contrib.quantum_volume import QuantumVolumeResult
             self._crd = {
+                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+                'AsymmetricDepolarizingChannel':
+                cirq.AsymmetricDepolarizingChannel,
+                'BitFlipChannel': cirq.BitFlipChannel,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
+                'DepolarizingChannel': cirq.DepolarizingChannel,
+                'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GeneralizedAmplitudeDampingChannel':
+                cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
+                'IdentityOperation': cirq.IdentityOperation,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+                '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'PauliString': cirq.PauliString,
+                'PhaseDampingChannel': cirq.PhaseDampingChannel,
+                'PhaseFlipChannel': cirq.PhaseFlipChannel,
                 'PhaseGradientGate': cirq.PhaseGradientGate,
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'QuantumVolumeResult': QuantumVolumeResult,
+                'ResetChannel': cirq.ResetChannel,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
@@ -84,6 +100,7 @@ class _ResolverCache:
                 'pandas.DataFrame': pd.DataFrame,
                 'pandas.Index': pd.Index,
                 'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,

@@ -24,8 +24,16 @@ import numpy as np
 
 from cirq import value, protocols, linalg
 from cirq._compat import deprecated
-from cirq.ops import (global_phase_op, raw_types, gate_operation, common_gates,
-                      pauli_gates, clifford_gate, pauli_interaction_gate)
+from cirq.ops import (
+    global_phase_op,
+    raw_types,
+    gate_operation,
+    common_gates,
+    pauli_gates,
+    clifford_gate,
+    pauli_interaction_gate,
+    identity,
+)
 
 if TYPE_CHECKING:
     import cirq
@@ -155,12 +163,12 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other) -> 'PauliString':
-        if not (isinstance(other, (PauliString, numbers.Number)) or
-                gate_operation.op_gate_isinstance(other,
-                                                  common_gates.IdentityGate)):
+        if not isinstance(
+                other,
+            (PauliString, numbers.Number, identity.IdentityOperation)):
             return NotImplemented
 
-        return PauliString(other,
+        return PauliString(cast(PAULI_STRING_LIKE, other),
                            qubit_pauli_map=self._qubit_pauli_map,
                            coefficient=self.coefficient)
 
@@ -180,7 +188,7 @@ class PauliString(raw_types.Operation):
                                coefficient=self._coefficient *
                                complex(cast(SupportsComplex, other)))
 
-        if gate_operation.op_gate_isinstance(other, common_gates.IdentityGate):
+        if isinstance(other, identity.IdentityOperation):
             return self
 
         # Note: PauliString case handled by __mul__.
@@ -303,7 +311,10 @@ class PauliString(raw_types.Operation):
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
-                                      atol: float = 1e-7) -> float:
+                                      *,
+                                      atol: float = 1e-7,
+                                      check_preconditions: bool = True
+                                     ) -> float:
         r"""Evaluate the expectation of this PauliString given a wavefunction.
 
         Compute the expectation value of this PauliString with respect to a
@@ -326,7 +337,10 @@ class PauliString(raw_types.Operation):
         Args:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
+            check_preconditions: Whether to check that `state` represents a
+                valid wavefunction.
 
         Returns:
             The expectation value of the input state.
@@ -352,12 +366,13 @@ class PauliString(raw_types.Operation):
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-        # HACK: avoid circular import
-        from cirq.sim.wave_function import validate_normalized_state
-        validate_normalized_state(state=state,
-                                  qid_shape=(2,) * num_qubits,
-                                  dtype=state.dtype,
-                                  atol=atol)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.wave_function import validate_normalized_state
+            validate_normalized_state(state=state,
+                                      qid_shape=(2,) * num_qubits,
+                                      dtype=state.dtype,
+                                      atol=atol)
         return self._expectation_from_wavefunction_no_validation(
             state, qubit_map)
 
@@ -395,7 +410,10 @@ class PauliString(raw_types.Operation):
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
-                                        atol: float = 1e-7) -> float:
+                                        *,
+                                        atol: float = 1e-7,
+                                        check_preconditions: bool = True
+                                       ) -> float:
         r"""Evaluate the expectation of this PauliString given a density matrix.
 
         Compute the expectation value of this PauliString with respect to an
@@ -418,7 +436,10 @@ class PauliString(raw_types.Operation):
         Args:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliString to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
+            check_preconditions: Whether to check that `state` represents a
+                valid density matrix.
 
         Returns:
             The expectation value of the input state.
@@ -445,13 +466,15 @@ class PauliString(raw_types.Operation):
                              "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
-        # HACK: avoid circular import
-        from cirq.sim.density_matrix_utils import to_valid_density_matrix
-        # Do not enforce reshaping if the state all axes are dimension 2.
-        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
-                                    num_qubits=num_qubits,
-                                    dtype=state.dtype,
-                                    atol=atol)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.density_matrix_utils import to_valid_density_matrix
+            # Do not enforce reshaping if the state all axes are dimension 2.
+            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+                dim, dim),
+                                        num_qubits=num_qubits,
+                                        dtype=state.dtype,
+                                        atol=atol)
         return self._expectation_from_density_matrix_no_validation(
             state, qubit_map)
 
@@ -813,7 +836,7 @@ class _MutablePauliString:
 
         phase, new_pauli = cur_pauli.phased_pauli_product(pauli)
         self.coef *= phase
-        if new_pauli is common_gates.I:
+        if new_pauli is identity.I:
             del self.paulis[qubit]
         else:
             self.paulis[qubit] = cast(pauli_gates.Pauli, new_pauli)
@@ -827,7 +850,7 @@ class _MutablePauliString:
             self, mapping: Mapping['cirq.Qid',
                                    Union['cirq.Pauli', 'cirq.IdentityGate']]):
         for qubit, pauli in mapping.items():
-            if isinstance(pauli, common_gates.IdentityGate):
+            if isinstance(pauli, identity.IdentityGate):
                 continue
 
             if not isinstance(pauli, pauli_gates.Pauli):
@@ -841,8 +864,7 @@ class _MutablePauliString:
         if isinstance(contents, PauliString):
             # Note: cirq.X/Y/Z(qubit) are PauliString instances.
             self.inline_times_pauli_string(contents)
-        elif gate_operation.op_gate_isinstance(contents,
-                                               common_gates.IdentityGate):
+        elif isinstance(contents, identity.IdentityOperation):
             pass  # No effect.
         elif isinstance(contents, Mapping):
             self._inline_times_mapping(contents)
