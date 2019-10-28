@@ -42,11 +42,11 @@ def test_single_qubit_init():
 
     with pytest.raises(ValueError, match='Not a .*unitary matrix'):
         cirq.SingleQubitMatrixGate(np.zeros((2, 2)))
-    with pytest.raises(ValueError, match='Wrong matrix shape'):
+    with pytest.raises(ValueError, match='must be a square 2d numpy array'):
         cirq.SingleQubitMatrixGate(cirq.eye_tensor((2, 2), dtype=float))
-    with pytest.raises(ValueError, match='Wrong matrix shape'):
+    with pytest.raises(ValueError, match='must be a square 2d numpy array'):
         cirq.SingleQubitMatrixGate(np.ones((3, 4)))
-    with pytest.raises(ValueError, match='Wrong matrix shape'):
+    with pytest.raises(ValueError, match='must be a square 2d numpy array'):
         cirq.SingleQubitMatrixGate(np.ones((2, 2, 2)))
 
 
@@ -274,3 +274,26 @@ def test_matrix_gate_pow():
     assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), t, default=None) is None
     assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), 2) == cirq.MatrixGate(
         -np.eye(1))
+
+
+def test_phase_by():
+    # Single qubit case.
+    x = cirq.MatrixGate(cirq.unitary(cirq.X))
+    y = cirq.phase_by(x, 0.25, 0)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(y), cirq.unitary(cirq.Y), atol=1e-8)
+
+    # Two qubit case. Commutes with control.
+    cx = cirq.MatrixGate(cirq.unitary(cirq.X.controlled(1)))
+    cx2 = cirq.phase_by(cx, 0.25, 0)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cx2), cirq.unitary(cx), atol=1e-8)
+
+    # Two qubit case. Doesn't commute with target.
+    cy = cirq.phase_by(cx, 0.25, 1)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(cy), cirq.unitary(cirq.Y.controlled(1)), atol=1e-8)
+
+    m = cirq.MatrixGate(np.eye(3), qid_shape=[3])
+    with pytest.raises(TypeError, match='returned NotImplemented'):
+        _ = cirq.phase_by(m, 0.25, 0)
