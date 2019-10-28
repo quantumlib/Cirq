@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import List, TYPE_CHECKING
 
-from cirq import ops, protocols
+from cirq import protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,

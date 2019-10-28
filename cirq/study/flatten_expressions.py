@@ -13,11 +13,11 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import overload, Any, Callable, List, Optional, Tuple, Union
 
 import sympy
 
-from cirq import protocols, value
+from cirq import protocols
 from cirq.study import resolver, sweeps, sweepable
 
 

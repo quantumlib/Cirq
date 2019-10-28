@@ -27,6 +27,7 @@ import sympy
 
 import cirq
 import cirq.protocols
+from cirq.contrib.quantum_volume import QuantumVolumeResult
 
 
 def assert_roundtrip(obj, text_should_be=None):
@@ -205,6 +206,10 @@ TEST_OBJECTS = {
         cirq.IdentityGate(num_qubits=5),
         cirq.IdentityGate(num_qubits=5, qid_shape=(3,) * 5)
     ],
+    'IdentityOperation': [
+        cirq.IdentityOperation(cirq.LineQubit.range(2)),
+        cirq.IdentityOperation(cirq.LineQubit.range(5))
+    ],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
@@ -249,6 +254,11 @@ TEST_OBJECTS = {
                         global_shift=0.789),
     'QuantumFourierTransformGate':
     cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
+    'QuantumVolumeResult':
+    QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+                        heavy_set=[1, 2, 3],
+                        compiled_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+                        sampler_result=.1),
     'ResetChannel':
     cirq.ResetChannel(),
     'X':
@@ -264,10 +274,16 @@ TEST_OBJECTS = {
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'SYC':
+    cirq.SYC,
+    'SycamoreGate':
+    cirq.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
+    'TwoQubitMatrixGate':
+    cirq.TwoQubitMatrixGate(np.eye(4)),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -435,6 +451,11 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
+    'CliffordSimulator',
+    'CliffordSimulatorStepResult',
+    'CliffordState',
+    'CliffordTableau',
+    'CliffordTrialResult',
     'ConstantQubitNoiseModel',
     'ControlledGate',
     'ControlledOperation',
@@ -477,12 +498,13 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'StabilizerStateChForm',
     'StateVectorMixin',
+    'SYC_GATESET',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
     'TrialResult',
-    'TwoQubitMatrixGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
@@ -498,6 +520,12 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
     # Objects not listed at top level.
     yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
+    yield 'QuantumVolumeResult', type(
+        QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
+                            heavy_set=[1, 2, 3],
+                            compiled_circuit=cirq.Circuit(
+                                cirq.H.on_each(QUBITS)),
+                            sampler_result=.1))
 
 
 def test_builtins():
