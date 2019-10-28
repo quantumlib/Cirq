@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Optional
 
 import pandas as pd
 import sympy
@@ -97,30 +97,36 @@ class T1DecayResult:
         """A data frame with delay_ns, false_count, true_count columns."""
         return self._data
 
-    def plot(self, show: bool = False, **plot_kwargs: Any) -> None:
-        """Plots excited state probability vs the Rabi angle (angle of rotation
-        around the x-axis).
+    def plot(self, ax: Optional[plt.Axes] = None,
+             **plot_kwargs: Any) -> plt.Axes:
+        """Plots the excited state probability vs the amount of delay.
 
         Args:
-            show: If set to True, `matplotlib.pyplot.show()` is called.
-            **plot_kwargs: Arguments to be passed to matplotlib.pyplot.plot.
+            ax: the plt.Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            **plot_kwargs: Arguments to be passed to 'plt.Axes.plot'.
+
+        Returns:
+            The plt.Axes containing the plot.
         """
-        fig = plt.figure()
-        ax = plt.gca()
-        ax.set_ylim([0, 1])
+        show_plot = not ax
+        if show_plot:
+            fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+        # fig = plt.figure()
+        # ax = plt.gca()
+        ax.set_ylim(ymin=0, ymax=1)
 
         xs = self._data['delay_ns']
         ts = self._data['true_count']
         fs = self._data['false_count']
 
-        plt.plot(xs, ts / (fs + ts), 'ro-', figure=fig, **plot_kwargs)
-        plt.xlabel(
-            r"Delay between initialization and measurement (nanoseconds)",
-            figure=fig)
-        plt.ylabel('Excited State Probability', figure=fig)
-        plt.title('T1 Decay Experiment Data')
-        if show:
-            plt.show()
+        ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
+        ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
+        ax.set_ylabel('Excited State Probability')
+        ax.set_title('T1 Decay Experiment Data')
+        if show_plot:
+            fig.show()
+        return ax
 
     def __str__(self):
         return f'T1DecayResult with data:\n{self.data}'
