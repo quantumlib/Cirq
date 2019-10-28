@@ -30,7 +30,6 @@ Simulator types include:
 from typing import (
     Any,
     Dict,
-    Hashable,
     Iterator,
     List,
     Sequence,
@@ -111,71 +110,6 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             by the qubits being measured.)
         """
         raise NotImplementedError()
-
-    def compute_samples_displays(
-            self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            param_resolver: 'study.ParamResolverOrSimilarType' = None,
-    ) -> study.ComputeDisplaysResult:
-        """Computes SamplesDisplays in the supplied Circuit or Schedule.
-
-        Args:
-            program: The circuit or schedule to simulate.
-            param_resolver: Parameters to run with the program.
-
-        Returns:
-            ComputeDisplaysResult for the simulation.
-        """
-        return self.compute_samples_displays_sweep(
-            program,
-            study.ParamResolver(param_resolver))[0]
-
-    def compute_samples_displays_sweep(
-            self,
-            program: Union[circuits.Circuit, schedules.Schedule],
-            params: Optional[study.Sweepable] = None
-    ) -> List[study.ComputeDisplaysResult]:
-        """Computes SamplesDisplays in the supplied Circuit or Schedule.
-
-        In contrast to `compute_displays`, this allows for sweeping
-        over different parameter values.
-
-        Args:
-            program: The circuit or schedule to simulate.
-            params: Parameters to run with the program.
-
-        Returns:
-            List of ComputeDisplaysResults for this run, one for each
-            possible parameter resolver.
-        """
-        circuit = (program.to_circuit()
-                   if isinstance(program, schedules.Schedule) else program)
-
-        compute_displays_results = []  # type: List[study.ComputeDisplaysResult]
-        for param_resolver in study.to_resolvers(params):
-            display_values = {}  # type: Dict[Hashable, Any]
-            preceding_circuit = circuits.Circuit()
-            for i, moment in enumerate(circuit):
-                displays = (op for op in moment
-                            if isinstance(op, ops.SamplesDisplay))
-                for display in displays:
-                    measurement_key = str(display.key)
-                    measurement_circuit = circuits.Circuit(
-                        display.measurement_basis_change(),
-                        ops.measure(*display.qubits, key=measurement_key))
-                    measurements = self._run(
-                        preceding_circuit + measurement_circuit,
-                        param_resolver,
-                        display.num_samples)
-                    display_values[display.key] = (
-                        display.value_derived_from_samples(
-                            measurements[measurement_key]))
-                preceding_circuit.append(circuit[i])
-            compute_displays_results.append(study.ComputeDisplaysResult(
-                params=param_resolver,
-                display_values=display_values))
-
-        return compute_displays_results
 
 
 class SimulatesAmplitudes(metaclass=abc.ABCMeta):
@@ -485,7 +419,9 @@ class StepResult(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def sample(self,
                qubits: List[ops.Qid],
-               repetitions: int = 1) -> np.ndarray:
+               repetitions: int = 1,
+               seed: Optional[Union[int, np.random.RandomState]] = None
+              ) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -494,6 +430,7 @@ class StepResult(metaclass=abc.ABCMeta):
             qubits: The qubits to be sampled in an order that influence the
                 returned measurement results.
             repetitions: The number of samples to take.
+            seed: A seed for the pseudorandom number generator.
 
         Returns:
             Measurement results with True corresponding to the ``|1⟩`` state.
@@ -506,7 +443,9 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample_measurement_ops(
             self,
             measurement_ops: List[ops.GateOperation],
-            repetitions: int = 1) -> Dict[str, np.ndarray]:
+            repetitions: int = 1,
+            seed: Optional[Union[int, np.random.RandomState]] = None
+    ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -521,6 +460,7 @@ class StepResult(metaclass=abc.ABCMeta):
             measurement_ops: `GateOperation` instances whose gates are
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
+            seed: A seed for the pseudorandom number generator.
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
@@ -549,7 +489,7 @@ class StepResult(metaclass=abc.ABCMeta):
             bounds[key] = (current_index, current_index + len(op.qubits))
             all_qubits.extend(op.qubits)
             current_index += len(op.qubits)
-        indexed_sample = self.sample(all_qubits, repetitions)
+        indexed_sample = self.sample(all_qubits, repetitions, seed=seed)
 
         results = {}
         for k, (s, e) in bounds.items():
@@ -592,7 +532,8 @@ class SimulationTrialResult:
 
     def __str__(self):
         def bitstring(vals):
-            return ''.join('1' if v else '0' for v in vals)
+            separator = ' ' if np.max(vals) >= 10 else ''
+            return separator.join(str(int(v)) for v in vals)
 
         results = sorted(
             [(key, bitstring(val)) for key, val in self.measurements.items()])

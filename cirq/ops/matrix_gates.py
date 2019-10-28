@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any, Tuple
+from typing import cast, Any, Tuple, List
 
 import numpy as np
 
@@ -184,6 +184,16 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
 
     def __str__(self):
         return str(self._matrix.round(3))
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'matrix': self._matrix,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, matrix: List, **kwargs):
+        return cls(np.asarray(matrix))
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,

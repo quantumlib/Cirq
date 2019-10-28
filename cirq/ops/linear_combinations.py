@@ -19,8 +19,9 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq.linalg import operator_spaces
-from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
+from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
+from cirq.value.linear_dict import _format_terms
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
@@ -106,7 +107,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         if self.num_qubits() != 1:
             return NotImplemented
         pauli_basis = {
-            common_gates.I,
+            identity.I,
             pauli_gates.X,
             pauli_gates.Y,
             pauli_gates.Z,
@@ -114,14 +115,14 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         if not set(self.keys()).issubset(pauli_basis):
             return NotImplemented
 
-        ai = self[common_gates.I]
+        ai = self[identity.I]
         ax = self[pauli_gates.X]
         ay = self[pauli_gates.Y]
         az = self[pauli_gates.Z]
         bi, bx, by, bz = operator_spaces.pow_pauli_combination(
             ai, ax, ay, az, exponent)
         return LinearCombinationOfGates({
-            common_gates.I: bi,
+            identity.I: bi,
             pauli_gates.X: bx,
             pauli_gates.Y: by,
             pauli_gates.Z: bz
@@ -203,7 +204,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         if len(self.qubits) != 1:
             return NotImplemented
         qubit = self.qubits[0]
-        i = common_gates.I(qubit)
+        i = identity.I(qubit)
         x = pauli_gates.X(qubit)
         y = pauli_gates.Y(qubit)
         z = pauli_gates.Z(qubit)
@@ -341,8 +342,11 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
-    def expectation_from_wavefunction(self, state: np.ndarray,
-                                      qubit_map: Mapping[raw_types.Qid, int]
+    def expectation_from_wavefunction(self,
+                                      state: np.ndarray,
+                                      qubit_map: Mapping[raw_types.Qid, int],
+                                      *,
+                                      check_preconditions: bool = True
                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
 
@@ -351,7 +355,9 @@ class PauliSum:
         Args:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliSum to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            check_preconditions: Whether to check that `state` represents a
+                valid wavefunction.
 
         Returns:
             The expectation value of the input state.
@@ -375,17 +381,21 @@ class PauliSum:
             raise ValueError("Input array does not represent a wavefunction "
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
-        # HACK: avoid circular import
-        from cirq.sim.wave_function import validate_normalized_state
-        validate_normalized_state(state=state,
-                                  qid_shape=(2,) * num_qubits,
-                                  dtype=state.dtype)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.wave_function import validate_normalized_state
+            validate_normalized_state(state=state,
+                                      qid_shape=(2,) * num_qubits,
+                                      dtype=state.dtype)
         return sum(
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
 
-    def expectation_from_density_matrix(self, state: np.ndarray,
-                                        qubit_map: Mapping[raw_types.Qid, int]
+    def expectation_from_density_matrix(self,
+                                        state: np.ndarray,
+                                        qubit_map: Mapping[raw_types.Qid, int],
+                                        *,
+                                        check_preconditions: bool = True
                                        ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
 
@@ -394,7 +404,9 @@ class PauliSum:
         Args:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliSum to the
-            indices of the qubits that `state` is defined over.
+                indices of the qubits that `state` is defined over.
+            check_preconditions: Whether to check that `state` represents a
+                valid density matrix.
 
         Returns:
             The expectation value of the input state.
@@ -419,12 +431,14 @@ class PauliSum:
             raise ValueError("Input array does not represent a density matrix "
                              "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
-        # HACK: avoid circular import
-        from cirq.sim.density_matrix_utils import to_valid_density_matrix
-        # Do not enforce reshaping if the state all axes are dimension 2.
-        _ = to_valid_density_matrix(density_matrix_rep=state.reshape(dim, dim),
-                                    num_qubits=num_qubits,
-                                    dtype=state.dtype)
+        if check_preconditions:
+            # HACK: avoid circular import
+            from cirq.sim.density_matrix_utils import to_valid_density_matrix
+            # Do not enforce reshaping if the state all axes are dimension 2.
+            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+                dim, dim),
+                                        num_qubits=num_qubits,
+                                        dtype=state.dtype)
         return sum(
             p._expectation_from_density_matrix_no_validation(state, qubit_map)
             for p in self)
@@ -511,8 +525,7 @@ class PauliSum:
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
-        return value.linear_dict._format_terms(terms=terms,
-                                               format_spec=format_spec)
+        return _format_terms(terms=terms, format_spec=format_spec)
 
     def __str__(self):
         return self.__format__('.3f')

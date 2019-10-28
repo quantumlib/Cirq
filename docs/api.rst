@@ -178,20 +178,6 @@ Pauli and Clifford Group Concepts
     SingleQubitCliffordGate
 
 
-Displays
-''''''''
-
-
-.. autosummary::
-    :toctree: generated/
-
-    ApproxPauliStringExpectation
-    approx_pauli_string_expectation
-    DensityMatrixDisplay
-    SamplesDisplay
-    WaveFunctionDisplay
-
-
 Circuits and Schedules
 ''''''''''''''''''''''
 
@@ -242,6 +228,7 @@ Classes for simulations and results.
     sample_density_matrix
     sample_state_vector
     sample_sweep
+    Sampler
     SimulatesFinalState
     SimulatesIntermediateState
     SimulatesIntermediateWaveFunction
@@ -413,6 +400,7 @@ operations and decompositions.
     is_unitary
     kak_canonicalize_vector
     kak_decomposition
+    kak_vector
     KakDecomposition
     kron
     kron_factor_4x4_to_2x2s

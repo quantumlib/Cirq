@@ -137,11 +137,6 @@ def test_with_qubits_and_transform_qubits():
                                                            cirq.LineQubit(-1),
                                                            cirq.LineQubit(-2)])
 
-    # The gate's constraints should be applied when changing the qubits.
-    with pytest.raises(ValueError):
-        _ = cirq.H(cirq.LineQubit(0)).with_qubits(cirq.LineQubit(0),
-                                                  cirq.LineQubit(1))
-
 
 def test_extrapolate():
     q = cirq.NamedQubit('q')
@@ -308,3 +303,17 @@ def test_op_gate_isinstance():
 
     assert not cirq.op_gate_isinstance(NonGateOperation(), cirq.XPowGate)
     assert not cirq.op_gate_isinstance(NonGateOperation(), NonGateOperation)
+
+
+def test_gate_on_operation_besides_gate_operation():
+    a, b = cirq.LineQubit.range(2)
+
+    assert cirq.op_gate_of_type(
+        -1j * cirq.X(a) * cirq.Y(b),
+        cirq.DensePauliString) == -1j * cirq.DensePauliString('XY')
+
+    assert cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                   cirq.DensePauliString)
+
+    assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
+                                       cirq.XPowGate)

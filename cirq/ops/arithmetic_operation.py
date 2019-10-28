@@ -182,7 +182,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = np.product([q.dimension for q in register]).item()
+                size = int(np.product([q.dimension for q in register]).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)
@@ -221,7 +221,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             # Copy amplitude to new location.
             cast(List[Union[int, slice]], outputs).append(slice(None))
             cast(List[Union[int, slice]], inputs).append(slice(None))
-            dst[outputs] = src[inputs]
+            dst[tuple(outputs)] = src[tuple(inputs)]
 
         # In case the reshaped arrays were copies instead of views.
         dst.shape = transposed_args.available_buffer.shape

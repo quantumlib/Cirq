@@ -565,3 +565,113 @@ def test_deserialize_schedule():
         },
     }
     assert cg.XMON.deserialize_dict(serialized, cg.Bristlecone) == schedule
+
+
+def test_serialize_deserialize_syc():
+    proto_dict = {
+        'gate': {
+            'id': 'syc'
+        },
+        'args': {},
+        'qubits': [{
+            'id': '1_2'
+        }, {
+            'id': '1_3'
+        }]
+    }
+
+    q0 = cirq.GridQubit(1, 2)
+    q1 = cirq.GridQubit(1, 3)
+    op = cirq.SYC(q0, q1)
+    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
+
+
+def test_serialize_fails_on_other_fsim_gates():
+    a = cirq.GridQubit(1, 2)
+    b = cirq.GridQubit(2, 2)
+    op = cirq.FSimGate(phi=0.5, theta=-0.2)(a, b)
+    with pytest.raises(ValueError, match='Cannot serialize'):
+        _ = cg.SYC_GATESET.serialize_op_dict(op)
+
+
+def test_serialize_fails_on_symbols():
+    a = cirq.GridQubit(1, 2)
+    b = cirq.GridQubit(2, 2)
+    op = cirq.FSimGate(phi=np.pi / 2, theta=sympy.Symbol('t'))(a, b)
+    with pytest.raises(ValueError, match='Cannot serialize'):
+        _ = cg.SYC_GATESET.serialize_op_dict(op)
+
+
+@pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
+    (cirq.X**0.25, 0.0, 0.25),
+    (cirq.Y**0.25, 0.5, 0.25),
+    (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
+    (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
+    (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
+    (cirq.Rx(0.125 * np.pi), 0.0, 0.125),
+    (cirq.Ry(0.25 * np.pi), 0.5, 0.25),
+])
+def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
+    op = gate.on(cirq.GridQubit(1, 2))
+    expected = {
+        'gate': {
+            'id': 'xy'
+        },
+        'args': {
+            'axis_half_turns': {
+                'arg_value': {
+                    'float_value': axis_half_turns
+                }
+            },
+            'half_turns': {
+                'arg_value': {
+                    'float_value': half_turns
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    assert cg.SYC_GATESET.serialize_op_dict(op) == expected
+    deserialized_op = cg.SYC_GATESET.deserialize_op_dict(expected)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(deserialized_op),
+        cirq.unitary(op),
+        atol=1e-7,
+    )
+
+
+@pytest.mark.parametrize(('qubits', 'qubit_ids', 'key', 'invert_mask'), [
+    ([cirq.GridQubit(1, 1)], ['1_1'], 'a', ()),
+    ([cirq.GridQubit(1, 2)], ['1_2'], 'b', (True,)),
+    ([cirq.GridQubit(1, 1), cirq.GridQubit(1, 2)], ['1_1', '1_2'], 'a',
+     (True, False)),
+])
+def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
+    op = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
+    proto_dict = {
+        'gate': {
+            'id': 'meas'
+        },
+        'qubits': [],
+        'args': {
+            'key': {
+                'arg_value': {
+                    'string_value': key
+                }
+            },
+            'invert_mask': {
+                'arg_value': {
+                    'bool_values': {
+                        'values': list(invert_mask)
+                    }
+                }
+            }
+        },
+    }
+    for qubit_id in qubit_ids:
+        proto_dict['qubits'].append({'id': qubit_id})
+    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
