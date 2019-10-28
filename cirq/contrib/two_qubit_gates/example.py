@@ -1,0 +1,25 @@
+import numpy as np
+
+from cirq import FSimGate, unitary
+from cirq.contrib.two_qubit_gates.gate_compilation import gate_product_tabulation
+from cirq.contrib.two_qubit_gates.math_utils import random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity
+
+base = unitary(FSimGate(np.pi / 4, np.pi / 24))
+
+tabulation = gate_product_tabulation(base, 1e-2)
+
+unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(1000)
+target = unitaries[0]
+
+infidelities = []
+failed_infidelities = []
+for target in unitaries:
+    local_us, actual, success = tabulation.compile_two_qubit_gate(target)
+    infidelity = 1 - unitary_entanglement_fidelity(target, actual)
+    if success:
+        infidelities.append(infidelity)
+    else:
+        failed_infidelities.append(infidelity)
+
+infidelities = np.array(infidelities)
+failed_infidelities = np.array(failed_infidelities)

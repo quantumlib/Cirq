@@ -2,13 +2,14 @@
 with a product A k A."""
 from functools import reduce
 from typing import Tuple, Dict, Sequence, List
+from warnings import warn
 
-import numpy
+import numpy as np
 import attr
 from cirq import kak_decomposition, kak_vector
 from cirq.contrib.two_qubit_gates.math_utils import KAK_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary, KAK_vector_to_unitary
 
-_SingleQubitGatePair = Tuple[numpy.ndarray, numpy.ndarray]
+_SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
 
 @attr.s(auto_attribs=True)
@@ -16,9 +17,9 @@ class GateTabulation(object):
     """A 2-qubit gate compiler based on precomputing/tabulating gate products.
 
     """
-    base_gate: numpy.ndarray  # Base two qubit gate. (4x4 unitary)
+    base_gate: np.ndarray  # Base two qubit gate. (4x4 unitary)
     # Sequence of KAK vectors, ideally "dense" in the Weyl chamber. Shape (N,3).
-    KAK_vecs: numpy.ndarray
+    KAK_vecs: np.ndarray
     # Sequence of 1-local operations required to achieve a given KAK vector.
     # Index j corresponds to KAK_vecs[j], and is of the form
     # ( (u0[0],u1[0]), (u0[1],u1[1]), ...) where u0[k] is the kth single qubit
@@ -27,8 +28,8 @@ class GateTabulation(object):
     max_expected_infidelity: float
 
     def compile_two_qubit_gate(
-            self, unitary: numpy.ndarray
-    ) -> Tuple[Sequence[_SingleQubitGatePair], numpy.ndarray, bool]:
+            self, unitary: np.ndarray
+    ) -> Tuple[Sequence[_SingleQubitGatePair], np.ndarray, bool]:
         r"""Compute single qubit gates required to compile a desired unitary.
 
         Given a desired unitary U, this computes the sequence of 1-local gates
@@ -51,7 +52,7 @@ class GateTabulation(object):
                 the desired maximum entanglement infidelity to the target
                 unitary.
         """
-        unitary = numpy.asarray(unitary)
+        unitary = np.asarray(unitary)
         kak_vec = kak_vector(unitary, check_preconditions=False)
         infidelities = KAK_vector_infidelity(kak_vec, self.KAK_vecs,
                                              ignore_equivalent_vectors=True)
@@ -60,7 +61,7 @@ class GateTabulation(object):
         success = infidelities[nearest_ind] < self.max_expected_infidelity
 
         # shape (n,2,2,2)
-        inner_gates = numpy.array(self.single_qubit_gates[nearest_ind])
+        inner_gates = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
             return _outer_locals_for_unitary(unitary, self.base_gate) + (
@@ -83,8 +84,8 @@ class GateTabulation(object):
 
 
 def _outer_locals_for_unitary(
-        target: numpy.ndarray, base: numpy.ndarray
-) -> Tuple[Tuple[_SingleQubitGatePair, _SingleQubitGatePair], numpy.ndarray]:
+        target: np.ndarray, base: np.ndarray
+) -> Tuple[Tuple[_SingleQubitGatePair, _SingleQubitGatePair], np.ndarray]:
     """Local unitaries mapping between locally equivalent 2-local unitaries.
 
     Finds the left and right 1-local unitaries k_L, k_R such that
@@ -117,8 +118,8 @@ def _outer_locals_for_unitary(
     kRb0, kRb1 = base_decomp.single_qubit_operations_before
     k_R = kRb0.conj().T @ kRt0, kRb1.conj().T @ kRt1
 
-    actual = numpy.kron(*k_L) @ base
-    actual = actual @ numpy.kron(*k_R)
+    actual = np.kron(*k_L) @ base
+    actual = actual @ np.kron(*k_R)
     actual *= target_decomp.global_phase.conj()
 
     return (k_R, k_L), actual
@@ -126,10 +127,10 @@ def _outer_locals_for_unitary(
 
 def _tabulate_KAK_vectors(
         tabulation: Dict[int, Tuple[_SingleQubitGatePair, ...]],
-        base_gate: numpy.ndarray, max_dist: float, KAK_mesh,
+        base_gate: np.ndarray, max_dist: float, KAK_mesh,
         *local_unitary_pairs: _SingleQubitGatePair,
 ) -> Tuple[
-    List[numpy.ndarray], List[Sequence[_SingleQubitGatePair]]]:
+    List[np.ndarray], List[Sequence[_SingleQubitGatePair]]]:
     """Tabulate KAK vectors from products of local unitaries with a base gate.
 
     Args:
@@ -156,12 +157,12 @@ def _tabulate_KAK_vectors(
     assert len(shapes.pop()) == 3
 
     # Generate products
-    local_cycles = numpy.array(
+    local_cycles = np.array(
         [vector_kron(*pairs) for pairs in local_unitary_pairs])
 
-    prods = numpy.einsum('ab,...bc,cd', base_gate, local_cycles[0], base_gate)
+    prods = np.einsum('ab,...bc,cd', base_gate, local_cycles[0], base_gate)
     for local_cycle in local_cycles[1:]:
-        numpy.einsum('ab,...bc,...cd', base_gate, local_cycle, prods, out=prods)
+        np.einsum('ab,...bc,...cd', base_gate, local_cycle, prods, out=prods)
 
     kak_vectors = kak_vector(prods, check_preconditions=False)
 
@@ -172,7 +173,7 @@ def _tabulate_KAK_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = numpy.sqrt(numpy.sum((KAK_mesh - vec) ** 2, axis=-1))
+        dists = np.sqrt(np.sum((KAK_mesh - vec) ** 2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
         cycles_for_gate = tuple((k_0[ind], k_1[ind])
@@ -191,10 +192,10 @@ def _tabulate_KAK_vectors(
     return kept_kaks, kept_cycles
 
 
-def gate_product_tabulation(base_gate: numpy.ndarray,
+def gate_product_tabulation(base_gate: np.ndarray,
                             max_infidelity: float) -> GateTabulation:
     assert 1 / 2 > max_infidelity > 0
-    spacing = numpy.sqrt(max_infidelity / 3)
+    spacing = np.sqrt(max_infidelity / 3)
     mesh_points = weyl_chamber_mesh(spacing)
 
     num_samples = mesh_points.shape[0] * 50
@@ -210,7 +211,7 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
                                                 (u_locals_0, u_locals_1))
 
     # Will be used later for getting missing KAK vectors.
-    kak_vecs_single = numpy.array(kak_vecs)
+    kak_vecs_single = np.array(kak_vecs)
     sq_cycles_single = list(sq_cycles)
 
     print(f'fraction satisfied with 2 gates'
@@ -237,7 +238,7 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
         u_locals_for_gate)
 
     if not missing_vec_inds:
-        return GateTabulation(base_gate, numpy.array(kak_vecs), sq_cycles,
+        return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
                               max_infidelity)
 
     # Run through remaining KAK vectors that don't have products and try to
@@ -264,19 +265,19 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
         missing_vec = mesh_points[ind]
         missing_unitary = KAK_vector_to_unitary(missing_vec)
 
-        products = numpy.einsum('ab,...bc,cd', base_gate_dag, u_locals,
+        products = np.einsum('ab,...bc,cd', base_gate_dag, u_locals,
                                 missing_unitary)
         kaks = kak_vector(products, check_preconditions=False)
-        kaks = kaks[..., numpy.newaxis, :]
+        kaks = kaks[..., np.newaxis, :]
 
-        dists2 = numpy.sum((kaks - kak_vecs_single) ** 2, axis=-1)
-        min_dist_inds = numpy.unravel_index(dists2.argmin(), dists2.shape)
-        min_dist = numpy.sqrt(dists2[min_dist_inds])
+        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
+        min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
+        min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
             new_ind, old_ind = min_dist_inds
 
             old_sq_cycle = sq_cycles_single[old_ind][0]
-            old_k = numpy.kron(*old_sq_cycle)
+            old_k = np.kron(*old_sq_cycle)
             base_product = base_gate @ old_k @ base_gate
             new_product = products[new_ind]
 
@@ -287,7 +288,7 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
             kak_vecs.append(
                 kak_vector(base_gate @ actual, check_preconditions=False))
         else:
-            print(f'FAILURE KAK: {missing_vec}')
+            warn(f'Failed to tabulate a KAK vector near {missing_vec}')
 
-    return GateTabulation(base_gate, numpy.array(kak_vecs), sq_cycles,
+    return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
                           max_infidelity)
