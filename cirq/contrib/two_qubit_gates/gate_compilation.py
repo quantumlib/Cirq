@@ -290,5 +290,9 @@ def gate_product_tabulation(base_gate: np.ndarray,
         else:
             warn(f'Failed to tabulate a KAK vector near {missing_vec}')
 
-    return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
-                          max_infidelity)
+
+    kak_vecs = np.array(kak_vecs)
+    print(f'fraction satisfied with 2 gates and 3 gates (after patchup)'
+          f': {kak_vecs.shape[0] / mesh_points.shape[0]:.3f}')
+
+    return GateTabulation(base_gate, kak_vecs, sq_cycles, max_infidelity)
