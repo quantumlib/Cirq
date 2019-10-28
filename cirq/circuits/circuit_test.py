@@ -247,6 +247,28 @@ def test_add_op_tree():
     with pytest.raises(TypeError):
         _ = c + cirq.X
 
+    # __radd__ test
+    assert [cirq.X(a), cirq.Y(b)] + c == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
+
+    assert cirq.X(a) + c == cirq.Circuit(cirq.X(a))
+    assert [cirq.X(a)] + c == cirq.Circuit(cirq.X(a))
+    assert [[[cirq.X(a)], []]] + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a),) + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a) for _ in range(1)) + c == cirq.Circuit(cirq.X(a))
+    with pytest.raises(AttributeError):
+        _ = cirq.X + c
+
+    # non-empty circuit addition
+    d = cirq.Circuit()
+    d.append(cirq.Z(a))
+    assert [cirq.X(a)] + d + cirq.Moment([cirq.Y(b)]) == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a)]),
+        cirq.Moment([cirq.Y(b)])
+    ])
+
 
 def test_bool():
     assert not cirq.Circuit()

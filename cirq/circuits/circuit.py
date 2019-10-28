@@ -271,6 +271,23 @@ class Circuit:
         result = self.copy()
         return result.__iadd__(other)
 
+    def __radd__(self, other):
+        if not isinstance(other, type(self)):
+            if not isinstance(other, (ops.Operation, Iterable)):
+                return NotImplemented
+            # Auto wrap OP_TREE inputs into a circuit.
+            other = Circuit(other)
+
+        device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE
+                  else other.device)
+        device_2 = (other.device if self._device is devices.UNCONSTRAINED_DEVICE
+                    else self._device)
+        if device != device_2:
+            raise ValueError("Can't add circuits with incompatible devices.")
+
+        result = other.copy()
+        return result.__iadd__(self)
+
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
             return NotImplemented
