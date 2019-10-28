@@ -6,6 +6,7 @@ from typing import Tuple, Dict, Sequence, List
 import numpy
 import attr
 from cirq import kak_decomposition, kak_vector
+from cirq.contrib.two_qubit_gates.math_utils import KAK_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary, KAK_vector_to_unitary
 
 _SingleQubitGatePair = Tuple[numpy.ndarray, numpy.ndarray]
 
@@ -162,7 +163,7 @@ def _tabulate_KAK_vectors(
     for local_cycle in local_cycles[1:]:
         numpy.einsum('ab,...bc,...cd', base_gate, local_cycle, prods, out=prods)
 
-    kak_vectors = KAK_vector(prods)
+    kak_vectors = kak_vector(prods, check_preconditions=False)
 
     kept_kaks = []
     kept_cycles = []
@@ -225,7 +226,7 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
     sq_cycles.extend(out[1])
 
     # include the base gate itself
-    kak_vecs.append(KAK_vector(base_gate))
+    kak_vecs.append(kak_vector(base_gate, check_preconditions=False))
     sq_cycles.append(())
 
     print(f'fraction satisfied with 2 gates and 3 gates(same single qubit)'
@@ -265,7 +266,8 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
 
         products = numpy.einsum('ab,...bc,cd', base_gate_dag, u_locals,
                                 missing_unitary)
-        kaks = KAK_vector(products)[..., numpy.newaxis, :]
+        kaks = kak_vector(products, check_preconditions=False)
+        kaks = kaks[..., numpy.newaxis, :]
 
         dists2 = numpy.sum((kaks - kak_vecs_single) ** 2, axis=-1)
         min_dist_inds = numpy.unravel_index(dists2.argmin(), dists2.shape)
@@ -282,7 +284,8 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
                                                          base_product)
             # Add to the enumeration
             sq_cycles.append((old_sq_cycle, kL))
-            kak_vecs.append(KAK_vector(base_gate @ actual))
+            kak_vecs.append(
+                kak_vector(base_gate @ actual, check_preconditions=False))
         else:
             print(f'FAILURE KAK: {missing_vec}')
 
