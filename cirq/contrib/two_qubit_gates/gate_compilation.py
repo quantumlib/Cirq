@@ -5,7 +5,7 @@ from typing import Tuple, Dict, Sequence, List
 
 import numpy
 import attr
-from cirq import kak_decomposition
+from cirq import kak_decomposition, kak_vector
 
 _SingleQubitGatePair = Tuple[numpy.ndarray, numpy.ndarray]
 
@@ -51,7 +51,7 @@ class GateTabulation(object):
                 unitary.
         """
         unitary = numpy.asarray(unitary)
-        kak_vec = KAK_vector(unitary)
+        kak_vec = kak_vector(unitary, check_preconditions=False)
         infidelities = KAK_vector_infidelity(kak_vec, self.KAK_vecs,
                                              ignore_equivalent_vectors=True)
         nearest_ind = infidelities.argmin()
@@ -123,7 +123,7 @@ def _outer_locals_for_unitary(
     return (k_R, k_L), actual
 
 
-def tabulate_KAK_vectors(
+def _tabulate_KAK_vectors(
         tabulation: Dict[int, Tuple[_SingleQubitGatePair, ...]],
         base_gate: numpy.ndarray, max_dist: float, KAK_mesh,
         *local_unitary_pairs: _SingleQubitGatePair,
@@ -204,9 +204,9 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
 
     u_locals_for_gate = {}
     tabulation_cutoff = 0.5 * spacing
-    kak_vecs, sq_cycles = tabulate_KAK_vectors(u_locals_for_gate, base_gate,
-                                               tabulation_cutoff, mesh_points,
-                                               (u_locals_0, u_locals_1))
+    kak_vecs, sq_cycles = _tabulate_KAK_vectors(u_locals_for_gate, base_gate,
+                                                tabulation_cutoff, mesh_points,
+                                                (u_locals_0, u_locals_1))
 
     # Will be used later for getting missing KAK vectors.
     kak_vecs_single = numpy.array(kak_vecs)
@@ -217,9 +217,9 @@ def gate_product_tabulation(base_gate: numpy.ndarray,
 
     # repeat for double products
     # Multiply by the same local unitary!
-    out = tabulate_KAK_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
-                               mesh_points, (u_locals_0, u_locals_1),
-                               (u_locals_0, u_locals_1))
+    out = _tabulate_KAK_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
+                                mesh_points, (u_locals_0, u_locals_1),
+                                (u_locals_0, u_locals_1))
 
     kak_vecs.extend(out[0])
     sq_cycles.extend(out[1])
