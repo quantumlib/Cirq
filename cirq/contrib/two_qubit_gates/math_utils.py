@@ -121,12 +121,13 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
                           ignore_equivalent_vectors: bool = False
                          ) -> np.ndarray:
     """Minimum entanglement infidelity between two KAK vectors. """
+
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
         out = 1 - np.product(np.cos(k_diff), axis=-1)**2
         out -= np.product(np.sin(k_diff), axis=-1)**2
         return out
-
+    # coverage: ignore
     # We must take the minimum infidelity over all possible locally equivalent
     # KAK vectors. We need only consider equivalent vectors of one input.
     k_vec_a = np.asarray(k_vec_a)[..., np.newaxis, :]  # (...,1,3)
@@ -177,6 +178,7 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
         chamber.
     """
     if spacing < 1e-3:  # memory required ~ 1 GB
+        # coverage: ignore
         raise ValueError(f'Generating a mesh with '
                          f'spacing {spacing} may cause system to crash.')
 
@@ -280,6 +282,7 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
     U_actual = np.asarray(U_actual)
     U_ideal = np.asarray(U_ideal)
     if U_actual.shape[-1] != U_actual.shape[-2]:
+        # coverage: ignore
         raise ValueError("Inputs' trailing dimensions must be equal (square).")
 
     dim = U_ideal.shape[-1]
