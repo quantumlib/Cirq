@@ -49,6 +49,42 @@ _SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
     gate_constructor=lambda: ops.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
     args=[])
 
+_SQRT_ISWAP_SERIALIZERS = [
+    op_serializer.GateOpSerializer(
+        gate_type=ops.FSimGate,
+        serialized_gate_id='fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(lambda e: _near_mod_2pi(e.theta, np.pi / 4) and
+                                 _near_mod_2pi(e.phi, 0))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ISwapPowGate,
+        serialized_gate_id='fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(lambda e: _near_mod_n(e.exponent, -0.5, 4))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.FSimGate,
+        serialized_gate_id='inv_fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(lambda e: _near_mod_2pi(e.theta, -np.pi / 4)
+                                 and _near_mod_2pi(e.phi, 0))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ISwapPowGate,
+        serialized_gate_id='inv_fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(lambda e: _near_mod_n(e.exponent, +0.5, 4))),
+]
+
+_SQRT_ISWAP_DESERIALIZERS = [
+    op_deserializer.GateOpDeserializer(
+        serialized_gate_id='fsim_pi_4',
+        gate_constructor=lambda: ops.FSimGate(theta=np.pi / 4, phi=0),
+        args=[]),
+    op_deserializer.GateOpDeserializer(
+        serialized_gate_id='inv_fsim_pi_4',
+        gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
+        args=[]),
+]
+
 SYC_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sycamore',
     serializers=[
@@ -64,6 +100,20 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
         MEASUREMENT_DESERIALIZER,
     ],
 )
+
+SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
+    gate_set_name='sqrt_iswap',
+    serializers=[
+        *_SQRT_ISWAP_SERIALIZERS,
+        *SINGLE_QUBIT_SERIALIZERS,
+        MEASUREMENT_SERIALIZER,
+    ],
+    deserializers=[
+        *_SQRT_ISWAP_DESERIALIZERS,
+        *SINGLE_QUBIT_DESERIALIZERS,
+        MEASUREMENT_DESERIALIZER,
+    ])
+
 
 # The xmon gate set.
 XMON: serializable_gate_set.SerializableGateSet = (
