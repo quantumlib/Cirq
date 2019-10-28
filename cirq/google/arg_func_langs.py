@@ -12,23 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Optional, Iterator, Iterable, cast, Set
+from typing import (
+    List,
+    Union,
+    Optional,
+    Iterator,
+    Iterable,
+    cast,
+    Set,
+    Dict,
+    FrozenSet,
+)
 
 import numpy as np
 import sympy
 from cirq.api.google import v2
 
-SUPPORTED_FUNCTIONS_FOR_LANGUAGE = {
-    '': set(),
-    'linear': {'add', 'mul'},
+SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
+    '': frozenset(),
+    'linear': frozenset({'add', 'mul'}),
     # None means any. Is used when inferring the language during serialization.
-    None: {'add', 'mul'},
+    None: frozenset({'add', 'mul'}),
 }
+
+SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul)
 
 # Argument types for gates.
 ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.
                  Mul]
 
+# Supported function languages in order from least to most flexible.
+# Clients should use the least flexible language they can, to make it easier
+# to gradually roll out new capabilities to clients and servers.
 LANGUAGE_ORDER = [
     '',
     'linear',
@@ -91,15 +106,15 @@ def _arg_to_proto(value: ARG_LIKE,
         that was used.
     """
 
-    supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE.get(arg_function_language)
-    if supported is None:
+    if arg_function_language not in SUPPORTED_FUNCTIONS_FOR_LANGUAGE:
         raise ValueError(f'Unrecognized arg_function_language: '
                          f'{arg_function_language!r}')
+    supported = SUPPORTED_FUNCTIONS_FOR_LANGUAGE[arg_function_language]
 
     msg = v2.program_pb2.Arg() if out is None else out
 
     def check_support(func_type: str) -> str:
-        if func_type not in cast(Set[str], supported):
+        if func_type not in supported:
             lang = (repr(arg_function_language)
                     if arg_function_language is not None else '[any]')
             raise ValueError(f'Function type {func_type!r} not supported by '

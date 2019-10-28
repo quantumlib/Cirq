@@ -173,7 +173,7 @@ class GateOpSerializer:
                 'Argument {} is required, but could not get from gate {!r}'.
                 format(arg.serialized_name, gate))
 
-        if isinstance(value, (sympy.Symbol, sympy.Add, sympy.Mul)):
+        if isinstance(value, arg_func_langs.SUPPORTED_SYMPY_OPS):
             return value
 
         if value is not None:
