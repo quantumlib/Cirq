@@ -3,8 +3,6 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from cirq import kak_vector
-
 TWO_PI = np.pi * 2
 
 _RealArraylike = Union[np.ndarray, float]
@@ -13,7 +11,7 @@ _RealArraylike = Union[np.ndarray, float]
 def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
                           phi_o: _RealArraylike) -> np.ndarray:
     """Single qubit unitary matrix.
-    
+
     Args:
         theta: cos(theta) is magnitude of 00 matrix element. May be a scalar
            or real ndarray (for broadcasting).
@@ -22,7 +20,7 @@ def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
         phi_o: i exp(i phi_o) is the phase of 10 matrix element. May be a scalar
            or real ndarray (for broadcasting).
 
-    
+
     Notes:
         The output is vectorized with respect to the angles. I.e, if the angles
         are (broadcastable) arraylike objects whose sum would have shape (...),
