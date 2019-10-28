@@ -7,7 +7,10 @@ from warnings import warn
 import numpy as np
 import attr
 from cirq import kak_decomposition, kak_vector
+# pylint: disable=line-too-long
 from cirq.contrib.two_qubit_gates.math_utils import KAK_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary, KAK_vector_to_unitary
+
+# pylint: enable=line-too-long
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
@@ -241,6 +244,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     sq_cycles_single = list(sq_cycles[1:])
 
     if verbose:
+        # coverage: ignore
         print(f'fraction satisfied with 2 gates'
               f': {len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
 
@@ -254,6 +258,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     sq_cycles.extend(out[1])
 
     if verbose:
+        # coverage: ignore
         print(f'fraction satisfied with 2 gates and 3 gates(same single qubit)'
               f': {len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
 
@@ -261,6 +266,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     missing_vec_inds = set(range(mesh_points.shape[0])) - set(u_locals_for_gate)
 
     if not missing_vec_inds:
+        # coverage: ignore
         return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
                               max_infidelity)
 
@@ -304,17 +310,18 @@ def gate_product_tabulation(base_gate: np.ndarray,
             base_product = base_gate @ old_k @ base_gate
             new_product = products[new_ind]
 
-            (kR,
-             kL), actual = _outer_locals_for_unitary(new_product, base_product)
+            kRkL, actual = _outer_locals_for_unitary(new_product, base_product)
             # Add to the enumeration
-            sq_cycles.append((old_sq_cycle, kL))
+            sq_cycles.append((old_sq_cycle, kRkL[1]))
             kak_vecs.append(
                 kak_vector(base_gate @ actual, check_preconditions=False))
         elif include_warnings:
+            # coverage: ignore
             warn(f'Failed to tabulate a KAK vector near {missing_vec}')
 
     kak_vecs = np.array(kak_vecs)
     if verbose:
+        # coverage: ignore
         print(f'fraction satisfied with 2 gates and 3 gates (after patchup)'
               f': {(len(kak_vecs) - 1) / mesh_points.shape[0]:.3f}')
 

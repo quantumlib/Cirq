@@ -2,7 +2,6 @@ from itertools import permutations
 from typing import Tuple, Union
 
 import numpy as np
-from matplotlib import pyplot
 
 from cirq import kak_vector
 
@@ -64,6 +63,7 @@ def random_qubit_unitary(number: int = 1,
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if sample_phase:
+        # coverage: ignore
         global_phase = np.exp(1j * TWO_PI * np.random.rand(number))
         np.einsum('t,tab->tab', global_phase, out, out=out)
     return out
@@ -85,22 +85,6 @@ _MAGIC = np.array([[1, 0, 0, 1j], [0, 1j, 1, 0], [0, 1j, -1, 0], [1, 0, 0, -1j]
 _gamma = np.array([[1, 1, 1, 1], [1, 1, -1, -1], [-1, 1, -1, 1], [1, -1, -1, 1]
                   ]) * 0.25
 
-
-def KAK_infidelity(unitary_a: np.ndarray,
-                   unitary_b: np.ndarray,
-                   ignore_equivalent_vectors: bool = False) -> np.ndarray:
-    """Minimum entanglement infidelity between two unitaries, up to local gates.
-
-    This is the minimum of
-    1 - F_e(U_a, k_L U_b k_R)
-    where F_e is the entanglement fidelity, taken over all 1-local unitaries
-    k_L and k_R.
-    """
-    kak_a = kak_vector(unitary_a, check_preconditions=False)
-    kak_b = kak_vector(unitary_b, check_preconditions=False)
-    return KAK_vector_infidelity(kak_a, kak_b, ignore_equivalent_vectors)
-
-
 # all permutations of (1,2,3)
 _perms_123 = np.zeros((6, 3, 3), int)
 for ind, perm in enumerate(permutations((0, 1, 2))):
@@ -120,6 +104,7 @@ _offsets[1, (0, 1)] = np.pi / 2
 
 def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     """Generates all KAK vectors equivalent under single qubit unitaries."""
+    # coverage: ignore
     kak_vec = np.asarray(kak_vec)
     # Produce all shift-negations of the kak vector
     out = np.einsum('nab,...b->...na', _negations, kak_vec,

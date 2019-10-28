@@ -3,12 +3,16 @@ from time import time
 from matplotlib import pyplot as plt
 import numpy as np
 
+# pylint: disable=line-too-long
 from cirq import FSimGate, unitary
 from cirq.contrib.two_qubit_gates.gate_compilation import gate_product_tabulation
 from cirq.contrib.two_qubit_gates.math_utils import random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity
 
+# pylint: enable=line-too-long
+
 
 def main():
+    # coverage: ignore
     theta = np.pi / 4
     phi = np.pi / 24
     base = unitary(FSimGate(theta, phi))
@@ -20,13 +24,12 @@ def main():
 
     samples = 1000
     unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(samples)
-    target = unitaries[0]
 
     infidelities = []
     failed_infidelities = []
     start = time()
     for target in unitaries:
-        local_us, actual, success = tabulation.compile_two_qubit_gate(target)
+        _, actual, success = tabulation.compile_two_qubit_gate(target)
         infidelity = 1 - unitary_entanglement_fidelity(target, actual)
         if success:
             infidelities.append(infidelity)
@@ -53,5 +56,6 @@ def main():
     plt.show()
 
 
+# coverage: ignore
 if __name__ == '__main__':
     main()

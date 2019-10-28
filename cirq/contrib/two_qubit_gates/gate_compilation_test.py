@@ -2,10 +2,14 @@
 import numpy
 import pytest
 
+# pylint: disable=line-too-long
 from cirq import unitary, FSimGate
 from cirq.contrib.two_qubit_gates.gate_compilation import gate_product_tabulation
 from cirq.contrib.two_qubit_gates.math_utils import random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity
 
+# pylint: enable-line-too-long
+
+# coverage: ignore
 numpy.random.seed(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
@@ -23,7 +27,7 @@ _random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100)
                          [sycamore_tabulation, sqrt_iswap_tabulation])
 @pytest.mark.parametrize('target', _random_2Q_unitaries)
 def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
-    local_gates, actual, success = tabulation.compile_two_qubit_gate(target)
+    _, actual, success = tabulation.compile_two_qubit_gate(target)
 
     if success:
         max_error = tabulation.max_expected_infidelity
