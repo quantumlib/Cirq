@@ -159,18 +159,22 @@ class Tag:
     This can be instantiated using a string value or sub-classed to
     differentiate or tag specific instances of gates.
 
-    For instance,
-    cirq.X().add_tag(Tag('do_not_touch')
-
-    or
-    class NoTouchy(Tag):
-         pass
-
-    cirq.X().addTag(NoTouchy())
-
     Tags can then be accessed using a Gate's tag() function to allow for
     special processing of certain instances of gates (for instance, to
     prevent optimization or decomposing special gates).
+
+    Example:
+        >>> gate1 = cirq.XPowGate(exponent=1.0)
+        >>> gate1.add_tag(cirq.Tag('do_not_touch'))
+        >>> gate1.tags()
+        [Tag('do_not_touch')]
+        >>> class NoTouchy(cirq.Tag):
+        ...     def __repr__(self):
+        ...         return 'NoTouchy()'
+        >>> gate2 = cirq.XPowGate(exponent=1.0).add_tag(NoTouchy())
+        >>> gate2.tags()
+        [NoTouchy()]
+
     """
 
     def __init__(self, value: Optional[str] = None):
@@ -179,6 +183,12 @@ class Tag:
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 isinstance(self, other.__class__) and self.value == other.value)
+
+    def __str__(self):
+        return f'Tag(\'{self.value}\')'
+
+    def __repr__(self):
+        return f'Tag(\'{self.value}\')'
 
     def _json_dict_(self):
         # TODO(dstrain): Properly json serialize tags that are added on gates.
@@ -238,9 +248,19 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         from cirq.ops import linear_combinations
         return linear_combinations.LinearCombinationOfGates({self: coefficient})
 
-    def add_tag(self, tag: Tag):
+    def add_tag(self, tag: Union[str, Tag]) -> 'Gate':
+        """Adds a Tag to a gate for marking this instance specifically.
+
+        If a string is passed, a Tag is created using this value.
+
+        Returns itself for chaining.
+        """
         self._tags = getattr(self, '_tags', [])
-        self._tags.append(tag)
+        if isinstance(tag, str):
+            self._tags.append(Tag(tag))
+        else:
+            self._tags.append(tag)
+        return self
 
     def tags(self):
         return getattr(self, '_tags', [])

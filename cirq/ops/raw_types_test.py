@@ -432,8 +432,8 @@ def test_tag_equality():
 
     eq.add_equality_group(SuperDuperTag(), SuperDuperTag())
     eq.add_equality_group(cirq.Tag(), cirq.Tag())
-    eq.add_equality_group(cirq.Tag("foo"), cirq.Tag("foo"))
-    eq.add_equality_group(cirq.Tag("bar"), cirq.Tag("bar"))
+    eq.add_equality_group(cirq.Tag('foo'), cirq.Tag('foo'))
+    eq.add_equality_group(cirq.Tag('bar'), cirq.Tag('bar'))
 
 
 def test_tags_on_gates():
@@ -447,22 +447,29 @@ def test_tags_on_gates():
         pass
 
     no_tags = TestGate()
-    tagged_with_strings = TestGate()
-    tagged_with_class = TestGate()
+    tagged_with_strings = TestGate().add_tag(cirq.Tag('zen'))
+    tagged_bare_strings = TestGate().add_tag('zen')
+    tagged_with_class = TestGate().add_tag(CoolGate())
     multi_tags = TestGate()
 
-    tagged_with_strings.add_tag(cirq.Tag("zen"))
-    tagged_with_class.add_tag(CoolGate())
-
     multi_tags.add_tag(CoolGate())
-    multi_tags.add_tag(cirq.Tag("zen"))
-    multi_tags.add_tag(cirq.Tag("totally chill"))
+    multi_tags.add_tag('namaste')
+    multi_tags.add_tag(cirq.Tag('zen'))
+    multi_tags.add_tag(cirq.Tag('totally chill'))
 
     assert TestGate().num_qubits() == 1
     assert no_tags.tags() == []
-    assert tagged_with_strings.tags() == [cirq.Tag("zen")]
+    assert tagged_bare_strings.tags() == [cirq.Tag('zen')]
+    assert tagged_with_strings.tags() == [cirq.Tag('zen')]
     assert tagged_with_class.tags() == [CoolGate()]
     assert multi_tags.tags() == [
-        CoolGate(), cirq.Tag("zen"),
-        cirq.Tag("totally chill")
+        CoolGate(),
+        cirq.Tag('namaste'),
+        cirq.Tag('zen'),
+        cirq.Tag('totally chill'),
     ]
+
+
+def test_tags_consistent_protocol():
+    assert str(cirq.Tag('zen')) == 'Tag(\'zen\')'
+    assert repr(cirq.Tag('zen')) == 'Tag(\'zen\')'
